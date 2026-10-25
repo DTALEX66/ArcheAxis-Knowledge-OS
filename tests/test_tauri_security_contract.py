@@ -7,6 +7,37 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_native_modal_scroll_lock_only_allows_its_qualified_fixed_stylesheet() -> None:
+    """The native zero-gap react-remove-scroll-bar sheet was blocked by style-src.
+
+    This exact hash permits only the observed CSS, not arbitrary inline styles.
+    Dependency, stylesheet or scrollbar-gap changes require a new real native
+    qualification; do not replace this allowlist with unsafe-inline or a wildcard.
+    """
+    config = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    security = config["app"]["security"]
+    directives = {part.split()[0]: part.split()[1:]
+                  for part in security["csp"].split(";") if part.strip()}
+    assert set(directives["style-src"]) == {
+        "'self'", "'sha256-nzTgYzXYDNe6BAHiiI7NNlfK8n/auuOAhh2t92YvuXo='",
+    }
+    assert "style-src-elem" not in directives and "style-src-attr" not in directives
+    assert directives["script-src"] == ["'self'"]
+    assert directives["default-src"] == ["'self'"]
+    assert directives["object-src"] == ["'none'"]
+    assert not security.get("dangerousDisableAssetCspModification", False)
+
+
+def test_native_ipc_csp_keeps_an_exact_local_transport_allowlist() -> None:
+    config = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    directives = {part.split()[0]: part.split()[1:]
+                  for part in config["app"]["security"]["csp"].split(";") if part.strip()}
+    # Official Tauri IPC origins; no arbitrary HTTP(S), remote host or proxy route.
+    assert set(directives["connect-src"]) == {
+        "'self'", "ipc:", "http://ipc.localhost", "http://127.0.0.1:*",
+    }
+
+
 def test_root_tauri_config_has_restrictive_csp_and_no_legacy_product_name() -> None:
     config = json.loads((ROOT / "src-tauri" / "tauri.conf.json").read_text(encoding="utf-8"))
     assert config["productName"] == "ArcheAxis Knowledge"

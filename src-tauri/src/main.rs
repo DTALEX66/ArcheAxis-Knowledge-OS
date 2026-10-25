@@ -1128,9 +1128,91 @@ fn cleanup_backend_on_exit(state: DesktopBackend) {
 }
 
 #[cfg(windows)]
+#[link(name = "user32")]
+extern "system" {
+    fn GetWindowThreadProcessId(window: *mut std::ffi::c_void, process_id: *mut u32) -> u32;
+    fn PostMessageW(window: *mut std::ffi::c_void, message: u32, wparam: usize, lparam: isize) -> i32;
+}
+
+#[cfg(windows)]
+fn cancel_owned_window_menu(window: *mut std::ffi::c_void) -> bool {
+    if window.is_null() {
+        return false;
+    }
+    let mut owner = 0;
+    // A stale/foreign handle must never receive cancellation; no broadcast HWND is used.
+    unsafe { GetWindowThreadProcessId(window, &mut owner) };
+    if owner != std::process::id() {
+        return false;
+    }
+    // An active Windows popup runs a nested menu loop. app.exit alone can remain
+    // queued after Core has stopped; cancel that menu before requesting host exit.
+    unsafe { PostMessageW(window, 0x001F /* WM_CANCELMODE */, 0, 0) != 0 }
+}
+
+#[cfg(windows)]
+fn cancel_main_window_menu(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        if let Ok(handle) = window.hwnd() {
+            if !cancel_owned_window_menu(handle.0) {
+                eprintln!("ACTIVE_MENU_CANCEL_NOT_POSTED");
+            }
+        }
+    }
+}
+
+#[cfg(all(test, windows))]
+mod menu_exit_tests {
+    use std::ffi::c_void;
+
+    #[repr(C)]
+    struct Message {
+        window: *mut c_void,
+        message: u32,
+        wparam: usize,
+        lparam: isize,
+        time: u32,
+        point: [i32; 2],
+        private: u32,
+    }
+
+    #[link(name = "user32")]
+    extern "system" {
+        fn CreateWindowExW(ex: u32, class: *const u16, title: *const u16, style: u32,
+            x: i32, y: i32, width: i32, height: i32, parent: *mut c_void,
+            menu: *mut c_void, instance: *mut c_void, parameter: *mut c_void) -> *mut c_void;
+        fn DestroyWindow(window: *mut c_void) -> i32;
+        fn GetDesktopWindow() -> *mut c_void;
+        fn PeekMessageW(message: *mut Message, window: *mut c_void, first: u32, last: u32, remove: u32) -> i32;
+    }
+
+    #[test]
+    fn cancellation_is_posted_only_to_an_owned_window() {
+        let null = std::ptr::null_mut();
+        assert!(!super::cancel_owned_window_menu(null));
+        assert!(!super::cancel_owned_window_menu(unsafe { GetDesktopWindow() }));
+        let class: Vec<u16> = "STATIC\0".encode_utf16().collect();
+        let window = unsafe { CreateWindowExW(0, class.as_ptr(), class.as_ptr(), 0,
+            0, 0, 1, 1, null, null, null, null) };
+        assert!(!window.is_null(), "hidden test window creation");
+        struct OwnedWindow(*mut c_void);
+        impl Drop for OwnedWindow {
+            fn drop(&mut self) { unsafe { DestroyWindow(self.0); } }
+        }
+        let owned = OwnedWindow(window);
+        assert!(super::cancel_owned_window_menu(owned.0));
+        let mut message: Message = unsafe { std::mem::zeroed() };
+        assert_ne!(unsafe { PeekMessageW(&mut message, owned.0, 0x001F, 0x001F, 1) }, 0);
+        assert_eq!(message.window, owned.0);
+        assert_eq!(message.message, 0x001F);
+    }
+}
+
+#[cfg(windows)]
 #[tauri::command]
 fn exit_application(app: AppHandle) -> Result<(), String> {
     let state = app.state::<DesktopBackend>().inner().clone();
+    cancel_main_window_menu(&app);
     dispatch_exit_immediately(|_| {
         begin_backend_exit(state, move |report| {
             eprintln!("Core shutdown: {report}");
@@ -1239,7 +1321,8 @@ fn main() {
             let mut window =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                     .title("星环知识系统（ArcheAxis Knowledge）")
-                    .inner_size(1280.0, 800.0)
+                    .inner_size(1920.0, 1080.0)
+                    .maximized(true)
                     // 保留 Windows 原生标题栏与窗口调整；应用内主控台另在背景上内缩。
                     .decorations(true)
                     .resizable(true)

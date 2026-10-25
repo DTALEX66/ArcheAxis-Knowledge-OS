@@ -1,6 +1,6 @@
 /* One chrome for all existing AAOS pages. Semantic tokens keep all five themes. */
 :root:has(.app-shell[data-stitch-workspace]) {
-  --ax-text-ui: .8125rem;
+  --ax-text-ui: .875rem;
   --ax-text-caption: .75rem;
   --stitch-glass-panel: color-mix(in srgb, var(--ax-panel) 78%, transparent);
   --stitch-glass-card: color-mix(in srgb, var(--ax-raised) 44%, transparent);
@@ -9,34 +9,37 @@
 }
 :root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) {
   /* Separate material layers; opaque nested cards previously hid the scene. */
-  --stitch-glass-panel: rgb(14 20 29 / 36%);
-  --stitch-glass-card: rgb(22 28 37 / 24%);
-  --stitch-glass-header: rgb(22 28 37 / 20%);
-  --stitch-glass-edge: rgb(56 189 248 / 18%);
-  --ax-panel: #0e141d;
-  --ax-raised: #161c25;
-  --ax-bg-inset: #080f1c;
+  --stitch-glass-panel: rgb(20 22 26 / 57%);
+  --stitch-glass-card: rgb(40 42 47 / 30%);
+  --stitch-glass-header: rgb(23 25 29 / 70%);
+  --stitch-glass-edge: rgb(225 232 240 / 24%);
+  --ax-panel: rgb(25 27 31 / 54%);
+  --ax-raised: rgb(55 58 64 / 30%);
+  --ax-bg-inset: rgb(14 16 20 / 62%);
+  --ax-elevated: rgb(48 51 57 / 65%);
+  --aaos-surface: var(--ax-panel);
+  --aaos-raised: var(--ax-raised);
   --ax-fg-secondary: #b9c4d4;
   --ax-fg-tertiary: #94a3b8;
-  --ax-border: rgb(56 189 248 / 12%);
-  --ax-border-strong: rgb(56 189 248 / 20%);
+  --ax-border: rgb(225 232 240 / 11%);
+  --ax-border-strong: rgb(225 232 240 / 20%);
 }
 body:has(.app-shell[data-stitch-workspace]) {
   background-image: linear-gradient(0deg, #02061799, transparent 48%, #02061766), linear-gradient(#02061726,#02061726), url("../assets/cabin/deep-space-background-20261015.png") !important;
 }
 .stitch-workspace-menu {
-  position: fixed; inset: 0 0 auto; z-index: 80; height: 42px; display: flex;
-  align-items: center; gap: 18px; padding: 0 18px; color: var(--ax-fg-secondary);
-  border-bottom: 1px solid var(--ax-border); background: color-mix(in srgb, var(--ax-canvas) 80%, transparent);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  font-size: var(--ax-text-ui); line-height: 1.4;
+  position: fixed; inset: 0 0 auto; z-index: 80; height: 36px; display: flex;
+  align-items: center; gap: 12px; padding: 0 16px; color: var(--ax-fg-secondary);
+  border-bottom: 1px solid var(--ax-border); background: var(--stitch-glass-header);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  font-size: 12px; line-height: 1.4;
 }
-:root[data-aaos-theme="cosmic"] .stitch-workspace-menu { background: color-mix(in srgb, var(--ax-canvas) 55%, transparent); }
 .stitch-workspace-menu button, .stitch-workspace-menu summary {
-  font: inherit; font-size: 14px; color: inherit; background: transparent; border: 0; border-radius: 5px;
-  min-height: 32px; padding: 5px 9px; cursor: pointer; white-space: nowrap;
+  font: inherit; font-size: 12px; color: inherit; background: transparent; border: 0; border-radius: 5px;
+  min-height: 28px; padding: 4px 8px; cursor: pointer; white-space: nowrap;
 }
-.stitch-workspace-menu .stitch-brand { display: flex; align-items: center; gap: 8px; min-width: 32px; color: var(--ax-accent); font-weight: 600; padding-inline: 0; }
+.stitch-workspace-menu .stitch-brand { display: flex; align-items: center; gap: 7px; min-width: 28px; color: var(--ax-accent); font-weight: 600; padding-inline: 0; }
+.stitch-workspace-menu .stitch-brand .stitch-brand-logo { height: 16px; width: auto; max-height: 16px; flex: 0 0 auto; object-fit: contain; }
 .stitch-menus { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
 .stitch-menus > :is(details, button) { flex: 0 0 auto; }
 .stitch-menus > details > summary { list-style: none; }
@@ -53,22 +56,23 @@ body:has(.app-shell[data-stitch-workspace]) {
 
 .stitch-workspace-dock {
   position: fixed; z-index: 70; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 3px; max-width: calc(100vw - 24px); padding: 5px 8px;
-  overflow-x: auto; scrollbar-width: thin; border: 1px solid var(--ax-border); border-radius: 28px;
+  display: flex; align-items: center; gap: 6px; max-width: calc(100vw - 24px); padding: 6px 12px;
+  overflow-x: auto; scrollbar-width: thin; border: 1px solid var(--ax-border); border-radius: 999px;
   background: var(--stitch-glass-panel); color: var(--ax-fg-secondary); box-shadow: 0 12px 32px -12px #0009;
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
-.stitch-workspace-dock button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; min-height: 38px; padding: 7px 12px; font: inherit; font-size: 14px; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 22px; white-space: nowrap; cursor: pointer; }
-.stitch-workspace-dock button:is(:hover, [aria-current="page"], [aria-expanded="true"]) { color: var(--ax-accent); background: var(--ax-accent-soft); border-color: var(--ax-accent); }
+.stitch-workspace-dock button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 0 0 auto; min-height: 28px; padding: 4px 10px; font: inherit; font-size: 12px; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 999px; white-space: nowrap; cursor: pointer; }
+.stitch-workspace-dock button:is(:hover, [aria-current="page"], [aria-expanded="true"]) { color: var(--ax-accent); background: rgb(56 189 248 / 18%); border-color: rgb(56 189 248 / 40%); box-shadow: 0 0 12px rgb(56 189 248 / 20%); }
 .stitch-workspace-dock .stitch-companion-toggle { border-left-color: var(--ax-border); }
 .stitch-workspace-menu :focus-visible, .stitch-workspace-dock :focus-visible, .stitch-companion-window :focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
 
 .app-shell.cabin-shell[data-stitch-workspace] {
+  --ax-text-ui: .875rem;
   --stitch-surface: var(--stitch-glass-panel);
   --stitch-edge: var(--stitch-glass-edge);
-  border-radius: 14px; padding: 0; border-color: var(--stitch-edge);
-  background: linear-gradient(135deg, #ffffff08, transparent 42%), var(--stitch-surface) !important; backdrop-filter: blur(20px) saturate(125%); -webkit-backdrop-filter: blur(20px) saturate(125%);
-  box-shadow: 0 20px 40px -15px #000b, inset 0 1px 0 #ffffff14;
+  border-radius: 12px; padding: 0; border: 1px solid var(--stitch-edge);
+  background: linear-gradient(145deg, #ffffff12, transparent 36%, #ffffff03), var(--stitch-surface) !important; backdrop-filter: blur(30px) saturate(70%); -webkit-backdrop-filter: blur(30px) saturate(70%);
+  box-shadow: 0 24px 64px #0008, inset 0 1px 0 #ffffff2b, inset 1px 0 0 #ffffff0b, inset 0 -1px 0 #0004;
   font-weight: 400;
 }
 .app-shell[data-stitch-workspace] :is(button, input, textarea, select) { font-weight: 400; text-shadow: none; }
@@ -82,7 +86,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 .app-shell.cabin-shell[data-stitch-workspace] .navigation-sidebar { flex: 0 0 184px; min-width: 184px; width: 184px; padding: 8px 0; border-right: 1px solid var(--ax-border); }
 .app-shell.cabin-shell[data-stitch-workspace] .space-rail { width: 100%; padding-inline: 6px; }
 .app-shell.cabin-shell[data-stitch-workspace] .space-rail-item { min-height: 36px; padding: 7px 10px; border-radius: 7px; font-size: var(--ax-text-ui); }
-.app-shell.cabin-shell[data-stitch-workspace] .app-center { min-width: 0; min-height: 0; flex: 1 1 0; padding: 4px; margin: 0; border: 0; border-radius: 0; background: transparent; overflow: auto; }
+.app-shell.cabin-shell[data-stitch-workspace] .app-center { min-width: 0; min-height: 0; flex: 1 1 0; padding: 12px; margin: 0; border: 0; border-radius: 0; background: transparent; overflow: auto; }
 .stitch-page-identity { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .app-shell[data-stitch-workspace] .dock-workspace { height:100%; min-height:0; }
 .app-shell[data-stitch-workspace] .app-center { display:flex; flex-direction:column; }
@@ -107,14 +111,14 @@ body:has(.app-shell[data-stitch-workspace]) {
    let its own layout consume the remaining stage height before scrolling. */
 .app-shell.cabin-shell[data-stitch-workspace] .space-view { width: 100%; min-height: 100%; box-sizing: border-box; }
 .app-shell.cabin-shell[data-stitch-workspace] :is(.ui-card, .capability-card, .ui-asset-card, .ui-learning-card) { border-radius: 10px; background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); border-color: var(--ax-border); box-shadow: inset 0 1px 0 #ffffff0a; }
-.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-library-facets, .stitch-library-results, .stitch-reader-details, .stitch-reader-empty, .stitch-reader-document, .stitch-reader-original, .stitch-reader-source-tools, .stitch-runtime-details, .stitch-document-card, .stitch-reader-toolbar) { background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); backdrop-filter: blur(14px) saturate(125%); -webkit-backdrop-filter: blur(14px) saturate(125%); }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-library-facets, .stitch-library-results, .stitch-reader-details, .stitch-reader-empty, .stitch-reader-document, .stitch-reader-original, .stitch-reader-source-tools, .stitch-runtime-details, .stitch-document-card, .stitch-reader-toolbar) { background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); backdrop-filter: blur(14px) saturate(85%); -webkit-backdrop-filter: blur(14px) saturate(85%); }
 .app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-workbench-summary, .stitch-workbench-search, .stitch-workbench-status, .stitch-workbench-card, .stitch-teaching-card, .stitch-settings-pane, .stitch-ai-card, .stitch-expression-stage, .stitch-expression-card, .stitch-relations-stage, .stitch-relations-card, .stitch-relations-collection, .stitch-library-heading, .stitch-reader-heading),
 .app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-teaching-selected, .stitch-teaching-learning, .stitch-learning-course-detail, .stitch-ai-context-layout) > :is(section, article) { background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); }
 .app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-workbench-local, .stitch-settings-intro, .stitch-ai-topic, .stitch-expression-heading, .stitch-relations-heading) { background: var(--stitch-glass-header); }
 .app-shell.cabin-shell[data-stitch-workspace][data-navigation-appearance="top"] .navigation-sidebar { display: none; }
 
-.stitch-companion-window { position: fixed; z-index: 60; right: max(22px, 4vw); top: max(152px, calc(8vh + 80px)); display: flex; flex-direction: column; width: clamp(290px, 25vw, 370px); max-width: calc(100vw - 24px); max-height: min(60vh, calc(100dvh - 216px)); min-height: 160px; border: 1px solid color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border)); border-radius: 13px; background: var(--ax-panel); color: var(--ax-fg); box-shadow: 0 14px 40px #0006; overflow: hidden; }
-.stitch-window-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 0 0 auto; min-height: 43px; padding: 4px 10px; background: var(--stitch-glass-header); border-bottom: 1px solid var(--ax-border); touch-action: none; cursor: move; }
+.stitch-companion-window { position: fixed; z-index: 60; right: max(22px, 4vw); top: max(152px, calc(8vh + 80px)); display: flex; flex-direction: column; width: 380px; max-width: calc(100vw - 24px); max-height: min(60vh, calc(100dvh - 216px)); min-height: 160px; border: 1px solid color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border)); border-radius: 12px; background: var(--ax-panel); color: var(--ax-fg); box-shadow: 0 14px 40px #0006; overflow: hidden; }
+.stitch-window-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 0 0 auto; min-height: 36px; padding: 4px 12px; background: var(--stitch-glass-header); border-bottom: 1px solid var(--ax-border); touch-action: none; cursor: move; }
 .stitch-window-titlebar button { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--ax-accent); font: inherit; font-size: var(--ax-text-ui); padding: 4px 6px; min-height: 32px; min-width: 32px; border: 0; border-radius: 5px; }
 .stitch-window-titlebar button:hover { background: var(--ax-hover); }
 .stitch-window-titlebar .stitch-companion-move { cursor: move; text-align: left; }
@@ -128,7 +132,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-companion-content button { min-height: 34px; font-size: var(--ax-text-ui); white-space: normal; }
 
 /* Keep the existing inspector outside the reader, in Stitch's lower auxiliary window. */
-.stitch-reference-window { position: fixed; z-index: 61; right: 12px; top: 132px; width: min(420px, calc(100vw - 24px)); max-height: calc(100dvh - 208px); overflow: auto; border: 1px solid color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border)); border-radius: 13px; background: var(--ax-panel); color: var(--ax-fg); box-shadow: 0 14px 40px #0006; }
+.stitch-reference-window { position: fixed; z-index: 61; right: 12px; top: 132px; width: min(380px, calc(100vw - 24px)); max-height: calc(100dvh - 208px); overflow: auto; border: 1px solid color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border)); border-radius: 12px; background: var(--ax-panel); color: var(--ax-fg); box-shadow: 0 14px 40px #0006; }
 .stitch-reference-window .inspector { position: static; width: 100%; min-width: 0; height: 100%; max-height: none; margin: 0; padding: 0 14px 14px; border: 0; background: transparent; overflow: auto; box-sizing: border-box; }
 .stitch-reference-window .inspector-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 43px; margin: 0 -14px 12px; padding: 4px 10px; background: var(--stitch-glass-header); border-bottom: 1px solid var(--ax-border); }
 .stitch-reference-window .inspector-title { margin: 0; font-size: var(--ax-text-ui); color: var(--ax-accent); }
@@ -147,12 +151,11 @@ body:has(.app-shell[data-stitch-workspace]) {
 
 .stitch-companion-window, .stitch-reference-window {
   background: var(--stitch-glass-panel); border-color: var(--stitch-glass-edge);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 20px 40px -15px #000b, inset 0 1px 0 #ffffff14;
+  backdrop-filter: blur(30px) saturate(70%); -webkit-backdrop-filter: blur(30px) saturate(70%);
+  box-shadow: 0 20px 40px -15px #0009, inset 0 1px 0 #ffffff2b, inset 1px 0 0 #ffffff0b;
 }
 .stitch-companion-window:focus-within { z-index: 62; }
 .stitch-companion-content, .stitch-reference-window { font-weight: 400; }
-.stitch-companion-content .xiaoqi-avatar { max-height: 64px; }
 .stitch-companion-content .companion-context-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--ax-border); }
 .stitch-companion-content .companion-context-header .xiaoqi-avatar { flex: none; }
 .stitch-companion-content .companion-context-header h3 { font-size: var(--ax-text-ui); font-weight: 500; }
@@ -171,8 +174,8 @@ body:has(.app-shell[data-stitch-workspace]) {
   .stitch-companion-window, .stitch-reference-window {
     --stitch-main-width: 64vw;
     --stitch-aux-width: 29vw;
-    --stitch-stage-height: min(max(480px, 60vh), calc(100dvh - 112px));
-    --stitch-stage-top: calc((100dvh - var(--stitch-stage-height)) / 2 - 8px);
+    --stitch-stage-height: calc(100dvh - 112px);
+    --stitch-stage-top: 48px;
     right: calc((100vw - var(--stitch-main-width) - var(--stitch-aux-width) - 20px) / 2);
     width: var(--stitch-aux-width); height: calc((var(--stitch-stage-height) - 20px) / 2); max-height: none; min-height: 0;
   }
@@ -195,6 +198,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   .app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space) { height:auto; min-height:100%; }
   .stitch-research-space .research-editor { height:auto; min-height:100%; }
   .stitch-research-space .research-stage-content { flex:none; overflow:visible; }
+  .stitch-research-space .research-editor .research-workspace-grid { flex: 0 0 auto; }
 }
 @container console (max-width: 1100px) or (max-height: 760px) {
   .app-shell.cabin-shell[data-stitch-workspace] .app-body { gap: 8px; padding: 8px; }
@@ -208,6 +212,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   .app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space) { height: auto; min-height: 100%; }
   .stitch-research-space .research-editor { height: auto; min-height: 100%; }
   .stitch-research-space .research-stage-content { flex: none; overflow: visible; }
+  .stitch-research-space .research-editor .research-workspace-grid { flex: 0 0 auto; }
 }
 @media (max-width: 900px) {
   .stitch-workspace-menu { padding-inline: 10px; gap: 8px; }
@@ -230,6 +235,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   .stitch-workspace-menu *, .stitch-workspace-dock *, .stitch-companion-window * { transition: none !important; animation: none !important; }
 }
 @media (prefers-reduced-transparency: reduce) {
+  :root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) { --ax-panel: #191b1f; --ax-raised: #303339; --ax-elevated: #303339; --stitch-glass-header: #191b1f; }
   :root:has(.app-shell[data-stitch-workspace]), :root[data-aaos-theme]:has(.app-shell[data-stitch-workspace]) { --stitch-glass-panel: var(--ax-panel); --stitch-glass-card: var(--ax-raised); --stitch-glass-header: var(--ax-raised); }
   .app-shell.cabin-shell[data-stitch-workspace] { background: var(--ax-panel) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .stitch-workspace-menu, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }

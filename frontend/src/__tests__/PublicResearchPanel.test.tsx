@@ -46,6 +46,19 @@ it("does not call a partial empty response a completed zero-result search",()=>{
  expect(screen.getByText("本次所选来源均完成，未返回匹配结果。")).toBeInTheDocument();
 });
 
+it("distinguishes reading the stored receipt from a new explicit network search and keeps partial results",()=>{
+ const search=vi.fn(),readReceipt=vi.fn();
+ render(<PublicResearchPanel snapshot={read([hit("retained")])} requestId="synthetic-request" onRead={readReceipt} onSearch={search} onKeepNote={()=>true}/>);query();
+ expect(screen.getByText(/回读只读取这次请求的已存回执/)).toHaveTextContent("不会重新联网");
+ expect(screen.getByText(/部分来源尚未完成/)).toHaveTextContent("已返回的结果仍保留");
+ fireEvent.click(screen.getByRole("button",{name:"回读本次公开请求"}));
+ expect(readReceipt).toHaveBeenCalledOnce();expect(search).not.toHaveBeenCalled();
+ expect(screen.getByText("材料 retained")).toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"检索公开资料"}));
+ expect(search).toHaveBeenCalledWith("公开关键词",["encyclopedia","community","research"]);
+ expect(readReceipt).toHaveBeenCalledOnce();
+});
+
 it("keeps old query and scope results visible but disallows binding or comparison save",()=>{
  render(<PublicResearchPanel snapshot={read([hit("a")])} onKeepNote={()=>true}/>);query();
  fireEvent.click(screen.getByRole("checkbox",{name:"对照结果 1"}));

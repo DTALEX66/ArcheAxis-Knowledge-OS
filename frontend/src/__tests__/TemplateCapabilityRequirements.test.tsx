@@ -419,3 +419,6 @@ describe("app shell wiring of the template→capability route", () => {
     }
   });
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

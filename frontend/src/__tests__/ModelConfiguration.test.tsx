@@ -21,6 +21,51 @@ it("generates a two-model draft from live inventory and saves eight missing lane
  const saved=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body;
  expect(saved.expected_revision).toBe(0);expect(saved.configuration.bindings).toHaveLength(8);expect(Object.keys(saved.configuration.profiles)).toHaveLength(2);
  expect(saved.configuration.profiles["lmstudio-deep"].model).toBe("aaos-deep-27b-mtp");
+ expect(saved.configuration.profiles["lmstudio-fast"].max_tokens).toBe(4096);
+ expect(saved.configuration.profiles["lmstudio-deep"].max_tokens).toBe(4096);
+});
+
+it("quick connects fresh product lanes with 4096 output tokens through one explicit CAS and no inference",async()=>{
+ const initial={...configuration,revision:0,profiles:{},bindings:[]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:1});
+ const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({data:[{id:"embedding-model"},{id:"qwen3.5-4b"},{id:"qwen3.8-27b"}]})});vi.stubGlobal("fetch",fetcher);
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByRole("button",{name:"一键连接本机 LM Studio"}));
+ await screen.findByText(/新配置输出预算为 4096/);
+ const writes=bridge.call.mock.calls.filter(c=>c[0]==="model_configuration_put");expect(writes).toHaveLength(1);
+ const saved=writes[0][1].body;
+ expect(saved.expected_revision).toBe(0);expect(saved.configuration.bindings).toHaveLength(8);
+ expect(saved.configuration.profiles.lmstudio).toMatchObject({model:"qwen3.5-4b",max_tokens:4096});
+ expect(saved.configuration.profiles["lmstudio-deep"]).toMatchObject({model:"qwen3.8-27b",max_tokens:4096});
+ expect(fetcher).toHaveBeenCalledTimes(1);
+ expect(bridge.call.mock.calls.every(c=>["model_configuration_get","model_configuration_put"].includes(c[0]))).toBe(true);
+});
+
+it("quick connection keeps saved profiles and bindings, allocating new 4096 profiles around existing names",async()=>{
+ const initial={...configuration,profiles:{lmstudio:profile,index:{...profile,model:"embedding-model"}},bindings:[{purpose:"material",lane:"fast",profile_id:"lmstudio"},{purpose:"embedding",lane:"fast",profile_id:"index"}]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:4});
+ vi.stubGlobal("fetch",vi.fn().mockResolvedValue({ok:true,json:async()=>({data:[{id:"qwen3.5-4b"},{id:"qwen3.8-27b"}]})}));
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByRole("button",{name:"一键连接本机 LM Studio"}));await screen.findByText(/已有配置与绑定保留/);
+ const saved=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body.configuration;
+ expect(saved.profiles.lmstudio).toEqual(profile);expect(saved.profiles.index).toEqual(initial.profiles.index);
+ expect(saved.bindings).toEqual(expect.arrayContaining(initial.bindings));
+ expect(saved.bindings.filter((binding:any)=>binding.purpose==="material"&&binding.lane==="fast")).toEqual([initial.bindings[0]]);
+ expect(saved.profiles["lmstudio-2"]).toMatchObject({model:"qwen3.5-4b",max_tokens:4096});
+ expect(saved.profiles["lmstudio-deep"].max_tokens).toBe(4096);
+ expect(screen.getByLabelText("最大输出 token")).toHaveValue(512);
+});
+
+it("reading and reconnecting complete existing bindings never rewrites their saved budgets",async()=>{
+ const initial={...configuration,profiles:{lmstudio:profile},bindings:["answer","retest","material","companion"].flatMap(purpose=>["fast","deep"].map(lane=>({purpose,lane,profile_id:"lmstudio"})))};
+ bridge.call.mockResolvedValue(initial);
+ vi.stubGlobal("fetch",vi.fn().mockResolvedValue({ok:true,json:async()=>({data:[{id:"qwen3.5-4b"}]})}));
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByText("读取模型配置"));expect(screen.getByLabelText("最大输出 token")).toHaveValue(512);
+ expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
+ await user.click(screen.getByRole("button",{name:"一键连接本机 LM Studio"}));await screen.findByText(/未重复保存/);
+ expect(screen.getByLabelText("最大输出 token")).toHaveValue(512);
+ expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
 });
 
 it("keeps edited custom profiles, existing bindings and embedding identity while filling missing lanes",async()=>{

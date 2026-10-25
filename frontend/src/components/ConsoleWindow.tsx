@@ -31,7 +31,7 @@ export function stitchConsoleRect(viewport: ConsoleViewport): ConsoleRect {
   const width = viewport.width * .64;
   const auxiliaryWidth = viewport.width * .29;
   const top = viewport.topInset ?? 48, bottom = viewport.bottomInset ?? 64;
-  const height = Math.min(Math.max(480, viewport.height * .6), viewport.height - top - bottom);
+  const height = viewport.height - top - bottom;
   return { x: (viewport.width - width - auxiliaryWidth - 20) / 2, y: top + (viewport.height - top - bottom - height) / 2, width, height };
 }
 const readViewport = (): ConsoleViewport => ({ width: window.innerWidth, height: window.innerHeight, ...(window.innerWidth > 900 && window.innerHeight > 600 ? { topInset: 48, bottomInset: 64 } : {}) });

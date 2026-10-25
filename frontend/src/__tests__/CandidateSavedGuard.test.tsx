@@ -70,3 +70,6 @@ it("SIMULATED mounted delayed candidate body readback preserves later input and 
  fireEvent.change(body,{target:{value:"人工整理 后来编辑"}});await act(async()=>{release(await original("knowledge_get",{id:"knowledge-exact"}));});await screen.findByRole("button",{name:"前往知识库审核"});expect(body).toHaveValue("人工整理 后来编辑");expect(dirty.mock.calls.at(-1)).toEqual([true]);
  }finally{window.removeEventListener("archeaxis-draft-dirty",listener);}
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

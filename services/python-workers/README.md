@@ -9,6 +9,16 @@
 > 子进程通道交互；旧 HTTP receipt 是兼容入口，不是完整 worker 协议。
 > 禁止：直连 SQLite、写库、sys.path 修改后 import app 包、双写。
 
+## 公开资料检索的网络线路
+
+百科、社区和科研的三个固定 HTTPS GET 接口使用独立线路选择，不改变模型服务商、鉴权或模型端点。`ARCHEAXIS_PUBLIC_RESEARCH_PROXY` 是仅对当前启动进程及其公开检索子进程生效的专用设置；不修改系统环境或 Windows 配置：
+
+- 未设置时，Windows 仅只读当前用户 Internet Settings 中的 `ProxyEnable`、`ProxyServer`，复用已启用且明确登记的无鉴权、数字 loopback HTTP 代理。只支持单一代理或明确的 HTTPS 映射；不执行 PAC、不猜端口，不使用远程代理、凭证或通用 `HTTP(S)_PROXY`。不支持的系统设置及其他平台保持原直连。
+- 显式 `http://127.0.0.1:<port>`（或 `[::1]`）优先于上述登记。显式 `direct` 强制直连并关闭自动复用。显式空值、拼写错误、远程或有鉴权地址均返回 `proxy_config_invalid`，不会偷偷改用其他线路。
+- 复用线路仍校验目标站 TLS 证书、固定域名与接口、响应类型、总时限及大小；代理失败不降级为成功，也不自动重试。回读请求仅取回原回执；网络恢复后须显式检索产生新请求，原部分结果保留。
+
+配置读取依据：[Microsoft WinINet](https://learn.microsoft.com/en-us/windows/win32/wininet/enabling-internet-functionality) 与 [Python winreg](https://docs.python.org/3/library/winreg.html)。这只是已登记本机 HTTP 线路的受限复用，并非完整 Windows/PAC 代理栈。
+
 ## Worker 能力矩阵（2026-09-05 实测状态）
 
 | worker | 格式/能力 | 引擎 | 状态 | 收据 |

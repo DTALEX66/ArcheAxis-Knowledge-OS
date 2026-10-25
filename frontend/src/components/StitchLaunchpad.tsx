@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { AaosDialog } from "../design-system/AaosPrimitives";
-import { EFFECTIVE_NAVIGATION_ENTRIES, type EffectiveNavigationEntry } from "../presentation/navigation";
-import { capabilityPresentation } from "../presentation/capabilityCenter";
+import { CAPABILITY_NAVIGATION_ENTRIES, EFFECTIVE_NAVIGATION_ENTRIES, type EffectiveNavigationEntry } from "../presentation/navigation";
+import { capabilityPresentation, capabilityDesignDetails, capabilityDetailText, CAPABILITY_DESIGN_DETAIL_COUNT } from "../presentation/capabilityCenter";
 import { AaosIcon, type AaosIconName } from "./AaosIcon";
 import "./StitchLaunchpad.css";
 
@@ -21,7 +21,7 @@ function entryIcon(entry: EffectiveNavigationEntry): AaosIconName {
   };
   return capabilityIcons[entry.capability?.atlas.capability_id ?? ""] ?? "Extension";
 }
-type Category = "frequent" | "pages" | "extensions";
+type Category = "frequent" | "pages" | "extensions" | "capabilities";
 
 export function StitchLaunchpad({ open, onOpenChange, onPage, onCapability }: {
   open: boolean; onOpenChange: (open: boolean) => void;
@@ -34,26 +34,27 @@ export function StitchLaunchpad({ open, onOpenChange, onPage, onCapability }: {
   const term = query.trim().toLocaleLowerCase();
   const rows = EFFECTIVE_NAVIGATION_ENTRIES.filter(entry => {
     if (entry.page) {
-      if (entry.page.id === "18" || category === "extensions") return false;
+      if (entry.page.id === "18" || category === "extensions" || category === "capabilities") return false;
       if (category === "frequent" && !term && !frequentPages.includes(entry.page.id)) return false;
     } else if (entry.capability) {
       const presentation = capabilityPresentation(entry.capability);
       if (category === "pages" || (category === "frequent" && !term)) return false;
-      if (presentation.group === "builtin") return false;
+      if (category === "extensions" && presentation.group === "builtin") return false;
     } else return false;
-    return !term || [entry.label, entry.description, ...entry.aliases, ...entry.keywords].join(" ").toLocaleLowerCase().includes(term);
+    return !term || [entry.label, entry.description, ...entry.aliases, ...entry.keywords].join(" ").toLocaleLowerCase().includes(term) || Boolean(entry.capability && capabilityDesignDetails(entry.entry_id, term).length);
   });
   const close = () => onOpenChange(false);
-  return <AaosDialog open={open} onOpenChange={onOpenChange} title="全部能力" description="选择一个能力，继续当前工作。扩展与未来项可查看接入条件或规划。"
+  return <AaosDialog open={open} onOpenChange={onOpenChange} title="全部能力" description="常用入口用于继续工作；全部能力族和完整目录保留当前能力、扩展与设计蓝图。"
     overlayClassName="stitch-launchpad-overlay" contentClassName="stitch-launchpad"
     onOpenAutoFocus={event => { event.preventDefault(); searchInput.current?.focus(); }}
     onCloseAutoFocus={event => { event.preventDefault(); document.getElementById("stitch-launchpad-toggle")?.focus(); }}>
     <button className="stitch-launchpad-close" type="button" aria-label="关闭能力启动台" onClick={close}><AaosIcon name="Close"/></button>
+    <div className="stitch-launchpad-catalog"><span>{CAPABILITY_NAVIGATION_ENTRIES.length} 个能力族 · {CAPABILITY_DESIGN_DETAIL_COUNT} 条设计细项</span><button type="button" onClick={() => { if (onPage("17") !== false) close(); }}>查看完整能力目录</button></div>
     <label className="stitch-launchpad-search"><AaosIcon name="Search"/><span className="aaos-sr-only">搜索能力</span>
       <input ref={searchInput} value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索能力、页面或用途…"/>
     </label>
     <div className="stitch-launchpad-categories" role="group" aria-label="能力分类">
-      {([["frequent", "常用入口"], ["pages", "全部页面"], ["extensions", "扩展与未来"]] as const).map(([id, label]) =>
+      {([["frequent", "常用入口"], ["pages", "全部页面"], ["capabilities", "全部能力族"], ["extensions", "扩展与未来"]] as const).map(([id, label]) =>
         <button key={id} type="button" aria-pressed={category === id} onClick={() => setCategory(id)}>{label}</button>)}
     </div>
     <div className="stitch-launchpad-results">
@@ -62,6 +63,7 @@ export function StitchLaunchpad({ open, onOpenChange, onPage, onCapability }: {
           const future = entry.capability && capabilityPresentation(entry.capability).group === "future";
           const description = entry.capability ? capabilityPresentation(entry.capability).purpose : entry.description;
           const status = entry.page ? "打开工作界面" : future ? "规划中 · 查看说明" : "查看接入条件";
+          const matches = term && entry.capability ? capabilityDesignDetails(entry.entry_id, term) : [];
           return <li key={entry.entry_id}><button type="button" data-future={future || undefined} onClick={() => {
             const accepted = entry.page ? onPage(entry.page.id) : onCapability(entry.entry_id);
             if (accepted !== false) close();
@@ -69,6 +71,7 @@ export function StitchLaunchpad({ open, onOpenChange, onPage, onCapability }: {
             <span className="stitch-launchpad-icon"><AaosIcon name={entryIcon(entry)} size={28}/></span>
             <span className="stitch-launchpad-label">{entry.label}</span>
             <span className="stitch-launchpad-purpose">{description}</span>
+            {matches.length ? <span className="stitch-launchpad-match">匹配细项：{matches.slice(0, 2).map(capabilityDetailText).join("、")}{matches.length > 2 ? `等 ${matches.length} 项` : ""}<br/>设计内容 · 独立证据未核验</span> : null}
             <small>{status}</small>
           </button></li>;
         })}

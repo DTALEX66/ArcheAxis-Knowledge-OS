@@ -27,6 +27,35 @@ let doc = { document_id: "doc_test", source_id: source.source_id, source_revisio
 
 beforeEach(resetDiagnostics);
 describe("canonical content sample", () => {
+  it("SIMULATED: a verified first original explains conversion, ordinary notes and where they are saved", async () => {
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="documents_list"?{documents:[]}:previous(op,payload));
+    render(<CanonicalLibrarySpace purpose="reader" initialSourceTarget={{source_id:source.source_id,source_revision:hash,sha256:hash}}/>);
+    await screen.findByRole("button",{name:"建立版本化草稿"});
+    expect(screen.getByText(/需要提取文字时，点“整理此来源为知识候选”/)).toHaveTextContent("草稿保存在本地知识库");
+    expect(screen.getByRole("button",{name:"整理此来源为知识候选"})).toBeEnabled();
+    expect(bridge.call.mock.calls.some(([op])=>op==="document_create"||op==="job_enqueue")).toBe(false);
+  });
+  it("SIMULATED: an empty reader opens the actual import action without changing the URL directly", async () => {
+    const previous=bridge.call.getMockImplementation()!,onImport=vi.fn();
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="documents_list"?{documents:[]}:op==="sources_list"?{sources:[]}:previous(op,payload));
+    const hashBefore=window.location.hash;
+    render(<CanonicalLibrarySpace purpose="reader" onOpenImport={onImport}/>);
+    const button=await screen.findByRole("button",{name:"导入第一份资料"}); fireEvent.click(button);
+    expect(onImport).toHaveBeenCalledOnce(); expect(window.location.hash).toBe(hashBefore);
+    expect(bridge.call.mock.calls.some(([op])=>op==="document_create")).toBe(false);
+  });
+
+  it("SIMULATED: a failed initial reader list offers retry and never reports an empty library", async () => {
+    bridge.call.mockRejectedValue(new Error("not connected"));
+    render(<CanonicalLibrarySpace purpose="reader" onOpenImport={vi.fn()}/>);
+    expect(await screen.findByRole("heading",{name:"资料列表暂时无法读取"})).toBeInTheDocument();
+    expect(screen.getByText(/读取失败时无法判断资料是否为空/)).toBeInTheDocument();
+    expect(screen.queryByRole("button",{name:"导入第一份资料"})).not.toBeInTheDocument();
+    expect(screen.queryByRole("button",{name:"新建原创笔记"})).not.toBeInTheDocument();
+    const calls=bridge.call.mock.calls.length; fireEvent.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    await waitFor(()=>expect(bridge.call.mock.calls.length).toBeGreaterThan(calls));
+  });
   it.each(["CURRENT","STALE","UNSUPPORTED","MISSING"])("SIMULATED: %s locator must be independently revalidated before navigation", async(status)=>{
     const position=JSON.stringify({type:"text",start:0,end:12,checksum:hash});
     const previous=bridge.call.getMockImplementation()!;

@@ -46,3 +46,25 @@ it("all page roles except catalog detail are reachable from the full page grid",
   for (const button of buttons) await user.click(button);
   expect(onPage.mock.calls.map(call => call[0]).sort()).toEqual(EFFECTIVE_NAVIGATION_ENTRIES.filter(entry => entry.page && entry.page.id !== "18").map(entry => entry.page!.id).sort());
 });
+
+it("exposes all 16 capability families and a guarded complete catalog entry", async () => {
+  const user = userEvent.setup(), onPage = vi.fn<(page: string) => boolean>(() => false), onOpenChange = vi.fn(), onCapability = vi.fn<(id: string) => boolean>(() => false);
+  render(<StitchLaunchpad open onOpenChange={onOpenChange} onPage={onPage} onCapability={onCapability}/>);
+  expect(screen.getByText("16 个能力族 · 186 条设计细项")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "查看完整能力目录" }));
+  expect(onPage).toHaveBeenCalledWith("17"); expect(onOpenChange).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "全部能力族" }));
+  const buttons = within(screen.getByRole("list", { name: "能力入口" })).getAllByRole("button");
+  expect(buttons).toHaveLength(16);
+  for (const button of buttons) await user.click(button);
+  expect(onCapability.mock.calls.map(call => call[0]).sort()).toEqual(EFFECTIVE_NAVIGATION_ENTRIES.filter(entry => entry.capability).map(entry => entry.entry_id).sort());
+  expect(onOpenChange).not.toHaveBeenCalled();
+});
+
+it("search includes built-in families and previews the authored child that matched", async () => {
+  const user = userEvent.setup();
+  render(<StitchLaunchpad open onOpenChange={vi.fn()} onPage={vi.fn()} onCapability={vi.fn()}/>);
+  await user.type(screen.getByRole("textbox", { name: "搜索能力" }), "跨会话");
+  const button = within(screen.getByRole("list", { name: "能力入口" })).getByRole("button", { name: /AI 学习资产与受控调用/ });
+  expect(button).toHaveTextContent("跨会话 / 客户端上下文"); expect(button).toHaveTextContent("独立证据未核验");
+});

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentDto, DocumentExportDto, DocumentsListDto, OriginalDto, SourceDto, SourcesListDto } from "../api/generated/core-contract";
 import { FolderIngest } from "../components/FolderIngest";
+import { SingleOriginalImport } from "../components/SingleOriginalImport";
 import { PortableDocumentExchange } from "../components/PortableDocumentExchange";
 import { JobContent } from "../components/JobContent";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
@@ -24,8 +25,9 @@ const interoperability=[
 
 /** Read-only source/document inspection plus existing canonical import and teaching actions. */
 import type { SourceJourneyTarget } from "../presentation/sourceJourney";
+import type { FolderMemberSelection } from "../presentation/ingestRelations";
 
-export function CanonicalExchangeSpace({initialDocumentId,onOpenDocument,onOpenPage,onTrail,onReadSource}:{onReadSource?:(target:SourceJourneyTarget)=>void;initialDocumentId?:string;onOpenDocument?:(id:string)=>void;onOpenPage?:(id:string)=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalExchangeSpace({initialDocumentId,onOpenDocument,onOpenPage,onTrail,onReadSource,onSelectRelations}:{onSelectRelations?:(selection:FolderMemberSelection)=>void;onReadSource?:(target:SourceJourneyTarget)=>void;initialDocumentId?:string;onOpenDocument?:(id:string)=>void;onOpenPage?:(id:string)=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [tab,setTab]=useState<Tab>(initialDocumentId?"documents":"originals"),tabRef=useRef(tab);tabRef.current=tab;
   const [sources,setSources]=useState<SourceDto[]>([]),[sourcesLoaded,setSourcesLoaded]=useState(false),[sourceListError,setSourceListError]=useState<string|null>(null);
   const [sourceFilter,setSourceFilter]=useState(""),[sourceId,setSourceId]=useState("");
@@ -99,7 +101,11 @@ export function CanonicalExchangeSpace({initialDocumentId,onOpenDocument,onOpenP
     <nav className="exchange-tabs" aria-label="导入导出区域">{tabs.map(([id,label])=><button key={id} aria-pressed={tab===id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     {/* Keep sessions mounted across tabs; theme updates never key or recreate an editor. */}
     <section hidden={tab!=="originals"} aria-label="原件与转换" id="exchange-original">
-      <section className="exchange-card"><h3>导入用户选择的原件</h3><p>每个文件分别显示成功、失败或取消结果。只重试已确认失败或取消的项目；结果不明时请先检查。</p><FolderIngest onOpenSource={(id,job)=>void openSource(id,job)}/></section>
+      <section className="exchange-card"><h3>导入自己的资料</h3>
+        <details className="exchange-first-steps"><summary>第一次导入：从一份文档开始</summary><ol><li>在“导入原件”选择一份本地文件，等待保存结果。</li><li>点击“打开刚导入的原件”，或从下方“原件目录”选择它，先核对文件。</li><li>点击“阅读此原件与整理知识候选”进入阅读页；需要识别时，再从该来源的整理工具执行转换，也可直接建立草稿写笔记。</li></ol><p>原件是原始文件；识别结果是从中提取的内容。原件保存、识别是否完整、知识是否接纳，分别确认。</p></details>
+        <SingleOriginalImport onImported={()=>void refreshSources()} onOpenSource={id=>void openSource(id)}/>
+        <div className="exchange-folder-import"><h4>批量导入整个文件夹</h4><p>需要批量处理时再选择文件夹。每个文件分别显示结果；结果不明时先检查原任务。导入 Markdown 后，点该行“映射此原件中的链接”，进入阅读页处理本批链接与附件；历史批次也可继续。</p><FolderIngest onOpenSource={(id,job)=>void openSource(id,job)} onSelectRelations={onSelectRelations}/></div>
+      </section>
       <div className="exchange-columns"><section className="exchange-card"><h3>原件目录</h3><button onClick={()=>void refreshSources()}>刷新原件目录</button>{sourceListError?<p role="alert">目录读取失败：{sourceListError}。保留旧目录，不表示空库。</p>:null}{!sourcesLoaded&&!sourceListError?<p role="status">正在读取原件目录…</p>:null}
         <label>筛选已读原件<input value={sourceFilter} onChange={e=>setSourceFilter(e.target.value)}/></label><ul className="exchange-object-list">{sources.filter(s=>`${s.original_name} ${s.source_id}`.includes(sourceFilter)).map(s=><li key={s.source_id}><button aria-pressed={original?.source.source_id===s.source_id} onClick={()=>void openSource(s.source_id)}>{s.original_name}</button></li>)}</ul>
         {sourcesLoaded&&!sources.length?<p>当前返回目录没有原件。</p>:null}<form onSubmit={e=>{e.preventDefault();if(sourceId.trim())void openSource(sourceId.trim());}}><label>按原件编号定位<input value={sourceId} onChange={e=>setSourceId(e.target.value)}/></label><button disabled={!sourceId.trim()}>读取所选原件</button></form>{!sourceId.trim()?<p className="exchange-action-reason">先从左侧“原件目录”选择一项，或在上方输入原件编号，才能读取原件。</p>:null}<p>当前目录没有分页；未返回的记录不能当成不存在，也不能改用同名文件。</p>

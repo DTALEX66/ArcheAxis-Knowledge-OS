@@ -1,0 +1,17 @@
+.model-quick-start {
+  display: grid; gap: 8px; justify-items: start; margin: 12px 0 16px; padding: 14px;
+  border: 1px solid var(--stitch-glass-edge, var(--ax-border-strong)); border-radius: 12px;
+  background: var(--stitch-glass-card, var(--ax-panel));
+}
+.model-quick-start h3 { margin: 0; font-size: 16px; color: var(--ax-fg); }
+.model-quick-start p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ax-fg-secondary); }
+.model-quick-start > button {
+  min-height: 40px; padding: 8px 16px; font-size: 15px; font-weight: 600;
+  border: 1px solid var(--ax-accent); border-radius: 10px;
+  background: linear-gradient(115deg, color-mix(in srgb, var(--ax-accent) 72%, #59beff), color-mix(in srgb, var(--ax-accent) 55%, #2261db));
+  color: #fff; cursor: pointer;
+}
+.model-quick-start > button:disabled { opacity: .65; cursor: default; }
+.model-advanced { margin-top: 4px; border-top: 1px solid var(--ax-border); padding-top: 10px; }
+.model-advanced > summary { cursor: pointer; min-height: 32px; color: var(--ax-fg-secondary); font-size: 13px; }
+.model-advanced[open] > summary { color: var(--ax-accent); }

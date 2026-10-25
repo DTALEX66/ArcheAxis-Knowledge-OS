@@ -92,3 +92,6 @@ it.each([false,true])("SIMULATED hydrated same-page click normalizes an empty UR
   expect(read.state.drafts).toEqual(retained);
   expect(bridge.call.mock.calls.filter(([op])=>op==="ui_state_write")).toHaveLength(writes);
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

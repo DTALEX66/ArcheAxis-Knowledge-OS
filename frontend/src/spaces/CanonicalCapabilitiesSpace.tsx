@@ -12,18 +12,19 @@ import { UI_CAPABILITY_INTENT, UI_CAPABILITY_SOURCE } from "../presentation/uiCa
 import { RESEARCH_BOUNDARIES } from "../presentation/researchBoundaries";
 import { ModelTaskRoles } from "../components/ModelTaskRoles";
 import { readScopedReadiness } from "../api/scopedReadiness";
-import { capabilityPresentation, capabilityOperationName, capabilityDetailText, type CapabilityGroup } from "../presentation/capabilityCenter";
+import { capabilityPresentation, capabilityOperationName, capabilityDetailText, capabilityDesignDetails, CAPABILITY_DESIGN_DETAIL_COUNT, type CapabilityGroup } from "../presentation/capabilityCenter";
 import { CapabilityPackageDetails } from "../components/CapabilityPackageDetails";
 import { templateRequirementStatus } from "../presentation/templateCapabilities";
 import { focusVisibleTarget } from "../presentation/focus";
 import "./capabilities.css";
+import "./capability-discovery.css";
 
 export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCapabilityId, navigation, onTrail }: { onNavigate: (id: SpaceId) => void; onOpenPage?: (id: string) => void; selectedCapabilityId?: string | null; navigation?: { section: string; sequence: number }; onTrail?: (levels: readonly ObjectTrailLevel[]) => void }) {
   const [selected, setSelected] = useState<CapabilityCatalogEntry | null>(() => CAPABILITY_CATALOG.entries.find((entry) => entry.atlas.capability_id === selectedCapabilityId) ?? null);
   const [activeTab, setActiveTab] = useState(selectedCapabilityId ? "details" : "catalog");
   const detailsHeading=useRef<HTMLHeadingElement>(null),focusDetails=useRef(Boolean(selectedCapabilityId));
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<CapabilityGroup | "all">("all");
+  const [category, setCategory] = useState<CapabilityGroup | "all" | "design">("all");
   const [observation, setObservation] = useState<{ capabilityId: string; sequence: number; expiresAt: number; rows: Map<string, Record<string, unknown>> } | null>(null);
   const live = observation && observation.capabilityId === selected?.atlas.capability_id && observation.expiresAt > Date.now() ? observation.rows : null;
   const [message, setMessage] = useState("");
@@ -76,8 +77,8 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     ] : []);
   }, [selected, onTrail]);
 
-  const visible = CAPABILITY_NAVIGATION_ENTRIES.filter((entry) => navigationEntryMatches(entry, query)
-    && (category === "all" || capabilityPresentation(entry.capability).group === category));
+  const visible = CAPABILITY_NAVIGATION_ENTRIES.filter((entry) => (navigationEntryMatches(entry, query) || Boolean(query.trim() && capabilityDesignDetails(entry.entry_id, query).length))
+    && (category === "all" || category === "design" || capabilityPresentation(entry.capability).group === category));
   const destination = selected ? getCapabilityDestination(selected) : undefined;
   const pageDestination = selected ? CAPABILITY_PAGES[selected.atlas.capability_id] : undefined;
   const hasDestination = Boolean(destination || (pageDestination && onOpenPage));
@@ -87,21 +88,28 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
   const absorption = selected ? absorptionClassification(selected.atlas.capability_id) : null;
   const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
     <div className="stitch-capability-browser"><aside className="stitch-capability-controls" aria-label="能力筛选与状态">
-    <p>从这里发现内置工作流、可选扩展和未来能力。选择用途查看入口与条件；尚未接入的条目也保留说明。</p>
+    <p>完整目录保留 {CAPABILITY_CATALOG.entries.length} 个能力族、{CAPABILITY_DESIGN_DETAIL_COUNT} 条设计细项。选择用途查看入口与条件，或展开全部设计蓝图。</p>
     <p>插件、技能与 MCP 是接入形式；当前目录不提供未经实现的安装或执行操作。</p>
     <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、用途、对象或依赖" />
     <div className="capability-center-filters" role="group" aria-label="能力分类">{([
-      ["all", "全部"], ["builtin", "内置能力"], ["extension", "扩展能力"], ["future", "未来规划"],
+      ["all", "全部"], ["builtin", "内置能力"], ["extension", "扩展能力"], ["future", "未来规划"], ["design", "全部设计细项"],
     ] as const).map(([id,label])=><AaosButton key={id} aria-pressed={category===id} onClick={()=>setCategory(id)}>{label}</AaosButton>)}</div>
     <div className="capability-actions"><AaosButton variant="secondary" onClick={() => void refresh()}>刷新当前健康与权限</AaosButton>
-      <span>目录收录 {CAPABILITY_CATALOG.entries.length} 项能力；筛选结果 {visible.length} 项。条目数量不是能力上限。</span></div>
+      <span>目录收录 {CAPABILITY_CATALOG.entries.length} 个能力族；筛选结果 {visible.length} 个。设计细项不等于已实现功能。</span></div>
+    {category === "future" ? <div className="capability-design-note"><p>此分类显示整个能力族尚未接入的规划。已有实现的能力族也保留未核验设计细项。</p><AaosButton variant="secondary" onClick={() => setCategory("design")}>查看全部设计蓝图</AaosButton></div> : null}
+    {category === "design" ? <p className="capability-design-note">蓝图包含当前与后续设计；每条仍为独立证据未核验，不能由父能力状态推断完成。</p> : null}
     </aside><section className="stitch-capability-results" aria-label="能力列表">
     {!visible.length ? <p role="status">没有符合条件的能力；可以清空搜索或切换分类。</p> : null}
-    <ul className="capability-directory capability-center-list">{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);return <li key={navigationEntry.entry_id}>
-      <button data-entry-id={navigationEntry.entry_id} onClick={() => { focusDetails.current=true;setSelected(navigationEntry.capability); setActiveTab("details"); }}>
-        <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{view.form}</small>
+    <ul className={`capability-directory capability-center-list${category === "design" ? " capability-design-overview" : ""}`}>{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);const details=capabilityDesignDetails(navigationEntry.entry_id);const matches=query.trim()?capabilityDesignDetails(navigationEntry.entry_id,query):[];const preview=category==="design"?(query.trim()?matches:details):matches;return <li key={navigationEntry.entry_id} data-context-surface="capability-card">
+      <button data-entry-id={navigationEntry.entry_id} data-context-command="details" data-context-label="查看能力详情" onClick={() => { focusDetails.current=true;setSelected(navigationEntry.capability); setActiveTab("details"); }}>
+        <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{view.form} · {details.length} 条设计细项</small>
       </button>
       <span>{view.status}</span>
+      {preview.length ? <section className="capability-design-preview" aria-label={`${navigationEntry.label}${query.trim() ? "匹配的设计细项" : "设计蓝图"}`}>
+        <p>{query.trim() ? `命中 ${matches.length} 条设计细项` : `${details.length} 条设计细项`} · 独立证据未核验</p>
+        <ul>{(category === "design" ? preview : preview.slice(0, 6)).map(item => <li key={item}>{capabilityDetailText(item)}</li>)}</ul>
+        {category !== "design" && preview.length > 6 ? <small>另有 {preview.length - 6} 条命中项，可在全部设计细项中查看。</small> : null}
+      </section> : null}
     </li>;})}</ul></section></div>
   </div>;
 

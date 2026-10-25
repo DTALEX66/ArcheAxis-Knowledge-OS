@@ -71,7 +71,7 @@ describe("Recovery Shell", () => {
     expect(within(shell).getByRole("button", { name: "安全模式" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "恢复备份" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "退出" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "打开产品导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
   });
 
   it("shows only Tauri-provided sanitized logs and restores only a selected opaque backup", async () => {
@@ -115,7 +115,7 @@ describe("Recovery Shell", () => {
     await user.click(await screen.findByRole("button", { name: "重试启动" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "打开产品导航" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
     });
     expect(recovery.retryDesktopBackend).toHaveBeenCalledOnce();
   });
@@ -169,7 +169,7 @@ describe("Recovery Shell", () => {
     });
     expect(await screen.findByText(/安全模式已启用/)).toBeInTheDocument();
 
-    expect(screen.queryByRole("button", { name: "打开产品导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
@@ -200,7 +200,7 @@ describe("Recovery Shell", () => {
     expect(await screen.findByText("安全模式已启用；本地核心保持停止。")).toBeInTheDocument();
     await act(async () => handshake.resolve({ status: "available" }));
 
-    expect(screen.queryByRole("button", { name: "打开产品导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
@@ -223,7 +223,7 @@ describe("Recovery Shell", () => {
 
     render(<App />);
     await act(async () => Promise.resolve());
-    expect(screen.getByRole("button", { name: "打开产品导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
@@ -257,7 +257,7 @@ describe("Recovery Shell", () => {
 
     render(<App />);
     await act(async () => Promise.resolve());
-    expect(screen.getByRole("button", { name: "打开产品导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
@@ -283,7 +283,7 @@ describe("Recovery Shell", () => {
 
     const view = render(<App />);
     await act(async () => Promise.resolve());
-    expect(screen.getByRole("button", { name: "打开产品导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
     await act(async () => vi.advanceTimersByTimeAsync(30_000));
@@ -362,7 +362,7 @@ describe("Recovery Shell", () => {
 
     expect(await screen.findByText("开发")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "重新加载当前核心" }));
-    await screen.findByRole("button", { name: "打开产品导航" });
+    await screen.findByRole("button", { name: "全部页面，打开产品导航" });
 
     expect(order).toEqual([
       "safe-mode",
@@ -424,6 +424,9 @@ describe("Recovery Shell", () => {
     const reload = screen.getByRole("button", { name: "重新加载当前核心" });
     expect(reload).toBeEnabled();
     await user.click(reload);
-    expect(await screen.findByRole("button", { name: "打开产品导航" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
   });
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

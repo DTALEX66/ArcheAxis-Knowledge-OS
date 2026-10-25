@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { scopedReadiness } from "../test/fixtures/readiness";
 import { readScopedReadiness } from "../api/scopedReadiness";
+import { UI_CAPABILITY_INTENT } from "../presentation/uiCapabilityIntent";
+import { capabilityDetailText } from "../presentation/capabilityCenter";
 const bridge = vi.hoisted(() => ({call: vi.fn()}));
 vi.mock("../api/core", () => ({coreCommand: bridge.call}));
 describe("capability center uses existing identities without inventing runtime availability", () => {
@@ -24,6 +26,31 @@ describe("capability center uses existing identities without inventing runtime a
     await waitFor(()=>expect(screen.getByRole("heading",{name:"空间记忆与沉浸学习"})).toHaveFocus());
     expect(screen.getByRole("button", {name:"当前执行入口尚未提供"})).toBeDisabled();
     expect(bridge.call).not.toHaveBeenCalled();
+  });
+  it("shows the complete 16-family / 186-item authored blueprint without promoting unknown child evidence", async () => {
+    render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()}/>); const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "全部设计细项" }));
+    expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(16);
+    const previews = [...document.querySelectorAll(".capability-design-preview")];
+    expect(previews).toHaveLength(16);
+    expect(previews.flatMap(preview => [...preview.querySelectorAll("li")])).toHaveLength(186);
+    for (const [id, items] of Object.entries(UI_CAPABILITY_INTENT)) {
+      const card = document.querySelector(`button[data-entry-id="${id}"]`)!.closest("li")!;
+      expect([...card.querySelectorAll(".capability-design-preview li")].map(item => item.textContent)).toEqual(items.map(capabilityDetailText));
+      expect(card).toHaveTextContent("独立证据未核验");
+    }
+    expect(bridge.call).not.toHaveBeenCalled();
+  });
+  it("previews matching child intentions before opening details and lets future browsing include partially implemented families", async () => {
+    render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()}/>); const user = userEvent.setup();
+    await user.type(screen.getByLabelText("查找能力"), "VR");
+    const matching = screen.getByRole("region", { name: "空间记忆与沉浸学习匹配的设计细项" });
+    expect(matching).toHaveTextContent("VR"); expect(matching).toHaveTextContent("独立证据未核验");
+    await user.clear(screen.getByLabelText("查找能力"));
+    await user.click(screen.getByRole("button", { name: "未来规划" }));
+    await user.click(screen.getByRole("button", { name: "查看全部设计蓝图" }));
+    const cards = within(screen.getByRole("region", { name: "能力列表" })).getAllByRole("button", { name: /条设计细项/ });
+    expect(cards).toHaveLength(16); expect(bridge.call).not.toHaveBeenCalled();
   });
   it("labels donor usability as historical and limits role observations to the selected capability", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020"/>);

@@ -126,3 +126,6 @@ it("the new application dock uses the existing draft refusal guard without repla
  fireEvent.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce());expect(window.location.hash).toBe("#page=17");expect(draft).toBeVisible();expect(draft).toHaveValue("retained through new Dock");dirty(false);
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

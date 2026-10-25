@@ -15,6 +15,9 @@
 .stitch-launchpad-search:focus-within { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
 .stitch-launchpad-search input:focus { outline: none; box-shadow: none; }
 .stitch-launchpad-categories { display: flex; flex-wrap: wrap; gap: 6px; }
+.stitch-launchpad-catalog { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; color: var(--ax-fg-secondary); font-size: .8125rem; }
+.stitch-launchpad-catalog button { min-height: 34px; padding: 5px 10px; border: 1px solid var(--ax-border-strong); border-radius: 8px; color: var(--ax-fg); background: var(--stitch-glass-card); font: inherit; cursor: pointer; }
+.stitch-launchpad-match { width: 100%; padding-top: 8px; border-top: 1px solid var(--ax-border); color: var(--ax-fg-secondary); font-size: .75rem; line-height: 1.5; text-align: center; }
 .stitch-launchpad-categories button { min-height: 34px; padding: 5px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ax-fg-secondary); font: inherit; font-size: .8125rem; cursor: pointer; }
 .stitch-launchpad-categories button[aria-pressed="true"] { background: var(--ax-accent-soft); color: var(--ax-accent); border-color: var(--stitch-glass-edge); }
 .stitch-launchpad-results { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 3px; margin: -3px; }

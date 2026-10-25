@@ -472,7 +472,8 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     lines = text.splitlines(keepends=True)
     anchors: list[dict] = []
     offset = 0
-    for index, line in enumerate(lines, start=1):
+    # The Core accepts the first 5000 line anchors, while text remains complete.
+    for index, line in enumerate(lines[:5000], start=1):
         anchors.append(
             {"kind": "line", "path": [f"line-{index}"], "char_start": offset, "char_end": offset + len(line)}
         )
@@ -497,17 +498,24 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
             "additional fields the worker returned are preserved verbatim here instead of being dropped"
         )
     params.setdefault("coverage_unit", "line anchors")
+    params.setdefault("cap_lines", 5000)
     losses = list(receipt.get("losses") or [])
     losses.append(
         "line anchors and coverage were derived by the transport from the worker's projected text; "
         "the worker's own structure is kept under params.worker_structure"
     )
+    covered, total = len(anchors), len(lines)
+    if covered < total:
+        cap_note = "line anchors capped at 5000"
+        losses.append(cap_note)
+        previous_note = receipt.get("loss_note")
+        receipt["loss_note"] = f"{previous_note}; {cap_note}" if previous_note else cap_note
     receipt.update(
         params=params,
         losses=losses,
-        covered=len(anchors),
-        total=len(lines),
-        coverage=1.0,
+        covered=covered,
+        total=total,
+        coverage=covered / total if total else 1.0,
     )
     receipt.setdefault("loss_note", "; ".join(losses))
     return {**result, "structure": anchors, "loss_receipt": receipt}

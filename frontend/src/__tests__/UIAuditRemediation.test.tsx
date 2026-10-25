@@ -69,3 +69,6 @@ it("页面命令显示使用目的，同时保留任务编号检索", () => {
   expect(reader.description).toBe("阅读资料、编辑正文并保留版本"); expect(navigationEntryMatches(reader, "UF03")).toBe(true);
   for (const entry of EFFECTIVE_NAVIGATION_ENTRIES.filter(entry => entry.page)) expect(entry.description).not.toMatch(/UI \/|底座|资格独立|UF\d/);
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

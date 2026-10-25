@@ -2,10 +2,12 @@ import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { BackupPanel } from "../components/BackupPanel";
 import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
 import { ConfigurationPlanPanel } from "../components/ConfigurationPlanPanel";
+import { UsageGuidePanel } from "../components/UsageGuide";
 import "./stitch-settings.css";
 
 const sections = [
   { id: "models", label: "模型与连接", description: "连接本地模型服务，管理配置与用途绑定。" },
+  { id: "guide", label: "使用引导", description: "从导入到知识的完整使用顺序。" },
   { id: "workspace", label: "工作区与恢复", description: "创建一致备份，核对产物后预检与恢复工作区。" },
   { id: "plans", label: "配置计划", description: "读取本机配置与部署计划，核对来源和版本。" },
 ] as const;
@@ -53,6 +55,10 @@ export function StitchSettingsSpace({ hasUnsavedDrafts = false }: { hasUnsavedDr
       <section className="stitch-settings-pane stitch-settings-models" role="tabpanel"
         id={`${id}-panel-models`} aria-labelledby={`${id}-tab-models`} hidden={active !== "models"} tabIndex={0}>
         <ModelConfigurationPanel />
+      </section>
+      <section className="stitch-settings-pane" role="tabpanel"
+        id={`${id}-panel-guide`} aria-labelledby={`${id}-tab-guide`} hidden={active !== "guide"} tabIndex={0}>
+        <UsageGuidePanel />
       </section>
       <section className="stitch-settings-pane stitch-settings-workspace" role="tabpanel"
         id={`${id}-panel-workspace`} aria-labelledby={`${id}-tab-workspace`} hidden={active !== "workspace"} tabIndex={0}>

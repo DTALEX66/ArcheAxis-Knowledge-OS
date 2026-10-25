@@ -15,12 +15,16 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { StatusBar } from "../components/StatusBar";
 import { SpaceRail } from "../components/SpaceRail";
+import { ParticleField } from "../components/ParticleField";
+import { MotionConfig } from "motion/react";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
 import { DockWorkspace, type DockNavigationTarget } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ConsoleWindow } from "../components/ConsoleWindow";
+import { WorkspaceContextMenu } from "../components/WorkspaceContextMenu";
+import { FirstUseGuide, requestFirstUseGuide } from "../components/FirstUseGuide";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
 import { TopNavBar } from "../components/TopNavBar";
@@ -813,8 +817,10 @@ function AppBody() {
   };
 
   return (
+    <MotionConfig reducedMotion="user">
     <StitchResearchOutlet.Provider value={researchReference ? { host: referenceVisible ? researchMaterialsHost : null, onLocate: () => { if (!wideWorkspace) { setInspectorOpen(false); companionFocusRequested.current = false; setCompanionOpen(false); } } } : null}>
-    {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setNavigationOpen(true)} />}
+    <ParticleField/>
+    {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} />}
     <ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
       <TopNavBar
         breadcrumbs={[
@@ -841,7 +847,7 @@ function AppBody() {
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
       {workingNotice}
 
-      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const pending=pendingSection.current;pendingSection.current=null;event.preventDefault();if(pending){activateSection(pending);return;}document.querySelector<HTMLButtonElement>('button[aria-label="打开产品导航"]')?.focus();}} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><NavTrail levels={trailLevels} onJump={region=>{setNavigationOpen(false);globalThis.setTimeout(()=>focusRegion(region),120);}} /><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;pendingSection.current=section;setNavigationOpen(false);globalThis.setTimeout(()=>{if(pendingSection.current!==section)return;pendingSection.current=null;activateSection(section);},120);}} />}</AaosDialog>}
+      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const pending=pendingSection.current;pendingSection.current=null;event.preventDefault();if(pending){activateSection(pending);return;}document.querySelector<HTMLButtonElement>('button[aria-label="全部页面，打开产品导航"]')?.focus();}} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><NavTrail levels={trailLevels} onJump={region=>{setNavigationOpen(false);globalThis.setTimeout(()=>focusRegion(region),120);}} /><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;pendingSection.current=section;setNavigationOpen(false);globalThis.setTimeout(()=>{if(pendingSection.current!==section)return;pendingSection.current=null;activateSection(section);},120);}} />}</AaosDialog>}
       <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
         <main className="app-center" role="main" aria-label="当前空间内容">
           {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}
@@ -852,13 +858,15 @@ function AppBody() {
         </main>
       </div>
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
-    </div></ConsoleWindow>
+    </div><WorkspaceContextMenu onPage={openPage} onCompanion={toggleCompanion} onInspector={toggleInspector} companionOpen={companionOpen && !companionHiddenByReference} inspectorOpen={inspectorOpen} disabled={workspaceRestoring} workspaceActions={!learningFocus}/></ConsoleWindow>
     {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : ""}`}>
       {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭检查器" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} />}
     </div> : null}
     {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} launchpadOpen={launchpadOpen} onLaunchpad={() => setLaunchpadOpen(value => !value)} />}
     {!learningFocus && <StitchLaunchpad open={launchpadOpen} onOpenChange={setLaunchpadOpen} onPage={openPage} onCapability={openCapability}/>}
     {companionOpen && !learningFocus && (!desktop || workingEntered) ? <StitchCompanionWindow focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; setCompanionOpen(false); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
+    <FirstUseGuide onPage={openPage} enabled={!workspaceRestoring && (!desktop || workingEntered)} autoOpen={uiPageId === "01" && !learningFocus}/>
     </StitchResearchOutlet.Provider>
+    </MotionConfig>
   );
 }

@@ -41,7 +41,7 @@ describe("App shell", () => {
     }
     act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
     await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
-    screen.getByRole("button", { name: "移动小栖窗口" }).focus();
+    screen.getByRole("button", { name: "小栖 · 陪伴会话，移动小栖窗口" }).focus();
     act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
     expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
     act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
@@ -440,7 +440,7 @@ describe("App shell", () => {
 describe("recovery barrier regression",()=>{
  it("blocks portal shortcuts and external hashes synchronously; uncertain restore invalidates old views",async()=>{
   delete window.__TAURI__;window.history.replaceState(null,"","#page=01");render(<App/>);const user=userEvent.setup();
-  await user.click(screen.getByRole("button",{name:"打开产品导航"}));expect(screen.getByRole("dialog",{name:"产品导航"})).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"全部页面，打开产品导航"}));expect(screen.getByRole("dialog",{name:"产品导航"})).toBeInTheDocument();
   const before=document.querySelector(".app-body");
   act(()=>{window.dispatchEvent(new CustomEvent("workspace-restore-start"));window.dispatchEvent(new KeyboardEvent("keydown",{key:"k",ctrlKey:true,bubbles:true}));window.dispatchEvent(new KeyboardEvent("keydown",{key:"i",ctrlKey:true,altKey:true,bubbles:true}));window.history.replaceState(null,"","#capability/CAP-0050");window.dispatchEvent(new HashChangeEvent("hashchange"));});
   expect(screen.queryByRole("dialog",{name:"全局命令"})).not.toBeInTheDocument();expect(screen.queryByRole("dialog",{name:"产品导航"})).not.toBeInTheDocument();expect(document.querySelector('[aria-label="检查器"]')).toBeNull();expect(window.location.hash).toBe("#page=01");expect(before).toHaveAttribute("inert");
@@ -448,3 +448,6 @@ describe("recovery barrier regression",()=>{
   expect(document.querySelector(".app-body")).not.toBe(before);expect(screen.getByRole("alert")).toHaveTextContent("恢复读回未确认");expect(document.querySelector(".app-body")).not.toHaveAttribute("inert");
  });
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

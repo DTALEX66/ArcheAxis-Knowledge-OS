@@ -23,6 +23,8 @@ describe("single console geometry (SIMULATED, no layout qualification)", () => {
       const sideLeft = width - rect.x - width * .29;
       expect(sideLeft - (rect.x + rect.width)).toBeCloseTo(20);
       expect(rect.y).toBeGreaterThanOrEqual(48);
+      expect(rect.y).toBe(48);
+      expect(rect.height).toBe(height - 112);
       expect(rect.y + rect.height).toBeLessThanOrEqual(height - 64);
       expect(rect.width / width).toBeCloseTo(.64);
     }

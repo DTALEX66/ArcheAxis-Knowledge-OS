@@ -51,3 +51,6 @@ function openReader() {
  const summary=within(menu).getByText("文件",{selector:"summary"});
  fireEvent.click(summary); fireEvent.click(within(summary.parentElement!).getByRole("button",{name:"阅读与编辑"}));
 }
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

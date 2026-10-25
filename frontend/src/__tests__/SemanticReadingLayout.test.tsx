@@ -75,7 +75,9 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(bridge.call).toHaveBeenCalledWith("document_get",{document_id:"doc_real_identity"});
     expect(within(reader).getByRole("complementary",{name:"内容详情"})).toBeInTheDocument();
     expect(within(reader).queryByLabelText("导入原件")).toBeNull();
-    expect(within(reader).queryByLabelText("目录批量导入")).toBeNull();
+    const batchTools=within(reader).getByText("批次链接与附件").closest("details")!;
+    expect(batchTools).not.toHaveAttribute("open");
+    expect(within(batchTools).getByRole("button",{name:"读取历史批次",hidden:true})).toBeInTheDocument();
     expect(within(reader).queryByRole("button",{name:/创建备份/})).toBeNull();
     expect(bridge.call.mock.calls.some(([op])=>op==="source_import"||op==="document_draft")).toBe(false);
   });
@@ -254,3 +256,6 @@ async function openReader(user: ReturnType<typeof userEvent.setup>) {
  const summary=within(menu).getByText("文件",{selector:"summary"});
  await user.click(summary); await user.click(within(summary.parentElement!).getByRole("button",{name:"阅读与编辑"}));
 }
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

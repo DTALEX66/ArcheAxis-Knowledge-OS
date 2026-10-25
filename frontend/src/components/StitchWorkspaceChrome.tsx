@@ -1,8 +1,9 @@
+/// <reference types="vite/client" />
 import { createContext, useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { motion } from "motion/react";
 import { createPortal } from "react-dom";
 import { AaosIcon, type AaosIconName } from "./AaosIcon";
-import { AAOS_THEME_REGISTRY } from "../design-system/theme";
-import { useAaosTheme } from "../design-system/ThemeProvider";
+import aaosMarkLight from "../assets/brand/aaos-mark-light.svg";
 import { UI_PAGES } from "../presentation/uiPages";
 import "./StitchWorkspaceChrome.css";
 
@@ -27,8 +28,7 @@ const menus = [
 ] as const;
 
 /** All entries resolve through the existing guarded App navigation. No new page registry. */
-export function StitchWorkspaceMenu({ onPage, onNavigation }: { onPage: (page: string) => void; onNavigation: () => void }) {
-  const { theme } = useAaosTheme();
+export function StitchWorkspaceMenu({ onPage, onNavigation, onGuide }: { onPage: (page: string) => void; onNavigation: () => void; onGuide?: () => void }) {
   const root = useRef<HTMLElement>(null);
   const dismiss = (returnFocus = false) => {
     root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(menu => {
@@ -44,12 +44,13 @@ export function StitchWorkspaceMenu({ onPage, onNavigation }: { onPage: (page: s
   return <nav ref={root} className="stitch-workspace-menu" aria-label="应用菜单" onKeyDown={event => {
     if (event.key === "Escape" && !event.defaultPrevented) { dismiss(true); event.preventDefault(); }
   }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) dismiss(); }}>
-    <button type="button" className="stitch-brand" onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><img className="top-nav-logo brand-mark" src={AAOS_THEME_REGISTRY[theme].brandMark} alt="" width={22} height={22} style={{objectFit:"contain"}}/><span>ArcheAxis Knowledge</span></button>
+    <button type="button" className="stitch-brand" onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><img className="stitch-brand-logo" src={aaosMarkLight} alt="" height={22}/><span>ArcheAxis Knowledge</span></button>
     <div className="stitch-menus">
       {menus.map(menu => <details key={menu.label} onToggle={event => {
         if (event.currentTarget.open) root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(other => { if (other !== event.currentTarget) other.open = false; });
       }}><summary>{menu.label}</summary><div className="stitch-menu-popover">{menu.pages.map(page => <button type="button" key={page} data-page-id={page} onClick={() => { dismiss(true); onPage(page); }}>{UI_PAGES.find(entry => entry.id === page)?.label}</button>)}</div></details>)}
-      <button type="button" aria-label="打开产品导航" onClick={onNavigation}>全部页面</button>
+      <button type="button" aria-label="全部页面，打开产品导航" onClick={onNavigation}>全部页面</button>
+      {onGuide ? <button type="button" onClick={onGuide}>使用引导</button> : null}
     </div>
   </nav>;
 }
@@ -90,7 +91,7 @@ export function StitchCompanionWindow({ children, onClose, focusOnOpen = false }
     gesture.current = null;
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
-  return createPortal(<aside id="stitch-companion-window" ref={panel} className="stitch-companion-window" aria-labelledby="stitch-companion-title" tabIndex={-1} style={position ? { left: position.x, top: position.y, right: "auto" } : undefined} onKeyDown={event => {
+  return createPortal(<motion.aside initial={{ opacity: 0, scale: 0.98, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.18, ease: "easeOut" }} id="stitch-companion-window" ref={panel} className="stitch-companion-window" aria-labelledby="stitch-companion-title" tabIndex={-1} style={position ? { left: position.x, top: position.y, right: "auto" } : undefined} onKeyDown={event => {
     if (event.key !== "Escape" || event.defaultPrevented || event.nativeEvent.isComposing) return;
     if (gesture.current) { setPosition(gesture.current.previous); gesture.current = null; } else close();
     event.preventDefault(); event.stopPropagation();
@@ -101,7 +102,7 @@ export function StitchCompanionWindow({ children, onClose, focusOnOpen = false }
       gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, start: { x: rect.left, y: rect.top }, previous: position };
       event.currentTarget.setPointerCapture?.(event.pointerId); event.preventDefault();
     }} onPointerMove={event => { const start = gesture.current; if (start?.id === event.pointerId) setPosition(constrain({ x: start.start.x + event.clientX - start.x, y: start.start.y + event.clientY - start.y })); }} onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={() => { gesture.current = null; }}>
-      <button type="button" className="stitch-companion-move" aria-label="移动小栖窗口" title="拖动移动，也可用方向键移动" onKeyDown={event => {
+      <button type="button" className="stitch-companion-move" aria-label="小栖 · 陪伴会话，移动小栖窗口" title="拖动移动，也可用方向键移动" onKeyDown={event => {
         if (event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
         const rect = panel.current!.getBoundingClientRect();
         setPosition(constrain({ x: rect.left + (event.key === "ArrowRight" ? 10 : event.key === "ArrowLeft" ? -10 : 0), y: rect.top + (event.key === "ArrowDown" ? 10 : event.key === "ArrowUp" ? -10 : 0) })); event.preventDefault();
@@ -109,5 +110,5 @@ export function StitchCompanionWindow({ children, onClose, focusOnOpen = false }
       <button type="button" aria-label="收起小栖窗口" onClick={close}>×</button>
     </header>
     <div className="stitch-companion-content">{children}</div>
-  </aside>, document.body);
+  </motion.aside>, document.body);
 }

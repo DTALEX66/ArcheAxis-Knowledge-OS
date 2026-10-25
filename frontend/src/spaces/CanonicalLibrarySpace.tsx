@@ -72,7 +72,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const libraryMounted = useRef(true);
   const listGeneration = useRef(0), listRefreshInFlight = useRef(false);
   const [listSnapshot,setListSnapshot] = useState(0);
-  const sourceTargetKey=initialSourceTarget?JSON.stringify([initialSourceTarget.source_id,initialSourceTarget.source_revision,initialSourceTarget.sha256]):null;
+  const sourceTargetKey=initialSourceTarget?JSON.stringify([initialSourceTarget.source_id,initialSourceTarget.source_revision,initialSourceTarget.sha256,initialSourceTarget.folder_member]):null;
   const sourceTargetAttempt=useRef<{key:string|null;navigation:number;editing:number;pending:boolean;consumed:boolean}|null>(null);
   const listHasSnapshot=useRef(false);
   const [refreshingLists,setRefreshingLists] = useState(true);
@@ -80,6 +80,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [listFailureReason,setListFailureReason] = useState<string|null>(null);
   const [openedDocuments, setOpenedDocuments] = useState<DocumentSummaryDto[]>([]);
   const [relationSelection,setRelationSelection]=useState<FolderMemberSelection|null>(null);
+  const [relationToolsOpen,setRelationToolsOpen]=useState(false);
   const relationPending=useRef(false);
   const [folderJob,setFolderJob]=useState<{source_id:string;job_id?:string}|null>(null);
   const [source, setSource] = useState<SourceDto | null>(null);
@@ -147,6 +148,16 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     onDirtyChange?.(dirty.current);
     window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:dirty.current}:dirty.current }));
   }
+  function selectFolderRelations(selection:FolderMemberSelection) {
+    if(relationPending.current||writeInFlight.current||dirty.current){setMessage("原关系请求、草稿或写入未确认，保留原映射；请先核对。");return;}
+    setRelationSelection(selection);setRelationToolsOpen(true);
+  }
+  useEffect(()=>{
+    const selection=initialSourceTarget?.folder_member;
+    if(!selection)return;
+    if(selection.source_id!==initialSourceTarget.source_id||selection.source_revision!==initialSourceTarget.source_revision||selection.source_revision!==initialSourceTarget.sha256){setMessage("批次成员与所选原件身份不符，未打开关系映射。");return;}
+    selectFolderRelations(selection);
+  },[sourceTargetKey]);
   function reportEditorDirty(id:string, value:boolean) {
     if(value) dirtyDocumentIds.current.add(id); else dirtyDocumentIds.current.delete(id);
     if(value) editGeneration.current += 1;
@@ -675,7 +686,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><SavedDocumentMetadata document={historicalDocument} onTag={setSelectedTag}/><pre>{historicalDocument.text_projection}</pre><DocumentEmbeds key={`${historicalDocument.document_id}:${historicalDocument.version}:${historicalDocument.content_sha256}`} editor={historicalDocument.editor_json} onOpenReference={onOpenReference}/>{savedCollection(historicalDocument)}{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
   const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认；先检查结果，再重试同一次操作。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
   // List reads own one announcement; content/write outcomes remain independent.
-  const listControls=<section className="library-list-controls" aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<p role="alert">{listError}</p>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
+  const listControls=<section className="library-list-controls" aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<><p role="alert">{listError}</p><p className="library-retry-help">先确认本地工作区已连接，再点“刷新资料列表”。读取失败时无法判断资料是否为空；已打开的内容和草稿仍保留。</p></>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
   const filteredDocuments = documents.filter(item => {
     if(contentFilter === "original" && item.source_id) return false;
     if(contentFilter === "linked" && !item.source_id) return false;
@@ -694,11 +705,11 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档" className="stitch-document-list">
       <ul className="stitch-document-cards">
         {filteredDocuments.map(item => <li key={item.document_id}>
-          <article className="stitch-document-card">
+          <article className="stitch-document-card" data-context-surface="document-card">
             <span className="stitch-document-kind" aria-hidden="true">{item.has_collection === true ? "集合" : item.source_id ? "文档" : "笔记"}</span>
             <div className="stitch-document-card-copy"><h4>{item.title}</h4><p>{item.source_id ? "关联原件文档" : "原创笔记"}{item.source_id ? <> · {sources.find(value=>value.source_id===item.source_id)?.original_name ?? "已绑定来源"}</> : null}</p>{item.has_collection===true?<small>含保存版集合</small>:null}</div>
             <span className="stitch-document-version">v{item.version}</span>
-            <button type="button" onClick={()=>selectForReading(item.document_id)} aria-label={`打开文档 ${item.title}`}>打开阅读</button>
+            <button type="button" data-context-command="read" onClick={()=>selectForReading(item.document_id)} aria-label={`打开文档 ${item.title}`}>打开阅读</button>
           </article>
         </li>)}
       </ul>
@@ -708,6 +719,10 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={()=>void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
   </>;
   const originalTextCitation=source&&bytes&&/\.(txt|md)$/i.test(source.original_name)?<OriginalTextCitation sourceId={source.source_id} revision={source.source_revision} bytes={bytes} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(item=>item.anchor_id!==anchor.anchor_id),anchor])}/>:null;
+  const folderRelations=<>
+    <div className="space-section-region" data-section="folder" tabIndex={-1} aria-label="目录批量导入"><FolderIngest onOpenSource={(id,job,revision)=>void openFolderSource(id,job,revision)} onSelectRelations={selectFolderRelations}/></div>
+    {relationSelection?<IngestRelationsPanel key={JSON.stringify(relationSelection)} selection={relationSelection} document={document} documents={documents} dirty={dirtyDocumentIds.current.size>0||!!noteAttempt.current||!!sharedDraft} canWrite={documentLease.canWrite} write={relationWrite} onApplied={relationApplied} onPendingChange={pending=>{relationPending.current=pending;publishDirtyState();}} onOpenDocument={id=>{if(!dirty.current&&!writeInFlight.current)void openDocument(id);}} onMore={()=>void loadMoreDocuments()} hasMore={!!nextDocumentCursor}/>:null}
+  </>;
   if(purpose === "library") return <section className="stitch-library-page" aria-label="知识库文档视图" data-stitch-library="library">
     <header className="stitch-library-heading"><div><span className="stitch-library-eyebrow">知识与原件</span><h2>知识库</h2></div><div className="stitch-library-actions"><button type="button" onClick={onOpenImport} disabled={!onOpenImport}>导入原件</button><button className="stitch-library-primary" type="button" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建笔记</button></div></header>
     {feedback}
@@ -736,9 +751,10 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section className="stitch-reader-source-tools" aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<RawReceiptButton label="原件编号与版本详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision}}/>{!document?<>{sourcePreview}<button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
   if(purpose === "reader" || purpose === "history") return <section className="stitch-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"} data-stitch-library={purpose}>
     {feedback}
+    {purpose==="reader"?<details className="reader-batch-tools" open={relationToolsOpen} onToggle={event=>setRelationToolsOpen(event.currentTarget.open)}><summary>批次链接与附件{relationPending.current?" · 请求尚未确认":""}</summary><p>继续处理本批次，或点“读取历史批次”找回上次导入。链接只从固定原件解析；请明确选择已保存文档和目标，不会按同名猜测。</p>{folderRelations}</details>:null}
     {!document?<header className="stitch-reader-heading"><div><span className="stitch-library-eyebrow">知识与原件</span><h2>{purpose === "history" ? "文档历史" : "阅读与编辑"}</h2></div></header>:null}
     {!document?listControls:null}
-    {!document||initialSourceTarget?readerSourceTools:null}
+    {(!document||initialSourceTarget)&&readerSourceTools?<><p className="library-reader-next">先对照原文件阅读。需要提取文字时，点“整理此来源为知识候选”，再执行内容转换；只想写笔记时，可点“建立版本化草稿”。草稿保存在本地知识库，成为正式知识仍需另行审查。</p>{readerSourceTools}</>:null}
     {document ? <>
       <header className="stitch-reader-heading"><div><span className="stitch-library-eyebrow">{purpose === "history" ? "历史与版本" : "阅读与编辑"}</span><h2>{document.title}</h2></div><p><span>{document.source_id ? "关联原件文档" : "原创笔记"}</span><span className="stitch-document-version">v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存" : ""}</span></p></header>
       <div className="stitch-reader-toolbar"><div className="stitch-reader-modes" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions&&purpose!=="history"} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div>{listControls}</div>
@@ -761,8 +777,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
         {readerSourceTools&&!initialSourceTarget?<details className="reader-source-tools"><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
       </aside>
       </div>
-    </> : <section className="stitch-reader-empty"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>
-      {documents.length===0 ? <div className="stitch-reader-empty-actions"><button type="button" className="stitch-library-primary" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建原创笔记</button><button type="button" onClick={()=>{window.location.hash="#page=02";}}>去知识库选择资料</button></div> : null}
+    </> : <section className="stitch-reader-empty"><h2>{refreshingLists?"正在读取资料":listError?"资料列表暂时无法读取":"选择已保存文档"}</h2><p>{refreshingLists?"读取完成后，可从文档列表选择内容。":listError?"先用上方的刷新操作重新读取，再选择资料；当前不会把读取失败当作没有资料。":documents.length?"点击下方“打开阅读”，查看正文；原件和旧版从阅读辅助视图打开。":"还没有可选文档。先导入一份资料，或新建一篇自己的笔记。"}</p>
+      {!refreshingLists&&!listError&&documents.length===0 ? <div className="stitch-reader-empty-actions">{onOpenImport?<button type="button" className="stitch-library-primary" onClick={onOpenImport}>导入第一份资料</button>:null}<button type="button" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建原创笔记</button></div> : null}
       {documentList}</section>}
   </section>;
   return <Section title="资料库">
@@ -771,8 +787,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
     <label className="content-import" data-section="import" tabIndex={-1}>导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
     {importReceipt?<dl className="receipt-grid" aria-label="导入结果"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}
-    <div className="space-section-region" data-section="folder" tabIndex={-1} aria-label="目录批量导入"><FolderIngest onOpenSource={(id,job,revision)=>void openFolderSource(id,job,revision)} onSelectRelations={selection=>{if(relationPending.current||writeInFlight.current){setMessage("原关系请求未确认，保留原映射；请先只读核对。");return;}setRelationSelection(selection);}} /></div>
-    {relationSelection?<IngestRelationsPanel key={JSON.stringify(relationSelection)} selection={relationSelection} document={document} documents={documents} dirty={dirtyDocumentIds.current.size>0||!!noteAttempt.current||!!sharedDraft} canWrite={documentLease.canWrite} write={relationWrite} onApplied={relationApplied} onPendingChange={pending=>{relationPending.current=pending;publishDirtyState();}} onOpenDocument={id=>{if(!dirty.current&&!writeInFlight.current)void openDocument(id);}} onMore={()=>void loadMoreDocuments()} hasMore={!!nextDocumentCursor}/>:null}
+    {folderRelations}
     <div className="canonical-library">
       <nav ref={sourceNavigation} tabIndex={-1} className="canonical-sources" data-section="sources" aria-label="保留原件">
         {sources.length === 0 ? <p>暂无原件。</p> : sources.slice(sourcePage*30,(sourcePage+1)*30).map((item) => <button type="button" key={item.source_id} aria-current={source?.source_id === item.source_id ? "true" : undefined} onClick={() => void open(item)}>{item.original_name}</button>)}

@@ -14,7 +14,9 @@ WORKER = ROOT / "services/python-workers/machine/public_research.py"
 
 
 @pytest.fixture
-def worker():
+def worker(monkeypatch):
+    # Synthetic fixtures must never inherit the developer's real Windows route.
+    monkeypatch.setenv("ARCHEAXIS_PUBLIC_RESEARCH_PROXY", "direct")
     spec = importlib.util.spec_from_file_location("public_research_fixture", WORKER)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

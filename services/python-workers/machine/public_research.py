@@ -244,6 +244,13 @@ def execute(request: dict, *, cancelled: Callable[[], bool] = lambda: False) -> 
     query, families, limit = validate(request)
     result = {"schema": SCHEMA, "query": query, "families": families, "channels": []}
     parsers = {"encyclopedia": _wikipedia, "community": _community, "research": _research}
+    if cancelled():
+        raise Cancelled()
+    proxy_url, proxy_error = None, None
+    try:
+        proxy_url = proxy_transport.select_proxy(os.environ.get("ARCHEAXIS_PUBLIC_RESEARCH_PROXY"))
+    except proxy_transport.ProxyFailure as exc:
+        proxy_error = exc.code
     for family in families:
         if cancelled():
             raise Cancelled()
@@ -254,11 +261,12 @@ def execute(request: dict, *, cancelled: Callable[[], bool] = lambda: False) -> 
             "request_url": endpoint, "raw_response_base64": None, "hits": []}
         result["channels"].append(channel)
         try:
+            if proxy_error:
+                raise proxy_transport.ProxyFailure(proxy_error)
             policy = http.SafeHTTPPolicy(timeout=12,
                 max_bytes=MAX_RESPONSE, max_redirects=0, allowed_ports=(443,),
                 allowed_hosts=(urlsplit(endpoint).hostname,), allowed_content_types=("application/json",))
             headers = {"Accept": "application/json", "User-Agent": USER_AGENT}
-            proxy_url = os.environ.get("ARCHEAXIS_PUBLIC_RESEARCH_PROXY")
             response = (http.fetch(endpoint, policy=policy, headers=headers) if proxy_url is None else
                 proxy_transport.fetch(endpoint, policy=policy, headers=headers, proxy_url=proxy_url, http=http))
             if len(response.body) > MAX_RESPONSE:

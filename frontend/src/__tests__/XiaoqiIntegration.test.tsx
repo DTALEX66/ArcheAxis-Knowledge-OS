@@ -31,6 +31,8 @@ describe('Xiaoqi source integration',()=>{
  it('reports image failure and recovers when a different real state is presented',()=>{
   const view=render(<XiaoqiAvatar state="thinking"/>);
   fireEvent.error(screen.getByRole('img',{name:'小栖：思考中'}));
+  expect(screen.getByRole('img',{name:'小栖：思考中'})).toHaveAttribute('src',xiaoqiImages.thinking);
+  fireEvent.error(screen.getByRole('img',{name:'小栖：思考中'}));
   expect(screen.getByRole('img',{name:'小栖：思考中，图像暂不可用'})).toBeVisible();
   view.rerender(<XiaoqiAvatar state="completed"/>);
   expect(screen.getByRole('img',{name:'小栖：已完成'})).toHaveAttribute('src',xiaoqiImages.completed);

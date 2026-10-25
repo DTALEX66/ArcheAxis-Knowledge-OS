@@ -64,6 +64,27 @@ beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);docs=new Map([["doc_a",dto("do
 };bridge.call.mockImplementation(original);});
 afterEach(()=>{resetDiagnostics();vi.restoreAllMocks();vi.unstubAllGlobals();});
 
+it("keeps the research content landmark distinct from its Dockview host and explains the first saved artifact",async()=>{
+ render(<div role="region" aria-label="研究空间"><CanonicalResearchSpace/></div>);
+ await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("documents_list",{}));
+ expect(screen.getAllByRole("region",{name:"研究空间"})).toHaveLength(1);
+ expect(screen.getByRole("region",{name:"研究专题内容"})).toBeInTheDocument();
+ expect(screen.getByText("第一次做研究：先比较一个具体问题")).toBeInTheDocument();
+ expect(screen.getByText("保存在本地研究文档")).toBeInTheDocument(); expect(requests).toHaveLength(0);
+});
+
+it("offers an explicit retry of the same pending save without creating a second research request",async()=>{
+ let fail=true;
+ bridge.call.mockImplementation(async(op:string,p:J)=>{if(op==="document_create"&&fail){requests.push(structuredClone(p));throw new Error("receipt lost");}return original(op,p);});
+ render(<CanonicalResearchSpace/>);editQuestion("小白使用中的第一份研究");
+ fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));
+ const retry=await screen.findByRole("button",{name:"重试原保存请求"});
+ const first=structuredClone(requests[0]); expect(screen.getByRole("textbox",{name:"研究问题"})).toHaveValue("小白使用中的第一份研究");
+ fail=false; fireEvent.click(retry);
+ await waitFor(()=>expect(requests).toHaveLength(2)); expect(requests[1]).toEqual(first);
+ await waitFor(()=>expect(screen.queryByRole("button",{name:"重试原保存请求"})).not.toBeInTheDocument());
+});
+
 it("keeps public search preparation local and saves only an explicit unresolved plan",async()=>{
  render(<CanonicalResearchSpace/>);await openA();
  const panel=screen.getByRole("region",{name:"公开资料检索"});

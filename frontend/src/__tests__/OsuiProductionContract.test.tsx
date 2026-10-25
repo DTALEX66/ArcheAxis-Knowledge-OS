@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { App } from "../app/App";
 import { UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS, UI_PAGES } from "../presentation/uiPages";
@@ -10,7 +10,7 @@ describe("OSUI v3 production contract", () => {
     const user = userEvent.setup();
     render(<App/>);
     expect(UI_PAGES).toHaveLength(22);
-    await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+    await user.click(screen.getByRole("button", { name: "全部页面，打开产品导航" }));
     const rail=screen.getByRole("navigation",{name:"主空间导航"});
     for(const entry of [...UI_DAILY_ENTRY_POINTS,...UI_FIXED_ENTRY_POINTS]) expect(within(rail).getByRole("button",{name:entry.label})).toBeInTheDocument();
     expect(within(rail).queryByRole("button",{name:"研究空间"})).toBeNull();
@@ -32,7 +32,7 @@ describe("OSUI v3 production contract", () => {
     expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开检查器" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开活动坞" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+    await user.click(screen.getByRole("button", { name: "全部页面，打开产品导航" }));
     expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
   });
 
@@ -77,7 +77,7 @@ describe("OSUI v3 production contract", () => {
     const user = userEvent.setup();
     render(<App />);
     const rail = async () => {
-      await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+      await user.click(screen.getByRole("button", { name: "全部页面，打开产品导航" }));
       return screen.getByRole("navigation", { name: "主空间导航" });
     };
 
@@ -114,3 +114,6 @@ describe("OSUI v3 production contract", () => {
     expect(document.querySelector(".dock-workspace, .space-view[data-motion='enter']")).toBeInTheDocument();
   });
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

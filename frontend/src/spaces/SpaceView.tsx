@@ -71,7 +71,7 @@ export function SpaceView({
   spaceId: SpaceId;
   onInspect: InspectionHandler;
   onNavigate: (id: SpaceId) => void;
-  onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>void;
+  onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>boolean|void;
   navigation?: SpaceNavigation;
   selectedCapabilityId?: string | null;
   uiPageId?: string; initialDocumentId?: string; onOpenDocument?: (id:string)=>void;
@@ -96,6 +96,11 @@ export function SpaceView({
   const externalDocument=useRef(initialDocumentId);
   useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;if(!sourceJourney)setLocalSourceTarget(undefined);}},[initialDocumentId,sourceJourney]);
   const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
+  const readSourceJourney=(target:SourceJourneyTarget)=>{
+    // The existing shell guard decides before a hidden retained reader changes.
+    if(!onOpenPage||onOpenPage("03")===false)return;
+    setSourceTarget(target);setCandidateTarget(undefined);
+  };
   const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
   useEffect(()=>{if(sourceTarget)setCandidateTarget(undefined);},[sourceTarget]);
   useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setLocalSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
@@ -129,7 +134,7 @@ export function SpaceView({
   if (selectedCapabilityId) {
     return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
   }
-  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace onOpenReference={setPinnedReference} activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
+  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace onOpenReference={setPinnedReference} activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onOpenPage ? onOpenPage("16") : onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
   if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "04") return <CanonicalRelationSpace onOpenReference={setPinnedReference} renderCollection={(document,envelope,change,pending,readOnly)=>{
     const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
@@ -140,10 +145,10 @@ export function SpaceView({
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
-  if (uiPageId === "16") return <section className="stitch-exchange-workspace" aria-label="互通工作区"><CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/><details className="exchange-card"><summary>项目交接资料</summary><ProjectHandoffReader /></details></section>;
+  if (uiPageId === "16") return <section className="stitch-exchange-workspace" aria-label="互通工作区"><CanonicalExchangeSpace onReadSource={readSourceJourney} onSelectRelations={selection=>readSourceJourney({source_id:selection.source_id,source_revision:selection.source_revision,sha256:selection.source_revision,folder_member:selection})} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/><details className="exchange-card"><summary>项目交接资料</summary><ProjectHandoffReader /></details></section>;
   const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
   if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;
-  if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings")) onOpenPage(id === "library" ? "02" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
+  if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings" || id === "intake")) onOpenPage(id === "library" ? "02" : id === "intake" ? "16" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
   if (uiPageId === "19") return <StitchSettingsSpace hasUnsavedDrafts={hasUnsavedDrafts} />;
   if (uiPageId === "20") return <section className="stitch-history-page" aria-label="历史与来源"><CanonicalLibrarySpace onOpenReference={setPinnedReference} activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /><details className="stitch-runtime-details"><summary>当前运行身份与来源</summary><VersionSourcePanel /></details></section>;
   if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} onTrail={onTrail}/>;

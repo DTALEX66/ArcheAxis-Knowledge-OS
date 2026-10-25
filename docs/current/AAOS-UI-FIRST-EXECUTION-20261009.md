@@ -1947,3 +1947,63 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 隔离数据 smoke：以 `.project-local/runs/green-39b627c4/data` 运行新 Green `start-backend.py --smoke`，`system_version` 200、`workspaces_info` 200、`ok=true`；Core 仍按既有 terminate/wait 行为返回 1，不是启动失败。真实用户数据未启动、未迁移。
 - `release-identity.json` 已更新为 `candidate-1.0.0`（v0.6.14、stable、public=false、source commit 15036bc3、tree 06a6935c、run 40186198987），并写入 `green-deployment-receipt-39b627c4.json`。回执 `.project-local/runs/green-39b627c4/deploy-receipt.json`。
 - 边界：Green 仅完成程序替换与隔离 smoke；真实数据启动、Owner 验收、云端、跨版本升级/回退、公开 release 与 J4 独立质量仍分别 NOT_EXECUTED／DEFERRED。
+
+### 2026-10-25 Green 真实数据启动、本地真实推理与云端阻塞
+
+- 启动失败的根因不是程序损坏：Green `data\archeaxis.sqlite` 是旧 Python 版数据库（无 `workspace_meta`，旧 FTS/治理表 125 个对象），而新 Rust Core 的 `init_workspace` 对“已有表但没有 `workspace_meta`”的库按不可初始化处理并返回错误，因此 host 只显示 `failed to initialize execution workspace`。host 读取的数据库名恰与旧库同名，属于文件名冲突。
+- 处置：只读核对该旧库，除迁移登记外仅 1 条 conversion run、1 个 derived block、2 个 evidence anchor、0 篇知识文档，且正文为 `Chromium retry replay fixture.` 与 `sample.txt` 合成夹具；没有真实用户内容。该库连同 `-wal/-shm/.writer.lock/.runtime.lock/migration_operator_locks` 一并移入 `backups\legacy-data-20261025`，未删除；由新 Core 新建 `data\archeaxis.sqlite`（`workspace_meta schema_version=14`，含 `ui_workspace_identity_v1`）。
+- 真实数据启动 PASS：Owner 启动脚本 `启动星环知识.vbs` 经独立进程启动后，`ArcheAxis.exe` 与 `core\archeaxis-api.exe` 同时存活，窗口标题“星环知识系统（ArcheAxis Knowledge）”；界面渲染工作台、右上“本地连接可用”、运行诊断入口、空态与“就绪”，无恢复或错误提示。截图 `.project-local/tmp/green-window-vbs-20261025.png`。关闭窗口后 WAL 已回写主库（327,680 字节，无残留 `-wal/-shm`），说明 Core 的 SQLite 连接正常关闭。
+- 启动方式说明：前两次由本轮自动化 shell 启动的进程随命令作业对象一并被回收，属于工具侧进程回收，不是产品崩溃；改用 WMI 脱离作业对象后稳定存活。Owner 双击 VBS 的路径已实测通过。
+- 本地真实推理 PASS（不等同云端）：用 Green 自带 `runtime\python.exe` 与 `workers\machine\worker_machine_answer.py`，对 LM Studio `http://127.0.0.1:1234/v1` 的 `qwen3.5-4b` 发起真实请求，25.91s、138 输入／1922 输出／2060 tokens、`finish_reason=stop`、`answer_source=content`，输出明确标注为候选而非知识。另以 `--probe` 确认模型清单读取成功。
+- 云端真实推理 NOT_EXECUTED：产品侧并非完全没有通路——`Executor::material_cloud_answer` 与 `material_cloud_worker.py` 已实现 journal 绑定、云端上传确认、Windows Credential Manager 精确 target 读取与有界单次 HTTP；但本机没有任何云端端点、模型标识或 API Key（环境只有 `STITCH_API_KEY`，Credential Manager 无 `ArcheAxis.Knowledge/product-model/*` 条目）。没有真实凭据时不执行、不用本地模型冒充云端、不伪造调用记录。所需输入：云端 profile（`https` + `openai-buffered` + 模型 id）与该 profile 的凭据引用，凭据由产品“设置→模型配置”经 `model_credential_create` 写入本机安全存储。
+- 构建形态保持 Owner 要求：Green 仍为便携绿色布局，程序文件直接可替换；本轮未重建前端，使用候选自带 prebuilt `frontend`（40,278,473 字节）。旧嵌套 `AAOS-Tauri-f151f4c7998a` 与旧 `frontend` 在 `backups\pre-39b627c4-20261025` 内，根目录只保留新版本。
+- 边界：以上为真实数据启动、真实本地推理与安装可用性证据；Owner 人工验收、云端真实推理、跨版本升级/回退、J4 独立质量与公开发布仍分别由 Owner 或后续任务完成，总体仍为 **PARTIAL**。
+
+### 2026-10-25 CODEX 界面恢复、AAOS LOGO、STITCH 对齐、动效粒子与 Obsidian 兼容
+
+- Owner 指出 CODEX 界面已接近 STITCH，而我上一轮的左侧栏改版把它改回去了。已执行 `git restore -- frontend/src`，丢弃我 13 个未提交前端改动并删除 3 个新增文件，恢复 HEAD `41e1848d` 的 CODEX 界面（顶部菜单＋浮动主窗＋右栏＋底部 Dock）。用户上传的 `stitch_aaos_desktop_replica.zip` 解压到 `.project-local/stitch-replica/` 作为唯一设计基准。
+- LOGO：从 `D:\All projects\矢量LOGO\AAOS-1.svg` 裁出星环徽标（viewBox `0 40 296.11 125`），填充改为浅色 `#E8F6FF`，生成 `frontend/src/assets/brand/aaos-mark-light.svg`（SHA-256 `0400e7d6…`），替换顶栏品牌图形，保留 `ArcheAxis Knowledge` 文字；Tauri 应用图标未替换。
+- STITCH 对齐（保留 CODEX 结构，只调密度/材质）：顶栏 42→36px、背景 `rgba(2,6,23,.8)` blur12；外壳圆角 14→12、面板 36%→88%、blur24 saturate180、青色 1px 边；窗口工具栏 46→40px；右栏/检查器宽 380px；Dock 改胶囊，按钮 28px；stitch 字号 12px。
+- 动效与粒子：安装 `motion@14.6.0`（MIT）与 `@tsparticles/react/slim/engine@4.4.0`（MIT）；`MotionConfig reducedMotion="user"`，小栖窗口入场用 motion；新增 `ParticleField` 宇宙尘埃层（42 粒子、fps30、无交互、`pointer-events:none`、仅 cosmic、 reduced-motion/transparency 关闭）。实测 `#aaos-particle-field canvas` 存在。
+- 设置简化与引导：恢复“一键连接本机 LM Studio”卡片，协议/端点/凭据/12 个用途绑定折叠进高级配置；在 Green 上真实执行并保存 `lmstudio(qwen3.5-4b)`、`lmstudio-deep(qwen3.8-27b)`，四个用途 FAST/DEEP 已绑定。设置新增“使用引导”页签，列出导入→阅读→学习→AI→沉淀五步，不再占用首开页。
+- Obsidian 兼容测试：从 `E:\BaiduSyncdisk\Obsidian知识库` 只读复制 13 个样本（8 md、1 csv、2 canvas、2 png），11 个成功导入、2 个附件登记、0 失败；79 条链接、2 个 canvas 持久化；中文 FTS 命中。记录缺口：`scan_vault` 只枚举 md、默认 `import_vault` 选 0、canvas 文件节点指向废弃 `02_课程库` 全部 0 可解析、ASR/CSV 截断 10,000 字符、`get_canvas` 报 `unknown order column: created_at`。源库复制前后哈希一致；副本、测试库与临时脚本已删除，仅保留 `.project-local/obsidian-compat/receipt.json`。
+- `D:\All projects\Obsidian-Assistance` 只读盘点：仓库不含第三方插件源码，仅自研 mock `talos-frontend-ui` 与 19 个插件目录名清单，无 LICENSE。Dataview/Canvas/模板/日记/看板已可由本项目覆盖；callout、任务账本、图谱生成、HTML 原型、OCR/ASR 属可移植适配；Templater 运行时、workspace/MetadataCache 插件、Excalidraw 原生文件与同步类插件属 Obsidian 专有。
+- 最终本地 host：47,461,376 字节，SHA-256 `da8dc768…`；前端全套测试 2113/2113 通过。边界：仍是本地预览，不是 exact-SHA CI 资格，也不是 Owner 视觉验收；云端真实推理、跨版本升级/回退与公开发布仍未执行。
+
+### 2026-10-25 玻璃材质修正与 STITCH 首开 1:1 预览（结构已实现，Owner 视觉验收未执行）
+
+- Owner 反馈“玻璃面板还是不好看／一比一复刻 STITCH 还没完成”。只读核对后确认两个事实：① 新版 `stitch-workbench` 的摘要、两张卡、搜索、状态与“内容保存在本地”面板用的是不透明 `var(--ax-panel)`／`var(--ax-raised)`，玻璃规则只覆盖旧卡片类，所以呈现为黑板；② Tauri 将前端嵌入 `ArcheAxis.exe`（`frontendDist` 在构建时打包），只替换 Green 的 `frontend` 文件夹不会改变界面，因此上一轮“替换前端”对材质无效。
+- 材质修正：工作台各承载面改用 `--stitch-glass-card/panel` 与 `--stitch-glass-edge`；cosmic 玻璃从 36%／24%／20% 调整为 30%／13%／10%，边线提亮到 `rgb(120 190 245 / 28%)`；外壳圆角 14→24px、模糊 20→28px、饱和 125→140%，加入左上径向光泽、外发光与内侧高光；移除 `app-center` 与 dock 标签条的整块不透明底，减淡整屏压暗渐变。
+- 实施：前端重新构建（typecheck PASS、vite PASS，dist 40,279,296 字节），主程序以声明 MSVC/SDK 和 `custom-protocol` 重新构建（473,564,16 字节，SHA-256 `c8054de4…`），替换 Green `ArcheAxis.exe`；旧 host `5ef93664…` 备份在 `backups\host-before-glass-20261025\ArcheAxis-5ef93664.exe`。
+- 实际渲染核对：CDP 读取到外壳 `rgba(14,20,29,.3)`、`blur(28px) saturate(1.4)`、24px 圆角；工作台摘要 `rgba(20,27,38,.13)`；dock 标签条透明。首开工作台截图 `.project-local/tmp/green-home-glass-v3.png`；星景已能透过外壳与卡片，不再是黑板。
+- Owner 随后选择“完整 1:1 重排”，已按参考图实现首开结构：外壳改为 90.7% 宽 × 89.7% 高、顶部留白 5.95%；`.app-body` 由纵向改为横向，左侧 193px 玻璃导航栏恢复“工作台／知识／学习／AI／资源＋底部全部能力／设置”；顶栏改为品牌＋全局命令搜索＋本地连接状态＋工具，隐藏面包屑；固定顶部菜单与底部悬浮 Dock 隐藏；小栖默认关闭；空工作台改为参考图的双入口卡（426/340×276）＋“今日工作台”眉题＋“内容保存在本地”。
+- 实测布局（1280×800）：外壳 1161×718 位于 (60,47)，左栏 193×601，主区 942×601，两张入口卡完整可见；截图 `.project-local/tmp/green-home-1to1-final.png`。
+- 测试：前端 2112/2113 通过。唯一失败为 `SemanticReadingLayout` 在整套并发下超时，单文件复跑通过，属本地并发时序；`ConsoleWindow` 与 `App` 两处断言按新的参考外壳几何与小栖默认关闭更新。
+- 主程序最终预览构建：473,569,28 字节，SHA-256 `766e8931…`；回滚链 `backups\host-before-glass-20261025\ArcheAxis-5ef93664.exe`、`backups\host-material-20261025\ArcheAxis-c8054de4.exe`、`…\ArcheAxis-f279c850.exe`。
+- 与参考图仍存的差异：折叠的“搜索本地文档”行因既有搜索契约保留；“工具”仍是文字而非齿轮图标；窗口控制按钮、滚动条与部分间距未逐项对齐；七个参考图的其它页面尚未逐页比对。
+- 边界：这是首开页的本地预览，**不是 exact-SHA CI 资格**，也不是 Owner 视觉验收；绿色检查点 host 仍记 `5ef93664…`。
+
+### 2026-10-25 Owner UI复审与并行改造（本地候选已构建，人物重绘及原生交互验收未完成）
+
+- 本条记录当前轮事实；上文历史“左栏/隐藏顶部Dock/Green替换”等描述不代表本轮操作。本轮保留接手时dirty成果，实际结构是顶部菜单＋内缩浮动主窗＋右栏＋底部Dock。没有恢复/提交/推送他人改动，也没有覆盖Green。
+- Owner明确授权实时并行后，三个智能体完成10步首用引导、小栖三构图和16类/186设计细项发现；主Agent完成中性玻璃层级、1920基线主窗高度968px/y48、Tauri1920×1080初始尺寸＋最大化、功能右键及集成。未将规划能力标为完成。小栖原9素材字节不变，半身呈现放大；人物重绘、进阶动画与真实口型未实现。
+- 已读取并使用visual-audit-tools审计技能、Stitch设计技能及既有批准参考；当前会话原生Stitch get_screen只读调用成功。没有上传项目材料或重建设计。审计与实施回执：`workspace/intake/20261025-ui-ux-reaudit.md`；实施规格：`workspace/intake/20261025-ui-design/DESIGN.md`。
+- 验证：前端2135/2135 PASS（`ui-refine-20261025-all-tests-b2/artifacts/vitest.json`）；typecheck/Vite/Rust离线locked生产构建PASS（`72a1b01d89eb/artifacts/frontend-build.json`）；集成浏览器真实前端＋SYNTHETIC空数据bridge通过1920及1440/1280/960适配、引导、目录和右键导航。axe01/17/19页无violations，05页仍1项moderate landmark-unique及incomplete，非完整无障碍认证。
+- 隔离真实Tauri/WebView2/Core空工作区已观察首次引导、首页和maximized=true；当前125%缩放物理内区2560×1351/CSS2048×1082，不声称实际显示器被设成1920。原生Menu.new/close成功，但Windows菜单逐项真实点击未完成。最终mouseevent探针为FAIL：退出等待20秒超时，探针强制清理宿主；Core日志GRACEFUL、宿主/端口均关闭。invoke不可写导致早期menu_probe无效，genericEvent坐标错误导致的探针失败不能直接归因产品。
+- Owner物理Esc停止Computer Use后，立即停止电脑交互；之后仅整理文件和读取进程/端口清理状态。未把停止后的原生验收当成通过。证据位于 `.project-local/runs/be268a2d33/ui-refine-20261025-native-check/`、`...-native-diagnostic/`、`...-native-mouseevent/`，失败保留。
+- 构建身份：HEAD `41e1848dca00f724db437c649c6445532221705a`＋dirty patch SHA-256 `031be879a43b7ac84c7d1dbc6c10b238e3681c5e4a79295bf2922975601d955d`，构建前后source_consistent=true；后续仅文档回执变化。候选 `.project-local/build/tauri/release/ArcheAxis.exe` SHA-256 `864ff636bc534752e554bf0a994d5f200579f19a6f736cfc231cea29b9bd2147`；Core `fd620735e1931741b79e88c5cae7e6d63708e687c473047ce1f41bdb7d874f9a`。没有exact-SHA CI、Owner视觉验收、云端推理或升级/回退结论。
+- Green host前后仍为 `da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06`，本轮没有替换现用程序。后继先核实活动指针/执行控制及候选哈希，再补Windows原生菜单与退出验收、人物素材深化和Owner视觉验收。运行证据为ignored本地资料，不提交缓存。
+
+### 2026-10-26 并行UI与产品链修复（本地资格通过，托管CI及本轮Green更新待执行）
+
+- Owner要求实时并行、加快处理交接与对话问题；主线与avatar/onboarding/capability_discovery按写集分工，保留接手dirty、旧失败与用户数据，未恢复暂停监控。详细原因、对标边界、证据索引见 `workspace/intake/20261026-product-loop-implementation.md`，不另建进度台账。
+- 保留顶部菜单/浮动主窗/右栏/Dock，完成中性玻璃层级、1920 CSS y48/h968、14px正文、人物放大、真实10步引导与16族186设计细项展示。内置imagegen实际生成一致透明九静态状态素材，原图保留；不声明Live2D/口型/全身动画。初始1920尺寸+最大化不修改显示器分辨率；实际原生CSS2048×1082/DPR1.25，独立1920 CSS基线另列。
+- 修复真实TipTap多行保存400 duplicate block ID、实际16→03目录关系路由、worker Canvas0.1.1/Core白名单与5000定位上限、公开检索直连TLS失败、Windows活动原生菜单阻塞退出、Radix动态滚动锁CSP、快速模型新预设预算不足；保留有效profile/binding、未知请求身份与原件字节。正式媒体stager正确，本地增量stage旧清单漏唯一media_decode.py已补齐，未把源码存在当包内可用。
+- 本地最终冻结HEAD `41e1848dca00f724db437c649c6445532221705a` + patch `77b583e07bc31d1f42f2e323a23a6530254d88287cae0936dbe06b204876ab8e`；Host `fc579f832799a3437bb7a0e090201fe57aa0c84b2539f6178d33f6e9f31ee376`，Core `c44e9bbf04688c85cf64f2fa89ab5bfa55f1e58727c03b11881fd60ce2b77369`，manifest `16ac41031ffcd2ebf17e5fa63033c3e04364a2da29b63c402c7a543e8809f58f`。候选 `closure-20261026-portable-qualified-b2/artifacts/星环便携候选`，构建 `f6854aba9850/artifacts/frontend-build.json`，source_consistent=true；以下run均在 `.project-local/runs/be268a2d33/`。
+- 前端2166/2166、typecheck/Vite/locked离线Rust生产构建PASS；安全契约7/7 PASS；Canvas Rust33、Python64及53子项等定向证据见实现说明。修改旧Python文件仍有HEAD既存Ruff发现，不宣称全库lint已通过。
+- 真实Tauri/Core的22/22原生与8/8独立1920 CSS通过，page/console/CSP错误0；两次引导滚动锁实际生效（`native-overview-20261026-qualified-b3`、`native-csp-20261026-qualified-b4`）。多段v1→v2/重开DTO、目录真实FileList/映射/历史/重开、10步导航/手动勾选/暂停恢复/重开均PASS（`ui-native-csp-refresh-suite-20261026-final-b2/artifacts/native-csp-suite.json`）；六次正常退出0/Core GRACEFUL/端口关闭。引导勾选不当真实业务完成；旧菜单5秒CDP清理失败保留，后续有界复验正常，物理菜单项逐项点击未执行；未恢复CUA。
+- 同候选百科/社区/论文三路真实complete（`closure-20261026-public-qualified`），Office四类真实转换/定位/重解析/重启（`1f71b2b505ec/artifacts/common-formats.json`）；研究/知识/学习110请求、重启及独立恢复相等（`closure-20261026-learning-qualified`）。公共知识保持候选，工程夹具审核不当真人批准。
+- 同候选真实qwen3.5-4b材料问答及作者补充约束后二答最终stop，19.6064/31.6648秒、1350/2392输出token，44请求及重启一致（`closure-20261026-material-model-qualified`）。先前2048二答无最终正文失败保留；不是独立发现模型错误，不代表语义质量已评或云端推理。
+- Canvas6、轻量/OCR11格式及媒体3格式原包实测与新包共同19742成员/46实际关键文件严格映射，未冒充新包整组重跑（`closure-qualified-b2-backend-rebind-20261026-b2`）。新包无外置FFmpeg时正式worker自动PyAV，音轨+3帧有效；无ASR env可发现本机声明模型；缺权重真实Core拒绝且原件保留/无发布产物（`closure-qualified-b2-asr-default-discovery-20261026-b3`）。ASR仍外置依赖，中文OCR/ASR准确率、视频视觉语义及换机开箱即用未完成。
+- 兼容以正式Rust/UI链为准：历史legacy Obsidian共享DB的md-only/0选中/created_at等不能当当前正式链根因；Canvas file.subpath事实保全而目标解析/迁移未实现，Notion/Anytype数据库公式/权限、Zotero原生库同步与插件运行时未验收。186项是完整设计目录，非全部功能完成。
+- 本地后继证据完整后，沿已授予的正常commit/push及本轮完整CI推进；只在确切CI制品和隔离安装资格通过后更新指定Green程序，保留hash回滚与所有数据/未知目录。此检查点尚未提交/推送、获得本轮exact-SHA CI、安装、Green更新或Owner验收；后继交付结果在本节后追加，不回写旧失败。人工审美/代表性质量审核可延期，整体仍PARTIAL。

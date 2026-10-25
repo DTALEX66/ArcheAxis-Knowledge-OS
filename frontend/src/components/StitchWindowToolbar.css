@@ -1,6 +1,6 @@
 .stitch-window-toolbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; flex: 0 0 auto;
-  min-height: 46px; padding: 6px 10px; color: var(--ax-fg); background: var(--ax-raised);
+  min-height: 40px; padding: 4px 16px; color: var(--ax-fg); background: var(--stitch-glass-header, var(--ax-panel));
   border-bottom: 1px solid var(--ax-border); border-radius: 12px 12px 0 0;
 }
 .stitch-window-title { display: flex; align-items: center; gap: 8px; flex: 1 1 12rem; min-width: 0; touch-action: none; }

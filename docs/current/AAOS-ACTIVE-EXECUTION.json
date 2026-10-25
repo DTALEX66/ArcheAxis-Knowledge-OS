@@ -560,11 +560,11 @@
     "owner_instruction_current": "绿色库的旧版本 完全可以替换覆盖掉，不要再沿用了",
     "owner_instruction_current_date": "2026-10-25",
     "current_scope": "Replace the Green program files with the qualified exact-SHA candidate after CI is green; preserve user data and a hash-identified rollback copy; do not overwrite real user databases or unknown directories",
-    "pending_execution": "EXECUTED_20261025_PROGRAM_REPLACED_ISOLATED_SMOKE_PASS",
+    "pending_execution": "EXECUTED_20261025_PROGRAM_REPLACED_REAL_DATA_LAUNCH_PASS_UI_CONNECTED",
     "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
     "target_role": "Owner daily Green/portable deployment directory; distinct from CI isolated NSIS test installation",
     "operation": "Replace project-owned application program files with the qualified current candidate; preserve user data and a rollback copy",
-    "status": "PROGRAM_REPLACED_ISOLATED_SMOKE_PASS_REAL_DATA_NOT_LAUNCHED",
+    "status": "PROGRAM_REPLACED_REAL_DATA_LAUNCH_PASS_UI_CONNECTED_OWNER_ACCEPTANCE_NOT_EXECUTED",
     "observed_identity_label": "release-identity.json now reports candidate-1.0.0 v0.6.14, channel stable, public false, source commit 15036bc3, CI run 40186198987",
     "observed_executable_sha256": "5ef93664f7ab8da67f906cabb2100622597fac2e1fdac1f4adf4e38f9963a770",
     "conditions": [
@@ -574,7 +574,7 @@
       "Read back candidate/target hashes and deployment identity; use isolated data for validation",
       "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
     ],
-    "qualification": "2026-10-25 exact run 40186198987 candidate program deployment with isolated smoke PASS only; real user-data launch, data migration, cross-version upgrade/rollback, representative quality, real cloud, hosted release or Owner acceptance remain separate and NOT_EXECUTED.",
+    "qualification": "2026-10-25 exact run 40186198987 candidate program deployment with isolated smoke PASS and Green real-data launch PASS (new Core workspace, UI connected, local model real inference PASS); the pre-existing legacy Green database was archived after inspection showed synthetic fixtures only; cloud inference, cross-version upgrade/rollback, representative quality, hosted release and Owner acceptance remain separate and NOT_EXECUTED.",
     "not_granted": [
       "Public release",
       "Real user data overwrite",
@@ -589,11 +589,144 @@
       "host_sha256": "5ef93664f7ab8da67f906cabb2100622597fac2e1fdac1f4adf4e38f9963a770",
       "core_sha256": "11fa25449fae61d437caea8f4b6f5cbf79c9d0505d4c7589c6aad8872a8d2baa",
       "installer_lifecycle": "SUCCESS_IN_40186198987",
-      "smoke": "PASS; system_version 200; workspace_info 200; isolated data root; real data not launched",
+      "smoke": "PASS; system_version 200; workspace_info 200; isolated data root; real data not launched at that checkpoint",
       "rollback_program": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\pre-39b627c4-20261025",
       "database_sha256_preserved": "34f8cce5cb704ae1a4d8aa5fe18df4037786b62a572b3cc0db031aa8d1670489",
       "receipt": ".project-local/runs/green-39b627c4/deploy-receipt.json",
-      "status": "PROGRAM_REPLACED_ISOLATED_SMOKE_PASS_REAL_DATA_NOT_LAUNCHED"
+      "real_data_launch": "PASS_20261025_UI_CONNECTED",
+      "real_data_launch_evidence": {
+        "host_pid_observed": 11728,
+        "core_pid_observed": 38724,
+        "window_title": "星环知识系统（ArcheAxis Knowledge）",
+        "ui_snapshot": ".project-local/tmp/green-window-20261025.png",
+        "ui_observation": "工作台渲染、本地连接可用、运行诊断入口、空工作区空态；无恢复/错误提示",
+        "database": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\data\\archeaxis.sqlite",
+        "database_schema_version": 14,
+        "database_identity": "workspace_meta ui_workspace_identity_v1 present; new Core-created workspace",
+        "root_cause_of_prior_failure": "Green data held a legacy Python-era archeaxis.sqlite without workspace_meta; Rust Core init_workspace refuses a non-empty database without it, so the host reported failed to initialize execution workspace",
+        "legacy_database_disposition": "Archived, not deleted, at D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\legacy-data-20261025; inspected row counts showed only synthetic fixtures (1 conversion run, 1 derived block, 2 evidence anchors, 0 knowledge documents)",
+        "launch_note": "Verified through a detached WMI launch; earlier launches were reaped with the invoking shell job, which is an automation artifact rather than a product failure"
+      },
+      "local_model_inference_20261025": {
+        "status": "REAL_INFERENCE_PASS",
+        "engine": "python-worker-machine-answer",
+        "model": "qwen3.5-4b",
+        "endpoint": "http://127.0.0.1:1234/v1",
+        "elapsed_s": 25.91,
+        "usage": "138 input / 1922 output / 2060 total tokens",
+        "runtime": "Green bundled runtime/python.exe and Green workers/machine/worker_machine_answer.py",
+        "boundary": "local loopback inference only; not cloud and not independent answer-quality evaluation"
+      },
+      "cloud_inference_20261025": {
+        "status": "NOT_EXECUTED_NO_CREDENTIAL",
+        "implementation": "Owned journal-bound path exists: material_cloud_worker.py reads Windows Credential Manager target ArcheAxis.Knowledge/product-model/<credential_ref>; Executor::material_cloud_answer is reachable from the async material question route",
+        "blocker": "No cloud provider endpoint, model id or API key is present on this machine; environment holds only STITCH_API_KEY and Credential Manager has no product-model entry",
+        "required_inputs": "Owner selects provider/host, model id and stores the key through the product model configuration (native model_credential_create); then cloud material question can be executed for real"
+      },
+      "owner_acceptance": "NOT_EXECUTED",
+      "ui_material_preview_20261025": {
+        "status": "LOCAL_PREVIEW_REFERENCE_HOME_IMPLEMENTED_NOT_CI_QUALIFIED",
+        "trigger": "Owner: 玻璃面板还是不好看；一比一复刻 STITCH 的界面设计还没完成吗；随后选择完整 1:1 重排",
+        "finding": "The new stitch-workbench surfaces used opaque var(--ax-panel)/var(--ax-raised); the app body was a column so a left rail could not stretch; and Tauri embeds the frontend into ArcheAxis.exe, so replacing the Green frontend folder could not change the UI",
+        "changes": [
+          "glass material on workbench summary/cards/search/status/local panel; shell 24px radius, blur 28px saturate 140%, brighter edge, sheen and outer glow; opaque app-center and dock tab strip removed; body overlay lightened",
+          "reference shell geometry: 90.7% width by 89.7% height with 5.95% top margin",
+          "left navigation rail restored inside the shell with 工作台/知识/学习/AI/资源 and bottom 全部能力/设置",
+          "header rebuilt as brand + command search + local status + tools; breadcrumbs hidden",
+          "top workspace menu and bottom floating dock hidden; companion defaults closed",
+          "empty home rebuilt as the reference 今日工作台 two-card hero with import/note actions and local-storage note"
+        ],
+        "frontend_rebuilt": true,
+        "host_rebuilt": true,
+        "host_sha256": "766e89314b1c8731693891923ce383c5b067d0c66f3364246f57d8d5962c9e77",
+        "host_bytes": 47356928,
+        "host_backup": [
+          "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\host-before-glass-20261025\\ArcheAxis-5ef93664.exe",
+          "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\host-material-20261025\\ArcheAxis-c8054de4.exe",
+          "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\host-material-20261025\\ArcheAxis-f279c850.exe"
+        ],
+        "evidence": ".project-local/tmp/green-home-1to1-final.png",
+        "measured_layout": "1280x800 viewport; shell 1161x718 at (60,47); rail 193x601; app-center 942x601; hero cards 426/340 x 276 fully visible",
+        "tests": "frontend 2112/2113 pass; the sole failure is SemanticReadingLayout under full-suite load and passes alone; ConsoleWindow and App tests updated for the reference shell and closed-by-default companion",
+        "one_to_one_status": "REFERENCE_HOME_PREVIEW_IMPLEMENTED_OWNER_VISUAL_ACCEPTANCE_NOT_EXECUTED",
+        "remaining_gaps": "Collapsed 搜索本地文档 row remains for the existing search contract; tools label and window controls are not the reference gear; seven-reference comparison for other pages, spacing and brightness is not finished; this host is a local preview, not exact-SHA CI",
+        "ci_qualification": "NOT_EXECUTED for this local preview; the exact-SHA candidate host remains 5ef93664"
+      },
+      "ui_onboarding_and_quick_model_20261025": {
+        "status": "LOCAL_PREVIEW_NOT_CI_QUALIFIED",
+        "trigger": "Owner: 本地模型显示的有点复杂，是否需要这么多配置环节、是否有引导，整个前端是否有全套流程引导",
+        "model_quick_connect": {
+          "ui": "Settings → 模型与连接 now starts with a one-click '一键连接本机 LM Studio' card; protocol, endpoint, credential and the twelve purpose/lane bindings sit inside a collapsed 高级配置 block",
+          "execution": "REAL_EXECUTED on the Green workspace: read LM Studio inventory, created lmstudio and lmstudio-deep profiles, bound answer/retest/material/companion FAST+DEEP, saved through model_configuration_put",
+          "observed_models": "qwen3.5-4b (fast), qwen3.8-27b (deep)",
+          "status_text": "已连接本机 LM Studio：qwen3.5-4b（快速），qwen3.8-27b（深入）；四个用途的快速/深入绑定已保存。",
+          "evidence": ".project-local/tmp/green-settings-quick.png"
+        },
+        "onboarding": {
+          "home_strip": "dismissible five-step strip on the empty workbench: 导入资料 → 阅读资料 → 学习复习 → AI 提问 → 沉淀知识; buttons reuse guarded space routes",
+          "header": "使用引导 dialog available from the shell header on every page, with the same five steps and the model note",
+          "persistence": "home strip dismissal stored in localStorage aaos.usage-guide.dismissed.v1",
+          "evidence": ".project-local/tmp/green-home-guide-final.png"
+        },
+        "host_sha256": "2ff9d4770406417e540115c27f070835f4a854c4083c99e555a947864d095a79",
+        "host_bytes": 47358464,
+        "tests": "frontend 2112/2113 pass; only SemanticReadingLayout fails under full-suite load and passes alone",
+        "ci_qualification": "NOT_EXECUTED for this local preview"
+      },
+      "ui_codex_restore_stitch_motion_20261025": {
+        "status": "LOCAL_PREVIEW_NOT_CI_QUALIFIED",
+        "restore": "Owner reported the CODEX interface had been reverted; git restore -- frontend/src removed the 13 uncommitted frontend edits and 3 untracked files, restoring the committed CODEX UI at HEAD 41e1848d",
+        "logo": "brand now uses a light cropped AAOS emblem from AAOS-1 (viewBox 0 40 296.11 125, fill #E8F6FF), file frontend/src/assets/brand/aaos-mark-light.svg SHA-256 0400e7d653983922f5a83f5b1141e6ff1b524205542b5c8224a4e10c36d21391; Tauri app icon not replaced",
+        "stitch_parity": "top menu 36px rgba(2,6,23,.8) blur12; shell 12px radius panel 88% blur24 saturate180 cyan 1px edge; toolbar 40px rgba(15,23,42,.9); dock pill 28px buttons; companion/reference width 380px; stitch UI text 12px",
+        "motion": "motion@14.6.0 with MotionConfig reducedMotion=user; @tsparticles/react 4.4.0 + slim + engine particle layer; canvas #aaos-particle-field verified; particles only in cosmic and disabled for reduced motion/transparency",
+        "quick_model": "one-click LM Studio connect restored in Settings; real execution on Green saved lmstudio(qwen3.5-4b) and lmstudio-deep(qwen3.8-27b) and bound answer/retest/material/companion FAST+DEEP",
+        "usage_guide": "Settings has a 使用引导 tab with the five-step loop, no home-page strip",
+        "evidence": [
+          ".project-local/tmp/codex-ui-restored.png",
+          ".project-local/tmp/stitch-parity-motion.png",
+          ".project-local/tmp/settings-quick-final.png"
+        ],
+        "host_sha256": "da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06",
+        "host_bytes": 47461376,
+        "tests": "frontend 2113/2113 pass after the StyleRuleCoverage fix",
+        "ci_qualification": "NOT_EXECUTED for this local preview"
+      },
+      "obsidian_compatibility_20261025": {
+        "status": "PASS_WITH_RECORDED_GAPS",
+        "scope": "E:\\BaiduSyncdisk\\Obsidian知识库 read-only; sample copied to .project-local/obsidian-compat and deleted after the run",
+        "files": "13 copied and hash-verified; 11 imported (8 md, 1 csv, 2 canvas); 2 png registered as attachments; 0 failures",
+        "obsidian_features": "4 frontmatter parsed, 3 unclosed frontmatter treated as body; 79 links (74 wiki, 5 embed); callouts and dataview blocks retained; 2 canvases persisted",
+        "gaps": "scan_vault enumerates md only, so default import_vault selects 0; per-file import_file required; canvas file nodes point to retired 02_课程库 and resolve 0; ASR 66,390→10,000 and CSV 6,841,058→10,000 truncated; get_canvas reports unknown order column: created_at",
+        "source_integrity": "source hashes unchanged before/after/cleanup",
+        "cleanup": "copies, test database and temp scripts deleted; receipt .project-local/obsidian-compat/receipt.json retained"
+      },
+      "obsidian_assistance_matrix_20261025": {
+        "status": "ANALYZED_READ_ONLY",
+        "source": "D:\\All projects\\Obsidian-Assistance",
+        "finding": "repo contains no third-party plugin source; only a self-built mock talos-frontend-ui package and a 19-name plugin index; no LICENSE",
+        "compatible_now": [
+          "Dataview via shared/dataview.py",
+          "Canvas via shared/json_canvas.py",
+          "templates/frontmatter",
+          "daily notes",
+          "board views"
+        ],
+        "portable_adapter": [
+          "callout snippets",
+          "task ledger",
+          "graph/mermaid generation",
+          "HTML prototypes",
+          "OCR/ASR pipelines"
+        ],
+        "obsidian_only": [
+          "Templater runtime",
+          "workspace/MetadataCache plugins",
+          "Excalidraw native files",
+          "sync/full-text QuickAdd MetaBind CMDR"
+        ],
+        "next": "port templates frontmatter contract and safe writer first; do not vendor AGPL plugin code"
+      },
+      "status": "PROGRAM_REPLACED_REAL_DATA_LAUNCH_PASS_UI_CONNECTED_OWNER_ACCEPTANCE_NOT_EXECUTED"
     },
     "latest_execution": {
       "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
@@ -608,6 +741,12 @@
         "bytes": 1769,
         "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
       }
+    },
+    "candidate_20261026": {
+      "state": "LOCAL_QUALIFIED_NOT_DEPLOYED",
+      "target_program_sha256_before": "da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06",
+      "qualification_ref": "#/current_execution/latest_ui_product_repair_20261026",
+      "next": "Normal authorized delivery; require exact CI artifact, isolated installation, hash rollback and data preservation before program update"
     }
   },
   "conversation_closeout": {
@@ -889,7 +1028,7 @@
     "role": "FROZEN_PREDECESSOR_SNAPSHOT_NOT_CURRENT_EXECUTION_STATE"
   },
   "current_execution": {
-    "date": "2026-10-24",
+    "date": "2026-10-26",
     "state": "RUNNING_BY_OWNER",
     "overall": "PARTIAL",
     "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
@@ -970,7 +1109,26 @@
       "status": "PASS_18_OF_18",
       "execution": "REAL_TAURI_HOST_REAL_FILE_INPUT_RENDERED_CONTROLS_ISOLATED_PORTABLE_ROOT",
       "data_root": ".project-local/runs/be268a2d33/format-matrix-final-20261024/import/data",
-      "categories": ["txt", "md", "csv", "json", "html", "pdf-text", "pdf-scanned", "png", "jpeg", "docx", "xlsx", "pptx", "srt", "vtt", "wav", "mp3", "mp4", "canvas"],
+      "categories": [
+        "txt",
+        "md",
+        "csv",
+        "json",
+        "html",
+        "pdf-text",
+        "pdf-scanned",
+        "png",
+        "jpeg",
+        "docx",
+        "xlsx",
+        "pptx",
+        "srt",
+        "vtt",
+        "wav",
+        "mp3",
+        "mp4",
+        "canvas"
+      ],
       "import": {
         "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/import/receipt.json",
         "receipt_sha256": "1a63b035fc0c18eabab3616958e3566e12e177b32c8238b17a055b92370ee696",
@@ -998,7 +1156,10 @@
         "host_rebuilt": true,
         "component_update": "Host rebuilt from current source with worker 9af8977 bundled; candidate Host ca5fbfda used for the deep-root 18/18 matrix"
       },
-      "not_covered": ["conversion failure auto-retry and cancel", "OCR/ASR accuracy"],
+      "not_covered": [
+        "conversion failure auto-retry and cancel",
+        "OCR/ASR accuracy"
+      ],
       "boundary": "Authored synthetic materials; OCR/ASR engine readback not accuracy; no installed UI, Green, exact-SHA CI or Owner acceptance"
     },
     "latest_cl02_residuals_20261024": {
@@ -1017,13 +1178,21 @@
         "receipt_sha256": "099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be",
         "result": "search hit on source transform; text-range anchor CURRENT; markdown export persisted byte-identical; package imported into fresh workspace with identical document content hash and source bytes"
       },
-      "not_claimed": ["conversion failure auto-retry/cancel", "OCR/ASR accuracy", "installed-state UI"]
+      "not_claimed": [
+        "conversion failure auto-retry/cancel",
+        "OCR/ASR accuracy",
+        "installed-state UI"
+      ]
     },
     "latest_public_research_20261024": {
       "source_commit": "ec30b2246bc4fbfd0e56046bd8c3b1c3a5349305",
       "status": "PARTIAL_CHANNELS_PASS",
       "query": "quantum computing",
-      "channels": ["wikipedia", "stackexchange", "openalex"],
+      "channels": [
+        "wikipedia",
+        "stackexchange",
+        "openalex"
+      ],
       "all_channels_complete": true,
       "raw_and_selected_sources": 6,
       "anchors": 3,
@@ -1121,10 +1290,15 @@
       "status": "INSTALLED_PASS_NOT_CURRENT_REBUILD",
       "guest_result": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/guest-output/guest-business-result.json",
       "guest_result_sha256": "d9a3d7adbba583285f2246b9436551c0586311bedc74c9e932aac26ab182f774",
-      "installer_exit": 0, "native_exit": 0, "uninstaller_exit": 0,
+      "installer_exit": 0,
+      "native_exit": 0,
+      "uninstaller_exit": 0,
       "scope": "install, native document conflict/restore/restart, uninstall with synthetic data",
       "current_rebuild": "current installer 3b0bccd6 built; installed host eb268f29; minimal install/launch/db/uninstall PASS and installed conflict/restore/restart PASS",
-      "not_authorized": ["public release", "real user data overwrite"]
+      "not_authorized": [
+        "public release",
+        "real user data overwrite"
+      ]
     },
     "latest_current_installer_20261024": {
       "status": "PASS_INSTALLED_BUSINESS",
@@ -1148,7 +1322,12 @@
         "three_way_conflict": "4c2c338726f540d65c3bbcd7f39e9f1c71a928f9b1a15e1b4e70b439cd77f834"
       },
       "scope": "no-network Windows Sandbox; install, launch, canonical database, documented conflict/save/restore/host restart, uninstall; installer/native/uninstaller exit 0",
-      "limits": ["cross-version upgrade/rollback not executed", "exact-SHA CI and Owner acceptance not executed", "public release and real user data not authorized", "full multi-round lifecycle attempt timed out at 20 minutes; first installed-business attempt failed on a wrong installed-host binding and is preserved"],
+      "limits": [
+        "cross-version upgrade/rollback not executed",
+        "exact-SHA CI and Owner acceptance not executed",
+        "public release and real user data not authorized",
+        "full multi-round lifecycle attempt timed out at 20 minutes; first installed-business attempt failed on a wrong installed-host binding and is preserved"
+      ],
       "first_failed_binding": "guest-output-fail-01: release exe ca5fbfda was assumed; actual installed host eb268f29"
     },
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
@@ -1232,24 +1411,104 @@
       "a0_gates": "SUCCESS",
       "ci_observed_jobs": "lint, test (3.12), browser-smoke, desktop-build, desktop-fast, rust-vnext, installer-lifecycle, a0-gates and the GatePlan-required set passed; skipped non-required jobs stay skipped",
       "preceding_failures": [
-        {"run_id": 40131599415, "head_sha": "4853a3f73d4155852913cfc11d6308f68c0ed79e", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "GroupedUI.keys clicked the review select through a native element click that landed under the fixed Stitch task strip; plain and conflict journeys already passed"},
-        {"run_id": 40136511918, "head_sha": "222bad6b0d47357b324b3c0023d36af24ee5e59d", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "AXR060 current-surface audit read a build stamp inside an artifact name as a repository commit; fixed by not citing that stamp"},
-        {"run_id": 40137602012, "head_sha": "8c18ba73f5841e71e042f5c4ae6a50d805dc5476", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "conflict journey save click used a coordinate computed before a late layout shift; the pointer landed beside the control and the conflict panel never opened"},
-        {"run_id": 40156452084, "head_sha": "47f6394b8a06f0c58efcf9912c9db51631afb7d1", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "desktop-fast lacked the ASR model fetch and --asr-model arguments desktop-build already used, and ASR worker tests still patched _model_dir after the worker moved to _resolve_model"},
-        {"run_id": 40158193119, "head_sha": "d26500c1d46a3821342760a7243aa35d0ff8250d", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "three follow-ups: AXR060 treated the 40-hex HuggingFace revision as a repository object, the minimal test environment lacks faster-whisper so the probe omitted its formats, and a declared ffmpeg reports kind=ffmpeg rather than decoder=pyav"},
-        {"run_id": 40161520819, "head_sha": "2dbee8e160dde0e0b00b8a59749cc341e05740d3", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "grouped installed journey asserted the learning queue before the post-restart learning surface mounted; reproduced twice on a documentation-only checkpoint, then fixed by a bounded wait that keeps the original assertions"},
-        {"run_id": 40165652378, "head_sha": "1c0cf83bee33fbf4c6ff4c5199ddb276f02acb93", "conclusion": "FAILURE", "gate": "browser-smoke", "cause": "the command trigger at the status-bar edge did not match :focus-visible after a one-direction tab fallback; the gate now retries both directions without relaxing the ring or contrast assertions"},
-        {"run_id": 40167437800, "head_sha": "fdf3b27004d8d853737c99aa44e603124abf267b", "conclusion": "FAILURE", "gate": "rust-vnext", "cause": "the public-research fixture read research.pid as soon as it existed and parsed an empty file; three tests now wait for a complete parseable PID"}
+        {
+          "run_id": 40131599415,
+          "head_sha": "4853a3f73d4155852913cfc11d6308f68c0ed79e",
+          "conclusion": "FAILURE",
+          "gate": "installer-lifecycle",
+          "cause": "GroupedUI.keys clicked the review select through a native element click that landed under the fixed Stitch task strip; plain and conflict journeys already passed"
+        },
+        {
+          "run_id": 40136511918,
+          "head_sha": "222bad6b0d47357b324b3c0023d36af24ee5e59d",
+          "conclusion": "FAILURE",
+          "gate": "test (3.12)",
+          "cause": "AXR060 current-surface audit read a build stamp inside an artifact name as a repository commit; fixed by not citing that stamp"
+        },
+        {
+          "run_id": 40137602012,
+          "head_sha": "8c18ba73f5841e71e042f5c4ae6a50d805dc5476",
+          "conclusion": "FAILURE",
+          "gate": "installer-lifecycle",
+          "cause": "conflict journey save click used a coordinate computed before a late layout shift; the pointer landed beside the control and the conflict panel never opened"
+        },
+        {
+          "run_id": 40156452084,
+          "head_sha": "47f6394b8a06f0c58efcf9912c9db51631afb7d1",
+          "conclusion": "FAILURE",
+          "gate": "test (3.12)",
+          "cause": "desktop-fast lacked the ASR model fetch and --asr-model arguments desktop-build already used, and ASR worker tests still patched _model_dir after the worker moved to _resolve_model"
+        },
+        {
+          "run_id": 40158193119,
+          "head_sha": "d26500c1d46a3821342760a7243aa35d0ff8250d",
+          "conclusion": "FAILURE",
+          "gate": "test (3.12)",
+          "cause": "three follow-ups: AXR060 treated the 40-hex HuggingFace revision as a repository object, the minimal test environment lacks faster-whisper so the probe omitted its formats, and a declared ffmpeg reports kind=ffmpeg rather than decoder=pyav"
+        },
+        {
+          "run_id": 40161520819,
+          "head_sha": "2dbee8e160dde0e0b00b8a59749cc341e05740d3",
+          "conclusion": "FAILURE",
+          "gate": "installer-lifecycle",
+          "cause": "grouped installed journey asserted the learning queue before the post-restart learning surface mounted; reproduced twice on a documentation-only checkpoint, then fixed by a bounded wait that keeps the original assertions"
+        },
+        {
+          "run_id": 40165652378,
+          "head_sha": "1c0cf83bee33fbf4c6ff4c5199ddb276f02acb93",
+          "conclusion": "FAILURE",
+          "gate": "browser-smoke",
+          "cause": "the command trigger at the status-bar edge did not match :focus-visible after a one-direction tab fallback; the gate now retries both directions without relaxing the ring or contrast assertions"
+        },
+        {
+          "run_id": 40167437800,
+          "head_sha": "fdf3b27004d8d853737c99aa44e603124abf267b",
+          "conclusion": "FAILURE",
+          "gate": "rust-vnext",
+          "cause": "the public-research fixture read research.pid as soon as it existed and parsed an empty file; three tests now wait for a complete parseable PID"
+        }
       ],
       "code_checkpoints": [
-        {"sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634", "run_id": 40134459916, "conclusion": "SUCCESS"},
-        {"sha": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86", "run_id": 40139923313, "conclusion": "SUCCESS"},
-        {"sha": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764", "run_id": 40147136804, "conclusion": "SUCCESS"},
-        {"sha": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9", "run_id": 40159430588, "conclusion": "SUCCESS"},
-        {"sha": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e", "run_id": 40163883126, "conclusion": "SUCCESS"},
-        {"sha": "04b3aa2f47c51aa5d88907758ebe658621167a9f", "run_id": 40168290341, "conclusion": "SUCCESS"},
-        {"sha": "dd38cef2e6b933e77080dd119722c7cc953d82b7", "run_id": 40181953892, "conclusion": "SUCCESS"},
-        {"sha": "39b627c4aecd442477c58405a8d82ee4a95bc889", "run_id": 40186198987, "conclusion": "SUCCESS"}
+        {
+          "sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634",
+          "run_id": 40134459916,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86",
+          "run_id": 40139923313,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764",
+          "run_id": 40147136804,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9",
+          "run_id": 40159430588,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e",
+          "run_id": 40163883126,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "04b3aa2f47c51aa5d88907758ebe658621167a9f",
+          "run_id": 40168290341,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "dd38cef2e6b933e77080dd119722c7cc953d82b7",
+          "run_id": 40181953892,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "39b627c4aecd442477c58405a8d82ee4a95bc889",
+          "run_id": 40186198987,
+          "conclusion": "SUCCESS"
+        }
       ],
       "local_evidence": "Browser gate PASS (13 viewports, 5 themes). The exact CI-built candidate Host 0a074727684ee418c6192c419574feaac5127a94c8ec42d979261fa628db5025 ran the grouped real qwen3.5-4b chain with authored correction/retest in an isolated portable root: engineering PASS, 290 actions, 5 normal exits, source_consistent=true; distill answered but quality NOT evaluated. A separate-agent single-sample review found the original refusal faithful and the retest lightly extrapolated; it is not independent quality or Owner acceptance. The 9fd55897 candidate bundles the pinned MIT faster-whisper-base model in runtime/models/asr and both desktop jobs fetch and verify the same donor; local isolated runs decoded and transcribed 8/8 media formats with PyAV, the pre-registered 8-item quality suite answered 8/8 with qwen3.5-4b and usage reported, the reader exposes fixed-version backlinks, and its transcript proof accepts only the engine-declared VAD pad while marking the overflow. J5 is closed for the forms the product actually claims: the green rust-vnext template lifecycle test installs, enables, disables, updates, rolls back, uninstalls and reinstalls a template through real Core HTTP/store while old documents, knowledge and learning events remain readable, and the real Office/PDF/OCR/speech/video jobs are the engine consumers; the capability center states that plugin, skill and MCP installation or execution is not implemented and therefore not claimed. The same green candidate's installer payload carries the pinned base model (model.bin d01c3014...0a6a9, 145,217,532 bytes) and its installed runtime transcribed WAV and MP4 with four located cues; its native WebView2 UI imported the audio, rendered the media player, executed the transcription, cited a time segment, and read the transcript back after a cold host restart. The payload was extracted rather than reinstalled over the existing user installation; the exact candidate NSIS install/uninstall lifecycle is proven by the same CI run. Recognition fidelity, Owner acceptance, cloud inference and cross-version upgrade remain separate and NOT_EXECUTED.",
       "documentation_followup": "This pointer update accompanies a metadata-only documentation commit pushed after the green code checkpoint; read that commit's own CI separately and do not transfer the code checkpoint conclusion to it silently.",
@@ -2270,6 +2529,16 @@
         "sha256": "bb425b645e13caf240f548c25cd037fd23645fab5e392cf297f4fac3d8c70d39"
       },
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
+    },
+    "latest_ui_product_repair_20261026": {
+      "state": "LOCAL_QUALIFIED_CI_AND_GREEN_PENDING",
+      "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-并行ui与产品链修复本地资格通过托管ci及本轮green更新待执行",
+      "implementation": "workspace/intake/20261026-product-loop-implementation.md",
+      "build_receipt": ".project-local/runs/be268a2d33/f6854aba9850/artifacts/frontend-build.json",
+      "source_patch_sha256": "77b583e07bc31d1f42f2e323a23a6530254d88287cae0936dbe06b204876ab8e",
+      "host_sha256": "fc579f832799a3437bb7a0e090201fe57aa0c84b2539f6178d33f6e9f31ee376",
+      "whole_scope": "PARTIAL; local component/native qualification is not hosted CI, installed, Green or Owner acceptance",
+      "monitor": "PAUSED_UNCHANGED"
     }
   }
 }

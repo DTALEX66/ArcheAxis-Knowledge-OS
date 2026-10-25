@@ -23,7 +23,7 @@ it("all current business roles remain reachable through actual application menu 
     }
   }
   expect([...reached].sort()).toEqual(UI_PAGES.map(page => page.id).sort());
-  await user.click(within(menu).getByRole("button", { name: "打开产品导航" }));
+  await user.click(within(menu).getByRole("button", { name: "全部页面，打开产品导航" }));
   expect(onNavigation).toHaveBeenCalledOnce();
 });
 
@@ -67,7 +67,7 @@ it("companion drag has keyboard equivalence, bounded position and pointer-cancel
   render(<StitchCompanionWindow onClose={vi.fn()}>真实会话视图占位</StitchCompanionWindow>);
   const panel = screen.getByRole("complementary", { name: "小栖 · 陪伴会话" });
   vi.spyOn(panel, "getBoundingClientRect").mockReturnValue({ x: 100, y: 100, left: 100, top: 100, right: 400, bottom: 400, width: 300, height: 300, toJSON() {} });
-  const handle = screen.getByRole("button", { name: "移动小栖窗口" }), titlebar = handle.parentElement!;
+  const handle = screen.getByRole("button", { name: "小栖 · 陪伴会话，移动小栖窗口" }), titlebar = handle.parentElement!;
   fireEvent.keyDown(handle, { key: "ArrowRight" }); expect(panel.style.left).toBe("110px");
   fireEvent.pointerDown(titlebar, { pointerId: 3, button: 0, clientX: 100, clientY: 100 });
   fireEvent.pointerMove(titlebar, { pointerId: 3, clientX: -900, clientY: -900 }); expect(panel.style.left).toBe("0px"); expect(panel.style.top).toBe("48px");

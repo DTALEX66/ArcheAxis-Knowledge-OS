@@ -16,6 +16,18 @@ let implementation:(op:string,payload?:Record<string,unknown>)=>Promise<unknown>
 beforeEach(async()=>{vi.stubGlobal("crypto",webcrypto);sha=Buffer.from(await webcrypto.subtle.digest("SHA-256",bytes)).toString("hex");implementation=async(op)=>{if(op==="sources_list")return {sources:[source()]};if(op==="documents_list")return empty;if(op==="source_original")return {...source(),name:"原件.txt",media_type:"text/plain",content_base64:Buffer.from(bytes).toString("base64")};if(op==="document_get")return doc();throw new Error(op);};vi.mocked(coreCommand).mockImplementation((op,p)=>implementation(op,p) as never);});
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.clearAllMocks();});
 describe("page16 distinct exchange workflow (SIMULATED Core)",()=>{
+ it("imports one ordinary file through page16 and continues with the exact verified source identity",async()=>{
+  const read=vi.fn(),normal=implementation;implementation=async(op,p)=>op==="source_import"?{source_id:"source-1",sha256:sha,duplicate:false}:normal(op,p);
+  render(<CanonicalExchangeSpace onReadSource={read}/>);
+  const file=new File([bytes],"原件.txt",{type:"text/plain"});Object.defineProperty(file,"arrayBuffer",{value:async()=>bytes.slice().buffer});
+  fireEvent.change(screen.getByLabelText("导入原件",{exact:true}),{target:{files:[file]}});
+  fireEvent.click(await screen.findByRole("button",{name:"打开刚导入的原件"}));
+  fireEvent.click(await screen.findByRole("button",{name:"阅读此原件与整理知识候选"}));
+  expect(read).toHaveBeenCalledWith({source_id:"source-1",source_revision:"rev-1",sha256:sha,job_id:undefined});
+  expect(vi.mocked(coreCommand).mock.calls.filter(([op])=>op==="source_import")).toEqual([["source_import",{body:{name:"原件.txt",content_base64:Buffer.from(bytes).toString("base64")}}]]);
+  expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="job_enqueue")).toBe(false);
+  expect(screen.getByText("第一次导入：从一份文档开始")).toBeInTheDocument();
+ });
  it("preserves hidden manual exchange session across tabs",async()=>{render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"人工教学交换"}));const input=screen.getByRole("textbox",{name:"交换会话草稿"});fireEvent.change(input,{target:{value:"未提交材料"}});fireEvent.click(screen.getByRole("button",{name:"原件与转换"}));fireEvent.click(screen.getByRole("button",{name:"人工教学交换"}));expect(screen.getByRole("textbox",{name:"交换会话草稿"})).toHaveValue("未提交材料");});
  it("opens exact batch job identity after original hash verification",async()=>{render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"定位批量结果"}));await screen.findByText("真实作业入口 source-1 / job-old-77");expect(screen.getByRole("button",{name:"下载已核对的原文件"})).toBeEnabled();expect(coreCommand).toHaveBeenCalledWith("source_original",{source_id:"source-1"});});
  it("refuses byte drift without mounting derived content or download",async()=>{const normal=implementation;implementation=async(op,p)=>op==="source_original"?{...source(),name:"原件.txt",media_type:"text/plain",content_base64:Buffer.from("changed").toString("base64")}:normal(op,p);render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"定位批量结果"}));expect(await screen.findByRole("alert")).toHaveTextContent("字节核验失败");expect(screen.queryByRole("button",{name:"下载已核对的原文件"})).toBeNull();expect(screen.queryByText(/真实作业入口/)).toBeNull();});
