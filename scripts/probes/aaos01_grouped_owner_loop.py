@@ -1288,7 +1288,9 @@ def run_grouped_loop(
         assert machine_tasks(read) == tasks_before_reopen, "Configuration reopen dispatched inference"
         if material_companion_loop:
             mc.reopen(ui, read, js, wait, screenshot, document, result["material_companion"], "cold_reopen")
-    ui.page("19")
+    # The AI page retains the actual question as an unsaved draft; leaving it
+    # must take the product's native confirmation instead of a raw navigation.
+    ui.page("19", confirm_navigation=True)
     ui.click("工作区与恢复")
     backup_ids={row['backup_id'] for row in read('workspace_backups')['backups']}
     ui.click("创建一致备份")
@@ -2299,9 +2301,11 @@ const titles=reader?[...reader.querySelectorAll('.stitch-reader-heading h2')].fi
 const bodies=reader?[...reader.querySelectorAll('[aria-label="版本化草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
 const metas=reader?[...reader.querySelectorAll('.stitch-document-version')].filter(visible):[];
 const meta=metas.length===1?metas[0]:null;
+const consoleNode=document.querySelector('.console-window');
 return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
  reader_count:readers.length,title:titles.length===1?titles[0].innerText:null,
  text:bodies.length===1?bodies[0].innerText:null,
+ console_height:consoleNode?consoleNode.clientHeight:null,
  version:visible(meta)?Number(meta.textContent.match(/^v(\\d+)(?:$| ·)/)?.[1]??NaN):null};"""
 
 
@@ -2343,13 +2347,21 @@ def restored_reader_expected_text(document):
 
 def restored_reader(ui, read, js, wait, document):
     """Bind the rendered business view to its user-opened diagnostic and Core identity."""
-    wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.title!==null&&v.text!==null")
+    wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.text!==null&&(v.title!==null||(v.console_height!==null&&v.console_height<=520))")
     view = js(READER_RESTORE_OBSERVATION)
     assert view["page"] == "03" and view["reader_count"] == 1
-    assert view["title"] == document["title"], "Restored reader title mismatch"
+    # The compact layout deliberately hides the duplicated page heading at <=520px;
+    # the document identity is still checked through visible prose and Core receipt.
+    compact_title_hidden = view["title"] is None
+    if compact_title_hidden:
+        assert view["console_height"] is not None and view["console_height"] <= 520, "Restored reader title missing outside the compact layout"
+        # The compact rule hides the whole heading, which also carries the version.
+        assert view["version"] is None, "Compact reader must not expose a partial heading version"
+    else:
+        assert view["title"] == document["title"], "Restored reader title mismatch"
+        assert view["version"] == document["version"], "Restored reader version mismatch"
     normalize = lambda value: value.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
     assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(restored_reader_expected_text(document)), "Restored reader content mismatch"
-    assert view["version"] == document["version"], "Restored reader version mismatch"
     scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
     ui.click_revealed_selector(scope + "//button[@aria-label='文档与来源详细信息：文档与来源详细信息']")
     try:
@@ -2362,7 +2374,8 @@ def restored_reader(ui, read, js, wait, document):
         ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
     # Closing the owned diagnostic must return to the same rendered document.
     assert js(READER_RESTORE_OBSERVATION) == view, "Reader changed during identity verification"
-    return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True}
+    return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True,
+            "compact_title_hidden": compact_title_hidden}
 
 
 def capability_refusal_recovery(

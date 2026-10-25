@@ -120,6 +120,7 @@ class ReaderAndImageDriftTests(unittest.TestCase):
                 "reader_count": 1,
                 "title": "Exact title",
                 "text": "Exact body",
+                "console_height": None,
                 "version": 7,
             },
         )
