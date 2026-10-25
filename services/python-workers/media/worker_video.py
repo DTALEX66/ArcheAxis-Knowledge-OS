@@ -395,9 +395,15 @@ def extract_job(path: Path, out_dir: Path, model_path: str | None, language: str
         stages["asr"] = {"state": "failed", "reason": "audio_track_unavailable_or_decode_failed"}
     valid_cues = []
     issues = list(transcript.get("alignment_issues", []))
+    # The ASR receipt declares the VAD padding it tolerated past the container duration; reuse
+    # that number here instead of rejecting at the video's own duration the cues that worker
+    # already measured and marked. A cue far outside the recording is still unlocated.
+    tolerance_ms = int((transcript.get("loss_receipt") or {}).get("params", {})
+                       .get("cue_duration_tolerance_ms") or 0)
     for cue in transcript["cues"]:
-        if 0 <= cue["start_ms"] < cue["end_ms"] <= duration:
-            valid_cues.append(cue)
+        if 0 <= cue["start_ms"] < cue["end_ms"] <= duration + tolerance_ms:
+            beyond = cue["end_ms"] - duration
+            valid_cues.append({**cue, "end_beyond_duration_ms": beyond} if beyond > 0 else cue)
         else:
             issues.append({"index": cue.get("raw_index"), "start_ms": cue["start_ms"], "end_ms": cue["end_ms"], "reason": "out_of_video_duration", "location_status": "unlocated"})
     caption = _load_worker("video_caption", Path(__file__).parent.parent / "vision" / "worker_caption.py")

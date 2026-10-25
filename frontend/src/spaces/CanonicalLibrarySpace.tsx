@@ -13,6 +13,7 @@ import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import {TagNavigation,SavedDocumentMetadata,matchesTag} from "../components/DocumentTags";
 import { DocumentEmbeds } from "../components/DocumentEmbeds";
+import { DocumentBacklinks } from "../components/DocumentBacklinks";
 import { CollectionPanel } from "../components/CollectionPanel";
 import { DocumentSnapshot } from "../components/DocumentSnapshot";
 import type { SourceDto, DocumentDto, DocumentSummaryDto, DocumentsListDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
@@ -750,6 +751,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       </div>
 <aside className="stitch-reader-details" aria-label="内容详情"><h3>内容详情</h3><dl><div><dt>内容身份</dt><dd>{document.source_id ? "关联原件文档" : "原创笔记"}</dd></div><div><dt>文档版本</dt><dd>v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存更改" : ""}</dd></div><div><dt>来源版本</dt><dd>{document.source_id ? linkedOriginal ? "原件身份、版本与字节已核对" : "已绑定；原件读取尚未核对" : "未绑定；保存不要求来源"}</dd></div></dl>
         <SavedDocumentMetadata document={document} onTag={setSelectedTag}/>
+        <details className="reader-backlinks"><summary>反向链接（谁引用了本页）</summary><DocumentBacklinks key={`backlinks:${document.document_id}:${document.version}:${document.content_sha256}`} document={document} onOpenReference={onOpenReference}/></details>
         {selectedTag?<section aria-label="标签关联文档"><h4>含此标签的文档</h4>{tagControls}{filteredDocuments.map(item=><button key={item.document_id} type="button" onClick={()=>selectForReading(item.document_id)}>{item.title} · v{item.version}</button>)}{nextDocumentCursor?<button type="button" disabled={loadingDocuments} onClick={()=>void loadMoreDocuments()}>加载更多文档</button>:null}</section>:null}
         <RawReceiptButton label="文档与来源详细信息" visibleLabel="文档与来源详细信息" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
         <details><summary>依据与修订记录</summary><CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}}/></details>

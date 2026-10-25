@@ -1876,3 +1876,13 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 独立评审（限定）：另一 Agent 单样本审阅认为原答忠实、拒绝恰当、无编造；复测核心结论有澄清支持，但“keeping raw data unchanged / without altering the base source bytes”属轻度外推；评价者与干预方存在角色重叠，**不构成独立质量验收或 Owner 验收**。评审侧车 `.../webdriver-3135a46e977f/tmp/journey/independent-answer-review.json`，对应主回执 321,712B，SHA-256 `8de08ef0a9939df6ed92bf3f8802f524838cbee5ce38350c5f3454e70ea9c3fc`；截图 `grouped-learning-review.png` SHA-256 `8708778c9f3ecc6b1cd8be13ab3a612e8c8a7c72d72eb52521febea25cafe5aa`。
 - 探针合同修正：紧凑布局（console 高 ≤520）故意隐藏整个 `.stitch-reader-heading`，因此标题与同处其中的版本号在该档不可见；探针现在只在紧凑档接受隐藏，并用可见正文、诊断身份与 Core 回读补足对象核对。AI 页保留“实际问题”未保存草稿，离开到设置页必须走产品原生确认；探针改为显式接受该确认。两处都是测试合同，不是产品行为变更。
 - 边界：这是当前 CI 构建在本地隔离数据根上的真实模型工程链，不是安装态、云端推理、独立质量或 Owner 验收；跨版本升级/回退仍未执行（当前线上 0.6.11 属旧 Python 后端，不是同一 Rust 产品线）。CL-06 云端真实推理仍按 Owner 2026-10-24 决定标后续未执行，J4 质量仍 PARTIAL。
+
+### 2026-10-25 开箱媒体模型、格式矩阵、质量套件与阅读器反向链接（CL-02／CL-06／J4，工程部分 PASS）
+
+- 开箱模型：47f6394b 起安装候选自带 `Systran/faster-whisper-base`（MIT，revision `ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66`，`model.bin` SHA-256 `d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9`），由构建期 `scripts/release/fetch_asr_model.py` 下载并逐文件校验后落到 `runtime/models/asr/faster-whisper-base`；`aaos-model.json` 与 `backend-runtime-manifest.json` 的 `asr_model.status=BUNDLED` 断言存在。运行时不联网下载；donor 缺失时 manifest 记 `MISSING` 与具名原因，不静默降级。CI 的 desktop-fast 与 desktop-build 使用同一固定版本缓存/抓取步骤和同一 `prepare_bundle --asr-model` 命令。
+- 解码：新增 `media_decode.py` 以 PyAV（FFmpeg 8.1.2）在 FFmpeg 子进程不可用时回退解码与分片；probe 现在声明 `wav/mp3/m4a/flac/ogg/opus/mp4/mov/webm`。本地隔离数据根上 8/8 格式完成真实解码与转写。
+- 矩阵修复：faster-whisper 的 VAD `speech_pad_ms=400` 会让 4.5 s 视频的末段结束在 4.64 s，旧校验按容器时长把整段丢弃（`cues=0`）。现在末段保留在实测位置并标 `end_beyond_duration_ms`，回执记录 `vad_speech_pad_ms`／`cue_duration_tolerance_ms`；视频线复用 ASR 声明的容差，不再二次丢弃。该行为由 `test_asr_alignment_preservation.py` 与 `test_video_pipeline.py` 覆盖。
+- 质量套件：`scripts/probes/aaos_quality_suite.py` 预注册 8 条 held-out 条目（4 可答、2 上下文不足、2 冲突），固定词法评分，通过正式 Core API 完成知识条目创建、审核、document grant 与 machine answer。真实运行 8/8 `ANSWERED`、`pass_rate=1.0`、`qwen3.5-4b`、usage REPORTED；模型端点缺失时明确 `NOT_EXECUTED_MODEL`。回执固定 `human_acceptance=NOT_EXECUTED`，这是工程套件，不冒充独立人工质量验收。
+- 阅读器反向链接：`DocumentBacklinks` 在阅读器中显式加载固定版本投影，只列反向引用，显示扫描范围/截断/未支持数，游标翻页去重，读取失败不当成“没有反链”，点击打开来源固定版本。`DocumentBacklinks` 3 项与 `CanonicalLibrarySpace` 45 项前端测试通过（48/48）。
+- CI 修复：47f6394b 的 `test (3.12)` 有 6 项失败：desktop-fast 未同步 `--asr-model`；ASR 测试仍 patch 已被 `_resolve_model` 取代的 `_model_dir`，CI 无模型时直接失败。已同步 CI 命令与期望，并把测试改为替换 `_resolve_model`；聚焦 59 项通过（workers、video、quality 相邻套件与 `test_ci_a0_gates`），待新一轮 exact-SHA run 确认。
+- 边界：以上属 PR 203 分支的工程资格，不是 Owner 验收、安装态 AV 原生界面验收、发布、Green 替换或跨版本升级/回退；J4 质量、CL-04/CL-05、云端真实推理、J5 多形态仍为 PARTIAL／NOT_EXECUTED。

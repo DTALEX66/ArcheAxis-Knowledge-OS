@@ -54,6 +54,12 @@ BUNDLED_MODEL_PREFERENCE = (
 )
 MODEL_IDENTITY_FILE = "aaos-model.json"
 
+# faster-whisper pads each detected speech chunk by this many milliseconds on both sides
+# (`VadOptions.speech_pad_ms`). The trailing pad is what makes a final segment's end reach
+# past the container's own duration; a cue ending inside this declared pad is a real cue,
+# not an invented position, so it is kept and marked rather than discarded.
+VAD_SPEECH_PAD_MS = 400
+
 
 
 def _load_tool_paths():
@@ -209,7 +215,7 @@ def probe(model_path: str | None) -> dict:
         "model_source": source,
         "model_identity": identity,
         "decoder": _decoder_report(),
-        "formats": ["wav", "mp3", "m4a", "flac"],
+        "formats": ["wav", "mp3", "m4a", "flac", "ogg", "opus", "mp4", "mov", "webm"],
         "note": "probe checks dependency and model presence only; quality is measured per run (T07)",
     }
 
@@ -267,6 +273,7 @@ def _segment_cues(model, path: str, language: str, word_timestamps: bool = False
         str(path),
         language=None if language == "auto" else language,
         vad_filter=True,
+        vad_parameters={"speech_pad_ms": VAD_SPEECH_PAD_MS},
         word_timestamps=word_timestamps,
     )
     raw_cues: list[dict] = []
@@ -314,19 +321,30 @@ def extract(path: str, model_path: str | None, language: str, device: str,
     duration_ms = int((getattr(info, "duration", 0.0) or 0.0) * 1000)
     cues: list[dict] = []
     alignment_issues: list[dict] = []
+    tolerated: list[int] = []
     for index, cue in enumerate(raw_cues):
         start, end = cue["start_ms"], cue["end_ms"]
-        if not (0 <= start < end <= duration_ms):
+        if not (0 <= start < end <= duration_ms + VAD_SPEECH_PAD_MS):
             alignment_issues.append({"index": index, "start_ms": start, "end_ms": end,
                                      "reason": "invalid_or_out_of_duration", "location_status": "unlocated"})
         else:
-            cues.append({**cue, "raw_index": index})
+            # A cue that ends past the container's duration but inside the declared VAD pad is
+            # kept at its measured position: the export is marked, not silently clipped.
+            beyond = max(0, end - duration_ms)
+            if beyond:
+                tolerated.append(index)
+                cues.append({**cue, "raw_index": index, "end_beyond_duration_ms": beyond})
+            else:
+                cues.append({**cue, "raw_index": index})
     alignment_status = "partial" if alignment_issues else ("complete" if cues else "unlocated")
     loss_note = (
         "no speech segments detected (input may be silence/tone/noise); "
         "transcript kept empty and truthful"
         if not raw_cues
-        else (f"{len(raw_cues)} raw segments; all positions unlocated; original transcript retained; VAD filtering applied" if not cues else f"{len(raw_cues)} raw segments; {len(cues)} valid located segments; original transcript retained; VAD filtering applied")
+        else (f"{len(raw_cues)} raw segments; all positions unlocated; original transcript retained; VAD filtering applied" if not cues else f"{len(raw_cues)} raw segments; {len(cues)} valid located segments; original transcript retained; VAD filtering applied"
+              + (f"; {len(tolerated)} cue end(s) reach up to {VAD_SPEECH_PAD_MS} ms past the container duration "
+                 "(VAD speech padding), kept un-clamped and marked end_beyond_duration_ms"
+                 if tolerated else ""))
     )
     return {
         "engine": ENGINE,
@@ -352,6 +370,8 @@ def extract(path: str, model_path: str | None, language: str, device: str,
                 "device": device,
                 "compute_type": "int8",
                 "vad_filter": True,
+                "vad_speech_pad_ms": VAD_SPEECH_PAD_MS,
+                "cue_duration_tolerance_ms": VAD_SPEECH_PAD_MS,
                 # The receipt states the granularity actually produced, so a request for word
                 # timings that the model could not satisfy stays visible instead of looking met.
                 "word_timings_requested": word_timestamps,
