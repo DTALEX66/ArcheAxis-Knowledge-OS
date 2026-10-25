@@ -596,6 +596,17 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
                 assert len(opened) == 1 and opened[0]["open"] and opened[0]["summary"], "Reader source tools did not open"
         self.click_revealed_selector(candidate)
 
+    def open_model_advanced_configuration(self):
+        script = model_advanced_configuration_observation()
+        observed = self.js(script)
+        assert observed["page"] == "19" and observed["panels"] == 1 and observed["count"] == 1 and observed["summary"], "Missing/hidden/ambiguous model advanced disclosure on settings page"
+        if not observed["open"]:
+            self.click_revealed_selector(MODEL_ADVANCED_DETAILS_SCOPE + "/summary")
+        self.wait("const observed=(()=>{" + script + "})();return observed.page==='19'&&observed.panels===1&&observed.count===1&&observed.summary&&observed.open&&observed.enabled;")
+        opened = self.js(script)
+        assert opened["page"] == observed["page"] and opened["panels"] == 1 and opened["count"] == 1 and opened["summary"] and opened["open"] and opened["enabled"], "Model advanced disclosure did not open with editable fields on the original settings page"
+        self.evidence.append({"action": "model_advanced_disclosure", "decision": "ALREADY_OPEN" if observed["open"] else "OPENED_BY_RENDERED_UI", "page": "19", "business_completion": False})
+
     def click_native_option(self, selector):
         # Native option nodes need not have an independent visible rectangle.
         # WebDriver Element Click applies the browser's select/option semantics.
@@ -1573,6 +1584,25 @@ def read_local_model_inventory(ui, wait, stage, phase):
 
 
 MODEL_CONFIGURATION_SCOPE = "//div[h2[normalize-space(.)='产品模型与用途绑定'] and not(ancestor-or-self::*[@hidden or @aria-hidden='true' or @inert])]"
+MODEL_ADVANCED_SUMMARY = "高级配置（协议、端点、凭据、用途绑定）"
+MODEL_ADVANCED_DETAILS_SCOPE = MODEL_CONFIGURATION_SCOPE + "/details[contains(concat(' ',normalize-space(@class),' '),' model-advanced ')][summary[normalize-space(.)=" + xpath_literal(MODEL_ADVANCED_SUMMARY) + "]]"
+
+
+def model_advanced_configuration_observation():
+    return "const scope=" + json.dumps(MODEL_CONFIGURATION_SCOPE) + ";const label=" + json.dumps(MODEL_ADVANCED_SUMMARY) + ";" + r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const matches=document.evaluate(scope,document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+const panels=Array.from({length:matches.snapshotLength},(_,i)=>matches.snapshotItem(i)).filter(visible);
+const nodes=panels.length===1?[...panels[0].querySelectorAll(':scope>details.model-advanced')].filter(visible):[];
+const summary=nodes.length===1?nodes[0].querySelector(':scope>summary'):null;
+const fields=nodes.length===1?[...nodes[0].querySelectorAll(':scope>fieldset')]:[];
+const pages=[...document.querySelectorAll('[data-current-page-id]')].filter(visible);
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,panels:panels.length,
+ count:nodes.length,open:nodes.length===1?nodes[0].open:null,
+ enabled:fields.length===1&&visible(fields[0])&&!fields[0].matches(':disabled'),
+ summary:!!summary&&visible(summary)&&summary.textContent.trim()===label};"""
 
 
 def model_configuration_status_observation(message):
@@ -1595,6 +1625,10 @@ def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "r
     scope = MODEL_CONFIGURATION_SCOPE
     ui.page("19")
     ui.click_revealed("读取模型配置", scope)
+    wait(model_configuration_status_observation('已读取版本 0'))
+    # Endpoints, protocol/credentials, model/budget and every purpose binding share
+    # this collapsed disclosure. Open it through real UI before touching any field.
+    ui.open_model_advanced_configuration()
     ui.type("本地服务地址", "http://127.0.0.1:1234/v1", scope=scope)
     ui.type("模型名称", model, scope=scope)
     ui.type("最大输出 token", str(budget), scope=scope)

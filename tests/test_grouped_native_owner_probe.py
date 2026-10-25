@@ -97,6 +97,106 @@ class GroupedNativeProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, 'fresh isolated'):
             probe.save_deep_model_binding(UI(), lambda *a: existing, lambda *a: None, {}, 'aaos-deep-27b-mtp')
 
+    def test_model_advanced_disclosure_opens_by_trusted_summary_and_keeps_open_state(self):
+        probe = load_probe()
+        for initially_open in (False, True):
+            state, clicks, evidence = {"open": initially_open}, [], []
+            def observe(script):
+                panel = '<div><h2>产品模型与用途绑定</h2><details class="model-advanced" ' + ('open' if state["open"] else '') + '><summary>' + probe.MODEL_ADVANCED_SUMMARY + '</summary><fieldset><label>本地服务地址 <input></label></fieldset></details></div>'
+                return evaluate(script, '<main data-current-page-id="19"></main>' + panel + '<aside hidden>' + panel + '</aside>')
+            def wait(script):
+                self.assertTrue(observe(script), "Disclosure must be open before field interaction")
+            def click(selector):
+                clicks.append(selector)
+                self.assertEqual(selector, probe.MODEL_ADVANCED_DETAILS_SCOPE + '/summary')
+                state["open"] = True
+            ui = probe.GroupedUI(observe, wait, lambda *_: "node", lambda *_: None, evidence)
+            with patch.object(ui, 'click_revealed_selector', click):
+                ui.open_model_advanced_configuration()
+            self.assertEqual(len(clicks), 0 if initially_open else 1)
+            self.assertEqual(evidence[-1]['decision'], 'ALREADY_OPEN' if initially_open else 'OPENED_BY_RENDERED_UI')
+            self.assertFalse(evidence[-1]['business_completion'])
+
+    def test_model_advanced_disclosure_rejects_wrong_page_missing_hidden_or_ambiguous_controls(self):
+        probe = load_probe()
+        panel = '<div><h2>产品模型与用途绑定</h2><details class="model-advanced"><summary>' + probe.MODEL_ADVANCED_SUMMARY + '</summary><input></details></div>'
+        for page, markup in [('03', panel), ('19', ''), ('19', '<aside hidden>' + panel + '</aside>'),
+                             ('19', panel + panel), ('19', panel.replace(probe.MODEL_ADVANCED_SUMMARY, '其他设置')),
+                             ('19', panel.replace('<summary>', '<summary hidden>')),
+                             ('19', panel.replace('</details>', '</details><details class="model-advanced"><summary>重复</summary></details>'))]:
+            with self.subTest(page=page, markup=markup):
+                ui = probe.GroupedUI(lambda script: evaluate(script, '<main data-current-page-id="' + page + '"></main>' + markup), lambda _: None, lambda *_: None, lambda *_: None, [])
+                with patch.object(ui, 'click_revealed_selector') as click, self.assertRaisesRegex(AssertionError, 'model advanced disclosure'):
+                    ui.open_model_advanced_configuration()
+                click.assert_not_called()
+
+    def test_model_advanced_disclosure_refuses_click_that_did_not_open_it(self):
+        probe = load_probe()
+        ui = probe.GroupedUI(lambda _: {"page": "19", "panels": 1, "count": 1, "summary": True, "open": False, "enabled": False}, lambda _: None, lambda *_: None, lambda *_: None, [])
+        with patch.object(ui, 'click_revealed_selector') as click, self.assertRaisesRegex(AssertionError, 'did not open'):
+            ui.open_model_advanced_configuration()
+        click.assert_called_once_with(probe.MODEL_ADVANCED_DETAILS_SCOPE + '/summary')
+        self.assertFalse(ui.evidence)
+
+    def test_model_advanced_disclosure_waits_for_enabled_fields_after_load(self):
+        probe = load_probe()
+        for fieldset in ('<fieldset disabled><input></fieldset>', '', '<fieldset><input></fieldset><fieldset></fieldset>'):
+            markup = '<main data-current-page-id="19"></main><div><h2>产品模型与用途绑定</h2><details class="model-advanced" open><summary>' + probe.MODEL_ADVANCED_SUMMARY + '</summary>' + fieldset + '</details></div>'
+            ui = probe.GroupedUI(lambda script: evaluate(script, markup), lambda _: None, lambda *_: None, lambda *_: None, [])
+            with self.subTest(fieldset=fieldset), patch.object(ui, 'click_revealed_selector') as click, self.assertRaisesRegex(AssertionError, 'editable fields'):
+                ui.open_model_advanced_configuration()
+            click.assert_not_called()
+            self.assertFalse(ui.evidence)
+
+    def test_saved_binding_waits_for_load_and_opens_advanced_before_all_fields_and_bindings(self):
+        probe = load_probe()
+        actions, state = [], {"loaded": False, "open": False, "saved": False}
+        before = {"revision": 0, "profiles": {}, "bindings": [], "workspace_id": "isolated", "restore_epoch": "initial"}
+        profile = {"endpoint": "http://127.0.0.1:1234/v1", "protocol": "openai", "model": "authorized-model", "credential_ref": None, "max_tokens": 4096, "timeout_s": 120}
+        purposes = ("answer", "retest", "material", "companion")
+        after = {**before, "revision": 1, "profiles": {"local": profile}, "bindings": [{"purpose": purpose, "lane": "deep", "profile_id": "local"} for purpose in purposes]}
+        class UI:
+            def page(self, page):
+                assert page == '19'
+            def click_revealed(self, label, scope):
+                if label == '读取模型配置':
+                    state['loaded'] = True
+                else:
+                    assert state['open'], 'Advanced action attempted while collapsed'
+                if label == '保存配置与用途绑定':
+                    state['saved'] = True
+                actions.append(label)
+            def open_model_advanced_configuration(self):
+                assert state['loaded'] and actions[-1] == 'wait_loaded'
+                state['open'] = True
+                actions.append('advanced_open')
+            def type(self, label, value, **_):
+                assert state['open'], 'Hidden advanced field must not be typed'
+                actions.append(label)
+            def reveal_selector(self, selector):
+                assert state['open']
+                actions.append(selector)
+            def click_selector(self, selector):
+                assert state['open']
+                actions.append(selector)
+        def read(operation, args=None):
+            if operation == 'model_configuration_get':
+                return after if state['saved'] else before
+            if operation == 'machine_tasks_list':
+                return {"items": [], "next_cursor": None}
+            assert operation == 'model_configuration_resolve' and state['saved']
+            return {"purpose": args['body']['purpose'], "lane": "deep", "profile_id": "local", "profile": profile, "configuration_revision": 1, "workspace_id": "isolated", "restore_epoch": "initial"}
+        def wait(script):
+            if script == probe.model_configuration_status_observation('已读取版本 0'):
+                actions.append('wait_loaded')
+        stage = {}
+        probe.save_deep_model_binding(UI(), read, wait, stage, 'authorized-model', purposes, budget=4096)
+        self.assertLess(actions.index('advanced_open'), actions.index('本地服务地址'))
+        self.assertEqual(stage['saved_deep_binding']['configuration'], after)
+        self.assertEqual(stage['saved_deep_binding']['configuration_inference_calls'], 0)
+        for purpose in purposes:
+            self.assertTrue(any(purpose + " / DEEP" in action for action in actions))
+
     def test_saved_binding_receipt_rejects_stale_purpose_profile_epoch_or_budget(self):
         probe = load_probe()
         resolved = {'schema': 'archeaxis.resolved-model/v1', 'configuration_revision': 1,
