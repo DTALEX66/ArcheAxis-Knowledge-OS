@@ -11,6 +11,9 @@ sqlite-vec>=0.1.6
 loguru>=0.7
 structlog>=24.0
 pymupdf>=1.24
+openpyxl>=3.1
+python-pptx>=0.6
+xlrd>=2.0,<3
 trafilatura>=1.6
 litellm==1.91.0
 pillow>=10.0

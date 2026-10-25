@@ -252,11 +252,13 @@ dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "onnxruntime" },
+    { name = "openpyxl" },
     { name = "pillow" },
     { name = "pydantic" },
     { name = "pymupdf" },
     { name = "pytesseract" },
     { name = "python-multipart" },
+    { name = "python-pptx" },
     { name = "pyyaml" },
     { name = "rapidfuzz" },
     { name = "rapidocr-onnxruntime", marker = "python_full_version < '3.13'" },
@@ -266,6 +268,7 @@ dependencies = [
     { name = "structlog" },
     { name = "trafilatura" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "xlrd" },
 ]
 
 [package.optional-dependencies]
@@ -361,6 +364,7 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "onnxruntime", specifier = ">=1.18" },
+    { name = "openpyxl", specifier = ">=3.1" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
     { name = "promptfoo", marker = "extra == 'ingestion'", specifier = ">=0.1" },
@@ -369,6 +373,7 @@ requires-dist = [
     { name = "pytesseract", specifier = ">=0.3.13" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
+    { name = "python-pptx", specifier = ">=0.6" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rapidfuzz", specifier = ">=3.9" },
     { name = "rapidocr-onnxruntime", marker = "python_full_version < '3.13'", specifier = ">=1.4" },
@@ -381,6 +386,7 @@ requires-dist = [
     { name = "tomli", marker = "python_full_version < '3.11' and extra == 'dev'", specifier = ">=2.0" },
     { name = "trafilatura", specifier = ">=1.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.22" },
+    { name = "xlrd", specifier = ">=2.0,<3" },
 ]
 provides-extras = ["dev", "ingestion", "asr-sensevoice", "full"]
 
