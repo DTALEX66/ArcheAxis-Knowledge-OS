@@ -1898,3 +1898,12 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 安装器载荷原生 AV 界面：以 Playwright 连接该载荷 Host 的 WebView2（Edg/155.0.4283.62）并驱动真实控件：导入 `speech.wav`（448,968 字节）→ 媒体播放器渲染 → 点击“整体执行”完成转写 → 4 个时间段与预期短语一致、0 未定位、损失回执含 VAD 说明 → 点击“引用时间段”得到“时间与转写回执关联已校验” → 关闭 Host 后在同一隔离数据根重启，重新打开来源仍读回持久化转写与播放器。回执 `.project-local/runs/installed-av-04b3aa2f/ui-receipt.json`，SHA-256 `c7f6668f…512b7b`；截图 `ui-imported/ui-source-open/ui-transcribed/ui-time-anchor/ui-restarted.png`。
 - 安装边界：本机没有再次运行 NSIS 安装，以免覆盖用户已有的 ArcheAxis 安装与工作区；使用的是同一安装器载荷解包目录。同一候选的 NSIS 安装→启动→卸载生命周期已由 run 40168290341 的 `installer-lifecycle` 证明。识别忠实度、云端推理与 Owner 人工验收仍分别记账。
 - 边界：以上属 PR 203 分支的工程资格，不是 Owner 验收、发布、Green 替换或跨版本升级/回退；J4 质量、CL-04/CL-05、云端真实推理仍为 PARTIAL／NOT_EXECUTED。
+
+### 2026-10-25 文档检查点 CI 与 Owner 验收交接（人工验收 NOT_EXECUTED）
+
+- 文档 run：40171715474（head 87f863ca）completed／success，全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；非 required（migration-targeted、py-compat、windows-runtime-smoke、format-targeted、wheel-smoke）保持 skipped。这是仅文档提交自身的结论，不把 04b3aa2f 的代码绿灯静默转移；代码检查点仍为 04b3aa2f（run 40168290341）。
+- 安装入口已核对：`.project-local/candidates/ci-04b3aa2f/ArcheAxis Knowledge_0.6.14_x64-setup.exe`，433,078,836 字节，SHA-256 `8aeac7a81f32afd600099d5278119764fb6f84dc39766525cbcf0af130e146bf`，与同目录 `release-candidate.json`（commit 4d1303be）逐项一致。解包载荷 `.project-local/candidates/installed-04b3aa2f/` 没有 `portable.flag`，可用 `ARCHEAXIS_PORTABLE_ROOT` 指向隔离数据根运行；其 `ArcheAxis.exe` `1ca21c04…` 与 `ci-04b3aa2f/ArcheAxis.exe` `308ab36f…` 只差 3 字节（`__TAURI_BUNDLE_TYPE_VAR_` 的 `UNK`／`NSS` 打包标记），并非不同构建，两份哈希各自对应独立产物与安装器载荷。
+- 载荷模型：`runtime/models/asr/faster-whisper-base/model.bin` 145,217,532 字节，`d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9`，与 `aaos-model.json` 及 `backend-runtime-manifest.json` 的 `BUNDLED` 一致。
+- Owner 验收步骤（未执行）：①安装或便携启动；②导入音频（可用 `speech.wav`，448,968 字节）并确认播放器；③点“整体执行”得到 4 个时间段；④点“引用时间段”确认与转写回执关联；⑤关闭并以同一数据根重启，回读转写与播放器；⑥另抽查文档导入／阅读／检索引用、知识候选、学习复习、研究链与备份恢复。
+- 现有安装边界：本机线上 v0.6.11 属旧 Python 后端，与 0.6.14 Rust 不是同一产品线；用 setup.exe 覆盖安装属跨版本升级，仍为 NOT_EXECUTED，且会替换现有安装。建议先在产品内“创建一致备份”，或先以解包目录加 `ARCHEAXIS_PORTABLE_ROOT` 隔离数据根完成验收；不得以本次交接声称跨版本、发布或 Green 已通过。
+- 记账：识别忠实度独立核验、Owner 签字、云端真实推理、跨版本升级／回退分别为 NOT_EXECUTED／DEFERRED；总体仍为 **PARTIAL**。

@@ -1206,6 +1206,32 @@
       ],
       "local_evidence": "Browser gate PASS (13 viewports, 5 themes). The exact CI-built candidate Host 0a074727684ee418c6192c419574feaac5127a94c8ec42d979261fa628db5025 ran the grouped real qwen3.5-4b chain with authored correction/retest in an isolated portable root: engineering PASS, 290 actions, 5 normal exits, source_consistent=true; distill answered but quality NOT evaluated. A separate-agent single-sample review found the original refusal faithful and the retest lightly extrapolated; it is not independent quality or Owner acceptance. The 9fd55897 candidate bundles the pinned MIT faster-whisper-base model in runtime/models/asr and both desktop jobs fetch and verify the same donor; local isolated runs decoded and transcribed 8/8 media formats with PyAV, the pre-registered 8-item quality suite answered 8/8 with qwen3.5-4b and usage reported, the reader exposes fixed-version backlinks, and its transcript proof accepts only the engine-declared VAD pad while marking the overflow. J5 is closed for the forms the product actually claims: the green rust-vnext template lifecycle test installs, enables, disables, updates, rolls back, uninstalls and reinstalls a template through real Core HTTP/store while old documents, knowledge and learning events remain readable, and the real Office/PDF/OCR/speech/video jobs are the engine consumers; the capability center states that plugin, skill and MCP installation or execution is not implemented and therefore not claimed. The same green candidate's installer payload carries the pinned base model (model.bin d01c3014...0a6a9, 145,217,532 bytes) and its installed runtime transcribed WAV and MP4 with four located cues; its native WebView2 UI imported the audio, rendered the media player, executed the transcription, cited a time segment, and read the transcript back after a cold host restart. The payload was extracted rather than reinstalled over the existing user installation; the exact candidate NSIS install/uninstall lifecycle is proven by the same CI run. Recognition fidelity, Owner acceptance, cloud inference and cross-version upgrade remain separate and NOT_EXECUTED.",
       "documentation_followup": "This pointer update accompanies a metadata-only documentation commit pushed after the green code checkpoint; read that commit's own CI separately and do not transfer the code checkpoint conclusion to it silently.",
+      "documentation_followup_ci_20261025": {
+        "run_id": 40171715474,
+        "head_sha": "87f863cac90405ca855d1038292af5f950d983d5",
+        "conclusion": "SUCCESS",
+        "jobs": "lint, test (3.12), browser-smoke, desktop-build, desktop-fast, rust-vnext, installer-lifecycle, a0-gates passed; skipped non-required jobs stay skipped",
+        "scope": "DOCUMENTATION_ONLY checkpoint of the 04b3aa2f code qualification; it neither upgrades nor replaces that conclusion"
+      },
+      "owner_acceptance_handoff_20261025": {
+        "status": "PREPARED_NOT_EXECUTED",
+        "installer": {
+          "path": ".project-local/candidates/ci-04b3aa2f/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "bytes": 433078836,
+          "sha256": "8aeac7a81f32afd600099d5278119764fb6f84dc39766525cbcf0af130e146bf",
+          "release_candidate_commit": "4d1303be"
+        },
+        "extracted_payload": {
+          "path": ".project-local/candidates/installed-04b3aa2f",
+          "host_sha256": "1ca21c044bba94cf33d2bf0ed4eeb9427213003f1b147baaadb5f496fccf97f3",
+          "difference_from_standalone_host": "three bytes of the Tauri __TAURI_BUNDLE_TYPE_VAR_ marker (UNK vs NSS); not a different build"
+        },
+        "existing_install_boundary": "The online 0.6.11 is the old Python backend; installing 0.6.14 replaces it and is a cross-version upgrade that remains NOT_EXECUTED. Use the in-product consistent backup or the extracted payload with ARCHEAXIS_PORTABLE_ROOT first.",
+        "evidence": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md section 2026-10-25 Owner acceptance handoff; media UI receipt .project-local/runs/installed-av-04b3aa2f/ui-receipt.json c7f6668f...512b7b",
+        "owner_acceptance": "NOT_EXECUTED",
+        "cloud_inference": "DEFERRED",
+        "cross_version_upgrade": "NOT_EXECUTED"
+      },
       "merge": "NOT_GRANTED_BY_THIS_POINTER",
       "release": "NOT_GRANTED",
       "scope": "Exact-SHA cloud qualification for the current public task delivery; no merge, release or Green replacement follows from this PR"
