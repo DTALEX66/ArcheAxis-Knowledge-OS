@@ -154,6 +154,37 @@ return {page:identity.length===1?identity[0].dataset.currentPageId:pages.length=
          + json.dumps(page) + ")")
 
 
+def qualify_candidate_build(candidate, environment, host_identity, core_identity, manifest_identity, committed_paths):
+    """Bind unchanged product bytes while permitting only this exact probe-only commit delta."""
+    allowed = frozenset({
+        "scripts/probes/aaos01_grouped_owner_loop.py",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "tests/test_native_navigation_entry.py",
+        "tests/test_grouped_native_owner_probe.py",
+    })
+    assert candidate.get("status") == "PASS" and candidate.get("source_consistent") is True, "Unqualified candidate build"
+    build = {"commit": candidate["source_commit"], "tree": candidate["source_tree"], "patch_sha256": candidate["source_patch_sha256"]}
+    current = {"commit": environment["ARCHEAXIS_SOURCE_COMMIT"], "tree": environment["ARCHEAXIS_SOURCE_TREE"], "patch_sha256": environment["ARCHEAXIS_SOURCE_PATCH_SHA256"]}
+    assert all(re.fullmatch(r"[a-f0-9]{40}", row[key]) for row in (build, current) for key in ("commit", "tree")), "Invalid compiled source identity"
+    assert build["patch_sha256"] == current["patch_sha256"], "Candidate source mismatch"
+    assert candidate["source_patch_sha256_after"] == build["patch_sha256"], "Candidate source changed during build"
+    assert isinstance(committed_paths, list) and all(isinstance(path, str) for path in committed_paths), "Invalid committed source delta"
+    if build["commit"] == current["commit"]:
+        assert build["tree"] == current["tree"] and not committed_paths, "Same commit has inconsistent tree or delta"
+    else:
+        assert set(committed_paths).issubset(allowed), "Compiled product source changed outside exact probe/test allowance"
+    assert host_identity["sha256"] == candidate["host_sha256"], "Candidate host mismatch"
+    assert core_identity["sha256"] == candidate["core_sha256"], "Candidate Core mismatch"
+    assert manifest_identity["sha256"] == candidate["backend_manifest_sha256"], "Candidate runtime manifest mismatch"
+    return {
+        "status": "PASS", "policy": "same-full-patch-and-exact-probe-only-commit-delta/v1",
+        "build_source": build, "probe_source": current,
+        "committed_changed_paths": sorted(set(committed_paths)), "allowed_probe_paths": sorted(allowed),
+        "host_sha256": host_identity["sha256"], "core_sha256": core_identity["sha256"],
+        "runtime_manifest": manifest_identity,
+    }
+
+
 def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     """Microsoft requires matching major/minor/build; patch updates are compatible.
 
@@ -1342,11 +1373,15 @@ def main():
         receipt_path = launcher.safe_path(args.build_receipt)
         receipt_path.relative_to(paths["dev"])
         candidate = json.loads(receipt_path.read_text(encoding="utf-8"))
-        assert candidate["status"] == "PASS" and candidate["source_consistent"], "Unqualified candidate build"
-        assert candidate["source_patch_sha256"] == env["ARCHEAXIS_SOURCE_PATCH_SHA256"], "Candidate source mismatch"
-        assert identity(host)["sha256"] == candidate["host_sha256"], "Candidate host mismatch"
-        assert identity(host.parent / "core/archeaxis-api.exe")["sha256"] == candidate["core_sha256"], "Candidate Core mismatch"
-        compiled_binding = {"status": "PASS", "build_receipt": identity(receipt_path), "core_sha256": candidate["core_sha256"]}
+        build_commit = candidate.get("source_commit")
+        assert isinstance(build_commit, str) and re.fullmatch(r"[a-f0-9]{40}", build_commit), "Invalid candidate source commit"
+        build_tree = subprocess.check_output(["git", "rev-parse", build_commit + "^{tree}"], cwd=REPO, text=True, encoding="utf-8").strip()
+        assert build_tree == candidate["source_tree"], "Candidate build tree mismatch"
+        committed_paths = (subprocess.check_output(["git", "diff", build_commit + "..HEAD", "--name-only", "--no-renames"], cwd=REPO, text=True, encoding="utf-8").splitlines()
+                           if build_commit != env["ARCHEAXIS_SOURCE_COMMIT"] else [])
+        compiled_binding = qualify_candidate_build(candidate, env, identity(host),
+            identity(host.parent / "core/archeaxis-api.exe"), identity(host.parent / "backend-runtime-manifest.json"), committed_paths)
+        compiled_binding["build_receipt"] = identity(receipt_path)
     work = paths["tmp"] / "journey"
     work.mkdir(parents=True)
     native_log = work / "native-driver.log"

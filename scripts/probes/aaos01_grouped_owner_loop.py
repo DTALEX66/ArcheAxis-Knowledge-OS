@@ -422,8 +422,8 @@ def prepare_rendered_navigation(ui, evidence):
     """Pause the actual guide through trusted UI; do not mark any business step complete."""
     ui.wait(r"""const shell=document.querySelector('.app-shell[data-stitch-workspace]');
 const page=shell?.querySelector('.stitch-page-identity[data-current-page-id]');
-const current=shell?.querySelector('nav[aria-label="应用菜单"] summary')&&shell?.querySelector('nav[aria-label="工作空间快捷导航"] button[data-page-id]')&&shell?.querySelector('button[aria-label="全部页面，打开产品导航"]');
-const legacy=shell?.querySelector('button[aria-label="打开产品导航"],.navigation-sidebar');
+const current=document.querySelector('nav[aria-label="应用菜单"] summary')&&document.querySelector('nav[aria-label="工作空间快捷导航"] button[data-page-id]')&&document.querySelector('button[aria-label="全部页面，打开产品导航"]');
+const legacy=document.querySelector('button[aria-label="打开产品导航"],.navigation-sidebar');
 return !!page&&/^\d{2}$/.test(page.dataset.currentPageId??'')&&!!(current||legacy);""")
     guide = ui.js(VISIBLE_NAVIGATION_JS + r"""
 const guides=[...document.querySelectorAll('[role="dialog"].first-use-guide')].filter(visible);
