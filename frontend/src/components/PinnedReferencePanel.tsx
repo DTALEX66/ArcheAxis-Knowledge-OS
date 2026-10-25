@@ -15,7 +15,7 @@ function OriginalView({ value }: { value: Original }) {
   },[value]);
   const mime=value.dto.media_type;
   return <><p>{value.dto.name} · {mime} · {value.bytes.length} bytes</p><code>{value.dto.sha256}</code>
-    {url ? <img src={url} alt={`原件 ${value.dto.name}`} /> : mime==="application/pdf" ? <Suspense fallback={<p role="status">正在加载原件阅读器…</p>}><PdfReader bytes={value.bytes} page={page} onPageChange={setPage}/></Suspense> : ["audio/mpeg","audio/wav","video/mp4","video/webm"].includes(mime) ? <MediaReader bytes={value.bytes} mediaType={mime}/> : value.text!==null ? <pre>{value.text}</pre> : <p>原件已校验；此格式暂无内嵌阅读器。</p>}
+    {url ? <img src={url} alt={`原件 ${value.dto.name}`} /> : mime==="application/pdf" ? <Suspense fallback={<p role="status">正在加载原件阅读器…</p>}><PdfReader bytes={value.bytes} page={page} onPageChange={setPage}/></Suspense> : mime.startsWith("audio/") || mime.startsWith("video/") ? <MediaReader bytes={value.bytes} mediaType={mime}/> : value.text!==null ? <pre>{value.text}</pre> : <p>原件已校验；此格式暂无内嵌阅读器。</p>}
   </>;
 }
 

@@ -60,6 +60,11 @@ MODEL_IDENTITY_FILE = "aaos-model.json"
 # not an invented position, so it is kept and marked rather than discarded.
 VAD_SPEECH_PAD_MS = 400
 
+# The containers the packaged decoder (PyAV/FFmpeg) opens for transcription. Declared even
+# when the Python engine is absent, because the probe's job is to state the contract; the
+# `capability` flag alone reports whether this host can run it now.
+FORMATS = ["wav", "mp3", "m4a", "flac", "ogg", "opus", "mp4", "mov", "webm"]
+
 
 
 def _load_tool_paths():
@@ -201,11 +206,12 @@ def probe(model_path: str | None) -> dict:
     try:
         import faster_whisper  # noqa: F401
     except ImportError:
-        return {"capability": False, "reason": "faster-whisper not installed", "engine": ENGINE}
+        return {"capability": False, "reason": "faster-whisper not installed", "engine": ENGINE,
+                "formats": list(FORMATS)}
     try:
         path, source = _resolve_model(model_path)
     except ValueError as exc:
-        return {"capability": False, "reason": str(exc), "engine": ENGINE}
+        return {"capability": False, "reason": str(exc), "engine": ENGINE, "formats": list(FORMATS)}
     identity = _model_identity(path)
     return {
         "capability": True,
@@ -215,7 +221,7 @@ def probe(model_path: str | None) -> dict:
         "model_source": source,
         "model_identity": identity,
         "decoder": _decoder_report(),
-        "formats": ["wav", "mp3", "m4a", "flac", "ogg", "opus", "mp4", "mov", "webm"],
+        "formats": list(FORMATS),
         "note": "probe checks dependency and model presence only; quality is measured per run (T07)",
     }
 

@@ -1,11 +1,11 @@
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-import { render,screen,waitFor,fireEvent,act } from "@testing-library/react";
+import { cleanup,render,screen,waitFor,fireEvent,act } from "@testing-library/react";
 import { webcrypto } from "node:crypto";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
-afterEach(()=>{vi.unstubAllGlobals();});
+afterEach(()=>{cleanup();vi.unstubAllGlobals();});
 const doc={document_id:"doc_original",version:1,title:"原文 v1",source_id:"source_original",source_revision:"a".repeat(64),content_sha256:"b".repeat(64),text_projection:"原版本全文",editor_json:{type:"doc",content:[]},blocks:[{block_id:"evidence",text_projection:"固定依据块"}]};
 it("refuses a fixed-version read whose SHA differs from the global search observation",async()=>{
  bridge.call.mockResolvedValue(doc);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} expectedDocumentSha={"c".repeat(64)} onClose={()=>{}}/>);
@@ -30,6 +30,15 @@ it("verifies actual original bytes and renders HTML only as inert text",async()=
 it("tampered source bytes are not displayed",async()=>{
  bridge.call.mockResolvedValue({source_id:"source_bad",sha256:"a".repeat(64),name:"source.txt",media_type:"text/plain",content_base64:btoa("tampered")});
  render(<PinnedReferencePanel reference={{kind:"source",source_id:"source_bad",sha256:"a".repeat(64)}} onClose={()=>{}}/>);expect(await screen.findByRole("alert")).toHaveTextContent("字节校验失败");expect(screen.queryByText("tampered")).not.toBeInTheDocument();
+});
+it("opens any audio or video original in the media reader instead of a missing-format notice",async()=>{
+ const text="flac fixture";const bytes=new TextEncoder().encode(text);const hash=Array.from(new Uint8Array(await webcrypto.subtle.digest("SHA-256",bytes))).map(x=>x.toString(16).padStart(2,"0")).join("");
+ const create=vi.fn((_blob:Blob)=> "blob:flac");vi.stubGlobal("URL",{createObjectURL:create,revokeObjectURL:vi.fn()});
+ bridge.call.mockResolvedValue({source_id:"source_flac",sha256:hash,name:"talk.flac",media_type:"audio/flac",content_base64:btoa(text)});
+ render(<PinnedReferencePanel reference={{kind:"source",source_id:"source_flac",sha256:hash}} onClose={()=>{}}/>);
+ expect(await screen.findByLabelText("音频原件")).toBeInTheDocument();
+ expect(create.mock.calls[0][0].type).toBe("audio/flac");
+ expect(screen.queryByText(/此格式暂无内嵌阅读器/)).not.toBeInTheDocument();
 });
 it("late reads cannot replace a newly selected pinned object",async()=>{
  let resolve:(value:unknown)=>void=()=>{};bridge.call.mockImplementation((_:string,p:{document_id?:string;knowledge_id?:string})=>p.document_id?new Promise(r=>{resolve=r}):Promise.resolve({knowledge_id:"knowledge_now",body:"当前知识",version:"v1",status:"candidate",source_id:null,anchor_id:null}));
