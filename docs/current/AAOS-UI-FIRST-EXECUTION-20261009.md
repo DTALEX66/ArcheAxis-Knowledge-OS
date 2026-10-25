@@ -1912,3 +1912,15 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 
 - run 40173001622（head 56909154，即上节交接提交）completed／success：gateplan、lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates 及其余 required 作业全部 success；migration-targeted、windows-runtime-smoke、py-compat、wheel-smoke、format-targeted 保持 skipped。该提交只含指针与执行记录新增，不改变 04b3aa2f 代码检查点，也不改变总体 PARTIAL。
 - 引用上述结论的指针更新提交自身的 CI 由后续会话按同一规则单独读取，不自动沿用本 run 或更早 run 的结论。
+
+### 2026-10-25 全栈审计后的工程闭环切片（FTS 增量、OCR 回退、安装器与许可披露）
+
+- 审计输入：[全栈技术审计与吸收建议](../../workspace/intake/20261025-full-technology-audit.md)。该报告只给候选与优先级，不提升产品资格；本切片只执行其中可本地验证或可由 CI 验证的最小项。
+- 前端基线：`npm --prefix frontend test -- --reporter=dot` 实测 201 个测试文件、2113 项全部通过（0 失败）。此前记录中的“2090 通过 / 18 失败”是历史基线，已被当前源码的前端套件结果取代；不重跑后端全量套件。
+- FTS 增量：`crates/archeaxis-domain/src/search.rs` 不再在每次 `search()`／`search_transforms()` 前全量 `reindex()`。`ensure_fts`／`ensure_transform_fts` 创建 `AFTER INSERT/DELETE/UPDATE` 触发器，并只在触发器首次创建时做一次回填；显式 `reindex()` 保留为全量重建入口。新增 `crates/archeaxis-domain/tests/search_incremental_index.rs` 覆盖“先有行后建索引的一次回填、触发器插入、状态更新、删除、transform 插入/删除”。触发器 SQL 已用本地 SQLite 逐项验证（回填、插入、更新、删除、transform 均符合预期）；Rust 编译与测试由 CI `rust-vnext` 验证，本地无 MSVC 不重建。
+- OCR 开箱回退：`services/python-workers/vision/worker_ocr.py` 的 `extract(..., engine="auto")` 在 Tesseract 可用时保持原行为，Tesseract 缺失时回退 RapidOCR（PP-OCRv4，中英）；`--engine tesseract|rapidocr` 可显式指定，显式 profile 不会被静默换成另一引擎。回退时 `loss_receipt.params` 记录 `engine=rapidocr`、引擎版本、`fallback_reason`，阅读序标记为引擎原生行序而不是伪造重建；非中英语言仍具名拒绝。新增 `tests/test_worker_ocr_rapidocr_fallback.py` 4 项通过；OCR/打包合同 50 项通过。`rapidocr-onnxruntime` 加入主依赖（`python_version < '3.13'`），打包运行时为 Python 3.12，因此安装包随包携带；本地 `uv lock --check` 解析 205 包通过。
+- 安装器：`src-tauri/tauri.conf.json` 的 NSIS `compression` 从 `zlib` 改为 Tauri 默认的 `lzma`。实际安装器体积与新载荷成员必须由新一轮 `desktop-build`／`installer-lifecycle` 产物读回，本地不伪造。
+- 许可披露：`THIRD_PARTY_NOTICES.md` 增加 PyMuPDF/MuPDF AGPL-3.0（或 Artifex 商业许可）条目及分发义务说明；`SUPPLY_CHAIN_LEDGER.json` 新增 A055，组件数 56、CURRENT 18。替换试点（pypdfium2 + pdfplumber）只登记在审计报告，未执行。
+- 环境登记：`config/environment/capability-requirements.yaml` 的 RapidOCR 用途与版本识别文本改为 `importlib.metadata.version`（该包没有 `__version__`），并注明中英回退边界。探针字段仍沿用既有 `version_attribute` 合同，字段级改造未在本切片执行。
+- 文档纠偏：`services/python-workers/README.md` 更新 OCR 引擎为“Tesseract / RapidOCR 回退”，并把扫描 PDF 逐页路线的“未接线”旧描述改为当前事实；广告/正文分离仍按后续 slice 保留。
+- 边界：本切片不改变 Owner 验收、云端真实推理、跨版本升级/回退、CL-04/CL-05 延期范围或 J4 独立质量结论，总体仍为 **PARTIAL**。新提交的 exact-SHA CI 由后续会话读取；在取得绿色结果前，代码检查点仍是 04b3aa2f（run 40168290341）。

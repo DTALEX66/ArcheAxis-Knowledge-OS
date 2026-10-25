@@ -1170,6 +1170,21 @@
       "ci": "NOT_EXECUTED_FOR_CODE_CHECKPOINT",
       "metadata_followup": "Read current Git HEAD and ignored delivery receipt for later documentation commit; no self-referential SHA invented."
     },
+    "latest_engineering_slice_20261025": {
+      "date": "2026-10-25",
+      "scope": "FTS_INCREMENTAL_OCR_FALLBACK_INSTALLER_LZMA_PYMUPDF_DISCLOSURE",
+      "status": "LOCAL_CHECKS_PASS_CI_PENDING",
+      "audit_report": "workspace/intake/20261025-full-technology-audit.md",
+      "frontend_suite": "201 files / 2113 tests PASS",
+      "fts": "TRIGGER_AND_ONE_TIME_BACKFILL_ADDED; incremental test crates/archeaxis-domain/tests/search_incremental_index.rs; rust-vnext CI pending",
+      "ocr": "AUTO_KEEPS_TESSERACT_AND_FALLS_BACK_TO_RAPIDOCR; main dependency marker python<3.13; 4 fallback tests PASS; packaged-runtime inclusion awaits desktop-build",
+      "installer": "NSIS compression zlib -> lzma; artifact size awaits desktop-build",
+      "license": "PyMuPDF AGPL disclosed in THIRD_PARTY_NOTICES and SUPPLY_CHAIN_LEDGER A055; replacement pilot not executed",
+      "owner_acceptance": "NOT_EXECUTED",
+      "cloud_inference": "DEFERRED",
+      "cross_version_upgrade": "NOT_EXECUTED",
+      "code_checkpoint_until_ci": "04b3aa2f47c51aa5d88907758ebe658621167a9f / run 40168290341"
+    },
     "delivery_pr_203_20261024": {
       "status": "CI_PASS",
       "branch": "trae/20261024",

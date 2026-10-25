@@ -39,20 +39,54 @@ CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts USING fts5(
 );
 "#;
 
-/// Ensure the FTS table exists.
-pub fn ensure_fts(conn: &Connection) -> rusqlite::Result<()> {
-    conn.execute_batch(FTS_SQL)?;
-    Ok(())
-}
+/// Keep the FTS rows in step with the knowledge table.
+///
+/// Search used to rebuild the whole index before every query, which made a query O(N) in the
+/// library size. These triggers are the incremental path; the one-time backfill below covers a
+/// database whose rows predate them.
+const KNOWLEDGE_TRIGGERS: &str = r#"
+CREATE TRIGGER IF NOT EXISTS knowledge_fts_ai AFTER INSERT ON knowledge BEGIN
+    INSERT INTO knowledge_fts(rowid, body, knowledge_id, status)
+    VALUES (new.rowid, new.body, new.knowledge_id, new.status);
+END;
+CREATE TRIGGER IF NOT EXISTS knowledge_fts_ad AFTER DELETE ON knowledge BEGIN
+    DELETE FROM knowledge_fts WHERE rowid = old.rowid;
+END;
+CREATE TRIGGER IF NOT EXISTS knowledge_fts_au AFTER UPDATE OF body, knowledge_id, status ON knowledge BEGIN
+    DELETE FROM knowledge_fts WHERE rowid = old.rowid;
+    INSERT INTO knowledge_fts(rowid, body, knowledge_id, status)
+    VALUES (new.rowid, new.body, new.knowledge_id, new.status);
+END;
+"#;
 
-/// Refresh FTS from the knowledge table (backfill after ensure).
-pub fn reindex(conn: &Connection) -> rusqlite::Result<()> {
-    ensure_fts(conn)?;
+fn backfill_knowledge(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch("DELETE FROM knowledge_fts;")?;
     conn.execute_batch(
         "INSERT INTO knowledge_fts(rowid, body, knowledge_id, status)
          SELECT rowid, body, knowledge_id, status FROM knowledge;",
     )?;
+    Ok(())
+}
+
+/// Ensure the FTS table and its triggers exist, and backfill once when the triggers are new.
+pub fn ensure_fts(conn: &Connection) -> rusqlite::Result<()> {
+    let triggers_existed: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='knowledge_fts_ai')",
+        [],
+        |row| row.get(0),
+    )?;
+    conn.execute_batch(FTS_SQL)?;
+    conn.execute_batch(KNOWLEDGE_TRIGGERS)?;
+    if !triggers_existed {
+        backfill_knowledge(conn)?;
+    }
+    Ok(())
+}
+
+/// Refresh FTS from the knowledge table (explicit full rebuild; queries use the triggers).
+pub fn reindex(conn: &Connection) -> rusqlite::Result<()> {
+    ensure_fts(conn)?;
+    backfill_knowledge(conn)?;
     Ok(())
 }
 
@@ -62,7 +96,7 @@ pub fn search(
     query: &str,
     limit: i64,
 ) -> rusqlite::Result<Vec<(String, String, String)>> {
-    reindex(conn)?; // Day-0: rebuild before query (small data; triggers land in a later slice)
+    ensure_fts(conn)?;
     let Some(query) = fts_query(query) else {
         return Ok(Vec::new());
     };
@@ -84,21 +118,49 @@ CREATE VIRTUAL TABLE IF NOT EXISTS transform_fts USING fts5(
 );
 "#;
 
-/// Ensure the extracted-text index exists.
-pub fn ensure_transform_fts(conn: &Connection) -> rusqlite::Result<()> {
-    conn.execute_batch(TRANSFORM_FTS_SQL)?;
-    Ok(())
-}
+const TRANSFORM_TRIGGERS: &str = r#"
+CREATE TRIGGER IF NOT EXISTS transform_fts_ai AFTER INSERT ON transforms BEGIN
+    INSERT INTO transform_fts(rowid, text, transform_id, source_id, engine)
+    VALUES (new.rowid, new.text, new.transform_id, new.source_id, new.engine);
+END;
+CREATE TRIGGER IF NOT EXISTS transform_fts_ad AFTER DELETE ON transforms BEGIN
+    DELETE FROM transform_fts WHERE rowid = old.rowid;
+END;
+CREATE TRIGGER IF NOT EXISTS transform_fts_au AFTER UPDATE OF text, transform_id, source_id, engine ON transforms BEGIN
+    DELETE FROM transform_fts WHERE rowid = old.rowid;
+    INSERT INTO transform_fts(rowid, text, transform_id, source_id, engine)
+    VALUES (new.rowid, new.text, new.transform_id, new.source_id, new.engine);
+END;
+"#;
 
-/// Refresh the extracted-text index from `transforms` (rebuilt per query, the
-/// same Day-0 pattern the knowledge index uses).
-pub fn reindex_transforms(conn: &Connection) -> rusqlite::Result<()> {
-    ensure_transform_fts(conn)?;
+fn backfill_transforms(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch("DELETE FROM transform_fts;")?;
     conn.execute_batch(
         "INSERT INTO transform_fts(rowid, text, transform_id, source_id, engine)
          SELECT rowid, text, transform_id, source_id, engine FROM transforms;",
     )?;
+    Ok(())
+}
+
+/// Ensure the extracted-text index and its triggers exist, with the same one-time backfill.
+pub fn ensure_transform_fts(conn: &Connection) -> rusqlite::Result<()> {
+    let triggers_existed: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='transform_fts_ai')",
+        [],
+        |row| row.get(0),
+    )?;
+    conn.execute_batch(TRANSFORM_FTS_SQL)?;
+    conn.execute_batch(TRANSFORM_TRIGGERS)?;
+    if !triggers_existed {
+        backfill_transforms(conn)?;
+    }
+    Ok(())
+}
+
+/// Refresh the extracted-text index from `transforms` (explicit full rebuild).
+pub fn reindex_transforms(conn: &Connection) -> rusqlite::Result<()> {
+    ensure_transform_fts(conn)?;
+    backfill_transforms(conn)?;
     Ok(())
 }
 
@@ -113,7 +175,7 @@ pub fn search_transforms(
     query: &str,
     limit: i64,
 ) -> rusqlite::Result<Vec<(i64, String, String, String)>> {
-    reindex_transforms(conn)?;
+    ensure_transform_fts(conn)?;
     let Some(query) = fts_query(query) else {
         return Ok(Vec::new());
     };

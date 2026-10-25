@@ -33,7 +33,7 @@
       },
       "nsis": {
         "installMode": "currentUser",
-        "compression": "zlib"
+        "compression": "lzma"
       }
     },
     "targets": [

@@ -22,7 +22,7 @@
 | web/worker_webpage.py | 有界抓取+快照(F02 网络) | urllib | ✅ 本地实测 | T05s2c |
 | media/worker_transcribe.py | WAV/MP3/M4A/FLAC ASR(F10) | faster-whisper-large-v3-turbo | ✅ 本地实测 | T06s1 |
 | media/worker_video.py | 视频音轨+关键帧(F11 部分) | ffmpeg | ✅ 本地实测 | T06s2a |
-| vision/worker_ocr.py | 图像 OCR 文本+框(F04 部分) | tesseract 5.5 | ✅ 本地实测 | T06s2b |
+| vision/worker_ocr.py | 图像 OCR 文本+框(F04 部分) | tesseract 5.5；无 Tesseract 时 RapidOCR PP-OCRv4 回退（中英） | ✅ 本地实测 | T06s2b |
 | vision/worker_caption.py | 图示/场景描述(F04 层2) | ollama qwen2.5vl:7b | ✅ 本地实测 | T06s2c |
 | evaluation/worker_quality.py | CER/WER 评测(T07) | stdlib | ✅ | T07s1 |
 
@@ -33,8 +33,7 @@
 ## 明确边界（不冒充已完成）
 
 - F03 动态网页渲染/截图：需 playwright+chromium 运行器，当前标 BLOCKED-RUNTIME（记录于模型 profile）。
-- F06 扫描 PDF/混合 OCR 页：OCR lane 组件已备（rapidocr/tesseract 探测），逐页判定编排未接线。
-- 嵌入图/幻灯片图像 OCR、字幕对齐、画面事件语义（VL）：独立 lane 未接线。
+- F06 扫描 PDF/混合 OCR 页：逐页渲染与 `image.ocr` 路由已接线；Tesseract 缺失时 RapidOCR 仅承担中英，其他语言仍具名失败。嵌入图/幻灯片图像 OCR、字幕对齐、画面事件语义（VL）仍属独立 lane。
 - 广告/正文分离（trafilatura 级）与多栏阅读序：后续 slice。
 
 ## worker-protocol（contract: packages/contracts/v1/worker-protocol.schema.json）

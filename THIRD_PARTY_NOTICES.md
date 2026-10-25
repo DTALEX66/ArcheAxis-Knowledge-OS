@@ -127,6 +127,23 @@ Not bundled in this round: sherpa-onnx and the SenseVoice/segmentation/embedding
 diarization worker already reports the exact missing artefacts by name.
 
 
+## 2026-10-25 PyMuPDF / MuPDF (AGPL) disclosure
+
+| Component | Version | License | Bundled location |
+|---|---|---|---|
+| PyMuPDF / MuPDF (PDF text, structure, table geometry and page rendering) | 1.28.2 (`uv.lock`; present in the built runtime) | AGPL-3.0-or-later **or** Artifex commercial licence | `runtime/Lib/site-packages/pymupdf/` |
+
+PyMuPDF is used by `services/python-workers/document/worker_pdf.py` and is copied into the
+installer payload by `scripts/release/stage_backend_runtime.py`. Its upstream licensing page
+states that PyMuPDF and MuPDF are available under AGPL-3.0 or a commercial licence from
+Artifex. The repository's own MIT licence does not relicense this bundled component.
+
+Anyone redistributing the installer must meet the AGPL-3.0 obligations (including the
+corresponding-source and notice requirements) or hold a commercial licence. The replacement
+pilot (`pypdfium2` Apache-2.0/BSD-3 + `pdfplumber` MIT) and the licence decision are recorded in
+`workspace/intake/20261025-full-technology-audit.md`; no replacement was executed in this round.
+
+
 ## 2026-08-11 上游许可纠错与补充
 
 ## 2026-10-07 AAOS UI adapters

@@ -565,9 +565,9 @@ capabilities:
     - name: rapidocr
       resource_id: ext.engines.rapidocr
       type: engine
-      purpose: "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）"
+      purpose: "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）；Python 3.12 安装包随包携带，Tesseract 缺失时 worker_ocr 自动回退（中英）"
       version_range: ">=1.4"
-      version_identification: "ci-venv 的 python 导入 rapidocr_onnxruntime 后读 __version__"
+      version_identification: "ci-venv 的 python 用 importlib.metadata.version('rapidocr-onnxruntime') 读取（该包不提供 __version__）"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/RapidAI/RapidOCR"
@@ -584,7 +584,7 @@ capabilities:
         module: rapidocr_onnxruntime
         version_attribute: "__version__"
         reaches: VERSION_PROBED
-      fallback: "导入失败即具名 NOT_VERIFIED；不拿 uv/pip 的存在当作引擎可用，也不装第二份"
+      fallback: "导入失败即具名 NOT_VERIFIED；不拿 uv/pip 的存在当作引擎可用，也不装第二份。Tesseract 缺失时 worker_ocr 以 RapidOCR 承担中英回退，其他语言具名失败"
       required_by: [ocr-pipeline, bakeoff]
       local_only: false
 
