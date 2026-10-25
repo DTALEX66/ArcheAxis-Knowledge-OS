@@ -1,5 +1,38 @@
 # 2026-10-26 UI与产品链修复说明
 
+## 最新 b12 实现与证据
+
+本节替代下文旧b2时点的“最新／安装未执行”等状态；旧身份和失败保留。唯一进度仍读执行记录末段，本文件是原因与证据说明。
+
+新产品构建点 `1d76f9f890485324b329b087973ce7897dc7711d`，Host `5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123`；Core `c44e9bbf04688c85cf64f2fa89ab5bfa55f1e58727c03b11881fd60ce2b77369`；manifest `96eea082df6d7075d6353a256e6257dad5bab55f6f4497d3db1cb2b769780143`。后继probe提交 `8eafda185cfaf8550ab4d41c5204948e06f7f4e8` 只改检测与测试，精确差异和双源绑定写入回执，不冒充重新编译产品。预览启动器已指向b12。
+
+| 新核实的问题 | 成因及修复 | 验证与范围 |
+|---|---|---|
+| 长侧栏使正文离开屏幕 | reader未限制父区高度；正文与详情独立滚动，窄/低窗回单流 | b11真实预算与侧栏布局、b12历史页实测；历史运行信息最多占25% |
+| 旧模型预算无恢复入口 | 有效2048配置被保留，但缺少显式编辑路径；新增居中640CSS对话框，手动4096与新请求预览 | Escape不PUT、焦点返回，旧请求/失败和其它profile字段保留；预览NOT_EXECUTED且不写持久journal |
+| 缺ASR模型只见底层错误 | 实际AAK-WORKER-003失败未映射中文操作；按失败job/attempt/request身份匹配恢复说明 | 183项定向检查及真实缺模型原生UI；不误诊未知失败、不自动下载/覆盖配置 |
+| native检测误报 | 顶菜单/Dock实际与主窗并列，高级模型字段默认折叠；探针按真实summary操作 | 94项＋170子项通过；保留旧失败，不修改产品来迎合旧探针 |
+
+| 资格证据 | 实际结果 | run（相对 `.project-local/runs/be268a2d33/`） |
+|---|---|---|
+| 最新前端/生产构建 | 2199/2199；typecheck/Vite/Rust离线locked PASS | `closure-20261026-frontend-history-final`、`1bd13afdbcc2` |
+| 最新22页界面/1920基线 | 原生22/22、CDP1920CSS 8/8、0 page/console/CSP、退出正常 | `native-overview-20261026-final-b12` |
+| 历史页正文保全/独立滚动 | v1/v2/原件/配置/journal不变，侧栏滚动不带正文 | `ui-native-history-layout-20261026-b12-b2` |
+| 预算恢复/居中窗口 | 实际UI2048→4096、新预览、重开；原始证据是b11 | `ui-native-reader-budget-layout-20261026-b14` |
+| 缺ASR模型恢复 | 真Core失败→中文说明→诊断；原件保全无新任务 | `closure-native-asr-recovery-20261026-b2`及postrun补充 |
+| 当前分组human/AI工程链 | 两次实际模型stop（10.03/12.71秒）；导入/学习/干预/再答/备份恢复/下载重导入 | `closure-20261026-grouped-native-b12-r3`，实际回执 `.project-local/runs/be268a2d33/webdriver-a0addf6300ea/tmp/journey/receipt.json` |
+| 最新本地安装 | 安装/升级/卸载保数据/重装读回/三核心身份PASS，精确VM清理PASS | `closure-20261026-installed-lifecycle-b12` |
+| 中文识别 | 选定合成中文PNG/JPEG/扫描PDF三类first/reparse/定位/重启 | `closure-20261026-chinese-qualified-b3`，准确率未测 |
+| 后端组件映射 | 四候选78971文件、8共享资源；fc57/b3/b12共同19743成员逐字节一致 | `closure-b12-component-evidence-rebind-20261026-b2`，不计新格式/模型调用 |
+
+当前工程链回执是PASS/PARTIAL：closed_loop_verified=false、human_signoff=false，Owner批准与答案质量未测；作者干预不等于独立发现模型错误。恢复旧grant的拒绝限定本次调用，历史请求执行仍UNVERIFIED。本地NSIS为独立zlib overlay，正式lzma未改；安装器569644749B/SHA `2b481ca408db202546cc3ac98b919c55780af95030e40a4c7f24af8df81e6261`，forced_tree_cleanup=true仍保留，installed全成员hash/业务冲突未测。
+
+人物仍九静态状态，物理右键菜单项逐项点击、代表性OCR/ASR/答案质量、视频视觉语义与Owner审美未验收；当前未提供产品内ASR目录选择。16族186项是完整设计目录，不是全功能实现；下方第三方数据库/插件/同步兼容缺口仍适用。实际显示器2048×1082CSS/DPR1.25；1920是独立CSS布局基线，未修改显示器分辨率。
+
+正常push仍被自动审批拒绝（需要审批但AskForApproval=Never），未绕过；本轮托管CI/Green更新未执行。Green程序及两个数据库hash未变。独立预览 `.project-local/AAOS-UI-Preview-20261026.cmd` 已更新并通过--check，已实际打开b12独立预览（窗体可见且最大化、owned Core路径匹配独立工作区），仅作启动验证；详情记唯一执行记录。
+
+## 前一 b2 检查点说明（历史）
+
 这是本轮实现与证据说明；唯一进度仍在 `docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md`，执行与交付授权仍读活动指针。以下本地候选已经过组件与原生验证；提交前尚未获得本轮托管CI、安装或Green更新资格。人工视觉与内容质量评审延期，不伪造为通过。
 
 ## 具体成因与修复
@@ -20,7 +53,7 @@
 | 模型有思考但无正文 | 新快捷预设仅1024/2048输出预算；真实材料补充请求在2048内未产生最终正文 | 新建快捷/缺失预设预算4096，保留已有有效profile/binding；失败明确提示调整上限、新请求预览，原请求保留且不自动重试 |
 | 媒体回退源码有而包里没有 | 本地增量stage只遍历旧manifest，漏掉新增media_decode.py；正式全量stager正确 | 隔离stage合并Git已跟踪worker清单，补唯一漏件并核对共同19742个清单身份；不改业务或正式stager |
 
-## 本地最终候选与验证
+## 前一 b2 检查点候选与验证（历史）
 
 本地冻结身份：HEAD `41e1848dca00f724db437c649c6445532221705a` 加 dirty patch `77b583e07bc31d1f42f2e323a23a6530254d88287cae0936dbe06b204876ab8e`。其后说明文档更新不冒充该构建点。托管CI必须另绑定实际提交及制品SHA。
 
@@ -67,7 +100,7 @@
 
 本轮保留原菜单退出、Canvas拒收、2048模型无正文与漏模块等失败回执。新文件Ruff通过；修改过的旧文件仍有HEAD已存在的Ruff发现，不宣称全库lint已通过。提交/托管CI/安装/Green程序更新及回滚证据将另在唯一执行记录与活动指针回读，不以本地PASS代替。
 
-## 本轮交付读回
+## 前一 b2 检查点交付读回（历史）
 
 本地功能提交 `d4f72bf193b0b653bfc167a21818ae93af4afa5f` 已形成；正常push被当前自动审批拒绝（需要审批但AskForApproval=Never），未绕过。远端分支仍41e1848d…，本轮CI/安装/Green未执行；旧CI成功不用于新提交。Green Host仍da8dc768…。详细过程及后继路径只记唯一执行记录。
 
