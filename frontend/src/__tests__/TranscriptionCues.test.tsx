@@ -3,7 +3,7 @@ import { render,screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TranscriptionCues,transcriptionProof,utf8Sha256 } from "../components/TranscriptionCues";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
-const proof={sourceId:"s",revision:"a".repeat(64),jobId:"successful-job",attempt:2,resultSha256:"b".repeat(64),durationMs:2000,cues:[{start_ms:100,end_ms:1000,text:"数值37"}]};
+const proof={sourceId:"s",revision:"a".repeat(64),jobId:"successful-job",attempt:2,resultSha256:"b".repeat(64),durationMs:2000,cueToleranceMs:0,cues:[{start_ms:100,end_ms:1000,text:"数值37"}]};
 async function anchor(status:string) {return {anchor_id:"a",source_id:"s",source_revision:proof.revision,location_status:status,position:JSON.stringify({type:"time",job_id:proof.jobId,attempt:proof.attempt,cue_index:0,start_ms:100,end_ms:1000,result_sha256:proof.resultSha256,checksum:await utf8Sha256("数值37")})};}
 describe("receipt-bound transcription cues",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
@@ -26,6 +26,20 @@ describe("receipt-bound transcription cues",()=>{
   for(const changed of [{kind:"media"},{job_id:"other"},{input_ref:"other"},{attempt:3},{state:"failed"}])await expect(transcriptionProof("s",proof.revision,proof.jobId,state,output,{...sourceJob,...changed})).rejects.toThrow();
   const invalid=JSON.stringify({params:{worker_output:{duration_ms:2000,cues:[{start_ms:0,end_ms:2001,text:"bad"}]}}});
   await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{content:invalid,metadata:{kind:"loss_report",sha256:await utf8Sha256(invalid),byte_length:invalid.length}},sourceJob)).rejects.toThrow();
+ });
+
+ it("accepts only the engine-declared speech pad and marks the cue that uses it",async()=>{
+  const declared=JSON.stringify({params:{worker_output:{duration_ms:4500,cues:[{start_ms:0,end_ms:4640,text:"Learning evidence anchor."}],loss_receipt:{params:{cue_duration_tolerance_ms:400}}}}});
+  const output={content:declared,metadata:{kind:"loss_report",sha256:await utf8Sha256(declared),byte_length:new TextEncoder().encode(declared).length}};
+  const state={job_id:proof.jobId,input_ref:"s",attempt:2,state:"succeeded"};
+  const accepted=await transcriptionProof("s",proof.revision,proof.jobId,state,output,{...state,kind:"transcribe"});
+  expect(accepted.cueToleranceMs).toBe(400);
+  render(<TranscriptionCues proof={accepted}/>);
+  expect(screen.getByText(/超出容器 0.140 秒/)).toBeInTheDocument();
+  const beyond=JSON.stringify({params:{worker_output:{duration_ms:4500,cues:[{start_ms:0,end_ms:4901,text:"too far"}],loss_receipt:{params:{cue_duration_tolerance_ms:400}}}}});
+  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{content:beyond,metadata:{kind:"loss_report",sha256:await utf8Sha256(beyond),byte_length:beyond.length}},{...state,kind:"transcribe"})).rejects.toThrow();
+  const undeclared=JSON.stringify({params:{worker_output:{duration_ms:4500,cues:[{start_ms:0,end_ms:4640,text:"no declaration"}]}}});
+  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{content:undeclared,metadata:{kind:"loss_report",sha256:await utf8Sha256(undeclared),byte_length:undeclared.length}},{...state,kind:"transcribe"})).rejects.toThrow();
  });
  it("preserves all-unlocated audio without a video title or anchor",()=>{
   render(<TranscriptionCues proof={{...proof,cues:[],pipeline:{alignment_status:"partial",raw_cues:[{start_ms:87290,end_ms:88290,text:"original tail"}],alignment_issues:[{index:0,start_ms:87290,end_ms:88290,location_status:"unlocated"}]}}}/>);
