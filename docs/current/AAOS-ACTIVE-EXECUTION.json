@@ -2531,16 +2531,16 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "LOCAL_B12_INSTALLED_CONFLICT_FULL_MEMBERS_PASS_DELIVERY_TOOL_REJECTED",
-      "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-b12-安装版双文档恢复与完整成员核验",
+      "state": "BRANCH_PUBLISHED_CI_PENDING_GREEN_NOT_UPDATED",
+      "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-正常上传通道恢复并推送",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
       "build_receipt": ".project-local/runs/be268a2d33/1bd13afdbcc2/artifacts/frontend-build.json",
       "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
       "host_sha256": "5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123",
-      "whole_scope": "PARTIAL; local b12 UI/actual-model engineering journey/local NSIS lifecycle/installed conflict/full installed hashes/reinstalled business Core PASS; hosted CI/Green NOT_EXECUTED; Owner quality deferred",
+      "whole_scope": "PARTIAL; local b12 UI/actual-model engineering journey/local NSIS lifecycle/installed conflict/full installed hashes/reinstalled business Core PASS; branch published, hosted CI pending, Green NOT_EXECUTED; Owner quality deferred",
       "monitor": "PAUSED_UNCHANGED",
       "local_product_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
-      "delivery": "Normal push rejected before process start: approval required by policy, AskForApproval Never; no alternate upload channel; remote branch remains 41e1848d",
+      "delivery": "Normal approved Git SSH push succeeded; public source/checkpoint b5e3d6386ab7f6912106fac0a5ae788ed6e0947f published to trae/20261024 and PR203 head readback matched; current hosted CI pending, Green unchanged. Prior policy rejection remains historical.",
       "preview_launcher": ".project-local/AAOS-UI-Preview-20261026.cmd",
       "build_source_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
       "core_sha256": "c44e9bbf04688c85cf64f2fa89ab5bfa55f1e58727c03b11881fd60ce2b77369",
@@ -2567,7 +2567,18 @@
         "observed_per_phase": 19746
       },
       "installed_owned_workspace_retention": "PASS_EXACT_BYTES_AFTER_UPGRADE_UNINSTALL_REINSTALL",
-      "installed_sandbox_cleanup": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/sandbox-cleanup.json"
+      "installed_sandbox_cleanup": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/sandbox-cleanup.json",
+      "published_source_checkpoint_commit": "b5e3d6386ab7f6912106fac0a5ae788ed6e0947f",
+      "publication_readback": {
+        "observed_at": "2026-10-25T23:58:26Z",
+        "branch": "trae/20261024",
+        "pr": 203,
+        "head_sha": "b5e3d6386ab7f6912106fac0a5ae788ed6e0947f",
+        "initial_ci_run": 40247028446,
+        "ci_status_at_readback": "IN_PROGRESS_NOT_PASSED",
+        "transport": "EXISTING_SSH_NORMAL_APPROVED_CHANNEL",
+        "uncommitted_files_uploaded": false
+      }
     }
   }
 }

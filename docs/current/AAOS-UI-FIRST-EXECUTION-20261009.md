@@ -2040,3 +2040,9 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - b1环境变量删除后仍为空串、b2切换文档过早读旧编辑器、b3回读助手不认识合法Windows长路径，原FAIL和全部清理回执原样保留。b2后正式探针改为同一可见reader目标标题与严格全文连续两次稳定采样，首/末样本均留且不trim，58项测试通过；未发现跨文档持久化缺陷证据。ignored guest助手复制并逐hash核725个stdlib工具文件供卸载后inventory，产品核验/Core仍用真实安装路径；b3后只兼容精确`\\?\C:\`前缀，22项定向测试通过，业务断言不放松。
 - 7个公开测试文件快照来自 `8cc31e4916bc2e0e1f8303f93399cdc4cbde9bd8`，guest内小Git提交为synthetic工具身份，不能冒充产品源码；native `compiled_source_binding=UNVERIFIED`原样保留，父验证以同一冻结安装器/Host/Core/manifest与b12既有构建绑定。本地NSIS仍为zlib overlay，不替代托管CI制品，旧正式验证器及其NOT_EXECUTED字段未回写。本次模型调用0，未重跑分组模型/格式全套，也未声称Owner/答案质量验收。
 - 只读远端分支仍41e1848dca00f724db437c649c6445532221705a、main仍8d367bac4a85bebfbb523503678ade0838faa73e，PR203 OPEN。正常push的既有自动审批拒绝仍是外部交付阻塞：`approval required by policy, but AskForApproval is set to Never`；未重复拒绝动作或换通道绕过。本轮托管CI/制品、合并与指定Green更新未执行，总体PARTIAL，人工审美/质量审核延期不阻塞本地产品。后继仅在正常执行通道允许后核refs、推送、精确CI制品、安装与保全回滚资格交付；不重复请求Owner已给出的授权。
+
+### 2026-10-26 正常上传通道恢复并推送
+
+- Owner明确“上传吧，改了”，当前审批通道已变更为受管审批。先核本地b5e3d638和原有dirty；沙盒内SSH读取失败后，正常approved Git SSH读取远端与push均通过，无鉴权/端点/全局配置修改，无绕过拒绝。
+- 公开源码/检查点 `b5e3d6386ab7f6912106fac0a5ae788ed6e0947f` 已正常推送到 `trae/20261024`；Git push报告41e1848d→b5e3d638，GitHub CLI回读PR203 OPEN且head精确相等。未提交的原有六项dirty/untracked保持原位，私有runtime/数据库/证据未上传。
+- 2026-10-26 07:58（Asia/Shanghai）读取初始CI run40247028446：gateplan SUCCESS、lint IN_PROGRESS，不作当前完整CI通过声明。后继交接状态文档推送会形成新head，须按该实际head读取检查与制品；同候选本地资格不变。本次只上传，未合并、发布或更新Green。此前上传拒绝为历史，当前剩余为精确CI/制品及其后的合格交付，整体仍PARTIAL。
