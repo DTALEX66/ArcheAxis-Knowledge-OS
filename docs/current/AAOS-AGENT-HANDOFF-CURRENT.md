@@ -2,9 +2,9 @@
 
 ## 2026-10-26 后继入口
 
-本地最新产品候选为b12，构建提交 `1d76f9f890485324b329b087973ce7897dc7711d`／Host `5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123`，后继probe-only提交 `8eafda185cfaf8550ab4d41c5204948e06f7f4e8`；文档检查点不冒充产品构建点。前端2199、22原生页＋8个1920CSS页、真实分组human/AI工程流程与fresh Sandbox本地安装生命周期通过；installed conflict/全安装成员hash、托管CI和Green仍分别未执行，总体PARTIAL。旧b10安装与b2格式证据保留来源，不拼成最新整组复跑。
+本地最新产品候选为b12，构建提交 `1d76f9f890485324b329b087973ce7897dc7711d`／Host `5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123`，后继probe-only提交 `8cc31e4916bc2e0e1f8303f93399cdc4cbde9bd8`；文档检查点不冒充产品构建点。前端2199、22原生页＋8个1920CSS页、真实分组human/AI工程流程与fresh Sandbox本地安装生命周期通过；installed双草稿冲突/重启、四阶段全部19743安装成员hash、升级卸载重装数据保全及重装Core精确回读也通过；托管CI和Green仍未执行，总体PARTIAL。旧b10安装与b2格式证据保留来源，不拼成最新整组复跑。
 
-先读活动指针 `current_execution.latest_ui_product_repair_20261026`、[唯一执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)末段b12检查点和[实现说明最新节](../../workspace/intake/20261026-product-loop-implementation.md)。独立预览 `.project-local/AAOS-UI-Preview-20261026.cmd` 已指向b12并实际打开可见最大化窗口，Green仍旧程序。原生右键功能已实现，物理菜单项逐项点击/Owner审美与答案质量仍未验收；9状态人物为静态，不声明Live2D/口型。
+先读活动指针 `current_execution.latest_ui_product_repair_20261026`、[唯一执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)末段b12安装版检查点和[实现说明最新节](../../workspace/intake/20261026-product-loop-implementation.md)。独立预览 `.project-local/AAOS-UI-Preview-20261026.cmd` 已指向b12并实际打开可见最大化窗口，Green仍旧程序。原生右键功能已实现，物理菜单项逐项点击/Owner审美与答案质量仍未验收；9状态人物为静态，不声明Live2D/口型。
 
 正常push被自动审批拒绝（需要审批但AskForApproval=Never），未换通道绕过，远端仍41e1848d。已有Owner交付授权不重复询问；恢复可审批正常通道后，先核refs/精确CI制品与安装、数据保全及回滚条件，再更新指定Green。不要用旧CI或本地安装PASS替代当前托管交付资格。
 

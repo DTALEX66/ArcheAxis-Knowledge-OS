@@ -2531,13 +2531,13 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "LOCAL_B12_UI_ENGINEERING_INSTALL_PASS_DELIVERY_TOOL_REJECTED",
-      "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-b12-可运行界面恢复入口与安装复验",
+      "state": "LOCAL_B12_INSTALLED_CONFLICT_FULL_MEMBERS_PASS_DELIVERY_TOOL_REJECTED",
+      "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-b12-安装版双文档恢复与完整成员核验",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
       "build_receipt": ".project-local/runs/be268a2d33/1bd13afdbcc2/artifacts/frontend-build.json",
       "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
       "host_sha256": "5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123",
-      "whole_scope": "PARTIAL; local b12 UI/actual-model grouped loop/local installer lifecycle PASS; hosted CI/Green/installed conflict NOT_EXECUTED; Owner quality review deferred",
+      "whole_scope": "PARTIAL; local b12 UI/actual-model engineering journey/local NSIS lifecycle/installed conflict/full installed hashes/reinstalled business Core PASS; hosted CI/Green NOT_EXECUTED; Owner quality deferred",
       "monitor": "PAUSED_UNCHANGED",
       "local_product_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
       "delivery": "Normal push rejected before process start: approval required by policy, AskForApproval Never; no alternate upload channel; remote branch remains 41e1848d",
@@ -2545,14 +2545,29 @@
       "build_source_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
       "core_sha256": "c44e9bbf04688c85cf64f2fa89ab5bfa55f1e58727c03b11881fd60ce2b77369",
       "backend_manifest_sha256": "96eea082df6d7075d6353a256e6257dad5bab55f6f4497d3db1cb2b769780143",
-      "local_probe_commit": "8eafda185cfaf8550ab4d41c5204948e06f7f4e8",
+      "local_probe_commit": "8cc31e4916bc2e0e1f8303f93399cdc4cbde9bd8",
       "native_overview": ".project-local/runs/be268a2d33/native-overview-20261026-final-b12/artifacts/native-overview/receipt.json",
       "grouped_native_loop": ".project-local/runs/be268a2d33/webdriver-a0addf6300ea/tmp/journey/receipt.json",
       "installed_lifecycle": ".project-local/runs/be268a2d33/closure-20261026-installed-lifecycle-b12/output/47da79a1843548faa0f32018ecfb40e8/lifecycle-receipt.json",
       "component_evidence": ".project-local/runs/be268a2d33/closure-b12-component-evidence-rebind-20261026-b2/artifacts/backend-component-evidence-rebind-b12.json",
       "preview_host_sha256": "5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123",
       "preview_launch_receipt": ".project-local/AAOS-UI-Preview-20261026-launch.json",
-      "preview_launch": "VISIBLE_MAXIMIZED_HOST_AND_OWNED_CORE_OBSERVED_RETAINED_FOR_USER"
+      "preview_launch": "VISIBLE_MAXIMIZED_HOST_AND_OWNED_CORE_OBSERVED_RETAINED_FOR_USER",
+      "installed_conflict": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/installed-conflict-journey.json",
+      "installed_qualification": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/guest-result.json",
+      "installed_core_reinstall_readback": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/reinstalled-business-core-readback.json",
+      "installed_manifest_members": {
+        "per_phase": 19743,
+        "phases": [
+          "initial",
+          "post-ui",
+          "upgrade",
+          "reinstall"
+        ],
+        "observed_per_phase": 19746
+      },
+      "installed_owned_workspace_retention": "PASS_EXACT_BYTES_AFTER_UPGRADE_UNINSTALL_REINSTALL",
+      "installed_sandbox_cleanup": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/sandbox-cleanup.json"
     }
   }
 }
