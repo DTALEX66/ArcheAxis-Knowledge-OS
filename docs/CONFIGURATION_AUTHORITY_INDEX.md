@@ -12,7 +12,7 @@
 | Concern | Authority | 说明 |
 |---|---|---|
 | 项目 agent 边界 | `AGENTS.md` | 使命、目录边界、隐私/数据边界、工作规则 |
-| 内容保存、证据用途与 AI 使用原则 | `PROJECT_CONTRACT.yaml` 的 `content_policy`，由 `.project/schemas/project-contract.schema.json` 校验 | canonical 规范：原件识别忠实度与专业事实支持/反证独立，普通保存不以外部来源/证据/云核验/人工复核为前置；权限与结构完整性仍必需。人类可读解释见 `docs/architecture/CURRENT_ARCHITECTURE.md`，实现与验收状态只见现行执行台账，不由规范声明推定。 |
+| 内容保存、来源用途与多源纠错 | `PROJECT_CONTRACT.yaml` 的 `content_policy`，由 `.project/schemas/project-contract.schema.json` 校验 | SUP-029：来源为可回查、可修订的线索，无默认高权威或唯一性；识别忠实度对照原件，事实与疑点通过百科／社区／学术多源检索比较，单源失败不阻断其余来源或普通保存、展示、学习。人类可读解释见 `docs/architecture/CURRENT_ARCHITECTURE.md`；定位见 `docs/truth/PRODUCT_IDENTITY_V2.md`；实际接口与验收只见现行执行台账。配置权威不等于资料事实权威。 |
 | 当前执行与架构决策 | `docs/current/AAOS-ACTIVE-EXECUTION.json`、`PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml` | 指针选择现行任务、范围及唯一进度；SUP-022 正式 Tauri/React、Rust Core 唯一正典写者与隔离 Python workers 沿现行合同继承。旧整包顺序及其状态不作为新队列。 |
 | 人类与AI双侧闭环、原始上下文边界 | [唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md)、[当前决定](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[AI上下文边界](current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md) | 双侧知识及授权连接按现行范围验收；原始跨软件会话外置，合同不等于真实外部连接；AI专项原人类不改边界不冻结后续人类开发。 |
 | 本机共享库、绿色软件与资料根路径 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) | 用户 2026-09-07 指定的五个资源根；每次定位工具/模型/测试资料先查此表，不猜目录；真实资料库与测试库严格分离，不等于修改产品设置 |

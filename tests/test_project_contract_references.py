@@ -79,12 +79,32 @@ def test_content_policy_is_required_and_rejects_save_gates_or_fabricated_verific
     }
     assert policy["ordinary_save"]["missing_external_source_or_evidence"] == "allow"
     assert policy["ordinary_save"]["permissions_structure_integrity"] == "required"
-    assert policy["cloud_verification"]["judgment_basis"] == "original"
+    assert policy["source_role"] == {
+        "purpose": "traceable-and-revisable-clue",
+        "authority": "no-preset-high-authority-or-exclusive-truth",
+    }
+    assert policy["cloud_verification"]["judgment_basis"] == "original-for-recognition-fidelity-only"
     assert policy["cloud_verification"]["empty_search"] == "not-proof-of-falsehood"
     assert policy["cloud_verification"]["online_answers"] == "never-overwrite-original"
+    assert policy["multi_source_comparison"] == {
+        "targets": "facts-and-recognition-doubts",
+        "sources": "encyclopedia-community-academic-independent-origins",
+        "independence": "compare-origins-not-duplicate-counts",
+        "disagreement": "retain-with-source-and-version",
+        "no_result_single_source_rate_limit_timeout": "per-source-status-continue-others",
+        "unavailable": "never-block-local-save-display-or-learning",
+        "originals": "never-auto-overwrite",
+    }
+    assert policy["knowledge_admission"]["final_choice"] == "human-only"
+    assert policy["knowledge_admission"]["factual_verification"] == "independent-of-admission"
+    assert policy["egress"]["local_authorization"] == "never-implies-cloud-authorization"
+    assert policy["egress"]["consent"] == "explicit-purpose-material-destination"
     # Every policy rule is bounded: adding a gate, dropping preservation or
     # inventing a success state cannot silently become an effective contract.
     for group, rules in policy.items():
+        missing = deepcopy(contract)
+        del missing["content_policy"][group]
+        assert not validator.is_valid(missing), group
         fields = rules if isinstance(rules, dict) else {None: rules}
         for field in fields:
             changed = deepcopy(contract)
@@ -93,6 +113,9 @@ def test_content_policy_is_required_and_rejects_save_gates_or_fabricated_verific
             else:
                 changed["content_policy"][group][field] = "require-success-before-save"
             assert not validator.is_valid(changed), (group, field)
+    changed = deepcopy(contract)
+    changed["content_policy"]["cloud_verification"]["judgment_basis"] = "original"
+    assert not validator.is_valid(changed), "original must not become the sole factual authority"
     changed = deepcopy(contract)
     changed["content_policy"]["implementation_status"] = "PASS"
     assert not validator.is_valid(changed)

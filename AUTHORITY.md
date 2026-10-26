@@ -3,6 +3,7 @@
 本文件是仓库的**导航入口**，不是新的真值来源。它只回答"该读哪个文件"，每一项都指向本仓已存在的规范文件。
 旧路径与文件身份按[项目路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)解析，不从文件名或旧状态猜权威。
 用户所称闭环的唯一规范是 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`）；旧阶段对最短闭环的较窄解释按该定义及替代账本解析，实际进度仍由活动指针导航。
+产品定位与来源用途按[2026-10-26 Owner 澄清](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)、[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)及[合同 content_policy](PROJECT_CONTRACT.yaml)解释；替代关系为 `SUP-029`。这里的配置／执行“权威”用于解决软件规则冲突，不赋予资料内容唯一事实权威。来源记录服务回查、识别纠错与多源搜索比对，普通保存和学习沿内容规范正常进行。
 换 Agent／换会话先读[活动指针的 continuation_context](docs/current/AAOS-ACTIVE-EXECUTION.json)，再读[当前对话决定及替代关系](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录。权威、规划、会话来源及外置共用库按该指针导航，先读回登记再核实现场；不从旧摘要或私人记忆猜路径。
 此前两处记录写"根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）"（`docs/history/repository-consolidation-20261019/current/AAOS-UI-COVERAGE-MATRIX-20261001.md`、
 `docs/history/repository-consolidation-20261019/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md`）；这两处是当时的实测，保留不改写；本文件使该引用可解析。

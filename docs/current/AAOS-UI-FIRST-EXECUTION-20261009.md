@@ -2095,3 +2095,9 @@ nseq1-core真实中断仅本run持有的合成Core，恢复弹窗8.013秒出现�
 ngroup1真实本地qwen3.5-4b回答13.85秒及复测11.16秒已执行，质量均unmeasured；导入/阅读/锚点/接纳/学习/练习/复习/恢复通过，distill为EXECUTED_CANDIDATE_NOT_EVALUATED。能力拒绝恢复冷启时退出超时，整体仍PARTIAL，closure下载和本候选18格式UI未执行。只读状态显示drafts为空而一个UNKNOWN pending_jobs保留，UI正在确认退出；原生MessageBox存在与默认否尚待实测。后继退出探针仅允许合成本run同creation PID、精确已知文案/默认否/owner/按钮身份后的显式YES，仍保留总15秒与正常0退出；ngfix2定向79项通过，不将单元结果当新原生PASS。
 
 Owner追加保留最新构建/缓存、清理旧重复产物，并要求任何问题先查成熟开源方案。清理按项目边界逐文件hash替代映射，保留最新candidate/build/cache、唯一历史程序和全部失败证据；当前盘点未删除，不沿用历史清理量。预览入口preu4已改向portable-v2，原入口字节备份，原review工作区保留，未启动程序；Green未改。成熟通用组件优先复用，来源/版本/权限保持现有Core合同，研究不等于已集成，不激活冻结重能力。
+
+#### 2026-10-26 Owner 定位与权威澄清
+
+规范更新单元：产品身份V2.1、README、AGENTS/AUTHORITY导航、PROJECT_CONTRACT.content_policy及其严格schema、架构解释、Owner决定24/SUP-029、索引/活动指针已同步来源回查、多源检索比较与持续纠错。成熟复用研究reuse1和当前公开API实测prn1—3分别保留，均不当作新增集成完成。定向规范验证另列，产品/CI/Green仍沿各自回执。
+
+定向规范cp29为6/6通过、source_consistent=true，普通保存/保全/正式接纳/外发授权/Core写入规则与HEAD逐对象一致。清理ccr1汇总实际删除153831个精确重复文件、10623006822逻辑字节（9.893446 GiB），0删除失败，最新v2共19746成员及保留seals复核通过；17个旧candidate标记SPARSE_NOT_RUNNABLE并保留逐文件恢复映射。cde2实际child0，但并行治理写入使外层INVALIDATED，原回执未替换；ccr1汇总自身源码一致。缓存/数据库/证据/新构建保留，pytest缓存访问拒绝保持原状，56份dist只盘点未删。39d完整CI40343758412的Python/browser/Rust/desktop通过，installer在精确退出文案不匹配失败，整体仍FAIL；不是新定位规范的CI。

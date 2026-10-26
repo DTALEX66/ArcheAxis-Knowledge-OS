@@ -1,12 +1,14 @@
 # 星环知识系统（ArcheAxis Knowledge）
 
-本地优先、原件保全、证据可追溯的人机双向学习与可信知识工作台。
+本地优先、支持多格式资料整理、多源联网检索比对与持续纠错的人机双向知识与学习工作台。
+
+保留原件便于回查识别、转换和整理中的错误；通过百科、社区、论坛及学术等公开来源搜索比较，呈现一致、差异和待核实内容，支持持续修订。来源记录用于回查与纠错，单份原件、网络结果或模型回答均不自动具有唯一事实权威。普通保存、展示和学习不等待联网核验或人工事实审批；实际来源覆盖、限流与失败状态按运行结果说明。定位与规则见[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)、[内容规范](PROJECT_CONTRACT.yaml)和[Owner 最新澄清](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)。
 
 **当前状态：PARTIAL。** Owner 于2026-10-18恢复项目内实施；当前范围读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读[执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)与[会话整合](docs/current/AAOS-SESSION-RECONCILIATION-20261018.md)记录本轮证据和未完成项。测试、构建、CI、安装运行和Owner验收分别判断，当前没有可靠的整体完成率。
 
 正式宿主是 `frontend/`（React/TypeScript/Vite）和 `src-tauri/`（Tauri 2）。Rust Core 是 SQLite/CAS 唯一写者，Python workers 隔离运行。普通文档保存不以模型或云核验为前置；候选知识的人工接受另行执行。详见[合同](PROJECT_CONTRACT.yaml)及[当前架构](docs/architecture/CURRENT_ARCHITECTURE.md)。
 
-六项核心能力对话增量、V01、FT01–04仍按活动指针冻结或暂停；Owner 已要求小栖/ASTRYN直接并入本项目，见[整合决定](workspace/intake/20261018-xiaoqi-in-project.md)。发布、Green替换和真实数据覆盖未授权。
+六项核心能力对话增量、V01、FT01–04仍按活动指针冻结或暂停；Owner 已要求小栖/ASTRYN直接并入本项目，见[整合决定](workspace/intake/20261018-xiaoqi-in-project.md)。发布、Green替换和真实数据覆盖分别按活动指针的现行授权与候选条件执行。
 
 [项目资料与实施收敛](docs/current/AAOS-PROJECT-CLOSURE-20261018.md)汇集历史保全、权威任务包、会话索引、88个跟踪ID及开源吸收/延期/拒绝依据；原始资料与恢复包保全在项目内部忽略区，公开结论与源码单独审查。
 

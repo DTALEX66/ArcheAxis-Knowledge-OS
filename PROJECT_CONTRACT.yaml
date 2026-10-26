@@ -1,7 +1,7 @@
 schema: archeaxis.project-contract/v1
 schema_version: 1
-contract_version: 1.0.0-draft
-effective_at: "2026-10-09T00:00:00Z"
+contract_version: 1.0.1-draft
+effective_at: "2026-10-26T00:00:00Z"
 project: ArcheAxis Knowledge
 stage: aaos-ui-first-2026-10-09
 closed_loop_definition:
@@ -39,9 +39,14 @@ scope:
     - additional nonbaseline formats explicitly deferred under the closed_loop_definition; missing common-format engines remain tracked gaps
 # Normative requirements, not a receipt of implemented or verified behavior.
 content_policy:
+  # SUP-029 / OWNER-MULTISOURCE-CORRECTION-REUSE-20261026:
+  # Originals establish recognition fidelity, not exclusive factual truth.
   evidence_uses:
     recognition_fidelity: original_vs_local_extraction
     professional_support: claim_vs_support_and_counterevidence
+  source_role:
+    purpose: traceable-and-revisable-clue
+    authority: no-preset-high-authority-or-exclusive-truth
   ordinary_save:
     missing_external_source_or_evidence: allow
     missing_cloud_verification: allow
@@ -60,9 +65,17 @@ content_policy:
     source_recognition_search_fact_check: separate
     unconfigured_or_failed: retryable-not-fabricated
     uncertainty_conflicts: retain
-    judgment_basis: original
+    judgment_basis: original-for-recognition-fidelity-only
     empty_search: not-proof-of-falsehood
     online_answers: never-overwrite-original
+  multi_source_comparison:
+    targets: facts-and-recognition-doubts
+    sources: encyclopedia-community-academic-independent-origins
+    independence: compare-origins-not-duplicate-counts
+    disagreement: retain-with-source-and-version
+    no_result_single_source_rate_limit_timeout: per-source-status-continue-others
+    unavailable: never-block-local-save-display-or-learning
+    originals: never-auto-overwrite
   knowledge_admission:
     final_choice: human-only
     source_authority_annotation: independent-of-admission

@@ -1,5 +1,7 @@
 # 文档职责与权威导航
 
+来源用途与产品定位的最新澄清为[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
+
 本页只回答“该读哪个规范源”，不复制进度、运行观察或完成结论。换会话先读[根入口](../AUTHORITY.md)、[执行规则](../AGENTS.md)，再按[活动指针的 continuation_context](current/AAOS-ACTIVE-EXECUTION.json)接续。用户当前明确决定与已登记替代关系优先；历史任务包、交接和回执保留各自适用时点与证据身份。
 
 | 职责 | 规范入口 | 使用边界 |

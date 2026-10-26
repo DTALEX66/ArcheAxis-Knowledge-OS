@@ -10,7 +10,7 @@
 
 This file is the public, sanitized operating configuration for agent work inside
 this repository. It describes how to work on ArcheAxis Knowledge — a local-first,
-evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace —
+bidirectional Human–AI knowledge and learning workspace with multi-source research and continuous correction —
 without exposing credentials, private keys, tokens, machine-specific secrets, or
 personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_INDEX.md`.
 
@@ -18,8 +18,8 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 用户提到“闭环／最短闭环／最快闭环／完整闭环／全链路跑通”时，必须先读唯一规范 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`），再读活动指针与实际进度。不得缩成单文件导入加一次模型回答；全面非企业知识库特色、免费外部检索、本地与云端模型均按该定义验收。该定义是目标，不是已完成声明。
 
-ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
-Learning & Trusted-Knowledge Workspace. Scope and acceptance follow the unique
+ArcheAxis Knowledge is a local-first, bidirectional Human–AI knowledge and learning
+workspace for multi-format content, multi-source comparison and continuous correction. Scope and acceptance follow the unique
 closed-loop definition and the Owner decisions selected by the active pointer.
 The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
 routed by `docs/current/AAOS-ACTIVE-EXECUTION.json`. The inherited AAOS-01 2026-10-04
@@ -34,6 +34,8 @@ Runtime, multi-agent, Marketplace, 3D/VR, enterprise collaboration) are deferred
 long-term capabilities (see `docs/truth/CAPABILITY_ATLAS_V2.yaml`). Product
 identity and naming are locked by `docs/truth/NAMING_CONTRACT_V2.md`
 (ArcheAxis Knowledge / 星环知识系统).
+
+Owner 2026-10-26 的定位和来源用途澄清见当前决定第二十四节及 `SUP-029`，规则单源为 `PROJECT_CONTRACT.yaml.content_policy`：来源用于回查、定位、比较和纠错，不预设高权威或唯一事实源。识别忠实度对照原件，内容主张及疑点优先通过成熟的百科、社区／论坛、学术检索接口进行多源比较，保留分歧并允许修订。普通保存、展示、学习不以联网成功或人工事实审批为前置。先查现有实现和成熟开源方案，优先直接集成或适配通用能力；不得把来源追踪扩成不必要的权威认证框架。软件规则的配置权威、Core唯一写入者与材料外发授权仍按各自合同执行。
 
 Legacy systems (Knowledge-Base, Inspiration-Research, Cognitive-OS, Obsidian)
 exist as compatibility surfaces only; current routing, capability truth and

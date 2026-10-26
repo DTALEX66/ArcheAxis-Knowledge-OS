@@ -170,3 +170,9 @@ Owner更新权限后，公开源码/检查点b5e3d638已通过正常Git SSH上�
 本地功能提交 `d4f72bf193b0b653bfc167a21818ae93af4afa5f` 已形成；正常push被当前自动审批拒绝（需要审批但AskForApproval=Never），未绕过。远端分支仍41e1848d…，本轮CI/安装/Green未执行；旧CI成功不用于新提交。Green Host仍da8dc768…。详细过程及后继路径只记唯一执行记录。
 
 可以通过 `.project-local/AAOS-UI-Preview-20261026.cmd` 打开已验证的本地候选，使用独立工作区与WebView配置；`--check`参数检查通过，未将其算成实际启动验收。最终1920 CSS首页截图 `native-overview-20261026-qualified-b3/artifacts/native-overview/baseline-1920-01.png`，全22页及引导截图同目录。当前可审阅本地实现，不能称现用Green已换新。
+
+## 2026-10-26 Owner 定位与来源用途纠偏
+
+已按Owner明确要求同步产品身份V2.1、README、根AUTHORITY/AGENTS、content_policy及严格schema、架构解释、Owner决定第二十四节、SUP-029与权威索引/活动指针。来源记录用于回查、比较和纠错，无预设高权威或唯一事实真值；识别对照原件，事实与疑点联查独立公开来源，保留分歧与修订。普通保存、展示、学习不新增联网/人工事实审批前置。通用能力先查已有成果与成熟开源/官方接口，优先集成。规范更新不等于接口实现、CI或安装资格；软件规则权威和Core写入一致性单独保持。
+
+cp29规范验证6/6通过。ccr1清理汇总实际153831文件/10623006822逻辑字节，最新19746成员及保留seals复核通过，数据库、缓存和证据保留；完整限定与cde2外层INVALIDATED记录见唯一执行记录，历史清理量未合并计数。

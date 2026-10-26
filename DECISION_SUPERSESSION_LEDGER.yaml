@@ -1,6 +1,6 @@
 schema: archeaxis.decision-supersession-ledger/v1
 schema_version: 1
-effective_at: "2026-09-04T00:00:00Z"
+effective_at: "2026-10-26T00:00:00Z"
 rules:
   - later rows do not silently erase earlier evidence
   - a superseding row must name the old claim and the replacement
@@ -163,3 +163,9 @@ decisions:
     old_claim: 'The AI context task forbids all subsequent human-side development, or human-side resumption drops the AI knowledge-use and correction loop'
     replacement: 'Owner confirms a finite human and AI dual closed loop with permissioned shared knowledge/evidence. Human ingestion, recognition, comparison, knowledge and learning/recovery continue; AI candidate governance, authorized knowledge use, correction/retest/revision and recovery also require actual qualification. Preserve original raw cross-project context ownership in EXTERNAL_CONTEXT_PROVIDER; keep one Rust writer and existing CL/J task identities, future-expansion deferral and paused monitoring.'
     reason: 'Owner explicitly corrected the handoff on 2026-10-23: human side is not frozen, continue the closed loop; then clarified that the loop must also include the AI side. See section twenty-two of docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md. Historical AI-only tests and protected-source evidence remain unchanged; this handoff turn performs documentation only, not deployment, model calls or automatic publication.'
+  - id: SUP-029
+    status: effective
+    supersedes: 'Interpretations that a source or original has presumed high authority or exclusive factual truth, that provenance requires a general authority-certification framework, or that one public-search failure blocks ordinary knowledge use'
+    old_claim: 'Original material is the mandatory factual judgment basis; source evidence must be uniquely authoritative before content may be saved, shown, learned from or compared'
+    replacement: 'Sources are traceable and revisable clues for identifying extraction errors and comparing content. Compare recognition fidelity with original input; compare factual claims and doubts across independent encyclopedia, community/forum and research sources through existing mature APIs/adapters. Preserve disagreement and revisions. A source timeout, rate limit or empty result is per-source status; keep other available retrieval and ordinary local save/display/learning usable. Prefer researched mature integrations over duplicate generic frameworks. PROJECT_CONTRACT.yaml content_policy is the normative rule; software configuration authority and the single Rust writer do not establish factual authority.'
+    reason: 'Owner 2026-10-26 explicitly clarified the purpose of source evidence and requested updates to positioning, description and authority, while requiring mature open-source integration first. See section twenty-four of docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md. Existing material-egress/credential/data boundaries, user knowledge-admission choice, finite scope and frozen capabilities remain; no integration or product qualification is inferred from this rule update.'
