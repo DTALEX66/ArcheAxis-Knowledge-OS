@@ -1,5 +1,6 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
@@ -122,6 +123,9 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   }
   const documentLease=useDocumentWriteLease(b.base?.document_id);
   const dirtyOwner=useDraftOwner("research");
+  useDraftRecoverySource(dirtyOwner, "研究草稿", () => [...new Set(buffers.current.values())].filter(value => value.dirty || value.attempt).map(value => ({
+    label: `研究 · ${value.title}`, text: JSON.stringify({ title: value.title, editor_json: encode(value), ...(value.attempt ? { pending_save: value.attempt.editor } : {}) }, null, 2),
+  })));
   function publish() { if (!mounted.current) return; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:[...buffers.current.values()].some(v=>v.dirty||!!v.attempt)||saving.current||pending.current}})); redraw(n=>n+1); }
   function note(text:string, failed=false) { if(mounted.current){messageRevision.current++;setMessage(text);setError(failed);} }
   useEffect(()=>{ mounted.current=true;void list(false);return()=>{mounted.current=false;epoch.current++;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}}));};},[]);

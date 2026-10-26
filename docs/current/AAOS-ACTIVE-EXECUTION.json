@@ -2531,13 +2531,13 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "PUBLISHED_AF1_CI_FAILED_DOT_FIXES_IN_PROGRESS_GREEN_NOT_UPDATED",
+      "state": "PUBLISHED_E8_CI_FAILED_FOLLOWUP_FIXES_IN_PROGRESS_GREEN_NOT_UPDATED",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-正常上传通道恢复并推送",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
       "build_receipt": ".project-local/runs/be268a2d33/1bd13afdbcc2/artifacts/frontend-build.json",
       "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
       "host_sha256": "5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123",
-      "whole_scope": "PARTIAL; b12 historical qualification preserved; af1 exact-SHA CI failed SVG newline lint. New P1/P2 fixes and native draft-close repair require frozen-source full checks, new build/runtime and hosted CI; Green unchanged.",
+      "whole_scope": "PARTIAL; e8 published with exact-source frontend2237/Rust1066/Host147 checks, Python full6125 passed26 failed36 skipped19 errors, hosted CI failed UI-host generated digest drift. Follow-up projection/fixture/PATH and recovery-unmount draft fixes require new qualification; b12 remains historical, Green unchanged.",
       "monitor": "PAUSED_UNCHANGED",
       "local_product_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
       "delivery": "Normal approved Git SSH push succeeded; public source/checkpoint b5e3d6386ab7f6912106fac0a5ae788ed6e0947f published to trae/20261024 and PR203 head readback matched; current hosted CI pending, Green unchanged. Prior policy rejection remains historical.",
@@ -2581,11 +2581,15 @@
       },
       "audit_followup_20261026": {
         "baseline_commit": "af1ac68b79f718e573684e2d51465c90a093f5e5",
+        "latest_published_source_commit": "e8fb73c9adb7fa2839ae39ab43cf54bf076273df",
+        "latest_ci_run": 40319440348,
+        "latest_ci_conclusion": "FAILURE_UI_HOST_GENERATED_DIGEST_DRIFT",
+        "latest_full_python_receipt": ".project-local/runs/be268a2d33/dpy1/artifacts/execution.json",
         "ci_run": 40247196565,
         "ci_conclusion": "FAILURE",
         "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-af1-dot审计与stitch协同复审",
         "design_review": "workspace/intake/20261026-stitch-ui-audit.md",
-        "state": "FIXES_IN_PROGRESS_NEW_QUALIFICATION_PENDING",
+        "state": "E8_PUBLISHED_CI_FAILED_FOLLOWUP_FIXES_NEW_QUALIFICATION_PENDING",
         "original_results_preserved": true,
         "green_update": "NOT_EXECUTED"
       }

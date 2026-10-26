@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
@@ -48,6 +49,10 @@ export function CanonicalRelationSpace({ onOpenReference, onOpenDocument, render
   const b = buffers.current.get(active.current)!, formDirty = !!(targetId || relationLabel || block || sha) || collectionPending;
   const documentLease=useDocumentWriteLease(b.base?.document_id);
   const dirtyOwner=useDraftOwner("relations");
+  useDraftRecoverySource(dirtyOwner, "关系草稿", () => [
+    ...[...new Set(buffers.current.values())].filter(value => value.dirty || value.attempt).map(value => ({ label: `关系 · ${value.base?.title ?? "未命名草稿"}`, text: JSON.stringify({ editor_json: editor(value), ...(value.attempt ? { pending_save: value.attempt.editor } : {}) }, null, 2) })),
+    ...(formDirty ? [{ label: "未提交关系输入", text: JSON.stringify({ kind, relationLabel, targetKind, targetId, targetVersion, block, sha }, null, 2) }] : []),
+  ]);
   const pendingInput = useRef(false); pendingInput.current = formDirty;
   function note(m: string, error = false) { if (mounted.current) { setMessage(m); setFailed(error); } }
   function publish() { if (!mounted.current) return; const dirty=[...buffers.current.values()].some(x => x.dirty || x.attempt) || locked.current || formDirty;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty} })); redraw(x => x + 1); }

@@ -1,5 +1,6 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
@@ -60,6 +61,8 @@ type TeachingProps={initialItemKey?:string;pageId?:string;onOpenPage?:(id:string
 /** A form belongs to one page/object and one acknowledged workspace epoch. */
 export function CanonicalTeachingSpace(props:TeachingProps) {
   const working=useOptionalCoreWorkingState();
+  const recoveryOwner=useDraftOwner("retained-teaching");
+  useDraftRecoverySource(recoveryOwner, "保留的教学草稿", () => Object.entries(working?.state.teaching_drafts ?? {}).filter(([, value]) => value.pending_record || value.preparation_attempt || ((value.form.content || value.form.purpose) && JSON.stringify({purpose:value.form.purpose,content:value.form.content}) !== value.saved_preparation)).map(([key, value]) => ({ label: `教学 · ${key}`, text: JSON.stringify(value, null, 2) })));
   if(working&&(!working.server||working.server.recovery_requires_confirmation||working.status==="blocked"))return <section aria-label="教学草稿保全"><p role="status">{working.error??"请先检查并恢复待处理草稿；已保留的正文不会自动提交。"}</p>{Object.entries(working.state.teaching_drafts??{}).map(([key,draft])=><label key={key}>保留的教学正文 {key}<textarea readOnly value={draft.form.content}/></label>)}</section>;
   return <TeachingEditor key={working?`${working.server!.workspace_id}:${working.server!.restore_epoch}:${props.pageId??"08"}:${props.initialItemKey??""}`:undefined} {...props}/>;
 }
@@ -94,6 +97,7 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   const preparationAttempt=useRef<PreparationAttempt|null>(retained?.preparation_attempt??null);
   const journalBaseline=useRef<string|null>(null);
   function teachingSnapshot():TeachingDraft {return {page_id:pageId as TeachingDraft["page_id"],context_item_key:initialItemKey??null,form:structuredClone(draft),knowledge_id:knowledge?.knowledge_id??null,course_id:courseId,item_key:itemKey,assessment_id:assessmentId,parent:parent?structuredClone(parent):null,preparation:preparation?{...preparation}:null,saved_preparation:savedPreparation,pending_record:createAttempt.current?structuredClone(createAttempt.current):null,...(preparationAttempt.current?{preparation_attempt:structuredClone(preparationAttempt.current)}:{})};}
+  useDraftRecoverySource(dirtyOwner, "教学当前原稿", () => (((draft.purpose || draft.content) && JSON.stringify({purpose:draft.purpose,content:draft.content}) !== savedPreparation) || createAttempt.current || preparationAttempt.current || withdrawReason || withdrawalAttempt.current) ? [{ label: `教学当前输入 · ${pageId}`, text: JSON.stringify({ draft: teachingSnapshot(), ...(withdrawReason || withdrawalAttempt.current ? { withdrawal_reason: withdrawReason, pending_withdrawal: withdrawalAttempt.current } : {}) }, null, 2) }] : []);
   useEffect(()=>{
     if(!working||pageId==="16")return;
     const entry=teachingSnapshot(),json=JSON.stringify(entry);

@@ -5,6 +5,7 @@ import {ConversationPanel} from "../components/ConversationPanel";
 import {DiagnosticCenter, DiagnosticCenterTrigger, RawReceiptButton} from "../components/DiagnosticConsole";
 import {userErrorMessage} from "../presentation/labels";
 import { updateDraftOwners } from "../workspace/draftProtection";
+import { DraftRecoveryScope, useDraftRecoveryRegistry, type RecoveryDraft } from "../workspace/draftRecovery";
 import { installNativeCloseProtection } from "../workspace/nativeCloseProtection";
 import {DocumentSnapshot} from "../components/DocumentSnapshot";
 import type {JSONContent} from "@tiptap/core";
@@ -76,13 +77,20 @@ export function App() {
     window.addEventListener("workspace-invalidated",reset);
     return()=>window.removeEventListener("workspace-invalidated",reset);
   },[]);
-  return <CoreWorkingStateProvider session={session}><CompanionSessionProvider><AppBody /><DiagnosticCenter /></CompanionSessionProvider></CoreWorkingStateProvider>;
+  return <CoreWorkingStateProvider session={session}><DraftRecoveryScope><CompanionSessionProvider><AppBody /><DiagnosticCenter /></CompanionSessionProvider></DraftRecoveryScope></CoreWorkingStateProvider>;
 }
 function AppBody() {
   const working=useCoreWorkingState();
+  const recoverySources = useDraftRecoveryRegistry();
+  const [recoveryDrafts, setRecoveryDrafts] = useState<RecoveryDraft[] | null>(null);
+  const recoveryText = useRef<HTMLTextAreaElement>(null);
   const hydratedSession=useRef<CoreWorkingStateSession|null>(null);
   const adoptingWorkingScene=useRef(false);
   const [workingEntered,setWorkingEntered]=useState(false);
+  // A ready work area owns live editors. A lost Core connection or a fresh
+  // handshake must not unmount those editors and publish their cleanup as saved.
+  const workspaceMounted = useRef(false);
+  useLayoutEffect(() => { if (workingEntered) workspaceMounted.current = true; }, [workingEntered]);
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
@@ -125,6 +133,11 @@ function AppBody() {
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatusDto | null>(
     desktop ? checkingRecoveryStatus() : null,
   );
+  const recoveryOverWorkspace = desktop && !desktopReady && Boolean(recoveryStatus) && workspaceMounted.current;
+  useEffect(() => { if (!recoveryOverWorkspace) setRecoveryDrafts(null); }, [recoveryOverWorkspace]);
+  const recoveryBarrier = useRef(false);
+  recoveryBarrier.current = recoveryOverWorkspace;
+  const contentEntered = !desktop || workingEntered || workspaceMounted.current;
   const operation = useRef({ epoch: 0, mounted: true });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [searchedObject,setSearchedObject]=useState<ObjectReference|null>(null);
@@ -148,7 +161,7 @@ function AppBody() {
   const [workspaceEpoch, setWorkspaceEpoch] = useState(0);
   const referenceVisible = inspectorOpen && !selectedCapabilityId && !learningFocus && !workspaceRestoring;
   const [researchMaterialsHost, setResearchMaterialsHost] = useState<HTMLDivElement | null>(null);
-  const researchReference = uiPageId === "05" && (!desktop || workingEntered);
+  const researchReference = uiPageId === "05" && contentEntered;
   const closeResearchReference = useCallback(() => {
     const ownsFocus = Boolean(document.activeElement?.closest(".stitch-reference-window"));
     setInspectorOpen(false);
@@ -229,6 +242,7 @@ function AppBody() {
       resetRuntimeClient();
       // Every mounted data view and editor belongs to the replaced workspace.
       draftOwners.current.clear(); draftDirty.current = false; setUnsavedDrafts(false);
+      workspaceMounted.current = false; setWorkingEntered(false);
       setWorkspaceEpoch(value => value + 1);
       requestDockNavigation();
       setUiPageId("01"); setActiveSpace("workspace"); setOpenedDocumentId(undefined); setInitialLearningItemKey(undefined);
@@ -241,8 +255,19 @@ function AppBody() {
     };
     // Capture before portal/CommandPalette/window listeners, even in the same
     // dispatch turn before React has applied the restoring state render.
-    const blockInteraction=(event:Event)=>{if(!restoringRef.current)return;event.preventDefault();event.stopImmediatePropagation();};
-    const blockedEvents=["keydown","pointerdown","click","beforeinput","input","submit"];
+    const blockInteraction=(event:Event)=>{
+      if (!restoringRef.current) {
+        if (!recoveryBarrier.current) return;
+        const insideRecovery = event.target instanceof Element && Boolean(event.target.closest(".runtime-recovery-dialog"));
+        // The recovery controls remain live. Global palettes/Inspector shortcuts
+        // cannot escape the modal and activate an unavailable business view.
+        const shortcut = event instanceof KeyboardEvent && (event.ctrlKey || event.metaKey || event.altKey)
+          && ["k", "i"].includes(event.key.toLowerCase());
+        if (insideRecovery && !shortcut) return;
+      }
+      event.preventDefault();event.stopImmediatePropagation();
+    };
+    const blockedEvents=["keydown","pointerdown","click","beforeinput","input","change","submit"];
     for(const name of blockedEvents)window.addEventListener(name,blockInteraction,true);
     window.addEventListener("workspace-restore-start", lock);
     window.addEventListener("workspace-restore-finish", unlock);
@@ -277,7 +302,7 @@ function AppBody() {
   }, []);
 
   const navigate = useCallback((id: SpaceId) => {
-    if (restoringRef.current || composing.current) return false;
+    if (restoringRef.current || recoveryBarrier.current || composing.current) return false;
     if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
     requestDockNavigation();
     setNavigationOpen(false);
@@ -296,7 +321,7 @@ function AppBody() {
 
   const openPage = useCallback((id:string) => {
     const page=findUiPage(id);
-    if (!page || restoringRef.current || composing.current) return false;
+    if (!page || restoringRef.current || recoveryBarrier.current || composing.current) return false;
     if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) {
       requestDockNavigation();
       setNavigationOpen(false);
@@ -319,7 +344,7 @@ function AppBody() {
     return true;
   },[navigate, uiPageId, activeSpace, selectedCapabilityId]);
   const activateDockView = useCallback((target:DockNavigationTarget) => {
-    if(restoringRef.current||composing.current)return false;
+    if(restoringRef.current||recoveryBarrier.current||composing.current)return false;
     const page=findUiPage(target.uiPageId??"");if(!page)return false;
     const capability=target.selectedCapabilityId??null;
     const reader=["02","03","20"].includes(page.id);
@@ -351,7 +376,7 @@ function AppBody() {
     navigationHash.current = hash;
   }, [navigate]);
   const openCapability = useCallback((id: string) => {
-    if(restoringRef.current || composing.current)return false;
+    if(restoringRef.current || recoveryBarrier.current || composing.current)return false;
     const entry = EFFECTIVE_NAVIGATION_ENTRIES.find((item) => item.entry_id === id && item.capability);
     if (!entry?.capability) return false;
     if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
@@ -372,7 +397,7 @@ function AppBody() {
 
   useEffect(() => {
     const onHashChange = () => {
-      if(restoringRef.current || composing.current){window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${navigationHash.current}`);return;}
+      if(restoringRef.current || recoveryBarrier.current || composing.current){window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${navigationHash.current}`);return;}
       const target = resolveNavigationHash(window.location.hash);
       if (!target) return;
       const retainedAiJourney = uiPageId !== undefined && ["13", "14", "22"].includes(uiPageId) &&
@@ -397,7 +422,7 @@ function AppBody() {
   }, [learningFocus, uiPageId, activeSpace, selectedCapabilityId]);
 
   const inspect = useCallback((target: InspectionTarget, options?: { reveal?: boolean }) => {
-    if(restoringRef.current)return;
+    if(restoringRef.current||recoveryBarrier.current)return;
     setInspectionTarget(target);
     // Synchronising the current object never takes the reading area; an explicit
     // inspection reveals the auxiliary window at any size, and an open one keeps updating.
@@ -421,7 +446,7 @@ function AppBody() {
   }, []);
 
   const activateSection = useCallback((section: SpaceSectionDef) => {
-    if(restoringRef.current)return;
+    if(restoringRef.current||recoveryBarrier.current)return;
     if (section.state !== "ready") return;
     if (section.goto) {
       const target = section.goto;
@@ -437,13 +462,13 @@ function AppBody() {
   }, [activeSpace, desktop, focusRegion, navigate]);
 
   const toggleInspector = useCallback(() => {
-    if (restoringRef.current) return;
+    if (restoringRef.current || recoveryBarrier.current) return;
     if (document.activeElement?.closest(".stitch-reference-window")) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
     setInspectorOpen(value => !value);
   }, []);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
-      if (restoringRef.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
+      if (restoringRef.current || recoveryBarrier.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
       if (event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey && event.key.toLowerCase() === "i") {
         event.preventDefault(); toggleInspector();
       }
@@ -453,6 +478,7 @@ function AppBody() {
   }, [commandPaletteOpen, toggleInspector]);
 
   const beginOperation = useCallback(() => {
+    recoveryBarrier.current = workspaceMounted.current;
     liveness.current.generation += 1;
     if (liveness.current.timeout !== null) {
       globalThis.clearTimeout(liveness.current.timeout);
@@ -555,6 +581,7 @@ function AppBody() {
     );
     const claimRecovery = (fallback: RecoveryStatusDto, pending: boolean) => {
       if (!loopIsCurrent()) return null;
+      recoveryBarrier.current = workspaceMounted.current;
       const recoveryEpoch = ++operation.current.epoch;
       const recoveryGeneration = ++liveness.current.generation;
       if (liveness.current.timeout !== null) {
@@ -562,6 +589,7 @@ function AppBody() {
         liveness.current.timeout = null;
       }
       setDesktopReady(false);
+      setNavigationOpen(false); setLaunchpadOpen(false);
       setVerificationPending(pending);
       setRecoveryStatus(fallback);
       return { epoch: recoveryEpoch, generation: recoveryGeneration };
@@ -798,8 +826,7 @@ function AppBody() {
       <button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button disabled={!!(Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length||Object.values(working.server.recovery_candidates?.teaching_drafts??{}).some(draft=>draft.pending_record||draft.preparation_attempt))} onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button>{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length||Object.values(working.server.recovery_candidates?.teaching_drafts??{}).some(draft=>draft.pending_record||draft.preparation_attempt)?<p>有 AI、复习或教学任务结果尚未确认。请先保留恢复内容，再核对任务结果；不能用丢弃草稿代替取消任务。</p>:null}</>:null}
   </section>:null;
 
-  if (!desktopReady && recoveryStatus) {
-    return (
+  const recoveryContent = !desktopReady && recoveryStatus ? (
       <>
       {nativeClosePending ? <p role="status">正在确认退出，页面编辑已暂停；取消退出后可继续。</p> : null}
       {nativeCloseError ? <p role="alert">{nativeCloseError}</p> : null}
@@ -813,10 +840,10 @@ function AppBody() {
         onRestoreBackup={restoreBackup}
         onReloadCurrentCore={reloadCurrentCore}
       />
-      <DiagnosticCenterTrigger />
+      {!workspaceMounted.current ? <DiagnosticCenterTrigger /> : null}
       </>
-    );
-  }
+    ) : null;
+  if (recoveryContent && !workspaceMounted.current) return recoveryContent;
 
   const currentSpaceLabel = SPACES.find((space) => space.id === activeSpace)?.label ?? "";
   const firstReadyRegion = sections.find((section) => section.state === "ready" && section.region)?.region;
@@ -833,6 +860,8 @@ function AppBody() {
   return (
     <MotionConfig reducedMotion="user">
     <StitchResearchOutlet.Provider value={researchReference ? { host: referenceVisible ? researchMaterialsHost : null, onLocate: () => { if (!wideWorkspace) { setInspectorOpen(false); companionFocusRequested.current = false; setCompanionOpen(false); } } } : null}>
+    <div style={{display:"contents"}} data-retained-workspace aria-hidden={recoveryOverWorkspace || undefined}
+      ref={element => { if (element) element.inert = recoveryOverWorkspace; }}>
     <ParticleField/>
     {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} />}
     <ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
@@ -843,6 +872,7 @@ function AppBody() {
         ]}
       >
       <StatusBar
+        key={desktopReady ? "connected-tools" : "unavailable-tools"}
         activeSpace={activeSpace}
         backendState={!desktop
           ? "web"
@@ -852,7 +882,7 @@ function AppBody() {
         onOpenCapability={openCapability}
         selectedCapabilityId={selectedCapabilityId}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
-        onOpenObject={(reference,sha)=>{if(!restoringRef.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
+        onOpenObject={(reference,sha)=>{if(!restoringRef.current&&!recoveryBarrier.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
       />
@@ -870,7 +900,7 @@ function AppBody() {
 
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
           <div className="stitch-page-identity" data-current-page-id={uiPageId ?? ""}><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1></div>
-          {(!desktop||workingEntered)?(desktop?<DockWorkspace activePanelId={activeDockPanelId} navigationRevision={dockNavigationRevision} onActivateView={activateDockView} initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">尚未确认草稿状态；请先重新读取或选择恢复方式。</p>}
+          {contentEntered?(desktop?<DockWorkspace activePanelId={activeDockPanelId} navigationRevision={dockNavigationRevision} onActivateView={activateDockView} initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">尚未确认草稿状态；请先重新读取或选择恢复方式。</p>}
         </main>
       </div>
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
@@ -880,8 +910,17 @@ function AppBody() {
     </div> : null}
     {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} launchpadOpen={launchpadOpen} onLaunchpad={() => setLaunchpadOpen(value => !value)} />}
     {!learningFocus && <StitchLaunchpad open={launchpadOpen} onOpenChange={setLaunchpadOpen} onPage={openPage} onCapability={openCapability}/>}
-    {companionOpen && !learningFocus && (!desktop || workingEntered) ? <StitchCompanionWindow focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; setCompanionOpen(false); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
-    <FirstUseGuide onPage={openPage} enabled={!workspaceRestoring && (!desktop || workingEntered)} autoOpen={uiPageId === "01" && !learningFocus}/>
+    {companionOpen && !learningFocus && contentEntered ? <StitchCompanionWindow focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; setCompanionOpen(false); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
+    <FirstUseGuide onPage={openPage} enabled={!workspaceRestoring && !recoveryOverWorkspace && contentEntered} autoOpen={uiPageId === "01" && !learningFocus}/>
+    </div>
+    {recoveryOverWorkspace ? <AaosDialog open title="本地核心暂不可用" description="打开的页面与未保存文字仍保留。可先查看并手动复制原稿，或重试启动；未保存草稿仍会阻止恢复备份。" onOpenChange={() => {}} contentClassName="runtime-recovery-dialog">
+      <section aria-label="保留未保存原稿">
+        <button type="button" onClick={() => setRecoveryDrafts(recoverySources?.read() ?? [])}>查看已登记编辑区的未保存原稿</button>
+        {recoveryDrafts !== null ? <><p>下方只包含已登记编辑区的原稿，供手动复制；查看和复制不等于保存，不解除草稿保护，也不会自动恢复。请把原稿粘贴到你选择的安全位置。</p>
+          {recoveryDrafts.length ? <><label>未保存原稿（只读）<textarea ref={recoveryText} readOnly rows={12} value={recoveryDrafts.map(draft => `【${draft.label}】\n${draft.text}`).join("\n\n")} /></label><button type="button" onClick={() => { recoveryText.current?.focus(); recoveryText.current?.select(); }}>全选原稿，按 Ctrl+C 复制</button></> : <p role="status">当前没有可读取的未保存内容原稿；不会读取设置或诊断信息。</p>}</> : null}
+      </section>
+      {recoveryContent}
+    </AaosDialog> : null}
     </StitchResearchOutlet.Provider>
     </MotionConfig>
   );

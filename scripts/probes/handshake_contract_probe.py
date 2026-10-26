@@ -15,19 +15,24 @@ commit. Its value is that a manual observation is now repeatable.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+_dev_spec = importlib.util.spec_from_file_location("handshake_probe_dev", REPO / "scripts/runtime/dev.py")
+assert _dev_spec is not None and _dev_spec.loader is not None
+dev = importlib.util.module_from_spec(_dev_spec)
+sys.modules[_dev_spec.name] = dev
+_dev_spec.loader.exec_module(dev)
 HANDSHAKE_PATH = "/api/v1/system/handshake"
 
 # The conditions frontend/src/api/client.ts applies to the handshake.
@@ -69,9 +74,9 @@ def check_handshake(body: object) -> list[str]:
 def run(keep: bool) -> dict:
     # Project-owned development output belongs under the ignored .project-local root, not the
     # system temporary directory, which the project treats as ambiguous ownership.
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    work = Path(tempfile.mkdtemp(prefix="handshake-probe-", dir=str(runs)))
+    artifact = dev.artifact_directory(REPO, "handshake")
+    work = artifact / "workspace"
+    work.mkdir()
     database = work / "archeaxis.sqlite"
     env = dict(os.environ)
     env["PYTHONPATH"] = str(REPO)
@@ -87,6 +92,8 @@ def run(keep: bool) -> dict:
         errors="replace", timeout=600,
     )
     receipt["steps"].append({"step": "migrate", "exit": migration.returncode})
+    (artifact / "migration.stdout.log").write_text(migration.stdout or "", encoding="utf-8")
+    (artifact / "migration.stderr.log").write_text(migration.stderr or "", encoding="utf-8")
     receipt["database_created"] = database.is_file()
     if migration.returncode != 0:
         receipt["ok"] = False
@@ -125,6 +132,7 @@ def run(keep: bool) -> dict:
             output, _ = app.communicate(timeout=20)
         except Exception:
             output = ""
+        (artifact / "application.log").write_text(output or "", encoding="utf-8")
         if not keep:
             shutil.rmtree(work, ignore_errors=True)
 

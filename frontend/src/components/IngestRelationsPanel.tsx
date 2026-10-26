@@ -1,4 +1,6 @@
 import {useEffect,useRef,useState} from "react";
+import {useDraftOwner} from "../workspace/draftProtection";
+import {useDraftRecoverySource} from "../workspace/draftRecovery";
 import {coreCommand} from "../api/core";
 import type {DocumentDto,DocumentSummaryDto,IngestBatchDto,IngestRelationsDto,IngestRelationsApplyInput,RelationProjectionDto} from "../api/generated/core-contract";
 import {freezeRelations,markdownMember,readRelationBatch,selectedFragments,verifyRelationReceipt,type FolderMemberSelection,type RelationAttempt} from "../presentation/ingestRelations";
@@ -14,6 +16,8 @@ export function IngestRelationsPanel({selection,document,documents,dirty,canWrit
  const [attempt,setAttempt]=useState<RelationAttempt|null>(null),[receipt,setReceipt]=useState<IngestRelationsDto|null>(null),[observed,setObserved]=useState<DocumentDto|null>(null),[graph,setGraph]=useState<RelationProjectionDto|null>(null);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState("请读取本批次，再显式选择已保存文档和链接目标。"),[page,setPage]=useState(0);
  const locked=useRef(false),alive=useRef(true),generation=useRef(0);const current=useRef({document,dirty,canWrite});current.current={document,dirty,canWrite};
+ const recoveryOwner=useDraftOwner("ingest-relations-input");
+ useDraftRecoverySource(recoveryOwner,"原件链接未确认输入",()=>attempt||Object.values(choices).some(Boolean)||Object.values(fragmentChoices).some(Boolean)?[{label:"原件链接未确认输入",text:JSON.stringify({selection,choices,fragmentChoices,...(attempt?{pending_request:attempt}:{})},null,2)}]:[]);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;++generation.current;};},[]);
  const key=JSON.stringify(selection);
  useEffect(()=>{++generation.current;setBatch(null);setChoices({});setReceipt(null);setObserved(null);setGraph(null);setPage(0);setTargetDocs({});setFragmentChoices({});},[key]);

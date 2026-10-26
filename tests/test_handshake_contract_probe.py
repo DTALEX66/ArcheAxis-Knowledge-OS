@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -22,11 +23,13 @@ REQUIRED_NON_EMPTY = ("product_name", "backend_version", "source_commit", "runti
 
 @pytest.fixture(scope="module")
 def receipt():
-    paths = dev.layout(REPO, "handshake-test")
-    dev.prepare(paths)
+    # An exclusive, fresh canonical run permits repeated full-suite executions
+    # without deleting or overwriting any previous probe receipt.
+    paths = dev.layout(REPO)
+    env = {**os.environ, **dev.prepare(paths)}
     result = subprocess.run(
         [sys.executable, str(PROBE), "--json-out", str(paths["artifacts"] / "handshake-test-receipt.json")],
-        cwd=str(REPO), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900,
+        cwd=str(REPO), env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900,
     )
     payload = (result.stdout or "").strip()
     start = payload.find("{")
@@ -75,3 +78,11 @@ def test_the_reported_commit_is_a_real_commit_of_this_repository(receipt):
 
 def test_the_probe_did_not_report_a_failure_step(receipt):
     assert "failed_step" not in receipt
+
+
+def test_probe_workspace_has_a_canonical_owned_run(receipt):
+    workspace = Path(receipt["work"])
+    relative = workspace.relative_to(REPO / ".project-local/runs")
+    assert len(relative.parts) == 6
+    assert relative.parts[2:4] == ("artifacts", "handshake")
+    assert relative.parts[-1] == "workspace"

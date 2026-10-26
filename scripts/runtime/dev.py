@@ -151,8 +151,8 @@ GLOBAL_ENV_DENYLIST = frozenset({
 })
 
 # Resources whose consumers look them up by bare name (a worker calling `tesseract`, a shell
-# calling `cargo`), so their declared directory belongs on the child PATH. Prepend only, never
-# replace, and never a directory that is already there.
+# calling `cargo`), so their declared directory belongs first on the child PATH.
+# Promote existing entries too: a stale shim earlier on PATH must not shadow them.
 PATH_LOOKUP_RESOURCES = ("tesseract", "ffmpeg")
 
 
@@ -167,7 +167,7 @@ def external_toolchain(repo_root: Path | None = None, run_tmp: Path | None = Non
     ``AAK-WORKER-003`` even though every tool was installed. Discovery is deliberately
     conditional: with no registered root, or with a path that does not exist, nothing
     is set and CI is unaffected. A variable that is already set always wins, except
-    `PATH`, which is prepended to only when the directory is not already on it.
+    `PATH`, where declared native directories are promoted without duplicate entries.
     """
     root_text = ""
     for name in ("OS_EXTERNAL_CONFIG", "ARCHEAXIS_EXTERNAL_ROOT"):
@@ -233,21 +233,31 @@ def external_toolchain(repo_root: Path | None = None, run_tmp: Path | None = Non
     # The scoop shims on this host are stale - they point at a sibling `toolchains`
     # tree that does not exist, so a shim is present but cannot start its target. The
     # application trees themselves are intact, so expose those instead of the shims.
-    prepend: list[str] = []
+    declared_directories: list[str] = []
     for name in PATH_LOOKUP_RESOURCES:
         located = resolver.declared_location(name, root=root)
         if located:
-            directory = str(Path(located).parent)
-            if directory not in existing_path:
-                prepend.append(directory)
+            declared_directories.append(str(Path(located).parent))
     if rust_location:
         cargo_bin = str(Path(rust_location).parent)
-        if (Path(cargo_bin) / "cargo.exe").is_file() and cargo_bin not in existing_path:
-            prepend.append(cargo_bin)
-    if prepend:
-        discovered["PATH"] = os.pathsep.join(
-            [*prepend, existing_path] if existing_path else prepend
-        )
+        if (Path(cargo_bin) / "cargo.exe").is_file():
+            declared_directories.append(cargo_bin)
+    if declared_directories:
+        def path_key(value: str) -> str:
+            return os.path.normcase(os.path.normpath(value))
+
+        prepend: list[str] = []
+        declared_keys: set[str] = set()
+        for directory in declared_directories:
+            key = path_key(directory)
+            if key not in declared_keys:
+                prepend.append(directory)
+                declared_keys.add(key)
+        tail = [entry for entry in existing_path.split(os.pathsep)
+                if path_key(entry) not in declared_keys] if existing_path else []
+        child_path = os.pathsep.join([*prepend, *tail])
+        if child_path != existing_path:
+            discovered["PATH"] = child_path
 
     # The resource probe sample (a rendered OCR image the engine reads back) belongs to this
     # run, not to the machine temp, so a verification step cannot leave task-scoped residue.

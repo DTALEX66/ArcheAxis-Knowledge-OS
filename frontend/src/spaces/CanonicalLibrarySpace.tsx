@@ -3,6 +3,7 @@ import {ConversationPanel} from "../components/ConversationPanel";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentation/coreWorkingState";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
@@ -122,6 +123,10 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [exportProof, setExportProof] = useState<DocumentExportDto | null>(null);
   const revisionBasis = useRef<RevisionBasisDto | null>(null);
   const dirty = useRef(false);
+  useDraftRecoverySource(dirtyOwner, "文档草稿", () => [
+    ...Object.entries(documentDraftsRef.current).map(([id, value]) => ({ label: `文档 · ${id}`, text: JSON.stringify({ document_id: id, base_version: value.baseVersion, editor_json: value.content }, null, 2) })),
+    ...(noteAttempt.current ? [{ label: "尚未确认的原件笔记", text: JSON.stringify(noteAttempt.current.body, null, 2) }] : []),
+  ]);
   const writeInFlight = useRef(false);
   const [busy, setBusy] = useState(false);
   const editGeneration = useRef(0);

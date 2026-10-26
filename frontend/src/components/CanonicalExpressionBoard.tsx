@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type KeyboardEvent, type PointerEvent } from "react";
 import { EXPRESSION_LIMITS, expressionTextBytes, validExpressionMedia, type ExpressionDocument, type ExpressionMedia, type ExpressionNode } from "../presentation/expression";
+import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import "./expression-board.css";
 
 export interface CanonicalExpressionBoardProps {
@@ -26,6 +28,8 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
   const requestSerial = useRef(0);
   const pendingCallback = useRef(onPendingEditChange); pendingCallback.current = onPendingEditChange;
   const pending = !locked && (Object.keys(geometryDrafts).length > 0 || !!from || !!to || !!label || addingMedia);
+  const recoveryOwner = useDraftOwner("expression-input");
+  useDraftRecoverySource(recoveryOwner, "表达未提交输入", () => pending ? [{ label: `表达未提交输入 · ${documentKey}`, text: JSON.stringify({ geometry: geometryDrafts, connection: { from, to, label } }, null, 2) }] : []);
   useEffect(() => { onPendingEditChange?.(pending); }, [pending, onPendingEditChange]);
   useEffect(() => {
     requestSerial.current++; setGeometryDrafts({}); setFrom(""); setTo(""); setLabel(""); setAddingMedia(false); setError(null); setSelectedId(null); drag.current = null;

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDraftOwner } from '../workspace/draftProtection';
+import { useDraftRecoverySource } from '../workspace/draftRecovery';
 import type { DocumentDto, ObjectReferenceDto } from '../api/generated/core-contract';
 import { coreCommand } from '../api/core';
 import { assertCollectionDto, parseCollection, type Collection, type CollectionProperty, type CollectionRecord, type CollectionView, type CollectionQueryDto, type CollectionRow, type JSONValue, type FormulaDefinition, type BoundedFormula } from '../api/generated/collection-contract';
@@ -54,6 +56,8 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
   const locked = readerMode || readOnly || disabled || (value !== undefined && !collection);
   const objectKey = document?.document_id ?? 'unsaved';
   const [drafts, setDrafts] = useState<Record<string, RawDraft>>({});
+  const recoveryOwner = useDraftOwner('collection-input');
+  useDraftRecoverySource(recoveryOwner, '集合未提交输入', () => !readerMode ? Object.entries(drafts).map(([key, value]) => ({ label: `集合未提交输入 · ${key}`, text: value.raw })) : []);
   const [selected, setSelected] = useState<Record<string, string>>({});
   const viewId = selected[objectKey] ?? collection?.views[0]?.view_id ?? '';
   const [query, setQuery] = useState<CollectionQueryDto | null>(null);

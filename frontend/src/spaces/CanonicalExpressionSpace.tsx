@@ -1,5 +1,6 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentDto, DocumentsListDto, DocumentSummaryDto, DocumentExportDto, SourcesListDto, SourceDto, OriginalDto, SearchDto, KnowledgeDto } from "../api/generated/core-contract";
@@ -100,6 +101,9 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
     const b = buffers.current.get(active.current)!;
     const documentLease=useDocumentWriteLease(b.base?.document_id);
     const dirtyOwner=useDraftOwner("expression");
+    useDraftRecoverySource(dirtyOwner, "表达草稿", () => [...new Set(buffers.current.values())].filter(value => value.dirty || value.attempt).map(value => ({
+        label: `表达 · ${value.base?.title ?? "未命名草稿"}`, text: JSON.stringify({ editor_json: encode(value), ...(value.attempt ? { pending_save: value.attempt.editor } : {}) }, null, 2),
+    })));
     function publish() { const dirty = [...buffers.current.values()].some(x => x.dirty || x.attempt) || lock.current || pendingBoard.current; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty} })); redraw(x => x + 1); }
     const pendingChanged = useCallback((value: boolean) => {
         if (!mounted.current)

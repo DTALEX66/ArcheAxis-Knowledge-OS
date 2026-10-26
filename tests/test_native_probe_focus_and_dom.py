@@ -17,13 +17,14 @@ spec.loader.exec_module(p)
 
 
 class NativeProbeFocusTests(unittest.TestCase):
-    def exercise(self, summary=True, land="03", same=False, alert=False, confirm=False):
+    def exercise(self, summary=True, land="03", same=False, alert=False, confirm=False, current=None):
         state = {
             "focus": "summary" if summary else "body",
             "hash": "#page=03" if same else "#page=01",
+            "page": current or ("03" if same else "01"),
         }
         actions = []
-        markup = '<div class="stitch-workspace-menu"><details open><summary>Menu</summary><button data-page-id="02">Two</button><button data-page-id="03">Three</button></details></div>'
+        markup = '<main aria-label="当前页面" data-current-page-id="CURRENT"></main><nav class="stitch-workspace-menu" aria-label="应用菜单"><div class="stitch-menus"><details open><summary>Menu</summary><button data-page-id="02">Two</button><button data-page-id="03">Three</button></details></div><button aria-label="全部页面，打开产品导航">全部页面</button></nav><nav class="stitch-workspace-dock" aria-label="工作空间快捷导航"><button data-page-id="01">首页</button></nav>'
 
         class AlertError(Exception):
             value = {"error": "unexpected alert open"}
@@ -41,7 +42,7 @@ class NativeProbeFocusTests(unittest.TestCase):
                     )
                     + ").focus();"
                 )
-            return evaluate(prefix + script, markup)
+            return evaluate(prefix + script, markup.replace("CURRENT", state["page"]))
 
         def command(node, op, body):
             actions.append(body["text"])
@@ -51,16 +52,19 @@ class NativeProbeFocusTests(unittest.TestCase):
                 if alert:
                     raise AlertError()
                 state["hash"] = "#page=03"
+                state["page"] = "03"
             else:
                 raise AssertionError("Unexpected navigation input")
 
         def wait(script):
             if script.startswith("return location.hash"):
                 self.assertEqual(state["hash"], "#page=03")
+                self.assertEqual(state["page"], "03")
 
         def accept():
             actions.append("confirm")
             state["hash"] = "#page=03"
+            state["page"] = "03"
 
         ui = p.GroupedUI(js, wait, lambda *args: "element", command, [], accept)
         try:
@@ -86,6 +90,11 @@ class NativeProbeFocusTests(unittest.TestCase):
 
     def test_same_page_does_not_touch_menu(self):
         self.assertEqual(self.exercise(same=True), ([], None))
+
+    def test_hash_alone_cannot_skip_a_different_rendered_page(self):
+        actions, error = self.exercise(same=True, current="01")
+        self.assertIsNone(error)
+        self.assertEqual(actions, ["\ue004" * 2, "\ue007"])
 
     def test_unapproved_alert_propagates_without_retry(self):
         actions, error = self.exercise(alert=True)
