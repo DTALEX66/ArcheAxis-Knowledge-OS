@@ -2531,13 +2531,13 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "PUBLISHED_09D_FULL_CI_FAILED_NATIVE_RECOVERY_FIXES_PENDING_GREEN_NOT_UPDATED",
+      "state": "F650_NATIVE_RECOVERY_PASSED_FULL_CI_FAILED_PROBE_FIXES_FROZEN_GREEN_UNCHANGED",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-正常上传通道恢复并推送",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
       "build_receipt": ".project-local/runs/be268a2d33/1bd13afdbcc2/artifacts/frontend-build.json",
       "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
       "host_sha256": "5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123",
-      "whole_scope": "PARTIAL; 09d frontend2246/Rust1066/Host147 plus explicit ignored Core-exit test, static preflight, native22 render and draft close passed. Real Core-loss found canonical backup-name filtering; summary12px and light-theme logo contrast need follow-up qualification. Full CI40326077298 failed OCR fixture/browser/Host format/installer probe. Green unchanged.",
+      "whole_scope": "PARTIAL; f650 frontend2261, real native Core-loss draft retention/copy/retry/save, menu, close guard and 8 key-page rendering passed. Full CI40337416390 failed stale navigation fixture, animation sampling, installed conflict exit timeout. Actual local-model grouped loop remains PARTIAL at capability-refusal cold restart. New-source build/CI/native confirmation and UI18 pending.",
       "monitor": "PAUSED_UNCHANGED",
       "local_product_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
       "delivery": "Normal approved Git SSH push succeeded; public source/checkpoint b5e3d6386ab7f6912106fac0a5ae788ed6e0947f published to trae/20261024 and PR203 head readback matched; current hosted CI pending, Green unchanged. Prior policy rejection remains historical.",
@@ -2596,7 +2596,19 @@
         "native_draft_close_09d": ".project-local/runs/be268a2d33/ndg4/artifacts/native-draft-guard/receipt.json",
         "native_core_loss_negative_09d": ".project-local/runs/be268a2d33/crun5/artifacts/native-core-loss-drafts/receipt.json"
       },
-      "preview_launch_current": "NO_PREVIEW_RETAINED; isolated09d native checks exited normally"
+      "preview_launch_current": "LATEST_LOCAL_PREVIEW_TARGET_PORTABLE_V2_UPDATED_NOT_LAUNCHED; existing review workspace preserved; Green unchanged",
+      "qualification_f650": {
+        "source_commit": "f650cfe059c33407a2a2c65f8a296bcfd90d2400",
+        "build_receipt": ".project-local/runs/be268a2d33/bf99998fa358/artifacts/frontend-build.json",
+        "ci_run": 40337416390,
+        "ci_conclusion": "FAILURE",
+        "native_sequence": ".project-local/runs/be268a2d33/nseqrun1/artifacts/native-sequence.json",
+        "native_render": ".project-local/runs/be268a2d33/nov4/artifacts/native-overview/receipt.json",
+        "native_close_guard": ".project-local/runs/be268a2d33/ngv2/artifacts/native-draft-guard/receipt.json",
+        "actual_grouped_negative": ".project-local/runs/be268a2d33/webdriver-55dcce644f10/tmp/journey/receipt.json",
+        "cleanup": "OWNER_REQUESTED_INVENTORY_NOT_DELETED",
+        "mature_reuse": "OWNER_REQUIRES_EXISTING_OFFICIAL_OSS_FIRST; RESEARCH_IN_PROGRESS_NOT_INTEGRATED"
+      }
     }
   }
 }

@@ -117,7 +117,7 @@ def test_the_widest_component_is_measured_where_it_is_mounted() -> None:
             return SimpleNamespace(bounding_box=lambda: {"width": width, "height": height})
         return SimpleNamespace(locator=locator,
             get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
-    trigger = 'button[aria-label="打开产品导航"]'
+    trigger = 'button[aria-label="全部页面，打开产品导航"]'
     expected = {
         "application_menu": ".stitch-workspace-menu", "application_dock": ".stitch-workspace-dock",
         "top_navigation": ".stitch-window-toolbar", "status": ".stitch-window-tools", "center": ".app-center",

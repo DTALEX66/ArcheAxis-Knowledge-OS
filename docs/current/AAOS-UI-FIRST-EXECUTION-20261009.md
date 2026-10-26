@@ -2083,3 +2083,15 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - ndg4真实跨页保存及关闭/停放B后A保护保留；WM_CLOSE、exit_application、SC_CLOSE均实际草稿确认默认否，取消后原文/编辑/保护保持，最终同意后正常退出/Core GRACEFUL。crun5受控中断精确owned合成Core，恢复弹窗8.54秒出现，但合法32hex.sqlite被前端旧正则过滤；crdiag1验证真实manifest/327680字节/身份完好。后继两文件修复rbn1 47/47通过；新的原稿全选/beforeunload/重连保存资格尚待。
 - 字体采样仍发现“布局与面板”summary12px，已定位Stitch高特异性caption覆盖并修至少14px。真实五主题browser另暴露固定浅SVG在blueprint-light菜单对比1.016:1，正按现有主题适配；3:1阈值保留。旧probe失败和候选实测负证据均保留，不把“DOM停放”误写成丢稿。
 - 完整CI40326077298绑定09d为FAIL：test3.12为6016通过/1失败/108跳过/424子测试通过，OCR超时fixture与生产解释器解析不一致；oct4修复后19通过并核实际超时/owned回收。desktop-fast在rustfmt阶段失败，main.rs仅格式化后fm5通过。browser/installer首次引导时序与旧品牌/可访问名假设需修；installer cinst1仅时序回归27通过，不是新安装PASS。a0是这些失败的汇总。当前修复待统一新提交、构建与完整门禁；H01历史原字节缺失/目录布局负证据不豁免，Green未更新、无保留运行预览、整体PARTIAL。
+
+#### f650cfe0 原生恢复通过与probe后继
+
+已发布产品源 `f650cfe059c33407a2a2c65f8a296bcfd90d2400`，正式构建回执 `bf99998fa358`；Host `9ec4e4b75d486809ed160728a6eef1c8337d202a591049d458fc0a62a020ab93`，Core `960ab696a9028347b8553024d2e4f2f817aa883b8dcbd2fc3c37f022f191f56f`，runtime清单 `185efb3140999c4e58b197133a1beb82c0ad8e18a189d7b4afe8ce44e2aeada6`。portable-v2共19746成员逐项核验，dpi3真实PE七档图标像素匹配。dfe3前端2261/2261、368套件，dts3类型检查；cfm3实际Core四种Office/PDF共两轮解析、定位与重启回读均通过。
+
+nseq1-core真实中断仅本run持有的合成Core，恢复弹窗8.013秒出现：合法32hex备份可见、A未保存时禁止恢复、原A/B DOM全文保持、原稿只读全选477字符、beforeunload取消、重试新Core后同原A保存并SQLite完整回读全部通过。nseq1-menu两场景真实Windows #32768弹窗、无DOM fallback、退出Host0/Core GRACEFUL通过；不声明物理菜单项点击。nov4八原生重点页及独立1920 CSS页、10步引导、人物280/64/160/280px、五主题实际图形对比均通过；ngv2五项跨页/关闭保护和八组字体采样min14px通过。全部source_consistent且owned进程正常清理。
+
+完整CI `40337416390` 实际FAIL：Python6022通过/1失败/108跳过/424子测试通过，失败为窗口fixture仍期望旧导航名；browser在小栖入场scale.98动画中采位置导致移动量误判。后继cbs1定向23项和cbl2实际两种Motion均严格dx=-10/dy=0通过，不放宽1px阈值。desktop-fast和desktop-build成功；installer首个实际旅程通过，第二个合成冲突恢复旅程在请求退出15秒后未退出，原始日志cidg6保留。
+
+ngroup1真实本地qwen3.5-4b回答13.85秒及复测11.16秒已执行，质量均unmeasured；导入/阅读/锚点/接纳/学习/练习/复习/恢复通过，distill为EXECUTED_CANDIDATE_NOT_EVALUATED。能力拒绝恢复冷启时退出超时，整体仍PARTIAL，closure下载和本候选18格式UI未执行。只读状态显示drafts为空而一个UNKNOWN pending_jobs保留，UI正在确认退出；原生MessageBox存在与默认否尚待实测。后继退出探针仅允许合成本run同creation PID、精确已知文案/默认否/owner/按钮身份后的显式YES，仍保留总15秒与正常0退出；ngfix2定向79项通过，不将单元结果当新原生PASS。
+
+Owner追加保留最新构建/缓存、清理旧重复产物，并要求任何问题先查成熟开源方案。清理按项目边界逐文件hash替代映射，保留最新candidate/build/cache、唯一历史程序和全部失败证据；当前盘点未删除，不沿用历史清理量。预览入口preu4已改向portable-v2，原入口字节备份，原review工作区保留，未启动程序；Green未改。成熟通用组件优先复用，来源/版本/权限保持现有Core合同，研究不等于已集成，不激活冻结重能力。

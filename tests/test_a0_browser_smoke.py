@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 
 def test_simulated_native_journal_is_explicit_and_rejects_stale_or_frozen_writes():
@@ -54,6 +55,46 @@ def _load_smoke_module():
     finally:
         sys.path.remove(str(path.parent))
     return module
+
+
+@pytest.mark.parametrize('step', [10, 5])
+def test_companion_measurement_waits_for_entrance_and_exact_keyboard_target(step):
+    """Delayed rendering passes only for a full 10px move, never a stable wrong step."""
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {'headless': True}
+        if sys.platform == 'win32':
+            executable = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert executable, 'declared project Chromium required; do not install implicitly'
+            options['executable_path'] = executable
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={'width': 800, 'height': 600})
+            page.set_content('''<style>
+              @keyframes enter {from {transform:translateY(6px) scale(.98)} to {transform:none}}
+              #stitch-companion-window {position:fixed;left:200px;top:48px;width:300px;height:200px;
+                animation:enter .18s linear forwards}
+              </style><aside id="stitch-companion-window"><button>移动</button></aside>''')
+            page.evaluate('''step=>document.querySelector('button').addEventListener('keydown', event=>{
+              if(event.key==='ArrowLeft')setTimeout(()=>{
+                const panel=document.querySelector('#stitch-companion-window');
+                panel.style.left=`${panel.offsetLeft-step}px`;
+              },60);
+            })''', step)
+            before = smoke.wait_companion_bounds(page)
+            assert abs(before['x']-200) <= 1 and abs(before['y']-48) <= 1, before
+            page.get_by_role('button', name='移动', exact=True).focus()
+            page.keyboard.press('ArrowLeft')
+            expected = {'x':before['x']-10,'y':before['y']}
+            if step == 5:
+                with pytest.raises(PlaywrightTimeoutError, match='Timeout'):
+                    smoke.wait_companion_bounds(page, expected=expected, timeout=500)
+            else:
+                after = smoke.wait_companion_bounds(page, expected=expected)
+                assert abs(after['x']-expected['x']) <= 1
+                assert abs(after['y']-before['y']) <= 1
+        finally:
+            browser.close()
 
 
 @pytest.mark.parametrize('empty,background,filtered,rejected', [

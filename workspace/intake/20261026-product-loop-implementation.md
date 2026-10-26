@@ -1,5 +1,17 @@
 # 2026-10-26 UI与产品链修复说明
 
+## f650cfe0 原生通过与后继资格（2026-10-26）
+
+已发布产品源 `f650cfe059c33407a2a2c65f8a296bcfd90d2400`，正式构建回执 `bf99998fa358`；Host `9ec4e4b75d486809ed160728a6eef1c8337d202a591049d458fc0a62a020ab93`，Core `960ab696a9028347b8553024d2e4f2f817aa883b8dcbd2fc3c37f022f191f56f`，runtime清单 `185efb3140999c4e58b197133a1beb82c0ad8e18a189d7b4afe8ce44e2aeada6`。portable-v2共19746成员逐项核验，dpi3真实PE七档图标像素匹配。dfe3前端2261/2261、368套件，dts3类型检查；cfm3实际Core四种Office/PDF共两轮解析、定位与重启回读均通过。
+
+nseq1-core真实中断仅本run持有的合成Core，恢复弹窗8.013秒出现：合法32hex备份可见、A未保存时禁止恢复、原A/B DOM全文保持、原稿只读全选477字符、beforeunload取消、重试新Core后同原A保存并SQLite完整回读全部通过。nseq1-menu两场景真实Windows #32768弹窗、无DOM fallback、退出Host0/Core GRACEFUL通过；不声明物理菜单项点击。nov4八原生重点页及独立1920 CSS页、10步引导、人物280/64/160/280px、五主题实际图形对比均通过；ngv2五项跨页/关闭保护和八组字体采样min14px通过。全部source_consistent且owned进程正常清理。
+
+完整CI `40337416390` 实际FAIL：Python6022通过/1失败/108跳过/424子测试通过，失败为窗口fixture仍期望旧导航名；browser在小栖入场scale.98动画中采位置导致移动量误判。后继cbs1定向23项和cbl2实际两种Motion均严格dx=-10/dy=0通过，不放宽1px阈值。desktop-fast和desktop-build成功；installer首个实际旅程通过，第二个合成冲突恢复旅程在请求退出15秒后未退出，原始日志cidg6保留。
+
+ngroup1真实本地qwen3.5-4b回答13.85秒及复测11.16秒已执行，质量均unmeasured；导入/阅读/锚点/接纳/学习/练习/复习/恢复通过，distill为EXECUTED_CANDIDATE_NOT_EVALUATED。能力拒绝恢复冷启时退出超时，整体仍PARTIAL，closure下载和本候选18格式UI未执行。只读状态显示drafts为空而一个UNKNOWN pending_jobs保留，UI正在确认退出；原生MessageBox存在与默认否尚待实测。后继退出探针仅允许合成本run同creation PID、精确已知文案/默认否/owner/按钮身份后的显式YES，仍保留总15秒与正常0退出；ngfix2定向79项通过，不将单元结果当新原生PASS。
+
+Owner追加保留最新构建/缓存、清理旧重复产物，并要求任何问题先查成熟开源方案。清理按项目边界逐文件hash替代映射，保留最新candidate/build/cache、唯一历史程序和全部失败证据；当前盘点未删除，不沿用历史清理量。预览入口preu4已改向portable-v2，原入口字节备份，原review工作区保留，未启动程序；Green未改。成熟通用组件优先复用，来源/版本/权限保持现有Core合同，研究不等于已集成，不激活冻结重能力。
+
 ## 09d5694e新候选与后继发现
 
 24文件修复已提交/推送PR203的 `09d5694e8ad353fe549b8e5062e626ad4f1dd65e`。dfe2完整前端2246/2246、dts2 TypeScript、dq2全部静态预检、dpa2相关Python164、med4真实媒体18、drs2 Rust workspace1066/1066均通过且源码一致。dht4 Host147通过/1默认忽略；该真实Core退出项在dhx1单独实跑1/1通过，不再把默认忽略误作已执行。新Core/Host均正式构建，1919a675aa56收据绑定Host `1b2ac779d17c2a54b09472ef3ef26e6c440cd976887062dee504168d41f75081`、Core `960ab696a9028347b8553024d2e4f2f817aa883b8dcbd2fc3c37f022f191f56f`、runtime清单 `041f602852fb45c8e646c9c54ee87c96eb9c3e1936563c51c5fb4fbae9c3506b`；便携候选19746成员逐项核对通过，dpi2实提取PE七帧与ICO/PNG一致。

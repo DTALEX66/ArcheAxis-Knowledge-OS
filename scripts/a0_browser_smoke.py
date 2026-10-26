@@ -1795,6 +1795,31 @@ def check_stitch_application_menus(page) -> dict[str, object]:
         'escape_restores_focus': True, 'outside_dismiss': True, 'dock_targets': dock_targets}
 
 
+def wait_companion_bounds(page, *, expected=None, timeout=5000) -> dict[str, float]:
+    """Measure after entry transform and React positioning settle, keeping 1px targets.
+
+    Visible/focused does not finish Motion's scale/y entrance. Sampling its transformed
+    rect early confuses the initial scale inset with the keyboard's actual 10px move.
+    """
+    measured = page.wait_for_function("""expected => new Promise(resolve => {
+      let previous=null, stable=0;
+      const sample=()=>{
+        const node=document.querySelector('#stitch-companion-window');
+        if(!node){requestAnimationFrame(sample);return;}
+        const r=node.getBoundingClientRect(), transform=getComputedStyle(node).transform;
+        const rect={x:r.x,y:r.y,width:r.width,height:r.height};
+        const neutral=transform==='none'||new DOMMatrixReadOnly(transform).isIdentity;
+        const target=!expected||(Math.abs(r.x-expected.x)<=1&&Math.abs(r.y-expected.y)<=1);
+        const same=previous&&Object.keys(rect).every(key=>Math.abs(rect[key]-previous[key])<.05);
+        stable=neutral&&target&&same?stable+1:0;
+        previous=rect;
+        if(stable>=2)resolve(rect);else requestAnimationFrame(sample);
+      };
+      sample();
+    })""", arg=expected, timeout=timeout)
+    return measured.json_value()
+
+
 def check_stitch_companion(page) -> dict[str, object]:
     """Automatic visibility must not steal focus; user opening, close and drag remain usable."""
     toggle = page.get_by_role('navigation', name='工作空间快捷导航', exact=True).get_by_role('button', name='小栖', exact=True)
@@ -1810,7 +1835,7 @@ def check_stitch_companion(page) -> dict[str, object]:
     page.wait_for_function("Boolean(document.activeElement?.closest('#stitch-companion-window'))")
     assert panel.locator('[data-companion-slot="sidebar"]').count() == 1
     assert panel.locator('.xiaoqi-avatar').count() == 1, 'existing avatar renderer was replaced'
-    bounds = panel.bounding_box()
+    bounds = wait_companion_bounds(page)
     viewport = page.viewport_size
     assert bounds and viewport and bounds['x'] >= 0 and bounds['y'] >= 0, bounds
     assert bounds['x'] + bounds['width'] <= viewport['width'] + 1, bounds
@@ -1818,7 +1843,7 @@ def check_stitch_companion(page) -> dict[str, object]:
     handle = panel.get_by_role('button', name='小栖 · 陪伴会话，移动小栖窗口', exact=True)
     handle.focus()
     page.keyboard.press('ArrowLeft')
-    moved = panel.bounding_box()
+    moved = wait_companion_bounds(page, expected={'x':max(0,bounds['x']-10),'y':bounds['y']})
     assert moved and abs(moved['x'] - max(0, bounds['x'] - 10)) <= 1, (bounds, moved)
     assert abs(moved['y'] - bounds['y']) <= 1, (bounds, moved)
     # Real pointer capture plus an explicit pointercancel must roll back the entire gesture.

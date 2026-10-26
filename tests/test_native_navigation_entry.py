@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 import re
+from unittest.mock import Mock
 from pathlib import Path
 
 import pytest
@@ -251,3 +252,135 @@ def test_same_commit_binding_still_requires_matching_tree_and_unchanged_full_pat
     env.update(ARCHEAXIS_SOURCE_COMMIT=build['source_commit'], ARCHEAXIS_SOURCE_TREE=build['source_tree'])
     result = harness_helper('qualify_candidate_build')(build, env, host, core, manifest, [])
     assert result['status'] == 'PASS' and result['committed_changed_paths'] == []
+
+
+def native_close_fixture():
+    """SIMULATED Win32 observation; no actual HWND or native acceptance claim."""
+    return {"hwnd": 101, "pid": 12, "created": 77, "class": "#32770", "visible": True,
+        "owner": 100, "main_windows": [100], "title": "确认退出星环知识系统",
+        "text": ["还有未保存的草稿。\n\n选择“是”将放弃未保存的页面内容并退出。\n选择“否”返回并保留全部草稿。", "是(&Y)", "否(&N)"],
+        "default_button_id": 7, "buttons": {
+            str(number): {"hwnd": 200 + number, "pid": 12, "class": "Button", "id": number, "is_child": True}
+            for number in (6, 7)}}
+
+
+def synthetic_close_controller():
+    controller = harness_helper('confirm_synthetic_close')
+    clock = Mock()
+    elapsed = [0.0]
+    clock.monotonic.side_effect = lambda: elapsed[0]
+    clock.sleep.side_effect = lambda seconds: elapsed.__setitem__(0, elapsed[0] + seconds)
+    controller.__globals__.update(time=clock, validate_owned_close_confirmation=harness_helper('validate_owned_close_confirmation'))
+    return controller
+
+
+@pytest.mark.parametrize('change', ['foreign-pid', 'recycled-pid', 'unknown-title', 'unknown-text',
+    'fallback-only', 'default-yes', 'foreign-owner', 'foreign-button', 'wrong-button-id',
+    'not-a-button', 'not-a-child', 'hidden-dialog'])
+def test_synthetic_restart_never_accepts_an_unknown_or_foreign_native_dialog(change):
+    observed = native_close_fixture()
+    if change == 'foreign-pid':
+        observed['pid'] = 13
+    elif change == 'recycled-pid':
+        observed['created'] = 78
+    elif change == 'unknown-title':
+        observed['title'] = 'Unknown application'
+    elif change == 'unknown-text':
+        observed['text'][0] = 'Approve an unrelated operation'
+    elif change == 'fallback-only':
+        observed['text'][0] = '编辑器未响应退出检查，可能存在未保存文字。'
+    elif change == 'default-yes':
+        observed['default_button_id'] = 6
+    elif change == 'foreign-owner':
+        observed['owner'] = 999
+    elif change == 'foreign-button':
+        observed['buttons']['6']['pid'] = 13
+    elif change == 'wrong-button-id':
+        observed['buttons']['6']['id'] = 1
+    elif change == 'not-a-button':
+        observed['buttons']['6']['class'] = 'Static'
+    elif change == 'not-a-child':
+        observed['buttons']['6']['is_child'] = False
+    else:
+        observed['visible'] = False
+    choose, record = Mock(), {}
+    with pytest.raises(AssertionError):
+        synthetic_close_controller()(Mock(pid=12, poll=Mock(return_value=None)),
+            {'pid': 12, 'created': 77}, record, 15, lambda: observed, choose)
+    choose.assert_not_called()
+    assert record['native_confirmation']['posted'] is False
+
+
+@pytest.mark.parametrize('identity', [None, {}, {'pid': 12}, {'pid': 13, 'created': 77}])
+def test_native_confirmation_requires_the_same_owned_launch_before_observation(identity):
+    observe, choose = Mock(), Mock()
+    with pytest.raises(AssertionError):
+        synthetic_close_controller()(Mock(pid=12), identity, {}, 15, observe, choose)
+    observe.assert_not_called()
+    choose.assert_not_called()
+
+
+def test_known_synthetic_draft_prompt_records_raw_default_no_before_one_scoped_yes():
+    observed, record, choose = native_close_fixture(), {}, Mock(return_value=True)
+    remaining = synthetic_close_controller()(Mock(pid=12, poll=Mock(return_value=None)),
+        {'pid': 12, 'created': 77}, record, 15, lambda: observed, choose)
+    choose.assert_called_once_with(observed)
+    assert 0 <= remaining <= 15
+    confirmation = record['native_confirmation']
+    assert confirmation['observation'] == observed and confirmation['observation']['default_button_id'] == 7
+    assert confirmation['chosen_button_id'] == 6 and confirmation['posted'] is True
+    assert confirmation['authorization'] == 'EXPLICIT_SYNTHETIC_JOURNEY_ONLY'
+
+
+def test_normal_synthetic_exit_without_native_prompt_never_posts_a_selection():
+    observe, choose, record = Mock(return_value=None), Mock(), {}
+    remaining = synthetic_close_controller()(Mock(pid=12, poll=Mock(side_effect=[None, 0])),
+        {'pid': 12, 'created': 77}, record, 15, observe, choose)
+    observe.assert_called_once_with()
+    choose.assert_not_called()
+    assert record == {} and 0 < remaining < 15
+
+
+@pytest.mark.parametrize('rows,exit_code,accepted', [
+    ([], 0, True), ([], None, False),
+    ([{'pid': 12, 'created': 78}], 0, False),
+    ([{'pid': 12, 'created': 78}], None, False),
+])
+def test_native_snapshot_exit_race_never_authorizes_a_live_or_recycled_process(rows, exit_code, accepted):
+    observe = harness_helper('observe_owned_close_confirmation')
+    observe.__globals__['native_process_rows'] = lambda: rows
+    owned, host = Mock(), Mock(poll=Mock(return_value=exit_code))
+    if accepted:
+        assert observe(owned, {'pid': 12, 'created': 77}, host) is None
+    else:
+        with pytest.raises(AssertionError):
+            observe(owned, {'pid': 12, 'created': 77}, host)
+    assert owned.mock_calls == []
+
+
+def test_missing_confirmation_uses_up_original_budget_without_automatic_approval():
+    choose = Mock()
+    remaining = synthetic_close_controller()(Mock(pid=12, poll=Mock(return_value=None)),
+        {'pid': 12, 'created': 77}, {}, 15, lambda: None, choose)
+    assert remaining == 0
+    choose.assert_not_called()
+
+
+def test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget():
+    import subprocess
+    exit_owned = harness_helper('request_owned_product_exit')
+    host = Mock(pid=12, poll=Mock(side_effect=[None, 0]), wait=Mock(return_value=0))
+    send, confirm = Mock(return_value={'ok': True, 'value': None}), Mock(return_value=11.5)
+    receipt = {}
+    exit_owned(host, {'pid': 12, 'created': 77}, [{'pid': 12, 'created': 77}], send,
+        receipt, confirm_synthetic=confirm)
+    send.assert_called_once_with()
+    confirm.assert_called_once_with(receipt['requested_product_exits'][0], 15)
+    host.wait.assert_called_once_with(timeout=11.5)
+    assert receipt['host_shutdowns'][0]['exit_code'] == 0
+    host.poll.return_value = None
+    host.poll.side_effect = None
+    host.wait.side_effect = subprocess.TimeoutExpired('owned', 0)
+    with pytest.raises(subprocess.TimeoutExpired):
+        exit_owned(host, {'pid': 12, 'created': 77}, [{'pid': 12, 'created': 77}], send,
+            {}, confirm_synthetic=lambda record, seconds: 0)

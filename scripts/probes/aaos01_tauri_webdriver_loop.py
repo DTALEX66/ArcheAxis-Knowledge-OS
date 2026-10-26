@@ -36,7 +36,134 @@ class WebDriverProtocolError(RuntimeError):
         super().__init__(value)
 
 
-def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt):
+def validate_owned_close_confirmation(identity, observed):
+    """Fail closed before acting on this synthetic journey's native prompt."""
+    assert identity and identity.get("pid") and identity.get("created"), "Owned launch identity missing"
+    assert observed["pid"] == identity["pid"] and observed["created"] == identity["created"], "Native confirmation process identity mismatch"
+    assert observed["class"] == "#32770" and observed["visible"], "Native confirmation window missing"
+    assert observed["owner"] in observed["main_windows"] and observed["owner"], "Native confirmation owner mismatch"
+    assert observed["title"] == "确认退出星环知识系统", "Unknown native confirmation title"
+    expected = "还有未保存的草稿。\n\n选择“是”将放弃未保存的页面内容并退出。\n选择“否”返回并保留全部草稿。"
+    assert expected in [text.replace("\r\n", "\n") for text in observed["text"]], "Unknown native confirmation text"
+    assert observed["default_button_id"] == 7, "Native confirmation must default to NO"
+    for number in (6, 7):
+        button = observed["buttons"][str(number)]
+        assert button["hwnd"] and button["pid"] == identity["pid"], "Native confirmation button ownership mismatch"
+        assert button["class"] == "Button" and button["id"] == number and button["is_child"], "Native confirmation button identity mismatch"
+
+
+def observe_owned_close_confirmation(owned, identity, host):
+    """Read only this launch's Win32 metadata; never inspect foreign dialogs."""
+    from ctypes import wintypes
+
+    rows = [row for row in native_process_rows() if row["pid"] == identity["pid"]]
+    if not rows:
+        # A clean exit can finish between poll() and this metadata snapshot.
+        # Missing metadata permits no window action; only the held Popen's exit
+        # can qualify that case. A still-live or recycled PID remains a failure.
+        assert host.poll() is not None, "Live owned host identity unavailable"
+        return None
+    assert len(rows) == 1 and rows[0]["created"] == identity["created"], "Owned host creation identity changed"
+    user = owned.user
+    user.GetWindow.argtypes = [wintypes.HWND, wintypes.UINT]
+    user.GetWindow.restype = wintypes.HWND
+    user.GetDlgItem.argtypes = [wintypes.HWND, ctypes.c_int]
+    user.GetDlgItem.restype = wintypes.HWND
+    user.GetDlgCtrlID.argtypes = [wintypes.HWND]
+    user.GetDlgCtrlID.restype = ctypes.c_int
+    user.IsChild.argtypes = [wintypes.HWND, wintypes.HWND]
+    user.IsChild.restype = wintypes.BOOL
+    user.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user.GetWindowTextW.restype = ctypes.c_int
+    user.SendMessageTimeoutW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM,
+        wintypes.LPARAM, wintypes.UINT, wintypes.UINT, ctypes.POINTER(ctypes.c_size_t)]
+    user.SendMessageTimeoutW.restype = wintypes.LPARAM
+    windows = owned.list()
+    dialogs = [row for row in windows if row["class"] == "#32770" and row["visible"]]
+    if not dialogs:
+        return None
+    assert len(dialogs) == 1, "Ambiguous owned native confirmation"
+    dialog = dialogs[0]
+    hwnd = dialog["hwnd"]
+    title = ctypes.create_unicode_buffer(512)
+    user.GetWindowTextW(hwnd, title, len(title))
+    pid = wintypes.DWORD()
+    user.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    default = ctypes.c_size_t()
+    assert user.SendMessageTimeoutW(hwnd, 0x0400, 0, 0, 2, 1000, ctypes.byref(default)), "Native default-button query failed"
+    assert default.value >> 16 == 0x534B, "Native default-button identity missing"
+    children = []
+    user.EnumChildWindows.argtypes = [wintypes.HWND, owned.callback, wintypes.LPARAM]
+    user.EnumChildWindows.restype = wintypes.BOOL
+
+    @owned.callback
+    def collect(child, _):
+        text = ctypes.create_unicode_buffer(2048)
+        user.GetWindowTextW(child, text, len(text))
+        if text.value:
+            children.append(text.value)
+        return True
+
+    # Microsoft documents EnumChildWindows' return value as "not used":
+    # https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumchildwindows
+    # The earlier nonzero-return assert was newly introduced by this patch,
+    # not a valid Win32 success contract. Require observed child text instead;
+    # exact prompt/default-NO/child-button/PID/creation checks remain mandatory.
+    user.EnumChildWindows(hwnd, collect, 0)
+    assert children, "Native confirmation children were not observed"
+    buttons = {}
+    for number in (6, 7):
+        button = user.GetDlgItem(hwnd, number)
+        owner = wintypes.DWORD()
+        user.GetWindowThreadProcessId(button, ctypes.byref(owner))
+        name = ctypes.create_unicode_buffer(64)
+        user.GetClassNameW(button, name, len(name))
+        buttons[str(number)] = {"hwnd": int(button or 0), "pid": owner.value,
+            "class": name.value, "id": user.GetDlgCtrlID(button), "is_child": bool(user.IsChild(hwnd, button))}
+    return {"hwnd": hwnd, "pid": pid.value, "created": identity["created"],
+        "class": dialog["class"], "visible": dialog["visible"],
+        "owner": int(user.GetWindow(hwnd, 4) or 0),
+        "main_windows": [row["hwnd"] for row in windows if row["class"] == "Tauri Window"],
+        "title": title.value, "text": children, "default_button_id": default.value & 0xFFFF,
+        "buttons": buttons}
+
+
+def confirm_synthetic_close(host, identity, record, timeout, observe, choose):
+    """One scoped YES only for known synthetic drafts, inside the same 15s budget."""
+    assert identity and identity.get("pid") == host.pid and identity.get("created"), "Owned launch identity missing"
+    deadline = time.monotonic() + timeout
+    while host.poll() is None and time.monotonic() < deadline:
+        observed = observe()
+        if observed is not None:
+            record["native_confirmation"] = {"observation": observed, "chosen_button_id": 6,
+                "authorization": "EXPLICIT_SYNTHETIC_JOURNEY_ONLY", "posted": False}
+            validate_owned_close_confirmation(identity, observed)
+            assert choose(observed), "Owned native YES message failed"
+            record["native_confirmation"].update(posted=True, action="OWNED_BUTTON_BM_CLICK_NOT_PHYSICAL_INPUT")
+            break
+        time.sleep(.05)
+    return max(0, deadline - time.monotonic())
+
+
+def confirm_owned_synthetic_close(host, identity, record, timeout):
+    native = load("synthetic_close_owned_windows", REPO / "scripts/probes/aaos_native_menu_exit.py")
+    owned = native.OwnedWindows(host.pid)
+
+    def observe():
+        return observe_owned_close_confirmation(owned, identity, host)
+
+    def choose(observed):
+        # Recheck HWND/owner/text/default/buttons and PID creation immediately
+        # before the targeted message. A stale or unknown dialog is never accepted.
+        current = observe()
+        validate_owned_close_confirmation(identity, current)
+        assert current == observed, "Native confirmation changed before selection"
+        return bool(owned.user.PostMessageW(current["buttons"]["6"]["hwnd"], 0x00F5, 0, 0))
+
+    return confirm_synthetic_close(host, identity, record, timeout, observe, choose)
+
+
+def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt, *, confirm_synthetic=None):
     """Exit ACK may disappear with WebView; only this owned process's exit 0 qualifies."""
     assert launch_identity and launch_identity["pid"] == host.pid, "Owned launch identity missing"
     assert any(row["pid"] == host.pid and row["created"] == launch_identity["created"]
@@ -63,7 +190,11 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
         else:
             assert isinstance(reply, dict) and reply.get("ok") is True and "value" in reply, reply
             record["ack"] = "CONFIRMED"
-    code = host.wait(timeout=15)
+    timeout = 15
+    if confirm_synthetic is not None:
+        timeout = confirm_synthetic(record, timeout)
+        assert 0 <= timeout <= 15, "Native confirmation exceeded the original exit budget"
+    code = host.wait(timeout=timeout)
     exited = code == 0 and host.poll() == 0
     receipt.setdefault("host_shutdowns", []).append({
         "pid": host.pid, "created": launch_identity["created"], "ack": record["ack"],
@@ -1694,7 +1825,9 @@ def main():
         request_owned_product_exit(owned_host, identity_record, live_rows,
             lambda: request("POST", f"/session/{session}/execute/async", {
                 "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('exit_application').then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
-                "args": []}), receipt)
+                "args": []}), receipt,
+            confirm_synthetic=lambda record, timeout: confirm_owned_synthetic_close(
+                owned_host, identity_record, record, timeout))
         if session:
             # Host has already verifiably exited with code 0.
             with suppress(OSError, RuntimeError):
