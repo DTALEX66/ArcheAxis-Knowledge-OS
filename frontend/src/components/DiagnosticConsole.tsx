@@ -9,13 +9,11 @@ import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCate
 /** Replaces an inline JSON dump: the operator still reaches the untouched payload, the reading surface does not carry it. */
 export function RawReceiptButton({ label, payload, visibleLabel, category = "operation" }: { label: string; payload: unknown; visibleLabel?: string; category?: DiagnosticCategory }) {
   const {suspended}=useDiagnosticState();
-  const text = suspended ? "请先核对工作状态" : visibleLabel ?? "查看诊断详情";
-  // Keep the stable accessible name used by existing pages/tests, but present the
-  // common entries as one user-facing "状态与诊断" action instead of repeating
-  // the engineering wording "查看诊断详情" on every business page.
+  const text = suspended ? "请先核对工作状态" : visibleLabel ?? "状态与诊断";
+  // The visible and accessible names describe the same shared destination.
   const display = suspended ? text : visibleLabel ?? "状态与诊断";
   return (
-    <button type="button" className="raw-receipt" data-diagnostic-label={label} aria-label={`${text}：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":"查看状态与原始回执"} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
+    <button type="button" className="raw-receipt" data-diagnostic-label={label} aria-label={`${text}：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":"查看处理状态与详细记录"} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
         {display}
     </button>
   );
@@ -37,7 +35,7 @@ export function DiagnosticConsole() {
       </header>
       <label>诊断分类<select value={filter} onChange={event => setDiagnosticFilter(event.target.value as DiagnosticCategory | "all")}><option value="all">全部</option>{Object.entries(diagnosticCategories).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
       {entries.length === 0
-        ? <p className="diagnostic-console-empty">暂无原始回执。各页面的“查看诊断详情”会将记录集中到这里；关闭应用后不保留。</p>
+        ? <p className="diagnostic-console-empty">暂无诊断记录。各页面的“状态与诊断”会将记录集中到这里；关闭应用后不保留。</p>
         : visible.length === 0 ? <p>此分类暂无记录。</p>
         : (
           <ul className="diagnostic-console-list">

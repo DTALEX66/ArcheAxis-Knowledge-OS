@@ -20,6 +20,22 @@ beforeEach(()=>{observers.clear();vi.stubGlobal("ResizeObserver",ResizeObserverS
 afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it("uses Chinese preset labels while retaining the protocol key and mounted draft through save",async()=>{
+  counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
+  const identity={workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",recovery_reason:null};
+  const invoke=vi.fn().mockImplementation((_command,{request})=>Promise.resolve({status:200,body:request.operation==="layout_write"?{...identity,device_id:request.payload.body.device_id,revision:1,layout:request.payload.body.layout}:{...identity,revision:0,layout:layoutPresets.reading}}));window.__TAURI__={core:{invoke}};
+  render(<DockWorkspace {...props}/>);await screen.findByRole("tab",{name:"全部能力与未来蓝图"});
+  const draft=screen.getByLabelText("draft-03");fireEvent.change(draft,{target:{value:"preset change retains this draft"}});
+  fireEvent.click(screen.getByText("布局与面板"));const select=screen.getByRole("combobox",{name:"布局预设"});
+  expect([...select.querySelectorAll("option")].map(option=>[option.textContent,option.value])).toEqual([["默认","default"],["阅读","reading"],["研究","research"],["学习","learning"]]);
+  fireEvent.change(select,{target:{value:"research"}});await screen.findByLabelText("draft-05");expect(select).toHaveValue("research");
+  fireEvent.click(screen.getByRole("button",{name:"保存布局"}));
+  await waitFor(()=>expect(invoke.mock.calls.some(call=>call[1].request.operation==="layout_write")).toBe(true));
+  const saved=invoke.mock.calls.find(call=>call[1].request.operation==="layout_write")![1].request.payload.body.layout;
+  // captureLayout already writes v2 (including instance bindings); label changes keep that contract.
+  expect(saved.preset_id).toBe("research");expect(saved.schema_version).toBe(2);expect(saved.dock_tree.kind).toBe("split");
+  expect(screen.getByLabelText("draft-03")).toBe(draft);expect(draft).toHaveValue("preset change retains this draft");
+ });
  it("removes the closed last research tab's portal and reopens its exact retained draft",async()=>{
   const host=document.createElement("div");document.body.append(host);
   const outlet={host,onLocate:vi.fn()};

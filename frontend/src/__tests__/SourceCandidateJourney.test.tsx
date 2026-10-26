@@ -47,7 +47,7 @@ function mockCore(mismatch=false,candidateStatus="CURRENT"){let accepted=false,k
 function expectSourceDiagnostic(region:HTMLElement, expectedId:string){
  expect(region).not.toHaveTextContent(expectedId);
  const diagnostics=renderHook(useDiagnosticState);
- fireEvent.click(within(region).getByRole("button",{name:"查看诊断详情：原件编号与版本详细信息"}));
+ fireEvent.click(within(region).getByRole("button",{name:"状态与诊断：原件编号与版本详细信息"}));
  expect(diagnostics.result.current.entries[0].payload).toEqual({source_id:expectedId,source_revision:hash});
  diagnostics.unmount();
 }

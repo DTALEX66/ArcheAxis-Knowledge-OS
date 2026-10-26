@@ -19,7 +19,7 @@ describe("SIMULATED machine candidate UI with Core bridge fixtures",()=>{
   const entries=renderHook(useDiagnostics);const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
   render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();
   await user.type(screen.getByLabelText("实际问题"),"保留原问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  const detail=await screen.findByRole("button",{name:"查看诊断详情：回答失败脱敏诊断"});
+  const detail=await screen.findByRole("button",{name:"状态与诊断：回答失败脱敏诊断"});
   expect(screen.getByLabelText("实际问题")).toHaveValue("保留原问题");
   expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
   expect(bridge.call.mock.calls.filter(([op])=>op==="machine_answer")).toHaveLength(1);

@@ -6,6 +6,7 @@ import os
 import re
 from unittest.mock import Mock
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -32,7 +33,7 @@ GUIDE = '''<section role="dialog" class="first-use-guide"><h2>首次使用引导
 def shell(content=MENU, *, hidden=False):
     if content == MENU:
         menu, dock = content.split('<nav class="stitch-workspace-dock"', 1)
-        inner = menu + '<section class="console-window"><div class="app-shell" data-stitch-workspace>' + IDENTITY + '</div></section>' + '<nav class="stitch-workspace-dock"' + dock
+        inner = menu + '<section class="console-window"><div class="app-shell" data-stitch-workspace>' + IDENTITY + '<section class="dock-workspace" aria-label="自由布局工作区"></section></div></section>' + '<nav class="stitch-workspace-dock"' + dock
     else:
         inner = '<div class="app-shell" data-stitch-workspace>' + IDENTITY + content + '</div>'
     # Actual App: menu, ConsoleWindow and Dock are siblings; Radix hides their root.
@@ -47,7 +48,7 @@ class ObservedUI:
     def js(self, script):
         return evaluate(script, self.markup)
 
-    def wait(self, script):
+    def wait(self, script, seconds=30):
         assert self.js(script), script
 
     def click_selector(self, selector):
@@ -82,6 +83,108 @@ def test_returning_user_needs_no_guide_action_but_navigation_is_still_required()
     assert ui.clicks == [] and evidence[0]["decision"] == "NOT_PRESENT"
     with pytest.raises(AssertionError):
         probe.prepare_rendered_navigation(ObservedUI(shell('')), [])
+
+
+@pytest.mark.parametrize('between_wait_and_observation', [False, True])
+def test_guide_appearing_after_shell_mount_is_still_paused(between_wait_and_observation):
+    """SIMULATED hydration race; actual observation JS and trusted-action path."""
+    class DelayedGuideUI(ObservedUI):
+        def __init__(self):
+            super().__init__(shell(hidden=not between_wait_and_observation))
+            self.hydrated = False
+            self.pending_samples = 0
+
+        def wait(self, script, seconds=30):
+            if 'const observed=' in script and not self.hydrated:
+                # The first branch is the actual ngroup2 ordering: no guide at
+                # shell mount, then it opens while visible navigation is pending.
+                assert self.js(script) is between_wait_and_observation
+                self.pending_samples += 1
+                self.markup = shell(hidden=True) + GUIDE
+                self.hydrated = True
+            super().wait(script, seconds)
+
+    ui, evidence = DelayedGuideUI(), []
+    probe.prepare_rendered_navigation(ui, evidence)
+    assert ui.pending_samples == 1 and len(ui.clicks) == 1
+    assert evidence[0]['decision'] == 'PAUSED_BY_RENDERED_UI'
+    assert evidence[0]['guide_steps_marked_complete'] is False
+    assert evidence[-1]['mode'] == 'menu' and evidence[-1]['page'] == '01'
+    assert GUIDE not in ui.markup
+
+
+def test_fresh_home_profile_requires_its_actual_guide_even_when_navigation_is_visible():
+    class FreshProfileUI(ObservedUI):
+        def wait(self, script, seconds=30):
+            if 'const observed=' in script and not self.clicks:
+                assert not self.js(script), 'Fresh home must not accept a pre-guide navigation frame'
+                self.markup = shell(hidden=True) + GUIDE
+            super().wait(script, seconds)
+
+    ui, evidence = FreshProfileUI(shell()), []
+    probe.prepare_rendered_navigation(ui, evidence, fresh_profile=True)
+    assert len(ui.clicks) == 1 and evidence[0]['decision'] == 'PAUSED_BY_RENDERED_UI'
+
+
+def test_fresh_nonhome_profile_may_be_ready_without_a_guide():
+    ui, evidence = ObservedUI(shell().replace('data-current-page-id="01"', 'data-current-page-id="03"')), []
+    probe.prepare_rendered_navigation(ui, evidence, fresh_profile=True)
+    assert ui.clicks == [] and evidence[0]['decision'] == 'NOT_PRESENT'
+    assert evidence[-1]['page'] == '03'
+
+
+def test_shell_and_navigation_waits_share_one_thirty_second_deadline(monkeypatch):
+    clock = iter([10.0, 10.5, 11.0, 11.5])
+    monkeypatch.setattr(probe.time, 'monotonic', lambda: next(clock))
+    class BudgetUI(ObservedUI):
+        def __init__(self):
+            super().__init__(shell())
+            self.budgets = []
+        def wait(self, script, seconds=30):
+            self.budgets.append(seconds)
+            super().wait(script, seconds)
+    ui = BudgetUI()
+    probe.prepare_rendered_navigation(ui, [])
+    assert ui.budgets == [29.5, 28.5]
+
+
+@pytest.mark.parametrize('markup', [
+    shell().replace('<section class="dock-workspace" aria-label="自由布局工作区"></section>', ''),
+    shell() + '<section role="dialog"><h2>未知阻挡对话</h2></section>',
+])
+def test_current_navigation_requires_hydrated_business_surface_and_no_blocking_dialog(markup):
+    ui = ObservedUI(markup)
+    with pytest.raises(AssertionError):
+        probe.prepare_rendered_navigation(ui, [])
+    assert ui.clicks == []
+
+
+def test_navigation_is_rechecked_if_guide_opens_after_prior_ready_observation():
+    ui, evidence = ObservedUI(shell()), []
+    probe.prepare_rendered_navigation(ui, evidence)
+    assert evidence[0]['decision'] == 'NOT_PRESENT'
+    ui.markup = shell(hidden=True) + GUIDE
+    def js(script):
+        return '#page=01' if script == 'return location.hash' else ui.js(script)
+    grouped = probe.GroupedUI(js, ui.wait, Mock(), Mock(), evidence)
+    grouped.click_selector = ui.click_selector
+    grouped.page('01')
+    assert len(ui.clicks) == 1 and evidence[-2]['decision'] == 'PAUSED_BY_RENDERED_UI'
+    assert grouped.element.call_count == grouped.command.call_count == 0
+
+
+@pytest.mark.parametrize('guide', [GUIDE + GUIDE, GUIDE.replace('>暂时跳过</button>', '>其他</button>'), GUIDE.replace('>首次使用引导</h2>', '>未知对话</h2>')])
+def test_delayed_unrecognized_guide_is_rejected_without_any_click(guide):
+    class DelayedUnknownGuideUI(ObservedUI):
+        def wait(self, script, seconds=30):
+            if 'const observed=' in script:
+                self.markup = shell(hidden=True) + guide
+            super().wait(script, seconds)
+
+    ui = DelayedUnknownGuideUI(shell(hidden=True))
+    with pytest.raises(AssertionError):
+        probe.prepare_rendered_navigation(ui, [])
+    assert ui.clicks == []
 
 
 @pytest.mark.parametrize('guide', [GUIDE + GUIDE, GUIDE.replace('>暂时跳过</button>', '>其他</button>'), GUIDE.replace('>首次使用引导</h2>', '>未知对话</h2>')])
@@ -131,8 +234,7 @@ def test_guide_deferred_by_restore_confirmation_is_paused_only_after_valid_ack(r
     restore_dialog = '<section role="dialog"><button>保留恢复候选</button></section>'
     ui = ObservedUI('<div class="app-body" aria-busy="false">' + shell() + '</div>' + restore_dialog)
     evidence, events = [], []
-    probe.prepare_rendered_navigation(ui, evidence)
-    assert evidence[0]['decision'] == 'NOT_PRESENT' and ui.clicks == []
+    assert ui.clicks == []
     candidate = {'page_id': '01', 'drafts': {'research': 'SYNTHETIC retained original'}}
     before = dict(schema='archeaxis.ui-working-state/v1', workspace_id='synthetic-workspace',
                   restore_epoch='synthetic-epoch', state_revision=3,
@@ -177,6 +279,86 @@ def test_guide_deferred_by_restore_confirmation_is_paused_only_after_valid_ack(r
     assert evidence[-2]['decision'] == 'PAUSED_BY_RENDERED_UI'
     assert evidence[-2]['guide_steps_marked_complete'] is False
     assert GUIDE not in ui.markup and evidence[-1]['mode'] == 'menu'
+
+
+@pytest.mark.parametrize('recovery_status', [200, 409])
+def test_actual_plain_launch_confirms_recovery_before_hydrated_guide_preparation(recovery_status):
+    """SIMULATED native adapters; execute launch's actual orchestration and fences."""
+    source = (ROOT / 'scripts/probes/aaos01_tauri_webdriver_loop.py').read_text()
+    main = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+    launch = next(n for n in main.body if isinstance(n, ast.FunctionDef) and n.name == 'launch')
+    start = next(i for i, n in enumerate(launch.body) if isinstance(n, ast.Assign)
+                 and any(isinstance(t, ast.Name) and t.id == 'launch_navigation' for t in n.targets))
+    # Include every actual statement between navigation adapter construction and
+    # the later branding check. An unconditional readiness wait ahead of the
+    # recovery fence therefore fails against this unhydrated pending scene.
+    end = next(i for i, n in enumerate(launch.body[start:], start)
+               if isinstance(n, ast.Expr) and isinstance(n.value, ast.Call)
+               and isinstance(n.value.func, ast.Name) and n.value.func.id == 'wait'
+               and any(isinstance(a, ast.Constant) and 'const brand=' in str(a.value) for a in n.value.args))
+    events, receipt = [], {}
+    pending = '<section role="dialog"><button>保留恢复候选</button></section>'
+    unhydrated = shell().replace('<section class="dock-workspace" aria-label="自由布局工作区"></section>', '')
+
+    class LaunchUI(ObservedUI):
+        def click_selector(self, selector):
+            assert events == ['read-pending', 'preserve', 'read-confirmed']
+            super().click_selector(selector)
+            events.append('guide-paused')
+
+    ui = LaunchUI('<div class="app-body" aria-busy="false">' + unhydrated + '</div>' + pending)
+    candidate = {'page_id': '01', 'drafts': {'research': 'SYNTHETIC retained original'}}
+    before = dict(schema='archeaxis.ui-working-state/v1', workspace_id='synthetic-workspace',
+                  restore_epoch='synthetic-epoch', state_revision=3,
+                  recovery_requires_confirmation=True, recovery_candidates=candidate)
+    acknowledged = {**before, 'state_revision': 4, 'state': candidate,
+                    'recovery_requires_confirmation': False, 'recovery_candidates': None}
+    reads = iter([before, acknowledged])
+
+    def bridge(operation):
+        assert operation == 'ui_state_read'
+        value = next(reads)
+        events.append('read-confirmed' if value is acknowledged else 'read-pending')
+        return value
+
+    def click(label):
+        assert label == '保留恢复候选' and events == ['read-pending']
+        events.append('preserve')
+        ui.markup = '<div class="app-body" aria-busy="false">' + shell(hidden=True) + '</div>' + GUIDE
+
+    def js(script):
+        if script == 'return window.__aaosRecoveryReplies':
+            return [{'operation': 'ui_state_recover', 'value': {'status': recovery_status, 'body': acknowledged}}]
+        if 'window.__aaosRecovery' in script:
+            return None  # Adapter for the real recovery-response observer only.
+        return ui.js(script)
+
+    def compatibility(js, wait, space):
+        assert space == 'library' and events[-1] == 'guide-paused'
+        events.append('compatibility-navigation')
+
+    adapter = SimpleNamespace(GroupedUI=lambda *a: ui, prepare_rendered_navigation=probe.prepare_rendered_navigation)
+    namespace = dict(REPO=ROOT, receipt=receipt, js=js, wait=ui.wait, bridge=bridge,
+                     ui_click=click, ui_element=Mock(), trusted_grouped_element_command=Mock(),
+                     load=lambda name, path: adapter, request=Mock(), session='SIMULATED',
+                     args=SimpleNamespace(**{key: False for key in ('grouped_common_owner_loop',
+                          'installed_draft_conflict_loop', 'character_memory_loop',
+                          'configuration_plan_loop', 'be10_handoff_reader_loop')}), material_mode=False,
+                     confirm_restored_working_state=harness_helper('confirm_restored_working_state'),
+                     navigate_compatibility_space=compatibility)
+    code = compile(ast.Module(body=launch.body[start:end], type_ignores=[]), '<actual-launch-navigation>', 'exec')
+    if recovery_status != 200:
+        with pytest.raises(AssertionError):
+            exec(code, namespace)
+        assert events == ['read-pending', 'preserve', 'read-confirmed']
+        assert ui.clicks == [] and receipt['navigation_entry'] == []
+        assert 'launch_working_state_recovery' not in receipt
+    else:
+        exec(code, namespace)
+        assert events == ['read-pending', 'preserve', 'read-confirmed', 'guide-paused', 'compatibility-navigation']
+        assert receipt['launch_working_state_recovery'][0]['after']['state'] == candidate
+        assert receipt['navigation_entry'][0]['decision'] == 'PAUSED_BY_RENDERED_UI'
+        assert receipt['navigation_entry'][-1]['mode'] == 'menu'
 
 
 def test_rendered_page_helper_uses_current_native_menu_navigation_and_rejects_missing_ui():

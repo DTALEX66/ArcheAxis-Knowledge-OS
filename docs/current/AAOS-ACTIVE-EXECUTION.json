@@ -2608,7 +2608,7 @@
         "native_draft_close_09d": ".project-local/runs/be268a2d33/ndg4/artifacts/native-draft-guard/receipt.json",
         "native_core_loss_negative_09d": ".project-local/runs/be268a2d33/crun5/artifacts/native-core-loss-drafts/receipt.json"
       },
-      "preview_launch_current": "LATEST_LOCAL_PREVIEW_TARGET_PORTABLE_V2_UPDATED_NOT_LAUNCHED; existing review workspace preserved; Green unchanged",
+      "preview_launch_current": "LATEST_LOCAL_PREVIEW_TARGET_PORTABLE_V3_UPDATED_NOT_LAUNCHED; preu5 verified Host4b6c1efe; existing review workspace preserved; Green unchanged",
       "qualification_f650": {
         "source_commit": "f650cfe059c33407a2a2c65f8a296bcfd90d2400",
         "build_receipt": ".project-local/runs/be268a2d33/bf99998fa358/artifacts/frontend-build.json",
@@ -2634,13 +2634,31 @@
           "ts32",
           "cap32"
         ],
-        "latest_ci": "39d/40343758412 FAILURE: installer exact prompt mismatch; successor probe fixed, new exact-SHA CI pending",
-        "cleanup_followup": "POST_SCREENSHOT_APPLIED: ddu2 old-dist508files/786420753B; cle1 old-test-PDB198files/17443733504B; protected seals unchanged; edp2 empty-dir and pfi2 profile-cache fixed-plan successors separately receipted, not counted in advance; latest build/cache/data/evidence preserved",
+        "latest_ci": "b645/40354999012 FAILURE: Python6063passed/1failed/108skipped/424subtests stale positioning assertion; cid34 raw log preserved. All other component jobs including installer-lifecycle121697970149 SUCCESS; aggregate failed. Successor positioning and fresh-guide probe fixes pending new exact-SHA CI",
+        "cleanup_followup": "FROZEN_COMPLETED: ccr3 post-screenshot3093files/18703557152B/17.419045GiB;17737emptydirs separate0logicalB; earlier ccr1 counted separately, paths disjoint; fresh v2 19746memberSHA verified; latest build/cache/data/evidence preserved",
+        "native_followup": "b645 portable-v3/5834e03ba7c6 build PASS, ngroup2 source-consistent FAIL before business/model: late first-use modal blocks stale one-shot readiness; owned Host0/ports released. Probe fixed: ngrfix1 131passed/170subtests; final ngrfix2 navigation63passed/shared30s budget, source-consistent. One successor SHA build/grouped native/UI18/overview pending",
         "browser_receipts": [
           "tvc1",
           "avb6",
           "avb7"
         ]
+      },
+      "menu_layout_polish_20261027": {
+        "state": "TESTED_LOCAL_PUBLICATION_BUILD_NATIVE_AND_EXACT_SHA_CI_PENDING",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
+        "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
+        "old_verification_screenshots": "OWNER_PURGED: 1701 ignored +9 tracked files; 1334837921 logical bytes; ssbs1/ssa1 manifests. 35 exact old test directories remain unreadable WinError5; no all-repository zero claim. Needed new screenshots after fixed cutoff retained.",
+        "date_adversarial_review": "exa1 original DST fold counterexample retained; exa2 four-timezone post-fix review passed. Saved exact epochs retained, ambiguous new local time rejected; aifm5 40passed and aifm6 34passed. Chinese offset separated in display; schema unchanged.",
+        "whole_scope": "PARTIAL; browser/units/installed/exact-SHA CI/Owner acceptance remain separate",
+        "local_checks": {
+          "frontend": "uifinal2: 213 suites /2293 passed; source_consistent=true",
+          "types": "uitfinal2 PASS; source_consistent=true",
+          "positioning_contract": "truthfinal1:8passed; source_consistent=true",
+          "menu_browser": "umcb3: current-page marker real Chromium cosmic/white1920 and cosmic960; not native",
+          "navigation_entry": "ngrfix3:65passed; fresh-guide and restore-confirmation order preserved",
+          "backup_probe_copy": "bkword1:63passed"
+        }
       }
     }
   }

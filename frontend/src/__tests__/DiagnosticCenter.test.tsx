@@ -29,9 +29,9 @@ it("opens the one center from a contextual receipt, shows the exact payload and 
 it("filters explicit categories and keeps records after closing and reopening", async () => {
   const user = userEvent.setup();
   render(<><DiagnosticCenterTrigger/><RawReceiptButton label="连接" category="runtime" payload={{latency_ms:7}}/><RawReceiptButton label="原件" category="data" payload={{sha256:"source-proof"}}/><DiagnosticCenter/></>);
-  await user.click(screen.getByRole("button", {name:/查看诊断详情：连接/}));
+  await user.click(screen.getByRole("button", {name:/状态与诊断：连接/}));
   await user.click(screen.getByRole("button", {name:"关闭运行诊断"}));
-  await user.click(screen.getByRole("button", {name:/查看诊断详情：原件/}));
+  await user.click(screen.getByRole("button", {name:/状态与诊断：原件/}));
   let dialog = screen.getByRole("dialog");
   expect(within(dialog).getByLabelText("诊断分类")).toHaveValue("data");
   expect(dialog).not.toHaveTextContent("latency_ms");
@@ -44,7 +44,7 @@ it("filters explicit categories and keeps records after closing and reopening", 
   await user.selectOptions(within(dialog).getByLabelText("诊断分类"), "all");
   expect(dialog).toHaveTextContent("source-proof");
   await user.click(within(dialog).getByRole("button", {name:"清空诊断"}));
-  expect(dialog).toHaveTextContent("暂无原始回执");
+  expect(dialog).toHaveTextContent("暂无诊断记录");
 });
 it("Escape closes only the diagnostic dialog and preserves the underlying inspector", async () => {
   const user = userEvent.setup(), closeInspector = vi.fn();
@@ -89,7 +89,7 @@ it("quarantines old recovery observations until a fresh identity read succeeds",
   await act(async () => {window.dispatchEvent(new CustomEvent("workspace-invalidated", {detail:{confirmed:true}}));window.dispatchEvent(new Event("workspace-restore-finish"));});
   expect(screen.queryByRole("dialog")).toBeNull();
   await user.click(screen.getByRole("button", {name:"运行诊断"}));
-  expect(screen.getByRole("dialog")).toHaveTextContent("暂无原始回执");
+  expect(screen.getByRole("dialog")).toHaveTextContent("暂无诊断记录");
 });
 it("does not clear on ordinary state revision and isolates a confirmed new provider identity", async () => {
   const read: WorkingRead = {schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
@@ -105,7 +105,7 @@ it("does not clear on ordinary state revision and isolates a confirmed new provi
   view.rerender(tree(second));
   expect(screen.queryByRole("dialog")).toBeNull();
   await user.click(screen.getByRole("button", {name:"运行诊断"}));
-  expect(screen.getByRole("dialog")).toHaveTextContent("暂无原始回执");
+  expect(screen.getByRole("dialog")).toHaveTextContent("暂无诊断记录");
 });
 
 it("verifies a replacement provider independently of the old pending read", async () => {
@@ -124,7 +124,7 @@ it("verifies a replacement provider independently of the old pending read", asyn
   view.rerender(tree(second));
   await waitFor(() => expect(screen.getByRole("button",{name:"运行诊断"})).toBeEnabled());
   await user.click(screen.getByRole("button",{name:"运行诊断"}));
-  expect(screen.getByRole("dialog")).toHaveTextContent("暂无原始回执");
+  expect(screen.getByRole("dialog")).toHaveTextContent("暂无诊断记录");
   await act(async () => {release(structuredClone(read));});
   expect(screen.getByRole("dialog")).not.toHaveTextContent('"old"');
   expect(bridge.call).toHaveBeenCalledTimes(2);

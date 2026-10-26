@@ -1,9 +1,12 @@
 import { beforeEach,afterEach,it,expect,vi } from "vitest";
 import { webcrypto } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { basename, resolve } from "node:path";
 import { render,screen,fireEvent,waitFor } from "@testing-library/react";
 import { CanonicalAiAssetsSpace } from "../spaces/CanonicalAiAssetsSpace";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import type { DocumentDto } from "../api/generated/core-contract";
+import { localExpiryValue, parseLocalExpiry } from "../presentation/localExpiry";
 import type { AiAsset,AssetContextGrant } from "../api/generated/ai-asset-contract";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 type J=Record<string,any>;
@@ -24,10 +27,10 @@ afterEach(()=>{vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function open(){fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v1"}));await waitFor(()=>expect(screen.getByLabelText("资产内容")).toHaveValue("原始内容"));}
 it("saves incomplete inert candidates for all five kinds without knowledge or rubric prerequisite",async()=>{render(<CanonicalAiAssetsSpace {...props}/>);for(const kind of ["memory","knowledge_package","rule","skill","experience"]){fireEvent.change(screen.getByLabelText("资产类型"),{target:{value:kind}});fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:`惰性 ${kind}`}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes.at(-1)?.body.editor_json.attrs.archeaxis_ai_asset.kind).toBe(kind));await screen.findByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。");expect(writes.at(-1)?.body.editor_json.attrs.archeaxis_ai_asset.state).toBe("candidate");expect(writes.at(-1)?.body.editor_json.attrs.archeaxis_ai_asset.review).toBeNull();await waitFor(()=>expect(screen.getByRole("button",{name:"保存资产候选"})).toBeEnabled());}expect(props.packetCommand).not.toHaveBeenCalled();});
 it("preserves complete envelope and source payload on semantic edits",async()=>{render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.change(screen.getByLabelText("资产用途"),{target:{value:"新用途"}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。");const editor=writes[0].body.editor_json;expect(editor.attrs.unknownOwner).toEqual({x:[null,"原值"]});expect(editor.content).toEqual([{type:"future",payload:{bytes:"不丢"}}]);expect(editor.attrs.archeaxis_ai_asset.source_payload).toEqual(asset().source_payload);});
-it("lost acknowledgement retries identical identity and retains later draft",async()=>{let first=true;bridge.call.mockImplementation(async(op,p)=>{const result=await original(op,p);if(op==="document_create"&&first){first=false;throw new Error("lost ack");}return result;});render(<CanonicalAiAssetsSpace {...props}/>);fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"发送版本"}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByRole("alert");fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"随后草稿"}});fireEvent.click(screen.getByRole("button",{name:"重试冻结资产请求"}));await screen.findByText("发送版本已确认；后续草稿仍保留。");expect(writes).toHaveLength(2);expect(writes[0]).toEqual(writes[1]);expect(screen.getByLabelText("资产内容")).toHaveValue("随后草稿");expect(docs.size).toBe(2);});
-it.each(["document_id","title","source_id"])("rejects wrong %s ACK even when metadata/body match",async(field)=>{bridge.call.mockImplementation(async(op,p)=>{const result=await original(op,p) as J;if(op==="document_create")result[field]="unexpected";return result;});render(<CanonicalAiAssetsSpace {...props}/>);fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByRole("alert");expect(screen.getByRole("button",{name:"核对冻结资产请求"})).toBeInTheDocument();expect(screen.queryByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。")).not.toBeInTheDocument();});
+it("lost acknowledgement retries identical identity and retains later draft",async()=>{let first=true;bridge.call.mockImplementation(async(op,p)=>{const result=await original(op,p);if(op==="document_create"&&first){first=false;throw new Error("lost ack");}return result;});render(<CanonicalAiAssetsSpace {...props}/>);fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"发送版本"}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByRole("alert");fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"随后草稿"}});fireEvent.click(screen.getByRole("button",{name:"重试原资产保存"}));await screen.findByText("发送版本已确认；后续草稿仍保留。");expect(writes).toHaveLength(2);expect(writes[0]).toEqual(writes[1]);expect(screen.getByLabelText("资产内容")).toHaveValue("随后草稿");expect(docs.size).toBe(2);});
+it.each(["document_id","title","source_id"])("rejects wrong %s ACK even when metadata/body match",async(field)=>{bridge.call.mockImplementation(async(op,p)=>{const result=await original(op,p) as J;if(op==="document_create")result[field]="unexpected";return result;});render(<CanonicalAiAssetsSpace {...props}/>);fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByRole("alert");expect(screen.getByRole("button",{name:"核对原资产保存"})).toBeInTheDocument();expect(screen.queryByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。")).not.toBeInTheDocument();});
 it("unknown metadata stays readonly without strip or overwrite",async()=>{(docs.get("asset_saved")!.editor_json as J).attrs.archeaxis_ai_asset.future={unknown:"raw"};render(<CanonicalAiAssetsSpace {...props}/>);fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v1"}));await screen.findByText("不兼容资产只读");expect(screen.queryByLabelText("资产内容")).not.toBeInTheDocument();expect(writes).toEqual([]);});
-it("invalid JSON and incomplete expiry protect switching and preserve original values",async()=>{render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByRole("button",{name:"编辑惰性 JSON 内容"}));fireEvent.change(screen.getByLabelText("JSON 内容草稿"),{target:{value:'{"incomplete":'}});fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));expect(screen.getByLabelText("JSON 内容草稿")).toHaveValue('{"incomplete":');fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));expect(writes).toEqual([]);fireEvent.click(screen.getByRole("button",{name:"取消 JSON 编辑"}));expect(screen.getByLabelText("资产内容")).toHaveValue("原始内容");fireEvent.change(screen.getByLabelText("到期 Unix 秒（空白为无期限）"),{target:{value:"-"}});fireEvent.click(screen.getByRole("button",{name:"提交时效"}));await screen.findByRole("alert");expect(writes).toEqual([]);});
+it("invalid structured input protects switching and cancellation preserves the original",async()=>{render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByText("高级：结构化内容与完整引用"));fireEvent.click(screen.getByRole("button",{name:"编辑结构化内容"}));fireEvent.change(screen.getByLabelText("结构化内容草稿"),{target:{value:'{"incomplete":'}});fireEvent.click(screen.getByRole("button",{name:"应用结构化内容"}));await screen.findByRole("alert");fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));expect(screen.getByLabelText("结构化内容草稿")).toHaveValue('{"incomplete":');fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));expect(writes).toEqual([]);fireEvent.click(screen.getByRole("button",{name:"取消结构化编辑"}));expect(screen.getByLabelText("资产内容")).toHaveValue("原始内容");});
 it("withdrawal keeps history readable and rejects new edits/adoption",async()=>{render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByRole("button",{name:"撤回资产"}));await screen.findByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。");expect(screen.getByLabelText("资产内容")).toBeDisabled();expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();fireEvent.click(screen.getByRole("button",{name:"读取资产历史"}));await screen.findByText("历史 v1 只读，当前草稿未替换。");expect((docs.get("asset_saved")!.editor_json as J).attrs.archeaxis_ai_asset.state).toBe("withdrawn");});
 it("late history response cannot replace or publish across subsequent edits",async()=>{let resolve!:(v:unknown)=>void;bridge.call.mockImplementation((op,p)=>op==="document_version"?new Promise(r=>resolve=r):original(op,p));render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByRole("button",{name:"读取资产历史"}));fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"新草稿"}});resolve(dto("asset_saved"));await waitFor(()=>expect(screen.getByLabelText("资产内容")).toHaveValue("新草稿"));expect(screen.queryByText("历史 v1 只读，当前草稿未替换。")).not.toBeInTheDocument();});
 it("adoption requires review of exact saved candidate and actual rubric criteria, later edits reset adoption",async()=>{
@@ -76,7 +79,7 @@ it.each(["failed","unmeasured","passed"] as const)("explicitly persists %s revie
  expect(stored.review.reviewer).toBe("独立审查者");expect(stored.review.judgments).toHaveLength(2);
  fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));
  fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v2"}));
- await screen.findByRole("button",{name:"查看诊断详情：已保存资产评审"});
+ await screen.findByRole("button",{name:"状态与诊断：已保存资产评审"});
  expect(screen.getByRole("button",{name:"明确采用此评审版本"}))[outcome==="passed"?"toBeEnabled":"toBeDisabled"]();
  if(outcome==="passed"){
   fireEvent.click(screen.getByRole("button",{name:"明确采用此评审版本"}));
@@ -133,12 +136,12 @@ it("retries a frozen negative review exactly after a lost ACK while preserving l
  fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByRole("alert");
  expect(screen.getByLabelText("评审人")).toHaveValue("独立审查者");
  expect(screen.getByLabelText("判定 适用性")).toBeDisabled();
- fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"冻结后继续编辑的候选"}});
- fireEvent.click(screen.getByRole("button",{name:"重试冻结资产请求"}));
+ fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"未确认的原后继续编辑的候选"}});
+ fireEvent.click(screen.getByRole("button",{name:"重试原资产保存"}));
  await screen.findByText("发送版本已确认；后续草稿仍保留。");
  expect(writes).toHaveLength(2);expect(writes[0]).toEqual(writes[1]);
  expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.review.outcome).toBe("failed");
- expect(screen.getByLabelText("资产内容")).toHaveValue("冻结后继续编辑的候选");
+ expect(screen.getByLabelText("资产内容")).toHaveValue("未确认的原后继续编辑的候选");
  expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();
 });
 
@@ -148,17 +151,67 @@ it("reconciles a saved passing review after lost ACK, closes transient inputs an
  render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("passed");
  fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByRole("alert");
  const persisted=(docs.get("asset_saved")!.editor_json as J).attrs.archeaxis_ai_asset.review;
- fireEvent.click(screen.getByRole("button",{name:"核对冻结资产请求"}));
- await screen.findByText("冻结请求已确认；后续草稿保留。");
+ fireEvent.click(screen.getByRole("button",{name:"核对原资产保存"}));
+ await screen.findByText("原保存请求已确认；后续草稿保留。");
  expect(screen.queryByLabelText("评审人")).not.toBeInTheDocument();
- expect(screen.queryByRole("button",{name:"核对冻结资产请求"})).not.toBeInTheDocument();
+ expect(screen.queryByRole("button",{name:"核对原资产保存"})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));
  await waitFor(()=>expect(screen.getByLabelText("资产内容")).toHaveValue(""));
  fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v2"}));
- await screen.findByRole("button",{name:"查看诊断详情：已保存资产评审"});
+ await screen.findByRole("button",{name:"状态与诊断：已保存资产评审"});
  expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeEnabled();
  fireEvent.click(screen.getByRole("button",{name:"明确采用此评审版本"}));
  await screen.findByText(savedMessage);expect(writes).toHaveLength(2);
  expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("adopted");
  expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.review).toEqual(persisted);
+});
+
+it("plain JSON-looking text stays text and structured existing content is retained without conversion",async()=>{
+ const content={nested:[null,{value:"原结构"}],enabled:false};docs.set("asset_saved",dto("asset_saved",{...asset(),content}));render(<CanonicalAiAssetsSpace {...props}/>);
+ fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v1"}));await screen.findByLabelText("结构化内容原文");expect(screen.queryByLabelText("资产内容")).not.toBeInTheDocument();fireEvent.change(screen.getByLabelText("资产用途"),{target:{value:"新的说明"}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。");expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.content).toEqual(content);
+ fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:'{"looks":"structured"}'}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.content).toBe('{"looks":"structured"}');
+});
+it("local expiry edits are staged, cancelable and stored as exact seconds only after apply",async()=>{
+ docs.set("asset_saved",dto("asset_saved",{...asset(),expires_at:0}));render(<CanonicalAiAssetsSpace {...props}/>);await open();expect(parseLocalExpiry((screen.getByLabelText("资产到期时间（本地时间）") as HTMLInputElement).value)).toBe(0);
+ const local="2031-06-15T09:08:37";fireEvent.change(screen.getByLabelText("资产到期时间（本地时间）"),{target:{value:local}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));expect(writes).toEqual([]);expect(parseLocalExpiry((screen.getByLabelText("资产到期时间（本地时间）") as HTMLInputElement).value)).toBe(parseLocalExpiry(local));
+ fireEvent.click(screen.getByRole("button",{name:"取消到期时间修改"}));expect(parseLocalExpiry((screen.getByLabelText("资产到期时间（本地时间）") as HTMLInputElement).value)).toBe(0);fireEvent.change(screen.getByLabelText("资产到期时间（本地时间）"),{target:{value:local}});fireEvent.click(screen.getByRole("button",{name:"应用到期时间"}));fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.expires_at).toBe(parseLocalExpiry(local));expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("candidate");
+});
+it("unrepresentable persisted expiry is explained and preserved on unrelated edits",async()=>{
+ docs.set("asset_saved",dto("asset_saved",{...asset(),expires_at:Number.MAX_SAFE_INTEGER}));render(<CanonicalAiAssetsSpace {...props}/>);await open();expect(screen.getByText(/日期选择器无法显示原到期时间/)).toBeInTheDocument();fireEvent.change(screen.getByLabelText("资产用途"),{target:{value:"只改用途"}});fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.expires_at).toBe(Number.MAX_SAFE_INTEGER);
+});
+it("date presentation round-trips epoch and subminute seconds and rejects normalized invalid dates",()=>{
+ for(const seconds of [0,1,1949812347])expect(parseLocalExpiry(localExpiryValue(seconds)!)).toBe(seconds);
+ expect(parseLocalExpiry("2030-01-01T10:11:23.000")).toBe(parseLocalExpiry("2030-01-01T10:11:23"));expect(()=>parseLocalExpiry("2030-01-01T10:11:23.123")).toThrow();expect(localExpiryValue(Number.MAX_SAFE_INTEGER)).toBeNull();expect(parseLocalExpiry("")).toBeNull();
+ for(const input of ["2025-02-29T10:00:00","2030-04-31T11:00:00","2030-01-01T24:00:00","1960-01-01T12:00:00","not-a-date"])expect(()=>parseLocalExpiry(input)).toThrow();
+});
+
+it.each(["America/New_York", "Australia/Lord_Howe"])("preserves saved DST occurrences and rejects ambiguous new times in %s",(zone)=>{
+ const frontend=basename(process.cwd())==="frontend"?process.cwd():resolve(process.cwd(),"frontend");
+ const helper=resolve(frontend,"src/presentation/localExpiry.ts");
+ const typescript=resolve(frontend,"node_modules/typescript");
+ const script=`const ts=require(${JSON.stringify(typescript)}),fs=require('node:fs');
+ const config=ts.readConfigFile(${JSON.stringify(resolve(frontend,"tsconfig.json"))},ts.sys.readFile);
+ const target=ts.convertCompilerOptionsFromJson(config.config.compilerOptions,${JSON.stringify(frontend)}).options.target;
+ const out={exports:{}};new Function('exports',ts.transpileModule(fs.readFileSync(${JSON.stringify(helper)},'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target}}).outputText)(out.exports);
+ const {localExpiryValue,parseLocalExpiry,expiryDescription}=out.exports;
+ const ny=process.env.TZ==='America/New_York';
+ const early=ny?1793511000:Date.parse('2026-04-04T14:45:00Z')/1000;
+ const late=ny?1793514600:Date.parse('2026-04-04T15:15:00Z')/1000;
+ const text=localExpiryValue(late);let ambiguous='',gap='';
+ try{parseLocalExpiry(text);}catch(e){ambiguous=e.message;}
+ try{parseLocalExpiry(ny?'2026-03-08T02:30:00':'2026-10-04T02:15:00');}catch(e){gap=e.message;}
+ const ordinary=ny?'2026-11-01T03:30:11':'2026-04-05T03:15:11';
+ console.log(JSON.stringify({zone:Intl.DateTimeFormat().resolvedOptions().timeZone,early,late,text,
+ sameDisplay:localExpiryValue(early)===text,preservedEarly:parseLocalExpiry(text,early),preservedLate:parseLocalExpiry(text+'.000',late),
+ ambiguous,gap,ordinary:parseLocalExpiry(ordinary),expectedOrdinary:new Date(ordinary).getTime()/1000,
+ descriptionsDiffer:expiryDescription(early)!==expiryDescription(late),description:expiryDescription(late),
+ expectedDescription:new Date(late*1000).toLocaleString()+'（'+new Intl.DateTimeFormat(undefined,{timeZoneName:'shortOffset'}).formatToParts(new Date(late*1000)).find(part=>part.type==='timeZoneName').value+'）',
+ epoch:parseLocalExpiry(localExpiryValue(0),0),clear:parseLocalExpiry('',late)}));`;
+ const result=JSON.parse(execFileSync(process.execPath,["-e",script],{env:{...process.env,TZ:zone},encoding:"utf8"}));
+ expect(result.zone).toBe(zone);expect(result.sameDisplay).toBe(true);
+ expect(result.late-result.early).toBe(zone==="America/New_York"?3600:1800);
+ expect(result.preservedEarly).toBe(result.early);expect(result.preservedLate).toBe(result.late);
+ expect(result.ambiguous).toContain("出现两次");expect(result.gap).toContain("有效的本地日期");
+ expect(result.ordinary).toBe(result.expectedOrdinary);expect(result.descriptionsDiffer).toBe(true);expect(result.description).toBe(result.expectedDescription);expect(result.description).toMatch(/（GMT[^）]+）$/);
+ expect(result.epoch).toBe(0);expect(result.clear).toBeNull();
 });

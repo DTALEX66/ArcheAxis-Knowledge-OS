@@ -26,7 +26,7 @@ it("parent and receipt-list refresh preserve pending cancellation, frozen budget
   const view = render(<><CanonicalMachineReceiptsSpace /><DiagnosticConsole /></>);
   expect(await screen.findByRole("option", { name: "synthetic.txt" })).toHaveValue("s1");
   fireEvent.change(screen.getByRole("combobox", { name: /^已保存来源/ }), { target: { value: "s1" } });
-  await waitFor(() => expect(screen.getByRole("option", { name: "text · queued" })).toHaveValue("j1"));
+  await waitFor(() => expect(screen.getByRole("option", { name: "文字解析 · 排队中" })).toHaveValue("j1"));
   fireEvent.change(screen.getByRole("combobox", { name: /^来源任务/ }), { target: { value: "j1" } });
   await screen.findByText("当前状态：待确认。");
   const budget = screen.getByLabelText("最长等待时间（毫秒）");
@@ -42,7 +42,7 @@ it("parent and receipt-list refresh preserve pending cancellation, frozen budget
   expect(screen.getByRole("combobox", { name: /^来源任务/ })).toHaveValue("j1");
   expect(screen.getByLabelText("最长等待时间（毫秒）")).toBeDisabled();
   expect(screen.getByLabelText("最长等待时间（毫秒）")).toHaveValue(45000);
-  fireEvent.click(screen.getByRole("button", { name: "查看诊断详情：任务步骤与继续条件详细信息" }));
+  fireEvent.click(screen.getByRole("button", { name: "状态与诊断：任务步骤与继续条件详细信息" }));
   const payloads = screen.getByLabelText("诊断控制台").querySelectorAll("details[open] pre");
   expect(payloads).toHaveLength(1);
   expect(payloads[0]).toHaveTextContent("committed-output");

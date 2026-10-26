@@ -121,7 +121,7 @@ def run(*, ui, bridge, js, wait, restart, screenshot, report):
     observed = reader_state(js)
     assert observed["page"] == "#page=16" and observed["body"] == phrase, "Rendered pinned body differed from the selected Core version"
     screenshot("be10-pinned-body.png")
-    ui.click_revealed_selector(MODAL + "//button[@aria-label='查看诊断详情：跨项目固定正文身份']")
+    ui.click_revealed_selector(MODAL + "//button[@aria-label='状态与诊断：跨项目固定正文身份']")
     wait("return !![...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].find(n=>n.textContent.includes('跨项目固定正文身份'))")
     identity = diagnostic_identity(js)
     assert_snapshot_identity(identity, selected)

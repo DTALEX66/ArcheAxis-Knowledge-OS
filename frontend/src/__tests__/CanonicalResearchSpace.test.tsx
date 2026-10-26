@@ -115,7 +115,7 @@ it("keeps the saved quote readable and its complete fixed identity in diagnostic
  expect(region.textContent).not.toMatch(/source_actual|anchor_private|b{64}|c{64}/);
  selectPane("evidence");const quote=within(region).getByRole("complementary",{name:"已保存版本的引文快照"});
  expect(quote.querySelector("blockquote")!.textContent).toBe(citation.quote);
- fireEvent.click(within(quote).getByRole("button",{name:"查看诊断详情：研究引文原始记录"}));
+ fireEvent.click(within(quote).getByRole("button",{name:"状态与诊断：研究引文原始记录"}));
  expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({reference,citation});
  expect(docs.get("doc_a")).toEqual(stored);expect(requests).toHaveLength(0);
 });
@@ -139,7 +139,7 @@ it("keeps original reference records accessible when another view owns the write
  research.materials=[{id:"m",note:"只读材料",reference:{kind:"source",source_id:"source_actual",sha256:"b".repeat(64)}}];
  const view=render(<><DocumentBusinessProvider sessions={sessions} viewId="reader"><CanonicalResearchSpace/></DocumentBusinessProvider><DiagnosticConsole/></>);
  await openA();expect(screen.getByRole("button",{name:"保存研究草稿"})).toBeDisabled();
- const button=screen.getByRole("button",{name:"查看诊断详情：只读研究引用记录"});expect(button).toBeEnabled();fireEvent.click(button);
+ const button=screen.getByRole("button",{name:"状态与诊断：只读研究引用记录"});expect(button).toBeEnabled();fireEvent.click(button);
  expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({base_document:{document_id:"doc_a",version:1},draft:research,draft_dirty:false,save_pending:false});
  expect(sessions.session("doc_a").owner).toBe("writer");expect(requests).toHaveLength(0);
 });
@@ -162,7 +162,7 @@ it.each(["CURRENT","STALE"] as const)("explains citation location %s in Chinese 
  await screen.findByText(status==="CURRENT"?"引文定位仍有效；仅核对定位，不表示内容已证实。":"引文定位已过期；历史快照仍保留，可核对当前原件。");
  const quote=screen.getByRole("complementary",{name:"已保存版本的引文快照"});
  expect(quote.textContent).not.toContain(status);
- fireEvent.click(within(quote).getByRole("button",{name:"查看诊断详情：引文定位核验记录"}));
+ fireEvent.click(within(quote).getByRole("button",{name:"状态与诊断：引文定位核验记录"}));
  expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({...fixture,observed_at:expect.any(String),outcome:"read"});
  expect(requests).toHaveLength(0);
 });
@@ -174,7 +174,7 @@ it("does not let an old citation replay overwrite a newer research save outcome"
  editQuestion("核验期间的新研究输入");await save();await act(async()=>{finish(fixture.result);});
  expect(screen.getByRole("status",{name:"研究操作状态"})).toHaveTextContent("研究草稿已保存并读回；未变为核验或采用状态。");
  expect(screen.getByRole("textbox",{name:"研究问题"})).toHaveValue("核验期间的新研究输入");
- selectPane("evidence");expect(screen.queryByRole("button",{name:"查看诊断详情：引文定位核验记录"})).not.toBeInTheDocument();
+ selectPane("evidence");expect(screen.queryByRole("button",{name:"状态与诊断：引文定位核验记录"})).not.toBeInTheDocument();
  expect(requests).toHaveLength(1);
 });
 
@@ -185,7 +185,7 @@ it("keeps identically titled local knowledge results distinct without exposing t
  const dialog=await screen.findByRole("dialog",{name:"选择研究引用"});fireEvent.click(within(dialog).getByRole("button",{name:"检索本地知识"}));
  const second=await within(dialog).findByRole("button",{name:"选择本地知识结果 2 · 同名材料"});
  expect(dialog.textContent).not.toMatch(/knowledge_private_[12]/);
- fireEvent.click(within(dialog).getByRole("button",{name:"查看诊断详情：本地知识结果 2"}));
+ fireEvent.click(within(dialog).getByRole("button",{name:"状态与诊断：本地知识结果 2"}));
  expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual(items[1]);
  fireEvent.click(second);fireEvent.click(within(dialog).getByRole("button",{name:"添加所选引用"}));await save();
  expect(requests[0].body.editor_json.attrs.archeaxis_research.materials[0].reference).toEqual({kind:"knowledge",knowledge_id:"knowledge_private_2"});
@@ -219,7 +219,7 @@ it("retains a missing locator response without reporting a valid citation locati
  bridge.call.mockImplementation((op:string,p:J)=>op==="anchor_resolve"?Promise.resolve(missing):original(op,p));
  const view=render(<><CanonicalResearchSpace/><DiagnosticConsole/></>);await openA();selectPane("evidence");fireEvent.click(screen.getByRole("button",{name:"重新核验引文定位"}));
  await screen.findByText("引文当前定位未确认；历史快照仍保留。");expect(screen.queryByText("引文定位仍有效；仅核对定位，不表示内容已证实。")).not.toBeInTheDocument();
- fireEvent.click(screen.getByRole("button",{name:"查看诊断详情：引文定位核验记录"}));
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：引文定位核验记录"}));
  expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({reference:fixture.reference,citation:fixture.citation,result:missing,observed_at:expect.any(String),outcome:"failed"});
  expect(requests).toHaveLength(0);
 });
@@ -363,7 +363,7 @@ it("history shows the immutable quote even after a newer research edit",async()=
  const history=await screen.findByRole("complementary",{name:"只读文档"});
  expect(within(history).getByRole("complementary",{name:"已保存版本的引文快照"})).toHaveTextContent("旧版本原文");
  expect(within(history).queryByText(/anchor_history/)).not.toBeInTheDocument();
- fireEvent.click(within(history).getByRole("button",{name:"查看诊断详情：研究引文原始记录"}));
+ fireEvent.click(within(history).getByRole("button",{name:"状态与诊断：研究引文原始记录"}));
  expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({reference:research.materials[0].reference,citation:research.materials[0].citation});
  expect(within(history).getByRole("button",{name:"重新核验引文定位"})).toBeEnabled();
  expect(screen.getByRole("textbox",{name:"研究问题"})).toHaveValue("新版研究问题");

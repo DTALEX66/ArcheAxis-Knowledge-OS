@@ -418,27 +418,55 @@ return {page:pages.length===1?pages[0]:null,mode,scope,opened,
 """
 
 
-def prepare_rendered_navigation(ui, evidence):
+def prepare_rendered_navigation(ui, evidence, *, fresh_profile=False):
     """Pause the actual guide through trusted UI; do not mark any business step complete."""
+    deadline = time.monotonic() + 30
     ui.wait(r"""const shell=document.querySelector('.app-shell[data-stitch-workspace]');
 const page=shell?.querySelector('.stitch-page-identity[data-current-page-id]');
 const current=document.querySelector('nav[aria-label="应用菜单"] summary')&&document.querySelector('nav[aria-label="工作空间快捷导航"] button[data-page-id]')&&document.querySelector('button[aria-label="全部页面，打开产品导航"]');
 const legacy=document.querySelector('button[aria-label="打开产品导航"],.navigation-sidebar');
-return !!page&&/^\d{2}$/.test(page.dataset.currentPageId??'')&&!!(current||legacy);""")
-    guide = ui.js(VISIBLE_NAVIGATION_JS + r"""
+return !!page&&/^\d{2}$/.test(page.dataset.currentPageId??'')&&!!(current||legacy);""", seconds=max(0, deadline - time.monotonic()))
+    observation = VISIBLE_NAVIGATION_JS + r"""
 const guides=[...document.querySelectorAll('[role="dialog"].first-use-guide')].filter(visible);
-return {count:guides.length,title:guides[0]?.querySelector('h2')?.textContent.trim(),
- buttons:guides.length===1?[...guides[0].querySelectorAll('button')].filter(b=>visible(b)&&!b.disabled&&b.textContent.trim()==='暂时跳过').length:0};""")
-    assert guide["count"] in {0, 1}, "Ambiguous first-use guide dialog"
-    if guide["count"]:
-        assert guide["title"] == "首次使用引导" and guide["buttons"] == 1, "First-use guide pause control missing or ambiguous"
-        ui.click_selector("//*[@role='dialog' and contains(concat(' ',normalize-space(@class),' '),' first-use-guide ')]//button[normalize-space(.)='暂时跳过']")
-        ui.wait(VISIBLE_NAVIGATION_JS + "return ![...document.querySelectorAll('[role=\"dialog\"].first-use-guide')].some(visible);")
-        evidence.append({"action": "first_use_guide_pause", "decision": "PAUSED_BY_RENDERED_UI", "business_completion": False, "guide_steps_marked_complete": False})
-    else:
-        evidence.append({"action": "first_use_guide_pause", "decision": "NOT_PRESENT", "business_completion": False})
-    ui.wait("const navigation=(()=>{" + product_navigation_observation() + "})();return !!navigation.page&&['menu','drawer','sidebar'].includes(navigation.mode);")
-    evidence.append({"action": "rendered_navigation_ready", **ui.js(product_navigation_observation())})
+const guide={count:guides.length,title:guides[0]?.querySelector('h2')?.textContent.trim(),
+ buttons:guides.length===1?[...guides[0].querySelectorAll('button')].filter(b=>visible(b)&&!b.disabled&&b.textContent.trim()==='暂时跳过').length:0};
+const navigation=(()=>{""" + product_navigation_observation() + r"""})();
+const shell=document.querySelector('.app-shell[data-stitch-workspace]');
+const hydrated=!!shell?.querySelector('.dock-workspace[aria-label="自由布局工作区"]');
+const page=shell?.querySelector('.stitch-page-identity[data-current-page-id]')?.dataset.currentPageId;
+const blockers=[...document.querySelectorAll('[role="dialog"],[role="alertdialog"],dialog[open]')].filter(visible).length;
+return {guide,navigation,hydrated,page,blockers};"""
+    readiness = ("(observed.navigation.mode!=='menu'||observed.hydrated)&&!observed.blockers&&"
+                 "!!observed.navigation.page&&['menu','drawer','sidebar'].includes(observed.navigation.mode)")
+    ready = "const observed=(()=>{" + observation + "})();return observed.guide.count>0||(" + readiness + ");"
+    fresh_ready = ("const observed=(()=>{" + observation + "})();return observed.guide.count>0||(" + readiness
+                   + "&&!(observed.hydrated&&observed.page==='01')); ")
+    # The shell mounts before working-state hydration enables the guide. Observe
+    # both possible visible states during the existing deadline; a one-off
+    # absent-guide snapshot must not strand us waiting behind its later modal.
+    paused = False
+    while time.monotonic() < deadline:
+        ui.wait(fresh_ready if fresh_profile and not paused else ready,
+                seconds=max(0, deadline - time.monotonic()))
+        observed = ui.js(observation)
+        guide, navigation = observed["guide"], observed["navigation"]
+        assert guide["count"] in {0, 1}, "Ambiguous first-use guide dialog"
+        if guide["count"]:
+            assert guide["title"] == "首次使用引导" and guide["buttons"] == 1, "First-use guide pause control missing or ambiguous"
+            assert not paused, "First-use guide unexpectedly reopened after pause"
+            ui.click_selector("//*[@role='dialog' and contains(concat(' ',normalize-space(@class),' '),' first-use-guide ')]//button[normalize-space(.)='暂时跳过']")
+            paused = True
+            evidence.append({"action": "first_use_guide_pause", "decision": "PAUSED_BY_RENDERED_UI", "business_completion": False, "guide_steps_marked_complete": False})
+            ui.wait(VISIBLE_NAVIGATION_JS + "return ![...document.querySelectorAll('[role=\"dialog\"].first-use-guide')].some(visible);", seconds=max(0, deadline - time.monotonic()))
+        elif (not (fresh_profile and not paused and observed["hydrated"] and observed["page"] == "01")
+              and navigation["page"] and navigation["mode"] in {"menu", "drawer", "sidebar"}
+              and (navigation["mode"] != "menu" or observed["hydrated"])
+              and not observed["blockers"]):
+            if not paused:
+                evidence.append({"action": "first_use_guide_pause", "decision": "NOT_PRESENT", "business_completion": False})
+            evidence.append({"action": "rendered_navigation_ready", **navigation})
+            return
+    raise TimeoutError("First-use guide or visible product navigation did not settle")
 
 
 class GroupedUI:
@@ -685,6 +713,11 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
     def page(self, page_id, confirm_navigation=False):
         assert re.fullmatch(r"\d{2}", page_id), "Invalid page identity"
         navigation = self.js(product_navigation_observation(page_id))
+        if navigation["mode"] not in {"menu", "drawer", "sidebar"}:
+            # A later guide may appear after an earlier successful readiness
+            # sample. Re-observe it before any trusted navigation action.
+            prepare_rendered_navigation(self, self.evidence)
+            navigation = self.js(product_navigation_observation(page_id))
         if self.js("return location.hash") == "#page=" + page_id and navigation["page"] == page_id:
             return
         assert navigation["mode"] in {"menu", "drawer", "sidebar"}, "No visible product navigation"
@@ -835,7 +868,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
     def recover(expected, history):
         prior=read('ui_state_read')
         prior_backups={row['backup_id'] for row in read('workspace_backups')['backups']}
-        ui.page('19',confirm_navigation=True);ui.click('创建一致备份')
+        ui.page('19',confirm_navigation=True);ui.click('创建备份')
         backups=poll(read,'workspace_backups',{},lambda value:len(value['backups'])==len(prior_backups)+1)['backups']
         saved=next(row for row in backups if row['backup_id'] not in prior_backups)
         restart()
@@ -853,10 +886,10 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
         rows=[row for row in cleared['rows'] if row['operation']=='learning_review']
         assert len(rows)==1 and rows[0]['body']==expected['body'] and rows[0]['status'] in (200,201)
         assert expected['client_event_id'] not in read('ui_state_read')['state'].get('pending_reviews',{})
-        ui.page('19');ui.click('刷新备份产物')
-        ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="预检此备份"]')
+        ui.page('19');ui.click('刷新备份列表')
+        ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="检查此备份"]')
         ui.click('确认恢复整个工作区')
-        wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+        wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
         candidate=read('ui_state_read')
         assert candidate['restore_epoch']!=prior['restore_epoch'] and candidate['recovery_candidates']['pending_reviews'][expected['client_event_id']]==expected
@@ -1381,12 +1414,12 @@ def run_grouped_loop(
     ui.page("19", confirm_navigation=True)
     ui.click("工作区与恢复")
     backup_ids={row['backup_id'] for row in read('workspace_backups')['backups']}
-    ui.click("创建一致备份")
+    ui.click("创建备份")
     backups = poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == len(backup_ids)+1)["backups"]
     backup = next(row for row in backups if row['backup_id'] not in backup_ids)
-    ui.click("预检此备份")
+    ui.click("检查此备份")
     ui.click("确认恢复整个工作区")
-    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
     wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
     before = read("ui_state_read")
     ui.click("保留恢复候选")
@@ -1933,7 +1966,7 @@ def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
     assert frozen['body']['client_request_id']==conditions['client_request_id'] and frozen['body']['question']==conditions['question']
     tasks=machine_tasks(read)
     old_backups={row['backup_id'] for row in read('workspace_backups')['backups']}
-    ui.page('19',confirm_navigation=True);ui.click('创建一致备份')
+    ui.page('19',confirm_navigation=True);ui.click('创建备份')
     backups=poll(read,'workspace_backups',{},lambda value:len(value['backups'])==len(old_backups)+1)['backups']
     saved=next(row for row in backups if row['backup_id'] not in old_backups)
     restart()
@@ -1952,10 +1985,10 @@ def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
     assert len(recovery['rows'])==1 and recovery['rows'][0]['operation']=='ui_state_clear_machine' and 200<=recovery['rows'][0]['status']<300
     assert frozen['journal_id'] not in read('ui_state_read')['state'].get('pending_machine',{})
     assert machine_tasks(read)==tasks and read('machine_task_get',{'task_id':task['task_id']})==task
-    ui.page('19');ui.click('刷新备份产物')
-    ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="预检此备份"]')
+    ui.page('19');ui.click('刷新备份列表')
+    ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="检查此备份"]')
     ui.click('确认恢复整个工作区')
-    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
     candidate=read('ui_state_read')
     assert candidate['restore_epoch']!=before['restore_epoch'] and candidate['recovery_candidates']['pending_machine'][frozen['journal_id']]==frozen
     wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
@@ -2367,7 +2400,7 @@ def restored_learning_view(ui, read, js, wait, key, assessment):
     wait("const v=(function(){" + LEARNING_RESTORE_OBSERVATION + "})();return v.page==='06'&&v.count===1&&v.paragraphs.includes(" + json.dumps(assessment["question"]) + ")")
     view = js(LEARNING_RESTORE_OBSERVATION)
     assert view["page"] == "06" and view["count"] == 1 and assessment["question"] in view["paragraphs"], "Restored learning question mismatch"
-    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='查看诊断详情：学习项目与题目版本']")
+    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='状态与诊断：学习项目与题目版本']")
     try:
         wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'))")
         identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")

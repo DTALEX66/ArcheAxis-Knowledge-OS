@@ -863,7 +863,7 @@ function AppBody() {
     <div style={{display:"contents"}} data-retained-workspace aria-hidden={recoveryOverWorkspace || undefined}
       ref={element => { if (element) element.inert = recoveryOverWorkspace; }}>
     <ParticleField/>
-    {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} />}
+    {!learningFocus && <StitchWorkspaceMenu pageId={uiPageId ?? undefined} onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} />}
     <ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
       <TopNavBar
         breadcrumbs={[

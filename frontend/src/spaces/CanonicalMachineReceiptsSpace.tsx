@@ -5,7 +5,10 @@ import type { MachineTaskRowDto, MachineTasksPageDto } from "../api/generated/co
 import { failureMessage } from "../presentation/labels";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 
-const outcomeLabel = { succeeded: "任务回执成功", failed: "任务回执失败", unmeasured: "未测评" };
+const outcomeLabel = { succeeded: "已完成", failed: "失败", unmeasured: "未测评" };
+function taskKind(scope: string): string {
+  return ({ "runtime.answer": "AI 回答", "runtime.retest": "纠正后复测", "runtime.evaluation.failed": "回答评测", "runtime.execution.withheld": "未发布的 AI 运行" } as Record<string, string>)[scope] ?? "AI 任务";
+}
 // Parent updates must not replace the port and reset an accepted running job.
 const boundedJobCommand: BoundedJobCommand = (operation,payload) => coreCommand(operation,payload);
 
@@ -57,37 +60,36 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
     catch { /* Non-JSON conditions are retained in the immutable receipt below. */ }
   }
   const answer = conditions?.answer && typeof conditions.answer === "object" ? (conditions.answer as Record<string, unknown>).answer : null;
-  return <section aria-label="受限任务与回执" className="ui-content-main-side ui-machine-receipts">
+  return <section aria-label="资料处理与 AI 任务记录" className="ui-content-main-side ui-machine-receipts">
     <div>
-      <h2>受限任务与回执</h2>
+      <h2>资料处理与 AI 任务记录</h2>
       <BoundedJobPanel command={boundedJobCommand} />
-      <p>查看本机已保存的 AI 任务。任务结果、真人掌握、专业知识资格和参数训练分别记录。</p>
+      <p>查看本机已保存的 AI 任务。处理完成不代表回答正确，也不代表你已掌握知识。</p>
       <button disabled={loading} onClick={() => void load()}>刷新任务记录</button>
       {loading ? <p role="status">正在读取任务记录…</p> : null}
       {error ? <p role="alert">任务读取失败：{error}。已有记录仍保留，可以重试。</p> : null}
       {loaded && !loading && !error && rows.length === 0 ? <p>尚无已保存的机器任务。执行回答后可在此查看详细记录。</p> : null}
-      <ul className="action-list">{rows.map(row => <li key={row.task_id}>
-        <button aria-pressed={selected?.task_id === row.task_id} onClick={() => void open(row)}>{row.task_id} · {outcomeLabel[row.outcome]}</button>
-        <p>{row.scope} · 模型 {row.model_version} · {row.recorded_at}</p>
+      <ul className="action-list">{rows.map((row, index) => <li key={row.task_id}>
+        <button aria-pressed={selected?.task_id === row.task_id} onClick={() => void open(row)}>{taskKind(row.scope)} {index + 1} · {outcomeLabel[row.outcome]}</button>
+        <p>模型 {row.model_version} · {row.recorded_at}</p>
       </li>)}</ul>
       {cursor ? <button disabled={loading} onClick={() => void load(cursor)}>查看更多任务记录</button> : null}
       <p>这里显示已保存的任务历史；自由运行代理和任意工具执行尚不可用。</p>
     </div>
-    <aside aria-label="任务回执详情">
-      {!selected&&reading?<p role="status">正在核对指定机器任务…</p>:null}{!selected&&detailError?<p role="alert">指定回执未确认：{detailError}</p>:null}
+    <aside aria-label="任务记录详情">
+      {!selected&&reading?<p role="status">正在读取指定 AI 任务…</p>:null}{!selected&&detailError?<p role="alert">指定任务记录尚未确认：{detailError}</p>:null}
       {selected ? <>
-        <h3>{selected.task_id}</h3>
-        <p>机器身份 · {outcomeLabel[selected.outcome]} · {selected.scope}</p>
+        <h3>{taskKind(selected.scope)} · {outcomeLabel[selected.outcome]}</h3>
         {reading ? <p role="status">正在检查已保存的记录…</p> : null}
-        {detailError ? <p role="alert">回执未确认：{detailError}</p> : null}
+        {detailError ? <p role="alert">任务记录尚未确认：{detailError}</p> : null}
         {receipt ? <>
-          <dl><dt>知识版本</dt><dd>{selected.knowledge_version ?? "未绑定"}</dd><dt>模型版本</dt><dd>{selected.model_version}</dd>
+          <details><summary>来源与版本详情</summary><dl><dt>任务编号</dt><dd>{selected.task_id}</dd><dt>知识版本</dt><dd>{selected.knowledge_version ?? "未绑定"}</dd><dt>模型版本</dt><dd>{selected.model_version}</dd>
             <dt>方法版本</dt><dd>{selected.method_version ?? "未记录"}</dd><dt>工具版本</dt><dd>{selected.tool_version ?? "未记录"}</dd>
-            <dt>复测绑定</dt><dd>{selected.retest_of ?? "非复测"}</dd></dl>
+            <dt>复测关联</dt><dd>{selected.retest_of ?? "非复测"}</dd></dl></details>
           {typeof conditions?.question === "string" ? <><h4>原问题</h4><p>{conditions.question}</p></> : null}
           {typeof answer === "string" ? <><h4>原机器回答</h4><pre aria-label="历史机器回答">{answer}</pre></> : null}
-          {selected.failure ? <p>失败依据：{selected.failure}</p> : null}
-          <p>历史内容只读；撤回知识不会改写既有回答或回执。复测成功回执也不代表真人掌握。</p>
+          {selected.failure ? <p>失败说明：{failureMessage(selected.failure)} 原始记录可从“状态与诊断”查看。</p> : null}
+          <p>历史内容只读；撤回知识不会改写已有回答和记录。复测完成也不代表你已掌握知识。</p>
           <RawReceiptButton label="完整任务详细信息" payload={{ ...receipt, principal: selected.principal, recorded_at: selected.recorded_at }} />
         </> : null}
         <button onClick={() => { detailEpoch.current++; setSelected(null); setReceipt(null); setReading(false); setDetailError(null); }}>关闭任务详情</button>

@@ -29,10 +29,42 @@ const STATE_LABELS: Record<string, string> = {
   immutable: "不可变",
   idle: "无待处理项",
   requeued: "已重新排队",
+  queued: "排队中",
+  cancelled: "已取消",
+  rejected: "未获允许",
+  granted: "已授权",
+  revoked: "已撤回",
+  adopted: "已采用",
+  withdrawn: "已撤回",
 };
 
 export function stateLabel(value: unknown): string {
   return typeof value === "string" ? STATE_LABELS[value] ?? "状态未知" : "状态未知";
+}
+
+const JOB_KIND_LABELS: Record<string, string> = {
+  text: "文字解析",
+  "text.extract": "文字解析",
+  document_structure: "文档结构读取",
+  ocr: "文字识别",
+  transcribe: "音频转写",
+  caption: "图片内容说明",
+  media_decode: "媒体读取",
+  video: "视频解析",
+  office: "Office 文档解析",
+  pdf: "PDF 解析",
+  image: "图片识别",
+  archive: "压缩包目录读取",
+  media: "音视频信息读取",
+  canvas: "画布结构读取",
+  subtitles: "字幕解析",
+  html: "网页解析",
+  diarize: "说话时段区分",
+  detect: "文件类型识别",
+};
+
+export function jobKindLabel(value: unknown): string {
+  return typeof value === "string" ? JOB_KIND_LABELS[value] ?? "其他处理任务" : "其他处理任务";
 }
 
 export function sourceLabel(value: unknown, index = 0): string {

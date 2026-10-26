@@ -174,7 +174,7 @@ def assert_comparison_snapshot(ui, js, wait, label, content):
     # This fixture deliberately has one paragraph; a correct raw receipt cannot
     # substitute for a wrong or missing human-readable comparison.
     assert text == content["content"][0]["content"][0]["text"], "Comparison preview mismatch: " + label
-    button = scope + ' button[aria-label="查看诊断详情：' + label + '结构记录"]'
+    button = scope + ' button[aria-label="状态与诊断：' + label + '结构记录"]'
     ui.click_selector(button, "css selector")
     # 原始结构已集中到运行诊断；保持三份 JSON 严格等值核对，
     # 不恢复旧的正文内工程数据，也不通过 JS 触发按钮。
@@ -207,15 +207,15 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
     assert_journal(before, {}, fixture["workspace_id"], fixture["initial_epoch"])
     navigate("19")
     ui.click("工作区与恢复")
-    ui.click("刷新备份产物")
+    ui.click("刷新备份列表")
     backups = read("workspace_backups")["backups"]
     assert [item for item in backups if item["backup_id"] == fixture["backup"]["backup_id"]] == [fixture["backup"]]
     # Bind the real button to exactly this backup row, rather than first-match.
     filename = json.dumps(fixture["backup"]["filename"])
     row = "//section[@aria-label='一致备份']//li[strong=" + filename + "]"
-    ui.click("预检此备份", row)
+    ui.click("检查此备份", row)
     ui.click("确认恢复整个工作区")
-    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
     candidate = read("ui_state_read")
     assert candidate["workspace_id"] == fixture["workspace_id"]
     assert candidate["restore_epoch"] != fixture["initial_epoch"]

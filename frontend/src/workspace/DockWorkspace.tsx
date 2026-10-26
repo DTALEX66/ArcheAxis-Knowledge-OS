@@ -14,6 +14,7 @@ import { WorkspaceController,layoutPresets } from "./WorkspaceController";
 import { desktopLayoutTransport } from "./layoutPort";
 import { captureLayout,restoreLayout,layoutFitsSurface,tabbedLayout } from "./dockLayout";
 type ViewProps=ComponentProps<typeof SpaceView>;
+const layoutPresetLabels:Record<keyof typeof layoutPresets,string>={default:"默认",reading:"阅读",research:"研究",learning:"学习"};
 export type DockNavigationTarget=Pick<ViewProps,"uiPageId"|"spaceId"|"initialDocumentId"|"selectedCapabilityId">&{panelId:string};
 type Props=ViewProps&{activePanelId?:string;navigationRevision?:number;onActivateView?:(target:DockNavigationTarget)=>boolean};
 function AccessibleDockTab(props:IDockviewPanelHeaderProps){
@@ -152,7 +153,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
    <button disabled={locked} onClick={()=>action(()=>{const panel=active(),target=api.current?.panels.find(p=>p.group!==panel?.group);if(panel&&target)panel.api.moveTo({group:target.group,position:"right"});})}>停靠当前面板</button>
    <button onClick={()=>{interaction.current++;const panel=active();if(panel)panel.api.isMaximized()?panel.api.exitMaximized():panel.api.maximize();}}>缩放当前面板</button>
    <button aria-pressed={locked} onClick={()=>{interaction.current++;const next=!locked;setLocked(next);const expanded=expandedPreference();if(expanded?.schema_version===2)responsiveLayout.current={...expanded,locked:next};api.current?.updateOptions({locked:next,disableDnd:next||compactFallback});}}>锁定布局</button>
-   <select aria-label="布局预设" value={preset} disabled={locked} onChange={e=>action(()=>apply(layoutPresets[e.target.value as keyof typeof layoutPresets]))}>{Object.keys(layoutPresets).map(name=><option key={name}>{name}</option>)}</select>
+   <select aria-label="布局预设" value={preset} disabled={locked} onChange={e=>action(()=>apply(layoutPresets[e.target.value as keyof typeof layoutPresets]))}>{Object.keys(layoutPresets).map(name=><option key={name} value={name}>{layoutPresetLabels[name as keyof typeof layoutPresets]}</option>)}</select>
    <button disabled={locked} onClick={()=>action(()=>apply(layoutPresets.default))}>重置视图布局</button>
    <button onClick={()=>action(async()=>{if(api.current)controller.stage(expandedPreference()??captureLayout(api.current,preset,{workspaceId,epoch,locked}));await controller.save();})}>保存布局</button>
    <button onClick={()=>action(async()=>{await controller.read();setNotice("已读取已保存的布局；当前视图保留。请确认是否应用。");})}>读取已保存布局</button>

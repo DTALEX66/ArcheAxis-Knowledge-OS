@@ -222,7 +222,7 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
     assert report['saved_a']['version']==3 and report['remaining_b']=={b['document_id']:fixture['drafts'][b['document_id']]}
     assert report['owner_acceptance']=='NOT_EXECUTED'
     labels=[action[1] for action in actions if action[0]=='trusted_click_contract']
-    assert labels.index('工作区与恢复') < labels.index('刷新备份产物')
+    assert labels.index('工作区与恢复') < labels.index('刷新备份列表')
     assert labels.index('保留恢复候选') < labels.index('保存草稿') < labels.index('读取当前版本并比较（保留草稿）')
     assert labels.count('明确保留本稿并按已比较版本保存')==1
     assert labels.count('关闭运行诊断') == 3

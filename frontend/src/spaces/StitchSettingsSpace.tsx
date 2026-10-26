@@ -6,9 +6,9 @@ import { UsageGuidePanel } from "../components/UsageGuide";
 import "./stitch-settings.css";
 
 const sections = [
-  { id: "models", label: "模型与连接", description: "连接本地模型服务，管理配置与用途绑定。" },
+  { id: "models", label: "模型与连接", description: "连接本地模型服务，选择不同用途使用的模型。" },
   { id: "guide", label: "使用引导", description: "从导入到知识的完整使用顺序。" },
-  { id: "workspace", label: "工作区与恢复", description: "创建一致备份，核对产物后预检与恢复工作区。" },
+  { id: "workspace", label: "工作区与恢复", description: "创建工作区备份，检查备份后再确认恢复。" },
   { id: "plans", label: "配置计划", description: "读取本机配置与部署计划，核对来源和版本。" },
 ] as const;
 type SettingsSection = typeof sections[number]["id"];

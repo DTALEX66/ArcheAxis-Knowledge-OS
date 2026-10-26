@@ -1789,21 +1789,21 @@ def main():
         navigation_evidence = receipt.setdefault("navigation_entry", [])
         launch_controls = launch_navigation.GroupedUI(js, wait, ui_element,
             lambda element_id, action, body: trusted_grouped_element_command(request, session, element_id, action, body), navigation_evidence)
-        launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence)
-        wait("const brand=document.querySelector('.stitch-brand img, .stitch-brand svg'),r=brand?.getBoundingClientRect(),decoded=!brand||brand.tagName.toLowerCase()!=='img'||(brand.complete&&brand.naturalWidth>0&&brand.naturalHeight>0);const images=[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';}));return !!r&&r.width>0&&r.height>0&&decoded&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
-        receipt.setdefault("brand_images", []).append(js("const brand=document.querySelector('.stitch-brand img, .stitch-brand svg'),r=brand.getBoundingClientRect();return {brand:{kind:brand.tagName.toLowerCase(),width:r.width,height:r.height},visibleImages:[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';})).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))}"))
         if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
+            launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence, fresh_profile=True)
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
             # Restored-state confirmation can defer the guide's auto-open. Pause
             # it through the existing trusted UI only after the journal fence.
             recovery = confirm_restored_working_state(
                 bridge, ui_click, wait, js,
-                prepare_navigation=lambda: launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence),
+                prepare_navigation=lambda: launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence, fresh_profile=True),
             )
             receipt.setdefault("launch_working_state_recovery", []).append(recovery)
             navigate_compatibility_space(js, wait, "library")
+        wait("const brand=document.querySelector('.stitch-brand img, .stitch-brand svg'),r=brand?.getBoundingClientRect(),decoded=!brand||brand.tagName.toLowerCase()!=='img'||(brand.complete&&brand.naturalWidth>0&&brand.naturalHeight>0);const images=[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';}));return !!r&&r.width>0&&r.height>0&&decoded&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+        receipt.setdefault("brand_images", []).append(js("const brand=document.querySelector('.stitch-brand img, .stitch-brand svg'),r=brand.getBoundingClientRect();return {brand:{kind:brand.tagName.toLowerCase(),width:r.width,height:r.height},visibleImages:[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';})).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))}"))
         receipt.setdefault("launches", []).append({"seconds":time.monotonic()-began,"capabilities":result["capabilities"],"user_data_folder":str(folder)})
         version = bridge("system_version")
         assert isinstance(version, dict)

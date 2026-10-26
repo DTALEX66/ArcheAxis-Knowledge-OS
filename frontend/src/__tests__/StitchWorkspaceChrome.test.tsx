@@ -37,6 +37,49 @@ it("menus dismiss with Escape, outside input and focus leaving; Escape restores 
   expect(summary.parentElement).not.toHaveAttribute("open");
 });
 
+it("menu current-page markers follow the actual page while retaining ordinary navigation buttons", async () => {
+  const user = userEvent.setup(), onPage = vi.fn();
+  const view = render(<StitchWorkspaceMenu pageId="03" onPage={onPage} onNavigation={vi.fn()}/>);
+  for (const page of UI_PAGES) {
+    view.rerender(<StitchWorkspaceMenu pageId={page.id} onPage={onPage} onNavigation={vi.fn()}/>);
+    const marked = [...view.container.querySelectorAll('button[aria-current="page"]')];
+    expect(marked.length).toBeGreaterThan(0);
+    expect(marked.every(button => button.getAttribute("data-page-id") === page.id)).toBe(true);
+    expect(view.container.querySelector('[aria-selected]')).not.toBeInTheDocument();
+  }
+  view.rerender(<StitchWorkspaceMenu pageId="03" onPage={onPage} onNavigation={vi.fn()}/>);
+  const knowledge = screen.getByText("知识", { selector: "summary" });
+  await user.click(knowledge);
+  const current = within(knowledge.parentElement!).getByRole("button", { current: "page" });
+  expect(current).toHaveTextContent("阅读");
+  await user.click(current);
+  expect(onPage).toHaveBeenLastCalledWith("03");
+  expect(knowledge.parentElement).not.toHaveAttribute("open");
+  expect(knowledge).toHaveFocus();
+});
+
+it("native menu disclosures support keyboard traversal without changing guarded page actions", async () => {
+  const user = userEvent.setup(), onPage = vi.fn();
+  render(<StitchWorkspaceMenu onPage={onPage} onNavigation={vi.fn()}/>);
+  const knowledge = screen.getByText("知识", { selector: "summary" });
+  knowledge.focus();
+  await user.keyboard("{ArrowDown}");
+  expect(knowledge.parentElement).toHaveAttribute("open");
+  expect(within(knowledge.parentElement!).getByRole("button", { name: "知识库" })).toHaveFocus();
+  await user.keyboard("{End}");
+  expect(within(knowledge.parentElement!).getByRole("button", { name: "版本、来源与历史" })).toHaveFocus();
+  await user.keyboard("{Home}{ArrowDown}{Enter}");
+  expect(onPage).toHaveBeenLastCalledWith("03");
+  expect(knowledge.parentElement).not.toHaveAttribute("open");
+  expect(knowledge).toHaveFocus();
+  await user.keyboard("{ArrowUp}{ArrowRight}");
+  const learning = screen.getByText("学习", { selector: "summary" });
+  expect(learning).toHaveFocus(); expect(learning.parentElement).toHaveAttribute("open");
+  expect(knowledge.parentElement).not.toHaveAttribute("open");
+  await user.keyboard("{Escape}");
+  expect(learning).toHaveFocus(); expect(learning.parentElement).not.toHaveAttribute("open");
+});
+
 it("dock keeps exactly one active application for every role and delegates genuine navigation", async () => {
   const user = userEvent.setup(), onPage = vi.fn(), onCompanion = vi.fn();
   const view = render(<StitchWorkspaceDock pageId="01" onPage={onPage} companionOpen={false} onCompanion={onCompanion}/>);

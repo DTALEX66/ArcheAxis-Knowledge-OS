@@ -95,6 +95,12 @@ describe("first-use guide UI progress (SIMULATED; no business success qualificat
       expect(screen.getByText("保存后在哪找")).toBeInTheDocument(); expect(screen.getByText("没有成功怎么办")).toBeInTheDocument();
       const summary = screen.getByText("核对结果与名词说明"); expect(summary.parentElement).not.toHaveAttribute("open");
       fireEvent.click(summary); expect(summary.parentElement?.querySelectorAll("dt")).toHaveLength(2);
+      if (step.id === "recovery") {
+        expect(dialog()).not.toHaveTextContent(/隔离测试|核对产物|回执|Core|CAS/);
+        expect(dialog()).toHaveTextContent("确认它已出现在备份列表中");
+        expect(dialog()).toHaveTextContent("先保存或复制未保存的文字");
+        expect(dialog()).toHaveTextContent("替换范围与授权影响");
+      }
     }
     const skip = screen.getByRole("button", { name: "暂时跳过，暂停并关闭首次使用引导" });
     expect(skip.getAttribute("aria-label")).toContain(skip.textContent); expect(onPage).not.toHaveBeenCalled();

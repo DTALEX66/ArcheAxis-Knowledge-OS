@@ -38,7 +38,7 @@ async function grant(operation:"answer"|"retest",purpose:string){
  fireEvent.click(await screen.findByRole("button",{name:"读取指定知识并建立上下文候选"}));await screen.findByText(/仅建立上下文候选/);
  fireEvent.change(screen.getByLabelText("用途"),{target:{value:purpose}});fireEvent.change(screen.getByLabelText("授权依据"),{target:{value:"SYNTHETIC explicit human authorization"}});fireEvent.click(screen.getByLabelText(operation==="answer"?"允许本地回答":"允许本地复测"));
  expect(writes.filter(w=>w.op==="document_create")).toHaveLength(operation==="answer"?0:1);
- fireEvent.click(screen.getByRole("button",{name:"明确授权并保存"}));await screen.findByText("授权版本已保存并读回，消费时再次校验用途、知识与时效。");fireEvent.click(screen.getByRole("button",{name:"使用已保存上下文进入纠正与评测"}));
+ fireEvent.click(screen.getByRole("button",{name:"明确授权并保存"}));await screen.findByText("授权版本已保存并读回，使用时再次校验用途、知识与时效。");fireEvent.click(screen.getByRole("button",{name:"使用已保存上下文进入纠正与评测"}));
 }
 it("SIMULATED actual mounted 13→14 correction/review→13 independent grant→14 retest→22 exact readback retains one source journey",async()=>{
  render(<Journey/>);await grant("answer","原知识回答用途");

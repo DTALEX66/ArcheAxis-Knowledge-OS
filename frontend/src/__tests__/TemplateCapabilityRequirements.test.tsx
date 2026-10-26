@@ -196,7 +196,7 @@ describe("template detail renders the requirement table", () => {
     expect(within(panel).getByRole("row", { name: /网页结构读取/ })).toHaveTextContent("已禁用");
     expect(within(panel).getByRole("row", { name: /PDF内容提取/ })).toHaveTextContent("当前应用未接入此处理服务");
     expect(within(panel).getByRole("row", { name: /本地内容检索/ })).toHaveTextContent("只有需求说明，尚未接入实际处理");
-    fireEvent.click(within(panel).getByRole("button", { name: "查看诊断详情：模板能力登记与运行状态" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "状态与诊断：模板能力登记与运行状态" }));
     const observed = { capability: "html.structure", enabled: false, health: "handshake_ready" };
     expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({
       template: TEMPLATES.find(template => template.id === "T2"),

@@ -450,7 +450,7 @@ describe("folder ingest", () => {
     // Worker retryable:false is not a substitute for Core's continuation grant.
     expect(within(row).getByRole("button",{name:"重试失败项（新请求）"})).toBeEnabled();
     const diagnostics=render(<DiagnosticConsole/>);
-    fireEvent.click(within(row).getByRole("button",{name:"查看诊断详情：此文件导入与转换详细信息"}));
+    fireEvent.click(within(row).getByRole("button",{name:"状态与诊断：此文件导入与转换详细信息"}));
     await waitFor(()=>expect(diagnostics.container.querySelector("pre")).not.toBeNull());
     expect(JSON.parse(diagnostics.container.querySelector("pre")!.textContent!).status.error).toBe(raw);
     expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);

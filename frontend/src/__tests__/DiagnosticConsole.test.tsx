@@ -18,7 +18,7 @@ describe("diagnostic console", () => {
       return <><DiagnosticCenter/><AaosDialog title="保留的引用选择" description="输入保持" open={open} onOpenChange={setOpen}><input aria-label="引用关键词" defaultValue="原输入"/><RawReceiptButton label="嵌套原始记录" payload={{identity:"second"}}/></AaosDialog></>;
     }
     render(<Picker/>);
-    const trigger=screen.getByRole("button",{name:"查看诊断详情：嵌套原始记录"});
+    const trigger=screen.getByRole("button",{name:"状态与诊断：嵌套原始记录"});
     await user.click(trigger);
     const diagnostic=screen.getByRole("dialog",{name:"运行诊断"});
     await waitFor(()=>expect(within(diagnostic).getByRole("button",{name:"关闭运行诊断"})).toHaveFocus());
@@ -35,7 +35,7 @@ describe("diagnostic console", () => {
     resetDiagnostics();
     const user=userEvent.setup();
     render(<><DiagnosticCenter/><RawReceiptButton label="组合输入记录" payload={{raw:true}}/></>);
-    await user.click(screen.getByRole("button",{name:"查看诊断详情：组合输入记录"}));
+    await user.click(screen.getByRole("button",{name:"状态与诊断：组合输入记录"}));
     const diagnostic=screen.getByRole("dialog",{name:"运行诊断"});
     const close=within(diagnostic).getByRole("button",{name:"关闭运行诊断"});
     await waitFor(()=>expect(close).toHaveFocus());
@@ -45,7 +45,7 @@ describe("diagnostic console", () => {
 
   it("starts empty and says where a payload would go", () => {
     render(<DiagnosticConsole />);
-    expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无原始回执");
+    expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无诊断记录");
   });
 
   it("lists a published payload verbatim without copying it to the developer console", async () => {
@@ -66,6 +66,6 @@ describe("diagnostic console", () => {
     render(<><RawReceiptButton label="导出格式与损失回执" payload={{ files: ["manifest.json"] }} /><DiagnosticConsole /></>);
     await user.click(screen.getByRole("button", { name: /导出格式与损失回执/ }));
     await user.click(screen.getByRole("button", { name: "清空诊断" }));
-    expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无原始回执");
+    expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无诊断记录");
   });
 });

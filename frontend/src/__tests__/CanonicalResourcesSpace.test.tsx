@@ -77,7 +77,7 @@ describe("resource source catalog", () => {
   it("keeps the complete catalog when handshake is unavailable or malformed", async () => {
     bridge.call.mockRejectedValue(new Error("offline")); render(<CanonicalResourcesSpace/>);
     await screen.findByRole("alert"); expect(screen.getByRole("alert")).toHaveTextContent("无法确认当前可用功能");
-    const diagnostics=renderHook(useDiagnosticState);await userEvent.setup().click(screen.getByRole("button",{name:"查看诊断详情：能力运行详细信息"}));
+    const diagnostics=renderHook(useDiagnosticState);await userEvent.setup().click(screen.getByRole("button",{name:"状态与诊断：能力运行详细信息"}));
     expect(diagnostics.result.current.entries[0].payload).toMatchObject({state:"failed"});
     expect(within(screen.getByRole("region", { name: "资源目录" })).getAllByRole("button", { name: / · / })).toHaveLength(68);
     bridge.call.mockResolvedValue({ capabilities: [{ capability: "media.video" }, { capability: "media.video" }] });
