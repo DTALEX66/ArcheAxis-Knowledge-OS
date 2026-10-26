@@ -121,11 +121,29 @@ def test_root_desktop_registers_the_complete_narrow_recovery_command_surface() -
         "retry_backend",
         "restore_backup",
         "exit_application",
+        "application_close_request",
+        "application_close_response",
     }
     assert required <= registered, (
         "the webview must receive recovery data and operations only through "
         "the narrow Tauri command surface"
     )
+
+
+def test_close_protocol_is_window_scoped_one_shot_and_uses_existing_event_permission() -> None:
+    source = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    for name in ("application_close_request", "application_close_response", "exit_application"):
+        body = source.split(f"fn {name}(", 1)[1].split("\n}\n", 1)[0]
+        assert "window: tauri::Window" in body
+        assert "close_window_allowed(window.label())?" in body
+    assert 'if label == "main"' in source
+    assert "locked.pending.as_deref() != Some(&request_id)" in source
+    assert "if locked.confirmation_started" in source
+    assert "locked.finish(&request_id, false)" in source
+    config = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    capability = config["app"]["security"]["capabilities"][0]
+    assert capability["windows"] == ["main"]
+    assert "core:event:default" in capability["permissions"]
 
 
 def test_desktop_keeps_launch_credentials_in_host_and_projects_only_ready() -> None:

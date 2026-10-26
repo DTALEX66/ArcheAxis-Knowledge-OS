@@ -16,7 +16,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "config/capability-packages/pdf-extract.manifest.json",
-      "sha256": "faec668b9245dceaf0bb10b57aa6a5bfd57c5ad5d93202fa06907e41db9aaf20"
+      "sha256": "814ee3b818ccb58cf7394835d44f573cd7703eee723bddd1ef659f589104903c"
     },
     {
       "path": "crates/archeaxis-api/Cargo.toml",
@@ -28,7 +28,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "packages/contracts/v1/core-document.schema.json",
-      "sha256": "7a1450ac163e09354bdf1512bea6a1bc69dabb6c0d9d6aeb568a8d618dfa9cb0"
+      "sha256": "f0e98e8137e58ff80f16d4b94c57532aa166c2a93b255a7263fbf945db6faca3"
     },
     {
       "path": "packages/contracts/v2/capability-package.schema.json",
@@ -57,7 +57,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
         "schema": "archeaxis.capability-package/v1",
         "package_id": "archeaxis.pdf-extract",
         "version": "0.1.0",
-        "sha256": "faec668b9245dceaf0bb10b57aa6a5bfd57c5ad5d93202fa06907e41db9aaf20"
+        "sha256": "814ee3b818ccb58cf7394835d44f573cd7703eee723bddd1ef659f589104903c"
       },
       "manifest": {
         "schema": "archeaxis.capability-package/v1",
@@ -81,7 +81,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
           "contract_refs": [
             {
               "path": "packages/contracts/v1/core-document.schema.json",
-              "sha256": "7a1450ac163e09354bdf1512bea6a1bc69dabb6c0d9d6aeb568a8d618dfa9cb0"
+              "sha256": "f0e98e8137e58ff80f16d4b94c57532aa166c2a93b255a7263fbf945db6faca3"
             }
           ]
         },
@@ -120,7 +120,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
             "kind": "raw_asset_reference",
             "contract": {
               "path": "packages/contracts/v1/core-document.schema.json",
-              "sha256": "7a1450ac163e09354bdf1512bea6a1bc69dabb6c0d9d6aeb568a8d618dfa9cb0"
+              "sha256": "f0e98e8137e58ff80f16d4b94c57532aa166c2a93b255a7263fbf945db6faca3"
             },
             "max_bytes": 1048576
           }
@@ -130,7 +130,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
             "kind": "document_reference",
             "contract": {
               "path": "packages/contracts/v1/core-document.schema.json",
-              "sha256": "7a1450ac163e09354bdf1512bea6a1bc69dabb6c0d9d6aeb568a8d618dfa9cb0"
+              "sha256": "f0e98e8137e58ff80f16d4b94c57532aa166c2a93b255a7263fbf945db6faca3"
             },
             "max_bytes": 1048576
           }

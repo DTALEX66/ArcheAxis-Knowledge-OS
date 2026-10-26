@@ -2,6 +2,7 @@ import {MaterialQuestionPanel} from "../components/MaterialQuestionPanel";
 import {ConversationPanel} from "../components/ConversationPanel";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import { useDocumentWriteLease } from "../workspace/documentSessions";
+import { useDraftOwner } from "../workspace/draftProtection";
 import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentation/coreWorkingState";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
@@ -91,6 +92,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [documentBytes, setDocumentBytes] = useState<Uint8Array | null>(null);
   const [document, setDocument] = useState<DocumentDto | null>(null);
   const documentLease=useDocumentWriteLease(document?.document_id);
+  const dirtyOwner=useDraftOwner("library");
   const [documentDrafts, setDocumentDrafts] = useState<Record<string, {content:JSONContent;baseVersion:number}>>(()=>Object.fromEntries(Object.entries(working?.state.drafts??{}).map(([id,draft])=>[id,{content:structuredClone(draft.editor_json),baseVersion:draft.base_version}])));
   const documentDraftsRef = useRef(documentDrafts);
   documentDraftsRef.current = documentDrafts;
@@ -146,7 +148,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   function publishDirtyState() {
     dirty.current = dirtyDocumentIds.current.size > 0 || noteAttempt.current !== null || relationPending.current;
     onDirtyChange?.(dirty.current);
-    window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:dirty.current}:dirty.current }));
+    window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty:dirty.current} }));
   }
   function selectFolderRelations(selection:FolderMemberSelection) {
     if(relationPending.current||writeInFlight.current||dirty.current){setMessage("原关系请求、草稿或写入未确认，保留原映射；请先核对。");return;}
@@ -236,7 +238,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     libraryMounted.current = true;
     const refresh=()=>{void refreshLists();};
     window.addEventListener("archeaxis-job-changed",refresh);
-    return () => { window.removeEventListener("archeaxis-job-changed",refresh); libraryMounted.current = false; listGeneration.current += 1; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:false}:false })); };
+    return () => { window.removeEventListener("archeaxis-job-changed",refresh); libraryMounted.current = false; listGeneration.current += 1; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty:false} })); };
   }, []);
   useEffect(()=>{sourceTargetAttempt.current={key:sourceTargetKey,navigation:generation.current,editing:editGeneration.current,pending:false,consumed:false};},[sourceTargetKey]);
   useEffect(()=>{void refreshLists();},[activationRevision,sourceTargetKey]);

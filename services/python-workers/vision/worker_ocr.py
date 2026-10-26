@@ -2,8 +2,8 @@
 """ArcheAxis vNext vision worker: OCR text + boxes (F04 partial).
 
 Runs the system Tesseract binary over a still image and returns:
-- the OCR text (character-level order, no assumptions about reading order
-  beyond Tesseract's own layout),
+- the OCR text with any measured Tesseract gutter reconstruction recorded;
+  RapidOCR retains its returned line sequence without an additional layout model,
 - per-word boxes with confidence from the TSV stream,
 - a loss receipt noting engine/psm/language.
 
@@ -113,43 +113,45 @@ def _declared_tessdata(language: str | None = None) -> Path | None:
 
 
 def _tesseract() -> str:
-    def usable(candidate: Path) -> bool:
+    def usable(candidate: Path) -> str | None:
         command = str(candidate)
-        # Bare command names are resolved by the process environment (and are
-        # intentionally supported by unit-test fakes); absolute configured
-        # paths must be regular files before they are probed.
-        if not candidate.is_absolute():
-            return True
-        if candidate.is_absolute() and not candidate.is_file():
-            return False
+        # An existing relative file names that exact file, not a same-named
+        # executable elsewhere on PATH. Bare command names may still be resolved
+        # by the process environment, but never qualify without a real probe.
+        if candidate.is_file():
+            command = str(candidate.resolve())
+        elif candidate.is_absolute() or candidate.parent != Path("."):
+            return None
         try:
             probe = _run([command, "--version"], capture_output=True, text=True, timeout=5)
         except (OSError, subprocess.TimeoutExpired):
-            return False
-        return probe.returncode == 0 and "tesseract" in (probe.stdout + probe.stderr).casefold()
+            return None
+        if probe.returncode == 0 and "tesseract" in (probe.stdout + probe.stderr).casefold():
+            return command
+        return None
 
     configured = os.environ.get("TESSERACT_CMD", "").strip()
     if configured:
         candidate = Path(configured)
-        if usable(candidate):
-            return str(candidate)
+        if binary := usable(candidate):
+            return binary
         # A stale shim can still exist as a file after its package moves. When
         # language data is explicitly pinned, derive the sibling binary from
         # that same toolchain before falling back to PATH.
         tessdata = os.environ.get("TESSDATA_PREFIX", "").strip()
         if tessdata:
             derived = Path(tessdata).parent / "tesseract" / "current" / "tesseract.exe"
-            if usable(derived):
-                return str(derived)
+            if binary := usable(derived):
+                return binary
     # R6 A02: resolve the engine from the declared external registry before
     # guessing. The engine is installed and registered on this machine, but it is
     # not on PATH, so `which` was reporting "unavailable" for a working engine.
     declared_binary = _declared_path("tesseract")
-    if declared_binary and usable(Path(declared_binary)):
-        return declared_binary
-    binary = shutil.which("tesseract")
-    if binary and usable(Path(binary)):
+    if declared_binary and (binary := usable(Path(declared_binary))):
         return binary
+    binary = shutil.which("tesseract")
+    if binary and (verified := usable(Path(binary))):
+        return verified
     if configured:
         if candidate.is_absolute() and not candidate.is_file():
             raise RuntimeError(f"configured TESSERACT_CMD does not exist: {candidate}")
@@ -399,7 +401,8 @@ def _rapidocr_words(image_bytes: bytes) -> tuple[list[dict], str, str]:
                 "line": str(index),
             }
         )
-    words.sort(key=lambda word: (float(word["y"]), float(word["x"])))
+    # Preserve the engine sequence: a (y, x) sort would interleave two columns
+    # even when the engine already returned each column together.
     text = "\n".join(word["text"] for word in words)
     return words, text, _rapidocr_version()
 
@@ -604,16 +607,17 @@ def extract(
     else:
         words, text, rapidocr_version = _rapidocr_words(image_bytes)
         ordered_words = words
-        # RapidOCR returns line boxes in reading order, so the Tesseract gutter model is not
-        # applied; the receipt says so rather than pretending a reconstruction happened.
+        # Preserve the returned line sequence without claiming it is the correct
+        # semantic reading order or inferring how many columns the image has.
         reading_order = {
             "model": "rapidocr-native-line-order",
+            "original_order": True,
             "applied": False,
-            "columns": 1,
+            "columns": None,
             "gutter": None,
             "blank_lines_dropped": 0,
             "differs_from_engine_order": False,
-            "reason": "the engine returns line boxes in reading order; no projection was applied",
+            "reason": "the engine's returned line sequence is preserved; no geometric sorting or column reconstruction was applied",
         }
         engine_params = {
             "lang": lang,

@@ -1,4 +1,5 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
+import { useDraftOwner } from "../workspace/draftProtection";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentDto, DocumentsListDto, DocumentSummaryDto, DocumentExportDto, SourcesListDto, SourceDto, OriginalDto, SearchDto, KnowledgeDto } from "../api/generated/core-contract";
@@ -98,7 +99,8 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
     }[]>([]), [proposals, setProposals] = useState<RecordView[]>([]);
     const b = buffers.current.get(active.current)!;
     const documentLease=useDocumentWriteLease(b.base?.document_id);
-    function publish() { const dirty = [...buffers.current.values()].some(x => x.dirty || x.attempt) || lock.current || pendingBoard.current; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: dirty })); redraw(x => x + 1); }
+    const dirtyOwner=useDraftOwner("expression");
+    function publish() { const dirty = [...buffers.current.values()].some(x => x.dirty || x.attempt) || lock.current || pendingBoard.current; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty} })); redraw(x => x + 1); }
     const pendingChanged = useCallback((value: boolean) => {
         if (!mounted.current)
             return;
@@ -112,7 +114,7 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
             setFailed(error);
         }
     }
-    useEffect(() => { mounted.current = true; void list(false); return () => { mounted.current = false; epoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); }; }, []);
+    useEffect(() => { mounted.current = true; void list(false); return () => { mounted.current = false; epoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty:false} })); }; }, []);
     useEffect(() => { onTrail?.([{ id: "page:21", label: "表达工作区", region: "expression" }, ...(b.base ? [{ id: b.base.document_id, label: b.base.title, region: "expression" }] : [])]); }, [b.base?.document_id, onTrail]);
     async function list(more: boolean) {
         if (listLock.current)

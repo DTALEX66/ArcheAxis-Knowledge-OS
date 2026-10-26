@@ -1,4 +1,5 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
+import { useDraftOwner } from "../workspace/draftProtection";
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
@@ -120,9 +121,10 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
     return `${knowledgeRows.find(item=>item.knowledge_id===ref.knowledge_id)?.head??"知识名称尚未读取"} · 固定知识版本`;
   }
   const documentLease=useDocumentWriteLease(b.base?.document_id);
-  function publish() { if (!mounted.current) return; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:[...buffers.current.values()].some(v=>v.dirty||!!v.attempt)||saving.current||pending.current})); redraw(n=>n+1); }
+  const dirtyOwner=useDraftOwner("research");
+  function publish() { if (!mounted.current) return; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:[...buffers.current.values()].some(v=>v.dirty||!!v.attempt)||saving.current||pending.current}})); redraw(n=>n+1); }
   function note(text:string, failed=false) { if(mounted.current){messageRevision.current++;setMessage(text);setError(failed);} }
-  useEffect(()=>{ mounted.current=true;void list(false);return()=>{mounted.current=false;epoch.current++;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));};},[]);
+  useEffect(()=>{ mounted.current=true;void list(false);return()=>{mounted.current=false;epoch.current++;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}}));};},[]);
   useEffect(()=>{publish();},[target,pickerBusy]);
   useEffect(()=>{onTrail?.([{id:"page:05",label:"研究空间",region:"research"},...(b.base?[{id:b.base.document_id,label:b.base.title,detail:`版本 ${b.base.version}`,region:"research"}]:[])]);},[b.base?.document_id,b.base?.version,onTrail]);
   async function list(more:boolean) {

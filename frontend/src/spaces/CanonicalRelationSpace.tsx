@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useDocumentWriteLease } from "../workspace/documentSessions";
+import { useDraftOwner } from "../workspace/draftProtection";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
@@ -46,10 +47,11 @@ export function CanonicalRelationSpace({ onOpenReference, onOpenDocument, render
   const [directionFilter, setDirectionFilter] = useState("all"), [relationFilter, setRelationFilter] = useState("all"), [objectFilter, setObjectFilter] = useState("all");
   const b = buffers.current.get(active.current)!, formDirty = !!(targetId || relationLabel || block || sha) || collectionPending;
   const documentLease=useDocumentWriteLease(b.base?.document_id);
+  const dirtyOwner=useDraftOwner("relations");
   const pendingInput = useRef(false); pendingInput.current = formDirty;
   function note(m: string, error = false) { if (mounted.current) { setMessage(m); setFailed(error); } }
-  function publish() { if (!mounted.current) return; const dirty=[...buffers.current.values()].some(x => x.dirty || x.attempt) || locked.current || formDirty;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty}:dirty })); redraw(x => x + 1); }
-  useEffect(() => { mounted.current = true; void list(false); return () => { mounted.current = false; epoch.current++; graphEpoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:false}:false })); }; }, []);
+  function publish() { if (!mounted.current) return; const dirty=[...buffers.current.values()].some(x => x.dirty || x.attempt) || locked.current || formDirty;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty} })); redraw(x => x + 1); }
+  useEffect(() => { mounted.current = true; void list(false); return () => { mounted.current = false; epoch.current++; graphEpoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty:false} })); }; }, []);
   useEffect(() => { publish(); }, [targetId, relationLabel, block, sha, collectionPending]);
   async function list(more: boolean) { if (listLocked.current) return; listLocked.current = true; try { const r = await coreCommand<DocumentsListDto>("documents_list", more && cursor ? { cursor } : {}); if (!mounted.current) return; setRows(old => more ? [...old, ...r.documents.filter(x => !old.some(y => y.document_id === x.document_id))] : r.documents); setCursor(r.next_cursor); note("文档列表已读取；关系绑定实际对象版本。"); } catch { note("文档列表读取失败；未当成空列表。", true); } finally { listLocked.current = false; } }
   async function graph(d: DocumentDto, next?: string) { const token = ++graphEpoch.current; setGraphBusy(true); try { const r = await coreCommand<RelationProjectionDto>("document_graph", { document_id: d.document_id, version: d.version, ...(next ? { cursor: next } : {}) }); if (!mounted.current || token !== graphEpoch.current) return; if (r.center.document_id !== d.document_id || r.center.version !== d.version || r.center.content_sha256 !== d.content_sha256) throw new Error("图投影身份不符"); setProjection(r); note("关系投影已读取；图与列表共用这一页固定版本。"); } catch { if (mounted.current && token === graphEpoch.current) { setProjection(null); note("关系投影读取失败；未报告无关系。", true); } } finally { if (mounted.current && token === graphEpoch.current) setGraphBusy(false); } }

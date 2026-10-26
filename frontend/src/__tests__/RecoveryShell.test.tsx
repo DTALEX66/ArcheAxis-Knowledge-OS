@@ -267,6 +267,31 @@ describe("Recovery Shell", () => {
     expect(recovery.verifyCanonicalCore).toHaveBeenCalledTimes(2);
   });
 
+  it("SIMULATED App retains A's dirty guard after Core stops and B cleanup cannot enable recovery", async () => {
+    vi.useFakeTimers();
+    const ready = { ...failedRecovery, state: "ready", backend_available: true, backups: [] };
+    recovery.getRecoveryStatus.mockResolvedValueOnce(ready).mockResolvedValueOnce(ready)
+      .mockResolvedValue({ ...failedRecovery, state: "stopped" });
+    recovery.verifyCanonicalCore.mockResolvedValueOnce({ status: "available" })
+      .mockRejectedValueOnce(new Error("SIMULATED disconnected Core"));
+    render(<App />);
+    await act(async () => Promise.resolve());
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-A", dirty: true } })); });
+    await act(async () => vi.advanceTimersByTimeAsync(10_000));
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-B", dirty: false } })); });
+    const restore = screen.getByRole("button", { name: "恢复备份" });
+    expect(restore).toBeDisabled();
+    expect(screen.getByText("草稿尚未保存，请先保存或保留文字后恢复备份。")).toBeInTheDocument();
+    fireEvent.click(restore);
+    expect(recovery.restoreRecoveryBackup).not.toHaveBeenCalled();
+    const closing = new Event("beforeunload", { cancelable: true });window.dispatchEvent(closing);
+    expect(closing.defaultPrevented).toBe(true);
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-A", dirty: false } })); });
+    expect(restore).toBeEnabled();
+  });
+
   it("cleans up one non-overlapping liveness loop on unmount", async () => {
     vi.useFakeTimers();
     const pendingStatus = deferred<typeof failedRecovery>();

@@ -361,7 +361,7 @@ use std::path::PathBuf;
 #[cfg(windows)]
 use std::sync::{Arc, Mutex, MutexGuard, TryLockError};
 #[cfg(windows)]
-use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 #[cfg(windows)]
 const RECOVERY_STATE_UNAVAILABLE: &str = "RECOVERY_STATE_UNAVAILABLE";
@@ -417,6 +417,104 @@ struct DesktopBackend {
     recovery: Arc<Mutex<RecoveryState>>,
     operations: Arc<Mutex<()>>,
     exiting: Arc<std::sync::atomic::AtomicBool>,
+}
+
+// Correlates close requests only. Draft truth stays in the mounted App, not a
+// periodically copied native dirty flag. A late answer cannot approve a new request.
+#[cfg(windows)]
+#[derive(Default)]
+struct ApplicationCloseRequests(Mutex<CloseRequestState>);
+
+#[cfg(windows)]
+#[derive(Default)]
+struct CloseRequestState {
+    sequence: u64,
+    pending: Option<String>,
+    confirmation_started: bool,
+}
+
+#[cfg(windows)]
+impl CloseRequestState {
+    fn request(&mut self) -> Result<(String, bool), String> {
+        if let Some(id) = &self.pending {
+            return Ok((id.clone(), false));
+        }
+        self.sequence = self.sequence.checked_add(1).ok_or("CLOSE_REQUEST_EXHAUSTED")?;
+        let id = format!("close-{}", self.sequence);
+        self.pending = Some(id.clone());
+        self.confirmation_started = false;
+        Ok((id, true))
+    }
+
+    fn begin_confirmation(&mut self, id: &str) -> bool {
+        if self.pending.as_deref() != Some(id) || self.confirmation_started {
+            return false;
+        }
+        self.confirmation_started = true;
+        true
+    }
+
+    fn finish(&mut self, id: &str, from_confirmation: bool) -> bool {
+        if self.pending.as_deref() != Some(id)
+            || self.confirmation_started != from_confirmation
+        {
+            return false;
+        }
+        self.pending = None;
+        self.confirmation_started = false;
+        true
+    }
+}
+
+#[cfg(all(test, windows))]
+mod application_close_tests {
+    use super::CloseRequestState;
+
+    #[test]
+    fn duplicate_close_reuses_one_request_and_confirmation() {
+        let mut state = CloseRequestState::default();
+        let (id, fresh) = state.request().unwrap();
+        assert!(fresh);
+        assert_eq!(state.request().unwrap(), (id.clone(), false));
+        assert!(state.begin_confirmation(&id));
+        assert!(!state.begin_confirmation(&id));
+        assert!(!state.finish(&id, false), "late clean reply cannot bypass confirmation");
+        assert!(state.finish(&id, true));
+        assert!(!state.finish(&id, true), "one-shot decision");
+    }
+
+    #[test]
+    fn cancel_then_new_edit_cannot_replay_an_old_reply() {
+        let mut state = CloseRequestState::default();
+        let (old, _) = state.request().unwrap();
+        assert!(state.begin_confirmation(&old));
+        assert!(state.finish(&old, true)); // user cancelled; Core was not touched
+        let (new, fresh) = state.request().unwrap();
+        assert!(fresh);
+        assert_ne!(old, new);
+        assert!(!state.finish(&old, false));
+        assert!(!state.begin_confirmation(&old));
+        assert!(state.finish(&new, false));
+    }
+
+    #[test]
+    fn missing_frontend_uses_explicit_confirmation_and_rejects_late_clean() {
+        let mut state = CloseRequestState::default();
+        let (id, _) = state.request().unwrap();
+        assert!(state.begin_confirmation(&id)); // native fallback reserves once
+        assert!(!state.finish(&id, false));
+        assert!(!state.begin_confirmation(&id));
+        assert!(state.finish(&id, true));
+        assert!(!state.finish(&id, false));
+    }
+
+    #[test]
+    fn only_main_window_can_answer_or_request_exit() {
+        assert!(super::close_window_allowed("main").is_ok());
+        for label in ["", "inspector", "main-2"] {
+            assert!(super::close_window_allowed(label).is_err());
+        }
+    }
 }
 
 #[cfg(windows)]
@@ -1132,6 +1230,7 @@ fn cleanup_backend_on_exit(state: DesktopBackend) {
 extern "system" {
     fn GetWindowThreadProcessId(window: *mut std::ffi::c_void, process_id: *mut u32) -> u32;
     fn PostMessageW(window: *mut std::ffi::c_void, message: u32, wparam: usize, lparam: isize) -> i32;
+    fn MessageBoxW(window: *mut std::ffi::c_void, text: *const u16, caption: *const u16, flags: u32) -> i32;
 }
 
 #[cfg(windows)]
@@ -1209,8 +1308,7 @@ mod menu_exit_tests {
 }
 
 #[cfg(windows)]
-#[tauri::command]
-fn exit_application(app: AppHandle) -> Result<(), String> {
+fn finish_application_exit(app: AppHandle) {
     let state = app.state::<DesktopBackend>().inner().clone();
     cancel_main_window_menu(&app);
     dispatch_exit_immediately(|_| {
@@ -1227,7 +1325,102 @@ fn exit_application(app: AppHandle) -> Result<(), String> {
             app.exit(code);
         })
     });
-    Ok(())
+}
+
+#[cfg(windows)]
+fn close_window_allowed(label: &str) -> Result<(), String> {
+    if label == "main" { Ok(()) } else { Err("CLOSE_WINDOW_FORBIDDEN".into()) }
+}
+
+#[cfg(windows)]
+fn confirm_owned_application_close(app: AppHandle, id: String, unresponsive: bool) {
+    let Some(window) = app.get_webview_window("main") else { return };
+    let decision = window.hwnd().ok().and_then(|handle| {
+        let mut owner = 0;
+        unsafe { GetWindowThreadProcessId(handle.0, &mut owner) };
+        if owner != std::process::id() { return None; }
+        let message = if unresponsive {
+            "界面尚未响应退出检查，可能仍有未保存文字。\n\n选择“是”将放弃尚未保存的页面内容并退出。\n选择“否”继续保留当前窗口。"
+        } else {
+            "还有未保存的草稿。\n\n选择“是”将放弃尚未保存的页面内容并退出。\n选择“否”返回保存或保留文字。"
+        };
+        let text: Vec<u16> = message.encode_utf16().chain(Some(0)).collect();
+        let title: Vec<u16> = "确认退出星环知识系统".encode_utf16().chain(Some(0)).collect();
+        // YES/NO + warning + default NO. No timeout or automatic approval.
+        Some(unsafe { MessageBoxW(handle.0, text.as_ptr(), title.as_ptr(), 0x134) })
+    });
+    let accepted = app.state::<ApplicationCloseRequests>().0.lock().map(|mut state| state.finish(&id, true)).unwrap_or(false);
+    if !accepted { return; }
+    if decision == Some(6) {
+        finish_application_exit(app);
+    } else {
+        let outcome = if decision.is_some_and(|value| value != 0) { "cancelled" } else { "failed" };
+        let _ = window.emit("archeaxis-close-decision", serde_json::json!({"request_id":id,"outcome":outcome}));
+    }
+}
+
+#[cfg(windows)]
+fn request_application_close(window: &tauri::Window) {
+    if close_window_allowed(window.label()).is_err() { return; }
+    let app = window.app_handle().clone();
+    if app.state::<DesktopBackend>().exiting.load(std::sync::atomic::Ordering::SeqCst) { return; }
+    cancel_main_window_menu(&app);
+    let request = app.state::<ApplicationCloseRequests>().0.lock().ok().and_then(|mut state| state.request().ok());
+    let Some((id, fresh)) = request else { return };
+    let _ = window.emit("archeaxis-close-requested", serde_json::json!({"request_id":id}));
+    if fresh {
+        std::thread::spawn(move || {
+            // A missing, crashed or not-yet-registered frontend never silently
+            // authorizes close. The same one-shot native confirmation is fallback.
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            let reserved = app.state::<ApplicationCloseRequests>().0.lock().map(|mut state| state.begin_confirmation(&id)).unwrap_or(false);
+            if reserved { confirm_owned_application_close(app, id, true); }
+        });
+    }
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn application_close_request(window: tauri::Window, app: AppHandle) -> Result<Option<serde_json::Value>, String> {
+    close_window_allowed(window.label())?;
+    let state = app.state::<ApplicationCloseRequests>();
+    let locked = state.0.lock().map_err(|_| "CLOSE_STATE_UNAVAILABLE")?;
+    Ok(locked.pending.as_ref().map(|id| serde_json::json!({"request_id":id})))
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn application_close_response(window: tauri::Window, app: AppHandle, request_id: String, dirty: bool) -> Result<&'static str, String> {
+    close_window_allowed(window.label())?;
+    let action = {
+        let state = app.state::<ApplicationCloseRequests>();
+        let mut locked = state.0.lock().map_err(|_| "CLOSE_STATE_UNAVAILABLE")?;
+        if locked.pending.as_deref() != Some(&request_id) { return Err("CLOSE_REQUEST_STALE".into()); }
+        if locked.confirmation_started { return Ok("awaiting_confirmation"); }
+        if dirty {
+            locked.begin_confirmation(&request_id);
+            true
+        } else {
+            if !locked.finish(&request_id, false) { return Err("CLOSE_REQUEST_STALE".into()); }
+            false
+        }
+    };
+    if action {
+        std::thread::spawn(move || confirm_owned_application_close(app, request_id, false));
+        Ok("awaiting_confirmation")
+    } else {
+        finish_application_exit(app);
+        Ok("exiting")
+    }
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn exit_application(window: tauri::Window, app: AppHandle) -> Result<(), String> {
+    close_window_allowed(window.label())?;
+    cancel_main_window_menu(&app);
+    // Menu/recovery exits take exactly the window X / Alt+F4 confirmation route.
+    window.close().map_err(|_| "CLOSE_REQUEST_FAILED".into())
 }
 
 #[cfg(windows)]
@@ -1244,6 +1437,7 @@ fn main() {
     let exit_backend = backend.clone();
     let app = tauri::Builder::default()
         .manage(backend)
+        .manage(ApplicationCloseRequests::default())
         .invoke_handler(tauri::generate_handler![
             core_command,
             ui_host_command,
@@ -1259,6 +1453,8 @@ fn main() {
             workspace_restore_preview,
             workspace_restore_confirm,
             exit_application,
+            application_close_request,
+            application_close_response,
         ])
         .setup(move |app| {
             let resources = app
@@ -1383,22 +1579,11 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if matches!(event, WindowEvent::CloseRequested { .. }) {
-                // Let Tauri's native close path end the window and event loop.
-                // Blocking or preventing WM_CLOSE here has proved racy on a
-                // packaged Windows shell. Core is held by a KILL_ON_JOB_CLOSE
-                // Job Object, so a process that exits before graceful teardown
-                // still reclaims the owned child process.
-                let state = window
-                    .app_handle()
-                    .state::<DesktopBackend>()
-                    .inner()
-                    .clone();
-                cleanup_backend_on_exit(state);
-                // This product owns one shell window. Explicitly request process exit
-                // as well as window close; an attached WebView observer must not leave
-                // a windowless shell holding the workspace or runtime resources.
-                dispatch_exit_immediately(|code| window.app_handle().exit(code));
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // Hold the window and Core until this request is checked. This
+                // handler never blocks the event loop or mirrors draft truth.
+                api.prevent_close();
+                request_application_close(window);
             }
         })
         // Select the application-local runtime through Tauri's public Context

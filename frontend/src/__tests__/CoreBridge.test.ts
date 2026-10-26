@@ -3,6 +3,15 @@ import { coreCommand, verifyCanonicalCore } from "../api/core";
 import { ApiError } from "../api/client";
 
 afterEach(() => { delete window.__TAURI__; });
+it.each([undefined,[],[{backup_id:"c".repeat(32),filename:`${"c".repeat(32)}.sqlite`,code:"AAK-BACKUP-INVALID",message:"SIMULATED preserved"}]])("SIMULATED optional unavailable backups decode without changing valid backups",async(unavailable)=>{
+  const body={backups:[],...(unavailable===undefined?{}:{unavailable_backups:unavailable})};
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body})}};
+  await expect(coreCommand("workspace_backups")).resolves.toEqual(body);
+});
+it.each([null,[{backup_id:"bad",filename:"bad.sqlite",code:"AAK-BACKUP-INVALID",message:"preserved"}],[{backup_id:"c".repeat(32),filename:"bad.sqlite",code:"INVENTED",message:"preserved"}]])("SIMULATED unavailable backup metadata cannot bypass the generated decoder",async(unavailable_backups)=>{
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body:{backups:[],unavailable_backups}})}};
+  await expect(coreCommand("workspace_backups")).rejects.toMatchObject({status:502,code:"incompatible"});
+});
 describe("finite Core bridge", () => {
   it("retains unknown model/cost and rejects invented connected status",async()=>{
     const body={schema:"archeaxis.machine-configuration/v1",worker_registered:true,selection_source:"EXPLICIT_LAUNCH",availability:"CONFIGURED_UNVERIFIED",model_identity:null,destination:"LOCAL_LOOPBACK_ONLY",material_scope:"AUTHORIZED_KNOWLEDGE_AND_EXPLICIT_QUESTION",inference_status:"NOT_EXECUTED",loaded_status:"UNKNOWN",usage:null,cost:null,network_performed:false,evidence_scope:"LAUNCH_POLICY_ONLY"};

@@ -39,7 +39,7 @@
   .first-use-guide.aaos-dialog-content { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); padding: 20px; }
   .first-use-guide-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .first-use-guide-layout nav ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .first-use-guide-layout nav button { height: 100%; font-size: 12px; }
+  .first-use-guide-layout nav button { height: 100%; font-size: max(14px, var(--ax-text-ui)); }
   .first-use-guide-footer { flex-direction: column; }
   .first-use-guide-footer > div { align-self: flex-end; }
 }

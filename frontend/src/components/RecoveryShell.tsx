@@ -9,6 +9,7 @@ import { AaosStatusBadge } from "./AaosStatusBadge";
 
 interface RecoveryShellProps {
   status: RecoveryStatusDto;
+  hasUnsavedDrafts?: boolean;
   verificationPending: boolean;
   onEnterSafeMode: () => Promise<void>;
   onRetry: () => Promise<void>;
@@ -51,6 +52,7 @@ const RECOVERY_MESSAGES: Record<RecoveryStatusDto["state"], string> = {
 
 export function RecoveryShell({
   status,
+  hasUnsavedDrafts = false,
   verificationPending,
   onEnterSafeMode,
   onRetry,
@@ -122,6 +124,10 @@ export function RecoveryShell({
   );
 
   const restore = async () => {
+    if (hasUnsavedDrafts) {
+      setError("草稿尚未保存，请先保存或保留文字后恢复备份。");
+      return;
+    }
     if (!selectedBackup || !status.backups.includes(selectedBackup)) {
       setError(ERRORS.restore);
       return;
@@ -176,6 +182,7 @@ export function RecoveryShell({
           </div>
           <p className="recovery-message" aria-live="polite">{primaryMessage}</p>
           {diagnostic ? <p className="recovery-diagnostic">诊断：{diagnostic}</p> : null}
+          {hasUnsavedDrafts ? <p role="alert">草稿尚未保存，请先保存或保留文字后恢复备份。</p> : null}
 
           <div className="recovery-actions" aria-label="恢复操作">
             <button type="button" className="primary" disabled={disabled} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试启动</button>
@@ -183,7 +190,7 @@ export function RecoveryShell({
             <button type="button" disabled={disabled || status.safe_mode} onClick={() => void enterSafeMode()}>安全模式</button>
             <button
               type="button"
-              disabled={disabled || restoreLocked || !selectedBackup}
+              disabled={disabled || restoreLocked || !selectedBackup || hasUnsavedDrafts}
               onClick={() => setConfirmRestore(true)}
             >
               恢复备份
@@ -219,7 +226,7 @@ export function RecoveryShell({
           {confirmRestore ? (
             <div className="recovery-confirm" role="group" aria-label="确认恢复备份">
               <p>在本地核心保持停止时恢复所选已验证备份？</p>
-              <button type="button" className="danger" disabled={disabled || restoreLocked} onClick={() => void restore()}>确认恢复</button>
+              <button type="button" className="danger" disabled={disabled || restoreLocked || hasUnsavedDrafts} onClick={() => void restore()}>确认恢复</button>
               <button type="button" disabled={disabled} onClick={() => setConfirmRestore(false)}>取消</button>
             </div>
           ) : null}

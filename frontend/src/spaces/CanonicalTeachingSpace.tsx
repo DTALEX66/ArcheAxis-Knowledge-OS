@@ -1,4 +1,5 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
+import { useDraftOwner } from "../workspace/draftProtection";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
@@ -83,6 +84,7 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   const [preparation,setPreparation]=useState<{document_id:string;version:number;title:string}|null>(retained?.preparation??null), [savedPreparation,setSavedPreparation]=useState(retained?.saved_preparation??"");
   const [preparationRows,setPreparationRows]=useState<DocumentSummaryDto[]>([]), [preparationCursor,setPreparationCursor]=useState<string|null>(null), [preparationListed,setPreparationListed]=useState(false);
   const documentLease=useDocumentWriteLease(preparation?.document_id);
+  const dirtyOwner=useDraftOwner("teaching");
   const [parent,setParent]=useState<RecordView|null>(retained?.parent??null), [busy,setBusy]=useState(false), [message,setMessage]=useState(retained?"已恢复本地教学草稿；来源与父记录仍由正式保存合同核对，尚未登记新记录。":""), [failure,setFailure]=useState<string|null>(null);
   const [pending,setPending]=useState(Boolean(retained?.pending_record)), [withdrawReason,setWithdrawReason]=useState(""), [withdrawDialog,setWithdrawDialog]=useState(false);
   const [originalExchange,setOriginalExchange]=useState<File|null>(null);
@@ -112,8 +114,8 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   useEffect(()=>{void load();return()=>{epoch.current++;listEpoch.current++;fileEpoch.current++;};},[]);
   useEffect(()=>{epoch.current++;if(!working&&!createAttempt.current){setDraft(previous=>({...previous,kind:kinds[pageId]?.[0] ?? previous.kind}));}setPractice(Boolean(initialItemKey&&["11","12"].includes(pageId)));},[pageId,initialItemKey]);
   useEffect(()=>{const request=++journeyEpoch.current;if(!initialItemKey||!["11","12"].includes(pageId)){setJourney(undefined);setJourneyFailure(null);return;}setJourney(previous=>previous?.item_key===initialItemKey?previous:undefined);setJourneyFailure(null);void resolveLearningJourney(initialItemKey).then(target=>{if(request!==journeyEpoch.current)return;setJourney(target);}).catch(error=>{if(request!==journeyEpoch.current)return;setJourney(undefined);setJourneyFailure(coreFailureReason(error)??"原学习项目的绑定回执不一致或不可用。");});return()=>{journeyEpoch.current++;};},[initialItemKey,pageId]);
-  useEffect(()=>{const dirty=JSON.stringify({purpose:draft.purpose,content:draft.content})!==savedPreparation&&(!!draft.content||!!draft.purpose)||pending;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:dirty}));},[draft.content,draft.purpose,pending,savedPreparation]);
-  useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));},[]);
+  useEffect(()=>{const dirty=JSON.stringify({purpose:draft.purpose,content:draft.content})!==savedPreparation&&(!!draft.content||!!draft.purpose)||pending;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty}}));},[draft.content,draft.purpose,pending,savedPreparation,dirtyOwner]);
+  useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}}));},[dirtyOwner]);
   useEffect(()=>{onTrail?.(selected?[{id:`teaching:${selected.record.record_id}`,label:names[selected.record.kind],region:"teaching"}]:[]);},[selected,onTrail]);
   async function run(task:(request:number)=>Promise<void>) {if(lock.current)return;lock.current=true;setBusy(true);setFailure(null);const request=epoch.current;try{await task(request);}catch(error){if(request===epoch.current){setMessage("操作未确认完成，请保留文字并重试；不会显示为成功。");setFailure(coreFailureReason(error));}}finally{lock.current=false;setBusy(false);}}
   function changeSelection() {epoch.current++;setSelected(null);currentSelection.current=null;setAssessmentId(null);setPractice(false);withdrawalAttempt.current=null;setWithdrawDialog(false);}

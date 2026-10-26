@@ -945,6 +945,17 @@
       ],
       "additionalProperties": true
     },
+    "UnavailableBackupDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backup_id", "filename", "code", "message"],
+      "properties": {
+        "backup_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "filename": { "type": "string" },
+        "code": { "const": "AAK-BACKUP-INVALID" },
+        "message": { "type": "string" }
+      }
+    },
     "BackupsListDto": {
       "type": "object",
       "properties": {
@@ -953,6 +964,10 @@
           "items": {
             "$ref": "#/$defs/BackupDto"
           }
+        },
+        "unavailable_backups": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/UnavailableBackupDto" }
         }
       },
       "required": [

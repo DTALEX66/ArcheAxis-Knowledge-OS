@@ -14,6 +14,7 @@ import argparse
 import contextlib
 import ctypes
 import hashlib
+import importlib.util
 import json
 import os
 import socket
@@ -26,9 +27,11 @@ from pathlib import Path
 from urllib.request import ProxyHandler, build_opener
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
-# Direct CLI resolves this repository-owned package from ROOT above.
-from scripts.runtime import dev  # noqa: E402
+_dev_spec = importlib.util.spec_from_file_location("aaos_menu_exit_dev", ROOT / "scripts/runtime/dev.py")
+assert _dev_spec is not None and _dev_spec.loader is not None
+dev = importlib.util.module_from_spec(_dev_spec)
+sys.modules[_dev_spec.name] = dev
+_dev_spec.loader.exec_module(dev)
 
 
 def sha(path: Path) -> str:

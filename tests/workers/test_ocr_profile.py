@@ -29,6 +29,18 @@ def completed(stdout="", returncode=0, stderr=""):
     return subprocess.CompletedProcess([], returncode, stdout, stderr)
 
 
+def after_identity(*responses):
+    """Extraction fixtures must also answer the executable identity probes."""
+    outputs = iter(responses)
+
+    def execute(command, **kwargs):
+        if "--version" in command:
+            return completed("tesseract test\n")
+        return next(outputs)
+
+    return execute
+
+
 class OCRProfileTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(dir=os.environ["ARCHEAXIS_RUN_ROOT"])
@@ -81,7 +93,7 @@ class OCRProfileTests(unittest.TestCase):
             self.assertEqual(result["text"], "ANCHOR")
             self.assertEqual(result["words"][0]["x"], 10)
             self.assertEqual(result["loss_receipt"]["params"]["tessdata_dir"], str(self.tessdata))
-        self.assertEqual(sum("--version" in command for command in commands), 1)
+        self.assertTrue(any("--version" in command for command in commands))
         for command in commands:
             if "--version" not in command:
                 self.assertIn("--tessdata-dir", command)
@@ -123,8 +135,8 @@ class OCRProfileTests(unittest.TestCase):
 
     def test_probe_preserves_windows_script_language_names(self):
         with patch.object(ocr.shutil, "which", return_value="tesseract"), patch.object(
-            ocr.subprocess, "run", side_effect=[completed("tesseract test\n"),
-                                               completed("List of available languages (2):\neng\nscript\\Latin\n")]
+            ocr.subprocess, "run", side_effect=after_identity(
+                completed("List of available languages (2):\neng\nscript\\Latin\n"))
         ):
             _, result = self.call_main(["--probe", "--lang", "script\\Latin"])
         self.assertTrue(result["capability"], result)
@@ -134,7 +146,7 @@ class OCRProfileTests(unittest.TestCase):
         for tsv in (completed("", 1, "TSV failed"), completed(""), completed("not TSV")):
             with self.subTest(tsv=tsv):
                 with patch.object(ocr.shutil, "which", return_value="tesseract"), patch.object(
-                    ocr.subprocess, "run", side_effect=[completed("ANCHOR\n"), tsv]
+                    ocr.subprocess, "run", side_effect=after_identity(completed("ANCHOR\n"), tsv)
                 ):
                     code, result = self.call_main([str(self.image)])
                 self.assertNotEqual(code, 0)
@@ -154,8 +166,8 @@ class OCRProfileTests(unittest.TestCase):
 
     def test_successful_subprocess_warnings_are_preserved_in_loss_receipt(self):
         with patch.object(ocr.shutil, "which", return_value="tesseract"), patch.object(
-            ocr.subprocess, "run", side_effect=[completed("ANCHOR\n", stderr="text warning"),
-                                               completed(TSV, stderr="TSV warning")]
+            ocr.subprocess, "run", side_effect=after_identity(
+                completed("ANCHOR\n", stderr="text warning"), completed(TSV, stderr="TSV warning"))
         ):
             code, result = self.call_main([str(self.image)])
         self.assertEqual(code, 0)
@@ -168,7 +180,7 @@ class OCRProfileTests(unittest.TestCase):
                     "5\t1\t1\t1\t1\t2\t10\t20\t30\t40\tNaN\tSECOND\n",
                     "5\t1\t1\t1\t1\t2\t10\t20\t30\t40\tbad\tSECOND\n"):
             with self.subTest(row=row), patch.object(ocr.shutil, "which", return_value="tesseract"), patch.object(
-                ocr.subprocess, "run", side_effect=[completed("ANCHOR SECOND\n"), completed(TSV + row)]
+                ocr.subprocess, "run", side_effect=after_identity(completed("ANCHOR SECOND\n"), completed(TSV + row))
             ):
                 code, result = self.call_main([str(self.image)])
             self.assertNotEqual(code, 0)

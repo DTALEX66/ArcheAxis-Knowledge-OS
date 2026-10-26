@@ -64,7 +64,7 @@
 
 .stitch-companion-content .companion-context-header.companion-character-header {
   display: grid;
-  grid-template-columns: minmax(150px, 39%) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 45%) minmax(0, 1fr);
   gap: 16px;
   align-items: center;
   padding-bottom: 12px;
@@ -74,12 +74,20 @@
 .companion-character-copy { min-width: 0; }
 .companion-character-copy .companion-character-name { color: var(--ax-fg, #f3f4f6); font-size: 20px; font-weight: 600; letter-spacing: .04em; }
 .companion-character-copy .companion-character-state { display: inline-block; margin: 3px 0 8px; padding: 2px 8px; border: 1px solid var(--ax-border, #ffffff20); border-radius: 999px; color: var(--ax-fg-secondary, #bec4cc); font-size: 12px; }
-.stitch-companion-content .companion-character-copy h3 { font-size: 14px; line-height: 1.5; }
-.stitch-companion-content .companion-character-copy p { font-size: 12px; line-height: 1.7; }
+.stitch-companion-content .companion-character-header .companion-character-copy h3 { font-size: 14px; line-height: 1.5; }
+.stitch-companion-content .companion-character-header .companion-character-copy p { font-size: 14px; line-height: 1.6; }
 .companion-character-views { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
-.stitch-companion-content .companion-character-views button { min-height: 28px; padding: 3px 9px; border: 1px solid var(--ax-border, #ffffff20); border-radius: 6px; background: transparent; color: var(--ax-fg-secondary, #bec4cc); font-size: 12px; }
+.stitch-companion-content .companion-character-views button { min-height: 34px; padding: 5px 10px; border: 1px solid var(--ax-border, #ffffff20); border-radius: 6px; background: transparent; color: var(--ax-fg-secondary, #bec4cc); font-size: 14px; }
 .stitch-companion-content .companion-character-views button[aria-pressed="true"] { background: rgb(255 255 255 / 10%); color: var(--ax-fg, #f3f4f6); border-color: rgb(255 255 255 / 28%); }
 .companion-session-actions .companion-create-primary { color: var(--ax-fg, #f3f4f6); background: var(--ax-raised, #ffffff12); }
+.stitch-companion-content [data-companion-slot="sidebar"] .companion-session-actions .companion-create-primary { min-height: 36px; font-size: 14px; font-weight: 500; background: var(--ax-raised, #ffffff12); border-color: var(--ax-border, #ffffff20); }
+.stitch-companion-content .companion-session-management { border: 1px solid var(--ax-border, #ffffff20); border-radius: 8px; }
+.stitch-companion-content .companion-session-management > summary { padding: 8px 10px; font-size: 14px; cursor: pointer; color: var(--ax-fg-secondary, #bec4cc); }
+.stitch-companion-content .companion-session-management > div { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 4px 10px 10px; }
+@media (min-width: 1280px) and (min-height: 800px) {
+  .stitch-companion-content [data-companion-slot="sidebar"] .xiaoqi-avatar[data-presentation="portrait"],
+  .stitch-companion-content [data-companion-slot="sidebar"] .xiaoqi-avatar[data-presentation="figure"] { height: 280px; }
+}
 @media (max-width: 1279px), (max-height: 799px) {
   .xiaoqi-avatar[data-presentation="portrait"], .xiaoqi-avatar[data-presentation="figure"] { height: 160px; }
   .stitch-companion-content .companion-context-header.companion-character-header { grid-template-columns: minmax(120px, 40%) minmax(0, 1fr); gap: 10px; }

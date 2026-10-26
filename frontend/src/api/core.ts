@@ -18,6 +18,7 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  workspace_backups: "BackupsListDto",
   ingest_batch_register:"IngestBatchDto",ingest_batch_get:"IngestBatchDto",ingest_batches_list:"IngestBatchesDto",
   ingest_member_import:"IngestMemberImportDto",ingest_member_enqueue:"IngestMemberJobDto",
   ingest_member_relations_apply:"IngestRelationsDto",

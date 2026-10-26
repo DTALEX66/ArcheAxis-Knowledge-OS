@@ -4,6 +4,8 @@ import {CompanionSessionProvider} from "../companion/CompanionSessionProvider";
 import {ConversationPanel} from "../components/ConversationPanel";
 import {DiagnosticCenter, DiagnosticCenterTrigger, RawReceiptButton} from "../components/DiagnosticConsole";
 import {userErrorMessage} from "../presentation/labels";
+import { updateDraftOwners } from "../workspace/draftProtection";
+import { installNativeCloseProtection } from "../workspace/nativeCloseProtection";
 import {DocumentSnapshot} from "../components/DocumentSnapshot";
 import type {JSONContent} from "@tiptap/core";
 import { coreCommand } from "../api/core";
@@ -130,6 +132,16 @@ function AppBody() {
   const draftDirty = useRef(false);
   const draftOwners = useRef(new Set<string>());
   const [unsavedDrafts, setUnsavedDrafts] = useState(false);
+  const [nativeClosePending, setNativeClosePending] = useState(false);
+  const [nativeCloseError, setNativeCloseError] = useState("");
+  useEffect(() => {
+    if (!window.__TAURI__?.core?.invoke || !("__TAURI_INTERNALS__" in window)) return;
+    return installNativeCloseProtection({
+      isDirty: () => draftDirty.current,
+      pending: value => { setNativeClosePending(value); if (value) setNativeCloseError(""); },
+      error: setNativeCloseError,
+    });
+  }, []);
   const [workspaceRestoring, setWorkspaceRestoring] = useState(false);
   const restoringRef = useRef(false);
   const [restoreNotice, setRestoreNotice] = useState<{confirmed:boolean;message:string}|null>(null);
@@ -189,10 +201,8 @@ function AppBody() {
   useEffect(() => {
     const listener = (event: Event) => {
       const value = (event as CustomEvent<unknown>).detail;
-      const item = value && typeof value === "object" ? value as { owner?: unknown; dirty?: unknown } : null;
-      const owner = item && typeof item.owner === "string" ? item.owner : "legacy";
-      if (item ? item.dirty === true : value === true) draftOwners.current.add(owner); else draftOwners.current.delete(owner);
-      draftDirty.current = draftOwners.current.size > 0; setUnsavedDrafts(draftDirty.current);
+      draftDirty.current = updateDraftOwners(draftOwners.current, value);
+      setUnsavedDrafts(draftDirty.current);
     };
     window.addEventListener("archeaxis-draft-dirty", listener);
     return () => window.removeEventListener("archeaxis-draft-dirty", listener);
@@ -678,6 +688,7 @@ function AppBody() {
     name: string,
     onReceipt: () => void,
   ): Promise<"refreshed" | "refresh-unavailable"> => {
+    if (draftDirty.current) throw new Error("草稿尚未保存，请先保存或保留文字后恢复备份。");
     const epoch = beginOperation();
     setDesktopReady(false);
     try {
@@ -790,9 +801,12 @@ function AppBody() {
   if (!desktopReady && recoveryStatus) {
     return (
       <>
+      {nativeClosePending ? <p role="status">正在确认退出，页面编辑已暂停；取消退出后可继续。</p> : null}
+      {nativeCloseError ? <p role="alert">{nativeCloseError}</p> : null}
       {restoreNotice ? <p role={restoreNotice.confirmed ? "status" : "alert"} className="workspace-restore-notice">{restoreNotice.message}</p> : null}
       <RecoveryShell
         status={recoveryStatus}
+        hasUnsavedDrafts={unsavedDrafts}
         verificationPending={verificationPending}
         onEnterSafeMode={enterSafeMode}
         onRetry={retry}
@@ -843,6 +857,8 @@ function AppBody() {
         onToggleInspector={toggleInspector}
       />
       </TopNavBar>
+      {nativeClosePending ? <p role="status">正在确认退出，页面编辑已暂停；取消退出后可继续。</p> : null}
+      {nativeCloseError ? <p role="alert">{nativeCloseError}</p> : null}
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
       {workingNotice}

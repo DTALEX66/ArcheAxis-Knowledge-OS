@@ -2046,3 +2046,22 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - Owner明确“上传吧，改了”，当前审批通道已变更为受管审批。先核本地b5e3d638和原有dirty；沙盒内SSH读取失败后，正常approved Git SSH读取远端与push均通过，无鉴权/端点/全局配置修改，无绕过拒绝。
 - 公开源码/检查点 `b5e3d6386ab7f6912106fac0a5ae788ed6e0947f` 已正常推送到 `trae/20261024`；Git push报告41e1848d→b5e3d638，GitHub CLI回读PR203 OPEN且head精确相等。未提交的原有六项dirty/untracked保持原位，私有runtime/数据库/证据未上传。
 - 2026-10-26 07:58（Asia/Shanghai）读取初始CI run40247028446：gateplan SUCCESS、lint IN_PROGRESS，不作当前完整CI通过声明。后继交接状态文档推送会形成新head，须按该实际head读取检查与制品；同候选本地资格不变。本次只上传，未合并、发布或更新Green。此前上传拒绝为历史，当前剩余为精确CI/制品及其后的合格交付，整体仍PARTIAL。
+
+### 2026-10-26 af1 DOT审计与Stitch协同复审
+
+- Owner提供PR203/af1ac68b审计，已并行核实并修复页面草稿owner、备份大小预算/坏项隔离、OCR真实命令探测与顺序回执、资产声明/换行/探针架构、菜单字号冲突；新修复尚未形成合格新候选。原始Python6030通过/18失败/124跳过/12初始化错误、前端2198通过/1失败、Rust1035通过/16失败独立保留，不以环境修正后的定向复测替换。
+- 备份Core定向24/24通过，但外层受并行写入INVALIDATED；Host recovery定向26/26通过。15000真实CAS完成创建/列出/预览/正式maintenance恢复与5坏邻居隔离，整组608.77秒，不写单次恢复速度。48MiB样本额外Rust allocator峰值4195757字节，不含SQLite C分配/进程RSS，授权staging还需要临时完整DB/CAS磁盘副本。三点故障返回测试不是物理断电。Host 15000仅parser/枚举夹具，原生大库恢复未测。
+- OCR定向75项及18子测试通过；版本探测超时回收owned子进程。RapidOCR实际合成双栏仍有交错/识别不足，只证明输出与回执一致，不声明准确率。
+- 真实隔离b12基线核实：研究页合成未保存内容时，owned WM_CLOSE退出且无确认；这是关闭绕过草稿确认的工程反例，不是用户真实数据事故。正在补齐native close请求/前端即时检查/明确确认/原有Core GRACEFUL退出协议，窗口X、菜单和AltF4统一路线，不能以组件PASS替代新Host实测。
+- af1托管run40247196565因SVG末尾换行lint失败，下游跳过；源码已修，后继需新提交完整CI，不能继续显示af1全绿。PNG/ICO真实哈希、1024PNG、7尺寸ICO已核；PE提取工具用b12及错误负对照验证，新Host实际打包图标仍待核。
+- Owner要求实际调用Stitch，已读取AAOS Desktop Replica项目和交互整合版，generate_variants返回初稿后再次edit_screens纠正虚构数据/错误人物截图/永久重复引导。原始与勘误都保留，复审见workspace/intake/20261026-stitch-ui-audit.md，生成图不是产品运行/Owner验收；既有DESIGN.md继续有效。
+- 下一步：全写集冻结、同源全前端/Python/Rust及完整检查、提交/推送和exact-SHA CI、新Core/Host/便携候选及原生草稿/字号/备份/打包资产复验。现用Green和用户b12预览未改，不启动新VM或替换程序来绕过资格。监控仍暂停，整体PARTIAL。
+
+#### 电脑崩溃续接核对
+
+- Owner要求继续。当前HEAD仍af1，公开修复尚未提交；旧项目Host/Core和测试进程均已不存在，不能沿用“预览仍存活”观察。仅恢复本任务进程，不操作其他项目或工具服务。
+- 已修改/新增文本扫描发现CompanionSession.test.tsx共32194字节全部NUL；原字节保全于 `avrec1/artifacts/CompanionSession.crash-nul.test.tsx`，从HEAD恢复原19个用例并重建新增交互测试。其他本轮产品源码未发现NUL；备份7文件冻结哈希仍一致。
+- 崩溃前nc-fe3/nc-py3/nc-ts3收据损坏、nc-rs4缺终态；原日志与损坏收据保留。新ncf4/ncp4定向各51通过但全局并行写入使外层INVALIDATED，不能代替冻结后全量资格。
+- Host junction原失败在短路径复现为sandbox拒绝创建；相同合成夹具经正常批准通道可创建并核对reparse属性及精确清理，不改断言。完整Host验证沿该通道进行。
+- 仍待所有写集冻结后的完整检查、新提交CI、新Core/Host、原生保护/人物与1920布局、打包资产及安装部署资格；现用Green未改，整体PARTIAL。
+- 后继源码冻结：人物280px/45%栏、短窄自动折叠、次级会话管理与原请求直达已落实，avfe2 22/22且source_consistent=true；Host junction安全测试hjt1 1/1且source_consistent=true。关闭状态机4项及menu_exit 1项子进程0，外层受并行写入INVALIDATED；不将这些定向结果替代新候选完整资格。
