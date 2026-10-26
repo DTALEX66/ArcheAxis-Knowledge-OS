@@ -695,6 +695,12 @@ jobs:
       # Match uv.lock; use the official preinstalled browsers and system libraries.
       image: mcr.microsoft.com/playwright/python:v1.61.0-noble@sha256:a9731514f24121d1dcd25d58d0a38146646d290a5998fd80d3e533e7b5e21c69
       options: --ipc=host
+    env:
+      # Checkout's temporary HOME differs from subsequent container shell steps.
+      # Trust only this job workspace through Git's process-scoped configuration.
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: ${{ github.workspace }}
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
     steps:

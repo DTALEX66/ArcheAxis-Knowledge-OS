@@ -2758,15 +2758,17 @@
           }
         },
         "ci_browser_preinstalled_followup_20261027": {
-          "state": "IMPLEMENTED_WORKFLOW_NOT_CONTAINER_VERIFIED",
+          "state": "CONTAINER_IMAGE_VERIFIED_BOOTSTRAP_FAILED_SCOPED_FIX_PENDING_CI",
           "cause": "GitHub job annotation15m exceeded; apt download18.5MB/9m29; Chromium install9m51, tests canceled after4m51, no terminal report",
           "evidence": ".project-local/runs/be268a2d33/ci4b2/artifacts/browser-cancellation-diagnosis.json",
           "image": "mcr.microsoft.com/playwright/python:v1.61.0-noble@sha256:a9731514f24121d1dcd25d58d0a38146646d290a5998fd80d3e533e7b5e21c69",
           "mature_reference": "https://playwright.dev/python/docs/docker",
-          "change": "Only browser-smoke container and preinstalled-browser preparation; preserve locked package, project cache,15m budget and all test commands/assertions",
+          "change": "Only browser-smoke container, preinstalled-browser preparation and exact job-workspace Git process trust; preserve locked package, project cache,15m budget and all test commands/assertions",
           "local_boundary": "MCR manifest and official Dockerfile read; no local Docker/WSL/VM; product preview4fc remains open",
-          "pending": "Actual container execution and new exact-source CI; no merge/release/Green replacement/Owner visual acceptance",
-          "static_review": "PASS: independent review, YAML/inline AST/lock version, all other jobs and test commands/budgets unchanged; actual container still pending"
+          "pending": "Actual browser preparation/regression and new exact-source CI; no merge/release/Green replacement/Owner visual acceptance",
+          "static_review": "Original container static review passed but missed checkout/shell HOME separation; raw CI failure retained; scoped followup still needs actual CI",
+          "bootstrap_failure_93395dad": "CI40407556899 browser job121869764399: official pinned image pulled in38s; initialize dev paths failed on dubious ownership before browser work. Checkout writes safe.directory under its temporary HOME, later shell uses /github/home. Evidence: .project-local/runs/be268a2d33/ci933b1/artifacts/browser-followup-summary.json",
+          "git_trust_fix": "GIT_CONFIG_COUNT=1 / safe.directory=${{ github.workspace }} only in browser-smoke job; no wildcard, local/global config write, HOME override or product change; official Git process configuration reference https://git-scm.com/docs/git-config"
         }
       }
     }

@@ -2215,3 +2215,5 @@ u18v8d透明观察器首次安装因受保护的内部invoke不可写而拒绝�
 4fc CI40401963945的browser-smoke因15分钟job总时限取消：安装Chromium耗9分51秒，其中apt18.5MB下载9分29秒；实际测试约4分51秒即被取消，21张PNG而无终态JSON，不能报PASS或据此认定业务断言失败。ci4b2保存原日志、注释、artifact及摘要，ci4b4实际读取MCR验证现有playwright1.61.0同版官方Python镜像与digest。后继仅CI及本记录／指针：固定预装镜像，复制浏览器至既有项目缓存并实际启动验证，移除联网apt冷装，15分钟及全部测试命令／断言保持。未在本机启动Docker／WSL／VM；容器与后继精确SHA CI仍需实际验收。v8产品构建及本机原生证据继续明确绑定4fc，不能移绑到CI元数据后继。
 
 该4fc CI最终结论CANCELLED：browser-smoke取消、a0-gates依赖汇总失败；其余需要执行的任务全部通过，明确包含Python3.12、Rust、browser之外的桌面检查、desktop-build及installer-lifecycle；三个策略未选任务仍为SKIPPED，不扩写成全量所有门通过。4fc同源NSIS实际安装验收与本地原生通过分别成立，原983d安装失败保留。后继CI容器补丁经独立审阅及YAML／锁版本／内嵌Python AST／所有其他job与测试命令和预算逐项不变检查通过，尚不冒充容器运行PASS。
+
+CI元数据后继93395dad的自动CI40407556899实际拉取固定镜像及digest通过（38秒），browser job121869764399却在dev.py初始化以dubious ownership失败，缓存复制、Chromium启动与浏览器回归均未执行。原日志及收据ci933b1保留：checkout在临时HOME写safe.directory，后续shell恢复/github/home，所以原静态审查漏掉了作用域分离。后继仅browser-smoke job用Git官方进程级配置信任精确${{ github.workspace }}，不使用通配信任、不写本机或容器全局配置、不覆盖HOME；保持原镜像／锁版本／15分钟和全部测试命令及断言。需新SHA实际CI验收，不将镜像拉取成功写为浏览器通过，4fc的v8产品与Owner预览保持不变。
