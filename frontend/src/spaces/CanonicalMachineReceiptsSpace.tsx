@@ -88,7 +88,7 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
             <dt>复测关联</dt><dd>{selected.retest_of ?? "非复测"}</dd></dl></details>
           {typeof conditions?.question === "string" ? <><h4>原问题</h4><p>{conditions.question}</p></> : null}
           {typeof answer === "string" ? <><h4>原机器回答</h4><pre aria-label="历史机器回答">{answer}</pre></> : null}
-          {selected.failure ? <p>失败说明：{failureMessage(selected.failure)} 原始记录可从“状态与诊断”查看。</p> : null}
+          {selected.failure ? <details><summary>查看失败说明</summary><p>{selected.failure}</p></details> : null}
           <p>历史内容只读；撤回知识不会改写已有回答和记录。复测完成也不代表你已掌握知识。</p>
           <RawReceiptButton label="完整任务详细信息" payload={{ ...receipt, principal: selected.principal, recorded_at: selected.recorded_at }} />
         </> : null}

@@ -29,8 +29,10 @@ it("SIMULATED: shows the actual failed-evaluation scope and preserves its raw fa
   render(<><CanonicalMachineReceiptsSpace /><DiagnosticConsole /></>);
   fireEvent.click(await screen.findByRole("button", { name: "回答评测 1 · 失败" }));
   await screen.findByText("SYNTHETIC answer");
-  expect(screen.queryByText("SYNTHETIC_RAW_FAILURE")).toBeNull();
-  expect(screen.getByText(/失败说明：/)).toHaveTextContent("原始记录可从“状态与诊断”查看");
+  const failureNote = screen.getByText("SYNTHETIC_RAW_FAILURE");
+  expect(failureNote.closest("details")).not.toHaveAttribute("open");
+  fireEvent.click(screen.getByText("查看失败说明"));
+  expect(failureNote).toHaveTextContent("SYNTHETIC_RAW_FAILURE");
   fireEvent.click(screen.getByRole("button", { name: "状态与诊断：完整任务详细信息" }));
   expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("SYNTHETIC_RAW_FAILURE");
   expect(bridge.call).toHaveBeenCalledWith("machine_task_get", { task_id: "evaluation_a" });
