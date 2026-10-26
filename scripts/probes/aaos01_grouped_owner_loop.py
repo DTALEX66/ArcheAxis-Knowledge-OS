@@ -418,6 +418,27 @@ return {page:pages.length===1?pages[0]:null,mode,scope,opened,
 """
 
 
+def menu_navigation_observation(scope, page_id):
+    """Observe actual popup readiness without changing focus or menu state."""
+    return "const menu=document.querySelector(" + json.dumps(scope) + ");const target=menu?.querySelector(" + json.dumps(f'button[data-page-id="{page_id}"]') + ");" + r"""
+const visible=n=>!!n&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&n.getClientRects().length>0&&typeof n.checkVisibility==='function'&&n.checkVisibility({checkOpacity:true,checkVisibilityCSS:true});
+const describe=n=>n?{tag:n.tagName,page:n.dataset?.pageId??null,text:n.textContent?.trim().slice(0,100),outer:n.outerHTML?.slice(0,1000)}:null;
+const summary=menu?.querySelector(':scope>summary'),pseudo=menu?getComputedStyle(menu,'::details-content'):null;
+const rect=target?.getBoundingClientRect(),targetVisible=visible(target);
+const hit=!!rect&&rect.width>0&&rect.height>0&&document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.closest('button')===target;
+const animations=menu&&typeof menu.getAnimations==='function'?menu.getAnimations({subtree:true}):null;
+const blockers=[...document.querySelectorAll('[role="dialog"],[role="alertdialog"]')].filter(visible).map(describe);
+const result={open:menu?.open??false,summaryFocused:!!summary&&document.activeElement===summary,
+index:menu?[...menu.querySelectorAll('button')].indexOf(target):-1,target:describe(target),active:describe(document.activeElement),
+targetVisible,targetEnabled:!!target&&!target.disabled,hit,blockers,
+contentVisibility:pseudo?.contentVisibility??null,opacity:pseudo?.opacity??null,
+runningAnimations:animations?.filter(animation=>animation.playState==='running').length??null};
+result.ready=result.open&&result.summaryFocused&&result.index>=0&&result.targetVisible&&result.targetEnabled&&result.hit
+&&result.contentVisibility!=='hidden'&&result.opacity==='1'&&result.runningAnimations===0&&result.blockers.length===0;
+return result;
+"""
+
+
 def prepare_rendered_navigation(ui, evidence, *, fresh_profile=False):
     """Pause the actual guide through trusted UI; do not mark any business step complete."""
     deadline = time.monotonic() + 30
@@ -721,6 +742,7 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         if self.js("return location.hash") == "#page=" + page_id and navigation["page"] == page_id:
             return
         assert navigation["mode"] in {"menu", "drawer", "sidebar"}, "No visible product navigation"
+        deadline = time.monotonic() + 30
         menu = navigation["mode"] == "menu"
         if menu:
             scope = navigation["scope"]
@@ -738,14 +760,22 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         # silently repeat a click that may have hit a moving layout neighbour.
         element = self.find(selector, "css selector")
         if menu:
-            focus = self.js("const n=document.querySelector(" + json.dumps(scope) + ");"
-                "return n?{summaryFocused:document.activeElement===n.querySelector('summary'),"
-                "index:[...n.querySelectorAll('button')].findIndex(b=>b.dataset.pageId===" + json.dumps(page_id) + ")}:null;")
+            observed = menu_navigation_observation(scope, page_id)
+            try:
+                self.wait("return (()=>{" + observed + "})().ready;", seconds=max(0, deadline - time.monotonic()))
+            except Exception:
+                self.evidence.append({"action": "navigation_menu_not_ready", "page_id": page_id, "observed": self.js(observed)})
+                raise
+            focus = self.js(observed)
             assert focus and focus["summaryFocused"] and focus["index"] >= 0, "Navigation summary must own native focus"
+            assert focus["ready"], "Menu readiness changed before native navigation"
+            self.evidence.append({"action": "navigation_menu_ready", "page_id": page_id, "observed": focus})
             summary = self.find(scope + " > summary", "css selector")
             self.command(summary, "value", {"text": "\ue004" * (focus["index"] + 1)})
             focused = self.js("const n=document.querySelector(" + json.dumps(selector) + ");"
                 "return !!n && document.activeElement===n && n.dataset.pageId===" + json.dumps(page_id) + ";")
+            if not focused:
+                self.evidence.append({"action": "navigation_focus_failure", "page_id": page_id, "observed": self.js(observed)})
             assert focused, "Native Tab did not focus the exact navigation target"
             self.evidence.append({"action": "native_tab_to_navigation", "page_id": page_id, "tabs": focus["index"] + 1})
         try:
@@ -764,7 +794,7 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
             observation = "return location.hash===" + json.dumps("#page=" + page_id) + "&&(()=>{" + product_navigation_observation(page_id) + "})().page===" + json.dumps(page_id)
             for attempt in range(3):
                 try:
-                    self.wait(observation)
+                    self.wait(observation, seconds=max(0, deadline - time.monotonic()))
                     break
                 except Exception as error:
                     if not confirm_navigation or getattr(error, "value", {}).get("error") != "unexpected alert open" or attempt == 2:

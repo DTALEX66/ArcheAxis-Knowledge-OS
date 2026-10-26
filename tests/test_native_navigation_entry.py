@@ -203,6 +203,102 @@ def test_duplicate_menu_pages_resolve_to_one_actual_group_without_hash_navigatio
     assert evaluate(probe.product_navigation_observation('22'), shell())['scope'] is None
 
 
+@pytest.mark.parametrize('condition,ready', [
+    ('unrendered', False), ('hidden', False), ('animating', False),
+    ('occluded', False), ('closed', False), ('unknown-modal', False), ('ready', True),
+])
+def test_menu_readiness_uses_actual_rendering_and_rejects_blockers(condition, ready):
+    """SIMULATED rendering primitives; execute the production observation JS."""
+    scope = 'nav.stitch-workspace-menu .stitch-menus > details:nth-of-type(1)'
+    markup = shell().replace('<details>', '<details open>', 1)
+    if condition == 'closed':
+        markup = markup.replace('<details open>', '<details>', 1)
+    if condition == 'hidden':
+        markup = markup.replace('data-page-id="03">阅读', 'data-page-id="03" hidden>阅读', 1)
+    if condition == 'unknown-modal':
+        markup += '<section role="dialog"><h2>未知阻挡对话</h2></section>'
+    prelude = "const condition=" + json.dumps(condition) + ";const scope=" + json.dumps(scope) + ";" + r"""
+const target=document.querySelector(scope+' button[data-page-id="03"]');
+const menu=document.querySelector(scope);
+const computed=getComputedStyle;getComputedStyle=(node,pseudo)=>pseudo?{contentVisibility:'visible',opacity:'1'}:computed(node);
+document.defaultView.HTMLElement.prototype.getBoundingClientRect=function(){return {x:10,y:10,width:100,height:30};};
+document.defaultView.HTMLElement.prototype.checkVisibility=function(){return this.getClientRects().length>0;};
+menu.getAnimations=()=>condition==='animating'?[{playState:'running'}]:[];
+if(condition==='unrendered')target.getClientRects=()=>[];
+document.elementFromPoint=()=>condition==='occluded'?document.body:target;
+menu.querySelector('summary').focus();
+"""
+    # Keep the fixture's rendering handles separate from the observation's locals.
+    observed = evaluate(prelude + 'return (()=>{' + probe.menu_navigation_observation(scope, '03') + '})();', markup)
+    assert observed['ready'] is ready
+    assert observed['summaryFocused'] is True and observed['index'] == 1
+    if condition == 'unknown-modal':
+        assert observed['blockers'][0]['text'] == '未知阻挡对话'
+
+
+@pytest.mark.parametrize('exact_focus', [True, False])
+def test_native_menu_wait_precedes_tabs_and_preserves_exact_focus_failure(exact_focus, monkeypatch):
+    scope = 'nav.stitch-workspace-menu .stitch-menus > details:nth-of-type(1)'
+    observed_script = probe.menu_navigation_observation(scope, '03')
+    observed = {'ready': True, 'summaryFocused': True, 'index': 1, 'active': {'tag': 'SUMMARY', 'text': '文件'}}
+    history, evidence, budgets = [], [], []
+    navigation = {'mode': 'menu', 'scope': scope, 'opened': False, 'page': '01'}
+    def js(script):
+        if script == probe.product_navigation_observation('03'):
+            return navigation
+        if script == 'return location.hash':
+            return '#page=01'
+        if script == observed_script:
+            return observed
+        if 'document.activeElement===n && n.dataset.pageId===' in script:
+            observed['active'] = {'tag': 'BUTTON' if exact_focus else 'SUMMARY', 'page': '03' if exact_focus else None, 'text': '阅读' if exact_focus else '学习'}
+            return exact_focus
+        raise AssertionError('Unexpected observation: ' + script)
+    def wait(script, seconds=30):
+        budgets.append(seconds)
+        history.append('menu-ready' if script.endswith('})().ready;') else 'page-readback')
+    def command(element, action, body):
+        assert 'menu-ready' in history, 'Native keys must not race rendering'
+        history.append(body['text'])
+    ticks = iter([10.0, 10.5, 11.0])
+    monkeypatch.setattr(probe.time, 'monotonic', lambda: next(ticks))
+    ui = probe.GroupedUI(js, wait, Mock(), command, evidence)
+    ui.find = lambda selector, using='xpath': selector
+    ui.click_selector = lambda *args: history.append('summary-click')
+    if exact_focus:
+        ui.page('03')
+        assert history == ['summary-click', 'menu-ready', '\ue004' * 2, '\ue007', 'page-readback']
+        assert budgets == [29.5, 29.0]
+    else:
+        with pytest.raises(AssertionError, match='Native Tab did not focus the exact navigation target'):
+            ui.page('03')
+        assert history == ['summary-click', 'menu-ready', '\ue004' * 2]
+        assert evidence[-1]['action'] == 'navigation_focus_failure'
+        assert evidence[-1]['observed']['active']['text'] == '学习'
+
+
+def test_unready_menu_records_actual_state_without_sending_native_keys():
+    scope = 'nav.stitch-workspace-menu .stitch-menus > details:nth-of-type(1)'
+    observed_script = probe.menu_navigation_observation(scope, '03')
+    observed = {'ready': False, 'open': True, 'contentVisibility': 'hidden', 'active': {'tag': 'SUMMARY', 'text': '文件'}}
+    evidence, command = [], Mock()
+    def js(script):
+        if script == probe.product_navigation_observation('03'):
+            return {'mode': 'menu', 'scope': scope, 'opened': False, 'page': '01'}
+        if script == 'return location.hash':
+            return '#page=01'
+        if script == observed_script:
+            return observed
+        raise AssertionError('Unexpected observation: ' + script)
+    ui = probe.GroupedUI(js, Mock(side_effect=TimeoutError('Menu remains hidden')), Mock(), command, evidence)
+    ui.find = lambda *args: 'unactivated'
+    ui.click_selector = Mock()
+    with pytest.raises(TimeoutError, match='Menu remains hidden'):
+        ui.page('03')
+    command.assert_not_called()
+    assert evidence[-1] == {'action': 'navigation_menu_not_ready', 'page_id': '03', 'observed': observed}
+
+
 @pytest.mark.parametrize('content,mode', [('<button aria-label="打开产品导航">全部页面</button>', 'drawer'), ('<nav class="navigation-sidebar"><button data-page-id="03">阅读</button></nav>', 'sidebar')])
 def test_legacy_navigation_is_used_only_when_actually_present(content, mode):
     ui, evidence = ObservedUI(shell(content)), []

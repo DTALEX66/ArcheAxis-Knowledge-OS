@@ -2644,7 +2644,7 @@
         ]
       },
       "menu_layout_polish_20261027": {
-        "state": "TESTED_LOCAL_PUBLICATION_BUILD_NATIVE_AND_EXACT_SHA_CI_PENDING",
+        "state": "FAST_TAB_PRODUCT_FIX_TESTED_NEW_CANDIDATE_NATIVE_AND_EXACT_SHA_CI_PENDING",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
         "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
@@ -2656,8 +2656,9 @@
           "types": "uitfinal2 PASS; source_consistent=true",
           "positioning_contract": "truthfinal1:8passed; source_consistent=true",
           "menu_browser": "umcb3: current-page marker real Chromium cosmic/white1920 and cosmic960; not native",
-          "navigation_entry": "ngrfix3:65passed; fresh-guide and restore-confirmation order preserved",
-          "backup_probe_copy": "bkword1:63passed"
+          "navigation_entry": "ngmfix1:75passed; actual rendered menu wait shares original30s; exact native focus and no unknown modal preserved",
+          "backup_probe_copy": "bkword1:63passed",
+          "fast_tab_regression": "umtab1 real Chromium and nfoc1 native reproduced hidden menu skipping Tab; CSS removes discrete content-visibility transition. umtab2 normal6/reduced3 immediate PASS; umtg1 formal regression PASS and rejects injected old CSS. Browser synthetic empty API, not native business PASS"
         }
       }
     }

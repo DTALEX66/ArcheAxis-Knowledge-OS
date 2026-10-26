@@ -63,7 +63,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-menus > details > summary { list-style: none; display: flex; align-items: center; gap: 7px; }
 .stitch-menus > details > summary::after { content: ""; width: 4px; height: 4px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-1px) rotate(45deg); opacity: .55; transition: transform 140ms ease; }
 .stitch-menus > details[open] > summary::after { transform: translateY(1px) rotate(225deg); }
-.stitch-menus > details::details-content { opacity: 0; transition: opacity 150ms ease, content-visibility 150ms allow-discrete; }
+.stitch-menus > details::details-content { opacity: 0; transition: opacity 150ms ease; }
 .stitch-menus > details[open]::details-content { opacity: 1; }
 .stitch-menus > details:not([open]) .stitch-menu-popover { pointer-events: none; }
 .stitch-menus > details > summary::-webkit-details-marker { display: none; }
