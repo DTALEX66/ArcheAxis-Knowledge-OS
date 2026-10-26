@@ -521,7 +521,7 @@ describe("folder ingest", () => {
   });
   it("definite Core permission refusal freezes identity and offers readback rather than blind execution",async()=>{
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execute")throw new ApiError(403,"route denied","unavailable");return fixture(op,p);});
-    upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"开始处理本批文件"}));await screen.findByRole("button",{name:"检查上次处理结果"});expect(screen.queryByRole("button",{name:"重试上次处理"})).not.toBeInTheDocument();expect(screen.getByLabelText("选择文件夹")).toBeDisabled();expect(screen.queryByRole("button",{name:"启用 text.extract"})).toBeNull();
+    upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"开始处理本批文件"}));await screen.findByRole("button",{name:"检查上次处理结果"});expect(screen.queryByRole("button",{name:"重试上次处理"})).not.toBeInTheDocument();expect(screen.getByLabelText("选择文件夹")).toBeDisabled();expect(screen.queryByRole("button",{name:"启用文字解析"})).toBeNull();
   });
   it("enables beside the frozen batch item, then explicitly retries the exact request",async()=>{
     let disabled=true;
@@ -534,7 +534,7 @@ describe("folder ingest", () => {
     });
     upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"开始处理本批文件"}));
     const retry=await screen.findByRole("button",{name:"重试上次处理"});const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];expect(requests.size).toBe(0);
-    fireEvent.click(screen.getByRole("button",{name:"启用 text.extract"}));await screen.findByText(/该能力已启用，工作区设置已读回/);
+    fireEvent.click(screen.getByRole("button",{name:"启用文字解析"}));await screen.findByText(/该能力已启用，并已重新核对工作区设置/);
     expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);expect(requests.size).toBe(0);
     fireEvent.click(retry);await screen.findByText("已成功",{exact:true});
     const calls=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(calls).toHaveLength(2);expect(calls[1][1]).toEqual(first);expect(statuses.get(String(first.job_id))?.attempt).toBe(1);

@@ -54,3 +54,62 @@ it("binds authored comparison to materialized source hashes and a Core anchor be
  expect(attrs.archeaxis_relations.relations.at(-1)).toMatchObject({kind:"supports",target:reference});
  expect(bridge.call.mock.calls.some(([op])=>String(op).includes("knowledge"))).toBe(false);
 });
+
+async function savedPublicMaterial(onReadSource:(target:any)=>boolean|void){
+ render(<CanonicalResearchSpace onReadSource={onReadSource}/>);const panel=await search();
+ fireEvent.click(within(panel).getByRole("button",{name:`将${hit.title}固定快照与原始 API 加入材料`}));
+ fireEvent.click(await screen.findByRole("button",{name:"证据对比 (2)"}));
+ const next=screen.getByRole("button",{name:"在阅读页整理材料 1"});
+ expect(next).toBeDisabled();expect(onReadSource).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));
+ await waitFor(()=>expect(next).toBeEnabled());return next;
+}
+
+it("opens the exact saved public material in the existing reader without conversion or knowledge admission",async()=>{
+ const open=vi.fn(()=>true),previous=bridge.call.getMockImplementation()!;
+ bridge.call.mockImplementation((op:string,p:any)=>op==="sources_list"?Promise.resolve({sources:[{source_id:derived.source_id,source_revision:derived.sha256,sha256:derived.sha256,original_name:"public-derived.txt"}]}):previous(op,p));
+ const next=await savedPublicMaterial(open);fireEvent.click(next);
+ await waitFor(()=>expect(open).toHaveBeenCalledOnce());expect(open).toHaveBeenCalledWith({source_id:derived.source_id,source_revision:derived.sha256,sha256:derived.sha256});
+ expect(bridge.call.mock.calls.some(([op])=>["job_execute","knowledge_from_transform","knowledge_review","assessment_create"].includes(String(op)))).toBe(false);
+});
+
+it.each(["different-source","changed-sha","changed-revision","duplicate-source","read-failed"])("refuses %s when continuing a saved research material",async variant=>{
+ const open=vi.fn(()=>true),previous=bridge.call.getMockImplementation()!;
+ bridge.call.mockImplementation((op:string,p:any)=>{
+  if(op!=="sources_list")return previous(op,p);
+  if(variant==="read-failed")return Promise.reject(Error("offline"));
+  const source={source_id:variant==="different-source"?"other_source":derived.source_id,source_revision:variant==="changed-revision"?"d".repeat(64):derived.sha256,sha256:variant==="changed-sha"?"d".repeat(64):derived.sha256};
+  return Promise.resolve({sources:variant==="duplicate-source"?[source,source]:[source]});
+ });
+ const next=await savedPublicMaterial(open);fireEvent.click(next);
+ await screen.findByText("材料来源读取或版本核对失败；未切换到其他原件。请保留研究后重试。");
+ expect(open).not.toHaveBeenCalled();expect(next).toBeEnabled();expect(saved).toHaveLength(1);
+});
+
+it("keeps a newly edited research draft when a source read returns late",async()=>{
+ const open=vi.fn(()=>true),previous=bridge.call.getMockImplementation()!;let finish!:(value:unknown)=>void;
+ bridge.call.mockImplementation((op:string,p:any)=>op==="sources_list"?new Promise(resolve=>{finish=resolve;}):previous(op,p));
+ const next=await savedPublicMaterial(open);fireEvent.click(next);
+ fireEvent.change(screen.getByRole("textbox",{name:"材料说明 1"}),{target:{value:"后续人工说明未保存"}});
+ await act(async()=>finish({sources:[{source_id:derived.source_id,source_revision:derived.sha256,sha256:derived.sha256}]}));
+ expect(open).not.toHaveBeenCalled();expect(next).toBeDisabled();
+ expect(screen.getByRole("textbox",{name:"材料说明 1"})).toHaveValue("后续人工说明未保存");
+});
+
+it("keeps saved material and research when the shell refuses the page change",async()=>{
+ const open=vi.fn(()=>false),previous=bridge.call.getMockImplementation()!;
+ bridge.call.mockImplementation((op:string,p:any)=>op==="sources_list"?Promise.resolve({sources:[{source_id:derived.source_id,source_revision:derived.sha256,sha256:derived.sha256}]}):previous(op,p));
+ const next=await savedPublicMaterial(open);fireEvent.click(next);
+ await screen.findByText("页面切换已取消；研究草稿和原材料保持不变。");
+ expect(open).toHaveBeenCalledOnce();expect(saved).toHaveLength(1);expect((screen.getByRole("textbox",{name:"材料说明 1"}) as HTMLTextAreaElement).value).toContain("Public metadata");
+});
+
+it("does not turn a readonly saved reference into a current-version reader action",async()=>{
+ const open=vi.fn(()=>true),savedDoc=docs.get("doc_a")!;
+ (savedDoc.editor_json as any).attrs.archeaxis_research.materials=[{id:"readonly_material",reference:derived,note:"固定来源材料"}];
+ const sessions=new DocumentBusinessSessions(scope.workspace_id,"initial");sessions.acquire("doc_a","writer");
+ render(<DocumentBusinessProvider sessions={sessions} viewId="reader"><CanonicalResearchSpace onReadSource={open}/></DocumentBusinessProvider>);
+ await search();fireEvent.click(screen.getByRole("button",{name:"证据对比 (1)"}));
+ const next=screen.getByRole("button",{name:"在阅读页整理材料 1"});expect(next).toBeDisabled();fireEvent.click(next);
+ expect(open).not.toHaveBeenCalled();expect(bridge.call.mock.calls.some(([op])=>op==="sources_list")).toBe(false);expect(saved).toHaveLength(0);
+});

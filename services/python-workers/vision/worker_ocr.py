@@ -76,7 +76,7 @@ def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Pat
     carries a few unrelated languages passes that test, so the worker kept the ambient
     directory and never passed `--tessdata-dir`; tesseract then failed with
     `Failed loading language 'eng'` for a request the declared language data could have
-    served. Requiring the requested language is what makes "usable" mean usable.
+    served. Combined requests require every model in this same directory.
     """
     if candidate is None:
         return None
@@ -84,7 +84,10 @@ def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Pat
         if not candidate.is_dir():
             return None
         if language:
-            return candidate if (candidate / f"{language}.traineddata").is_file() else None
+            languages = language.split("+")
+            return candidate if all(languages) and all(
+                (candidate / f"{part}.traineddata").is_file() for part in languages
+            ) else None
         return candidate if any(candidate.glob("*.traineddata")) else None
     except OSError:
         return None

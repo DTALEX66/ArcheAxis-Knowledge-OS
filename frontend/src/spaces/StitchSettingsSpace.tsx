@@ -35,7 +35,7 @@ export function StitchSettingsSpace({ hasUnsavedDrafts = false }: { hasUnsavedDr
 
   return <section className="stitch-settings" aria-label="系统与可靠性" data-section="backup" tabIndex={-1}>
     <header className="stitch-settings-topic">
-      <div><p className="stitch-settings-eyebrow">本地设置</p><h2>设置 · 模型与连接</h2></div>
+      <div><p className="stitch-settings-eyebrow">本地设置</p><h2>设置 · {current.label}</h2></div>
       <p>模型配置、工作区备份与配置计划</p>
     </header>
     <div className="stitch-settings-subnav">

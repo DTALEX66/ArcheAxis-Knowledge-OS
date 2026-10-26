@@ -23,6 +23,20 @@ beforeEach(()=>{observers.clear();vi.stubGlobal("ResizeObserver",ResizeObserverS
 afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it("keeps a rejected layout contract in diagnostics while the visible workspace and draft remain usable",async()=>{
+  counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body:{invalid:"SYNTHETIC malformed layout"}})}};
+  render(<><DockWorkspace {...props}/><DiagnosticConsole/></>);
+  const draft=await screen.findByLabelText("draft-03");
+  fireEvent.change(draft,{target:{value:"keep the original draft"}});
+  const notice=await screen.findByText("本地数据暂时不可用，请稍后重试或打开运行诊断。");
+  expect(notice).toHaveAttribute("role","alert");
+  expect(notice).not.toHaveTextContent("LAYOUT_DTO_INVALID");
+  expect(screen.getByRole("region",{name:"诊断控制台"})).not.toHaveTextContent("LAYOUT_DTO_INVALID");
+  fireEvent.click(screen.getByRole("button",{name:"查看布局诊断：布局错误详情"}));
+  expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent("LAYOUT_DTO_INVALID");
+  expect(draft).toHaveValue("keep the original draft");
+ });
  it("uses the confirmed document title, refreshes it after save, and keeps the same writer and draft",async()=>{
   const inspect=vi.fn();render(<DockWorkspace {...props} initialDocumentId="doc-a" onInspect={inspect}/>);
   const draft=await screen.findByLabelText("draft-03:doc-a");fireEvent.change(draft,{target:{value:"unsaved text stays here"}});

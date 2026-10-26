@@ -98,8 +98,9 @@ export function SpaceView({
   const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
   const readSourceJourney=(target:SourceJourneyTarget)=>{
     // The existing shell guard decides before a hidden retained reader changes.
-    if(!onOpenPage||onOpenPage("03")===false)return;
+    if(!onOpenPage||onOpenPage("03")===false)return false;
     setSourceTarget(target);setCandidateTarget(undefined);
+    return true;
   };
   const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
   useEffect(()=>{if(sourceTarget)setCandidateTarget(undefined);},[sourceTarget]);
@@ -140,7 +141,7 @@ export function SpaceView({
     const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
     return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
   }}/>;
-  if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
+  if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onReadSource={readSourceJourney} onTrail={onTrail}/>;
   if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;

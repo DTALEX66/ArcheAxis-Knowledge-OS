@@ -37,8 +37,8 @@ describe("SIMULATED manual finite execution boundaries",()=>{
    return previous(op,p);
   });
   render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/^已确认上次处理未受理/);
-  const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];fireEvent.click(screen.getByRole("button",{name:"启用 office.structure"}));
-  await screen.findByText(/该能力已启用，工作区设置已读回/);expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
+  const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];fireEvent.click(screen.getByRole("button",{name:"启用Office文档结构读取"}));
+  await screen.findByText(/该能力已启用，并已重新核对工作区设置/);expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
   expect(bridge.call.mock.calls.filter(([op])=>op==="capabilities_list").length).toBeGreaterThanOrEqual(3);
   fireEvent.click(screen.getByRole("button",{name:"重试上次处理"}));await screen.findByLabelText("Core 提取正文");
   const sends=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(sends).toHaveLength(2);expect(sends[1][1]).toEqual(first);expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(1);
@@ -46,7 +46,7 @@ describe("SIMULATED manual finite execution boundaries",()=>{
  it("queued readback cannot unlock a generic permission refusal",async()=>{
   fixture();const previous=bridge.call.getMockImplementation()!;
   bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execute")throw new ApiError(403,"denied");if(op==="job_execution_status")return {job_id:p.job_id,input_ref:"source",kind:"office",state:"queued",attempt:null,request_id:null,error:null,attempts:[]};return previous(op,p);});
-  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/处理结果尚未确认/);expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();expect(screen.queryByRole("button",{name:"启用 office.structure"})).toBeNull();
+  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/处理结果尚未确认/);expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();expect(screen.queryByRole("button",{name:"启用Office文档结构读取"})).toBeNull();
   fireEvent.click(screen.getByRole("button",{name:"检查上次处理结果"}));await screen.findByText(/尚未读回冻结执行身份/);expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();
  });
  it("claims singleflight before React flush and sends the actual finite request identity",async()=>{

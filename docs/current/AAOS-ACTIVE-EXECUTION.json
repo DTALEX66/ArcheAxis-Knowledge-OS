@@ -2650,14 +2650,14 @@
         ]
       },
       "menu_layout_polish_20261027": {
-        "state": "V6_NATIVE_UI_PASS_DOCK_TITLES_AND_PLAIN_REVIEW_SUCCESSOR_INTEGRATED_NEW_BUILD_NATIVE_CI_PENDING",
+        "state": "MENU_LAYOUT_TERMINOLOGY_LOCAL_CHECKS_PASSED_NEW_BUILD_NATIVE_AND_EXACT_CI_PENDING",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
         "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
         "old_verification_screenshots": "OWNER_PURGED: 1701 ignored +9 tracked files; 1334837921 logical bytes; ssbs1/ssa1 manifests. 35 exact old test directories remain unreadable WinError5; no all-repository zero claim. Needed new screenshots after fixed cutoff retained.",
         "date_adversarial_review": "exa1 original DST fold counterexample retained; exa2 four-timezone post-fix review passed. Saved exact epochs retained, ambiguous new local time rejected; aifm5 40passed and aifm6 34passed. Chinese offset separated in display; schema unchanged.",
         "whole_scope": "PARTIAL; browser/units/installed/exact-SHA CI/Owner acceptance remain separate",
-        "residual_polish": "Native menu ghosting fixed and personally reviewed; main geometry, immediate Tab, reduced motion and guide passed. Successor document tabs reuse confirmed title and identity; manual review uses assessment criteria. No claim all engineering terms or future abilities are complete.",
+        "residual_polish": "Scoped menu/layout/motion and user-language repairs checked; all22 routes preserved. No all-product zero-engineering-words, future-feature execution or Owner aesthetic acceptance claim.",
         "local_checks": {
           "frontend": "uifinal8:213 suites/2304 passed, LOCAL_PASS/source_consistent=true; previous failed/invalidated runs retained",
           "types": "uityfinal6 PASS/source_consistent=true; includes confirmed document-title reuse and assessment-criteria labels",
@@ -2758,7 +2758,7 @@
           }
         },
         "ci_browser_preinstalled_followup_20261027": {
-          "state": "CONTAINER_IMAGE_VERIFIED_BOOTSTRAP_FAILED_SCOPED_FIX_PENDING_CI",
+          "state": "VERIFIED_DA2_EXACT_CI_SUCCESS_NEW_PRODUCT_SUCCESSOR_CI_PENDING",
           "cause": "GitHub job annotation15m exceeded; apt download18.5MB/9m29; Chromium install9m51, tests canceled after4m51, no terminal report",
           "evidence": ".project-local/runs/be268a2d33/ci4b2/artifacts/browser-cancellation-diagnosis.json",
           "image": "mcr.microsoft.com/playwright/python:v1.61.0-noble@sha256:a9731514f24121d1dcd25d58d0a38146646d290a5998fd80d3e533e7b5e21c69",
@@ -2768,7 +2768,68 @@
           "pending": "Actual browser preparation/regression and new exact-source CI; no merge/release/Green replacement/Owner visual acceptance",
           "static_review": "Original container static review passed but missed checkout/shell HOME separation; raw CI failure retained; scoped followup still needs actual CI",
           "bootstrap_failure_93395dad": "CI40407556899 browser job121869764399: official pinned image pulled in38s; initialize dev paths failed on dubious ownership before browser work. Checkout writes safe.directory under its temporary HOME, later shell uses /github/home. Evidence: .project-local/runs/be268a2d33/ci933b1/artifacts/browser-followup-summary.json",
-          "git_trust_fix": "GIT_CONFIG_COUNT=1 / safe.directory=${{ github.workspace }} only in browser-smoke job; no wildcard, local/global config write, HOME override or product change; official Git process configuration reference https://git-scm.com/docs/git-config"
+          "git_trust_fix": "GIT_CONFIG_COUNT=1 / safe.directory=${{ github.workspace }} only in browser-smoke job; no wildcard, local/global config write, HOME override or product change; official Git process configuration reference https://git-scm.com/docs/git-config",
+          "verified_successor": {
+            "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+            "run": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/40408417649",
+            "result": "SUCCESS17selectedPASS/3policySKIPPED;actualNSISand617s/13viewports synthetic-browser passed;not new product successor CI"
+          }
+        },
+        "menu_interactions_terms_successor": {
+          "implementation": "workspace/intake/20261027-menu-layout-polish.md",
+          "state": "LOCAL_CHECKS_PASSED_BUILD_NATIVE_CI_PENDING",
+          "checks": {
+            "uifin18": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "19e3c4f9dd82cfc574552c70788aa8d06ef4d918c64fbf0b0d8d77e7feccb7cd",
+              "source_consistent": true
+            },
+            "uity16": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "c09d9bb3c89fde7c723f2508bcdd435c84e2a9cb97c6784ba42b8c6a206de9d0",
+              "source_consistent": true
+            },
+            "upyfin16": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "c09d9bb3c89fde7c723f2508bcdd435c84e2a9cb97c6784ba42b8c6a206de9d0",
+              "source_consistent": true
+            },
+            "umpost5": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "c09d9bb3c89fde7c723f2508bcdd435c84e2a9cb97c6784ba42b8c6a206de9d0",
+              "source_consistent": true
+            },
+            "bkr2": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "9dff08e74969ef8fb460f534df04a7ce633aea3ccfb8a5bd7ecdea00b7989d1f",
+              "source_consistent": true
+            },
+            "bkm2": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "9dff08e74969ef8fb460f534df04a7ce633aea3ccfb8a5bd7ecdea00b7989d1f",
+              "source_consistent": true
+            }
+          },
+          "frontend_total": "213 files /2343 passed",
+          "python_total": "5 files /123 passed /196 subtests passed",
+          "browser": "umpost5:REAL_CHROMIUM_SYNTHETIC_CORE;4viewports*7menus;motion/focus/hover/scroll/bounds/font;not native",
+          "backup": "bkr2:2passed;bkm2:1passed;48MiB;Rust extra peaks4195460/4196390B;not process RSS/SQLite C/physical power loss",
+          "raw_failures_preserved": [
+            "uifin14:2325P12F",
+            "uifin16:2340P3F",
+            "uifin17:2342P1F",
+            "umpost2:short-window task occlusion",
+            "umpost3:explicit compact auxiliary overlay",
+            "uiterm4:child83P outerINVALIDATED",
+            "bkm1:child1P outerINVALIDATED"
+          ],
+          "boundary": "Original6 unrelated dirty preserved. New two consumer-test wording edits only after type/Python/browser checks. No Green replacement/merge/release/Owner acceptance."
         }
       }
     }

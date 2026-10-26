@@ -93,14 +93,14 @@ it("SIMULATED lost relation ACK retains the actual reader and blocks replacing i
  fireEvent.change(await within(panel).findByLabelText("链接目标 image.svg"),{target:{value:"source"}});
  const apply=within(panel).getByRole("button",{name:"确认映射并保存原件关系"});
  await waitFor(()=>expect(apply).toBeEnabled());fireEvent.click(apply);
- await within(panel).findByText(/结果 UNKNOWN/);
+ await within(panel).findByText(/处理结果待确认/);
  fireEvent.click(screen.getByRole("button",{name:"离开阅读"}));
  expect(screen.getByLabelText("actual page")).toHaveTextContent("03");
  fireEvent.click(await restore());
  expect(screen.getByText(/原关系请求、草稿或写入未确认/)).toBeInTheDocument();
  expect(screen.getByRole("region",{name:"文件夹原件链接接入"})).toBe(panel);
  fireEvent.click(within(panel).getByRole("button",{name:"只读核对原关系请求"}));
- await within(panel).findByText(/缺少原操作回执，仍为 UNKNOWN/);
+ await within(panel).findByText(/缺少本次操作的确认记录，处理结果仍待确认/);
  expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_relations_apply")).toHaveLength(1);
  expect(apply).toBeDisabled();
 });
@@ -117,7 +117,7 @@ it("SIMULATED actual App navigation guard protects an UNKNOWN request from the r
  fireEvent.click(within(panel).getByRole("button",{name:"读取完整批次映射"}));
  await within(panel).findByLabelText("链接目标 image.svg");
  fireEvent.click(within(panel).getByRole("button",{name:"确认映射并保存原件关系"}));
- await within(panel).findByText(/结果 UNKNOWN/);confirm.mockClear();
+ await within(panel).findByText(/处理结果待确认/);confirm.mockClear();
  fireEvent.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
  expect(confirm).toHaveBeenCalledTimes(1);expect(window.location.hash).toBe("#page=03");
  expect(screen.getByRole("region",{name:"文件夹原件链接接入"})).toBe(panel);

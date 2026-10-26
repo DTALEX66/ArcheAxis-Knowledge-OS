@@ -70,7 +70,7 @@ export function usePublicResearch(owner:string,onMaterialize:(selection:PublicRe
    if(!valid(run))return false;
    const kept=comparisonCallback.current?.(bindings)===true;
    update({message:kept?"人工判断已绑定固定来源与派生快照定位，加入未决草稿；仍需保存，独立性未知，未知识采用。":"固定来源已保全；草稿未追加，请处理保存限制后显式重试。"});return kept;
-  }catch{if(valid(run))update({message:"比较来源或定位未确认（完整派生快照须不超过16KiB）；未追加研究记录。输入与选择保留，可显式重试。"});return false;}
+   }catch{if(valid(run))update({message:"比较来源或定位未确认（每段完整引文最多16KiB）；未追加研究记录。输入与选择保留，可显式重试。"});return false;}
   finally{if(valid(run))update({acting:false});}
  }
  const snapshot=useMemo<PublicResearchSnapshot>(()=>state.phase==="read"&&state.receipt?.channels?{status:"read",query:state.receipt.query,families:state.receipt.families,communitySite:state.receipt.community_site??"academia",channels:state.receipt.channels,hits:state.receipt.channels.flatMap(c=>c.hits.map(h=>({...h,retrievedAt:h.retrieved_at,freeAccess:h.free_access})))}:{status:state.phase==="read"?"failed":state.phase},[state.phase,state.receipt]);

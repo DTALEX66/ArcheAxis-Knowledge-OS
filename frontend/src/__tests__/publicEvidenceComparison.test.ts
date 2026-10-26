@@ -10,6 +10,9 @@ const hit={id:"https://openalex.org/W123",family:"research" as const,provider:"o
 const receipt:PublicResearchReceiptDto={schema:"archeaxis.public-research-receipt/v1",...actor,request_id:"saved_public",query:"public",families:["research"],limit:1,state:"complete",channels:[{family:"research",provider:"openalex",status:"complete",retrieved_at:hit.retrieved_at,request_url:"https://api.openalex.org/works?search=public",retry_after_seconds:null,error_code:null,hits:[hit],raw_source:raw,raw_representation:"http_entity_body_bytes"}],reason_code:null,provider_stop_state:"unknown",knowledge_admission:"not_executed"};
 const choice={family:"research" as const,id:hit.id,stance:"supports" as const};
 const empty=():ResearchDocument=>({schema:"archeaxis.research/v1",question:"Human question",materials:[],hypotheses:[],methods:[],experiments:[],counterevidence:[],conclusions:[],unresolved:[]});
+// Frozen materialize v1 wire text, including the content separator. The offset
+// must follow this exact envelope even when metadata repeats content fragments.
+const snapshotHeader=(row:typeof hit)=>`AAOS 派生内容快照（不是上游原始字节；未作专业核验）\n来源：${row.family} / ${row.provider}\n标题：${row.title}\n地址：${row.url}\n取得时间：${row.retrieved_at}\n原API来源：raw_public\n原API内容指纹：${raw.sha256}\n表示：${row.representation}\n内容范围：${row.content}\n许可：${row.license??"未知"}\n截断：${row.truncated}\n定位说明：${row.locator??"未提供"}\n\n内容：\n`;
 let text:string,bytes:Uint8Array,sha:string,selection:any,position:string;
 beforeEach(async()=>{
  text="AAOS synthetic derived metadata\r\n原文😀";bytes=new TextEncoder().encode(text);sha=await evidenceHash(bytes);
@@ -79,6 +82,44 @@ it("refuses oversize snapshots without silently cutting their contents",async()=
  bytes=new Uint8Array(16385).fill(65);sha=await evidenceHash(bytes);selection.reference.sha256=sha;
  await expect(captureEvidenceComparisons(receipt,[choice],actor,async()=>{})).rejects.toThrow();
  expect(bridge.call.mock.calls.some(c=>c[0]==="anchor_create")).toBe(false);
+});
+
+it("locates the complete returned excerpt when the provenance header pushes its snapshot over the quote limit",async()=>{
+  const excerpt="汉".repeat(5460)+"😀";
+  const excerptBytes=new TextEncoder().encode(excerpt);
+  expect(excerptBytes.length).toBe(16384);
+  const longReceipt=structuredClone(receipt),longHit=longReceipt.channels![0].hits[0];
+  Object.assign(longHit,{excerpt,title:"汉".repeat(30),content:"excerpt",representation:"abstract",locator:"#/abstract_inverted_index"});
+  const prefix=snapshotHeader(longHit as typeof hit);
+  text=prefix+excerpt;bytes=new TextEncoder().encode(text);sha=await evidenceHash(bytes);
+  selection={...selection,title:longHit.title,representation:"abstract",reference:{...selection.reference,sha256:sha}};
+  const start=new TextEncoder().encode(prefix).length,end=bytes.length,checksum=await evidenceHash(excerptBytes);
+  position=JSON.stringify({type:"text",start,end,checksum,location_status:"located"});
+  const previous=bridge.call.getMockImplementation()!;
+  bridge.call.mockImplementation((op:string,p:any)=>{
+    if(op==="anchor_create"){
+      expect(p.body).toEqual({revision:sha,position:JSON.stringify({type:"text",start,end}),checksum});
+      return Promise.resolve({anchor_id:"fixed_anchor",source_id:"derived_public",source_revision:sha,location_status:"located",position});
+    }
+    return previous(op,p);
+  });
+  const [binding]=await captureEvidenceComparisons(longReceipt,[choice],actor,async()=>{});
+  expect(binding.citation).toMatchObject({quote:excerpt,quote_sha256:checksum,source_sha256:sha,read_snapshot_sha256:sha});
+  expect(binding.citation.quote_sha256).not.toBe(sha);
+  expect(binding.selection.reference.sha256).toBe(sha);
+  expect(new TextDecoder().decode(bytes.slice(start,end))).toBe(excerpt);
+  expect(appendEvidenceComparisons(empty(),undefined,[binding]).research.materials[0].citation?.quote).toBe(excerpt);
+});
+
+it.each(["wrong-content","missing-delimiter","oversize-excerpt","repeated-body","changed-header"])("refuses a large snapshot with %s instead of guessing a quote range",async variant=>{
+  const longReceipt=structuredClone(receipt),longHit=longReceipt.channels![0].hits[0];
+  longHit.excerpt=variant==="oversize-excerpt"?"A".repeat(16385):"A".repeat(16384);
+  Object.assign(longHit,{content:"excerpt",representation:"abstract"});
+  const prefix=snapshotHeader(longHit as typeof hit);
+  text=(variant==="missing-delimiter"?prefix.replace("\n\n内容：\n","\n"):variant==="changed-header"?prefix.replace("原API来源：raw_public","原API来源：other_raw"):prefix)+longHit.excerpt+(variant==="wrong-content"?"changed":variant==="repeated-body"?longHit.excerpt:"");
+  bytes=new TextEncoder().encode(text);sha=await evidenceHash(bytes);selection={...selection,representation:"abstract",reference:{...selection.reference,sha256:sha}};
+  await expect(captureEvidenceComparisons(longReceipt,[choice],actor,async()=>{})).rejects.toThrow();
+  expect(bridge.call.mock.calls.some(c=>c[0]==="anchor_create")).toBe(false);
 });
 it("requires the resolved locator's exact position rather than accepting CURRENT alone",async()=>{
  const original=bridge.call.getMockImplementation()!;bridge.call.mockImplementation((op:string,p:any)=>op==="anchor_resolve"?{anchor_id:"fixed_anchor",source_id:"derived_public",source_revision:sha,current_source_revision:sha,status:"CURRENT",scope:"locator_provenance_only",position:"{}"}:original(op,p));

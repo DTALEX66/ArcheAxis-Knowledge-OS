@@ -26,14 +26,25 @@ const menus = [
   { label: "工具", pages: ["15", "16", "17", "18"] },
   { label: "AI 与模型", pages: ["13", "14", "22", "19"] },
 ] as const;
+// Icons describe the existing pages; navigation and capability truth stay in UI_PAGES.
+const menuPageIcons: Readonly<Record<string, AaosIconName>> = {
+  "01": "Home", "02": "Knowledge", "03": "Write", "04": "Connection", "05": "Research",
+  "06": "LearningPath", "07": "Learning", "08": "Learning", "09": "Evidence", "10": "Source",
+  "11": "Review", "12": "Write", "13": "Context", "14": "Review", "15": "Extension",
+  "16": "ImportDocument", "17": "Apps", "18": "Apps", "19": "Settings", "20": "Source", "21": "Canvas", "22": "Workflow",
+};
 
 /** All entries resolve through the existing guarded App navigation. No new page registry. */
 export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide }: { pageId?: string; onPage: (page: string) => void; onNavigation: () => void; onGuide?: () => void }) {
   const root = useRef<HTMLElement>(null);
+  // File/View also contain shortcuts to other groups; mark the business group first.
+  const ownsPage = (menu: typeof menus[number]) => menu.pages.some(page => page === pageId);
+  const currentMenu = menus.find(menu => menu.label !== "文件" && menu.label !== "视图" && ownsPage(menu)) ?? menus.find(ownsPage);
+  const currentPage = UI_PAGES.find(page => page.id === pageId);
   const dismiss = (returnFocus = false) => {
     root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(menu => {
       menu.open = false;
-      if (returnFocus) menu.querySelector("summary")?.focus();
+      if (returnFocus) menu.querySelector("summary")?.focus({ preventScroll: true });
     });
   };
   useEffect(() => {
@@ -64,7 +75,7 @@ export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide }: {
     }
   }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) dismiss(); }}>
     <button type="button" className="stitch-brand" onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><img className="stitch-brand-logo" src={aaosMarkLight} alt="" height={22}/><span>ArcheAxis Knowledge</span></button>
-    <div className="stitch-menus">
+    <div className="stitch-menus" onScroll={event => { if (event.target === event.currentTarget) dismiss(true); }}>
       {menus.map(menu => <details key={menu.label} onToggle={event => {
         const opened = event.currentTarget;
         if (opened.open) {
@@ -72,7 +83,14 @@ export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide }: {
           const bounds = opened.querySelector("summary")!.getBoundingClientRect(), popup = opened.querySelector<HTMLElement>(".stitch-menu-popover")!;
           popup.style.left = `${Math.max(12, Math.min(bounds.left, window.innerWidth - Math.min(320, window.innerWidth - 24) - 12))}px`;
         }
-      }}><summary>{menu.label}</summary><div className="stitch-menu-popover" aria-label={`${menu.label}页面`}><p className="stitch-menu-heading">{menu.label}</p>{menu.pages.map(page => <button type="button" key={page} data-page-id={page} aria-current={page === pageId ? "page" : undefined} onClick={() => { dismiss(true); onPage(page); }}>{UI_PAGES.find(entry => entry.id === page)?.label}</button>)}</div></details>)}
+      }}><summary data-current-group={menu === currentMenu || undefined} aria-description={menu === currentMenu && currentPage ? `当前页面：${currentPage.label}` : undefined} onPointerEnter={event => {
+        if (event.pointerType !== "mouse") return;
+        const previous = root.current?.querySelector<HTMLDetailsElement>("details[open]"), next = event.currentTarget.parentElement as HTMLDetailsElement;
+        if (!previous || previous === next) return;
+        const ownsFocus = previous.contains(document.activeElement);
+        dismiss(); next.open = true;
+        if (ownsFocus) event.currentTarget.focus({ preventScroll: true });
+      }}>{menu.label}</summary><div className="stitch-menu-popover" aria-label={`${menu.label}页面`}><p className="stitch-menu-heading">{menu.label}</p>{menu.pages.map(page => <button type="button" key={page} data-page-id={page} aria-current={page === pageId ? "page" : undefined} onClick={() => { dismiss(true); onPage(page); }}><AaosIcon name={menuPageIcons[page] ?? "Source"} size={18}/><span>{UI_PAGES.find(entry => entry.id === page)?.label}</span></button>)}</div></details>)}
       <button type="button" aria-label="全部页面，打开产品导航" onClick={onNavigation}>全部页面</button>
       {onGuide ? <button type="button" onClick={onGuide}>使用引导</button> : null}
     </div>

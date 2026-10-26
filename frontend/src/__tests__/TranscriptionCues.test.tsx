@@ -1,12 +1,13 @@
 import { describe,it,expect,vi,beforeEach } from "vitest";
-import { render,screen } from "@testing-library/react";
+import { render,renderHook,screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TranscriptionCues,transcriptionProof,utf8Sha256 } from "../components/TranscriptionCues";
+import { resetDiagnostics, useDiagnostics } from "../presentation/diagnostics";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const proof={sourceId:"s",revision:"a".repeat(64),jobId:"successful-job",attempt:2,resultSha256:"b".repeat(64),durationMs:2000,cueToleranceMs:0,cues:[{start_ms:100,end_ms:1000,text:"数值37"}]};
 async function anchor(status:string) {return {anchor_id:"a",source_id:"s",source_revision:proof.revision,location_status:status,position:JSON.stringify({type:"time",job_id:proof.jobId,attempt:proof.attempt,cue_index:0,start_ms:100,end_ms:1000,result_sha256:proof.resultSha256,checksum:await utf8Sha256("数值37")})};}
 describe("receipt-bound transcription cues",()=>{
- beforeEach(()=>{bridge.call.mockReset();});
+ beforeEach(()=>{bridge.call.mockReset();resetDiagnostics();});
  it("binds original successful job and UTF8 cue checksum without autoplay",async()=>{
   bridge.call.mockResolvedValue(await anchor("located"));const seek=vi.fn();render(<TranscriptionCues proof={proof} onTimeSeek={seek}/>);
   expect(seek).not.toHaveBeenCalled();await userEvent.setup().click(screen.getByRole("button",{name:"引用时间段"}));
@@ -43,7 +44,8 @@ describe("receipt-bound transcription cues",()=>{
  });
  it("preserves all-unlocated audio without a video title or anchor",()=>{
   render(<TranscriptionCues proof={{...proof,cues:[],pipeline:{alignment_status:"partial",raw_cues:[{start_ms:87290,end_ms:88290,text:"original tail"}],alignment_issues:[{index:0,start_ms:87290,end_ms:88290,location_status:"unlocated"}]}}}/>);
-  expect(screen.getByLabelText("转写定位状态")).toHaveTextContent("partial");
+  expect(screen.getByLabelText("转写定位状态")).toHaveTextContent("处理状态：部分完成");
+  expect(screen.getByLabelText("转写定位状态")).not.toHaveTextContent("partial");
   expect(screen.getByText(/原始转写含无法定位/)).toBeInTheDocument();
   expect(screen.queryByLabelText("独立视频帧识别结果")).not.toBeInTheDocument();
   expect(screen.queryByRole("button",{name:"引用时间段"})).not.toBeInTheDocument();
@@ -53,7 +55,8 @@ describe("receipt-bound transcription cues",()=>{
   render(<TranscriptionCues proof={{...proof,cues:[],pipeline:{pipeline_state:"partial",visual_results:[{state:"succeeded",sampling_seek_requested_ms:27000,description:"independent frame description"},{state:"failed",sampling_seek_requested_ms:54000,reason:"visual_sample_failed"}]}}}/>);
   expect(screen.getByLabelText("独立视频帧识别结果")).toHaveTextContent("27.000");
   expect(screen.getByText("independent frame description")).toBeInTheDocument();
-  expect(screen.getByText(/疑点：visual_sample_failed/)).toBeInTheDocument();
+  expect(screen.getByText(/疑点：抽样帧识别失败/)).toBeInTheDocument();
+  const region=screen.getByLabelText("独立视频帧识别结果");expect(region).toHaveTextContent("帧 1：已完成");expect(region).toHaveTextContent("帧 2：失败");expect(region).not.toHaveTextContent(/partial|succeeded|visual_sample_failed/);
   expect(screen.queryByRole("button",{name:"引用时间段"})).not.toBeInTheDocument();
   expect(bridge.call).not.toHaveBeenCalled();
  });
@@ -67,10 +70,22 @@ describe("receipt-bound transcription cues",()=>{
 
  it("shows processing partial even when yielded cue alignment is complete",()=>{
   render(<TranscriptionCues proof={{...proof,pipeline:{processing_status:"partial",alignment_status:"complete",processing_error:{stage:"segment_iteration",error_type:"RuntimeError"},alignment_issues:[]}}}/>);
-  expect(screen.getByLabelText("转写定位状态")).toHaveTextContent("处理状态：partial");
+  expect(screen.getByLabelText("转写定位状态")).toHaveTextContent("处理状态：部分完成");
   expect(screen.getByRole("cell",{name:"数值37"})).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"引用时间段"})).toBeInTheDocument();
   expect(bridge.call).not.toHaveBeenCalled();
+ });
+
+ it("keeps unknown frame states unconfirmed and original phase values available in diagnostics",async()=>{
+  const pipeline={processing_status:"future_phase",alignment_status:"unlocated",visual_results:[{state:"future_frame",reason:"future_reason",sampling_seek_requested_ms:1000},{state:"partial",reason:"model_output_truncated",description:"已完成的部分描述"}]};
+  render(<TranscriptionCues proof={{...proof,cues:[],pipeline}}/>);const diagnostics=renderHook(useDiagnostics);
+  const region=screen.getByLabelText("独立视频帧识别结果");
+  expect(region).toHaveTextContent("处理状态：状态未知");expect(region).toHaveTextContent("帧 1：状态未知");expect(region).toHaveTextContent("原因尚未确认，请查看状态与诊断");
+  expect(region).toHaveTextContent("帧 2：部分完成");expect(region).toHaveTextContent("疑点：模型描述被截断");expect(region).toHaveTextContent("可用语音原文仍保留");
+  expect(region).not.toHaveTextContent(/future_phase|future_frame|future_reason|model_output_truncated/);
+  expect(screen.queryByRole("button",{name:"引用时间段"})).not.toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole("button",{name:"状态与诊断：阶段与原始定位记录"}));
+  expect(diagnostics.result.current[0].payload).toMatchObject(pipeline);expect(bridge.call).not.toHaveBeenCalled();
  });
 
 });

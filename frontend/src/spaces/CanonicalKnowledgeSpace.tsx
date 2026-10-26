@@ -5,7 +5,7 @@ import { Section } from "../components/RealData";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
 import { KnowledgeCoursePanel } from "../components/KnowledgeCoursePanel";
-import { coreFailureReason } from "../presentation/labels";
+import { coreFailureReason, failureMessage, stateLabel } from "../presentation/labels";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 
 function record(value: unknown): Record<string, unknown> {
@@ -83,7 +83,7 @@ export function CanonicalKnowledgeSpace({initialCandidate,showMachine=true,onLea
   }
   async function study() {
     if (!selected || busy) return;
-    setBusy(true);
+    setBusy(true); setFailureReason(null);
     const item_key = `assessment_${crypto.randomUUID()}`;
     try {
       await coreCommand("learning_reference", {item_key,body:{knowledge_id:selected.knowledge_id}});
@@ -91,7 +91,7 @@ export function CanonicalKnowledgeSpace({initialCandidate,showMachine=true,onLea
       if (assessment.item_key !== item_key || typeof assessment.assessment_id !== "string" || typeof assessment.question !== "string") throw new Error("invalid assessment");
       setMessage("已创建绑定此知识版本的问题，请在学习队列打开。");
       onLearning?.(item_key);
-    } catch {setMessage("学习问题创建失败；Core 仅允许当前有效、已接受的知识。");}
+    } catch (error) {setMessage("学习问题创建未完成，请保留当前知识后重试。");setFailureReason(failureMessage(error));}
     finally {setBusy(false);}
   }
   useEffect(() => {
@@ -99,18 +99,18 @@ export function CanonicalKnowledgeSpace({initialCandidate,showMachine=true,onLea
     if (selected) {
       levels.push(
         { id: "section:candidates", label: "知识候选与审核", region: "candidates" },
-        { id: `knowledge:${String(selected.knowledge_id)}`, label: String(selected.title), detail: `${String(selected.knowledge_id)} · 版本 ${String(selected.version)} · ${String(selected.status)}`, region: "candidates" },
+        { id: `knowledge:${String(selected.knowledge_id)}`, label: String(selected.title), detail: `${String(selected.knowledge_id)} · 版本 ${String(selected.version)} · ${stateLabel(selected.status)}`, region: "candidates" },
       );
     }
     onTrail?.(levels);
   }, [selected, onTrail]);
   return <Section title="知识库"><p>候选、已接受知识和提取文本分别展示；审核由当前使用者作出。</p>
     <form onSubmit={event=>{event.preventDefault();void search();}} tabIndex={-1} data-section="search"><label>搜索内容 <input value={query} onChange={event=>setQuery(event.target.value)} /></label><button>搜索</button></form>
-    <ul tabIndex={-1} data-section="candidates" aria-label="知识候选列表">{items.map(item=><li key={String(item.knowledge_id)}><button onClick={()=>void open(String(item.knowledge_id))}>{String(item.head)}</button> · {String(item.status)} · {item.active === true ? "有效" : "非有效"}</li>)}</ul>
+    <ul tabIndex={-1} data-section="candidates" aria-label="知识候选列表">{items.map(item=><li key={String(item.knowledge_id)}><button onClick={()=>void open(String(item.knowledge_id))}>{String(item.head)}</button> · {stateLabel(item.status)} · {item.active === true ? "有效" : "非有效"}</li>)}</ul>
     <h4>来源提取文本</h4><ul tabIndex={-1} data-section="transforms" aria-label="来源提取文本列表">{transforms.map(item=><li key={String(item.transform_id)}>{String(item.head)} · 来源 {String(item.source_id)} · 引擎 {String(item.engine)}</li>)}</ul>
     <h4>普通文档</h4><p>原创与未核验内容可读取编辑；搜索命中不等同知识接受或核验通过。</p><ul tabIndex={-1} data-section="documents" aria-label="普通文档列表">{documents.map(item=><li key={String(item.document_id)}><button onClick={()=>selectDocument(String(item.document_id))}>{String(item.title)} · 版本 {String(item.version)}</button><p>{String(item.head)}</p></li>)}</ul>
     {documentId?<div><button onClick={()=>selectDocument(null)}>关闭搜索文档</button><CanonicalLibrarySpace key={documentId} initialDocumentId={documentId} onDirtyChange={value=>{draftDirty.current=value;}}/></div>:null}
-    {selected ? <article aria-label="候选对照"><h4>类型 {String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {String(selected.status)} · 版本 {String(selected.version)}</p><p>{qualificationState==="ready"?"来源与核验标注已读取；采用仍由使用者决定。":qualificationState==="pending"?"来源与核验标注尚未读回；可独立作出采用选择。":"来源与核验标注读取失败，可重新读取；未将失败写成核验通过，也不替代采用选择。"}</p>{qualificationState==="ready"?<RawReceiptButton label="Core 证据与资格回执" payload={qualification} />:null}
+    {selected ? <article aria-label="候选对照"><h4>类型 {String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {stateLabel(selected.status)} · 版本 {String(selected.version)}</p><p>{qualificationState==="ready"?"来源与核验标注已读取；采用仍由使用者决定。":qualificationState==="pending"?"来源与核验标注尚未读回；可独立作出采用选择。":"来源与核验标注读取失败，可重新读取；未将失败写成核验通过，也不替代采用选择。"}</p>{qualificationState==="ready"?<RawReceiptButton label="Core 证据与资格回执" payload={qualification} />:null}
       <label>审核者 <input value={reviewer} onChange={event=>setReviewer(event.target.value)} /></label><label>审核备注 <textarea value={note} onChange={event=>setNote(event.target.value)} /></label>
       <button disabled={!reviewer.trim()||busy} onClick={()=>void review("accepted")}>接受当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("rejected")}>拒绝当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("deprecated")}>降级为弃用</button>
       <button disabled={busy} onClick={()=>void open(String(selected.knowledge_id))}>重新读取候选</button><button disabled={busy||selected.status!=="accepted"} onClick={()=>void study()}>由当前知识建立学习问题</button></article>:null}

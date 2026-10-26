@@ -1949,7 +1949,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
         )
         self.assertEqual(restarts, [False, False, True])
         enable_index = actions.index(
-            ("click", "启用 text.extract", "//section[@aria-label='冻结请求的能力恢复']")
+            ("click", "启用文字解析", "//section[@aria-label='处理能力恢复']")
         )
         retries = [i for i, action in enumerate(actions) if action ==
                    ("click", "重试上次处理", "//section[@aria-label='真实转换产物']")]
@@ -2031,7 +2031,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
                 actions.append(("selector", selector))
                 if "文档与来源详细信息：文档与来源详细信息" in selector:
                     state["diagnostic"] = True
-                elif "禁用 text.extract" in selector:
+                elif "禁用文字解析" in selector:
                     state["enabled"] = False
                 elif selector == "//*[@data-recovery-request=" + self_test.probe.xpath_literal(frozen["request_id"]) + "]//button[@data-recovery-action='restore']":
                     self_test.assertIsNotNone(state["journal"])
@@ -2063,7 +2063,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
                         "source_revision": document["source_revision"], "kind": "text",
                         "surface": "manual", "mode": "single", "relative": None,
                         "origin_restore_epoch": "initial"}
-                elif label == "启用 text.extract":
+                elif label == "启用文字解析":
                     state["enabled"] = True
                     if autoexecute:
                         state["status"] = copy.deepcopy(succeeded)
@@ -2132,7 +2132,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
                     + frozen["request_id"]
                     + "；单次预算 60s。未知结果不会产生新作业。",
                     "latest": "最新任务 " + frozen["job_id"],
-                    "recovery": "Core 已证明原请求未受理",
+                    "recovery": "本地服务已确认本次处理请求未受理",
                 }
             return text
 

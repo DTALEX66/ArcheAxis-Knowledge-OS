@@ -77,6 +77,8 @@ describe("knowledge → course → lesson → existing learning queue", () => {
       const article = await screen.findByLabelText("课程候选课时");
       expect(article).toHaveTextContent("证据要点");
       expect(article).toHaveTextContent("解释证据并指出来源");
+      expect(article).toHaveTextContent("课程候选 · 需人工复核 · 来源版本已由本地服务核对");
+      expect(article).not.toHaveTextContent("Core");
       expect(article).not.toHaveTextContent("RAW_PROJECTION_METADATA");
       expect(article).not.toHaveTextContent(courseId);
       await user.click(screen.getByRole("button", { name: "状态与诊断：课程课时渲染回执" }));

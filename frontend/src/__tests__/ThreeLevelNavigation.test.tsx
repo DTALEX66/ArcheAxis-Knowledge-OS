@@ -167,7 +167,7 @@ describe("UI-02 levels reach the objects Core actually returns", () => {
     await user.click(await screen.findByRole("button", { name: "样板候选" }));
     await waitFor(() => expect(onTrail).toHaveBeenCalledWith([
       expect.objectContaining({ id: "section:candidates", region: "candidates" }),
-      expect.objectContaining({ id: "knowledge:knd_ui02", detail: "knd_ui02 · 版本 3 · candidate", region: "candidates" }),
+      expect.objectContaining({ id: "knowledge:knd_ui02", detail: "knd_ui02 · 版本 3 · 候选", region: "candidates" }),
     ]));
   });
 });

@@ -1,8 +1,10 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
-import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import {IngestRelationsPanel} from "../components/IngestRelationsPanel";
 import {freezeRelations,readRelationBatch,selectedFragments,verifiedSource,verifyRelationReceipt,type RelationRead} from "../presentation/ingestRelations";
 import type {DocumentDto,IngestBatchDto,IngestRelationsDto} from "../api/generated/core-contract";
+import {DiagnosticConsole} from "../components/DiagnosticConsole";
+import {clearDiagnostics} from "../presentation/diagnostics";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const a="a".repeat(64),b="b".repeat(64),c="c".repeat(64);
 const selection={batch_id:"batch",ordinal:0,workspace_id:"workspace",restore_epoch:"initial",source_id:"src_a",source_revision:a};
@@ -15,7 +17,7 @@ const saved={...doc,version:2,content_sha256:b};
 const receipt:IngestRelationsDto={schema:"archeaxis.ingest-relations/v1",...selection,input_kind:"immutable_original_markdown",relative_path:"note.md",document:saved,added_relations:1,links:[{ordinal:0,target:"image.svg",label:null,syntax:"wiki",embed:true,fragment:null,fragment_is_block:false,status:"resolved_reference",reason:"embed_rendering_not_supported",relation_id:"ingest_ref",target_ordinal:1}],loss:["original_source_links_not_current_document_body"]};
 let onApplied=vi.fn(),pending=vi.fn();
 function props(dirty=false){return {selection,document:doc,documents:[doc],dirty,canWrite:true,write:async<T,>(action:()=>Promise<T>)=>action(),onApplied,onPendingChange:pending,onOpenDocument:vi.fn(),onMore:vi.fn(),hasMore:false};}
-beforeEach(()=>{onApplied=vi.fn();pending=vi.fn();bridge.call.mockReset();bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+beforeEach(()=>{onApplied=vi.fn();pending=vi.fn();clearDiagnostics();bridge.call.mockReset();bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
  if(op==="ingest_batch_get")return structuredClone(batch);
  if(op==="ingest_member_relations_apply")return structuredClone(receipt);
  if(op==="document_version")return p.version===2?structuredClone(saved):structuredClone(doc);
@@ -26,17 +28,27 @@ beforeEach(()=>{onApplied=vi.fn();pending=vi.fn();bridge.call.mockReset();bridge
 async function ready(){fireEvent.click(screen.getByRole("button",{name:"读取完整批次映射"}));await screen.findByLabelText("链接目标 image.svg");fireEvent.change(screen.getByLabelText("链接目标 image.svg"),{target:{value:"source"}});}
 describe("SYNTHETIC explicit folder relation consumer",()=>{
  it("sends selected source identity once, reads exact saved version and existing graph",async()=>{
-  render(<IngestRelationsPanel {...props()}/>);await ready();fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));
+   render(<><IngestRelationsPanel {...props()}/><DiagnosticConsole/></>);await ready();fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));
   await waitFor(()=>expect(onApplied).toHaveBeenCalledWith(saved));
   expect(bridge.call).toHaveBeenCalledWith("ingest_member_relations_apply",{batch_id:"batch",ordinal:0,body:{workspace_id:"workspace",restore_epoch:"initial",source_id:"src_a",source_revision:a,document_id:"doc_a",expected_version:1,content_sha256:c,targets:[{ordinal:1,source_id:"src_b",source_revision:b}]}});
   expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:"doc_a",version:2});
   await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_graph",{document_id:"doc_a",version:2}));
   expect(pending.mock.calls.map(c=>c[0])).toEqual([true,false]);
+   const results=screen.getByRole("list",{name:"链接处理结果"});
+   expect(results).toHaveTextContent("已建立固定引用");
+   expect(results).toHaveTextContent("当前不支持在正文中直接显示");
+   expect(results).not.toHaveTextContent(/resolved_reference|embed_rendering_not_supported/);
+   expect(screen.getByText(/已读取现有关系图/)).toHaveTextContent("不代表全库");
+   fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件链接接入回执"}));
+   const raw=within(screen.getByRole("region",{name:"诊断控制台"})).getByText(/"resolved_reference"/,{selector:"pre"});
+   expect(JSON.parse(raw.textContent!)).toEqual(receipt);
  });
  it("retains lost ACK request, reads UNKNOWN without resending or rebasing",async()=>{
   const normal=bridge.call.getMockImplementation()!;bridge.call.mockImplementation((op,p)=>op==="ingest_member_relations_apply"?Promise.reject(new Error("ACK lost")):normal(op,p));
   render(<IngestRelationsPanel {...props()}/>);await ready();fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));await screen.findByRole("alert");
-  fireEvent.click(screen.getByRole("button",{name:"只读核对原关系请求"}));await screen.findByText(/缺少原操作回执，仍为 UNKNOWN/);
+   expect(screen.getByRole("alert")).toHaveTextContent("处理结果待确认");
+   expect(screen.getByRole("alert")).not.toHaveTextContent(/UNKNOWN|冻结/);
+   fireEvent.click(screen.getByRole("button",{name:"只读核对原关系请求"}));await screen.findByText(/缺少本次操作的确认记录，处理结果仍待确认/);
   expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_relations_apply")).toHaveLength(1);
   expect(onApplied).not.toHaveBeenCalled();expect(pending.mock.calls.map(c=>c[0])).toEqual([true]);
   expect(screen.getByRole("button",{name:"确认映射并保存原件关系"})).toBeDisabled();
@@ -51,13 +63,33 @@ describe("SYNTHETIC explicit folder relation consumer",()=>{
  });
  it("does not publish a response carrying a different source or version",async()=>{
   const normal=bridge.call.getMockImplementation()!;bridge.call.mockImplementation((op,p)=>op==="ingest_member_relations_apply"?Promise.resolve({...receipt,source_id:"foreign"}):normal(op,p));
-  render(<IngestRelationsPanel {...props()}/>);await ready();fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));await screen.findByText(/关系回执与固定版本读回不符/);expect(onApplied).not.toHaveBeenCalled();expect(screen.getByRole("alert")).toHaveTextContent("UNKNOWN");
+   render(<><IngestRelationsPanel {...props()}/><DiagnosticConsole/></>);await ready();fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));await screen.findByText("本地数据暂时不可用，请稍后重试或打开运行诊断。");expect(onApplied).not.toHaveBeenCalled();expect(screen.getByRole("alert")).toHaveTextContent("处理结果待确认");
+   fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件链接处理错误详情"}));
+   expect(within(screen.getByRole("region",{name:"诊断控制台"})).getByText(/关系回执与固定版本读回不符/,{selector:"pre"})).toBeVisible();
  });
  it("does not submit when editing begins during the fresh batch read",async()=>{
   const view=render(<IngestRelationsPanel {...props()}/>);await ready();let release!:(v:IngestBatchDto)=>void;bridge.call.mockImplementation(()=>new Promise(resolve=>{release=resolve;}));
   fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));view.rerender(<IngestRelationsPanel {...props(true)}/>);await act(async()=>release(batch));
   await screen.findByText(/准备期间文档或草稿改变/);expect(bridge.call.mock.calls.some(([op])=>op==="ingest_member_relations_apply")).toBe(false);
  });
+  it.each([
+   ["unsafe_or_unsupported_target","目标地址不安全或当前不支持"],
+   ["ambiguous_target","有多个可能目标，未自动选择"],
+   ["missing_target","未找到目标"],
+  ] as const)("keeps unresolved %s visible with a safe next step and its original receipt",async(reason,explanation)=>{
+   const unresolved:IngestRelationsDto={...receipt,document:doc,added_relations:0,links:[{...receipt.links[0],status:"unresolved",reason,relation_id:null}]};
+   const normal=bridge.call.getMockImplementation()!;
+   bridge.call.mockImplementation((op,p)=>op==="ingest_member_relations_apply"?Promise.resolve(unresolved):op==="document_graph"?Promise.resolve({center:{document_id:doc.document_id,version:doc.version,content_sha256:doc.content_sha256},edges:[]}):normal(op,p));
+   render(<><IngestRelationsPanel {...props()}/><DiagnosticConsole/></>);await ready();fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));
+   await waitFor(()=>expect(onApplied).toHaveBeenCalledWith(doc));
+   const results=screen.getByRole("list",{name:"链接处理结果"});
+   expect(results).toHaveTextContent("尚未关联");expect(results).toHaveTextContent(explanation);
+   expect(results).not.toHaveTextContent(reason);expect(results).not.toHaveTextContent("已建立固定引用");
+   fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件链接接入回执"}));
+   const raw=within(screen.getByRole("region",{name:"诊断控制台"})).getByText(new RegExp(reason),{selector:"pre"});
+   expect(JSON.parse(raw.textContent!)).toEqual(unresolved);
+   expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_relations_apply")).toHaveLength(1);
+  });
 });
 describe("fixed identity guards",()=>{
  it("explicit fragments bind only the chosen pinned document block and retain the original link identity",()=>{

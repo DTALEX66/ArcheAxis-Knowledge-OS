@@ -66,6 +66,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-menus { display: flex; align-items: center; gap: 3px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
 .stitch-menus > :is(details, button) { flex: 0 0 auto; }
 .stitch-menus > details > summary { list-style: none; display: flex; align-items: center; gap: 7px; }
+.stitch-menus > details > summary[data-current-group] { color: var(--ax-fg); font-weight: 600; box-shadow: inset 0 -2px 0 var(--ax-accent); }
 .stitch-menus > details > summary::after { content: ""; width: 4px; height: 4px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-1px) rotate(45deg); opacity: .55; transition: transform 140ms ease; }
 .stitch-menus > details[open] > summary::after { transform: translateY(1px) rotate(225deg); }
 .stitch-menus > details::details-content { opacity: 0; transition: opacity 150ms ease; }
@@ -81,12 +82,15 @@ body:has(.app-shell[data-stitch-workspace]) {
   box-shadow: 0 16px 36px -10px #0008, var(--stitch-material-rim);
 }
 .stitch-menu-heading { margin: 0; padding: 5px 10px 8px; color: var(--ax-fg-tertiary); font-size: 14px; border-bottom: 1px solid var(--ax-border); }
-.stitch-menu-popover button { position: relative; text-align: left; justify-content: flex-start; min-height: 40px; padding: 9px 30px 9px 10px; white-space: normal; overflow-wrap: anywhere; border-radius: 6px; }
+.stitch-menu-popover button { position: relative; display: flex; align-items: center; gap: 10px; text-align: left; justify-content: flex-start; min-height: 40px; padding: 9px 30px 9px 10px; white-space: normal; overflow-wrap: anywhere; border-radius: 6px; }
+.stitch-menu-popover button > svg { flex: 0 0 auto; color: var(--ax-fg-secondary); }
+.stitch-menu-popover button > span { min-width: 0; }
 .stitch-menu-popover button::after { content: ""; position: absolute; right: 13px; top: 50%; width: 5px; height: 5px; border-right: 1px solid currentColor; border-top: 1px solid currentColor; transform: translateY(-50%) rotate(45deg); opacity: 0; transition: opacity 140ms ease, transform 140ms ease; }
 .stitch-menu-popover button:is(:hover, :focus-visible)::after { opacity: .7; transform: translate(2px, -50%) rotate(45deg); }
 .stitch-menu-popover button[aria-current="page"]::after { content: "✓"; width: auto; height: auto; border: 0; opacity: 1; transform: translateY(-50%); font-size: 14px; }
 .stitch-workspace-menu :is(button, summary):active { background: var(--ax-active); }
 :root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-menu :is(button, summary) { background: transparent; border-color: transparent; box-shadow: none; }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-menus > details > summary[data-current-group] { box-shadow: inset 0 -2px 0 var(--ax-accent); }
 :root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-menu :is(button, summary):is(:hover, :focus-visible),
 :root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-menus > details[open] > summary { background: var(--ax-hover); }
 .stitch-workspace-menu .stitch-menu-popover button[aria-current="page"] { color: var(--ax-fg); background: var(--ax-hover); font-weight: 600; }
@@ -243,6 +247,8 @@ body:has(.app-shell[data-stitch-workspace]) {
 @media (max-width: 1279px), (max-height: 699px) {
   /* The shared companion stays mounted; the explicit inspector takes the single auxiliary slot. */
   body:has(.stitch-reference-window) .stitch-companion-window { display: none; }
+  /* Leave the task strip and global Dock reachable below the nonmodal window. */
+  .stitch-companion-window { --stitch-companion-top: 132px; top: var(--stitch-companion-top); max-height: calc(100dvh - var(--stitch-companion-top) - 112px); }
   /* Dock the auxiliary window above the bottom bar so it cannot cover the reader
      header, tabs or refresh controls in narrow or short windows. */
   .stitch-reference-window { top: auto; right: 8px; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); width: min(360px, calc(100vw - 16px)); max-height: min(45dvh, 420px); }
@@ -273,11 +279,11 @@ body:has(.app-shell[data-stitch-workspace]) {
   .stitch-workspace-dock button { padding: 6px 10px; }
   .stitch-workspace-dock button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .stitch-workspace-dock button svg { width: 20px; height: 20px; }
-  .stitch-companion-window { top: 132px; right: 12px; width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 196px); }
+  .stitch-companion-window { right: 12px; width: min(360px, calc(100vw - 24px)); }
   .stitch-reference-window { right: 8px; bottom: max(70px, calc(env(safe-area-inset-bottom) + 64px)); width: calc(100vw - 16px); max-height: min(50dvh, 420px); }
 }
 @media (max-height: 600px) {
-  .stitch-companion-window { top: 124px; max-height: calc(100dvh - 188px); }
+  .stitch-companion-window { --stitch-companion-top: 124px; }
   .stitch-reference-window { top: auto; bottom: max(64px, calc(env(safe-area-inset-bottom) + 58px)); max-height: min(55dvh, 360px); }
   .app-shell.cabin-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 41px; }
   .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 83px; }
@@ -304,6 +310,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   .stitch-workspace-menu, .stitch-menu-popover, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window, .app-shell.cabin-shell[data-stitch-workspace], .app-shell.cabin-shell[data-stitch-workspace] .app-center { background: Canvas !important; color: CanvasText; border-color: CanvasText; box-shadow: none; backdrop-filter: none; }
   .stitch-workspace-dock button:is([aria-current="page"], [aria-expanded="true"]) { color: Highlight; border-color: Highlight; }
   :root[data-aaos-theme] .stitch-workspace-menu :is(button, summary), :root[data-aaos-theme] .stitch-workspace-dock button { background: Canvas; color: CanvasText; box-shadow: none; }
+  :root[data-aaos-theme] .stitch-menus > details > summary[data-current-group] { text-decoration: underline; text-decoration-color: Highlight; text-underline-offset: 5px; }
   :root[data-aaos-theme] .stitch-workspace-dock button[aria-current="page"] { border-color: Highlight; color: Highlight; }
 }
 

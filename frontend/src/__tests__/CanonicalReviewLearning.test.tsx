@@ -5,10 +5,11 @@ import {CoreWorkingStateProvider} from "../presentation/useCoreWorkingState";
 import {CoreWorkingStateSession,type WorkingRead} from "../presentation/coreWorkingState";
 import type { Editor } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
+import { ApiError } from "../api/client";
 import {useState} from "react";
 const bridge = vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
@@ -72,6 +73,81 @@ describe("finite knowledge and learning commands",()=>{
   await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_review",{id:"k1",body:{action:"accepted",reviewer:"测试使用者",note:"保留判断依据",expected_version:"sha-version"}}));
   expect(await screen.findByRole("status")).toHaveTextContent("审核未完成");expect(screen.getByLabelText("审核备注")).toHaveValue("保留判断依据");
  });
+ it.each([["candidate","候选"],["accepted","已接受"],["rejected","未获允许"],["future_state","状态未知"]])("presents knowledge %s in Chinese while preserving its identity and review gate",async(status,label)=>{
+  bridge.call.mockImplementation(async(op:string)=>{
+   if(op==="search")return {items:[{knowledge_id:"k1",head:"固定知识正文",status,active:status==="accepted"}],transforms:[]};
+   if(op==="knowledge_get")return {knowledge_id:"k1",body:"固定知识正文",version:"fixed-version",status,title:"固定知识"};
+   if(op==="knowledge_qualification")return {};
+   if(op==="courses_list")return {courses:[]};
+   throw new Error(op);
+  });
+  const trail=vi.fn();render(<CanonicalKnowledgeSpace showMachine={false} onTrail={trail}/>);const user=userEvent.setup();
+  await user.click(screen.getByRole("button",{name:"搜索"}));
+  const candidates=screen.getByRole("list",{name:"知识候选列表"});expect(candidates).toHaveTextContent(label);
+  await user.click(within(candidates).getByRole("button",{name:"固定知识正文"}));
+  expect(await screen.findByRole("article",{name:"候选对照"})).toHaveTextContent(`状态 ${label} · 版本 fixed-version`);
+  expect(trail).toHaveBeenLastCalledWith([expect.anything(),expect.objectContaining({id:"knowledge:k1",detail:`k1 · 版本 fixed-version · ${label}`})]);
+  expect(screen.getByRole("button",{name:"由当前知识建立学习问题"})).toHaveProperty("disabled",status!=="accepted");
+  expect(bridge.call.mock.calls.some(([op])=>["knowledge_review","assessment_create","learning_reference"].includes(op))).toBe(false);
+ });
+ it.each(["learning_reference","assessment_create"])("does not blame knowledge acceptance when %s is unavailable",async(failedOperation)=>{
+  bridge.call.mockImplementation(async(op:string)=>{
+   if(op==="search")return {items:[{knowledge_id:"k1",head:"可学习知识",status:"accepted",active:true}],transforms:[]};
+   if(op==="knowledge_get")return {knowledge_id:"k1",body:"已保存正文",version:"fixed-version",status:"accepted",title:"可学习知识"};
+   if(op==="knowledge_qualification")return {};
+   if(op==="courses_list")return {courses:[]};
+   if(op===failedOperation)throw new ApiError(503,"Core offline /api/assessment","offline");
+   if(op==="learning_reference")return {};
+   throw new Error(op);
+  });
+  const onLearning=vi.fn();render(<CanonicalKnowledgeSpace showMachine={false} onLearning={onLearning}/>);const user=userEvent.setup();
+  await user.click(screen.getByRole("button",{name:"搜索"}));await user.click(await screen.findByRole("button",{name:"可学习知识"}));
+  await user.click(await screen.findByRole("button",{name:"由当前知识建立学习问题"}));
+  expect(await screen.findByRole("status")).toHaveTextContent("学习问题创建未完成");
+  expect(screen.getByText(/离线：请在桌面应用中使用此功能/)).toBeInTheDocument();
+  expect(screen.queryByText(/Core|仅允许当前有效、已接受的知识/)).not.toBeInTheDocument();
+  expect(screen.getByRole("article",{name:"候选对照"})).toHaveTextContent("状态 已接受");
+  expect(onLearning).not.toHaveBeenCalled();
+  expect(bridge.call.mock.calls.filter(([op])=>op===failedOperation)).toHaveLength(1);
+  if(failedOperation==="learning_reference")expect(bridge.call.mock.calls.some(([op])=>op==="assessment_create")).toBe(false);
+ });
+ it("keeps review errors in diagnostics and the answer editable after an explicit refusal",async()=>{
+  const rawError="Core REVIEW_CONTRACT /api/learning refused";
+  bridge.call.mockImplementation(async(op:string)=>{
+   if(op==="learning_items")return {items:[{item_key:"a1"}]};
+   if(op==="learning_state")return {item_key:"a1",learner:{assessment:{assessment_id:"assess",question:"实际问题",content:"核对内容",knowledge_version:"kv"}},machine:{status:"not_recorded"}};
+   if(op==="learning_history")return {events:[]};
+   if(op==="learning_review")throw new ApiError(422,rawError);
+   throw new Error(op);
+  });
+  render(<CanonicalLearningSpace/>);const diagnostics=renderHook(useDiagnostics);const user=userEvent.setup();
+  await user.click(await findLearningItemButton("a1"));await user.type(screen.getByLabelText("本次答案"),"保留我的答案");
+  await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");
+  await user.click(screen.getByRole("button",{name:"记录复习结果"}));
+  const status=await screen.findByRole("status");expect(status).toHaveTextContent("复习提交未完成");expect(status).toHaveTextContent("答案仍保留");
+  expect(status).not.toHaveTextContent(/Core|REVIEW_CONTRACT|422|\/api/);expect(screen.getByLabelText("本次答案")).toHaveValue("保留我的答案");expect(screen.getByLabelText("本次答案")).toBeEnabled();
+  await user.click(screen.getByRole("button",{name:"状态与诊断：学习操作错误详情"}));
+  expect(diagnostics.result.current[0].payload).toEqual({message:rawError,status:422,code:"unavailable"});
+  expect(bridge.call.mock.calls.filter(([op])=>op==="learning_review")).toHaveLength(1);
+ });
+ it("presents a failed review preflight without leaking its error or submitting the answer",async()=>{
+  let server:WorkingRead={schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:"06",pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
+  const session=new CoreWorkingStateSession({read:async()=>structuredClone(server),write:vi.fn(async request=>{server={...server,state:structuredClone(request.state),state_revision:server.state_revision+1};return structuredClone(server);}),clearSaved:vi.fn(),recover:vi.fn()});await session.load();
+  const rawError="Core journal DTO rejected";vi.spyOn(session,"freezeReview").mockRejectedValue(new Error(rawError));
+  bridge.call.mockImplementation(async(op:string)=>{
+   if(op==="learning_items")return {items:[{item_key:"a1"}]};
+   if(op==="learning_state")return {item_key:"a1",learner:{assessment:{assessment_id:"assess",question:"实际问题",content:"核对内容",knowledge_version:"kv"}},machine:{status:"not_recorded"}};
+   if(op==="learning_history")return {events:[]};
+   throw new Error(op);
+  });
+  render(<CoreWorkingStateProvider session={session}><CanonicalLearningSpace initialItemKey="a1"/></CoreWorkingStateProvider>);const user=userEvent.setup();const diagnostics=renderHook(useDiagnostics);
+  await user.type(await screen.findByLabelText("本次答案"),"预先保留的答案");await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");
+  await user.click(screen.getByRole("button",{name:"记录复习结果"}));
+  const status=await screen.findByRole("status");expect(status).toHaveTextContent("未发送复习，答案仍可编辑");expect(status).not.toHaveTextContent(/Core|journal|DTO/);
+  expect(screen.getByLabelText("本次答案")).toHaveValue("预先保留的答案");expect(screen.getByLabelText("本次答案")).toBeEnabled();
+  expect(bridge.call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);expect(session.getSnapshot().state.pending_reviews).toBeUndefined();
+  await user.click(screen.getByRole("button",{name:"状态与诊断：学习操作错误详情"}));expect(diagnostics.result.current[0].payload).toEqual({message:rawError});
+ });
  it("separates machine state and retries the same review event after unconfirmed response",async()=>{
   bridge.call.mockImplementation(async(op:string)=>{
    if(op==="learning_items") return {items:[{item_key:"a1",next_review:null}]};
@@ -89,6 +165,7 @@ describe("finite knowledge and learning commands",()=>{
   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));expect(screen.getByText("绑定修订中的核对内容")).toBeInTheDocument();
   await user.click(screen.getByLabelText("回答不正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"1");
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/提交未确认/);
+  expect(screen.queryByText(/复习提交未完成|复习记录已保存/)).not.toBeInTheDocument();
   await user.click(getLearningItemButton("a1"));
   expect(screen.getByLabelText("本次答案")).toHaveValue("本次实际答案");
   expect(screen.getByLabelText("本次答案")).toBeDisabled();

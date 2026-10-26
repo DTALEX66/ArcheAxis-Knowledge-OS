@@ -7,6 +7,7 @@ import { SpaceView } from "../spaces/SpaceView";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
 import { findUiPage,defaultUiPage } from "../presentation/uiPages";
+import { failureMessage, userErrorMessage } from "../presentation/labels";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import type {SourceJourneyTarget} from "../presentation/sourceJourney";
 import { PanelRegistry,businessPanelId,documentPanelId,documentObjectId,presentationPanelId } from "./PanelRegistry";
@@ -49,6 +50,8 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const parking=useRef<HTMLDivElement>(null),api=useRef<DockviewApi|null>(null),hydrating=useRef(false),mounted=useRef(true);
  const surface=useRef<HTMLDivElement>(null),surfaceSize=useRef({width:0,height:0}),responsiveLayout=useRef<typeof layoutPresets.default|null>(null);
  const [compactFallback,setCompactFallback]=useState(false);
+ const [layoutError,setLayoutError]=useState<{message:string;detail:string}>();
+ const reportLayoutError=(error:unknown)=>{const message=failureMessage(error);setLayoutError({message,detail:error instanceof Error?error.message:String(error)});setNotice(message);};
  const [version,refresh]=useState(0),[ready,setReady]=useState(false),[locked,setLocked]=useState(false),[preset,setPreset]=useState<keyof typeof layoutPresets>("default"),[notice,setNotice]=useState("");
  const lockedRef=useRef(locked);lockedRef.current=locked;
  const presetRef=useRef(preset);presetRef.current=preset;
@@ -120,7 +123,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const fitCurrent=useRef(fitWorkspace);fitCurrent.current=fitWorkspace;
  useEffect(()=>{if(!ready||!surface.current)return;const observer=new ResizeObserver(entries=>{
   const entry=entries[0];if(!entry)return;surfaceSize.current={width:entry.contentRect.width,height:entry.contentRect.height};
-  try{fitCurrent.current();}catch(error){setNotice(String((error as Error).message));}
+  try{fitCurrent.current();}catch(error){reportLayoutError(error);}
  });observer.observe(surface.current);return()=>observer.disconnect();},[ready]);
  const open=(panelId:string,direction?:"right"|"below",notify=true)=>{
   const dock=api.current;if(!dock)return;ensure(panelId);
@@ -150,14 +153,14 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  };
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;controller.invalidate();};},[controller]);
  useEffect(()=>{if(ready)open(id,undefined,false);},[id,ready,page,navigationRevision]);
- useEffect(()=>{if(!ready||workspaceId==="unverified")return;let alive=true;const started=interaction.current;void controller.read().then(result=>{if(!alive)return;if(result.workspace_id!==workspaceId||result.restore_epoch!==epoch)throw new Error("布局属于其他工作区；保留当前视图");if([...Object.values(result.layout.floating_bounds),...(result.layout.schema_version===2?result.layout.floating_groups??[]:[]).map(g=>g.bounds)].some(b=>b.x+b.width>window.innerWidth||b.y+b.height>window.innerHeight))throw new Error("屏幕范围已变化；请确认布局恢复以调整浮动面板");if(!result.recovery_reason){if(started!==interaction.current){setNotice("已读取已保存的布局；保留当前视图。需要时可选择“应用已保存布局”。");return;}apply(result.layout,false);const latest=current.current;open(businessPanelId(latest.selectedCapabilityId?"17":latest.uiPageId??defaultUiPage(latest.spaceId)),undefined,false);}}).catch(error=>{if(alive)setNotice(String(error.message??error));});return()=>{alive=false;};},[ready,workspaceId,epoch]);
+ useEffect(()=>{if(!ready||workspaceId==="unverified")return;let alive=true;const started=interaction.current;void controller.read().then(result=>{if(!alive)return;if(result.workspace_id!==workspaceId||result.restore_epoch!==epoch)throw new Error("布局属于其他工作区；保留当前视图");if([...Object.values(result.layout.floating_bounds),...(result.layout.schema_version===2?result.layout.floating_groups??[]:[]).map(g=>g.bounds)].some(b=>b.x+b.width>window.innerWidth||b.y+b.height>window.innerHeight))throw new Error("屏幕范围已变化；请确认布局恢复以调整浮动面板");if(!result.recovery_reason){if(started!==interaction.current){setNotice("已读取已保存的布局；保留当前视图。需要时可选择“应用已保存布局”。");return;}apply(result.layout,false);const latest=current.current;open(businessPanelId(latest.selectedCapabilityId?"17":latest.uiPageId??defaultUiPage(latest.spaceId)),undefined,false);}}).catch(error=>{if(alive)reportLayoutError(error);});return()=>{alive=false;};},[ready,workspaceId,epoch]);
  const onReady=(event:DockviewReadyEvent)=>{api.current=event.api;open(id,undefined,false);event.api.onDidActivePanelChange(()=>synchronize());event.api.onDidRemovePanel(()=>{if(!hydrating.current&&!controlled.current)interaction.current++;refresh(v=>v+1);});event.api.onDidLayoutChange(()=>{if(hydrating.current||!mounted.current)return;try{
   const layout=captureLayout(event.api,presetRef.current,{workspaceId,epoch,locked:lockedRef.current});
   // Tab selection is presentation only. A deliberate panel addition/close replaces
   // the temporary projection, so growing the window cannot resurrect closed tabs.
   controller.stage(expandedPreference()??layout);setNotice("");
- }catch(error){setNotice(String((error as Error).message));}});setReady(true);};
- const action=(operation:()=>void|Promise<unknown>)=>{interaction.current++;try{Promise.resolve(operation()).catch(error=>setNotice(String(error.message??error)));}catch(error){setNotice(String((error as Error).message));}};
+ }catch(error){reportLayoutError(error);}});setReady(true);};
+ const action=(operation:()=>void|Promise<unknown>)=>{interaction.current++;try{Promise.resolve(operation()).catch(error=>reportLayoutError(error));}catch(error){reportLayoutError(error);}};
  const split=(direction:"right"|"below")=>action(()=>{const candidate=id==="17"?"03":"17";open(candidate,responsiveLayout.current?undefined:direction);fitCurrent.current();});
  const active=()=>api.current?.activePanel;
  // Navigation already exposes these singleton pages. Keep tabs for every real
@@ -181,8 +184,9 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
    <button onClick={()=>action(async()=>{await controller.read();setNotice("已读取已保存的布局；当前视图保留。请确认是否应用。");})}>读取已保存布局</button>
    <button disabled={locked} onClick={()=>action(()=>{if(controller.snapshot){apply(controller.snapshot.layout);setNotice("已应用保存的布局；草稿和任务保留。");}})}>应用已保存布局</button>
    <button disabled={locked} onClick={()=>action(async()=>{const recovered=await controller.recover(Math.max(320,window.innerWidth),Math.max(240,window.innerHeight));apply(recovered.layout);})}>确认布局恢复</button>
-  </div>{locked?<p className="muted">布局已锁定；解锁后可调整面板。</p>:!(view.initialDocumentId??working?.state.active_document)?<p className="muted">并排打开需要先打开一份文档。</p>:null}<p role="status">{controller.status} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p></details>
+  </div>{locked?<p className="muted">布局已锁定；解锁后可调整面板。</p>:!(view.initialDocumentId??working?.state.active_document)?<p className="muted">并排打开需要先打开一份文档。</p>:null}<p role="status">{userErrorMessage(controller.status)} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p></details>
   {notice?<p role="alert">{notice}</p>:null}
+  {notice&&notice===layoutError?.message?<RawReceiptButton label="布局错误详情" visibleLabel="查看布局诊断" category="data" payload={{error:layoutError.detail}}/>:null}
   {compactFallback?<p role="status">当前面板空间不足，已改为标签视图；空间足够时恢复分栏，已保存布局与草稿保留。</p>:null}
   {controller.snapshot?.recovery_reason?<p role="alert">布局需要确认恢复。请展开“布局与面板”核对并确认恢复。</p>:null}
   <div className="dock-surface" ref={surface}><DockviewReact components={components} defaultTabComponent={AccessibleDockTab} rightHeaderActionsComponent={DockGroupActions} theme={themeDark} onReady={onReady} locked={locked} disableDnd={locked||compactFallback}/></div>

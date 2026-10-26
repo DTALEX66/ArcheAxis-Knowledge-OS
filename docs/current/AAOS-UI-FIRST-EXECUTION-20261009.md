@@ -2217,3 +2217,11 @@ u18v8d透明观察器首次安装因受保护的内部invoke不可写而拒绝�
 该4fc CI最终结论CANCELLED：browser-smoke取消、a0-gates依赖汇总失败；其余需要执行的任务全部通过，明确包含Python3.12、Rust、browser之外的桌面检查、desktop-build及installer-lifecycle；三个策略未选任务仍为SKIPPED，不扩写成全量所有门通过。4fc同源NSIS实际安装验收与本地原生通过分别成立，原983d安装失败保留。后继CI容器补丁经独立审阅及YAML／锁版本／内嵌Python AST／所有其他job与测试命令和预算逐项不变检查通过，尚不冒充容器运行PASS。
 
 CI元数据后继93395dad的自动CI40407556899实际拉取固定镜像及digest通过（38秒），browser job121869764399却在dev.py初始化以dubious ownership失败，缓存复制、Chromium启动与浏览器回归均未执行。原日志及收据ci933b1保留：checkout在临时HOME写safe.directory，后续shell恢复/github/home，所以原静态审查漏掉了作用域分离。后继仅browser-smoke job用Git官方进程级配置信任精确${{ github.workspace }}，不使用通配信任、不写本机或容器全局配置、不覆盖HOME；保持原镜像／锁版本／15分钟和全部测试命令及断言。需新SHA实际CI验收，不将镜像拉取成功写为浏览器通过，4fc的v8产品与Owner预览保持不变。
+
+#### 2026-10-27 菜单跨组交互、短窗布局与术语最终查漏
+
+Owner最新重点落实为菜单当前业务组、22页图标与跨组悬停、横滚关闭、按钮／标签／弹窗动效及减少动态；960×540实测的人物面板遮挡刷新已修，短窗留底部112px，紧凑浮窗按真实打开／收起两种状态分别检查。关系同名节点增加稳定序号；资源、知识、学习、设置、布局及五处后继流程用语收敛，完整协议和未知结果边界保留。实现与失败索引见 workspace/intake/20261027-menu-layout-polish.md。
+
+统一冻结uifin18为213文件／2343通过；uity16类型通过，其后仅同步两消费者测试文字；upyfin16五文件123通过／196子测试；umpost5真实Chromium合成Core四尺寸七组菜单、字体／键盘／焦点／悬停／滚动和动效通过，自有Vite清场。bkr2两项、bkm2一项通过，48MiB额外Rust分配峰4195460／4196390B，未验证SQLite C／RSS／物理断电。各run源码一致，旧失败／INVALIDATED独立保留，不冒充新Host或全量Python／Rust。
+
+并行实际AI侧airun1沿旧v8候选完成63个真实Core步骤、两次qwen3.5-4b回答／复测和冷启同身份读回，aifind1独立核对上下文与包摘要通过；数据为工程合成且质量未测，不能当Owner知识或新候选资格。da2精确CI40408417649终态SUCCESS：17选中任务通过、3策略跳过，包含实际NSIS与13视口合成浏览器；旧4fc／933失败保留，新产品后继仍需新CI。当前待新构建、原生和上传，整体PARTIAL、旧Owner预览留开、Green未替换。

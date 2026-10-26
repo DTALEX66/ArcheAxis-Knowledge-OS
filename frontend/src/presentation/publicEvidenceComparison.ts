@@ -36,15 +36,23 @@ export async function captureEvidenceComparisons(receipt:PublicResearchReceiptDt
     const original=await coreCommand<OriginalDto>("source_original",{source_id:selection.reference.source_id});
     if(original.source_id!==selection.reference.source_id||original.sha256!==selection.reference.sha256||!original.media_type.startsWith("text/"))throw Error("comparison source mismatch");
     const bytes=Uint8Array.from(atob(original.content_base64),c=>c.charCodeAt(0));
-    // No silent truncation: this citation locates the complete derived snapshot,
-    // not an offset into raw API JSON, nor an asserted upstream page location.
-    if(!bytes.length||bytes.length>16384||await evidenceHash(bytes)!==selection.reference.sha256)throw Error("comparison snapshot bounds or hash");
-    const quote=new TextDecoder("utf-8",{fatal:true,ignoreBOM:true}).decode(bytes);
-    const checksum=await evidenceHash(bytes);
+    // Always verify the complete retained snapshot, including provenance metadata.
+    if(!bytes.length||await evidenceHash(bytes)!==selection.reference.sha256)throw Error("comparison snapshot bounds or hash");
+    const snapshot=new TextDecoder("utf-8",{fatal:true,ignoreBOM:true}).decode(bytes);
+    let quote=snapshot,start=0,end=bytes.length;
+    if(bytes.length>16384){
+      // Core materialize's exact v1 envelope determines the content offset. Never
+      // search for a repeated excerpt/delimiter or cut the returned text to fit.
+      const header=`AAOS 派生内容快照（不是上游原始字节；未作专业核验）\n来源：${hit.family} / ${hit.provider}\n标题：${hit.title}\n地址：${hit.url}\n取得时间：${hit.retrieved_at}\n原API来源：${raw.source_id}\n原API内容指纹：${raw.sha256}\n表示：${hit.representation}\n内容范围：${hit.content}\n许可：${hit.license??"未知"}\n截断：${hit.truncated}\n定位说明：${hit.locator??"未提供"}\n\n内容：\n`;
+      const content=new TextEncoder().encode(hit.excerpt);
+      if(!content.length||content.length>16384||snapshot!==header+hit.excerpt)throw Error("comparison snapshot content range");
+      start=new TextEncoder().encode(header).length;end=start+content.length;quote=hit.excerpt;
+    }
+    const checksum=await evidenceHash(bytes.slice(start,end));
     await guard();
-    const anchor=await coreCommand<AnchorDto>("anchor_create",{source_id:original.source_id,body:{revision:original.sha256,position:JSON.stringify({type:"text",start:0,end:bytes.length}),checksum}});
+    const anchor=await coreCommand<AnchorDto>("anchor_create",{source_id:original.source_id,body:{revision:original.sha256,position:JSON.stringify({type:"text",start,end}),checksum}});
     const position=JSON.parse(anchor.position);
-    if(!anchor.anchor_id||anchor.source_id!==original.source_id||anchor.source_revision!==original.sha256||anchor.location_status!=="located"||position.type!=="text"||position.start!==0||position.end!==bytes.length||position.checksum!==checksum||position.location_status!=="located")throw Error("comparison anchor mismatch");
+    if(!anchor.anchor_id||anchor.source_id!==original.source_id||anchor.source_revision!==original.sha256||anchor.location_status!=="located"||position.type!=="text"||position.start!==start||position.end!==end||position.checksum!==checksum||position.location_status!=="located")throw Error("comparison anchor mismatch");
     await guard();
     const resolved=await coreCommand<AnchorResolutionDto>("anchor_resolve",{source_id:original.source_id,anchor_id:anchor.anchor_id});
     if(resolved.status!=="CURRENT"||resolved.source_id!==original.source_id||resolved.anchor_id!==anchor.anchor_id||resolved.source_revision!==original.sha256||resolved.current_source_revision!==original.sha256||resolved.scope!=="locator_provenance_only"||resolved.position!==anchor.position)throw Error("comparison anchor unresolved");

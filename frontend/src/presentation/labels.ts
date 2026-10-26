@@ -11,6 +11,7 @@ const STATE_LABELS: Record<string, string> = {
   recorded: "已记录",
   missing: "缺失",
   candidate: "候选",
+  accepted: "已接受",
   approved: "已批准",
   deprecated: "已弃用",
   unverified: "未核验",
@@ -40,6 +41,13 @@ const STATE_LABELS: Record<string, string> = {
 
 export function stateLabel(value: unknown): string {
   return typeof value === "string" ? STATE_LABELS[value] ?? "状态未知" : "状态未知";
+}
+
+/** A connection response does not verify a task, engine or output. */
+export function capabilityHealthLabel(value: unknown): string {
+  if (value === "healthy") return "正常";
+  if (value === "handshake_ready") return "连接已响应，运行尚未确认";
+  return "尚未确认";
 }
 
 const JOB_KIND_LABELS: Record<string, string> = {
@@ -101,6 +109,9 @@ export function coreFailureReason(error: unknown): string | null {
 }
 
 export function failureMessage(error: unknown): string {
+  if (error instanceof Error && error.message === "复习请求保全将超过 1 MiB；请先保存或明确丢弃其他草稿。") {
+    return "复习内容与其他草稿合计超过 1 MiB；请先保存或明确丢弃其他草稿。";
+  }
   return coreFailureReason(error) ?? userErrorMessage(error instanceof Error ? error.message : error);
 }
 

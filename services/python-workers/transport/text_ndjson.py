@@ -106,11 +106,16 @@ def _ocr_tessdata(language: str) -> Path | None:
 
     Order: an explicit `ARCHEAXIS_OCR_TESSDATA`, the repository's bundled copy, then the
     declared `tesseract-languages` entry. A candidate counts only if it holds the
-    requested language, so a directory of unrelated languages is not mistaken for usable.
+    requested languages, so unrelated or incomplete language packs are not usable.
+    Tesseract's ``chi_sim+eng`` requests two models in the same directory; it is
+    not the name of a single traineddata file.
     The path is handed over in plain form because tesseract cannot open a Windows extended
     (\\\\?\\\\) path, which a canonicalising caller such as the Rust executor would
     otherwise supply.
     """
+    languages = language.split("+")
+    if not all(languages):
+        return None
     candidates: list[Path] = []
     configured = os.environ.get(OCR_TESSDATA_ENV, "").strip()
     if configured:
@@ -121,7 +126,7 @@ def _ocr_tessdata(language: str) -> Path | None:
         candidates.extend([declared, declared / "tessdata"])
     for candidate in candidates:
         with contextlib.suppress(OSError):
-            if (candidate / f"{language}.traineddata").is_file():
+            if all((candidate / f"{part}.traineddata").is_file() for part in languages):
                 return Path(str(candidate).replace("\\\\?\\", ""))
     return None
 

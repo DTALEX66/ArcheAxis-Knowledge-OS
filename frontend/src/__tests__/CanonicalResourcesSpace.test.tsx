@@ -71,7 +71,25 @@ describe("resource source catalog", () => {
     expect(relation).toHaveTextContent("已禁用");
     expect(relation).toHaveTextContent("尚未确认");
     expect(relation).toHaveTextContent("功能已连接不代表");
+    const capabilities = screen.getByRole("region", { name: "当前可用能力" });
+    expect(capabilities).toHaveTextContent("音频转写 · 使用权限 已禁用 · 连接状态 连接已响应，运行尚未确认");
+    expect(capabilities).not.toHaveTextContent("media.transcribe");
+    expect(capabilities).not.toHaveTextContent("handshake_ready");
     expect(within(screen.getByRole("complementary", { name: "资源来源详情" })).queryByRole("button", { name: /^(启用|安装)(?:\s|$)/ })).not.toBeInTheDocument();
+  });
+
+  it("labels unknown permission and health honestly while retaining their exact diagnostic values", async () => {
+    const capabilities = [{ capability: "media.video", health: "future_health" }];
+    bridge.call.mockResolvedValue({ capabilities });
+    render(<CanonicalResourcesSpace/>);
+    const region = screen.getByRole("region", { name: "当前可用能力" });
+    await within(region).findByText(/视频内容处理 · 使用权限 尚未确认 · 连接状态 尚未确认/);
+    expect(within(region).queryByRole("button", { name: /^(启用|禁用)/ })).not.toBeInTheDocument();
+    expect(region).not.toHaveTextContent(/media\.video|future_health|UNKNOWN/);
+    const diagnostics = renderHook(useDiagnosticState);
+    await userEvent.setup().click(within(region).getByRole("button", { name: "状态与诊断：能力运行详细信息" }));
+    expect(diagnostics.result.current.entries[0].payload).toEqual({ state: "read", rows: capabilities });
+    expect(bridge.call.mock.calls).toEqual([["capabilities_list"]]);
   });
 
   it("keeps the complete catalog when handshake is unavailable or malformed", async () => {
@@ -108,11 +126,11 @@ describe("resource source catalog", () => {
       return { capabilities: [{ capability: "text.extract", enabled, enabled_basis: basis }] };
     });
     render(<CanonicalResourcesSpace/>);
-    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
-    await screen.findByText(/text.extract 已禁用，工作区设置已读回/);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用文字解析" }));
+    await screen.findByText(/文字解析已禁用，工作区设置已确认/);
     expect(bridge.call).toHaveBeenCalledWith("capability_set_enabled", { capability: "text.extract", enabled: false });
-    await userEvent.setup().click(screen.getByRole("button", { name: "启用 text.extract" }));
-    await screen.findByText(/text.extract 已启用，工作区设置已读回/);
+    await userEvent.setup().click(screen.getByRole("button", { name: "启用文字解析" }));
+    await screen.findByText(/文字解析已启用，工作区设置已确认/);
     expect(bridge.call.mock.calls.filter(([op]) => op === "capabilities_list")).toHaveLength(3);
   });
 
@@ -124,11 +142,11 @@ describe("resource source catalog", () => {
       return { capabilities: [{ capability: "text.extract", enabled, enabled_basis: basis }] };
     });
     render(<CanonicalResourcesSpace/>);
-    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用文字解析" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("变更未获确认");
-    expect(await screen.findByRole("button", { name: "启用 text.extract" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "启用文字解析" })).toBeEnabled();
     expect(bridge.call.mock.calls.filter(([op]) => op === "capability_set_enabled")).toHaveLength(1);
-    expect(screen.queryByText(/已禁用，工作区设置已读回/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/已禁用，工作区设置已确认/)).not.toBeInTheDocument();
   });
 
   it("rejects a mismatched ACK and a readback that contradicts the requested setting", async () => {
@@ -137,9 +155,9 @@ describe("resource source catalog", () => {
       ? { capability: { capability: "text.extract", enabled: false, enabled_basis: basis } }
       : { capabilities: [{ capability: "text.extract", enabled: true, enabled_basis: basis }] });
     render(<CanonicalResourcesSpace/>);
-    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用文字解析" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("变更未获确认");
-    expect(screen.queryByText(/已禁用，工作区设置已读回/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/已禁用，工作区设置已确认/)).not.toBeInTheDocument();
     expect(() => readCapabilityDecision({ capability: { capability: "another", enabled: false, enabled_basis: basis } }, "text.extract", false)).toThrow();
     expect(() => readCapabilityDecision({ capability: { capability: "text.extract", enabled: "false", enabled_basis: basis } }, "text.extract", false)).toThrow();
   });
@@ -152,12 +170,12 @@ describe("resource source catalog", () => {
       ? new Promise(resolve => { finish = resolve; })
       : Promise.resolve({ capabilities: [{ capability: "text.extract", enabled, enabled_basis: basis }] }));
     render(<CanonicalResourcesSpace/>);
-    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用文字解析" }));
     expect(screen.getByRole("button", { name: "重新读取当前宿主能力" })).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "禁用 text.extract" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "禁用文字解析" })).not.toBeInTheDocument();
     enabled = false;
     await act(async () => finish({ capability: { capability: "text.extract", enabled, enabled_basis: basis } }));
-    await screen.findByText(/已禁用，工作区设置已读回/);
+    await screen.findByText(/已禁用，工作区设置已确认/);
     expect(bridge.call.mock.calls.filter(([op]) => op === "capability_set_enabled")).toHaveLength(1);
   });
 

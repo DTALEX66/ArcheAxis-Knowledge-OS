@@ -8,7 +8,7 @@ import {learningTitle} from "../presentation/learningTitle";
 import { ApiError } from "../api/client";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import type { ObjectTrailLevel } from "../components/NavTrail";
-import { coreFailureReason } from "../presentation/labels";
+import { coreFailureReason, failureMessage } from "../presentation/labels";
 import "./stitch-learning.css";
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
@@ -57,6 +57,10 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
   const ratingConsistent = rating !== "" && checkedCorrect !== null && ((Number(rating) === 1) === !checkedCorrect);
   const [message, setMessage] = useState("");
   const [failureReason, setFailureReason] = useState<string | null>(null);
+  const [failureDetails, setFailureDetails] = useState<{message:string;status?:number;code?:string}|null>(null);
+  function captureFailure(error: unknown) {
+    setFailureDetails({message:error instanceof Error?error.message:String(error),...(error instanceof ApiError?{status:error.status,code:error.code}:{})});
+  }
   const [busy, setBusy] = useState(false);
   const epoch = useRef(0);
   const eventId = useRef<string|null>(null);
@@ -122,7 +126,7 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
       const assessment=state&&record(state.learner).assessment;
       if(current===epoch.current&&assessment&&record(assessment).assessment_id===draft.assessment_id&&!currentDrafts()[draft.assessment_id]){setAnswer("");setRating("");setCheckedCorrect(null);setAnswerRevealed(false);draftAtReview.current=undefined;}
       setMessage(currentDrafts()[draft.assessment_id]?"原草稿已丢弃，较新的本地输入仍保留。":working?"已丢弃这份学习草稿。":"已丢弃本次页面中的学习草稿。");
-    }catch(error){setMessage(error instanceof Error?error.message:"丢弃未确认，原答案保留。");}finally{setBusy(false);}
+    }catch(error){captureFailure(error);setMessage(`${failureMessage(error)} 丢弃未确认，原答案保留。`);}finally{setBusy(false);}
   }
   function edit(patch:Partial<Pick<LearningDraft,"answer"|"rating"|"checked_correct"|"answer_revealed">>) {
     if(!state||busy||reviewPending||frozenReview.current)return;
@@ -134,7 +138,7 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
     try {
       if(working)working.session.rememberLearningDraft(draft);else localDrafts.current={...localDrafts.current,[draft.assessment_id]:draft};
       setAnswer(draft.answer);setRating(draft.rating===null?"":String(draft.rating));setCheckedCorrect(draft.checked_correct);setAnswerRevealed(draft.answer_revealed);eventId.current=null;
-    }catch(error){setMessage(error instanceof Error?error.message:"学习草稿保存未确认，原答案保留。");}
+    }catch(error){captureFailure(error);setMessage(`${failureMessage(error)} 学习草稿保存未确认，原答案保留。`);}
   }
   async function open(key: string, restored?:PendingReview) {
     if(busy&&frozenReview.current)return;
@@ -142,7 +146,7 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
     const retained=journalReview.current&&working?.session.getSnapshot().state.pending_reviews?.[journalReview.current.client_event_id];
     if(frozenReview.current&&(!restored||!retained)){setMessage("复习结果尚未确认；请重试同一次提交。原答案仍保留。");return;}
     if(restored){journalReview.current=restored;const server=working?.session.getSnapshot().server;journalWorkspace.current=server?{workspace_id:server.workspace_id,restore_epoch:server.restore_epoch}:null;frozenReview.current=structuredClone(restored.body);eventId.current=restored.client_event_id;setReviewPending(true);}
-    const current = ++epoch.current; setState(null);setHistory(null);setItemKey(key);setFailureReason(null);if(!restored)eventId.current=null;
+    const current = ++epoch.current; setState(null);setHistory(null);setItemKey(key);setFailureReason(null);setFailureDetails(null);if(!restored)eventId.current=null;
     try {
       const [raw, events] = await Promise.all([coreCommand("learning_state",{item_key:key}),coreCommand("learning_history",{item_key:key})]);
       const data = record(raw);
@@ -162,7 +166,7 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
   }
   async function review() {
     if (!state || busy) return;
-    const current = epoch.current;setBusy(true);
+    const current = epoch.current;setBusy(true);setFailureDetails(null);
     // Keep the same event key for retries of the same answer, preventing duplicates.
     eventId.current ??= crypto.randomUUID();
     try {
@@ -191,8 +195,8 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
       draftAtReview.current=undefined;
       journalReview.current=null;journalWorkspace.current=null;frozenReview.current=null;setReviewPending(false);
       if (current === epoch.current) {await open(itemKey);const scheduled=typeof receipt.next_review==="string"?`下次复习：${receipt.next_review}`:receipt.next_review_days===-1?"学习记录已保存；暂时无法安排下次复习。":"学习记录已保存；下次复习时间未提供。";setMessage(`复习记录已保存。${scheduled}`);setHistory((previous:unknown)=>({receipt,history:previous}));await refresh();}
-    } catch (error) {if(working&&!journalReview.current&&!frozenReview.current){setMessage(`${error instanceof Error?error.message:"复习请求未能保全。"} 未发送复习，答案仍可编辑。`);return;}if(!journalReview.current&&error instanceof ApiError && error.status>=400 && error.status<500){frozenReview.current=null;setReviewPending(false);}setMessage(error instanceof ApiError && error.status >= 400 && error.status < 500
-      ? `Core 拒绝了复习记录（${error.status}）。${(error as Error).message} 请检查答案与自评，答案仍保留。`
+    } catch (error) {captureFailure(error);if(working&&!journalReview.current&&!frozenReview.current){setMessage(`${failureMessage(error)} 未发送复习，答案仍可编辑。`);return;}if(!journalReview.current&&error instanceof ApiError && error.status>=400 && error.status<500){frozenReview.current=null;setReviewPending(false);}setMessage(error instanceof ApiError && error.status >= 400 && error.status < 500
+      ? `复习提交未完成。${failureMessage(error)} 请检查答案与自评，答案仍保留。`
       : "复习提交未确认，请保留答案并用同一条目重试；不会假定成功。");}
     finally {setBusy(false);}
   }
@@ -220,5 +224,6 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
       <section className="stitch-learning-machine"><h4>机器能力状态</h4><p>{record(state.machine).status==="not_recorded"?"尚无机器能力记录。": "机器能力有单独记录，请查看详情。"}</p><RawReceiptButton label="机器能力详细记录" payload={state.machine} /></section>
     </>})()}<details className="stitch-learning-history" tabIndex={-1} data-section="record" aria-label="复习记录与回执"><summary>历史与回执</summary><p>{historySummary(history)}</p><RawReceiptButton label="复习历史与提交详情" payload={history} /></details></article>:null}
     {message?<p role="status">{message}</p>:null}
+    {failureDetails?<RawReceiptButton label="学习操作错误详情" payload={failureDetails}/>:null}
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}</section>;
 }

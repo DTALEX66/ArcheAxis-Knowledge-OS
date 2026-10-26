@@ -2445,7 +2445,7 @@ def frozen_conversion_view(js):
       return {page:location.hash,
         frozen:[...root.querySelectorAll('p')].find(p=>p.textContent.startsWith('执行请求已冻结：'))?.textContent??null,
         latest:[...root.querySelectorAll('p')].find(p=>p.textContent.startsWith('最新任务 '))?.textContent??null,
-        recovery:root.querySelector('[aria-label="冻结请求的能力恢复"]')?.textContent??null};""")
+        recovery:root.querySelector('[aria-label="处理能力恢复"]')?.textContent??null};""")
 
 
 def assert_unadmitted(status, job_id, source_id):
@@ -2650,7 +2650,7 @@ def capability_refusal_recovery(
     ui.page("15")
     ui.click("重新读取当前宿主能力")
     capability_permission(read, True)
-    ui.click_selector("//button[@aria-label='禁用 text.extract']")
+    ui.click_selector("//button[@aria-label='禁用文字解析']")
     result["disabled"] = poll(
         read,
         "capabilities_list",
@@ -2679,10 +2679,10 @@ def capability_refusal_recovery(
         'return !!document.querySelector(\'[aria-label="真实转换产物"] [aria-label="Core 提取正文"]\')'
     )
     ui.click_revealed("执行真实内容转换", "//section[@aria-label='真实转换产物']")
-    wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    wait("return !!document.querySelector('[aria-label=\"处理能力恢复\"]')")
     ui.click_revealed_selector("//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary")
     view = frozen_conversion_view(js)
-    assert view["page"] == "#page=03" and "Core 已证明原请求未受理" in view["recovery"]
+    assert view["page"] == "#page=03" and "本地服务已确认本次处理请求未受理" in view["recovery"]
     match = re.fullmatch(
         r"执行请求已冻结：(read_run_[A-Za-z0-9-]+)；单次预算 60s。未知结果不会产生新作业。",
         view["frozen"],
@@ -2721,7 +2721,7 @@ def capability_refusal_recovery(
     assert read("source_jobs", {"source_id": pin["source_id"]}) == listing, "Restart created a replacement job"
     # Explicitly retry the original identity while still disabled to obtain a fresh admission proof.
     ui.click_revealed("重试上次处理", "//section[@aria-label='真实转换产物']")
-    wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    wait("return !!document.querySelector('[aria-label=\"处理能力恢复\"]')")
     assert read("job_execution_status", {"job_id": job_id}) == refused
     result.update(
         execution_refusal="PASS",
@@ -2732,10 +2732,10 @@ def capability_refusal_recovery(
         refused_ui=view,
         body_evidence="Rendered bound NOT_ADMITTED proof + canonical single-text 60s/split:false/words:false contract; retry durable budget checked independently",
     )
-    scope = "//section[@aria-label='冻结请求的能力恢复']"
-    ui.click_revealed("启用 text.extract", scope)
+    scope = "//section[@aria-label='处理能力恢复']"
+    ui.click_revealed("启用文字解析", scope)
     wait(
-        "return document.body.innerText.includes('该能力已启用，工作区设置已读回。原冻结请求保留；请另点同请求重试。')"
+        "return document.body.innerText.includes('该能力已启用，并已重新核对工作区设置。本次处理记录保留；请另点原任务的重试按钮，不会自动执行。')"
     )
     result["enabled"] = capability_permission(read, True)
     after_enable = frozen_conversion_view(js)
