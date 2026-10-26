@@ -122,11 +122,12 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
   return <section aria-label="人工机器评测" className="semantic-panel">
     <h2>人工机器评测</h2><p role="status" aria-live="polite">{message}</p>
     <p>署名是人工声明；系统会核对提交者身份，机器不能冒充人工。记录不会自动提升为知识，也不代表真人已经掌握或专业结论为真。</p>
-    {taskId&&<p>新任务提示：{taskId} <button disabled={busy} onClick={applyHint}>使用新任务提示</button></p>}
-    <fieldset disabled={busy||!!evaluationAttempt.current}><legend>持久化原答案</legend>
-      <label>机器任务 ID<input value={taskInput} onChange={e=>setTaskInput(e.target.value)}/></label><button onClick={()=>void loadTask()}>读取原答案快照</button>
+    {taskId&&<p>刚才的回答可供评测。 <button disabled={busy} onClick={applyHint}>选择刚才的回答</button></p>}
+    <fieldset disabled={busy||!!evaluationAttempt.current}><legend>选择要评测的回答</legend>
+      <details><summary>高级：指定回答记录编号</summary><label>机器任务 ID<input value={taskInput} onChange={e=>setTaskInput(e.target.value)}/></label></details>
+      <p>{taskInput?"已选择一条回答记录；读取后再开始评测。":"先选择刚才的回答；其他已保存回答可在高级选项中按编号指定。"}</p><button onClick={()=>void loadTask()}>读取所选回答</button>
     </fieldset>
-    {snapshot&&<section aria-label="固定原答案"><p>{snapshot.task_id} · {snapshot.model_version}</p><p>{snapshot.question}</p><pre>{snapshot.original_answer}</pre><p>答案指纹：{snapshot.original_answer_sha256}</p><RawReceiptButton label="机器答案快照" payload={snapshot}/></section>}
+    {snapshot&&<section aria-label="固定原答案"><p>模型：{snapshot.model_version}</p><p>{snapshot.question}</p><pre>{snapshot.original_answer}</pre><RawReceiptButton label="机器答案快照" payload={snapshot}/></section>}
     <section aria-label="量规登记"><h3>新量规</h3><fieldset disabled={busy||!!rubricAttempt.current}><legend>人工定义准则</legend>
       <label>量规标题<input value={title} onChange={e=>setTitle(e.target.value)}/></label><label>量规用途<input value={purpose} onChange={e=>setPurpose(e.target.value)}/></label>
       {criteria.map((c,i)=><div key={c.criterion_id}><label>准则名称 {i+1}<input value={c.label} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,label:e.target.value}:x))}/></label><label>准则预期 {i+1}<textarea value={c.expectation} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,expectation:e.target.value}:x))}/></label></div>)}

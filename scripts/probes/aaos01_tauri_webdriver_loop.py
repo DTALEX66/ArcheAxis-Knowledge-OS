@@ -789,13 +789,46 @@ def ui_original_import_readback(bridge, proofs):
         proof["host_restart_original_readback"] = "PASS"
 
 
+def original_context_script(name, selector, expression="true"):
+    """Observe one committed, visible original context; never dispatch input."""
+    return """return (()=>{
+const visible=node=>!!node&&node.getClientRects().length>0&&
+ !node.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(n){for(;n;n=n.parentElement)yield n;})(node)).every(n=>{
+  const s=getComputedStyle(n);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const roots=[...document.querySelectorAll('.canonical-library')].filter(visible);
+if(roots.length!==1)return null;
+const root=roots[0],nav=root.querySelector(':scope > nav[aria-label="保留原件"]');
+if(!visible(nav))return null;
+const selected=[...nav.querySelectorAll('button[aria-current="true"]')].filter(visible);
+const content=root.querySelector(':scope > .canonical-content');
+const titles=content?[...content.querySelectorAll(':scope > h4')].filter(visible):[];
+const expected=""" + json.dumps(name, ensure_ascii=False) + """;
+if(selected.length!==1||selected[0].textContent.trim()!==expected||
+ titles.length!==1||titles[0].textContent.trim()!==expected)return null;
+const targets=[...content.querySelectorAll(""" + json.dumps(selector) + """)].filter(visible);
+if(targets.length!==1)return null;
+const s=targets[0];return (""" + expression + """);
+})();"""
+
+
+def original_content_xpath(name):
+    # These names are verified Windows fixture basenames, which cannot contain a double quote.
+    assert '"' not in name
+    literal = json.dumps(name, ensure_ascii=False)
+    return ("//div[contains(concat(' ',normalize-space(@class),' '),' canonical-library ')]"
+            "/div[contains(concat(' ',normalize-space(@class),' '),' canonical-content ')]"
+            f"[h4[normalize-space(.)={literal}]]")
+
+
 def ui_original_text_citations(bridge, ui_click, ui_type, wait, proofs, js, ui_select_emoji):
     """Trusted Ctrl+A selection; Core bridge reads only. Full original scope."""
     for proof in proofs:
         if proof["format"] not in {"txt", "md"}:
             continue
         ui_click(proof["name"], "//nav[@aria-label='保留原件']")
-        wait("return !!document.querySelector('[aria-label=\"原件文本范围引用\"] textarea')")
+        wait(original_context_script(proof["name"], '[aria-label="原件文本范围引用"]', "!!s.querySelector('textarea')"))
+        citation_scope = original_content_xpath(proof["name"]) + "//section[@aria-label='原件文本范围引用']"
         raw = base64.b64decode(bridge("source_original", {"source_id": proof["source_id"]})["content_base64"], validate=True)
         assert hashlib.sha256(raw).hexdigest() == proof["sha256"]
         if raw.startswith("\ufeff甲\r\n😀乙\r\n".encode("utf-8")):
@@ -808,7 +841,7 @@ def ui_original_text_citations(bridge, ui_click, ui_type, wait, proofs, js, ui_s
             except TimeoutError as exc:
                 state = js("const a=document.querySelector('[aria-label=\"原件文本范围引用\"] textarea');return a?{focused:document.activeElement===a,start:a.selectionStart,end:a.selectionEnd,selected:a.value.slice(a.selectionStart,a.selectionEnd).slice(0,16),keys:window.__originalSelectionKeys,pointer:window.__originalSelectionPointer}:null")
                 raise AssertionError({"partial_original_selection": state}) from exc
-            ui_click("引用所选原文", "//section[@aria-label='原件文本范围引用']")
+            ui_click("引用所选原文", citation_scope)
             wait("return document.querySelector('[aria-label=\"原件文本范围引用\"]')?.textContent.includes('已引用并解析')")
             added = [row for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"] if row["anchor_id"] not in previous]
             assert len(added) == 1
@@ -821,7 +854,7 @@ def ui_original_text_citations(bridge, ui_click, ui_type, wait, proofs, js, ui_s
         previous = {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]}
         ui_type('[aria-label="原件文本范围引用"] textarea', "\ue009a\ue000")
         wait("return ![...document.querySelectorAll('[aria-label=\"原件文本范围引用\"] button')].find(b=>b.textContent==='引用所选原文')?.disabled")
-        ui_click("引用所选原文", "//section[@aria-label='原件文本范围引用']")
+        ui_click("引用所选原文", citation_scope)
         wait("return document.querySelector('[aria-label=\"原件文本范围引用\"]')?.textContent.includes('已引用并解析')")
         added = [row for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"] if row["anchor_id"] not in previous]
         assert len(added) == 1
@@ -837,14 +870,25 @@ def ui_format_conversion_loop(bridge, ui_click, wait, js, proofs, navigate=True,
     """Execute through rendered controls; verify persisted outputs independently."""
     selector = '[aria-label="PDF 页面识别回写"] [aria-label="真实转换产物"]' if not navigate else '[aria-label="真实转换产物"]'
     for proof in proofs:
+        action_scope = scope
         if navigate:
             ui_click(proof["name"], "//nav[@aria-label='保留原件']")
-        wait("return !!document.querySelector('[aria-label=\"真实转换产物\"]')")
+            selector = ':scope > .canonical-reading > div > section[aria-label="真实转换产物"]'
+            action_scope = (original_content_xpath(proof["name"]) +
+                            "/div[contains(concat(' ',normalize-space(@class),' '),' canonical-reading ')]"
+                            "/div/section[@aria-label='真实转换产物']")
+
+        def observe(expression):
+            if navigate:
+                return original_context_script(proof["name"], selector, expression)
+            return "const s=document.querySelector(" + json.dumps(selector) + ");return !!s&&(" + expression + ");"
+
+        wait(observe("true"))
         before = {row["job_id"] for row in bridge("source_jobs", {"source_id": proof["source_id"]})["jobs"]}
-        label = js("const s=document.querySelector(" + json.dumps(selector) + ");const b=[...s.querySelectorAll('button')].find(b=>['执行真实内容转换','执行真实语音转写','执行真实视频分析','整体执行'].includes(b.textContent));return b?.textContent")
+        label = js(observe("[...s.querySelectorAll('button')].find(b=>['执行真实内容转换','执行真实语音转写','执行真实视频分析','整体执行'].includes(b.textContent))?.textContent"))
         assert label, f"No content conversion control: {proof['format']}"
-        ui_click(label, scope)
-        wait("const s=document.querySelector(" + json.dumps(selector) + ");return [...s.querySelectorAll('[role=status]')].some(p=>p.textContent.includes('转换已完成')||p.textContent.includes('PDF 文字层处理已完成'))", seconds=900)
+        ui_click(label, action_scope)
+        wait(observe("[...s.querySelectorAll('[role=status]')].some(p=>p.textContent.includes('转换已完成')||p.textContent.includes('PDF 文字层处理已完成'))"), seconds=900)
         listing = bridge("source_jobs", {"source_id": proof["source_id"]})["jobs"]
         added = [row for row in listing if row["job_id"] not in before]
         assert len(added) == 1 and added[0]["state"] == "succeeded"
@@ -860,7 +904,7 @@ def ui_format_conversion_loop(bridge, ui_click, wait, js, proofs, navigate=True,
         scan = proof["format"] == "pdf-scanned"
         assert not text.strip() if scan else text.strip()
         if not scan:
-            assert js("return document.querySelector(" + json.dumps(selector + ' [aria-label="Core 提取正文"]') + ")?.textContent") == text
+            assert js(observe("s.querySelector('[aria-label=\"Core 提取正文\"]')?.textContent")) == text
         anchors = json.loads(outputs["document_structure"]["content"])
         assert (scan or anchors) and all(0 <= row["char_start"] < row["char_end"] <= len(text) for row in anchors)
         loss = json.loads(outputs["loss_report"]["content"])
@@ -870,11 +914,11 @@ def ui_format_conversion_loop(bridge, ui_click, wait, js, proofs, navigate=True,
         proof["ui_conversion"] = {"job_id": job, "output_hashes": hashes, "anchors": len(anchors), "scope": "ACTUAL_UI_CONTENT_JOB_NOT_FULL_FIDELITY"}
         if citations and proof["format"] in {"csv", "json", "docx", "xlsx", "pptx", "html", "canvas", "srt", "vtt", "png", "jpeg", "pdf-text", "pdf-page-ocr"}:
             previous = {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]}
-            ui_click("预览所选引用", scope)
-            wait("return !!document.querySelector(" + json.dumps(selector + ' [aria-label="所选引用预览"]') + ")")
+            ui_click("预览所选引用", action_scope)
+            wait(observe("!!s.querySelector('[aria-label=\"所选引用预览\"]')"))
             assert {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]} == previous
-            ui_click("引用所选结构位置", scope)
-            wait("return document.querySelector(" + json.dumps(selector + ' [aria-label="转换结构引用"]') + ")?.textContent.includes('引用已保存并解析')")
+            ui_click("引用所选结构位置", action_scope)
+            wait(observe("s.querySelector('[aria-label=\"转换结构引用\"]')?.textContent.includes('引用已保存并解析')"))
             added = [row for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"] if row["anchor_id"] not in previous]
             assert len(added) == 1
             anchor = added[0]

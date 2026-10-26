@@ -290,7 +290,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       if (!current(generation)) return null;
       const explicitlyRefused=error instanceof ApiError && error.status>=400 && error.status<500;
       return { ...original, state: error instanceof ApiError && error.status === 409 ? "IDENTITY_CONFLICT" : explicitlyRefused ? "ENQUEUE_FAILED" : "UNKNOWN",
-        detail: error instanceof ApiError && error.status === 409 ? `同一作业标识持有不同的 ${kind} 参数，需人工核对。` : `原件已保留，${kind} 入队未确认；请读取转换状态，不会自动执行。` };
+        detail: error instanceof ApiError && error.status === 409 ? `同一作业标识持有不同的 ${kind} 参数，需人工核对。` : `原件已保留，${kind} 入队未确认；请查看处理进度，不会自动执行。` };
     }
   }
   function lock(): number | null {
@@ -360,7 +360,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         const recovery = recoverableJobRefusal(error, attempt, source, row.kind);
         patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500 && !recoverableJobRefusal(error, attempt, source, row.kind),
           admissionProof:recovery?(error as ApiError).jobAdmission:undefined,
-          detail: recovery ? "Core 已确认原请求未受理；能力禁用。可在此启用，原冻结身份保留；之后另点同请求重试。" : `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅同请求重试或读取状态，不产生新尝试。` });
+          detail: recovery ? "Core 已确认原请求未受理；能力禁用。可在此启用，原冻结身份保留；之后另点重试上次处理。" : `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅重试上次处理或读取状态，不产生新尝试。` });
         stopAfter.current = true;
       }
     } finally { if (active.current?.attempt.request_id === attempt.request_id) active.current = null; }
@@ -446,21 +446,25 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       queue.current.clear();for(const file of files)queue.current.set(relativeOf(file),file);
       registration.current=null;void registerSelection();
     }}/></label>:null}
-    {folder ? <p>当前批次「{folder}」；完整相对路径、原件与作业关系由 Core 耐久保存。每次新选择建立新批次；续跑当前选择请用“下一批”。浏览器不提供磁盘绝对路径，文件句柄不能重启恢复。未上传内容需重新选择；路径和大小核对后，所选字节作为本次明确提交的内容。</p> : null}
-    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。正在转换的文件需单独请求取消，最长等待 90 秒；失败或状态未知时不会自动重试。没有正在处理的批次时，“停止”不可用。</p>
+    {folder ? <p>当前批次「{folder}」。继续处理当前选择请用“下一批”；关闭应用后，未上传的文件需要重新选择。</p> : null}
+    <p>“停止”只停止后续文件。正在转换的文件需单独请求取消，最长等待 90 秒；结果未确认时请先检查，不会自动重试。</p>
+    <details><summary>导入与恢复说明</summary><p>原件保存与内容转换分别记录；已经接收的文件仍会核对实际结果。没有正在处理的批次时，“停止”不可用。</p>
+      <p>每次选择文件夹都会建立新批次，系统保存完整相对路径、原件与处理记录的关联。重新打开应用后，历史记录仍可读取；尚未上传的文件需要重新选择。</p>
+      <p>重新选择时会核对文件路径、数量和大小，但这不代表文件内容完全相同；你重新选择的实际内容将作为本次提交的内容。应用不会保存可在重启后直接读取文件的句柄，也无法从浏览器取得磁盘绝对路径。</p>
+    </details>
     <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
-      {manifestPending?<button disabled={busy} onClick={()=>void registerSelection()}>同批次重试登记</button>:null}
-      {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
+      {manifestPending?<button disabled={busy} onClick={()=>void registerSelection()}>重试准备此批次</button>:null}
+      {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>开始处理本批文件</button> : null}
       <button disabled={!busy} title={!busy?"当前没有正在处理的导入任务":undefined} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
     </div>{message ? <p role="status">{message}</p> : null}
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
       <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
       <td>{row.detail}<ConversionRecoveryNotice status={row.status}/>{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
-      <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
-        {row.batch_id===batchId&&!row.source_id&&row.state==="IMPORT_FAILED"?<button disabled={busy||capabilityBusy} onClick={()=>void retryImport(row.key)}>同成员重试导入</button>:null}
-        {row.batch_id===batchId&&row.source_id&&(!row.job_id||row.state==="ENQUEUE_FAILED")&&conversionKindFor(row.relative)?<button disabled={busy||capabilityBusy} onClick={()=>void enqueueRetained(row.key)}>核对并入队此成员</button>:null}
-        {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
-        {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
+      <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "检查上次处理结果" : "查看处理进度"}</button> : null}
+        {row.batch_id===batchId&&!row.source_id&&row.state==="IMPORT_FAILED"?<button disabled={busy||capabilityBusy} onClick={()=>void retryImport(row.key)}>重试导入此文件</button>:null}
+        {row.batch_id===batchId&&row.source_id&&(!row.job_id||row.state==="ENQUEUE_FAILED")&&conversionKindFor(row.relative)?<button disabled={busy||capabilityBusy} onClick={()=>void enqueueRetained(row.key)}>继续处理此文件</button>:null}
+        {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>重试上次处理</button> : null}
+        {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重新处理失败文件</button> : null}
         {row.attempt ? <button disabled={cancelBusy||capabilityBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
         {onSelectRelations&&row.source_id&&row.sha256&&row.batch_id===batchId&&/\.(md|markdown)$/i.test(row.relative)?<button disabled={busy||rows.some(item=>!!item.attempt)} onClick={()=>selectRelations(row)}>映射此原件中的链接</button>:null}
         {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>

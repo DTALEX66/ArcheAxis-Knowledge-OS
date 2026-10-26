@@ -546,7 +546,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     {retestFailure?<RawReceiptButton label="复测失败脱敏诊断" payload={retestFailure}/>:null}
     {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行尚未核实。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
     {withheld ? <><p>先读取并核对已保存的扣留审计；审计未确认时保留执行屏障。</p><button disabled={busy||!withheldAudit||!working} onClick={()=>void finishWithheld()}>结束已执行但未发布的请求，保留草稿</button></> : null}
-    {working&&hasPendingOwner()?<><button disabled={working.status!=="ready"} onClick={()=>void cancelMachine()}>请求取消当前本地 worker</button><button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>核对冻结机器请求的失败状态</button></>:null}
+    {working&&hasPendingOwner()?<><button disabled={working.status!=="ready"} onClick={()=>void cancelMachine()}>请求取消本次本地生成</button><button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>检查上次调用结果</button></>:null}
     {withheldAudit?.failed?<button disabled={busy||!working} onClick={()=>void finishWithheld()}>结束失败请求，保留草稿</button>:null}
     <h4>已保存的 AI 回答记录</h4>
     {working&&Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).length>1?
@@ -621,7 +621,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         {candidate.status === "accepted" ? <>
           <p>已审核知识可用于重答原问题。复测会再次核对原纠正记录和知识版本；接受纠正知识本身不代表复测通过。</p>
           {scoped && !retestContextGrant ? <p>请先为已接受的纠正知识保存并选择独立复测授权。</p> : null}
-          <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试同一冻结复测请求" : "以已接受纠正知识运行独立复测"}</button>
+          <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试上次复测" : "以已接受纠正知识运行独立复测"}</button>
         </> : null}
           {retest ? <section aria-label="独立复测结果对照">
             <h4>独立复测结果对照</h4>

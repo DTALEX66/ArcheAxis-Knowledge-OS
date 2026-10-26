@@ -320,13 +320,13 @@ class GroupedNativeProbeTests(unittest.TestCase):
         scripts = []
         def js(script):
             scripts.append(script)
-            return {"ready": True}
+            return {"ready": True, "disabled": False}
         probe.GroupedUI(js, lambda _: None, lambda *_: "node", lambda *_: None, []).reveal_selector("//button")
         harness = r"""
 const nav={parentElement:null,clientLeft:0,clientTop:0,clientWidth:217,clientHeight:400,
  scrollWidth:500,scrollHeight:400,scrollLeft:0,scrollTop:0,
  getBoundingClientRect:()=>({left:322,right:539,top:100,bottom:500})};
-const target={parentElement:nav,getBoundingClientRect:()=>({left:640,right:688,top:200,bottom:240,width:48,height:40}),contains:n=>n===target};
+const target={parentElement:nav,matches:()=>false,closest:()=>null,getBoundingClientRect:()=>({left:640,right:688,top:200,bottom:240,width:48,height:40}),contains:n=>n===target};
 nav.contains=n=>n===nav||n===target;
 const innerWidth=1000,innerHeight=700;
 const document={evaluate:()=>({singleNodeValue:target}),elementFromPoint:x=>x>=322&&x<539?nav:null};
@@ -369,16 +369,91 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
     def test_revealed_click_is_one_pointer_click_after_hit_testing(self):
         probe = load_probe()
-        commands = []
-        ui = probe.GroupedUI(lambda _:{"ready":True,"point":{"x":30,"y":40}}, lambda _:None,
-            lambda *_:"node", lambda *args:commands.append(args), [])
+        commands, evidence = [], []
+        values = iter([{"ready":True,"disabled":False,"point":{"x":30,"y":40}}, {"hit":True,"disabled":False}])
+        ui = probe.GroupedUI(lambda _:next(values), lambda _:None,
+            lambda *_:"node", lambda *args:commands.append(args), evidence)
         ui.click_revealed_selector("//button[@id='target']")
         self.assertEqual(commands, [(None,"pointer_click",{"x":30,"y":40})])
+        self.assertIs(evidence[-1]["disabled"], False)
+
+    def test_revealed_click_refuses_native_fieldset_and_aria_disabled_targets(self):
+        probe = load_probe()
+        for markup in [
+            '<button id="target" disabled>Save</button>',
+            '<fieldset disabled><button id="target">Save</button></fieldset>',
+            '<button id="target" aria-disabled="true">Save</button>',
+            '<div aria-disabled="TRUE"><button id="target">Save</button></div>',
+        ]:
+            with self.subTest(markup=markup):
+                commands, evidence, samples = [], [], []
+                def observe(script):
+                    if not samples:
+                        samples.append(evaluate(script, markup))
+                    return samples[0]
+                ui = probe.GroupedUI(observe, lambda _: None,
+                    lambda *_: "node", lambda *args: commands.append(args), evidence)
+                with patch.object(probe.time, "sleep") as sleep, self.assertRaisesRegex(TimeoutError, "Target remains disabled"):
+                    ui.click_revealed_selector("//button[@id='target']")
+                self.assertEqual(commands, [])
+                self.assertEqual(sleep.call_args_list, [unittest.mock.call(.15)] * 5)
+                self.assertEqual(evidence[-1]["action"], "target_disabled")
+                self.assertIs(evidence[-1]["observation"]["disabled"], True)
+
+    def test_revealed_click_observes_temporary_disabled_state_then_clicks_once(self):
+        probe = load_probe()
+        commands, evidence = [], []
+        values = iter([{"ready": False, "disabled": True},
+                       {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}},
+                       {"hit": True, "disabled": False}])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), evidence)
+        with patch.object(probe.time, "sleep") as sleep:
+            ui.click_revealed_selector("//button[@id='target']")
+        sleep.assert_called_once_with(.15)
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
+        self.assertEqual(evidence[0]["action"], "wait_for_target_enabled")
+        self.assertIs(evidence[-1]["disabled"], False)
+
+    def test_revealed_click_refuses_disable_after_layout_before_pointer(self):
+        probe = load_probe()
+        for markup in ['<button id="target" disabled>Save</button>',
+                       '<div aria-disabled="true"><button id="target">Save</button></div>']:
+            with self.subTest(markup=markup):
+                commands, evidence, observations = [], [], []
+                def observe(script):
+                    observations.append(script)
+                    if len(observations) % 2 == 1:
+                        return {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}
+                    return evaluate(script, markup)
+                ui = probe.GroupedUI(observe, lambda _: None, lambda *_: "node",
+                    lambda *args: commands.append(args), evidence)
+                with patch.object(probe.time, "sleep") as sleep, self.assertRaisesRegex(TimeoutError, "remained disabled"):
+                    ui.click_revealed_selector("//button[@id='target']")
+                self.assertEqual(commands, [])
+                self.assertEqual(len(observations), 6)
+                self.assertEqual(sleep.call_args_list, [unittest.mock.call(.15)] * 3)
+                self.assertEqual(evidence[-1]["action"], "target_pointer_readiness")
+                self.assertIs(evidence[-1]["observation"]["disabled"], True)
+
+    def test_revealed_click_rechecks_temporary_pointer_disable_without_replaying_action(self):
+        probe = load_probe()
+        commands = []
+        values = iter([{"ready": True, "disabled": False, "point": {"x": 10, "y": 20}},
+                       {"hit": False, "disabled": True},
+                       {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}},
+                       {"hit": True, "disabled": False}])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), [])
+        with patch.object(probe.time, "sleep") as sleep:
+            ui.click_revealed_selector("//button[@id='target']")
+        sleep.assert_called_once_with(.15)
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
 
     def test_reveal_uses_bounded_wheel_input_without_clicking_or_mutating_dom(self):
         probe = load_probe()
         commands, evidence = [], []
-        values = iter([{"ready":False,"wheel":{"x":30,"y":40,"deltaX":0,"deltaY":240}}, {"ready":True}])
+        values = iter([{"ready":False,"wheel":{"x":30,"y":40,"deltaX":0,"deltaY":240}}, {"ready":True,"disabled":False}])
         ui = probe.GroupedUI(lambda _:next(values), lambda _:None, lambda *_:"node",
             lambda *args:commands.append(args), evidence)
         with patch.object(probe.time, "sleep", lambda _:None):
@@ -404,8 +479,8 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         commands, evidence = [], []
         values = iter([
             {"ready": False, "reason": "No reachable scroll container", "target": {"x": 1043, "y": 679}},
-            {"ready": True, "point": {"x": 770, "y": 679}},
-            True,
+            {"ready": True, "disabled": False, "point": {"x": 770, "y": 679}},
+            {"hit": True, "disabled": False},
         ])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), evidence)
@@ -418,8 +493,8 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         probe = load_probe()
         commands = []
         values = iter([
-            {"ready": True, "point": {"x": 10, "y": 20}}, False,
-            {"ready": True, "point": {"x": 30, "y": 40}}, True,
+            {"ready": True, "disabled": False, "point": {"x": 10, "y": 20}}, {"hit": False, "disabled": False},
+            {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}, {"hit": True, "disabled": False},
         ])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), [])
@@ -580,7 +655,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             def click(self,label): actions.append(label)
             def js(self,source): return "本地 worker 取消请求已接收；尚未确认停止"
         report=probe.request_owned_machine_cancellation(UI(),lambda source:None,{})
-        self.assertEqual(actions,["请求取消当前本地 worker"])
+        self.assertEqual(actions,["请求取消本次本地生成"])
         self.assertTrue(report["cancel_requested"])
         self.assertFalse(report["terminal_verified"])
         self.assertEqual(report["provider_stop_state"],"UNKNOWN")
@@ -905,7 +980,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
     def test_webdriver_only_interactions(self):
         commands, observations, actions = [], [], []
         ui = self.probe.GroupedUI(
-            lambda script: observations.append(script) or {"ready": True, "point": {"x": 30, "y": 40}},
+            lambda script: observations.append(script) or {"ready": True, "disabled": False, "hit": True, "point": {"x": 30, "y": 40}},
             lambda script, **_: observations.append(script),
             lambda using, selector: "actual-element",
             lambda element, action, body: commands.append((element, action, body)),
@@ -934,7 +1009,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         )
         self.assertEqual(
             {row["action"] for row in actions},
-            {"target_visible_and_hit_tested", "trusted_visible_pointer_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
+            {"target_visible_and_hit_tested", "target_pointer_readiness", "trusted_visible_pointer_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
         )
 
     def test_unconfirmed_route_never_grants_or_invokes(self):
@@ -981,7 +1056,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 self.probe.assert_quote_selection({**proof, field: wrong}, text)
         commands, scripts, result = [], [], {}
         ui = self.probe.GroupedUI(
-            lambda script: {"ready": True, "point": {"x": 3, "y": 4}} if "elementFromPoint" in script else proof,
+            lambda script: {"ready": True, "disabled": False, "hit": True, "point": {"x": 3, "y": 4}} if "elementFromPoint" in script else proof,
             lambda script: scripts.append(script),
             lambda *_: "quote",
             lambda element, action, body: commands.append((action, body)),

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { webcrypto } from "node:crypto";
 import { MachineEvaluationPanel } from "../components/MachineEvaluationPanel";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { ApiError } from "../api/client";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const hash="a".repeat(64),answerHash="b".repeat(64),receiptHash="c".repeat(64);
@@ -14,7 +16,7 @@ async function doc(body:Record<string,unknown>,key="archeaxis_machine_rubric",ti
  return {document_id:await documentRequestIdentity(String(body.request_id)),version:1,title,content_sha256:hash,source_id:null,source_revision:null,editor_json:{type:"doc",attrs:{[key]:body},content:[]},blocks:[],text_projection:""};
 }
 async function setupEvaluation() {
- const user=userEvent.setup();await user.type(screen.getByLabelText("机器任务 ID"),"task1");await user.click(screen.getByRole("button",{name:"读取原答案快照"}));
+ const user=userEvent.setup();await user.click(screen.getByText("高级：指定回答记录编号"));await user.type(screen.getByLabelText("机器任务 ID"),"task1");await user.click(screen.getByRole("button",{name:"读取所选回答"}));
  await screen.findByText("实际持久化原答案");await user.click(screen.getByRole("button",{name:"读取量规列表"}));await user.click(await screen.findByRole("button",{name:"固定量规 既有量规"}));
  await screen.findByLabelText("人工依据 1");await user.type(screen.getByLabelText("评测者署名"),"使用者甲");await user.type(screen.getByLabelText("整体评测依据"),"已对照原答案及固定准则");await user.type(screen.getByLabelText("人工依据 1"),"此项需要继续核实");return user;
 }
@@ -31,6 +33,16 @@ async function defaultBridge() {
  });return {source,persisted};
 }
 describe("SIMULATED finite human machine evaluation UI",()=>{
+  it("selects the latest answer explicitly before reading and preserves its full identity in diagnostics",async()=>{
+   resetDiagnostics();await defaultBridge();render(<><MachineEvaluationPanel taskId="task1"/><DiagnosticConsole/></>);const user=userEvent.setup();
+   expect(screen.getByLabelText("机器任务 ID")).not.toBeVisible();expect(bridge.call).not.toHaveBeenCalled();
+   await user.click(screen.getByRole("button",{name:"选择刚才的回答"}));expect(bridge.call).not.toHaveBeenCalled();
+   await user.click(screen.getByRole("button",{name:"读取所选回答"}));await screen.findByText("实际持久化原答案");
+   expect(bridge.call).toHaveBeenCalledWith("machine_answer_snapshot",{task_id:"task1"});
+   expect(within(screen.getByLabelText("固定原答案")).queryByText(answerHash,{exact:false})).not.toBeInTheDocument();
+   await user.click(screen.getByRole("button",{name:"状态与诊断：机器答案快照"}));
+   const detail=screen.getByRole("region",{name:"诊断控制台"});expect(detail).toHaveTextContent(answerHash);expect(detail).toHaveTextContent(receiptHash);expect(detail).toHaveTextContent('"task_id": "task1"');
+  });
  beforeEach(()=>{cleanup();bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
  it("binds the actual original answer and pinned rubric; never sends trusted actor from reviewer annotation",async()=>{
   const {source}=await defaultBridge();render(<MachineEvaluationPanel/>);const user=await setupEvaluation();await user.click(screen.getByRole("button",{name:"登记人工评测"}));
@@ -47,7 +59,7 @@ describe("SIMULATED finite human machine evaluation UI",()=>{
  });
  it("does not let a new task hint replace unsaved judgments and uses separate dirty owners",async()=>{
   await defaultBridge();const events: {owner:string;dirty:boolean}[]=[];const listener=(e:Event)=>events.push((e as CustomEvent).detail);window.addEventListener("archeaxis-draft-dirty",listener);
-  const view=render(<MachineEvaluationPanel taskId="task1"/>);const user=await setupEvaluation();view.rerender(<MachineEvaluationPanel taskId="task2"/>);await user.click(screen.getByRole("button",{name:"使用新任务提示"}));
+  const view=render(<MachineEvaluationPanel taskId="task1"/>);const user=await setupEvaluation();view.rerender(<MachineEvaluationPanel taskId="task2"/>);await user.click(screen.getByRole("button",{name:"选择刚才的回答"}));
   expect(screen.getByLabelText("机器任务 ID")).toHaveValue("task1");expect(screen.getByLabelText("人工依据 1")).toHaveValue("此项需要继续核实");expect(screen.getByText(/新任务提示已保留/)).toBeInTheDocument();
   await user.type(screen.getByLabelText("量规标题"),"未保存量规");expect(new Set(events.filter(e=>e.dirty).map(e=>e.owner)).size).toBe(2);view.unmount();expect(events.slice(-2).every(e=>e.dirty===false)).toBe(true);window.removeEventListener("archeaxis-draft-dirty",listener);
  });

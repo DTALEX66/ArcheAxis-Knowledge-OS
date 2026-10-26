@@ -46,9 +46,14 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-workspace-menu {
   position: fixed; inset: 0 0 auto; z-index: 80; height: 40px; display: flex;
   align-items: center; gap: 12px; padding: 0 16px; color: var(--ax-fg-secondary);
-  border-bottom: 1px solid var(--stitch-glass-edge); background: var(--stitch-glass-header);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--stitch-glass-edge); background: transparent;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
   font-size: max(14px, var(--ax-text-ui)); line-height: 1.4;
+}
+/* A sibling material layer lets nested menus sample the page backdrop. */
+.stitch-workspace-menu::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--stitch-glass-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .stitch-workspace-menu button, .stitch-workspace-menu summary {
   font: inherit; font-size: max(14px, var(--ax-text-ui)); color: inherit; background: transparent; border: 0; border-radius: 5px;
@@ -287,12 +292,14 @@ body:has(.app-shell[data-stitch-workspace]) {
   :root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) { --ax-panel: #191b1f; --ax-raised: #303339; --ax-elevated: #303339; --stitch-glass-header: #191b1f; }
   :root:has(.app-shell[data-stitch-workspace]), :root[data-aaos-theme]:has(.app-shell[data-stitch-workspace]) { --stitch-glass-panel: var(--ax-panel); --stitch-glass-card: var(--ax-raised); --stitch-glass-header: var(--ax-raised); --stitch-reading-surface: var(--ax-panel); }
   .app-shell.cabin-shell[data-stitch-workspace] { background: var(--ax-panel) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
-  .stitch-workspace-menu, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .stitch-workspace-menu, .stitch-workspace-menu::before, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 @supports not (backdrop-filter: blur(1px)) {
+  .stitch-workspace-menu::before { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
   :root:has(.app-shell[data-stitch-workspace]), :root[data-aaos-theme]:has(.app-shell[data-stitch-workspace]) { --stitch-glass-panel: var(--ax-panel); --stitch-glass-card: var(--ax-raised); --stitch-glass-header: var(--ax-raised); --stitch-reading-surface: var(--ax-panel); }
 }
 @media (forced-colors: active) {
+  .stitch-workspace-menu::before { background: Canvas; backdrop-filter: none; -webkit-backdrop-filter: none; }
   body:has(.app-shell[data-stitch-workspace]) { background-image: none !important; }
   .stitch-workspace-menu, .stitch-menu-popover, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window, .app-shell.cabin-shell[data-stitch-workspace], .app-shell.cabin-shell[data-stitch-workspace] .app-center { background: Canvas !important; color: CanvasText; border-color: CanvasText; box-shadow: none; backdrop-filter: none; }
   .stitch-workspace-dock button:is([aria-current="page"], [aria-expanded="true"]) { color: Highlight; border-color: Highlight; }

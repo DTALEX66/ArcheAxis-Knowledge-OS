@@ -2165,3 +2165,25 @@ nfoc1真实原生诊断与umtab1独立真实Chromium均复现：菜单展开初�
 uipyp3原始151通过／3失败／170子测试、uipyp4原始67通过／2失败／170子测试均源码一致，失败来自导航fixture未接受递减seconds或把既有find存在查询误认页面读回；仅精确适配fixture，保留原Tab／Enter／alert／不重放断言。uipyp5受影响3项通过，未重写原失败；uipyp3导航75项和焦点10项实际通过，不能将混合分批定向记录写成全Python通过。
 
 67f完整CI40373150527已出现实际失败：Python6078通过／9失败／108跳过／424子测试通过，均旧导航fixture；browser在旧“查看诊断详情”精确名称等待超时，已机械同步现有“状态与诊断”入口；desktop-fast在setup-uv下载HTTP504，尚未运行其测试；Rust真实public-research hello超过原2000ms，原因未确认。原日志及hash在ci67-failures保留；prh67本地原Rust4项在同2秒限制、线程2下通过，不增加超时、不返回常量hello、不将本地结果替代云端失败。新提交完整CI与同候选原生仍须独立验收；Green未改，整体PARTIAL。
+
+#### 2026-10-27 菜单材质根因与普通操作后继
+
+b0eca76285d1983bdb670e8023ef87c7d9c15f91已上传PR203，dcb8／dst8／dhb8与Host5549c6fb63f9构建通过且源码一致，portable-v5为19746成员／1404815465逻辑字节；Host5977b449…78371、Core8d7ab1e7…83c26、清单05ac7312…ba956。preu7只更新隔离预览入口并通过参数检查，未启动或替换Green。
+
+同候选ngroup4外层LOCAL_PASS／源码一致，真实qwen3.5-4b回答和独立复测、学习／复习、权限拒绝后的冷重启及同请求恢复、导出下载读回均完成工程旅程。8次Host正常退出0，Core均GRACEFUL，无owned进程／端口残留。旅程本身仍PARTIAL／closed_loop_verified=false，Owner与回答质量未评定，不能改写成整体闭环或真实质量验收通过。完整receipt为webdriver-2be3ce2cf946/tmp/journey/receipt.json。
+
+ovp9为8个真实原生页及8个独立1920×1080 CSS基准页PASS，菜单14px／当前页、Dock实际分组、人物280／64／160／280、十步引导与三处控件提示均通过，正常退出及空业务库保持通过。真实屏幕仍2560×1440、DPR1.25，不声称修改了全局显示分辨率。ovp8动画未结束即采样的原失败保留；五主题测得的是品牌图形对比，不是全部菜单对比资格。root实际目视仍发现菜单正文串影，故没有把几何PASS当成审美接受。
+
+mbx5真实Chromium同一菜单的像素消融证明：原顶栏blur12存在时，子菜单blur24与none的314×215表面差异为0；顶栏材质移到独立::before后差异37286像素，边缘均值3.473248降至0.525537。五主题位置／字号保持，正式即时Tab及Escape在普通／减少动态均通过，owned Vite已停，未用模拟API证明原生业务。后继只分离顶栏滤镜层，保留菜单底色及24px模糊，并覆盖三种降级规则。此前mbx1—4的实验前置失败保留，新源码仍须统一检查和新Host原生复验。
+
+UI18的u18v5在Windows端口API权限处未进入业务，原FAIL保留；正常通道u18cl1确认其进程已自行退出，没有伪造退出码。u18v6真实导入保全18份合成原件，转换仅完成txt／md／csv／json／html／文本PDF六项；余12项、重解析及后续引用资格未执行。u18ds1只读显示当前页无转换等待状态，旧文本PDF却新增queued任务，支持探针切换原件后未等待同一来源正文就绪的竞态；产品根因未据此认定。按精确PID／creation的WM_CLOSE及合成草稿确认结束空等，Host25712／Core31320均0，Core GRACEFUL／forced=false，owned进程端口清空。原webdriver-de165d630a83回执及u18cl3正常关闭证据保留，绝非18格式通过。后继观察需同时核对可见当前原件和精确正文标题，不改900秒／120秒预算与格式矩阵。
+
+普通操作后继收拢生成取消／失败恢复、人工评测的回答选择与读取、共享对象引用、上下文包通知及批量导入说明；全部沿原API、草稿与未知请求保护。引用以标题、版本、片段及原件名为主，完整身份可展开；原件停止／单文件取消／90秒及未知不自动重试仍在默认提示。完整目录、原值和诊断不删除，不能声称全项目工程词已经全部消失。新切片统一检查、精确新提交构建与原生仍待验收。
+
+b0完整CI40378026334的Python／Rust／desktop-fast／desktop-build等组件已成功，但browser-smoke在Playwright系统依赖apt下载时取消，实际浏览器回归未运行；installer-lifecycle的真实安装分组学习旅程等待“复习记录已保存”超时，生产成功文案仍存在，尚未确认为保存缺陷。cijob1保留完整job日志和hash，原始失败不能用本地ngroup4通过替换。整体PARTIAL、Green未替换、监控状态不变。
+
+安装失败artifact下载完整，cidiag1只证实点击前可见／命中观察没有检查禁用状态，不能倒推按钮当时启用或推定Core写入。后继grouped观察补原生disabled／禁用fieldset／ARIA检查；沿原布局观察与坐标重检上限等待瞬时禁用结束，禁用期间不发wheel或pointer，最终只点击一次，不改业务等待和保存读回。cgdis2原71通过／2旧fixture失败保留；两fixture明确补启用观察后cgdis3完整73通过／176子测试、源码一致。该harness缺口已确认，原安装失败根因仍未确认。
+
+来源稳定observer的u18ob1为15通过／8子测试；AI普通表面aimc1原115通过／9旧选择器失败、aimc2该文件26通过，aimpy1对应fixture通过。uifinal5原2299通过／2失败是Folder说明与JobJournal旧重试名；只同步实际展开和原请求精确断言后uicopyfix6两文件64通过。uifinal6实际2301项全过，但并行Python fixture写入使外层INVALIDATED，不能当源码一致通过；uipyp7原297通过／3旧fixture失败／184子测试也保留，不删除或改判。uityfinal5类型与此前uipyp6的296通过／178子测试均源码一致。最终三个fixture已同步，全部源码随后冻结，后继统一检查、提交、构建与新候选仍各自读取实际回执。
+
+最终冻结后uifinal7为213套件／2301项通过，uipyp8为300项／184子测试通过，uiprefinal7完整静态预检通过，均LOCAL_PASS／source_consistent=true；原失败与INVALIDATED回执不改判。之后仅更新本段和活动指针记录结果，不再修改产品。后继以新提交重建Core／Host与portable-v6，真实分组模型、菜单／布局与UI18沿唯一原生槽顺序复验；新构建／原生／完整CI和Owner审美资格仍单独记录，不能把本地检查扩写成全部产品验收。

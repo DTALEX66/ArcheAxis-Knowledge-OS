@@ -30,11 +30,11 @@ it('selects an actual saved document by title and preserves pinned version, bloc
   expect(screen.getByLabelText('目标对象ID')).not.toBeVisible();
   expect([...screen.getByLabelText('目标类型').querySelectorAll('option')].map(option=>[option.value,option.textContent])).toEqual([['document','文档'],['source','来源原件'],['knowledge','知识']]);
   fireEvent.click(screen.getByRole('button',{name:'选择关联对象'}));
-  fireEvent.click(screen.getByRole('button',{name:'读取文档对象'}));
-  await screen.findByRole('option',{name:'目标笔记 · 列表 v3'});
+  fireEvent.click(screen.getByRole('button',{name:'浏览已保存文档'}));
+  await screen.findByRole('option',{name:'目标笔记 · 第 3 版'});
   fireEvent.change(screen.getByLabelText('选择文档'),{target:{value:'doc_b'}});
-  await screen.findByLabelText('固定引用块');
-  fireEvent.change(screen.getByLabelText('固定引用块'),{target:{value:'pinned_block'}});
+  await screen.findByLabelText('选择文档片段');
+  fireEvent.change(screen.getByLabelText('选择文档片段'),{target:{value:'pinned_block'}});
   fireEvent.click(screen.getByRole('button',{name:'加入此固定引用'}));
   expect(screen.getByLabelText('固定目标版本')).toHaveValue('5');
   expect(screen.getByText('当前目标：目标笔记 · 文档，第 5 版；尚未加入关系草稿。')).toBeVisible();
@@ -53,8 +53,8 @@ it('reuses the original selector without asking the user to transcribe its ident
   bridge.call.mockImplementation(async(op:string,p:J)=>op==='sources_list'?{sources:[{source_id:'source_exact',source_revision:sha,sha256:sha,original_name:'原始图片.png',imported_at:'now'}]}:call(op,p));
   render(<CanonicalRelationSpace/>); await open();
   fireEvent.click(screen.getByRole('button',{name:'选择关联对象'}));
-  fireEvent.click(screen.getByRole('button',{name:'读取原件对象'}));
-  await screen.findByRole('option',{name:'原始图片.png · source_exact'});
+  fireEvent.click(screen.getByRole('button',{name:'浏览来源原件'}));
+  await screen.findByRole('option',{name:'原始图片.png · ce_exact'});
   fireEvent.change(screen.getByLabelText('选择来源原件'),{target:{value:'source_exact'}});
   fireEvent.click(screen.getByRole('button',{name:'加入此固定引用'}));
   expect(screen.getByLabelText('来源文件指纹')).toHaveValue(sha);

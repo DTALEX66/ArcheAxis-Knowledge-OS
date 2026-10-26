@@ -565,6 +565,8 @@ return pages.length===1&&["06","11","12"].includes(pages[0].getAttribute('data-c
         self.find(selector)
         script = "const n=document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;" + r"""
 if(!n)return {ready:false};
+const disabled=n.matches(':disabled')||!!n.closest('[aria-disabled="true" i]');
+if(disabled)return {ready:false,disabled:true,reason:'Target is disabled'};
 const r=n.getBoundingClientRect(), px=(r.left+r.right)/2, py=(r.top+r.bottom)/2;
 let left=0,top=0,right=innerWidth,bottom=innerHeight;const scroll=[];
 for(let a=n.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.getBoundingClientRect();
@@ -573,7 +575,7 @@ for(let a=n.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.g
  if((/auto|scroll/.test(s.overflowY)&&a.scrollHeight>a.clientHeight+1)||(/auto|scroll/.test(s.overflowX)&&a.scrollWidth>a.clientWidth+1))scroll.push(a);
 }
 const hit=document.elementFromPoint(px,py);
-if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(hit))return {ready:true,point:{x:Math.floor(px),y:Math.floor(py)}};
+if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(hit))return {ready:true,disabled:false,point:{x:Math.floor(px),y:Math.floor(py)}};
 for(const a of scroll){let b=a.getBoundingClientRect(),l=Math.max(0,b.left),t=Math.max(0,b.top),rr=Math.min(innerWidth,b.right),bb=Math.min(innerHeight,b.bottom);
  for(let p=a.parentElement;p;p=p.parentElement){const s=getComputedStyle(p),q=p.getBoundingClientRect();if(s.overflowX!=='visible'){l=Math.max(l,q.left+p.clientLeft);rr=Math.min(rr,q.left+p.clientLeft+p.clientWidth);}if(s.overflowY!=='visible'){t=Math.max(t,q.top+p.clientTop);bb=Math.min(bb,q.top+p.clientTop+p.clientHeight);}}
  const style=getComputedStyle(a);
@@ -583,22 +585,27 @@ for(const a of scroll){let b=a.getBoundingClientRect(),l=Math.max(0,b.left),t=Ma
  if((dx>0&&a.scrollLeft+a.clientWidth>=a.scrollWidth-1)||(dx<0&&a.scrollLeft<=0))dx=0;
  if((!dx&&!dy)||bb<=t||rr<=l)continue;
  const x=Math.floor((l+rr)/2),y=Math.floor((t+bb)/2),origin=document.elementFromPoint(x,y);
- if(origin&&a.contains(origin))return {ready:false,wheel:{x,y,deltaX:dx,deltaY:dy},scrollTop:a.scrollTop,scrollLeft:a.scrollLeft};
+ if(origin&&a.contains(origin))return {ready:false,disabled:false,wheel:{x,y,deltaX:dx,deltaY:dy},scrollTop:a.scrollTop,scrollLeft:a.scrollLeft};
 }
-return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},clip:{left,top,right,bottom},hit:hit?.tagName};
+return {ready:false,disabled:false,reason:'No reachable scroll container',target:{x:px,y:py},clip:{left,top,right,bottom},hit:hit?.tagName};
 """
         unsettled = 0
         for _ in range(16):
             observed = self.js(script)
-            if observed.get("ready"):
-                self.evidence.append({"action":"target_visible_and_hit_tested", "selector":selector, **observed.get("point",{})})
+            disabled = observed.get("disabled") is True
+            if observed.get("ready") and not disabled:
+                assert observed.get("disabled") is False, "Target enabled state is unverified"
+                self.evidence.append({"action":"target_visible_and_hit_tested", "selector":selector, "disabled":False, **observed.get("point",{})})
                 return observed
-            if not observed.get("wheel"):
+            if disabled or not observed.get("wheel"):
                 # 刚激活的保留面板可能先有 DOM、后完成 Dock/ResizeObserver 布局。
-                # 仅等有限次重新观察；永久遮挡仍失败，不绕过命中检查或强制点击。
+                # 瞬时禁用共用原布局观察上限；不滚动禁用目标、不增加等待预算。
                 unsettled += 1
+                if disabled and unsettled >= 6:
+                    self.evidence.append({"action": "target_disabled", "selector": selector, "observation": observed})
+                    raise TimeoutError("Target remains disabled within bounded layout observations")
                 assert unsettled < 6, observed
-                self.evidence.append({"action": "wait_for_target_layout", "selector": selector, "observation": observed})
+                self.evidence.append({"action": "wait_for_target_enabled" if disabled else "wait_for_target_layout", "selector": selector, "observation": observed})
                 time.sleep(.15)
                 continue
             self.command(None, "wheel", observed["wheel"])
@@ -616,17 +623,22 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
             still_there = self.js(
                 "const n=document.evaluate(" + json.dumps(selector) + ",document,null,"
                 "XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;"
+                "if(!n)return {hit:false,disabled:null};"
+                "const disabled=n.matches(':disabled')||!!n.closest('[aria-disabled=\"true\" i]');"
+                "if(disabled)return {hit:false,disabled:true};"
                 "const hit=document.elementFromPoint(" + str(int(point["x"])) + "," + str(int(point["y"])) + ");"
-                "return !!n&&!!hit&&n.contains(hit);"
+                "return {hit:!!hit&&n.contains(hit),disabled:false};"
             )
-            if still_there:
+            self.evidence.append({"action": "target_pointer_readiness", "selector": selector, "observation": still_there})
+            if still_there.get("hit") and still_there.get("disabled") is not True:
+                assert still_there.get("disabled") is False, "Target enabled state is unverified"
                 # Element-click may scroll the nested layout again. Pointer input uses
                 # the already visible, unobscured target without changing that scroll.
                 self.command(None, "pointer_click", point)
-                self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, **point})
+                self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, "disabled":False, **point})
                 return
             time.sleep(0.15)
-        raise TimeoutError("Target moved before the trusted pointer click")
+        raise TimeoutError("Target moved or remained disabled before the trusted pointer click")
 
     def click_revealed(self, label, scope=""):
         self.click_revealed_selector(button_selector(label, scope))
@@ -1191,7 +1203,7 @@ def run_grouped_loop(
         original = read("source_original", {"source_id": source["source_id"]})
         assert original["sha256"] == sha and base64.b64decode(original["content_base64"]) == content
         imported[name] = source
-    ui.click("执行本批次转换")
+    ui.click("开始处理本批文件")
     jobs = {}
     for name, source in imported.items():
         listing = poll(
@@ -1607,7 +1619,7 @@ def selected_retest_binding(stage, selected_model):
 
 def request_owned_machine_cancellation(ui, wait, report):
     """Trusted UI opt-in; acceptance alone never qualifies worker/provider stop."""
-    ui.click("请求取消当前本地 worker")
+    ui.click("请求取消本次本地生成")
     wait("return document.body.innerText.includes('取消请求已接收；尚未确认停止') || document.body.innerText.includes('没有确认可取消的当前本地 worker')")
     text = ui.js("return document.body.innerText")
     accepted = "取消请求已接收；尚未确认停止" in text
@@ -1618,8 +1630,8 @@ def request_owned_machine_cancellation(ui, wait, report):
 
 def confirm_owned_machine_cancellation(ui, wait, report):
     """Invoke only after the original call finishes; observe the separate Core audit UI."""
-    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='核对冻结机器请求的失败状态' && !b.disabled)")
-    ui.click("核对冻结机器请求的失败状态")
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='检查上次调用结果' && !b.disabled)")
+    ui.click("检查上次调用结果")
     wait("return document.body.innerText.includes('本地 worker 取消审计；可结束请求并保留草稿')")
     text = ui.js("return document.body.innerText")
     assert "本地 worker 取消审计；可结束请求并保留草稿" in text
@@ -2075,7 +2087,7 @@ retest_visible:!!root?.querySelector('[aria-label="独立复测机器回答"]'),
 unknown:text.includes('执行状态尚未确认'),retest_incomplete:text.includes('复测未完成'),
 retest_refused:text.includes('本地知识库明确拒绝复测请求'),
 retest_withheld:text.includes('复测推理已执行，答案未发布'),
-same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textContent?.includes('重试同一冻结复测请求'))};""")
+same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textContent?.includes('重试上次复测'))};""")
         keys = ("panel_present", "answer_visible", "retest_visible", "unknown",
                 "retest_incomplete", "retest_refused", "retest_withheld", "same_request_retry")
         if not isinstance(value, dict) or any(type(value.get(key)) is not bool for key in keys):
@@ -2182,7 +2194,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
         # One explicit UI retry of the same frozen payload; never generate a new
         # request, replace its grant, or turn an unknown response into success.
         stage["retest_retry"] = {"limit": 1, "first_failure": stage["retest_ui_diagnostic"], "first_inventory": stage["retest_task_inventory"]}
-        ui.click("重试同一冻结复测请求", scope)
+        ui.click("重试上次复测", scope)
         wait("return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('本地知识库明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')", seconds=150)
         stage["retest_retry"]["final_observation"] = machine_ui_diagnostic(ui)
         inventory = machine_tasks(read)

@@ -2,6 +2,8 @@ import { beforeEach,afterEach,it,expect,vi } from "vitest";
 import { webcrypto } from "node:crypto";
 import { fireEvent,render,screen,waitFor } from "@testing-library/react";
 import { AiAssetPacketPanel } from "../components/AiAssetPacketPanel";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { parseLocalExpiry } from "../presentation/localExpiry";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import type { DocumentDto } from "../api/generated/core-contract";
@@ -24,4 +26,12 @@ it.each(["grant","purpose","delivery_status"])("rejects %s mismatch instead of c
 it("local authorization expiry requires apply and keeps candidate permission until explicit authorization",async()=>{
  const packet=vi.fn();render(<AiAssetPacketPanel asset={doc} parseAsset={parseAsset} parseGrant={parseGrant} packetCommand={packet}/>);fireEvent.click(screen.getByRole("button",{name:"为当前已采用资产新建授权"}));fireEvent.change(screen.getByLabelText("使用用途"),{target:{value:"限时参考"}});fireEvent.change(screen.getByLabelText("使用授权依据"),{target:{value:"本人决定"}});const local="2033-08-10T11:12:39";fireEvent.change(screen.getByLabelText("授权到期时间（本地时间）"),{target:{value:local}});expect(screen.getByRole("button",{name:"明确授权手工包"})).toBeDisabled();expect(writes).toEqual([]);fireEvent.click(screen.getByRole("button",{name:"为当前已采用资产新建授权"}));expect(parseLocalExpiry((screen.getByLabelText("授权到期时间（本地时间）") as HTMLInputElement).value)).toBe(parseLocalExpiry(local));fireEvent.click(screen.getByRole("button",{name:"取消授权到期时间修改"}));expect(screen.getByLabelText("授权到期时间（本地时间）")).toHaveValue("");
  fireEvent.change(screen.getByLabelText("授权到期时间（本地时间）"),{target:{value:local}});fireEvent.click(screen.getByRole("button",{name:"应用授权到期时间"}));fireEvent.click(screen.getByRole("button",{name:"保存授权候选"}));await screen.findByText("授权版本已保存并核对；实际使用时仍会核对版本、时效与权限。");expect(writes[0].body.editor_json.attrs.archeaxis_asset_context_grant.expires_at).toBe(parseLocalExpiry(local));expect(writes[0].body.editor_json.attrs.archeaxis_asset_context_grant.state).toBe("candidate");expect(screen.getByRole("button",{name:"准备手工上下文包"})).toBeDisabled();expect(packet).not.toHaveBeenCalled();
+});
+
+it.each([false,true])("keeps the full packet audit and duplicate=%s behind the diagnostic action",async(duplicate)=>{
+ resetDiagnostics();const packet=vi.fn(async(r:AssetPacketRequest)=>({...response(r),duplicate}));render(<><AiAssetPacketPanel asset={doc} parseAsset={parseAsset} parseGrant={parseGrant} packetCommand={packet}/><DiagnosticConsole/></>);
+ await authorize();fireEvent.click(screen.getByRole("button",{name:"准备手工上下文包"}));await screen.findByText(duplicate?"已返回之前准备的同一份上下文包。":"已准备新的上下文包。");
+ expect(screen.queryByText(/audit_task_real_fixture/)).not.toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"状态与诊断：完整手工上下文包与实际回执"}));
+ expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent('"audit_task_id": "audit_task_real_fixture"');expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent('"duplicate": '+String(duplicate));
+ expect(packet.mock.calls[0][0].asset).toEqual({document_id:"asset",version:2,content_sha256:"a".repeat(64)});
 });

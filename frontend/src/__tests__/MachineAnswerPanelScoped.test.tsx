@@ -149,8 +149,8 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
   const onTask=vi.fn();const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={grant} onTask={onTask}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await screen.findAllByRole("button",{name:"查看这次任务"});await user.click(document.querySelector<HTMLButtonElement>('li[data-task-id="evaluation_old"] button')!);
   await user.click(await screen.findByRole("button",{name:"以已接受纠正知识运行独立复测"}));await screen.findByText(mode==="lostACK"?/复测未完成或持久化读回未确认/:/本地知识库明确拒绝复测请求/);
   expect(JSON.parse(screen.getByLabelText("知识到机器回答").dataset.retestFailure!)).toEqual({phase:"invoke",status:mode==="lostACK"?502:403,code:mode==="lostACK"?"unavailable":"unauthorized"});
-  ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={changed} onTask={onTask}/>);await user.click(screen.getByRole("button",{name:"重试同一冻结复测请求"}));
-  expect(screen.getByRole("button",{name:"重试同一冻结复测请求"})).toBeDisabled();expect(requests).toHaveLength(1);
+  ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={changed} onTask={onTask}/>);await user.click(screen.getByRole("button",{name:"重试上次复测"}));
+  expect(screen.getByRole("button",{name:"重试上次复测"})).toBeDisabled();expect(requests).toHaveLength(1);
   await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
   await user.click(await savedTaskButton("retest1"));
   await waitFor(()=>expect(onTask).toHaveBeenLastCalledWith("retest1"));

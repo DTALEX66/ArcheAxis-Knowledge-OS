@@ -36,7 +36,7 @@ it("late history response cannot replace or publish across subsequent edits",asy
 it("adoption requires review of exact saved candidate and actual rubric criteria, later edits reset adoption",async()=>{
  const rubric={...dto("rubric"),version:3,editor_json:{type:"doc",attrs:{archeaxis_machine_rubric:{schema:"archeaxis.machine-rubric/v1",request_id:"rubric_req",title:"实际评审",purpose:"资产评审",criteria:[{criterion_id:"fidelity",label:"保真",expectation:"与来源相符"}],sources:[]}},content:[]}};
  bridge.call.mockImplementation(async(op,p)=>{if(op==="documents_list")return {documents:[{document_id:"rubric",title:"实际评审",version:3}],next_cursor:null,snapshot_count:1};if(op==="document_get"&&p.document_id==="rubric")return rubric;return original(op,p);});
- render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByRole("button",{name:"选择实际评审准则"}));fireEvent.click(screen.getByRole("button",{name:"读取文档对象"}));await screen.findByRole("option",{name:"实际评审 · 列表 v3"});fireEvent.change(screen.getByLabelText("选择文档"),{target:{value:"rubric"}});await screen.findByRole("button",{name:"加入此对象版本"});fireEvent.click(screen.getByRole("button",{name:"加入此对象版本"}));
+ render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByRole("button",{name:"选择实际评审准则"}));fireEvent.click(screen.getByRole("button",{name:"浏览已保存文档"}));await screen.findByRole("option",{name:"实际评审 · 第 3 版"});fireEvent.change(screen.getByLabelText("选择文档"),{target:{value:"rubric"}});await screen.findByRole("button",{name:"加入此文档版本"});fireEvent.click(screen.getByRole("button",{name:"加入此文档版本"}));
  fireEvent.change(screen.getByLabelText("评审人"),{target:{value:"本人"}});fireEvent.change(screen.getByLabelText("评审依据"),{target:{value:"逐项核对实际来源"}});fireEvent.change(screen.getByLabelText("判定 保真"),{target:{value:"passed"}});fireEvent.change(screen.getByLabelText("依据 保真"),{target:{value:"实际来源固定版本"}});fireEvent.click(screen.getByRole("button",{name:"确认全部人工评审通过"}));fireEvent.click(screen.getByRole("button",{name:"明确采用此评审版本"}));await screen.findByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。");const v=writes[0].body.editor_json.attrs.archeaxis_ai_asset;expect(v.state).toBe("adopted");expect(v.review.asset).toEqual({document_id:"asset_saved",version:1,content_sha256:"a".repeat(64)});expect(v.review.rubric).toEqual({document_id:"rubric",version:3,content_sha256:"a".repeat(64)});fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"变更后需重审"}});expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("candidate");expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.review).toBeNull();
 });
 
@@ -54,10 +54,10 @@ function installReviewPicker(current=reviewRubric()){
 }
 async function pickReview(){
  fireEvent.click(screen.getByRole("button",{name:"选择实际评审准则"}));
- fireEvent.click(screen.getByRole("button",{name:"读取文档对象"}));
- const option=await screen.findByRole("option",{name:/实际评审 · 列表 v/});
+ fireEvent.click(screen.getByRole("button",{name:"浏览已保存文档"}));
+ const option=await screen.findByRole("option",{name:/实际评审 · 第 /});
  fireEvent.change(screen.getByLabelText("选择文档"),{target:{value:(option as HTMLOptionElement).value}});
- fireEvent.click(await screen.findByRole("button",{name:"加入此对象版本"}));
+ fireEvent.click(await screen.findByRole("button",{name:"加入此文档版本"}));
  await screen.findByLabelText("评审人");
 }
 function fillReview(first:"failed"|"unmeasured"|"passed",second:"failed"|"unmeasured"|"passed"="passed"){
