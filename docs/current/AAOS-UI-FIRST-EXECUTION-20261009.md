@@ -2075,3 +2075,11 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 12个H01缺失历史原字节不合成替代；本地目录布局4失败不靠全局allowlist或移动Agent基础设施修成PASS。原始失败与后继定向修复分开。新候选、原生、托管CI、安装及Green仍待资格，总体PARTIAL，监控未恢复。
 - 后继源码修复已完成：合同投影/样本及资产定向132通过；实际导航10通过、两次独立握手8通过且目录不冲突；子进程PATH真正前置登记native FFmpeg，媒体/解析器定向18通过（并行写入期间外层INVALIDATED保留）。实际A研究+B表达的恢复保留回归26通过、TypeScript通过，原DOM/原文/owner跨失联/延迟重核/重试保持，B保存后仍挡A；rcneg1/2负反例保留。冻结后的新SHA资格尚待，不把这些定向检查合并成完整PASS。
 - 后继恢复源码已冻结：失联覆盖层保留编辑器，增加“查看已登记编辑区的未保存原稿”，仅显式登记5个内容页和3个子编辑区的真实内容getter，包括后台缓冲区。只读全选/手动复制不写Core、不清dirty、不读取设置/鉴权/诊断、不要求剪贴板权限；未保存仍阻止备份恢复，不宣称断电持久保全。rcf3 27/27、drp2 7/7、rct3 TypeScript均LOCAL_PASS且源码一致；新提交完整检查与新Host原生实测随后独立记录。
+
+#### 09d5694e资格与原生负路径后继
+
+- 24文件提交09d5694e已推送PR203，原6个无关路径未上传。dfe2前端2246/2246、dts2 TypeScript、dq2完整静态预检、dpa2 Python164、med4真实媒体18、drs2 Rust1066/1066通过且源码一致。dht4 Host147通过/1默认忽略，dhx1显式运行该真实Core优雅退出项1/1通过。构建1919a675aa56绑定新Host1b2ac779…、Core960ab696…、清单041f6028…；dot-20261026-portable-v1逐项19746成员通过，dpi2 PE七图标帧真实像素匹配。
+- nov3真实原生22页/1920 CSS八页/10步引导及人物280/64/160px通过，无page/console/CSP错误，16类186细项目录可展开。实际原生2048×1082 CSS、DPR1.25，不是改系统为1920物理分辨率。主窗1920 CSS高968px，上下导航无遮挡；目视仍有蓝色宇宙背景，人物仍静态2D，审美未冒充Owner验收。
+- ndg4真实跨页保存及关闭/停放B后A保护保留；WM_CLOSE、exit_application、SC_CLOSE均实际草稿确认默认否，取消后原文/编辑/保护保持，最终同意后正常退出/Core GRACEFUL。crun5受控中断精确owned合成Core，恢复弹窗8.54秒出现，但合法32hex.sqlite被前端旧正则过滤；crdiag1验证真实manifest/327680字节/身份完好。后继两文件修复rbn1 47/47通过；新的原稿全选/beforeunload/重连保存资格尚待。
+- 字体采样仍发现“布局与面板”summary12px，已定位Stitch高特异性caption覆盖并修至少14px。真实五主题browser另暴露固定浅SVG在blueprint-light菜单对比1.016:1，正按现有主题适配；3:1阈值保留。旧probe失败和候选实测负证据均保留，不把“DOM停放”误写成丢稿。
+- 完整CI40326077298绑定09d为FAIL：test3.12为6016通过/1失败/108跳过/424子测试通过，OCR超时fixture与生产解释器解析不一致；oct4修复后19通过并核实际超时/owned回收。desktop-fast在rustfmt阶段失败，main.rs仅格式化后fm5通过。browser/installer首次引导时序与旧品牌/可访问名假设需修；installer cinst1仅时序回归27通过，不是新安装PASS。a0是这些失败的汇总。当前修复待统一新提交、构建与完整门禁；H01历史原字节缺失/目录布局负证据不豁免，Green未更新、无保留运行预览、整体PARTIAL。

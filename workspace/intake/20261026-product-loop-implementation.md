@@ -1,5 +1,15 @@
 # 2026-10-26 UI与产品链修复说明
 
+## 09d5694e新候选与后继发现
+
+24文件修复已提交/推送PR203的 `09d5694e8ad353fe549b8e5062e626ad4f1dd65e`。dfe2完整前端2246/2246、dts2 TypeScript、dq2全部静态预检、dpa2相关Python164、med4真实媒体18、drs2 Rust workspace1066/1066均通过且源码一致。dht4 Host147通过/1默认忽略；该真实Core退出项在dhx1单独实跑1/1通过，不再把默认忽略误作已执行。新Core/Host均正式构建，1919a675aa56收据绑定Host `1b2ac779d17c2a54b09472ef3ef26e6c440cd976887062dee504168d41f75081`、Core `960ab696a9028347b8553024d2e4f2f817aa883b8dcbd2fc3c37f022f191f56f`、runtime清单 `041f602852fb45c8e646c9c54ee87c96eb9c3e1936563c51c5fb4fbae9c3506b`；便携候选19746成员逐项核对通过，dpi2实提取PE七帧与ICO/PNG一致。
+
+nov3新候选真实原生22页、独立1920×1080 CSS八页、10步引导通过，无page/console/CSP错误；人物280px、短屏自动64px/展开160px，能力目录16类/186细项可展开。实际原生窗口2048×1082 CSS、DPR1.25，未改Windows分辨率。ndg4实际A未保存、B Core保存及关闭/停放后仍保护A；WM_CLOSE、exit_application、SC_CLOSE均默认否并取消后可继续编辑，最终同意退出Core正常回收。正常隐藏的Dock portal脱离document不等于React卸载，探针已按激活后的原文核对。nov1/2、ndg1–3原探针负证据完整保留，不抹除或冒充产品事故。
+
+crun5只对精确持有身份的合成Core受控中断，8.54秒出现恢复弹窗；真实有效32hex.sqlite备份却被前端旧正则过滤。原备份/清单字节和身份完整，报告crdiag1；不是损坏备份或空库。后继只补Host已接受的canonical名称并继续严格拒路径/控制字符，rbn1定向47/47通过。布局summary12px由高特异性caption覆盖造成，改回主要控件至少14px；随后真实五主题浏览器又暴露浅色SVG在浅主题对比仅1.016:1，按既有主题适配，不降低3:1图形阈值。修复后的原稿全选/beforeunload/重连保存、字体及浅主题仍须新候选实测。
+
+完整托管run40326077298绑定09d且FAIL：Python6016通过/1失败/108跳过/424子测试通过，唯一失败为超时fixture误用未解析解释器路径；现按生产Path.resolve核命令，并额外记录真实TimeoutExpired一次和owned子进程已回收，oct4 19/19通过。desktop-fast原先在rustfmt检查退出，main.rs仅格式化，fm5检查通过。browser和installer旧探针未处理首次/恢复后延迟引导；浏览器需真实暂停引导并对齐已提交Stitch的可访问名称/可见品牌，installer恢复确认后再经原trusted按钮暂停，cinst1时序回归27/27通过。原始CI失败与后继定向检查分开；新安装/完整CI/Green未因此获得PASS。e8本地全Python的12个H01历史字节缺失和4个目录布局失败继续保留。
+
 ## 电脑崩溃后的恢复核对（2026-10-26）
 
 冻结修复提交 `e8fb73c9adb7fa2839ae39ab43cf54bf076273df` 已上传PR203。该提交完整前端2237/2237、TypeScript、Rust workspace1066/1066通过，Host147通过/1既有忽略，均源码一致；Core release构建通过。Python完整原始结果为 **6125通过、26失败、36跳过、19初始化错误、424子测试通过**（dpy1，1351.62秒），独立于Owner原6030/18/124/12，不替换旧结果。e8托管run40319440348因两份UI-host生成摘要漂移失败，后继修复与新资格仍进行中，不能称已交付合格候选。

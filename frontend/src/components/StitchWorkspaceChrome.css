@@ -40,6 +40,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 }
 .stitch-workspace-menu .stitch-brand { display: flex; align-items: center; gap: 7px; min-width: 28px; color: var(--ax-accent); font-weight: 600; padding-inline: 0; }
 .stitch-workspace-menu .stitch-brand .stitch-brand-logo { height: 16px; width: auto; max-height: 16px; flex: 0 0 auto; object-fit: contain; }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-menu .stitch-brand .stitch-brand-logo { filter: brightness(0); }
 .stitch-menus { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
 .stitch-menus > :is(details, button) { flex: 0 0 auto; }
 .stitch-menus > details > summary { list-style: none; }
@@ -163,7 +164,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-companion-content .companion-session-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .stitch-companion-content .companion-session-actions button { flex: 1 1 8rem; padding: 4px 8px; border-color: var(--ax-border); background: transparent; font-weight: 400; }
 .app-shell[data-stitch-workspace] :is(.stitch-learning-topic, .stitch-learning-glass, .stitch-learning-review-heading, .research-topic-header) { background: var(--stitch-glass-card); }
-.app-shell[data-stitch-workspace] .dock-layout-options > summary { padding: 4px 0; color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.app-shell[data-stitch-workspace] .dock-layout-options > summary { padding: 4px 0; color: var(--ax-fg-tertiary); font-size: max(14px, var(--ax-text-ui)); }
 .app-shell[data-stitch-workspace] .dock-workspace > .dock-layout-options { position: static; width: auto; margin: 0; padding: 0; }
 .app-shell[data-stitch-workspace] .dock-surface .dockview-theme-dark { --dv-background-color: transparent; }
 

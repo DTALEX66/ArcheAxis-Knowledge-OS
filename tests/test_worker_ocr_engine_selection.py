@@ -124,7 +124,9 @@ def test_identity_timeout_reaps_the_owned_process_before_fallback(isolated, monk
     """A controlled long-running probe uses the real subprocess timeout/cleanup path."""
     monkeypatch.setenv("TESSERACT_CMD", sys.executable)
     real_run, real_popen = isolated._run, subprocess.Popen
+    expected_command = [str(Path(sys.executable).resolve()), "--version"]
     children = []
+    timeouts = []
 
     def popen(*args, **kwargs):
         child = real_popen(*args, **kwargs)
@@ -132,16 +134,21 @@ def test_identity_timeout_reaps_the_owned_process_before_fallback(isolated, monk
         return child
 
     def slow_identity(command, **kwargs):
-        assert command == [sys.executable, "--version"]
+        assert command == expected_command
         assert kwargs["timeout"] == 5
         # Shorten this controlled child, without changing the production probe timeout.
         kwargs["timeout"] = 0.3
-        return real_run([sys.executable, "-c", "import time; time.sleep(30)"], **kwargs)
+        try:
+            return real_run([sys.executable, "-c", "import time; time.sleep(30)"], **kwargs)
+        except subprocess.TimeoutExpired as error:
+            timeouts.append(error)
+            raise
 
     monkeypatch.setattr(isolated.subprocess, "Popen", popen)
     monkeypatch.setattr(isolated, "_run", slow_identity)
     chosen, reason = isolated._choose_ocr_engine("auto", "eng")
     assert chosen == "rapidocr" and reason
+    assert len(timeouts) == 1, "fallback must follow the real child timeout"
     assert len(children) == 1
     assert children[0].poll() is not None, "timed-out owned probe must already be reaped"
 

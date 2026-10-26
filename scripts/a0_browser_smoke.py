@@ -13,12 +13,16 @@ import shutil
 import socket
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
+from statistics import median
 from urllib.parse import urlsplit
 from urllib.request import urlopen
 
 from playwright.sync_api import Route, sync_playwright
+from PIL import Image
 
 if __package__:
     from .browser_color import composite
@@ -126,6 +130,19 @@ def console_viewport(page) -> tuple[str, float, float, float]:
     return "console", width, height, 1
 
 
+def pause_first_use_guide(page) -> None:
+    """Enter a fresh workspace through the visible pause action, without faking progress.
+
+    The first-use dialog deliberately hides background landmarks from accessibility
+    queries. Every new browser context starts with that real user interaction before
+    measuring its business surface; pausing does not mark any guide step complete.
+    """
+    guide = page.get_by_role("dialog", name="首次使用引导", exact=True)
+    guide.wait_for(state="visible")
+    guide.get_by_role("button", name="暂时跳过，暂停并关闭首次使用引导", exact=True).click()
+    guide.wait_for(state="hidden")
+
+
 def check_menu_text(menu) -> dict[str, object]:
     """Shared production menus must retain readable labels, wrapping and caption hierarchy."""
     result = menu.evaluate("""node => {
@@ -179,11 +196,19 @@ def check_settings_menu(page) -> list[dict[str, object]]:
 
 
 def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
-    """Require the visible titlebar mark and the explicit hidden duplicate at every density."""
+    """Qualify Stitch's committed SVG slot; the legacy status PNG is hidden evidence only.
+
+    d4f72bf1 replaced the former .top-nav-logo square with a 16px-high menu SVG.
+    Its viewBox supplies the intrinsic ratio; decoded dimensions alone cannot prove paint.
+    """
     asset_theme = BRAND_THEME_ASSETS[theme]
     expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
+    svg = BRAND_ASSET_DIR / "brand" / "aaos-mark-light.svg"
+    viewbox = [float(value) for value in ET.fromstring(svg.read_bytes()).attrib['viewBox'].split()]
+    assert len(viewbox) == 4 and min(viewbox[2:]) > 0, (svg, viewbox)
+    aspect = viewbox[2] / viewbox[3]
     result = {}
-    for key, selector in (("top_mark", ".top-nav-logo"), ("status_mark", ".status-bar-brand img")):
+    for key, selector in (("top_mark", ".stitch-brand-logo"), ("status_mark", ".status-bar-brand img")):
         node = page.locator(selector)
         assert node.count() == 1, (selector, node.count())
         mark = node.evaluate("""img => {
@@ -193,15 +218,46 @@ def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
             objectFit:style.objectFit,glow:style.filter,
             token:getComputedStyle(document.documentElement).getPropertyValue('--ax-brand-glow').trim()};
         }""")
-        assert mark['complete'] and tuple(mark['decoded']) == expected, (selector, theme, mark, expected)
-        assert asset_theme in (mark['src'] or ''), (selector, theme, mark)
         if key == 'top_mark':
-            assert mark['visible'] and mark['box'] == [22, 22], (viewport, mark)
-            assert mark['objectFit'] == 'contain', mark  # preserve intrinsic ratio inside the square slot
-            target = visible_control_box(page.locator('.console-move-handle'))
+            assert mark['complete'] and min(mark['decoded']) > 0, (selector, theme, mark)
+            assert (mark['src'] or '').endswith('/brand/aaos-mark-light.svg'), mark
+            assert mark['visible'] and mark['box'][1] == 16, (viewport, mark)
+            assert abs(mark['box'][0] - 16 * aspect) <= 1, (viewport, mark, viewbox)
+            assert abs(mark['decoded'][0] / mark['decoded'][1] - aspect) <= .02, mark
+            assert mark['objectFit'] == 'contain', mark
+            target = visible_control_box(page.locator('.stitch-brand'))
             assert target['reachable'] and target['width'] >= 24 and target['height'] >= 24, target
             mark['target'] = target
+            # A valid, decoded SVG may still be empty/clipped or disappear on a theme.
+            # Compare its opaque stroke pixels with its transparent local backdrop in
+            # the actual screenshot, rather than treating the hidden PNG as proof.
+            raster = node.evaluate("""img => {
+              const r=img.getBoundingClientRect(), canvas=document.createElement('canvas');
+              const clip={x:Math.floor(r.x),y:Math.floor(r.y),
+                width:Math.ceil(r.right)-Math.floor(r.x),height:Math.ceil(r.bottom)-Math.floor(r.y)};
+              canvas.width=clip.width;canvas.height=clip.height;
+              const ctx=canvas.getContext('2d');ctx.drawImage(img,r.x-clip.x,r.y-clip.y,r.width,r.height);
+              return {clip,alpha:[...ctx.getImageData(0,0,canvas.width,canvas.height).data].filter((_,i)=>i%4===3)};
+            }""")
+            alpha = raster['alpha']
+            painted = Image.open(BytesIO(page.screenshot(clip=raster['clip'], scale='css'))).convert('RGB')
+            pixel_at = painted.load()
+            pixels = [pixel_at[x, y] for y in range(painted.height) for x in range(painted.width)]
+            assert len(pixels) == len(alpha), (painted.size, len(alpha))
+            def luminance(rgb):
+                values = [v / 255 for v in rgb]
+                linear = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4 for v in values]
+                return sum(v * weight for v, weight in zip(linear, (.2126, .7152, .0722)))
+            ink = [luminance(pixel) for pixel, opacity in zip(pixels, alpha) if opacity >= 200]
+            backdrop = [luminance(pixel) for pixel, opacity in zip(pixels, alpha) if opacity == 0]
+            assert ink and backdrop, ('SVG has no opaque paint or local backdrop', mark)
+            levels = sorted((median(ink), median(backdrop)))
+            mark['paint_contrast'] = (levels[1] + .05) / (levels[0] + .05)
+            mark['intrinsic_viewbox'] = viewbox
+            assert mark['paint_contrast'] >= 3, (theme, viewport, mark)
         else:
+            assert mark['complete'] and tuple(mark['decoded']) == expected, (selector, theme, mark, expected)
+            assert asset_theme in (mark['src'] or ''), (selector, theme, mark)
             assert not mark['visible'] and mark['box'] == [0, 0], (viewport, mark)
         assert mark['token'], mark
         result[key] = mark
@@ -209,7 +265,7 @@ def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
 
 
 def navigate_ui_page(page, page_id: str) -> None:
-    trigger = page.get_by_role("button", name="打开产品导航")
+    trigger = page.get_by_role("button", name="全部页面，打开产品导航")
     if trigger.is_visible():
         trigger.click()
         drawer = page.get_by_role("dialog", name="产品导航")
@@ -240,9 +296,9 @@ def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
     width, height = console_dimensions(page)
     bands = {name: CHROME_BANDS[name] for name in (
         "application_menu", "application_dock", "top_navigation", "status", "center", "dock")}
-    trigger = page.get_by_role("button", name="打开产品导航", exact=True)
+    trigger = page.get_by_role("button", name="全部页面，打开产品导航", exact=True)
     assert trigger.is_visible(), "Stitch navigation drawer trigger is required at every size"
-    bands["navigation_trigger"] = 'button[aria-label="打开产品导航"]'
+    bands["navigation_trigger"] = 'button[aria-label="全部页面，打开产品导航"]'
     companion_expected = page.locator(".cabin-shell").get_attribute("data-companion-open") == "true"
     assert page.locator("#stitch-companion-window").is_visible() == companion_expected, "companion declaration disagrees with rendered view"
     # The nonmodal companion is a movable overlay, not a non-overlapping
@@ -255,7 +311,7 @@ def library_bands(page) -> dict[str, str]:
 
 
 def check_navigation_drawer(page) -> dict[str, object]:
-    trigger = page.get_by_role("button", name="打开产品导航")
+    trigger = page.get_by_role("button", name="全部页面，打开产品导航")
     if not trigger.is_visible():
         return {"state":"desktop-sidebar", "drawer_required":False}
     trigger.click()
@@ -744,7 +800,7 @@ def live_region_texts(page, scope: str = "") -> list[str]:
 
 def read_navigation_levels(page) -> dict[str, object]:
     """UI-02 in a real layout engine: primary labels, secondary groups, tertiary object path."""
-    page.get_by_role("button", name="打开产品导航").click()
+    page.get_by_role("button", name="全部页面，打开产品导航").click()
     drawer = page.get_by_role("dialog", name="产品导航")
     drawer.wait_for()
     # The icon span sits in the same button; only the label span carries text. Selecting the
@@ -780,7 +836,7 @@ def read_navigation_levels(page) -> dict[str, object]:
     # The object path is the tertiary level of the product navigation, so it lives in
     # that drawer rather than in the page frame.
     def drawer_trail() -> str:
-        page.get_by_role("button", name="打开产品导航").click()
+        page.get_by_role("button", name="全部页面，打开产品导航").click()
         panel = page.get_by_role("dialog", name="产品导航")
         panel.wait_for()
         node = panel.locator("nav[aria-label='对象导航路径']")
@@ -811,7 +867,7 @@ def read_navigation_levels(page) -> dict[str, object]:
 
     page.evaluate("location.hash = 'space=learning'")
     page.get_by_role("heading", name="学习").first.wait_for()
-    page.get_by_role("button", name="打开产品导航").click()
+    page.get_by_role("button", name="全部页面，打开产品导航").click()
     learning_drawer = page.get_by_role("dialog", name="产品导航")
     learning_drawer.wait_for()
     assert learning_drawer.get_by_role("button", name="学习", exact=True).count() == 1, "learning primary entry missing"
@@ -1253,6 +1309,7 @@ def open_library_page(
     context.route("**/*", route_api)
     context.route_web_socket("**/*", lambda websocket: None)
     page.goto(URL, wait_until="networkidle")
+    pause_first_use_guide(page)
     # Import/template regression belongs to the explicit canonical compatibility route.
     page.evaluate("location.hash = 'space=library'")
     page.get_by_role("heading", name="资料库").first.wait_for()
@@ -1758,7 +1815,7 @@ def check_stitch_companion(page) -> dict[str, object]:
     assert bounds and viewport and bounds['x'] >= 0 and bounds['y'] >= 0, bounds
     assert bounds['x'] + bounds['width'] <= viewport['width'] + 1, bounds
     assert bounds['y'] + bounds['height'] <= viewport['height'] + 1, bounds
-    handle = panel.get_by_role('button', name='移动小栖窗口', exact=True)
+    handle = panel.get_by_role('button', name='小栖 · 陪伴会话，移动小栖窗口', exact=True)
     handle.focus()
     page.keyboard.press('ArrowLeft')
     moved = panel.bounding_box()
@@ -1795,7 +1852,7 @@ def check_shell_pointer_targets(page, *, diagnostics_suspended: bool = False) ->
     assert page.get_by_role('button', name='打开全局命令', exact=True).is_visible()
     assert page.get_by_label('界面与工具设置', exact=True).is_visible()
     # One navigation affordance replaces the old wide search field at every size.
-    assert page.get_by_role('button', name='打开产品导航', exact=True).is_visible()
+    assert page.get_by_role('button', name='全部页面，打开产品导航', exact=True).is_visible()
     targets=[]
     for node in page.locator('.stitch-window-toolbar button,.stitch-window-tools button,.stitch-window-tools select,.stitch-window-tools summary,.stitch-menus > button,.stitch-workspace-menu summary,.stitch-workspace-menu > button,.stitch-workspace-dock button').all():
         if not node.is_visible():
@@ -1810,7 +1867,7 @@ def check_shell_pointer_targets(page, *, diagnostics_suspended: bool = False) ->
 
 
 def check_product_navigation_targets(page) -> dict[str, object]:
-    trigger=page.get_by_role('button', name='打开产品导航', exact=True)
+    trigger=page.get_by_role('button', name='全部页面，打开产品导航', exact=True)
     if not trigger.is_visible():
         return {'presentation':'sidebar', 'tested':False}
     entries=[]
@@ -1879,7 +1936,19 @@ def read_semantic_reading(browser, viewport, problems, theme):
         assert "绑定历史正文 1 v1" in editor.inner_text()
         assert reader.locator("details.template-launcher").count() == 0
         assert reader.locator("input[aria-label='导入原件']").count() == 0
-        assert reader.locator("input[aria-label='选择文件夹']").count() == 0
+        # Batch link/attachment work is an explicit, normally collapsed reader
+        # tool. Its retained file input must not leak into the default reading UI.
+        batch = reader.locator('details.reader-batch-tools')
+        folder = reader.locator("input[aria-label='选择文件夹']")
+        assert batch.count() == folder.count() == 1
+        assert batch.get_attribute('open') is None and not folder.is_visible()
+        assert folder.evaluate("(node, owner) => node.closest('details') === owner", batch.element_handle())
+        batch.locator(':scope > summary').click()
+        folder.wait_for(state='visible')
+        batch.locator(':scope > summary').click()
+        folder.wait_for(state='hidden')
+        assert batch.get_attribute('open') is None
+        assert "绑定历史正文 1 v1" in editor.inner_text(), 'batch tools changed the opened document'
         calls = page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__.calls")
         assert any(call["operation"] == "document_get" and
             call["payload"].get("document_id") == "a0_target_1" for call in calls), calls
@@ -1963,6 +2032,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
         geometry["navigation"] = check_product_navigation_targets(page)
         return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme,"viewport":label,
             "document_id":"a0_target_1","new_library":True,"new_reader":True,
+            "batch_tools":{"hidden_by_default":True,"explicit_toggle_tested":True,"document_retained":True},
             "geometry":geometry,"library_screenshot":_recorded(library_shot),
             "reader_screenshot":_recorded(reader_shot)}
     finally:
@@ -2125,6 +2195,7 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     context.route("**/*", route_api)
     context.route_web_socket("**/*", lambda websocket: None)
     page.goto(URL, wait_until="networkidle")
+    pause_first_use_guide(page)
 
     assert page.evaluate("() => Boolean(window.__TAURI__?.core?.invoke)"), "the host stub did not reach the page"
     # The desktop surface names its own liveness, which the browser fallback never shows; that is
@@ -2279,6 +2350,7 @@ def main() -> None:
                 context.route("**/*", route_api)
                 context.route_web_socket("**/*", lambda websocket: None)
                 page.goto(URL, wait_until="networkidle")
+                pause_first_use_guide(page)
                 page.get_by_role("heading", name="今日工作台", exact=True).first.wait_for()
                 assert not page.evaluate("Boolean(document.activeElement?.closest('#stitch-companion-window'))"), "automatic companion stole business focus"
                 stitch_menus = check_stitch_application_menus(page)
@@ -2354,16 +2426,9 @@ def main() -> None:
                         surface = page.evaluate("getComputedStyle(document.body).backgroundColor")
                         assert applied == theme, (applied, theme)
                         assert brand and brand["complete"], (theme, brand)
-                        asset_theme = BRAND_THEME_ASSETS[theme]
-                        assert asset_theme in (brand["src"] or ""), brand
-                        # The asset on disk is the expectation: an <img> whose file went missing
-                        # keeps its 31x28 box and paints nothing, which a DOM-only check would
-                        # read as a correct brand mark.
-                        expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
-                        assert tuple(brand["decoded"]) == expected, (theme, brand["decoded"], expected)
-                        # Stitch uses the visible 22px titlebar slot, preserving intrinsic ratio with contain.
-                        # The invisible status duplicate is never used as display evidence.
-                        assert brand["box"] == [22, 22] and brand["objectFit"] == "contain", brand
+                        # check_brand_identity checks the committed 16px SVG menu slot,
+                        # intrinsic ratio and actual painted contrast for this theme.
+                        assert brand["box"][1] == 16 and brand["objectFit"] == "contain", brand
                         # Retain the five-theme token contract; the new compact titlebar has no required halo.
                         assert brand["token"], (theme, brand)
                         glows[theme] = brand["token"]
@@ -2403,7 +2468,7 @@ def main() -> None:
     revision = source_revision()
     assert revision_before["base_commit"] == revision["base_commit"] and revision_before["source_tree_sha256"] == revision["source_tree_sha256"], "A0 source changed during browser qualification"
     report = {
-        "schema": "archeaxis/canonical-browser-smoke/v5",
+        "schema": "archeaxis/canonical-browser-smoke/v6",
         "status": "PASS",
         "layout_contract": "AAOS-STITCH-CHROME-20261021",
         "evidence": "SIMULATED_HOST_CORE_FIXTURE",

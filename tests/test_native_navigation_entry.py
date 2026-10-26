@@ -124,6 +124,60 @@ def harness_helper(name):
     return namespace[name]
 
 
+@pytest.mark.parametrize('recovery_status', [200, 409])
+def test_guide_deferred_by_restore_confirmation_is_paused_only_after_valid_ack(recovery_status):
+    """SIMULATED delayed guide; execute the actual journal fence and pause helper."""
+    restore_dialog = '<section role="dialog"><button>保留恢复候选</button></section>'
+    ui = ObservedUI('<div class="app-body" aria-busy="false">' + shell() + '</div>' + restore_dialog)
+    evidence, events = [], []
+    probe.prepare_rendered_navigation(ui, evidence)
+    assert evidence[0]['decision'] == 'NOT_PRESENT' and ui.clicks == []
+    candidate = {'page_id': '01', 'drafts': {'research': 'SYNTHETIC retained original'}}
+    before = dict(schema='archeaxis.ui-working-state/v1', workspace_id='synthetic-workspace',
+                  restore_epoch='synthetic-epoch', state_revision=3,
+                  recovery_requires_confirmation=True, recovery_candidates=candidate)
+    acknowledged = {**before, 'state_revision': 4, 'state': candidate,
+                    'recovery_requires_confirmation': False, 'recovery_candidates': None}
+    reads = iter([before, acknowledged])
+
+    def bridge(operation):
+        assert operation == 'ui_state_read'
+        value = next(reads)
+        events.append('read-confirmed' if value is acknowledged else 'read-pending')
+        return value
+
+    def click(label):
+        assert label == '保留恢复候选'
+        events.append('preserve')
+        # The real guide waits for the other dialog to close before auto-opening.
+        ui.markup = ui.markup.replace(restore_dialog, GUIDE)
+
+    def js(script):
+        if script == 'return window.__aaosRecoveryReplies':
+            return [{'operation': 'ui_state_recover',
+                     'value': {'status': recovery_status, 'body': acknowledged}}]
+
+    def prepare():
+        assert events == ['read-pending', 'preserve', 'read-confirmed']
+        probe.prepare_rendered_navigation(ui, evidence)
+        events.append('guide-paused')
+
+    confirm = harness_helper('confirm_restored_working_state')
+    if recovery_status != 200:
+        with pytest.raises(AssertionError):
+            confirm(bridge, click, ui.wait, js, prepare_navigation=prepare)
+        assert ui.clicks == [] and GUIDE in ui.markup
+        return
+    result = confirm(bridge, click, ui.wait, js, prepare_navigation=prepare)
+    assert result['decision'] == 'EXPLICIT_UI_PRESERVE'
+    assert result['after']['state'] == candidate
+    assert events[-1] == 'guide-paused'
+    assert len(ui.clicks) == 1 and '暂时跳过' in ui.clicks[0]
+    assert evidence[-2]['decision'] == 'PAUSED_BY_RENDERED_UI'
+    assert evidence[-2]['guide_steps_marked_complete'] is False
+    assert GUIDE not in ui.markup and evidence[-1]['mode'] == 'menu'
+
+
 def test_rendered_page_helper_uses_current_native_menu_navigation_and_rejects_missing_ui():
     navigate = harness_helper('navigate_rendered_product_page')
     actions = []

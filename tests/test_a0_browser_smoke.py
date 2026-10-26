@@ -56,6 +56,60 @@ def _load_smoke_module():
     return module
 
 
+@pytest.mark.parametrize('empty,background,filtered,rejected', [
+    (False, '#111318', False, None),
+    (False, '#fff', True, None),
+    (False, '#fff', False, 'paint_contrast'),
+    (True, '#111318', False, 'SVG has no opaque paint'),
+])
+def test_real_brand_paint_gate_rejects_decoded_empty_or_invisible_svg(
+    empty, background, filtered, rejected,
+):
+    """A decoded file is insufficient; fractional CSS bounds/DPR keep real paint readable."""
+    smoke = _load_smoke_module()
+    asset = smoke.BRAND_ASSET_DIR / 'brand' / 'aaos-mark-light.svg'
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 40 296.11 125"/>'
+           if empty else asset.read_text(encoding='utf-8'))
+    html = f'''<style>
+      :root {{--ax-brand-glow:#fff}}
+      body {{margin:0;background:{background}}}
+      .stitch-brand {{display:flex;align-items:center;border:0;background:transparent;
+        padding:0 8px;height:32px;font-size:14px}}
+      .stitch-brand-logo {{height:16px;width:auto;object-fit:contain;transform:translateY(.5px);
+        filter:{'brightness(0)' if filtered else 'none'}}}
+      .status-bar-brand {{display:none}}
+      </style><button class="stitch-brand" aria-label="ArcheAxis Knowledge 今日工作台">
+      <img class="stitch-brand-logo" src="/brand/aaos-mark-light.svg" alt=""></button>
+      <span class="status-bar-brand"><img src="/aaos-brand-mark-cosmic.png" alt=""></span>'''
+    with smoke.sync_playwright() as playwright:
+        options = {'headless': True}
+        if sys.platform == 'win32':
+            executable = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert executable, 'declared project Chromium required; do not install implicitly'
+            options['executable_path'] = executable
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={'width': 800, 'height': 600}, device_scale_factor=1.25)
+            def fixture(route):
+                if route.request.url.endswith('/brand/aaos-mark-light.svg'):
+                    route.fulfill(content_type='image/svg+xml', body=svg)
+                elif route.request.url.endswith('/aaos-brand-mark-cosmic.png'):
+                    route.fulfill(content_type='image/png', body=(smoke.BRAND_ASSET_DIR / 'aaos-brand-mark-cosmic.png').read_bytes())
+                else:
+                    route.fulfill(content_type='text/html', body=html)
+            page.route('**/*', fixture)
+            page.goto('https://aaos-fixture.invalid/', wait_until='load')
+            if rejected:
+                with pytest.raises(AssertionError, match=rejected):
+                    smoke.check_brand_identity(page, 'cosmic', 'synthetic-fractional-dpr125')
+            else:
+                result = smoke.check_brand_identity(page, 'cosmic', 'synthetic-fractional-dpr125')
+                assert result['top_mark']['paint_contrast'] >= 3
+                assert not result['status_mark']['visible']
+        finally:
+            browser.close()
+
+
 @pytest.mark.parametrize('inner_overflow,inner_height,unreachable', [
     ('auto', 'auto', False),
     ('hidden', '80px', True),
@@ -259,7 +313,7 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
     # Exercise the actual gate, including the independent short-window branch.
     # Every declaration retains a 280px reading floor, including short and wide views.
     gate = _load_smoke_module()
-    bands = {"navigation_trigger": 'button[aria-label="打开产品导航"]'}
+    bands = {"navigation_trigger": 'button[aria-label="全部页面，打开产品导航"]'}
     for width, height, _historical_compact in ((1200, 761, True), (1201, 760, True),
                                     (640, 480, True), (1201, 761, False)):
         geometry = {

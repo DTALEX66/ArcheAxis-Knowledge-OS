@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as runtime from "../api/workspace";
-import { normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
+import { isOpaqueBackupName, normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
 import { ApiError, createApiClient, runtimeProjectionMessage } from "../api/client";
 interface RecoveryRuntimeApi {
   getRecoveryStatus: () => Promise<{
@@ -143,6 +143,47 @@ describe("runtime handshake client", () => {
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
     expect(invoke).toHaveBeenNthCalledWith(2, "recovery_status");
     expect(invoke).toHaveBeenCalledTimes(2);
+  });
+
+  it("retains canonical Core backup names alongside legacy names and restores only a freshly enumerated selection", async () => {
+    // Name observed in the isolated real Core-created v1 manifest (crun5).
+    const canonical = "42a20b47655d3bdb01e426447cd7f93d.sqlite";
+    const legacy = "cognitive_os_20260823T010203_000000Z.sqlite";
+    const invoke = vi.fn(async (command: string) => {
+      if (command === "recovery_status") return { state: "stopped", backups: [canonical, legacy, `../${canonical}`] };
+      if (command === "restore_backup") return { status: "restored" };
+      throw new Error(`unexpected command: ${command}`);
+    });
+    window.__TAURI__ = { core: { invoke } };
+    expect(isOpaqueBackupName(canonical)).toBe(true);
+    await expect(runtime.getRecoveryStatus()).resolves.toMatchObject({ backups: [canonical, legacy] });
+    await expect(runtime.restoreRecoveryBackup(canonical)).resolves.toEqual({ status: "restored" });
+    expect(invoke.mock.calls).toEqual([["recovery_status"], ["recovery_status"], ["restore_backup", { name: canonical }]]);
+    await expect(runtime.restoreRecoveryBackup("0".repeat(32) + ".sqlite")).rejects.toThrow(/fresh recovery status/i);
+    expect(invoke.mock.calls.filter(([command]) => command === "restore_backup")).toHaveLength(1);
+  });
+
+  it.each([
+    "../42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "..\\42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "C:\\42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "/42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite:payload",
+    "42A20B47655D3BDB01E426447CD7F93D.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93dd.sqlite",
+    "g2a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite.manifest.json",
+    ".42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite\n",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite\r\n",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite\0",
+  ])("rejects malformed or path-bearing recovery backup selection %j before invoking the Host", async name => {
+    const invoke = vi.fn(); window.__TAURI__ = { core: { invoke } };
+    expect(isOpaqueBackupName(name)).toBe(false);
+    expect(normalizeRecoveryStatus({ backups: [name] }).backups).toEqual([]);
+    await expect(runtime.restoreRecoveryBackup(name)).rejects.toThrow(/enumerated opaque backup/i);
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it("withholds explicit sensitive diagnostic shapes at the recovery DTO boundary", () => {

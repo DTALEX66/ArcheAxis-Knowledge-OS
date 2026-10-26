@@ -195,11 +195,13 @@ def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     return bool(driver and runtime and driver[1].split(".")[:3] == runtime[1].split(".")[:3])
 
 
-def confirm_restored_working_state(bridge, ui_click, wait, js):
+def confirm_restored_working_state(bridge, ui_click, wait, js, *, prepare_navigation=None):
     """Explicit rendered-UI decision; never bypass the post-restore journal fence."""
     before = bridge("ui_state_read")
     assert before["schema"] == "archeaxis.ui-working-state/v1"
     if before["recovery_requires_confirmation"] is False:
+        if prepare_navigation is not None:
+            prepare_navigation()
         return {"decision": "NOT_REQUIRED", "workspace_id": before["workspace_id"], "restore_epoch": before["restore_epoch"]}
     assert before["recovery_requires_confirmation"] is True
     assert isinstance(before["recovery_candidates"], dict)
@@ -242,6 +244,8 @@ def confirm_restored_working_state(bridge, ui_click, wait, js):
     assert after["restore_epoch"] == before["restore_epoch"]
     assert after["recovery_requires_confirmation"] is False
     assert after["recovery_candidates"] is None
+    if prepare_navigation is not None:
+        prepare_navigation()
     return {"decision": "EXPLICIT_UI_PRESERVE", "before": before, "acknowledged": acknowledged, "subsequent_ui_writes": observed, "after": after}
 
 
@@ -1661,7 +1665,12 @@ def main():
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
-            recovery = confirm_restored_working_state(bridge, ui_click, wait, js)
+            # Restored-state confirmation can defer the guide's auto-open. Pause
+            # it through the existing trusted UI only after the journal fence.
+            recovery = confirm_restored_working_state(
+                bridge, ui_click, wait, js,
+                prepare_navigation=lambda: launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence),
+            )
             receipt.setdefault("launch_working_state_recovery", []).append(recovery)
             navigate_compatibility_space(js, wait, "library")
         receipt.setdefault("launches", []).append({"seconds":time.monotonic()-began,"capabilities":result["capabilities"],"user_data_folder":str(folder)})
