@@ -59,7 +59,7 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
     if(evalDirty){setMessage("请先完成或清空本地评测；未覆盖草稿。");return;} if(!begin())return;
     const epoch=++epochs.current.task, id=taskInput;
     try {const s=await coreCommand<MachineAnswerSnapshotDto>("machine_answer_snapshot",{task_id:id});checkSnapshot(s,id);
-      if(alive.current && epoch===epochs.current.task){setSnapshot(s);setReviewer("");setBasis("");setJudgments(old=>old.map(j=>({...j,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("已读取持久化原答案；没有调用模型。");}}
+      if(alive.current && epoch===epochs.current.task){setSnapshot(s);setReviewer("");setBasis("");setJudgments(old=>old.map(j=>({...j,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("已读取保存的原回答；没有调用模型。");}}
     catch{if(alive.current)setMessage("原答案读取失败；现有内容保留，未自动执行。");} finally{end();}
   }
   async function list(kind:"rubric"|"evaluation",more=false) {
@@ -114,8 +114,8 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
       if(!alive.current)return;
       if(kind==="rubric") {setRubricRows(old=>[{document_id:doc.document_id,version:doc.version,title:doc.title,content_sha256:doc.content_sha256},...old.filter(x=>x.document_id!==doc.document_id)]);setTitle("");setPurpose("");setCriteria([{criterion_id:crypto.randomUUID(),label:"",expectation:""}]);}
       else {setSavedEvaluation(formSignature);setHistorical(doc);setEvaluationRows(old=>[{document_id:doc.document_id,version:doc.version,title:doc.title,content_sha256:doc.content_sha256},...old.filter(x=>x.document_id!==doc.document_id)]);}
-      slot.current=null;setMessage("已登记并核对固定版本；这是人工观察，不授予机器资格、真人掌握度或专业真值。");
-    }catch{if(alive.current)setMessage(slot.current?"写入未确认；冻结请求与全部表单保留。可核对或同 ID 重试，未报告成功。":"请补齐有限字段和逐项依据；没有创建请求。");}
+      slot.current=null;setMessage("已登记并核对固定版本；这是人工观察，不代表机器已具备相应能力、学习者已经掌握或专业结论已获证实。");
+    }catch{if(alive.current)setMessage(slot.current?"写入未确认；本次提交记录与全部表单保留。可先检查保存结果，或重试同一次保存，尚未报告成功。":"请补齐有限字段和逐项依据；没有创建请求。");}
     finally{end();}
   }
   const historyValue=historical?metadata(historical,"archeaxis_machine_evaluation") as MachineEvaluationDto:null;

@@ -24,6 +24,17 @@ def load_probe():
     return module
 
 
+def pointer_ready(x=30, y=40):
+    return {"hit": True, "disabled": False, "stable": True, "armed": True,
+            "count": 1, "point": {"x": x, "y": y}}
+
+
+def pointer_proof():
+    return {"overflow": 0, "events": [
+        {"type": kind, "trusted": True, "target": True, "button": 0}
+        for kind in ("pointerdown", "pointerup", "click")]}
+
+
 class GroupedNativeProbeTests(unittest.TestCase):
     def test_restored_original_diagnostic_rejects_wrong_knowledge_body_or_grant(self):
         probe = load_probe()
@@ -370,7 +381,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
     def test_revealed_click_is_one_pointer_click_after_hit_testing(self):
         probe = load_probe()
         commands, evidence = [], []
-        values = iter([{"ready":True,"disabled":False,"point":{"x":30,"y":40}}, {"hit":True,"disabled":False}])
+        values = iter([{"ready":True,"disabled":False,"point":{"x":30,"y":40}}, pointer_ready(), pointer_proof()])
         ui = probe.GroupedUI(lambda _:next(values), lambda _:None,
             lambda *_:"node", lambda *args:commands.append(args), evidence)
         ui.click_revealed_selector("//button[@id='target']")
@@ -405,7 +416,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         commands, evidence = [], []
         values = iter([{"ready": False, "disabled": True},
                        {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}},
-                       {"hit": True, "disabled": False}])
+                       pointer_ready(), pointer_proof()])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), evidence)
         with patch.object(probe.time, "sleep") as sleep:
@@ -425,14 +436,15 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                     observations.append(script)
                     if len(observations) % 2 == 1:
                         return {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}
-                    return evaluate(script, markup)
+                    return {"hit": False, "disabled": True, "count": 1, "stable": False}
                 ui = probe.GroupedUI(observe, lambda _: None, lambda *_: "node",
                     lambda *args: commands.append(args), evidence)
                 with patch.object(probe.time, "sleep") as sleep, self.assertRaisesRegex(TimeoutError, "remained disabled"):
                     ui.click_revealed_selector("//button[@id='target']")
                 self.assertEqual(commands, [])
                 self.assertEqual(len(observations), 6)
-                self.assertEqual(sleep.call_args_list, [unittest.mock.call(.15)] * 3)
+                self.assertEqual(sleep.call_count, 3)
+                self.assertTrue(all(0 < call.args[0] <= .15 for call in sleep.call_args_list))
                 self.assertEqual(evidence[-1]["action"], "target_pointer_readiness")
                 self.assertIs(evidence[-1]["observation"]["disabled"], True)
 
@@ -442,12 +454,13 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         values = iter([{"ready": True, "disabled": False, "point": {"x": 10, "y": 20}},
                        {"hit": False, "disabled": True},
                        {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}},
-                       {"hit": True, "disabled": False}])
+                       pointer_ready(), pointer_proof()])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), [])
         with patch.object(probe.time, "sleep") as sleep:
             ui.click_revealed_selector("//button[@id='target']")
-        sleep.assert_called_once_with(.15)
+        self.assertEqual(sleep.call_count, 1)
+        self.assertTrue(0 < sleep.call_args.args[0] <= .15)
         self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
 
     def test_reveal_uses_bounded_wheel_input_without_clicking_or_mutating_dom(self):
@@ -480,7 +493,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         values = iter([
             {"ready": False, "reason": "No reachable scroll container", "target": {"x": 1043, "y": 679}},
             {"ready": True, "disabled": False, "point": {"x": 770, "y": 679}},
-            {"hit": True, "disabled": False},
+            pointer_ready(770, 679), pointer_proof(),
         ])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), evidence)
@@ -494,13 +507,99 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         commands = []
         values = iter([
             {"ready": True, "disabled": False, "point": {"x": 10, "y": 20}}, {"hit": False, "disabled": False},
-            {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}, {"hit": True, "disabled": False},
+            {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}, pointer_ready(), pointer_proof(),
         ])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), [])
         with patch.object(probe.time, "sleep", lambda _: None):
             ui.click_revealed_selector("//button[@id='moving']")
         self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
+
+    def test_pointer_actionability_observes_two_frames_same_node_box_scroll_and_hit(self):
+        probe = load_probe()
+        # Execute the actual observation script with deterministic frame/geometry
+        # fixtures. This is simulated event evidence, not a browser/Host verdict.
+        harness = r"""
+const script=SCRIPT;
+(async()=>{const result=[];
+for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','duplicate','disabled','aria-disabled','covered','frame-stalled']){
+ let frame=0;const listeners=new Map(),window={},late=[];
+ const parent={parentElement:null,getClientRects:()=>[{}],closest:()=>null,
+  get scrollTop(){return scene==='scroll-changed'?frame:0;},scrollLeft:0};
+ const make=()=>({parentElement:parent,getClientRects:()=>scene==='hidden'?[]:[{}],
+  closest:s=>s.includes('aria-disabled')&&scene==='aria-disabled'?parent:null,
+  matches:()=>scene==='disabled',contains(n){return n===this;},
+  getBoundingClientRect(){const top=scene==='moving'?10+frame:10;return {left:10,top,right:50,bottom:top+20,width:40,height:20};}});
+ const original=make(),replacement=make();
+ const node=()=>scene==='node-changed'&&frame===2?replacement:original;
+ const document={evaluate:()=>({snapshotLength:scene==='duplicate'?2:1,snapshotItem:()=>node()}),
+  elementFromPoint:()=>scene==='covered'?{}:node(),
+  addEventListener:(kind,fn)=>listeners.set(kind,fn),removeEventListener:kind=>listeners.delete(kind)};
+ const run=new Function('document','window','getComputedStyle','XPathResult','requestAnimationFrame','innerWidth','innerHeight',script);
+ const facts=await run(document,window,()=>({display:'block',visibility:'visible'}),{ORDERED_NODE_SNAPSHOT_TYPE:7},cb=>{if(scene==='frame-stalled'){late.push(cb);return 1;}frame++;cb();},800,600);
+ const frames_before_late=frame;late.forEach(cb=>cb());
+ let proof=null;if(facts.armed){for(const type of ['pointerdown','pointerup','click'])listeners.get(type)({type,isTrusted:true,target:node(),button:0,clientX:30,clientY:20});proof=window.__aaosTargetPointerProbe.finish();}
+ result.push({scene,frame,frames_before_late,facts,proof,listeners:listeners.size,observer_removed:!window.__aaosTargetPointerProbe});
+}console.log(JSON.stringify(result));})().catch(e=>{console.error(e);process.exit(1)});
+""".replace("SCRIPT", json.dumps(probe.pointer_actionability_script("//button[@id='target']")))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True,
+                                text=True, encoding="utf-8", check=True)
+        for row in json.loads(result.stdout):
+            with self.subTest(scene=row["scene"]):
+                self.assertEqual(row["frame"], 0 if row["scene"] == "frame-stalled" else 2)
+                self.assertTrue(row["observer_removed"])
+                self.assertEqual(row["listeners"], 0)
+                if row["scene"] == "stable":
+                    self.assertTrue(row["facts"]["armed"])
+                    probe.assert_pointer_delivery(row["proof"])
+                else:
+                    self.assertFalse(row["facts"].get("armed", False))
+
+    def test_unstable_pre_pointer_samples_share_three_original_attempts_without_input(self):
+        probe = load_probe()
+        for change in ({"stable": False}, {"count": 2}, {"disabled": True}, {"hit": False}):
+            with self.subTest(change=change):
+                commands, evidence = [], []
+                values = iter(sum(([{"ready": True, "disabled": False}, {**pointer_ready(), **change}] for _ in range(3)), []))
+                ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+                                     lambda *args: commands.append(args), evidence)
+                with patch.object(probe.time, "sleep") as sleep, self.assertRaises(TimeoutError):
+                    ui.click_revealed_selector("//button[@id='target']")
+                self.assertEqual(commands, [])
+                self.assertEqual(sleep.call_count, 3)
+
+    def test_post_pointer_unknown_or_wrong_events_never_replays_a_possible_write(self):
+        probe = load_probe()
+        variants = [None, {"overflow": 0, "events": []}, {"overflow": 1, "events": pointer_proof()["events"]}]
+        variants.append({"overflow": 0, "events": pointer_proof()["events"] + [pointer_proof()["events"][-1]]})
+        for field in ("trusted", "target"):
+            proof = pointer_proof(); proof["events"][2][field] = False; variants.append(proof)
+        for proof in variants:
+            with self.subTest(proof=proof):
+                commands, evidence = [], []
+                values = iter([{"ready": True, "disabled": False, "point": {"x": 10, "y": 20}}, pointer_ready(), proof])
+                ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+                                     lambda *args: commands.append(args), evidence)
+                with self.assertRaisesRegex(AssertionError, "not replayed"):
+                    ui.click_revealed_selector("//button[@id='save']")
+                self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
+                self.assertEqual(evidence[-1]["action"], "trusted_pointer_delivery")
+                self.assertTrue(evidence[-1]["command_completed"])
+
+    def test_pointer_transport_error_keeps_original_exception_and_does_not_replay(self):
+        probe = load_probe()
+        commands, evidence = [], []
+        reason = RuntimeError("unknown delivery")
+        values = iter([{"ready": True, "disabled": False}, pointer_ready(), None])
+        def command(*args):
+            commands.append(args)
+            raise reason
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node", command, evidence)
+        with self.assertRaises(RuntimeError) as caught:
+            ui.click_revealed_selector("//button[@id='save']")
+        self.assertIs(caught.exception, reason)
+        self.assertEqual(len(commands), 1)
+        self.assertFalse(evidence[-1]["command_completed"])
 
     def test_reader_source_tools_opens_current_stitch_disclosure_before_candidate(self):
         probe = load_probe()
@@ -979,8 +1078,15 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
     def test_webdriver_only_interactions(self):
         commands, observations, actions = [], [], []
+        def observe(script):
+            observations.append(script)
+            if script.startswith("return window.__aaosTargetPointerProbe"):
+                return pointer_proof()
+            if "requestAnimationFrame" in script:
+                return pointer_ready()
+            return {"ready": True, "disabled": False, "hit": True, "point": {"x": 30, "y": 40}}
         ui = self.probe.GroupedUI(
-            lambda script: observations.append(script) or {"ready": True, "disabled": False, "hit": True, "point": {"x": 30, "y": 40}},
+            observe,
             lambda script, **_: observations.append(script),
             lambda using, selector: "actual-element",
             lambda element, action, body: commands.append((element, action, body)),
@@ -1009,7 +1115,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         )
         self.assertEqual(
             {row["action"] for row in actions},
-            {"target_visible_and_hit_tested", "target_pointer_readiness", "trusted_visible_pointer_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
+            {"target_visible_and_hit_tested", "target_pointer_readiness", "trusted_pointer_delivery", "trusted_visible_pointer_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
         )
 
     def test_unconfirmed_route_never_grants_or_invokes(self):
@@ -1055,8 +1161,14 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             with self.subTest(field=field), self.assertRaises(AssertionError):
                 self.probe.assert_quote_selection({**proof, field: wrong}, text)
         commands, scripts, result = [], [], {}
+        def observe(script):
+            if script.startswith("return window.__aaosTargetPointerProbe"):
+                return pointer_proof()
+            if "requestAnimationFrame" in script:
+                return pointer_ready(3, 4)
+            return {"ready": True, "disabled": False, "hit": True, "point": {"x": 3, "y": 4}} if "elementFromPoint" in script else proof
         ui = self.probe.GroupedUI(
-            lambda script: {"ready": True, "disabled": False, "hit": True, "point": {"x": 3, "y": 4}} if "elementFromPoint" in script else proof,
+            observe,
             lambda script: scripts.append(script),
             lambda *_: "quote",
             lambda element, action, body: commands.append((action, body)),

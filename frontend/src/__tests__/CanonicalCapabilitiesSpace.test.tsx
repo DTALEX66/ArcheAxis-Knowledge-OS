@@ -60,6 +60,8 @@ describe("single-source capability exploration",()=>{
   expect(within(details).getByText(/供体映射未建立/)).not.toBeVisible();
   const next=within(details).getByText(/^下一步：/);
   expect(next).toBeVisible();
+    expect(next).toHaveTextContent(/尚未|暂未|不能使用/);
+    expect(next).not.toHaveTextContent(/合同|契约|入口映射|实施包|资格|回执/);
   expect(next.compareDocumentPosition(disclosure)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(within(details).getByText("完整能力尚未接入",{exact:false})).toBeVisible();
   expect(within(details).getByRole("button",{name:"当前执行入口尚未提供"})).toBeVisible();

@@ -64,6 +64,8 @@ it("SIMULATED StrictMode replays document loading and a late first receipt canno
  implementation=async(op,p)=>op==="documents_list"?new Promise(resolve=>resolves.push(resolve)):normal(op,p);
  render(<StrictMode><CanonicalExchangeSpace/></StrictMode>);fireEvent.click(screen.getByRole("button",{name:"文档导出"}));
  await waitFor(()=>expect(resolves).toHaveLength(2));
+  expect(screen.getByText("已读 0 / 总数待确认")).toBeInTheDocument();
+  expect(screen.queryByText("当前列表没有文档。")).not.toBeInTheDocument();
  await act(async()=>{resolves[0]({documents:[{...doc("stale"),title:"过期目录"}],next_cursor:null,snapshot_count:1});});
  expect(screen.getByRole("button",{name:"刷新文档目录"})).toBeDisabled();expect(screen.queryByRole("button",{name:/过期目录/})).toBeNull();
  await act(async()=>{resolves[1]({documents:[{...doc("current"),title:"当前目录"}],next_cursor:null,snapshot_count:1});});

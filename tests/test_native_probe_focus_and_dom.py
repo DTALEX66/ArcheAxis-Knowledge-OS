@@ -120,8 +120,17 @@ document.elementFromPoint=()=>document.querySelector('button[data-page-id="03"]'
 
     def test_xpath_dispatch_uses_hit_tested_pointer_path(self):
         actions = []
+        def observe(script):
+            # Synthetic actionability/delivery facts for this dispatcher unit test.
+            if "__aaosTargetPointerProbe?.finish()" in script:
+                return {"overflow": 0, "events": [
+                    {"type": kind, "trusted": True, "target": True, "button": 0}
+                    for kind in ("pointerdown", "pointerup", "click")
+                ]}
+            return {"ready": True, "disabled": False, "hit": True, "stable": True,
+                    "armed": True, "count": 1, "point": {"x": 5, "y": 9}}
         ui = p.GroupedUI(
-            lambda _: {"ready": True, "disabled": False, "hit": True, "point": {"x": 5, "y": 9}},
+            observe,
             lambda _: None,
             lambda *_: "element",
             lambda *args: actions.append(args),
@@ -133,7 +142,7 @@ document.elementFromPoint=()=>document.querySelector('button[data-page-id="03"]'
 
 class ReaderAndImageDriftTests(unittest.TestCase):
     def test_current_component_heading_and_version_and_body(self):
-        markup = '<main data-current-page-id="03"></main><section aria-label="阅读与编辑文档视图"><header class="stitch-reader-heading"><div><h2>Exact title</h2></div><p><span class="stitch-document-version">v7 · 未保存</span></p></header><article aria-label="文档正文与编辑"><header><h3>文档正文</h3></header><section aria-label="版本化草稿编辑器"><div class="ProseMirror">Exact body</div></section></article></section>'
+        markup = '<main data-current-page-id="03"></main><section aria-label="阅读与编辑文档视图"><header class="stitch-reader-heading"><div><h2>Exact title</h2></div><p><span class="stitch-document-version">v7 · 未保存</span></p></header><article aria-label="文档正文与编辑"><header><h3>文档正文</h3></header><section aria-label="文档草稿编辑器"><div class="ProseMirror">Exact body</div></section></article></section>'
         self.assertEqual(
             evaluate(p.READER_RESTORE_OBSERVATION, markup),
             {

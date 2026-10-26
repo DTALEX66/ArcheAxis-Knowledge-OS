@@ -55,7 +55,7 @@ class RestoredReaderReferenceTests(unittest.TestCase):
                 page="02" if change == "page" else "03",
                 hidden="hidden" if change == "hidden" else "")
             if snapshot:
-                markup = markup.replace('<section aria-label="版本化草稿编辑器"><div class="ProseMirror">', '<section><pre aria-label="共享文档当前内容">').replace('</div></section>', '</pre></section>', 1)
+                markup = markup.replace('<section aria-label="文档草稿编辑器"><div class="ProseMirror">', '<section><pre aria-label="共享文档当前内容">').replace('</div></section>', '</pre></section>', 1)
             return evaluate(script, markup)
 
         def wait(script):

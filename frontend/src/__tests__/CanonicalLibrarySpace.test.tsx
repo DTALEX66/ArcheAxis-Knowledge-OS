@@ -32,7 +32,7 @@ describe("canonical content sample", () => {
     const previous=bridge.call.getMockImplementation()!;
     bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="documents_list"?{documents:[]}:previous(op,payload));
     render(<CanonicalLibrarySpace purpose="reader" initialSourceTarget={{source_id:source.source_id,source_revision:hash,sha256:hash}}/>);
-    await screen.findByRole("button",{name:"建立版本化草稿"});
+    await screen.findByRole("button",{name:"创建可编辑草稿"});
     expect(screen.getByText(/需要提取文字时，点“整理此来源为知识候选”/)).toHaveTextContent("草稿保存在本地知识库");
     expect(screen.getByRole("button",{name:"整理此来源为知识候选"})).toBeEnabled();
     expect(bridge.call.mock.calls.some(([op])=>op==="document_create"||op==="job_enqueue")).toBe(false);
@@ -161,7 +161,7 @@ describe("canonical content sample", () => {
     render(<CanonicalLibrarySpace/>);
     const user=userEvent.setup();
     await user.click(await screen.findByRole("button",{name:"样板.txt"}));
-    await user.click(await screen.findByRole("button",{name:"建立版本化草稿"}));
+    await user.click(await screen.findByRole("button",{name:"创建可编辑草稿"}));
     await screen.findByLabelText("待确认的笔记创建");
     await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
     await waitFor(()=>expect(screen.getByRole("button",{name:"刷新资料列表"})).toBeEnabled());
@@ -535,7 +535,7 @@ describe("canonical content sample", () => {
     });
     render(<CanonicalLibrarySpace/>);
     await userEvent.setup().click(screen.getByRole("button",{name:"新建原创笔记"}));
-    expect(await screen.findByLabelText("版本化草稿编辑器")).toBeInTheDocument();
+    expect(await screen.findByLabelText("文档草稿编辑器")).toBeInTheDocument();
     expect(screen.queryByRole("button",{name:"引用当前页"})).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button",{name:"保存草稿"}));
     await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.anything()));

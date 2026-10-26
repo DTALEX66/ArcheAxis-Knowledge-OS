@@ -745,7 +745,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
         <details open className="stitch-library-tags"><summary>保存版标签</summary>{tagControls}</details>
         <details className="stitch-library-guide"><summary>集合与视图</summary><p>从集合文档进入保存版表格、列表、看板、日历和画廊；筛选覆盖已加载文档，可继续分页。</p><button type="button" onClick={()=>setContentFilter("collection")}>查看集合文档</button><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></details>
       </aside>
-      <section className="stitch-library-results" aria-label="已保存内容列表"><header><div><h3>已保存内容</h3><p>标题与来源筛选覆盖已加载文档；可继续加载同一快照。</p></div><span className="stitch-library-loaded-count">已加载 {documents.length} 篇</span></header>{documentList}</section>
+      <section className="stitch-library-results" aria-label="已保存内容列表"><header><div><h3>已保存内容</h3><p>标题与来源筛选覆盖已加载文档；可继续加载当前列表。</p></div><span className="stitch-library-loaded-count">已加载 {documents.length} 篇</span></header>{documentList}</section>
     </div>
   </section>;
   // open() publishes these bytes only after checking the selected source identity and SHA.
@@ -755,13 +755,13 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={purpose==="reader"?0:-1} aria-label={purpose==="reader"?"并排原件正文":"原件正文"}>{new TextDecoder().decode(bytes)}</pre>
     : original.media_type.startsWith("audio/")||original.media_type.startsWith("video/") ? <MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>
     : <p>原字节已核对；此格式暂无内嵌原件阅读器，派生正文从真实转换作业读取。</p> : null;
-  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section className="stitch-reader-source-tools" aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<RawReceiptButton label="原件编号与版本详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision}}/>{!document?<>{sourcePreview}<button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
+  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section className="stitch-reader-source-tools" aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<RawReceiptButton label="原件编号与版本详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision}}/>{!document?<>{sourcePreview}<button disabled={busy} onClick={()=>void singleWrite(create)}>创建可编辑草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
   if(purpose === "reader" || purpose === "history") return <section className="stitch-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"} data-stitch-library={purpose} data-reader-layout={document&&!initialSourceTarget?"split":undefined}>
     {feedback}
     {purpose==="reader"?<details className="reader-batch-tools" open={relationToolsOpen} onToggle={event=>setRelationToolsOpen(event.currentTarget.open)}><summary>批次链接与附件{relationPending.current?" · 请求尚未确认":""}</summary><p>继续处理本批次，或点“读取历史批次”找回上次导入。链接只从固定原件解析；请明确选择已保存文档和目标，不会按同名猜测。</p>{folderRelations}</details>:null}
     {!document?<header className="stitch-reader-heading"><div><span className="stitch-library-eyebrow">知识与原件</span><h2>{purpose === "history" ? "文档历史" : "阅读与编辑"}</h2></div></header>:null}
     {!document?listControls:null}
-    {(!document||initialSourceTarget)&&readerSourceTools?<><p className="library-reader-next">先对照原文件阅读。需要提取文字时，点“整理此来源为知识候选”，再执行内容转换；只想写笔记时，可点“建立版本化草稿”。草稿保存在本地知识库，成为正式知识仍需另行审查。</p>{readerSourceTools}</>:null}
+    {(!document||initialSourceTarget)&&readerSourceTools?<><p className="library-reader-next">先对照原文件阅读。需要提取文字时，点“整理此来源为知识候选”，再执行内容转换；只想写笔记时，可点“创建可编辑草稿”。草稿保存在本地知识库，成为正式知识仍需另行审查。</p>{readerSourceTools}</>:null}
     {document ? <>
       <header className="stitch-reader-heading"><div><span className="stitch-library-eyebrow">{purpose === "history" ? "历史与版本" : "阅读与编辑"}</span><h2>{document.title}</h2></div><p><span>{document.source_id ? "关联原件文档" : "原创笔记"}</span><span className="stitch-document-version">v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存" : ""}</span></p></header>
       <div className="stitch-reader-toolbar"><div className="stitch-reader-modes" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions&&purpose!=="history"} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div>{listControls}</div>
@@ -820,7 +820,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
             })}
           </aside>
         </div>
-        {!document ? <button type="button" disabled={busy} onClick={() => void singleWrite(create)}>建立版本化草稿</button> : null}
+        {!document ? <button type="button" disabled={busy} onClick={() => void singleWrite(create)}>创建可编辑草稿</button> : null}
       </div> : <p className="muted">选择一个原件开始阅读。</p>}
     </div>
     {openedDocuments.length > 0 ? <nav className="document-tab-strip" role="tablist" aria-label="已打开文档标签">

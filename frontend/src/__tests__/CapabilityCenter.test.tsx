@@ -73,7 +73,7 @@ describe("capability center uses existing identities without inventing runtime a
   it.each([["CAP-0060", "07"], ["CAP-0090", "05"], ["CAP-0120", "19"]])("keeps %s next-step guidance consistent with its page entry", async (id, page) => {
     const open=vi.fn();render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} onOpenPage={open} selectedCapabilityId={id}/>);
     expect(screen.queryByText(/尚未关联可打开的产品动作入口/)).not.toBeInTheDocument();
-    expect(screen.getByText(/通过当前 AAOS 产品入口继续/)).toBeInTheDocument();
+    expect(screen.getByText(/点击“打开当前产品入口”继续/)).toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button", {name:"打开当前产品入口"}));
     expect(open).toHaveBeenCalledWith(page);
   });

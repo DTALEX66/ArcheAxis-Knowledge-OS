@@ -155,7 +155,7 @@ describe("folder ingest", () => {
     expect(screen.getByLabelText("重新选择此批次文件夹")).toBeInTheDocument();
     expect(bridge.call.mock.calls.every(([op])=>["ingest_batches_list","ingest_batch_get"].includes(op))).toBe(true);
     fireEvent.change(screen.getByLabelText("重新选择此批次文件夹"),{target:{files:[picked("册/other.md")]}});
-    expect(await screen.findByRole("status")).toHaveTextContent("路径、数量或大小不符");
+    expect(await screen.findByRole("status")).toHaveTextContent("路径、数量或大小上不符");
     expect(bridge.call.mock.calls.every(([op])=>["ingest_batches_list","ingest_batch_get"].includes(op))).toBe(true);
   });
 
@@ -333,6 +333,7 @@ describe("folder ingest", () => {
 
   it("SIMULATED separate same-name roots use distinct provenance but preserve content-addressed conversion identity",async()=>{
     upload([picked("册/a.md","same")]);await screen.findByText("已入队",{exact:true});
+    expect(screen.getByText("已入队",{exact:true}).closest("tr")).toHaveTextContent("转换状态：已入队");
     upload([picked("册/a.md","same")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(2));
     const queued=bridge.call.mock.calls.filter(([op])=>op==="ingest_member_enqueue");expect(queued).toHaveLength(2);expect(jobId(queued[0][1])).toBe(jobId(queued[1][1]));
     expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(0);
@@ -343,7 +344,8 @@ describe("folder ingest", () => {
       if(op==="ingest_member_enqueue"){await fixture(op,p);throw new Error("SIMULATED lost enqueue ACK");}
       return fixture(op,p);
     });
-    upload([picked("册/a.md")]);await screen.findByText("结果 UNKNOWN，待核对");
+    upload([picked("册/a.md")]);await screen.findByText("处理结果待确认");
+    expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("处理结果待确认 1");
     fireEvent.click(screen.getByRole("button",{name:"查看处理进度"}));
     await screen.findByText("已入队",{exact:true});
     expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1);
@@ -363,7 +365,7 @@ describe("folder ingest", () => {
     await userEvent.setup().click(run);
     await waitFor(() => expect(bridge.call).toHaveBeenCalledWith("job_execute", { job_id: `folder-text-${HASH}`, request_id:expect.stringMatching(/^folder_run_/), body:{deadline_ms:90000,split:false,words:false} }));
     expect(await screen.findByText("已成功", { exact: true })).toBeInTheDocument();
-    expect(screen.getByText(/转换终态 succeeded；原件保留/)).toBeInTheDocument();
+    expect(screen.getByText(/转换状态：已成功；原件已保留/)).toBeInTheDocument();
   });
 
   it("stops on request and continues on the next batch (A01 stop)", async () => {

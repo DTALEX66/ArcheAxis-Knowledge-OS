@@ -33,7 +33,7 @@ type Row = { key: string; batch_id: string; relative: string; bytes: number; sta
 const LABEL: Record<RowState, string> = {
   queued:"已入队", pending:"已入队", running:"作业运行中", leased:"作业运行中", starting:"作业运行中",
   succeeded:"已成功", failed:"失败待处理", cancelled:"已取消", rejected:"已拒绝",
-  UNKNOWN:"结果 UNKNOWN，待核对", ORIGINAL_ONLY:"原件已保管，无转换通路", IMPORT_FAILED:"原件导入未确认",
+  UNKNOWN:"处理结果待确认", ORIGINAL_ONLY:"原件已保管，无转换通路", IMPORT_FAILED:"原件导入未确认",
   ENQUEUE_FAILED:"转换未入队", IDENTITY_CONFLICT:"作业身份冲突",
   "跳过：隐藏路径":"跳过：隐藏路径", "跳过：排除目录":"跳过：排除目录", "未导入：超过大小上限":"未导入：超过大小上限",
 };
@@ -160,7 +160,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         replace({key:`${batch}:${m.relative_path}`,batch_id:batch,relative:m.relative_path,bytes:m.byte_length,
           source_id:m.source_id??undefined,sha256:m.source_revision??undefined,job_id:m.job_id??undefined,kind:m.kind??undefined,
           state:refusal?.state??(m.job_id?jobState(m.job_state):m.source_id?"ORIGINAL_ONLY":"IMPORT_FAILED"),
-          detail:refusal?.detail??(m.source_id?"已读取耐久来源及作业状态；未自动执行。":"原文件内容未上传；需重新选择文件夹。")});
+          detail:refusal?.detail??(m.source_id?"已读取保存的原件和处理状态；未自动执行。":"原文件内容未上传；需重新选择文件夹。")});
         if(m.source_id||refusal)handled.current.add(m.relative_path);
       }
       setNeedsFiles(members.some(m=>!m.source_id&&m.disposition==="pending")||!head.complete);
@@ -243,7 +243,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
     const count = (...states: RowState[]) => list.filter(row => states.includes(row.state)).length;
     return `原件已保管 ${list.filter(row => !!row.source_id).length} · 已入队 ${count("queued", "pending")} · 运行中 ${count("running", "leased", "starting")}`
       + ` · 已成功 ${count("succeeded")} · 失败待处理 ${count("failed")} · 已取消 ${count("cancelled")} · 已拒绝 ${count("rejected")}`
-      + ` · 仅保管 ${count("ORIGINAL_ONLY")} · UNKNOWN ${count("UNKNOWN")} · 冲突 ${count("IDENTITY_CONFLICT")}`
+      + ` · 仅保管 ${count("ORIGINAL_ONLY")} · 处理结果待确认 ${count("UNKNOWN")} · 冲突 ${count("IDENTITY_CONFLICT")}`
       + ` · 未入队 ${count("ENQUEUE_FAILED")} · 原件导入未确认 ${count("IMPORT_FAILED")} · 跳过 ${count("跳过：隐藏路径", "跳过：排除目录", "未导入：超过大小上限")}`;
   }
   async function processFile(file: File, relative: string, batch: string, generation: number): Promise<Row | null> {
@@ -256,7 +256,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       const expectedSha256 = await contentSha256(new Uint8Array(bytes));
       const content_base64 = base64Of(bytes); if (!current(generation)) return null;
       const identity=durable.current;
-      if(!identity?.complete||identity.batch_id!==batch)throw new Error("耐久清单身份未确认。");
+      if(!identity?.complete||identity.batch_id!==batch)throw new Error("已保存的文件清单与当前批次尚未核对。");
       const ordinal=ordinals.current.get(relative);
       const receipt=await coreCommand<{batch_id:string;ordinal:number}>("ingest_member_import", { batch_id:batch,body: {
         workspace_id:identity.workspace_id,restore_epoch:identity.restore_epoch,
@@ -270,7 +270,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       handled.current.add(relative); return { ...base, state: "IMPORT_FAILED", detail: error instanceof Error ? error.message : "原件导入未确认" };
     }
     const {source_id, sha256} = imported, kind = conversionKindFor(relative);
-    if (!kind) return { ...base, source_id, sha256, state: "ORIGINAL_ONLY", detail: "此扩展名没有映射到任何 Core 作业种类；原件独立保管，未入队。" };
+    if (!kind) return { ...base, source_id, sha256, state: "ORIGINAL_ONLY", detail: "当前未提供此格式的转换方式；原件已单独保存，未安排转换。" };
     const job_id = `folder-${kind}-${sha256}`, original = { ...base, source_id, sha256, kind, job_id };
     try {
       const identity=durable.current!;
@@ -280,7 +280,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       if (!current(generation)) return null;
       if (receipt.job_id !== job_id) return { ...original, state: "UNKNOWN", detail: "转换入队回执身份不匹配；未执行任何作业。" };
       const state = jobState(receipt.state);
-      const row: Row = { ...original, state, detail: `原件已保留${imported.duplicate ? "（同哈希原件已存在）" : ""}；转换 Core 状态 ${state}。` };
+      const row: Row = { ...original, state, detail: `原件已保留${imported.duplicate ? "（相同内容的原件已存在）" : ""}；转换状态：${LABEL[state]}。` };
       if (!["queued", "pending"].includes(state)) {
         try { row.status = await readFolderStatus(folderCommand, job_id, source_id); if (!current(generation)) return null; row.state = jobState(row.status.state); }
         catch { row.detail += " 当前新尝试条件未读回；不会自动重执行。"; }
@@ -313,16 +313,16 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         if (!current(generation)) return; if (row) { replace(row); processed++; }
       }
       const left = [...queue.current.keys()].filter(relative => !handled.current.has(relative)).length;
-      if (current(generation)) { setRemaining(left); setMessage(`文件夹「${folderRef.current}」批次处理：本次 ${processed} 项 · ${tally(rowsRef.current)} · ${left ? `剩余 ${left} 项待下一批（已成功或排除的项不重复占预算）` : "全部处理完毕"}${stopAfter.current ? " · 已停止后续导入；当前受理项的真实回执已保留" : ""}`); window.dispatchEvent(new Event("archeaxis-job-changed")); }
+      if (current(generation)) { setRemaining(left); setMessage(`文件夹「${folderRef.current}」批次处理：本次 ${processed} 项 · ${tally(rowsRef.current)} · ${left ? `剩余 ${left} 项待下一批（已成功或排除的项不重复计入本批上限）` : "全部处理完毕"}${stopAfter.current ? " · 已停止后续导入；当前任务的处理记录已保留" : ""}`); window.dispatchEvent(new Event("archeaxis-job-changed")); }
     } finally { unlock(generation); }
   }
   function statusPatch(key: string, status: JobStatus) {
     const frozen=rowsRef.current.find(row=>row.key===key)?.attempt;
     if(journal.available&&frozen&&terminalJobState(status.state)&&status.request_id===frozen.request_id){
-      void journal.clear(frozen.request_id).then(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{attempt:undefined,cancelPending:false,executionRefused:false,admissionProof:undefined});}).catch(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{detail:"终态已记录，但执行保全清理未确认；冻结身份保留，请再核对状态。"});});
+      void journal.clear(frozen.request_id).then(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{attempt:undefined,cancelPending:false,executionRefused:false,admissionProof:undefined});}).catch(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{detail:"处理结果已记录，但待处理记录尚未确认清理；本次处理记录仍保留，请再核对状态。"});});
     }
     const terminal = terminalJobState(status.state);
-    patch(key, { status, state: jobState(status.state), detail: status.state === "failed" ? `原件已保留；${folderFailureSummary(status)}` : terminal ? `转换终态 ${status.state}；原件保留，成功产物可按真实来源定位。${status.error ? ` ${status.error}` : ""}` : `转换仍为 ${status.state}；终态未确认。`,
+    patch(key, { status, state: jobState(status.state), detail: status.state === "failed" ? `原件已保留；${folderFailureSummary(status)}` : terminal ? `转换状态：${LABEL[jobState(status.state)]}；原件已保留，成功产物可按所选来源查看。${status.error ? ` ${status.error}` : ""}` : `转换状态：${LABEL[jobState(status.state)]}；最终结果尚未确认。`,
       ...(terminal && !journal.available ? { attempt: undefined, cancelPending: false, executionRefused: false, admissionProof:undefined, capabilityBusy:false } : {}) });
   }
   async function executeOne(key: string, mode: "queued" | "fresh" | "same", generation: number) {
@@ -333,7 +333,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         const checked = await readFolderStatus(folderCommand, row.job_id, row.source_id);
         if (!current(generation)) return; statusPatch(key, checked);
         if (mode === "fresh" ? !freshAttemptEligible(checked) : !["queued", "pending"].includes(checked.state)) {
-          setMessage("Core 未确认当前可新建尝试；原件、历史与错误保留，不会自动重执行。"); return;
+          setMessage("本地服务尚未确认能否重新处理；原件、历史与错误保留，不会自动再次执行。"); return;
         }
       } catch (error) {
         if (current(generation)) { patch(key, { state:"UNKNOWN", detail:`执行前状态未确认：${error instanceof Error ? error.message : "未知原因"}；未创建执行请求。` }); stopAfter.current = true; }
@@ -345,7 +345,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
     if (!attempt || mode === "same" && row.executionRefused) return;
     const source = row.source_id!;
     const belongs = () => current(generation) && rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id);
-    patch(key, { attempt, state: "UNKNOWN", detail: "执行请求已冻结；等待真实回执，90s 单次预算。", executionRefused: false, admissionProof:undefined }); active.current = { key, attempt };
+    patch(key, { attempt, state: "UNKNOWN", detail: "已保留本次处理记录；等待处理结果，本次最多等待 90 秒。", executionRefused: false, admissionProof:undefined }); active.current = { key, attempt };
     try {
       if(!row.sha256||!row.kind)throw new Error("来源与种类身份缺失；未执行。");
       await journal.stage({source_id:source,source_revision:row.sha256,kind:row.kind,job_id:attempt.job_id,request_id:attempt.request_id,body:attempt.body,mode:"single",relative:row.relative});
@@ -360,7 +360,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         const recovery = recoverableJobRefusal(error, attempt, source, row.kind);
         patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500 && !recoverableJobRefusal(error, attempt, source, row.kind),
           admissionProof:recovery?(error as ApiError).jobAdmission:undefined,
-          detail: recovery ? "Core 已确认原请求未受理；能力禁用。可在此启用，原冻结身份保留；之后另点重试上次处理。" : `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅重试上次处理或读取状态，不产生新尝试。` });
+          detail: recovery ? "本地服务已确认上次处理未受理；此功能已禁用。可在此启用，本次处理记录仍保留；之后另点“重试上次处理”。" : `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留本次处理记录；仅重试上次处理或查看进度，不会另行创建处理任务。` });
         stopAfter.current = true;
       }
     } finally { if (active.current?.attempt.request_id === attempt.request_id) active.current = null; }
@@ -386,7 +386,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         if (attempt && belongs() && !terminalJobState(status.state)) await pollFolderAttempt(folderCommand, attempt, source, belongs, status => { if (belongs()) statusPatch(key,status); }, wait);
       }
       else await executeOne(key, mode, generation);
-    } catch (error) { if (current(generation)) setMessage(`状态或新尝试条件未确认：${error instanceof Error ? error.message : "未知原因"}；原冻结请求及历史保留。`); }
+    } catch (error) { if (current(generation)) setMessage(`状态或新尝试条件未确认：${error instanceof Error ? error.message : "未知原因"}；本次处理记录和历史仍保留。`); }
     finally { unlock(generation); }
   }
   async function cancel(key: string) {
@@ -405,7 +405,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
     finally { cancelFlight.current = false; if (current(generation)) setCancelBusy(false); }
   }
   function open(row: Row) {
-    if (capabilityFlight.current || running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有运行或冻结请求，请先核对状态再打开来源；批次与原件保留。"); return; }
+    if (capabilityFlight.current || running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有正在处理或结果待确认的任务，请先核对状态再打开来源；批次与原件保留。"); return; }
     if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined, row.sha256);
   }
   function selectRelations(row:Row) {
@@ -441,7 +441,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       const sorted=files.sort((a,b)=>relativeOf(a)<relativeOf(b)?-1:relativeOf(a)>relativeOf(b)?1:0);
       if(folderOf(files)!==saved.folder_label||files.length!==saved.expected_members||new Set(files.map(relativeOf)).size!==files.length
         ||files.some(file=>privateVisibleSegment(file))||saved.members.some(member=>!sorted[member.ordinal]||relativeOf(sorted[member.ordinal])!==member.relative_path||sorted[member.ordinal].size!==member.byte_length)){
-        setMessage("所选文件夹与耐久清单的路径、数量或大小不符；未上传。");return;
+        setMessage("所选文件夹与已保存的文件清单在路径、数量或大小上不符；未上传。");return;
       }
       queue.current.clear();for(const file of files)queue.current.set(relativeOf(file),file);
       registration.current=null;void registerSelection();

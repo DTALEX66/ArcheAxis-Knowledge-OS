@@ -490,6 +490,76 @@ return {guide,navigation,hydrated,page,blockers};"""
     raise TimeoutError("First-use guide or visible product navigation did not settle")
 
 
+def pointer_actionability_script(selector):
+    """Two animation-frame samples, following Playwright's actionability rules.
+
+    https://playwright.dev/docs/actionability — no input, scrolling or Core calls.
+    The temporary capture observer stores only event/target facts, never content.
+    """
+    return "const selector=" + json.dumps(selector) + ";" + r"""
+return new Promise(resolve=>{
+ let settled=false,firstFrame,secondFrame;
+ const finish=facts=>{
+  if(settled)return;settled=true;clearTimeout(timer);
+  if(typeof cancelAnimationFrame==='function'){cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);}
+  resolve(facts);
+ };
+ // A background/closing WebView must not leave an unresolved frame promise.
+ // This read-only sample uses one existing 150 ms observation interval.
+ const timer=setTimeout(()=>finish({hit:false,disabled:null,stable:false,armed:false,
+  reason:'Animation frame observation timed out'}),150);
+ const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+   const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+ const sample=()=>{
+  const matches=document.evaluate(selector,document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+  const nodes=Array.from({length:matches.snapshotLength},(_,i)=>matches.snapshotItem(i)).filter(visible);
+  if(nodes.length!==1)return {hit:false,disabled:null,count:nodes.length};
+  const node=nodes[0],disabled=node.matches(':disabled')||!!node.closest('[aria-disabled="true" i]');
+  if(disabled)return {hit:false,disabled:true,count:1};
+  const r=node.getBoundingClientRect(),point={x:Math.floor((r.left+r.right)/2),y:Math.floor((r.top+r.bottom)/2)};
+  const ancestors=[];
+  for(let a=node.parentElement;a;a=a.parentElement)ancestors.push({node:a,x:a.scrollLeft,y:a.scrollTop});
+  const target=document.elementFromPoint(point.x,point.y);
+  return {node,ancestors,rect:[r.left,r.top,r.right,r.bottom],point,count:1,disabled:false,
+   hit:r.width>0&&r.height>0&&point.x>=0&&point.y>=0&&point.x<innerWidth&&point.y<innerHeight&&!!target&&node.contains(target)};
+ };
+ firstFrame=requestAnimationFrame(()=>{if(settled)return;const first=sample();secondFrame=requestAnimationFrame(()=>{
+  if(settled)return;
+  const last=sample();
+  const stable=!!first.node&&first.node===last.node&&JSON.stringify(first.rect)===JSON.stringify(last.rect)&&
+   first.ancestors.length===last.ancestors.length&&first.ancestors.every((a,i)=>
+    a.node===last.ancestors[i].node&&a.x===last.ancestors[i].x&&a.y===last.ancestors[i].y);
+  const facts={hit:!!last.hit&&!!first.hit,disabled:last.disabled,count:last.count,stable,
+   point:last.point,rect:last.rect,ancestor_scroll:last.ancestors?.map(a=>({x:a.x,y:a.y}))};
+  if(!facts.hit||!stable||facts.disabled!==false||window.__aaosTargetPointerProbe){finish(facts);return;}
+  const node=last.node,events=[];let overflow=0;
+  const capture=e=>{
+   if(events.length===9){overflow++;return;}
+   events.push({type:e.type,trusted:e.isTrusted,target:node===e.target||node.contains(e.target),
+    button:e.button,x:e.clientX,y:e.clientY,at_ms:performance.now(),tag:e.target?.tagName});
+  };
+  const kinds=['pointerdown','pointerup','click'];
+  kinds.forEach(kind=>document.addEventListener(kind,capture,true));
+  const observer={finish:()=>{
+   kinds.forEach(kind=>document.removeEventListener(kind,capture,true));
+   if(window.__aaosTargetPointerProbe===observer)delete window.__aaosTargetPointerProbe;
+   return {events,overflow};
+  }};
+  window.__aaosTargetPointerProbe=observer;
+  finish({...facts,armed:true});
+ });});
+});
+"""
+
+
+def assert_pointer_delivery(proof):
+    assert isinstance(proof, dict) and proof.get("overflow") == 0, "Trusted pointer delivery evidence unavailable; action is not replayed"
+    events = proof.get("events", [])
+    assert len(events) == 3 and [event.get("type") for event in events] == ["pointerdown", "pointerup", "click"], "Trusted pointer sequence incomplete; action is not replayed"
+    assert all(event.get("trusted") is True and event.get("target") is True and event.get("button") == 0 for event in events), "Trusted pointer target delivery unproven; action is not replayed"
+
+
 class GroupedUI:
     """DOM evaluation is observation only; all interaction uses WebDriver commands."""
 
@@ -615,29 +685,33 @@ return {ready:false,disabled:false,reason:'No reachable scroll container',target
 
     def click_revealed_selector(self, selector):
         for _ in range(3):
-            observed = self.reveal_selector(selector)
-            point = observed["point"]
-            # A late async repaint can move the control after the first hit test.
-            # Re-check the exact point against the same target immediately before
-            # dispatching pointer input; never click a stale coordinate.
-            still_there = self.js(
-                "const n=document.evaluate(" + json.dumps(selector) + ",document,null,"
-                "XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;"
-                "if(!n)return {hit:false,disabled:null};"
-                "const disabled=n.matches(':disabled')||!!n.closest('[aria-disabled=\"true\" i]');"
-                "if(disabled)return {hit:false,disabled:true};"
-                "const hit=document.elementFromPoint(" + str(int(point["x"])) + "," + str(int(point["y"])) + ");"
-                "return {hit:!!hit&&n.contains(hit),disabled:false};"
-            )
+            self.reveal_selector(selector)
+            # Keep the original three pre-input attempts. Each attempt samples the
+            # same unique node/box/ancestor scroll on consecutive animation frames,
+            # then recalculates the point and arms a passive delivery observer.
+            sampled_at = time.monotonic()
+            still_there = self.js(pointer_actionability_script(selector))
             self.evidence.append({"action": "target_pointer_readiness", "selector": selector, "observation": still_there})
-            if still_there.get("hit") and still_there.get("disabled") is not True:
-                assert still_there.get("disabled") is False, "Target enabled state is unverified"
-                # Element-click may scroll the nested layout again. Pointer input uses
-                # the already visible, unobscured target without changing that scroll.
-                self.command(None, "pointer_click", point)
+            if still_there.get("hit") and still_there.get("stable") and still_there.get("armed") and still_there.get("count") == 1 and still_there.get("disabled") is False:
+                point = still_there["point"]
+                delivered = {"action": "trusted_pointer_delivery", "selector": selector, "command_completed": False}
+                try:
+                    # Once input is dispatched, its outcome may be unknown. Never
+                    # retry a potentially delivered mutation, even without events.
+                    self.command(None, "pointer_click", point)
+                    delivered["command_completed"] = True
+                finally:
+                    try:
+                        delivered["proof"] = self.js("return window.__aaosTargetPointerProbe?.finish()??null;")
+                    except Exception as error:
+                        delivered["observation_error"] = type(error).__name__
+                    self.evidence.append(delivered)
+                assert_pointer_delivery(delivered.get("proof"))
                 self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, "disabled":False, **point})
                 return
-            time.sleep(0.15)
+            remaining = 0.15 - (time.monotonic() - sampled_at)
+            if remaining > 0:
+                time.sleep(remaining)
         raise TimeoutError("Target moved or remained disabled before the trusted pointer click")
 
     def click_revealed(self, label, scope=""):
@@ -1237,8 +1311,8 @@ def run_grouped_loop(
     wait(
         "return location.hash==='#page=03' && !!document.querySelector('[aria-label=\"同源知识整理\"]')"
     )
-    ui.click("建立版本化草稿")
-    wait("return !!document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+    ui.click("创建可编辑草稿")
+    wait("return !!document.querySelector('[aria-label=\"文档草稿编辑器\"] .tiptap')")
     documents = read("documents_list")["documents"]
     document = one(
         documents,
@@ -1250,7 +1324,7 @@ def run_grouped_loop(
     )
     document = read("document_get", {"document_id": document["document_id"]})
     ui.keys(
-        '[aria-label="版本化草稿编辑器"] .tiptap',
+        '[aria-label="文档草稿编辑器"] .tiptap',
         "\ue009\ue010\ue000Grouped document revision. ",
         "css selector",
     )
@@ -2484,7 +2558,7 @@ const pages=[...document.querySelectorAll('[data-current-page-id]')];
 const readers=[...document.querySelectorAll('[aria-label="阅读与编辑文档视图"]')].filter(visible);
 const reader=readers.length===1?readers[0]:null;
 const titles=reader?[...reader.querySelectorAll('.stitch-reader-heading h2')].filter(visible):[];
-const bodies=reader?[...reader.querySelectorAll('[aria-label="版本化草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
+const bodies=reader?[...reader.querySelectorAll('[aria-label="文档草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
 const metas=reader?[...reader.querySelectorAll('.stitch-document-version')].filter(visible):[];
 const meta=metas.length===1?metas[0]:null;
 const consoleNode=document.querySelector('.console-window');

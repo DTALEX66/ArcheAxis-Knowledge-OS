@@ -49,6 +49,7 @@ describe("SIMULATED finite human machine evaluation UI",()=>{
    expect(screen.getByLabelText("机器任务 ID")).not.toBeVisible();expect(bridge.call).not.toHaveBeenCalled();
    await user.click(screen.getByRole("button",{name:"选择刚才的回答"}));expect(bridge.call).not.toHaveBeenCalled();
    await user.click(screen.getByRole("button",{name:"读取所选回答"}));await screen.findByText("实际持久化原答案");
+    expect(screen.getByRole("status")).toHaveTextContent("已读取保存的原回答；没有调用模型。");
    expect(bridge.call).toHaveBeenCalledWith("machine_answer_snapshot",{task_id:"task1"});
    expect(within(screen.getByLabelText("固定原答案")).queryByText(answerHash,{exact:false})).not.toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"状态与诊断：机器答案快照"}));
@@ -64,7 +65,10 @@ describe("SIMULATED finite human machine evaluation UI",()=>{
  it("retries the exact frozen evaluation request after lost ACK and verifies original snapshot hashes",async()=>{
   const {persisted}=await defaultBridge();const implementation=bridge.call.getMockImplementation()!;let first=true;
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{const value=await implementation(op,payload);if(op==="machine_evaluation_create"&&first){first=false;throw new Error("response lost after Core saved");}return value;});
-  render(<MachineEvaluationPanel/>);const user=await setupEvaluation();await user.click(screen.getByRole("button",{name:"登记人工评测"}));await screen.findByText(/写入未确认/);
+   render(<MachineEvaluationPanel/>);const user=await setupEvaluation();await user.click(screen.getByRole("button",{name:"登记人工评测"}));await screen.findByText(/写入未确认/);
+   expect(screen.getByRole("status")).toHaveTextContent("本次提交记录与全部表单保留");
+   expect(screen.getByRole("status")).toHaveTextContent("重试同一次保存");
+   expect(screen.getByRole("status")).not.toHaveTextContent(/冻结|同 ID/);
   expect(screen.getByLabelText("整体评测依据")).toHaveValue("已对照原答案及固定准则");await user.click(screen.getByRole("button",{name:"重试同一次评测"}));await screen.findByText(/已登记并核对固定版本/);
   const attempts=bridge.call.mock.calls.filter(([op])=>op==="machine_evaluation_create");expect(attempts).toHaveLength(2);expect(attempts[0][1]).toEqual(attempts[1][1]);expect(persisted.size).toBe(1);
  });

@@ -48,7 +48,7 @@ describe("finite knowledge and learning commands",()=>{
   });
   render(<CanonicalKnowledgeSpace/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"搜索"}));
   await user.click(await screen.findByRole("button",{name:"原创内容 · 版本 1"}));
-  await screen.findByLabelText("版本化草稿编辑器");await user.click(screen.getByRole("button",{name:"保存草稿"}));
+  await screen.findByLabelText("文档草稿编辑器");await user.click(screen.getByRole("button",{name:"保存草稿"}));
   await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.anything()));
   expect(screen.queryByRole("button",{name:"接受当前候选"})).not.toBeInTheDocument();
  });

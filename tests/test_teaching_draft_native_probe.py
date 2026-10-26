@@ -73,7 +73,16 @@ class TeachingDraftProbeTests(unittest.TestCase):
     def test_input_and_keys_scope_pin_current_dock_page(self):
         grouped = load('aaos01_grouped_owner_loop')
         calls = []
-        ui = grouped.GroupedUI(lambda script: {'ready': True, 'disabled': False, 'hit': True, 'point': {'x': 1, 'y': 1}},
+        def observe(script):
+            # Synthetic facts keep this test focused on the current Dock scope.
+            if '__aaosTargetPointerProbe?.finish()' in script:
+                return {'overflow': 0, 'events': [
+                    {'type': kind, 'trusted': True, 'target': True, 'button': 0}
+                    for kind in ('pointerdown', 'pointerup', 'click')
+                ]}
+            return {'ready': True, 'disabled': False, 'hit': True, 'stable': True,
+                    'armed': True, 'count': 1, 'point': {'x': 1, 'y': 1}}
+        ui = grouped.GroupedUI(observe,
                                lambda script: True,
                                lambda using, selector: calls.append(selector) or 'visible-current-page',
                                lambda *args: None, [])

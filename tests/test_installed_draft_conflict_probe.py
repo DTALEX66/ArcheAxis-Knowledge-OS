@@ -241,7 +241,7 @@ def test_reader_hydration_observation_uses_current_visible_page_and_reader():
     marker = re.search(r'<div\b[^>]*\bdata-current-page-id=\{uiPageId \?\? ""\}[^>]*>', app)
     assert marker, 'Current App page identity contract changed; update this DOM fixture explicitly'
     opening = marker.group(0).replace('className=', 'class=')
-    editor = '<section aria-label="版本化草稿编辑器"><div role="textbox" aria-label="文档草稿">B exact\n draft </div></section>'
+    editor = '<section aria-label="文档草稿编辑器"><div role="textbox" aria-label="文档草稿">B exact\n draft </div></section>'
     reader = '<section aria-label="阅读与编辑文档视图"><header class="stitch-reader-heading"><h2>Document B</h2></header>' + editor + '</section>'
     for page, body, count in [('03', reader, 1), ('02', reader, 1), ('03', '', 0), ('03', '<aside hidden>' + reader + '</aside>', 0), ('03', reader + reader, 2)]:
         markup = opening.replace('{uiPageId ?? ""}', json.dumps(page)) + '</div>' + body

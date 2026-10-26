@@ -15,13 +15,13 @@ def create_document(ui, read, wait, grouped):
     assert config["revision"] == 0 and config["profiles"] == {} and config["bindings"] == [], "Requires fresh owned model configuration"
     ui.page("02")
     ui.click_revealed("新建笔记")
-    wait("""return location.hash==="#page=03" && !!document.querySelector('[aria-label="版本化草稿编辑器"] .tiptap')""")
+    wait("""return location.hash==="#page=03" && !!document.querySelector('[aria-label="文档草稿编辑器"] .tiptap')""")
     rows = grouped.poll(read, "documents_list", {}, lambda value: len(value["documents"]) == 1)["documents"]
     document = read("document_get", {"document_id": rows[0]["document_id"]})
     assert document["source_id"] is None and document["source_revision"] is None
     text = "Independent synthetic material " + uuid.uuid4().hex + ". ArcheAxis keeps a versioned local note for reading and review."
-    selector = '[aria-label="版本化草稿编辑器"] .tiptap'
-    ui.reveal_selector("//*[@aria-label='版本化草稿编辑器']//*[contains(concat(' ',normalize-space(@class),' '),' tiptap ')]")
+    selector = '[aria-label="文档草稿编辑器"] .tiptap'
+    ui.reveal_selector("//*[@aria-label='文档草稿编辑器']//*[contains(concat(' ',normalize-space(@class),' '),' tiptap ')]")
     ui.keys(selector, "\ue009a\ue000" + text, "css selector")
     ui.click_revealed("保存草稿")
     saved = grouped.poll(read, "document_get", {"document_id": document["document_id"]}, lambda value: value["version"] > document["version"])

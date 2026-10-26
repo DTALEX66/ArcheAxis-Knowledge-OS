@@ -271,7 +271,7 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
     // Editor identity and callbacks are stable refs; updates debounce committed input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [changes]);
-  return <section className="document-editor" aria-label="版本化草稿编辑器" data-context-surface="document-editor">
+  return <section className="document-editor" aria-label="文档草稿编辑器" data-context-surface="document-editor">
     <nav aria-label="草稿工具栏">
       <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()}>加粗</button>
       <button type="button" data-context-command="undo" onClick={() => editor?.chain().focus().undo().run()}>撤销</button>

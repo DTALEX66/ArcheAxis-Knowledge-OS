@@ -2543,26 +2543,26 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "V6_NATIVE_GROUPED_AND_RENDER_PASSED_UI18_PARTIAL_DOCK_LABEL_SUCCESSOR_PENDING",
+      "state": "V7_NATIVE_RENDER_GROUPED_AND_INSTRUMENTED_UI18_PASSED_CI_INSTALL_FAILED_TERMINOLOGY_ACTIONABILITY_SUCCESSOR_PENDING",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-27-菜单材质根因与普通操作后继",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
-      "build_receipt": ".project-local/runs/be268a2d33/e49cc3f50139/artifacts/frontend-build.json",
+      "build_receipt": ".project-local/runs/be268a2d33/dda208aa098a/artifacts/frontend-build.json",
       "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
-      "host_sha256": "b05213dd96f306d7c71f66f5e7b6e3ee2b47af2cddd9f7a12e61333519b49485",
+      "host_sha256": "da5c1b8ecde6fe493886024496f6d82d8e31eab1fd001bfb1d57aaed097defff",
       "whole_scope": "PARTIAL; v6 ngroup5 engineering and ovp10 render passed; answer quality and Owner acceptance unmeasured. UI18 v7 only16/18 UI conversions completed; MP4 Core succeeded but UI UNKNOWN, Canvas/reparse/later citations not executed. Original failures and exact-owned normal cleanup retained; no Green replacement.",
       "monitor": "PAUSED_UNCHANGED",
-      "local_product_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
+      "local_product_commit": "983da7d03b9fc7e3f1a9266f3db2df5a9e084cea",
       "delivery": "Published source2fdf180c to trae/20261024 and PR203; matching v6 grouped/native render passed. Full exact-source CI40386975846 has original Python6094P2F108skip438subtests; successor local fixes require a new qualification.",
       "preview_launcher": ".project-local/AAOS-UI-Preview-20261026.cmd",
-      "build_source_commit": "2fdf180cb01fe446c1af02152522b9edd062dcb8",
+      "build_source_commit": "983da7d03b9fc7e3f1a9266f3db2df5a9e084cea",
       "core_sha256": "8d7ab1e7bde9ceec2cee19587b0d6a6232dc69934bf8cc3a7882e52b5d483c26",
-      "backend_manifest_sha256": "5ad172f897f2c76d783c2f9eae294bdc6880f40cd55307f3438a28847d75020d",
+      "backend_manifest_sha256": "dc18edf312b3a2402bd77eec30c35c3e493625735aadf12398e8805727b75a4b",
       "local_probe_commit": "8cc31e4916bc2e0e1f8303f93399cdc4cbde9bd8",
-      "native_overview": ".project-local/runs/be268a2d33/ovp10/artifacts/native-overview/receipt.json",
-      "grouped_native_loop": ".project-local/runs/be268a2d33/webdriver-75039e388d5d/tmp/journey/receipt.json",
+      "native_overview": ".project-local/runs/be268a2d33/ovp11/artifacts/native-overview/receipt.json",
+      "grouped_native_loop": ".project-local/runs/be268a2d33/webdriver-0e332f6dcb8b/tmp/journey/receipt.json",
       "installed_lifecycle": ".project-local/runs/be268a2d33/closure-20261026-installed-lifecycle-b12/output/47da79a1843548faa0f32018ecfb40e8/lifecycle-receipt.json",
       "component_evidence": ".project-local/runs/be268a2d33/closure-b12-component-evidence-rebind-20261026-b2/artifacts/backend-component-evidence-rebind-b12.json",
-      "preview_host_sha256": "b05213dd96f306d7c71f66f5e7b6e3ee2b47af2cddd9f7a12e61333519b49485",
+      "preview_host_sha256": "da5c1b8ecde6fe493886024496f6d82d8e31eab1fd001bfb1d57aaed097defff",
       "preview_launch_receipt": ".project-local/AAOS-UI-Preview-20261026-launch.json",
       "preview_launch": "HISTORICAL_B12_VISIBLE_OBSERVATION_NOT_CURRENT_AFTER_COMPUTER_CRASH",
       "installed_conflict": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/installed-conflict-journey.json",
@@ -2668,15 +2668,73 @@
           "dock_and_review_labels": "dlabel1:Dock28/AppDock11/Evaluation9 =48 passed, source_consistent=true; exact identity/title updates, preserved draft owner, explicit full-ID details and rubric selection covered"
         },
         "qualified_previous_candidate": {
-          "source_commit": "2fdf180cb01fe446c1af02152522b9edd062dcb8",
-          "build_receipt": ".project-local/runs/be268a2d33/e49cc3f50139/artifacts/frontend-build.json",
-          "portable": ".project-local/runs/be268a2d33/dot-20261027-portable-v6/artifacts/星环便携候选",
-          "grouped_engineering": ".project-local/runs/be268a2d33/webdriver-75039e388d5d/tmp/journey/receipt.json",
-          "native_render": ".project-local/runs/be268a2d33/ovp10/artifacts/native-overview/receipt.json",
-          "native_visual_review": ".project-local/runs/be268a2d33/ovvr11/artifacts/visual-review.json",
+          "source_commit": "983da7d03b9fc7e3f1a9266f3db2df5a9e084cea",
+          "build_receipt": ".project-local/runs/be268a2d33/dda208aa098a/artifacts/frontend-build.json",
+          "portable": ".project-local/runs/be268a2d33/dot-20261027-portable-v7a/artifacts/星环便携候选",
+          "grouped_engineering": ".project-local/runs/be268a2d33/webdriver-0e332f6dcb8b/tmp/journey/receipt.json",
+          "native_render": ".project-local/runs/be268a2d33/ovp11/artifacts/native-overview/receipt.json",
+          "native_visual_review": ".project-local/runs/be268a2d33/ovvr12/artifacts/visual-review.json",
           "ui18_original": ".project-local/runs/be268a2d33/webdriver-20803591ca09/tmp/journey/receipt.json",
-          "ui18_state": "FAIL_PARTIAL16_OF18_UI_CONVERSIONS; MP4 Core succeeded/UI UNKNOWN, Canvas/reparse/later citations not executed; normal owned close/ports released; accuracy not evaluated",
-          "full_ci": "40386975846 original OS Python6094P2F108skip438subtests; two old enabled-state fixtures need synchronization; other job results and aggregate conclusion read live"
+          "ui18_instrumented_successor": ".project-local/runs/be268a2d33/webdriver-7185f690ef17/tmp/journey/receipt.json",
+          "ui18_state": "Original 2fdf16/18 FAIL retained; separate983d18 first+18 reparse/citations/restart PASS with transparent observer; old UNKNOWN not reproduced, cause unconfirmed; accuracy not evaluated",
+          "full_ci": "40392563851 FAILED: installer first review-save confirmation timed out, dependent aggregate failed, other jobs passed; actual event target unproven; original log and artifact retained"
+        },
+        "terminology_actionability_followup_20261027": {
+          "state": "IMPLEMENTED_LOCAL; final source commit/build/native/CI pending independently",
+          "focus": [
+            "plain batch-processing state and recovery copy",
+            "user-actionable capability next steps",
+            "editable draft actions and accessible editor name",
+            "manual assessment status copy",
+            "export list status copy",
+            "stable unique enabled pointer target and trusted event delivery evidence"
+          ],
+          "protocol_boundaries": "Display copy only; preserve request IDs, enumerated states, explicit criteria/version selection, unknown-write protection, original save/readback assertions. Pointer input is not automatically replayed once dispatched.",
+          "old_ci_evidence": ".project-local/runs/be268a2d33/ci983art1/artifacts/artifact-readback.json",
+          "root_cause": "UNCONFIRMED; changed final screenshot does not prove the pointer event target at dispatch",
+          "whole_scope": "PARTIAL; no Owner visual acceptance or model-quality verdict; no Green replacement, merge or release",
+          "local_checks": {
+            "frontend": {
+              "run": "uifinal9",
+              "suites": 213,
+              "passed": 2304,
+              "source_consistent": true
+            },
+            "types": {
+              "run": "uityfinal7",
+              "status": "LOCAL_PASS",
+              "source_consistent": true
+            },
+            "preflight": {
+              "run": "uiprefinal11",
+              "checks": 19,
+              "status": "LOCAL_PASS",
+              "source_consistent": true,
+              "conventions_source": "index"
+            },
+            "python_original": {
+              "run": "uipyp10",
+              "passed": 396,
+              "failed": 2,
+              "subtests_passed": 242,
+              "source_consistent": true,
+              "cause": "Two synthetic fixtures omit stable/armed/unique/event observations"
+            },
+            "python_targeted_successor": {
+              "run": "uipyp11",
+              "passed": 21,
+              "subtests_passed": 23,
+              "source_consistent": true,
+              "scope": "Only two affected files; not a replacement whole-suite verdict"
+            },
+            "actionability_regression": {
+              "run": "gpa3",
+              "passed": 20,
+              "subtests_passed": 31,
+              "source_consistent": true
+            },
+            "boundary": "Source edits after the frontend/type run synchronize only Python synthetic fixtures and these evidence records; original failures retained. New build and native/CI are independent."
+          }
         }
       }
     }

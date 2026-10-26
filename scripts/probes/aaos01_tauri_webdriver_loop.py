@@ -2273,9 +2273,9 @@ def main():
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='新建原创笔记')")
         before_ids = {item["document_id"] for item in bridge("documents_list")["documents"]}
         ui_click("新建原创笔记")
-        wait("return !!document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+        wait("return !!document.querySelector('[aria-label=\"文档草稿编辑器\"] .tiptap')")
         ordinary_text = "原创未核验内容 Golden ordinary note 731"
-        ui_type('[aria-label="版本化草稿编辑器"] .tiptap', ordinary_text)
+        ui_type('[aria-label="文档草稿编辑器"] .tiptap', ordinary_text)
         ui_click("保存草稿")
         deadline = time.monotonic() + 30
         ordinary = None
@@ -2301,15 +2301,15 @@ def main():
         navigate_compatibility_space(js, wait, "library")
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='原创笔记 · 文档')")
         ui_click("原创笔记 · 文档")
-        wait("return document.querySelector('[aria-label=\"版本化草稿编辑器\"]')?.textContent.includes('保存草稿')")
-        assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+        wait("return document.querySelector('[aria-label=\"文档草稿编辑器\"]')?.textContent.includes('保存草稿')")
+        assert js("return document.querySelector('[aria-label=\"文档草稿编辑器\"] .tiptap').textContent") == ordinary_text
         persisted = bridge("document_get", {"document_id": ordinary["document_id"]})
         assert persisted == ordinary
         # Actual WebDriver trusted keyboard input; no synthetic dispatchEvent.
-        editor_selector = '[aria-label="版本化草稿编辑器"] .tiptap'
+        editor_selector = '[aria-label="文档草稿编辑器"] .tiptap'
         editor = ui_element("css selector", editor_selector)
         request("POST", f"/session/{session}/element/{editor}/click", {})
-        wait("return document.activeElement?.matches('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+        wait("return document.activeElement?.matches('[aria-label=\"文档草稿编辑器\"] .tiptap')")
         assert js("return document.querySelector('#activity-dock button[aria-keyshortcuts=\"Control+Alt+J\"]').getAttribute('aria-expanded')") == "false"
         js("""window.__shortcutProof={calls:[],events:[]};
           window.__shortcutOriginalInvoke=window.__TAURI_INTERNALS__.invoke;
@@ -2326,8 +2326,8 @@ def main():
                     {"type": "keyDown", "value": "j"}, {"type": "keyUp", "value": "j"},
                     {"type": "keyUp", "value": "\ue00a"}, {"type": "keyUp", "value": "\ue009"}]}]})
                 wait(f"return document.querySelector('#activity-dock button[aria-keyshortcuts=\"Control+Alt+J\"]').getAttribute('aria-expanded')==={json.dumps(expected)}")
-                assert js("return document.activeElement?.matches('[aria-label=\"版本化草稿编辑器\"] .tiptap')") is True
-                assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+                assert js("return document.activeElement?.matches('[aria-label=\"文档草稿编辑器\"] .tiptap')") is True
+                assert js("return document.querySelector('[aria-label=\"文档草稿编辑器\"] .tiptap').textContent") == ordinary_text
             shortcut = js("return window.__shortcutProof")
             assert len(shortcut["events"]) == 2 and all(event == {"trusted": True, "ctrl": True, "alt": True} for event in shortcut["events"])
             allowed_reads = {"sources_list", "source_jobs", "documents_list", "document_get", "system_version"}
@@ -2347,7 +2347,7 @@ def main():
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent.startsWith('原创笔记 · 版本 '))")
         ui_click(f"原创笔记 · 版本 {ordinary['version']}")
         wait("return !!document.querySelector('[aria-label=\"内容核验\"]')")
-        assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+        assert js("return document.querySelector('[aria-label=\"文档草稿编辑器\"] .tiptap').textContent") == ordinary_text
         assert not js("return [...document.querySelectorAll('button')].some(b=>b.textContent==='接受当前候选')")
         receipt["steps"].append("UI search finds ordinary unverified document and opens existing editor without knowledge acceptance")
         for label, cloud_button, manual_summary in (

@@ -14,7 +14,7 @@ import time
 
 ROUTE = "/api/v1/workspace/ui-state"
 READS = frozenset({"ui_state_read", "document_get", "document_version", "workspace_backups"})
-EDITOR = '[aria-label="版本化草稿编辑器"] [role="textbox"][aria-label="文档草稿"]'
+EDITOR = '[aria-label="文档草稿编辑器"] [role="textbox"][aria-label="文档草稿"]'
 READER_DRAFT_OBSERVATION = r"""
 const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
@@ -22,7 +22,7 @@ const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hi
 const pages=[...document.querySelectorAll('[data-current-page-id]')].filter(visible);
 const readers=[...document.querySelectorAll('section[aria-label="阅读与编辑文档视图"]')].filter(visible);
 const headings=readers.length===1?[...readers[0].querySelectorAll('.stitch-reader-heading h2')].filter(visible):[];
-const editors=readers.length===1?[...readers[0].querySelectorAll('[aria-label="版本化草稿编辑器"] [role="textbox"][aria-label="文档草稿"]')].filter(visible):[];
+const editors=readers.length===1?[...readers[0].querySelectorAll('[aria-label="文档草稿编辑器"] [role="textbox"][aria-label="文档草稿"]')].filter(visible):[];
 return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,reader_count:readers.length,
  heading_count:headings.length,title:headings.length===1?headings[0].textContent:null,
  editor_count:editors.length,text:editors.length===1?editors[0].textContent:null};"""
