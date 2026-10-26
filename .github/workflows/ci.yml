@@ -691,6 +691,10 @@ jobs:
   browser-smoke:
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    container:
+      # Match uv.lock; use the official preinstalled browsers and system libraries.
+      image: mcr.microsoft.com/playwright/python:v1.61.0-noble@sha256:a9731514f24121d1dcd25d58d0a38146646d290a5998fd80d3e533e7b5e21c69
+      options: --ipc=host
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
     steps:
@@ -718,8 +722,28 @@ jobs:
           uv pip install --system --require-hashes -r locked-ci.txt
           uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
           uv pip install --system --require-hashes -r locked-browser.txt
-      - name: Install Chromium
-        run: python -m playwright install --with-deps chromium
+      - name: Prepare preinstalled Chromium in the project cache
+        run: |
+          python - <<'PY'
+          import os
+          import shutil
+          from importlib.metadata import version
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+
+          assert version("playwright") == "1.61.0", "Update the pinned image with uv.lock"
+          target = Path(os.environ["PLAYWRIGHT_BROWSERS_PATH"])
+          target.mkdir(parents=True, exist_ok=True)
+          for pattern in ("chromium-*", "chromium_headless_shell-*", "ffmpeg-*"):
+              matches = list(Path("/ms-playwright").glob(pattern))
+              assert len(matches) == 1 and matches[0].is_dir(), pattern
+              shutil.copytree(matches[0], target / matches[0].name, symlinks=False)
+          with sync_playwright() as playwright:
+              assert Path(playwright.chromium.executable_path).is_file()
+              browser = playwright.chromium.launch(headless=True)
+              browser.close()
+          print("Locked Chromium and system dependencies verified; no apt installation")
+          PY
       - name: Install locked legacy React/Tauri recovery tooling
         run: npm ci --prefix frontend --ignore-scripts
       - name: Run legacy React/Tauri recovery-browser regressions
