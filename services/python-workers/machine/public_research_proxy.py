@@ -2,7 +2,7 @@
 
 An explicit setting wins; Windows may reuse its enabled current-user literal proxy.
 No PAC execution, credentials, generic proxy environment, redirects, or TLS bypass.
-This module accepts only the three fixed public GET endpoints owned by this worker.
+This module accepts only the fixed public GET endpoints owned by this worker.
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ import time
 from urllib.parse import urlsplit
 
 TARGETS = {"en.wikipedia.org": "/w/api.php", "api.stackexchange.com": "/2.3/search/advanced",
-           "api.openalex.org": "/works"}
+           "api.openalex.org": "/works", "api.crossref.org": "/works"}
 CONNECT_LIMIT = 8192
 HEADER_LIMIT = 16384
 

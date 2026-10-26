@@ -19,7 +19,40 @@ it("passes only explicitly entered public terms and selected families to a suppl
  const search=vi.fn();render(<PublicResearchPanel snapshot={{status:"idle"}} onSearch={search} onKeepNote={()=>true}/>);
  expect(search).not.toHaveBeenCalled();query();fireEvent.click(screen.getByRole("checkbox",{name:"社区"}));
  fireEvent.click(screen.getByRole("button",{name:"检索公开资料"}));
- expect(search).toHaveBeenCalledWith("公开关键词",["encyclopedia","research"]);
+ expect(search).toHaveBeenCalledWith("公开关键词",["encyclopedia","research"],"academia");
+});
+
+it("changes only the bounded forum plan until an explicit search and protects old comparison choices",()=>{
+ const search=vi.fn();render(<PublicResearchPanel snapshot={read([hit("forum")])} onSearch={search} onKeepNote={()=>true}/>);query();
+ expect(screen.getByRole("combobox",{name:"社区论坛站点"})).toHaveValue("academia");
+ fireEvent.click(screen.getByRole("checkbox",{name:"对照结果 1"}));
+ fireEvent.change(screen.getByRole("combobox",{name:"社区论坛站点"}),{target:{value:"stats"}});
+ expect(search).not.toHaveBeenCalled();
+ expect(screen.getByRole("checkbox",{name:"对照结果 1"})).toBeDisabled();
+ expect(screen.getByRole("button",{name:"把对照记录加入未决草稿"})).toBeDisabled();
+ expect(screen.getByRole("heading",{name:"材料 forum",level:4})).toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"检索公开资料"}));
+ expect(search).toHaveBeenCalledWith("公开关键词",["encyclopedia","community","research"],"stats");
+});
+
+it("shows the failed provider and Crossref fallback separately without claiming an authoritative page or complete search",()=>{
+ const response=read([{...hit("doi","https://doi.org/10.1234/synthetic"),provider:"crossref",content:"metadata",excerpt:""}]);
+ if(response.status!=="read")throw Error("fixture");
+ response.channels=[{family:"encyclopedia",provider:"wikipedia",status:"complete"},{family:"community",provider:"stackexchange",status:"complete"},{family:"research",provider:"openalex",status:"limited"},{family:"research",provider:"crossref",status:"complete"}];
+ render(<PublicResearchPanel snapshot={response} onKeepNote={()=>true}/>);query();
+ const status=screen.getByRole("list",{name:"本次来源状态"});
+ expect(within(status).getByText("科研 / OpenAlex：限流，结果可能不完整")).toBeInTheDocument();
+ expect(within(status).getByText(/科研 \/ Crossref：本次检索完成/)).toHaveTextContent("回退来源，仅元数据");
+ expect(screen.getByText(/部分来源尚未完成/)).toBeInTheDocument();
+ expect(screen.getByRole("link",{name:"打开来源页面"})).toHaveAttribute("href","https://doi.org/10.1234/synthetic");
+ expect(screen.queryByRole("link",{name:/官方/})).not.toBeInTheDocument();
+ expect(screen.getByText("未取得正文或摘录")).toBeInTheDocument();
+});
+
+it("opens a returned stats discussion as a source page",()=>{
+ const response=read([{...hit("stats","https://stats.stackexchange.com/questions/123/example"),family:"community",provider:"stackexchange"}]);
+ render(<PublicResearchPanel snapshot={response} onKeepNote={()=>true}/>);query();
+ expect(screen.getByRole("link",{name:"打开来源页面"})).toHaveAttribute("href","https://stats.stackexchange.com/questions/123/example");
 });
 
 it("preserves every same-address record and writes comparisons only as unverified authored notes",()=>{
@@ -55,7 +88,7 @@ it("distinguishes reading the stored receipt from a new explicit network search 
  expect(readReceipt).toHaveBeenCalledOnce();expect(search).not.toHaveBeenCalled();
  expect(screen.getByText("材料 retained")).toBeInTheDocument();
  fireEvent.click(screen.getByRole("button",{name:"检索公开资料"}));
- expect(search).toHaveBeenCalledWith("公开关键词",["encyclopedia","community","research"]);
+ expect(search).toHaveBeenCalledWith("公开关键词",["encyclopedia","community","research"],"academia");
  expect(readReceipt).toHaveBeenCalledOnce();
 });
 

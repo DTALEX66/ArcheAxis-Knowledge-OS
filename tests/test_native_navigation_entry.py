@@ -258,10 +258,26 @@ def native_close_fixture():
     """SIMULATED Win32 observation; no actual HWND or native acceptance claim."""
     return {"hwnd": 101, "pid": 12, "created": 77, "class": "#32770", "visible": True,
         "owner": 100, "main_windows": [100], "title": "确认退出星环知识系统",
-        "text": ["还有未保存的草稿。\n\n选择“是”将放弃未保存的页面内容并退出。\n选择“否”返回并保留全部草稿。", "是(&Y)", "否(&N)"],
+        "text": ["还有未保存的草稿。\n\n选择“是”将放弃尚未保存的页面内容并退出。\n选择“否”返回保存或保留文字。", "是(&Y)", "否(&N)"],
         "default_button_id": 7, "buttons": {
             str(number): {"hwnd": 200 + number, "pid": 12, "class": "Button", "id": number, "is_child": True}
             for number in (6, 7)}}
+
+
+def test_synthetic_close_prompt_matches_product_and_never_accepts_unresponsive_fallback():
+    source = (ROOT / 'src-tauri/src/main.rs').read_text(encoding='utf-8')
+    branch = source.split('let message = if unresponsive {', 1)[1].split('};', 1)[0]
+    variants = re.findall(r'"(?:\\.|[^"\\])*"', branch)
+    assert len(variants) == 2
+    fallback, acknowledged = [json.loads(value) for value in variants]
+    observed = native_close_fixture()
+    assert observed['text'][0] == acknowledged
+    validate = harness_helper('validate_owned_close_confirmation')
+    validate({'pid': 12, 'created': 77}, observed)
+    for rejected in (fallback, '还有未保存的草稿。\n\n选择“是”将放弃未保存的页面内容并退出。\n选择“否”返回并保留全部草稿。'):
+        observed['text'][0] = rejected
+        with pytest.raises(AssertionError, match='Unknown native confirmation text'):
+            validate({'pid': 12, 'created': 77}, observed)
 
 
 def synthetic_close_controller():

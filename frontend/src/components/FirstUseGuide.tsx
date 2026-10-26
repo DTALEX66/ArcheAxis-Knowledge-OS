@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AaosDialog } from "../design-system/AaosPrimitives";
+import { beginFirstUseTour } from "../presentation/firstUseTour";
 import "./FirstUseGuide.css";
 
 const OPEN_EVENT = "archeaxis-open-first-use-guide";
@@ -53,6 +54,8 @@ export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onP
   const closeTarget = useRef<HTMLElement | null>(null);
   const routeButton = useRef<HTMLButtonElement>(null);
   const navigating = useRef(false);
+  const stopTour = useRef<(() => void) | undefined>();
+  useEffect(() => () => stopTour.current?.(), []);
   function save(next: Progress) {
     latest.current = next; setProgress(next);
     try { localStorage.setItem(FIRST_USE_GUIDE_STORAGE_KEY, JSON.stringify(next)); }
@@ -75,13 +78,14 @@ export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onP
   useEffect(() => {
     const show = () => {
       if (!enabled) return;
+      stopTour.current?.();
       closeTarget.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       save({ ...latest.current, shown: true }); setNotice(""); setOpen(true);
     };
     window.addEventListener(OPEN_EVENT, show);
     return () => window.removeEventListener(OPEN_EVENT, show);
   }, [enabled]);
-  useEffect(() => { if (!enabled) setOpen(false); }, [enabled]);
+  useEffect(() => { if (!enabled) { setOpen(false); stopTour.current?.(); } }, [enabled]);
   const step = FIRST_USE_STEPS[progress.current];
   const help = STEP_HELP[step.id];
   const completed = progress.completed.includes(step.id);
@@ -103,6 +107,11 @@ export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onP
     }}>
     <header className="first-use-guide-progress"><span>{progress.completed.length} / {FIRST_USE_STEPS.length} 步已手动记录</span><button type="button" onClick={() => setOpen(false)} aria-label="暂时跳过，暂停并关闭首次使用引导">暂时跳过</button></header>
     <p className="first-use-guide-resume">随时从顶部「使用引导」或设置中的「使用引导」继续。</p>
+    <button type="button" className="first-use-guide-start-tour" onClick={() => {
+      setOpen(false); navigating.current = true;
+      stopTour.current?.();
+      stopTour.current = beginFirstUseTour(onPage, message => { setNotice(message); setOpen(true); });
+    }}>带我操作：导入、阅读与保存</button>
     <div className="first-use-guide-layout">
       <nav aria-label="引导步骤"><ol>{FIRST_USE_STEPS.map((entry, index) => <li key={entry.id}><button type="button" aria-current={progress.current === index ? "step" : undefined} onClick={() => { save({ ...progress, current: index }); setNotice(""); }}><span aria-hidden="true">{progress.completed.includes(entry.id) ? "✓" : index + 1}</span><span>{entry.label}</span>{progress.completed.includes(entry.id) ? <span className="aaos-sr-only">已手动记录</span> : null}</button></li>)}</ol></nav>
       <section className="first-use-guide-step" aria-labelledby="first-use-guide-step-title">

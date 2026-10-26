@@ -54,7 +54,7 @@ export function SingleOriginalImport({ onImported, onOpenSource }: { onImported?
   return <section className="exchange-single-import" aria-label="导入一份原件" aria-busy={busy}>
     <h4>先导入一份文件</h4>
     <p>可先选一份 TXT、Markdown 或已有文档，单文件上限 64 MiB。原文件与之后提取的内容分别保留。</p>
-    <label>导入原件<input type="file" aria-label="导入原件" disabled={busy || !!pending} onChange={event => { void choose(event.target.files?.[0]); event.target.value = ""; }} /></label>
+    <label>导入原件<input type="file" data-guide="first-original" aria-label="导入原件" disabled={busy || !!pending} onChange={event => { void choose(event.target.files?.[0]); event.target.value = ""; }} /></label>
     {busy ? <p role="status">正在核对并保存这份原件，请稍候…</p> : null}
     {message ? <p role={pending ? "alert" : "status"}>{message}</p> : null}
     {pending && !busy ? <div><p>待核对：{pending.name}（{pending.bytes} 字节）。重试使用刚才同一份内容。</p><button onClick={() => void retry()}>重试这一次原件导入</button></div> : null}

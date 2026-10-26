@@ -43,7 +43,7 @@ def validate_owned_close_confirmation(identity, observed):
     assert observed["class"] == "#32770" and observed["visible"], "Native confirmation window missing"
     assert observed["owner"] in observed["main_windows"] and observed["owner"], "Native confirmation owner mismatch"
     assert observed["title"] == "确认退出星环知识系统", "Unknown native confirmation title"
-    expected = "还有未保存的草稿。\n\n选择“是”将放弃未保存的页面内容并退出。\n选择“否”返回并保留全部草稿。"
+    expected = "还有未保存的草稿。\n\n选择“是”将放弃尚未保存的页面内容并退出。\n选择“否”返回保存或保留文字。"
     assert expected in [text.replace("\r\n", "\n") for text in observed["text"]], "Unknown native confirmation text"
     assert observed["default_button_id"] == 7, "Native confirmation must default to NO"
     for number in (6, 7):

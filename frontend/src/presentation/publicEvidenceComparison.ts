@@ -24,10 +24,9 @@ export async function captureEvidenceComparisons(receipt:PublicResearchReceiptDt
     const key=JSON.stringify([choice.family,choice.id]);
     if(seen.has(key)||!Object.hasOwn(comparisonStances,choice.stance))throw Error("comparison selection identity");
     seen.add(key);
-    const channels=receipt.channels?.filter(c=>c.family===choice.family);
-    const hits=channels?.flatMap(c=>c.hits.filter(h=>h.id===choice.id));
-    if(channels?.length!==1||hits?.length!==1||!channels[0].raw_source)throw Error("comparison hit missing");
-    const hit=hits[0],raw=channels[0].raw_source;
+    const matches=receipt.channels?.flatMap(channel=>channel.family===choice.family?channel.hits.filter(hit=>hit.id===choice.id).map(hit=>({channel,hit})):[])??[];
+    if(matches.length!==1||!matches[0].channel.raw_source||matches[0].hit.family!==choice.family||matches[0].hit.provider!==matches[0].channel.provider)throw Error("comparison hit missing");
+    const {hit,channel}=matches[0],raw=channel.raw_source!;
     await guard();
     // The caller supplies fresh actor scope; it can differ from the historical receipt epoch.
     const selected=await coreCommand<PublicResearchSelectionDto>("public_research_materialize",{body:{...actor,request_id:receipt.request_id,family:hit.family,hit_id:hit.id}});

@@ -276,7 +276,7 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
       <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()}>加粗</button>
       <button type="button" data-context-command="undo" onClick={() => editor?.chain().focus().undo().run()}>撤销</button>
       <button type="button" data-context-command="redo" onClick={() => editor?.chain().focus().redo().run()}>重做</button>
-      <button type="button" data-context-command="save" disabled={journalPending.current||blocked.current==="conflict"} onClick={() => void save()}>保存草稿</button>
+      <button type="button" data-guide="document-save" data-context-command="save" disabled={journalPending.current||blocked.current==="conflict"} onClick={() => void save()}>保存草稿</button>
       {journalPending.current&&onRetryWorkingState?<button type="button" onClick={()=>void retryJournal()}>仅核对工作草稿保全</button>:null}
       {onCreateReference ? <button type="button" data-context-command="cite" onClick={() => void cite()}>引用当前页</button> : null}
     </nav>

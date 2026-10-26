@@ -1,4 +1,4 @@
-/* Camera framing only. Original state-image bytes and their provenance stay intact. */
+/* Shared camera framing for the transparent v3 sheet and preserved original fallback. */
 .xiaoqi-avatar {
   --xiaoqi-face-center: 50%;
   position: relative;
@@ -9,7 +9,7 @@
   overflow: hidden;
   vertical-align: middle;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 70%, rgb(255 255 255 / 8%), transparent 72%);
+  background: transparent;
   isolation: isolate;
 }
 .xiaoqi-avatar > img {
@@ -33,7 +33,7 @@
   height: 208px;
   max-height: none;
   border-radius: 12px;
-  background: radial-gradient(ellipse at 50% 75%, rgb(255 255 255 / 10%), transparent 72%);
+  background: transparent;
 }
 .xiaoqi-avatar[data-presentation="portrait"] > img { top: -6%; height: 205%; }
 .xiaoqi-avatar[data-presentation="figure"] > img { top: 0; height: 100%; }
@@ -45,6 +45,8 @@
   aspect-ratio: 2 / 3;
   transform: translateX(-50%);
   overflow: hidden;
+  /* The generated atlas extends sleeves/hem slightly across grid boundaries. */
+  clip-path: inset(3% 4% 0);
   pointer-events: none;
 }
 .xiaoqi-sheet-cell > img {

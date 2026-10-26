@@ -3530,6 +3530,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 3
+        },
+        "community_site": {
+          "enum": [
+            "academia",
+            "stats"
+          ]
         }
       }
     },
@@ -3632,7 +3638,8 @@
           "enum": [
             "wikipedia",
             "stackexchange",
-            "openalex"
+            "openalex",
+            "crossref"
           ]
         },
         "title": {
@@ -3744,7 +3751,8 @@
           "enum": [
             "wikipedia",
             "stackexchange",
-            "openalex"
+            "openalex",
+            "crossref"
           ]
         },
         "status": {
@@ -3888,7 +3896,7 @@
                 "$ref": "#/$defs/PublicResearchChannelDto"
               },
               "minItems": 1,
-              "maxItems": 3
+              "maxItems": 4
             },
             {
               "type": "null"
@@ -3912,6 +3920,12 @@
         },
         "knowledge_admission": {
           "const": "not_executed"
+        },
+        "community_site": {
+          "enum": [
+            "academia",
+            "stats"
+          ]
         }
       }
     },

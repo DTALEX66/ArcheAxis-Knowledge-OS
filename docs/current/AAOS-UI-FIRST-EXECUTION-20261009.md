@@ -2101,3 +2101,17 @@ Owner追加保留最新构建/缓存、清理旧重复产物，并要求任何�
 规范更新单元：产品身份V2.1、README、AGENTS/AUTHORITY导航、PROJECT_CONTRACT.content_policy及其严格schema、架构解释、Owner决定24/SUP-029、索引/活动指针已同步来源回查、多源检索比较与持续纠错。成熟复用研究reuse1和当前公开API实测prn1—3分别保留，均不当作新增集成完成。定向规范验证另列，产品/CI/Green仍沿各自回执。
 
 定向规范cp29为6/6通过、source_consistent=true，普通保存/保全/正式接纳/外发授权/Core写入规则与HEAD逐对象一致。清理ccr1汇总实际删除153831个精确重复文件、10623006822逻辑字节（9.893446 GiB），0删除失败，最新v2共19746成员及保留seals复核通过；17个旧candidate标记SPARSE_NOT_RUNNABLE并保留逐文件恢复映射。cde2实际child0，但并行治理写入使外层INVALIDATED，原回执未替换；ccr1汇总自身源码一致。缓存/数据库/证据/新构建保留，pytest缓存访问拒绝保持原状，56份dist只盘点未删。39d完整CI40343758412的Python/browser/Rust/desktop通过，installer在精确退出文案不匹配失败，整体仍FAIL；不是新定位规范的CI。
+
+#### 2026-10-26 成熟接口、操作引导与人物后继
+
+规范17文件已发布为9c93db2e，cp29六项及dqp31静态预检通过。公开检索后继复用现有Core/CAS/对比链，单类上限3条、论坛academia/stats可选；OpenAlex限流/5xx/明确离线时保留原失败，另记Crossref元数据通道，安全拒绝/坏响应不静默回退。prnlive1实际公开合成查询返回Wikipedia3、stats3、OpenAlex429及Crossref3，用时5.512秒；该开发run外层源码漂移INVALIDATED保留，不写成整条原生研究验收。正式研究接纳和外发边界未变。
+
+接入本地固定Driver.js1.10.2及MIT许可，已有十步引导保留，新增导入/阅读/保存三处实际控件提示；沿原导航草稿保护，提示不点击业务操作、不自动勾选完成，缺控件/恢复弹窗/卸载会暂停。人物studio-v3透明九态素材已实际生成接入，原九图与v2保留，仍是静态2D；裁切和浏览器观感按独立截图回执判断，不把几何断言代替目视。新原生构建与安装资格尚待。
+
+冻结定向ft31前端87项、ftx32补27项、cpy32 Python206项、crs32 Domain13项、ts32类型检查、cap32能力合同/投影138项均通过且对应run源码一致。开发期prf1 fixture两失败、prf2/avb3投影暂态、ngfix3及其他源码漂移回执全部保留。安装失败根因已由39d真实原生回执与main.rs核实为探针使用过时确认文案；仅修正合成旅程精确匹配，新增生产文案对照及拒绝未响应fallback/旧文案回归，保持同PID/creation/owner/default-NO/按钮身份和15秒退出预算。
+
+Owner追加77.1GB截图要求继续并行清理。盘点显示build约36.08GiB、runs约27.89GiB，依赖cache约0.457GiB保留；当前三lane分别筛旧编译符号、成功旧dist、项目owned临时副本。固定清理方案及实际数量以各run回执为准，不用预计值冒充已释放空间，不合并重复计数；最新构建/增量缓存、数据库、原始失败证据、归属不明或访问拒绝项保留。Green仍未替换，整体PARTIAL。
+
+截图后已实际完成两批：ddu2固定19旧dist共508文件/786420753B（0.732411GiB），所有56原build回执、其余37dist与最新35成员及保留Host核验无变；cle1固定198旧测试PDB共17443733504B（16.245743GiB），2712保护对象/10404639307B前后seals完全相同，0跳过/0剩余。两run均child0/LOCAL_PASS/source_consistent=true；增量、rlib/rmeta、当前Host/Core与public_research_runs全代保留。合计本截图后706文件/18230154257逻辑字节（16.978154GiB），与前次ccr1的9.893446GiB分开记账。额外空目录与旧profile纯cache清理按edp2/pfi2固定计划及其实际后继回执另列，不提前计量。
+
+真实浏览器tvc1已跑通Driver三步实际控件、Escape、重开和10步进度不变；无bridge读失败时按预期暂停，成功空API为合成隔离数据，不包含实际导入/保存或原生Host。avb6/7人物九态裁切及280/64/160/280px通过，原始横线/邻格碎片负截图保留；不冒充Owner审美确认。真实浏览器曾暴露Driver.highlight默认隐藏按钮，后继在popover显式启用next/close后复验通过。

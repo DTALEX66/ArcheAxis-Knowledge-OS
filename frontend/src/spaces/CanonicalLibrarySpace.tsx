@@ -709,7 +709,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const tagInformationIncomplete=documents.some(item=>item.metadata_status!=="COMPLETE"||!Array.isArray(item.tags));
   const tagControls=<TagNavigation documents={documents} value={selectedTag} onChange={setSelectedTag}/>;
   const documentList = <>
-    <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档" className="stitch-document-list">
+    <nav ref={documentNavigation} tabIndex={-1} data-guide="saved-documents" data-section="documents" aria-label="已保存文档" className="stitch-document-list">
       <ul className="stitch-document-cards">
         {filteredDocuments.map(item => <li key={item.document_id}>
           <article className="stitch-document-card" data-context-surface="document-card">
@@ -785,7 +785,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       </aside>
       </div>
     </> : <section className="stitch-reader-empty"><h2>{refreshingLists?"正在读取资料":listError?"资料列表暂时无法读取":"选择已保存文档"}</h2><p>{refreshingLists?"读取完成后，可从文档列表选择内容。":listError?"先用上方的刷新操作重新读取，再选择资料；当前不会把读取失败当作没有资料。":documents.length?"点击下方“打开阅读”，查看正文；原件和旧版从阅读辅助视图打开。":"还没有可选文档。先导入一份资料，或新建一篇自己的笔记。"}</p>
-      {!refreshingLists&&!listError&&documents.length===0 ? <div className="stitch-reader-empty-actions">{onOpenImport?<button type="button" className="stitch-library-primary" onClick={onOpenImport}>导入第一份资料</button>:null}<button type="button" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建原创笔记</button></div> : null}
+      {!refreshingLists&&!listError&&documents.length===0 ? <div className="stitch-reader-empty-actions">{onOpenImport?<button type="button" className="stitch-library-primary" onClick={onOpenImport}>导入第一份资料</button>:null}<button type="button" data-guide="new-note" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建原创笔记</button></div> : null}
       {documentList}</section>}
   </section>;
   return <Section title="资料库">

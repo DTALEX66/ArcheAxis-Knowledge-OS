@@ -34,6 +34,32 @@ it("pins complete CRLF/Unicode snapshot bytes and retains both sources as author
  expect(appendEvidenceComparisons(next.research,next.relations,bindings)).toEqual(next);
  expect(bridge.call.mock.calls.map(c=>c[0])).toEqual(["public_research_materialize","source_original","anchor_create","anchor_resolve"]);
 });
+
+it("binds a fallback hit to its exact Crossref raw response while retaining the failed OpenAlex source",async()=>{
+ const fallback=structuredClone(receipt),channel=fallback.channels![0];
+ const fallbackRaw={...raw,source_id:"raw_crossref",sha256:"c".repeat(64)};
+ const fallbackHit={...hit,id:"https://doi.org/10.1234/synthetic",url:"https://doi.org/10.1234/synthetic",provider:"crossref" as const};
+ fallback.state="partial";fallback.channels=[{...channel,status:"limited",error_code:"rate_limited",hits:[]},{...channel,provider:"crossref",request_url:"https://api.crossref.org/works?query.bibliographic=public&rows=3",hits:[fallbackHit],raw_source:fallbackRaw}];
+ selection={...selection,hit_id:fallbackHit.id,raw_reference:fallbackRaw};
+ const previous=bridge.call.getMockImplementation()!;
+ bridge.call.mockImplementation((op:string,p:any)=>{
+  if(op==="public_research_materialize"){expect(p.body).toEqual({...actor,request_id:fallback.request_id,family:"research",hit_id:fallbackHit.id});return Promise.resolve(selection);}
+  return previous(op,p);
+ });
+ const bindings=await captureEvidenceComparisons(fallback,[{...choice,id:fallbackHit.id}],actor,async()=>{});
+ expect(bindings[0].hit.provider).toBe("crossref");expect(bindings[0].selection.raw_reference).toEqual(fallbackRaw);
+ const next=appendEvidenceComparisons(empty(),undefined,bindings);
+ expect(next.research.materials.map(row=>row.reference)).toEqual([selection.reference,fallbackRaw]);
+ expect(fallback.channels[0]).toMatchObject({provider:"openalex",status:"limited",hits:[]});
+});
+
+it("rejects ambiguous or provider-forged hit ownership before materialization",async()=>{
+ const duplicated=structuredClone(receipt);duplicated.channels!.push(structuredClone(duplicated.channels![0]));
+ await expect(captureEvidenceComparisons(duplicated,[choice],actor,async()=>{})).rejects.toThrow("comparison hit missing");
+ const forged=structuredClone(receipt);forged.channels![0].provider="crossref";
+ await expect(captureEvidenceComparisons(forged,[choice],actor,async()=>{})).rejects.toThrow("comparison hit missing");
+ expect(bridge.call).not.toHaveBeenCalled();
+});
 it.each(["opposes","conflict","uncertain","unclassified"] as const)("preserves %s as an authored judgment without inventing factual consensus",async stance=>{
  const bindings=await captureEvidenceComparisons(receipt,[{...choice,stance}],actor,async()=>{});
  const next=appendEvidenceComparisons(empty(),undefined,bindings);
