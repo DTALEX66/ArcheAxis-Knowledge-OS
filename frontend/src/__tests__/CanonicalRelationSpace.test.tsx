@@ -20,7 +20,51 @@ beforeEach(() => { vi.stubGlobal("crypto", webcrypto); docs = new Map([['doc_a',
   throw new Error(op);
 }); });
 async function open(id = 'doc_a') { fireEvent.click(await screen.findByRole('button', { name: new RegExp('^' + id + ' ·') })); await screen.findByText(/关系投影已读取/); }
-function add(label = 'NEW') { fireEvent.change(screen.getByLabelText('关系说明'), { target: { value: label } }); fireEvent.change(screen.getByLabelText('目标对象ID'), { target: { value: 'doc_b' } }); fireEvent.change(screen.getByLabelText('固定目标版本'), { target: { value: '3' } }); fireEvent.click(screen.getByRole('button', { name: '加入关系草稿' })); }
+function add(label = 'NEW') { const manual = screen.getByText('手动指定对象', {selector:'summary'}); if (!manual.parentElement!.hasAttribute('open')) fireEvent.click(manual); fireEvent.change(screen.getByLabelText('关系说明'), { target: { value: label } }); fireEvent.change(screen.getByLabelText('目标对象ID'), { target: { value: 'doc_b' } }); fireEvent.change(screen.getByLabelText('固定目标版本'), { target: { value: '3' } }); fireEvent.click(screen.getByRole('button', { name: '加入关系草稿' })); }
+it('selects an actual saved document by title and preserves pinned version, block and supports protocol value', async () => {
+  const call = bridge.call.getMockImplementation()!;
+  docs.get('doc_b')!.title = '目标笔记';
+  docs.get('doc_b')!.blocks = [{block_id:'pinned_block',text_projection:'目标段落'}];
+  bridge.call.mockImplementation(async (op:string,p:J) => { const result=await call(op,p); return op==='documents_list'?{...result,documents:result.documents.map((d:J)=>d.document_id==='doc_b'?{...d,version:3}:d)}:result; });
+  render(<CanonicalRelationSpace/>); await open();
+  expect(screen.getByLabelText('目标对象ID')).not.toBeVisible();
+  expect([...screen.getByLabelText('目标类型').querySelectorAll('option')].map(option=>[option.value,option.textContent])).toEqual([['document','文档'],['source','来源原件'],['knowledge','知识']]);
+  fireEvent.click(screen.getByRole('button',{name:'选择关联对象'}));
+  fireEvent.click(screen.getByRole('button',{name:'读取文档对象'}));
+  await screen.findByRole('option',{name:'目标笔记 · 列表 v3'});
+  fireEvent.change(screen.getByLabelText('选择文档'),{target:{value:'doc_b'}});
+  await screen.findByLabelText('固定引用块');
+  fireEvent.change(screen.getByLabelText('固定引用块'),{target:{value:'pinned_block'}});
+  fireEvent.click(screen.getByRole('button',{name:'加入此固定引用'}));
+  expect(screen.getByLabelText('固定目标版本')).toHaveValue('5');
+  expect(screen.getByText('当前目标：目标笔记 · 文档，第 5 版；尚未加入关系草稿。')).toBeVisible();
+  const relationType=screen.getByRole('combobox',{name:'关系类型'});
+  fireEvent.change(relationType,{target:{value:'supports'}});
+  expect(within(relationType).getByRole('option',{name:'支持'})).toHaveValue('supports');
+  fireEvent.change(screen.getByLabelText('关系说明'),{target:{value:'所选资料支持此文档'}});
+  fireEvent.click(screen.getByRole('button',{name:'加入关系草稿'}));
+  expect(writes).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button',{name:'保存关系草稿'}));
+  await screen.findByText('关系已保存并读回核对。');
+  expect(writes[0].body.editor_json.attrs.archeaxis_relations.relations[0]).toMatchObject({kind:'supports',target:{kind:'document',document_id:'doc_b',version:5,block_id:'pinned_block'}});
+});
+it('reuses the original selector without asking the user to transcribe its identity or fingerprint', async () => {
+  const call=bridge.call.getMockImplementation()!, sha='c'.repeat(64);
+  bridge.call.mockImplementation(async(op:string,p:J)=>op==='sources_list'?{sources:[{source_id:'source_exact',source_revision:sha,sha256:sha,original_name:'原始图片.png',imported_at:'now'}]}:call(op,p));
+  render(<CanonicalRelationSpace/>); await open();
+  fireEvent.click(screen.getByRole('button',{name:'选择关联对象'}));
+  fireEvent.click(screen.getByRole('button',{name:'读取原件对象'}));
+  await screen.findByRole('option',{name:'原始图片.png · source_exact'});
+  fireEvent.change(screen.getByLabelText('选择来源原件'),{target:{value:'source_exact'}});
+  fireEvent.click(screen.getByRole('button',{name:'加入此固定引用'}));
+  expect(screen.getByLabelText('来源文件指纹')).toHaveValue(sha);
+  expect(screen.getByText('当前目标：source_exact · 来源原件；尚未加入关系草稿。')).toBeVisible();
+  expect(screen.getByLabelText('目标对象ID')).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button',{name:'加入关系草稿'}));
+  fireEvent.click(screen.getByRole('button',{name:'保存关系草稿'}));
+  await screen.findByText('关系已保存并读回核对。');
+  expect(writes[0].body.editor_json.attrs.archeaxis_relations.relations[0].target).toEqual({kind:'source',source_id:'source_exact',sha256:sha});
+});
 it('graph and fallback list retain exact pinned target despite current target version5', async () => { const jump = vi.fn(); render(<CanonicalRelationSpace onOpenDocument={jump}/>); await open(); fireEvent.click(screen.getByRole('button', { name: '图形不可用，切换列表' })); expect(screen.queryByLabelText('同版本关系图')).toBeNull(); fireEvent.click(screen.getByRole('button', { name: /打开固定对象 doc_b/ })); expect(jump).toHaveBeenCalledWith('doc_b', 3, 'old_block'); expect(bridge.call).toHaveBeenCalledWith('document_graph', { document_id: 'doc_a', version: 1 }); });
 it('filters the loaded graph and list together without changing pinned references or writing documents', async () => {
   const call = bridge.call.getMockImplementation()!, jump = vi.fn();

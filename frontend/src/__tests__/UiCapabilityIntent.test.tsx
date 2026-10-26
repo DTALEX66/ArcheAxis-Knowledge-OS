@@ -48,7 +48,15 @@ describe("preserved independent design intentions",()=>{
     const items=within(detail).getAllByRole("listitem");
     expect(items).toHaveLength(expected[id].length);
     for(const item of items){expect(item).toHaveTextContent("独立证据未核验");expect(item.textContent!.split(" · ")[0].trim()).not.toBe("");}
-    await userEvent.setup().click(within(detail).getByRole("button",{name:/设计来源与校验指纹/}));
+    const article=screen.getByRole("article",{name:"能力详情"});
+    expect(article.querySelectorAll("pre")).toHaveLength(0);
+    expect(article.querySelectorAll("details")).toHaveLength(1);
+    const implementationDetails=article.querySelector("details")!;
+    expect(implementationDetails.open).toBe(false);
+    const user=userEvent.setup();
+    await user.click(within(implementationDetails).getByText("实现与来源详情",{selector:"summary"}));
+    expect(implementationDetails.open).toBe(true);
+    await user.click(within(implementationDetails).getByRole("button",{name:/设计来源与校验指纹/}));
     expect(JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!)).toEqual({source:UI_CAPABILITY_SOURCE,items:expected[id]});
     expect(detail).not.toHaveTextContent(/独立证据 (PASS|REAL|VERIFIED|已实现|已完成)/);
   });

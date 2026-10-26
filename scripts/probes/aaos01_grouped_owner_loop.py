@@ -2594,6 +2594,7 @@ def capability_refusal_recovery(
     )
     ui.click_revealed("执行真实内容转换", "//section[@aria-label='真实转换产物']")
     wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    ui.click_revealed_selector("//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary")
     view = frozen_conversion_view(js)
     assert view["page"] == "#page=03" and "Core 已证明原请求未受理" in view["recovery"]
     match = re.fullmatch(
@@ -2627,12 +2628,13 @@ def capability_refusal_recovery(
     wait("return location.hash==='#page=03'")
     ui.open_reader_source_tools()
     ui.click_revealed_selector("//*[@data-recovery-request=" + xpath_literal(frozen["request_id"]) + "]//button[@data-recovery-action='restore']")
+    ui.click_revealed_selector("//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary")
     recovered_view = frozen_conversion_view(js)
     assert recovered_view["frozen"] == view["frozen"] and recovered_view["latest"] == view["latest"]
     assert read("job_execution_status", {"job_id": job_id}) == refused, "Restart silently executed frozen intent"
     assert read("source_jobs", {"source_id": pin["source_id"]}) == listing, "Restart created a replacement job"
     # Explicitly retry the original identity while still disabled to obtain a fresh admission proof.
-    ui.click_revealed("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    ui.click_revealed("重试上次处理", "//section[@aria-label='真实转换产物']")
     wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
     assert read("job_execution_status", {"job_id": job_id}) == refused
     result.update(
@@ -2667,7 +2669,7 @@ def capability_refusal_recovery(
         "Capability enable enqueued another job"
     )
     result["enable_without_execution"] = "PASS"
-    ui.click_revealed("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    ui.click_revealed("重试上次处理", "//section[@aria-label='真实转换产物']")
     succeeded = poll(
         read,
         "job_execution_status",

@@ -2644,21 +2644,24 @@
         ]
       },
       "menu_layout_polish_20261027": {
-        "state": "FAST_TAB_PRODUCT_FIX_TESTED_NEW_CANDIDATE_NATIVE_AND_EXACT_SHA_CI_PENDING",
+        "state": "NAVIGATION_AND_USER_WORKFLOW_REFINEMENT_TESTED_BUILD_NATIVE_AND_EXACT_SHA_CI_PENDING",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
         "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
         "old_verification_screenshots": "OWNER_PURGED: 1701 ignored +9 tracked files; 1334837921 logical bytes; ssbs1/ssa1 manifests. 35 exact old test directories remain unreadable WinError5; no all-repository zero claim. Needed new screenshots after fixed cutoff retained.",
         "date_adversarial_review": "exa1 original DST fold counterexample retained; exa2 four-timezone post-fix review passed. Saved exact epochs retained, ambiguous new local time rejected; aifm5 40passed and aifm6 34passed. Chinese offset separated in display; schema unchanged.",
         "whole_scope": "PARTIAL; browser/units/installed/exact-SHA CI/Owner acceptance remain separate",
+        "residual_polish": "Dock launcher no longer impersonates current settings/AI pages; only actual four page groups carry aria-current. Relation editing reuses existing object selector, preserves pinned references and explicit protocol option values; manual identifiers disclosed separately. Conversion/export copy and request details use user-facing workflow; capability engineering evidence is collapsed with full future catalog retained. Final unified checks and native candidate qualification pending; no claim all project terminology is eliminated.",
         "local_checks": {
-          "frontend": "uifinal2: 213 suites /2293 passed; source_consistent=true",
-          "types": "uitfinal2 PASS; source_consistent=true",
+          "frontend": "uifinal4: 213 suites /2297 passed; source_consistent=true; original uifinal3 2279passed/18failed retained",
+          "types": "uityfinal4 PASS; source_consistent=true; original unsupported test selector option failure retained",
           "positioning_contract": "truthfinal1:8passed; source_consistent=true",
           "menu_browser": "umcb3: current-page marker real Chromium cosmic/white1920 and cosmic960; not native",
           "navigation_entry": "ngmfix1:75passed; actual rendered menu wait shares original30s; exact native focus and no unknown modal preserved",
           "backup_probe_copy": "bkword1:63passed",
-          "fast_tab_regression": "umtab1 real Chromium and nfoc1 native reproduced hidden menu skipping Tab; CSS removes discrete content-visibility transition. umtab2 normal6/reduced3 immediate PASS; umtg1 formal regression PASS and rejects injected old CSS. Browser synthetic empty API, not native business PASS"
+          "fast_tab_regression": "umtab1 real Chromium and nfoc1 native reproduced hidden menu skipping Tab; CSS removes discrete content-visibility transition. umtab2 normal6/reduced3 immediate PASS; umtg1 formal regression PASS and rejects injected old CSS. Browser synthetic empty API, not native business PASS",
+          "probe_fixture_integration": "uipyp3 original151passed/3failed/170subtests and uipyp4 original67passed/2failed/170subtests retained; uipyp5 affected3passed after exact fixture adaptation. Navigation75 and focus10 passed in uipyp3, not whole Python PASS",
+          "public_research_health": "prh67 existing Rust4passed with original2000ms timeout; does not replace cloud67 timeout failure or establish provider reachability"
         }
       }
     }

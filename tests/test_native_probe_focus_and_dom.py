@@ -33,9 +33,17 @@ class NativeProbeFocusTests(unittest.TestCase):
             if script == "return location.hash":
                 return state["hash"]
             focus = state["focus"]
-            prefix = ""
+            # SIMULATED rendering primitives; the actual production observer
+            # still evaluates open/visible/focus/blocker readiness itself.
+            prefix = """const computed=getComputedStyle;
+getComputedStyle=(node,pseudo)=>pseudo?{contentVisibility:'visible',opacity:'1'}:computed(node);
+document.defaultView.HTMLElement.prototype.getBoundingClientRect=function(){return {x:10,y:10,width:100,height:30};};
+document.defaultView.HTMLElement.prototype.checkVisibility=function(){return this.getClientRects().length>0;};
+document.defaultView.HTMLElement.prototype.getAnimations=function(){return [];};
+document.elementFromPoint=()=>document.querySelector('button[data-page-id="03"]');
+"""
             if focus != "body":
-                prefix = (
+                prefix += (
                     "document.querySelector("
                     + repr(
                         "summary" if focus == "summary" else 'button[data-page-id="' + focus + '"]'
@@ -56,10 +64,12 @@ class NativeProbeFocusTests(unittest.TestCase):
             else:
                 raise AssertionError("Unexpected navigation input")
 
-        def wait(script):
+        def wait(script, seconds=30):
             if script.startswith("return location.hash"):
                 self.assertEqual(state["hash"], "#page=03")
                 self.assertEqual(state["page"], "03")
+            else:
+                self.assertTrue(js(script), "SIMULATED rendered readiness was not satisfied")
 
         def accept():
             actions.append("confirm")

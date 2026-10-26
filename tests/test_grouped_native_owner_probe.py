@@ -468,8 +468,25 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         probe = load_probe()
         clicks, commands = [], []
         scope = 'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(1)'
-        ui = probe.GroupedUI(lambda script: {"page":"01","mode":"menu","scope":scope,"opened":False} if "const requested=" in script else "#page=01" if script == "return location.hash" else {"summaryFocused": True, "index": 0} if "summaryFocused:" in script else "document.activeElement===n" in script,
-            lambda _: None, lambda _using, selector: selector, lambda *args: commands.append(args), [])
+        # SIMULATED rendered menu; actual DOM readiness rejection is tested separately.
+        ready = dict(open=True, summaryFocused=True, index=0, targetVisible=True,
+            targetEnabled=True, hit=True, blockers=[], contentVisibility="visible",
+            opacity="1", runningAnimations=0, ready=True)
+        budgets = [30]
+        def wait(script, seconds=30):
+            if script.startswith("return !!document.querySelector("):
+                selector = json.loads(script.removeprefix("return !!document.querySelector(")[:-1])
+                self.assertIn(selector, [scope + ' button[data-page-id="03"]', scope + ' > summary'])
+                return
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, budgets[-1])
+            budgets.append(seconds)
+            if script.endswith("})().ready;"):
+                self.assertTrue(ready["ready"])
+            else:
+                self.assertTrue(script.startswith("return location.hash"))
+        ui = probe.GroupedUI(lambda script: {"page":"01","mode":"menu","scope":scope,"opened":False} if "const requested=" in script else "#page=01" if script == "return location.hash" else ready if "summaryFocused:" in script else "document.activeElement===n" in script,
+            wait, lambda _using, selector: selector, lambda *args: commands.append(args), [])
         with patch.object(ui, "click_selector", lambda *args: clicks.append(args)):
             ui.page("03")
         self.assertEqual(len(clicks), 1)
@@ -530,16 +547,30 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
     def test_delayed_navigation_confirmation_never_replays_the_action(self):
         probe = load_probe()
         actions = []
+        # SIMULATED ready menu isolates delayed alert handling from DOM rendering.
+        ready = dict(open=True, summaryFocused=True, index=0, targetVisible=True,
+            targetEnabled=True, hit=True, blockers=[], contentVisibility="visible",
+            opacity="1", runningAnimations=0, ready=True)
+        budgets = [30]
         class Alert(Exception):
             value = {"error": "unexpected alert open"}
-        def wait(script):
-            if not script.startswith("return location.hash"):
-                return True
+        def wait(script, seconds=30):
+            if script.startswith("return !!document.querySelector("):
+                selector = json.loads(script.removeprefix("return !!document.querySelector(")[:-1])
+                self.assertIn(selector, [scope + ' button[data-page-id="12"]', scope + ' > summary'])
+                return
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, budgets[-1])
+            budgets.append(seconds)
+            if script.endswith("})().ready;"):
+                self.assertTrue(ready["ready"])
+                return
+            self.assertTrue(script.startswith("return location.hash"))
             actions.append("observe")
             if actions.count("observe") == 1:
                 raise Alert()
         scope = 'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(1)'
-        ui = probe.GroupedUI(lambda script: {"page":"11","mode":"menu","scope":scope,"opened":True} if "const requested=" in script else "#page=11" if script == "return location.hash" else {"summaryFocused": True, "index": 0} if "summaryFocused:" in script else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
+        ui = probe.GroupedUI(lambda script: {"page":"11","mode":"menu","scope":scope,"opened":True} if "const requested=" in script else "#page=11" if script == "return location.hash" else ready if "summaryFocused:" in script else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
         ui.page("12", confirm_navigation=True)
         self.assertEqual(actions, ["activate", "activate", "confirm", "observe", "confirm", "observe"])
 
@@ -567,9 +598,22 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
     def test_trusted_pending_review_navigation_confirms_child_without_replaying_input(self):
         probe=load_probe();actions=[]
+        # SIMULATED menu readiness keeps the trusted action/confirmation order explicit.
+        ready = dict(open=True, summaryFocused=True, index=0, targetVisible=True,
+            targetEnabled=True, hit=True, blockers=[], contentVisibility="visible",
+            opacity="1", runningAnimations=0, ready=True)
+        budgets = [30]
+        def wait(source, seconds=30):
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, budgets[-1])
+            budgets.append(seconds)
+            if source.endswith("})().ready;"):
+                self.assertTrue(ready["ready"])
+            else:
+                self.assertTrue(source.startswith("return location.hash"))
         def js(source):
-            return {'page':'19','mode':'menu','scope':'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(7)','opened':False} if 'const requested=' in source else '#page=19' if source=='return location.hash' else {'summaryFocused': True, 'index': 0} if 'summaryFocused:' in source else 'document.activeElement===n' in source
-        ui=probe.GroupedUI(js,lambda source:None,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
+            return {'page':'19','mode':'menu','scope':'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(7)','opened':False} if 'const requested=' in source else '#page=19' if source=='return location.hash' else ready if 'summaryFocused:' in source else 'document.activeElement===n' in source
+        ui=probe.GroupedUI(js,wait,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
         ui.find=lambda *args:'node'
         ui.click_selector=lambda *args:actions.append('parent')
         ui.page('12',confirm_navigation=True)
@@ -1721,7 +1765,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             ("click", "启用 text.extract", "//section[@aria-label='冻结请求的能力恢复']")
         )
         retries = [i for i, action in enumerate(actions) if action ==
-                   ("click", "同请求重试转换", "//section[@aria-label='真实转换产物']")]
+                   ("click", "重试上次处理", "//section[@aria-label='真实转换产物']")]
         self.assertEqual(len(retries), 2)
         self.assertLess(retries[0], enable_index, "disabled same-key proof refresh is a separate action")
         retry_index = retries[1]
@@ -1754,6 +1798,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             "finished": False,
             "hydrated": False,
             "journal": None,
+            "request_details_open": False,
         }
         actions, restarts = [], []
         text = "Authored source text\n"
@@ -1808,6 +1853,9 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 elif "打开文档" in selector:
                     assert state["page"] == "#page=02", "document selection requires library page"
                     state["page"] = "#page=03"
+                elif selector == "//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary":
+                    self_test.assertIsNotNone(state["journal"])
+                    state["request_details_open"] = True
                 else:
                     raise AssertionError("unexpected selector")
 
@@ -1832,7 +1880,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                     state["enabled"] = True
                     if autoexecute:
                         state["status"] = copy.deepcopy(succeeded)
-                elif label == "同请求重试转换":
+                elif label == "重试上次处理":
                     self_test.assertTrue(state["hydrated"], "retry needs explicit restored scene")
                     if not state["enabled"]:
                         self_test.assertEqual(state["status"], refused)
@@ -1890,6 +1938,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             if script.startswith("const visible=n") or script.startswith("const rows="):
                 return evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False)))
             if "const root=" in script:
+                self_test.assertTrue(state["request_details_open"], "Request identity must be revealed by its actual UI entry")
                 return {
                     "page": state["page"],
                     "frozen": "执行请求已冻结："
@@ -1903,6 +1952,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         def restart():
             restarts.append(state["enabled"])
             state["hydrated"] = False
+            state["request_details_open"] = False
             state["page"] = ""
             if state["journal"] is not None and not state["finished"]:
                 if restart_execute:

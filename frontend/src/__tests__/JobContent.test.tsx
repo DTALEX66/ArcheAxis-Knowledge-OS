@@ -75,7 +75,7 @@ describe("Core job content",()=>{
   try{
    await user.click(screen.getByRole("button",{name:"执行真实语音转写"}));
    expect(await screen.findByText(/转换未完成或产物读取失败/)).toBeInTheDocument();
-   expect(screen.queryByText(/真实转换已完成/)).not.toBeInTheDocument();
+   expect(screen.queryByText(/转换已完成/)).not.toBeInTheDocument();
    expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();
    expect(bridge.call).not.toHaveBeenCalledWith("job_output",expect.anything());
    expect(step).toBeGreaterThan(310_000); // the deadline was reached, not skipped by an early terminal state
@@ -88,7 +88,7 @@ describe("Core job content",()=>{
    now.mockRestore();
   }
   // releasing the busy flag is what keeps a timeout recoverable instead of a dead end
-  await waitFor(()=>expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeEnabled());
+  await waitFor(()=>expect(screen.getByRole("button",{name:"重试上次处理"})).toBeEnabled());
  });
  it("retains successful output when a later job fails and binds candidates to its successful transform",async()=>{
   let latest="";let executions=0;

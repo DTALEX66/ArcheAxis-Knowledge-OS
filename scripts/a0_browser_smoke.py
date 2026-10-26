@@ -848,7 +848,7 @@ def read_navigation_levels(page) -> dict[str, object]:
 
     # The ordinary trail carries the source's display name and saved-version state.
     # Read the immutable identity through the actual diagnostics action instead.
-    receipt_button = page.get_by_role("button", name="查看诊断详情：原件与来源详细信息", exact=True)
+    receipt_button = page.get_by_role("button", name="状态与诊断：原件与来源详细信息", exact=True)
     receipt_button.wait_for()
     trail = drawer_trail()
     assert A0_SOURCE["original_name"] in trail and "来源原件" in trail and "已保存原件" in trail, trail
@@ -1781,7 +1781,14 @@ def check_stitch_application_menus(page) -> dict[str, object]:
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     dock = page.get_by_role('navigation', name='工作空间快捷导航', exact=True)
     assert dock.is_visible() and dock.get_by_role('button').count() == 6
-    assert dock.locator('[aria-current="page"]').count() == 1
+    dock_groups = {'01': '01', '02': '02', '03': '02', '04': '02', '20': '02', '05': '05',
+                   **{role: '06' for role in ('06', '07', '08', '09', '10', '11', '12', '21')}}
+    expected_dock_page = dock_groups.get(current)
+    active_dock = dock.locator('[aria-current="page"]')
+    assert active_dock.count() == (1 if expected_dock_page else 0), current
+    if expected_dock_page:
+        assert active_dock.get_attribute('data-page-id') == expected_dock_page, current
+    assert dock.get_by_role('button', name='全部能力', exact=True).get_attribute('aria-current') is None
     # Every icon-only narrow entry retains a real accessible name and is scroll-reachable.
     dock_targets = []
     for label in ('工作台', '知识', '学习', '研究专题', '全部能力', '小栖'):

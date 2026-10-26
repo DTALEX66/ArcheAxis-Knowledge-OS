@@ -430,7 +430,10 @@ describe("raw payloads stay off the reading surface", () => {
     // ...and the raw dump that used to sit under it is gone.
     const details = screen.getByRole("article", { name: "能力详情" });
     expect(details.querySelectorAll("pre")).toHaveLength(0);
-    expect(details.querySelectorAll("details")).toHaveLength(0);
+    expect(details.querySelectorAll("details")).toHaveLength(1);
+    const implementationDetails = details.querySelector("details")!;
+    expect(implementationDetails.open).toBe(false);
+    expect(implementationDetails.querySelector("summary")?.textContent).toBe("实现与来源详情");
 
     const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});

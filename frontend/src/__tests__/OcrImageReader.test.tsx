@@ -32,7 +32,7 @@ it("SYNTHETIC: displays the pinned Unicode quote and original-image region witho
   const button=screen.getByRole("button",{name:"查看第 1 条识别引用"});button.focus();fireEvent.click(button);
   expect(await screen.findByLabelText("定位识别原文")).toHaveTextContent("甲🙂乙");
   const rect=container.querySelector("svg rect")!;expect(rect).toHaveAttribute("x","10");expect(rect).toHaveAttribute("width","60");
-  expect(screen.getByLabelText("识别位置原图")).toHaveFocus();
+  await waitFor(()=>expect(screen.getByLabelText("识别位置原图")).toHaveFocus());
   expect(bridge.call).toHaveBeenCalledWith("jobs_get",{job_id:"pinned-old-job"});
   expect(bridge.call.mock.calls.every(([op])=>["anchor_resolve","jobs_get","job_output"].includes(op))).toBe(true);
 });

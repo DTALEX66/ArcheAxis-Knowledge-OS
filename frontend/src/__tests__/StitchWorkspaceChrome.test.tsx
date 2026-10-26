@@ -80,15 +80,30 @@ it("native menu disclosures support keyboard traversal without changing guarded 
   expect(learning).toHaveFocus(); expect(learning.parentElement).not.toHaveAttribute("open");
 });
 
-it("dock keeps exactly one active application for every role and delegates genuine navigation", async () => {
+it("dock marks only a genuine page group and delegates genuine navigation", async () => {
   const user = userEvent.setup(), onPage = vi.fn(), onCompanion = vi.fn();
+  const groups: Record<string, string> = {"01":"工作台","02":"知识","03":"知识","04":"知识","20":"知识","05":"研究专题","06":"学习","07":"学习","08":"学习","09":"学习","10":"学习","11":"学习","12":"学习","21":"学习"};
   const view = render(<StitchWorkspaceDock pageId="01" onPage={onPage} companionOpen={false} onCompanion={onCompanion}/>);
   for (const page of UI_PAGES) {
     view.rerender(<StitchWorkspaceDock pageId={page.id} onPage={onPage} companionOpen={false} onCompanion={onCompanion}/>);
-    expect(view.container.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    const current = view.container.querySelectorAll('[aria-current="page"]');
+    expect(current).toHaveLength(groups[page.id] ? 1 : 0);
+    if (groups[page.id]) expect(current[0]).toHaveTextContent(groups[page.id]);
+    expect(screen.getByRole("button", { name: "全部能力" })).not.toHaveAttribute("aria-current");
   }
   await user.click(screen.getByRole("button", { name: "研究专题" })); expect(onPage).toHaveBeenLastCalledWith("05");
   await user.click(screen.getByRole("button", { name: "小栖" })); expect(onCompanion).toHaveBeenCalledOnce();
+});
+
+it("capability launcher exposes expansion without impersonating the current page", async () => {
+  const onLaunchpad = vi.fn();
+  render(<StitchWorkspaceDock pageId="17" onPage={vi.fn()} companionOpen={false} onCompanion={vi.fn()} onLaunchpad={onLaunchpad} launchpadOpen/>);
+  const launcher = screen.getByRole("button", { name: "全部能力" });
+  expect(launcher).toHaveAttribute("aria-expanded", "true");
+  expect(launcher).toHaveAttribute("aria-haspopup", "dialog");
+  expect(launcher).not.toHaveAttribute("aria-current");
+  await userEvent.setup().click(launcher);
+  expect(onLaunchpad).toHaveBeenCalledOnce();
 });
 
 it("the independent companion view closes on Escape and returns focus without erasing shared draft state", async () => {

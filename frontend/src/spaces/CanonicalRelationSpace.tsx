@@ -7,12 +7,14 @@ import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
 import type { DocumentDto, DocumentSummaryDto, DocumentsListDto, RelationProjectionDto, RelationDto, ObjectReferenceDto, OriginalDto, RelationNodeDto, RelationEdgeDto } from "../api/generated/core-contract";
 import { ConstellationGraph } from "../components/ConstellationGraph";
+import { ObjectReferencePicker } from "../components/ObjectReferencePicker";
 import "./stitch-relations.css";
 import type { ConstellationNode, ConstellationEdge } from "../presentation/neuralGraph";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { assertCoreDto, type DocumentRelationsDto } from "../api/generated/core-contract";
 type J = Record<string, unknown>;
 const relationKindLabels = { related: "相关", supports: "支持", contradicts: "矛盾", depends_on: "依赖" } as const;
+const targetKindLabels = { document: "文档", source: "来源原件", knowledge: "知识" } as const;
 function nodeTitle(value: object | null, reference: ObjectReferenceDto) { const title = (value as J | null)?.title; return typeof title === "string" ? title : label(reference); }
 type Attempt = { operation: "document_create" | "document_draft"; payload: J; editor: J; serial: number; version:number; expectedDocumentId?:string };
 type Buffer = { base: DocumentDto | null; envelope: J; relations: RelationDto[]; dirty: boolean; serial: number; attempt?: Attempt; unsupported: boolean };
@@ -45,6 +47,7 @@ export function CanonicalRelationSpace({ onOpenReference, onOpenDocument, render
   const [projection, setProjection] = useState<RelationProjectionDto | null>(null), [graphBusy, setGraphBusy] = useState(false), [listOnly, setListOnly] = useState(false), [history, setHistory] = useState<DocumentDto | null>(null), [version, setVersion] = useState("1"), [original, setOriginal] = useState<OriginalDto | null>(null);
   const [kind, setKind] = useState<RelationDto["kind"]>("related"), [relationLabel, setRelationLabel] = useState(""), [targetKind, setTargetKind] = useState<ObjectReferenceDto["kind"]>("document"), [targetId, setTargetId] = useState(""), [targetVersion, setTargetVersion] = useState("1"), [block, setBlock] = useState(""), [sha, setSha] = useState("");
   const [collectionPending,setCollectionPending]=useState(false);
+  const [pickingTarget,setPickingTarget]=useState(false);
   const [directionFilter, setDirectionFilter] = useState("all"), [relationFilter, setRelationFilter] = useState("all"), [objectFilter, setObjectFilter] = useState("all");
   const b = buffers.current.get(active.current)!, formDirty = !!(targetId || relationLabel || block || sha) || collectionPending;
   const documentLease=useDocumentWriteLease(b.base?.document_id);
@@ -60,12 +63,22 @@ export function CanonicalRelationSpace({ onOpenReference, onOpenDocument, render
   useEffect(() => { publish(); }, [targetId, relationLabel, block, sha, collectionPending]);
   async function list(more: boolean) { if (listLocked.current) return; listLocked.current = true; try { const r = await coreCommand<DocumentsListDto>("documents_list", more && cursor ? { cursor } : {}); if (!mounted.current) return; setRows(old => more ? [...old, ...r.documents.filter(x => !old.some(y => y.document_id === x.document_id))] : r.documents); setCursor(r.next_cursor); note("文档列表已读取；关系绑定实际对象版本。"); } catch { note("文档列表读取失败；未当成空列表。", true); } finally { listLocked.current = false; } }
   async function graph(d: DocumentDto, next?: string) { const token = ++graphEpoch.current; setGraphBusy(true); try { const r = await coreCommand<RelationProjectionDto>("document_graph", { document_id: d.document_id, version: d.version, ...(next ? { cursor: next } : {}) }); if (!mounted.current || token !== graphEpoch.current) return; if (r.center.document_id !== d.document_id || r.center.version !== d.version || r.center.content_sha256 !== d.content_sha256) throw new Error("图投影身份不符"); setProjection(r); note("关系投影已读取；图与列表共用这一页固定版本。"); } catch { if (mounted.current && token === graphEpoch.current) { setProjection(null); note("关系投影读取失败；未报告无关系。", true); } } finally { if (mounted.current && token === graphEpoch.current) setGraphBusy(false); } }
-  async function open(key: string) { if (locked.current) return; const token = ++epoch.current, prior = active.current, serial = b.serial; graphEpoch.current++; setPending(null); setHistory(null); setOriginal(null); setProjection(null); setGraphBusy(false);
+  async function open(key: string) { if (locked.current) return; const token = ++epoch.current, prior = active.current, serial = b.serial; graphEpoch.current++; setPending(null); setHistory(null); setOriginal(null); setProjection(null); setGraphBusy(false); setPickingTarget(false);
     if (key === "__new") { const k = `local_${crypto.randomUUID()}`; buffers.current.set(k, { base: null, envelope: { type: "doc", content: [] }, relations: [], dirty: false, serial: 0, unsupported: false }); active.current = k; publish(); return; }
     try { let current = buffers.current.get(key); if (!current) current = fromDoc(await coreCommand<DocumentDto>("document_get", { document_id: key })); if (current.base?.document_id !== key) throw new Error("文档身份不符"); if (!mounted.current || token !== epoch.current) return; if (active.current !== prior || buffers.current.get(prior)?.serial !== serial || pendingInput.current) { note("读取期间新增编辑仍保留；请重新选择对象。"); return; } buffers.current.set(key, current); active.current = key; publish(); if (current.unsupported) note("未知关系结构保留；仅只读，未转换。", true); if (current.base) void graph(current.base); } catch { if (mounted.current && token === epoch.current) note("读取失败；当前草稿保留。", true); }
   }
   function requestOpen(key: string) { if (locked.current) return; if (formDirty) { note("请先添加或取消未提交关系；输入保留。", true); return; } if (b.dirty || b.attempt) setPending(key); else void open(key); }
-  function clearForm() { setTargetId(""); setRelationLabel(""); setBlock(""); setSha(""); }
+  function clearForm() { setTargetId(""); setRelationLabel(""); setBlock(""); setSha(""); setPickingTarget(false); }
+  function chooseTarget(target: ObjectReferenceDto) {
+    if (busy || !documentLease.canWrite || b.unsupported || history) return;
+    setTargetKind(target.kind);
+    setTargetId(target.kind === "document" ? target.document_id : target.kind === "source" ? target.source_id : target.knowledge_id);
+    setTargetVersion(target.kind === "document" ? String(target.version) : "1");
+    setBlock(target.kind === "document" ? target.block_id ?? "" : "");
+    setSha(target.kind === "source" ? target.sha256 : "");
+    setPickingTarget(false);
+    note("关联对象已选择；请填写关系说明，再加入草稿。尚未保存。");
+  }
   function change(relations: RelationDto[]) { if (b.unsupported || history || !documentLease.canWrite) return; b.relations = relations; b.serial++; b.dirty = true; publish(); }
   function add() { try { const id = targetId.trim(); if (!id) throw new Error(); let target: ObjectReferenceDto;
     if (targetKind === "document") { const v = Number(targetVersion); if (!Number.isSafeInteger(v) || v < 1) throw new Error(); target = { kind: "document", document_id: id, version: v, ...(block ? { block_id: block } : {}) }; }
@@ -119,7 +132,11 @@ export function CanonicalRelationSpace({ onOpenReference, onOpenDocument, render
       </section>
       <aside className="stitch-relations-tools" aria-label="关系对象与编辑工具">
         <section className="stitch-relations-card"><header><h3>文档与草稿</h3></header><ul aria-label="已保存文档">{rows.map(d => <li key={d.document_id}><button disabled={busy} onClick={() => requestOpen(d.document_id)}>{d.title} · v{d.version}</button></li>)}</ul>{cursor && <button onClick={() => void list(true)}>加载更多文档</button>}</section>
-        <section className="stitch-relations-card"><fieldset disabled={busy || !documentLease.canWrite || b.unsupported || !!history}><legend>关系编辑</legend><label>关系类型<select value={kind} onChange={e => setKind(e.target.value as RelationDto["kind"])}>{(["related", "supports", "contradicts", "depends_on"] as const).map(x => <option key={x}>{relationKindLabels[x]}</option>)}</select></label><label>关系说明<input value={relationLabel} onChange={e => setRelationLabel(e.target.value)}/></label><label>目标类型<select value={targetKind} onChange={e => setTargetKind(e.target.value as ObjectReferenceDto["kind"])}><option>document</option><option>source</option><option>knowledge</option></select></label><label>目标对象ID<input value={targetId} onChange={e => setTargetId(e.target.value)}/></label>{targetKind === "document" && <><label>固定目标版本<input value={targetVersion} onChange={e => setTargetVersion(e.target.value)}/></label><label>目标段落编号<input value={block} onChange={e => setBlock(e.target.value)}/></label></>}{targetKind === "source" && <label>来源文件指纹<input value={sha} onChange={e => setSha(e.target.value)}/></label>}<button onClick={add}>加入关系草稿</button><button onClick={clearForm}>取消未提交关系</button>
+        <section className="stitch-relations-card"><fieldset disabled={busy || !documentLease.canWrite || b.unsupported || !!history}><legend>关系编辑</legend><label>关系类型<select value={kind} onChange={e => setKind(e.target.value as RelationDto["kind"])}>{(["related", "supports", "contradicts", "depends_on"] as const).map(x => <option key={x} value={x}>{relationKindLabels[x]}</option>)}</select></label><label>关系说明<input value={relationLabel} onChange={e => setRelationLabel(e.target.value)}/></label>
+          <button type="button" onClick={() => setPickingTarget(true)}>选择关联对象</button>
+          {pickingTarget ? <><ObjectReferencePicker disabled={busy || !documentLease.canWrite || b.unsupported || !!history} onPick={chooseTarget}/><button type="button" onClick={() => setPickingTarget(false)}>取消对象选择</button></> : null}
+          {targetId ? <p>当前目标：{targetKind === "document" ? rows.find(row => row.document_id === targetId)?.title || targetId : targetId} · {targetKindLabels[targetKind]}{targetKind === "document" ? `，第 ${targetVersion} 版` : ""}；尚未加入关系草稿。</p> : <p>从已保存内容选择对象；也可展开下方高级选项手动定位。</p>}
+          <details><summary>手动指定对象</summary><p>高级定位：请填写准确的对象编号、文档版本或原件文件指纹。加入草稿后仍需保存并核对，不会自动改用其他对象。</p><label>目标类型<select value={targetKind} onChange={e => setTargetKind(e.target.value as ObjectReferenceDto["kind"])}><option value="document">文档</option><option value="source">来源原件</option><option value="knowledge">知识</option></select></label><label>目标对象ID<input value={targetId} onChange={e => setTargetId(e.target.value)}/></label>{targetKind === "document" && <><label>固定目标版本<input value={targetVersion} onChange={e => setTargetVersion(e.target.value)}/></label><label>目标段落编号<input value={block} onChange={e => setBlock(e.target.value)}/></label></>}{targetKind === "source" && <label>来源文件指纹<input value={sha} onChange={e => setSha(e.target.value)}/></label>}</details><button onClick={add}>加入关系草稿</button><button onClick={clearForm}>取消未提交关系</button>
       <ul aria-label="关系草稿">{shown.map(r => <li key={r.id}>{relationKindLabels[r.kind]} · {r.label} · {label(r.target)} <label><input type="checkbox" aria-label={`嵌入呈现 ${r.id}`} checked={r.presentation === "embed"} onChange={event => change(b.relations.map(item => { if (item.id !== r.id) return item; const next = { ...item }; if (event.target.checked) next.presentation = "embed"; else delete next.presentation; return next; }))}/>在文档中显示固定嵌入</label> <button onClick={() => change(b.relations.filter(x => x.id !== r.id))} aria-label={`删除关系 ${r.id}`}>删除</button></li>)}</ul></fieldset></section>
         <section className="stitch-relations-card"><header><h3>历史与只读比较</h3></header><div className="stitch-relations-history"><label>历史版本<input value={version} onChange={e => setVersion(e.target.value)}/></label><button disabled={!b.base || busy} title={!b.base?"需要先打开或保存一份文档":undefined} onClick={() => void readHistory()}>读取历史关系（只读）</button>{history && <><p>只读比较 v{history.version}；未覆盖草稿</p><button onClick={() => { epoch.current++; setHistory(null); if (b.base) void graph(b.base); }}>返回当前草稿</button></>}</div></section>
         <details className="stitch-relations-card"><summary>关系保存与能力范围</summary><p>文档关系由本地知识库保存；图形只是同一份已保存内容的投影。学术检索与图谱增强尚未接入。</p></details>

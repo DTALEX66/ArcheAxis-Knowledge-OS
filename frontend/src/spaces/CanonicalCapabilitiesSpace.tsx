@@ -117,41 +117,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     <h3 ref={detailsHeading} tabIndex={-1}>{selected.atlas.canonical_name}</h3>
     <p>{capabilityPresentation(selected).purpose}</p>
     <p>{capabilityPresentation(selected).status} · {capabilityPresentation(selected).form}</p>
-    <RawReceiptButton label="能力登记与运行声明" payload={{atlas:selected.atlas,implementation:selected.implementation}} />
-    <p>相关视图：{selected.atlas.views.join("、")}</p>
-    <p>依赖声明：{selected.atlas.dependencies.length ? selected.atlas.dependencies.join("、") : "目录未列依赖"}</p>
-    <p>执行前提：{selected.atlas.entry_gate.map(capabilityDetailText).join("；") || "目录未列前提"}</p>
-    <p>所需验收证据：{selected.atlas.exit_evidence.map(capabilityDetailText).join("；") || "目录未列证据要求"}</p>
-    <p>降级与回退：{selected.atlas.fallbacks.map(capabilityDetailText).join("；") || "目录未列回退"}</p>
-    <section aria-label="设计细项与独立证据">
-      <h4>新设计保留的细项</h4>
-      <p>以下来自设计输入，每项是否实现仍待独立核验。父能力声明和运行握手不证明这些细项全部完成。</p>
-      <ul>{(UI_CAPABILITY_INTENT[selected.atlas.capability_id] ?? []).map(intent => <li key={intent}>{capabilityDetailText(intent)} · 独立证据未核验</li>)}</ul>
-      <RawReceiptButton label="设计来源与校验指纹" payload={{source:UI_CAPABILITY_SOURCE,items:UI_CAPABILITY_INTENT[selected.atlas.capability_id]??[]}} />
-    </section>
     <p>下一步：{getCapabilityNextStep(selected, Boolean(onOpenPage))}</p>
-    {RESEARCH_BOUNDARIES[selected.atlas.capability_id] && <section aria-label="集合与研究实施边界">
-      <h4>当前入口提供的范围</h4>
-      <p>以下是本地入口范围，安装态、真人验收与来源平台语义资格仍分别核验。</p>
-      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].available.map(item => <li key={item}>{item}</li>)}</ul>
-      <h4>待实现或待独立资格验收</h4>
-      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].pending.map(item => <li key={item}>{item} · 未执行</li>)}</ul>
-    </section>}
-    <p>{absorption?.sources.length ? "以下复用来源按当前能力登记关联；分类与历史验证分别保留，不代表本轮运行通过。" : "供体映射未建立；不按相似名称推断已吸收关系。"}</p>
-    <div>吸收来源分类：{absorption?.label}。{absorption?.sources.length
-      ? <ul>{absorption!.sources.map((row) => <li key={`${row.source}/${row.surface_class}`}>{row.source}<p>类别：{SURFACE_CLASS_LABEL[row.surface_class]} · 历史验证层级 {row.verification_tier ?? "未分层"} · 历史可用登记：{row.currently_usable ? "是" : "否"}（不代表当前运行可用） · 跨词汇表分歧 {row.conflicts} 条</p></li>)}</ul>
-      : <>候选类别为 {absorption!.classes.map((item) => item.label).join("、")}；尚未登记此能力的复用来源。</>}
-    </div>
-    <RawReceiptButton label="复用来源登记" payload={absorption} />
-    <h4>使用此能力的模板</h4>
-    {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
-      <b>{reference.template_name}</b>
-      <small>{capabilityOperationName(reference.declared)} · {templateRequirementStatus[reference.status]}</small>
-    </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
-    <p>{requiring.length ? "以下模板已与此能力建立需求对应关系，实际运行状态仍需核对。请到资料库的「学科模板」展开区使用。" : "尚无模板与此能力建立对应关系。"}</p>
-    <RawReceiptButton label="模板需求对应记录" payload={requiring} category="runtime" />
-    {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
-    <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
     <h4>当前运行联接、权限与健康</h4>
     <ModelTaskRoles capabilities={live} scopeLabel={selected.atlas.canonical_name}/>
     <p>功能登记不代表本轮已成功执行；请分别核对连接、权限与业务验证。</p>
@@ -159,8 +125,6 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
       const observation = live?.get(capability);
       const name=capabilityOperationName(capability);
       return <li key={capability}>{name}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{stateLabel(typeof observation?.health==="string"?observation.health.toLowerCase():null)}</p><p>业务运行尚未独立验证。{observation?.enabled===false?"此步骤已禁用，请先核对权限设置。":!observation?"尚未取得有效状态，请刷新后再试。":"详细原因可在运行诊断中核对。"}</p>
-        {/* The line above is the human-readable reading surface; the untouched handshake readback goes
-            to the diagnostic console, the same channel this file already uses for the catalog sources. */}
         {observation ? <RawReceiptButton label={`能力运行详细信息 · ${name}`} payload={observation} /> : null}</li>;
     })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此功能由应用内部提供；当前页面尚不能确认它是否可用。"}</p>}
     <p>使用后可在该任务的运行诊断中查看处理方式、版本和结果质量。</p>
@@ -169,6 +133,42 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
       disabledReason={!hasDestination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (pageDestination && onOpenPage) onOpenPage(pageDestination); else if (destination) onNavigate(destination); }}>
       {hasDestination ? "打开当前产品入口" : "当前执行入口尚未提供"}
     </AaosButton>
+    <section aria-label="设计细项与独立证据">
+      <h4>新设计保留的细项</h4>
+      <p>以下来自设计输入，每项是否实现仍待独立核验。父能力声明和运行握手不证明这些细项全部完成。</p>
+      <ul>{(UI_CAPABILITY_INTENT[selected.atlas.capability_id] ?? []).map(intent => <li key={intent}>{capabilityDetailText(intent)} · 独立证据未核验</li>)}</ul>
+    </section>
+    {RESEARCH_BOUNDARIES[selected.atlas.capability_id] && <section aria-label="集合与研究实施边界">
+      <h4>当前入口提供的范围</h4>
+      <p>以下是本地入口范围，安装态、真人验收与来源平台语义资格仍分别核验。</p>
+      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].available.map(item => <li key={item}>{item}</li>)}</ul>
+      <h4>待实现或待独立资格验收</h4>
+      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].pending.map(item => <li key={item}>{item} · 未执行</li>)}</ul>
+    </section>}
+    <h4>使用此能力的模板</h4>
+    {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
+      <b>{reference.template_name}</b>
+      <small>{capabilityOperationName(reference.declared)} · {templateRequirementStatus[reference.status]}</small>
+    </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
+    <p>{requiring.length ? "以下模板已与此能力建立需求对应关系，实际运行状态仍需核对。请到资料库的「学科模板」展开区使用。" : "尚无模板与此能力建立对应关系。"}</p>
+    {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
+    <details><summary>实现与来源详情</summary>
+      <RawReceiptButton label="能力登记与运行声明" payload={{atlas:selected.atlas,implementation:selected.implementation}} />
+      <p>相关视图：{selected.atlas.views.join("、")}</p>
+      <p>依赖声明：{selected.atlas.dependencies.length ? selected.atlas.dependencies.join("、") : "目录未列依赖"}</p>
+      <p>执行前提：{selected.atlas.entry_gate.map(capabilityDetailText).join("；") || "目录未列前提"}</p>
+      <p>所需验收证据：{selected.atlas.exit_evidence.map(capabilityDetailText).join("；") || "目录未列证据要求"}</p>
+      <p>降级与回退：{selected.atlas.fallbacks.map(capabilityDetailText).join("；") || "目录未列回退"}</p>
+      <RawReceiptButton label="设计来源与校验指纹" payload={{source:UI_CAPABILITY_SOURCE,items:UI_CAPABILITY_INTENT[selected.atlas.capability_id]??[]}} />
+      <p>{absorption?.sources.length ? "以下复用来源按当前能力登记关联；分类与历史验证分别保留，不代表本轮运行通过。" : "供体映射未建立；不按相似名称推断已吸收关系。"}</p>
+      <div>吸收来源分类：{absorption?.label}。{absorption?.sources.length
+        ? <ul>{absorption!.sources.map((row) => <li key={`${row.source}/${row.surface_class}`}>{row.source}<p>类别：{SURFACE_CLASS_LABEL[row.surface_class]} · 历史验证层级 {row.verification_tier ?? "未分层"} · 历史可用登记：{row.currently_usable ? "是" : "否"}（不代表当前运行可用） · 跨词汇表分歧 {row.conflicts} 条</p></li>)}</ul>
+        : <>候选类别为 {absorption!.classes.map((item) => item.label).join("、")}；尚未登记此能力的复用来源。</>}
+      </div>
+      <RawReceiptButton label="复用来源登记" payload={absorption} />
+      <RawReceiptButton label="模板需求对应记录" payload={requiring} category="runtime" />
+      <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
+    </details>
   </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>}</div>;
 
   return <section className="stitch-capability-space" aria-label="能力中心">

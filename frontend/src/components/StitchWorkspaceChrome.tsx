@@ -85,7 +85,7 @@ export function StitchWorkspaceDock({ pageId, onPage, companionOpen, onCompanion
 }) {
   return <nav className="stitch-workspace-dock" aria-label="工作空间快捷导航">
     {entries.map(entry => <button key={entry.page} type="button" data-page-id={entry.page} title={entry.pages.includes(pageId ?? "") ? `当前：${UI_PAGES.find(page => page.id === pageId)?.label ?? entry.label}` : `前往${entry.label}`} aria-current={entry.pages.includes(pageId ?? "") ? "page" : undefined} onClick={() => onPage(entry.page)}><AaosIcon name={entry.icon} size={18}/><span>{entry.label}</span></button>)}
-    <button id="stitch-launchpad-toggle" type="button" aria-expanded={launchpadOpen} aria-haspopup="dialog" aria-current={pageId && !entries.some(entry => entry.pages.includes(pageId)) ? "page" : undefined} onClick={() => onLaunchpad ? onLaunchpad() : onPage("17")}><AaosIcon name="Apps" size={18}/><span>全部能力</span></button>
+    <button id="stitch-launchpad-toggle" type="button" aria-expanded={launchpadOpen} aria-haspopup="dialog" onClick={() => onLaunchpad ? onLaunchpad() : onPage("17")}><AaosIcon name="Apps" size={18}/><span>全部能力</span></button>
     <button id="stitch-companion-toggle" type="button" className="stitch-companion-toggle" aria-expanded={companionOpen} aria-controls={companionOpen ? "stitch-companion-window" : undefined} onClick={onCompanion}><AaosIcon name="HumanAi" size={18}/><span>小栖</span></button>
   </nav>;
 }

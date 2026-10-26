@@ -31,11 +31,11 @@ describe("SIMULATED real components rehydrate exact Core journal without automat
   const component=()=>surface==="manual"?<JobContent sourceId="source" sourceRevision={hash} name="owned.txt"/>:surface==="folder"?<FolderIngest/>:<BoundedJobPanel command={bridge.call} pollMs={60000}/>;
   async function mount(){const session=new CoreWorkingStateSession(f.transport);await session.load();return render(<CoreWorkingStateProvider session={session}>{component()}</CoreWorkingStateProvider>);}
   let view=await mount();await user.click(screen.getByRole("button",{name:"恢复处理任务 1"}));
-  await screen.findByRole("button",{name:surface==="manual"?"同请求重试转换":"同请求重试"});
+  await screen.findByRole("button",{name:surface==="manual"?"重试上次处理":"同请求重试"});
   expect(f.get().state.pending_jobs).toEqual({original_request:f.entry});
   expect(bridge.call.mock.calls.some(([op])=>["job_execute","job_enqueue","capability_set_enabled"].includes(op))).toBe(false);
   view.unmount();view=await mount();await user.click(screen.getByRole("button",{name:"恢复处理任务 1"}));
-  const retry=surface==="manual"?"同请求重试转换":surface==="folder"?"同请求重试":"同请求重试";
+  const retry=surface==="manual"?"重试上次处理":surface==="folder"?"同请求重试":"同请求重试";
   await user.click(await screen.findByRole("button",{name:retry}));
   await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1));
   const sent=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];

@@ -844,7 +844,7 @@ def ui_format_conversion_loop(bridge, ui_click, wait, js, proofs, navigate=True,
         label = js("const s=document.querySelector(" + json.dumps(selector) + ");const b=[...s.querySelectorAll('button')].find(b=>['执行真实内容转换','执行真实语音转写','执行真实视频分析','整体执行'].includes(b.textContent));return b?.textContent")
         assert label, f"No content conversion control: {proof['format']}"
         ui_click(label, scope)
-        wait("const s=document.querySelector(" + json.dumps(selector) + ");return [...s.querySelectorAll('[role=status]')].some(p=>p.textContent.includes('真实转换已完成')||p.textContent.includes('PDF 文字层处理已完成'))", seconds=900)
+        wait("const s=document.querySelector(" + json.dumps(selector) + ");return [...s.querySelectorAll('[role=status]')].some(p=>p.textContent.includes('转换已完成')||p.textContent.includes('PDF 文字层处理已完成'))", seconds=900)
         listing = bridge("source_jobs", {"source_id": proof["source_id"]})["jobs"]
         added = [row for row in listing if row["job_id"] not in before]
         assert len(added) == 1 and added[0]["state"] == "succeeded"
