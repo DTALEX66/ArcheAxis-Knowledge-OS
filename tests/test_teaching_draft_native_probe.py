@@ -73,7 +73,7 @@ class TeachingDraftProbeTests(unittest.TestCase):
     def test_input_and_keys_scope_pin_current_dock_page(self):
         grouped = load('aaos01_grouped_owner_loop')
         calls = []
-        ui = grouped.GroupedUI(lambda script: {'ready': True, 'point': {'x': 1, 'y': 1}},
+        ui = grouped.GroupedUI(lambda script: {'ready': True, 'disabled': False, 'hit': True, 'point': {'x': 1, 'y': 1}},
                                lambda script: True,
                                lambda using, selector: calls.append(selector) or 'visible-current-page',
                                lambda *args: None, [])

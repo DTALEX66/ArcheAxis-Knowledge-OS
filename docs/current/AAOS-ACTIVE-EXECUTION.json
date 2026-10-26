@@ -2543,26 +2543,26 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "B0_NATIVE_GROUPED_AND_RENDER_PASSED_MENU_MATERIAL_AND_USER_LANGUAGE_SUCCESSOR_PENDING",
+      "state": "V6_NATIVE_GROUPED_AND_RENDER_PASSED_UI18_PARTIAL_DOCK_LABEL_SUCCESSOR_PENDING",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-27-菜单材质根因与普通操作后继",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
-      "build_receipt": ".project-local/runs/be268a2d33/5549c6fb63f9/artifacts/frontend-build.json",
+      "build_receipt": ".project-local/runs/be268a2d33/e49cc3f50139/artifacts/frontend-build.json",
       "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
-      "host_sha256": "5977b4495ee6942a8617821d5ac801d9510ceb3b7a12fae05e4024b0e0c78371",
-      "whole_scope": "PARTIAL; exact b0 candidate ngroup4 engineering and ovp9 render passed, answer quality and Owner acceptance unmeasured. UI18 only6/18 conversion completed; original failed receipts retained. Full CI40378026334 browser dependency installation cancelled and installed learning save observation timed out. Menu-material and user-language successor requires new exact build/native/CI; Green unchanged.",
+      "host_sha256": "b05213dd96f306d7c71f66f5e7b6e3ee2b47af2cddd9f7a12e61333519b49485",
+      "whole_scope": "PARTIAL; v6 ngroup5 engineering and ovp10 render passed; answer quality and Owner acceptance unmeasured. UI18 v7 only16/18 UI conversions completed; MP4 Core succeeded but UI UNKNOWN, Canvas/reparse/later citations not executed. Original failures and exact-owned normal cleanup retained; no Green replacement.",
       "monitor": "PAUSED_UNCHANGED",
       "local_product_commit": "1d76f9f890485324b329b087973ce7897dc7711d",
-      "delivery": "Normal approved Git SSH push succeeded; public source/checkpoint b5e3d6386ab7f6912106fac0a5ae788ed6e0947f published to trae/20261024 and PR203 head readback matched; current hosted CI pending, Green unchanged. Prior policy rejection remains historical.",
+      "delivery": "Published source2fdf180c to trae/20261024 and PR203; matching v6 grouped/native render passed. Full exact-source CI40386975846 has original Python6094P2F108skip438subtests; successor local fixes require a new qualification.",
       "preview_launcher": ".project-local/AAOS-UI-Preview-20261026.cmd",
-      "build_source_commit": "b0eca76285d1983bdb670e8023ef87c7d9c15f91",
+      "build_source_commit": "2fdf180cb01fe446c1af02152522b9edd062dcb8",
       "core_sha256": "8d7ab1e7bde9ceec2cee19587b0d6a6232dc69934bf8cc3a7882e52b5d483c26",
-      "backend_manifest_sha256": "05ac7312cafe25c68cf36b25aed598239346fe9ba737364630e427b164fba956",
+      "backend_manifest_sha256": "5ad172f897f2c76d783c2f9eae294bdc6880f40cd55307f3438a28847d75020d",
       "local_probe_commit": "8cc31e4916bc2e0e1f8303f93399cdc4cbde9bd8",
-      "native_overview": ".project-local/runs/be268a2d33/native-overview-20261026-final-b12/artifacts/native-overview/receipt.json",
-      "grouped_native_loop": ".project-local/runs/be268a2d33/webdriver-a0addf6300ea/tmp/journey/receipt.json",
+      "native_overview": ".project-local/runs/be268a2d33/ovp10/artifacts/native-overview/receipt.json",
+      "grouped_native_loop": ".project-local/runs/be268a2d33/webdriver-75039e388d5d/tmp/journey/receipt.json",
       "installed_lifecycle": ".project-local/runs/be268a2d33/closure-20261026-installed-lifecycle-b12/output/47da79a1843548faa0f32018ecfb40e8/lifecycle-receipt.json",
       "component_evidence": ".project-local/runs/be268a2d33/closure-b12-component-evidence-rebind-20261026-b2/artifacts/backend-component-evidence-rebind-b12.json",
-      "preview_host_sha256": "5dec0f380022d34d6d33e0fb7cc1064931710343915959fe8086742d71240123",
+      "preview_host_sha256": "b05213dd96f306d7c71f66f5e7b6e3ee2b47af2cddd9f7a12e61333519b49485",
       "preview_launch_receipt": ".project-local/AAOS-UI-Preview-20261026-launch.json",
       "preview_launch": "HISTORICAL_B12_VISIBLE_OBSERVATION_NOT_CURRENT_AFTER_COMPUTER_CRASH",
       "installed_conflict": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/installed-conflict-journey.json",
@@ -2580,7 +2580,7 @@
       },
       "installed_owned_workspace_retention": "PASS_EXACT_BYTES_AFTER_UPGRADE_UNINSTALL_REINSTALL",
       "installed_sandbox_cleanup": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/sandbox-cleanup.json",
-      "published_source_checkpoint_commit": "b5e3d6386ab7f6912106fac0a5ae788ed6e0947f",
+      "published_source_checkpoint_commit": "2fdf180cb01fe446c1af02152522b9edd062dcb8",
       "publication_readback": {
         "observed_at": "2026-10-25T23:58:26Z",
         "branch": "trae/20261024",
@@ -2608,7 +2608,7 @@
         "native_draft_close_09d": ".project-local/runs/be268a2d33/ndg4/artifacts/native-draft-guard/receipt.json",
         "native_core_loss_negative_09d": ".project-local/runs/be268a2d33/crun5/artifacts/native-core-loss-drafts/receipt.json"
       },
-      "preview_launch_current": "LATEST_LOCAL_PREVIEW_TARGET_PORTABLE_V5_UPDATED_NOT_LAUNCHED; preu7 verified Host5977b449; existing review workspace preserved; Green unchanged",
+      "preview_launch_current": "LATEST_LOCAL_PREVIEW_TARGET_PORTABLE_V6_UPDATED_NOT_LAUNCHED; preu8 verified Hostb05213dd; existing review workspace preserved; Green unchanged",
       "qualification_f650": {
         "source_commit": "f650cfe059c33407a2a2c65f8a296bcfd90d2400",
         "build_receipt": ".project-local/runs/be268a2d33/bf99998fa358/artifacts/frontend-build.json",
@@ -2644,17 +2644,17 @@
         ]
       },
       "menu_layout_polish_20261027": {
-        "state": "MENU_MATERIAL_AND_USER_ACTIONS_LOCAL_TESTED_NEW_BUILD_NATIVE_AND_EXACT_SHA_CI_PENDING",
+        "state": "V6_NATIVE_UI_PASS_DOCK_TITLES_AND_PLAIN_REVIEW_SUCCESSOR_INTEGRATED_NEW_BUILD_NATIVE_CI_PENDING",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
         "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
         "old_verification_screenshots": "OWNER_PURGED: 1701 ignored +9 tracked files; 1334837921 logical bytes; ssbs1/ssa1 manifests. 35 exact old test directories remain unreadable WinError5; no all-repository zero claim. Needed new screenshots after fixed cutoff retained.",
         "date_adversarial_review": "exa1 original DST fold counterexample retained; exa2 four-timezone post-fix review passed. Saved exact epochs retained, ambiguous new local time rejected; aifm5 40passed and aifm6 34passed. Chinese offset separated in display; schema unchanged.",
         "whole_scope": "PARTIAL; browser/units/installed/exact-SHA CI/Owner acceptance remain separate",
-        "residual_polish": "Actual menu ghosting caused by nested backdrop roots, verified by mbx5 pixel ablation and before/after images; separate header material layer preserves menu tint and blur. Generated-answer recovery, human review selection, shared references, context-package notifications and batch import use user-facing actions with full details retained. No claim every engineering term or future capability is complete.",
+        "residual_polish": "Native menu ghosting fixed and personally reviewed; main geometry, immediate Tab, reduced motion and guide passed. Successor document tabs reuse confirmed title and identity; manual review uses assessment criteria. No claim all engineering terms or future abilities are complete.",
         "local_checks": {
-          "frontend": "uifinal7:213 suites/2301 passed, LOCAL_PASS/source_consistent=true; uifinal5 original2299P2F and uifinal6 child0/outerINVALIDATED preserved",
-          "types": "uityfinal5 PASS/source_consistent=true; product TypeScript unchanged after this check",
+          "frontend": "uifinal8:213 suites/2304 passed, LOCAL_PASS/source_consistent=true; previous failed/invalidated runs retained",
+          "types": "uityfinal6 PASS/source_consistent=true; includes confirmed document-title reuse and assessment-criteria labels",
           "positioning_contract": "truthfinal1:8passed; source_consistent=true",
           "menu_browser": "umcb3: current-page marker real Chromium cosmic/white1920 and cosmic960; not native",
           "navigation_entry": "ngmfix1:75passed; actual rendered menu wait shares original30s; exact native focus and no unknown modal preserved",
@@ -2663,18 +2663,20 @@
           "probe_fixture_integration": "uipyp3 original151passed/3failed/170subtests and uipyp4 original67passed/2failed/170subtests retained; uipyp5 affected3passed after exact fixture adaptation. Navigation75 and focus10 passed in uipyp3, not whole Python PASS",
           "public_research_health": "prh67 existing Rust4passed with original2000ms timeout; does not replace cloud67 timeout failure or establish provider reachability",
           "menu_backdrop_ablation": "mbx5 source-consistent real Chromium: nested blur24-vs-none0 changed pixels; split header37286/67510 changed pixels, edge3.473248 to0.525537. Five-theme geometry/14px and formal immediate Tab normal/reduced passed; not native candidate qualification.",
-          "final_probe_integration": "uipyp8:300 passed/184 subtests passed, LOCAL_PASS/source_consistent=true; uipyp7 original297P3F/184subtests and INVALIDATED retained",
-          "static_preflight": "uiprefinal7 full preflight LOCAL_PASS/source_consistent=true; subsequent edits only record results"
+          "final_probe_integration": "uipyp9:359 passed/199 subtests passed across navigation/focus/grouped/identity/teaching probe tests, LOCAL_PASS/source_consistent=true; original CI6094P2F retained, production guard not relaxed",
+          "static_preflight": "uiprefinal7 full preflight LOCAL_PASS/source_consistent=true; subsequent edits only record results",
+          "dock_and_review_labels": "dlabel1:Dock28/AppDock11/Evaluation9 =48 passed, source_consistent=true; exact identity/title updates, preserved draft owner, explicit full-ID details and rubric selection covered"
         },
         "qualified_previous_candidate": {
-          "source_commit": "b0eca76285d1983bdb670e8023ef87c7d9c15f91",
-          "build_receipt": ".project-local/runs/be268a2d33/5549c6fb63f9/artifacts/frontend-build.json",
-          "portable": ".project-local/runs/be268a2d33/dot-20261027-portable-v5/artifacts/星环便携候选",
-          "grouped_engineering": ".project-local/runs/be268a2d33/webdriver-2be3ce2cf946/tmp/journey/receipt.json",
-          "native_render": ".project-local/runs/be268a2d33/ovp9/artifacts/native-overview/receipt.json",
-          "ui18_original": ".project-local/runs/be268a2d33/webdriver-de165d630a83/tmp/journey/receipt.json",
-          "ui18_state": "FAIL_PARTIAL6_OF18_CONVERSIONS; normal exact-owned close and ports released; no format accuracy claim",
-          "full_ci": "40378026334 terminal CANCELLED; installer-lifecycle and a0-gates failed, browser dependency installation cancelled; component success not aggregate success"
+          "source_commit": "2fdf180cb01fe446c1af02152522b9edd062dcb8",
+          "build_receipt": ".project-local/runs/be268a2d33/e49cc3f50139/artifacts/frontend-build.json",
+          "portable": ".project-local/runs/be268a2d33/dot-20261027-portable-v6/artifacts/星环便携候选",
+          "grouped_engineering": ".project-local/runs/be268a2d33/webdriver-75039e388d5d/tmp/journey/receipt.json",
+          "native_render": ".project-local/runs/be268a2d33/ovp10/artifacts/native-overview/receipt.json",
+          "native_visual_review": ".project-local/runs/be268a2d33/ovvr11/artifacts/visual-review.json",
+          "ui18_original": ".project-local/runs/be268a2d33/webdriver-20803591ca09/tmp/journey/receipt.json",
+          "ui18_state": "FAIL_PARTIAL16_OF18_UI_CONVERSIONS; MP4 Core succeeded/UI UNKNOWN, Canvas/reparse/later citations not executed; normal owned close/ports released; accuracy not evaluated",
+          "full_ci": "40386975846 original OS Python6094P2F108skip438subtests; two old enabled-state fixtures need synchronization; other job results and aggregate conclusion read live"
         }
       }
     }

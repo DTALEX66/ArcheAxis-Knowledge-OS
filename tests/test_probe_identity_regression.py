@@ -90,7 +90,7 @@ def test_manual_type_read_and_identity_queue_click_open_the_existing_disclosure_
 def test_review_title_reveal_opens_queue_before_layout_hit_test(monkeypatch):
     probe = load("identity_disclosure_layout", "aaos01_grouped_owner_loop.py")
     actions = []
-    ui = probe.GroupedUI(lambda _:actions.append("hit-test") or {"ready":True}, lambda *_:None,lambda *_:"node",lambda *_:None,[])
+    ui = probe.GroupedUI(lambda _:actions.append("hit-test") or {"ready":True,"disabled":False}, lambda *_:None,lambda *_:"node",lambda *_:None,[])
     ui.open_learning_disclosure = lambda kind:actions.append("open-" + kind)
     monkeypatch.setattr(probe.time,"sleep",lambda *_:None)
     ui.reveal_selector(probe.button_selector("owned", "//ul[@aria-label='复习队列']"))

@@ -23,7 +23,7 @@ function checkSnapshot(s: MachineAnswerSnapshotDto, id: string) {
 function rubricFrom(d: DocumentDto): MachineRubricDto {
   const r = assertCoreDto<MachineRubricDto>("MachineRubricDto",metadata(d,"archeaxis_machine_rubric"));
   if (r.schema !== "archeaxis.machine-rubric/v1" || !Array.isArray(r.criteria) || !r.criteria.length || r.criteria.length > 64
-    || new Set(r.criteria.map(c=>c.criterion_id)).size !== r.criteria.length || r.criteria.some(c=>!c.label?.trim() || !c.expectation?.trim())) throw new Error("不支持此历史量规，原文仍保留");
+    || new Set(r.criteria.map(c=>c.criterion_id)).size !== r.criteria.length || r.criteria.some(c=>!c.label?.trim() || !c.expectation?.trim())) throw new Error("不支持此历史评测准则，原文仍保留");
   return r;
 }
 const overall = (items: MachineJudgmentDto[]): Outcome => items.some(x=>x.outcome==="failed") ? "failed" : items.some(x=>x.outcome==="unmeasured") ? "unmeasured" : "passed";
@@ -72,12 +72,12 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
     }catch{if(alive.current)setMessage("登记列表读取失败；当前表单保留。");}finally{end();}
   }
   async function openRubric(row:MachineDocumentSummaryDto,version=row.version) {
-    if(evalDirty){setMessage("未保存评测使用的固定量规保留；请先完成或清空本地评测。");return;}if(!begin())return;
+    if(evalDirty){setMessage("未保存评测使用的准则保留；请先完成或清空本地评测。");return;}if(!begin())return;
     const epoch=++epochs.current.rubric;
     try{const doc=await coreCommand<DocumentDto>("document_version",{document_id:row.document_id,version});
-      if(doc.document_id!==row.document_id || doc.version!==version || (version===row.version&&doc.content_sha256!==row.content_sha256))throw new Error("固定量规版本不符");
-      const body=rubricFrom(doc);if(alive.current&&epoch===epochs.current.rubric){setRubric({doc,body});setJudgments(body.criteria.map(c=>({criterion_id:c.criterion_id,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("量规已固定到所选版本与指纹；后续修改不替换它。");}}
-    catch{if(alive.current)setMessage("量规读取失败或结构不支持；现有评测保留。");}finally{end();}
+      if(doc.document_id!==row.document_id || doc.version!==version || (version===row.version&&doc.content_sha256!==row.content_sha256))throw new Error("评测准则版本不符");
+      const body=rubricFrom(doc);if(alive.current&&epoch===epochs.current.rubric){setRubric({doc,body});setJudgments(body.criteria.map(c=>({criterion_id:c.criterion_id,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("已选择此版本的评测准则；准则后续更新不会替换本次选择。");}}
+    catch{if(alive.current)setMessage("评测准则读取失败或结构不支持；现有评测保留。");}finally{end();}
   }
   async function openHistory(row:MachineDocumentSummaryDto,version=row.version) {
     if(!begin())return; const epoch=++epochs.current.history;
@@ -95,11 +95,11 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
         if(readOnly)throw new Error("没有冻结请求");
         const request_id=crypto.randomUUID();
         if(kind==="rubric"){
-          if(!title.trim()||bytes(title)>512||!purpose.trim()||bytes(purpose)>512||!criteria.length||criteria.some(c=>!c.label.trim()||bytes(c.label)>512||!c.expectation.trim()||bytes(c.expectation)>4096))throw new Error("量规需完整准则与有限依据");
+          if(!title.trim()||bytes(title)>512||!purpose.trim()||bytes(purpose)>512||!criteria.length||criteria.some(c=>!c.label.trim()||bytes(c.label)>512||!c.expectation.trim()||bytes(c.expectation)>4096))throw new Error("请完整填写评测准则和各项预期，并遵守长度限制");
           const body:MachineRubricDto={schema:"archeaxis.machine-rubric/v1",request_id,title,purpose,criteria:structuredClone(criteria),sources:[]};
           slot.current={operation:"machine_rubric_create",body,metadata:body,title,namespace:"archeaxis_machine_rubric"};
         }else{
-          if(!snapshot||!rubric||!reviewer.trim()||bytes(reviewer)>128||!basis.trim()||bytes(basis)>16384||judgments.some(j=>!j.basis.trim()||bytes(j.basis)>4096))throw new Error("需原答案、固定量规、逐项人工依据及署名");
+          if(!snapshot||!rubric||!reviewer.trim()||bytes(reviewer)>128||!basis.trim()||bytes(basis)>16384||judgments.some(j=>!j.basis.trim()||bytes(j.basis)>4096))throw new Error("请先读取回答、选择评测准则，并填写逐项人工依据及署名");
           const pinned:MachineRubricSnapshotDto={document_id:rubric.doc.document_id,version:rubric.doc.version,content_sha256:rubric.doc.content_sha256};
           const body:MachineEvaluationRequestDto={request_id,task_id:snapshot.task_id,rubric:pinned,reviewer,basis,judgments:structuredClone(judgments),outcome:overall(judgments)};
           const e:MachineEvaluationDto={...body,schema:"archeaxis.machine-evaluation/v1",knowledge_id:snapshot.knowledge_id,original_answer_sha256:snapshot.original_answer_sha256,task_receipt_sha256:snapshot.task_receipt_sha256};
@@ -128,14 +128,14 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
       <p>{taskInput?"已选择一条回答记录；读取后再开始评测。":"先选择刚才的回答；其他已保存回答可在高级选项中按编号指定。"}</p><button onClick={()=>void loadTask()}>读取所选回答</button>
     </fieldset>
     {snapshot&&<section aria-label="固定原答案"><p>模型：{snapshot.model_version}</p><p>{snapshot.question}</p><pre>{snapshot.original_answer}</pre><RawReceiptButton label="机器答案快照" payload={snapshot}/></section>}
-    <section aria-label="量规登记"><h3>新量规</h3><fieldset disabled={busy||!!rubricAttempt.current}><legend>人工定义准则</legend>
-      <label>量规标题<input value={title} onChange={e=>setTitle(e.target.value)}/></label><label>量规用途<input value={purpose} onChange={e=>setPurpose(e.target.value)}/></label>
+    <section aria-label="评测准则"><h3>新评测准则</h3><fieldset disabled={busy||!!rubricAttempt.current}><legend>人工定义准则</legend>
+      <label>准则标题<input value={title} onChange={e=>setTitle(e.target.value)}/></label><label>准则用途<input value={purpose} onChange={e=>setPurpose(e.target.value)}/></label>
       {criteria.map((c,i)=><div key={c.criterion_id}><label>准则名称 {i+1}<input value={c.label} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,label:e.target.value}:x))}/></label><label>准则预期 {i+1}<textarea value={c.expectation} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,expectation:e.target.value}:x))}/></label></div>)}
       <button disabled={criteria.length>=64} onClick={()=>setCriteria(old=>[...old,{criterion_id:crypto.randomUUID(),label:"",expectation:""}])}>增加准则</button>
-    </fieldset><button disabled={busy} onClick={()=>void execute("rubric")}>{rubricAttempt.current?"重试同一次准则保存":"登记新量规"}</button>
+    </fieldset><button disabled={busy} onClick={()=>void execute("rubric")}>{rubricAttempt.current?"重试同一次准则保存":"保存评测准则"}</button>
       <button disabled={busy||!rubricAttempt.current} title={!rubricAttempt.current?"当前没有待确认的准则保存请求":undefined} onClick={()=>void execute("rubric",true)}>检查待确认的准则保存</button>
-      <button disabled={busy} onClick={()=>void list("rubric")}>读取量规列表</button><button disabled={busy||!rubricCursor} title={!rubricCursor?"没有更多量规":undefined} onClick={()=>void list("rubric",true)}>下一页量规</button>
-      {rubricRows.map(row=><HistoryRow key={row.document_id} row={row} busy={busy} verb="固定量规" onOpen={v=>void openRubric(row,v)}/>)}
+      <button disabled={busy} onClick={()=>void list("rubric")}>浏览评测准则</button><button disabled={busy||!rubricCursor} title={!rubricCursor?"没有更多评测准则":undefined} onClick={()=>void list("rubric",true)}>更多评测准则</button>
+      {rubricRows.map(row=><HistoryRow key={row.document_id} row={row} busy={busy} verb="选择评测准则" onOpen={v=>void openRubric(row,v)}/>)}
     </section>
     {rubric&&<><p>已选评测准则：{rubric.doc.title} · 第 {rubric.doc.version} 版。</p><RawReceiptButton label="评测准则版本详细信息" category="data" payload={rubric.doc}/></>}
     <fieldset disabled={busy||!!evaluationAttempt.current}><legend>逐项人工判断</legend>
@@ -145,7 +145,7 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
         <label>人工依据 {i+1}<textarea value={judgments[i]?.basis??""} onChange={e=>setJudgments(old=>old.map((j,n)=>n===i?{...j,basis:e.target.value}:j))}/></label></div>)}
     </fieldset>
     <p>整体观察：{judgments.length ? overall(judgments) === "passed" ? "通过" : overall(judgments) === "failed" ? "未通过" : "未测评" : "未测评"}；按固定准则推导，不替人宣称能力。</p>
-    <button disabled={busy||!snapshot||!rubric} title={!snapshot||!rubric?"需要先读取原答案并固定量规":undefined} onClick={()=>void execute("evaluation")}>{evaluationAttempt.current?"重试同一次评测":"登记人工评测"}</button>
+    <button disabled={busy||!snapshot||!rubric} title={!snapshot||!rubric?"需要先读取回答并选择评测准则":undefined} onClick={()=>void execute("evaluation")}>{evaluationAttempt.current?"重试同一次评测":"登记人工评测"}</button>
     <button disabled={busy||!evaluationAttempt.current} title={!evaluationAttempt.current?"当前没有待确认的评测请求":undefined} onClick={()=>void execute("evaluation",true)}>检查待确认的评测</button>
     <button disabled={busy||!!evaluationAttempt.current} onClick={()=>{setReviewer("");setBasis("");setJudgments(old=>old.map(j=>({...j,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("仅清空本地判断；已登记历史不变。");}}>清空本地评测</button>
     <button disabled={busy} onClick={()=>void list("evaluation")}>读取评测历史</button><button disabled={busy||!evaluationCursor} title={!evaluationCursor?"没有更多评测":undefined} onClick={()=>void list("evaluation",true)}>下一页评测</button>

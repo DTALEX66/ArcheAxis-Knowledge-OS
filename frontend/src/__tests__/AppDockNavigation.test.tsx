@@ -69,8 +69,8 @@ it("late layout hydration cannot reopen a final view the user has already closed
 it("late layout hydration keeps the accepted object presentation instead of replacing it with singleton 03",async()=>{
  await start(false);fireEvent.click(screen.getByRole("button",{name:"模拟打开A"}));await screen.findByLabelText("draft-03");
  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
- await waitFor(()=>expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true"));
- await act(async()=>resolveLayout(layoutReply()));expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true");expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
+ await waitFor(()=>expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true"));
+ await act(async()=>resolveLayout(layoutReply()));expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true");expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
 });
 it("native return to an AI family restores the last requested receipt page and retained session",async()=>{
  await start();await page("14");const draft=screen.getByLabelText("draft-14");fireEvent.change(draft,{target:{value:"frozen request"}});dirty(true);
@@ -85,8 +85,8 @@ it("native object activation preserves full document identity and does not overw
  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
  await waitFor(()=>expect(screen.getAllByLabelText("draft-03")).toHaveLength(2));
  const object=screen.getAllByLabelText("draft-03").find(input=>input!==main)!;fireEvent.change(object,{target:{value:"object A"}});
- await page("17");select("文档 doc_a");await waitFor(()=>expect(window.location.hash).toBe("#page=03"));
- expect(object).toBeVisible();expect(object).toHaveValue("object A");expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true");
+ await page("17");select("文档 · doc_a");await waitFor(()=>expect(window.location.hash).toBe("#page=03"));
+ expect(object).toBeVisible();expect(object).toHaveValue("object A");expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true");
  select("阅读与编辑");await waitFor(()=>expect(main).toBeVisible());expect(main).toHaveValue("singleton A");expect(screen.getAllByTestId("dock-document").filter(node=>node.textContent==="doc_a").length).toBeGreaterThanOrEqual(2);
 });
 
@@ -104,7 +104,7 @@ it("explicit working recovery adopts its scene without overwriting a retained do
   return original(op,p);
  });
  fireEvent.click(screen.getByRole("button",{name:"模拟打开A"}));await screen.findByLabelText("draft-03");const main=screen.getByLabelText("draft-03");
- fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true"));
+ fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true"));
  const object=screen.getAllByLabelText("draft-03").find(input=>input!==main)!;fireEvent.change(object,{target:{value:"object A is not page17"}});
  await waitFor(()=>expect(rejectWrite).toBeTypeOf("function"));await act(async()=>rejectWrite!(new Error("SIMULATED scene write acknowledgement lost")));
  recovery={...structuredClone(failedBase!),recovery_candidates:candidate,recovery_requires_confirmation:true};

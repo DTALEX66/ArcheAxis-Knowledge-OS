@@ -1,14 +1,17 @@
 import { afterEach,beforeEach,describe,expect,it,vi } from "vitest";
-import { act,fireEvent,render,screen,waitFor } from "@testing-library/react";
+import { act,fireEvent,render,screen,waitFor,within } from "@testing-library/react";
 import { useContext,useState } from "react";
 import { createPortal } from "react-dom";
 import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
 import { DockWorkspace } from "../workspace/DockWorkspace";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import type { InspectionHandler } from "../components/Inspector";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import {useDocumentWriteLease} from "../workspace/documentSessions";
 import {layoutPresets} from "../workspace/WorkspaceController";
-const counters=vi.hoisted(()=>({mounts:0,closes:0,working:null as null|{server:{workspace_id:string;restore_epoch:string};state:{active_document:null}}}));
+const counters=vi.hoisted(()=>({mounts:0,closes:0,inspect:new Map<string,InspectionHandler>(),working:null as null|{server:{workspace_id:string;restore_epoch:string};state:{active_document:null}}}));
 vi.mock("../presentation/useCoreWorkingState",()=>({useOptionalCoreWorkingState:()=>counters.working}));
-vi.mock("../spaces/SpaceView",()=>({SpaceView:({uiPageId,initialDocumentId}:{uiPageId:string;initialDocumentId?:string})=>{const [draft,setDraft]=useState(()=>{counters.mounts++;return "";});const outlet=useContext(StitchResearchOutlet);const lease=useDocumentWriteLease(initialDocumentId);return <><label>文档草稿 {uiPageId}<input aria-label={`draft-${uiPageId}${initialDocumentId?":"+initialDocumentId:""}`} disabled={!lease.canWrite} value={draft} onChange={e=>setDraft(e.target.value)}/></label>{uiPageId==="05"&&outlet?.host?createPortal(<span>SIMULATED related 05</span>,outlet.host):null}</>;}}));
+vi.mock("../spaces/SpaceView",()=>({SpaceView:({uiPageId,initialDocumentId,onInspect}:{uiPageId:string;initialDocumentId?:string;onInspect:InspectionHandler})=>{counters.inspect.set(`${uiPageId}:${initialDocumentId??""}`,onInspect);const [draft,setDraft]=useState(()=>{counters.mounts++;return "";});const outlet=useContext(StitchResearchOutlet);const lease=useDocumentWriteLease(initialDocumentId);return <><label>文档草稿 {uiPageId}<input aria-label={`draft-${uiPageId}${initialDocumentId?":"+initialDocumentId:""}`} disabled={!lease.canWrite} value={draft} onChange={e=>setDraft(e.target.value)}/></label>{uiPageId==="05"&&outlet?.host?createPortal(<span>SIMULATED related 05</span>,outlet.host):null}</>;}}));
 const observers=new Set<ResizeObserverStub>();
 class ResizeObserverStub{
  targets=new Set<Element>();
@@ -16,10 +19,44 @@ class ResizeObserverStub{
  observe(target:Element){this.targets.add(target);}unobserve(target:Element){this.targets.delete(target);}disconnect(){this.targets.clear();}
 }
 function resizeSurface(width:number,height:number){for(const observer of observers)for(const target of observer.targets)if(target.classList.contains("dock-surface"))observer.callback([{target,contentRect:{width,height}} as ResizeObserverEntry],observer as unknown as ResizeObserver);}
-beforeEach(()=>{observers.clear();vi.stubGlobal("ResizeObserver",ResizeObserverStub);counters.mounts=0;counters.working=null;});
+beforeEach(()=>{observers.clear();vi.stubGlobal("ResizeObserver",ResizeObserverStub);counters.mounts=0;counters.working=null;counters.inspect.clear();resetDiagnostics();});
 afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it("uses the confirmed document title, refreshes it after save, and keeps the same writer and draft",async()=>{
+  const inspect=vi.fn();render(<DockWorkspace {...props} initialDocumentId="doc-a" onInspect={inspect}/>);
+  const draft=await screen.findByLabelText("draft-03:doc-a");fireEvent.change(draft,{target:{value:"unsaved text stays here"}});
+  const originalHandler=counters.inspect.get("03:doc-a")!;
+  const target={title:"研究笔记",source:"关联原件的文档",lifecycle:"已保存",identityDetails:{document_id:"doc-a",version:1,source_id:"source-a"}};
+  act(()=>originalHandler(target,{reveal:false}));
+  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
+  await screen.findByRole("tab",{name:"研究笔记"});expect(counters.inspect.get("03:doc-a")).not.toBe(originalHandler);
+  const objectHandler=counters.inspect.get("03:doc-a")!;
+  act(()=>objectHandler({...target,title:"已保存的新标题",identityDetails:{...target.identityDetails,version:2}},{reveal:false}));
+  await screen.findByRole("tab",{name:"已保存的新标题"});expect(counters.inspect.get("03:doc-a")).toBe(objectHandler);
+  expect(inspect).toHaveBeenCalledWith(target,{reveal:false});expect(draft).toHaveValue("unsaved text stays here");
+  expect(screen.getAllByLabelText("draft-03:doc-a")).toContain(draft);expect(counters.mounts).toBe(2);
+  expect(screen.getAllByLabelText("draft-03:doc-a").filter(input=>!(input as HTMLInputElement).disabled)).toHaveLength(1);
+ });
+ it("ignores another document's inspection and preserves the full identity behind an explicit details action",async()=>{
+  const documentId="document-0123456789abcdef0123456789abcdef";
+  const view=render(<><DockWorkspace {...props} initialDocumentId={documentId}/><DiagnosticConsole/></>);
+  await screen.findByLabelText(`draft-03:${documentId}`);fireEvent.click(screen.getByText("布局与面板"));
+  fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await screen.findByRole("tab",{name:"文档 · 89abcdef"});
+  const handler=counters.inspect.get(`03:${documentId}`)!;
+  act(()=>handler({title:"另一文档的标题",source:"原创笔记",lifecycle:"已保存",identityDetails:{document_id:"other-document"}}));
+  expect(screen.getByRole("tab",{name:"文档 · 89abcdef"})).toBeInTheDocument();expect(screen.queryByRole("tab",{name:"另一文档的标题"})).not.toBeInTheDocument();
+  expect(within(screen.getByRole("region",{name:"诊断控制台"})).queryByText(documentId,{exact:false})).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button",{name:"查看文档详情：文档视图详细信息"}));
+  expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent(documentId);
+  view.rerender(<><DockWorkspace {...props} initialDocumentId="different-document"/><DiagnosticConsole/></>);
+  const oldObjectHandler=handler;
+  act(()=>oldObjectHandler({title:"原文档的更新标题",source:"原创笔记",lifecycle:"已保存",identityDetails:{document_id:documentId}}));
+  await screen.findByRole("tab",{name:"原文档的更新标题"});
+  fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
+  await screen.findByRole("tab",{name:"文档 · document"});
+ });
+
  it("uses Chinese preset labels while retaining the protocol key and mounted draft through save",async()=>{
   counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
   const identity={workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",recovery_reason:null};
@@ -146,12 +183,12 @@ describe("actual Dockview retained business consumer",()=>{
  it("keeps object document titles distinct while the singleton changes semantic page and layout is restored",async()=>{
   const view=render(<DockWorkspace {...props} initialDocumentId="doc-a"/>);await screen.findByLabelText("draft-03:doc-a");
   fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
-  await screen.findByRole("tab",{name:"文档 doc-a"});
+  await screen.findByRole("tab",{name:"文档 · doc-a"});
   view.rerender(<DockWorkspace {...props} uiPageId="20" initialDocumentId="doc-b"/>);
-  await screen.findByRole("tab",{name:"版本、来源与历史"});expect(screen.getByRole("tab",{name:"文档 doc-a"})).toBeInTheDocument();expect(screen.getByLabelText("draft-03:doc-a")).toBeInTheDocument();
+  await screen.findByRole("tab",{name:"版本、来源与历史"});expect(screen.getByRole("tab",{name:"文档 · doc-a"})).toBeInTheDocument();expect(screen.getByLabelText("draft-03:doc-a")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button",{name:"重置视图布局"}));
-  fireEvent.click(screen.getByRole("button",{name:"重开文档 doc-a"}));
-  await waitFor(()=>expect(screen.getByRole("tab",{name:"文档 doc-a"})).toHaveAttribute("aria-selected","true"));expect(screen.queryByRole("tab",{name:"document.doc-a"})).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button",{name:"重开 文档 · doc-a"}));
+  await waitFor(()=>expect(screen.getByRole("tab",{name:"文档 · doc-a"})).toHaveAttribute("aria-selected","true"));expect(screen.queryByRole("tab",{name:"document.doc-a"})).not.toBeInTheDocument();
  });
 
  it("opens ordinary navigation in the current tab group instead of creating an unsolicited split",async()=>{
@@ -274,7 +311,7 @@ describe("actual Dockview retained business consumer",()=>{
   fireEvent.click(screen.getByText("布局与面板"));
   fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(screen.getAllByLabelText("draft-03:doc-a")).toHaveLength(2));expect(screen.getAllByLabelText("draft-03:doc-a").filter(input=>(input as HTMLInputElement).disabled)).toHaveLength(1);
   view.rerender(<DockWorkspace {...props} initialDocumentId="doc-b"/>);await waitFor(()=>expect(screen.getByLabelText("draft-03:doc-a")).toBeEnabled());fireEvent.change(screen.getByLabelText("draft-03:doc-a"),{target:{value:"object draft retained"}});
-  fireEvent.click(screen.getByRole("button",{name:"关闭当前视图"}));fireEvent.click(screen.getByRole("button",{name:"重开文档 doc-a"}));await waitFor(()=>expect(screen.getByLabelText("draft-03:doc-a")).toHaveValue("object draft retained"));expect(counters.mounts).toBe(2);
+  fireEvent.click(screen.getByRole("button",{name:"关闭当前视图"}));fireEvent.click(screen.getByRole("button",{name:"重开 文档 · doc-a"}));await waitFor(()=>expect(screen.getByLabelText("draft-03:doc-a")).toHaveValue("object draft retained"));expect(counters.mounts).toBe(2);
   fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(screen.getAllByLabelText("draft-03:doc-b")).toHaveLength(2));expect(counters.mounts).toBe(3);
   fireEvent.click(screen.getByRole("button",{name:"保存布局"}));expect(await screen.findByText(/对象布局需真实工作区身份/)).toBeInTheDocument();
  });

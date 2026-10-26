@@ -4,6 +4,7 @@ import { DockviewReact,DockviewDefaultTab,themeDark,type IDockviewPanelProps,typ
 import "dockview-react/dist/styles/dockview.css";
 import "./dock-workspace.css";
 import { SpaceView } from "../spaces/SpaceView";
+import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
 import { findUiPage,defaultUiPage } from "../presentation/uiPages";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
@@ -52,6 +53,8 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const lockedRef=useRef(locked);lockedRef.current=locked;
  const presetRef=useRef(preset);presetRef.current=preset;
  const retained=useRef(new Map<string,ViewProps>());retained.current.set(id,view);
+ const documentTitles=useRef(new Map<string,string>());
+ const inspections=useRef(new Map<string,ViewProps["onInspect"]>());
  const acceptance=useRef(onActivateView);acceptance.current=onActivateView;
  const controlled=useRef(0),acceptedPanel=useRef(id),interaction=useRef(0);
  const rollbackPending=useRef(false);
@@ -74,8 +77,26 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const components=useMemo(()=>({business:function BusinessSlot(panel:IDockviewPanelProps){const slot=useRef<HTMLDivElement>(null);const panelId=presentationPanelId(panel.api.id);useLayoutEffect(()=>{const container=slot.current;if(container)container.appendChild(registry.host(panelId));const activate=()=>{activations.current.set(panelId,(activations.current.get(panelId)??0)+1);refresh(v=>v+1);};const visibility=panel.api.onDidVisibilityChange(event=>{if(event.isVisible)activate();else refresh(v=>v+1);});if(panel.api.isVisible)activate();return()=>{visibility.dispose();if(parking.current&&registry.host(panelId).parentElement===container)registry.park(panelId,parking.current);};},[panelId]);return <div className="dock-slot" ref={slot}/>;}}),[registry]);
  const ensure=(panelId:string)=>{if(!retained.current.has(panelId)){const objectId=documentObjectId(panelId),pageId=objectId?"03":panelId,definition=findUiPage(pageId);retained.current.set(panelId,{...current.current,uiPageId:pageId,spaceId:definition?.space??"workspace",selectedCapabilityId:null,initialDocumentId:objectId,navigation:undefined,onTrail:undefined});}registry.host(panelId);};
  // 宿主身份只决定保留的业务会话；标签使用该宿主最后获准展示的页面。
- const titleFor=(panelId:string)=>{const objectId=documentObjectId(panelId);if(objectId)return `文档 ${objectId}`;const saved=retained.current.get(panelId);return findUiPage(saved?.selectedCapabilityId?"17":saved?.uiPageId??panelId)?.label??panelId;};
+ const titleFor=(panelId:string)=>{const objectId=documentObjectId(panelId);if(objectId)return documentTitles.current.get(objectId)??`文档 · ${objectId.slice(-8)}`;const saved=retained.current.get(panelId);return findUiPage(saved?.selectedCapabilityId?"17":saved?.uiPageId??panelId)?.label??panelId;};
  const updateTitles=()=>{if(!api.current)return;quiet(()=>{for(const panel of api.current!.panels){const title=titleFor(panel.id);if(panel.title!==title)panel.api.setTitle(title);}});};
+ // Reuse the library's confirmed title and identity; keep a stable callback so
+ // retained readers do not rerun their inspection effect on every layout render.
+ const inspectFor=(panelId:string):ViewProps["onInspect"]=>{
+  let inspect=inspections.current.get(panelId);
+  if(!inspect){
+   inspect=(target,options)=>{
+    if(!mounted.current)return;
+    const saved=retained.current.get(panelId),expected=documentObjectId(panelId)??saved?.initialDocumentId;
+    const documentId=target.identityDetails?.document_id;
+    if(expected&&documentId===expected&&target.title.trim()&&documentTitles.current.get(expected)!==target.title){
+     documentTitles.current.set(expected,target.title);updateTitles();refresh(v=>v+1);
+    }
+    saved?.onInspect(target,options);
+   };
+   inspections.current.set(panelId,inspect);
+  }
+  return inspect;
+ };
  const expandedPreference=()=>{
   const saved=responsiveLayout.current,dock=api.current;
   // Close/add events may still be coalesced when the next resize/save arrives.
@@ -148,7 +169,8 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
    <button disabled={locked||!(view.initialDocumentId??working?.state.active_document)} onClick={()=>action(()=>open(documentPanelId(view.initialDocumentId??working!.state.active_document!),"right"))}>并排打开当前文档</button>
    <button onClick={()=>{const panel=active();if(panel)api.current?.removePanel(panel);}}>关闭当前视图</button>
    <button disabled={locked||!api.current?.activePanel} onClick={()=>action(()=>{const selected=document.querySelector('.dock-workspace [role="tab"][aria-selected="true"]')?.getAttribute("data-tab-panel-id");const keep=api.current?.panels.find(panel=>panel.id===selected)??active();if(!keep||!api.current)return;if(view.hasUnsavedDrafts&&!window.confirm("有未保存草稿。关闭其他视图只关闭视图，草稿与已提交任务仍保留；继续？"))return;for(const panel of [...api.current.panels]){if(panel.id!==keep.id)api.current.removePanel(panel);}})}>关闭其他视图</button>
-   {[...retained.current.keys()].filter(panelId=>documentObjectId(panelId)).map(panelId=><button key={panelId} onClick={()=>open(panelId,"right")}>重开文档 {documentObjectId(panelId)}</button>)}
+   {[...retained.current.keys()].filter(panelId=>documentObjectId(panelId)).map(panelId=><button key={panelId} onClick={()=>open(panelId,"right")}>重开 {titleFor(panelId)}</button>)}
+   {[...retained.current.keys()].some(panelId=>documentObjectId(panelId))&&<RawReceiptButton label="文档视图详细信息" visibleLabel="查看文档详情" category="data" payload={[...retained.current.keys()].filter(panelId=>documentObjectId(panelId)).map(panelId=>({title:titleFor(panelId),document_id:documentObjectId(panelId)}))}/>}
    <button disabled={locked||compactFallback} onClick={()=>action(()=>{const panel=active();if(panel)api.current?.addFloatingGroup(panel,{position:{left:24,top:24},width:600,height:440});fitCurrent.current();})}>浮动当前面板</button>
    <button disabled={locked} onClick={()=>action(()=>{const panel=active(),target=api.current?.panels.find(p=>p.group!==panel?.group);if(panel&&target)panel.api.moveTo({group:target.group,position:"right"});})}>停靠当前面板</button>
    <button onClick={()=>{interaction.current++;const panel=active();if(panel)panel.api.isMaximized()?panel.api.exitMaximized():panel.api.maximize();}}>缩放当前面板</button>
@@ -165,6 +187,6 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
   {controller.snapshot?.recovery_reason?<p role="alert">布局需要确认恢复。请展开“布局与面板”核对并确认恢复。</p>:null}
   <div className="dock-surface" ref={surface}><DockviewReact components={components} defaultTabComponent={AccessibleDockTab} rightHeaderActionsComponent={DockGroupActions} theme={themeDark} onReady={onReady} locked={locked} disableDnd={locked||compactFallback}/></div>
   <div hidden aria-hidden="true" ref={parking}/>
-  {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><StitchResearchOutlet.Provider value={researchOutlet && !(panelId===id && api.current?.activePanel?.id===panelId && api.current.getPanel(panelId)?.api.isVisible) ? {...researchOutlet,host:null} : researchOutlet}><SpaceView {...saved} navigation={panelId===id?view.navigation:saved.navigation} sourceJourney={{target:panelId==="03"?sourceTarget:undefined,onChange:changeSource}} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></StitchResearchOutlet.Provider></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
+  {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><StitchResearchOutlet.Provider value={researchOutlet && !(panelId===id && api.current?.activePanel?.id===panelId && api.current.getPanel(panelId)?.api.isVisible) ? {...researchOutlet,host:null} : researchOutlet}><SpaceView {...saved} onInspect={inspectFor(panelId)} navigation={panelId===id?view.navigation:saved.navigation} sourceJourney={{target:panelId==="03"?sourceTarget:undefined,onChange:changeSource}} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></StitchResearchOutlet.Provider></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
  </section>;
 }
