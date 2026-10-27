@@ -19,6 +19,43 @@ def load_probe():
 
 
 class GroupedImportDisclosureTests(unittest.TestCase):
+    def test_resource_settings_requires_real_current_tab_and_unique_enabled_refresh(self):
+        probe = load_probe()
+        modes = ("templates", "already_selected", "wrong_page", "missing", "duplicate", "disabled_tab", "missing_tab", "duplicate_tab", "hidden_tab",
+                 "failed_open", "missing_refresh", "duplicate_refresh", "disabled_refresh", "hidden_refresh")
+        for mode in modes:
+            with self.subTest(mode=mode):
+                state, clicks = {"selected": mode == "already_selected"}, []
+                def js(script):
+                    selected = state["selected"]
+                    refresh = '<button>重新读取当前宿主能力</button>' if selected else ''
+                    if mode == "missing_refresh": refresh = ''
+                    if mode == "duplicate_refresh": refresh += refresh
+                    if mode == "disabled_refresh": refresh = refresh.replace('<button>', '<button disabled>')
+                    if mode == "hidden_refresh": refresh = '<div hidden>' + refresh + '</div>'
+                    tab = '<button role="tab" aria-selected="' + str(selected).lower() + '"' + (' disabled' if mode == "disabled_tab" else '') + '>接入来源与运行设置</button>'
+                    if mode == "missing_tab": tab = ''
+                    if mode == "duplicate_tab": tab += tab
+                    if mode == "hidden_tab": tab = '<div hidden>' + tab + '</div>'
+                    surface = '<section aria-label="资源与扩展内容">' + tab + refresh + '</section>'
+                    markup = '' if mode == "missing" else surface
+                    if mode == "duplicate": markup += surface
+                    markup += '<div hidden>' + surface + '</div>'
+                    page = "03" if mode == "wrong_page" else "15"
+                    return evaluate(script, '<main data-current-page-id="' + page + '"></main>' + markup)
+                class UI:
+                    def click_revealed_selector(self, selector):
+                        assert "@role='tab'" in selector and "接入来源与运行设置" in selector
+                        clicks.append(selector)
+                        state["selected"] = mode != "failed_open"
+                def wait(script): self.assertTrue(js(script), "Current unique visible resource controls are required")
+                if mode in ("templates", "already_selected"):
+                    probe.open_resource_settings(UI(), js, wait)
+                    self.assertTrue(js(probe.RESOURCE_SETTINGS_OBSERVATION)["refresh_enabled"])
+                    self.assertEqual(len(clicks), 0 if mode == "already_selected" else 1)
+                else:
+                    with self.assertRaises(AssertionError): probe.open_resource_settings(UI(), js, wait)
+
     def test_short_context_label_requires_full_ui_diagnostic_and_exact_core_identity(self):
         probe = load_probe()
         expected_id = "knowledge-" + "a" * 64

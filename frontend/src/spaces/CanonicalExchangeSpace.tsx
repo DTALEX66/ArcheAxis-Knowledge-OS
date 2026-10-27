@@ -98,7 +98,7 @@ export function CanonicalExchangeSpace({initialDocumentId,onOpenDocument,onOpenP
   useEffect(()=>{if(tab==="teaching")return;onTrail?.(tab==="originals"&&original?[{id:`source:${original.source.source_id}`,label:original.original.name,region:"exchange-original",detail:original.jobId??"原件"}]:tab==="documents"&&saved?[{id:`document:${saved.document_id}`,label:saved.title,region:"exchange-export",detail:`已保存 v${saved.version}`}]:[]);},[tab,original,saved,onTrail]);
   return <section className="stitch-exchange-page" aria-label="导入、导出与互通">
     <header className="exchange-header"><div><h2>导入、导出与互通</h2><p>原件、转换产物、已保存文档与人工交换分别核对。</p></div><span>本地工作区 · 人工选择</span></header>
-    <nav className="exchange-tabs" aria-label="导入导出区域">{tabs.map(([id,label])=><button key={id} aria-pressed={tab===id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <nav className="exchange-tabs" aria-label="导入导出区域">{tabs.map(([id,label])=><button key={id} data-guide={id==="originals"?"import-originals-tab":undefined} aria-pressed={tab===id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     {/* Keep sessions mounted across tabs; theme updates never key or recreate an editor. */}
     <section hidden={tab!=="originals"} aria-label="原件与转换" id="exchange-original">
       <section className="exchange-card"><h3>导入自己的资料</h3>

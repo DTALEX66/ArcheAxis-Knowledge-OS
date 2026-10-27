@@ -108,6 +108,34 @@ return {reader_count:readers.length,toolbar_count:reader?.querySelectorAll('.sti
 """.strip()
 
 
+RESOURCE_SETTINGS_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const resources=[...document.querySelectorAll('section[aria-label="资源与扩展内容"]')].filter(visible);
+const root=resources.length===1?resources[0]:null;
+const tabs=[...(root?.querySelectorAll('button[role="tab"]')??[])].filter(n=>visible(n)&&n.textContent==='接入来源与运行设置');
+const refresh=[...(root?.querySelectorAll('button')??[])].filter(n=>visible(n)&&n.textContent==='重新读取当前宿主能力');
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ resource_count:resources.length,tab_count:tabs.length,tab_enabled:tabs.length===1&&!tabs[0].matches(':disabled'),
+ selected:tabs.length===1&&tabs[0].getAttribute('aria-selected')==='true',
+ refresh_count:refresh.length,refresh_enabled:refresh.length===1&&!refresh[0].matches(':disabled')};
+""".strip()
+
+
+def open_resource_settings(ui, js, wait):
+    """Use the current resource tab before changing a workspace capability."""
+    wait("const view=(()=>{" + RESOURCE_SETTINGS_OBSERVATION + "})();return view.page==='15'&&view.resource_count===1&&view.tab_count===1&&view.tab_enabled;")
+    observed = js(RESOURCE_SETTINGS_OBSERVATION)
+    assert observed["page"] == "15" and observed["resource_count"] == 1
+    assert observed["tab_count"] == 1 and observed["tab_enabled"], "Missing, ambiguous or disabled resource settings tab"
+    if not observed["selected"]:
+        ui.click_revealed_selector("//section[@aria-label='资源与扩展内容' and not(ancestor-or-self::*[@hidden])]//button[@role='tab' and normalize-space(.)='接入来源与运行设置']")
+    wait("const view=(()=>{" + RESOURCE_SETTINGS_OBSERVATION + "})();return view.page==='15'&&view.resource_count===1&&view.tab_count===1&&view.tab_enabled&&view.selected&&view.refresh_count===1&&view.refresh_enabled;")
+    current = js(RESOURCE_SETTINGS_OBSERVATION)
+    assert current["page"] == "15" and current["resource_count"] == 1 and current["tab_count"] == 1
+    assert current["tab_enabled"] and current["selected"] and current["refresh_count"] == 1 and current["refresh_enabled"], "Resource settings did not become uniquely visible and enabled"
+
+
 def open_reader_attributes(ui, js):
     """Open current reader metadata through its rendered control, not hidden DOM."""
     observed = js(READER_ATTRIBUTES_OBSERVATION)
@@ -688,8 +716,10 @@ if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(
 for(const a of scroll){let b=a.getBoundingClientRect(),l=Math.max(0,b.left),t=Math.max(0,b.top),rr=Math.min(innerWidth,b.right),bb=Math.min(innerHeight,b.bottom);
  for(let p=a.parentElement;p;p=p.parentElement){const s=getComputedStyle(p),q=p.getBoundingClientRect();if(s.overflowX!=='visible'){l=Math.max(l,q.left+p.clientLeft);rr=Math.min(rr,q.left+p.clientLeft+p.clientWidth);}if(s.overflowY!=='visible'){t=Math.max(t,q.top+p.clientTop);bb=Math.min(bb,q.top+p.clientTop+p.clientHeight);}}
  const style=getComputedStyle(a);
- let dy=/auto|scroll/.test(style.overflowY)?(py>=bb?240:py<=t?-240:0):0;
- let dx=/auto|scroll/.test(style.overflowX)?(px>=rr?240:px<=l?-240:0):0;
+ // Keep a four-CSS-pixel inset when a center misses near a fractional clip
+ // edge. The final hit test above is unchanged; only real wheel placement moves.
+ let dy=/auto|scroll/.test(style.overflowY)?(py>=bb-4?240:py<=t+4?-240:0):0;
+ let dx=/auto|scroll/.test(style.overflowX)?(px>=rr-4?240:px<=l+4?-240:0):0;
  if((dy>0&&a.scrollTop+a.clientHeight>=a.scrollHeight-1)||(dy<0&&a.scrollTop<=0))dy=0;
  if((dx>0&&a.scrollLeft+a.clientWidth>=a.scrollWidth-1)||(dx<0&&a.scrollLeft<=0))dx=0;
  if((!dx&&!dy)||bb<=t||rr<=l)continue;
@@ -2725,6 +2755,7 @@ def capability_refusal_recovery(
         execution_surface="CURRENT_GROUPED_NATIVE_UI",
     )
     ui.page("15")
+    open_resource_settings(ui, js, wait)
     ui.click("重新读取当前宿主能力")
     capability_permission(read, True)
     ui.click_selector("//button[@aria-label='禁用文字解析']")

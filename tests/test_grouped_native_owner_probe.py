@@ -354,6 +354,47 @@ console.log(JSON.stringify({scroll,hidden}));
         self.assertEqual(proof["scroll"]["wheel"]["deltaY"], 0)
         self.assertNotIn("wheel", proof["hidden"])
 
+    def test_reveal_fractional_clip_edge_uses_real_wheel_and_keeps_hit_requirement(self):
+        probe = load_probe()
+        scripts = []
+        probe.GroupedUI(lambda script: scripts.append(script) or {"ready": True, "disabled": False},
+                        lambda _: None, lambda *_: "node", lambda *_: None, []).reveal_selector("//button")
+        harness = r"""
+const observe=new Function('document','XPathResult','innerWidth','innerHeight','getComputedStyle',SOURCE);
+const result={};
+for(const scene of ['bottom','top','blocked','at-end','hidden','disabled','hit']){
+ let cy=scene==='top'?181.3:scene==='blocked'?600:957.1;
+ const panel={parentElement:null,clientLeft:0,clientTop:0,clientWidth:1171,clientHeight:776,
+  scrollWidth:1171,scrollHeight:2000,scrollLeft:0,scrollTop:scene==='at-end'?1224:400,
+  getBoundingClientRect:()=>({left:82,right:1253,top:181.2,bottom:957.2})};
+ const target={parentElement:panel,matches:()=>scene==='disabled',closest:()=>null,
+  getBoundingClientRect:()=>({left:100,right:250,top:cy-20,bottom:cy+20,width:150,height:40}),contains:n=>n===target};
+ panel.contains=n=>n===panel||n===target;
+ const main={};
+ const document={evaluate:()=>({singleNodeValue:target}),elementFromPoint:(x,y)=>{
+  if(x===175&&Math.abs(y-cy)<1e-6)return scene==='hit'||(scene!=='blocked'&&cy>182.2&&cy<956.2)?target:main;
+  return y>181.2&&y<957.2?panel:main;
+ }};
+ const getComputedStyle=()=>({overflowX:'visible',overflowY:scene==='hidden'?'hidden':'auto'});
+ const read=()=>observe(document,{FIRST_ORDERED_NODE_TYPE:1},1920,1080,getComputedStyle);
+ const before=read();
+ if(before.wheel){cy-=before.wheel.deltaY;panel.scrollTop+=before.wheel.deltaY;}
+ result[scene]={before,after:read()};
+}
+console.log(JSON.stringify(result));
+""".replace("SOURCE", json.dumps(scripts[0]))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True, text=True, check=True)
+        proof = json.loads(result.stdout)
+        for scene, direction in (("bottom", 240), ("top", -240)):
+            self.assertFalse(proof[scene]["before"]["ready"])
+            self.assertEqual(proof[scene]["before"]["wheel"]["deltaY"], direction)
+            self.assertTrue(proof[scene]["after"]["ready"])
+        for scene in ("blocked", "at-end", "hidden", "disabled"):
+            self.assertFalse(proof[scene]["before"]["ready"])
+            self.assertNotIn("wheel", proof[scene]["before"])
+        self.assertTrue(proof["hit"]["before"]["ready"])
+        self.assertNotIn("wheel", proof["hit"]["before"])
+
     def test_pointer_observer_reads_semantic_page_identity_instead_of_old_title(self):
         probe = load_probe()
         scripts = []
@@ -2046,7 +2087,10 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
 
             def click_selector(self, selector):
                 actions.append(("selector", selector))
-                if "文档与来源详细信息：文档与来源详细信息" in selector:
+                if "@role='tab'" in selector and "接入来源与运行设置" in selector:
+                    assert state["page"] == "#page=15"
+                    state["resource_settings"] = True
+                elif "文档与来源详细信息：文档与来源详细信息" in selector:
                     state["diagnostic"] = True
                 elif "禁用文字解析" in selector:
                     state["enabled"] = False
@@ -2074,7 +2118,9 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
 
             def click(self, label, scope=""):
                 actions.append(("click", label, scope))
-                if label == "执行真实内容转换":
+                if label == "重新读取当前宿主能力":
+                    assert state.get("resource_settings"), "Capability refresh requires the real resource settings tab"
+                elif label == "执行真实内容转换":
                     state["new_job"] = True
                     state["journal"] = {**copy.deepcopy(frozen), "source_id": "source-exact",
                         "source_revision": document["source_revision"], "kind": "text",
@@ -2139,6 +2185,11 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
             raise AssertionError("unexpected operation")
 
         def js(script):
+            if "资源与扩展内容" in script:
+                selected = state.get("resource_settings", False)
+                markup = '<main data-current-page-id="' + state["page"].removeprefix("#page=") + '"></main><section aria-label="资源与扩展内容"><button role="tab" aria-selected="' + str(selected).lower() + '">接入来源与运行设置</button>'
+                markup += '<button>重新读取当前宿主能力</button>' if selected else ''
+                return evaluate(script, markup + '</section>')
             if script.startswith("const visible=n") or script.startswith("const rows="):
                 return evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False)))
             if "const root=" in script:
@@ -2165,7 +2216,9 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
                     state["journal"]["body"]["deadline_ms"] = 1
 
         def wait(script, *args, **kwargs):
-            if "data-current-page-id" in script or "诊断控制台" in script:
+            if "资源与扩展内容" in script:
+                assert js(script), "Rendered resource settings predicate failed"
+            elif "data-current-page-id" in script or "诊断控制台" in script:
                 assert evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False))), "Rendered reader predicate failed; business page does not expose raw ID"
             if script == "return location.hash==='#page=03'":
                 assert state["page"] == "#page=03", "hydrated scene needs real same-page URL navigation"
