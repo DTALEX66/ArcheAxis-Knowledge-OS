@@ -663,6 +663,7 @@ def test_missing_confirmation_uses_up_original_budget_without_automatic_approval
 def test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget():
     import subprocess
     exit_owned = harness_helper('request_owned_product_exit')
+    exit_owned.__globals__.update(time=probe.time, subprocess=subprocess)
     host = Mock(pid=12, poll=Mock(side_effect=[None, 0]), wait=Mock(return_value=0))
     send, confirm = Mock(return_value={'ok': True, 'value': None}), Mock(return_value=11.5)
     receipt = {}

@@ -2310,7 +2310,30 @@ Owner要求继续完成原审计及对话未完项，并按订阅剩余≤10%收
 
 日志前端六文件68项通过，见 `failure-log-frontend-targeted-r3-20261028`，LOCAL_PASS/source_consistent=true，原0测试参数错误及65通过/1选择器歧义失败分别保留。Core关闭重开、旧身份／旧代际零修改、损坏隔离、actor及字段拒绝、接近草稿预算不影响CAS的3项集成在 `problem-records-rust-log-api-r3` 通过；前两轮原fixture超单条预算及虚构base_version的失败保留，后继改用真实创建的4条文档和合法草稿，未放宽预算或生产校验。其后仅增加读取时在SQLite查询截断至65537字节、在Rust分配/反序列化前判超限及相应负例，须冻结后复测；不声称SQLite C内部或进程RSS有同样上限。
 
-1f29的云CI `40560553595` 已终态FAILURE：13成功、rust-vnext／installer-lifecycle／依赖汇总3失败、Python3.12取消、3策略跳过。实际checkout是合并提交 `dac5c75eda965b5705b26511cb9a90b608b803ba`，父提交main `8d367bac` 与PR head `1f29f4ed`，tree `bc4dc6d790a1d06bfcab47970c830af6e205e283` 与PR head相同，均已读回。Rust document_cloud_loop为7通过/1失败，synthetic worker未产生事件文件；固定5秒dispatch就绪超时是待验证推断，原日志未输出reason/stack，不能定因。后继只增强合成夹具失败诊断，不改5秒、请求断言或生产策略；本地8项通过但未复现云失败，不能据此宣布已解决。
+1f29的云CI `40560553595` 已终态FAILURE：13成功、rust-vnext／installer-lifecycle／依赖汇总3失败、Python3.12取消、3策略跳过。实际checkout观察如下，已与GitHub提交API和原job解码日志核对；这是外部记录观察，不声明该临时合并对象在本地可解析，也不作为产品资格。完整父项与tree保留。
+
+```json
+{
+  "schema": "aaos-ci-checkout-observation/v1",
+  "source_kind": "github_actions_pr_merge_observation",
+  "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+  "workflow_run_id": 40560553595,
+  "job_id": 122389290923,
+  "job_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/40560553595/job/122389290923",
+  "pr_head": "1f29f4edf7cfba835302ae0369f7ff428753812d",
+  "base": "8d367bac4a85bebfbb523503678ade0838faa73e",
+  "parents": [
+    "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "1f29f4edf7cfba835302ae0369f7ff428753812d"
+  ],
+  "checkout_merge": "dac5c75eda965b5705b26511cb9a90b608b803ba",
+  "tree": "bc4dc6d790a1d06bfcab47970c830af6e205e283",
+  "raw_log_sha256": "b6487a3e13051f66b58d6b6f224d3a499efa8c251f2027c05762b708361c388b",
+  "qualification": "EXTERNAL_RECORDED_OBSERVATION_NOT_LOCAL_OBJECT_OR_PRODUCT_QUALIFICATION"
+}
+```
+
+Rust document_cloud_loop为7通过/1失败，synthetic worker未产生事件文件；固定5秒dispatch就绪超时是待验证推断，原日志未输出reason/stack，不能定因。后继只增强合成夹具失败诊断，不改5秒、请求断言或生产策略；本地8项通过但未复现云失败，不能据此宣布已解决。
 
 同次安装日志在 `verify_nsis_install.ps1` 初次窗口WM_CLOSE后30秒未退出，尚未写install-preflight，后续旅程与新增frontend初始化观察均NOT_REACHED。该run的artifact12762885290只有三份工具/OCR/构建记录，无旅程或截图，保存在 `ui-audit-ci1f29-installer122398-artifact`；不是先前24d旅程失败。实际脚本只等Core鉴权与可见窗口标题即发关闭，缺少前端真实就绪前置；具体阻塞分支尚未确定，不能断言已弹确认或发生丢稿。后继已封写标准库Python＋现有PowerShell7/.NET只读CDP观察，子进程独立loopback端口、PID/创建时间归属与30秒共享预算，新增7项真实进程／传输／合成Chromium夹具待统一运行；保留原关闭超时、数据保护及显式授权，不自动确认或强杀。root/bridge就绪仅证前端挂载，不证明异步关闭监听已经就绪，不宣布退出根因已解决。完整冻结检查、新候选原生／新图和新精确head云CI仍待验收，整体PARTIAL、Green未替换、未合并／发布。
 
@@ -2325,3 +2348,37 @@ V13构建准备仅复用V12流水线，在独立run中硬约束未来冻结完�
 同源新观察器8例r3为7通过/1失败，实际Chromium已观察成功，但PowerShell在正确PASS JSON前输出四行VoidTaskResult，严格整段JSON读取拒绝。只读合成复现保留原stdout摘要，不含真实数据；后继仅抑制ConnectAsync与SendAsync的两处无用返回值，未改成读取最后一行或吞协议异常。完整8例仍需复测。已过的37项邻接测试、Core3项和146全前端证据各保留原源绑定，不因只改工具返回值／契约登记而冒充全产品重跑；新SHA CI、构建和三次原生冷启／问题记录清空专项仍独立待验收。
 
 后继冻结 `9b92625cb5120a16f371c548319e270aca4fc740`、补丁54d4的 `ui-audit-installed-startup-ready-r4` 实际8项通过/0跳过，`ui-v13-uihost-followup` 两文件16项与 `ui-v13-uihost-rust-followup` 两项通过；`ui-v13-preflight-final` 全20项LOCAL_PASS，含路由/计数/映射38项与原UI-host生成检查，均source_consistent=true。9b相对146的产品前端只同步生成digest，Core业务实现未变；全前端2436与Core3项继续保留其实际源码身份，不冒称9b全套重跑。新Core/Host/portable、原生问题记录三次冷启与精确head CI尚待执行。官方额度在2026-10-27T19:47:02Z查询后观察剩余18%，未触发≤10%收口；当前正常上传与资格满足后合并的授权有效，失败或未验项不能强行合并。
+
+V13产品实际构建冻结于 `87777c773dd103bea4a613f45f7db621b3f28edd`，保护补丁54d4保持。Core、stage、Host与19746成员便携装配均LOCAL_PASS/source_consistent=true，逻辑总大小1405104155字节。Host SHA256 `7eb72f70c99ebef5a0146a8bdbe1041c4d5d9bc5ab8eb71bcf519771ed60abbf`，Core SHA256 `40b563626a07c5bd9658da9b1b8a8c2289bf930e4d9fbbf4b39b20fe7909db30`，backend-manifest SHA256 `d0bb776d327fd891ff8b92e77d074ce23eacabf54542f6312dbb42a4c0f81b74`。构建回执 `ui-audit-remediation-v13-host/artifacts/frontend-build.json` SHA256 `7cf9dfc930f5a58cf8c8f830522f2afa8659578450174c0ac2f54c62d4c43a20`；便携候选在 `.project-local/runs/be268a2d33/ui-audit-remediation-v13-portable/artifacts/星环便携候选/`，不是Green替换或Owner验收。
+
+`ui-audit-remediation-v13-persistent-log-20261028-r2` 已实际完成一次只读404产生白话反馈／安全问题摘要保存，冷启仍保留同一条记录，可信界面点击清空后第二次冷启仍为空。三个Host均正常退出0，Core均GRACEFUL/0、未强制，driver正常shutdown/0，端口与owned进程清场；业务文档、来源、草稿及模型写入0。主回执SHA256 `f5cea732b7a1560ebce3e9d4f20df62df635b4053da1f11b3780af038b5d09e2`。5张图物理2560×1352、CSS2048×1082、DPR1.25，不能记作物理1920×1080。r1仅在Windows路径表示保护中失败、未进入问题触发，原失败保留。
+
+`ui-audit-remediation-v13-native-navigation` 的16项原生检查全部通过：22页、7菜单至少14px、5主题、3布局、设置与启动入口、16能力族/186设计项目录、参考步骤／3路径首次引导、相关资料、4种系统右键、草稿跨页与退出取消／保存等。主回执SHA256 `ad3e22f909dda7796a19b937e24473df66345eb7e371bc0ad3faa188dec4f382`。正式 `full_ui_audit.screenshots` 588条，584张实际1920×1080和4张原尺寸OS菜单；旁边其他回归帧不混入正式库存。page/console/CSP错误0，Host正常退出0、Core GRACEFUL，端口清场、源与候选哈希未变。此为隔离合成UI检查，不是重新执行模型／转换／教学业务，也不是Owner视觉接受。186项展示仍不等于186项实现。
+
+上述正式588条加持久记录5条共593条输入经元数据、自然尺寸、原PNG哈希、四项来源身份与正常清场核验；这只是打包前准备，未去重前不宣称593张唯一图。旧V12完整包与其业务截图保留原绑定，不用旧像素补充V13缺项。最新全部有内容环节的补拍、实际新包／去重／离线图库／ZIP逐成员验证另列；准备阶段不是截图包已交付。
+
+`87777c77` 的完整云CI40572616434终态FAILURE：12成功、rust-vnext／Python3.12／contracts-vnext／installer-lifecycle及依赖汇总5失败，3项策略跳过。contracts实际261项为248通过/13失败，29子测试通过；Python为6120通过/15失败/116跳过/0错误、485子测试通过。13项共同指向v2能力包测试样本仍引用旧core-document摘要；另2项来源扫描把外部临时CI合并观察当作本地持久源码对象。Rust在cargo fmt失败，后续Rust测试未执行，不能用构建通过替代。三个最小后继分别同步153个真正旧摘要（3个故意错误摘要和14个非法路径引用保留）、仅格式化原新增诊断代码、给唯一执行记录中的显式外部观察增加按字符位置的来源分类。它们的修复后局部检查／新精确head CI须独立记录，原失败不替换。
+
+同次installer的只读frontend启动观察已PASS，普通保存旅程和多页面草稿冲突旅程均ok/清场；分组旅程在禁用文字解析后的第二次退出等待失败。job122441248234、回执 `ui-ci877-installer-artifact/artifacts/installed-native/runs/fd2a08c715/webdriver-f4d22ba9708e/tmp/journey/receipt.json` 保留首个15秒退出等待超时和failure.png；清场再次请求后该Host正常0，owned端口／进程均为空。首次超时无已识别原生确认记录，失败图显示Core暂不可用并处于退出检查。不能把后续正常清场改为首次退出PASS，也不能推断丢稿；现有artifact缺该次Core shutdown报告和阶段记录，根因尚未确定。补充有限被动诊断，不延长退出预算、自动确认或改产品关闭保护。
+
+当前公开分支trae/20261024、origin对应分支和PR203 head已在上传后核对为877完整SHA；对应main双端仍为 `8d367bac4a85bebfbb523503678ade0838faa73e`。六项原有材料继续保留，未混入提交；私有运行／数据／截图包不上传Git。失败CI尚不满足合并条件，没有合并、发布或Green替换。后继提交上传和双端身份须重新读回，不能沿用本次旧读回。
+
+补拍已有工程资料仅复用独立golden副本，不重跑模型／转换／教学写入。grouped r1因Windows长路径复制失败、r2因预存草稿导航确认未承接、r3因探针内层helper命名空间遗漏，原失败均保留；r2/r3已保全编辑缓冲与Core工作状态并正常清场。r4已取得437张新1920×1080图片，其中6条原教学记录只读重开，后续额外布局补图探针命中DIV而失败，原main仍FAIL、子report仍原RUNNING。原13个源文件和克隆业务表快照未变，Host/Core/driver正常退出0、Core GRACEFUL、端口清场。31项未补图精确列于 `.project-local/ui-audit-remediation-v13-grouped-capture-missing-map.json`：24项focus/compare数据布局、2项AI资产/授权上下文和末5页数据状态；其他同源导航画面只能补静态入口，不能假装填充数据态已拍。独立formats r1取得119张1920×1080图、18格式只读展示PASS，原71文件及克隆业务表快照未变，全部owned正常清场。原失败与已核部分像素的派生资格分别处理，不能把后继清场或部分图改称整run PASS。
+
+CI三项最小修复后的 `ui-ci877-contracts-and-source-followup` 实际304通过/0失败、29子测试通过（契约目录261项及来源审计43项）；`ui-ci877-rustfmt-followup` 原cargo fmt命令通过，二者LOCAL_PASS/source_consistent=true，源码为877加补丁 `ee76bacc72b9d7ea9238ec5c135020bc6f2c99c3c7adcc06ac8b19a9a6717bda`，不是新完整Python/Rust或安装CI通过。其后仅为探针追加每次退出ACK／确认观察／原15秒剩余预算与超时快照：相同PID/创建时间的无标题窗口元数据，以及最多16KiB、白名单字段的单一Core shutdown报告；缺失、链接、超限、畸形均只记录有限状态。首个TimeoutExpired保持原对象重抛，finally清场另记attempt，不加IPC、不延长15秒、不改Host或自动选择。源码定向与邻接回归另列，原CI失败仍有效。官方额度在2026-10-27T20:41:40Z查询后观察剩余14%，≤10%停止／交接规则尚未触发。
+
+#### 2026-10-28 V13新截图交付与CI后继
+
+最新截图固定绑定877完整SHA及保护补丁54d4，Host/Core仍为上段7eb7/40b5，未重新标为后继测试提交的构建。正式输入588导航、5持久记录、437分组部分图和119格式图，共1149张；逐RGB完全相同去重0，无相似度删图，无旧V12像素、CAPTURE_ERROR或1280回归帧混入。1140张真实1920×1080、5张真实2560×1352、4张OS菜单保留175×32／193×110／223×147／265×110自然尺寸，没有事后缩放。437张独立资格检查纠正18条共享学习标签页的页码索引，并同时保留原入口和实际页面，不能据此把原main FAIL／子report RUNNING改为通过。
+
+原始包 `.project-local/星环界面审计-20261028-87777c77-V13-原始PNG.zip` 为916818393字节，SHA256 `4ee978372b3d82d2aba1fd8aa57256789cb6350c8e266aaeffafd6687666003e`；云端上传准备包 `.project-local/星环界面审计-20261028-87777c77-V13-云端JPEG90.zip` 为331220924字节，SHA256 `9cd00b6095d00982a70b092c681630b206e68d9b23870e85b1a6e933f2eb87fe`，包含1145张JPEG90/4:4:4和4张原字节OS PNG。两个离线图库的筛选、搜索、键盘及零网络请求检查通过；原图哈希、自然尺寸、ZIP CRC和全部成员SHA均通过。聚合回执 `ui-v13-final-cloud-package/artifacts/final-package-delivery.json` SHA256 `2220e64cf605ae96f32ddd92991325b547c6cbd26e5f865f5237255d72f0a184`，封存回执SHA256 `36d52d68a1e0ebc3449857e3ecbdbb134c41aa7ea48b6f73718eed8ab6ea593e`。打包观察器为877加补丁34f097，采集仍877加54d4，两者分开；这只是包资格，不是完整产品通过或实际外发云端。
+
+包内保留31项分组业务图缺口、18项原导航声明不可展示项（合计49条不是49个已证实产品故障）、额外布局菜单探针原错误、第5教学记录assisted=false与原计划不一致、已处理对话框的迟到回调警告。全部有内容环节尚未补齐，不能声称全流程已完成。原V12包保持原源绑定；本轮没有模型推理、转换或教学写入，没有Green替换／安装／发布。全部本轮owned Host/Core/driver均已正常结束，既有Owner预览窗口保持原状，不再启动程序。
+
+退出诊断邻接回归 `ui-ci877-exit-diagnostics-neighbors` 四文件首轮135通过/1失败，失败是AST测试夹具未提供新引用time，并非产品退出断言；仅在该夹具提供原probe.time/subprocess后，`ui-ci877-exit-ast-consumer-followup` 原失败项1通过，原135/1记录保留。新增的诊断不声称修复installer退出根因。`ui-ci877-repair-preflight` 因未提交源码拒绝head对齐；worktree模式19项中18通过/1失败，39处原有CRLF未批量改写；沿Git规范化的index模式 `ui-ci877-repair-index-preflight` 19项LOCAL_PASS/source_consistent=true。提交后仍需精确head模式及新云CI，不能用index通过代替。
+
+既有预览入口 `.project-local/AAOS-UI-Preview-20261026.cmd` 已仅改候选目标到V13；原UTF8检查输出诊断及quote-only r2失败均保留。r3只将--check分支三行输出换为ASCII，env、候选和运行分支不变；真实检查三行完整、stderr为空、exit0，入口SHA256 `35f08287130b775f477e394502c96e8c1d6c8e5e09822f818e4ff955548c6a61`，回执 `ui-audit-remediation-v13-preview-target-update-r3/artifacts/preview-update.json` SHA256 `cf71871cea6aced0035fe635944cecb673f304490497f7f589fe8b17ea476646`。只确认TARGET_UPDATED_NOT_LAUNCHED，不把CMD内部唯一机制写成已确定。
+
+`ui-ci877-python-lint-followup` 原四文件Ruff检查17项失败；独立对照HEAD确认16项早已存在，本轮新增1项为time导入排序，已最小修正。`ui-ci877-exit-import-lint-followup` 对受影响的退出诊断测试文件Ruff通过，LOCAL_PASS/source_consistent=true，源码877加补丁 `b9d9fa9757bf8d839ac8f624e403c93997cab8a8bac6bdedb44c887c77061e79`。未批量改历史闭包／命名／lambda，不将单文件后继通过替换四文件原失败。产品前端及Core业务源码相对877未变，后继修改集中在契约样本、Rust测试格式、探针有限诊断、相邻测试及当前证据文档。
+
+2026-10-27T21:01:40Z官方查询后观察主订阅已用88%、剩余12%，secondary未知；≤10%停止／交接条件尚未触发。阈值触发后仅安全封存与授权交付，不启动新开发／构建／测试，不强行合并失败分支，不因额度重置自动恢复。未捕获页面异常兜底、物理断电窗口、恢复RSS、多栏OCR代表质量、静态人物与Owner视觉接受仍为待办；当前整体PARTIAL。

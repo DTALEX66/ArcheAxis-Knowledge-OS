@@ -163,7 +163,62 @@ def confirm_owned_synthetic_close(host, identity, record, timeout):
     return confirm_synthetic_close(host, identity, record, timeout, observe, choose)
 
 
-def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt, *, confirm_synthetic=None):
+def read_owned_core_shutdown_report(work):
+    """Read one bounded, allowlisted file from this synthetic journey only."""
+    path = work / "data" / "core-shutdown-result.json"
+    try:
+        for item in (work, path.parent, path):
+            # lstat reparse metadata also works on the supported Python 3.11.
+            if item.is_symlink() or getattr(item.lstat(), "st_file_attributes", 0) & 0x400:
+                return {"status": "REFUSED_LINK"}
+        with path.open("rb") as stream:
+            raw = stream.read(16385)
+    except FileNotFoundError:
+        return {"status": "MISSING"}
+    except OSError as error:
+        return {"status": "READ_ERROR", "error_type": type(error).__name__}
+    if len(raw) > 16384:
+        return {"status": "TOO_LARGE", "limit_bytes": 16384}
+    result = {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+    try:
+        value = json.loads(raw)
+    except (UnicodeDecodeError, ValueError):
+        return dict(result, status="INVALID_JSON")
+    if not (isinstance(value, dict) and all(key in value for key in ("pid", "method", "outcome",
+            "request_acknowledged", "forced_attempted", "return_code", "wait_reaped", "elapsed_ms"))
+            and type(value.get("pid")) is int and 0 < value["pid"] < 2 ** 32
+            and type(value.get("method")) is str and value["method"] in {"session_http", "legacy_stdio"}
+            and type(value.get("outcome")) is str and value["outcome"] in {"UNKNOWN", "ALREADY_EXITED", "FORCED", "GRACEFUL", "ERROR"}
+            and all(type(value.get(key)) is bool for key in ("request_acknowledged", "forced_attempted", "wait_reaped"))
+            and (value.get("return_code") is None or (type(value["return_code"]) is int and -(2 ** 31) <= value["return_code"] < 2 ** 31))
+            and type(value.get("elapsed_ms")) is int and 0 <= value["elapsed_ms"] < 2 ** 64):
+        return dict(result, status="INVALID_SCHEMA")
+    return dict(result, status="READ_OK", attribution="FILE_SNAPSHOT_ONLY_MAY_PREDATE_THIS_HOST_EXIT",
+                report={key: value[key] for key in ("pid", "method", "outcome", "request_acknowledged",
+                    "forced_attempted", "return_code", "wait_reaped", "elapsed_ms")})
+
+
+def owned_exit_timeout_snapshot(host, launch_identity, work):
+    """Passive snapshot before cleanup retries; no IPC, window text or actions."""
+    result = {"stage": "AFTER_WAIT_TIMEOUT_BEFORE_CLEANUP_RETRY",
+              "launch_identity": dict(launch_identity), "popen_exit_code": host.poll()}
+    try:
+        rows = [row for row in native_process_rows() if row["pid"] == launch_identity["pid"]]
+        result["observed_processes"] = [{"pid": row["pid"], "created": row["created"]} for row in rows]
+        result["same_creation_observed"] = len(rows) == 1 and rows[0]["created"] == launch_identity["created"]
+        if result["same_creation_observed"]:
+            native = load("exit_timeout_owned_windows", REPO / "scripts/probes/aaos_native_menu_exit.py")
+            windows = native.OwnedWindows(host.pid).list()
+            result["windows"] = [{key: row[key] for key in ("hwnd", "class", "visible", "thread")}
+                                 for row in windows[:64]]
+            result["windows_truncated"] = len(windows) > 64
+    except (OSError, RuntimeError, ValueError) as error:
+        result["window_snapshot_error_type"] = type(error).__name__
+    result["core_shutdown_result"] = read_owned_core_shutdown_report(work)
+    return result
+
+
+def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt, *, confirm_synthetic=None, diagnose_timeout=None):
     """Exit ACK may disappear with WebView; only this owned process's exit 0 qualifies."""
     assert launch_identity and launch_identity["pid"] == host.pid, "Owned launch identity missing"
     assert any(row["pid"] == host.pid and row["created"] == launch_identity["created"]
@@ -171,6 +226,8 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
     assert host.poll() is None, "Owned host exited before requested product exit"
     record = {"pid": host.pid, "created": launch_identity["created"], "requested": True}
     receipt.setdefault("requested_product_exits", []).append(record)
+    record["attempt_number"] = len(receipt["requested_product_exits"])
+    request_started = time.monotonic()
     try:
         reply = request_exit()
     except OSError as error:
@@ -190,11 +247,38 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
         else:
             assert isinstance(reply, dict) and reply.get("ok") is True and "value" in reply, reply
             record["ack"] = "CONFIRMED"
+    record["ack_elapsed_ms"] = round((time.monotonic() - request_started) * 1000, 3)
     timeout = 15
-    if confirm_synthetic is not None:
-        timeout = confirm_synthetic(record, timeout)
-        assert 0 <= timeout <= 15, "Native confirmation exceeded the original exit budget"
-    code = host.wait(timeout=timeout)
+    record["shared_exit_budget_seconds"] = timeout
+    confirmation_started = time.monotonic()
+    try:
+        if confirm_synthetic is not None:
+            timeout = confirm_synthetic(record, timeout)
+            assert 0 <= timeout <= 15, "Native confirmation exceeded the original exit budget"
+    finally:
+        record["confirmation_observation"] = {
+            "enabled": confirm_synthetic is not None,
+            "elapsed_ms": round((time.monotonic() - confirmation_started) * 1000, 3),
+            "owned_yes_posted": record.get("native_confirmation", {}).get("posted") is True}
+    record["wait_timeout_seconds"] = timeout
+    wait_started = time.monotonic()
+    try:
+        code = host.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        record["wait_result"] = "TIMEOUT"
+        record["wait_elapsed_ms"] = round((time.monotonic() - wait_started) * 1000, 3)
+        record["request_to_timeout_ms"] = round((time.monotonic() - request_started) * 1000, 3)
+        if diagnose_timeout is not None:
+            observation_started = time.monotonic()
+            try:
+                record["timeout_snapshot"] = diagnose_timeout()
+            except Exception as error:
+                record["timeout_snapshot_error_type"] = type(error).__name__
+            record["timeout_snapshot_elapsed_ms"] = round((time.monotonic() - observation_started) * 1000, 3)
+        raise  # Preserve the first timeout; finally cleanup is a separate attempt.
+    record["wait_result"] = "RETURNED"
+    record["wait_elapsed_ms"] = round((time.monotonic() - wait_started) * 1000, 3)
+    record["request_to_wait_return_ms"] = round((time.monotonic() - request_started) * 1000, 3)
     exited = code == 0 and host.poll() == 0
     receipt.setdefault("host_shutdowns", []).append({
         "pid": host.pid, "created": launch_identity["created"], "ack": record["ack"],
@@ -1909,7 +1993,8 @@ def main():
                 "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('exit_application').then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
                 "args": []}), receipt,
             confirm_synthetic=lambda record, timeout: confirm_owned_synthetic_close(
-                owned_host, identity_record, record, timeout))
+                owned_host, identity_record, record, timeout),
+            diagnose_timeout=lambda: owned_exit_timeout_snapshot(owned_host, identity_record, work))
         if session:
             # Host has already verifiably exited with code 0.
             with suppress(OSError, RuntimeError):

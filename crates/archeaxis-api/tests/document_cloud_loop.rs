@@ -193,13 +193,24 @@ raise SystemExit(worker.main())
             assert_eq!(result["execution_verified"], true, "{}", diagnostics());
         }
         let events = std::fs::read(&events).unwrap_or_else(|error| {
-            panic!("Cannot read synthetic worker events: {error}; {}", diagnostics())
+            panic!(
+                "Cannot read synthetic worker events: {error}; {}",
+                diagnostics()
+            )
         });
         let operations: Value = serde_json::from_slice(&events).unwrap_or_else(|error| {
-            panic!("Invalid synthetic worker events: {error}; {}", diagnostics())
+            panic!(
+                "Invalid synthetic worker events: {error}; {}",
+                diagnostics()
+            )
         });
         if tamper {
-            assert_eq!(operations, json!(["search", "article"]), "{}", diagnostics());
+            assert_eq!(
+                operations,
+                json!(["search", "article"]),
+                "{}",
+                diagnostics()
+            );
         } else {
             assert_eq!(
                 operations,
