@@ -30,3 +30,5 @@ Owner要求普通用户能看懂各环节出了什么问题、接下来怎么做
 本批自动记录仍是当前工作区会话的最近50条，不称跨重启持久日志。启动恢复记录、未捕获页面异常、完整成功操作历史和跨重启问题记录需要另行补齐；新增错误边界不得自动卸载有未保存内容的整个工作区。实现、组件故障注入、构建、原生截图和云CI分别验收，实际结果写唯一执行记录。
 
 参考成熟交互规则：[Fluent消息条](https://fluent2.microsoft.design/components/web/react/core/messagebar/usage)、[Fluent提示通知](https://fluent2.microsoft.design/components/web/react/core/toast/usage/)、[W3C状态消息](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)。按影响选用局部提示、消息条或必须回应的对话框，并保证状态可被辅助技术读出；不是给每次异常都增加弹窗。
+
+后继已在同一V12原生候选中实际触发不存在文档的只读404，观察普通白话提示、自动记录和手动展开的操作/status/code，再成功读取有效文档；文档列表未变。该专项不代表全部错误或跨重启日志已覆盖。正常界面仍可见“登记版本化记录”“检查器”等术语，统一收敛尚未全部完成。精确源码、原始失败、截图与验收边界只登记在唯一执行记录的V12交付节，不另建第二份进度账本。

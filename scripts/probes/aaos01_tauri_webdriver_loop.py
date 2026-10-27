@@ -316,6 +316,43 @@ def qualify_candidate_build(candidate, environment, host_identity, core_identity
     }
 
 
+NATIVE_FRONTEND_OBSERVATION_JS = r"""
+const protocol = location.protocol;
+const url = ['http:', 'https:', 'tauri:'].includes(protocol)
+  ? protocol+'//'+location.host+location.pathname
+  : protocol === 'about:' ? 'about:blank' : protocol;
+return {
+  url,
+  document_state: document.readyState,
+  bridge_ready: typeof window.__TAURI__?.core?.invoke === 'function',
+  root_ready: !!document.querySelector('.app-shell[data-stitch-workspace]')
+};
+"""
+
+
+def wait_for_native_frontend(js, launch_attempt, *, timeout=30):
+    """Observe startup only; never call, replay or suppress a business command."""
+    began = time.monotonic()
+    evidence = {"status": "WAITING", "timeout_seconds": timeout}
+    launch_attempt["frontend_readiness"] = evidence
+    while True:
+        try:
+            observed = js(NATIVE_FRONTEND_OBSERVATION_JS)
+        except BaseException:
+            evidence.update(status="ERROR", seconds=time.monotonic() - began)
+            raise
+        evidence.update(last_observation=observed, seconds=time.monotonic() - began)
+        if (observed["bridge_ready"] is True and observed["root_ready"] is True
+                and observed["document_state"] in {"interactive", "complete"}):
+            evidence["status"] = "PASS"
+            return observed
+        remaining = timeout - (time.monotonic() - began)
+        if remaining <= 0:
+            evidence["status"] = "TIMEOUT"
+            raise TimeoutError("Owned native frontend startup readiness deadline")
+        time.sleep(min(.15, remaining))
+
+
 def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     """Microsoft requires matching major/minor/build; patch updates are compatible.
 
@@ -1829,6 +1866,7 @@ def main():
         session = result["sessionId"]
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
+        wait_for_native_frontend(js, receipt["launch_attempts"][-1])
         launch_navigation = load("launch_rendered_navigation", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
         navigation_evidence = receipt.setdefault("navigation_entry", [])
         launch_controls = launch_navigation.GroupedUI(js, wait, ui_element,

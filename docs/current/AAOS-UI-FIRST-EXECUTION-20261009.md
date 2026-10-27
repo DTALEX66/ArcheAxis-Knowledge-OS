@@ -2273,3 +2273,25 @@ MiniMax该批素材取消继续有效，既有静态人物未替换。六项原�
 后继将仅呈现用的默认页签同步移至提交前阶段，异步文档读取仍在普通effect，未增加请求或绕过真实可见判断。真实Driver/React竞态夹具修前RED2为1失败/1通过，修后2项通过；六文件35项定向通过，记录 `ui-audit-exchange-commit-red2`、`ui-audit-exchange-commit-green`、`ui-audit-exchange-v12-tests-final`。四个导入导出错误位置改用现有白话分层，详情仅显式打开；Core通用错误不再直接拼接命令名称或HTTP数字，status/code及自动日志操作元数据保持原值。两文件33项专项通过，见 `ui-audit-remediation-v12-error-tests`；后继统一检查及V12资格单独登记，不借用旧通过。官方订阅窗口最新观察剩余28%，未触发≤10%停止；该比例是观察值而非持续不变承诺。
 
 冻结源 `db5d2caa15f25e544e2cc0b766c9988c525cad30` 的类型与20项预检通过；首轮完整前端2417通过/1失败，`ui-audit-remediation-v12-frontend-full` 保留原FAIL。唯一失败是旧CoreBridge断言仍强制404/400/503/403显示内部命令和状态数字；后继仅把四类文案断言改为精确白话并增加原status/code校验，未放宽失败分层，生产代码不变。两文件51项定向通过，见 `ui-audit-remediation-v12-core-bridge-tests`；最终完整r2与候选仍需分别登记。
+
+#### 2026-10-28 V12界面截图交付与剩余项
+
+V12产品候选冻结于 `8b89e23fce70c69392d51cb48f9a934cf8461ffc`，保留原有补丁SHA256 `54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8`。统一完整前端2418/2418通过、类型通过、20项本地预检全部LOCAL_PASS，分别见 `.project-local/runs/be268a2d33/ui-audit-remediation-v12-frontend-full-r2/`、`ui-audit-remediation-v12-types-r2/`、`ui-audit-remediation-v12-preflight-r2/`，均source_consistent=true；前述2417/1原失败不替换。Host实际构建SHA256 `8a5cabde3c1cfce5f5238189dd9d0455c4233c9fc8f63062363b99979e2fed6f`，Core SHA256 `2ef93f37cf8485441f216cf13880980782d33d8eb3acfdbb80ba58b9e233f77d`（Rust未改，复用可核查缓存），运行清单SHA256 `607e29d8ce83ddbd25390065ebf454d615014f9633cf9a581da20d7cf7373912`；19746成员便携装配通过。Host构建回执SHA256 `192e134c7726d0981fc39ef2f48048e172ed4c26c87effa07967a5a5471b9b91`，候选路径 `.project-local/runs/be268a2d33/ui-audit-remediation-v12-portable/artifacts/星环便携候选/`。后继仅探针/测试/文档提交不等于重新构建此产品，也不将这些结果移绑到新提交的完整CI。
+
+`ui-audit-remediation-v12-guide-native` 的空库、首次保存新文档后从历史/设置启动、快速连续下一步三条路径均实际完成3步引导。`ui-audit-remediation-v12-native-navigation` 的16项检查通过：22页、7组菜单、3种布局、5种主题、4组设置、4组启动台、16能力族/186设计项入口、10个参考步骤及3个实际引导弹层，另含4类实际系统右键、草稿和退出保护。正式588图为584张1920×1080及4张原尺寸OS菜单；整轮632张还含独立验证帧，未全部打入正式包。Host正常退出0、Core GRACEFUL，owned端口/进程清场，源码及候选哈希未变；root已查看引导、人物/菜单、四类系统菜单与错误详情的实际图片。186项目录展示不代表186项功能已实现，截图与工程检查也不等于Owner视觉接受。
+
+合成业务承接保留失败链：`webdriver-af8a4a49866c` 在教学写入前因探针误认重复head失败；`webdriver-ff1deab6d252` 已保存并回读前4条，后续实际事件落到FORM而非按钮，严格保护失败且未重放；`webdriver-807e13090826` 第5条实际保存assisted=false，与原计划true不符，原记录未篡改；`webdriver-f9531455422a` 只新增第6条并回读全部6条，前5条不变，教学总体验收仍PARTIAL。同一r4还实际触发一次不存在文档的只读404，普通白话提示→自动受限日志→显式技术详情→有效文档读取通过，文档列表不变；其原总状态仍因后续旧布局假设FAIL，不改写。`webdriver-7786d2be8904` 为只读截图承接，保存原历史入口前置缺失/首页旧路由错误及CAPTURE_ERROR；最终 `webdriver-8057ca0af56a` 仅补6个实际页面和精确历史版本正文回读，正常退出/清场，状态PASS_READONLY_SUPPLEMENT_NOT_BUSINESS_ACCEPTANCE。本轮没有新模型推理；V9实际模型工程证据仍单独绑定V9，不充作V12整链复跑。
+
+最新交付共1014图，排除两张采集错误占位图，同源RGB完全重复0；592张物理1920×1080、418张高DPI物理2400×1350（CSS视口1920×1080）及4张实际OS裁剪图265×110、193×110、175×32、223×147。没有缩放或把CSS尺寸写成全部物理尺寸；云端包1010张JPEG保留原尺寸、quality90/4:4:4，4张OS PNG原样保留。两包都有离线 `开始审计.html`、分类、逐项审计与限制说明；ZIP CRC、逐成员SHA、实际图片尺寸以及离线浏览器分类/搜索/查看器键盘交互通过。原cloud报告旧键名误含1920的更正另列，原报告未覆盖。最终校验 `.project-local/runs/be268a2d33/ui-audit-remediation-v12-delivery-final-verification/artifacts/delivery-final-verification.json` 只判包装/离线/尺寸PASS，business_qualification=PARTIAL。
+
+- 云端审计版：`.project-local/界面审计截图-20261028-8b89e23f-云端审计版.zip`，377870731字节，SHA256 `f0fadad46a21f6724cd8aa8e1b8b485e5739e03aa8574079e7ec8ec92b2ce8f0`。
+- 原始PNG版：`.project-local/界面审计截图-20261028-8b89e23f-原始.zip`，1263467035字节，SHA256 `65416c0655b921196448033f48d1e6784d211739e59a9e24da77b69421659bcc`。
+- 24项映射：`.project-local/ui-audit-remediation-mapping-final.json`，SHA256 `c579bd76c021ab63eb5ab33df8b3b41f447297560369a2516c0b71c8f4140ce0`，附历史失败和同候选替代截图链；0项声称Owner CLOSED，UI06/18/21/23/24等仍保留PARTIAL。
+
+既有预览入口 `.project-local/AAOS-UI-Preview-20261026.cmd` 已切到上述候选，`--check`退出0，入口SHA256 `a52520ba8aa0699e103d92f0b9dc598e4b468f2633387060d937d03886a9b9c3`，回执 `ui-audit-remediation-v12-preview-update/artifacts/preview-update.json` 为TARGET_UPDATED_NOT_LAUNCHED。旧Owner预览不被强关，既有隔离预览数据未读取或覆盖；用户保存并关闭旧预览后再从该入口打开。未修改系统分辨率，Green未替换。
+
+先前24d的完整云CI40546297055终态CANCELLED：14成功、installer-lifecycle与依赖汇总2失败、3策略跳过、Python3.12取消；桌面构建、浏览器和Rust等选中成功单列。原NSIS旅程第5次冷启动在WebDriver session创建后约60ms执行ui_state_read时，前端 `window.__TAURI__.core` 尚未出现；约159ms后同一会话exit_application已成功且正常退出。原ZIP SHA256 `bdf53438d6efbf9b2eba3e3bbc3bcf3dd542228d68f29b2d9b3f7dc24db93474` 及原日志/黑帧保存在 `ui-audit-ci24d-installed-artifact`，不能推断为数据事故。后继只给探针每次launch增加30秒有界只读初始化观察：桥函数、实际工作区根、document状态；在任何恢复/业务命令之前等待，不发业务调用、不重放写入、不吞传输错误、不解除恢复保护，URL不记录query/hash/本地路径或data正文。新增 `tests/test_native_frontend_ready.py`，不修改sys.path、不安装依赖；正式包导入草案13项实际Chromium及AST检查已通过，公开文件及3个邻接探针回归须在统一提交冻结后另行执行。新SHA完整CI/安装验收仍待上传后执行；旧cab909的完整SUCCESS不移绑。
+
+当前规则仍为订阅剩余≤10%停止新增开发/构建/测试、安全封存与交接，正常上传授权公开进度、仅合并资格满足的必要分支并读回双端SHA；官方观察剩余23%，次级窗口未知，尚未触发。heartbeat `automation` ACTIVE/30分钟，阈值触发行为尚未实际验证。六项原有本地材料未纳入提交，私有运行/数据/截图包不上传Git；本节后继提交与PR203精确head、CI及合并读回另行登记，不将预期当完成。
+
+剩余问题明确保留：统一日志目前仅工作区会话最近50条，跨重启持久记录及未捕获异常兜底未完成；“登记版本化记录”“检查器”等普通界面术语仍需收敛；教学第5条声明差异/截图原采集错误仍PARTIAL；人物仍为既有静态素材，MiniMax该批取消有效；视觉质量由Owner/云端继续审计。大库恢复完整RSS/SQLite C内存、恢复与授权失效之间物理断电窗口、代表性多栏OCR准确性仍未充分实测，不写成已发生的数据事故。整体PARTIAL，未发布、未替换Green、未取得Owner验收。

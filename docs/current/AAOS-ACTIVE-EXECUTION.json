@@ -169,7 +169,15 @@
         "state": "ACTIVE_BY_OWNER",
         "supersedes": "Earlier 20/15 percent thresholds and dated paused monitor states below",
         "monitor_readback": "Official heartbeat create/view and exact automation.toml readback confirmed ACTIVE, interval 30 minutes; obsolete aaos monitor no longer exists",
-        "behavior": "Configuration verified; threshold-triggered stop/handoff has not yet occurred"
+        "behavior": "Configuration verified; threshold-triggered stop/handoff has not yet occurred",
+        "latest_observation": {
+          "observed_after_utc": "2026-10-27T18:24:09Z",
+          "used_percent": 77,
+          "remaining_percent": 23,
+          "secondary_window": "UNKNOWN",
+          "state": "NOT_TRIGGERED",
+          "time_precision": "Clock read after official usage query; not a provider measurement timestamp"
+        }
       },
       "publication_boundary": "Never upload credentials, private session or agent memory, ignored runtime/database/cache/archive payloads or unrelated dirty files; no forced history, automatic merge/release/Green replacement. If Git or network permissions block delivery, retain local files and report the blocker without bypass.",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
@@ -1057,6 +1065,7 @@
     "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
     "monitor": "ACTIVE_BY_OWNER; current <=10 percent subscription rule in execution_control.allowance_guard supersedes dated paused observations",
     "commit_push": "Current delivery and exact local/remote SHA readback are recorded only in the latest 2026-10-28 section of the sole execution record; dated policy-blocked observations below are historical",
+    "latest_ui_delivery_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-v12界面截图交付与剩余项",
     "latest_ui_retention_20261024": {
       "host_sha256": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
       "host_bytes": 47375872,
@@ -2550,6 +2559,7 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
+      "role": "DATED_SNAPSHOT_NOT_CURRENT_UI_DELIVERY; follow latest_ui_delivery_ref for current source, screenshots and limitations",
       "state": "V8_LOCAL_NATIVE_RENDER_GROUPED_AND_INSTRUMENTED_UI18_PASSED_CI_BROWSER_SETUP_TIMEOUT_FOLLOWUP",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-27-菜单材质根因与普通操作后继",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
