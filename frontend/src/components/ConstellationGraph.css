@@ -46,3 +46,7 @@
   .constellation-graph .cg-edge > path { stroke: CanvasText; }
   .constellation-graph .cg-node:focus-visible > rect { stroke: Highlight; }
 }
+.constellation-graph .cg-options { position:relative; margin-left:auto; }
+.constellation-graph .cg-options > summary { cursor:pointer; min-height:34px; padding:6px 10px; box-sizing:border-box; color:var(--ax-fg-secondary); }
+.constellation-graph .cg-options > div { position:absolute; z-index:10; top:100%; right:0; width:min(420px,70vw); display:flex; flex-wrap:wrap; gap:8px; padding:16px; border:1px solid var(--ax-border-strong); border-radius:12px; background:var(--ax-raised); box-shadow:var(--ax-shadow); }
+.constellation-graph .cg-options .cg-help { padding:8px 0 0; font-size:var(--ax-text-caption); }

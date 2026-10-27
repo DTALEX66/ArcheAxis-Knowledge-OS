@@ -15,16 +15,24 @@ describe("App shell", () => {
     resetRuntimeClient();
     delete window.__TAURI__;
     vi.unstubAllGlobals();
+    localStorage.removeItem("aaos:workspace-presentation:v1");
   });
   it("keeps the Stitch inspector outside the reader and switches the narrow auxiliary slot without replacing the main view", async () => {
     vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000);
     const user = userEvent.setup();
     render(<App/>);
-    const main = screen.getByRole("main"), inspector = screen.getByRole("complementary", { name: "检查器" });
-    expect(inspector.closest(".console-window")).toBeNull();
+    const main = screen.getByRole("main");
+    expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
     expect(document.querySelector(".app-body .inspector")).toBeNull();
     const toggle = within(screen.getByRole("navigation", { name: "工作空间快捷导航" })).getByRole("button", { name: "小栖" });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
+    const companion = screen.getByRole("complementary", { name: "小栖 · 陪伴会话" });
+    screen.getByRole("button", { name: "小栖 · 陪伴会话，移动小栖窗口" }).focus();
+    await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
+    const inspector = screen.getByRole("complementary", { name: "检查器" });
+    expect(inspector.closest(".console-window")).toBeNull();
+    expect(companion).toHaveAttribute("hidden");
+    expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
     act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
@@ -32,6 +40,7 @@ describe("App shell", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("main")).toBe(main);
     expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toHaveFocus();
+    expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toBe(companion);
     for (let attempt = 0; attempt < 2; attempt++) {
       await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
       expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
@@ -40,8 +49,8 @@ describe("App shell", () => {
       expect(screen.getByRole("main")).toBe(main);
     }
     act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
-    await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
     screen.getByRole("button", { name: "小栖 · 陪伴会话，移动小栖窗口" }).focus();
+    await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
     act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
     expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
     act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
@@ -241,7 +250,7 @@ describe("App shell", () => {
     const dock = screen.getByRole("navigation", { name: "工作空间快捷导航" });
     expect(within(dock).getByRole("button", { name: "工作台" })).toHaveAttribute("aria-current", "page");
     const menu = screen.getByRole("navigation", { name: "应用菜单" });
-    const summary = within(menu).getByText("文件", { selector: "summary" });
+    const summary = within(menu).getByText("知识", { selector: "summary" });
     await user.click(summary);
     await user.click(within(summary.parentElement!).getByRole("button", { name: "阅读与编辑" }));
     expect(within(main).getByRole("heading", { name: "阅读与编辑", level: 1 })).toBeInTheDocument();

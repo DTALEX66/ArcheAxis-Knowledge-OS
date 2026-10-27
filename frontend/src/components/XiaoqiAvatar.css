@@ -78,13 +78,23 @@
 }
 .stitch-companion-content .companion-character-header .xiaoqi-avatar { max-height: none; }
 .stitch-companion-content .companion-context-header.companion-character-header[data-character-view="avatar"] { grid-template-columns: 72px minmax(0, 1fr); }
+.companion-character-identity { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .companion-character-copy { min-width: 0; }
 .companion-character-copy .companion-character-name { color: var(--ax-fg, #f3f4f6); font-size: 20px; font-weight: 600; letter-spacing: .04em; }
 .companion-character-copy .companion-character-state { display: inline-block; margin: 6px 0 12px; padding: 2px 8px; border: 1px solid var(--ax-border, #ffffff20); border-radius: 999px; color: var(--ax-fg-secondary, #bec4cc); font-size: 12px; }
+.companion-character-identity .companion-character-state { margin: 0; font-size: 14px; line-height: 1.5; }
+.companion-character-header[data-character-view="avatar"] { align-items: start; }
+.stitch-companion-content .companion-character-header[data-character-view="avatar"] .companion-character-copy h3 { margin-top: 5px; }
+.stitch-companion-content .companion-character-header[data-character-view="avatar"] .companion-character-copy p { margin: 4px 0; }
+.companion-character-header[data-character-view="avatar"] .companion-character-views { margin-top: 8px; }
+.companion-answer-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .stitch-companion-content .companion-character-header .companion-character-copy h3 { font-size: 14px; line-height: 1.5; }
 .stitch-companion-content .companion-character-header .companion-character-copy p { font-size: 14px; line-height: 1.6; }
 .companion-character-views { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 16px; padding: 3px; border: 1px solid var(--ax-border); border-radius: 9px; background: var(--stitch-glass-header, transparent); }
 .stitch-companion-content .companion-character-views button { min-height: 34px; padding: 5px 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--ax-fg-secondary, #bec4cc); font-size: 14px; }
+.stitch-companion-content .companion-character-views button { transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease; }
+.stitch-companion-content .companion-character-views button:active { transform: translateY(1px); }
+.stitch-companion-content .companion-character-views button:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: 2px; }
 .stitch-companion-content .companion-character-views button[aria-pressed="true"] { background: color-mix(in srgb, var(--ax-fg) 9%, transparent); color: var(--ax-fg, #f3f4f6); border-color: var(--ax-border-strong, #ffffff30); box-shadow: 0 1px 3px #0001; }
 .companion-session-actions .companion-create-primary { color: var(--ax-fg, #f3f4f6); background: var(--ax-raised, #ffffff12); }
 .stitch-companion-content [data-companion-slot="sidebar"] .companion-session-actions .companion-create-primary { min-height: 36px; font-size: 14px; font-weight: 500; background: var(--ax-raised, #ffffff12); border-color: var(--ax-border, #ffffff20); }
@@ -100,6 +110,10 @@
   .stitch-companion-content .companion-context-header.companion-character-header { grid-template-columns: minmax(120px, 40%) minmax(0, 1fr); gap: 10px; }
   .stitch-companion-content .companion-context-header.companion-character-header[data-character-view="avatar"] { grid-template-columns: 64px minmax(0, 1fr); }
   .companion-character-copy .companion-character-name { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stitch-companion-content .companion-character-views button { transition: none; }
+  .stitch-companion-content .companion-character-views button:active { transform: none; }
 }
 @media (forced-colors: active) {
   .xiaoqi-avatar { background: Canvas; }

@@ -19,7 +19,18 @@ beforeEach(() => { vi.stubGlobal("crypto", webcrypto); docs = new Map([['doc_a',
   if (op === 'document_draft') { writes.push(structuredClone(p)); const d = docs.get(p.document_id)!; if (d.version !== p.body.expected_version) throw new Error('409'); const next = { ...d, version: d.version + 1, editor_json: structuredClone(p.body.editor_json) }; docs.set(p.document_id, next); return structuredClone(next); }
   throw new Error(op);
 }); });
-async function open(id = 'doc_a') { fireEvent.click(await screen.findByRole('button', { name: new RegExp('^' + id + ' ·') })); await screen.findByText(/关系已读取/); }
+async function open(id = 'doc_a') { fireEvent.click(await screen.findByRole('button', { name: new RegExp('^' + id + ' ·') })); await screen.findByText(/关系已读取/); const editor=screen.getByText(/^编辑当前对象关系/,{selector:'summary'});if(!editor.parentElement!.hasAttribute('open'))fireEvent.click(editor); }
+it('starts with the graph and exact object actions while advanced filters and relation edits remain collapsed',async()=>{
+ render(<CanonicalRelationSpace/>);
+ fireEvent.click(await screen.findByRole('button',{name:'打开关系：doc_a'}));
+ await screen.findByText(/关系已读取/);
+ expect(screen.getByLabelText('同版本关系图')).toBeVisible();
+ expect(screen.getByLabelText('筛选关系方向')).not.toBeVisible();
+ expect(screen.getByRole('button',{name:'选择关联对象'})).not.toBeVisible();
+ fireEvent.click(screen.getByText(/^编辑当前对象关系/,{selector:'summary'}));
+ expect(screen.getByRole('button',{name:'选择关联对象'})).toBeVisible();
+ expect(writes).toHaveLength(0);
+});
 function add(label = 'NEW') { const manual = screen.getByText('手动指定对象', {selector:'summary'}); if (!manual.parentElement!.hasAttribute('open')) fireEvent.click(manual); fireEvent.change(screen.getByLabelText('关系说明'), { target: { value: label } }); fireEvent.change(screen.getByLabelText('目标对象ID'), { target: { value: 'doc_b' } }); fireEvent.change(screen.getByLabelText('固定目标版本'), { target: { value: '3' } }); fireEvent.click(screen.getByRole('button', { name: '加入关系草稿' })); }
 it('selects an actual saved document by title and preserves pinned version, block and supports protocol value', async () => {
   const call = bridge.call.getMockImplementation()!;

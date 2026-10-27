@@ -33,7 +33,7 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
   onOpenCapability?: (id: string) => void;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
-  const [tab, setTab] = useState("resources");
+  const [tab, setTab] = useState("templates");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<ResourceClass | "all">("all");
   const [selected, setSelected] = useState<ResourceEntry | null>(null);
@@ -172,11 +172,11 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
   </section>;
   return <section aria-label="资源与扩展内容" className="stitch-resources"><div className="stitch-resource-topic"><div><p>资源与已接入模板</p><h2>资源与扩展</h2></div><span>已有登记 · 本地运行状态</span></div>
     <AaosTabs label="资源与模板工作区" value={tab} onValueChange={changeTab} tabs={[
-      { id: "resources", label: "吸收来源与供体", content: directory },
       { id: "templates", label: "学科模板", content: <div className="template-launcher"><TemplateWorkspace onOpen={id => {
         if (callbacks.current.onOpenDocument) callbacks.current.onOpenDocument(id);
         else setMessage("当前宿主未提供文档阅读入口；已保存模板仍保留。");
       }} onOpenCapability={onOpenCapability} onDirtyChange={onTemplateDirty}/></div> },
+      { id: "resources", label: "接入来源与运行设置", content: directory },
     ]}/>
     {message ? <p role="status">{message}</p> : null}
   </section>;

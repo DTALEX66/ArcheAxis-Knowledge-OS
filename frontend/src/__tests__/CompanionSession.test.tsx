@@ -293,7 +293,7 @@ it("keeps sidebar management folded, with explicit catalog/history reads and sha
   expect(sidebar.getByRole("button", {name: "预览会话请求"})).toBeEnabled();
 });
 
-it("collapses the sidebar character on a short or narrow resize without losing session state", async () => {
+it("preserves the explicit character view on resize without losing session state", async () => {
   vi.stubGlobal("innerWidth", 1920); vi.stubGlobal("innerHeight", 1080);
   const user = userEvent.setup();
   render(<CompanionSessionProvider><Slots/></CompanionSessionProvider>);
@@ -302,18 +302,19 @@ it("collapses the sidebar character on a short or narrow resize without losing s
   const sidebar = slot("sidebar");
   expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
   expect(slot("reader").getByRole("img", {name: "小栖：待命"}).closest(".xiaoqi-avatar")).toHaveAttribute("data-presentation", "avatar");
+  await user.click(sidebar.getByRole("button", {name: "半身"}));
   vi.stubGlobal("innerHeight", 720);
   act(() => window.dispatchEvent(new Event("resize")));
-  expect(sidebar.getByRole("button", {name: "收起人物"})).toHaveAttribute("aria-pressed", "true");
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
   await user.click(sidebar.getByRole("button", {name: "半身"}));
   expect(sidebar.getByRole("img", {name: "小栖：待命"}).closest(".xiaoqi-avatar")).toHaveAttribute("data-presentation", "portrait");
   expect(sidebar.getByLabelText("会话问题")).toHaveValue("缩放前草稿");
   vi.stubGlobal("innerHeight", 1080); vi.stubGlobal("innerWidth", 1000);
   act(() => window.dispatchEvent(new Event("resize")));
-  expect(sidebar.getByRole("button", {name: "收起人物"})).toHaveAttribute("aria-pressed", "true");
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
   vi.stubGlobal("innerWidth", 1920);
   act(() => window.dispatchEvent(new Event("resize")));
-  expect(sidebar.getByRole("button", {name: "收起人物"})).toHaveAttribute("aria-pressed", "true");
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
   expect(sidebar.getByLabelText("会话问题")).toHaveValue("缩放前草稿");
 });
 

@@ -61,5 +61,5 @@ it("SIMULATED: closed detail ignores a late readback", async () => {
   fireEvent.click(screen.getByRole("button", { name: "关闭任务详情" }));
   await act(async () => finish(row()));
   expect(screen.queryByText("SYNTHETIC answer")).toBeNull();
-  expect(screen.getByText("选择实际任务，核对来源版本、条件与结果。")).toBeTruthy();
+  expect(screen.getByRole("heading", {name:"打开一项任务"})).toBeTruthy();
 });

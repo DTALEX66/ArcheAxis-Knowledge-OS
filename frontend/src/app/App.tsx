@@ -13,7 +13,7 @@ import { coreCommand } from "../api/core";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import type { ObjectReference } from "../api/generated/research-contract";
-import { findUiPage } from "../presentation/uiPages";
+import { findUiPage, uiEntryForPage } from "../presentation/uiPages";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { StatusBar } from "../components/StatusBar";
@@ -31,7 +31,7 @@ import { FirstUseGuide, requestFirstUseGuide } from "../components/FirstUseGuide
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
 import { TopNavBar } from "../components/TopNavBar";
-import { StitchWorkspaceMenu, StitchWorkspaceDock, StitchCompanionWindow, StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
+import { StitchWorkspaceMenu, StitchWorkspaceDock, StitchCompanionWindow, StitchResearchOutlet, type WorkspaceLayoutMode } from "../components/StitchWorkspaceChrome";
 import { StitchLaunchpad } from "../components/StitchLaunchpad";
 import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
@@ -55,6 +55,11 @@ import {
 const DESKTOP_LIVENESS_INTERVAL_MS = 10_000;
 const RECOVERY_BOOT_POLL_MS = 250;
 const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
+const WORKSPACE_LAYOUT_KEY = "aaos:workspace-presentation:v1";
+function readWorkspaceLayout(): WorkspaceLayoutMode {
+  try { const saved = localStorage.getItem(WORKSPACE_LAYOUT_KEY); if (saved === "focus" || saved === "compare" || saved === "companion") return saved; } catch { /* Display preferences may be unavailable. */ }
+  return "companion";
+}
 
 // AXW-UI-802: composite left navigation, central task area, on-demand inspector,
 // and activity dock. Capability entries share one generated navigation projection.
@@ -105,7 +110,9 @@ function AppBody() {
     document.addEventListener("focusin", focus);
     return () => { window.removeEventListener("resize", resize); document.removeEventListener("focusin", focus); };
   }, []);
-  const [companionOpen,setCompanionOpen] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
+  const [workspaceLayout, setWorkspaceLayout] = useState<WorkspaceLayoutMode>(readWorkspaceLayout);
+  const [workspaceLayoutRevision, setWorkspaceLayoutRevision] = useState(0);
+  const [companionOpen,setCompanionOpen] = useState(() => readWorkspaceLayout() === "companion" && window.innerWidth >= 1280 && window.innerHeight >= 700);
   const companionFocusRequested = useRef(false);
   useEffect(() => { companionFocusRequested.current = false; }, [companionOpen]);
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
@@ -124,9 +131,8 @@ function AppBody() {
   const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
   const [sectionNotice, setSectionNotice] = useState<string | null>(null);
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
-  // Only a genuinely wide desktop opens the auxiliary inspector on load; scaled 1280x720
-  // windows leave the reading area unobstructed until the user asks for it.
-  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 1440 && window.innerHeight >= 800);
+  // Empty inspection never claims a desktop column until explicitly requested.
+  const [inspectorOpen, setInspectorOpen] = useState(() => readWorkspaceLayout() === "compare");
   const [learningFocus, setLearningFocus] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
@@ -162,11 +168,19 @@ function AppBody() {
   const referenceVisible = inspectorOpen && !selectedCapabilityId && !learningFocus && !workspaceRestoring;
   const [researchMaterialsHost, setResearchMaterialsHost] = useState<HTMLDivElement | null>(null);
   const researchReference = uiPageId === "05" && contentEntered;
+  const chooseWorkspaceLayout = useCallback((mode: WorkspaceLayoutMode) => {
+    if (restoringRef.current || recoveryBarrier.current) return;
+    setWorkspaceLayout(mode);
+    setWorkspaceLayoutRevision(value => value + 1);
+    setCompanionOpen(mode === "companion"); setInspectorOpen(mode === "compare");
+    try { localStorage.setItem(WORKSPACE_LAYOUT_KEY, mode); } catch { /* Session presentation still works. */ }
+    if (mode === "companion") window.dispatchEvent(new CustomEvent("aaos:companion-presentation", { detail: { presentation: "portrait" } }));
+  }, []);
   const closeResearchReference = useCallback(() => {
     const ownsFocus = Boolean(document.activeElement?.closest(".stitch-reference-window"));
-    setInspectorOpen(false);
+    chooseWorkspaceLayout("focus");
     if (ownsFocus) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
-  }, []);
+  }, [chooseWorkspaceLayout]);
   useEffect(() => {
     if (!referenceVisible || !researchReference) return;
     const dismiss = (event: KeyboardEvent) => {
@@ -178,13 +192,13 @@ function AppBody() {
   }, [referenceVisible, researchReference, closeResearchReference]);
   const companionHiddenByReference = referenceVisible && !wideWorkspace;
   useLayoutEffect(() => {
-    if (!companionHiddenByReference) return;
+    if (!referenceVisible || (companionOpen && !companionHiddenByReference)) return;
     companionFocusRequested.current = false;
     // Only transfer focus when the auxiliary slot would hide its current owner.
     if (companionOwnsFocus.current || document.activeElement?.closest("#stitch-companion-window")) {
       document.querySelector<HTMLElement>('.stitch-reference-window button[aria-label="关闭检查器"]')?.focus();
     }
-  }, [companionHiddenByReference]);
+  }, [companionHiddenByReference, companionOpen, referenceVisible]);
   const navigationHash = useRef(window.location.hash);
   const liveness = useRef<{
     generation: number;
@@ -427,8 +441,8 @@ function AppBody() {
     // Synchronising the current object never takes the reading area; an explicit
     // inspection reveals the auxiliary window at any size, and an open one keeps updating.
     if (options?.reveal === false) return;
-    setInspectorOpen(true);
-  }, []);
+    chooseWorkspaceLayout("compare");
+  }, [chooseWorkspaceLayout]);
 
   const surface = canonicalSurface(activeSpace, desktop);
   const sections = spaceSectionsFor(activeSpace, surface);
@@ -464,8 +478,8 @@ function AppBody() {
   const toggleInspector = useCallback(() => {
     if (restoringRef.current || recoveryBarrier.current) return;
     if (document.activeElement?.closest(".stitch-reference-window")) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
-    setInspectorOpen(value => !value);
-  }, []);
+    chooseWorkspaceLayout(inspectorOpen ? "focus" : "compare");
+  }, [inspectorOpen, chooseWorkspaceLayout]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
       if (restoringRef.current || recoveryBarrier.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
@@ -845,7 +859,7 @@ function AppBody() {
     ) : null;
   if (recoveryContent && !workspaceMounted.current) return recoveryContent;
 
-  const currentSpaceLabel = SPACES.find((space) => space.id === activeSpace)?.label ?? "";
+  const currentSpaceLabel = uiEntryForPage(uiPageId ?? "")?.label ?? SPACES.find((space) => space.id === activeSpace)?.label ?? "";
   const firstReadyRegion = sections.find((section) => section.state === "ready" && section.region)?.region;
   const trailLevels: readonly ObjectTrailLevel[] = objectTrail.length === 0 ? [] : [
     { id: `space:${activeSpace}`, label: currentSpaceLabel, ...(firstReadyRegion ? { region: firstReadyRegion } : {}) },
@@ -853,18 +867,17 @@ function AppBody() {
   ];
   const toggleCompanion = () => {
     companionFocusRequested.current = !companionOpen || companionHiddenByReference;
-    if (companionHiddenByReference) setInspectorOpen(false);
-    setCompanionOpen(companionHiddenByReference || !companionOpen);
+    chooseWorkspaceLayout(companionHiddenByReference || !companionOpen ? "companion" : "focus");
   };
 
   return (
     <MotionConfig reducedMotion="user">
     <StitchResearchOutlet.Provider value={researchReference ? { host: referenceVisible ? researchMaterialsHost : null, onLocate: () => { if (!wideWorkspace) { setInspectorOpen(false); companionFocusRequested.current = false; setCompanionOpen(false); } } } : null}>
-    <div style={{display:"contents"}} data-retained-workspace aria-hidden={recoveryOverWorkspace || undefined}
+    <div style={{display:"contents"}} data-retained-workspace data-workspace-layout={workspaceLayout} aria-hidden={recoveryOverWorkspace || undefined}
       ref={element => { if (element) element.inert = recoveryOverWorkspace; }}>
     <ParticleField/>
-    {!learningFocus && <StitchWorkspaceMenu pageId={uiPageId ?? undefined} onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} />}
-    <ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
+    {!learningFocus && <StitchWorkspaceMenu pageId={uiPageId ?? undefined} onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} layoutMode={workspaceLayout} onLayoutMode={chooseWorkspaceLayout} onCompanion={toggleCompanion} onInspector={toggleInspector} />}
+    <ConsoleWindow presentation="stitch" workspaceLayout={workspaceLayout} workspaceLayoutRevision={workspaceLayoutRevision}><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
       <TopNavBar
         breadcrumbs={[
           { label: currentSpaceLabel },
@@ -905,12 +918,12 @@ function AppBody() {
       </div>
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
     </div><WorkspaceContextMenu onPage={openPage} onCompanion={toggleCompanion} onInspector={toggleInspector} companionOpen={companionOpen && !companionHiddenByReference} inspectorOpen={inspectorOpen} disabled={workspaceRestoring} workspaceActions={!learningFocus}/></ConsoleWindow>
-    {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : ""}`}>
-      {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭检查器" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} />}
+    {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : !inspectionTarget ? " stitch-reference-empty" : ""}`}>
+      {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭检查器" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => chooseWorkspaceLayout("focus")} />}
     </div> : null}
     {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} launchpadOpen={launchpadOpen} onLaunchpad={() => setLaunchpadOpen(value => !value)} />}
     {!learningFocus && <StitchLaunchpad open={launchpadOpen} onOpenChange={setLaunchpadOpen} onPage={openPage} onCapability={openCapability}/>}
-    {companionOpen && !learningFocus && contentEntered ? <StitchCompanionWindow focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; setCompanionOpen(false); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
+    {contentEntered ? <StitchCompanionWindow hidden={learningFocus || !companionOpen || companionHiddenByReference} focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; chooseWorkspaceLayout("focus"); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
     <FirstUseGuide onPage={openPage} enabled={!workspaceRestoring && !recoveryOverWorkspace && contentEntered} autoOpen={uiPageId === "01" && !learningFocus}/>
     </div>
     {recoveryOverWorkspace ? <AaosDialog open title="本地核心暂不可用" description="打开的页面与未保存文字仍保留。可先查看并手动复制原稿，或重试启动；未保存草稿仍会阻止恢复备份。" onOpenChange={() => {}} contentClassName="runtime-recovery-dialog">

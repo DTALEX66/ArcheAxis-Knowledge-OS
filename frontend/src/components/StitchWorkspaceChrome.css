@@ -206,6 +206,10 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-window-titlebar button, .stitch-reference-window .inspector-title { color: var(--ax-fg-secondary); }
 .app-shell[data-stitch-workspace] .stitch-window-toolbar { background: var(--stitch-glass-header); }
 .stitch-companion-window:focus-within { z-index: 62; }
+.stitch-companion-window[hidden] { display: none; }
+.stitch-menu-popover hr { width: 100%; border: 0; border-top: 1px solid var(--ax-border); margin: 6px 0; }
+.stitch-menu-popover button[aria-pressed="true"] { background: var(--ax-accent-soft); box-shadow: inset 3px 0 var(--ax-accent); }
+.command-result-heading { padding: 8px 12px 4px; margin: 0; color: var(--ax-fg-secondary); font-size: var(--ax-text-ui); font-weight: 600; }
 .stitch-companion-content, .stitch-reference-window { font-weight: 400; }
 .stitch-companion-content .companion-context-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--ax-border); }
 .stitch-companion-content .companion-context-header .xiaoqi-avatar { flex: none; }
@@ -237,6 +241,9 @@ body:has(.app-shell[data-stitch-workspace]) {
   }
   .stitch-companion-window { top: var(--stitch-stage-top); }
   .stitch-reference-window { top: calc(var(--stitch-stage-top) + (var(--stitch-stage-height) + 20px) / 2); }
+  body:has([data-workspace-layout="companion"]) .stitch-companion-window,
+  body:has([data-workspace-layout="compare"]) .stitch-reference-window { top: var(--stitch-stage-top); height: var(--stitch-stage-height); }
+  body:has([data-workspace-layout="compare"]) .stitch-reference-window.stitch-reference-empty { height: auto; max-height: 200px; }
   /* Expanding the main window uses its available column without covering either auxiliary window. */
   body:has(.console-window[data-console-mode="full"]) :is(.stitch-companion-window, .stitch-reference-window) {
     --stitch-stage-height: calc(100dvh - 112px);
@@ -248,7 +255,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   /* The shared companion stays mounted; the explicit inspector takes the single auxiliary slot. */
   body:has(.stitch-reference-window) .stitch-companion-window { display: none; }
   /* Leave the task strip and global Dock reachable below the nonmodal window. */
-  .stitch-companion-window { --stitch-companion-top: 132px; top: var(--stitch-companion-top); max-height: calc(100dvh - var(--stitch-companion-top) - 112px); }
+  .stitch-companion-window { --stitch-companion-top: 132px; top: var(--stitch-companion-top); max-height: calc(100dvh - var(--stitch-companion-top) - 128px); }
   /* Dock the auxiliary window above the bottom bar so it cannot cover the reader
      header, tabs or refresh controls in narrow or short windows. */
   .stitch-reference-window { top: auto; right: 8px; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); width: min(360px, calc(100vw - 16px)); max-height: min(45dvh, 420px); }

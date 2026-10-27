@@ -30,7 +30,8 @@ describe("first-use guide UI progress (SIMULATED; no business success qualificat
   it("keeps the guide open when guarded navigation rejects and never infers completion from visiting", async () => {
     const onPage = vi.fn<((page: string) => boolean)>().mockReturnValue(false), user = userEvent.setup();
     render(<FirstUseGuide onPage={onPage}/>);
-    await user.click(await screen.findByRole("button", { name: "打开导入导出" }));
+    await user.click(await screen.findByText("查看完整10步流程参考"));
+    await user.click(screen.getByRole("button", { name: "打开导入导出" }));
     expect(onPage).toHaveBeenCalledWith("16"); expect(dialog()).toBeInTheDocument(); expect(screen.getByRole("status")).toHaveTextContent("当前页面暂未切换");
     onPage.mockReturnValue(true); await user.click(screen.getByRole("button", { name: "打开导入导出" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -49,6 +50,7 @@ describe("first-use guide UI progress (SIMULATED; no business success qualificat
   it("resumes the selected step and only explicit checks change manual progress", async () => {
     returningUser(); const user = userEvent.setup(), onPage = vi.fn();
     const view = render(<FirstUseGuide onPage={onPage}/>); act(() => requestFirstUseGuide());
+    await user.click(screen.getByText("查看完整10步流程参考"));
     await user.click(within(screen.getByRole("navigation", { name: "引导步骤" })).getByRole("button", { name: "审查 AI 经验与授权" }));
     await user.click(screen.getByRole("checkbox"));
     expect(JSON.parse(localStorage.getItem(FIRST_USE_GUIDE_STORAGE_KEY)!)).toMatchObject({ current: 6, completed: ["ai-assets"] });
@@ -72,6 +74,7 @@ describe("first-use guide UI progress (SIMULATED; no business success qualificat
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
     render(<FirstUseGuide onPage={vi.fn()}/>);
     expect(await screen.findByRole("dialog", { name: "首次使用引导" })).toBeInTheDocument();
+    fireEvent.click(screen.getByText("查看完整10步流程参考"));
     fireEvent.click(screen.getByRole("checkbox")); expect(screen.getByRole("checkbox")).toBeChecked();
     expect(screen.getByText(/本机暂不能保存引导偏好/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "暂时跳过，暂停并关闭首次使用引导" })); act(() => requestFirstUseGuide()); expect(screen.getByRole("checkbox")).toBeChecked();
@@ -89,6 +92,7 @@ describe("first-use guide UI progress (SIMULATED; no business success qualificat
   it("explains concrete actions, saved locations, failure next steps and terms for every stage", async () => {
     const onPage = vi.fn(); render(<FirstUseGuide onPage={onPage}/>);
     await screen.findByRole("dialog", { name: "首次使用引导" });
+    fireEvent.click(screen.getByText("查看完整10步流程参考"));
     for (const step of FIRST_USE_STEPS) {
       fireEvent.click(within(screen.getByRole("navigation", { name: "引导步骤" })).getByRole("button", { name: step.label }));
       expect(within(screen.getByRole("list", { name: "现在做什么" })).getAllByRole("listitem")).toHaveLength(2);

@@ -4,27 +4,24 @@ import { motion, useReducedMotion } from "motion/react";
 import { createPortal } from "react-dom";
 import { AaosIcon, type AaosIconName } from "./AaosIcon";
 import aaosMarkLight from "../assets/brand/aaos-mark-light.svg";
-import { UI_PAGES } from "../presentation/uiPages";
+import { UI_DAILY_ENTRY_POINTS, UI_PAGES } from "../presentation/uiPages";
 import "./StitchWorkspaceChrome.css";
 
 // Presentation only: the research editor retains its materials and draft ownership.
 // null keeps standalone rendering; a managed outlet with no host is closed/parked.
 export const StitchResearchOutlet = createContext<{ host: HTMLElement | null; onLocate: () => void } | null>(null);
 
-const entries: readonly { page: string; label: string; icon: AaosIconName; pages: readonly string[] }[] = [
-  { page: "01", label: "工作台", icon: "Workspace", pages: ["01"] },
-  { page: "02", label: "知识", icon: "Knowledge", pages: ["02", "03", "04", "20"] },
-  { page: "06", label: "学习", icon: "Learning", pages: ["06", "07", "08", "09", "10", "11", "12", "21"] },
-  { page: "05", label: "研究专题", icon: "Research", pages: ["05"] },
-];
+const entryIcons: Record<string, AaosIconName> = { "01": "Workspace", "02": "Knowledge", "06": "Learning", "05": "Research", "13": "Context", "15": "Extension" };
+const entries = UI_DAILY_ENTRY_POINTS.map(entry => ({ page: entry.pageId, label: entry.label, pages: entry.pageIds, icon: entryIcons[entry.pageId] }));
+export type WorkspaceLayoutMode = "companion" | "focus" | "compare";
 const menus = [
-  { label: "文件", pages: ["02", "03", "16", "20"] },
-  { label: "视图", pages: ["01", "04", "21"] },
+  { label: "文件", pages: [] },
+  { label: "视图", pages: [] },
   { label: "知识", pages: ["02", "03", "04", "20"] },
-  { label: "学习", pages: ["06", "07", "08", "09", "10", "11", "12"] },
+  { label: "学习", pages: ["06", "07", "08", "09", "10", "11", "12", "21"] },
   { label: "研究", pages: ["05"] },
-  { label: "工具", pages: ["15", "16", "17", "18"] },
-  { label: "AI 与模型", pages: ["13", "14", "22", "19"] },
+  { label: "工具", pages: ["15", "17", "18", "19"] },
+  { label: "AI 与模型", pages: ["13", "14", "22"] },
 ] as const;
 // Icons describe the existing pages; navigation and capability truth stay in UI_PAGES.
 const menuPageIcons: Readonly<Record<string, AaosIconName>> = {
@@ -35,12 +32,16 @@ const menuPageIcons: Readonly<Record<string, AaosIconName>> = {
 };
 
 /** All entries resolve through the existing guarded App navigation. No new page registry. */
-export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide }: { pageId?: string; onPage: (page: string) => void; onNavigation: () => void; onGuide?: () => void }) {
+export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide, layoutMode = "companion", onLayoutMode, onCompanion, onInspector }: { pageId?: string; onPage: (page: string) => void; onNavigation: () => void; onGuide?: () => void; layoutMode?: WorkspaceLayoutMode; onLayoutMode?: (mode: WorkspaceLayoutMode) => void; onCompanion?: () => void; onInspector?: () => void }) {
   const root = useRef<HTMLElement>(null);
   // File/View also contain shortcuts to other groups; mark the business group first.
-  const ownsPage = (menu: typeof menus[number]) => menu.pages.some(page => page === pageId);
-  const currentMenu = menus.find(menu => menu.label !== "文件" && menu.label !== "视图" && ownsPage(menu)) ?? menus.find(ownsPage);
+  const ownsPage = (menu: typeof menus[number]) => (menu.pages as readonly string[]).some(page => page === pageId);
+  const currentMenu = pageId === "16" ? menus[0] : menus.find(ownsPage);
   const currentPage = UI_PAGES.find(page => page.id === pageId);
+  const positionPopup = (menu: HTMLDetailsElement) => {
+    const bounds = menu.querySelector("summary")!.getBoundingClientRect(), popup = menu.querySelector<HTMLElement>(".stitch-menu-popover")!;
+    popup.style.left = `${Math.max(12, Math.min(bounds.left, window.innerWidth - Math.min(320, window.innerWidth - 24) - 12))}px`;
+  };
   const dismiss = (returnFocus = false) => {
     root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(menu => {
       menu.open = false;
@@ -74,14 +75,23 @@ export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide }: {
       event.preventDefault();
     }
   }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) dismiss(); }}>
-    <button type="button" className="stitch-brand" onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><img className="stitch-brand-logo" src={aaosMarkLight} alt="" height={22}/><span>ArcheAxis Knowledge</span></button>
-    <div className="stitch-menus" onScroll={event => { if (event.target === event.currentTarget) dismiss(true); }}>
+    <button type="button" className="stitch-brand" data-page-id="01" aria-current={pageId === "01" ? "page" : undefined} onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><img className="stitch-brand-logo" src={aaosMarkLight} alt="" height={22}/><span>ArcheAxis Knowledge</span></button>
+    <div className="stitch-menus" onWheelCapture={event => {
+      if (event.currentTarget.scrollWidth <= event.currentTarget.clientWidth || (!event.deltaX && !(event.shiftKey && event.deltaY))) return;
+      if (event.target instanceof Element && event.target.closest(".stitch-menu-popover")) return;
+      // Close before native scrolling moves another summary beneath the pointer.
+      // Preserve the original opener and the browser's normal wheel behavior.
+      dismiss(true);
+    }} onScroll={event => {
+      // Focus/scrollIntoView can deliver scroll after an item has received focus.
+      // Keep that keyboard target alive and align the popup with its moved opener.
+      if (event.target === event.currentTarget) root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(positionPopup);
+    }}>
       {menus.map(menu => <details key={menu.label} onToggle={event => {
         const opened = event.currentTarget;
         if (opened.open) {
           root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(other => { if (other !== opened) other.open = false; });
-          const bounds = opened.querySelector("summary")!.getBoundingClientRect(), popup = opened.querySelector<HTMLElement>(".stitch-menu-popover")!;
-          popup.style.left = `${Math.max(12, Math.min(bounds.left, window.innerWidth - Math.min(320, window.innerWidth - 24) - 12))}px`;
+          positionPopup(opened);
         }
       }}><summary data-current-group={menu === currentMenu || undefined} aria-description={menu === currentMenu && currentPage ? `当前页面：${currentPage.label}` : undefined} onPointerEnter={event => {
         if (event.pointerType !== "mouse") return;
@@ -90,7 +100,15 @@ export function StitchWorkspaceMenu({ pageId, onPage, onNavigation, onGuide }: {
         const ownsFocus = previous.contains(document.activeElement);
         dismiss(); next.open = true;
         if (ownsFocus) event.currentTarget.focus({ preventScroll: true });
-      }}>{menu.label}</summary><div className="stitch-menu-popover" aria-label={`${menu.label}页面`}><p className="stitch-menu-heading">{menu.label}</p>{menu.pages.map(page => <button type="button" key={page} data-page-id={page} aria-current={page === pageId ? "page" : undefined} onClick={() => { dismiss(true); onPage(page); }}><AaosIcon name={menuPageIcons[page] ?? "Source"} size={18}/><span>{UI_PAGES.find(entry => entry.id === page)?.label}</span></button>)}</div></details>)}
+      }}>{menu.label}</summary><div className="stitch-menu-popover" aria-label={`${menu.label}页面`}><p className="stitch-menu-heading">{menu.label}</p>
+        {menu.label === "文件" ? <button type="button" data-page-id="16" aria-current={pageId === "16" ? "page" : undefined} onClick={() => { dismiss(true); onPage("16"); }}><AaosIcon name="ImportDocument" size={18}/><span>导入或导出资料…</span></button> : null}
+        {menu.label === "视图" ? <>
+          {([["companion", "陪伴布局", "HumanAi"], ["focus", "专注布局", "Write"], ["compare", "来源对照布局", "Source"]] as const).map(([mode, label, icon]) => <button type="button" key={mode} aria-pressed={layoutMode === mode} disabled={!onLayoutMode} onClick={() => { dismiss(true); onLayoutMode?.(mode); }}><AaosIcon name={icon} size={18}/><span>{label}</span></button>)}
+          <hr/>
+          <button type="button" disabled={!onCompanion} onClick={() => { dismiss(true); onCompanion?.(); }}><AaosIcon name="HumanAi" size={18}/><span>显示或收起小栖</span></button>
+          <button type="button" disabled={!onInspector} onClick={() => { dismiss(true); onInspector?.(); }}><AaosIcon name="Source" size={18}/><span>显示或收起来源窗</span></button>
+        </> : null}
+        {menu.pages.map(page => <button type="button" key={page} data-page-id={page} aria-current={page === pageId ? "page" : undefined} onClick={() => { dismiss(true); onPage(page); }}><AaosIcon name={menuPageIcons[page] ?? "Source"} size={18}/><span>{UI_PAGES.find(entry => entry.id === page)?.label}</span></button>)}</div></details>)}
       <button type="button" aria-label="全部页面，打开产品导航" onClick={onNavigation}>全部页面</button>
       {onGuide ? <button type="button" onClick={onGuide}>使用引导</button> : null}
     </div>
@@ -110,7 +128,7 @@ export function StitchWorkspaceDock({ pageId, onPage, companionOpen, onCompanion
 
 type Position = { x: number; y: number };
 /** A nonmodal view of the existing shared companion session; closing never cancels its request. */
-export function StitchCompanionWindow({ children, onClose, focusOnOpen = false }: { children: ReactNode; onClose: () => void; focusOnOpen?: boolean }) {
+export function StitchCompanionWindow({ children, onClose, focusOnOpen = false, hidden = false }: { children: ReactNode; onClose: () => void; focusOnOpen?: boolean; hidden?: boolean }) {
   const reduceMotion = useReducedMotion();
   const panel = useRef<HTMLElement>(null);
   const [position, setPosition] = useState<Position | null>(null);
@@ -121,12 +139,15 @@ export function StitchCompanionWindow({ children, onClose, focusOnOpen = false }
   };
   const close = () => { onClose(); document.getElementById("stitch-companion-toggle")?.focus(); };
   useEffect(() => {
-    if (focusOnOpen) panel.current?.focus({ preventScroll: true });
-  }, [focusOnOpen]);
+    if (panel.current) panel.current.inert = hidden;
+    if (focusOnOpen && !hidden) panel.current?.focus({ preventScroll: true });
+  }, [focusOnOpen, hidden]);
   useEffect(() => {
     const resize = () => { gesture.current = null; setPosition(null); };
+    const restore = () => { gesture.current = null; setPosition(null); };
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    window.addEventListener("aaos:companion-presentation", restore);
+    return () => { window.removeEventListener("resize", resize); window.removeEventListener("aaos:companion-presentation", restore); };
   }, []);
   const finish = (event: PointerEvent<HTMLElement>, cancel = false) => {
     if (gesture.current?.id !== event.pointerId) return;
@@ -134,7 +155,7 @@ export function StitchCompanionWindow({ children, onClose, focusOnOpen = false }
     gesture.current = null;
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
-  return createPortal(<motion.aside initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }} id="stitch-companion-window" ref={panel} className="stitch-companion-window" aria-labelledby="stitch-companion-title" tabIndex={-1} style={position ? { left: position.x, top: position.y, right: "auto" } : undefined} onKeyDown={event => {
+  return createPortal(<motion.aside hidden={hidden} initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }} id="stitch-companion-window" ref={panel} className="stitch-companion-window" aria-labelledby="stitch-companion-title" tabIndex={-1} style={position ? { left: position.x, top: position.y, right: "auto" } : undefined} onKeyDown={event => {
     if (event.key !== "Escape" || event.defaultPrevented || event.nativeEvent.isComposing) return;
     if (gesture.current) { setPosition(gesture.current.previous); gesture.current = null; } else close();
     event.preventDefault(); event.stopPropagation();

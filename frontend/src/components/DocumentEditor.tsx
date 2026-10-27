@@ -104,13 +104,14 @@ export function encodeEditorContent(content: JSONContent): JSONContent {
   return { ...node, ...(Object.keys(merged).length ? { attrs: merged } : {}), ...(content.content ? { content: content.content.map(encodeEditorContent) } : {}) };
 }
 
-export function DocumentEditor({ content, version, onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
+export function DocumentEditor({ content, version, documentTitle, onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
   content: JSONContent;
   version: number;
   onSave: (content: JSONContent, expectedVersion: number) => Promise<{ content: JSONContent; version: number; workingStateConfirmed?:boolean }>;
   onRetryWorkingState?:()=>Promise<boolean>;
   onReadConflict?: (baseVersion: number) => Promise<DocumentConflictRead>;
   onDirtyChange?: (dirty: boolean) => void;
+  documentTitle?: string;
   onDraftChange?: (content: JSONContent, baseVersion: number) => void;
   onCreateReference?: () => Promise<JSONContent>;
   onReferenceActivate?: (attributes: Record<string, unknown>) => void;
@@ -135,6 +136,9 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
   const callbacks = useRef({ onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate });
   callbacks.current = { onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate };
   const editor = useEditor({
+    // The desktop host disallows inline style injection. Base editor styles are
+    // bundled in content.css, so selecting text never creates a blocked <style>.
+    injectCSS: false,
     extensions: [StarterKit.configure({ link: { openOnClick: false } }), BlockIdentity, PreservedUnknown, EvidenceReference],
     content: decodeEditorContent(content),
     editorProps: {
@@ -297,6 +301,6 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
         <button type="button" onClick={()=>void save(comparison.current.version)}>{mergeMode?"明确采用合并稿并按已比较版本保存":"明确保留本稿并按已比较版本保存"}</button>
       </>:null}
     </section>:null}
-    <p role={failure ? "alert" : "status"}>{status} · 当前已保存版本 {currentVersion.current}</p>
+    <p className="document-save-status" role={failure ? "alert" : "status"}>正文{documentTitle ? `「${documentTitle}」` : ""}：{status} · 当前已保存版本 {currentVersion.current}</p>
   </section>;
 }

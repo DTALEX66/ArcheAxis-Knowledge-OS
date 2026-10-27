@@ -59,7 +59,7 @@ const PAGE_PURPOSES: Readonly<Record<string, string>> = {
 };
 
 export const EFFECTIVE_NAVIGATION_ENTRIES: readonly EffectiveNavigationEntry[] = [
-  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:page.implemented ? PAGE_PURPOSES[page.id] ?? `打开${page.label}` : "页面尚未接通，查看相关能力与替代入口",group_id:page.group,aliases:[`page=${page.id}`],keywords:[page.task, uiEntryForPage(page.id)?.label ?? ""],page})),
+  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:page.implemented ? PAGE_PURPOSES[page.id] ?? `打开${page.label}` : "页面尚未接通，查看相关能力与替代入口",group_id:uiEntryForPage(page.id)?.label ?? page.group,aliases:[`page=${page.id}`],keywords:[page.task, page.group],page})),
   ...SPACES.map((space) => ({
     entry_id: `space:${space.id}`,
     label: space.label,

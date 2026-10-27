@@ -84,20 +84,14 @@ export function WorkspaceContextMenu(props: Props) {
       if (editor) actions.push({ id: "select-all", label: "全选", group: "edit", native: "SelectAll", run: () => edit("SelectAll") });
 
       const surface = target.closest<HTMLElement>("[data-context-surface]");
-      surface?.querySelectorAll<HTMLButtonElement>("button[data-context-command]").forEach((button, index) => {
+      if (!input) surface?.querySelectorAll<HTMLButtonElement>("button[data-context-command]").forEach((button, index) => {
         if (button.closest("[data-context-surface]") !== surface || button.hidden) return;
         actions.push({ id: `surface-${index}`, label: button.dataset.contextLabel || button.textContent?.trim() || button.getAttribute("aria-label") || "操作", group: "surface", disabled: button.disabled,
           run: () => { if (button.isConnected && !button.disabled) button.click(); } });
       });
       const state = current.current;
       const modalOpen = [...document.querySelectorAll<HTMLElement>('[role="dialog"],[role="alertdialog"],dialog[open]')].some(dialog => !dialog.hidden && getComputedStyle(dialog).display !== "none");
-      if (!modalOpen && state.props.workspaceActions !== false) {
-        const page = (id: string) => { if (!current.current.props.disabled) current.current.props.onPage(id); };
-        actions.push(
-          { id: "import", label: "导入资料…", group: "navigate", disabled: state.props.disabled, run: () => page("16") },
-          { id: "capabilities", label: "查看全部能力", group: "navigate", disabled: state.props.disabled, run: () => page("17") },
-          { id: "settings", label: "设置…", group: "navigate", disabled: state.props.disabled, run: () => page("19") },
-        );
+      if (!modalOpen && !editor && !surface && !selected && state.props.workspaceActions !== false) {
         if (state.consoleWindow && state.consoleWindow.mode !== "compact") actions.push(
           { id: "expand", label: state.consoleWindow?.mode === "full" ? "还原主控台" : "铺满主控台", group: "window", run: () => current.current.consoleWindow?.toggle() },
           { id: "reset", label: "复位主控台位置与大小", group: "window", run: () => current.current.consoleWindow?.reset() },

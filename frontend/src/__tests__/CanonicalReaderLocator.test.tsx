@@ -11,7 +11,7 @@
  */
 import type { JSONContent } from "@tiptap/core";
 import { createHash, webcrypto } from "node:crypto";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -145,8 +145,10 @@ function installCore(resolve: (sample: Sample) => AnchorResolutionDto | Promise<
 async function expectReady(sample: Sample) {
   const button = await screen.findByRole("button", { name: `激活 ${sample.attributes.excerpt}` });
   await screen.findByRole("heading", { name: sample.document.title });
+  fireEvent.click(screen.getByRole("button", { name: "属性与引用" }));
   await waitFor(() => expect(screen.getByRole("complementary", { name: "内容详情" }))
     .toHaveTextContent("原件身份、版本与字节已核对"));
+  fireEvent.click(screen.getByRole("button", { name: "属性与引用" }));
   expect(bridge.call).toHaveBeenCalledWith("source_original", { source_id: sample.source.source_id });
   return button;
 }

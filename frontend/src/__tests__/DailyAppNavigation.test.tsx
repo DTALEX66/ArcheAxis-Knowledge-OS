@@ -48,7 +48,7 @@ describe("actual App navigation guard with SIMULATED child ports",()=>{
 
 function openReader() {
  const menu=screen.getByRole("navigation",{name:"应用菜单"});
- const summary=within(menu).getByText("文件",{selector:"summary"});
+ const summary=within(menu).getByText("知识",{selector:"summary"});
  fireEvent.click(summary); fireEvent.click(within(summary.parentElement!).getByRole("button",{name:"阅读与编辑"}));
 }
 

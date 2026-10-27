@@ -45,6 +45,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const page=view.uiPageId??defaultUiPage(view.spaceId),id=activePanelId??businessPanelId(view.selectedCapabilityId?"17":page);
  const registry=useMemo(()=>new PanelRegistry(workspaceId,epoch),[workspaceId,epoch]);
  const documentSessions=useMemo(()=>new DocumentBusinessSessions(workspaceId,epoch),[workspaceId,epoch]);
+ useSyncExternalStore(documentSessions.subscribe,documentSessions.snapshot,documentSessions.snapshot);
  const working=useOptionalCoreWorkingState();
  if(view.initialDocumentId&&working&&businessPanelId(page)==="03"){const binding=registry.documentSession(view.initialDocumentId,working.session);registry.host(id).dataset.objectSessionKey=binding.key;}
  const parking=useRef<HTMLDivElement>(null),api=useRef<DockviewApi|null>(null),hydrating=useRef(false),mounted=useRef(true);
@@ -57,6 +58,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const presetRef=useRef(preset);presetRef.current=preset;
  const retained=useRef(new Map<string,ViewProps>());retained.current.set(id,view);
  const documentTitles=useRef(new Map<string,string>());
+ const [viewQuery,setViewQuery]=useState("");
  const inspections=useRef(new Map<string,ViewProps["onInspect"]>());
  const acceptance=useRef(onActivateView);acceptance.current=onActivateView;
  const controlled=useRef(0),acceptedPanel=useRef(id),interaction=useRef(0);
@@ -80,8 +82,9 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const components=useMemo(()=>({business:function BusinessSlot(panel:IDockviewPanelProps){const slot=useRef<HTMLDivElement>(null);const panelId=presentationPanelId(panel.api.id);useLayoutEffect(()=>{const container=slot.current;if(container)container.appendChild(registry.host(panelId));const activate=()=>{activations.current.set(panelId,(activations.current.get(panelId)??0)+1);refresh(v=>v+1);};const visibility=panel.api.onDidVisibilityChange(event=>{if(event.isVisible)activate();else refresh(v=>v+1);});if(panel.api.isVisible)activate();return()=>{visibility.dispose();if(parking.current&&registry.host(panelId).parentElement===container)registry.park(panelId,parking.current);};},[panelId]);return <div className="dock-slot" ref={slot}/>;}}),[registry]);
  const ensure=(panelId:string)=>{if(!retained.current.has(panelId)){const objectId=documentObjectId(panelId),pageId=objectId?"03":panelId,definition=findUiPage(pageId);retained.current.set(panelId,{...current.current,uiPageId:pageId,spaceId:definition?.space??"workspace",selectedCapabilityId:null,initialDocumentId:objectId,navigation:undefined,onTrail:undefined});}registry.host(panelId);};
  // 宿主身份只决定保留的业务会话；标签使用该宿主最后获准展示的页面。
- const titleFor=(panelId:string)=>{const objectId=documentObjectId(panelId);if(objectId)return documentTitles.current.get(objectId)??`文档 · ${objectId.slice(-8)}`;const saved=retained.current.get(panelId);return findUiPage(saved?.selectedCapabilityId?"17":saved?.uiPageId??panelId)?.label??panelId;};
+ const titleFor=(panelId:string)=>{const saved=retained.current.get(panelId),objectId=documentObjectId(panelId)??(saved?.uiPageId==="03"?saved.initialDocumentId:undefined);if(objectId){const title=documentTitles.current.get(objectId)??(documentObjectId(panelId)?`文档 · ${objectId.slice(-8)}`:findUiPage(saved?.uiPageId??"03")?.label??"文档"),owner=documentSessions.session(objectId).owner;return `${title}${working?.state.drafts?.[objectId]?" · 未保存":""}${owner&&owner!==registry.key(panelId)?" · 只读":""}`;}return findUiPage(saved?.selectedCapabilityId?"17":saved?.uiPageId??panelId)?.label??panelId;};
  const updateTitles=()=>{if(!api.current)return;quiet(()=>{for(const panel of api.current!.panels){const title=titleFor(panel.id);if(panel.title!==title)panel.api.setTitle(title);}});};
+ useEffect(()=>{updateTitles();});
  // Reuse the library's confirmed title and identity; keep a stable callback so
  // retained readers do not rerun their inspection effect on every layout render.
  const inspectFor=(panelId:string):ViewProps["onInspect"]=>{
@@ -167,6 +170,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  // multi-group, floating or object view; compacting never closes a business host.
  const compactReader=page==="03"&&api.current?.groups.length===1&&api.current.groups[0].api.location.type==="grid"&&api.current.panels.every(panel=>panel.id==="01"||panel.id==="03");
  return <section className="dock-workspace" aria-label="自由布局工作区" data-layout-version={version} data-panel-count={api.current?.panels.length??1} data-compact-reader={compactReader||undefined} data-responsive-tabs={compactFallback||undefined}>
+  <details className="dock-open-views"><summary>已打开视图（{api.current?.panels.length??1}）</summary><div className="dock-open-view-list"><label>查找已打开视图<input type="search" value={viewQuery} onChange={event=>setViewQuery(event.target.value)}/></label>{api.current?.panels.filter(panel=>titleFor(panel.id).toLocaleLowerCase().includes(viewQuery.toLocaleLowerCase())).map(panel=><button type="button" key={panel.id} aria-current={panel.api.isActive?"page":undefined} title={titleFor(panel.id)} onClick={()=>{panel.api.setActive();synchronize();}}>{titleFor(panel.id)}</button>)}</div></details>
   <details className="dock-layout-options"><summary>布局与面板</summary><div className="dock-toolbar" role="toolbar" aria-label="布局操作">
    <button onClick={()=>split("right")} disabled={locked}>左右分栏</button><button onClick={()=>split("below")} disabled={locked}>上下分栏</button>
    <button disabled={locked||!(view.initialDocumentId??working?.state.active_document)} onClick={()=>action(()=>open(documentPanelId(view.initialDocumentId??working!.state.active_document!),"right"))}>并排打开当前文档</button>

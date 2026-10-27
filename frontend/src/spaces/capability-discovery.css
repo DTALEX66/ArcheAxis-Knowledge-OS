@@ -5,3 +5,12 @@
 .stitch-capability-space .capability-design-preview ul { display: grid; gap: 4px; margin: 0; padding-left: 18px; list-style: disc; }
 .stitch-capability-space .capability-design-preview li { display: list-item; padding: 0; background: none; border: 0; border-radius: 0; overflow-wrap: anywhere; }
 .stitch-capability-space .capability-design-overview { align-items: start; }
+.stitch-capability-space .capability-state-badge { justify-self: start; padding: 4px 8px; border-radius: 6px; background: var(--ax-hover); color: var(--ax-fg-secondary); font-size: .8125rem; }
+.stitch-capability-space [data-capability-state="future"] { border-style: dashed; }
+.stitch-capability-space .capability-card-action { margin-top: 8px; color: var(--ax-accent); font-size: .875rem; }
+.stitch-capability-space [data-capability-state="future"] .capability-card-action { color: var(--ax-fg-secondary); }
+.stitch-capability-space .capability-runtime-details,
+.stitch-capability-space .capability-template-details { margin: 16px 0; border-top: 1px solid var(--ax-border); }
+.stitch-capability-space .capability-runtime-details > summary,
+.stitch-capability-space .capability-template-details > summary { padding: 12px 0; cursor: pointer; min-height: 44px; }
+.capability-select-empty { padding: 24px; }

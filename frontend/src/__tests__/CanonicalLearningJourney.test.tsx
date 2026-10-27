@@ -18,6 +18,21 @@ beforeEach(() => {
     throw new Error(operation);
   });
 });
+it("offers an actionable first step without disabled practice controls before an item is selected",async()=>{
+ const onOpenPage=vi.fn();render(<CanonicalLearningJourneySpace pageId="06" onOpenPage={onOpenPage}/>);
+ await waitFor(()=>expect(screen.getByRole("button",{name:"选择已有课程"})).toBeEnabled());
+ expect(screen.queryByRole("button",{name:"练习此学习项目"})).toBeNull();
+ expect(screen.queryByRole("button",{name:"复习此学习项目"})).toBeNull();
+ await userEvent.click(screen.getByRole("button",{name:"选择已有课程"}));
+ expect(screen.getByRole("button",{name:"课程c1"})).toBeVisible();
+});
+it("routes an empty library to real source selection instead of inventing a course or mastery",async()=>{
+ bridge.call.mockResolvedValue({items:[],next_cursor:null});
+ render(<CanonicalLearningJourneySpace pageId="06"/>);
+ await userEvent.click(screen.getByRole("button",{name:"从已有知识开始"}));
+ expect(screen.getByRole("region",{name:"课程来源选择"})).toBeVisible();
+ expect(bridge.call.mock.calls.some(([op])=>op==="course_from_knowledge"||op==="learning_review")).toBe(false);
+});
 it("recovers the persisted pending review on the restored feedback scene without submitting", async () => {
   journal.value={state:{pending_reviews:{e1:{item_key:"persisted-item"}}}};
   render(<CanonicalLearningJourneySpace pageId="12" />);

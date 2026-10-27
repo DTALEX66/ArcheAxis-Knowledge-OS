@@ -24,12 +24,14 @@ it("parent and receipt-list refresh preserve pending cancellation, frozen budget
     throw new Error(op);
   });
   const view = render(<><CanonicalMachineReceiptsSpace /><DiagnosticConsole /></>);
+  fireEvent.click(screen.getByRole("button", {name:"资料处理任务"}));
   expect(await screen.findByRole("option", { name: "synthetic.txt" })).toHaveValue("s1");
   fireEvent.change(screen.getByRole("combobox", { name: /^已保存来源/ }), { target: { value: "s1" } });
   await waitFor(() => expect(screen.getByRole("option", { name: "文字解析 · 排队中" })).toHaveValue("j1"));
   fireEvent.change(screen.getByRole("combobox", { name: /^来源任务/ }), { target: { value: "j1" } });
   await screen.findByText("当前状态：待确认。");
   const budget = screen.getByLabelText("最长等待时间（毫秒）");
+  fireEvent.click(screen.getByText("处理选项 · 默认等待 60 秒"));
   fireEvent.change(budget, { target: { value: "45000" } });
   fireEvent.click(screen.getByRole("button", { name: "执行已保存任务" }));
   await screen.findByText("当前状态：正在处理。");
@@ -37,8 +39,10 @@ it("parent and receipt-list refresh preserve pending cancellation, frozen budget
   await screen.findByText("取消待确认：继续轮询实际状态。");
   const frozenRequest = request;
   view.rerender(<><CanonicalMachineReceiptsSpace /><DiagnosticConsole /></>);
+  fireEvent.click(screen.getByRole("button", {name:"AI 任务记录"}));
   fireEvent.click(screen.getByRole("button", { name: "刷新任务记录" }));
   await waitFor(() => expect(bridge.call.mock.calls.filter(([op]) => op === "machine_tasks_list")).toHaveLength(2));
+  fireEvent.click(screen.getByRole("button", {name:"资料处理任务"}));
   expect(screen.getByRole("combobox", { name: /^来源任务/ })).toHaveValue("j1");
   expect(screen.getByLabelText("最长等待时间（毫秒）")).toBeDisabled();
   expect(screen.getByLabelText("最长等待时间（毫秒）")).toHaveValue(45000);

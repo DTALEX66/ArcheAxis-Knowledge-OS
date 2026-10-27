@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import "./ConsoleWindow.css";
+import type { WorkspaceLayoutMode } from "./StitchWorkspaceChrome";
 
 export type ConsoleRect = { x: number; y: number; width: number; height: number };
 export type ConsoleViewport = { width: number; height: number; topInset?: number; bottomInset?: number };
@@ -34,6 +35,12 @@ export function stitchConsoleRect(viewport: ConsoleViewport): ConsoleRect {
   const height = viewport.height - top - bottom;
   return { x: (viewport.width - width - auxiliaryWidth - 20) / 2, y: top + (viewport.height - top - bottom - height) / 2, width, height };
 }
+/** Explicit presentation choices change only geometry, never the business host. */
+export function workspaceConsoleRect(viewport: ConsoleViewport, layout: WorkspaceLayoutMode): ConsoleRect {
+  if (layout !== "focus" || viewport.width < 1280 || viewport.height < 700) return stitchConsoleRect(viewport);
+  const inset = 24, top = viewport.topInset ?? 48, bottom = viewport.bottomInset ?? 64;
+  return { x: inset, y: top, width: viewport.width - inset * 2, height: viewport.height - top - bottom };
+}
 const readViewport = (): ConsoleViewport => ({ width: window.innerWidth, height: window.innerHeight, ...(window.innerWidth > 900 && window.innerHeight > 600 ? { topInset: 48, bottomInset: 64 } : {}) });
 type ConsoleControls = {
   mode: "floating" | "full" | "compact";
@@ -49,8 +56,8 @@ const ConsoleContext = createContext<ConsoleControls | null>(null);
 export const useConsoleWindow = () => useContext(ConsoleContext);
 
 /** One session-only console. Geometry never changes the mounted workspace or its data. */
-export function ConsoleWindow({ children, presentation = "default" }: { children: ReactNode; presentation?: "default" | "stitch" }) {
-  const initialRect = presentation === "stitch" ? stitchConsoleRect : defaultConsoleRect;
+export function ConsoleWindow({ children, presentation = "default", workspaceLayout = "companion", workspaceLayoutRevision = 0 }: { children: ReactNode; presentation?: "default" | "stitch"; workspaceLayout?: WorkspaceLayoutMode; workspaceLayoutRevision?: number }) {
+  const initialRect = (size: ConsoleViewport) => presentation === "stitch" ? workspaceConsoleRect(size, workspaceLayout) : defaultConsoleRect(size);
   const [viewport, setViewport] = useState(readViewport);
   const [rect, setRect] = useState(() => initialRect(readViewport()));
   const [full, setFull] = useState(false);
@@ -58,14 +65,14 @@ export function ConsoleWindow({ children, presentation = "default" }: { children
   const gesture = useRef<{ id: number; x: number; y: number; rect: ConsoleRect; customized: boolean; kind: "move" | "resize"; edge: ResizeEdge } | null>(null);
   const compact = viewport.width <= 900 || viewport.height <= 600;
   const mode = compact ? "compact" : full ? "full" : "floating";
-  const expandedWidth = presentation === "stitch" && viewport.width >= 1280 && viewport.height >= 700 ? viewport.width * .71 - 36 : viewport.width;
+  const expandedWidth = presentation === "stitch" && workspaceLayout !== "focus" && viewport.width >= 1280 && viewport.height >= 700 ? viewport.width * .71 - 36 : viewport.width;
   const shown = mode === "floating" ? constrainConsole(rect, viewport) : { x: 0, y: 0, width: expandedWidth, height: viewport.height };
   useEffect(() => {
     const resize = () => {
       gesture.current = null;
       const next = readViewport();
       setViewport(next);
-      if (presentation === "stitch" && !customized.current) setRect(stitchConsoleRect(next));
+      if (presentation === "stitch" && !customized.current) setRect(workspaceConsoleRect(next, workspaceLayout));
     };
     const escape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape" || !gesture.current) return;
@@ -75,7 +82,16 @@ export function ConsoleWindow({ children, presentation = "default" }: { children
     window.addEventListener("resize", resize);
     window.addEventListener("keydown", escape, true);
     return () => { window.removeEventListener("resize", resize); window.removeEventListener("keydown", escape, true); };
-  }, [presentation]);
+  }, [presentation, workspaceLayout]);
+  const previousLayout = useRef({ mode: workspaceLayout, revision: workspaceLayoutRevision });
+  useEffect(() => {
+    if (previousLayout.current.mode === workspaceLayout && previousLayout.current.revision === workspaceLayoutRevision) return;
+    previousLayout.current = { mode: workspaceLayout, revision: workspaceLayoutRevision };
+    if (presentation === "stitch") {
+      gesture.current = null; customized.current = false;
+      setRect(workspaceConsoleRect(readViewport(), workspaceLayout)); setFull(false);
+    }
+  }, [workspaceLayout, workspaceLayoutRevision, presentation]);
   const cancel = () => { if (gesture.current) { setRect(gesture.current.rect); customized.current = gesture.current.customized; } gesture.current = null; };
   const controls: ConsoleControls = {
     mode,

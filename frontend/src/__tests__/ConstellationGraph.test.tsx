@@ -49,6 +49,7 @@ it("SIMULATED highlights incoming and outgoing one-hop neighbors for hover and k
 });
 it("SIMULATED keeps cluster focus separate from opening and Escape returns from a focused node", () => {
   const open = vi.fn(), { container } = render(<ConstellationGraph nodes={nodes} edges={edges} centerId="a" onOpen={open}/>);
+  fireEvent.click(screen.getByText("显示与分类",{selector:"summary"}));
   expect(screen.getByRole("button", { name: /^知识星团/ })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: /^段落星团/ }));
   expect(container.firstChild).toHaveAttribute("data-focus-group", "blocks"); expect(open).not.toHaveBeenCalled();

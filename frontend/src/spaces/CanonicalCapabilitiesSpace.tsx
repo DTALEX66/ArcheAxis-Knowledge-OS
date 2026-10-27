@@ -100,11 +100,11 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     {category === "design" ? <p className="capability-design-note">蓝图包含当前与后续设计；每条仍为独立证据未核验，不能由父能力状态推断完成。</p> : null}
     </aside><section className="stitch-capability-results" aria-label="能力列表">
     {!visible.length ? <p role="status">没有符合条件的能力；可以清空搜索或切换分类。</p> : null}
-    <ul className={`capability-directory capability-center-list${category === "design" ? " capability-design-overview" : ""}`}>{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);const details=capabilityDesignDetails(navigationEntry.entry_id);const matches=query.trim()?capabilityDesignDetails(navigationEntry.entry_id,query):[];const preview=category==="design"?(query.trim()?matches:details):matches;return <li key={navigationEntry.entry_id} data-context-surface="capability-card">
+    <ul className={`capability-directory capability-center-list${category === "design" ? " capability-design-overview" : ""}`}>{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);const details=capabilityDesignDetails(navigationEntry.entry_id);const matches=query.trim()?capabilityDesignDetails(navigationEntry.entry_id,query):[];const preview=category==="design"?(query.trim()?matches:details):matches;return <li key={navigationEntry.entry_id} data-context-surface="capability-card" data-capability-state={view.group}>
       <button data-entry-id={navigationEntry.entry_id} data-context-command="details" data-context-label="查看能力详情" onClick={() => { focusDetails.current=true;setSelected(navigationEntry.capability); setActiveTab("details"); }}>
-        <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{view.form} · {details.length} 条设计细项</small>
+        <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{view.form} · {details.length} 条设计细项</small><span className="capability-card-action">{view.group === "future" ? "查看规划与接入条件" : "查看用途与当前入口"} →</span>
       </button>
-      <span>{view.status}</span>
+      <span className="capability-state-badge">{view.group === "future" ? "尚未接入 · 仅可浏览规划" : "已有功能入口 · 运行情况待核对"}</span>
       {preview.length ? <section className="capability-design-preview" aria-label={`${navigationEntry.label}${query.trim() ? "匹配的设计细项" : "设计蓝图"}`}>
         <p>{query.trim() ? `命中 ${matches.length} 条设计细项` : `${details.length} 条设计细项`} · 独立证据未核验</p>
         <ul>{(category === "design" ? preview : preview.slice(0, 6)).map(item => <li key={item}>{capabilityDetailText(item)}</li>)}</ul>
@@ -118,6 +118,11 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     <p>{capabilityPresentation(selected).purpose}</p>
     <p>{capabilityPresentation(selected).status} · {capabilityPresentation(selected).form}</p>
     <p>下一步：{getCapabilityNextStep(selected, Boolean(onOpenPage))}</p>
+    <AaosButton variant={canNavigateToCapability(selected) && hasDestination ? "primary" : "secondary"} disabled={!hasDestination || !canNavigateToCapability(selected)}
+      disabledReason={!hasDestination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (pageDestination && onOpenPage) onOpenPage(pageDestination); else if (destination) onNavigate(destination); }}>
+      {hasDestination ? "打开当前产品入口" : "当前执行入口尚未提供"}
+    </AaosButton>
+    <details className="capability-runtime-details"><summary>查看连接、权限与运行情况</summary>
     <h4>当前运行联接、权限与健康</h4>
     <ModelTaskRoles capabilities={live} scopeLabel={selected.atlas.canonical_name}/>
     <p>功能登记不代表本轮已成功执行；请分别核对连接、权限与业务验证。</p>
@@ -129,10 +134,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此功能由应用内部提供；当前页面尚不能确认它是否可用。"}</p>}
     <p>使用后可在该任务的运行诊断中查看处理方式、版本和结果质量。</p>
     {selected.atlas.capability_id === "CAP-0150" ? <p>完整模型管理尚不可用；你可以单独查看现有的模型连接与用途设置。<AaosButton disabled={!onOpenPage} disabledReason={!onOpenPage ? "当前无法打开模型设置页面" : undefined} onClick={()=>onOpenPage?.("19")}>查看现有模型配置</AaosButton></p> : null}
-    <AaosButton variant="primary" disabled={!hasDestination || !canNavigateToCapability(selected)}
-      disabledReason={!hasDestination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (pageDestination && onOpenPage) onOpenPage(pageDestination); else if (destination) onNavigate(destination); }}>
-      {hasDestination ? "打开当前产品入口" : "当前执行入口尚未提供"}
-    </AaosButton>
+    </details>
     <section aria-label="设计细项与独立证据">
       <h4>新设计保留的细项</h4>
       <p>以下来自设计输入，每项是否实现仍待独立核验。父能力声明和运行握手不证明这些细项全部完成。</p>
@@ -145,6 +147,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
       <h4>待实现或待独立资格验收</h4>
       <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].pending.map(item => <li key={item}>{item} · 未执行</li>)}</ul>
     </section>}
+    <details className="capability-template-details"><summary>查看关联的学科模板（{requiring.length}）</summary>
     <h4>使用此能力的模板</h4>
     {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
       <b>{reference.template_name}</b>
@@ -152,6 +155,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
     <p>{requiring.length ? "以下模板已与此能力建立需求对应关系，实际运行状态仍需核对。请到资料库的「学科模板」展开区使用。" : "尚无模板与此能力建立对应关系。"}</p>
     {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
+    </details>
     <details><summary>实现与来源详情</summary>
       <RawReceiptButton label="能力登记与运行声明" payload={{atlas:selected.atlas,implementation:selected.implementation}} />
       <p>相关视图：{selected.atlas.views.join("、")}</p>
@@ -169,7 +173,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
       <RawReceiptButton label="模板需求对应记录" payload={requiring} category="runtime" />
       <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
     </details>
-  </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>}</div>;
+  </article> : <div className="capability-select-empty"><h3>先选择一个想了解的能力</h3><p>可以按用途搜索，查看已有功能入口或未来设计。</p><AaosButton onClick={()=>setActiveTab("catalog")}>返回能力目录</AaosButton></div>}</div>;
 
   return <section className="stitch-capability-space" aria-label="能力中心">
     <div className="stitch-capability-topic"><div><p>能力与使用入口</p><h2>能力中心</h2></div><span>已有能力 · 扩展登记 · 后期规划</span></div>

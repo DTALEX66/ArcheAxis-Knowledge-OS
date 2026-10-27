@@ -50,8 +50,7 @@ describe("preserved independent design intentions",()=>{
     for(const item of items){expect(item).toHaveTextContent("独立证据未核验");expect(item.textContent!.split(" · ")[0].trim()).not.toBe("");}
     const article=screen.getByRole("article",{name:"能力详情"});
     expect(article.querySelectorAll("pre")).toHaveLength(0);
-    expect(article.querySelectorAll("details")).toHaveLength(1);
-    const implementationDetails=article.querySelector("details")!;
+    const implementationDetails=within(article).getByText("实现与来源详情",{selector:"summary"}).closest("details")!;
     expect(implementationDetails.open).toBe(false);
     const user=userEvent.setup();
     await user.click(within(implementationDetails).getByText("实现与来源详情",{selector:"summary"}));
@@ -66,7 +65,7 @@ describe("preserved independent design intentions",()=>{
       expect(parent,`missing parent ${id}`).toBeDefined();
       for(const intent of intents)expect(navigationEntryMatches(parent!,intent),`${id}: ${intent}`).toBe(true);
     }
-  });  it("keeps the new five-domain navigation while the former palettes change only presentation",()=>{
+  });  it("keeps six daily entry points and two fixed entries across themes",()=>{
     expect(AAOS_THEMES.map(theme=>theme.id)).toEqual(["blueprint","blueprint-light","black","white","cosmic"]);
     expect(readThemePreference({getItem:()=>null})).toBe("cosmic");
     render(<SpaceRail active="workspace" spaces={SPACES} onNavigate={vi.fn()} pageId="01" onPage={vi.fn()}/>);
@@ -76,7 +75,8 @@ describe("preserved independent design intentions",()=>{
       for(const entry of [...UI_DAILY_ENTRY_POINTS,...UI_FIXED_ENTRY_POINTS])expect(within(rail).getByRole("button",{name:entry.label})).toBeInTheDocument();
       expect(within(rail).queryByRole("button",{name:"研究空间"})).toBeNull();
       expect(rail.querySelectorAll("[data-space-id]")).toHaveLength(0);
-      expect(rail.querySelectorAll("[data-page-id]")).toHaveLength(7);
+      expect([...UI_DAILY_ENTRY_POINTS,...UI_FIXED_ENTRY_POINTS].map(entry=>[entry.label,entry.pageId])).toEqual([["工作台","01"],["知识","02"],["学习","06"],["研究专题","05"],["AI","13"],["资源","15"],["全部能力","17"],["设置","19"]]);
+      expect([...rail.querySelectorAll("[data-page-id]")].map(node=>node.getAttribute("data-page-id"))).toEqual(["01","02","06","05","13","15","17","19"]);
     }
     applyTheme("blueprint");
   });

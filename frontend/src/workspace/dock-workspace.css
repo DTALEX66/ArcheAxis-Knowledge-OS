@@ -15,3 +15,12 @@
   --dv-inactivegroup-hiddenpanel-tab-background-color: var(--stitch-glass-card, var(--cabin-surface));
   --dv-separator-border: var(--ax-border);
 }
+.dock-workspace { position: relative; }
+.dock-open-views { position: absolute; top: 0; right: 0; z-index: 25; font-size: var(--ax-text-ui, 14px); }
+.dock-layout-options > summary { padding-right: 170px; }
+.dock-open-views > summary { cursor: pointer; padding: 4px 8px; color: var(--ax-fg-secondary); }
+.dock-open-view-list { position: absolute; top: 100%; right: 0; z-index: 30; display: flex; flex-direction: column; width: min(360px, 75vw); max-height: 360px; overflow: auto; gap: 4px; padding: 10px; background: var(--ax-panel); border: 1px solid var(--ax-border); border-radius: 10px; box-shadow: 0 8px 28px #0004; }
+.dock-open-view-list label { display: grid; gap: 4px; }
+.dock-open-view-list input { width: 100%; box-sizing: border-box; font: inherit; }
+.dock-open-view-list button { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; min-height: 34px; }
+.dock-open-view-list button[aria-current="page"] { border-color: var(--ax-accent); }

@@ -44,7 +44,7 @@ export function StitchLaunchpad({ open, onOpenChange, onPage, onCapability }: {
     return !term || [entry.label, entry.description, ...entry.aliases, ...entry.keywords].join(" ").toLocaleLowerCase().includes(term) || Boolean(entry.capability && capabilityDesignDetails(entry.entry_id, term).length);
   });
   const close = () => onOpenChange(false);
-  return <AaosDialog open={open} onOpenChange={onOpenChange} title="全部能力" description="常用入口用于继续工作；全部能力族和完整目录保留当前能力、扩展与设计蓝图。"
+  return <AaosDialog open={open} onOpenChange={onOpenChange} title="全部能力" description="“常用入口”只是部分工作页面。查看所有能力请选“全部能力族”；查看完整蓝图请点“查看完整能力目录”，再选“全部设计细项”。"
     overlayClassName="stitch-launchpad-overlay" contentClassName="stitch-launchpad"
     onOpenAutoFocus={event => { event.preventDefault(); searchInput.current?.focus(); }}
     onCloseAutoFocus={event => { event.preventDefault(); document.getElementById("stitch-launchpad-toggle")?.focus(); }}>
@@ -78,6 +78,6 @@ export function StitchLaunchpad({ open, onOpenChange, onPage, onCapability }: {
       </ul>
       {!rows.length && <p className="stitch-launchpad-empty" role="status">未找到“{query}”。试试资料、研究、学习或恢复。</p>}
     </div>
-    <footer><span>{rows.length} 个入口</span><span>关闭菜单不会取消正在进行的任务</span></footer>
+    <footer><span>{category === "frequent" && !term ? `当前显示 ${rows.length} 个常用入口（部分工作页面）` : `${rows.length} 个入口`}</span><span>关闭菜单不会取消正在进行的任务</span></footer>
   </AaosDialog>;
 }

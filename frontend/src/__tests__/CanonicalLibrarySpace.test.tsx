@@ -102,6 +102,7 @@ describe("canonical content sample", () => {
     expect(editor).toHaveTextContent("已保存笔记");
     const reader=screen.getByRole("region",{name:"阅读与编辑文档视图"});
     expect(reader).toHaveAttribute("data-reader-layout","split");
+    fireEvent.click(screen.getByRole("button",{name:"属性与引用"}));
     const body=screen.getByRole("region",{name:"正文与原件滚动区"}),details=screen.getByRole("complementary",{name:"内容详情"});
     expect(body).toHaveAttribute("tabindex","0");expect(details).toHaveAttribute("tabindex","0");
     body.focus();expect(body).toHaveFocus();details.focus();expect(details).toHaveFocus();

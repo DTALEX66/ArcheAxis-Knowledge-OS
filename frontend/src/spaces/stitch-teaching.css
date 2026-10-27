@@ -50,6 +50,23 @@
 .stitch-teaching-preparations section > h3 { margin-bottom: 8px; }
 .stitch-teaching-selected > article > button { margin-top: 6px; margin-right: 6px; }
 .stitch-teaching [hidden] { display: none !important; }
+.teaching-stage-workspace { display:grid; gap:16px; padding:20px 24px; border:1px solid var(--ax-border-strong); border-radius:14px; background:var(--ax-panel); min-width:0; }
+.teaching-stage-workspace > header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; }
+.teaching-stage-workspace h3 { margin-block:4px 8px; font-size:var(--ax-text-body); }
+.teaching-stage-workspace p { color:var(--ax-fg-secondary); }
+.teaching-stage-kicker { color:var(--ax-accent); font-size:var(--ax-text-caption); }
+.teaching-brief-prompts { display:flex; flex-wrap:wrap; gap:16px 36px; margin:0; padding-left:20px; }
+.teaching-stage-comparison { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; }
+.teaching-stage-comparison article { min-width:0; padding:16px; background:var(--ax-raised); border-radius:10px; }
+.teaching-stage-comparison h4 { margin:0 0 10px; color:var(--ax-accent); }
+.teaching-stage-comparison p { margin-top:10px; white-space:pre-wrap; max-height:320px; overflow:auto; }
+.teaching-stage-boundary { padding-top:12px; border-top:1px solid var(--ax-border); }
+.stitch-teaching-editor .stitch-teaching-body textarea { min-height:280px; }
+.stitch-teaching-editor .stitch-teaching-properties { grid-column:1/-1; border-top:1px solid var(--ax-border); padding-block:12px; }
+.stitch-teaching-properties > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding-top:12px; }
+.stitch-teaching-properties summary { color:var(--ax-fg-secondary); }
+@container content (max-width:760px) { .teaching-stage-comparison { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:760px) { .teaching-stage-comparison { grid-template-columns:minmax(0,1fr); } }
 @container content (max-width: 760px) { .stitch-teaching-layout { grid-template-columns: minmax(0,1fr); } }
 @container content (max-width: 540px) { .stitch-teaching-editor fieldset { grid-template-columns: minmax(0,1fr); } .stitch-teaching-topic { align-items: flex-start; flex-direction: column; gap: 4px; } }
 @media (max-width: 760px) { .stitch-teaching-layout { grid-template-columns: minmax(0,1fr); } }

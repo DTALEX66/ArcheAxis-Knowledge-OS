@@ -30,18 +30,19 @@ export const UI_PAGES: readonly UiPage[] = [
 export const findUiPage = (id: string): UiPage | undefined => UI_PAGES.find(page => page.id === id);
 export const defaultUiPage = (space: SpaceId): string => ({workspace:"01",library:"03",intake:"16",vault:"02",evidence:"20",learning:"06","ai-assets":"13",exchange:"16",settings:"19"})[space];
 
-// Daily workflow projection from PAGE-ENTRY-MAPPING.csv. Page identity stays above.
+// Current presentation projection; original page identities and deep links stay above.
 export type UiEntryPoint = { label: string; pageId: string; pageIds: readonly string[] };
 export const UI_DAILY_ENTRY_POINTS: readonly UiEntryPoint[] = [
   { label: "工作台", pageId: "01", pageIds: ["01"] },
-  { label: "知识", pageId: "02", pageIds: ["02", "03", "04", "05"] },
+  { label: "知识", pageId: "02", pageIds: ["02", "03", "04", "20"] },
   { label: "学习", pageId: "06", pageIds: ["06", "07", "08", "09", "10", "11", "12", "21"] },
+  { label: "研究专题", pageId: "05", pageIds: ["05"] },
   { label: "AI", pageId: "13", pageIds: ["13", "14", "22"] },
   { label: "资源", pageId: "15", pageIds: ["15", "16"] },
 ];
 export const UI_FIXED_ENTRY_POINTS: readonly UiEntryPoint[] = [
   { label: "全部能力", pageId: "17", pageIds: ["17", "18"] },
-  { label: "设置", pageId: "19", pageIds: ["19", "20"] },
+  { label: "设置", pageId: "19", pageIds: ["19"] },
 ];
 export const uiEntryForPage = (id: string): UiEntryPoint | undefined =>
   [...UI_DAILY_ENTRY_POINTS, ...UI_FIXED_ENTRY_POINTS].find(entry => entry.pageIds.includes(id));

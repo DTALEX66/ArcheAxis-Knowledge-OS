@@ -9,20 +9,21 @@ const props = () => ({ onPage: vi.fn(), onCompanion: vi.fn(), onInspector: vi.fn
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); native.create.mockReset(); delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__; });
 
 describe("workspace context commands (SIMULATED; native popup is mocked)", () => {
-  it("delegates navigation and panel controls and supports keyboard dismissal", async () => {
+  it("limits blank workspace commands to window controls and supports keyboard dismissal", async () => {
     const handlers = props();
     render(<ConsoleWindow><button>工作区</button><WorkspaceContextMenu {...handlers}/></ConsoleWindow>);
     const target = screen.getByRole("button", { name: "工作区" }); target.focus();
     const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 30, clientY: 40 });
     fireEvent(target, event); expect(event.defaultPrevented).toBe(true);
     expect(screen.getByRole("menu", { name: "当前位置操作" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("menuitem", { name: "查看全部能力" }));
-    await waitFor(() => expect(handlers.onPage).toHaveBeenCalledWith("17"));
+    expect(screen.queryByRole("menuitem", { name: "查看全部能力" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: "收起小栖" }));
+    await waitFor(() => expect(handlers.onCompanion).toHaveBeenCalledOnce());
     fireEvent.keyDown(target, { key: "F10", shiftKey: true });
     fireEvent.keyDown(document.activeElement!, { key: "End" });
     expect(screen.getByRole("menuitem", { name: "显示来源检查器" })).toHaveFocus();
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
-    expect(screen.getByRole("menuitem", { name: "导入资料…" })).toHaveFocus();
+    expect(screen.getByRole("menuitem", { name: "铺满主控台" })).toHaveFocus();
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
     expect(screen.queryByRole("menu")).not.toBeInTheDocument(); expect(target).toHaveFocus();
   });
@@ -31,6 +32,7 @@ describe("workspace context commands (SIMULATED; native popup is mocked)", () =>
     const first = vi.fn(), second = vi.fn();
     render(<><article data-context-surface="document"><span>文档甲</span><button data-context-command="read" onClick={first}>打开阅读</button></article><article data-context-surface="document"><span>文档乙</span><button data-context-command="read" onClick={second}>打开阅读</button></article><WorkspaceContextMenu {...props()}/></>);
     fireEvent.contextMenu(screen.getByText("文档乙"));
+    expect(screen.queryByRole("menuitem", { name: "收起小栖" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("menuitem", { name: "打开阅读" }));
     await waitFor(() => expect(second).toHaveBeenCalledOnce()); expect(first).not.toHaveBeenCalled();
     fireEvent.contextMenu(screen.getByText("文档乙"));
@@ -75,8 +77,8 @@ describe("workspace context commands (SIMULATED; native popup is mocked)", () =>
     const options = native.create.mock.calls[0][0];
     expect(options.items.some((item: { item?: string }) => item.item === "Copy")).toBe(true);
     expect(options.items.some((item: { item?: string }) => item.item === "Undo")).toBe(false);
-    options.items.find((item: { id?: string }) => item.id === "capabilities").action();
-    await waitFor(() => expect(handlers.onPage).toHaveBeenCalledWith("17"));
+    expect(options.items.some((item: { id?: string }) => ["capabilities", "companion", "inspector", "import", "settings"].includes(item.id??""))).toBe(false);
+    expect(handlers.onPage).not.toHaveBeenCalled();
     fireEvent.contextMenu(input); await waitFor(() => expect(second.popup).toHaveBeenCalledOnce()); expect(first.close).toHaveBeenCalledOnce();
     view.unmount(); expect(second.close).toHaveBeenCalledOnce();
   });

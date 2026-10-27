@@ -12,6 +12,14 @@
 .pdf-reader:focus-visible, .canonical-reading pre:focus-visible, .document-editor .tiptap:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: 3px; }
 .document-editor { margin-top: 20px; }
 .document-editor .tiptap { min-height: 160px; padding: 14px; border: 1px solid var(--ax-border-strong); border-radius: var(--ax-radius-sm); background: var(--ax-raised); color: var(--ax-fg); overflow-wrap: anywhere; }
+.document-editor .tiptap { position:relative; white-space:pre-wrap; word-wrap:break-word; font-variant-ligatures:none; }
+.document-editor .tiptap [contenteditable="false"] { white-space:normal; }
+.document-editor .tiptap pre { white-space:pre-wrap; }
+.document-editor .tiptap .ProseMirror-selectednode { outline:2px solid var(--ax-focus-ring); }
+.document-editor .tiptap .ProseMirror-gapcursor { display:none; pointer-events:none; position:absolute; margin:0; }
+.document-editor .tiptap.ProseMirror-focused .ProseMirror-gapcursor { display:block; }
+.document-editor .tiptap .ProseMirror-gapcursor:after { content:""; display:block; position:absolute; top:-2px; width:20px; border-top:1px solid currentColor; }
+.document-save-status { overflow-wrap:anywhere; }
 .document-editor [data-evidence-reference] { cursor: pointer; border-bottom: 1px solid var(--ax-fg-secondary); }
 .document-editor [data-preserved-node] { padding: 10px; border: 1px dashed var(--ax-border-strong); color: var(--ax-fg-secondary); }
 .draft-restore input { width: 80px; margin-left: 8px; }

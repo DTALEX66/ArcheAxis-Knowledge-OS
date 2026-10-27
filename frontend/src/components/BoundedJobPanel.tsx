@@ -7,6 +7,7 @@ import { FormatQualificationPanel } from "./FormatQualificationPanel";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { ConversionRecoveryNotice } from "./ConversionRecoveryNotice";
 import { jobKindLabel, stateLabel } from "../presentation/labels";
+import "./bounded-job.css";
 
 /** Integration port: add these finite operations to generated Core/native contracts first. */
 export type BoundedJobOperation = "sources_list" | "source_jobs" | "jobs_get" | "job_execute" | "job_execution_status" | "job_execution_cancel" | "source_job_format_qualification";
@@ -173,14 +174,19 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     <label>已保存来源 <select value={sourceId} disabled={locked} onChange={event => { setSourceId(event.target.value); setMessage(""); }}><option value="">选择来源</option>{sources.map(row => <option key={row.source_id} value={row.source_id}>{row.original_name}</option>)}</select></label>
     <label>来源任务 <select value={jobId} disabled={locked} onChange={event => { setJobId(event.target.value); setMessage(""); }}><option value="">选择任务</option>{jobs.map(row => <option key={row.job_id} value={row.job_id}>{jobKindLabel(row.kind)} · {stateLabel(row.state)}</option>)}</select></label>
     {capped ? <p>只列最近 50 个来源任务；未列出不表示不存在。</p> : null}
+    <details className="bounded-job-options"><summary>处理选项 · 默认等待 60 秒</summary><div>
     <label>最长等待时间（毫秒）<input type="number" min={1} max={300000} step={1} value={deadline} disabled={locked} onChange={event => setDeadline(event.target.value)} /></label>
     <label><input type="checkbox" checked={split} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setSplit(event.target.checked)} />分段处理媒体</label>
     <label><input type="checkbox" checked={words} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setWords(event.target.checked)} />词级时间</label>
+    </div></details>
+    {!jobId?<p className="bounded-job-next">先选择已保存来源，再选择该来源的处理任务。</p>:<header className="bounded-job-selection"><h3>{selectedJob?jobKindLabel(selectedJob.kind):"所选处理任务"}</h3><p>{status?stateLabel(status.state):"正在核对任务的实际状态"}</p></header>}
+    <div className="bounded-job-actions">
+    <button className={uncertain||cancelPending?"bounded-job-primary":undefined} disabled={!jobId || busy} title={!jobId?"需要先执行或选择一项任务":undefined} onClick={() => void refresh()}>刷新实际状态</button>
     <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} title={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)?"需要先选择已保存来源和任务，且没有正在运行的请求":undefined} onClick={() => void execute(false)}>执行已保存任务</button>
     <button disabled={!attempt || !uncertain || busy} title={!attempt || !uncertain?"当前没有需要同请求重试的任务":undefined} onClick={() => void execute(true)}>同请求重试</button>
     <button disabled={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} title={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true?"当前状态不允许新请求重试":undefined} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
-    <button disabled={!jobId || busy} title={!jobId?"需要先执行或选择一项任务":undefined} onClick={() => void refresh()}>刷新实际状态</button>
     <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} title={!(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)?"当前没有可取消的请求":undefined} onClick={() => void cancel()}>请求取消</button>
+    </div>
     {cancelPending ? <p>取消待确认：继续轮询实际状态。</p> : null}
     <ConversionRecoveryNotice status={status}/>
     {status && status.job_id === jobId && status.input_ref === sourceId ? <FormatQualificationPanel

@@ -139,3 +139,20 @@
 .library-retry-help { margin:6px 0; color:var(--ax-fg-tertiary); font-size:var(--ax-text-ui); line-height:1.6; }
 .library-reader-next { margin:8px 0; padding:10px 12px; border-inline-start:2px solid var(--ax-border-strong); color:var(--ax-fg-secondary); line-height:1.7; }
 
+/* The document owns the main surface. Its properties remain mounted, but only
+   occupy space after the reader asks for them or opens version history. */
+.stitch-reader-page[data-details-open="false"] .stitch-reader-workspace { grid-template-columns:minmax(0,1fr); }
+.stitch-reader-details[hidden] { display:none !important; }
+.stitch-reader-heading { padding:4px 0; border:0; background:transparent; border-radius:0; }
+.stitch-reader-toolbar { padding:4px 0 8px; border:0; border-bottom:1px solid var(--ax-border); border-radius:0; background:transparent; }
+.stitch-reader-document { padding:12px 16px; border-color:transparent; background:transparent; }
+.stitch-reader-document .document-editor { margin-top:0; }
+.stitch-reader-document .tiptap { border-color:transparent; background:transparent; padding:12px 4px; min-height:320px; }
+.reader-batch-tools { border-top:1px solid var(--ax-border); padding-top:6px; }
+.reader-batch-tools>summary,.reader-other-documents>summary,.reader-source-help>summary { min-height:32px; cursor:pointer; color:var(--ax-fg-secondary); }
+.reader-source-help { margin:0; font-size:var(--ax-text-ui); }
+.reader-format-handoff { padding:16px; background:var(--ax-hover); border-radius:8px; }
+.stitch-reader-spread>.reader-source-tools { flex-basis:100%; min-width:0; padding-block:10px; border-top:1px solid var(--ax-border); }
+.reader-source-help>p { max-width:75ch; color:var(--ax-fg-secondary); line-height:1.7; }
+@container console (max-height:520px) { .stitch-reader-heading { display:flex; padding-block:2px; } .stitch-reader-heading h2 { font-size:1rem; } }
+

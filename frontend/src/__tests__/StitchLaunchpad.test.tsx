@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { StitchLaunchpad } from "../components/StitchLaunchpad";
 import { StitchWorkspaceDock } from "../components/StitchWorkspaceChrome";
-import { EFFECTIVE_NAVIGATION_ENTRIES } from "../presentation/navigation";
-import { capabilityPresentation } from "../presentation/capabilityCenter";
+import { CAPABILITY_NAVIGATION_ENTRIES, EFFECTIVE_NAVIGATION_ENTRIES } from "../presentation/navigation";
+import { CAPABILITY_DESIGN_DETAIL_COUNT, capabilityPresentation } from "../presentation/capabilityCenter";
 
 it("search reaches existing page routes and refuses closing when the draft guard refuses navigation", async () => {
   const user = userEvent.setup(), onPage = vi.fn<() => boolean>(() => false), onOpenChange = vi.fn();
@@ -51,11 +51,21 @@ it("exposes all 16 capability families and a guarded complete catalog entry", as
   const user = userEvent.setup(), onPage = vi.fn<(page: string) => boolean>(() => false), onOpenChange = vi.fn(), onCapability = vi.fn<(id: string) => boolean>(() => false);
   render(<StitchLaunchpad open onOpenChange={onOpenChange} onPage={onPage} onCapability={onCapability}/>);
   expect(screen.getByText("16 个能力族 · 186 条设计细项")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "常用入口" })).toHaveAttribute("aria-pressed", "true");
+  const frequentButtons = within(screen.getByRole("list", { name: "能力入口" })).getAllByRole("button");
+  expect(frequentButtons).toHaveLength(10);
+  expect(frequentButtons.length).toBeLessThan(CAPABILITY_NAVIGATION_ENTRIES.length);
+  expect(frequentButtons.length).toBeLessThan(CAPABILITY_DESIGN_DETAIL_COUNT);
+  expect(screen.getByText("当前显示 10 个常用入口（部分工作页面）")).toBeVisible();
+  expect(screen.getByRole("dialog", { name: "全部能力" })).toHaveAccessibleDescription("“常用入口”只是部分工作页面。查看所有能力请选“全部能力族”；查看完整蓝图请点“查看完整能力目录”，再选“全部设计细项”。");
   await user.click(screen.getByRole("button", { name: "查看完整能力目录" }));
   expect(onPage).toHaveBeenCalledWith("17"); expect(onOpenChange).not.toHaveBeenCalled();
+  expect(screen.getByRole("dialog", { name: "全部能力" })).toBeVisible();
   await user.click(screen.getByRole("button", { name: "全部能力族" }));
   const buttons = within(screen.getByRole("list", { name: "能力入口" })).getAllByRole("button");
   expect(buttons).toHaveLength(16);
+  expect(screen.getByText("16 个入口")).toBeVisible();
+  expect(screen.queryByText("当前显示 10 个常用入口（部分工作页面）")).not.toBeInTheDocument();
   for (const button of buttons) await user.click(button);
   expect(onCapability.mock.calls.map(call => call[0]).sort()).toEqual(EFFECTIVE_NAVIGATION_ENTRIES.filter(entry => entry.capability).map(entry => entry.entry_id).sort());
   expect(onOpenChange).not.toHaveBeenCalled();

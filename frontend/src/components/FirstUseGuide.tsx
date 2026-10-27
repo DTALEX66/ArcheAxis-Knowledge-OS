@@ -47,12 +47,14 @@ function readProgress(): Progress {
 export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onPage: (page: string) => boolean | void; enabled?: boolean; autoOpen?: boolean }) {
   const [progress, setProgress] = useState(readProgress);
   const [open, setOpen] = useState(false);
+  const [referenceOpen,setReferenceOpen] = useState(progress.current>0||progress.completed.length>0);
   const [notice, setNotice] = useState("");
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const latest = useRef(progress); latest.current = progress;
   const attempted = useRef(false);
   const closeTarget = useRef<HTMLElement | null>(null);
   const routeButton = useRef<HTMLButtonElement>(null);
+  const startButton = useRef<HTMLButtonElement>(null);
   const navigating = useRef(false);
   const stopTour = useRef<(() => void) | undefined>();
   useEffect(() => () => stopTour.current?.(), []);
@@ -99,7 +101,7 @@ export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onP
   }
   return <AaosDialog open={open} onOpenChange={setOpen} title="首次使用引导" description="从第一份资料开始，逐步走过人类学习与 AI 知识流程。可以随时暂停。"
     contentClassName="first-use-guide" overlayClassName="first-use-guide-overlay"
-    onOpenAutoFocus={event => { event.preventDefault(); routeButton.current?.focus(); }}
+    onOpenAutoFocus={event => { event.preventDefault(); (referenceOpen?routeButton.current:startButton.current)?.focus(); }}
     onCloseAutoFocus={event => {
       event.preventDefault();
       if (!navigating.current && closeTarget.current?.isConnected) closeTarget.current.focus();
@@ -107,11 +109,13 @@ export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onP
     }}>
     <header className="first-use-guide-progress"><span>{progress.completed.length} / {FIRST_USE_STEPS.length} 步已手动记录</span><button type="button" onClick={() => setOpen(false)} aria-label="暂时跳过，暂停并关闭首次使用引导">暂时跳过</button></header>
     <p className="first-use-guide-resume">随时从顶部「使用引导」或设置中的「使用引导」继续。</p>
-    <button type="button" className="first-use-guide-start-tour" onClick={() => {
+    <section className="first-use-guide-quickstart" aria-label="先完成一次真实保存"><div><h3>先把一份资料变成自己的笔记</h3><p>只需三步：导入资料 → 打开阅读 → 写下并保存。离线、未连接模型时也可以开始。</p></div>
+    <button ref={startButton} type="button" className="first-use-guide-start-tour" onClick={() => {
       setOpen(false); navigating.current = true;
       stopTour.current?.();
       stopTour.current = beginFirstUseTour(onPage, message => { setNotice(message); setOpen(true); });
-    }}>带我操作：导入、阅读与保存</button>
+    }}>带我操作：导入、阅读与保存</button><p className="first-use-guide-quickstart-note">操作提示会指出控件位置；文件选择和保存由你亲自完成，结果以页面实际状态为准。</p></section>
+    <details className="first-use-guide-reference" open={referenceOpen} onToggle={event=>setReferenceOpen(event.currentTarget.open)}><summary>查看完整10步流程参考</summary>
     <div className="first-use-guide-layout">
       <nav aria-label="引导步骤"><ol>{FIRST_USE_STEPS.map((entry, index) => <li key={entry.id}><button type="button" aria-current={progress.current === index ? "step" : undefined} onClick={() => { save({ ...progress, current: index }); setNotice(""); }}><span aria-hidden="true">{progress.completed.includes(entry.id) ? "✓" : index + 1}</span><span>{entry.label}</span>{progress.completed.includes(entry.id) ? <span className="aaos-sr-only">已手动记录</span> : null}</button></li>)}</ol></nav>
       <section className="first-use-guide-step" aria-labelledby="first-use-guide-step-title">
@@ -121,9 +125,11 @@ export function FirstUseGuide({ onPage, enabled = true, autoOpen = true }: { onP
         <details className="first-use-guide-check" key={step.id}><summary>核对结果与名词说明</summary><p>{step.check}</p><dl>{help.terms.map(([term, meaning]) => <div key={term}><dt>{term}</dt><dd>{meaning}</dd></div>)}</dl></details>
         <div className="first-use-guide-routes">{step.routes.map((route, index) => <button key={route.page} ref={index === 0 ? routeButton : undefined} type="button" onClick={() => go(route.page)}>{route.label}<span aria-hidden="true"> ↗</span></button>)}</div>
         <label className="first-use-guide-mark"><input type="checkbox" checked={completed} onChange={event => save({ ...progress, completed: event.target.checked ? [...progress.completed, step.id] : progress.completed.filter(id => id !== step.id) })}/>我已核对这一步（手动记录）</label>
-        {notice ? <p role="status">{notice}</p> : null}
       </section>
     </div>
-    <footer className="first-use-guide-footer"><p>勾选只保存你的引导进度，不代表业务成功或完整闭环验收通过。{storageUnavailable ? " 本机暂不能保存引导偏好，本次进度仅保留到窗口关闭。" : ""}</p><div><button type="button" disabled={progress.current === 0} onClick={() => save({ ...progress, current: progress.current - 1 })}>上一步</button>{progress.current < FIRST_USE_STEPS.length - 1 ? <button type="button" onClick={() => save({ ...progress, current: progress.current + 1 })}>下一步</button> : <button type="button" disabled={!allCompleted} onClick={() => setOpen(false)}>完成引导</button>}</div></footer>
+    <footer className="first-use-guide-footer"><p>勾选只保存你的引导进度，不代表业务成功或完整闭环验收通过。</p><div><button type="button" disabled={progress.current === 0} onClick={() => save({ ...progress, current: progress.current - 1 })}>上一步</button>{progress.current < FIRST_USE_STEPS.length - 1 ? <button type="button" onClick={() => save({ ...progress, current: progress.current + 1 })}>下一步</button> : <button type="button" disabled={!allCompleted} onClick={() => setOpen(false)}>完成引导</button>}</div></footer>
+    </details>
+    {notice ? <p role="status">{notice}</p> : null}
+    {storageUnavailable ? <p role="status">本机暂不能保存引导偏好，本次进度仅保留到窗口关闭。</p> : null}
   </AaosDialog>;
 }

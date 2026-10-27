@@ -4,6 +4,7 @@ import { BoundedJobPanel, type BoundedJobCommand } from "../components/BoundedJo
 import type { MachineTaskRowDto, MachineTasksPageDto } from "../api/generated/core-contract";
 import { failureMessage } from "../presentation/labels";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
+import "./machine-receipts.css";
 
 const outcomeLabel = { succeeded: "已完成", failed: "失败", unmeasured: "未测评" };
 function taskKind(scope: string): string {
@@ -14,7 +15,7 @@ const boundedJobCommand: BoundedJobCommand = (operation,payload) => coreCommand(
 
 /** Durable Core history, separate from human mastery and general agent execution. */
 type TaskIdentity=Omit<MachineTaskRowDto,"principal"|"recorded_at">&Partial<Pick<MachineTaskRowDto,"principal"|"recorded_at">>;
-export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:string}={}) {
+export function CanonicalMachineReceiptsSpace({initialTaskId,active=true}:{initialTaskId?:string;active?:boolean}={}) {
   const [rows, setRows] = useState<MachineTaskRowDto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -24,6 +25,8 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [reading, setReading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [pane, setPane] = useState<"history"|"processing">("history");
+  useEffect(()=>{if(active&&initialTaskId)setPane("history");},[active,initialTaskId]);
   const listEpoch = useRef(0), detailEpoch = useRef(0);
 
   async function load(next?: string) {
@@ -60,10 +63,10 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
     catch { /* Non-JSON conditions are retained in the immutable receipt below. */ }
   }
   const answer = conditions?.answer && typeof conditions.answer === "object" ? (conditions.answer as Record<string, unknown>).answer : null;
-  return <section aria-label="资料处理与 AI 任务记录" className="ui-content-main-side ui-machine-receipts">
-    <div>
-      <h2>资料处理与 AI 任务记录</h2>
-      <BoundedJobPanel command={boundedJobCommand} />
+  return <section aria-label="资料处理与 AI 任务记录" className="ui-machine-receipts">
+    <header className="machine-receipts-heading"><div><h2>任务与记录</h2><p>选择已保存任务，查看原问题、回答与版本。</p></div><div role="group" aria-label="任务内容类型"><button type="button" aria-pressed={pane==="history"} onClick={()=>setPane("history")}>AI 任务记录</button><button type="button" aria-pressed={pane==="processing"} onClick={()=>setPane("processing")}>资料处理任务</button></div></header>
+    <div hidden={pane!=="processing"} className="machine-processing-pane"><BoundedJobPanel command={boundedJobCommand} /></div>
+    <div hidden={pane!=="history"} className="machine-history-workspace"><div className="machine-task-list">
       <p>查看本机已保存的 AI 任务。处理完成不代表回答正确，也不代表你已掌握知识。</p>
       <button disabled={loading} onClick={() => void load()}>刷新任务记录</button>
       {loading ? <p role="status">正在读取任务记录…</p> : null}
@@ -76,7 +79,7 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
       {cursor ? <button disabled={loading} onClick={() => void load(cursor)}>查看更多任务记录</button> : null}
       <p>这里显示已保存的任务历史；自由运行代理和任意工具执行尚不可用。</p>
     </div>
-    <aside aria-label="任务记录详情">
+    <aside aria-label="任务记录详情" className="machine-task-detail">
       {!selected&&reading?<p role="status">正在读取指定 AI 任务…</p>:null}{!selected&&detailError?<p role="alert">指定任务记录尚未确认：{detailError}</p>:null}
       {selected ? <>
         <h3>{taskKind(selected.scope)} · {outcomeLabel[selected.outcome]}</h3>
@@ -93,7 +96,8 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
           <RawReceiptButton label="完整任务详细信息" payload={{ ...receipt, principal: selected.principal, recorded_at: selected.recorded_at }} />
         </> : null}
         <button onClick={() => { detailEpoch.current++; setSelected(null); setReceipt(null); setReading(false); setDetailError(null); }}>关闭任务详情</button>
-      </> : <p>选择实际任务，核对来源版本、条件与结果。</p>}
+      </> : <div className="machine-task-empty"><h3>打开一项任务</h3><p>选择左侧记录，在这里完整阅读原问题和回答，核对来源、版本与评测情况。</p></div>}
     </aside>
+    </div>
   </section>;
 }

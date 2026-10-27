@@ -5,7 +5,7 @@
 .first-use-guide button { min-height: 36px; padding: 7px 12px; border: 1px solid var(--ax-border-strong); border-radius: 8px; font: inherit; color: inherit; background: var(--stitch-glass-card, #ffffff0a); cursor: pointer; }
 .first-use-guide button:hover:not(:disabled) { background: var(--ax-hover); }
 .first-use-guide .first-use-guide-start-tour { margin-bottom: 18px; border-color: var(--ax-focus-ring); font-weight: 600; }
-.aaos-first-use-tour.driver-popover { color: var(--ax-fg); background: var(--ax-elevated, #24262a); border: 1px solid var(--ax-border-strong); border-radius: 12px; box-shadow: 0 12px 48px #0005; font-family: inherit; }
+.aaos-first-use-tour.driver-popover { color: var(--ax-fg); background: var(--stitch-tour-surface, #24262a); border: 1px solid var(--ax-border-strong); border-radius: 12px; box-shadow: 0 12px 48px #0005; font-family: inherit; opacity:1; backdrop-filter:none; }
 .aaos-first-use-tour .driver-popover-title { color: inherit; font-size: 18px; }
 .aaos-first-use-tour .driver-popover-description { color: inherit; font-size: 14px; line-height: 1.7; }
 .aaos-first-use-tour .driver-popover-footer button { min-height: 36px; font-size: 14px; color: var(--ax-fg); background: var(--ax-hover); border-color: var(--ax-border-strong); text-shadow: none; }
@@ -37,6 +37,14 @@
 .first-use-guide-check strong { font-weight: 600; }
 .first-use-guide-check p { margin: 8px 0 0; color: var(--ax-fg-secondary); }
 .first-use-guide-routes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.first-use-guide-quickstart { display:grid; gap:12px; margin-block:18px; padding:18px; border:1px solid var(--ax-border-strong); border-radius:12px; background:var(--ax-bg-inset); }
+.first-use-guide-quickstart h3 { margin:0 0 8px; font-size:19px; }
+.first-use-guide-quickstart p { margin:0; line-height:1.7; }
+.first-use-guide-quickstart .first-use-guide-start-tour { margin:0; justify-self:start; min-height:44px; padding:10px 16px; background:var(--ax-accent); color:var(--ax-on-accent,#101820); }
+.first-use-guide-quickstart-note { font-size:14px; color:var(--ax-fg-secondary); }
+.first-use-guide-reference>summary { min-height:40px; padding-block:8px; cursor:pointer; font-weight:600; }
+.first-use-guide-reference>summary:focus-visible { outline:2px solid var(--ax-focus-ring); outline-offset:2px; }
+:root[data-aaos-theme="white"], :root[data-aaos-theme="blueprint-light"] { --stitch-tour-surface:#f5f7fa; }
 .first-use-guide-mark { display: flex; align-items: center; gap: 8px; margin-top: 24px; line-height: 1.6; color: var(--ax-fg-secondary); cursor: pointer; }
 .first-use-guide-mark input { width: 16px; height: 16px; accent-color: var(--ax-accent); }
 .first-use-guide-footer { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-top: 18px; }

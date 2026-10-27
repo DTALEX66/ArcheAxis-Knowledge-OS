@@ -73,3 +73,8 @@
 @media (max-width:640px) { .stitch-learning-navigation { gap:10px; } .stitch-learning-topic { align-items:start; } .stitch-learning-review-controls { grid-template-columns:minmax(0,1fr); } .stitch-learning-topic,.stitch-learning-glass,.stitch-learning-review-heading { padding:10px; } }
 @media (prefers-reduced-transparency:reduce) { .stitch-learning-topic,.stitch-learning-glass,.stitch-learning-course-detail > section,.stitch-learning-review-heading { background:var(--ax-raised); } }
 @media (forced-colors:active) { .stitch-learning-family :is(section,header,details,button,input,select,textarea),.stitch-learning-review :is(section,header,details,button,input,select,textarea) { background:Canvas; color:CanvasText; border-color:CanvasText; } .stitch-learning-navigation button[aria-pressed="true"] { border-bottom-color:Highlight; } }
+.stitch-learning-next { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; border:1px solid var(--ax-border-strong); border-radius:14px; background:var(--ax-panel); margin-bottom:16px; }
+.stitch-learning-next h3 { margin:0 0 8px; font-size:var(--ax-text-body); }
+.stitch-learning-next p { margin:0; color:var(--ax-fg-secondary); max-width:56em; }
+.stitch-learning-next .stitch-learning-item-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.stitch-learning-next button { min-height:40px; padding:8px 14px; }

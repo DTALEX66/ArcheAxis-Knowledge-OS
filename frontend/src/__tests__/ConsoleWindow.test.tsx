@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConsoleWindow, constrainConsole, defaultConsoleRect, stitchConsoleRect } from "../components/ConsoleWindow";
+import { ConsoleWindow, constrainConsole, defaultConsoleRect, stitchConsoleRect, workspaceConsoleRect } from "../components/ConsoleWindow";
 import { TopNavBar } from "../components/TopNavBar";
 
 const original = { width: window.innerWidth, height: window.innerHeight };
@@ -17,6 +17,18 @@ function geometry() { return (document.querySelector(".console-window") as HTMLE
 afterEach(() => { viewport(original.width, original.height); vi.restoreAllMocks(); });
 
 describe("single console geometry (SIMULATED, no layout qualification)", () => {
+  it("restores explicit presentation choices while preserving the mounted document and manual geometry on ordinary renders", () => {
+    viewport(1920,1080);
+    const tree=(mode:"companion"|"focus"|"compare",revision=0)=><ConsoleWindow presentation="stitch" workspaceLayout={mode} workspaceLayoutRevision={revision}><div className="app-shell cabin-shell"><TopNavBar breadcrumbs={[]}/><input aria-label="布局保留草稿" defaultValue="原稿"/></div></ConsoleWindow>;
+    const view=render(tree("companion"));const draft=screen.getByLabelText("布局保留草稿"),handle=screen.getByRole("button",{name:"移动主控台"});
+    fireEvent.keyDown(handle,{key:"ArrowRight"});const moved=geometry().left;
+    view.rerender(tree("companion"));expect(geometry().left).toBe(moved);
+    view.rerender(tree("focus"));expect(geometry().width).toBe("1872px");expect(geometry().top).toBe("48px");expect(geometry().height).toBe("968px");
+    view.rerender(tree("compare"));expect(geometry().width).toBe("1228.8px");
+    fireEvent.keyDown(handle,{key:"ArrowRight"});view.rerender(tree("compare",1));expect(geometry().left).toBe(`${stitchConsoleRect({width:1920,height:1080}).x}px`);
+    expect(screen.getByLabelText("布局保留草稿")).toBe(draft);expect(draft).toHaveValue("原稿");
+    expect(workspaceConsoleRect({width:900,height:600},"focus")).toEqual(stitchConsoleRect({width:900,height:600}));
+  });
   it("keeps Stitch's main window clear of its auxiliary column and reflows without replacing drafts", async () => {
     for (const [width, height] of [[1280, 700], [1440, 1000], [1600, 1000], [2560, 1440]]) {
       const rect = stitchConsoleRect({ width, height, topInset: 48, bottomInset: 64 });

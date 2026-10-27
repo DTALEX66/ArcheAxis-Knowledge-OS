@@ -37,3 +37,8 @@
 .exchange-single-import h4,.exchange-folder-import h4 { margin: 0 0 8px; }
 .exchange-import-result { margin-top: 12px; padding: 12px; border: 1px solid var(--ax-border); border-radius: 8px; }
 .exchange-folder-import { padding-top: 16px; border-top: 1px solid var(--ax-border); }
+.exchange-folder-import > summary { cursor:pointer; min-height:44px; padding:10px 0; }
+.exchange-card .exchange-choose-file { display:inline-flex; position:relative; align-items:center; justify-content:center; min-height:44px; padding:10px 20px; background:var(--ax-accent); color:var(--ax-on-accent); border:1px solid transparent; border-radius:8px; cursor:pointer; }
+.exchange-card .exchange-choose-file input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.exchange-choose-file:focus-within { outline:2px solid var(--ax-focus-ring); outline-offset:3px; }
+.exchange-card .exchange-choose-file[data-disabled="true"] { opacity:.55; cursor:default; }

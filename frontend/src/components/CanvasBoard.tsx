@@ -87,8 +87,9 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
     setEditText("");
   }
 
-  const canvasWidth = Math.max(800, ...nodes.map((n) => n.x + n.width + 40));
-  const canvasHeight = Math.max(500, ...nodes.map((n) => n.y + n.height + 40));
+  const originX=Math.min(0,...nodes.map(node=>node.x))-20,originY=Math.min(0,...nodes.map(node=>node.y))-20;
+  const canvasWidth = Math.max(800, ...nodes.map((n) => n.x-originX + n.width + 40));
+  const canvasHeight = Math.max(500, ...nodes.map((n) => n.y-originY + n.height + 40));
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
@@ -103,11 +104,13 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
       <div
         ref={containerRef}
         className="canvas-viewport"
-        style={{ position: "relative", width: canvasWidth, height: canvasHeight, overflow: "auto", border: "1px solid var(--ax-border)", borderRadius: 12, background: "var(--ax-bg-inset)" }}
+        role="region" aria-label="画布滚动区域" tabIndex={0}
+        style={{ position: "relative", width:"100%", height:"clamp(360px,58dvh,640px)", overflow: "auto", border: "1px solid var(--ax-border)", borderRadius: 12, background: "var(--ax-bg-inset)" }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
+        <div className="canvas-plane" style={{position:"relative",width:canvasWidth,height:canvasHeight}}>
         <svg style={{ position: "absolute", top: 0, left: 0, width: canvasWidth, height: canvasHeight, pointerEvents: "none" }}>
           {edges.map((edge) => {
             const from = nodeMap.get(edge.fromNode);
@@ -116,10 +119,10 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
             return (
               <line
                 key={edge.id}
-                x1={from.x + from.width / 2}
-                y1={from.y + from.height / 2}
-                x2={to.x + to.width / 2}
-                y2={to.y + to.height / 2}
+                x1={from.x-originX + from.width / 2}
+                y1={from.y-originY + from.height / 2}
+                x2={to.x-originX + to.width / 2}
+                y2={to.y-originY + to.height / 2}
                 stroke="var(--ax-border)"
                 strokeWidth={2}
               />
@@ -131,7 +134,7 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
             key={node.id}
             className="canvas-node-card"
             role="group" tabIndex={0} aria-label={`节点 ${node.text ?? node.id}`}
-            style={{ position: "absolute", left: node.x, top: node.y, width: node.width, minHeight: node.height, zIndex: dragging?.nodeId === node.id ? 10 : 1, boxShadow: decoration.enableShadows && visibility==="visible" ? undefined : "none", transition: decoration.enableTransitions && visibility==="visible" ? `box-shadow ${decoration.animationDuration}ms ease` : "none" }}
+            style={{ position: "absolute", left: node.x-originX, top: node.y-originY, width: node.width, minHeight: node.height, zIndex: dragging?.nodeId === node.id ? 10 : 1, boxShadow: decoration.enableShadows && visibility==="visible" ? undefined : "none", transition: decoration.enableTransitions && visibility==="visible" ? `box-shadow ${decoration.animationDuration}ms ease` : "none" }}
             onPointerDown={(e) => handlePointerDown(e, node.id)}
             onKeyDown={event=>{if(event.target!==event.currentTarget||!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();const step=event.shiftKey?50:10;updateNodes(prev=>prev.map(item=>item.id===node.id?{...item,x:Math.max(0,item.x+(event.key==="ArrowRight"?step:event.key==="ArrowLeft"?-step:0)),y:Math.max(0,item.y+(event.key==="ArrowDown"?step:event.key==="ArrowUp"?-step:0))}:item));}}
           >
@@ -157,6 +160,7 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
             )}
           </div>
         ))}
+        </div>
       </div>
       {nodes.length === 0 ? <p className="muted">空画布。添加文本节点开始绘制。</p> : null}
     </div>

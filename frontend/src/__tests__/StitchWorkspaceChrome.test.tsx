@@ -7,14 +7,34 @@ import { StitchCompanionWindow, StitchWorkspaceDock, StitchWorkspaceMenu } from 
 
 afterEach(() => vi.unstubAllGlobals());
 
+it("file and view menus expose distinct commands and explicit layout recovery", async () => {
+  const user=userEvent.setup(),onPage=vi.fn(),onLayoutMode=vi.fn(),onCompanion=vi.fn(),onInspector=vi.fn();
+  render(<StitchWorkspaceMenu onPage={onPage} onNavigation={vi.fn()} layoutMode="focus" onLayoutMode={onLayoutMode} onCompanion={onCompanion} onInspector={onInspector}/>);
+  await user.click(screen.getByText("文件",{selector:"summary"}));
+  expect(within(screen.getByLabelText("文件页面")).getAllByRole("button").map(button=>button.textContent)).toEqual(["导入或导出资料…"]);
+  await user.click(screen.getByText("视图",{selector:"summary"}));
+  const view=screen.getByLabelText("视图页面");expect(within(view).getByRole("button",{name:"专注布局"})).toHaveAttribute("aria-pressed","true");expect(view.querySelector("[data-page-id]")).toBeNull();
+  await user.click(within(view).getByRole("button",{name:"陪伴布局"}));expect(onLayoutMode).toHaveBeenCalledWith("companion");expect(onPage).not.toHaveBeenCalled();
+});
+
+it("hiding the companion keeps its original input mounted and excludes the window from interaction", () => {
+  const view=render(<StitchCompanionWindow onClose={vi.fn()}><input aria-label="隐藏时保留原稿" defaultValue="未保存请求"/></StitchCompanionWindow>);
+  const input=screen.getByLabelText("隐藏时保留原稿"),panel=document.getElementById("stitch-companion-window")!;
+  view.rerender(<StitchCompanionWindow hidden onClose={vi.fn()}><input aria-label="隐藏时保留原稿" defaultValue="未保存请求"/></StitchCompanionWindow>);
+  expect(panel).toHaveAttribute("hidden");expect(panel.inert).toBe(true);expect(input).toBeInTheDocument();
+  view.rerender(<StitchCompanionWindow onClose={vi.fn()}><input aria-label="隐藏时保留原稿" defaultValue="未保存请求"/></StitchCompanionWindow>);
+  expect(panel.inert).toBe(false);expect(screen.getByLabelText("隐藏时保留原稿")).toBe(input);expect(input).toHaveValue("未保存请求");
+});
+
 it("all current business roles remain reachable through actual application menu actions", async () => {
   const user = userEvent.setup(), onPage = vi.fn(), onNavigation = vi.fn();
   render(<StitchWorkspaceMenu onPage={onPage} onNavigation={onNavigation}/>);
   const menu = screen.getByRole("navigation", { name: "应用菜单" });
   const reached = new Set<string>();
+  await user.click(within(menu).getByRole("button", { name: "ArcheAxis Knowledge 今日工作台" })); reached.add(onPage.mock.lastCall![0]);
   for (const details of menu.querySelectorAll("details")) {
     await user.click(details.querySelector("summary")!);
-    const labels = within(details).getAllByRole("button").map(button => button.textContent);
+    const labels = [...details.querySelectorAll<HTMLButtonElement>("button[data-page-id]")].map(button => button.textContent);
     for (const label of labels) {
       if (!details.open) await user.click(details.querySelector("summary")!);
       await user.click(within(details).getByRole("button", { name: label! }));
@@ -64,15 +84,14 @@ it("the closed menu identifies one current group without claiming that its trigg
   for (const page of UI_PAGES) {
     view.rerender(<StitchWorkspaceMenu {...props} pageId={page.id}/>);
     const current = view.container.querySelectorAll('summary[data-current-group="true"]');
-    expect(current).toHaveLength(1);
-    expect(current[0]).toHaveAttribute("aria-description", `当前页面：${page.label}`);
-    expect(current[0]).not.toHaveAttribute("aria-current");
+    expect(current).toHaveLength(page.id === "01" ? 0 : 1);
+    if (page.id !== "01") { expect(current[0]).toHaveAttribute("aria-description", `当前页面：${page.label}`); expect(current[0]).not.toHaveAttribute("aria-current"); }
     expect(view.container.querySelector("details[open]")).not.toBeInTheDocument();
     const actualPages = [...view.container.querySelectorAll('button[aria-current="page"]')];
     expect(actualPages.length).toBeGreaterThan(0);
     expect(actualPages.every(button => button.getAttribute("data-page-id") === page.id)).toBe(true);
   }
-  for (const [pageId, label] of [["03", "知识"], ["13", "AI 与模型"], ["01", "视图"], ["21", "视图"]]) {
+  for (const [pageId, label] of [["03", "知识"], ["13", "AI 与模型"], ["16", "文件"], ["21", "学习"], ["19", "工具"]]) {
     view.rerender(<StitchWorkspaceMenu {...props} pageId={pageId}/>);
     expect(view.container.querySelector('summary[data-current-group="true"]')).toHaveTextContent(label);
   }
@@ -108,23 +127,74 @@ it("mouse hover switches an already open menu without navigating, while touch an
   expect(onPage).toHaveBeenCalledWith("06");
 });
 
-it("scrolling the menu strip closes its detached popup and restores focus, while scrolling popup contents keeps it open", async () => {
+it("a delayed menu-strip scroll repositions the open popup without hiding its focused keyboard action", async () => {
   const user = userEvent.setup(), onPage = vi.fn();
   const view = render(<StitchWorkspaceMenu onPage={onPage} onNavigation={vi.fn()}/>);
-  const learning = screen.getByText("学习", { selector: "summary" });
-  await user.click(learning);
+  const knowledge = screen.getByText("知识", { selector: "summary" });
+  await user.click(knowledge);
   await user.keyboard("{ArrowDown}");
-  fireEvent.scroll(within(learning.parentElement!).getByLabelText("学习页面"));
-  expect(learning.parentElement).toHaveAttribute("open");
-  fireEvent.scroll(view.container.querySelector(".stitch-menus")!);
-  expect(learning.parentElement).not.toHaveAttribute("open");
-  expect(learning).toHaveFocus();
-  expect(onPage).not.toHaveBeenCalled();
-  await user.keyboard("{ArrowDown}");
-  expect(learning.parentElement).toHaveAttribute("open");
-  const target = within(learning.parentElement!).getByRole("button", { name: "学习路径" });
+  const popup = within(knowledge.parentElement!).getByLabelText("知识页面"), target = within(popup).getByRole("button", { name: "知识库" });
   expect(target).toHaveFocus();
+  const originalLeft = popup.style.left;
+  vi.spyOn(knowledge, "getBoundingClientRect").mockReturnValue({ x: 180, y: 0, left: 180, top: 0, right: 220, bottom: 32, width: 40, height: 32, toJSON() {} });
+  fireEvent.scroll(popup);
+  expect(popup.style.left).toBe(originalLeft);
+  expect(knowledge.parentElement).toHaveAttribute("open"); expect(target).toHaveFocus();
+  fireEvent.scroll(view.container.querySelector(".stitch-menus")!);
+  expect(knowledge.parentElement).toHaveAttribute("open"); expect(target).toHaveFocus();
+  expect(popup.style.left).toBe("180px");
+  expect(onPage).not.toHaveBeenCalled();
   expect(target.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  await user.keyboard("{Enter}");
+  expect(onPage).toHaveBeenCalledOnce(); expect(onPage).toHaveBeenCalledWith("02");
+  expect(knowledge.parentElement).not.toHaveAttribute("open"); expect(knowledge).toHaveFocus();
+});
+
+it.each([{ left: -40, expected: "12px" }, { left: 300, expected: "58px" }])("scroll positioning retains the popup viewport clamp: %j", async ({ left, expected }) => {
+  vi.stubGlobal("innerWidth", 390);
+  const user = userEvent.setup();
+  const view = render(<StitchWorkspaceMenu onPage={vi.fn()} onNavigation={vi.fn()}/>);
+  const knowledge = screen.getByText("知识", { selector: "summary" });
+  await user.click(knowledge); await user.keyboard("{ArrowDown}");
+  const popup = within(knowledge.parentElement!).getByLabelText("知识页面"), target = within(popup).getByRole("button", { name: "知识库" });
+  vi.spyOn(knowledge, "getBoundingClientRect").mockReturnValue({ x: left, y: 0, left, top: 0, right: left + 40, bottom: 32, width: 40, height: 32, toJSON() {} });
+  fireEvent.scroll(view.container.querySelector(".stitch-menus")!);
+  expect(popup.style.left).toBe(expected);
+  expect(knowledge.parentElement).toHaveAttribute("open"); expect(target).toHaveFocus();
+});
+
+it.each([{ deltaX: 160 }, { deltaY: 160, shiftKey: true }])("horizontal wheel closes the original menu before scrolling can trigger another hover: %j", async delta => {
+  class Pointer extends MouseEvent { pointerType = "mouse"; }
+  vi.stubGlobal("PointerEvent", Pointer);
+  const user = userEvent.setup(), onPage = vi.fn();
+  const view = render(<StitchWorkspaceMenu onPage={onPage} onNavigation={vi.fn()}/>);
+  const strip = view.container.querySelector(".stitch-menus")!;
+  Object.defineProperties(strip, { scrollWidth: { value: 900 }, clientWidth: { value: 600 } });
+  const file = screen.getByText("文件", { selector: "summary" }), next = screen.getByText("视图", { selector: "summary" });
+  file.focus(); await user.keyboard("{ArrowDown}");
+  expect(within(file.parentElement!).getByRole("button", { name: "导入或导出资料…" })).toHaveFocus();
+  const wheel = new WheelEvent("wheel", { bubbles: true, cancelable: true, ...delta });
+  fireEvent(file, wheel);
+  expect(wheel.defaultPrevented).toBe(false);
+  expect(file.parentElement).not.toHaveAttribute("open"); expect(file).toHaveFocus();
+  fireEvent.pointerEnter(next); fireEvent.scroll(strip);
+  expect(next.parentElement).not.toHaveAttribute("open"); expect(file).toHaveFocus();
+  expect(onPage).not.toHaveBeenCalled();
+});
+
+it("wheel inside popup contents and a menu strip without overflow preserve the open menu", async () => {
+  const user = userEvent.setup();
+  const view = render(<StitchWorkspaceMenu onPage={vi.fn()} onNavigation={vi.fn()}/>);
+  const strip = view.container.querySelector(".stitch-menus")!;
+  Object.defineProperties(strip, { scrollWidth: { value: 900, configurable: true }, clientWidth: { value: 600 } });
+  const learning = screen.getByText("学习", { selector: "summary" });
+  learning.focus(); await user.keyboard("{ArrowDown}");
+  const popup = within(learning.parentElement!).getByLabelText("学习页面"), first = within(popup).getByRole("button", { name: "学习路径" });
+  fireEvent.wheel(popup, { deltaY: 160 }); fireEvent.wheel(popup, { deltaX: 80, deltaY: 160 });
+  expect(learning.parentElement).toHaveAttribute("open"); expect(first).toHaveFocus();
+  Object.defineProperty(strip, "scrollWidth", { value: 600 });
+  fireEvent.wheel(learning, { deltaX: 160 });
+  expect(learning.parentElement).toHaveAttribute("open"); expect(first).toHaveFocus();
 });
 
 it("native menu disclosures support keyboard traversal without changing guarded page actions", async () => {
@@ -151,7 +221,7 @@ it("native menu disclosures support keyboard traversal without changing guarded 
 
 it("dock marks only a genuine page group and delegates genuine navigation", async () => {
   const user = userEvent.setup(), onPage = vi.fn(), onCompanion = vi.fn();
-  const groups: Record<string, string> = {"01":"工作台","02":"知识","03":"知识","04":"知识","20":"知识","05":"研究专题","06":"学习","07":"学习","08":"学习","09":"学习","10":"学习","11":"学习","12":"学习","21":"学习"};
+  const groups: Record<string, string> = {"01":"工作台","02":"知识","03":"知识","04":"知识","20":"知识","05":"研究专题","06":"学习","07":"学习","08":"学习","09":"学习","10":"学习","11":"学习","12":"学习","21":"学习","13":"AI","14":"AI","22":"AI","15":"资源","16":"资源"};
   const view = render(<StitchWorkspaceDock pageId="01" onPage={onPage} companionOpen={false} onCompanion={onCompanion}/>);
   for (const page of UI_PAGES) {
     view.rerender(<StitchWorkspaceDock pageId={page.id} onPage={onPage} companionOpen={false} onCompanion={onCompanion}/>);

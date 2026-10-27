@@ -26,7 +26,10 @@
 .stitch-expression-stage .expression-connect>button { align-self:end; }
 .stitch-expression-stage .expression-edge-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .stitch-expression-stage .expression-edge-list>li { min-width:0; border:1px solid var(--ax-border); border-radius:6px; padding:8px; background:var(--ax-bg-inset); }
-.stitch-expression-toolkit { display:grid; grid-template-columns:minmax(220px,1fr) minmax(240px,1.2fr); gap:12px; min-width:0; align-items:start; }
+.stitch-expression-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(240px,270px); gap:16px; align-items:start; min-width:0; }
+.stitch-expression-toolkit { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; min-width:0; align-items:start; max-height:76dvh; overflow:auto; }
+.stitch-expression-stage .expression-inspector .expression-properties,.stitch-expression-stage .expression-inspector .expression-connect { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.stitch-expression-stage .expression-inspector .expression-edge-list { grid-template-columns:minmax(0,1fr); }
 .stitch-expression-card { min-width:0; padding:12px; border:1px solid var(--ax-border); border-radius:8px; background:var(--ax-panel); }
 .stitch-expression-card>header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--ax-border); margin-bottom:10px; padding-bottom:8px; }
 .stitch-expression-card h3 { font-size:var(--ax-text-ui); font-weight:600; line-height:1.5; }
@@ -40,12 +43,13 @@
 .stitch-expression-history>label { margin-top:10px; }
 .stitch-expression-history>button { margin-top:8px; }
 .stitch-expression-card p { margin-top:8px; color:var(--ax-fg-secondary); overflow-wrap:anywhere; }
-.stitch-expression-support { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; grid-column:1/-1; min-width:0; }
+.stitch-expression-support { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; grid-column:1/-1; min-width:0; }
 .stitch-expression-card>details { min-width:0; }
 .stitch-expression-card summary { cursor:pointer; min-height:30px; }
 .stitch-expression-card details[open]>summary { margin-bottom:10px; color:var(--ax-accent); }
 .stitch-expression-card details[open]>:is(label,button,div) { margin-top:8px; }
 .stitch-expression-page pre { white-space:pre-wrap; overflow-wrap:anywhere; overflow:auto; }
 @container content (max-width:800px) { .stitch-expression-stage .expression-properties { grid-template-columns:repeat(2,minmax(0,1fr)); } .stitch-expression-stage .expression-edge-list { grid-template-columns:minmax(0,1fr); } }
+@container content (max-width:1120px) { .stitch-expression-workspace { grid-template-columns:minmax(0,1fr); } .stitch-expression-toolkit { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:none; overflow:visible; } }
 @container content (max-width:680px) { .stitch-expression-toolkit,.stitch-expression-support { grid-template-columns:minmax(0,1fr); } .stitch-expression-stage .expression-connect { grid-template-columns:repeat(2,minmax(0,1fr)); } .stitch-expression-heading,.stitch-expression-stage,.stitch-expression-card { padding:10px; } .stitch-expression-stage .expression-viewport { height:320px; } }
 @media (forced-colors:active) { .stitch-expression-primary-actions>button:last-child { border-color:Highlight; } }

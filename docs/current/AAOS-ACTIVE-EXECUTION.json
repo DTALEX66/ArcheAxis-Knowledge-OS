@@ -2650,7 +2650,7 @@
         ]
       },
       "menu_layout_polish_20261027": {
-        "state": "MENU_LAYOUT_TERMINOLOGY_LOCAL_CHECKS_PASSED_NEW_BUILD_NATIVE_AND_EXACT_CI_PENDING",
+        "state": "PUBLISHED_41b_BUILD_PASSED_NATIVE_AND_CI_FAILED_SUCCESSOR_LOCAL_CHECKS_PASSED",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
         "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
@@ -2777,7 +2777,7 @@
         },
         "menu_interactions_terms_successor": {
           "implementation": "workspace/intake/20261027-menu-layout-polish.md",
-          "state": "LOCAL_CHECKS_PASSED_BUILD_NATIVE_CI_PENDING",
+          "state": "PUBLISHED_41b_BUILD_PASSED_NATIVE_AND_CI_FAILED",
           "checks": {
             "uifin18": {
               "status": "LOCAL_PASS",
@@ -2829,7 +2829,26 @@
             "uiterm4:child83P outerINVALIDATED",
             "bkm1:child1P outerINVALIDATED"
           ],
-          "boundary": "Original6 unrelated dirty preserved. New two consumer-test wording edits only after type/Python/browser checks. No Green replacement/merge/release/Owner acceptance."
+          "boundary": "Original6 unrelated dirty preserved. New two consumer-test wording edits only after type/Python/browser checks. No Green replacement/merge/release/Owner acceptance.",
+          "published_commit": "41b68d7bb9da5391e2a8710df990ec6e03575b4d",
+          "candidate_build": ".project-local/runs/be268a2d33/ui-polish-20261027-host/artifacts/frontend-build.json",
+          "native_failures": "menu-polish-native1 and menu-polish-native2 FAIL: actual horizontal wheel hover race; independent mwh1 reproduced. 640 companion also partially covers refresh top edge; center hit was insufficient.",
+          "ci": "40421206901 terminal FAILURE:15 success, browser-smoke/a0 failures,3 policy skips; actual NSIS installer lifecycle passed independently",
+          "wheel_layout_catalog_successor": {
+            "state": "LOCAL_CHECKS_PASSED_NEW_COMMIT_BUILD_NATIVE_CI_PENDING",
+            "source_commit": "41b68d7bb9da5391e2a8710df990ec6e03575b4d",
+            "source_patch_sha256": "f38c5c9cf1bc23d67ee6eceecfdf5013566ce01d6e19d7e562c6d35ef3d2eb41",
+            "implementation": "Overflow-strip horizontal wheel capture closes popup and restores original opener before hover race; native scroll preserved and popup scroll exempt. Short-window bottom reserve128px. Launchpad explains partial10 frequent entries and existing16-family/186-design-item route.",
+            "focused_frontend": "lpcv1:21 passed;lpct1:typecheck passed;LOCAL_PASS/source_consistent=true",
+            "actual_browser": ".project-local/runs/be268a2d33/mwh3/artifacts/menu-wheel/receipt.json",
+            "browser_result": "LOCAL_PASS/source_consistent=true;actual horizontal wheel retains File focus;640x480 full refresh bounds inside viewport/companion intersection0;five trusted edge-midpoint/center clicks and actual rounded-corner painted-region hits passed",
+            "raw_failure": "mwh2 original FAIL retained:2px rectangular-corner probes hit own parent beyond9px round shape;not companion coverage and not rewritten PASS",
+            "evidence_boundary": "REAL_CHROMIUM_SYNTHETIC_CORE;not new native product or Owner acceptance"
+          },
+          "independent_capability_inventory": "capcount1:16 families/186 design children match authority and full routes;117 nonfuture children not independently qualified;no all-implemented claim",
+          "real_mixed_ocr": "ocmix1:production worker/actual Tesseract chi_sim+eng local authored sample passed;41b+original54d patch/source_consistent=true;not accuracy or portable qualification",
+          "external_avatar_intake": "Owner restored Computer Use solely to view MiniMax Code conversation 456614733140144 and download its character assets. This supersedes the earlier Escape stop only for that exact scope. Actual download, visual preview, tests and replacement require their own evidence; remote self-reports are not asset qualification.",
+          "adversarial_ui_remediation": "24 received findings; parallel implementation in progress. Design intake workspace/intake/20261027-ui-audit-remediation/DESIGN.md; all unified checks, new candidate/native/screenshots/exact-SHA CI and Owner acceptance remain separately qualified in active_progress."
         }
       }
     }
