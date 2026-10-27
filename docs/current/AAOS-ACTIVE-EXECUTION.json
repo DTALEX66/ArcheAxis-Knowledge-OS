@@ -1047,7 +1047,7 @@
     "role": "FROZEN_PREDECESSOR_SNAPSHOT_NOT_CURRENT_EXECUTION_STATE"
   },
   "current_execution": {
-    "date": "2026-10-26",
+    "date": "2026-10-28",
     "state": "RUNNING_BY_OWNER",
     "overall": "PARTIAL",
     "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
@@ -1055,8 +1055,8 @@
     "scope": "Finite human + AI + permissioned connection; preserve latest closed-loop definition, Stitch-only UI and existing frozen/deferred boundaries",
     "execution": "Parallel bounded write sets; task/model/reasoning matched; avoid repeated full audits and unnecessary branch merges",
     "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
-    "monitor": "PAUSED_UNCHANGED",
-    "commit_push": "LOCAL_COMMITTED_c0c50bee_bc8b2d35_6c2857a0_c8ce0510; REMOTE_PUSH_NOT_EXECUTED_POLICY_BLOCKED; no retry or alternate channel",
+    "monitor": "ACTIVE_BY_OWNER; current <=10 percent subscription rule in execution_control.allowance_guard supersedes dated paused observations",
+    "commit_push": "Current delivery and exact local/remote SHA readback are recorded only in the latest 2026-10-28 section of the sole execution record; dated policy-blocked observations below are historical",
     "latest_ui_retention_20261024": {
       "host_sha256": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
       "host_bytes": 47375872,

@@ -43,6 +43,24 @@ it("records HTTP failures without retaining endpoint, token, body or arbitrary e
   expect(console).not.toHaveTextContent(/private-endpoint|private-token|private-body|private-request|private\/path/);
 });
 
+it.each([401, 403, 404, 429, 500, 422])("keeps a failed command's status and operation in diagnostics while its message is plain Chinese (%s)", async status => {
+  const invoke = vi.fn().mockResolvedValue({status, body:{private:"private-response-body"}});
+  window.__TAURI__ = {core:{invoke}};
+  const error = await coreCommand("document_get", {document_id:"private-document"}).catch(value => value);
+  expect(error).toBeInstanceOf(ApiError);
+  if (!(error instanceof ApiError)) throw new Error("Expected ApiError");
+  expect(error.status).toBe(status);
+  expect(error.code).toBe(status === 401 || status === 403 ? "unauthorized" : "unavailable");
+  expect(error.message).toMatch(/[\u3400-\u9fff]/);
+  expect(error.message).not.toMatch(/本地核心|document_get|HTTP|\d{3}|private/);
+  expect(invoke).toHaveBeenCalledTimes(1);
+  render(<DiagnosticConsole/>);
+  const console = screen.getByLabelText("诊断控制台");
+  expect(console).toHaveTextContent("document_get");
+  expect(console).toHaveTextContent(String(status));
+  expect(console).not.toHaveTextContent(/private-document|private-response-body/);
+});
+
 it("drops late native and JSON failures after a workspace generation changes", async () => {
   let finish!: (value: unknown) => void;
   window.__TAURI__ = {core:{invoke:vi.fn().mockImplementation(() => new Promise(resolve => {finish = resolve;}))}};

@@ -122,11 +122,11 @@ async function executeCoreCommand<T>(operation: CoreOperation, payload: Record<s
     // One sentence for every failure sends someone looking in the wrong place: a missing object,
     // a refused argument and a core-side fault need different next actions.
     const reason = response.status === 409 ? "版本已变化，请保留当前草稿并重新读取。"
-      : response.status === 401 || response.status === 403 ? "本地核心拒绝了此操作的身份。"
-      : response.status === 404 ? `本地核心找不到 ${operation} 所需的对象。`
-      : response.status === 429 ? "本地核心繁忙，请稍后重试。"
-      : response.status >= 500 ? `本地核心未能完成 ${operation}（${response.status}）。`
-      : `本地核心拒绝了 ${operation}（${response.status}）。`;
+      : response.status === 401 || response.status === 403 ? "你暂时不能进行这项操作，请检查是否已获得授权。"
+      : response.status === 404 ? "暂时找不到这项内容，请刷新列表后重试。"
+      : response.status === 429 ? "正在处理其他任务，请稍后重试。"
+      : response.status >= 500 ? "这项操作暂时未能完成，请查看问题记录后重试。"
+      : "这项操作未获允许，请检查填写的内容后重试。";
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   if (["layout_read", "layout_write", "layout_recover"].includes(operation)) {
