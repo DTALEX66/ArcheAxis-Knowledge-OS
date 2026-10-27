@@ -3,7 +3,7 @@ import "driver.js/dist/driver.css";
 
 const stages: readonly { page: string; selector: string; prepare?: string; title: string; description: string; next: string }[] = [
   { page: "16", prepare: '[data-guide="import-originals-tab"]', selector: '[data-guide="first-original"]', title: "1 / 3 · 导入一份资料", description: "在这里选择本地文件。原件保存后，查看实际处理状态；阅读、保存和后续学习不需要先连接模型。", next: "去阅读页" },
-  { page: "03", selector: '[data-stitch-library="reader"] [data-guide="saved-documents"], .stitch-reader-empty', title: "2 / 3 · 打开内容", description: "从已保存文档中打开阅读。空工作区可先新建原创笔记；导入原件与完成文字识别是两个步骤。", next: "看保存位置" },
+  { page: "03", selector: '[data-stitch-library="reader"] [data-guide="saved-documents"], .stitch-reader-document, .stitch-reader-empty', title: "2 / 3 · 打开内容", description: "从已保存文档中打开阅读。空工作区可先新建原创笔记；导入原件与完成文字识别是两个步骤。", next: "看保存位置" },
   { page: "03", selector: '[data-guide="document-save"], [data-guide="new-note"]', title: "3 / 3 · 写下并保存", description: "打开文档后，在正文中编辑并保存草稿；空工作区可先点新建原创笔记。保存后核对页面状态。关闭提示不会替你执行或确认保存。", next: "结束操作提示" },
 ] as const;
 
