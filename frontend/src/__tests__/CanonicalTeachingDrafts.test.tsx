@@ -48,7 +48,7 @@ it("reconciles a cold-reopened draft whose Document save completed before the AC
   const editor_json=create.payload.body.editor_json,nodes=editor_json.content;
   const doc={document_id:"doc_existing",version:5,title:entry.form.purpose,source_id:null,source_revision:null,revision_basis:null,content_sha256:"b".repeat(64),editor_json,text_projection:entry.form.content,blocks:nodes.map((node,ordinal)=>({block_id:node.attrs.block_id,kind:"paragraph",ordinal,node_json:node,codec_status:"known",text_projection:entry.form.content}))};
   call.mockImplementation(async(op:string)=>{if(op==="teaching_list")return {items:[],next_cursor:null};if(op==="document_get")return doc;throw new Error(`Unexpected ${op}`);});
-  render(component(f.session,"12"));fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);
+  render(component(f.session,"12"));fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/正文草稿已保存并核对/);
   expect(call.mock.calls.some(([op])=>op==="document_draft"||op==="document_create")).toBe(false);expect(f.server().state.teaching_drafts?.["12:"].preparation?.version).toBe(5);expect(f.server().state.teaching_drafts?.["12:"].preparation_attempt).toBeUndefined();
 });
 function freeze(entry:TeachingDraft){
@@ -59,7 +59,7 @@ function freeze(entry:TeachingDraft){
 function view(record:NonNullable<TeachingDraft["pending_record"]>){return {record:structuredClone(record),content_sha256:"a".repeat(64),withdrawn:false,scoring_status:"not_scored"};}
 it("keeps locally invalid rubric text editable when no teaching request was dispatched",async()=>{
   const f=fixture(),entry=draft("08");entry.knowledge_id="knowledge_v1";f.server().state.teaching_drafts={"08:":entry};await f.session.load();render(component(f.session,"08"));
-  fireEvent.change(screen.getByLabelText("评测准则版本"),{target:{value:"v 1"}});fireEvent.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText(/操作未确认完成/);
+  fireEvent.change(screen.getByLabelText("评测准则版本"),{target:{value:"v 1"}});fireEvent.click(screen.getByRole("button",{name:"保存教学记录"}));await screen.findByText(/操作未确认完成/);
   expect(screen.getByLabelText("内容")).toBeEnabled();expect(screen.getByLabelText("评测准则版本")).toHaveValue("v 1");expect(call.mock.calls.some(([op])=>op==="teaching_create")).toBe(false);expect(f.session.getSnapshot().state.teaching_drafts?.["08:"].pending_record).toBeNull();
 });
 it("explicitly releases a definitely refused teaching identity into the unchanged editable draft",async()=>{
@@ -133,7 +133,7 @@ it.each([false,true])("clears only ordinary body input after exact Document read
   });
   const first=render(component(f.session,"12"));fireEvent.change(screen.getByLabelText("用途"),{target:{value:"普通正文"}});fireEvent.change(screen.getByLabelText("内容"),{target:{value:"未提交反馈总结\n第二行"}});
   if(metadata)fireEvent.change(screen.getByLabelText("反馈分类"),{target:{value:"mastery"}});
-  fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);
+  fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/正文草稿已保存并核对/);
   expect(saved.text_projection).toBe("未提交反馈总结\n第二行");expect(call.mock.calls.some(([op])=>op==="teaching_create")).toBe(false);
   if(metadata){await act(async()=>{await f.session.flush();});first.unmount();const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(component(reopened,"12"));expect(screen.getByLabelText("反馈分类")).toHaveValue("mastery");expect(screen.getByLabelText("内容")).toHaveValue("未提交反馈总结\n第二行");expect(reopened.getSnapshot().state.teaching_drafts?.["12:"].preparation?.version).toBe(1);}
   else expect(f.session.getSnapshot().state.teaching_drafts).toBeUndefined();
@@ -151,6 +151,6 @@ it("reuses an already persisted preparation create after lost ACK and cold sessi
   });
   const first=render(component(f.session,"12"));fireEvent.change(screen.getByLabelText("用途"),{target:{value:"准备总结"}});fireEvent.change(screen.getByLabelText("内容"),{target:{value:"只应生成一份文档"}});
   fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/操作未确认完成/);expect(documents.size).toBe(1);first.unmount();
-  const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(component(reopened,"12"));fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);
+  const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(component(reopened,"12"));fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/正文草稿已保存并核对/);
   const creates=call.mock.calls.filter(([op])=>op==="document_create");expect(creates).toHaveLength(2);expect(creates[1][1]).toEqual(creates[0][1]);expect(documents.size).toBe(1);
 });

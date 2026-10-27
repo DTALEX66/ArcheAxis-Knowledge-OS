@@ -20,6 +20,7 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
   workspace_backups: "BackupsListDto",
+  operation_failure_log_read:"FailureLogSnapshot",operation_failure_log_append:"FailureLogSnapshot",operation_failure_log_clear:"FailureLogSnapshot",
   ingest_batch_register:"IngestBatchDto",ingest_batch_get:"IngestBatchDto",ingest_batches_list:"IngestBatchesDto",
   ingest_member_import:"IngestMemberImportDto",ingest_member_enqueue:"IngestMemberJobDto",
   ingest_member_relations_apply:"IngestRelationsDto",
@@ -53,7 +54,10 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
 export async function coreCommand<T>(operation: CoreOperation, payload: Record<string, unknown> = {}): Promise<T> {
   const observation = beginDiagnosticObservation();
   try { return await executeCoreCommand<T>(operation, payload); }
-  catch (error) { recordDiagnosticFailure(operation, error, observation); throw error; }
+  catch (error) {
+    if (!["operation_failure_log_read","operation_failure_log_append","operation_failure_log_clear"].includes(operation)) recordDiagnosticFailure(operation, error, observation);
+    throw error;
+  }
 }
 
 async function executeCoreCommand<T>(operation: CoreOperation, payload: Record<string, unknown>): Promise<T> {

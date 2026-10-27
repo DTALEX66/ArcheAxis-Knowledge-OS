@@ -240,6 +240,41 @@ function Wait-ArcheAxisBackend {
     throw "installed desktop backend did not become ready; shell children: [$(@(Get-CimInstance Win32_Process -Filter "ParentProcessId=$($Shell.Id)" -ErrorAction SilentlyContinue | ForEach-Object { "$($_.Name)=$($_.ExecutablePath)" }) -join '; ')]; app data: [$(@(Get-ChildItem -LiteralPath $appData -ErrorAction SilentlyContinue | Select-Object -First 12 -ExpandProperty Name) -join ', ')]"
 }
 
+function New-ArcheAxisStartupPort {
+    $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
+    try {
+        $listener.Start()
+        return ([Net.IPEndPoint]$listener.LocalEndpoint).Port
+    } finally { $listener.Stop() }
+}
+
+function Start-ArcheAxisObservedShell {
+    param([string]$Executable, [int]$Port, [string[]]$Arguments = @())
+    if ($Port -lt 1024 -or $Port -gt 65535) { throw 'invalid owned startup port' }
+    $start = [Diagnostics.ProcessStartInfo]::new()
+    $start.FileName = $Executable
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    # Child environment only; the existing Host opt-in binds CDP to loopback.
+    $start.Environment['ARCHEAXIS_WEBDRIVER_CDP_PORT'] = [string]$Port
+    foreach ($argument in $Arguments) { $start.ArgumentList.Add($argument) }
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    if (-not $process.Start()) { throw 'installed desktop did not start' }
+    return $process
+}
+
+function Wait-ArcheAxisFrontend {
+    param([Diagnostics.Process]$Shell, [int]$Port, [string]$Executable, [string]$Receipt)
+    $observerPython = if ($env:ARCHEAXIS_PYTHON) { $env:ARCHEAXIS_PYTHON } else { (Get-Command python -ErrorAction Stop).Source }
+    $created = $Shell.StartTime.ToUniversalTime().ToFileTimeUtc().ToString()
+    & $observerPython -B scripts/probes/installed_frontend_ready.py --host-pid $Shell.Id --host-created $created --host-path $Executable --port $Port --receipt $Receipt
+    if ($LASTEXITCODE -ne 0) {
+        $Shell.Refresh()
+        throw "installed frontend readiness was not confirmed; pid=$($Shell.Id) responding=$($Shell.Responding) window=$($Shell.MainWindowHandle) receipt=$Receipt"
+    }
+}
+
 function Invoke-LifecyclePythonProbe {
     param([string]$Executable, [string]$Code, [string[]]$Arguments,
           [ValidateSet('seed', 'readback')][string]$Mode)
@@ -458,9 +493,14 @@ try {
     $initialIdentity = Read-InstalledCandidateIdentity
 
     $pycBefore = @(Get-ChildItem (Join-Path $installRoot 'runtime') -Filter '*.pyc' -File -Recurse).Count
-    $activeShell = Start-Process -FilePath $executable -PassThru
+    if (-not $evidenceDirectory) {
+        $evidenceDirectory = New-LifecycleEvidenceDirectory -Root ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver'))
+    }
+    $startupPort = New-ArcheAxisStartupPort
+    $activeShell = Start-ArcheAxisObservedShell -Executable $executable -Port $startupPort
     $normal = Wait-ArcheAxisBackend -Shell $activeShell
     $windowHandle = Wait-ArcheAxisWindow -Shell $activeShell
+    Wait-ArcheAxisFrontend -Shell $activeShell -Port $startupPort -Executable $executable -Receipt (Join-Path $evidenceDirectory 'frontend-startup/receipt.json')
     Close-ArcheAxisShell -Shell $activeShell -WindowHandle $windowHandle -Context 'initial readback'
     Start-Sleep -Seconds 1
     if (Get-Process -Id $normal.Child.ProcessId -ErrorAction SilentlyContinue) {

@@ -1,6 +1,7 @@
 import {createHash,webcrypto} from "node:crypto";
 import {beforeEach,expect,it,vi} from "vitest";
-import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {act,fireEvent,render,renderHook,screen,waitFor} from "@testing-library/react";
+import {resetDiagnostics,useDiagnostics} from "../presentation/diagnostics";
 import {OcrImageReader} from "../components/OcrImageReader";
 import {outputReceipt} from "./fixtures/jobContentCoreFixture";
 import type {AnchorDto} from "../api/generated/core-contract";
@@ -18,6 +19,7 @@ function resolution(a=anchor){return {anchor_id:a.anchor_id,source_id:a.source_i
 function view(a=anchor){return <OcrImageReader sourceId="source" revision={revision} name="scan.png" original={original} anchors={[a]}/>;}
 function loaded(){const img=screen.getByRole("img");Object.defineProperties(img,{naturalWidth:{value:200,configurable:true},naturalHeight:{value:100,configurable:true}});fireEvent.load(img);}
 beforeEach(()=>{
+  resetDiagnostics();
   vi.stubGlobal("crypto",webcrypto);bridge.call.mockReset();
   bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
     if(op==="anchor_resolve")return resolution();
@@ -25,6 +27,15 @@ beforeEach(()=>{
     if(op==="job_output")return outputReceipt(p.kind,p.kind==="text"?text:p.kind==="document_structure"?structure:loss);
     throw new Error(`Unexpected ${op}`);
   });
+});
+
+it.each([undefined,429])("SYNTHETIC: raw location failures remain explicit details and preserve the original anchor (%s)",async status=>{
+ const error=Object.assign(new Error("ANCHOR_READ_FAILED /workspace/ocr"),status?{status}:{});bridge.call.mockRejectedValue(error);
+ const diagnostics=renderHook(useDiagnostics);const {container}=render(view());loaded();fireEvent.click(screen.getByRole("button",{name:"查看第 1 条识别引用"}));
+ const alert=await screen.findByRole("alert");expect(alert).not.toHaveTextContent(error.message);if(status){expect(alert).toHaveTextContent("繁忙");expect(alert).toHaveTextContent("结果尚未确认");}
+ expect(container.querySelector("svg")).toBeNull();expect(screen.queryByLabelText("定位识别原文")).toBeNull();expect(screen.getByRole("img")).toHaveAttribute("src",`data:image/png;base64,${original.content_base64}`);
+ expect(bridge.call).toHaveBeenCalledTimes(1);expect(bridge.call).toHaveBeenCalledWith("anchor_resolve",{source_id:anchor.source_id,anchor_id:anchor.anchor_id});
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：识别位置错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({message:error.message,...(status?{status}:{})});expect(bridge.call).toHaveBeenCalledTimes(1);
 });
 
 it("SYNTHETIC: displays the pinned Unicode quote and original-image region without running OCR or substituting the latest job",async()=>{

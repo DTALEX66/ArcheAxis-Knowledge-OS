@@ -50,8 +50,16 @@ it("does not show a stale response after switching the saved envelope", async ()
 });
 it("keeps failures visible and retries the same immutable target", async () => {
   bridge.call.mockRejectedValueOnce(new Error("offline")); render(<DocumentEmbeds editor={editor([relation("fixed")])}/>);
-  expect(await screen.findByRole("alert")).toHaveTextContent("offline"); fireEvent.click(screen.getByRole("button", { name: "重试引用" }));
-  await screen.findByText("Body fixed"); expect(bridge.call.mock.calls.every(([op, p]) => op === "document_version" && p.version === 1)).toBe(true);
+  const alert = await screen.findByRole("alert");
+  expect(alert).toHaveTextContent("本地数据暂时不可用");
+  expect(alert).not.toHaveTextContent("offline");
+  expect(bridge.call).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "重试引用" }));
+  await screen.findByText("Body fixed");
+  expect(bridge.call.mock.calls).toEqual([
+    ["document_version", {document_id: "fixed", version: 1}],
+    ["document_version", {document_id: "fixed", version: 1}],
+  ]);
 });
 
 it("verifies source bytes before showing an attachment embed and never executes HTML", async () => {

@@ -171,9 +171,9 @@
         "monitor_readback": "Official heartbeat create/view and exact automation.toml readback confirmed ACTIVE, interval 30 minutes; obsolete aaos monitor no longer exists",
         "behavior": "Configuration verified; threshold-triggered stop/handoff has not yet occurred",
         "latest_observation": {
-          "observed_after_utc": "2026-10-27T18:24:09Z",
-          "used_percent": 77,
-          "remaining_percent": 23,
+            "observed_after_utc": "2026-10-27T19:32:55Z",
+            "used_percent": 81,
+            "remaining_percent": 19,
           "secondary_window": "UNKNOWN",
           "state": "NOT_TRIGGERED",
           "time_precision": "Clock read after official usage query; not a provider measurement timestamp"
@@ -1066,6 +1066,7 @@
     "monitor": "ACTIVE_BY_OWNER; current <=10 percent subscription rule in execution_control.allowance_guard supersedes dated paused observations",
     "commit_push": "Current delivery and exact local/remote SHA readback are recorded only in the latest 2026-10-28 section of the sole execution record; dated policy-blocked observations below are historical",
     "latest_ui_delivery_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-v12界面截图交付与剩余项",
+    "latest_ui_followup_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-v13后继白话提示与跨重启问题记录",
     "latest_ui_retention_20261024": {
       "host_sha256": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
       "host_bytes": 47375872,

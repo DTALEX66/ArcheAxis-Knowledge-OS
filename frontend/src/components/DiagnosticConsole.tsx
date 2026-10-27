@@ -5,7 +5,12 @@ import { useCallback, useLayoutEffect, useReducer, useRef } from "react";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import { localDateTime } from "../presentation/display";
-import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCategories, openDiagnostics, closeDiagnostics, restoreDiagnosticFocus, resetDiagnostics, suspendDiagnostics, resumeDiagnostics, setDiagnosticFilter, type DiagnosticCategory } from "../presentation/diagnostics";
+import type {FailureLogSnapshot} from "../api/generated/core-contract";
+import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCategories, openDiagnostics, closeDiagnostics, restoreDiagnosticFocus, resetDiagnostics, suspendDiagnostics, resumeDiagnostics, connectDiagnosticPersistence, reloadDiagnosticPersistence, setDiagnosticFilter, type DiagnosticCategory } from "../presentation/diagnostics";
+
+function connectLog(workspace_id:string,restore_epoch:string) {
+  connectDiagnosticPersistence({workspace_id,restore_epoch},{read:body=>coreCommand<FailureLogSnapshot>("operation_failure_log_read",{body}),append:body=>coreCommand<FailureLogSnapshot>("operation_failure_log_append",{body}),clear:body=>coreCommand<FailureLogSnapshot>("operation_failure_log_clear",{body})});
+}
 
 /** Replaces an inline JSON dump: the operator still reaches the untouched payload, the reading surface does not carry it. */
 export function RawReceiptButton({ label, payload, visibleLabel, category = "operation" }: { label: string; payload: unknown; visibleLabel?: string; category?: DiagnosticCategory }) {
@@ -25,26 +30,28 @@ export function RawReceiptButton({ label, payload, visibleLabel, category = "ope
  * summaries and publish the untouched receipt here instead of printing it inline.
  */
 export function DiagnosticConsole() {
-  const {entries, filter, selected} = useDiagnosticState();
+  const {entries, filter, selected, persistence, persistenceFailure} = useDiagnosticState();
   const visible = entries.filter(entry => filter === "all" || entry.category === filter);
   return (
     <section className="diagnostic-console" aria-label="诊断控制台">
       <header className="diagnostic-console-header">
         <h4>问题与运行记录</h4>
-        <span className="diagnostic-console-count">本次工作区会话共 {entries.length} 条记录</span>
-        <button type="button" disabled={entries.length === 0} onClick={clearDiagnostics}>清空诊断</button>
+        <span className="diagnostic-console-count">当前工作区共 {entries.length} 条记录</span>
+        <button type="button" disabled={(entries.length === 0&&persistence!=="corrupt")||persistence==="loading"||persistence==="clearing"} onClick={()=>void clearDiagnostics()}>清空诊断</button>
       </header>
       <label>诊断分类<select value={filter} onChange={event => setDiagnosticFilter(event.target.value as DiagnosticCategory | "all")}><option value="all">全部</option>{Object.entries(diagnosticCategories).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+      {persistence==="unavailable"||persistence==="corrupt"?<button type="button" onClick={reloadDiagnosticPersistence}>重新读取问题记录</button>:null}
+      <p>{persistence==="ready"?"已保存的问题摘要关闭后仍可查看，最多50条；备份也会保留这些记录。标为“本次会话”的记录和手动详细回执关闭后不保留。":persistence==="loading"?"正在读取此工作区的问题记录。":persistence==="clearing"?"正在清空问题记录，请稍候。":persistence==="corrupt"?"已保存的问题记录暂时无法读取；文档和草稿不受影响。可明确清空这些记录后重新开始。":persistence==="unavailable"?(persistenceFailure==="clear"?"清空结果尚未确认，原记录仍显示。请先重新读取记录，再决定是否清空。":persistenceFailure==="append"?"问题摘要暂未确认保存，当前会话的记录仍可查看。未保存的记录关闭后可能丢失，请先重新读取记录。":"暂时无法读取已保存的问题记录。当前会话的记录仍可查看，关闭后可能丢失。 "):"简要问题记录暂存于当前会话，关闭应用后不保留。"}</p>
       {entries.length === 0
-        ? <p className="diagnostic-console-empty">暂无诊断记录。操作失败会自动记下简要信息；各页面的“状态与诊断”可补充详细记录。只保留本次工作区会话最近50条，关闭应用后不保留。</p>
+        ? <p className="diagnostic-console-empty">暂无诊断记录。操作失败会自动记下简要信息；各页面的“状态与诊断”可补充详细记录。</p>
         : visible.length === 0 ? <p>此分类暂无记录。</p>
         : (
           <ul className="diagnostic-console-list">
             {visible.map((entry) => (
               <li key={entry.sequence}>
-                {entry.summary ? <p>{entry.label}：{entry.summary}{entry.occurrences && entry.occurrences > 1 ? `（近30秒内重复${entry.occurrences}次）` : ""}</p> : null}
+                {entry.summary ? <p>{entry.label}：{entry.summary}{entry.occurrences && entry.occurrences > 1 ? `（共发生${entry.occurrences}次）` : ""}</p> : null}
                 <details key={`${entry.sequence}:${filter}`} open={entry.sequence === selected || undefined}>
-                  <summary>{entry.automatic ? "查看技术信息" : entry.label} · {diagnosticCategories[entry.category]} · {localDateTime(entry.at)}</summary>
+                  <summary>{entry.automatic ? "查看技术信息" : entry.label} · {diagnosticCategories[entry.category]} · {localDateTime(entry.at)}{entry.historical?" · 恢复前记录":""}{entry.persisted?" · 已保存":entry.automatic?" · 本次会话（未确认保存）":""}</summary>
                   <pre>{JSON.stringify(entry.payload, null, 2)}</pre>
                 </details>
               </li>
@@ -95,7 +102,7 @@ export function DiagnosticCenter() {
       const previous = identity.current;
       if (!previous || previous.session !== current.session || previous.workspace !== fresh.workspace_id || previous.restore !== fresh.restore_epoch) resetDiagnostics();
       identity.current = {session:current.session, workspace:fresh.workspace_id, restore:fresh.restore_epoch};
-      gate.awaitingRead = false; resumeDiagnostics();
+      gate.awaitingRead = false; resumeDiagnostics();connectLog(fresh.workspace_id,fresh.restore_epoch);
     } catch { /* Keep quarantine; an ordinary CAS ACK cannot release this barrier. */ }
   }, []);
   useLayoutEffect(() => {
@@ -106,7 +113,7 @@ export function DiagnosticCenter() {
     const next = {session: working.session, workspace: working.server.workspace_id, restore: working.server.restore_epoch};
     const previous = identity.current;
     if (!previous || previous.session !== next.session || previous.workspace !== next.workspace || previous.restore !== next.restore) resetDiagnostics();
-    identity.current = next; resumeDiagnostics();
+    identity.current = next; resumeDiagnostics();connectLog(next.workspace,next.restore);
   }, [working?.session, working?.server?.workspace_id, working?.server?.restore_epoch, working?.status, readbackRevision, verify]);
   useLayoutEffect(() => {
     const pause = () => {barrier.current.epoch++; barrier.current.awaitingRead = true; suspendDiagnostics();};
@@ -123,7 +130,7 @@ export function DiagnosticCenter() {
     window.addEventListener("diagnostic-workspace-check", check);
     return () => {barrier.current.epoch++; window.removeEventListener("workspace-invalidated", invalidate); window.removeEventListener("workspace-restore-start", start); window.removeEventListener("workspace-restore-finish", finish); window.removeEventListener("diagnostic-workspace-check", check); resetDiagnostics();};
   }, [verify]);
-  return <AaosDialog title="运行诊断" description="集中查看连接状态、错误原因、技术详情和执行记录。记录仅保留在当前工作区会话中。" open={open} onOpenChange={value => {if (!value) closeDiagnostics();}} onCloseAutoFocus={event => {event.preventDefault(); restoreDiagnosticFocus();}} contentClassName="diagnostic-center">
+  return <AaosDialog title="运行诊断" description="集中查看连接状态、错误原因、技术详情和执行记录。简要问题记录保存在各自工作区；手动详细回执仅保留在当前会话。" open={open} onOpenChange={value => {if (!value) closeDiagnostics();}} onCloseAutoFocus={event => {event.preventDefault(); restoreDiagnosticFocus();}} contentClassName="diagnostic-center">
     <button type="button" aria-label="关闭运行诊断" onClick={closeDiagnostics}>关闭运行诊断</button>
     <DiagnosticConsole />
   </AaosDialog>;

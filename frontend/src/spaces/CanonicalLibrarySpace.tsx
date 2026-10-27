@@ -38,7 +38,7 @@ import "../components/content.css";
 import "./stitch-library.css";
 import type { InspectionHandler } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
-import { coreFailureReason } from "../presentation/labels";
+import { coreFailureReason, failureMessage } from "../presentation/labels";
 import { confirmOriginalNote, prepareOriginalNote, OriginalNoteRefused, type OriginalNoteAttempt } from "../presentation/originalNoteWrite";
 import { XiaoqiPanel } from "../components/XiaoqiPanel";
 import "../components/xiaoqi-trigger.css";
@@ -120,6 +120,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [message, setMessage] = useState("");
   const [failure, setFailure] = useState(false);
   const [failureReason, setFailureReason] = useState<string | null>(null);
+  const [importFailure, setImportFailure] = useState<{summary:string;detail:unknown}|null>(null);
   const [importing, setImporting] = useState(false);
   const [importReceipt,setImportReceipt]=useState<{name:string;bytes:number;state:string}|null>(null);
   const [exportProof, setExportProof] = useState<DocumentExportDto | null>(null);
@@ -314,7 +315,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   async function importFile(file: File) {
     setImportReceipt({name:file.name,bytes:file.size,state:"正在检查原件"});
     if (file.size > 64 * 1024 * 1024) { setMessage("当前导入上限为 64 MiB，请选择不超过上限的原件。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
-    setImporting(true); setFailure(false); setMessage("正在导入原件…");
+    setImporting(true); setFailure(false); setImportFailure(null); setMessage("正在导入原件…");
     try {
       const content = new Uint8Array(await file.arrayBuffer());
       const expectedSha256 = await sha256(content);
@@ -323,7 +324,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       confirmedImport(await coreCommand("source_import", { body: { name: file.name, content_base64: btoa(binary) } }), expectedSha256);
       setImportReceipt({name:file.name,bytes:file.size,state:"原件已保留；转换尚未执行"}); setMessage("原件已导入；选择它开始阅读。");
       await refreshLists();
-    } catch (error) { setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"}); setMessage(error instanceof Error ? error.message : "导入未完成，请保留原件并重试。"); setFailure(true); }
+    } catch (error) { const summary=`原件是否导入成功仍待确认，请保留文件并检查导入记录。${failureMessage(error)}`;setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"});setImportFailure({summary,detail:error instanceof Error?{...error,name:error.name,message:error.message}:error});setMessage(summary);setFailure(true); }
     finally { setImporting(false); }
   }
   async function open(selected: SourceDto, linkDocument=true):Promise<"success"|"stale"|"failure"> {
@@ -693,7 +694,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   };
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy||!documentLease.canWrite} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><SavedDocumentMetadata document={historicalDocument} onTag={setSelectedTag}/><pre>{historicalDocument.text_projection}</pre><DocumentEmbeds key={`${historicalDocument.document_id}:${historicalDocument.version}:${historicalDocument.content_sha256}`} editor={historicalDocument.editor_json} onOpenReference={onOpenReference}/>{savedCollection(historicalDocument)}{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
-  const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认；先检查结果，再重试同一次操作。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
+  const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认；先检查结果，再重试同一次操作。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failure&&importFailure?.summary===message?<RawReceiptButton label="原件导入错误详细信息" category="data" payload={importFailure.detail}/>:null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
   // List reads own one announcement; content/write outcomes remain independent.
   const listControls=<section className="library-list-controls" aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<><p role="alert">{listError}</p><p className="library-retry-help">先确认本地工作区已连接，再点“刷新资料列表”。读取失败时无法判断资料是否为空；已打开的内容和草稿仍保留。</p></>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
   const filteredDocuments = documents.filter(item => {
@@ -857,7 +858,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof} />:null}
         </> : null}
-    {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
+    {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failure&&importFailure?.summary===message?<RawReceiptButton label="原件导入错误详细信息" category="data" payload={importFailure.detail}/>:null}
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}
     <BackupPanel hasUnsavedDrafts={dirty.current} />
     {purpose === "reader" && (

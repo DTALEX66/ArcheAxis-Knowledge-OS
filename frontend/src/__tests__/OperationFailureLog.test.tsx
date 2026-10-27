@@ -90,7 +90,7 @@ it("coalesces repeat polling failures and keeps the log isolated while recovery 
   recordDiagnosticFailure("sources_list", error, observed);
   render(<DiagnosticConsole/>);
   const console = screen.getByLabelText("诊断控制台");
-  expect(console).toHaveTextContent("近30秒内重复2次");
+  expect(console).toHaveTextContent("共发生2次");
   expect(console).toHaveTextContent("共 1 条记录");
   expect(console).not.toHaveTextContent("private-error-text");
   expect(within(console).getAllByRole("listitem")).toHaveLength(1);

@@ -2009,14 +2009,14 @@ def read_semantic_reading(browser, viewport, problems, theme):
         assert any(call["operation"] == "document_get" and
             call["payload"].get("document_id") == "a0_target_1" for call in calls), calls
         assert not any(call["operation"] == "document_draft" for call in calls), calls
-        inspector = page.get_by_role("complementary", name="检查器", exact=True)
+        inspector = page.get_by_role("complementary", name="相关资料", exact=True)
         if console_dimensions(page)[0] <= 900:
             # Automatic document synchronization intentionally leaves narrow reading
             # space unobstructed. Exercise the real explicit Inspector control.
             assert inspector.count() == 0, "automatic inspection opened the narrow rail"
-            page.get_by_role("button", name="展开检查器", exact=True).click()
+            page.get_by_role("button", name="显示相关资料", exact=True).click()
         if inspector.count() == 0:
-            page.get_by_role("button", name="展开检查器", exact=True).click()
+            page.get_by_role("button", name="显示相关资料", exact=True).click()
         inspector.wait_for(state="visible")
         wait_reader_fit(page)
         assert "引用目标 1" in inspector.inner_text()
@@ -2054,9 +2054,9 @@ def read_semantic_reading(browser, viewport, problems, theme):
         # window, so the layout control is measured once that overlay is dismissed.
         geometry["shell_targets"] = check_shell_pointer_targets(page)
         geometry["library_targets"] = library_targets
-        geometry["close_target"] = visible_control_box(inspector.get_by_role("button", name="关闭检查器", exact=True))
+        geometry["close_target"] = visible_control_box(inspector.get_by_role("button", name="关闭相关资料", exact=True))
         assert geometry["close_target"]["reachable"], geometry
-        inspector.get_by_role("button", name="关闭检查器", exact=True).click()
+        inspector.get_by_role("button", name="关闭相关资料", exact=True).click()
         assert inspector.count() == 0
         assert "绑定历史正文 1 v1" in editor.inner_text()
         properties.click()
@@ -2085,7 +2085,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
         # three-line reading viewport; normal windows retain the four-line floor.
         required_lines = 4 if geometry["console_height"] >= 600 else 3
         assert area["fontSize"] >= 17 and area["height"] >= min(required_lines * area["lineHeight"], area["rawHeight"]), geometry
-        page.get_by_role("button", name="展开检查器", exact=True).click()
+        page.get_by_role("button", name="显示相关资料", exact=True).click()
         assert "引用目标 1" in inspector.inner_text()
         reader_shot = ARTIFACTS / f"semantic-reader-{theme}-{label}.png"
         page.screenshot(path=str(reader_shot), full_page=True)

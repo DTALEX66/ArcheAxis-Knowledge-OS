@@ -173,19 +173,40 @@ raise SystemExit(worker.main())
         assert!(!events.exists());
         let (status, result) = call(&router, "POST", &execute, body, "human").await;
         assert_eq!(status, 201, "{result}");
-        let operations: Value = serde_json::from_slice(&std::fs::read(events).unwrap()).unwrap();
+        let diagnostics = || {
+            format!(
+                "tamper={tamper}; synthetic check result: {result}; synthetic worker stack: {}",
+                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+            )
+        };
+        // HTTP 201 also persists failed attempts. Assert the expected outcome
+        // before reading a file that is only created by an actual dispatch.
         if tamper {
-            assert_eq!(operations, json!(["search", "article"]));
-            assert_eq!(result["reason"], "dispatch_actual_material_mismatch");
-            assert_eq!(result["execution_verified"], false);
+            assert_eq!(
+                result["reason"],
+                "dispatch_actual_material_mismatch",
+                "{}",
+                diagnostics()
+            );
+            assert_eq!(result["execution_verified"], false, "{}", diagnostics());
+        } else {
+            assert_eq!(result["execution_verified"], true, "{}", diagnostics());
+        }
+        let events = std::fs::read(&events).unwrap_or_else(|error| {
+            panic!("Cannot read synthetic worker events: {error}; {}", diagnostics())
+        });
+        let operations: Value = serde_json::from_slice(&events).unwrap_or_else(|error| {
+            panic!("Invalid synthetic worker events: {error}; {}", diagnostics())
+        });
+        if tamper {
+            assert_eq!(operations, json!(["search", "article"]), "{}", diagnostics());
         } else {
             assert_eq!(
                 operations,
                 json!(["search", "article", "model"]),
-                "{result}; synthetic worker stack: {}",
-                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+                "{}",
+                diagnostics()
             );
-            assert_eq!(result["execution_verified"], true, "{result}");
             assert_eq!(result["engine_receipt"]["model"], "SIMULATED-model");
         }
     }

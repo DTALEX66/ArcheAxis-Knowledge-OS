@@ -45,14 +45,14 @@ describe("审计缺陷回归：实际 App 与 SIMULATED 业务子端口", () => 
   it("窄窗口自动更新检查对象保留阅读区，显式打开与已打开检查器仍正常", () => {
     vi.stubGlobal("innerWidth", 640); render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "同步当前条目" }));
-    expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "相关资料" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "主动检查" }));
-    expect(screen.getByRole("complementary", { name: "检查器" })).toHaveTextContent("主动检查条目");
+    expect(screen.getByRole("complementary", { name: "相关资料" })).toHaveTextContent("主动检查条目");
     fireEvent.click(screen.getByRole("button", { name: "同步当前条目" }));
-    expect(screen.getByRole("complementary", { name: "检查器" })).toHaveTextContent("自动同步条目");
-    fireEvent.click(screen.getByRole("button", { name: "关闭检查器" }));
+    expect(screen.getByRole("complementary", { name: "相关资料" })).toHaveTextContent("自动同步条目");
+    fireEvent.click(screen.getByRole("button", { name: "关闭相关资料" }));
     fireEvent.click(screen.getByRole("button", { name: "同步当前条目" }));
-    expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "相关资料" })).not.toBeInTheDocument();
   });
 });
 

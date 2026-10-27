@@ -4,6 +4,7 @@ import type { DocumentDto, KnowledgeDto, OriginalDto, SourcesListDto } from "../
 import type { ObjectReference } from "../api/generated/research-contract";
 import { MediaReader } from "./MediaReader";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { failureMessage } from "../presentation/labels";
 const PdfReader = lazy(() => import("./PdfReader").then(m => ({ default: m.PdfReader })));
 type Original = { dto: OriginalDto; bytes: Uint8Array; text: string | null };
 function OriginalView({ value }: { value: Original }) {
@@ -26,6 +27,7 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
   const [document,setDocument]=useState<DocumentDto|null>(null),[knowledge,setKnowledge]=useState<KnowledgeDto|null>(null),[original,setOriginal]=useState<Original|null>(null);
   const [error,setError]=useState<string|null>(null),[retry,setRetry]=useState(0),[loading,setLoading]=useState(true);
   const [sourceBusy,setSourceBusy]=useState(false),[sourceError,setSourceError]=useState<string|null>(null);
+  const [errorDetail,setErrorDetail]=useState<unknown>(null),[sourceErrorDetail,setSourceErrorDetail]=useState<unknown>(null);
   const identity=JSON.stringify([reference,expectedDocumentSha]);
   useEffect(()=>{if (!embedded) {region.current?.focus();region.current?.scrollIntoView?.({block:"nearest"});}},[identity,embedded]);
   useEffect(()=>{
@@ -58,7 +60,11 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
         if(alive)setOriginal({dto:o,bytes,text});
       }
     }
-    load().catch(e=>{if(alive)setError(e instanceof Error?e.message:"引用读取失败。");}).finally(()=>{if(alive)setLoading(false);});
+    load().catch(e=>{if(alive){
+      const readable=failureMessage(e);
+      setError(`引用暂时无法读取，请核对来源或重新打开。${readable==="原件身份或 SHA 与引用不符。"?"原件与引用不一致，未显示其他来源。":readable}`);
+      setErrorDetail(e instanceof Error?{...e,name:e.name,message:e.message}:e);
+    }}).finally(()=>{if(alive)setLoading(false);});
     return()=>{alive=false;selection.current++;};
   },[identity,retry,embedded]);
   async function openKnowledgeSource() {
@@ -69,13 +75,13 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
       const source=list.sources.find(s=>s.source_id===id);
       if(!source || !/^[a-f0-9]{64}$/.test(source.sha256))throw new Error("知识绑定的来源记录不可用；未换成其他原件。");
       if(selection.current===generation)onOpenReference({kind:"source",source_id:id,sha256:source.sha256});
-    } catch(reason) {if(selection.current===generation)setSourceError(reason instanceof Error?reason.message:"来源读取失败。");}
+    } catch(reason) {if(selection.current===generation){setSourceError(`来源暂时无法读取，当前引用仍保留。${failureMessage(reason)}`);setSourceErrorDetail(reason instanceof Error?{...reason,name:reason.name,message:reason.message}:reason);}}
     finally {if(selection.current===generation){sourceLock.current=false;setSourceBusy(false);}}
   }
   return <aside ref={region} tabIndex={-1} className="ui-pinned-reference" aria-label={embedded ? "固定版本嵌入阅读" : "固定版本引用阅读"}>
     <header>{embedded ? <h5>嵌入内容</h5> : <h2>引用对象</h2>}<button type="button" onClick={onClose}>{embedded ? "收起嵌入" : "关闭引用"}</button></header>
     <p>{embedded ? "固定版本只读快照；仅展开一层，嵌套嵌入仍保留为引用。" : "此处只读，研究和关系草稿仍保留。"}</p>
-    {loading?<p role="status">正在读取固定引用…</p>:error?<><p role="alert">{error}</p><button type="button" onClick={()=>setRetry(v=>v+1)}>重试引用</button></>:null}
+    {loading?<p role="status">正在读取固定引用…</p>:error?<><p role="alert">{error}</p><RawReceiptButton label="引用读取错误详细信息" category="data" payload={errorDetail}/><button type="button" onClick={()=>setRetry(v=>v+1)}>重试引用</button></>:null}
     {document?<><h3>{document.title} · v{document.version}</h3>{embedded ? <details><summary>固定版本身份</summary><code>{document.document_id}</code><p>SHA：<code>{document.content_sha256}</code></p></details> : <><code>{document.document_id}</code><p>版本 SHA：<code>{document.content_sha256}</code></p></>}
       {reference.kind==="document" && reference.block_id ? <section aria-label="引用块"><h4>块 {reference.block_id}</h4><pre>{document.blocks.find(b=>b.block_id===reference.block_id)?.text_projection}</pre></section>:<pre>{document.text_projection}</pre>}
       {document.source_id && document.source_revision?<button type="button" disabled={!onOpenReference} onClick={()=>onOpenReference?.({kind:"source",source_id:document.source_id!,sha256:document.source_revision!})}>读取此版本的来源原件</button>:<p>此版本为独立文档，无来源原件绑定。</p>}
@@ -83,7 +89,7 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
     </>:null}
     {knowledge?<><h3>知识 {knowledge.knowledge_id}</h3><p>不可变身份 · {knowledge.version} · {knowledge.status}</p><pre>{knowledge.body}</pre><p>来源：{knowledge.source_id??"无来源绑定"}；锚点：{knowledge.anchor_id??"无锚点"}</p>
       {knowledge.source_id && <button type="button" disabled={sourceBusy || !onOpenReference} onClick={()=>void openKnowledgeSource()}>读取知识绑定的来源原件</button>}
-      {sourceBusy && <p role="status">正在核对知识来源身份…</p>}{sourceError && <p role="alert">{sourceError}</p>}
+      {sourceBusy && <p role="status">正在核对知识来源身份…</p>}{sourceError && <><p role="alert">{sourceError}</p><RawReceiptButton label="引用来源读取错误详细信息" category="data" payload={sourceErrorDetail}/></>}
     </>:null}
     {original?<OriginalView value={original}/>:null}
   </aside>;

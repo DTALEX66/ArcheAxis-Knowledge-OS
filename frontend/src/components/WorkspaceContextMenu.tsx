@@ -98,7 +98,7 @@ export function WorkspaceContextMenu(props: Props) {
         );
         actions.push(
           { id: "companion", label: state.props.companionOpen ? "收起小栖" : "显示小栖", group: "window", disabled: state.props.disabled, run: () => { if (!current.current.props.disabled) current.current.props.onCompanion(); } },
-          { id: "inspector", label: state.props.inspectorOpen ? "收起来源检查器" : "显示来源检查器", group: "window", disabled: state.props.disabled, run: () => { if (!current.current.props.disabled) current.current.props.onInspector(); } },
+          { id: "inspector", label: state.props.inspectorOpen ? "收起相关资料" : "显示相关资料", group: "window", disabled: state.props.disabled, run: () => { if (!current.current.props.disabled) current.current.props.onInspector(); } },
         );
       }
       if (!actions.length) return;

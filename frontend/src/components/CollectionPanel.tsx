@@ -3,6 +3,8 @@ import { useDraftOwner } from '../workspace/draftProtection';
 import { useDraftRecoverySource } from '../workspace/draftRecovery';
 import type { DocumentDto, ObjectReferenceDto } from '../api/generated/core-contract';
 import { coreCommand } from '../api/core';
+import { failureMessage } from '../presentation/labels';
+import { RawReceiptButton } from './DiagnosticConsole';
 import { assertCollectionDto, parseCollection, type Collection, type CollectionProperty, type CollectionRecord, type CollectionView, type CollectionQueryDto, type CollectionRow, type JSONValue, type FormulaDefinition, type BoundedFormula } from '../api/generated/collection-contract';
 import './collection-panel.css';
 
@@ -64,6 +66,7 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
   const viewId = selected[objectKey] ?? collection?.views[0]?.view_id ?? '';
   const [query, setQuery] = useState<CollectionQueryDto | null>(null);
   const [error, setError] = useState('');
+  const [errorDetail, setErrorDetail] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const sequence = useRef(0), pendingRequest = useRef(false);
   const callback = useRef(onPendingEditChange); callback.current = onPendingEditChange;
@@ -99,7 +102,7 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
       const next = assertCollectionDto<CollectionQueryDto>('CollectionQueryDto', raw);
       if (next.document_id !== document.document_id || next.version !== document.version || next.view.view_id !== viewId || next.content_sha256 !== document.content_sha256) throw new Error('返回视图与请求的已保存快照不一致。');
       if (sequence.current === request && liveIdentity.current === identity) setQuery(next);
-    } catch (e) { if (sequence.current === request && liveIdentity.current === identity) setError(`读取失败：${e instanceof Error ? e.message : String(e)}。未显示空列表作为成功。`); }
+    } catch (e) { if (sequence.current === request && liveIdentity.current === identity) { setError(`集合暂时无法读取，原内容仍保留。${failureMessage(e)}`); setErrorDetail(e instanceof Error ? {...e,name:e.name,message:e.message} : e); } }
     finally { if (sequence.current === request) { pendingRequest.current = false; setBusy(false); } }
   }
   const reference = (r: ObjectReferenceDto) => <button type="button" disabled={!onOpenReference || disabled} onClick={() => onOpenReference?.(r)}>{readerMode ? r.kind === 'document' ? `查看${r.block_id ? '段落' : '文档'} v${r.version}` : r.kind === 'source' ? '查看来源原件' : '查看知识' : r.kind === 'document' ? `${r.document_id} · v${r.version}${r.block_id ? ' · ' + r.block_id : ''}` : r.kind === 'source' ? `${r.source_id} · ${r.sha256}` : r.knowledge_id}</button>;
@@ -158,7 +161,7 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
       </>}
       <div className="collection-query-controls"><label>读取保存版视图<select aria-label="读取保存版视图" value={viewId} disabled={busy} onChange={e => setSelected(old => ({ ...old, [objectKey]: e.target.value }))}>{collection.views.map(v => <option key={v.view_id} value={v.view_id}>{v.name}</option>)}</select></label><button disabled={disabled || busy || !document || !viewId} onClick={() => void load()}>读取已保存视图</button></div>
       {!document && <p>新文档尚未保存，暂不能查询。定义与记录草稿可继续编辑。</p>}
-      {busy && <p role="status">正在读取已保存视图…</p>}{error && <p role="alert">{error}</p>}
+      {busy && <p role="status">正在读取已保存视图…</p>}{error && <><p role="alert">{error}</p><RawReceiptButton label="集合读取错误详细信息" category="data" payload={errorDetail}/></>}
       {query && <><p role="status">保存版 v{query.version}{readerMode ? '' : ` · ${query.content_sha256}`}。{canonical(query.definition) !== canonical(collection) ? '当前缓冲定义尚未保存；以下不代表草稿计算结果。' : '与当前定义相符。'}</p><p>共 {query.total} 条匹配记录，当前页 {query.items.length} 条。看板／日期布局仅展示当前页；分组总数来自完整过滤结果。</p>{Object.keys(query.group_counts).length > 0 && <dl aria-label="分组总数">{Object.entries(query.group_counts).map(([key, count]) => <div key={key}><dt>{groupLabel(key)}</dt><dd>{count}</dd></div>)}</dl>}
         {query.total === 0 ? <p>查询完成：没有匹配记录。</p> : projection()}
         <details><summary>计算与损失详情</summary>{query.items.flatMap(r => r.formulas.map(f => <p key={`${r.record_id}:${f.property_id}`}>{r.record_id}/{f.property_id} · {f.status} · {f.qualification} · {f.numeric_semantics}{f.error ? ` · ${f.error_code}: ${f.error}` : ''}</p>))}<p>公式使用有限 IEEE754 f64；外部方言、大整数、单位或时区等价尚未取得资格。</p></details>

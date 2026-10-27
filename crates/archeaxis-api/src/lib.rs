@@ -10,6 +10,7 @@ pub mod ask;
 pub mod capabilities;
 mod documents;
 mod external_context;
+mod failure_log;
 mod format_qualification;
 mod ingest_batches;
 mod ingest_relations;
@@ -89,6 +90,18 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         )
         .layer(axum::extract::DefaultBodyLimit::max(65536));
     let ui_routes = Router::new()
+        .route(
+            "/api/v1/workspace/operation-failures/read",
+            post(failure_log::read).layer(axum::extract::DefaultBodyLimit::max(2048)),
+        )
+        .route(
+            "/api/v1/workspace/operation-failures/append",
+            post(failure_log::append).layer(axum::extract::DefaultBodyLimit::max(2048)),
+        )
+        .route(
+            "/api/v1/workspace/operation-failures/clear",
+            post(failure_log::clear).layer(axum::extract::DefaultBodyLimit::max(2048)),
+        )
         .route(
             "/api/v1/workspace/layout",
             get(layout::read).put(layout::write),

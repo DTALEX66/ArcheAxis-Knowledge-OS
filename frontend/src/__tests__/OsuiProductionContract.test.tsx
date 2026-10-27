@@ -30,7 +30,7 @@ describe("OSUI v3 production contract", () => {
     render(<App />);
 
     expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "展开检查器" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "显示相关资料" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开活动坞" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "全部页面，打开产品导航" }));
     expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();

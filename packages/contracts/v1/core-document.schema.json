@@ -2,6 +2,36 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/core-document/v1",
   "$defs": {
+    "FailureLogOperation": {"enum": ["sources_list", "source_get", "source_original", "documents_list", "document_get", "document_create", "document_draft", "document_restore", "search", "learning_items", "learning_state", "learning_review", "machine_answer", "machine_retest", "machine_tasks_list", "job_execute", "job_execution_status", "job_execution_cancel", "model_configuration_get", "model_configuration_put", "workspace_backups", "ui_state_read", "ui_state_write", "local_request", "local_write", "unknown_operation"]},
+    "FailureLogCode": {"enum": ["offline", "backend_starting", "migrating", "incompatible", "unauthorized", "unavailable", "unknown"]},
+    "FailureLogReason": {"enum": ["unknown_result", "offline", "starting", "migrating", "conflict", "permission", "missing", "busy", "incompatible", "not_admitted", "restored_authorization", "withheld", "model_unconfirmed"]},
+    "FailureLogEntry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entry_id", "operation", "status", "code", "reason", "restore_epoch", "first_at", "at", "count"],
+      "properties": {
+        "entry_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "operation": {"$ref": "#/$defs/FailureLogOperation"},
+        "status": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0, "maximum": 599}]},
+        "code": {"$ref": "#/$defs/FailureLogCode"},
+        "reason": {"$ref": "#/$defs/FailureLogReason"},
+        "restore_epoch": {"type": "string", "pattern": "^(initial|[a-f0-9]{32})$"},
+        "first_at": {"type": "string", "format": "date-time"},
+        "at": {"type": "string", "format": "date-time"},
+        "count": {"type": "integer", "minimum": 1, "maximum": 1000000}
+      }
+    },
+    "FailureLogSnapshot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "workspace_id", "restore_epoch", "log_generation", "entries", "corrupt", "limit"],
+      "properties": {
+        "schema": {"const": "archeaxis.operation-failure-log/v1"},
+        "workspace_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "restore_epoch": {"type": "string", "pattern": "^(initial|[a-f0-9]{32})$"},
+        "log_generation": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-f0-9]{32}$"}]},
+        "entries": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/FailureLogEntry"}},
+        "corrupt": {"type": "boolean"}, "limit": {"const": 50}
+      }
+    },
     "DocumentPackageDto": {
       "description": "Bounded document exchange: at most 8 MiB of original/media bytes in aggregate and 40 MiB serialized JSON. Source import has a separate budget.",
       "type": "object",

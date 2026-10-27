@@ -122,6 +122,7 @@ function validateHandshake(value: unknown): Handshake {
   return handshake as unknown as Handshake;
 }
 
+function isFailureLogPath(path:string):boolean {return ["read","append","clear"].some(action=>path===`/api/v1/workspace/operation-failures/${action}`);}
 export function createApiClient(baseUrl: string, token: string, scopes: string[] = []) {
   async function requestRaw(path: string, init?: RequestInit): Promise<Response> {
     const observation = beginDiagnosticObservation();
@@ -142,20 +143,20 @@ export function createApiClient(baseUrl: string, token: string, scopes: string[]
         throw new ApiError(response.status, `${path} -> ${response.status}`, unavailableCode(response.status));
       }
       return response;
-    } catch (error) { recordDiagnosticFailure("local_request", error, observation); throw error; }
+    } catch (error) { if(!isFailureLogPath(path))recordDiagnosticFailure("local_request", error, observation); throw error; }
   }
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const observation = beginDiagnosticObservation();
     const response = await requestRaw(path, init);
     try { return (await response.json()) as T; }
-    catch (error) { recordDiagnosticFailure("local_request", error, observation); throw error; }
+    catch (error) { if(!isFailureLogPath(path))recordDiagnosticFailure("local_request", error, observation); throw error; }
   }
 
   async function write<T>(path: string, body: Record<string, unknown>, idempotencyKey: string): Promise<T> {
     if (!token || !scopes.includes(WRITE_SCOPE)) {
       const error = new ApiError(403, "desktop write scope is unavailable", "unauthorized");
-      recordDiagnosticFailure("local_write", error, beginDiagnosticObservation());
+      if(!isFailureLogPath(path))recordDiagnosticFailure("local_write", error, beginDiagnosticObservation());
       throw error;
     }
     return request<T>(path, {

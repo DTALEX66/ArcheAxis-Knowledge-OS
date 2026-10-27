@@ -196,7 +196,7 @@ function AppBody() {
     companionFocusRequested.current = false;
     // Only transfer focus when the auxiliary slot would hide its current owner.
     if (companionOwnsFocus.current || document.activeElement?.closest("#stitch-companion-window")) {
-      document.querySelector<HTMLElement>('.stitch-reference-window button[aria-label="关闭检查器"]')?.focus();
+      document.querySelector<HTMLElement>('.stitch-reference-window button[aria-label="关闭相关资料"]')?.focus();
     }
   }, [companionHiddenByReference, companionOpen, referenceVisible]);
   const navigationHash = useRef(window.location.hash);
@@ -919,7 +919,7 @@ function AppBody() {
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
     </div><WorkspaceContextMenu onPage={openPage} onCompanion={toggleCompanion} onInspector={toggleInspector} companionOpen={companionOpen && !companionHiddenByReference} inspectorOpen={inspectorOpen} disabled={workspaceRestoring} workspaceActions={!learningFocus}/></ConsoleWindow>
     {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : !inspectionTarget ? " stitch-reference-empty" : ""}`}>
-      {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭检查器" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => chooseWorkspaceLayout("focus")} />}
+      {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭相关资料" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => chooseWorkspaceLayout("focus")} />}
     </div> : null}
     {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} launchpadOpen={launchpadOpen} onLaunchpad={() => setLaunchpadOpen(value => !value)} />}
     {!learningFocus && <StitchLaunchpad open={launchpadOpen} onOpenChange={setLaunchpadOpen} onPage={openPage} onCapability={openCapability}/>}

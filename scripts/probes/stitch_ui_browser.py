@@ -354,7 +354,7 @@ def companion_probe(page, probe: Probe) -> dict:
 def research_focus(page) -> dict:
     page.locator("details.research-document-tools > summary").click(timeout=4000)
     page.get_by_role("button", name="SYNTHETIC · Stitch 研究导航样本 · 版本 1", exact=True).click(timeout=4000)
-    expand = page.get_by_role("button", name="展开检查器", exact=True)
+    expand = page.get_by_role("button", name="显示相关资料", exact=True)
     if expand.is_visible():
         expand.click(timeout=4000)
     sidebar = page.get_by_role("complementary", name="相关资料", exact=True)

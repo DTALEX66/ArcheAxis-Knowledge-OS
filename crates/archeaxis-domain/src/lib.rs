@@ -17,6 +17,7 @@ pub mod document;
 mod document_tags;
 pub mod expression;
 pub mod external_context;
+pub mod failure_log;
 pub mod ingest_batches;
 pub mod ingest_relations;
 pub mod knowledge;

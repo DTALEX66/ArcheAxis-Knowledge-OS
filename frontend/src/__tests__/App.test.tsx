@@ -22,28 +22,28 @@ describe("App shell", () => {
     const user = userEvent.setup();
     render(<App/>);
     const main = screen.getByRole("main");
-    expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "相关资料" })).not.toBeInTheDocument();
     expect(document.querySelector(".app-body .inspector")).toBeNull();
     const toggle = within(screen.getByRole("navigation", { name: "工作空间快捷导航" })).getByRole("button", { name: "小栖" });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     const companion = screen.getByRole("complementary", { name: "小栖 · 陪伴会话" });
     screen.getByRole("button", { name: "小栖 · 陪伴会话，移动小栖窗口" }).focus();
     await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
-    const inspector = screen.getByRole("complementary", { name: "检查器" });
+    const inspector = screen.getByRole("complementary", { name: "相关资料" });
     expect(inspector.closest(".console-window")).toBeNull();
     expect(companion).toHaveAttribute("hidden");
-    expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "关闭相关资料" })).toHaveFocus();
     act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
-    expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "相关资料" })).not.toBeInTheDocument();
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("main")).toBe(main);
     expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toHaveFocus();
     expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toBe(companion);
     for (let attempt = 0; attempt < 2; attempt++) {
       await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
-      expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
+      expect(screen.getByRole("button", { name: "关闭相关资料" })).toHaveFocus();
       await user.click(toggle);
       expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toHaveFocus();
       expect(screen.getByRole("main")).toBe(main);
@@ -52,9 +52,9 @@ describe("App shell", () => {
     screen.getByRole("button", { name: "小栖 · 陪伴会话，移动小栖窗口" }).focus();
     await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
     act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
-    expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "关闭相关资料" })).toHaveFocus();
     act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
-    expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "关闭相关资料" })).toHaveFocus();
   });
   it.each([
     ["workspace","今日工作台"], ["library","资料库"], ["intake","资料库"],
@@ -97,12 +97,12 @@ describe("App shell", () => {
     const draft = document.createElement("textarea"); draft.value = "未保存草稿"; document.body.append(draft); draft.focus();
     try {
       act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true,bubbles:true})));
-      expect(screen.getByRole("complementary", {name:"检查器"})).toBeInTheDocument();
+      expect(screen.getByRole("complementary", {name:"相关资料"})).toBeInTheDocument();
       expect(document.activeElement).toBe(draft); expect(draft.value).toBe("未保存草稿");
       expect(main.innerHTML).toBe(before);
-      expect(screen.getByRole("button", {name:"折叠检查器"})).toHaveAttribute("aria-keyshortcuts", "Control+Alt+I");
-      await user.click(screen.getByRole("button", {name:"折叠检查器"}));
-      expect(screen.queryByRole("complementary", {name:"检查器"})).not.toBeInTheDocument();
+      expect(screen.getByRole("button", {name:"收起相关资料"})).toHaveAttribute("aria-keyshortcuts", "Control+Alt+I");
+      await user.click(screen.getByRole("button", {name:"收起相关资料"}));
+      expect(screen.queryByRole("complementary", {name:"相关资料"})).not.toBeInTheDocument();
     } finally {draft.remove();}
   });
   it("SIMULATED Inspector shortcut ignores composition, repeat, AltGraph and extra modifiers", () => {
@@ -116,17 +116,17 @@ describe("App shell", () => {
     ];
     Object.defineProperty(events[4], "getModifierState", {value:(key:string)=>key==="AltGraph"});
     for(const event of events) act(() => window.dispatchEvent(event));
-    expect(screen.queryByRole("complementary", {name:"检查器"})).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", {name:"相关资料"})).not.toBeInTheDocument();
   });
   it("SIMULATED Inspector shortcut is blocked by the actual open command palette", async () => {
     const user=userEvent.setup(); render(<App />);
     await user.click(screen.getByRole("button", {name:"打开全局命令"}));
     expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
     act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true})));
-    expect(document.querySelector('[aria-label="检查器"]')).toBeNull();
+    expect(document.querySelector('[aria-label="相关资料"]')).toBeNull();
     await user.keyboard("{Escape}");
     act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true})));
-    expect(screen.getByRole("complementary", {name:"检查器"})).toBeInTheDocument();
+    expect(screen.getByRole("complementary", {name:"相关资料"})).toBeInTheDocument();
   });
   it("opens the formal palette from the unique shell search and returns focus on Escape", async () => {
     const user = userEvent.setup(); render(<App />);
@@ -452,7 +452,7 @@ describe("recovery barrier regression",()=>{
   await user.click(screen.getByRole("button",{name:"全部页面，打开产品导航"}));expect(screen.getByRole("dialog",{name:"产品导航"})).toBeInTheDocument();
   const before=document.querySelector(".app-body");
   act(()=>{window.dispatchEvent(new CustomEvent("workspace-restore-start"));window.dispatchEvent(new KeyboardEvent("keydown",{key:"k",ctrlKey:true,bubbles:true}));window.dispatchEvent(new KeyboardEvent("keydown",{key:"i",ctrlKey:true,altKey:true,bubbles:true}));window.history.replaceState(null,"","#capability/CAP-0050");window.dispatchEvent(new HashChangeEvent("hashchange"));});
-  expect(screen.queryByRole("dialog",{name:"全局命令"})).not.toBeInTheDocument();expect(screen.queryByRole("dialog",{name:"产品导航"})).not.toBeInTheDocument();expect(document.querySelector('[aria-label="检查器"]')).toBeNull();expect(window.location.hash).toBe("#page=01");expect(before).toHaveAttribute("inert");
+  expect(screen.queryByRole("dialog",{name:"全局命令"})).not.toBeInTheDocument();expect(screen.queryByRole("dialog",{name:"产品导航"})).not.toBeInTheDocument();expect(document.querySelector('[aria-label="相关资料"]')).toBeNull();expect(window.location.hash).toBe("#page=01");expect(before).toHaveAttribute("inert");
   act(()=>{window.dispatchEvent(new CustomEvent("workspace-invalidated",{detail:{confirmed:false,message:"恢复读回未确认，旧视图已失效"}}));window.dispatchEvent(new CustomEvent("workspace-restore-finish"));});
   expect(document.querySelector(".app-body")).not.toBe(before);expect(screen.getByRole("alert")).toHaveTextContent("恢复读回未确认");expect(document.querySelector(".app-body")).not.toHaveAttribute("inert");
  });

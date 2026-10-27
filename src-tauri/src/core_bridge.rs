@@ -147,6 +147,9 @@ pub enum Operation {
     LayoutWrite,
     LayoutRecover,
     UiStateRead,
+    OperationFailureLogRead,
+    OperationFailureLogAppend,
+    OperationFailureLogClear,
     UiStateWrite,
     UiStateClearSaved,
     UiStateClearJob,
@@ -931,6 +934,28 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
                     Some(value),
                 )
             }
+        }
+        OperationFailureLogRead | OperationFailureLogAppend | OperationFailureLogClear => {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
+            {
+                return Err("CORE_FAILURE_LOG_PAYLOAD_INVALID".into());
+            }
+            let value = body()?;
+            if !value.is_object() {
+                return Err("CORE_FAILURE_LOG_PAYLOAD_INVALID".into());
+            }
+            let action = match request.operation {
+                OperationFailureLogRead => "read",
+                OperationFailureLogAppend => "append",
+                _ => "clear",
+            };
+            (
+                "POST",
+                format!("/api/v1/workspace/operation-failures/{action}"),
+                Some(value),
+            )
         }
         UiStateRead => {
             if !p.as_object().is_some_and(|object| object.is_empty()) {

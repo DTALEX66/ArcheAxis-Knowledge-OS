@@ -1,12 +1,27 @@
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-import { cleanup,render,screen,waitFor,fireEvent,act } from "@testing-library/react";
+import { cleanup,render,renderHook,screen,waitFor,fireEvent,act } from "@testing-library/react";
+import { resetDiagnostics, useDiagnostics } from "../presentation/diagnostics";
 import { webcrypto } from "node:crypto";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
-beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+beforeEach(()=>{resetDiagnostics();bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
 afterEach(()=>{cleanup();vi.unstubAllGlobals();});
 const doc={document_id:"doc_original",version:1,title:"原文 v1",source_id:"source_original",source_revision:"a".repeat(64),content_sha256:"b".repeat(64),text_projection:"原版本全文",editor_json:{type:"doc",content:[]},blocks:[{block_id:"evidence",text_projection:"固定依据块"}]};
+it.each([undefined,409])("keeps raw pinned read failure in explicit details and never substitutes another version (%s)",async status=>{
+ const error=Object.assign(new Error("FIXED_READ_FAILED /workspace/document"),status?{status}:{});bridge.call.mockRejectedValue(error);
+ const diagnostics=renderHook(useDiagnostics);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} onClose={()=>{}}/>);
+ const alert=await screen.findByRole("alert");expect(alert).not.toHaveTextContent(error.message);if(status)expect(alert).toHaveTextContent("冲突");
+ expect(screen.queryByText("原版本全文")).not.toBeInTheDocument();expect(bridge.call).toHaveBeenCalledTimes(1);expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:"doc_original",version:1});
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：引用读取错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({message:error.message,...(status?{status}:{})});expect(bridge.call).toHaveBeenCalledTimes(1);
+});
+it("does not mistake a structured conflict for a local original-identity error with the same message",async()=>{
+ const error=Object.assign(new Error("原件身份或 SHA 与引用不符。"),{status:409,code:"conflict"});bridge.call.mockRejectedValue(error);
+ const diagnostics=renderHook(useDiagnostics);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} onClose={()=>{}}/>);
+ const alert=await screen.findByRole("alert");expect(alert).toHaveTextContent("冲突：对象版本已变化");expect(alert).not.toHaveTextContent("原件与引用不一致");expect(alert).not.toHaveTextContent("SHA");
+ expect(bridge.call).toHaveBeenCalledTimes(1);expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:"doc_original",version:1});expect(screen.queryByText("原版本全文")).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：引用读取错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({status:409,code:"conflict",message:error.message});expect(bridge.call).toHaveBeenCalledTimes(1);
+});
 it("refuses a fixed-version read whose SHA differs from the global search observation",async()=>{
  bridge.call.mockResolvedValue(doc);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} expectedDocumentSha={"c".repeat(64)} onClose={()=>{}}/>);
  expect(await screen.findByRole("alert")).toHaveTextContent("指纹与搜索观察不一致");

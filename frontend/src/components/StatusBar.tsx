@@ -36,7 +36,7 @@ export function StatusBar({ backendState, externalDev = false, onNavigate = () =
     <span className="status-bar-brand" aria-hidden="true" style={{display:"none"}}><img src={AAOS_THEME_REGISTRY[theme].brandMark} alt=""/></span>
     <CommandPalette openRequest={commandPaletteOpenRequest} onPage={onPage} onOpenObject={onOpenObject} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange}/>
     <span className="stitch-connection-state" data-state={backendState} role="status" title={BACKEND_LABELS[backendState]}>{BACKEND_LABELS[backendState]}{externalDev ? " · 开发" : ""}</span>
-    {!selectedCapabilityId ? <button type="button" className="inspector-trigger stitch-window-icon" aria-keyshortcuts="Control+Alt+I" aria-label={inspectorOpen ? "折叠检查器" : "展开检查器"} aria-expanded={inspectorOpen} onClick={onToggleInspector} title="相关资料与检查器（Ctrl+Alt+I）">◧</button> : null}
+    {!selectedCapabilityId ? <button type="button" className="inspector-trigger stitch-window-icon" aria-keyshortcuts="Control+Alt+I" aria-label={inspectorOpen ? "收起相关资料" : "显示相关资料"} aria-expanded={inspectorOpen} onClick={onToggleInspector} title="相关资料（Ctrl+Alt+I）">◧</button> : null}
     <DiagnosticCenterTrigger/>
     <AaosDialog title="界面与工具" description="调整界面主题或打开设置。" open={settingsOpen} onOpenChange={setSettingsOpen} trigger={<button type="button" className="stitch-window-tool-settings" aria-label="界面与工具设置">工具</button>} contentClassName="stitch-window-settings-dialog"><ThemePicker/><button type="button" onClick={()=>setSettingsOpen(false)}>关闭工具</button><button type="button" onClick={() => { setSettingsOpen(false); onPage?.("19"); }}>打开设置</button></AaosDialog>
   </div>;

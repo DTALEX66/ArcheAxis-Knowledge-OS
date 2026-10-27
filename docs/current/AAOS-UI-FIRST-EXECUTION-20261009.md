@@ -2299,3 +2299,23 @@ V12产品候选冻结于 `8b89e23fce70c69392d51cb48f9a934cf8461ffc`，保留原�
 公开探针冻结提交 `2823f923d9d542ce18e8cc2cd5cc35a08dac39ea` 的4文件回归106通过/0失败/0跳过（60.50秒），涵盖新就绪观察、导航入口、工作状态恢复及自有WebDriver传输；回执 `.project-local/runs/be268a2d33/ui-audit-ci24d-native-readyguard-final/artifacts/execution.json` SHA256 `bdabb01b1760317d01b984d7d20d2a8e7cc9329d1ac7f12cb289c78741355d91`，LOCAL_PASS、exit0、source_consistent=true，原补丁54d4不变，fixture浏览器已关闭。该提交20项预检亦全部LOCAL_PASS/source_consistent，见 `ui-audit-remediation-v12-delivery-preflight/artifacts/local-ci.json`。这两项不替代新SHA云端安装检查；本段仅文档后继，产品前端及探针实现未再改变。
 
 交付分支为 `trae/20261024`、PR203；本轮公开提交包括db5d2caa引导修复、8b89e23f白话断言及2823f923初始化观察。`codex/sync-20261019` 的本地b4588d76已经是当前分支祖先，其18个领先提交已纳入本PR，无须另作重复合并或重置。发布前最近远端main为 `8d367bac4a85bebfbb523503678ade0838faa73e`，PR可合并但因旧CI失败BLOCKED；正常push后须核对本地分支、远端分支及PR head，并读取新head的完整必需CI/审查条件后再决定合并，不使用强制或管理员绕过。实时交付读回保存在本地回执与PR描述/检查页面；本段的发布前状态不充作已上传或已合并声明。
+
+#### 2026-10-28 V13后继：白话提示与跨重启问题记录
+
+Owner要求继续完成原审计及对话未完项，并按订阅剩余≤10%收口；2026-10-27T19:15:25Z在官方额度查询之后读取时钟，主窗口已用80%、剩余20%，次级窗口未知，未触发。此时公开HEAD为 `1f29f4edf7cfba835302ae0369f7ff428753812d`，以下为其后继源码与局部检查，不是已交付新候选。V12两个ZIP、图像、原始失败及资格保持原绑定，不能移作V13证据。
+
+七类显示遗漏已在源码收敛：“保存教学记录”与正文保存保持不同操作；“相关资料／条目详情”覆盖菜单、状态栏、关闭和焦点目标；教学反馈七种选择显示中文且发送原枚举；集合与固定引用保留原错误分类、冲突及原版本拒绝条件后显示白话；原图定位失败保留图与引用；导入回执不完整按结果未知说明，不自动重试或创建后继任务。12个相关前端文件239项通过，见 `ui-copy-seven-targeted-final-20261028`，LOCAL_PASS/source_consistent=true；原首次因能力清单摘要不一致而0测试失败保留，不改判。新增有限契约改变core-document字节后，沿既有做法同步pdf-extract清单的三处契约摘要与生成展示，原Python/Node检查均exit0；生成时预期改源码的run仍记INVALIDATED/child0，不写整轮通过。
+
+集中问题记录复用Core Store唯一写队列和workspace_meta独立键，新增read/append/clear三个仅human命令；最多50条、64KiB，持久有限操作／原因／状态与服务器时间、次数，不存自由错误原文、正文、地址、路径或凭证。workspace_id、restore_epoch与清空代际在同一Store事务核验；不写ui_state或消耗草稿预算。读取损坏记录只影响问题记录，显式清空可修复；Core不可用或身份未知时只保留当前会话，手动完整详情仍不持久。清空／迟到追加／工作区切换竞态及记录自身失败不递归已实现。非全局页面异常或渲染崩溃恢复，完整成功历史也不在此批。
+
+日志前端六文件68项通过，见 `failure-log-frontend-targeted-r3-20261028`，LOCAL_PASS/source_consistent=true，原0测试参数错误及65通过/1选择器歧义失败分别保留。Core关闭重开、旧身份／旧代际零修改、损坏隔离、actor及字段拒绝、接近草稿预算不影响CAS的3项集成在 `problem-records-rust-log-api-r3` 通过；前两轮原fixture超单条预算及虚构base_version的失败保留，后继改用真实创建的4条文档和合法草稿，未放宽预算或生产校验。其后仅增加读取时在SQLite查询截断至65537字节、在Rust分配/反序列化前判超限及相应负例，须冻结后复测；不声称SQLite C内部或进程RSS有同样上限。
+
+1f29的云CI `40560553595` 已终态FAILURE：13成功、rust-vnext／installer-lifecycle／依赖汇总3失败、Python3.12取消、3策略跳过。实际checkout是合并提交 `dac5c75eda965b5705b26511cb9a90b608b803ba`，父提交main `8d367bac` 与PR head `1f29f4ed`，tree `bc4dc6d790a1d06bfcab47970c830af6e205e283` 与PR head相同，均已读回。Rust document_cloud_loop为7通过/1失败，synthetic worker未产生事件文件；固定5秒dispatch就绪超时是待验证推断，原日志未输出reason/stack，不能定因。后继只增强合成夹具失败诊断，不改5秒、请求断言或生产策略；本地8项通过但未复现云失败，不能据此宣布已解决。
+
+同次安装日志在 `verify_nsis_install.ps1` 初次窗口WM_CLOSE后30秒未退出，尚未写install-preflight，后续旅程与新增frontend初始化观察均NOT_REACHED。该run的artifact12762885290只有三份工具/OCR/构建记录，无旅程或截图，保存在 `ui-audit-ci1f29-installer122398-artifact`；不是先前24d旅程失败。实际脚本只等Core鉴权与可见窗口标题即发关闭，缺少前端真实就绪前置；具体阻塞分支尚未确定，不能断言已弹确认或发生丢稿。后继已封写标准库Python＋现有PowerShell7/.NET只读CDP观察，子进程独立loopback端口、PID/创建时间归属与30秒共享预算，新增7项真实进程／传输／合成Chromium夹具待统一运行；保留原关闭超时、数据保护及显式授权，不自动确认或强杀。root/bridge就绪仅证前端挂载，不证明异步关闭监听已经就绪，不宣布退出根因已解决。完整冻结检查、新候选原生／新图和新精确head云CI仍待验收，整体PARTIAL、Green未替换、未合并／发布。
+
+首轮统一冻结为1f29加工作区补丁 `298fe6633ea7787bd5129f2fcd9f2bde80119d87f28c0827332fe17ceadb8b37`。`ui-v13-types` 类型与 `problem-records-rust-final-bounded-load-20261028` Core3项均LOCAL_PASS/source_consistent=true，包含65537字节负例。`ui-v13-frontend-full` 225文件2435通过/1失败/0跳过，失败为DocumentEmbeds旧消费者仍期待普通提示显示raw offline；后继同步白话断言，并加强为首读仅1次、显式重试后同document_id/version精确2次，`ui-v13-document-embed-followup` 10项LOCAL_PASS，原全量失败保留。问题次数文案另修“共发生N次”，不再把续链计数说成最近30秒窗口总数。
+
+`ui-audit-installed-startup-ready-final` 原44通过/4失败/0跳过；窄化r2为4通过/3失败，均source_consistent。只读复现确认uv目录junction被Path.resolve改写会与实际加载路径不符，改absolute保留加载路径后入口强校验仍exact；r2进而实际暴露CIM的CreationDate截断到微秒，而Process.StartTime保留100ns。后继只对CIM来源的子进程创建时间用Int64截断比较，同一微秒两端、前后微秒和非法精度增负例；主Host及listener即Host仍原始FILETIME exact。原HTTP／WebSocket／错属PID／回收身份及迟到listener断言不放宽，新8例待冻结复测。此处是验收工具的已证实问题，不能据此宣布原NSIS退出故障解决。
+
+V13构建准备仅复用V12流水线，在独立run中硬约束未来冻结完整SHA、原保护补丁54d4、候选/回执拒绝覆盖与stage→Host清单绑定；43个worker/shared/launcher源大小及摘要相等，准备收据 `ui-audit-remediation-v13-build-prepare` LOCAL_PASS/source_consistent。当前未执行新Core/Host/portable构建或原生专项，V12和既有预览保持不变。2026-10-27T19:32:55Z官方查询后的主额度观察剩余19%，阈值未触发；未捕获异常、物理断电与完整RSS、代表性多栏OCR质量和Owner视觉接受等未完成边界不变。

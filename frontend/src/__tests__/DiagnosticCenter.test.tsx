@@ -7,9 +7,9 @@ import {Inspector} from "../components/Inspector";
 import {CoreWorkingStateSession, type WorkingRead} from "../presentation/coreWorkingState";
 import {CoreWorkingStateProvider} from "../presentation/useCoreWorkingState";
 
-const bridge = vi.hoisted(() => ({call:vi.fn()}));
-vi.mock("../api/core", () => ({coreCommand:bridge.call}));
-beforeEach(() => {resetDiagnostics(); bridge.call.mockReset();});
+const bridge = vi.hoisted(() => ({call:vi.fn(),log:vi.fn()}));
+vi.mock("../api/core", () => ({coreCommand:(operation:string,...args:unknown[])=>operation.startsWith("operation_failure_log_")?bridge.log(operation,...args):bridge.call(operation,...args)}));
+beforeEach(() => {resetDiagnostics(); bridge.call.mockReset();bridge.log.mockReset().mockImplementation((_operation,{body})=>Promise.resolve({schema:"archeaxis.operation-failure-log/v1",...body,log_generation:"c".repeat(32),entries:[],corrupt:false,limit:50}));});
 afterEach(() => {vi.restoreAllMocks();});
 it("opens the one center from a contextual receipt, shows the exact payload and returns focus", async () => {
   const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
@@ -52,7 +52,7 @@ it("Escape closes only the diagnostic dialog and preserves the underlying inspec
   await user.click(screen.getByRole("button", {name:"运行诊断"}));
   await user.keyboard("{Escape}");
   expect(closeInspector).not.toHaveBeenCalled();
-  expect(screen.getByLabelText("检查器")).toBeInTheDocument();
+  expect(screen.getByLabelText("相关资料")).toBeInTheDocument();
 });
 it("falls back to the global entry if a contextual opener disappears", async () => {
   const user = userEvent.setup();

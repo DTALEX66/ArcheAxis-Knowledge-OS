@@ -571,6 +571,7 @@ describe("canonical content sample", () => {
     expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
   },15000);
   it.each(["wrong hash","missing duplicate","blank source"])("SIMULATED rejects an unverified import receipt: %s",async(reason)=>{
+    const diagnostics=renderHook(useDiagnostics);
     const previous=bridge.call.getMockImplementation()!;
     bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="source_import"
       ? {source_id:reason==="blank source"?"   ":"fixture-import",sha256:reason==="wrong hash"?"0".repeat(64):hash,...(reason==="missing duplicate"?{}:{duplicate:false})}
@@ -581,6 +582,24 @@ describe("canonical content sample", () => {
     await waitFor(()=>expect(screen.getByLabelText("导入结果")).toHaveTextContent(/未确认，请保留原件/));
     expect(screen.getByLabelText("导入结果")).not.toHaveTextContent("原件已保留");
     expect(bridge.call.mock.calls.filter(([op])=>op==="sources_list")).toHaveLength(1);
+    expect(screen.getByRole("alert")).not.toHaveTextContent(/source_id|sha256|duplicate|SHA-256/);
+    fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件导入错误详细信息"}));
+    expect(diagnostics.result.current[0].payload).toMatchObject({name:"Error",message:expect.stringContaining("导入回执")});
+    expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
+    expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
+  });
+  it.each([409,504])("SIMULATED: import failures retain original status, bytes and an uncertain outcome (%s)",async status=>{
+    const previous=bridge.call.getMockImplementation()!,error=new ApiError(status,"IMPORT_FAILURE /workspace/source");
+    // Deliberately inject an unknown external code at the error boundary, retaining the actual Error instance.
+    Object.assign(error,{code:"unexpected"});
+    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>)=>op==="source_import"?Promise.reject(error):previous(op,payload));
+    const diagnostics=renderHook(useDiagnostics);render(<CanonicalLibrarySpace/>);
+    const file=new File(["原文样板"],"fixture.txt");Object.defineProperty(file,"arrayBuffer",{value:async()=>new TextEncoder().encode("原文样板").buffer});
+    await userEvent.setup().upload(screen.getByLabelText("导入原件"),file);
+    const alert=await screen.findByRole("alert");expect(alert).toHaveTextContent("导入成功仍待确认");expect(alert).not.toHaveTextContent(error.message);if(status===409)expect(alert).toHaveTextContent("冲突");
+    const imports=bridge.call.mock.calls.filter(([op])=>op==="source_import");expect(imports).toHaveLength(1);expect(imports[0][1]).toEqual({body:{name:"fixture.txt",content_base64:Buffer.from("原文样板").toString("base64")}});
+    expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
+    fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件导入错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({status,code:"unexpected",message:error.message});expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
   });
   it("SIMULATED preserves confirmed custody when the following list refresh fails",async()=>{
     const previous=bridge.call.getMockImplementation()!;let imported=false;

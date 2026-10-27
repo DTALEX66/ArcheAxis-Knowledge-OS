@@ -21,7 +21,7 @@ describe("workspace context commands (SIMULATED; native popup is mocked)", () =>
     await waitFor(() => expect(handlers.onCompanion).toHaveBeenCalledOnce());
     fireEvent.keyDown(target, { key: "F10", shiftKey: true });
     fireEvent.keyDown(document.activeElement!, { key: "End" });
-    expect(screen.getByRole("menuitem", { name: "显示来源检查器" })).toHaveFocus();
+    expect(screen.getByRole("menuitem", { name: "显示相关资料" })).toHaveFocus();
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
     expect(screen.getByRole("menuitem", { name: "铺满主控台" })).toHaveFocus();
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
