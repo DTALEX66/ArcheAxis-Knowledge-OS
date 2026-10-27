@@ -6,6 +6,8 @@ import { TemplateLauncher, TemplateWorkspace } from "../templates/TemplateWorksp
 import { backlinks, binding, collection, createTemplate, loadTemplateDocuments, resolveReference, saveBinding } from "../templates/bindings";
 import { DISCIPLINES, TEMPLATES } from "../templates/disciplines";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 
 const api=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:api.call}));
@@ -25,6 +27,16 @@ function normalize(value:DocumentDto):DocumentDto {
   return {...value,editor_json:editor,content_sha256:"a".repeat(64),blocks:editor.content.map((node,index)=>({block_id:String(node.attrs!.block_id),kind:node.type,ordinal:index,node_json:node,text_projection:"fixture",codec_status:"known"}))};
 }
 describe("SIMULATED host binding; Core persistence is separately integrated",()=>{
+  it("keeps long reference IDs in discoverable diagnostics while empty titles and block labels remain readable",async()=>{
+    resetDiagnostics();const id="document_"+"x".repeat(60)+"_tail12",block="block_"+"b".repeat(60)+"_tail34";
+    const target=doc(id);target.title=" ";target.blocks[0].block_id=block;
+    const source=doc("source");source.title="来源模板";source.editor_json={...(source.editor_json as object),attrs:{archeaxis_template:{...metadata,references:[{document_id:id,version:1,block_id:block,relation:"推导自",x:20,y:20}]}}};stored=[source,target];
+    render(<><TemplateWorkspace onOpen={vi.fn()}/><DiagnosticConsole/></>);
+    fireEvent.click(await screen.findByRole("button",{name:"来源模板 · v1"}));
+    const graph=await screen.findByLabelText("局部图谱");expect(graph).toHaveTextContent("未命名文档");expect(graph).not.toHaveTextContent(id);expect(graph).not.toHaveTextContent(block);
+    fireEvent.click(screen.getByRole("button",{name:"查看编号：引用 1 完整编号与版本"}));
+    expect(screen.getByLabelText("诊断控制台")).toHaveTextContent(id);expect(screen.getByLabelText("诊断控制台")).toHaveTextContent(block);resetDiagnostics();
+  });
   it("28 discipline packages use exactly three templates and each has a representative activity",()=>{
     expect(DISCIPLINES).toHaveLength(28);expect(new Set(DISCIPLINES.map(d=>d.id)).size).toBe(28);expect(TEMPLATES.map(t=>t.id)).toEqual(["T1","T2","T3"]);
     for(const pack of DISCIPLINES)expect([pack.fields.length,pack.relations.length,pack.sample.length,pack.activity.length,pack.evaluation.length].every(n=>n>0)).toBe(true);

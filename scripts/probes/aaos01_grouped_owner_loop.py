@@ -82,6 +82,45 @@ return [...document.querySelectorAll('section[aria-label="阅读与编辑文档�
 """
 
 
+FOLDER_IMPORT_DISCLOSURE_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const panels=[...document.querySelectorAll('details.exchange-folder-import')].filter(visible);
+const panel=panels.length===1?panels[0]:null;
+const inputs=[...(panel?.querySelectorAll('input[type="file"][aria-label="选择文件夹"]')??[])];
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ count:panels.length,open:panel?.open??null,summary:visible(panel?.querySelector(':scope>summary')),
+ input_count:inputs.length,input_visible:inputs.length===1&&visible(inputs[0]),
+ input_enabled:inputs.length===1&&!inputs[0].matches(':disabled')};
+""".strip()
+
+
+READER_ATTRIBUTES_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+const readers=[...document.querySelectorAll('section[aria-label="阅读与编辑文档视图"]')].filter(visible);
+const reader=readers.length===1?readers[0]:null;
+const buttons=[...(reader?.querySelectorAll('.stitch-reader-toolbar button')??[])].filter(n=>n.textContent.trim()==='属性与引用'&&visible(n));
+const button=buttons.length===1?buttons[0]:null;
+const panel=button?.getAttribute('aria-controls')?document.getElementById(button.getAttribute('aria-controls')):null;
+return {reader_count:readers.length,toolbar_count:reader?.querySelectorAll('.stitch-reader-toolbar').length??0,
+ count:buttons.length,expanded:button?.getAttribute('aria-expanded')??null,panel_visible:visible(panel),
+ panel_in_reader:!!panel&&!!reader?.contains(panel)};
+""".strip()
+
+
+def open_reader_attributes(ui, js):
+    """Open current reader metadata through its rendered control, not hidden DOM."""
+    observed = js(READER_ATTRIBUTES_OBSERVATION)
+    assert observed["reader_count"] == 1, "Reader attributes belong to a missing or ambiguous reader"
+    assert observed["toolbar_count"] == 1 and observed["count"] == 1 and observed["panel_in_reader"], "Missing or ambiguous current reader attributes control"
+    if observed["expanded"] != "true":
+        scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
+        ui.click_revealed_selector(button_selector("属性与引用", scope))
+    opened = js(READER_ATTRIBUTES_OBSERVATION)
+    assert opened["reader_count"] == 1 and opened["toolbar_count"] == 1 and opened["count"] == 1
+    assert opened["expanded"] == "true" and opened["panel_visible"] and opened["panel_in_reader"], "Reader attributes did not open on the original reader"
+
+
 TEXT_SELECTION_OBSERVATION = """const regions=document.querySelectorAll('[aria-label="并排原件正文"]');
 const region=regions.length===1?regions[0]:null;
 const node=region?.firstChild;
@@ -806,6 +845,7 @@ return {ready:false,disabled:false,reason:'No reachable scroll container',target
         self.evidence.append({"action": "trusted_keys", "using": using, "selector": selector})
 
     def upload_directory(self, folder):
+        self.open_folder_import()
         selector = 'input[type="file"][aria-label="选择文件夹"]'
         element = self.find(selector, "css selector")
         self.command(element, "value", {"text": str(folder.resolve())})
@@ -816,6 +856,17 @@ return {ready:false,disabled:false,reason:'No reachable scroll container',target
                 "fixture_root": str(folder),
             }
         )
+
+    def open_folder_import(self):
+        observed = self.js(FOLDER_IMPORT_DISCLOSURE_OBSERVATION)
+        assert observed["page"] == "16" and observed["count"] == 1 and observed["summary"], "Missing, hidden or ambiguous folder import disclosure on the current import page"
+        assert observed["input_count"] == 1 and observed["input_enabled"], "Folder input is missing, ambiguous or disabled"
+        if not observed["open"]:
+            self.click_revealed_selector("//details[contains(concat(' ',normalize-space(@class),' '),' exchange-folder-import ') and not(ancestor-or-self::*[@hidden or @aria-hidden='true'])]/summary")
+        opened = self.js(FOLDER_IMPORT_DISCLOSURE_OBSERVATION)
+        assert opened["page"] == "16" and opened["count"] == 1 and opened["summary"] and opened["open"], "Folder import disclosure did not open on the original page"
+        assert opened["input_count"] == 1 and opened["input_enabled"] and opened["input_visible"], "Folder input must be visible and enabled before trusted selection"
+        self.evidence.append({"action": "folder_import_disclosure", "decision": "ALREADY_OPEN" if observed["open"] else "OPENED_BY_RENDERED_UI", "page": "16", "business_completion": False})
 
     def page(self, page_id, confirm_navigation=False):
         assert re.fullmatch(r"\d{2}", page_id), "Invalid page identity"
@@ -1657,9 +1708,34 @@ def assert_actual_ai_chain(result):
     assert result["capability_toggle"]["status"] == "PASS"
 
 
+CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION = r"""
+const rows=[...document.querySelectorAll('[aria-label="诊断控制台"] details[open]')].filter(n=>
+ n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ n.querySelector('summary')?.textContent.startsWith('完整上下文授权 ·'));
+return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null;
+""".strip()
+
+
+def assert_ui_grant_knowledge(ui, read, wait, knowledge_id):
+    """Read the full UI identity through its real diagnostic, then compare Core."""
+    scope = "//section[@aria-label='项目记忆与上下文内容' and not(ancestor-or-self::*[@hidden])]"
+    ui.click_revealed_selector(scope + "//button[@data-diagnostic-label='完整上下文授权']")
+    try:
+        wait("return (()=>{" + CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION + "})()!==null")
+        grant = ui.js(CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION)
+        assert isinstance(grant, dict) and grant["schema"] == "archeaxis.context-grant/v1"
+        assert grant["knowledge_id"] == knowledge_id and grant["state"] == "candidate", "UI candidate knowledge identity mismatch"
+        assert grant["consumer"] == "local-machine" and grant["provenance"] == [{"kind": "knowledge", "knowledge_id": knowledge_id}], "UI candidate provenance mismatch"
+        knowledge = read("knowledge_get", {"id": knowledge_id})
+        assert knowledge["knowledge_id"] == knowledge_id and knowledge["status"] == "accepted", "UI candidate differs from accepted Core knowledge"
+    finally:
+        ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
+
+
 def create_ui_grant(ui, read, wait, knowledge_id, operation, purpose):
     ui.click("读取指定知识并建立上下文候选")
-    wait("return document.body.innerText.includes('固定知识：' + " + json.dumps(knowledge_id) + ")")
+    wait("const panels=[...document.querySelectorAll('[aria-label=\"项目记忆与上下文内容\"]')].filter(n=>!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.getClientRects().length);const buttons=panels.length===1?[...panels[0].querySelectorAll('button')].filter(n=>n.textContent==='读取指定知识并建立上下文候选'):[];return buttons.length===1&&!buttons[0].disabled&&panels[0].textContent.includes('指定知识当前正文与接受状态已读回');")
+    assert_ui_grant_knowledge(ui, read, wait, knowledge_id)
     ui.type("用途", purpose, "textarea")
     ui.type(
         "授权依据",
@@ -2607,6 +2683,7 @@ def restored_reader_expected_text(document):
 
 def restored_reader(ui, read, js, wait, document):
     """Bind the rendered business view to its user-opened diagnostic and Core identity."""
+    open_reader_attributes(ui, js)
     wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.text!==null&&(v.title!==null||(v.console_height!==null&&v.console_height<=520))")
     view = js(READER_RESTORE_OBSERVATION)
     assert view["page"] == "03" and view["reader_count"] == 1

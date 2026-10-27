@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { stateLabel } from "../presentation/labels";
+import { displayTitle, localDateTime } from "../presentation/display";
 
 export interface InspectionTarget {
   title: string;
@@ -47,17 +48,17 @@ export function Inspector({ target, onClose }: { target: InspectionTarget | null
       <aside className="inspector" aria-label="检查器">
         <div className="inspector-heading"><h2 className="inspector-title">检查器</h2>{onClose ? <button type="button" aria-label="关闭检查器" onClick={onClose}>×</button> : null}</div>
         <dl className="inspector-details">
-          <dt>条目</dt><dd>{target.title}</dd>
+          <dt>条目</dt><dd>{displayTitle(target.title)}</dd>
           <dt>来源</dt><dd>{target.source}</dd>
           <dt>状态</dt><dd>{target.lifecycle}</dd>
           {target.rawSha256 ? <><dt>原件保存信息</dt><dd>已记录</dd></> : null}
           {target.version ? <><dt>版本</dt><dd>{target.version}</dd></> : null}
           {target.evidenceSource ? <><dt>证据来源</dt><dd>{target.evidenceSource}</dd></> : null}
-          {target.updatedAt ? <><dt>更新时间</dt><dd>{target.updatedAt}</dd></> : null}
+          {target.updatedAt ? <><dt>更新时间</dt><dd><time dateTime={target.updatedAt} title={target.updatedAt}>{localDateTime(target.updatedAt)}</time></dd></> : null}
           {target.conflict !== undefined ? <><dt>证据冲突</dt><dd>{target.conflict ? "存在支持/反驳冲突" : "未发现支持/反驳冲突"}</dd></> : null}
           {target.rights?.length ? <><dt>权利标记</dt><dd>{target.rights.join("、")}</dd></> : null}
           {target.scopes?.length ? <><dt>适用范围</dt><dd>{target.scopes.join("、")}</dd></> : null}
-          {target.review ? <><dt>人工复核</dt><dd>{stateLabel(target.review.decision)} · {target.review.reviewed_at}<br />{target.review.rationale}</dd></> : null}
+          {target.review ? <><dt>人工复核</dt><dd>{stateLabel(target.review.decision)} · <time dateTime={target.review.reviewed_at} title={target.review.reviewed_at}>{localDateTime(target.review.reviewed_at)}</time><br />{target.review.rationale}</dd></> : null}
           {target.versionHistory?.length ? <><dt>关联版本</dt><dd>{target.versionHistory.map((version, index) => (
             <div key={version.versionId}>版本 {index + 1} · {stateLabel(version.lifecycle)}{version.conflictStatus ? ` · 冲突 ${stateLabel(version.conflictStatus)}` : ""}</div>
           ))}</dd></> : null}

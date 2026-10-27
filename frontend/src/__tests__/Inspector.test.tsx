@@ -8,6 +8,15 @@ import { StatusBar } from "../components/StatusBar";
 
 const target: InspectionTarget = { title: "样板条目", source: "CAS 原件 / Rust Core", lifecycle: "已保存；核验与依据分析独立记录" };
 
+it("shows readable local times and preserves original instants without changing review data",()=>{
+ const instant="2026-10-27T06:35:12.000Z";
+ const value={...target,updatedAt:instant,review:{decision:"approved",reviewer_id:"reviewer",reviewed_at:instant,rationale:"原样依据"}};
+ const {container}=render(<Inspector target={value}/>);
+ const times=container.querySelectorAll("time");expect(times).toHaveLength(2);
+ for(const time of times){expect(time).toHaveAttribute("datetime",instant);expect(time).toHaveAttribute("title",instant);expect(time.textContent).not.toBe(instant);}
+ expect(value.review.reviewed_at).toBe(instant);expect(value.updatedAt).toBe(instant);
+});
+
 function Harness() {
   const [open, setOpen] = useState(true);
   return (

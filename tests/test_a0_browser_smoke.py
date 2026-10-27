@@ -97,6 +97,53 @@ def test_companion_measurement_waits_for_entrance_and_exact_keyboard_target(step
             browser.close()
 
 
+def test_actual_dock_header_styles_keep_layout_and_open_views_text_separate():
+    """Real CSS cascade and painted text bounds, including legacy home/reader rules."""
+    smoke = _load_smoke_module()
+    root = Path(__file__).resolve().parents[1]
+    css = "\n".join((root / relative).read_text(encoding="utf-8") for relative in [
+        "frontend/src/design-system/glass-cabin.css",
+        "frontend/src/components/StitchWorkspaceChrome.css",
+        "frontend/src/workspace/dock-workspace.css",
+    ])
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == "win32":
+            options["executable_path"] = smoke._declared_tool("ext.toolchains.playwright-chromium", "playwright-chromium")
+            assert options["executable_path"]
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page()
+            page.set_content("""<style>body{margin:0;font:14px 'Segoe UI',sans-serif}
+              :root{--ax-text-ui:14px;--ax-fg-tertiary:#aaa;--ax-fg-secondary:#bbb}</style><style>""" + css + """</style>
+              <div class="app-shell cabin-shell" data-stitch-workspace="true" data-cabin-page="01"
+                style="position:relative;margin:48px 24px;width:calc(100vw - 48px);height:calc(100vh - 112px)">
+                <section class="dock-workspace" style="height:100%;min-height:0">
+                  <details class="dock-open-views"><summary>已打开视图（22）</summary><div class="dock-open-view-list"><button>文档</button></div></details>
+                  <details class="dock-layout-options"><summary>布局与面板</summary><div class="dock-toolbar"><button>恢复布局</button></div></details>
+                  <div class="dock-surface"></div>
+                </section>
+              </div>""")
+            for width, height in [(1920, 1080), (1280, 640), (640, 480)]:
+                page.set_viewport_size({"width": width, "height": height})
+                for page_id in ["01", "03"]:
+                    for theme in ["cosmic", "blueprint", "blueprint-light", "black", "white"]:
+                        page.evaluate("([id,theme])=>{document.querySelector('.cabin-shell').dataset.cabinPage=id;document.documentElement.dataset.aaosTheme=theme}", [page_id, theme])
+                        result = page.evaluate("""()=>{
+                          const measure=selector=>{const e=document.querySelector(selector),range=document.createRange();
+                            range.selectNodeContents(e);const r=range.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,hit:!!hit&&(hit===e||e.contains(hit))};};
+                          return {layout:measure('.dock-layout-options>summary'),views:measure('.dock-open-views>summary')};
+                        }""")
+                        a, b = result["layout"], result["views"]
+                        overlap = max(0, min(a["right"], b["right"]) - max(a["x"], b["x"])) * max(0, min(a["bottom"], b["bottom"]) - max(a["y"], b["y"]))
+                        context = {"viewport": [width, height], "page": page_id, "theme": theme, **result}
+                        assert a["width"] > 0 and b["width"] > 0 and overlap == 0, context
+                        assert a["hit"] and b["hit"], context
+        finally:
+            browser.close()
+
+
 @pytest.mark.parametrize('empty,background,filtered,rejected', [
     (False, '#111318', False, None),
     (False, '#fff', True, None),

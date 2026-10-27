@@ -1096,7 +1096,9 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
         ui.type("知识候选正文", "authored fixture", "textarea")
         ui.keys(self.probe.label_selector("选择实际引文", "textarea"), "\ue009\ue008\ue010\ue000")
         folder = ROOT / ".project-local" / "artifacts" / "unittest-fixture-no-files-written"
-        ui.upload_directory(folder)
+        with patch.object(ui, "open_folder_import") as disclosure:
+            ui.upload_directory(folder)
+        disclosure.assert_called_once_with()
         self.assertEqual(
             [row[1] for row in commands],
             ["pointer_click", "click", "value", "value", "pointer_click", "value", "value"],
@@ -1581,13 +1583,28 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
             stage["saved_deep_binding"] = copy.deepcopy(saved_configuration)
 
         class UI:
+            diagnostic_open = False
+
             def page(self, page):
                 actions.append(("page", page))
 
             def click_revealed(self, label, scope=""):
                 actions.append(("revealed_click", label, scope))
+                if label == "关闭运行诊断":
+                    assert self.diagnostic_open and scope == "//*[@role='dialog']"
+                    self.diagnostic_open = False
+
+            def click_revealed_selector(self, selector):
+                assert selector == "//section[@aria-label='项目记忆与上下文内容' and not(ancestor-or-self::*[@hidden])]//button[@data-diagnostic-label='完整上下文授权']"
+                actions.append(("diagnostic_click", selector))
+                self.diagnostic_open = True
 
             def js(self, script):
+                if script == probe.CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION:
+                    assert self.diagnostic_open
+                    return {"schema": "archeaxis.context-grant/v1", "knowledge_id": bound[0],
+                            "state": "candidate", "consumer": "local-machine",
+                            "provenance": [{"kind": "knowledge", "knowledge_id": bound[0]}]}
                 assert '本地模型清单探测结果' in script
                 return '清单已读取，共 1 项；声明模型已列出。加载状态未知，推理尚未验证。'
 

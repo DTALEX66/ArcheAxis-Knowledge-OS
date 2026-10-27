@@ -5,6 +5,7 @@ import { ApiError } from "../api/client";
 import { assertCoreDto, type ContextGrantDto, type ContextConsumptionDto, type DocumentDto, type MachineDocumentSummaryDto, type MachineDocumentsPageDto, type KnowledgeDto, type SearchDto } from "../api/generated/core-contract";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { localExpiryValue, parseLocalExpiry, expiryDescription } from "../presentation/localExpiry";
+import { compactIdentity, displayTitle } from "../presentation/display";
 import { failureMessage, stateLabel } from "../presentation/labels";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import type { ObjectReference } from "../api/generated/research-contract";
@@ -149,8 +150,8 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
         <label>用途 <textarea disabled={busy || grant.state === "revoked"} value={grant.purpose} onChange={e => edit({ purpose: e.target.value })} /></label>
         <label>查找已保存知识 <input disabled={busy || grant.state === "revoked"} value={search} onChange={e => setSearch(e.target.value)} /></label>
         <button disabled={busy || !search.trim() || grant.state === "revoked"} onClick={() => void searchKnowledge()}>查找上下文知识</button>
-        {hits.map(hit => <button key={hit.id} disabled={busy || grant.state === "revoked"} onClick={() => void chooseKnowledge(hit.id)}>{hit.title} · {hit.id}</button>)}
-        <p>固定知识：{grant.knowledge_id ?? "尚未选择"}</p>
+        {hits.map((hit,index) => <div key={hit.id}><button title={`完整知识编号：${hit.id}`} disabled={busy || grant.state === "revoked"} onClick={() => void chooseKnowledge(hit.id)}>{displayTitle(hit.title,"未命名知识")} · 结果 {index + 1} · {compactIdentity(hit.id)}</button><RawReceiptButton label={`知识结果 ${index + 1} 完整编号`} visibleLabel="查看编号" category="data" payload={{knowledge_id:hit.id,title:hit.title}}/></div>)}
+        <p>固定知识：{grant.knowledge_id ? <><span title={grant.knowledge_id}>{compactIdentity(grant.knowledge_id)}</span> <RawReceiptButton label="固定知识完整编号" visibleLabel="查看编号" category="data" payload={{knowledge_id:grant.knowledge_id}}/></> : "尚未选择"}</p>
         {grant.provenance.map((reference,index) => <button key={index} onClick={() => onOpenReference?.(reference)}>查看来源 {index + 1}</button>)}
         <label>授权依据 <textarea disabled={busy || grant.state === "revoked"} value={grant.authorization_basis} onChange={e => edit({ authorization_basis: e.target.value })} /></label>
         {(["answer", "retest"] as const).map(op => <label key={op}><input type="checkbox" disabled={busy || grant.state === "revoked"} checked={grant.operations.includes(op)} onChange={e => edit({ operations: e.target.checked ? [...grant.operations, op] : grant.operations.filter(value => value !== op) })} />{op === "answer" ? "允许本地回答" : "允许本地复测"}</label>)}

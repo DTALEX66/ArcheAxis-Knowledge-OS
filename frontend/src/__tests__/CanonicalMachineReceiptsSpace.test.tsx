@@ -23,6 +23,18 @@ it("SIMULATED: failed list cannot masquerade as empty or success", async () => {
   expect(await screen.findByRole("alert")).toBeTruthy();
   expect(screen.queryByText("尚无已保存的机器任务。执行回答后可在此查看详细记录。")).toBeNull();
 });
+it("shows a local readable task time while preserving the exact timestamp and task identity", async () => {
+  const saved={...row("answer_exact"),recorded_at:"2026-10-27T06:35:12.000Z"};
+  bridge.call.mockImplementation(async (op:string)=>op==="machine_tasks_list"?{items:[saved],next_cursor:null}:saved);
+  const {container}=render(<CanonicalMachineReceiptsSpace/>);
+  fireEvent.click(await screen.findByRole("button",{name:"AI 回答 1 · 未测评"}));
+  await screen.findByText("SYNTHETIC answer");
+  const time=container.querySelector("time")!;
+  expect(time).toHaveAttribute("datetime",saved.recorded_at);
+  expect(time).toHaveAttribute("title",saved.recorded_at);
+  expect(time.textContent).not.toBe(saved.recorded_at);
+  expect(bridge.call).toHaveBeenCalledWith("machine_task_get",{task_id:"answer_exact"});
+});
 it("SIMULATED: shows the actual failed-evaluation scope and preserves its raw failure in diagnostics", async () => {
   const evaluation = { ...row("evaluation_a"), scope: "runtime.evaluation.failed", outcome: "failed", failure: "SYNTHETIC_RAW_FAILURE" };
   bridge.call.mockImplementation(async (op: string) => op === "machine_tasks_list" ? { items: [evaluation], next_cursor: null } : evaluation);

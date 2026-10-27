@@ -265,15 +265,15 @@ def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
 
 
 def navigate_ui_page(page, page_id: str) -> None:
-    trigger = page.get_by_role("button", name="全部页面，打开产品导航")
-    if trigger.is_visible():
-        trigger.click()
-        drawer = page.get_by_role("dialog", name="产品导航")
-        drawer.wait_for()
-        drawer.locator(f'[data-page-id="{page_id}"]').click()
-        drawer.wait_for(state="detached")
-    else:
-        page.locator(f'.navigation-sidebar [data-page-id="{page_id}"]').click()
+    # Every deep link has a guarded application-menu route; the drawer deliberately
+    # shows only the daily groups plus the active group's children.
+    target = page.get_by_role('navigation', name='应用菜单', exact=True).locator(
+        f'button[data-page-id="{page_id}"]')
+    assert target.count() == 1, ('missing or duplicate menu route', page_id)
+    if not target.is_visible():
+        target.locator('xpath=ancestor::details').locator('summary').click()
+    target.click()
+    page.locator(f'[data-current-page-id="{page_id}"]').wait_for()
 
 
 def select_ui_theme(page, theme: str) -> None:
@@ -317,9 +317,9 @@ def check_navigation_drawer(page) -> dict[str, object]:
     trigger.click()
     drawer = page.get_by_role("dialog", name="产品导航")
     drawer.wait_for()
-    # Oct09 layout exposes five daily entry groups and two fixed entries;
+    # Daily navigation exposes six entry groups and two fixed entries;
     # child pages belong to their active group, rather than a flat 22-item rail.
-    expected = {"01", "02", "06", "13", "15", "17", "19"}
+    expected = {"01", "02", "06", "05", "13", "15", "17", "19"}
     actual = drawer.locator('[data-page-id]').evaluate_all(
         '(nodes) => nodes.map(node => node.dataset.pageId)')
     assert len(actual) == len(expected) and set(actual) == expected, actual
@@ -814,10 +814,10 @@ def read_navigation_levels(page) -> dict[str, object]:
         """nodes => nodes.map((node) => ({ text: node.textContent.trim(),
           width: node.getBoundingClientRect().width }))""")
     assert labels and all(entry["width"] > 8 for entry in labels), labels
-    assert len(labels) == 10, labels  # five daily entries + three child pages + two fixed
-    assert [entry["text"] for entry in labels][:5] == ["工作台", "知识", "学习", "AI", "资源"], labels
-    assert {entry["text"] for entry in labels[5:8]} <= {"知识库", "阅读与编辑", "双链与图谱", "研究空间"}, labels
-    assert {entry["text"] for entry in labels[8:]} == {"全部能力", "设置"}, labels
+    assert len(labels) == 11, labels  # six daily entries + three knowledge children + two fixed
+    assert [entry["text"] for entry in labels][:6] == ["工作台", "知识", "学习", "研究专题", "AI", "资源"], labels
+    assert {entry["text"] for entry in labels[6:9]} == {"阅读与编辑", "双链与图谱", "版本、来源与历史"}, labels
+    assert {entry["text"] for entry in labels[9:]} == {"全部能力", "设置"}, labels
 
     sections = drawer.locator("ul[aria-label='资料库对象导航'] button")
     section_count = sections.count()
@@ -1714,10 +1714,15 @@ def check_stitch_application_menus(page) -> dict[str, object]:
     details = nav.locator('details')
     assert details.count() == 7, details.count()
     current = page.locator('.cabin-shell').get_attribute('data-cabin-page')
-    expected = set(re.findall(r'page\("\d+", "([^"]+)"',
+    expected = dict(re.findall(r'page\("(\d+)", "([^"]+)"',
         (ROOT / 'frontend/src/presentation/uiPages.ts').read_text(encoding='utf-8')))
     assert len(expected) == 22, expected
-    found = set()
+    # Home is the always-visible brand action; File uses an action label for page 16.
+    # Require the same 22 stable page identities without forcing obsolete menu copy.
+    home = nav.locator('button[data-page-id="01"]')
+    assert home.count() == 1 and home.is_visible() and home.is_enabled()
+    assert expected['01'] in home.get_attribute('aria-label')
+    found = {'01'}
     rows = []
     for index in range(details.count()):
         menu = details.nth(index)
@@ -1742,13 +1747,18 @@ def check_stitch_application_menus(page) -> dict[str, object]:
             assert box['reachable'] and box['width'] >= 24 and box['height'] >= 24 and box['fontSize'] >= 14, box
             assert abs(box['width'] - box['rawWidth']) <= 1 and abs(box['height'] - box['rawHeight']) <= 1, box
             assert button.is_enabled(), 'menu action is unexpectedly inert'
-            found.add(button.inner_text())
+            role = button.get_attribute('data-page-id')
+            if role is not None:
+                assert role in expected and role not in found, ('unexpected or duplicate route', role)
+                label = '导入或导出资料…' if role == '16' else expected[role]
+                assert button.inner_text() == label, (role, button.inner_text(), label)
+                found.add(role)
             targets.append(box)
         page.keyboard.press('Escape')
         popup.wait_for(state='hidden')
         assert summary.evaluate('node => node === document.activeElement'), 'menu Escape did not restore its summary'
         rows.append({'label': summary.inner_text(), 'bounds': bounds, 'targets': targets, 'text': metrics})
-    assert expected <= found, (sorted(expected - found), sorted(found))
+    assert set(expected) == found, (sorted(set(expected) - found), sorted(found))
     # Native details still needs an executable keyboard route, not merely a label audit.
     knowledge = nav.locator('details').filter(has=page.locator('summary').filter(has_text=re.compile('^知识$')))
     trigger = knowledge.locator('summary')
@@ -1780,9 +1790,13 @@ def check_stitch_application_menus(page) -> dict[str, object]:
     popup.wait_for(state='hidden')
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     dock = page.get_by_role('navigation', name='工作空间快捷导航', exact=True)
-    assert dock.is_visible() and dock.get_by_role('button').count() == 6
+    assert dock.is_visible() and dock.get_by_role('button').count() == 8
     dock_groups = {'01': '01', '02': '02', '03': '02', '04': '02', '20': '02', '05': '05',
-                   **{role: '06' for role in ('06', '07', '08', '09', '10', '11', '12', '21')}}
+                   **{role: '06' for role in ('06', '07', '08', '09', '10', '11', '12', '21')},
+                   **{role: '13' for role in ('13', '14', '22')}, '15': '15', '16': '15'}
+    assert dock.locator('button[data-page-id]').evaluate_all(
+        "nodes => nodes.map(node => [node.dataset.pageId, node.innerText])") == [
+            ['01', '工作台'], ['02', '知识'], ['06', '学习'], ['05', '研究专题'], ['13', 'AI'], ['15', '资源']]
     expected_dock_page = dock_groups.get(current)
     active_dock = dock.locator('[aria-current="page"]')
     assert active_dock.count() == (1 if expected_dock_page else 0), current
@@ -1791,7 +1805,7 @@ def check_stitch_application_menus(page) -> dict[str, object]:
     assert dock.get_by_role('button', name='全部能力', exact=True).get_attribute('aria-current') is None
     # Every icon-only narrow entry retains a real accessible name and is scroll-reachable.
     dock_targets = []
-    for label in ('工作台', '知识', '学习', '研究专题', '全部能力', '小栖'):
+    for label in ('工作台', '知识', '学习', '研究专题', 'AI', '资源', '全部能力', '小栖'):
         node = dock.get_by_role('button', name=label, exact=True)
         node.scroll_into_view_if_needed()
         box = visible_control_box(node)
@@ -1834,7 +1848,8 @@ def check_stitch_companion(page) -> dict[str, object]:
     panel = page.get_by_role('complementary', name='小栖 · 陪伴会话', exact=True)
     if initial_open:
         panel.get_by_role('button', name='收起小栖窗口', exact=True).click()
-        panel.wait_for(state='detached')
+        panel.wait_for(state='hidden')
+        assert page.locator('#stitch-companion-window').count() == 1, 'closing unmounted the shared draft owner'
         assert toggle.evaluate('node => node === document.activeElement')
     toggle.scroll_into_view_if_needed()
     toggle.click()
@@ -1867,7 +1882,8 @@ def check_stitch_companion(page) -> dict[str, object]:
     page.wait_for_function("before => {const r=document.querySelector('#stitch-companion-window').getBoundingClientRect();return Math.abs(r.x-before.x)<=1&&Math.abs(r.y-before.y)<=1}", arg=moved)
     handle.focus()
     page.keyboard.press('Escape')
-    panel.wait_for(state='detached')
+    panel.wait_for(state='hidden')
+    assert page.locator('#stitch-companion-window').count() == 1, 'closing unmounted the shared draft owner'
     assert toggle.evaluate('node => node === document.activeElement'), 'companion close lost Dock focus'
     if initial_open:
         toggle.click()
@@ -1903,7 +1919,7 @@ def check_product_navigation_targets(page) -> dict[str, object]:
     if not trigger.is_visible():
         return {'presentation':'sidebar', 'tested':False}
     entries=[]
-    for target in ('01','02','06','13','15','17','19'):
+    for target in ('01','02','06','05','13','15','17','19'):
         trigger.click()
         drawer=page.get_by_role('dialog', name='产品导航', exact=True)
         drawer.wait_for()
@@ -1981,6 +1997,14 @@ def read_semantic_reading(browser, viewport, problems, theme):
         folder.wait_for(state='hidden')
         assert batch.get_attribute('open') is None
         assert "绑定历史正文 1 v1" in editor.inner_text(), 'batch tools changed the opened document'
+        properties = reader.get_by_role('button', name='属性与引用', exact=True)
+        details_owner = reader.locator('.stitch-reader-details').element_handle()
+        assert details_owner is not None and not reader.locator('.stitch-reader-details').is_visible()
+        assert properties.get_attribute('aria-expanded') == 'false', 'reader details opened by default'
+        properties.click()
+        reader.locator('.stitch-reader-details').wait_for(state='visible')
+        assert properties.get_attribute('aria-expanded') == 'true'
+        assert details_owner.evaluate("node => node === document.querySelector('.stitch-reader-details')")
         calls = page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__.calls")
         assert any(call["operation"] == "document_get" and
             call["payload"].get("document_id") == "a0_target_1" for call in calls), calls
@@ -2035,6 +2059,11 @@ def read_semantic_reading(browser, viewport, problems, theme):
         inspector.get_by_role("button", name="关闭检查器", exact=True).click()
         assert inspector.count() == 0
         assert "绑定历史正文 1 v1" in editor.inner_text()
+        properties.click()
+        reader.locator('.stitch-reader-details').wait_for(state='hidden')
+        assert properties.get_attribute('aria-expanded') == 'false'
+        assert details_owner.evaluate("node => node === document.querySelector('.stitch-reader-details')")
+        assert "绑定历史正文 1 v1" in editor.inner_text(), 'closing properties changed the document'
         geometry["layout_target"] = visible_control_box(page.locator('.dock-layout-options > summary'))
         assert geometry["layout_target"]["reachable"], geometry
         page.locator('.dock-layout-options > summary').click()
@@ -2065,6 +2094,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
         return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme,"viewport":label,
             "document_id":"a0_target_1","new_library":True,"new_reader":True,
             "batch_tools":{"hidden_by_default":True,"explicit_toggle_tested":True,"document_retained":True},
+            "properties":{"hidden_by_default":True,"explicit_toggle_tested":True,"same_owner_retained":True},
             "geometry":geometry,"library_screenshot":_recorded(library_shot),
             "reader_screenshot":_recorded(reader_shot)}
     finally:
@@ -2091,7 +2121,7 @@ def read_top_navigation(browser, viewport, problems, theme):
         geometry = check_stitch_application_menus(page)
         geometry["companion"] = check_stitch_companion(page)
         navigation = check_product_navigation_targets(page)
-        assert navigation["tested"] and len(navigation["entries"]) == 7, navigation
+        assert navigation["tested"] and len(navigation["entries"]) == 8, navigation
         geometry["navigation"] = navigation
         navigate_ui_page(page, "02")
         shot = ARTIFACTS / f"stitch-top-menu-{theme}-{label}.png"
@@ -2176,6 +2206,14 @@ def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100"
             return !!e && e.innerText.includes("绑定历史正文 1 v1");
         }""", timeout=15000)
         assert "绑定历史正文 1 v1" in editor.inner_text()
+        properties = reader.get_by_role('button', name='属性与引用', exact=True)
+        details_owner = reader.locator('.stitch-reader-details').element_handle()
+        assert details_owner is not None and not reader.locator('.stitch-reader-details').is_visible()
+        assert properties.get_attribute('aria-expanded') == 'false'
+        properties.click()
+        reader.locator('.stitch-reader-details').wait_for(state='visible')
+        assert properties.get_attribute('aria-expanded') == 'true'
+        assert details_owner.evaluate("node => node === document.querySelector('.stitch-reader-details')")
         reader_geometry = reader.evaluate("""node => {
           const box = el => { const r=el.getBoundingClientRect();
             return {width:r.width,bottom:r.bottom,y:r.y}; };
@@ -2190,6 +2228,7 @@ def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100"
         page.screenshot(path=str(reader_shot), full_page=True)
         return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme, "viewport":viewport[0],
             "library_geometry":geometry, "reader_geometry":reader_geometry,
+            "properties":{"hidden_by_default":True,"explicit_toggle_tested":True,"same_owner_retained":True},
             "real_split_and_document_click":True, "document_id":"a0_target_1",
             "scroll_actions":scroll_actions,
             "library_screenshot":_recorded(library_shot), "reader_screenshot":_recorded(reader_shot)}
@@ -2274,18 +2313,22 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     # guarded it before: deleting the launcher entirely left every prior gate green.
     templates = read_template_surface(page, label)
     navigation = read_navigation_levels(page)
-    # The actual learning-mode control temporarily unmounts the companion view.
+    # Focus mode hides the shared companion owner without discarding its draft.
     # Returning to the regular workspace must keep focus on the business action.
     companion_before_focus = page.locator('#stitch-companion-window').is_visible()
+    companion_owner = page.locator('#stitch-companion-window').element_handle()
+    assert companion_owner is not None, 'shared companion owner was not mounted'
     enter_focus = page.get_by_role('button', name='进入聚焦模式', exact=True)
     enter_focus.click()
     exit_focus = page.get_by_role('button', name='退出聚焦模式', exact=True)
     exit_focus.wait_for(state='visible')
-    assert page.locator('#stitch-companion-window').count() == 0
+    assert companion_owner.evaluate("node => node === document.querySelector('#stitch-companion-window')")
+    assert not page.locator('#stitch-companion-window').is_visible()
     exit_focus.click()
     enter_focus.wait_for(state='visible')
     page.get_by_role('navigation', name='工作空间快捷导航', exact=True).wait_for(state='visible')
-    assert enter_focus.evaluate('node => node === document.activeElement'), 'automatic companion remount stole learning focus'
+    assert enter_focus.evaluate('node => node === document.activeElement'), 'automatic companion reveal stole learning focus'
+    assert companion_owner.evaluate("node => node === document.querySelector('#stitch-companion-window')")
     assert page.locator('#stitch-companion-window').is_visible() == companion_before_focus
     # The navigation probe ends on the learning space; keep that frame under its own name.
     navigation_shot = ARTIFACTS / f"canonical-host-learning-{label}.png"

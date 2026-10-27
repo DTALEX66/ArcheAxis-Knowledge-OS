@@ -5,6 +5,8 @@ import { CanonicalContextSpace } from "../spaces/CanonicalContextSpace";
 import { parseLocalExpiry } from "../presentation/localExpiry";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import type { DocumentDto, ContextGrantDto } from "../api/generated/core-contract";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 type J=Record<string,any>;
 const grant=(state:ContextGrantDto["state"]="candidate"):ContextGrantDto=>({schema:"archeaxis.context-grant/v1",purpose:"学习资料",consumer:"local-machine",operations:["answer"],knowledge_id:"knowledge_original",provenance:[{kind:"knowledge",knowledge_id:"knowledge_original"}],authorization_basis:"本人决定",expires_at:null,state});
@@ -18,6 +20,18 @@ beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);docs=new Map([["context_saved"
  throw new Error(`unimplemented ${op}`);
 };bridge.call.mockImplementation(original);});
 afterEach(()=>{vi.unstubAllGlobals();vi.restoreAllMocks();});
+it("distinguishes equal-title short-ID results and sends the full selected identity with discoverable diagnostics",async()=>{
+ resetDiagnostics();const first="knowledge_sameprefix_"+"a".repeat(40)+"_tail12",second="knowledge_sameprefix_"+"b".repeat(40)+"_tail12";
+ bridge.call.mockImplementation(async(op,p)=>op==="search"?{items:[{knowledge_id:first,head:"同名知识"},{knowledge_id:second,head:"同名知识"}]}:op==="knowledge_get"?{knowledge_id:p.id,status:"accepted"}:original(op,p));
+ render(<><CanonicalContextSpace/><DiagnosticConsole/></>);
+ fireEvent.change(screen.getByLabelText("查找已保存知识"),{target:{value:"同名"}});fireEvent.click(screen.getByRole("button",{name:"查找上下文知识"}));
+ fireEvent.click(await screen.findByRole("button",{name:/同名知识 · 结果 2/}));
+ await waitFor(()=>expect(screen.getByRole("button",{name:"查看编号：固定知识完整编号"})).toBeInTheDocument());
+ expect(bridge.call).toHaveBeenCalledWith("knowledge_get",{id:second});
+ fireEvent.click(screen.getByRole("button",{name:"查看编号：固定知识完整编号"}));
+ expect(screen.getByLabelText("诊断控制台")).toHaveTextContent(second);expect(screen.getByLabelText("诊断控制台")).not.toHaveTextContent(first);
+ expect(writes).toEqual([]);resetDiagnostics();
+});
 async function open(){fireEvent.click(await screen.findByRole("button",{name:"context_saved · v1"}));await waitFor(()=>expect(screen.getByLabelText("用途")).toHaveValue("学习资料"));}
 it("preserves unknown envelope while explicit grant/readback supplies exact consumption, then revokes without erasing source",async()=>{
  const use=vi.fn();render(<CanonicalContextSpace onUse={use}/>);await open();fireEvent.click(screen.getByRole("button",{name:"明确授权并保存"}));await screen.findByText("授权版本已保存并读回，使用时再次校验用途、知识与时效。");expect(writes[0].body.editor_json.attrs.ownerUnknown).toEqual({raw:"原始载荷"});expect(writes[0].body.editor_json.content).toEqual([{type:"future",payload:"保留原文"}]);fireEvent.click(screen.getByRole("button",{name:"使用已保存上下文进入纠正与评测"}));expect(use.mock.calls[0][0]).toEqual({document_id:"context_saved",version:2,content_sha256:"a".repeat(64),purpose:"学习资料"});fireEvent.click(screen.getByRole("button",{name:"撤回上下文授权"}));await screen.findByText("撤回版本已保存并读回，旧授权不能再次使用。");expect(screen.getByRole("button",{name:"使用已保存上下文进入纠正与评测"})).toBeDisabled();expect((docs.get("context_saved")!.editor_json as J).attrs.archeaxis_context_grant.state).toBe("revoked");

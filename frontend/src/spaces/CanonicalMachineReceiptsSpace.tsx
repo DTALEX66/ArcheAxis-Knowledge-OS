@@ -3,6 +3,7 @@ import { coreCommand } from "../api/core";
 import { BoundedJobPanel, type BoundedJobCommand } from "../components/BoundedJobPanel";
 import type { MachineTaskRowDto, MachineTasksPageDto } from "../api/generated/core-contract";
 import { failureMessage } from "../presentation/labels";
+import { localDateTime } from "../presentation/display";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import "./machine-receipts.css";
 
@@ -74,7 +75,7 @@ export function CanonicalMachineReceiptsSpace({initialTaskId,active=true}:{initi
       {loaded && !loading && !error && rows.length === 0 ? <p>尚无已保存的机器任务。执行回答后可在此查看详细记录。</p> : null}
       <ul className="action-list">{rows.map((row, index) => <li key={row.task_id}>
         <button aria-pressed={selected?.task_id === row.task_id} onClick={() => void open(row)}>{taskKind(row.scope)} {index + 1} · {outcomeLabel[row.outcome]}</button>
-        <p>模型 {row.model_version} · {row.recorded_at}</p>
+        <p>模型 {row.model_version} · <time dateTime={row.recorded_at} title={row.recorded_at}>{localDateTime(row.recorded_at)}</time></p>
       </li>)}</ul>
       {cursor ? <button disabled={loading} onClick={() => void load(cursor)}>查看更多任务记录</button> : null}
       <p>这里显示已保存的任务历史；自由运行代理和任意工具执行尚不可用。</p>
