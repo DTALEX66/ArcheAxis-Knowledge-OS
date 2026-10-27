@@ -2295,3 +2295,7 @@ V12产品候选冻结于 `8b89e23fce70c69392d51cb48f9a934cf8461ffc`，保留原�
 当前规则仍为订阅剩余≤10%停止新增开发/构建/测试、安全封存与交接，正常上传授权公开进度、仅合并资格满足的必要分支并读回双端SHA；官方观察剩余23%，次级窗口未知，尚未触发。heartbeat `automation` ACTIVE/30分钟，阈值触发行为尚未实际验证。六项原有本地材料未纳入提交，私有运行/数据/截图包不上传Git；本节后继提交与PR203精确head、CI及合并读回另行登记，不将预期当完成。
 
 剩余问题明确保留：统一日志目前仅工作区会话最近50条，跨重启持久记录及未捕获异常兜底未完成；“登记版本化记录”“检查器”等普通界面术语仍需收敛；教学第5条声明差异/截图原采集错误仍PARTIAL；人物仍为既有静态素材，MiniMax该批取消有效；视觉质量由Owner/云端继续审计。大库恢复完整RSS/SQLite C内存、恢复与授权失效之间物理断电窗口、代表性多栏OCR准确性仍未充分实测，不写成已发生的数据事故。整体PARTIAL，未发布、未替换Green、未取得Owner验收。
+
+公开探针冻结提交 `2823f923d9d542ce18e8cc2cd5cc35a08dac39ea` 的4文件回归106通过/0失败/0跳过（60.50秒），涵盖新就绪观察、导航入口、工作状态恢复及自有WebDriver传输；回执 `.project-local/runs/be268a2d33/ui-audit-ci24d-native-readyguard-final/artifacts/execution.json` SHA256 `bdabb01b1760317d01b984d7d20d2a8e7cc9329d1ac7f12cb289c78741355d91`，LOCAL_PASS、exit0、source_consistent=true，原补丁54d4不变，fixture浏览器已关闭。该提交20项预检亦全部LOCAL_PASS/source_consistent，见 `ui-audit-remediation-v12-delivery-preflight/artifacts/local-ci.json`。这两项不替代新SHA云端安装检查；本段仅文档后继，产品前端及探针实现未再改变。
+
+交付分支为 `trae/20261024`、PR203；本轮公开提交包括db5d2caa引导修复、8b89e23f白话断言及2823f923初始化观察。`codex/sync-20261019` 的本地b4588d76已经是当前分支祖先，其18个领先提交已纳入本PR，无须另作重复合并或重置。发布前最近远端main为 `8d367bac4a85bebfbb523503678ade0838faa73e`，PR可合并但因旧CI失败BLOCKED；正常push后须核对本地分支、远端分支及PR head，并读取新head的完整必需CI/审查条件后再决定合并，不使用强制或管理员绕过。实时交付读回保存在本地回执与PR描述/检查页面；本段的发布前状态不充作已上传或已合并声明。
