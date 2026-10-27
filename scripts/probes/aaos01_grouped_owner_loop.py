@@ -1558,7 +1558,7 @@ def run_grouped_loop(
     result["practice_to_review_navigation"] = navigate_retained_review(ui, read, pin, candidate_body)
     # Explicit authored learner fixture; no inference that this proves mastery.
     ui.click_selector(label_selector("回答正确"))
-    ui.keys(label_selector("学习者自评", "select"), "\ue015\ue015\ue015\ue007")
+    ui.click_selector("(" + label_selector("学习者自评", "select") + ")/option[@value='3']")
     history_before = read("learning_history", {"item_key": key})
     if multi_review_ack_loss:
         learning, history = multi_review_ack_recovery(ui,read,js,wait,restart,key,history_before,knowledge,nonce,candidate_body,result.setdefault('multi_review_recovery',{}))

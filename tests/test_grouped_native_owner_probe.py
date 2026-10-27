@@ -86,6 +86,31 @@ class GroupedNativeProbeTests(unittest.TestCase):
         pointer.assert_called_once_with("//button[@id='save']")
         option.assert_not_called()
 
+    def test_initial_grouped_review_selects_authored_normal_rating_once(self):
+        probe = load_probe()
+        tree = ast.parse((ROOT / "scripts/probes/aaos01_grouped_owner_loop.py").read_text(encoding="utf-8"))
+        journey = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "run_grouped_loop")
+        history_index = next(index for index, node in enumerate(journey.body)
+                             if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "history_before" for target in node.targets))
+        selection = ast.Module(body=[journey.body[history_index - 1]], type_ignores=[])
+        commands, reveals, evidence = [], [], []
+
+        def observe(script):
+            options = '<option value="">选择本次难度</option><option value="1">忘记</option><option value="2">困难</option><option value="3"' + (' selected' if commands else '') + '>一般</option><option value="4">轻松</option>'
+            return evaluate(script, '<label>学习者自评 <select>' + options + '</select></label>')
+
+        ui = probe.GroupedUI(observe, lambda _: None, lambda *_: "rating-option",
+                             lambda *args: commands.append(args), evidence)
+        with patch.object(ui, "reveal_selector", lambda value: reveals.append(value)), \
+             patch.object(ui, "click_revealed_selector", side_effect=AssertionError("Native rating must use option semantics")):
+            exec(compile(selection, "<initial grouped review selection>", "exec"),
+                 {"ui": ui, "label_selector": probe.label_selector})
+        self.assertEqual(commands, [("rating-option", "click", {})])
+        self.assertEqual(evidence[-1]["action"], "trusted_native_option_click")
+        self.assertEqual(evidence[-1]["selected_value"], "3")
+        self.assertEqual(len(reveals), 1)
+        self.assertIn("ancestor::select[1]", reveals[0])
+
     def test_saved_model_configuration_scope_matches_current_panel_and_rejects_ambiguity(self):
         probe = load_probe()
         panel = '<div class="card"><h2>产品模型与用途绑定</h2><button>读取模型配置</button><p role="status">已读取版本 1</p></div>'

@@ -115,7 +115,7 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "RUNNING_BY_OWNER",
+    "state": "PAUSED_BY_OWNER",
     "permission_recovery_current": {
       "observed_at": "2026-10-23T00:10:02Z",
       "state": "PERMISSIONS_RECOVERED",
@@ -135,7 +135,7 @@
       "owner_authorization": "RETAINED; not an Owner pause",
       "monitor": "PAUSED_UNCHANGED"
     },
-    "instruction": "Owner resumed finite human AND AI knowledge/learning closed loops and their permissioned connection in this successor session. Continue under existing CL-01..07/J1..6 and original task IDs; monitor and future extensions remain paused/deferred.",
+    "instruction": "Owner remaining<=10 percent condition triggered at observation after 2026-10-27T21:42:44Z. Stop new development/build/test/capture; only safely seal completed work, publish authorized public files and verify corresponding branch SHAs. Then remain paused pending explicit Owner resume; quota reset does not resume. Full human/AI/permissioned-connection scope CL-01..07/J1..6 remains PARTIAL, not complete.",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
@@ -161,21 +161,21 @@
       "metric": "Prefer rateLimitsByLimitId; minimum remaining 100-usedPercent across applicable non-null subscription windows. Unknown is not zero; credit balance is not subscription allowance.",
       "automation_id": "automation",
       "automation_kind": "heartbeat",
-      "automation_state_at_observation": "ACTIVE",
+      "automation_state_at_observation": "PAUSED",
       "interval_minutes": 30,
       "on_threshold": "Stop starting new development/build/test tasks. Safely seal in-flight evidence and clean up owned processes without discarding unsaved work. Update the sole execution record, current pointer and handoff with dialogue decisions, completed work, original failures, remaining issues, blockers and exact source/evidence. Commit/push authorized public task files; merge only necessary qualifying branches after checks/review/conflict resolution. Read back local/remote corresponding branch SHAs; preserve and report any blocker instead of asserting consistency. Then stop execution and pause the monitor pending explicit Owner resume.",
       "current_override": {
         "date": "2026-10-28",
-        "state": "ACTIVE_BY_OWNER",
+        "state": "TRIGGERED_PAUSED_BY_OWNER",
         "supersedes": "Earlier 20/15 percent thresholds and dated paused monitor states below",
-        "monitor_readback": "Official heartbeat create/view and exact automation.toml readback confirmed ACTIVE, interval 30 minutes; obsolete aaos monitor no longer exists",
-        "behavior": "Configuration verified; threshold-triggered stop/handoff has not yet occurred",
+        "monitor_readback": "At threshold official automation_update returned id automation status PAUSED; exact automation.toml readback confirms PAUSED, unchanged heartbeat prompt, 30-minute interval and target thread. Earlier ACTIVE observations are historical.",
+        "behavior": "Threshold triggered; agents stopped new phases and safely sealed in-flight units. Public handoff/upload/readback are the only permitted closing actions, then remain paused. Explicit Owner resume required; quota reset alone is insufficient.",
         "latest_observation": {
-          "observed_after_utc": "2026-10-27T21:01:40Z",
-          "used_percent": 88,
-          "remaining_percent": 12,
+          "observed_after_utc": "2026-10-27T21:42:44Z",
+          "used_percent": 90,
+          "remaining_percent": 10,
           "secondary_window": "UNKNOWN",
-          "state": "NOT_TRIGGERED",
+          "state": "TRIGGERED_STOP_NEW_WORK",
           "time_precision": "Clock read after official usage query; not a provider measurement timestamp"
         }
       },
@@ -1066,7 +1066,7 @@
     "monitor": "ACTIVE_BY_OWNER; current <=10 percent subscription rule in execution_control.allowance_guard supersedes dated paused observations",
     "commit_push": "Current delivery and exact local/remote SHA readback are recorded only in the latest 2026-10-28 section of the sole execution record; dated policy-blocked observations below are historical",
     "latest_ui_delivery_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-v13新截图交付与ci后继",
-    "latest_ui_followup_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-v13后继白话提示与跨重启问题记录",
+    "latest_ui_followup_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-额度10停止与接续交接",
     "latest_ui_retention_20261024": {
       "host_sha256": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
       "host_bytes": 47375872,

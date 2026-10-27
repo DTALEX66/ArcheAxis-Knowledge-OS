@@ -2382,3 +2382,37 @@ CI三项最小修复后的 `ui-ci877-contracts-and-source-followup` 实际304通
 `ui-ci877-python-lint-followup` 原四文件Ruff检查17项失败；独立对照HEAD确认16项早已存在，本轮新增1项为time导入排序，已最小修正。`ui-ci877-exit-import-lint-followup` 对受影响的退出诊断测试文件Ruff通过，LOCAL_PASS/source_consistent=true，源码877加补丁 `b9d9fa9757bf8d839ac8f624e403c93997cab8a8bac6bdedb44c887c77061e79`。未批量改历史闭包／命名／lambda，不将单文件后继通过替换四文件原失败。产品前端及Core业务源码相对877未变，后继修改集中在契约样本、Rust测试格式、探针有限诊断、相邻测试及当前证据文档。
 
 2026-10-27T21:01:40Z官方查询后观察主订阅已用88%、剩余12%，secondary未知；≤10%停止／交接条件尚未触发。阈值触发后仅安全封存与授权交付，不启动新开发／构建／测试，不强行合并失败分支，不因额度重置自动恢复。未捕获页面异常兜底、物理断电窗口、恢复RSS、多栏OCR代表质量、静态人物与Owner视觉接受仍为待办；当前整体PARTIAL。
+
+#### 2026-10-28 V13后继：两处普通提示收敛与交接准备
+
+上一阶段已提交上传 `4c8cdc1f6902c595ded194c473a2b998cfce92cb`，当前分支trae/20261024、本地origin跟踪、远端对应分支及PR203 head在2026-10-27T21:08:09Z逐项读回一致；main双端仍8d367bac。六项原有dirty/untracked逐文件SHA与保护seal相等、未提交，读回回执 `.project-local/runs/be268a2d33/ui-ci4c8-publication-readback/artifacts/publication-readback.json`。该精确4c8加保护补丁54d4的 `ui-ci4c8-head-preflight` 20项LOCAL_PASS/source_consistent=true，包含head对齐，不能把先前index19项改写成head结果。新云CI [40583820273](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/40583820273)已启动，21:22:36Z观察14成功/3策略跳过/1运行（desktop-build），installer与汇总待后继；未完成不是全绿，没有合并。
+
+针对用户“普通界面不露代码／工程异常、白话说明并有统一问题记录”的要求，定向源码核查又发现两处直接暴露原文：BoundedJobPanel任务状态读取的String(error)，以及CollectionPanel本地JSON／校验异常的e.message。只修改这两个组件及其两份既有测试：前者复用failureMessage，后者显示可操作的格式／属性／引用说明；原{name,message}仅留内存，由用户主动打开既有RawReceiptButton查看。保留原请求身份、未知结果不重放、已有进度及集合原输入／草稿恢复，不把本地失败伪装成已自动写入Core日志。
+
+`ui-error-copy-consumers-20261028-r1` 两文件40项通过/0失败/0跳过；原类型、伪公式、引用、依赖和NumberRange仍核原拒绝原因及未应用数据，新增真实组件故障测试核普通提示不含原文、原请求不重放、显式详情前无自动诊断。`ui-error-copy-consumers-types-20261028-r1` TypeScript通过；两者均LOCAL_PASS/source_consistent=true，实际源码4c8加补丁 `fd4053ad2015c82ec4686d4c61319ef2031f0b96e195af36e5ed205262e81bf8`，不是4c8云CI包含这些后继修补。新候选构建／原生／新像素尚未执行，1149图及V13候选继续保持877真实身份，不重新标为这两处新修补的截图。
+
+仍有明确缺口：main.tsx只包StrictMode/ThemeProvider/App，已有错误边界仅保护ProjectHandoffReader局部正文；未找到应用级渲染异常边界或全局error/unhandledrejection接入，纯前端校验等失败也不等于已自动进入Core统一安全日志。该结论来自源码，未做故障注入。后继应复用[React错误边界](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)，并另处理事件／异步异常；普通操作提示与必须中断的确认按[W3C alert](https://www.w3.org/WAI/ARIA/apg/patterns/alert/)和[alertdialog](https://www.w3.org/WAI/ARIA/apg/patterns/alertdialog/)区分，不能对每次轮询失败都弹出阻塞窗口，不能用页面重置丢掉草稿。统一问题记录还应覆盖这些有限前端失败；完整成功操作流水未由本次用户要求明确选入，不自行扩张为遥测框架。
+
+31项缺图的首个中断新增了直接现场证据：独立查看原r4 failure.png（SHA256 `72392259d18da4ea0dc57e8b5895b2b5f61ecdcc92202eb123fc54c85649ec82`）可见首次引导modal及全屏遮罩；原cleanup也记录page01/dialogs=1。菜单target位于clip内而elementFromPoint命中DIV，不能解释成选择器选了DIV，也不能据此判产品overflow/hitbox坏。引导为何此时出现尚未单测，不捏造点击引导的动作。恢复后复用现有native-navigation helper精确“暂时跳过”并等待hidden，再只补focus12/compare12/2独占态/末5页；未知dialog停止，不禁用产品引导、不重放已有437张。原parent FAIL/子RUNNING和31缺项继续保留。只读核查及三处原源码哈希在 `.project-local/runs/be268a2d33/ui-ci4c8-continuation-audit/artifacts/`，两处后继修补以本段和40项回执为准。
+
+2026-10-27T21:24:03Z官方查询后主额度used89/remaining11，secondary未知，尚未触发≤10%。不再启动本轮新Host／补拍，已有云CI继续观察；阈值触发后只安全封存、公开交接与授权上传，必要合并必须实际通过原条件。剩余还包括安装退出原根因、恢复完整RSS／物理断电窗口、多栏OCR代表质量、人物静态与审美、31数据态图和Owner接受。原始负证据和原P1/P2风险边界保持，整体PARTIAL。
+
+#### 2026-10-28 额度10停止与接续交接
+
+触发事实：2026-10-27T21:42:44Z在官方get_usage_limits查询之后读取时钟，适用订阅primary used90/remaining10，secondary未知；这是查询后的观察时间，不冒充服务商测量时间。按Owner最新≤10%指令停止新增开发、构建、测试及补拍，各并行lane已收到停止通知。末个原生选项窄测在阈值触发前已启动并完成封存，没有因此启动新Host或新测试。官方automation_update已返回监控automation/PAUSED，本机该单一监控配置读回也为PAUSED；30分钟间隔、原提示及目标会话不变。这里只剩安全交接、授权提交上传和对应分支读回，完成后暂停目标，须Owner明确恢复；额度重置本身不能恢复。
+
+对话决定保持：继续完整人类＋AI＋授权双侧连接的CL-01..07/J1..6目标，不能缩成导入一次回答，也不能把本轮UI／CI通过当作整个闭环完成。采用成熟开源/API/既有组件，按任务并行且每个write set一个writer。来源用于回查、定位、多源比较和纠错，不预设高权威或唯一事实源；普通保存／展示／学习不以联网或人工事实审批为前置，配置权威和Core单写者仍各守原合同。MiniMax会话456614733140144该批人物已由Owner明确取消，不再读取／下载／等待URL；当前静态人物、审美和真实动画仍不能写成Owner接受。不能因取消那一批素材而把人物整体目标标完成。
+
+本次已完成而非全绿：877候选原生导航16检查与问题记录三次启动专项、1149张新图双包见前段；菜单至少14px、22页、5主题、3布局、3路径引导、4类系统右键和16族/186项能力目录有相应隔离证据，186设计项展示不等于全部实现。只读格式重开18格式/119图、教学6条保存状态重开，不是重跑模型、转换或教学写入；第5条assisted=false差异原样保留。两处普通错误原文已经在源码收敛，40项组件回归和类型检查通过；尚未构建／原生复验这两个新组件版本，不能改绑877截图。
+
+4c8完整云CI40583820273现已终态FAILURE，15成功/2失败（installer-lifecycle122481188911及依赖a0-gates122483805089）/3策略跳过。真实日志中Python6175通过/0失败/116跳过/14warnings、485子测试通过，523.64秒；contracts261通过、29子测试、10warnings，17.38秒；Rust214条Cargo测试汇总合计1074通过/0失败/0ignored，含8条doctest汇总。Python解码日志 `.project-local/runs/be268a2d33/ui-ci4c8-python-connector-r1/artifacts/decoded-job.log` SHA256 `6e70dcbe58807260a70060f83d4c07154808ff5f5f514fb18912a50196a6e2e1`；Rust/契约封存 `.project-local/runs/be268a2d33/ui-ci4c8-rust-contracts-seal/artifacts/rust-contracts-seal.json`，两日志SHA256分别 `f65b4f1bbd7d65a8baa8fb6ce031f87583004f0eee0c7ea2fe8c0c9f6a26fe00`／`ec3751e69e9a487063028442044d9c17db7ae564a4c641bdfd9e83861b53f88a`。CI实际checkout是PR临时合并观察，不把临时对象改称本地持久源码；Rust日志中个别旅程的UNCOMMITTED标签保持，不扩大为新installed资格。原877和原审计Python6030/18失败/124跳过/12初始化错误、前端2198/1失败、Rust1035/16失败继续保留，后继不能覆盖原始结果。
+
+本次安装失败与877的15秒退出超时不同。普通保存与多页草稿旅程均ok且正常清场；分组在“学习者自评”SELECT前置点击证明处失败，按键尚未发送。receipt `ui-ci4c8-installer-artifact/artifacts/installed-native/runs/fd2a08c715/webdriver-2b32fd385f58/tmp/journey/receipt.json` SHA256 `8ac90102d2333dcbd21e16017f4495c06db21a0b86b1aa30a81c6c0ca1662d30`，目标唯一／启用／稳定／中心命中均真；可信pointerdown到达SELECT，约678毫秒后可信pointerup/click到达DIV，因此普通按钮“三事件同目标”断言拒绝继续，没有重放。failure.png SHA256 `325532508a456fd821424f062fc9741e3c2f95ff0111a64db08143e03bcaa5c2` 已实际查看，原生选项展开、仍在占位项；独立native-driver.log也记录同次事件。确认为原生SELECT场景与通用指针证明不适配的直接证据，DIV具体身份／浏览器重定向机制尚未知，不能泛称产品菜单坏。清场本次ACK32毫秒、请求至等待返回172毫秒、Host7472正常0、owned端口及进程为空；没有独立Core graceful报告，也尚未走到旧capability_refusal_recovery重启后退出路径，旧根因仍未复验。
+
+阈值前最后修补仅改初次学习自评fixture的一处调用：不再打开SELECT后发送Down×3，而是复用已有click_selector→click_native_option，明确选择产品原有value3“一般”；产品原选项是占位项＋1忘记／2困难／3一般／4轻松共5项，未改成其它反馈控件的7项。该成熟路径保留唯一性、可见性、启用和选中值保留校验，普通button指针证明、通用keys及其它调用均未修改；这是后继新运行的单次选择，不是在旧失败后重放业务动作。参考[W3C原生控件交互](https://www.w3.org/TR/webdriver/#element-click)。`ci4c8-select-option-narrow` 5通过/74未选/6子测试通过、无Host／浏览器，LOCAL_PASS/source_consistent=true，源码4c8加补丁 `41e72478ec9bdb866401c6ae87ca8f4b0ea6acabdbf19412838d94b70ce39229`；回执SHA256 `00529ad4262037d415947f1dcba87591cc663f35ef7ce637a5df076c63f5ac7c`。新原生／安装CI尚未验证，不能把修改建议或窄测写成installed PASS。
+
+交付和分支边界：当前工作基线4c8、分支trae/20261024、PR203，main双端上次读回8d367bac；待封存公开文件仅两个UI组件＋两份UI测试、分组探针＋其一份既有测试、活动指针／本执行记录／交接导航共9项。六个原有dirty/untracked沿 `.project-local/ui-polish-protected-source-seal.json` 保全，不纳入提交；私有会话、运行数据、日志、缓存、候选、截图ZIP不上传Git。新推送会由仓库自行触发CI，阈值后不另启动本地测试或等待新CI完成，也不自动合并；新CI状态须恢复后重新读取。已有失败不满足合并条件，不强推／绕过检查。旧codex/sync任务提交须核祖先关系，已包含的改动不重复合并／重置。最终上传后的本地HEAD/origin跟踪/远端分支/PR head及main对应身份另存本轮交接读回收据，不把旧4c8读回冒充新提交。
+
+截图交付保持本地完整链接：`.project-local/星环界面审计-20261028-87777c77-V13-云端JPEG90.zip`（331220924字节、SHA9cd00b6095d00982a70b092c681630b206e68d9b23870e85b1a6e933f2eb87fe）和同名前缀原始PNG.zip（916818393字节、SHA4ee978372b3d82d2aba1fd8aa57256789cb6350c8e266aaeffafd6687666003e）；未外发云端，两个离线图库及ZIP逐成员已验。最新帧1140真1920×1080／5真2560×1352／4自然尺寸OS菜单，不改变系统显示器分辨率。31项分组缺图＋18项原导航不可展示声明不是49个产品故障；不得旧V12像素填补后改称全新。历史清理只说明当时核验的项目自有旧构建／缓存及截图逻辑量，不冒充当前磁盘空闲空间；最新构建缓存、独有失败证据、原件、设计素材及归属未明项保留。
+
+明确恢复后的顺序：先读本指针、此交接、实际git status/HEAD及PR203新head CI终态，确认Owner恢复并重新读取官方额度，勿因重置自行继续。先处理真实新CI失败并验证原生自评选择及旧退出路径，再修应用级渲染／异步异常白话兜底和有限前端失败日志，保护多页草稿、无自动写入重放。31图只在新独立golden副本运行，核原件SHA／业务aggregate并保全缓冲，通过既有“暂时跳过”真实按钮关闭已知首次引导、等待hidden，未知dialog停；仅补24布局＋2独占态＋末5页，不重放437。后续新构建／新图分开绑定源码并新建版本包，保持原parent FAIL/子RUNNING与18条页面索引修正来源。原审计尚需完整恢复RSS／SQLite C内存、恢复与授权失效的物理断电窗口、多栏OCR代表质量，不写成已发生事故；人物质量与Owner视觉接受、完整双侧闭环和外部授权连接仍按原目标逐项验收，外部provider不可由离线候选导入冒称已连接。旧24项映射仍绑定8b89，不可直接把当前全部CLOSED。本机没有新Host、虚拟机或安装，Green未替换／未发布；全部目标仍PARTIAL而非完成。

@@ -6,7 +6,7 @@ import type { SourcesListDto, SourceJobsDto } from "../api/generated/core-contra
 import { FormatQualificationPanel } from "./FormatQualificationPanel";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { ConversionRecoveryNotice } from "./ConversionRecoveryNotice";
-import { jobKindLabel, stateLabel } from "../presentation/labels";
+import { failureMessage, jobKindLabel, stateLabel } from "../presentation/labels";
 import "./bounded-job.css";
 
 /** Integration port: add these finite operations to generated Core/native contracts first. */
@@ -54,6 +54,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   const [cancelPending, setCancelPending] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [readFailure, setReadFailure] = useState<unknown>(null);
   const epoch = useRef(0), alive = useRef(true), readSerial = useRef(0), action = useRef(false);
   const currentAttempt = useRef(attempt); currentAttempt.current = attempt;
   const cancelRequest = useRef<string | null>(null);
@@ -76,7 +77,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   }, [command]);
   useEffect(() => {
     const generation = ++epoch.current; ++readSerial.current;
-    setJobs([]); setJobId(""); setStatus(null); setCapped(false); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null;
+    setJobs([]); setJobId(""); setStatus(null); setReadFailure(null); setCapped(false); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null;
     if (!sourceId) return;
     command("source_jobs", { source_id: sourceId }).then(value => {
       const row = object(value);
@@ -98,6 +99,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
       const expectedRequest = frozen?.request_id ?? cancelRequest.current;
       if (expectedRequest && value.request_id !== expectedRequest) throw new Error("当前任务已是另一请求；保留原请求回执");
       setStatus(value);
+      setReadFailure(null);
       if (!frozen && terminal(value.state)) setCancelPending(false);
       if(frozen&&journal.available&&terminal(value.state)&&value.request_id===frozen.request_id){
         await journal.clear(frozen.request_id);
@@ -108,13 +110,16 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
         if (terminal(value.state)) setCancelPending(false);
       }
     } catch (error) {
-      if (alive.current && generation === epoch.current && serial === readSerial.current) setMessage(`状态读回未确认：${String(error)}；已有回执与检查点保留。`);
+      if (alive.current && generation === epoch.current && serial === readSerial.current) {
+        setMessage(`任务状态暂时无法确认。${failureMessage(error)}已有处理记录和进度保留。`);
+        setReadFailure(error instanceof Error ? { name: error.name, message: error.message } : error);
+      }
     }
   }
   useEffect(() => {
     if (!jobId) return;
     const generation = ++epoch.current; ++readSerial.current;
-    setStatus(null); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null; setSplit(false); setWords(false);
+    setStatus(null); setReadFailure(null); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null; setSplit(false); setWords(false);
     const restored=restoreEntry.current;
     if(restored?.job_id===jobId&&restored.source_id===sourceId){
       const frozen={job_id:restored.job_id,request_id:restored.request_id,body:restored.body};
@@ -170,6 +175,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.allEntries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("待确认任务已找回；仅检查实际状态，不会自动执行。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
     <h2>资料处理与进度</h2>
     {message ? <p role="status">{message}</p> : null}
+      {readFailure !== null ? <RawReceiptButton label="任务状态读取错误详细信息" payload={readFailure} /> : null}
     <p>这里只运行已保存的任务；AI 回答历史可另行查看。</p>
     <label>已保存来源 <select value={sourceId} disabled={locked} onChange={event => { setSourceId(event.target.value); setMessage(""); }}><option value="">选择来源</option>{sources.map(row => <option key={row.source_id} value={row.source_id}>{row.original_name}</option>)}</select></label>
     <label>来源任务 <select value={jobId} disabled={locked} onChange={event => { setJobId(event.target.value); setMessage(""); }}><option value="">选择任务</option>{jobs.map(row => <option key={row.job_id} value={row.job_id}>{jobKindLabel(row.kind)} · {stateLabel(row.state)}</option>)}</select></label>

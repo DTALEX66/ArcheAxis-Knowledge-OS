@@ -14,7 +14,7 @@ export type CollectionPanelProps = {
   onOpenReference?: (ref: ObjectReferenceDto) => void;
   presentation?: 'editor' | 'reader';
 };
-type RawDraft = { raw: string; error?: string };
+type RawDraft = { raw: string; error?: string; detail?: unknown };
 const engine = 'archeaxis.bounded-formula/v1';
 const empty = (): Collection => ({ schema: 'archeaxis.collection/v1', properties: [], records: [], views: [{ view_id: 'table', name: '表格', kind: 'table' }] });
 const encode = (value: unknown) => JSON.stringify(value, null, 2);
@@ -88,9 +88,9 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
         onChange={e => setDrafts(old => ({ ...old, [fullKey]: { raw: e.target.value } }))} /></label>
       {draft && <><button disabled={locked || readonly} onClick={() => {
         try { const parsed: unknown = JSON.parse(draft.raw); if (schema) assertCollectionDto(schema, parsed); apply(parsed); clear(fullKey); }
-        catch (e) { setDrafts(old => ({ ...old, [fullKey]: { ...draft, error: `无法应用：${e instanceof Error ? e.message : String(e)}；输入已保留。` } })); }
+        catch (e) { setDrafts(old => ({ ...old, [fullKey]: { ...draft, error: '输入内容无法应用，请检查格式、属性类型或引用；原输入已保留。', detail: e instanceof Error ? { name: e.name, message: e.message } : e } })); }
       }}>应用 {label}</button><button disabled={disabled} onClick={() => clear(fullKey)}>取消 {label}</button>
-      {draft.error && <p role="alert">{draft.error}</p>}</>}
+      {draft.error && <><p role="alert">{draft.error}</p><RawReceiptButton label={`集合输入错误详细信息：${label}`} payload={draft.detail}/></>}</>}
     </div>;
   }
   async function load(offset = 0) {
