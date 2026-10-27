@@ -45,7 +45,7 @@ const RECOVERY_MESSAGES: Record<RecoveryStatusDto["state"], string> = {
   checking: "正在检查本地核心和工作区状态。",
   ready: "本地核心已就绪。",
   reconnecting: "连接已中断，正在恢复。",
-  incompatible: "本地核心与当前桌面版本不兼容。",
+  incompatible: "应用与本地服务暂时不能配合运行，请检查版本。",
   failed: "本地核心启动失败，可查看安全诊断或恢复备份。",
   stopped: "本地核心已停止。",
 };

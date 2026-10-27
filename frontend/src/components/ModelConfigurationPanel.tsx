@@ -22,6 +22,7 @@ export function ModelConfigurationPanel({materialBudgetLane}:{materialBudgetLane
  function reportFailure(error:unknown){
   setFailure(error instanceof Error?{name:error.name,message:error.message}:error);
   const message=error instanceof Error?error.message:"";
+  if(message==="连接诊断仅支持无凭据、无查询参数的 HTTP 数值 loopback 地址。")return "只支持这台电脑的本地服务地址（例如 http://127.0.0.1:1234/v1），不要填用户名、密码或查询参数。";
   const missing=/^本地服务尚未提供 ([a-zA-Z0-9._/-]{1,120})，请先加载相应模型。$/.exec(message);
   if(missing)return `本机缺少当前用途需要的模型“${missing[1]}”，请先加载相应模型，再重试。`;
   if(message==="本机服务没有可用的对话模型；请先在 LM Studio 加载模型并启动服务。")return "请先在本机模型服务中加载对话模型并启动服务，再重试连接。";
