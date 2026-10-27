@@ -144,6 +144,60 @@ def test_actual_dock_header_styles_keep_layout_and_open_views_text_separate():
             browser.close()
 
 
+def test_short_companion_keeps_workspace_header_navigation_and_dock_reachable():
+    """Real 1280x640 failure geometry: the portal must not intercept view summaries."""
+    smoke = _load_smoke_module()
+    root = Path(__file__).resolve().parents[1]
+    css = "\n".join((root / relative).read_text(encoding="utf-8") for relative in [
+        "frontend/src/design-system/glass-cabin.css",
+        "frontend/src/components/StitchWorkspaceChrome.css",
+        "frontend/src/workspace/dock-workspace.css",
+    ])
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == "win32":
+            options["executable_path"] = smoke._declared_tool("ext.toolchains.playwright-chromium", "playwright-chromium")
+            assert options["executable_path"]
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page()
+            page.set_content("""<style>body{margin:0;font:14px 'Segoe UI',sans-serif}
+              :root{--ax-text-ui:14px;--ax-fg-tertiary:#aaa;--ax-fg-secondary:#bbb}</style><style>""" + css + """</style>
+              <nav class="stitch-workspace-menu"><button id="menu-action">文件</button></nav>
+              <div class="app-shell cabin-shell" data-stitch-workspace="true" data-cabin-page="02" data-workspace-layout="companion"
+                style="position:absolute;left:5vw;top:56px;width:90vw;height:calc(100vh - 128px);padding:59.6px 18.8px 0;box-sizing:border-box">
+                <section class="dock-workspace" style="height:100%;min-height:0">
+                  <details class="dock-open-views"><summary>已打开视图（16）</summary></details>
+                  <details class="dock-layout-options"><summary>布局与面板</summary></details>
+                  <div class="dock-surface"></div>
+                </section>
+              </div>
+              <aside id="stitch-companion-window" class="stitch-companion-window">
+                <header class="stitch-window-titlebar"><button>小栖 · 陪伴会话</button></header>
+                <div class="stitch-companion-content"><div style="height:800px">保留同一会话</div></div>
+              </aside>
+              <nav class="stitch-workspace-dock"><button id="dock-action">工作台</button></nav>""")
+            for width, height in [(1280, 640), (960, 540), (640, 480)]:
+                page.set_viewport_size({"width": width, "height": height})
+                for page_id in ["02", "03"]:
+                    for theme in ["cosmic", "blueprint", "blueprint-light", "black", "white"]:
+                        page.evaluate("([id,theme])=>{document.querySelector('.cabin-shell').dataset.cabinPage=id;document.documentElement.dataset.aaosTheme=theme}", [page_id, theme])
+                        result = page.evaluate("""()=>{
+                          const bounds=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
+                          const target=selector=>{const e=document.querySelector(selector),range=document.createRange();range.selectNodeContents(e);
+                            const r=range.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                            return {...bounds(e),hit:!!hit&&(hit===e||e.contains(hit)),interceptor:hit?.className};};
+                          return {layout:target('.dock-layout-options>summary'),views:target('.dock-open-views>summary'),
+                            menu:target('#menu-action'),dock:target('#dock-action'),companion:bounds(document.querySelector('#stitch-companion-window'))};
+                        }""")
+                        context = {"viewport": [width, height], "page": page_id, "theme": theme, **result}
+                        assert all(result[key]["hit"] for key in ["layout", "views", "menu", "dock"]), context
+                        assert result["companion"]["y"] >= max(result["layout"]["bottom"], result["views"]["bottom"]), context
+                        assert result["companion"]["bottom"] <= result["dock"]["y"], context
+        finally:
+            browser.close()
+
+
 @pytest.mark.parametrize('empty,background,filtered,rejected', [
     (False, '#111318', False, None),
     (False, '#fff', True, None),

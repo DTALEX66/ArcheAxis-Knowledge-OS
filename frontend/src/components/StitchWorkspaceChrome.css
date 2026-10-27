@@ -254,8 +254,9 @@ body:has(.app-shell[data-stitch-workspace]) {
 @media (max-width: 1279px), (max-height: 699px) {
   /* The shared companion stays mounted; the explicit inspector takes the single auxiliary slot. */
   body:has(.stitch-reference-window) .stitch-companion-window { display: none; }
-  /* Leave the task strip and global Dock reachable below the nonmodal window. */
-  .stitch-companion-window { --stitch-companion-top: 132px; top: var(--stitch-companion-top); max-height: calc(100dvh - var(--stitch-companion-top) - 128px); }
+  /* Keep the main header and view tabs clickable; use the lower auxiliary slot
+     above the global Dock while retaining the same scrollable session. */
+  .stitch-companion-window { top: auto; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); max-height: min(40dvh, calc(100dvh - 260px)); }
   /* Dock the auxiliary window above the bottom bar so it cannot cover the reader
      header, tabs or refresh controls in narrow or short windows. */
   .stitch-reference-window { top: auto; right: 8px; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); width: min(360px, calc(100vw - 16px)); max-height: min(45dvh, 420px); }
@@ -290,7 +291,6 @@ body:has(.app-shell[data-stitch-workspace]) {
   .stitch-reference-window { right: 8px; bottom: max(70px, calc(env(safe-area-inset-bottom) + 64px)); width: calc(100vw - 16px); max-height: min(50dvh, 420px); }
 }
 @media (max-height: 600px) {
-  .stitch-companion-window { --stitch-companion-top: 124px; }
   .stitch-reference-window { top: auto; bottom: max(64px, calc(env(safe-area-inset-bottom) + 58px)); max-height: min(55dvh, 360px); }
   .app-shell.cabin-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 41px; }
   .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 83px; }
