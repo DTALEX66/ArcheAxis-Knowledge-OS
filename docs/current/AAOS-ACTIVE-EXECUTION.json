@@ -171,9 +171,9 @@
         "monitor_readback": "Official heartbeat create/view and exact automation.toml readback confirmed ACTIVE, interval 30 minutes; obsolete aaos monitor no longer exists",
         "behavior": "Configuration verified; threshold-triggered stop/handoff has not yet occurred",
         "latest_observation": {
-            "observed_after_utc": "2026-10-27T19:32:55Z",
-            "used_percent": 81,
-            "remaining_percent": 19,
+            "observed_after_utc": "2026-10-27T19:47:02Z",
+            "used_percent": 82,
+            "remaining_percent": 18,
           "secondary_window": "UNKNOWN",
           "state": "NOT_TRIGGERED",
           "time_precision": "Clock read after official usage query; not a provider measurement timestamp"
