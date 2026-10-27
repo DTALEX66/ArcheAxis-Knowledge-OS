@@ -28,7 +28,7 @@ class GroupedImportDisclosureTests(unittest.TestCase):
                 state, clicks = {"selected": mode == "already_selected"}, []
                 def js(script):
                     selected = state["selected"]
-                    refresh = '<button>重新读取当前宿主能力</button>' if selected else ''
+                    refresh = '<button>刷新本机可用功能</button>' if selected else ''
                     if mode == "missing_refresh": refresh = ''
                     if mode == "duplicate_refresh": refresh += refresh
                     if mode == "disabled_refresh": refresh = refresh.replace('<button>', '<button disabled>')

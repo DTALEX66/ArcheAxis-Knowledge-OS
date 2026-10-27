@@ -2118,7 +2118,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
 
             def click(self, label, scope=""):
                 actions.append(("click", label, scope))
-                if label == "重新读取当前宿主能力":
+                if label == "刷新本机可用功能":
                     assert state.get("resource_settings"), "Capability refresh requires the real resource settings tab"
                 elif label == "执行真实内容转换":
                     state["new_job"] = True
@@ -2143,7 +2143,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
                     state["finished"] = True
                 elif label == "关闭运行诊断":
                     state["diagnostic"] = False
-                elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
+                elif label not in {"刷新本机可用功能", "整理此来源为知识候选"}:
                     raise AssertionError("unexpected click " + label)
 
         self_test = self
@@ -2188,7 +2188,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
             if "资源与扩展内容" in script:
                 selected = state.get("resource_settings", False)
                 markup = '<main data-current-page-id="' + state["page"].removeprefix("#page=") + '"></main><section aria-label="资源与扩展内容"><button role="tab" aria-selected="' + str(selected).lower() + '">接入来源与运行设置</button>'
-                markup += '<button>重新读取当前宿主能力</button>' if selected else ''
+                markup += '<button>刷新本机可用功能</button>' if selected else ''
                 return evaluate(script, markup + '</section>')
             if script.startswith("const visible=n") or script.startswith("const rows="):
                 return evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False)))

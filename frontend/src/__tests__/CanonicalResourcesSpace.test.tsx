@@ -105,7 +105,7 @@ describe("resource source catalog", () => {
     expect(diagnostics.result.current.entries[0].payload).toMatchObject({state:"failed"});
     expect(within(screen.getByRole("region", { name: "资源目录" })).getAllByRole("button", { name: / · / })).toHaveLength(68);
     bridge.call.mockResolvedValue({ capabilities: [{ capability: "media.video" }, { capability: "media.video" }] });
-    await userEvent.setup().click(screen.getByRole("button", { name: "重新读取当前宿主能力" }));
+    await userEvent.setup().click(screen.getByRole("button", { name: "刷新本机可用功能" }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("无法确认当前可用功能"));
     expect(screen.queryByText(/已读回 2 条/)).not.toBeInTheDocument();
   });
@@ -115,7 +115,7 @@ describe("resource source catalog", () => {
     bridge.call.mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; })).mockRejectedValueOnce(new Error("latest offline"));
     render(<CanonicalResourcesSpace/>);
     await userEvent.setup().click(screen.getByRole("tab",{name:"接入来源与运行设置"}));
-    await userEvent.setup().click(screen.getByRole("button", { name: "重新读取当前宿主能力" }));
+    await userEvent.setup().click(screen.getByRole("button", { name: "刷新本机可用功能" }));
     await screen.findByRole("alert");
     await act(async () => resolveOld({ capabilities: [{ capability: "old", enabled: true }] }));
     expect(screen.getByRole("alert")).toHaveTextContent("无法确认当前可用功能");
@@ -182,7 +182,7 @@ describe("resource source catalog", () => {
     render(<CanonicalResourcesSpace/>);
     await userEvent.setup().click(screen.getByRole("tab",{name:"接入来源与运行设置"}));
     await userEvent.setup().click(await screen.findByRole("button", { name: "禁用文字解析" }));
-    expect(screen.getByRole("button", { name: "重新读取当前宿主能力" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "刷新本机可用功能" })).toBeDisabled();
     expect(screen.queryByRole("button", { name: "禁用文字解析" })).not.toBeInTheDocument();
     enabled = false;
     await act(async () => finish({ capability: { capability: "text.extract", enabled, enabled_basis: basis } }));

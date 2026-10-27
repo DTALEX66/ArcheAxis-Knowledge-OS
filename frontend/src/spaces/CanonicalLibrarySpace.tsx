@@ -353,7 +353,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       setDocumentSource(active ? selected : null); setDocumentOriginal(active ? asset : null); setDocumentBytes(active ? decoded : null);
       if (active) setOpenedDocuments(previous => previous.some(item => item.document_id === active.document_id) ? previous : [...previous, active]);
       setExportProof(null); setFailureReason(null);
-      setEditorEpoch((value) => value + 1); setPage(1); setMessage("原件哈希已核对；草稿与原件独立保存。");
+      setEditorEpoch((value) => value + 1); setPage(1); setMessage("原件完整性已核对；草稿与原件独立保存。");
       publishDirtyState();return "success";
     } catch (error) {
       if(epoch!==generation.current||editingEpoch!==editGeneration.current)return "stale";

@@ -15,6 +15,7 @@ import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 import { CanonicalLibrarySpace } from "../spaces/CanonicalLibrarySpace";
 import { SPACE_SECTIONS, spaceSectionsFor, validateSpaceSections } from "../presentation/spaceSections";
 import { resolveLegacySpaceAlias } from "../presentation/navigation";
+import { localDateTime } from "../presentation/display";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -146,7 +147,7 @@ describe("UI-02 levels reach the objects Core actually returns", () => {
     await userEvent.setup().click(getLearningItemButton("item_ui02"));
     await waitFor(() => expect(onTrail).toHaveBeenCalledWith([
       expect.objectContaining({ id: "section:review", region: "review" }),
-      expect.objectContaining({ id: "item:item_ui02", label: "固定复习主题", detail: "下次复习 2026-10-09T00:00:00Z", region: "review" }),
+      expect.objectContaining({ id: "item:item_ui02", label: "固定复习主题", detail: `下次复习 ${localDateTime("2026-10-09T00:00:00Z")}`, region: "review" }),
     ]));
   });
 

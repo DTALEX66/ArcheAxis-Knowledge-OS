@@ -9,10 +9,15 @@ import { ApiError } from "../api/client";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { coreFailureReason, failureMessage } from "../presentation/labels";
+import { localDateTime } from "../presentation/display";
 import "./stitch-learning.css";
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
   return value as Record<string, unknown>;
+}
+function nextReviewTime(value: unknown): string {
+  if (value === null || value === undefined || typeof value === "string" && !value.trim()) return "未安排";
+  return typeof value === "string" ? localDateTime(value) : "时间待核对";
 }
 /**
  * Reading surface for the history readback: what is known, in plain terms, and nothing invented.
@@ -110,7 +115,7 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
       const item = items.find((row) => row.item_key === itemKey);
       levels.push(
         { id: "section:review", label: "复习队列", region: "review" },
-        { id: `item:${itemKey}`, label: learningTitle(item?.display_title, expectedJourney?.display_title, "学习项目（标题尚未核对）"), detail: typeof item?.next_review === "string" ? `下次复习 ${item.next_review}` : "下次复习未安排", region: "review" },
+        { id: `item:${itemKey}`, label: learningTitle(item?.display_title, expectedJourney?.display_title, "学习项目（标题尚未核对）"), detail: `下次复习 ${nextReviewTime(item?.next_review)}`, region: "review" },
       );
     }
     onTrail?.(levels);
@@ -194,14 +199,14 @@ export function CanonicalLearningSpace({active=true,onTrail, initialItemKey, exp
       else if(draftAtReview.current&&localDrafts.current[draftAtReview.current.assessment_id]===draftAtReview.current){const next={...localDrafts.current};delete next[draftAtReview.current.assessment_id];localDrafts.current=next;}
       draftAtReview.current=undefined;
       journalReview.current=null;journalWorkspace.current=null;frozenReview.current=null;setReviewPending(false);
-      if (current === epoch.current) {await open(itemKey);const scheduled=typeof receipt.next_review==="string"?`下次复习：${receipt.next_review}`:receipt.next_review_days===-1?"学习记录已保存；暂时无法安排下次复习。":"学习记录已保存；下次复习时间未提供。";setMessage(`复习记录已保存。${scheduled}`);setHistory((previous:unknown)=>({receipt,history:previous}));await refresh();}
+      if (current === epoch.current) {await open(itemKey);const scheduled=typeof receipt.next_review==="string"&&receipt.next_review.trim()?`下次复习：${nextReviewTime(receipt.next_review)}`:receipt.next_review_days===-1?"学习记录已保存；暂时无法安排下次复习。":"学习记录已保存；下次复习时间未提供。";setMessage(`复习记录已保存。${scheduled}`);setHistory((previous:unknown)=>({receipt,history:previous}));await refresh();}
     } catch (error) {captureFailure(error);if(working&&!journalReview.current&&!frozenReview.current){setMessage(`${failureMessage(error)} 未发送复习，答案仍可编辑。`);return;}if(!journalReview.current&&error instanceof ApiError && error.status>=400 && error.status<500){frozenReview.current=null;setReviewPending(false);}setMessage(error instanceof ApiError && error.status >= 400 && error.status < 500
       ? `复习提交未完成。${failureMessage(error)} 请检查答案与自评，答案仍保留。`
       : "复习提交未确认，请保留答案并用同一条目重试；不会假定成功。");}
     finally {setBusy(false);}
   }
   const queue = <>{!focusMode?<button onClick={()=>void refresh()}>刷新学习队列</button>:null}
-    <ul className="stitch-learning-queue" tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button aria-pressed={itemKey===item.item_key} data-learning-item-key={item.item_key} disabled={busy} onClick={()=>void open(item.item_key)}>{learningTitle(item.display_title, "学习项目（标题尚未核对）")}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul></>;
+    <ul className="stitch-learning-queue" tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button aria-pressed={itemKey===item.item_key} data-learning-item-key={item.item_key} disabled={busy} onClick={()=>void open(item.item_key)}>{learningTitle(item.display_title, "学习项目（标题尚未核对）")}</button> · 下次复习 {nextReviewTime(item.next_review)}</li>)}</ul></>;
   return <section className="stitch-learning-review" data-focus={focusMode} aria-label={expectedJourney?"练习与复习":"学习"}><header className="stitch-learning-review-heading"><div><p className="stitch-learning-eyebrow">学习项目 · 绑定题目与版本</p><h2>{expectedJourney?"练习与复习":"学习"}</h2></div><button type="button" aria-pressed={focusMode} onClick={()=>{const next=!focusMode;setFocusMode(next);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:next}));}}>{focusMode?"退出聚焦模式":"进入聚焦模式"}</button></header>
     {Object.values(learningDrafts).length>0?<section className="stitch-learning-drafts stitch-learning-glass" aria-label="未提交学习草稿"><p>以下答案尚未提交复习；题目修订分别保留。</p>{Object.values(learningDrafts).map(draft=><details key={draft.assessment_id}><summary>学习草稿 · {learningTitle(items.find(item=>item.item_key===draft.item_key)?.display_title, expectedJourney?.item_key===draft.item_key?expectedJourney.display_title:undefined, "学习项目（标题尚未核对）")}</summary><p>学习项目键 {draft.item_key} · 知识修订 {draft.knowledge_version}</p><label>保留的学习答案 {draft.assessment_id}<textarea readOnly value={draft.answer}/></label><button disabled={busy} onClick={()=>void open(draft.item_key)}>打开草稿题目 {draft.item_key}</button><button disabled={busy||pendingReviews.some(entry=>entry.item_key===draft.item_key)||reviewPending&&itemKey===draft.item_key} onClick={()=>void discardDraft(draft)}>丢弃草稿 {draft.item_key}</button></details>)}</section>:null}
     {pendingReviews.length>1?<section className="stitch-learning-glass" aria-label="未确认复习请求"><p>有多个未确认的复习请求，请明确选择；其他请求仍保留。</p>{pendingReviews.map(entry=><button key={entry.client_event_id} disabled={busy} onClick={()=>void open(entry.item_key)}>恢复复习请求 {entry.item_key}</button>)}</section>:null}

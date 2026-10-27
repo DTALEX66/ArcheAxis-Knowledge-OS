@@ -20,8 +20,8 @@ describe("runtime handshake client", () => {
   afterEach(() => { runtime.resetRuntimeClient(); delete window.__TAURI__; vi.unstubAllGlobals(); });
   const handshake = { product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.14", source_commit: "abc", schema_version: 7, runtime_mode: "compatibility", workspace_id: "workspace", capabilities: [], migration_state: "ready" };
   it("projects handshake failures as safe Chinese diagnostics", () => {
-    expect(runtimeProjectionMessage(new ApiError(0, "runtime identity is incomplete", "incompatible"))).toBe("本地核心身份字段不完整。");
-    expect(runtimeProjectionMessage(new Error("network detail"))).toBe("已认证的本地核心握手失败。");
+    expect(runtimeProjectionMessage(new ApiError(0, "runtime identity is incomplete", "incompatible"))).toBe("暂时无法确认本地服务是否适用于这个应用，请查看详细记录。");
+    expect(runtimeProjectionMessage(new Error("network detail"))).toBe("暂时无法建立本地连接，请重试或查看详细记录。");
   });
   it("never requests native credentials or legacy HTTP after the Core bridge cutover", async () => {
     const invoke = vi.fn().mockResolvedValue({ ready: true });

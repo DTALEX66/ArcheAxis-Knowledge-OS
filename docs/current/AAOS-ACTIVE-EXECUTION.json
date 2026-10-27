@@ -156,14 +156,21 @@
       "BACKEND_CONTRACT_AND_ISOLATED_REAL_CORE_QUALIFICATION"
     ],
     "allowance_guard": {
-      "owner_confirmed": "Owner 2026-10-22: monitor Codex subscription; at remaining <=20 percent finish the current task, then stop further tasks and prepare/upload summaries, next work and handoff; verify local/remote repository consistency.",
-      "threshold_remaining_percent": 20,
+      "owner_confirmed": "Owner 2026-10-28: at subscription remaining <=10 percent stop new tasks, safely seal in-flight work, summarize dialogue/issues/blockers and prepare handoff; upload authorized progress/branches, merge qualifying necessary changes, and verify matching local/remote branch SHAs. This replaces previous 20 and 15 percent thresholds.",
+      "threshold_remaining_percent": 10,
       "metric": "Prefer rateLimitsByLimitId; minimum remaining 100-usedPercent across applicable non-null subscription windows. Unknown is not zero; credit balance is not subscription allowance.",
-      "automation_id": "aaos",
+      "automation_id": "automation",
       "automation_kind": "heartbeat",
-      "automation_state_at_observation": "PAUSED",
+      "automation_state_at_observation": "ACTIVE",
       "interval_minutes": 30,
-      "on_threshold": "Finish the already-started verifiable work unit and owned-process cleanup; start no next development slice. Update the sole execution record, current pointer and complete handoff with conversation decisions, evidence, failures and ordered remaining tasks. Explicitly commit/push only authorized public task files and read back branch SHA. Then stop execution and pause the monitor pending explicit Owner resume.",
+      "on_threshold": "Stop starting new development/build/test tasks. Safely seal in-flight evidence and clean up owned processes without discarding unsaved work. Update the sole execution record, current pointer and handoff with dialogue decisions, completed work, original failures, remaining issues, blockers and exact source/evidence. Commit/push authorized public task files; merge only necessary qualifying branches after checks/review/conflict resolution. Read back local/remote corresponding branch SHAs; preserve and report any blocker instead of asserting consistency. Then stop execution and pause the monitor pending explicit Owner resume.",
+      "current_override": {
+        "date": "2026-10-28",
+        "state": "ACTIVE_BY_OWNER",
+        "supersedes": "Earlier 20/15 percent thresholds and dated paused monitor states below",
+        "monitor_readback": "Official heartbeat create/view and exact automation.toml readback confirmed ACTIVE, interval 30 minutes; obsolete aaos monitor no longer exists",
+        "behavior": "Configuration verified; threshold-triggered stop/handoff has not yet occurred"
+      },
       "publication_boundary": "Never upload credentials, private session or agent memory, ignored runtime/database/cache/archive payloads or unrelated dirty files; no forced history, automatic merge/release/Green replacement. If Git or network permissions block delivery, retain local files and report the blocker without bypass.",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
       "threshold_observation": {

@@ -114,7 +114,7 @@ const pages=[...document.querySelectorAll('[data-current-page-id]')];
 const resources=[...document.querySelectorAll('section[aria-label="资源与扩展内容"]')].filter(visible);
 const root=resources.length===1?resources[0]:null;
 const tabs=[...(root?.querySelectorAll('button[role="tab"]')??[])].filter(n=>visible(n)&&n.textContent==='接入来源与运行设置');
-const refresh=[...(root?.querySelectorAll('button')??[])].filter(n=>visible(n)&&n.textContent==='重新读取当前宿主能力');
+const refresh=[...(root?.querySelectorAll('button')??[])].filter(n=>visible(n)&&n.textContent==='刷新本机可用功能');
 return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
  resource_count:resources.length,tab_count:tabs.length,tab_enabled:tabs.length===1&&!tabs[0].matches(':disabled'),
  selected:tabs.length===1&&tabs[0].getAttribute('aria-selected')==='true',
@@ -2756,7 +2756,7 @@ def capability_refusal_recovery(
     )
     ui.page("15")
     open_resource_settings(ui, js, wait)
-    ui.click("重新读取当前宿主能力")
+    ui.click("刷新本机可用功能")
     capability_permission(read, True)
     ui.click_selector("//button[@aria-label='禁用文字解析']")
     result["disabled"] = poll(

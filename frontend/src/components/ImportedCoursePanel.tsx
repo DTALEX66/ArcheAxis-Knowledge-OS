@@ -1,3 +1,5 @@
+import { userErrorMessage } from "../presentation/labels";
+import { RawReceiptButton } from "./DiagnosticConsole";
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentSummaryDto, DocumentsListDto } from "../api/generated/core-contract";
@@ -6,6 +8,13 @@ import { referenceFeedback, type CourseImportDraft, type ImportedQuestion } from
 import { prepareCourseImport, reopenCourseImport, saveCourseImport,
   type PreparedCourseImport, type StoredCourseImport } from "../presentation/importedCourseStorage";
 import "./ImportedCoursePanel.css";
+
+function courseFailureMessage(failure: string, pendingSave: boolean) {
+  const summary = userErrorMessage(failure);
+  return summary !== userErrorMessage(null) ? summary : pendingSave
+    ? "课程保存结果仍待核对；请保留当前选择，使用同一次保存重试或打开运行诊断。"
+    : "课程内容暂时无法读取，请核对文件格式；具体原因见运行诊断。";
+}
 
 function Question({ question, group }: { question: ImportedQuestion; group: string }) {
   const [selected, setSelected] = useState<string[]>([]), [answer, setAnswer] = useState("");
@@ -101,7 +110,7 @@ export function ImportedCoursePanel() {
     {prepared ? <div><button disabled={busy} onClick={() => void save()}>{attempted ? "同请求重试保存" : "保全原件并保存课程候选"}</button>
       <button disabled={busy} onClick={() => { setPrepared(undefined); setMessage("已清除预览；不会删除已保全原件或撤销已提交保存。"); setFailure(""); }}>清除预览</button></div> : null}
     {busy ? <p role="status">正在核对课程；关闭面板不会撤销已经提交的保存。</p> : null}
-    {message ? <p role="status">{message}</p> : null}{failure ? <p role="alert">{failure}</p> : null}
+    {message ? <p role="status">{message}</p> : null}{failure ? <><p role="alert">{courseFailureMessage(failure, attempted)}</p><RawReceiptButton label="课程导入错误详细信息" payload={{error:failure}}/></> : null}
     {stored || prepared ? <CoursePreview key={stored?.document.document_id ?? prepared?.requestId} course={(stored?.course ?? prepared!.draft)} identity={stored?.document.document_id ?? prepared!.requestId} /> : null}
     {stored ? <button disabled={busy} onClick={() => void open(stored.document.document_id)}>重新核对已保存课程</button> : null}
     <details><summary>重新打开已保存候选</summary><p>从现有文档中选择，打开时核对课程格式与原件。列表也可能包含普通文档，不凭标题认定课程身份。</p>

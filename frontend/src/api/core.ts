@@ -11,6 +11,7 @@ import { assertCollectionDto } from "./generated/collection-contract";
 import { assertUiWorkingState } from "./generated/ui-working-state-contract";
 import { assertLayoutDto } from "./generated/layout-contract";
 import { assertHandoffDto } from "./generated/project-handoff";
+import { beginDiagnosticObservation, recordDiagnosticFailure } from "../presentation/diagnostics";
 export type { CoreOperation } from "./generated/core-contract";
 const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
@@ -50,6 +51,12 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
 };
 
 export async function coreCommand<T>(operation: CoreOperation, payload: Record<string, unknown> = {}): Promise<T> {
+  const observation = beginDiagnosticObservation();
+  try { return await executeCoreCommand<T>(operation, payload); }
+  catch (error) { recordDiagnosticFailure(operation, error, observation); throw error; }
+}
+
+async function executeCoreCommand<T>(operation: CoreOperation, payload: Record<string, unknown>): Promise<T> {
   const invoke = window.__TAURI__?.core?.invoke;
   if (!invoke) throw new ApiError(0, "请在本地桌面应用打开此内容。", "offline");
   let result: unknown;

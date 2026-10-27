@@ -4,6 +4,7 @@ import type {WorkingRead} from "../presentation/coreWorkingState";
 import { useCallback, useLayoutEffect, useReducer, useRef } from "react";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+import { localDateTime } from "../presentation/display";
 import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCategories, openDiagnostics, closeDiagnostics, restoreDiagnosticFocus, resetDiagnostics, suspendDiagnostics, resumeDiagnostics, setDiagnosticFilter, type DiagnosticCategory } from "../presentation/diagnostics";
 
 /** Replaces an inline JSON dump: the operator still reaches the untouched payload, the reading surface does not carry it. */
@@ -29,20 +30,21 @@ export function DiagnosticConsole() {
   return (
     <section className="diagnostic-console" aria-label="诊断控制台">
       <header className="diagnostic-console-header">
-        <h4>诊断控制台</h4>
+        <h4>问题与运行记录</h4>
         <span className="diagnostic-console-count">本次工作区会话共 {entries.length} 条记录</span>
         <button type="button" disabled={entries.length === 0} onClick={clearDiagnostics}>清空诊断</button>
       </header>
       <label>诊断分类<select value={filter} onChange={event => setDiagnosticFilter(event.target.value as DiagnosticCategory | "all")}><option value="all">全部</option>{Object.entries(diagnosticCategories).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
       {entries.length === 0
-        ? <p className="diagnostic-console-empty">暂无诊断记录。各页面的“状态与诊断”会将记录集中到这里；关闭应用后不保留。</p>
+        ? <p className="diagnostic-console-empty">暂无诊断记录。操作失败会自动记下简要信息；各页面的“状态与诊断”可补充详细记录。只保留本次工作区会话最近50条，关闭应用后不保留。</p>
         : visible.length === 0 ? <p>此分类暂无记录。</p>
         : (
           <ul className="diagnostic-console-list">
             {visible.map((entry) => (
               <li key={entry.sequence}>
+                {entry.summary ? <p>{entry.label}：{entry.summary}{entry.occurrences && entry.occurrences > 1 ? `（近30秒内重复${entry.occurrences}次）` : ""}</p> : null}
                 <details key={`${entry.sequence}:${filter}`} open={entry.sequence === selected || undefined}>
-                  <summary>{entry.label} · {diagnosticCategories[entry.category]} · {entry.at}</summary>
+                  <summary>{entry.automatic ? "查看技术信息" : entry.label} · {diagnosticCategories[entry.category]} · {localDateTime(entry.at)}</summary>
                   <pre>{JSON.stringify(entry.payload, null, 2)}</pre>
                 </details>
               </li>

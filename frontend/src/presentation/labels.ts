@@ -95,8 +95,28 @@ const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开运行
 // 只分类本地核心的已知失败形状，其它错误不编造原因。通用的“核心不可用”故意不在此列：
 // 它由 userErrorMessage 的原句承担，好让 Web 端 5xx 的既有措辞与测试保持一致。
 export function coreFailureReason(error: unknown): string | null {
-  const value = error as { status?: unknown; code?: unknown } | null;
+  const value = error as { status?: unknown; code?: unknown; jobAdmission?: {schema?: unknown; admission_state?: unknown; enabled?: unknown; active_execution?: unknown}; machineAdmission?: {schema?: unknown; execution_state?: unknown; prior_request_execution?: unknown}; execution?: {execution_state?: unknown; answer_published?: unknown}; machineFailure?: {reason_code?: unknown; execution_state?: unknown; answer_published?: unknown} } | null;
   if (!value || typeof value !== "object") return null;
+  // Validated business refusals carry more meaning than the HTTP status alone.
+  // A disabled processor is not a document version conflict; an answer withheld
+  // after execution must never be described as an operation that did not run.
+  if (value.jobAdmission?.schema === "archeaxis.job-admission-refusal/v1" && value.jobAdmission.admission_state === "NOT_ADMITTED" && value.jobAdmission.enabled === false && value.jobAdmission.active_execution === false) return "这项处理尚未启用，本次没有开始。请先启用，再重试原来的任务。";
+  if (value.machineAdmission?.schema === "archeaxis.context-admission-refusal/v1" && value.machineAdmission.execution_state === "NOT_EXECUTED" && value.machineAdmission.prior_request_execution === "UNVERIFIED") return "这次调用没有执行：恢复前的资料授权已失效。请重新核对并授权；先前请求的结果仍需查询。";
+  if (value.execution?.execution_state === "EXECUTED_BUT_WITHHELD" && value.execution.answer_published === false) return "AI 已处理这次请求，但回答未能提供。请查看原任务的记录，再决定下一步，避免重复执行。";
+  if (value.machineFailure?.execution_state === "UNVERIFIED" && value.machineFailure.answer_published === false) {
+    const reasons: Record<string, string> = {
+      MODEL_CALL_FAILED: "暂时没有取得 AI 回答，请检查模型服务是否可用。",
+      MODEL_CALL_TIMEOUT: "等待 AI 回答的时间过长，请先查询这次任务的状态。",
+      NO_FINAL_ANSWER: "AI 没有提供最终回答，请查看这次任务的处理状态。",
+      EMPTY_ANSWER: "AI 返回的回答为空，请查看这次任务的处理状态。",
+      WORKER_TIMEOUT: "AI 处理用时过长，请先查询这次任务的状态。",
+      OUTPUT_LIMIT: "AI 返回的内容超过本次限额，请查看任务记录后调整请求。",
+      INVALID_OUTPUT: "暂时无法读取 AI 返回的内容，请查看这次任务的记录。",
+      PIPE_DRAIN_FAILED: "暂时无法确认 AI 的处理结果，请先查询这次任务的状态。",
+      WORKER_FAILED: "AI 处理遇到了问题，请查看这次任务的记录。",
+    };
+    if (typeof value.machineFailure.reason_code === "string" && Object.prototype.hasOwnProperty.call(reasons, value.machineFailure.reason_code)) return `${reasons[value.machineFailure.reason_code]} 当前结果尚未确认，请保留原来的任务。`;
+  }
   if (value.code === "offline") return "离线：请在桌面应用中使用此功能；当前内容已保留。";
   if (value.code === "migrating") return "迁移中：正在升级本地数据，完成后再继续操作。";
   if (value.code === "backend_starting") return "正在启动：请稍后重试；本次操作结果尚未确认。";
@@ -135,6 +155,6 @@ export function userErrorMessage(value: unknown): string {
   if (typeof value !== "string") return SAFE_ERROR;
   const message = value.trim().slice(0, 180);
   if (!message || !/[\u3400-\u9fff]/.test(message)) return SAFE_ERROR;
-  if (/\/(?:api|workspace)\b|https?:|\b(?:HTTP|Core|Rust|worker|DTO|CAS|SQLite)\b|\b[A-Z_]{4,}\b|回执|读回|保全|正典|->|[{}\[\]]/i.test(message)) return SAFE_ERROR;
+  if (/\/(?:api|workspace)\b|https?:|\b[A-Z]:[\\/]|\b(?:HTTP|Core|Rust|worker|DTO|CAS|SQLite|Error|TypeError|ReferenceError|SyntaxError|Exception|Traceback)\b|\b[A-Z_]{4,}\b|\b[a-z]+_[a-z_]+\b|\.(?:tsx?|jsx?|rs|py):\d+|回执|读回|保全|正典|->|=>|[`{}\[\]]/i.test(message)) return SAFE_ERROR;
   return message;
 }

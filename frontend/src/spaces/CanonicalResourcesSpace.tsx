@@ -158,7 +158,7 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
       </> : <p>选择一个真实登记来源，查看原始分类、冲突和激活条件。</p>}</aside>
     </div>
     <section aria-label="当前可用能力"><h3>当前可用能力</h3>
-      <button disabled={changing !== null} onClick={() => void refresh()}>重新读取当前宿主能力</button>
+      <button disabled={changing !== null} onClick={() => void refresh()}>刷新本机可用功能</button>
       <p>逐项改变当前工作区的功能开关，不安装新组件，也不修改模型或服务配置。禁用会阻止后续任务，不取消已经运行的任务。</p>
       {changing ? <p role="status">正在更新 {changing === "template.T3" ? "学习与实践模板" : capabilityName(changing)}，等待保存结果…</p> : null}
       {decisionNotice ? <p role={decisionNotice.failed ? "alert" : "status"}>{decisionNotice.text}</p> : null}

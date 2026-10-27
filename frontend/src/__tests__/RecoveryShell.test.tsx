@@ -262,7 +262,7 @@ describe("Recovery Shell", () => {
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
-    expect(screen.getByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
+    expect(screen.getByText("应用与本地服务暂时不能配合运行，请检查版本。")).toBeInTheDocument();
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(3);
     expect(recovery.verifyCanonicalCore).toHaveBeenCalledTimes(2);
   });

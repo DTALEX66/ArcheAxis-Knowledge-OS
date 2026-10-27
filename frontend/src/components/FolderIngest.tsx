@@ -10,7 +10,7 @@ import { conversionKindFor } from "../api/conversionKinds";
 import { confirmedImport, type ImportReceipt } from "../presentation/importReceipt";
 import { sha256 as contentSha256 } from "../presentation/exchangeProof";
 import { RawReceiptButton } from "./DiagnosticConsole";
-import { userErrorMessage } from "../presentation/labels";
+import { failureMessage, userErrorMessage } from "../presentation/labels";
 import { conversionRecovery } from "../presentation/conversionRecovery";
 import { ConversionRecoveryNotice } from "./ConversionRecoveryNotice";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
@@ -27,7 +27,7 @@ const PRIVATE_STATE = new Set([".zcode", ".codex", ".hermes", ".openhuman", ".gi
 type RefusalState = "跳过：隐藏路径" | "跳过：排除目录" | "未导入：超过大小上限";
 type Refusal = { relative: string; bytes: number; state: RefusalState; detail: string };
 type RowState = JobState | RefusalState | "UNKNOWN" | "ORIGINAL_ONLY" | "IMPORT_FAILED" | "ENQUEUE_FAILED" | "IDENTITY_CONFLICT";
-type Row = { key: string; batch_id: string; relative: string; bytes: number; state: RowState; detail: string;
+type Row = { key: string; batch_id: string; relative: string; bytes: number; state: RowState; detail: string; last_error_message?: string;
   source_id?: string; sha256?: string; job_id?: string; kind?: string; status?: JobStatus;
   attempt?: FolderAttempt; cancelPending?: boolean; executionRefused?: boolean; admissionProof?:JobAdmissionRefusal; capabilityBusy?:boolean };
 const LABEL: Record<RowState, string> = {
@@ -127,6 +127,9 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
   const timers = useRef(new Map<number, () => void>()), callback = useRef(onOpenSource); callback.current = onOpenSource;
   const owner = `folder-ingest-${useId()}`;
   const durable = useRef<IngestBatchDto | null>(null);
+  const [failure,setFailure]=useState<unknown>(null);
+  useEffect(()=>{setFailure(null);},[batchId]);
+  function reportFailure(error:unknown){setFailure(error instanceof Error?{name:error.name,message:error.message}:error);return failureMessage(error);}
   const ordinals = useRef(new Map<string, number>());
   const [history,setHistory]=useState<IngestBatchSummaryDto[]>([]),[historyCursor,setHistoryCursor]=useState<string|null>(null);
   const [needsFiles,setNeedsFiles]=useState(false),[manifestPending,setManifestPending]=useState(false);
@@ -137,7 +140,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       const page=await coreCommand<IngestBatchesDto>("ingest_batches_list",cursor?{cursor}:{});
       if(!current(generation))return;
       setHistory(old=>cursor?[...old,...page.batches]:page.batches);setHistoryCursor(page.next_cursor);
-    }catch(error){if(current(generation))setMessage(`历史批次未读回：${String(error)}`);}
+    }catch(error){if(current(generation))setMessage(`历史批次未读回：${reportFailure(error)}`);}
     finally{unlock(generation);}
   }
   async function restoreBatch(batch:string){
@@ -165,7 +168,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       }
       setNeedsFiles(members.some(m=>!m.source_id&&m.disposition==="pending")||!head.complete);
       setMessage("历史成员、来源与作业已读取；浏览器文件句柄不能重启恢复，未上传内容需重新选择。读取不会执行。");
-    }catch(error){if(current(generation))setMessage(`批次未完整读回：${String(error)}`);}
+    }catch(error){if(current(generation))setMessage(`批次未完整读回：${reportFailure(error)}`);}
     finally{unlock(generation);}
   }
   async function registerSelection(){
@@ -200,7 +203,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         setRemaining([...queue.current.keys()].filter(relative=>!handled.current.has(relative)).length);
         setMessage("清单已登记；已停止后续导入，需明确继续下一批。");
       }else ready=true;
-    }catch(error){if(current(generation)){setManifestPending(true);setMessage(`清单登记未确认：${String(error)}；保留相同批次，可核对历史或重试登记。`);}}
+    }catch(error){if(current(generation)){setManifestPending(true);setMessage(`清单登记未确认：${reportFailure(error)}；保留相同批次，可核对历史或重试登记。`);}}
     finally{unlock(generation);}
     if(ready&&current(generation))await runBatch();
   }
@@ -223,7 +226,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         workspace_id:identity.workspace_id,restore_epoch:identity.restore_epoch,ordinal:ordinals.current.get(row.relative),
         source_id:row.source_id,source_revision:row.sha256,kind}});
       if(current(generation)&&receipt.job_id===`folder-${kind}-${row.sha256}`)patch(key,{job_id:receipt.job_id,kind,state:jobState(receipt.state),detail:"已核对成员并入队；尚未执行。"});
-    }catch(error){if(current(generation))setMessage(`入队未确认：${String(error)}；来源保留。`);}
+    }catch(error){if(current(generation))setMessage(`入队未确认：${reportFailure(error)}；来源保留。`);}
     finally{unlock(generation);}
   }
   function current(generation: number) { return mounted.current && epoch.current === generation; }
@@ -267,7 +270,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       handled.current.add(relative);
     } catch (error) {
       if (!current(generation)) return null;
-      handled.current.add(relative); return { ...base, state: "IMPORT_FAILED", detail: error instanceof Error ? error.message : "原件导入未确认" };
+      handled.current.add(relative); return { ...base, state: "IMPORT_FAILED", detail: failureMessage(error), last_error_message: error instanceof Error ? error.message : String(error) };
     }
     const {source_id, sha256} = imported, kind = conversionKindFor(relative);
     if (!kind) return { ...base, source_id, sha256, state: "ORIGINAL_ONLY", detail: "当前未提供此格式的转换方式；原件已单独保存，未安排转换。" };
@@ -336,7 +339,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
           setMessage("本地服务尚未确认能否重新处理；原件、历史与错误保留，不会自动再次执行。"); return;
         }
       } catch (error) {
-        if (current(generation)) { patch(key, { state:"UNKNOWN", detail:`执行前状态未确认：${error instanceof Error ? error.message : "未知原因"}；未创建执行请求。` }); stopAfter.current = true; }
+        if (current(generation)) { patch(key, { state:"UNKNOWN", last_error_message:error instanceof Error?error.message:String(error), detail:`执行前状态未确认：${failureMessage(error)}；未创建执行请求。` }); stopAfter.current = true; }
         return;
       }
     }
@@ -360,7 +363,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         const recovery = recoverableJobRefusal(error, attempt, source, row.kind);
         patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500 && !recoverableJobRefusal(error, attempt, source, row.kind),
           admissionProof:recovery?(error as ApiError).jobAdmission:undefined,
-          detail: recovery ? "本地服务已确认上次处理未受理；此功能已禁用。可在此启用，本次处理记录仍保留；之后另点“重试上次处理”。" : `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留本次处理记录；仅重试上次处理或查看进度，不会另行创建处理任务。` });
+          last_error_message:error instanceof Error?error.message:String(error), detail: recovery ? "本地服务已确认上次处理未受理；此功能已禁用。可在此启用，本次处理记录仍保留；之后另点“重试上次处理”。" : `执行未确认：${failureMessage(error)}；保留本次处理记录；仅重试上次处理或查看进度，不会另行创建处理任务。` });
         stopAfter.current = true;
       }
     } finally { if (active.current?.attempt.request_id === attempt.request_id) active.current = null; }
@@ -386,7 +389,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
         if (attempt && belongs() && !terminalJobState(status.state)) await pollFolderAttempt(folderCommand, attempt, source, belongs, status => { if (belongs()) statusPatch(key,status); }, wait);
       }
       else await executeOne(key, mode, generation);
-    } catch (error) { if (current(generation)) setMessage(`状态或新尝试条件未确认：${error instanceof Error ? error.message : "未知原因"}；本次处理记录和历史仍保留。`); }
+    } catch (error) { if (current(generation)) setMessage(`状态或新尝试条件未确认：${reportFailure(error)}；本次处理记录和历史仍保留。`); }
     finally { unlock(generation); }
   }
   async function cancel(key: string) {
@@ -401,7 +404,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       const status = await readFolderStatus(folderCommand, attempt.job_id, row.source_id, attempt);
       if (belongs()) statusPatch(key, status);
       if (belongs() && !terminalJobState(status.state)) await pollFolderAttempt(folderCommand, attempt, row.source_id, belongs, status => { if (belongs()) statusPatch(key,status); }, wait);
-    } catch (error) { if (belongs()) patch(key, { detail: `取消未确认：${error instanceof Error ? error.message : "未知原因"}；同身份取消可重试，原件和当前尝试保留。` }); }
+    } catch (error) { if (belongs()) patch(key, { last_error_message:error instanceof Error?error.message:String(error), detail: `取消未确认：${failureMessage(error)}；同身份取消可重试，原件和当前尝试保留。` }); }
     finally { cancelFlight.current = false; if (current(generation)) setCancelBusy(false); }
   }
   function open(row: Row) {
@@ -456,10 +459,10 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       {manifestPending?<button disabled={busy} onClick={()=>void registerSelection()}>重试准备此批次</button>:null}
       {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>开始处理本批文件</button> : null}
       <button disabled={!busy} title={!busy?"当前没有正在处理的导入任务":undefined} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
-    </div>{message ? <p role="status">{message}</p> : null}
+    </div>{message ? <p role="status">{message}</p> : null}{failure!==null?<RawReceiptButton label="最近文件夹处理错误详细信息" payload={failure}/>:null}
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
       <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
-      <td>{row.detail}<ConversionRecoveryNotice status={row.status}/>{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
+      <td>{row.detail}<ConversionRecoveryNotice status={row.status}/>{row.source_id || row.job_id || row.attempt || row.status || row.last_error_message ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status,last_error_message:row.last_error_message}}/> : null}</td>
       <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "检查上次处理结果" : "查看处理进度"}</button> : null}
         {row.batch_id===batchId&&!row.source_id&&row.state==="IMPORT_FAILED"?<button disabled={busy||capabilityBusy} onClick={()=>void retryImport(row.key)}>重试导入此文件</button>:null}
         {row.batch_id===batchId&&row.source_id&&(!row.job_id||row.state==="ENQUEUE_FAILED")&&conversionKindFor(row.relative)?<button disabled={busy||capabilityBusy} onClick={()=>void enqueueRetained(row.key)}>继续处理此文件</button>:null}

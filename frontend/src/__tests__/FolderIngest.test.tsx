@@ -508,13 +508,19 @@ describe("folder ingest", () => {
     expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
   });
   it("wrong execute ACK keeps UNKNOWN rather than accepting a sibling receipt",async()=>{
+    render(<DiagnosticConsole/>);
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{const value=await fixture(op,p);return op==="job_execute"?{...(value as object),job_id:"wrong_job"}:value;});
     upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"开始处理本批文件"}));await screen.findByRole("button",{name:"重试上次处理"});expect(screen.queryByText("已成功",{exact:true})).not.toBeInTheDocument();
-    expect(screen.getByText(/执行回执身份不匹配/)).toBeInTheDocument();
+    expect(screen.queryByText(/执行回执身份不匹配/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button",{name:"状态与诊断：此文件导入与转换详细信息"}));
+    expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent("执行回执身份不匹配");
   });
   it("wrong request/source/budget readback cannot settle a frozen write",async()=>{
+    render(<DiagnosticConsole/>);
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{const value=await fixture(op,p);return op==="job_execution_status"&&requests.size?{...(value as object),input_ref:"wrong_source"}:value;});
-    upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"开始处理本批文件"}));await screen.findByRole("button",{name:"重试上次处理"});expect(screen.getByText(/状态回执身份不匹配/)).toBeInTheDocument();expect(screen.queryByText("已成功",{exact:true})).not.toBeInTheDocument();
+    upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"开始处理本批文件"}));await screen.findByRole("button",{name:"重试上次处理"});expect(screen.queryByText(/状态回执身份不匹配/)).not.toBeInTheDocument();expect(screen.queryByText("已成功",{exact:true})).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button",{name:"状态与诊断：此文件导入与转换详细信息"}));
+    expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent("状态回执身份不匹配");
   });
   it("a rejected job or missing current eligibility never exposes a fresh execute",async()=>{
     enqueueState="rejected";upload([picked("册/a.md")]);await screen.findByText("已拒绝",{exact:true});expect(screen.queryByRole("button",{name:"重新处理失败文件"})).not.toBeInTheDocument();expect(screen.queryByRole("button",{name:"开始处理本批文件"})).not.toBeInTheDocument();expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(0);

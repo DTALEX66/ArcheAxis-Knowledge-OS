@@ -1,5 +1,6 @@
 // The only credential-bearing HTTP client. Desktop credentials remain in the
 // invoking WebView process and are never persisted by this module.
+import { beginDiagnosticObservation, recordDiagnosticFailure } from "../presentation/diagnostics";
 export interface Handshake {
   product_id: string;
   product_name: string;
@@ -56,25 +57,25 @@ export class ApiError extends Error {
 }
 
 export function runtimeProjectionMessage(error: unknown): string {
-  if (!(error instanceof ApiError)) return "已认证的本地核心握手失败。";
+  if (!(error instanceof ApiError)) return "暂时无法建立本地连接，请重试或查看详细记录。";
   switch (error.code) {
     case "offline":
-      return "本地核心当前离线。";
+      return "暂时连接不上本地服务，请稍后重试。";
     case "backend_starting":
-      return "本地核心仍在启动。";
+      return "本地服务正在启动，请稍候。";
     case "migrating":
-      return "工作区正在迁移。";
+      return "正在升级工作区，请等待完成后再继续。";
     case "incompatible":
-      if (error.message === "runtime identity is incomplete") return "本地核心身份字段不完整。";
-      if (error.message.startsWith("product mismatch")) return "本地核心产品身份不匹配。";
-      if (error.message.startsWith("API contract mismatch")) return "本地核心接口契约不匹配。";
-      if (error.message === "runtime schema version is invalid") return "本地核心数据结构版本无效。";
-      if (error.message === "runtime capabilities are invalid") return "本地核心能力声明无效。";
-      return "本地核心与当前桌面版本不兼容。";
+      if (error.message === "runtime identity is incomplete") return "暂时无法确认本地服务是否适用于这个应用，请查看详细记录。";
+      if (error.message.startsWith("product mismatch")) return "当前连接的服务不属于这个应用，请检查后重试。";
+      if (error.message.startsWith("API contract mismatch")) return "应用与本地服务的版本不一致，请先检查版本。";
+      if (error.message === "runtime schema version is invalid") return "暂时无法读取工作区的版本信息，请查看详细记录。";
+      if (error.message === "runtime capabilities are invalid") return "暂时无法确认可用功能，请查看详细记录。";
+      return "应用与本地服务暂时不能配合运行，请检查版本。";
     case "unauthorized":
-      return "桌面本地授权被拒绝。";
+      return "未取得访问本地服务的许可，请重新检查连接。";
     default:
-      return "已认证的本地核心握手失败。";
+      return "暂时无法建立本地连接，请重试或查看详细记录。";
   }
 }
 
@@ -123,32 +124,39 @@ function validateHandshake(value: unknown): Handshake {
 
 export function createApiClient(baseUrl: string, token: string, scopes: string[] = []) {
   async function requestRaw(path: string, init?: RequestInit): Promise<Response> {
-    let response: Response;
+    const observation = beginDiagnosticObservation();
     try {
-      response = await fetch(`${baseUrl}${path}`, {
-        ...init,
-        headers: {
-          ...(token ? { "X-ArcheAxis-Launch-Token": token } : {}),
-          ...(init?.headers ?? {}),
-        },
-      });
-    } catch {
-      throw new ApiError(0, "local Core is offline", "offline");
-    }
-    if (!response.ok) {
-      throw new ApiError(response.status, `${path} -> ${response.status}`, unavailableCode(response.status));
-    }
-    return response;
+      let response: Response;
+      try {
+        response = await fetch(`${baseUrl}${path}`, {
+          ...init,
+          headers: {
+            ...(token ? { "X-ArcheAxis-Launch-Token": token } : {}),
+            ...(init?.headers ?? {}),
+          },
+        });
+      } catch {
+        throw new ApiError(0, "local Core is offline", "offline");
+      }
+      if (!response.ok) {
+        throw new ApiError(response.status, `${path} -> ${response.status}`, unavailableCode(response.status));
+      }
+      return response;
+    } catch (error) { recordDiagnosticFailure("local_request", error, observation); throw error; }
   }
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    const observation = beginDiagnosticObservation();
     const response = await requestRaw(path, init);
-    return (await response.json()) as T;
+    try { return (await response.json()) as T; }
+    catch (error) { recordDiagnosticFailure("local_request", error, observation); throw error; }
   }
 
   async function write<T>(path: string, body: Record<string, unknown>, idempotencyKey: string): Promise<T> {
     if (!token || !scopes.includes(WRITE_SCOPE)) {
-      throw new ApiError(403, "desktop write scope is unavailable", "unauthorized");
+      const error = new ApiError(403, "desktop write scope is unavailable", "unauthorized");
+      recordDiagnosticFailure("local_write", error, beginDiagnosticObservation());
+      throw error;
     }
     return request<T>(path, {
       method: "POST",

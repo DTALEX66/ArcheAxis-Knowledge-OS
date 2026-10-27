@@ -2,6 +2,8 @@ import { webcrypto } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { JobContent } from "../components/JobContent";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { ApiError, type JobAdmissionRefusal } from "../api/client";
 import { outputReceipt } from "./fixtures/jobContentCoreFixture";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
@@ -26,7 +28,7 @@ function fixture(options:{lost?:boolean;wrongAck?:boolean;state?:string;kind?:st
 }
 const view=(extra:Record<string,unknown>={})=><JobContent sourceId="source" sourceRevision={revision} name="report.xlsx" {...extra}/>;
 describe("SIMULATED manual finite execution boundaries",()=>{
- beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+ beforeEach(()=>{resetDiagnostics();bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
  it("enables beside the frozen request, then explicitly resumes its exact identity",async()=>{
   fixture();const previous=bridge.call.getMockImplementation()!;let disabled=true;
   const row=()=>({capability:"office.structure",enabled:!disabled,enabled_basis:"the workspace's capability record; an absent record means enabled"});
@@ -46,8 +48,14 @@ describe("SIMULATED manual finite execution boundaries",()=>{
  it("queued readback cannot unlock a generic permission refusal",async()=>{
   fixture();const previous=bridge.call.getMockImplementation()!;
   bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execute")throw new ApiError(403,"denied");if(op==="job_execution_status")return {job_id:p.job_id,input_ref:"source",kind:"office",state:"queued",attempt:null,request_id:null,error:null,attempts:[]};return previous(op,p);});
-  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/处理结果尚未确认/);expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();expect(screen.queryByRole("button",{name:"启用Office文档结构读取"})).toBeNull();
-  fireEvent.click(screen.getByRole("button",{name:"检查上次处理结果"}));await screen.findByText(/尚未读回冻结执行身份/);expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();
+  render(<>{view()}<DiagnosticConsole/></>);fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/处理结果尚未确认/);expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();expect(screen.queryByRole("button",{name:"启用Office文档结构读取"})).toBeNull();
+  fireEvent.click(screen.getByRole("button",{name:"检查上次处理结果"}));
+  await waitFor(()=>expect(screen.getByRole("button",{name:"检查上次处理结果"})).toBeEnabled());
+  expect(screen.getByRole("button",{name:"重试上次处理"})).toBeDisabled();
+  fireEvent.click(screen.getByText("上次处理错误详情"));
+  expect(document.body.textContent).not.toContain("尚未读回冻结执行身份");
+  fireEvent.click(screen.getByRole("button",{name:"状态与诊断：上次处理错误详细信息"}));
+  expect(screen.getByRole("region",{name:"诊断控制台"})).toHaveTextContent("尚未读回冻结执行身份");
  });
  it("claims singleflight before React flush and sends the actual finite request identity",async()=>{
   fixture();render(view());const button=screen.getByRole("button",{name:"执行真实内容转换"});act(()=>{fireEvent.click(button);fireEvent.click(button);});

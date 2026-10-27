@@ -45,7 +45,8 @@ it.each([true, false])("real import and reader components complete presentation 
   expect(mocks.stages[0].element).toBe(screen.getByLabelText("导入原件", { exact: true }));
   mocks.stages[0].popover.onNextClick();
   await waitFor(() => expect(mocks.stages).toHaveLength(2));
-  expect(mocks.stages[1].element).toBe(document.querySelector(selected ? ".stitch-reader-document" : ".stitch-reader-empty"));
+  expect(mocks.stages[1].element).toBe(document.querySelector('.stitch-reader-page[data-stitch-library="reader"]'));
+  expect(mocks.stages[1].element.querySelector(selected ? ".stitch-reader-document" : ".stitch-reader-empty")).not.toBeNull();
   if (selected) {
     expect(document.querySelector(".stitch-reader-details")).toHaveAttribute("hidden");
     expect(screen.getByRole("button", { name: "属性与引用" })).toHaveAttribute("aria-expanded", "false");

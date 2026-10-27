@@ -396,7 +396,7 @@ describe("App shell", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
+    expect(await screen.findByText("应用与本地服务暂时不能配合运行，请检查版本。")).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "应用菜单" })).not.toBeInTheDocument();
   });
 

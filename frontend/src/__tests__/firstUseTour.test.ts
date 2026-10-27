@@ -17,7 +17,7 @@ beforeEach(() => {
 afterEach(() => { stop?.(); stop = undefined; document.body.innerHTML = ""; vi.useRealTimers(); vi.restoreAllMocks(); });
 function mount(markup: string) { document.body.innerHTML = markup; }
 const importControl = '<button data-guide="import-originals-tab" aria-pressed="true">原件与转换</button><input data-guide="first-original" type="file">';
-const reader = '<section data-stitch-library="reader"><nav data-guide="saved-documents">文档</nav><button data-guide="document-save">保存草稿</button></section>';
+const reader = '<section class="stitch-reader-page" data-stitch-library="reader"><nav data-guide="saved-documents">文档</nav><button data-guide="document-save">保存草稿</button></section>';
 function next(index: number) { mocks.instances[index].highlight.mock.calls[0][0].popover.onNextClick(); }
 
 describe("Driver.js presentation adapter (SIMULATED; no import/save or model execution)", () => {
