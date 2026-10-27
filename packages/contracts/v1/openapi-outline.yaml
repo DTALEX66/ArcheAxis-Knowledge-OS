@@ -7,10 +7,12 @@ info:
     Path/verb inventory below is the agreed surface for the closed loop;
     it remains a reference until each route actually carries it (route
     conformance is tracked in the T03/T04/T12 lanes, not claimed here).
-    Error semantics: errors.catalog.yaml codes map to HTTP statuses; every
+    Error semantics: errors.catalog.yaml codes map to HTTP statuses; the generic
     reference failure body is {code, message, retryable} (component Error).
     Current machine answer/retest execution failures use the independently
     bounded MachineCallFailure component; 503 does not prove non-execution.
+    Problem-history handler failures use {error: FAILURE_LOG_*}; their
+    extraction/authentication failures may use a different body.
     Status vocabulary: job-status.schema.json; review/evidence states:
     assessment-vocabulary.schema.json; anchors: anchor-coordinate.schema.json.
 servers:
@@ -26,6 +28,125 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/workspace/operation-failures/read:
+    post:
+      operationId: readOperationFailureLog
+      description: >
+        Human-only bounded metadata history for the current workspace and restore epoch.
+        The first read may initialize an independent workspace_meta record through the
+        canonical Store writer. Corrupt history is reported, not silently replaced.
+        No document, draft CAS or model execution is performed.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 2048
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch]
+              properties:
+                workspace_id: {type: string, pattern: '^[a-f0-9]{32}$'}
+                restore_epoch: {type: string, pattern: '^(initial|[a-f0-9]{32})$'}
+      responses:
+        "200":
+          description: At most 50 safe entries; corrupt history has corrupt true, null generation and no entries
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/FailureLogSnapshot'}
+        "400": {description: Malformed JSON syntax}
+        "401": {description: Invalid launch token}
+        "403": {description: Human actor required}
+        "409": {description: 'Workspace or restore scope changed; handler body is {error: FAILURE_LOG_SCOPE_CHANGED}'}
+        "413": {description: Request exceeds 2048 bytes}
+        "422": {description: 'Invalid typed JSON or unknown fields; invalid scope metadata uses {error: FAILURE_LOG_INVALID}'}
+        "503": {description: 'Store unavailable; handler body is {error: FAILURE_LOG_UNAVAILABLE}'}
+  /api/v1/workspace/operation-failures/append:
+    post:
+      operationId: appendOperationFailureLog
+      description: >
+        Append finite safe metadata under the current workspace, restore epoch and log
+        generation. The Core supplies timestamps and counts, retaining at most 50 entries
+        and 65536 stored bytes. Matching failures less than 30 seconds apart accumulate;
+        the count is not a rolling-window total. No raw message, body or stack is accepted.
+        An unknown append result is not replayed automatically and proves no business result.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 2048
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, log_generation, operation, code, reason]
+              properties:
+                workspace_id: {type: string, pattern: '^[a-f0-9]{32}$'}
+                restore_epoch: {type: string, pattern: '^(initial|[a-f0-9]{32})$'}
+                log_generation: {type: string, pattern: '^[a-f0-9]{32}$'}
+                operation: {$ref: './core-document.schema.json#/$defs/FailureLogOperation'}
+                status:
+                  anyOf:
+                    - {type: 'null'}
+                    - {type: integer, minimum: 0, maximum: 599}
+                code: {$ref: './core-document.schema.json#/$defs/FailureLogCode'}
+                reason: {$ref: './core-document.schema.json#/$defs/FailureLogReason'}
+      responses:
+        "200":
+          description: Bounded updated history with Core-generated identity, timestamps and accumulated counts
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/FailureLogSnapshot'}
+        "400": {description: Malformed JSON syntax}
+        "401": {description: Invalid launch token}
+        "403": {description: Human actor required}
+        "409": {description: 'Scope or generation changed or stored history is corrupt; handler body is {error: FAILURE_LOG_*}'}
+        "413": {description: Request exceeds 2048 bytes}
+        "422": {description: 'Invalid typed JSON or unknown fields; invalid status or generation metadata uses {error: FAILURE_LOG_INVALID}'}
+        "503": {description: 'Store unavailable; handler body is {error: FAILURE_LOG_UNAVAILABLE}'}
+  /api/v1/workspace/operation-failures/clear:
+    post:
+      operationId: clearOperationFailureLog
+      description: >
+        Explicitly clear only the current workspace and restore scope, then install a fresh
+        log generation. Healthy history requires its matching generation. An absent or null
+        generation is accepted only for missing or corrupt history. Late old append/clear
+        requests are refused. Unknown clear results require explicit readback, not a success
+        claim or automatic replay. Documents and working-state drafts are unchanged.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 2048
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch]
+              properties:
+                workspace_id: {type: string, pattern: '^[a-f0-9]{32}$'}
+                restore_epoch: {type: string, pattern: '^(initial|[a-f0-9]{32})$'}
+                log_generation:
+                  anyOf:
+                    - {type: 'null'}
+                    - {type: string, pattern: '^[a-f0-9]{32}$'}
+      responses:
+        "200":
+          description: Empty history under a new generation; acknowledgement of this clear only
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/FailureLogSnapshot'}
+        "400": {description: Malformed JSON syntax}
+        "401": {description: Invalid launch token}
+        "403": {description: Human actor required}
+        "409": {description: 'Workspace, restore scope or log generation changed; handler body is {error: FAILURE_LOG_*}'}
+        "413": {description: Request exceeds 2048 bytes}
+        "422": {description: 'Invalid typed JSON or unknown fields; invalid scope metadata uses {error: FAILURE_LOG_INVALID}'}
+        "503": {description: 'Store unavailable; handler body is {error: FAILURE_LOG_UNAVAILABLE}'}
   /api/v1/ingest-batches/{batch_id}/members/{ordinal}/relations:
     post:
       summary: Append original Markdown CAS links to an existing source-bound Document

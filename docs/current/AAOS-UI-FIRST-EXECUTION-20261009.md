@@ -2319,3 +2319,7 @@ Owner要求继续完成原审计及对话未完项，并按订阅剩余≤10%收
 `ui-audit-installed-startup-ready-final` 原44通过/4失败/0跳过；窄化r2为4通过/3失败，均source_consistent。只读复现确认uv目录junction被Path.resolve改写会与实际加载路径不符，改absolute保留加载路径后入口强校验仍exact；r2进而实际暴露CIM的CreationDate截断到微秒，而Process.StartTime保留100ns。后继只对CIM来源的子进程创建时间用Int64截断比较，同一微秒两端、前后微秒和非法精度增负例；主Host及listener即Host仍原始FILETIME exact。原HTTP／WebSocket／错属PID／回收身份及迟到listener断言不放宽，新8例待冻结复测。此处是验收工具的已证实问题，不能据此宣布原NSIS退出故障解决。
 
 V13构建准备仅复用V12流水线，在独立run中硬约束未来冻结完整SHA、原保护补丁54d4、候选/回执拒绝覆盖与stage→Host清单绑定；43个worker/shared/launcher源大小及摘要相等，准备收据 `ui-audit-remediation-v13-build-prepare` LOCAL_PASS/source_consistent。当前未执行新Core/Host/portable构建或原生专项，V12和既有预览保持不变。2026-10-27T19:32:55Z官方查询后的主额度观察剩余19%，阈值未触发；未捕获异常、物理断电与完整RSS、代表性多栏OCR质量和Owner视觉接受等未完成边界不变。
+
+公开检查点 `146a2dc641210d86032bcdb6e81249a02810cf41` 已本地提交，保护补丁回到54d4，仅六项原有材料留在工作区。该冻结点 `ui-v13-frontend-final` 225文件2436通过/0失败/0跳过、`ui-v13-types-final` 类型通过，均LOCAL_PASS/source_consistent=true。同源 `ui-v13-preflight` 为18项通过/2项失败：route-inventory原33通过/3失败因新增3路由未登记、ui-host-drift因原生成摘要未同步；不将其写成全绿。后继补真实HTTP/OpenAPI条目与验证映射，派生计数仍从同一契约读取；沿原generate_ui_host生成器只同步Rust/TS两处digest，映射及响应定义不变。生成run预期改源码，仍INVALIDATED/child0，检查待后继冻结。
+
+同源新观察器8例r3为7通过/1失败，实际Chromium已观察成功，但PowerShell在正确PASS JSON前输出四行VoidTaskResult，严格整段JSON读取拒绝。只读合成复现保留原stdout摘要，不含真实数据；后继仅抑制ConnectAsync与SendAsync的两处无用返回值，未改成读取最后一行或吞协议异常。完整8例仍需复测。已过的37项邻接测试、Core3项和146全前端证据各保留原源绑定，不因只改工具返回值／契约登记而冒充全产品重跑；新SHA CI、构建和三次原生冷启／问题记录清空专项仍独立待验收。

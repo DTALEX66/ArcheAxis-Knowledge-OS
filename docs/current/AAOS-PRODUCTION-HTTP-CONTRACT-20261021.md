@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (137 pairs in a `text_worker` launch)
+## 3. Route inventory (140 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -608,8 +608,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 85 addresses: 84 projection method/path pairs (72 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 137 addresses (83 base projection method/path pairs + 53 runtime method/path pairs on 50 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **no** `text_worker` | 88 addresses: 87 projection method/path pairs (75 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 140 addresses (86 base projection method/path pairs + 53 runtime method/path pairs on 50 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
 The runtime builder carries **50** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -814,7 +814,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 83 base projection pairs plus 53 runtime pairs plus one native session-control pair total 137. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 86 base projection pairs plus 53 runtime pairs plus one native session-control pair total 140. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
@@ -998,3 +998,19 @@ Directed checks: `cargo test -p archeaxis-api --test template_lifecycle --offlin
 Request bounds: candidate and nested UTF-8 byte limits, enums, and strict field sets are specified in `packages/contracts/v1/openapi-outline.yaml`; the serialized candidate is capped at 48,000 bytes inside the 65,536-byte HTTP envelope. The response reuses `packages/contracts/v1/core-document.schema.json#/$defs/DocumentDto`. Source: `crates/archeaxis-api/src/external_context.rs` and `crates/archeaxis-domain/src/external_context.rs`; directed API tests: `crates/archeaxis-api/tests/external_context_api.rs`. Source contract only; provider integration, installed runtime and Owner acceptance remain unqualified.
 
 Directed offline checks: `cargo test -p archeaxis-api --test external_context_api --offline --locked`; `cargo test -p archeaxis-domain --test external_context_candidates --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. These commands identify evidence artifacts; listing them is not a new execution claim.
+
+## 23. Bounded persistent problem history (2026-10-28)
+
+| # | Method + path | Authorization | Contract |
+| --- | --- | --- | --- |
+| 231 | `POST /api/v1/workspace/operation-failures/read` | Existing launch token and human actor only | Strict workspace/restore scope, at most 2,048 request bytes. Returns `FailureLogSnapshot`; the first read may initialize the independent metadata record through the canonical Store writer. Corrupt stored history is reported as `corrupt: true`, `log_generation: null` and no entries; it is not silently overwritten. |
+| 232 | `POST /api/v1/workspace/operation-failures/append` | Existing launch token and human actor only | Strict scope, matching log generation and finite operation/code/reason metadata. Optional `status` may be absent or null, otherwise integer 0..599. Only the Core supplies entry identity, timestamps and counts. At most 50 entries and 65,536 stored bytes; matching failures less than 30 seconds apart may form one accumulated count. No arbitrary message, request body, business object ID, endpoint, credential or stack is accepted. |
+| 233 | `POST /api/v1/workspace/operation-failures/clear` | Existing launch token and human actor only | Explicit clear with workspace/restore scope and matching generation. `log_generation` may be absent or null only for missing/corrupt history; healthy history requires its current generation. A successful transaction installs a fresh generation, so delayed old append/clear requests cannot repopulate or erase the new history. |
+
+All three request objects reject unknown fields and use the 2,048-byte HTTP envelope. Workspace identity is 32 lowercase hex characters; restore epoch is `initial` or 32 lowercase hex characters. Generation, when present and non-null, is 32 lowercase hex characters. Request schemas are in `packages/contracts/v1/openapi-outline.yaml`; all 200 responses reuse `packages/contracts/v1/core-document.schema.json#/$defs/FailureLogSnapshot`.
+
+Malformed JSON syntax returns 400; launch authentication failure 401; a nonhuman actor 403; stale scope/generation or an append against corrupt history 409; oversized body 413; typed JSON, unknown fields or invalid metadata 422; Store unavailability 503. Handler-mapped failures use `{error: "FAILURE_LOG_*"}`, rather than the generic reference error shape; extraction/authentication failures may have a different body. Unknown append or clear results remain unconfirmed until explicit readback; logging never proves business execution or permits automatic business replay.
+
+The bounded record lives in `workspace_meta`, independently of working-state CAS, draft budgets and saved documents. Saved metadata survives Store reopen and is included in workspace backups; restored entries retain their earlier epoch, while new operations must use the current epoch. Manually opened raw diagnostic payloads remain session-local. Source contract and controlled SQLite/HTTP checks do not qualify a packaged application, installed runtime or Owner acceptance.
+
+Directed offline check: `cargo test -p archeaxis-api --test operation_failure_log_api --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. Sources: `crates/archeaxis-api/src/failure_log.rs` and `crates/archeaxis-domain/src/failure_log.rs`; frontend persistence races are covered separately in `frontend/src/__tests__/FailureLogPersistence.test.tsx`. These are check entry points, not a claim that this documentation update ran them.

@@ -113,10 +113,10 @@ try {
         -not $address.AbsolutePath.StartsWith('/devtools/page/')) {throw 'CDP_ADDRESS_REFUSED'}
     $proof.phase='CDP_EVALUATE'
     $socket=[Net.WebSockets.ClientWebSocket]::new()
-    $socket.ConnectAsync($address,$cancellation.Token).GetAwaiter().GetResult()
+    $null=$socket.ConnectAsync($address,$cancellation.Token).GetAwaiter().GetResult()
     $message=@{id=1;method='Runtime.evaluate';params=@{expression=$request.expression;returnByValue=$true}}
     $bytes=[Text.Encoding]::UTF8.GetBytes(($message | ConvertTo-Json -Depth 6 -Compress))
-    $socket.SendAsync([ArraySegment[byte]]::new($bytes),[Net.WebSockets.WebSocketMessageType]::Text,$true,$cancellation.Token).GetAwaiter().GetResult()
+    $null=$socket.SendAsync([ArraySegment[byte]]::new($bytes),[Net.WebSockets.WebSocketMessageType]::Text,$true,$cancellation.Token).GetAwaiter().GetResult()
     $stream=[IO.MemoryStream]::new();$buffer=[byte[]]::new(8192)
     try {
       do {
