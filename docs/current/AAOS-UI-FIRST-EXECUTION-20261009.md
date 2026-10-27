@@ -2271,3 +2271,5 @@ MiniMax该批素材取消继续有效，既有静态人物未替换。六项原�
 `24d5148ca37600f54dbbd390e593412bc7ec83a4` 已正常上传且本地、远端trae/20261024及PR203 head相等；该源完整前端2406项、类型与20项预检通过且源码一致，CI40546297055仍须读取终态。V11 Core/Host/19746成员装配通过，Host SHA `de09c6f755952fcb3dfb93d82daae9e77ed935897db037f89e3df9a9a9d47f88`；最小原生引导却真实FAIL：空库与快速下一步三步通过，首次新文档ID传给保留的导入导出页时，延后的默认页签切换覆盖第一步。原始 `ui-audit-remediation-v11-guide-native/artifacts/guide-lifecycle/receipt.json` 与失败图保留，未启动V11完整截图、未将候选视为最终资格。
 
 后继将仅呈现用的默认页签同步移至提交前阶段，异步文档读取仍在普通effect，未增加请求或绕过真实可见判断。真实Driver/React竞态夹具修前RED2为1失败/1通过，修后2项通过；六文件35项定向通过，记录 `ui-audit-exchange-commit-red2`、`ui-audit-exchange-commit-green`、`ui-audit-exchange-v12-tests-final`。四个导入导出错误位置改用现有白话分层，详情仅显式打开；Core通用错误不再直接拼接命令名称或HTTP数字，status/code及自动日志操作元数据保持原值。两文件33项专项通过，见 `ui-audit-remediation-v12-error-tests`；后继统一检查及V12资格单独登记，不借用旧通过。官方订阅窗口最新观察剩余28%，未触发≤10%停止；该比例是观察值而非持续不变承诺。
+
+冻结源 `db5d2caa15f25e544e2cc0b766c9988c525cad30` 的类型与20项预检通过；首轮完整前端2417通过/1失败，`ui-audit-remediation-v12-frontend-full` 保留原FAIL。唯一失败是旧CoreBridge断言仍强制404/400/503/403显示内部命令和状态数字；后继仅把四类文案断言改为精确白话并增加原status/code校验，未放宽失败分层，生产代码不变。两文件51项定向通过，见 `ui-audit-remediation-v12-core-bridge-tests`；最终完整r2与候选仍需分别登记。

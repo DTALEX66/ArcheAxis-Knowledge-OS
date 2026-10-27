@@ -37,14 +37,14 @@ describe("finite Core bridge", () => {
   });
   it("distinguishes a missing object, a refused argument, a core fault and an identity refusal", async () => {
     const cases: Array<[number, RegExp]> = [
-      [404, /找不到 sources_list 所需的对象/],
-      [400, /拒绝了 sources_list（400）/],
-      [503, /未能完成 sources_list（503）/],
-      [403, /拒绝了此操作的身份/],
+      [404, /暂时找不到这项内容，请刷新列表后重试/],
+      [400, /这项操作未获允许，请检查填写的内容后重试/],
+      [503, /这项操作暂时未能完成，请查看问题记录后重试/],
+      [403, /你暂时不能进行这项操作，请检查是否已获得授权/],
     ];
     for (const [status, pattern] of cases) {
       window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ status, body: {} }) } };
-      await expect(coreCommand("sources_list")).rejects.toThrowError(pattern);
+      await expect(coreCommand("sources_list")).rejects.toMatchObject({status, message:expect.stringMatching(pattern), code:status === 403 ? "unauthorized" : "unavailable"});
     }
   });
   it("reports version conflict and rejects malformed status instead of returning success", async () => {
