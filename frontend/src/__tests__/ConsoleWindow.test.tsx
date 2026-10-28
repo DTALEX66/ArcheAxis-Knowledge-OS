@@ -30,7 +30,7 @@ describe("single console geometry (SIMULATED, no layout qualification)", () => {
     expect(workspaceConsoleRect({width:900,height:600},"focus")).toEqual(stitchConsoleRect({width:900,height:600}));
   });
   it("keeps Stitch's main window clear of its auxiliary column and reflows without replacing drafts", async () => {
-    for (const [width, height] of [[1280, 700], [1440, 1000], [1600, 1000], [2560, 1440]]) {
+    for (const [width, height] of [[1440, 800], [1440, 1000], [1600, 1000], [2560, 1440]]) {
       const rect = stitchConsoleRect({ width, height, topInset: 48, bottomInset: 64 });
       const sideLeft = width - rect.x - width * .29;
       expect(sideLeft - (rect.x + rect.width)).toBeCloseTo(20);
@@ -49,7 +49,13 @@ describe("single console geometry (SIMULATED, no layout qualification)", () => {
     await user.click(screen.getByRole("button", { name: "还原主控台" }));
     expect(geometry().width).toBe("1024px");
     viewport(640, 480); expect(geometry().width).toBe("640px");
-    viewport(1280, 800); expect(geometry().width).toBe("819.2px");
+    viewport(1280, 800); expect(parseFloat(geometry().width)).toBeGreaterThan(1000);
+    for (const [width,height] of [[1024,700],[1024,640],[819,560]]) {
+      viewport(width,height); const bounds=geometry();
+      expect(parseFloat(bounds.left)+parseFloat(bounds.width)).toBeLessThanOrEqual(width);
+      expect(parseFloat(bounds.top)+parseFloat(bounds.height)).toBeLessThanOrEqual(height);
+      expect(screen.getByLabelText("Stitch 草稿")).toBe(input);
+    }
     expect(screen.getByLabelText("Stitch 草稿")).toBe(input); expect(input).toHaveValue("保存原文");
   });
   it("resizes from each additional edge or corner while preserving the opposite edge and cancelling safely", () => {

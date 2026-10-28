@@ -90,6 +90,13 @@
     "colors": "semantic colors from selected theme; new reference palette values preserved",
     "preference": "New or invalid preference defaults to cosmic per current UI package; valid saved theme remains unchanged."
   },
+  "native_window_policy": {
+    "owner_date": "2026-10-28",
+    "owner_instruction": "默认界面打开不要最大化，并按照小窗口重新优化，适配缩放",
+    "startup": "Normal centered window; logical client size up to 1280x800, capped by primary monitor work area and DPI; existing 640x480 minimum retained",
+    "layout": "Reading space takes priority below 1440x800; companion remains available through Dock; preserve saved preferences and mounted drafts",
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+  },
   "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
   "drift_readback": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
   "permissions": {
@@ -115,7 +122,13 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "PAUSED_BY_OWNER",
+    "state": "RUNNING_BY_OWNER",
+    "owner_resume_20261028": {
+      "instruction": "接手后续任务；加速并行",
+      "allowance_readback": "Official get_usage_limits: codex primary used4 remaining96; secondary unknown",
+      "scope": "Resume existing finite successor work; independent agents with separate write sets; monitor remains PAUSED; cancelled screenshot package and MiniMax batch remain cancelled",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "permission_recovery_current": {
       "observed_at": "2026-10-23T00:10:02Z",
       "state": "PERMISSIONS_RECOVERED",
@@ -135,7 +148,7 @@
       "owner_authorization": "RETAINED; not an Owner pause",
       "monitor": "PAUSED_UNCHANGED"
     },
-    "instruction": "Owner remaining<=10 percent condition triggered at observation after 2026-10-27T21:42:44Z. Stop new development/build/test/capture; only safely seal completed work, publish authorized public files and verify corresponding branch SHAs. Then remain paused pending explicit Owner resume; quota reset does not resume. Full human/AI/permissioned-connection scope CL-01..07/J1..6 remains PARTIAL, not complete.",
+    "instruction": "Owner explicitly resumed on 2026-10-28: 接手后续任务; 加速并行. Official allowance readback remaining96 percent permits existing finite successor execution. Preserve <=10 percent stop guard; monitor remains PAUSED. Previous threshold stop is historical, not a current development pause. Full human/AI/permissioned-connection scope CL-01..07/J1..6 remains PARTIAL, not complete.",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
@@ -1065,8 +1078,8 @@
     "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
     "monitor": "ACTIVE_BY_OWNER; current <=10 percent subscription rule in execution_control.allowance_guard supersedes dated paused observations",
     "commit_push": "Current delivery and exact local/remote SHA readback are recorded only in the latest 2026-10-28 section of the sole execution record; dated policy-blocked observations below are historical",
-    "latest_ui_delivery_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-v13新截图交付与ci后继",
-    "latest_ui_followup_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-额度10停止与接续交接",
+    "latest_ui_delivery_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-owner取消全量截图交付并清理副本",
+    "latest_ui_followup_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-新会话交接已整理",
     "latest_ui_retention_20261024": {
       "host_sha256": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
       "host_bytes": 47375872,

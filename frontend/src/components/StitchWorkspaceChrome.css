@@ -78,7 +78,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   position: fixed; top: 46px; left: min(250px, 4vw); width: min(320px, calc(100vw - 24px)); box-sizing: border-box;
   max-height: calc(100dvh - 110px); overflow: auto; padding: 7px; display: grid; gap: 3px;
   background: var(--stitch-reading-surface); border: 1px solid var(--stitch-glass-edge); border-radius: 12px;
-  backdrop-filter: blur(24px) saturate(55%); -webkit-backdrop-filter: blur(24px) saturate(55%);
+  backdrop-filter: blur(14px) saturate(55%); -webkit-backdrop-filter: blur(14px) saturate(55%);
   box-shadow: 0 16px 36px -10px #0008, var(--stitch-material-rim);
 }
 .stitch-menu-heading { margin: 0; padding: 5px 10px 8px; color: var(--ax-fg-tertiary); font-size: 14px; border-bottom: 1px solid var(--ax-border); }
@@ -118,7 +118,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   --stitch-surface: var(--stitch-glass-panel);
   --stitch-edge: var(--stitch-glass-edge);
   border-radius: 16px; padding: 0; border: 1px solid var(--stitch-edge);
-  background: linear-gradient(118deg, #ffffff0d, transparent 44%, #ffffff03), var(--stitch-surface) !important; backdrop-filter: blur(32px) saturate(45%); -webkit-backdrop-filter: blur(32px) saturate(45%);
+  background: linear-gradient(118deg, #ffffff0d, transparent 44%, #ffffff03), var(--stitch-surface) !important; backdrop-filter: blur(16px) saturate(45%); -webkit-backdrop-filter: blur(16px) saturate(45%);
   box-shadow: var(--stitch-material-shadow), var(--stitch-material-rim);
   font-weight: 400;
 }
@@ -199,7 +199,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-companion-window, .stitch-reference-window {
   background: var(--stitch-glass-panel); border-color: var(--stitch-glass-edge);
   border-radius: 16px;
-  backdrop-filter: blur(32px) saturate(45%); -webkit-backdrop-filter: blur(32px) saturate(45%);
+  backdrop-filter: blur(16px) saturate(45%); -webkit-backdrop-filter: blur(16px) saturate(45%);
   box-shadow: var(--stitch-material-shadow), var(--stitch-material-rim);
 }
 .stitch-window-titlebar { background: var(--stitch-glass-header); }
@@ -230,7 +230,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 /* Reserve the global chrome when ConsoleWindow uses its existing full/compact mode. */
 .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] { padding-top: 42px; padding-bottom: 64px; border-radius: 0; }
 .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 89px; }
-@media (min-width: 1280px) and (min-height: 700px) {
+@media (min-width: 1440px) and (min-height: 800px) {
   .stitch-companion-window, .stitch-reference-window {
     --stitch-main-width: 64vw;
     --stitch-aux-width: 29vw;
@@ -251,7 +251,7 @@ body:has(.app-shell[data-stitch-workspace]) {
     right: 16px;
   }
 }
-@media (max-width: 1279px), (max-height: 699px) {
+@media (max-width: 1439px), (max-height: 799px) {
   /* The shared companion stays mounted; the explicit inspector takes the single auxiliary slot. */
   body:has(.stitch-reference-window) .stitch-companion-window { display: none; }
   /* Keep the main header and view tabs clickable; use the lower auxiliary slot
@@ -268,7 +268,9 @@ body:has(.app-shell[data-stitch-workspace]) {
 }
 @container console (max-width: 1100px) or (max-height: 760px) {
   .app-shell.cabin-shell[data-stitch-workspace] .app-body { gap: 8px; padding: 8px; }
-  .app-shell.cabin-shell[data-stitch-workspace] .app-center { padding: 10px; }
+  .app-shell.cabin-shell[data-stitch-workspace] .app-center { padding: 8px; }
+  .app-shell[data-stitch-workspace] .dock-layout-options > summary { padding-right: 0; white-space: normal; }
+  .app-shell[data-stitch-workspace] .stitch-window-toolbar { padding-inline: 8px; gap: 6px 8px; }
   .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading { margin-bottom: 6px; padding-bottom: 6px; }
   .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading :is(p, small) { display: none; }
 }

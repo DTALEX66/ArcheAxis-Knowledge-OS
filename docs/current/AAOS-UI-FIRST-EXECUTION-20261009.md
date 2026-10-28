@@ -2416,3 +2416,67 @@ CI三项最小修复后的 `ui-ci877-contracts-and-source-followup` 实际304通
 截图交付保持本地完整链接：`.project-local/星环界面审计-20261028-87777c77-V13-云端JPEG90.zip`（331220924字节、SHA9cd00b6095d00982a70b092c681630b206e68d9b23870e85b1a6e933f2eb87fe）和同名前缀原始PNG.zip（916818393字节、SHA4ee978372b3d82d2aba1fd8aa57256789cb6350c8e266aaeffafd6687666003e）；未外发云端，两个离线图库及ZIP逐成员已验。最新帧1140真1920×1080／5真2560×1352／4自然尺寸OS菜单，不改变系统显示器分辨率。31项分组缺图＋18项原导航不可展示声明不是49个产品故障；不得旧V12像素填补后改称全新。历史清理只说明当时核验的项目自有旧构建／缓存及截图逻辑量，不冒充当前磁盘空闲空间；最新构建缓存、独有失败证据、原件、设计素材及归属未明项保留。
 
 明确恢复后的顺序：先读本指针、此交接、实际git status/HEAD及PR203新head CI终态，确认Owner恢复并重新读取官方额度，勿因重置自行继续。先处理真实新CI失败并验证原生自评选择及旧退出路径，再修应用级渲染／异步异常白话兜底和有限前端失败日志，保护多页草稿、无自动写入重放。31图只在新独立golden副本运行，核原件SHA／业务aggregate并保全缓冲，通过既有“暂时跳过”真实按钮关闭已知首次引导、等待hidden，未知dialog停；仅补24布局＋2独占态＋末5页，不重放437。后续新构建／新图分开绑定源码并新建版本包，保持原parent FAIL/子RUNNING与18条页面索引修正来源。原审计尚需完整恢复RSS／SQLite C内存、恢复与授权失效的物理断电窗口、多栏OCR代表质量，不写成已发生事故；人物质量与Owner视觉接受、完整双侧闭环和外部授权连接仍按原目标逐项验收，外部provider不可由离线候选导入冒称已连接。旧24项映射仍绑定8b89，不可直接把当前全部CLOSED。本机没有新Host、虚拟机或安装，Green未替换／未发布；全部目标仍PARTIAL而非完成。
+
+#### 2026-10-28 Owner取消全量截图交付并清理副本
+
+Owner最新原话：“补齐最新截图包 不要再做了 该删掉的删掉 随你修复更新UI界面的时候自行截图审计 昨天已经审计完成了”。按该决定撤销独立的补齐最新截图包、31项分组缺图补拍、重做全菜单全环节截图包、离线图库及外发包制作任务；这些项记为Owner取消，不再列作交付阻塞或恢复后的待办。Owner确认昨天审计已完成，现有审计结论及问题继续作为修复输入；不因此回改历史采集失败、部分覆盖状态，也不等于所有产品问题已经修复。
+
+未来仅在已授权的UI修复过程中，按变更涉及的页面、状态和必要分辨率自行截图审计，发现问题再修复并核对。保留与源码对应的必要验证截图和独有失败证据，去除被替代或重复的展示副本；没有新的全量打包、追齐历史缺图、云端外发或周期采集任务。此决定替代前面各节关于恢复后补31图和重新生成整包的安排。
+
+本次清理仅针对已核实的项目内V13交付副本：`.project-local/星环界面审计-20261028-87777c77-V13-原始PNG/`、同前缀`云端JPEG90/`及两份对应ZIP。删除前逐张核对1149份原始运行图片与打包PNG的SHA-256一致，并核对两份ZIP原交付摘要；原始图片仍在各自运行目录中。另按原字节保留18份清单、说明及附加审计元数据，原始收据、审计报告、独有失败截图、原件及最新候选/构建缓存均未删除。实际删除4714个冗余文件、2513748573逻辑字节（约2.341 GiB），四个精确目标均已不存在；该数字不冒充磁盘空闲空间增量。旧交付链接只作历史记录，不再指向当前可取用的包。
+
+清理计划与结果分别为 `.project-local/runs/be268a2d33/ui-audit-package-retired-20261028/artifacts/cleanup-plan.json` 和同目录 `cleanup-result.json`，包含原始图片位置/摘要、保留元数据位置/摘要、精确删除目标与后置检查。六项原有dirty/untracked材料按保全清单复核未变。此次仅落实Owner任务裁剪、文档导航及授权冗余副本清理；执行与监控仍保持PAUSED，没有新开发、测试、构建、截图、CI查询、提交、推送、合并或发布。其余未完成项沿前节交接，须Owner明确恢复后接续。
+
+#### 2026-10-28 新会话交接已整理
+
+Owner要求梳理全部本项目对话、未完成任务并开启新会话。完整冻结提示词为 [session-handoff-20261028-ui-followup/README.md](../history/session-handoff-20261028-ui-followup/README.md)，覆盖最新取消项、24项已完成静态审计的问题、原af1风险与原始结果、已实现和待验层、a45／4c8／877分层CI、剩余任务顺序、完整双侧闭环与云推理延期、保护文件和本地未提交文档、候选／收据路径及暂停规则；不另建可变进度账本。此次仅核本地git身份和已有收据，未联网重查远端或CI。当前本地HEAD／origin跟踪仍a45de651、main／origin-main仍8d367bac，真实远端最后读回时点仍为前次交付收据的2026-10-27T21:48:23.4399844Z。
+
+Owner随后明确授权读取私有记忆索引，仅按授权查询MEMORY.md中AAOS交接与审计条目；此前自动审批因私有数据范围拒绝的首次请求保留为历史，追加明确授权后的正常调用成功，未访问无关私人内容或更新记忆。此次交接文件与三份current文档尚未提交／推送；六项原有dirty/untracked材料继续保护。新会话仅接收并只读核对交接，然后保持PAUSED；“开启新会话／给权限／读取私有记忆索引”不自行解释为恢复产品开发、额度监控或取消10%停止条件。新会话创建结果以官方工具回执为准。
+
+官方create_thread已成功创建同项目local新会话 `01a1823b-dc6a-7661-b6ab-3a26f6144444`，hostId=local，并将完整提示词作为初始消息传入；没有创建新worktree或设置模型覆盖。新会话入口：[接收完整交接的新会话](codex://threads/01a1823b-dc6a-7661-b6ab-3a26f6144444)。工具调用成功只说明会话创建，不代表后续任务已恢复或完成；接收范围仍限定只读核对并保持暂停。
+
+官方wait_threads随后返回该新会话首轮completed／idle，实际回复确认只读核对指针、交接、执行记录与工作区，识别四项未提交交接文档、六项保护材料及取消项，继续PAUSED，未修改文件或联网查CI／启动测试、构建、UI与截图。navigate_to_codex_page返回navigated=true，已为Owner打开新会话。
+
+#### 2026-10-28 Owner恢复接续与并行调查
+
+Owner在新会话明确要求“接手后续任务”“加速并行”。官方get_usage_limits本轮读回codex primary used4／remaining96，secondary未知，已高于≤10停止阈值；据此恢复既有有限范围开发，监控仍暂停，截图包与MiniMax该批取消项不恢复。六项保护材料逐项SHA256与原保全清单一致，未修改。
+
+真实GitHub读回PR203仍OPEN/BLOCKED，head为a45de651cfbb3604acd82a61a01a9a10ad6cbbfd。run40589633273已完成：14 SUCCESS／3 FAILURE／3 SKIPPED，失败rust-vnext(job122490850151)、installer-lifecycle(job122500847099)、a0-gates汇总(job122502751450)。这替代此前该run终态未知的快照，不证明安装或完整闭环。已并行分派Rust失败调查、安装失败调查和应用错误兜底源码审查，调查阶段只读，尚无新修复或测试结论。GitHub CLI普通沙箱因配置访问受限失败，正常提权只读查询成功，未打印凭据。
+
+并行第一批结果：新增FrontendFailureNotice与frontendFailures监听，仅捕获未处理事件类别，白话非模态提示、关闭不重挂App、不自动重试，不读取异常正文/stack/URL/rejection reason。用户主动查看时仅送固定摘要到现有会话诊断；尚未扩展自动持久日志，也未实现渲染边界。独立agent执行2项行为测试及tsc --noEmit通过；源码布局复核后改固定定位避免落到页面末尾，2项测试复验通过。无浏览器/原生像素验证，不能声明完整错误兜底完成。
+
+Rust失败唯一定位到document_cloud_loop::configured_worker_is_outside_writer_transaction_and_old_version_readback_survives_restart，execution_verified=false/reason=invalid_worker_response；5秒faulthandler是诊断而非业务超时证明。已仅在该测试合成worker增加失败诊断，定向复现进行中，不扩大超时、不放松产品校验。
+
+安装原始artifact只读下载到.project-local/runs/be268a2d33/resume-a45-installer-readonly/，主receipt runs/fd2a08c715/webdriver-62385c9570c8/tmp/journey/receipt.json SHA256 f082c21ba7a6120f0745447d8c3abcf323ccb609bd418d9c5d2b7df9aae5f963。失败在最终格式重开close_session，第5次退出ACK281ms，确认观察15031ms耗尽共享15秒预算，Host仍在；第6次finally清理93ms退出0，不能覆盖首次失败。不是旧SELECT或capability_refusal_recovery路径，根因仍待定位；没有启动新Host或放宽退出期限。
+
+#### 2026-10-28 Owner追加玻璃降模糊与项目整理
+
+Owner要求“毛玻璃面板 模糊度太高了”，并授权并行执行当前项目体积清理、规范化、合并迁移归档及陈旧冗余目录/子文件夹整理。范围为当前项目；依归属、引用、可再生与替代证据落实，六项保护材料、原件、独有失败证据、最新候选及构建缓存继续保留。Git分支合并仍需对应检查与审查条件，不因目录整理自动绕过。监控保持暂停。
+
+共享glass-cabin.css温和降低主工作窗24→16px、菜单22→14px、阅读/详情14→10px、导航10→8px、卡片6→4px，WebKit同步，底色/透明度/文字颜色/布局及无障碍回退未改变。PostCSS解析与diff --check通过，尚无原生像素/Owner视觉验收。项目整理并行盘点与逐哈希候选验证进行中，未先删除唯一材料。
+
+前批补充验证：FrontendFailureNotice + OperationFailureLog + FailureLogPersistence三文件29项全部通过，收据.project-local/runs/be268a2d33/ui-frontend-failure-regression-20261028/artifacts/execution.json。Rust定向复现有效r2为1通过/7过滤，未复现CI拒绝，根因仍未确认，收据a45-rust-cloud-diagnostic-r2；不能将本地PASS写成CI修复。Host有限关闭阶段诊断已实施，静态格式通过；第一次正式check因构建入口/前端路由配置失败，保留a45-host-close-check-r1/r2，未通过main.rs类型检查，后继按正确路由验证。
+
+2026-10-28 本轮后继封存：Host关闭阶段诊断正确路由后r5 cargo check通过，LOCAL_PASS/exit_code0/source_consistent=true，21.94秒、7条既有warning；收据.project-local/runs/be268a2d33/a45-host-close-check-r5/artifacts/execution.json。仅类型检查，使用现有frontend/dist，不是新候选构建/安装或退出根因修复。两项导航纠偏已完成：UI_V3_PRODUCT_ROADMAP当前默认cosmic，旧日期原文保留；AAOS-PROJECT-CLOSURE-20261018标明日期快照，当前状态路由唯一记录。
+
+8b89历史截图交付副本已退休：.project-local/界面审计截图-20261028-8b89e23f-原始/、云端审计版/及两份对应ZIP均已删除；旧链接只作历史身份，不再作为可下载包。按四目标精确清单逐文件哈希、ZIP每成员SHA/CRC及全部路径无reparse核验后执行，删除4156文件/3304256619逻辑字节（约3.077 GiB）；不与以前V13清理重复累计，不冒称物理空闲增量。1014份运行原图逐张SHA在删除前后均一致；98份HTML/总览/清单/附加材料按原字节保存在.project-local/runs/be268a2d33/ui-audit-package-retired-8b89-20261028/artifacts/preserved-metadata/，共65654422字节。计划cleanup-plan.json SHA256 592afa252e060823d2d0f2472746c37aaed62b3c975b991e9bbb4ee50744d958；同目录cleanup-result.json记录实际删除及后验。六项原有保护材料删除后哈希仍全一致，原始runs、独有失败、最新候选和构建缓存未删。进一步目录规范化只对已证明冗余/可再生目标继续，不把布局异常直接改判垃圾。
+
+20261027展示副本第二批：仅删除.project-local/界面审计截图-20261027-最新版/，1568文件/776087847逻辑字节；766份运行原图、73份保全元数据、六项保护材料前后哈希通过。云端审计目录仍被冻结findings与离线图库动态引用，整目录1565文件保留原址并前后逐SHA核验，未为清理改写历史审计。计划、精确执行脚本和结果在.project-local/runs/be268a2d33/ui-audit-package-retired-20261027-copies-20261028/artifacts/；元数据已按原字节迁入其preserved-metadata/。此批不是全部目录删除，云端导航仍可回查。加本轮8b89批次合5724文件/4080344466逻辑字节（约3.80 GiB），不含之前V13/10月25清理，不等于磁盘净释放。当前执行RUNNING_BY_OWNER/整体PARTIAL，监控仍暂停。
+
+本轮文档权威检查通过：单一当前记录、根引用及项目内哈希校验通过，外部来源仍UNVERIFIED。项目体积盘点为PARTIAL，存在权限/长路径读取失败；31个非标准深度run入口与19个旧checkout身份仅作整理线索，不构成删除授权或冗余证明。最新候选、构建缓存、原件、独有失败、Agent私有状态保留。未提交/推送/合并/发布或替换Green，真实CI两处失败及原生退出仍待后继证据，不因本地检查通过宣称修复。
+
+#### 2026-10-28 后继原生验证与默认小窗口
+
+Owner追加“默认界面打开不要最大化，并按照小窗口重新优化，适配缩放”。正式Host改为普通居中窗口，逻辑客户区上限1280×800，按主显示器work_area和scale_factor留出窗口装饰空间，既有640×480最小尺寸保留，不修改系统分辨率/缩放。ConsoleWindow、App与Stitch布局断点统一1440×800，小窗优先正文，人物默认收起但Dock仍可主动打开；保留有效偏好与同一业务草稿。1280主窗由约819px增为1152px，1024主窗922px。进一步查实StitchWorkspaceChrome.css存在更具体的32px磨砂覆盖，现实际主窗/辅助窗32→16px、菜单24→14px，不能仅凭前轮glass-cabin数值宣称已生效。
+
+局部验证：ConsoleWindow/StitchWorkspaceChrome共26项通过，TypeScript/PostCSS通过；Host startup_window_tests两项通过，覆盖按100%/150%/200%计算的可用工作区边界与未知显示器回退（计算测试不等于实改OS缩放）；small-startup-tests为LOCAL_PASS/source_consistent=true。关闭屏障既有前端13项通过；退出证明/桌面暂存初跑54通过/1条WinError206长路径失败，原记录resume-close-contract-regression-20261028保留，短隔离basetemp后ce2为55通过，未改产品或系统长路径设置。
+
+最终候选绑定a45de651cfbb3604acd82a61a01a9a10ad6cbbfd + 补丁ef7af9b7007114c4ae65bd6b1523a7b3eed0caa2ed4153ffe907297adbf879e0，Core新构建/worker stage/Host/portable均独立封存，stage changed=[]。Host SHA256 b4baf857b6a45d3f172cb1f9de96cee04a920e8c76682277acee95d5b68a70a6；Core仍40b563626a07c5bd9658da9b1b8a8c2289bf930e4d9fbbf4b39b20fe7909db30。程序.project-local/runs/be268a2d33/ui-small-final-portable/artifacts/星环便携候选/ArcheAxis.exe，构建ui-small-final-host/artifacts/frontend-build.json；原生ui-small-final-native-r2/artifacts/receipt.json及ui-small-final-native-r2-driver/artifacts/execution.json。普通启动实测IsZoomed=false，DPI120/scale1.25、viewport1280×800；以当前Python线程PER_MONITOR_V2补正物理读取后，窗口[471,171,2089,1218]处于workarea[0,0,2560,1380]内。初版物理字段受DPI虚拟化影响，不能沿用冒称物理。三档实际普通窗口1280×800、1024×700、819×560均为人物expanded=false，菜单/Dock可达，根无横纵溢出，computed主窗16px/菜单14px。819仅为额外窄视口，不冒称页面缩放125%。仅cosmic阅读页/知识菜单定向验证，无五主题全覆盖或完整UI/Owner视觉验收。自有Host退出0/Core GRACEFUL且路径进程清场；r2重复reading文件实际菜单仍开，不标成关闭菜单图。
+
+预览入口.project-local/AAOS-UI-Preview-20261026.cmd仅将程序目标改到上述最终候选，保留原Owner工作区/配置，--check通过，未启动Owner工作区或替换Green。原入口按原字节保全于ui-small-preview-entry/artifacts/preview-entry-before.cmd，身份/后验见entry-receipt.json。旧V13候选仍保留，不将旧像素或旧原生证据改绑新候选。
+
+先前a45+a807候选格式旅程ui-resume-a45-format-native/底层webdriver-b6cc9147a107为PASS/source一致，5次Host退出0，最终格式冷重开退出1503.9ms，Host13548/close-1/Core12636同次GRACEFUL1466ms关联。仅最终trace保全，前4次只有退出receipt不能补造trace。grouped webdriver-10b4cc5c20e5已通过SELECT自评rating3，但检查此备份的trusted pointer命中STRONG/target=false后FAIL，未重放；无点击时rect/祖先证据，不能直接判产品恢复坏或断定根因，尚未到旧capability_refusal_recovery退出路径。该Host清场GRACEFUL56ms。旧a45安装失败、原877超时继续保留，不能由候选层正常退出覆盖；trace同步文件IO在慢盘下的潜在延迟仍未专测，不作为已证实根因。
+
+Rust补充：a45-worker-preparation-mechanism及-312受控实验在3.13.14/3.12.13均证明fixture准备阶段若抛异常，会形成缺6个任务快照身份字段的invalid_request，域校验首先拒绝身份，最终invalid_worker_response。此为机制证据，原CI真实异常未留存，尚不能归因版本/缺依赖；未安装或修改共享Python。冻结测试诊断待后继CI提供真实响应/异常，不扩大超时、不放松校验。
+
+后继清理只读线cleanup-followup-readonly-20261028/artifacts/review.json未发现新的可安全删除大体积目标。volume06/08/09、sparse-runtime和staged-input五份历史清理原回执仍SOURCE_UNVERIFIED；归档key-receipts/retention-applied.json实测SHA256 ca37f3a3527b5cc37c6c2ce9df3c9824a2ca857abb559b793be09f280f26c21b与MANIFEST一致，但只证历史DELETE_INCOMPLETE及各目录4/4/1/4/4文件删除记录，不能替代原始逐成员回执。归档同名cache-cleanup.json与当前cache-cleanup-20261024-01一致，摘要并非volume09所记值，不冒充替代；本记录1647/1682旧导航指向空目录，保留历史计量并登记当前回查缺口。没有新删除、全盘扫描或碰Agent私有状态。

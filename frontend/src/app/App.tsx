@@ -2,6 +2,7 @@ import { CoreWorkingStateSession, type WorkingRead } from "../presentation/coreW
 import { CoreWorkingStateProvider, useCoreWorkingState } from "../presentation/useCoreWorkingState";
 import {CompanionSessionProvider} from "../companion/CompanionSessionProvider";
 import {ConversationPanel} from "../components/ConversationPanel";
+import {FrontendFailureNotice} from "../components/FrontendFailureNotice";
 import {DiagnosticCenter, DiagnosticCenterTrigger, RawReceiptButton} from "../components/DiagnosticConsole";
 import {userErrorMessage} from "../presentation/labels";
 import { updateDraftOwners } from "../workspace/draftProtection";
@@ -82,7 +83,7 @@ export function App() {
     window.addEventListener("workspace-invalidated",reset);
     return()=>window.removeEventListener("workspace-invalidated",reset);
   },[]);
-  return <CoreWorkingStateProvider session={session}><DraftRecoveryScope><CompanionSessionProvider><AppBody /><DiagnosticCenter /></CompanionSessionProvider></DraftRecoveryScope></CoreWorkingStateProvider>;
+  return <CoreWorkingStateProvider session={session}><DraftRecoveryScope><CompanionSessionProvider><AppBody /><FrontendFailureNotice /><DiagnosticCenter /></CompanionSessionProvider></DraftRecoveryScope></CoreWorkingStateProvider>;
 }
 function AppBody() {
   const working=useCoreWorkingState();
@@ -101,10 +102,10 @@ function AppBody() {
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
   const [launchpadOpen,setLaunchpadOpen] = useState(false);
-  const [wideWorkspace, setWideWorkspace] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
+  const [wideWorkspace, setWideWorkspace] = useState(() => window.innerWidth >= 1440 && window.innerHeight >= 800);
   const companionOwnsFocus = useRef(false);
   useEffect(() => {
-    const resize = () => setWideWorkspace(window.innerWidth >= 1280 && window.innerHeight >= 700);
+    const resize = () => setWideWorkspace(window.innerWidth >= 1440 && window.innerHeight >= 800);
     const focus = (event: FocusEvent) => { companionOwnsFocus.current = event.target instanceof Element && Boolean(event.target.closest("#stitch-companion-window")); };
     window.addEventListener("resize", resize);
     document.addEventListener("focusin", focus);
@@ -112,7 +113,7 @@ function AppBody() {
   }, []);
   const [workspaceLayout, setWorkspaceLayout] = useState<WorkspaceLayoutMode>(readWorkspaceLayout);
   const [workspaceLayoutRevision, setWorkspaceLayoutRevision] = useState(0);
-  const [companionOpen,setCompanionOpen] = useState(() => readWorkspaceLayout() === "companion" && window.innerWidth >= 1280 && window.innerHeight >= 700);
+  const [companionOpen,setCompanionOpen] = useState(() => readWorkspaceLayout() === "companion" && window.innerWidth >= 1440 && window.innerHeight >= 800);
   const companionFocusRequested = useRef(false);
   useEffect(() => { companionFocusRequested.current = false; }, [companionOpen]);
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));

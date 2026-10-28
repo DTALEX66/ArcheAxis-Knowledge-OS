@@ -282,8 +282,15 @@ def delayed_execute(request):
     deadline=__import__('time').monotonic()+10
     while not release.exists() and __import__('time').monotonic()<deadline: __import__('time').sleep(.01)
     assert release.exists(), 'fixture timeout'
-    prepare_real_retrieval_parsers()
-    return original_execute(request)
+    try:
+        prepare_real_retrieval_parsers()
+        result = original_execute(request)
+        Path(__file__).with_suffix('.response').write_text(json.dumps(result), encoding='utf8')
+        return result
+    except Exception:
+        import traceback
+        Path(__file__).with_suffix('.exception').write_text(traceback.format_exc(), encoding='utf8')
+        raise
 worker.execute=delayed_execute
 raise SystemExit(worker.main())
 "#,
@@ -408,8 +415,10 @@ raise SystemExit(worker.main())
     assert_eq!(
         terminal["execution_verified"],
         true,
-        "{terminal}; synthetic worker stack: {}",
-        std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+        "{terminal}; synthetic worker stack: {}; response: {}; exception: {}",
+        std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default(),
+        std::fs::read_to_string(script.with_extension("response")).unwrap_or_default(),
+        std::fs::read_to_string(script.with_extension("exception")).unwrap_or_default()
     );
     assert_eq!(terminal["status"], "uncertain");
     assert_eq!(terminal["actor"], "machine");

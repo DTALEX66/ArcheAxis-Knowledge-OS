@@ -28,7 +28,7 @@ export function defaultConsoleRect(viewport: ConsoleViewport): ConsoleRect {
 }
 /** Preserve the received main/auxiliary proportions as the desktop grows. */
 export function stitchConsoleRect(viewport: ConsoleViewport): ConsoleRect {
-  if (viewport.width < 1280 || viewport.height < 700) return defaultConsoleRect(viewport);
+  if (viewport.width < 1440 || viewport.height < 800) return defaultConsoleRect(viewport);
   const width = viewport.width * .64;
   const auxiliaryWidth = viewport.width * .29;
   const top = viewport.topInset ?? 48, bottom = viewport.bottomInset ?? 64;
@@ -37,7 +37,7 @@ export function stitchConsoleRect(viewport: ConsoleViewport): ConsoleRect {
 }
 /** Explicit presentation choices change only geometry, never the business host. */
 export function workspaceConsoleRect(viewport: ConsoleViewport, layout: WorkspaceLayoutMode): ConsoleRect {
-  if (layout !== "focus" || viewport.width < 1280 || viewport.height < 700) return stitchConsoleRect(viewport);
+  if (layout !== "focus" || viewport.width < 1440 || viewport.height < 800) return stitchConsoleRect(viewport);
   const inset = 24, top = viewport.topInset ?? 48, bottom = viewport.bottomInset ?? 64;
   return { x: inset, y: top, width: viewport.width - inset * 2, height: viewport.height - top - bottom };
 }
@@ -65,7 +65,7 @@ export function ConsoleWindow({ children, presentation = "default", workspaceLay
   const gesture = useRef<{ id: number; x: number; y: number; rect: ConsoleRect; customized: boolean; kind: "move" | "resize"; edge: ResizeEdge } | null>(null);
   const compact = viewport.width <= 900 || viewport.height <= 600;
   const mode = compact ? "compact" : full ? "full" : "floating";
-  const expandedWidth = presentation === "stitch" && workspaceLayout !== "focus" && viewport.width >= 1280 && viewport.height >= 700 ? viewport.width * .71 - 36 : viewport.width;
+  const expandedWidth = presentation === "stitch" && workspaceLayout !== "focus" && viewport.width >= 1440 && viewport.height >= 800 ? viewport.width * .71 - 36 : viewport.width;
   const shown = mode === "floating" ? constrainConsole(rect, viewport) : { x: 0, y: 0, width: expandedWidth, height: viewport.height };
   useEffect(() => {
     const resize = () => {

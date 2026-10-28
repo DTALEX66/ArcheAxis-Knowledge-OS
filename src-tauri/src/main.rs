@@ -27,6 +27,54 @@ fn webdriver_browser_args(port: Option<&str>) -> Result<Option<String>, &'static
     )))
 }
 
+#[cfg(windows)]
+fn startup_window_size(work_area: Option<(f64, f64)>) -> (f64, f64) {
+    // Logical pixels: leave room for native decorations and the taskbar at
+    // higher display scaling, without changing any system display setting.
+    let Some((width, height)) = work_area.filter(|(width, height)| {
+        width.is_finite() && height.is_finite() && *width > 0.0 && *height > 0.0
+    }) else {
+        return (1280.0, 800.0);
+    };
+    (
+        (width - 64.0).clamp(640.0, 1280.0),
+        (height - 96.0).clamp(480.0, 800.0),
+    )
+}
+
+#[cfg(all(test, windows))]
+mod startup_window_tests {
+    #[test]
+    fn ordinary_and_scaled_work_areas_keep_the_window_inside_usable_space() {
+        for (physical_width, physical_height, scale) in [
+            (2560.0, 1400.0, 1.0),
+            (1920.0, 1040.0, 1.5),
+            (1920.0, 1040.0, 2.0),
+            (1366.0, 728.0, 1.0),
+        ] {
+            let available = (physical_width / scale, physical_height / scale);
+            let (width, height) = super::startup_window_size(Some(available));
+            assert!(width >= 640.0 && height >= 480.0);
+            assert!(width + 64.0 <= available.0);
+            // The declared 480px layout floor takes precedence on very short
+            // work areas; normal desktop work areas retain decoration space.
+            if available.1 >= 576.0 {
+                assert!(height + 96.0 <= available.1);
+            } else {
+                assert!(height < available.1);
+            }
+            assert!(width <= 1280.0 && height <= 800.0);
+        }
+    }
+
+    #[test]
+    fn missing_or_invalid_monitor_information_keeps_a_usable_normal_window() {
+        for area in [None, Some((f64::NAN, 800.0)), Some((0.0, 0.0))] {
+            assert_eq!(super::startup_window_size(area), (1280.0, 800.0));
+        }
+    }
+}
+
 #[cfg(all(test, windows))]
 mod webdriver_browser_args_tests {
     #[test]
@@ -1364,11 +1412,77 @@ mod menu_exit_tests {
 }
 
 #[cfg(windows)]
-fn finish_application_exit(app: AppHandle) {
+fn trace_application_close(
+    app: &AppHandle,
+    stage: &'static str,
+    request_id: Option<&str>,
+    detail: serde_json::Value,
+) {
+    // Bounded diagnostic only: no draft text, paths, URLs or raw exceptions.
+    // The process start marker prevents a previous Host's receipt being reused.
+    static START: std::sync::OnceLock<u128> = std::sync::OnceLock::new();
+    static CLOCK: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+    static PATH: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    static EVENTS: Mutex<Vec<serde_json::Value>> = Mutex::new(Vec::new());
+    let start = START.get_or_init(|| {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis()
+    });
+    let Ok(mut events) = EVENTS.try_lock() else {
+        return;
+    };
+    let request_id = request_id.filter(|id| {
+        id.strip_prefix("close-").is_some_and(|digits| {
+            !digits.is_empty()
+                && digits.len() <= 20
+                && digits.bytes().all(|byte| byte.is_ascii_digit())
+        })
+    });
+    let elapsed_ms = CLOCK
+        .get_or_init(std::time::Instant::now)
+        .elapsed()
+        .as_millis();
+    events.push(serde_json::json!({"stage":stage,"request_id":request_id,"elapsed_ms":elapsed_ms,"detail":detail}));
+    if events.len() > 64 {
+        events.remove(0);
+    }
+    if PATH.get().is_none() {
+        let state = app.state::<DesktopBackend>();
+        if let Ok(runtime) = state.runtime.try_lock() {
+            if let Some(runtime) = runtime.as_ref() {
+                let _ = PATH.set(runtime.data_dir.join("host-close-trace.json"));
+            }
+        };
+    }
+    let Some(path) = PATH.get() else { return };
+    let receipt = serde_json::json!({"schema":"archeaxis/host-close-trace/v1","host_pid":std::process::id(),"host_trace_started_unix_ms":start,"events":*events});
+    if let Ok(bytes) = serde_json::to_vec(&receipt) {
+        // Keep event serialization ordered, but never hold a runtime/process
+        // lock across filesystem IO. Diagnostics cannot change close decisions.
+        let _ = std::fs::write(path, bytes);
+    }
+}
+
+#[cfg(windows)]
+fn finish_application_exit(app: AppHandle, request_id: String) {
+    trace_application_close(
+        &app,
+        "BACKEND_EXIT_REQUESTED",
+        Some(&request_id),
+        serde_json::json!({}),
+    );
     let state = app.state::<DesktopBackend>().inner().clone();
     cancel_main_window_menu(&app);
     dispatch_exit_immediately(|_| {
         begin_backend_exit(state, move |report| {
+            trace_application_close(
+                &app,
+                "BACKEND_EXIT_RETURNED",
+                Some(&request_id),
+                serde_json::json!({"core_pid":report["pid"],"outcome":report["outcome"],"return_code":report["return_code"]}),
+            );
             eprintln!("Core shutdown: {report}");
             let code = if matches!(
                 report["outcome"].as_str(),
@@ -1378,6 +1492,12 @@ fn finish_application_exit(app: AppHandle) {
             } else {
                 1
             };
+            trace_application_close(
+                &app,
+                "APP_EXIT_REQUESTED",
+                Some(&request_id),
+                serde_json::json!({"exit_code":code}),
+            );
             app.exit(code);
         })
     });
@@ -1394,6 +1514,12 @@ fn close_window_allowed(label: &str) -> Result<(), String> {
 
 #[cfg(windows)]
 fn confirm_owned_application_close(app: AppHandle, id: String, unresponsive: bool) {
+    trace_application_close(
+        &app,
+        "CONFIRMATION_STARTED",
+        Some(&id),
+        serde_json::json!({"unresponsive":unresponsive}),
+    );
     let Some(window) = app.get_webview_window("main") else {
         return;
     };
@@ -1417,11 +1543,17 @@ fn confirm_owned_application_close(app: AppHandle, id: String, unresponsive: boo
         .lock()
         .map(|mut state| state.finish(&id, true))
         .unwrap_or(false);
+    trace_application_close(
+        &app,
+        "CONFIRMATION_RETURNED",
+        Some(&id),
+        serde_json::json!({"accepted":accepted,"yes":decision == Some(6)}),
+    );
     if !accepted {
         return;
     }
     if decision == Some(6) {
-        finish_application_exit(app);
+        finish_application_exit(app, id);
     } else {
         let outcome = if decision.is_some_and(|value| value != 0) {
             "cancelled"
@@ -1441,11 +1573,13 @@ fn request_application_close(window: &tauri::Window) {
         return;
     }
     let app = window.app_handle().clone();
+    trace_application_close(&app, "CLOSE_EVENT", None, serde_json::json!({}));
     if app
         .state::<DesktopBackend>()
         .exiting
         .load(std::sync::atomic::Ordering::SeqCst)
     {
+        trace_application_close(&app, "ALREADY_EXITING", None, serde_json::json!({}));
         return;
     }
     cancel_main_window_menu(&app);
@@ -1456,6 +1590,12 @@ fn request_application_close(window: &tauri::Window) {
         .ok()
         .and_then(|mut state| state.request().ok());
     let Some((id, fresh)) = request else { return };
+    trace_application_close(
+        &app,
+        "FRONTEND_CHECK_REQUESTED",
+        Some(&id),
+        serde_json::json!({"fresh":fresh}),
+    );
     let _ = window.emit(
         "archeaxis-close-requested",
         serde_json::json!({"request_id":id}),
@@ -1472,6 +1612,12 @@ fn request_application_close(window: &tauri::Window) {
                 .map(|mut state| state.begin_confirmation(&id))
                 .unwrap_or(false);
             if reserved {
+                trace_application_close(
+                    &app,
+                    "FALLBACK_CONFIRMATION",
+                    Some(&id),
+                    serde_json::json!({}),
+                );
                 confirm_owned_application_close(app, id, true);
             }
         });
@@ -1502,6 +1648,12 @@ fn application_close_response(
     dirty: bool,
 ) -> Result<&'static str, String> {
     close_window_allowed(window.label())?;
+    trace_application_close(
+        &app,
+        "FRONTEND_RESPONSE",
+        Some(&request_id),
+        serde_json::json!({"dirty":dirty}),
+    );
     let action = {
         let state = app.state::<ApplicationCloseRequests>();
         let mut locked = state.0.lock().map_err(|_| "CLOSE_STATE_UNAVAILABLE")?;
@@ -1525,7 +1677,7 @@ fn application_close_response(
         std::thread::spawn(move || confirm_owned_application_close(app, request_id, false));
         Ok("awaiting_confirmation")
     } else {
-        finish_application_exit(app);
+        finish_application_exit(app, request_id);
         Ok("exiting")
     }
 }
@@ -1534,6 +1686,7 @@ fn application_close_response(
 #[tauri::command]
 fn exit_application(window: tauri::Window, app: AppHandle) -> Result<(), String> {
     close_window_allowed(window.label())?;
+    trace_application_close(&app, "EXIT_COMMAND", None, serde_json::json!({}));
     cancel_main_window_menu(&app);
     // Menu/recovery exits take exactly the window X / Alt+F4 confirmation route.
     window.close().map_err(|_| "CLOSE_REQUEST_FAILED".into())
@@ -1630,11 +1783,20 @@ fn main() {
                     None
                 }
             };
+            let work_area = app.primary_monitor().ok().flatten().map(|monitor| {
+                let size = monitor
+                    .work_area()
+                    .size
+                    .to_logical::<f64>(monitor.scale_factor());
+                (size.width, size.height)
+            });
+            let (startup_width, startup_height) = startup_window_size(work_area);
             let mut window =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                     .title("星环知识系统（ArcheAxis Knowledge）")
-                    .inner_size(1920.0, 1080.0)
-                    .maximized(true)
+                    .inner_size(startup_width, startup_height)
+                    .maximized(false)
+                    .center()
                     // 保留 Windows 原生标题栏与窗口调整；应用内主控台另在背景上内缩。
                     .decorations(true)
                     .resizable(true)
