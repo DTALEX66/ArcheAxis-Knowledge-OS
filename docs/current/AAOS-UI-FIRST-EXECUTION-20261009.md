@@ -2480,3 +2480,33 @@ Owner追加“默认界面打开不要最大化，并按照小窗口重新优化
 Rust补充：a45-worker-preparation-mechanism及-312受控实验在3.13.14/3.12.13均证明fixture准备阶段若抛异常，会形成缺6个任务快照身份字段的invalid_request，域校验首先拒绝身份，最终invalid_worker_response。此为机制证据，原CI真实异常未留存，尚不能归因版本/缺依赖；未安装或修改共享Python。冻结测试诊断待后继CI提供真实响应/异常，不扩大超时、不放松校验。
 
 后继清理只读线cleanup-followup-readonly-20261028/artifacts/review.json未发现新的可安全删除大体积目标。volume06/08/09、sparse-runtime和staged-input五份历史清理原回执仍SOURCE_UNVERIFIED；归档key-receipts/retention-applied.json实测SHA256 ca37f3a3527b5cc37c6c2ce9df3c9824a2ca857abb559b793be09f280f26c21b与MANIFEST一致，但只证历史DELETE_INCOMPLETE及各目录4/4/1/4/4文件删除记录，不能替代原始逐成员回执。归档同名cache-cleanup.json与当前cache-cleanup-20261024-01一致，摘要并非volume09所记值，不冒充替代；本记录1647/1682旧导航指向空目录，保留历史计量并登记当前回查缺口。没有新删除、全盘扫描或碰Agent私有状态。
+
+本轮公开交付读回：208fa71a7ec2acaec2fb58263ba68851e918f429已正常提交并推送到trae/20261024，16个明确公开文件，六项原有dirty/untracked哈希保留。首次push被自动审批拒绝且未执行；补充精确远端只读核验后，经正常审批通道的同一直接push成功，没有换通道或强推。实际远端分支、origin跟踪、本地HEAD及PR203 head四端均208fa71a；PR仍OPEN/BLOCKED。新CI run40686681266绑定208，读回时in_progress、终态UNKNOWN；未合并/发布/替换Green，监控仍PAUSED。交付读回收据为.project-local/runs/be268a2d33/ui-small-preview-entry/artifacts/delivery-readback.json。最终小窗候选仍绑定原a45+ef7与上述Host摘要，不把提交后的代码身份反写旧构建像素。本段为推送后的本地进度回写，尚未包含在208提交中，下一公开交付时显式带入，不为一条回写重复触发全CI。
+
+
+#### 2026-10-28 当前入口规范化与恢复链复验
+
+当前交接入口已收敛，原13190字节/SHA256 312512b6d19e20d552f0848886bd2b12ffc86b4e044e8454bcbc006276559ed0按原字节保全于 docs/history/session-handoff-20261028-ui-followup/current-handoff-before-normalization-20261028.md，映射current-handoff-normalization-20261028.json记录原docs/current相对链接基准、归档与新入口摘要。当前入口6263字节，仅保留接续导航、Owner小窗要求及保护边界；10/26候选、最大化预览与旧CI状态迁出，冻结README及更早归档未改。文档权威检查通过；这是减少当前上下文冗余，不声明额外磁盘回收。六项预存材料逐SHA仍一致。
+
+原生探针仅补受限点击诊断：事件时按钮rect、同节点/可见性、命中元素及最多12项结构tag/button组成路径，不记材料文本/URL/路径，不放宽可信三事件或自动重放。gpr208ptrtest为4通过/16子测试通过，LOCAL_PASS/source_consistent=true。gpr208d1诊断复验为ok/source_consistent=true、退出0/cleanup_error=null/remaining_owned=[]；恢复、旧授权失效拒绝及capability_refusal_recovery路径完成，5次Host退出RETURNED（107/101/205/107/95ms），最终Host31464关联Core2744 GRACEFUL58ms。检查此备份本次三事件均BUTTON/target=true，同节点可见；约1px按压变化未造成错点，旧STRONG命中未复现。尚不能证实异步重排根因，未改动作时序，原webdriver-10b4cc5c20e5失败保留。
+
+gpr208d1/artifacts/prelaunch-binding.json及tmp/journey/receipt.json明确build_source仍a45+ef7、Host b4baf857…a70a6，probe_source为208+2fde5420…ff8c；旧build缺逐源文件snapshot，不声明与当前产品源逐字等价。wrapper仅在该进程校验封存build/Core/Host/manifest字节并将资格标为PASS_PINNED_HISTORICAL_BYTES_ONLY，未改通用绑定政策或旧构建回执。本次是历史候选＋新探针的诊断/工程结果，不是208精确构建或安装CI资格。真实本地模型同候选复验及最低窗口进一步检查准备中，尚未执行；整体PARTIAL，监控保持暂停。
+
+
+gpr208ai1真实模型尝试在三次machine_inventory只读观察均未确认时FAIL，推理NOT_REACHED、清场正常；原回执没有底层reason，不能把泛化UI文案判作空库存。临时wrapper漏传probe.main返回码，故dev外层child0/LOCAL_PASS不等于该旅程通过；原脚本SHA256 c2135134…b3a2已原字节保全于该run的artifacts/original-wrapper.py，后继封装已改SystemExit，不改旧回执。随后在正常执行身份上独立TCP观察为ConnectionRefusedError/10061，原1234服务确实不可达；不能由此反写前三次worker失败的确切分支。沿已安装lms当前help，原端口127.0.0.1:1234服务已恢复，两个models API均200、6库存、当时loaded_instances全空。启动封装的PowerShell退出码转发写法有误且输出管道未收口，保留lm-existing-server-208原日志，明确FAILED_WRAPPER而不重启服务；仅停止精确匹配该run的自有两个Python包装进程，未停止LM Studio。独立service-readback.json保存服务事实；未变provider/auth/endpoint/全局模型参数、未加载或切换模型。
+
+min208r1在自有历史候选+复制合成数据实际验证640×480最低窗口、OS DPI120/DPR1.25，非最大化，根无横纵溢出，知识菜单/Dock均在界内，人物收起，玻璃16/14px；root已查看两张按需截图。Ctrl+0/两次Ctrl+Equal尝试后DPR始终1.25、page_zoom_ratio=1.0，因此页面125%缩放未生效/未验收，不把文件名zoom125当通过。Host37704退出0、Core10804 GRACEFUL60ms；候选字节及probe源前后一致。收据min208r1/artifacts/receipt.json原状态PASS_CAPTURE_ONLY_VISUAL_REVIEW_PENDING保留，以上仅定向观察不替代其他页面、主题或Owner视觉接受。
+
+208云CI run40686681266的rust-vnext、desktop-fast、desktop-build已SUCCESS；test3.12 job122811403374终态FAILURE（6176通过/1失败/116跳过/484子测试），installer-lifecycle仍运行中，完整终态未定。新失败是test_revealed_click_refuses_native_fieldset_and_aria_disabled_targets在patch共享stdlib time.sleep时，Linux subprocess.run(timeout=30)内部等待被计入断言；原日志ci208-python312/artifacts/bounded-job-log.txt保留。后继仅将该测试的mock隔离到probe.time模块引用，精确五次.15等待/零交互命令断言和真实DOM评估不变，生产探针及超时不变；须后继验证和新head CI，不能把208原失败改判。
+
+
+后继回归与模型结果：ci208-python312-disabled-clock-fix全文件79通过/196子测试通过（49.94秒）、exit0/source_consistent=true；仅测试隔离修复，不冒称Linux新head已过。fmt208r1为ok/source_consistent=true、清场无残留，6项格式证据及21项矩阵（17正常/4损坏负例）完成完整Host重启读回；媒体只probe不冒称转写。五次关闭1620.226/94.164/97.303/95.507/1804.924ms，最终Host23548/Core2484 GRACEFUL1769ms，forced=false/reaped=true。收据SHA256 596d05fb25f512779d7ca7a689d1a08cb13d1595c8037b3c1c8415af9013fe6b；仍是同封存历史候选＋当前probe诊断层。
+
+既有fast-local通过项目加载入口显式恢复：fast208load为PASS_LOAD_READBACK，模型qwen3.5-4b/实例aaos-fast-4b，加载4.212秒，有效4096context/单并发/GPU ratio1/strict VRAM cap/KV留CPU/flashAttention开；之前无其他驻留LLM，未卸载或覆盖共享模型，TTL1800按既有profile，不改全局默认。gpr208ai2仅在合成库FAST兼容UI临时选该已加载实例，没有保存正式FAST用途配置。实际回答/独立复测均请求及观测aaos-fast-4b、stop/未截断、RECEIPT_BINDINGS_VALIDATED，谱系由k_a962ba37a8d94046b4c5ea22@v1接至补充后k_d82fe5dfc1e3288158a6cf4c@v1；导入/阅读/锚点/主张/学习/练习/复习/恢复/禁用旧授权拒绝工程链通过。五次正常退出94.486/101.490/147.234/99.710/123.562ms；最终Host40524/Core28164 dirty=true确认yes后GRACEFUL，forced=false/reaped=true，cleanup_error=null/remaining_owned=[]/端口释放。收据SHA256 bf26f96a14d92f42720b869b3d1a3a220f7936fe123a36ae9f31b455ad72e43f，probe为208+f3159159…85d0a、build仍a45+ef7，不改绑208安装资格。
+
+有界语义审查复用既有规则，仅查看该合成样本：原上下文未解释存储分离理由，原答据此拒答正确；作者补充原件独立保留/文档修订为可编辑派生内容后，复测忠实转述，本样本未发现无依据外推。8项摘要/作者正文/接纳正文/复测目标与谱系/模型身份检查全真，review见answer-quality-review-20261028/artifacts/gpr208ai2-answer-review.json，SHA256 2f181deadb9c24cbe46d8899d96cd7ed20272d16f04ebd678bcaf716de0a78f1。工程evaluation.failed只是作者干预标签，不证明原答错误、模型学习提升或独立准确率；这仍是单合成样本和协作内Agent review，不是独立人类或Owner接受。整体PARTIAL及外部原始上下文NOT_CONNECTED不变。
+
+208精确PR head完整CI run40686681266现已终态FAILURE，精简官方读回封存ci208-terminal/artifacts/readback.json；rust-vnext/desktop-build/desktop-fast/installer-lifecycle均SUCCESS，test3.12与依赖a0失败、3策略跳过。后继公开交付拟仅带入探针点击诊断、测试隔离修复、交接入口及其原字节归档/映射、唯一记录；六项预存材料继续排除，原截图及业务数据不上传。提交后新head的完整必需检查仍须另验；未合并、发布或替换Green，监控仍暂停。
+
+
+公开交付前检查补充：small-followup-authority文档权威通过，diff --check通过。额外对两份完整Python文件直接Ruff得到109项历史问题（探针23/测试86），small-followup-lint原FAIL保留；按当前配置与208基线逐诊断code/message/对应源行对比，small-followup-lint-baseline-r2证明两文件数量及指纹完全相同、新增0，只有差量通过，不写成全文件lint通过。首轮差量脚本因误用不存在的输出环境变量失败，原run保留，r2改用既有ARCHEAXIS_RUN_ROOT/artifacts后完成。公共CI原lint208通过与本次扩展检查范围不同；不为本批诊断/测试小修重写既有109条风格记录。

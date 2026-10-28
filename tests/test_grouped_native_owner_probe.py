@@ -470,8 +470,12 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                     return samples[0]
                 ui = probe.GroupedUI(observe, lambda _: None,
                     lambda *_: "node", lambda *args: commands.append(args), evidence)
-                with patch.object(probe.time, "sleep") as sleep, self.assertRaisesRegex(TimeoutError, "Target remains disabled"):
-                    ui.click_revealed_selector("//button[@id='target']")
+                # Replace this probe's clock reference, not the shared time module:
+                # subprocess.run's POSIX timeout wait can also call time.sleep.
+                with patch.object(probe, "time") as probe_time:
+                    sleep = probe_time.sleep
+                    with self.assertRaisesRegex(TimeoutError, "Target remains disabled"):
+                        ui.click_revealed_selector("//button[@id='target']")
                 self.assertEqual(commands, [])
                 self.assertEqual(sleep.call_args_list, [unittest.mock.call(.15)] * 5)
                 self.assertEqual(evidence[-1]["action"], "target_disabled")

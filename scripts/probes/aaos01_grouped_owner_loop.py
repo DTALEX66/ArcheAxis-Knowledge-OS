@@ -601,17 +601,27 @@ return new Promise(resolve=>{
    point:last.point,rect:last.rect,ancestor_scroll:last.ancestors?.map(a=>({x:a.x,y:a.y}))};
   if(!facts.hit||!stable||facts.disabled!==false||window.__aaosTargetPointerProbe){finish(facts);return;}
   const node=last.node,events=[];let overflow=0;
+  const describe=n=>({tag:n?.tagName??null,button:n?.matches?.('button')===true});
+  const box=n=>{if(!n?.getBoundingClientRect)return null;const r=n.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom];};
   const capture=e=>{
    if(events.length===9){overflow++;return;}
+   const current=sample();
    events.push({type:e.type,trusted:e.isTrusted,target:node===e.target||node.contains(e.target),
-    button:e.button,x:e.clientX,y:e.clientY,at_ms:performance.now(),tag:e.target?.tagName});
+    button:e.button,x:e.clientX,y:e.clientY,at_ms:performance.now(),tag:e.target?.tagName,
+    expected_rect:box(node),expected_connected:node.isConnected,expected_visible:visible(node),
+    current_rect:current.rect,current_point:current.point,current_hit:current.hit,
+    current_same_node:current.node===node,
+    hit_target:describe(document.elementFromPoint(e.clientX,e.clientY)),
+    path:(typeof e.composedPath==='function'?e.composedPath():[]).slice(0,12).map(describe)});
   };
   const kinds=['pointerdown','pointerup','click'];
   kinds.forEach(kind=>document.addEventListener(kind,capture,true));
   const observer={finish:()=>{
    kinds.forEach(kind=>document.removeEventListener(kind,capture,true));
    if(window.__aaosTargetPointerProbe===observer)delete window.__aaosTargetPointerProbe;
-   return {events,overflow};
+   const current=sample();
+   return {events,overflow,after:{rect:current.rect,point:current.point,hit:current.hit,
+    same_node:current.node===node,connected:node.isConnected,visible:visible(node)}};
   }};
   window.__aaosTargetPointerProbe=observer;
   finish({...facts,armed:true});
