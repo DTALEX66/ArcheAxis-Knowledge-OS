@@ -2,13 +2,17 @@
 
 本入口只保存接续顺序、合同和历史导航。当前授权、执行／监控控制、源码、候选、CI、实际失败与下一步，读取[活动指针](AAOS-ACTIVE-EXECUTION.json)和[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)，不复制第二份可变进度。日期快照中的“当前／最新／暂停”只说明当时，不能覆盖活动指针选中的后继Owner决定。
 
+**2026-10-29最新交接覆盖：** Owner将前端设计交STITCH、后端有限闭环优化交ZCODE，要求新本地分支、全部能力保留归并迁移、复杂项延期，并禁止ZCODE云仓库与数据上传。先读活动指针`execution_control.owner_handoff_20261029`及[完整交接入口](../../workspace/intake/20261029-stitch-zcode-handoff/README.md)。本阶段禁止push/PR/远端merge/云CI/同步/发布，覆盖下文和旧记录中的历史上传授权；本地合格合并可执行。STITCH只提交设计文字和选定参考图，ZCODE资料留本地。ZCODE报告后由Codex独立审计；提示词不等于网络隔离，严格本地须核编码模型模式，公开检索仅用非敏感公开/合成查询。UI实施与监控仍按原暂停，不自动恢复远端权限。
+
 ## 接续顺序
 
 1. 先读[唯一闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)，再核活动指针的 `owner_scope_current`、`execution_control`、`continuation_context`、`delivery_authorization`、`green_update_authorization` 与 `active_progress`。同时核本地Git状态及受保护材料；历史PASS不移绑新源码或候选。
 2. 从唯一执行记录末段接续具名阻断，沿原任务ID与[前后端执行覆盖](AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md)落实；不另建任务包、业务库或进度表，不重复无变化的全审计。
 3. 独立工作可并行，每个写集一个writer；构建和原生验收期间冻结其绑定的源码与文档。原始失败保留，后继结果另记；本地测试、真实Core／worker、同候选、安装、Green、精确SHA托管CI和Owner接受分别判定。
 
-Owner后继要求默认普通窗口、按显示缩放和工作区适配，上限1280×800；小窗正文优先，菜单、人物／资料侧窗和Dock仍可操作，并降低毛玻璃模糊度。有效保存偏好及业务草稿须保留。实际实现与原生验证读执行记录“后继原生验证与默认小窗口”及其后继，不把旧最大化预览或旧截图当成现状。
+最新优先级读取活动指针 `execution_control.owner_priority_20261029`：后端有限闭环继续，UI构建暂停，允许融合研究、完整STITCH提示词与可落地方案。窗口要求读取 `native_window_policy.latest_owner_clarification`：同一套流式布局，只验看普通较小非最大化窗口与1920×1080满屏；中间自然适配，过小统一缩放，不另造多套尺寸版。1280×800上限和640×480观测属于既有实现记录，不是新增设计套数或已完成统一缩放的证明。有效保存偏好、草稿及降低模糊的要求继续保留。
+
+本轮后继证据及具名未闭合项读取[App-local C++依赖修补、安装态PDF与沙盒清场](AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-29-app-local-c依赖修补安装态pdf与沙盒清场)，本入口不重复维护结果状态。
 
 ## 范围与保护边界
 
@@ -23,6 +27,7 @@ Owner后继要求默认普通窗口、按显示缩放和工作区适配，上限
 
 - 根规则：[AGENTS](../../AGENTS.md)、[AUTHORITY](../../AUTHORITY.md)、[PROJECT_CONTRACT](../../PROJECT_CONTRACT.yaml)。Owner决定及替代关系读[当前决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[10/19冻结原话与映射](../history/owner-dialogue-20261019/README.md)和[10/23完整交接](../history/owner-dialogue-20261023-thread-handoff/README.md)。历史权限仅作来源。
 - 当前合同：[TASKPACK](../taskpacks/aaos-ui-first-20261009/TASKPACK.md)、[TASKS](../taskpacks/aaos-ui-first-20261009/TASKS.json)、[页面计划](../taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv)、[冻结登记](../taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.md)；补充[前端合同](../authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASKPACK.md)和[后端宿主合同](../authority/taskpack-20261013-backend-host/TASKPACK.md)。计划时NOT_EXECUTED不替代实际执行记录。
+- 复用既有Host/Core进行独立包装时，读取[本地固定构建包装合同](../../workspace/intake/20261029-local-pinned-packaging-contract.md)。它区分历史构建与当前工具身份，不替代CI／安装／发布资格；实际收据与剩余问题仍只沿唯一执行记录接续。
 - 路径先查[项目路由登记](AAOS-AUTHORITY-ROUTES.json)、[资料索引](../../AAOS-资料索引.md)、[共享资源路径](../SHARED_RESOURCE_PATH_INDEX.md)、[能力依赖](../../config/environment/capability-requirements.yaml)及具体manifest。路径失效先查归档／ZIP；登记供导航，不授予跨项目或私人内容访问。
 - [2026-10-28冻结会话交接](../history/session-handoff-20261028-ui-followup/README.md)与[TRAE历史交接](../history/trae-agent-handoff-20261024/README.md)保留原话、任务和证据；暂停／恢复、候选及CI均以当前指针和执行记录核实，不假定其他客户端已加载规则。
 

@@ -2510,3 +2510,156 @@ min208r1在自有历史候选+复制合成数据实际验证640×480最低窗口
 
 
 公开交付前检查补充：small-followup-authority文档权威通过，diff --check通过。额外对两份完整Python文件直接Ruff得到109项历史问题（探针23/测试86），small-followup-lint原FAIL保留；按当前配置与208基线逐诊断code/message/对应源行对比，small-followup-lint-baseline-r2证明两文件数量及指纹完全相同、新增0，只有差量通过，不写成全文件lint通过。首轮差量脚本因误用不存在的输出环境变量失败，原run保留，r2改用既有ARCHEAXIS_RUN_ROOT/artifacts后完成。公共CI原lint208通过与本次扩展检查范围不同；不为本批诊断/测试小修重写既有109条风格记录。
+
+
+本批六个明确公开文件已本地提交 c4531c1bb6795ccda208a96ef8cc246a645d0199（Normalize handoff and isolate native probe timing tests），146插入/50删除。正常git push origin HEAD:refs/heads/trae/20261024被执行策略直接拒绝，原文“approval required by policy, but AskForApproval is set to Never”；命令未执行，没有换通道/提权参数/强推重试。随后正常只读Git与GitHub核验：本地c4531c1b，origin跟踪/实际远端分支/PR203 head均208fa71a，远端main仍8d367bac；双端存在1个明确本地后继提交差异，不能报告同步或新head CI已触发。PR仍OPEN/BLOCKED；合并/发布/Green均未执行。回执small-followup-delivery/artifacts/readback.json；六项预存材料逐SHA未变。当前小窗预览仍指已验证候选，208原CI为15成功/2失败/3跳过，后继修复待正常执行策略允许推送后才可验新精确head。执行状态仍RUNNING_BY_OWNER/整体PARTIAL，监控暂停，本段是提交后的本地进度回写，未包含在c453中。
+
+
+#### 2026-10-28 后继同候选资格与正式FAST绑定
+
+前轮已改变源码/归档并完成新工程证据，本轮沿完整目标继续；推送仍为同一执行策略拒绝，不重复拒绝操作，也不标已上传/合并。官方额度读回used10/remaining90、次级未知，≤10剩余停止条件未触发，监控仍暂停。
+
+模型探针新增显式--grouped-save-binding-lane fast|deep，兼容旧DEEP flag，复用正式配置UI为合成库保存answer/retest用途，核冻结revision/profile/model/lane/budget与冷重启解析身份；恢复只允许epoch和对应配置digest推进，原授权失效条件不放宽。仅三份probe/test改动，未修改产品模型路由/凭据/用户workspace；fast-binding-probe-final全文件81通过/225子测试通过（53.99秒）、exit0，包含FAST正式选择及冷重启/恢复身份负例，旧deep/材质会话范围不变。
+
+新候选构建准备沿既有Core→受控runtime stage→Host→portable链，不另造构建资格。driver新增逐源文件hash与每阶段前后核验，保留敏感路径排除、源码聚合快照及driver身份，旧portable/preview/Green先保持。将以本地c4531c1b加最终明确dirty补丁冻结；构建和后续业务验收期间不再修改tracked源码及文档。以下为准备，不是已完成构建。
+
+J2/J5不重复旧局部PASS拼接：准备复用同候选四格式运行、真实三源公开检索、同public工作区研究/个人知识学习关联/重启导出恢复，再以真实T3定义执行生命周期并保护旧对象。当前比较是待判断占位草稿，尚无独立事实比较；后继仅根据实际三源摘录创建标明AI撰写/未人工接纳的新比较稿，保留不足及可回查引用，不覆盖原占位文档或自动接纳知识。其他插件/技能/MCP与外部原始上下文未接入状态不变。
+
+#### 2026-10-29 后端优先、UI构建暂停与窗口要求收敛
+
+Owner后继明确要求并行推进、优先保证后端可以达成闭环；UI界面构建先暂停，允许继续融合分析、调研成熟组件及适配开源界面，前端交付完整STITCH提示词、完整架构布局和可落地方案。窗口再澄清为**一套流式布局、两个验看基线**：普通较小非最大化窗口与1920×1080满屏，中间自然伸缩，过小整体缩放；不设计逐档独立尺寸版。此要求已回写活动指针与接续入口；本段不是统一缩放已实现的声明。本批研究期间未再修改产品UI、安装新依赖或构建前端。
+
+以下候选与运行绑定冻结源码 `c4531c1bb6795ccda208a96ef8cc246a645d0199` + dirty补丁 `6b30cae20a2f00dbdc49c2c385f84922db5e882118d11bd322685d7f86256145`。本段及活动指针回写发生在这些冻结验证完成之后，不反向改绑候选。候选目录为 `.project-local/runs/be268a2d33/c453portable1/artifacts/星环便携候选/`；Host SHA256 `ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145`、Core `40b563626a07c5bd9658da9b1b8a8c2289bf930e4d9fbbf4b39b20fe7909db30`。Core／受控runtime／Host／portable构建及逐源snapshot收据在 `c453host1`、`c453portable1`；仅构建／便携资格，不是安装或发布资格。
+
+后端原始收据、SHA索引、有限答案审查及尚未完成项汇总于 [backend-feasibility-closeout-20261029/artifacts/README.md](../../.project-local/runs/be268a2d33/backend-feasibility-closeout-20261029/artifacts/README.md) 与同目录 `evidence-index.json`（14份收据引用、43个候选成员及6项受保护材料末尾摘要一致）。该目录仅为冻结证据索引，不形成第二执行队列。实际完成范围：
+
+- 四格式真实Core转换、定位、重解析与重启为 `d265dc270986/artifacts/common-formats.json`：DOCX／XLSX／PPTX／文本PDF四项，不把旧候选21格式矩阵移绑本候选。
+- `c453-j2-public/artifacts/public-research-receipt.json` 原状态 `PARTIAL`／ok=true，真实公开渠道结果已保存；`c453-j2-learning/artifacts/research-learning-runtime.json` 为 `PASS_DECLARED_INTEGRATED_SUBSET`，在同public工作区接入四格式、个人合成知识与FSRS学习／练习／冲突、导出、重启及独立恢复。公共候选仍未人工接纳，工程fixture评审不等于Owner评审或专业事实验证。
+- `c453-j5-template-20261028/artifacts/j5-template-receipt.json` 为 `PASS_FINITE_T3_SAME_CANDIDATE_WORKSPACE`：T3应用、停用拒绝、启用／错误代际拒绝、更新／旧定义拒绝、回退、卸载拒绝、重新安装及两次冷启动，原研究／学习对象保持一致；不扩展成全部插件／技能／MCP可用。
+- AI撰写的三源有限比较稿另建新文档、保留占位稿。第一轮AAK-DOC-001正确拒绝探针错误元数据形状；v2实际201已创建，后因Core注入稳定block_id的合法行为被探针误判。未再POST造重复文档；v3仅GET原201对象、核作者字段与唯一block_id，完成重启、Markdown、备份及独立恢复全文相等。最终 `c453-j2-comparison-20261028-v3/artifacts/comparison-receipt.json` 为 `PASS_DECLARED_COMPARISON_SAVE_SUBSET`。比较明确百科锚点只有模板、社区锚点是截断问题、学术锚点是主题概述，不能声称三源相互印证或制造事实矛盾；未人工接纳。
+
+当前候选原生FAST旅程失败 `c453-native-fast`／`webdriver-8e1561eafc37/tmp/journey/receipt.json` 必须保留：可信点击已触发本地回答，随后遇到未保存草稿alert，不得以较早配置步骤的inference_calls=0声称最终未执行。只读DB表明原请求 `machine_717087e3-d48c-4d12-881d-5ed75f6427f0` 已IN_FLIGHT／attempt1，尚无machine_task；provider完成状态UNKNOWN。`c453-fast-unknown-recovery-20261028-v2/artifacts/recovery-receipt.json` 为 `PASS_UNKNOWN_RETAINED_NO_LOCAL_REPLAY_OBSERVED`：使用独立工作副本两次重启，只查UI journal／status，旧journal／claim／tasks及原字节不变，can_clear=false，没有重放、取消或清除。首轮探针因HTTP派生字段误比较而失败，原失败保留；具体UI alert触发根因仍未确证，未修改产品兜底来掩盖。
+
+本地FAST沿既有profile加载并读回：`.project-local/runs/lm-studio-profile/1793203309309-load.json` 为 `PASS_LOAD_READBACK`，qwen3.5-4b／aaos-fast-4b，4096 context、单并发、strict VRAM cap、KV留CPU，原embedding保持驻留；未改provider／端点／全局默认或卸载共享模型。随后单独走真实Core进行有界合成双向链：
+
+1. `c453-core-fast-dual-loop-20261029` 在启动服务前因42成员公共收据与4成员学习收据集合不同而预检失败；逐成员实际hash无漂移。v2按路径核所有声明成员、交集3项相等，最终保护43项，不放宽字节校验。
+2. `c453-core-fast-dual-loop-20261029-v2/artifacts/core-fast-dual-loop.json` 原状态FAIL：真实answer成功，retest实际返回503／NO_FINAL_ANSWER，73.51秒、finish_reason=length、2048 output tokens全为reasoning_content、answer_published=false。不是超时，也不是未知HTTP结果；原helper的attempt=UNKNOWN字段被完整step的RETURNED／503证据限定，不代表provider响应未知。后端正确拒绝发布无最终答案的输出；此原失败未修复、未重发。
+3. 独立新中文fixture `c453-core-fast-dual-loop-20261029-v3/artifacts/core-fast-dual-loop.json` 为 `PASS_SYNTHETIC_LOCAL_FAST_DUAL_LOOP_SUBSET`：严格核自有revision1配置，按现合同只将本合成workspace预算改为3072／120秒、生成正式revision2；新资料／知识／授权／请求ID与原失败独立，不切换模型或全局配置。真实answer 36.96秒、retest 54.92秒，均观测aaos-fast-4b、stop／未截断。作者补充“白天为当地六时至十八时”，新复测正确带入；两次冷启动141步读回、原对象／原件与候选保持一致。helper最终SHA `1da524a2ae671da279338400bef122803026e1901a413b3a268f5c6bbc2e7a47`，末次修改16:19:58Z早于本轮进程16:20:08Z创建；未在执行中修改产品。原答本来正确，evaluation.failed为作者补充的工程标签，不据此声称真实错误、模型训练提升或独立准确率。root十项有界审查只适用于该作者合成样本，Owner接受仍false。
+
+补充真实Core局部资格：`c453-stitch-consumer-20261029/artifacts/stitch-consumer-receipt.json` PASS，独立新合成工作区验证研究文档v1→v2、明确同request幂等创建测试、旧writer409拒绝、固定v1历史、关系／原件／导出／包重启相等；不冒称与public工作区贯通。中文OCR外层 `c453-chinese-ocr-20261029`、实际内层 `3654512ffb91/artifacts/common-chinese-ocr.json` ok=true，涵盖PNG／JPEG／两页扫描PDF选定中文短句、定位、独立重解析与重启；全文CER／自然扫描识别准确率未测。`c453-light-negative-20261029` 外层通过，实际 `.project-local/task-runtime/aaos01-light/2f990e5722e541bcaaf3f5be73da7bc5/receipt.json` 为9正常小格式＋4损坏样本通过，含原字节／导出／重启；不是混合文件夹验收。旧探针缺少末尾candidate检查由本轮43成员末尾核对补充，不能把其terminate/wait称Host正常退出。结束时当前候选路径的Core进程只读观察为0；未停止共享模型或未知进程。
+
+前端研究最终包 [frontend-fusion-reuse-20261029-v4/artifacts/README.md](../../.project-local/runs/be268a2d33/frontend-fusion-reuse-20261029-v4/artifacts/README.md) 包含完整 [STITCH提示词](../../.project-local/runs/be268a2d33/frontend-fusion-reuse-20261029-v4/artifacts/STITCH-完整提示词.md) 与 [架构布局／开源复用方案](../../.project-local/runs/be268a2d33/frontend-fusion-reuse-20261029-v4/artifacts/AAOS-前端深度融合与开源复用方案-V2.md)。结构保全检查为 `PASS_RESEARCH_STRUCTURE_AND_PRESERVATION_ONLY`：22页、16能力族／186条意图、24项历史问题承接、20横向交互、19复用对象，78当前文件摘要、6项保护材料、18项原输入／保全副本及6张前轮静态图均核过。v4补全JSON Canvas节点／边／附件与往返损失、T3应用／启停／更新／回退／卸载与旧对象访问。复用优先现有Tiptap／PDF.js／Dockview／Radix／Motion；外部供体逐项区分许可、耦合、接入成本及未核资格，不照搬其数据库、Obsidian写入、provider配置或品牌资产。当前只交设计文字，未调用Stitch生成、未构建UI、未安装新依赖或跑上游项目；旧六图仍是静态合成参考，非运行验收。
+
+本轮最终整体仍PARTIAL。待补当前候选混合文件夹及有限特色清单、集合／JSON Canvas往返完整consumer、同候选NSIS安装业务／升级回退、原生UI草稿alert确诊与Owner验收。现c453仅有便携包，不拿208旧安装PASS移绑；安装入口会操作当前账户目录／注册表，只能在已核归属的隔离客体执行，本轮未启动VM或安装。真实云推理按Owner延期、外部原始上下文NOT_CONNECTED、发布／Green替换未执行。既有push被执行策略拒绝仍不换通道重试，无新head远端CI声明。监控未操作；本批无提交、推送、合并、批量删除或真实用户资料覆盖。接续从本段及原任务ID推进，不将已通过子集扩大为完整CL/J通过。
+
+#### 2026-10-29 同候选混合批次续接、取消边界与融合方案增量
+
+继续遵守后端优先、UI构建暂停。Owner窗口要求收敛为一套流式布局：默认普通、稍小、非最大化窗口与1920×1080满屏两个展示基准；中间自然适配，过小整体缩放，不增加固定尺寸上限或多档独立界面。当前启动尺寸、历史最低窗口观测均不构成新Owner尺寸约束或缩放已实现证明。
+
+本段候选仍是c453portable1，构建绑定上段c453＋6b30冻结差异。新探针使用后续文档差异，未重新构建产品。`c453-source-reuse-check-20261029/artifacts/source-reuse-check.json` 对冻结snapshot的5786项逐文件核对为 `PASS_PRODUCT_BUILD_INPUTS_UNCHANGED_DOCUMENTATION_DELTA_ONLY`：2097项产品／构建输入及778项probe未变，仅3份当前文档变化。本段回写在以下验证完成后，不将此检查或文档回写当成新构建、安装资格。
+
+增量证据汇总于 [backend-feasibility-closeout-20261029-v3/artifacts/README.md](../../.project-local/runs/be268a2d33/backend-feasibility-closeout-20261029-v3/artifacts/README.md) 与同目录 `evidence-index.json`，保全上轮14份收据，新增8份主收据及8份外层运行记录；只作冻结索引，不另立执行队列。各运行均LOCAL_PASS／source_consistent=true，实际有限覆盖如下：
+
+- `c453-mixed-folder-backend-20261029`：CLI混合目录包含中文TXT、正常与损坏DOCX、Canvas、未知扩展名；原件、正常输出、变更新身份、重启及独立恢复通过。该CLI只记录入队，不观察下游执行失败；正式前端不使用此CLI，不能把该限制直接认定为产品批次故障。
+- `c453-durable-batch-backend-20261029`：正式Core durable批次保存失败／成功／成功三项状态；重启只读、不重放。仅在后端确认资格后显式发出一次新request的新尝试，坏DOCX仍失败，两次失败历史保留；正常对象和独立恢复相等。持久化记录不等于worker内部断点续算，整体J1仍PARTIAL。
+- `c453-durable-business-continuation-20261029-v2/artifacts/durable-business-receipt.json`：继续同一durable工作区、同一正常TXT文档，原件定位→正文v1至v2／旧writer409／固定v1→工程fixture知识接纳→本地搜索→正式课程／课件渲染→练习／一次FSRS调度→冷启动→独立恢复，95次正式请求通过，未调用job executions或重跑原坏项。课程仍human_review_required，合成练习不证明真实学习成效。原v1 helper误将未经canonical化的position与Core补checksum／location_status后的合法position比较；原FAIL保留。v2锁定该失败收据，仅GET复用已成功创建的锚点，逐字段核对，不重复POST锚点。末尾完整19746项候选manifest文件摘要前后一致，也与上轮43项选定成员全部相符；不把两种计数混为同一检查范围。索引v2的43项计数断言错误亦保留，v3只修正索引范围，无业务写入。
+- `c453-collection-canvas-20261029`：正式Canvas导入、节点属性／边／扩展字段与文件／链接声明、原始.canvas字节导出再导入、集合table/list/gallery、课程学习前置、重启及独立恢复通过。引用目标未打开、附件未摄取；编辑后.canvas重建导出缺Core合同，现documents导出仅markdown／obsidian。现ObjectReference只有document／source／knowledge，课程用既有course_id／artifact_id／item_key路由和metadata，不冒充已接通的类型化课程集合／图谱引用。
+- `c453-core-cancel-boundary-20261029-v3`：合成loopback材料异步取消、迟到最终响应尝试、受控HTTP503、离线端点和冷启动终态通过；该材料样本迟到字节实际写入本地socket后，已取消终态保持。v2在Core启动前因fixture目录准备错误失败，原证据保留，不归因产品。
+- `c453-machine-cancel-boundary-20261029`：另一路知识回答验证过期CAS取消409、服务已收到合成请求后的正确取消、不发布回答、唯一失败任务、冷启动状态保留。此回答样本迟到写入为CONNECTION_CLOSED，不能称响应已被Core接收；新UNKNOWN样本是NOT_DISPATCHED_INTENT，不替代旧interrupted IN_FLIGHT恢复。两路均未运行真实模型／云，provider_stop_state仍UNKNOWN；不覆盖retest取消。旧真实UNKNOWN请求未读改、清除或重放。
+
+owned Core均按terminate／wait回收，不将其称为Host优雅退出或安装验收；6项受保护材料末尾SHA保持一致。未操作共享模型、全局配置、真实用户数据或监控。
+
+前端最终研究交付见 [frontend-fusion-reuse-20261029-final/artifacts/README.md](../../.project-local/runs/be268a2d33/frontend-fusion-reuse-20261029-final/artifacts/README.md)：[完整STITCH提示词](../../.project-local/runs/be268a2d33/frontend-fusion-reuse-20261029-final/artifacts/STITCH-完整提示词.md) 与 [完整架构布局／开源复用方案](../../.project-local/runs/be268a2d33/frontend-fusion-reuse-20261029-final/artifacts/AAOS-前端深度融合与开源复用方案.md)。22页、16能力族／186意图、24历史问题承接、20横向交互、19复用候选的结构保全检查通过；78文件摘要、18项原输入／副本、6张前轮静态图及6项保护材料均核对。主提示词包含原件与编辑后Canvas、课程引用、批次新尝试、取消未知四项白话边界，原始工程字段移至附注；窗口不新钉像素上限。本批未调用Stitch或图生、未构建UI、未安装依赖。前轮方案原字节保留，本包是增量研究，不声明像素／交互验收。
+
+剩余范围收敛：Core混合批次和同对象业务续接已取得以上有限证据，尚缺原生文件夹grant／Host读取与更广有限特色资格；Canvas编辑后格式重建与类型化课程引用是待补合同，不称已完成往返。J6仍缺本候选正式安装身份及同候选安装／升级／回退／业务恢复，原生未保存草稿alert与Owner验收未闭合。独立bundle可复用既有exe，但现资格器严格绑定构建patch，候选又缺正式安装身份；不得伪造CI run、套旧208身份或降级RequireCandidateIdentity来报通过。后继可先实现诚实的固定构建资格／本地安装身份合同，或在恢复UI构建获准后走真实同源托管CI，再执行隔离安装资格。本批未bundle／安装／启动VM、未提交推送合并发布或替换Green；既有push策略拒绝不绕过。整体继续PARTIAL，UI暂停不等于后端暂停，真实云推理仍延期、外部原始上下文仍NOT_CONNECTED。
+
+#### 2026-10-29 完整来源补证、本地固定构建包装与原生文件夹验证
+
+本段接续以上冻结证据，不将原失败或历史边界改写为成功。Owner窗口澄清仍为一套流式布局，只验看常规稍小非最大化窗口与1920×1080满屏，中间自然伸缩，过小统一缩放；没有新增窗口尺寸版本或像素上限。本段未构建UI、未生成新图或调用Stitch。
+
+先纠正上段来源检查的覆盖范围：旧`source-files-after.json`仅有5786项，遗漏了原本已存在的未跟踪`frontend/src/assets/brand/aaos-logo-light.svg`及`workspace/intake/20261025-codex-handoff.md`；旧逐文件检查不能单独证明完整输入清单。`c453-frozen-source-reconstruction-20261029/artifacts/reconstruction.json`在独立临时Git索引／对象目录中复原原dirty tracked字节，并纳入原两份untracked原字节，重新得到构建时完整工作树摘要`6b30cae20a2f00dbdc49c2c385f84922db5e882118d11bd322685d7f86256145`，状态`PASS_EXACT_ORIGINAL_FULL_WORKTREE_IDENTITY`。真实索引与工作区未变；历史5786项快照保持不完整原样，两项补证单独明示，不伪造历史逐文件快照。旧候选仍绑定c453＋该6b30摘要，没有重建或改绑为当前文档／工具差异。
+
+`scripts/release/local_pinned_packaging.py`与[本地包装合同](../../workspace/intake/20261029-local-pinned-packaging-contract.md)新增独立的`local-pinned-packaging/v1`，分别记录旧构建来源、当前包装来源、原完整19746项payload及实际配置／图标／Node／CLI／NSIS输入。本地资格拒绝任意新产品输入、CI字段、输出覆盖、链接／重解析与未声明差异；两份漏记输入必须具备上述完整摘要重建补证。`lpct5`实测79通过／1跳过（系统不允许创建真实symlink；重解析拒绝与Windows超过260字符的真实目录复制均实际测试），外层LOCAL_PASS／source_consistent=true。`lpqi5`当前5791项清单为旧5786＋补证2＋明确工具／测试／合同3，完整候选成员复核通过。未降低原CI candidate或release验证门槛。
+
+实际独立包装`lpns3`完成`bundle --no-sign --no-binary-patching --bundles nsis`，没有执行前端／Rust编译。旧资源映射显式移除，NSIS工具缓存与所有新输出限定在本run；运行前后源码、完整payload、实际消费者、配置、工具及复制字节一致，外层LOCAL_PASS／source_consistent=true。安装包424276924字节（约404.62MiB），SHA-256 `24839e3c2503c30c80239dc24bb60a41b37a5c168f70a7682ffc4aa858ebb7e2`，见[包装收据](../../.project-local/runs/be268a2d33/lpns3/artifacts/p/packaging-receipt.json)。资格为本地未发布固定构建包装，CI未声称、安装未执行；未修改`app.release`或补造CI run／URL。前两次实际包装在CLI启动前分别因旧Core-only路径规则拒绝合法依赖点目录、以及mkdir未用Windows native长路径而失败；原失败及部分输出保留，后继只修复工具，不裁剪或重建候选。
+
+再纠正上段原生文件夹路径前提：现有`FolderIngest`实际使用WebView `input webkitdirectory`、`File.arrayBuffer()`与正式durable批次API，没有另一个尚待验证的Tauri目录grant／Host文件读取命令。`c453-native-folder-20261029-v2`以完整本地固定构建资格连接既有原生harness，实际自建TXT、Canvas与坏DOCX，经UI选择、登记、处理，成功／成功／结构失败分别读回，三份原字节保存；重启后完整历史批次一致。同长度TXT变更产生新batch及新SHA，旧batch与旧原字节保留，新TXT仅入队未执行。两道只读UI／journal settled门槛通过后，两次普通退出code0，没有自动确认；owned=[]、端口释放、源码与候选资格复核一致。原首轮在Core终态后立即重启，前端dirty=true触发退出确认而超时，原FAIL保留；增加等待后成功不证明原dirty的具体owner。此项为`PASS_NATIVE_FOLDER_SUBSET_LOCAL_PINNED_HISTORICAL_BUILD`，不冒充系统目录picker、201成员续传、文件监视同步、安装／CI或AI全链验收。
+
+`c453-retest-cancel-boundary-20261029-v3`补上复测取消的合成Core子集：正式基线回答成功并按确认合同清理其journal；工程fixture纠正后独立retest授权，原知识作为journal owner，纠正对象作为retest body，绑定真实失败evaluation任务。请求已进入合成provider后验证过期CAS取消409、正确取消、不发布回答、唯一失败任务、保留旧任务与冷读一致；迟到写入结果为CONNECTION_CLOSED，provider共2次请求无重放。状态`PASS_SYNTHETIC_CORE_RETEST_CANCEL_SUBSET`、44步，真实模型／云未运行、真实provider停止仍UNKNOWN，复测journal未清除；旧真实UNKNOWN请求未读改或重放。前两轮探针的optional字段比较与helper准备错误原失败保留，不归因产品。
+
+本段[冻结证据索引](../../.project-local/runs/be268a2d33/backend-feasibility-closeout-20261029-v4/artifacts/README.md)保全前轮索引、新6份主收据及外层记录、6份原始失败；6项保护材料SHA未变。只读体积分析为19746成员／1405138417逻辑字节，其中固定WebView2约706MB；测试类目录名命中约34.8MB，不能据名称认定可删。本段未删除文件或声称物理空间回收。官方`wsb list --raw`在`wsbobserve29`实际返回0个环境；这是记录时点观察，不把旧清场收据当作当前VM证明。本段未启动／停止VM，未在Owner账户安装，未提交、推送、合并、发布或替换Green。
+
+剩余仍为PARTIAL：需显式local-pinned安装身份消费者分支及隔离安装／升级／回退／同候选业务恢复；原正式CI／release分支不得降级。Canvas编辑后格式重建、类型化课程引用、旧interrupted IN_FLIGHT恢复、真实provider停止、完整同候选J1—J6及Owner验收仍未闭合。原UI研究交付保持一套布局与两个查看状态；构建继续暂停，既有push策略拒绝不绕过。
+
+#### 2026-10-29 本地固定安装生命周期验证与校验器接入
+
+本段接续前段的安装缺口，不改写原包装收据的历史NOT_RUN字段。[v5冻结证据](../../.project-local/runs/be268a2d33/backend-feasibility-closeout-20261029-v5/artifacts/README.md)及其索引绑定本轮测试、原始失败、安装结果和清场；整体仍为PARTIAL。
+
+- `desktop/scripts/verify_nsis_install.ps1`新增显式`RequireLocalPinnedIdentity`分支，要求包装收据、安装器、Host、Core、runtime manifest五个摘要，逐级检查收据→独立identity→完整payload；操作前重核输入，首次安装、同版本覆盖、卸载后重装均核完整成员／大小／SHA／链接。只排除portable.flag，只允许精确NSIS生成uninstall.exe作为额外成员；原CI candidate／release模式互斥且资格条件保持。运行时按原release-manifest核摘要和能力，artifact identity必须不存在，不把历史source unavailable改盖为c453或虚构CI身份。
+- 首版真实`lpinst2`完成初次安装文件核验、只读前端启动PASS及Core seed退出0，但完整流程主动中断以修复验证脚本性能，不能声明整轮通过。20个小文件的只读抽样耗时0.6295323秒，初次阶段约9分钟；后继只将每个祖先的Test-Path／Get-Item双调用换为.NET GetAttributes，每次仍查每个祖先，不缓存或跳过路径，文件hardlink／大小／完整SHA规则不变。新旧脚本、部分结果、性能样本和中断原因均保留。
+- `lpinst3`在全新离线Windows Sandbox中执行同一安装包，安装器SHA仍为`24839e3c2503c30c80239dc24bb60a41b37a5c168f70a7682ffc4aa858ebb7e2`，旧Host／Core及构建摘要c453＋6b30未变。[完整生命周期收据](../../.project-local/runs/be268a2d33/lpinst3/output/9a55bc5717ee4884a590acd042d24180/lifecycle-receipt.json)为`complete_lifecycle_verified=true`、`LOCAL_PINNED_INSTALLED_LIFECYCLE`：正常关闭、异常终止后的子树／端口清理、同版本覆盖、卸载保留用户数据、重装读回均通过，pyc增长0。seed与两次readback均退出0并读到同一持久Core任务；运行时仍为unreleased／source unavailable。它明确标注`SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION`，跨版本升级、rollback为NOT_TESTED，安装态文档冲突／完整业务／AI旅程未执行，不能称为J6全部完成。
+- 两轮均仅映射项目内准备的安装包、脚本与工具为只读，唯一可写映射为本轮空输出目录；没有Owner工作区或账户安装。新版收尾先修复StartTime与CIM精度不同、启动器提前退出的归属判断，再在实际停止前发现ConvertFrom-Json自动转DateTime后又强转string丢失时区／小数，`lpstop1`为BLOCKED_NOT_REQUESTED，未发出stop。修正为DateTime直接UTC、字符串roundtrip解析且仍比较精确ticks，新增真实JSON日期往返测试。`lpsguard2`19例通过；`lpstop2`与`lpstop3`均官方stop退出0且本轮ID／root／child全部消失，最终官方清单为空。原误拒终态保留，不重放旧停止请求、不强杀其它进程。
+- 合成函数测试新旧各41通过／1真实symlink权限跳过，8项实际内嵌runtime分支测试通过。新增公开`tests/test_local_pinned_installer_identity.py`与PowerShell fixture，并更新原同版重装元数据断言；`lppublic3`安装安全／发行／local身份三文件55项通过，外层LOCAL_PASS且source_consistent。`lppublic1`的链接创建长路径错误和旧静态断言失败、`lppublic2`的hardlink创建API长路径错误原记录保留；后继改用native路径和.NET symlink创建，不将非法参数等其它失败跳过。公开verifier与实际guest冻结verifier仅行尾不同，分别绑定原SHA，并有全文规范化相等核验，不冒称原字节相同。
+- 包装工具固定名单明确增加安装验证器及三个相关测试文件，仍需逐文件before／after声明，没有目录或通配放行。`lpct7`83通过／1跳过；新增测试初稿`lpct6`81通过／2空snapshot夹具失败／1跳过原样保留，修复夹具而非放宽snapshot非空门。`lpqi6`再次实际资格检查为5793项source、19746项候选payload、3项docs与7项精确tools增量；原两份历史漏记输入继续走完整摘要补证，未打包、重建或改写运行时来源。该请求绑定其执行时字节，随后本执行记录追加不能自动沿用旧docs摘要。
+- v5封存复核664项guest输入／工具字节全部不变，6项原保护材料SHA未变，原失败／慢验证／两次实际清场均有独立路径。未前端构建、生成新图、调用Stitch、提交、推送、合并、发布或替换Green。窗口仍只是一套流式布局：常规稍小非最大化窗口＋1920×1080满屏两个查看状态，中间适配、太小时统一缩放，不再设计多套尺寸版本。
+
+后继只沿未闭合项继续：完整安装态业务／冲突／AI与同候选恢复、跨版本升级／数据恢复／回滚、新精确源码CI及Owner接受；Canvas编辑后格式重建、类型化课程引用、旧真实UNKNOWN和provider停止仍保持原边界。UI构建继续暂停，前端完整提示词和融合方案保持已有研究交付，不因本地安装子集通过恢复UI构建或绕过push拒绝。
+
+#### 2026-10-29 后AI学习恢复、安装态冷读与PDF依赖故障定位
+
+[v6冻结证据与说明](../../.project-local/runs/be268a2d33/backend-feasibility-closeout-20261029-v6/artifacts/README.md)及同目录`evidence-index.json`（SHA256 `0bef1eacb09ca0da6d87d462f224ba603ebbea386eab906f6a1ad6522e86053c`）接续上段，不改写v5及原失败。结论为`POST_AI_AND_INSTALLED_RECOVERY_SUBSETS_PASS_NATIVE_PDF_FAIL_OVERALL_PARTIAL`：后AI同对象学习与恢复、安装态同对象恢复有限子集通过；首次安装态普通业务流程在PDF依赖导入处失败，完整闭环仍未完成。候选Host／Core、历史构建c453＋6b30、安装包24839e…7e2均未重建或重新盖来源；当前工具胶囊身份与历史编译身份分别记录。
+
+- `post-ai-learning-recovery-v6-20261029`在同一J4原知识与纠正知识的完整稳定副本上完成145步：两条知识的正式学习引用、评估和FSRS评分、学习事件、366字符非空正文导出、正式备份／独立恢复、两次冷启动及旧研究／模板／问答／学习对象读回。原库非空WAL／SHM与CAS一起复制，原件不作SQLite连接、checkpoint或写入，末尾逐字节摘要不变。原6条任务及4条claim原始字符串保留；成功流程留下的`IN_FLIGHT`是现有防重放持久屏障，不据标签擅自清除或重发。合成`correct=true`／rating3不等于学习质量、事实正确或Owner评审。
+- 原preflight／运行v3—v5、非空WAL假设及导出自动`block_id`误判的失败均保留；后继分别修验证工具的输入角色、函数名遮蔽和正文结构校验，没有重跑原推理。最终准备检查53通过／1真实symlink权限跳过；正式运行收据SHA为`297b833641c7350e75c6af90df02e1e66cc8ff4b12a14080c93be66a2ec7285d`。Core终止后wait/reap不等于优雅退出；恢复的新授权fence／epoch已核，未实际发旧grant请求测试拒绝。
+- 本轮`lpinst4`同包安装生命周期再次通过，安装成员19745（精确排除空`portable.flag`、另核NSIS生成卸载器），同版本覆盖、卸载保留数据、重装读回及pyc零增长均有独立收据。原启动器在实际启动后因短暂CIM归属读取而终止，`BLOCKED_BINDING_NO_AUTO_STOP`原件不改；后继只用两轮官方唯一ID、精确child PID／创建时间／父链／路径／配置绑定已有guest，没有新增第二台VM或强杀未知进程。
+- 首次native准备停在合成Git目录的dubious ownership，`journeys=[]`，没有业务请求；后继仅对该胶囊进程及其子进程设置精确`safe.directory`，没有全局Git设置。实际普通旅程随后到达格式矩阵PDF，任务`g3-matrix-6ba575e086c04052b27f96f658e54081`的attempt1正式读回`failed / PDF_DEPENDENCY_IMPORT_FAILED`，不是UNKNOWN；已分发的导入、入队与执行不重放。普通旅程收据SHA`5af1024701ac74418fd51779376c4eecb59c370e273a72f18930222d8d5fedce`，conflict旅程未执行；自有进程、driver与端口清场通过。宿主`wsb exec`的canonical `LOCAL_PASS`只表示派发命令结束，guest退出1与业务FAIL明确另列，不能提升为产品通过。
+- 安装态恢复v1正式恢复退出0、35次GET全部200，随后只读SQL证据采集在共享映射目录报`OperationalError: disk I/O error`。原收据`5ab9b57f…bcb5d42`、包装器`082c2869…493f8e8c`保留；输入与完整安装payload未变、Core wait/reap及卸载完成，不能据这项采集失败断言业务数据损坏。v2仅把新恢复数据库固定到guest本地`LOCALAPPDATA/AAOSVerification/installed-post-ai-v2/workspace`，输出收据仍映射回本轮目录；同一正式备份、12份CAS与7个当前工具输入保持固定。首版v2 stage的长路径复制失败也保留，native路径修正后`ipai2t2`13通过／1symlink权限跳过，`ipai2s2`另建新输入，未覆盖旧失败目录。
+- `ipai2exec`实际guest、`ipai2review`独立父端审查及包装器三方联合通过：正式maintenance restore退出0，两次冷启动共70次GET全部200，原知识／问答／学习／模板／导出逐对象相等，6条旧任务、4条claim原字节、恢复fence与CAS核对一致。guest收据SHA`cec9326284d127e8618526fe7870e76f1499bd1b8ac19eab3701260e417c5a30`；两个Core均terminate后wait/reap、非优雅退出，原始模型配置仅允许当前工作区与restore epoch动态变化。两次完整安装payload与生成卸载器核验通过、pyc0→0、卸载退出0。没有新推理、公开网络请求、旧grant执行、真实资料覆盖或Owner账户安装；这仍不等于J6全部通过、跨版本升级／回滚或完整原生业务验收。
+- 实际只读PDF诊断：原环境`pymupdf`／`fitz`均ImportError，失败在加载`_extra` DLL；静态PE确认依赖MSVCP140，而现包仅在WebView子目录有同名DLL。四个独立进程的对照中，显式`os.add_dll_directory`精确WebView路径后两模块都可导入、`open`可调用，加载路径观察到MSVCP140来自该目录；其它新增项为扩展自身、MuPDF、`_decimal`和runtime内VCRUNTIME140_1。`fitz`的一行弃用warning及完整日志保留，最后一行JSON按module／mode核对。只能确认进程级目录搜索影响导入；没有修改DLL、PATH、注册表、旧候选或安装器，不能称为正式PDF转换／分发修复，也不将WebView实验DLL直接用作分发来源。后继最小修补及官方依据见[PDF诊断与runtime打包分析](../../.project-local/installed-post-ai-recovery-orchestrator-20261029/NEXT-PDF-DIAGNOSTIC.md)：需核合法VS Redist精确donor，且仅放app/core目录不足，Python的runtime目录与完整manifest也须一致，再以新身份做实际PDF与离线安装验收。
+- `lpstop4`仅对已绑定guest执行一次官方stop，退出0、`STOP_CONFIRMED_OWNED_RESOURCES_CLEARED`；官方清单为空，原root／child均消失，Host／Core无残留，六项受保护原材料SHA未变。全部输入、原失败、当前子集和清场均在v6索引逐路径固定，未批量删除、stage／commit／push／merge／发布或替换Green。额度官方读回27%已用／73%剩余，第二窗口未知，10%停止阈值未触发；监控保持原暂停状态。
+
+窗口要求继续只是一套流式布局，普通稍小的非最大化窗口＋1920×1080满屏两个评审状态，中间自然适配，过小统一缩放；不另钉固定普通尺寸，不增加分尺寸版本。完整STITCH提示词与融合方案已包含此要求；本轮未改产品UI、构建前端、生成新图或调用Stitch，也不冒称整体缩放已实现。
+
+接续优先处理新确认的安装态PDF依赖布局，再完成未执行的后续格式与conflict旅程；原已失败请求不重放，后继使用明确新身份和新合成输入。完整安装态业务／AI、跨版本恢复／回滚、新精确源码CI、Owner接受及此前具名边界仍未闭合，不能以这些有限子集宣布后端或全产品全部完成。
+
+#### 2026-10-29 App-local C++依赖修补、安装态PDF与沙盒清场
+
+[v7冻结索引与说明](../../.project-local/runs/be268a2d33/backend-feasibility-closeout-20261029-v7/artifacts/README.md)及同目录`evidence-index.json`（28116字节，SHA256 `a4d6bc103d10f6e9dcc0947f41d0d5be4dcb10b3010028673a000c84994bf48a`）接续v6。正式stage的PDF子集、纯NSIS包装、隔离安装生命周期与安装态PDF子集均已取得分层证据；完整原生业务旅程、跨版本与全产品闭环仍为PARTIAL。原v6失败请求及本轮工具失败均保留，没有升级旧FAIL或重放旧PDF／UNKNOWN请求。
+
+- 根因落实为Python app-local缺少`msvcp140.dll`。只读核实已登记官方Microsoft VC Redist精确donor，三文件实际版本`14.44.35211.0`、AMD64且签名有效；原两份vcruntime字节与旧包一致。正式stager要求明确完整同版trio或在预检拒绝；desktop入口沿显式参数、构建局部环境变量、固定官方vswhere/Redist记录定位，预检先于依赖准备。没有扫描System32、home或下载未知DLL。`cppu1`的91项测试通过；实际`cppstage1`、donor独立副本与来源冻结另有收据，不以单元测试代替真实staging。
+- 历史Host/Core继续为c453＋冻结差异`6b30cae20a2f00dbdc49c2c385f84922db5e882118d11bd322685d7f86256145`；当前runtime staging与包装来源差异为`a66b907da51ccc03a3838de1b8683189b94ba4a6d20c7c967d6a94354954d3e6`。`cppcand1`使用独立mixed-component身份，唯一新增payload为`runtime/msvcp140.dll`，既有产品成员仅backend manifest发生变化；其余19745项既有成员（含Host/Core）未改。manifest明确校正workers实际41项并记录ASR模型缺失，不伪造单一新编译来源、模型或CI身份。本末段文档回写在全部run终态后进行，不移绑旧构建或A66包装来源。
+- `pdfstage1`完成新合成两页中文PDF的32次正式请求：两种真实PyMuPDF导入、原字节／全文／元信息／结构／两处CURRENT定位与400负例、普通Document／Markdown导出、冷读及独立restore。完整19745项stage文件前后一致；3个owned Core均terminate／wait／reap并核端口关闭，不称其优雅Host退出。此处仍只为stage验证。
+- `cppns2`完成纯`bundle --no-sign --no-binary-patching --bundles nsis`及全部后验检查，未编译UI或Core。新安装包424330150字节，SHA256 `53a83f2035ca28d83e889e976a7a76d9ca2a85fb54b61c1e9f392299c52e9708`；包装收据SHA `cda855a6b506c1b46d66cef0c042e50a1669bc9b1876eb32d18f29a8ff5d1863`。独立`cppreal2`只读核对19746个安装成员与11份detached proof通过。新验证器为ignored明确模式，不降低既有CI／发行模式；旧六身份函数由AST全文核对一致，新增路径守卫35项纯检查、生成器5项检查、staging 10项和PDF父包装12项准备检查通过。原`cppns1`在CLI成功后因native路径前缀被正式UNC守卫拒绝，原FAIL保留；新输出仅规范受控枚举路径。`cppreal1`因同一Windows路径两种斜杠表示而拒绝，后继只修正严格路径比较，未重打包产品或放宽proof守卫。
+- `cppinst1/output/a10fed11c4d34f779218578267d59753/lifecycle-receipt.json`（SHA `110069d0f1db6c404ae725062347b566740f4228db0f796b8af535a8073f02a3`）实际`complete_lifecycle_verified=true`，范围为`LOCAL_RUNTIME_CORRECTION_INSTALLED_LIFECYCLE`。桌面前端startup PASS，正常关闭、受控强制树清理、同版本原包重装、卸载保留合成数据、重装读回均通过，pyc增长0。`SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION`明确不等于跨版本升级或回滚；两者仍NOT_TESTED。
+- `cpppdfexec1`在同一已绑定离线guest、生命周期完成后额外安装一次，使用独立`C:/AAOSPdfProbe`及新native合成库，没有覆盖旧生命周期工具。安装态PDF业务收据位于`cppinst1/output/cpppdf1-installed-pdf-result/installed-pdf-receipt.json`，SHA `5cc0f580edcf0da17c4fdee45b246c5a42f0c8b3d82eb090c6bfcf014d341cf7`，状态`PASS_INSTALLED_PDF_IMPORT_CORE_RESTART_EXPORT_RESTORE_SUBSET`：新PDF／单新job、31次正式请求、两种真实import及三个DLL实际loaded路径／hash／版本、全文／定位／导出、冷启动和独立restore均通过，完整19747项安装树（含本次观察的uninstaller）前后一致。3个Core回收并核端口关闭，inputs未变；原生合成材料／主库／独立恢复库已在Core停后保全到`installed-pdf-native-snapshot-v1`。父包装校验完整安装树与已观察卸载器hash后卸载0、owned程序为空；host收据SHA `62ca48a5fce34be5cd54a45245f1c7f02a676d28b38f948c807882bed66a919e` 为`PASS_EXISTING_GUEST_INSTALLED_PDF_SUBSET`，CLI及guest退出均0。这不替代Host全业务／conflict／AI旅程或Owner验收。
+- 本轮宿主`cppstart1`的临时root CIM身份观测失败原样保留。`cpprbind1`以原receipt／config hash、唯一官方ID、本轮child的PID／父ID／路径／配置／精确创建ticks和159ms创建间隔，另记`RECOVERED_OWNERSHIP_BOUND_LATER`，不冒称原launch PASS。`cppstop1`只对该精确ID执行一次官方stop；`sandbox-stop-v5-terminal.json`（SHA `0bef7286fd8e2cd432c33badf5049d88aee71f9ca5355a07acbcef0e52523d9c`）为`STOP_CONFIRMED_OWNED_RESOURCES_CLEARED`，官方清单为空、原root和child均消失，未强杀无归属进程。六项受保护原材料SHA仍一致；监控保持暂停。官方额度最近读回32%已用／68%剩余、第二窗口未知，10%停止阈值未触发。
+
+窗口要求不变：一套流式布局，只验看普通较小非最大化窗口和1920×1080满屏；中间自然适配，过小统一缩放，不新增普通窗口固定尺寸或分比例版本。既有完整STITCH提示词与融合方案已核对包含该要求；本轮未修改／构建UI或生成新效果图，统一缩放仍是设计要求而非已完成实现。
+
+后继沿唯一闭环定义补完整安装态普通／冲突／AI旅程、跨版本恢复与回滚、新精确SHA CI及Owner接受；Canvas编辑后格式重建、类型化课程引用、旧真实UNKNOWN、provider停止及外部上下文NOT_CONNECTED仍保持已记边界。未stage／commit／push／merge／发布、替换Green或覆盖真实用户数据。v7为冻结证据索引，不另立任务队列。
+
+#### 2026-10-29 前端场景归并后的后端共用规则收敛
+
+Owner要求后端也调整、该合并的合并。本轮落实内部共用策略重构，后端仍以既有Rust Core为唯一业务writer。完整职责归组、四场景接入、模板／插件／技能及未来能力展现边界见[后端职责归并说明](../../workspace/intake/20261029-backend-shared-policy-consolidation.md)。没有因界面入口减少而机械合并数据、权限或独立生命周期，也未恢复正式UI实现。
+
+实际产品改动为五类：研究保存／历史图谱共用关系校验并保留live与shape目标策略；对象resolve移除入口校验后的重复检查；conversation／material／public research／machine journal共用锁内取消准入；能力列表／详情共用provider记录组装；模板生命周期／旧启停共用事务提交。公开API路由与payload、数据库schema、普通保存和已存数据均未改；文件转换job的取消、AI评测、人类学习、系统日志与业务收据未强行合为同一记录。现有其他dirty成果保留。
+
+局部证据为[backend-consolidation-receipt.json](../../.project-local/runs/be268a2d33/backend-merge-api-final-20261029/artifacts/backend-consolidation-receipt.json)与同目录只读定向审查。变更前67项基线通过；最终domain19项、原API合同50项、取消／撤销unit5项、机器问答／journal合同20项，共94项通过。六个canonical run均`LOCAL_PASS / source_consistent=true`；四个最终run共同绑定HEAD `c4531c1bb6795ccda208a96ef8cc246a645d0199`及执行期dirty patch `4facff918acb92f9561fa79de610e9ed67d6822b67ce98f9462432f553e46f6e`。本说明及本段在测试后回写；该执行期身份不能扩为当前全部dirty树或发布资格。引用畸形／历史缺失对象、首错次序、取消与发布互斥／重复取消、开关不启动worker、模板卸载与旧入口防绕过均有相应局部检查；审查未发现本轮可证回归，保留未来调用者必须持registry锁的约定风险。
+
+回执首次汇总因PowerShell的OrderedDictionary键不是`Measure-Object`属性而得到空总数，被断言拒绝；对照复现后转PSCustomObject，仅重建回执，未修改产品、重跑测试或掩盖失败，原消息与原因已记在回执。原有4类编译警告保留。最新官方额度49%已用／51%剩余、第二窗口未知；停止阈值未触发，监控未操作。
+
+本轮完成的是本地源码归并与定向验证。现有安装包不含这些改动，新Core构建／安装态消费者、新精确SHA CI、真实provider停止、完整闭环和Owner接受仍未因此完成；既有v7等安装证据不移绑。未提交、推送、合并、发布、替换Green、批量删除或覆盖真实数据。回退按本轮写集hunk进行，不重置既有dirty文件；本地run证据由dev launcher分配并被此记录和intake引用，后继更新引用前保留。
+
+#### 2026-10-29交接、2026-10-30封存：STITCH设计与ZCODE本地后端
+
+Owner要求完整整理可见对话及提供材料，交STITCH设计全部前端；后端由ZCODE在新分支优化、保留归并迁移全部能力，复杂项延期，全部本地执行且禁止云仓库/数据上传，汇报后再由Codex独立审计。本轮落实交接准备，不启动ZCODE、不恢复UI实施或把提示词当已开发。
+
+入口为[STITCH＋ZCODE完整交接](../../workspace/intake/20261029-stitch-zcode-handoff/README.md)，含需求逐项理解/替代决定、材料阅读边界、完整前端提示词/DESIGN.md/186意图与22职责附件、完整后端闭环提示词/公开检索依据/独立审计清单。STITCH设计包只含4份设计Markdown与4张用户原字节参考图，不混入源码、原始对话包、数据库、日志或备份；路径为`.project-local/runs/be268a2d33/stitch-zcode-handoff-20261029/artifacts/STITCH-可提交设计包.zip`。两个主提示词经独立只读反遗漏审查，补齐前端小栖/FAST-DEEP/IME/退出草稿/Canvas/T3/状态，纠正已有Dockview保存与实际缺口；后端补专业云接口边界、J2个人资料及学习消费者、确定失败显式重试与后端/产品结案区别。
+
+本地分支`codex/local-backend-closure-20261029`从`trae/20261024`的`c4531c1bb6795ccda208a96ef8cc246a645d0199`新建；41份既有dirty/untracked文件共2051311字节及tracked patch已在同run的`artifacts/baseline-before-handoff/`按原字节保全，未自动commit/merge。最终交接身份见同run的`artifacts/handoff-final-state.json`；它是本地快照，不是新队列或发布资格。
+
+材料核对：原ZIP21781739字节，SHA256`e3773b5ec20a172909a96ae723bdf4c3bc682c04a98302867dc263e709d83ecb`，106文件/88文本/17PNG/1XLSX，CRC和内部清单通过；全部可见需求及186意图语义、11检索/25格式/24交互/12验收清单已阅读。66文本直接全文读、9重复视图全字段同源核对、2完整性清单核对；11源码快照未逐行复审，不冒称88份源码全审。XLSX3297非空格/17公式已解析，未重算或渲染；root以联系表看全部17图并放大黑灰主入口/扇出参考，截图不能证明原交互运行。原Obsidian技术路线11611字符已读，只吸收适合AAOS的组织和交互；两条ChatGPT分享链接本次均Cache miss，未称网页全文可读。逐成员范围在同run`artifacts/material-reading-coverage.json`。
+
+当前活动指针`execution_control.owner_handoff_20261029`及permissions已覆盖历史远端授权：本地commit/必要合格merge可执行，push/PR/远端merge/云CI/同步/发布/项目资料上传禁止，包含旧额度阈值上传指令；不会审计后自动恢复远端权限。编码工具本地运行不等于本地推理，严格防外传需核本地模型/离线或系统隔离；仅提示词不构成网络隔离。公开文档/依赖读取及非敏感公开/合成查询的检索验证可进行，不外发私有识别全文；真实云推理保持延期。
+
+本轮仅文档/本地分支/快照和设计交接封装，无新增产品源码、后端测试、构建、安装或实际检索调用；旧94项源码定向PASS与v7安装态子集保持原身份。最终仅做交接结构、全量原文映射、基线保全、ZIP成员/字节和本地权限字段检查，最终结果入口为`.project-local/runs/be268a2d33/stitch-zcode-handoff-verification-20261030-v2/artifacts/execution.json`。首轮`stitch-zcode-handoff-verification-20261030`因核验脚本要求英文UNKNOWN而前端提示词采用中文“未知写入”失败；按实际原文修正词项检查，原FAIL保留，未改变产品或放宽未知状态语义。ZCODE尚未运行，后续本地完成报告经Codex独立审计，CL/J整体仍PARTIAL；未云端上传、push、发布或替换Green，监控未操作。
