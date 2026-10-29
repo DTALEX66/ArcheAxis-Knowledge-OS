@@ -2663,3 +2663,15 @@ Owner要求完整整理可见对话及提供材料，交STITCH设计全部前端
 当前活动指针`execution_control.owner_handoff_20261029`及permissions已覆盖历史远端授权：本地commit/必要合格merge可执行，push/PR/远端merge/云CI/同步/发布/项目资料上传禁止，包含旧额度阈值上传指令；不会审计后自动恢复远端权限。编码工具本地运行不等于本地推理，严格防外传需核本地模型/离线或系统隔离；仅提示词不构成网络隔离。公开文档/依赖读取及非敏感公开/合成查询的检索验证可进行，不外发私有识别全文；真实云推理保持延期。
 
 本轮仅文档/本地分支/快照和设计交接封装，无新增产品源码、后端测试、构建、安装或实际检索调用；旧94项源码定向PASS与v7安装态子集保持原身份。最终仅做交接结构、全量原文映射、基线保全、ZIP成员/字节和本地权限字段检查，最终结果入口为`.project-local/runs/be268a2d33/stitch-zcode-handoff-verification-20261030-v2/artifacts/execution.json`。首轮`stitch-zcode-handoff-verification-20261030`因核验脚本要求英文UNKNOWN而前端提示词采用中文“未知写入”失败；按实际原文修正词项检查，原FAIL保留，未改变产品或放宽未知状态语义。ZCODE尚未运行，后续本地完成报告经Codex独立审计，CL/J整体仍PARTIAL；未云端上传、push、发布或替换Green，监控未操作。
+
+#### 2026-10-30 ZCODE本地后端收尾：验证、诊断与本地提交
+
+Owner指示通宵自主执行后端闭环。ZCODE会话为云端模型（GLM-5.3-Flash），接手时按提示词0.3如实报告并暂停；Owner随后明确指示继续，该偏离在此登记，防外传边界仍按0.1/0.2执行：无push/PR/远端合并/云CI/发布/私有材料上传，本轮未发任何真实检索请求。完成报告与机器可读证据索引见[ZCODE完成报告](../../workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md)及同目录`evidence-index.json`。
+
+本地新增六个commit（显式路径staging，未push）：`7c9c95ba`五类归并转正、`c09c7d20`Canvas编辑后文本节点导出、`3d8acb0b`本地固定打包与app-local CPP staging、`5957abce`浅色品牌资产、`b2839075`20261029交接材料与进度文档、末个治理commit补`.gitignore`的`.mimosa/`并回写本段。无需要合并的其它本地分支。
+
+验证为复跑而非沿用：Rust六套件99项（domain19+API合同50+取消5+机器问答/journal20+canvas域3+canvas API2）与Python定向10文件412项（411通过1跳过）全部`LOCAL_PASS / source_consistent=true`，绑定执行期HEAD `c4531c1b`+dirty patch `e885d130…`；提交后同内容由`b2839075`承接。`cargo fmt`修复2处归并写集内格式差异；clippy 0.1.97经官方rustup装入固定工具链（唯一一次外部下载），范围clippy LOCAL_PASS保留8条既有警告；`archeaxis-store-sqlite`存在2条既有clippy lint使全依赖`-D warnings`不绿，深夜未顺手改无关模块，具名登记待审。合格Core release构建按规范命令产出：`archeaxis-api.exe` 19181056字节 SHA256 `b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b`，绑定`b2839075`+patch `81d47216`（届时唯一dirty为`.gitignore`）；该构建只固定身份，未经staging/安装态消费，不移绑旧包PASS。
+
+两个具名诊断闭环：其一，v2 dual-loop retest 503/`NO_FINAL_ANSWER`根因确认为推理模型在2048预算内全部输出`reasoning_content`（finish_reason=length），worker按合同如实拒绝（`worker_machine_answer.py:529-535`），v3同候选复跑PASS，属模型预算行为方差而非代码缺陷，原FAIL收据保留、合同不改；其二，本轮两次run被dev.py判INVALIDATED，根因为Mimosa插件hook持续写`.mimosa/hook-state`漂移worktree身份，以`.gitignore`同类的agent工具状态条目修复，原失败run保留。20261025安装态回执的`get_canvas created_at`缺陷在当前源码全量grep不可复现，记`UNREPRODUCED_IN_CURRENT_SOURCE`。Mimosa commit hook报告`scanner_no_output`（提交前无完整扫描结论，按其兼容策略放行），不做项目安全宣称，完整审计留Codex/Owner决定。
+
+CL-01—07与J1—6逐项仍为PARTIAL（真实通道/安装子集/本地推理等既有证据层分列于报告表格），结论`LOCAL_BACKEND_SCOPE_PARTIAL_PENDING_CODEX_AUDIT`：后端有限切片（归并、Canvas导出、打包身份、测试门禁、构建身份）真实完成；完整安装态旅程、跨版本升级/回滚、真实云推理（DEFERRED_UNEXECUTED）、外部上下文NOT_CONNECTED及因UI暂停缺位的产品层项不冒称完成。后继最短路径已列报告第八节。未push/合并远端/发布/替换Green/覆盖真实数据；监控未操作。
