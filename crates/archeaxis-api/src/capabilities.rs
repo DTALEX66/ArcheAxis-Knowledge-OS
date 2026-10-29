@@ -153,37 +153,55 @@ fn same_provider(a: &Path, b: &Path) -> bool {
     a.to_string_lossy() == b.to_string_lossy()
 }
 
+/// List and detail use the same provider selection without starting a worker.
+fn registered_record(
+    executor: &Executor,
+    capability: &str,
+    worker: &Path,
+    site_packages: bool,
+    disabled: &HashSet<String>,
+    readable: bool,
+) -> serde_json::Value {
+    let python = executor.python_path();
+    let default_owned = chosen_provider(executor, capability, python)
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| worker.to_path_buf());
+    // A fallback belongs only to the default's row, preserving declaration order.
+    let fallback = if same_provider(worker, &default_owned) {
+        executor
+            .providers_for(capability)
+            .into_iter()
+            .map(|(path, _)| path)
+            .find(|path| !same_provider(path, &default_owned))
+    } else {
+        None
+    };
+    capability_record(
+        capability,
+        worker,
+        site_packages,
+        python,
+        disabled,
+        readable,
+        &default_owned,
+        fallback,
+    )
+}
+
 /// The whole registry.
 pub async fn list(executor: &Executor) -> Response {
     let (disabled, readable) = disabled_and_readable(executor).await;
     let routes = executor.registered_routes();
-    let python = executor.python_path();
     let records: Vec<serde_json::Value> = routes
         .iter()
         .map(|(capability, worker, site_packages)| {
-            let default_owned: std::path::PathBuf = chosen_provider(executor, capability, python)
-                .map(|path| path.to_path_buf())
-                .unwrap_or_else(|| worker.to_path_buf());
-            // A fallback is only reported for the default's own record: naming a second provider on
-            // every row would leave a reader unable to tell which one answers.
-            let fallback = if same_provider(worker, &default_owned) {
-                executor
-                    .providers_for(capability)
-                    .into_iter()
-                    .map(|(path, _)| path)
-                    .find(|path| !same_provider(path, &default_owned))
-            } else {
-                None
-            };
-            capability_record(
+            registered_record(
+                executor,
                 capability,
                 worker,
                 *site_packages,
-                python,
                 &disabled,
                 readable,
-                &default_owned,
-                fallback,
             )
         })
         .collect();
@@ -277,29 +295,7 @@ async fn read_record(executor: &Executor, capability: &str, observe_health: bool
             .into_response();
     };
     let (disabled, readable) = disabled_and_readable(executor).await;
-    let python = executor.python_path();
-    let default_owned: std::path::PathBuf = chosen_provider(executor, &name, python)
-        .map(|path| path.to_path_buf())
-        .unwrap_or_else(|| worker.to_path_buf());
-    let fallback = if same_provider(&worker, &default_owned) {
-        executor
-            .providers_for(&name)
-            .into_iter()
-            .map(|(path, _)| path)
-            .find(|path| !same_provider(path, &default_owned))
-    } else {
-        None
-    };
-    let record = capability_record(
-        &name,
-        &worker,
-        site_packages,
-        python,
-        &disabled,
-        readable,
-        &default_owned,
-        fallback,
-    );
+    let record = registered_record(executor, &name, &worker, site_packages, &disabled, readable);
     let record = if observe_health {
         observed_record(executor.clone(), record).await
     } else {

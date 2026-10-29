@@ -546,14 +546,9 @@ pub(super) async fn cancel(
         .lock()
         .ok()
         .and_then(|entries| {
-            entries.get(&key(&body.request_id)).map(|e| {
-                if e.accepting {
-                    e.cancel.cancel();
-                    true
-                } else {
-                    false
-                }
-            })
+            entries
+                .get(&key(&body.request_id))
+                .map(MachineActive::request_cancel)
         })
         .unwrap_or(false);
     Json(json!({"request_id":body.request_id,"cancel_requested":requested,"execution_state":"UNKNOWN","provider_stop_state":"UNKNOWN"})).into_response()

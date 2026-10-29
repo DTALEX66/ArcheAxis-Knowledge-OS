@@ -176,6 +176,25 @@ fn references(conn: &Connection, refs: &[Reference], count: &mut usize) -> Resul
     }
     Ok(())
 }
+/// Share relation rules while keeping live writes distinct from historical
+/// projections. Validate each target in order so the first error stays stable.
+pub(crate) fn validate_relations_with(
+    relations: &Relations,
+    mut validate_target: impl FnMut(&Reference) -> Result<(), Error>,
+) -> Result<(), Error> {
+    if relations.schema != RELATION_SCHEMA || relations.relations.len() > 256 {
+        return Err(invalid("relation schema or count is unsupported"));
+    }
+    let mut seen = BTreeSet::new();
+    for relation in &relations.relations {
+        id(&relation.id, &mut seen)?;
+        if relation.label.len() > 1024 {
+            return Err(invalid("relation label exceeds UTF-8 byte limit"));
+        }
+        validate_target(&relation.target)?;
+    }
+    Ok(())
+}
 pub fn validate_editor(conn: &Connection, editor: &Value) -> Result<(), Error> {
     if let Some(raw) = editor["attrs"].get("archeaxis_research") {
         let r: Research = serde_json::from_value(raw.clone())
@@ -226,17 +245,7 @@ pub fn validate_editor(conn: &Connection, editor: &Value) -> Result<(), Error> {
     if let Some(raw) = editor["attrs"].get("archeaxis_relations") {
         let r: Relations = serde_json::from_value(raw.clone())
             .map_err(|_| invalid("relation metadata shape is invalid or unsupported"))?;
-        if r.schema != RELATION_SCHEMA || r.relations.len() > 256 {
-            return Err(invalid("relation schema or count is unsupported"));
-        }
-        let mut seen = BTreeSet::new();
-        for relation in &r.relations {
-            id(&relation.id, &mut seen)?;
-            if relation.label.len() > 1024 {
-                return Err(invalid("relation label exceeds UTF-8 byte limit"));
-            }
-            object_reference::validate(conn, &relation.target)?;
-        }
+        validate_relations_with(&r, |reference| object_reference::validate(conn, reference))?;
     }
     Ok(())
 }
