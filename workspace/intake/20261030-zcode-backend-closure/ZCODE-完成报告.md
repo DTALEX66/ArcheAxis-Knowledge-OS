@@ -55,6 +55,12 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 
 ## 4. CL-01—07 / J1—6 逐项状态（证据层分列）
 
+### 4.0c 安装态冲突旅程 PASS（2026-10-30 第五轮）
+
+`installed_document_conflict_loop` 缺口补齐：`aaos01_tauri_webdriver_loop.py --installed-draft-conflict-loop` 对 **C1 候选（新 Core）** 真实 trusted WebDriver UI 自动化一次通过（run `zc1conf`，收据 177KB SHA `776e879f…`）：合成 fixture 经 Core HTTP 人会话初始化→停 Core→可信 UI 驱动 **409 冲突恢复旅程**，`installed_draft_conflict_loop.status=PASS`、`ui_result=PASS TRUSTED_WEBDRIVER_CONTROLS`，restore_epoch/state_revision 断言在案，Owner 验收如实 NOT_EXECUTED，安装器身份 `3337fce6…` 绑定，端口清场干净。
+
+**诚实边界**：本 run 驱动的是宿主上的 C1 候选（c453-native-folder 先例，REAL_TAURI_WEBDRIVER_CANDIDATE 层），不是沙盒安装树——guest 内运行被 harness 的 dev.py/git 仓库证据要求阻断（离线 guest 无 git worktree；伪造仓库违反证据纪律），具名登记不隐藏。生命周期回执自身的 conflict 字段保持 NOT_EXECUTED，冲突 PASS 由本收据独立承载（cpppdfexec1 模式）。
+
 ### 4.0b C1 安装生命周期在沙盒完全验证（2026-10-30 第四轮）
 
 按工单执行到底：**新 Core 的 NSIS 安装器在 Windows Sandbox 隔离安装并完成全部生命周期断言**。

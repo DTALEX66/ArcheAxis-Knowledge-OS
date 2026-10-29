@@ -154,6 +154,15 @@
     "risks": ["driver/WebView2 version pairing inside the guest (tauri-driver 2.1.0 vs installed WebView2)", "GPU-disabled software rendering GUI automation latency", "harness python dependencies must resolve against the installed runtime interpreter", "each iteration costs a full sandbox boot cycle"],
     "order": ["stage zc1c with drivers+probes+guest conflict script", "launch via launcher", "read conflict journey receipt (ui-state restore_epoch/state_revision 409 recovery)", "official stop", "record receipt sha in this index"]
   },
+  "conflict_journey_20261030": {
+    "summary": "installed-draft conflict journey (409 recovery) PASSED against the C1 candidate with the new Core, real trusted WebDriver UI automation",
+    "run": "zc1conf (harness self-allocated journey dir webdriver-4920511321ef)",
+    "command_shape": "aaos01_tauri_webdriver_loop.py --host <C1>/ArcheAxis.exe --driver <tauri-driver-2.1.0> --native-driver <msedgedriver-edge-156> --installer <setup.exe 3337fce6...> --installed-draft-conflict-loop",
+    "receipt": {"path": ".project-local/runs/be268a2d33/webdriver-4920511321ef/tmp/journey/receipt.json", "bytes": 177256, "sha256": "776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5"},
+    "result": {"ok": true, "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE", "installed_draft_conflict_loop_status": "PASS", "ui_result": "PASS TRUSTED_WEBDRIVER_CONTROLS, synthetic initialization, owner_acceptance NOT_EXECUTED", "bindings": {"host": "ac4c399b...", "installer": "3337fce6...", "source_commit": "80db733f... (clean tree)"}, "http_calls": 12, "ui_actions": 70, "cleanup": "port_listeners cleared, remaining_owned=[]"},
+    "honest_boundary": "this run drove the C1 CANDIDATE host on the host machine (c453-native-folder precedent), NOT the sandbox-installed tree; the in-guest installed-state conflict journey remains blocked by the harness's dev.py/git-repo evidence requirement (no git worktree inside the offline guest; fabricating one would violate evidence discipline) - named, not hidden; the lifecycle receipt's own installed_document_conflict_loop field stays NOT_EXECUTED while this receipt carries the conflict PASS independently (cpppdfexec1 pattern)",
+    "first_run_result": "PASS on first attempt; no failed runs"
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
