@@ -55,6 +55,17 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 
 ## 4. CL-01—07 / J1—6 逐项状态（证据层分列）
 
+### 4.0 新 Core 同候选纵向链（2026-10-30 第二轮，C1 campaign）
+
+合格 Core 构建 `b6f5b591…` 已从"仅构建身份"推进到**可运行混合候选**并重建同候选收据链：
+
+1. **Staging**：`stage_backend_runtime.py` 以规范参数（version 0.6.15，source `b2839075`+tree `a502f9d2`）产出 backend 候选根 R2（19,744成员，manifest `440e9084…`）。
+2. **混合候选 C1**：新组装器逐字节复制 R2 + 历史 Tauri Host（供体 SHA `ac4c399b…` 双源交叉核对，不冒称一次完整新编译），19,746成员逐一哈希验证，组件来源回执入 `c1/mixed-candidate-assembly.json`。长路径（litellm 深层 site-packages）需要 `\\?\` 扩展路径枚举+哈希——已修入组装器。
+3. **C1 同候选链五段全通**：J2 真实公开检索（三通道，REAL_CORE_PUBLIC_NETWORK，42步）→ 常用格式资格 → 研究学习旅程（PASS_DECLARED_INTEGRATED_SUBSET，108请求，含 restart_equal 与独立恢复相等）→ J5 模板同候选工作区（PASS_FINITE_T3，58请求）→ **真实本地模型 colearning 冒烟**（REAL_MODEL：qwen3.5-4b 真实推理回答正确 `finish_reason=stop`、超界问题真实失败、纠正后 retest 链接成功，failed_stage=null）。
+4. 途中修复：`colearning_real_model_smoke.py` 的 `timeout_s:600` 超出 Core 合同上界（`1..=120`，colearning.rs:137-141）→ 探针对齐合同（commit `1d10938b`），合同未放宽。
+5. **仍未做**（需要 v7 bundle 链按新候选重建 request + 沙盒执行）：新 Core 的 NSIS 安装器、安装态普通/冲突/AI旅程、跨版本升级/回滚（旧安装包 `53a83f20…` → 新候选）。
+
+
 | 项 | 状态 | 证据与未完 |
 | --- | --- | --- |
 | CL-01 完整核心架构 | PARTIAL（后端源码级强化） | 五类归并+99测试绿；Rust Core 唯一 writer 保持；公开合同不变。未做新业务能力 |

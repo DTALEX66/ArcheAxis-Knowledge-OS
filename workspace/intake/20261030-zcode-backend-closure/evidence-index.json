@@ -50,6 +50,40 @@
     "installed_lifecycle_and_pdf": "v6/v7 closeouts: backend-feasibility-closeout-20261029-v6/-v7 artifacts; cppinst1 lifecycle-receipt (complete_lifecycle_verified=true); cpppdfexec1 installed-pdf-receipt (PASS_INSTALLED_PDF_IMPORT_CORE_RESTART_EXPORT_RESTORE_SUBSET)",
     "external_resources_index": "config/environment/external-resources-index.json (probed 2026-10-25; RESULT_VERIFIED 4, VERSION_PROBED 16, FILE_EXISTS 9, NOT_RUN 1, unavailable 1)"
   },
+  "newcore_candidate_campaign_20261030": {
+    "summary": "qualified Core build staged, mixed candidate assembled, five-leg same-candidate receipt chain rebuilt on the NEW Core",
+    "staged_backend_r2": {
+      "run": "zcode-stage-newcore-20261030",
+      "tool": "scripts/release/stage_backend_runtime.py (canonical args: version 0.6.15, source b2839075 + tree a502f9d2)",
+      "members": 19744,
+      "manifest_sha256": "440e9084240f283071304e0d85dfef0e51b7dbc49e93955bb6b1536fde4c6d8b",
+      "core": ".project-local/build/cargo/release/archeaxis-api.exe (b6f5b591...)"
+    },
+    "mixed_candidate_c1": {
+      "run": "zcode-assemble-c1-20261030-v8",
+      "assembler": ".project-local/zcode-newcore-20261030/assemble_mixed_candidate_v1.py (byte-exact copy + per-file hash verify + pinned host donor; refuses on any mismatch)",
+      "members": 19746,
+      "components": {
+        "core": "b6f5b591... (new, current source)",
+        "host": "ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145 (historical Tauri host, donor-pinned, cross-checked c453portable1 == cppcand1)",
+        "runtime_workers": "staged from cppdon1 donor + current services/python-workers (unchanged since c453)"
+      },
+      "receipt": "c1/mixed-candidate-assembly.json",
+      "not_claims": ["not one whole fresh build", "no installer", "no installed qualification"]
+    },
+    "chain_on_c1": [
+      {"leg": "j2-public (REAL network, quantum computing)", "run": "zcode-c1-j2-public-20261030", "result": "PARTIAL REAL_CORE_PUBLIC_NETWORK, 42 steps, three channels"},
+      {"leg": "common formats", "run": "zcode-c1-formats-20261030 -> e22d9b5d4937/artifacts/common-formats.json", "result": "ok=true source_consistent=true"},
+      {"leg": "research-learning", "run": "zcode-c1-learning-20261030", "result": "PASS_DECLARED_INTEGRATED_SUBSET, 108 requests"},
+      {"leg": "j5 template same-workspace", "run": "zcode-c1-j5-template-20261030", "result": "PASS_FINITE_T3_SAME_CANDIDATE_WORKSPACE, 58 requests"},
+      {"leg": "REAL_MODEL colearning smoke", "run": "zcode-c1-colearning-smoke-20261030-v2", "result": "REAL_MODEL complete chain (answer 200 finish_reason=stop 9.18s qwen3.5-4b -> out-of-scope -> correction -> retest), failed_stage=null; required probe timeout fix committed as 1d10938b"}
+    ],
+    "r2_preliminary_runs_superseded_by_c1_chain": ["zcode-j2-public-newcore-20261030", "zcode-formats-newcore-20261030 (receipt b35b724654e9)"],
+    "long_path_lesson": "assembly required \\?\ extended paths for both enumeration and hashing beyond 260 chars (litellm site-packages depth); fixed in assembler v1",
+    "still_not_done": ["NSIS installer for the new Core (v7 bundle chain pins cppcand1 identity; needs its own request chain)",
+                       "installed-state ordinary/conflict/AI journeys in sandbox",
+                       "cross-version upgrade/rollback (old installer 53a83f20... -> new candidate)"]
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
