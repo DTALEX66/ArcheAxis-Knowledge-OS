@@ -104,6 +104,16 @@
     {"id": "installed-ai-journey-model-binding", "detail": "host LM Studio serves on 127.0.0.1 only; a Windows Sandbox guest cannot reach it, and changing the listen address is a host model-config change outside tonight's boundaries - this is why v7 installed journeys never ran AI either"},
     {"id": "cross-version-requires-version-decision", "detail": "installer version label comes from frozen tauri.conf.json (0.6.14); a true cross-version upgrade/rollback needs a version bump decision or commit, otherwise it repeats the proven same-version reinstall path"}
   ],
+  "sandbox_next_session_workplan": {
+    "summary": "exact pin-diff map so the C1 install-lifecycle variant is mechanical, not exploratory",
+    "to_adapt": {
+      "driver": "stage-correction-sandbox-v3.py -> variant with RUN=zc1i, packaging schema aaos.mixed-core-packaging/v1, status LOCAL_MIXED_CORE_PACKAGING_PASS, identity file mixed-core-identity.json, bundler sha = sha256(bundle-mixed-v6.py), installer sha 3337fce6...",
+      "proof_review": "verify-real-packaging-proof-v2.ps1 + verify-runtime-correction-v2.proposed.ps1 expect correction schema, declared_installed_members=19746 and proof_sidecars=11; C1 has 19747 members and 8 sidecars -> a C1 verifier variant must be generated and sha-pinned by the driver",
+      "guest_substitutions": "guest-local-pinned-lifecycle.ps1 exact anchors: identity receipt sha, installer sha 24839e3c... -> 3337fce6..., backend sha dbdade71... -> 440e9084..., scope string",
+      "launch_stop": "launcher.v3.ps1 / stopper.v3.ps1 in .project-local/local-pinned-sandbox-20261029 are reusable unchanged (sha-pinned); wsb template tokens unchanged; launch is a separate step after staging, then bind/stop via official stopper"
+    },
+    "order": ["stage C1 install-lifecycle variant", "launch wsb (Windows Sandbox available on this host per v7)", "read back lifecycle receipt (install/start/close/force-cleanup/reinstall/uninstall-preserve/reinstall-readback)", "ordinary+conflict journeys via guest probe inputs (installed PDF path; PDF deps now stage-corrected)", "AI journey BLOCKED on host model binding", "cross-version BLOCKED on version decision"]
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
