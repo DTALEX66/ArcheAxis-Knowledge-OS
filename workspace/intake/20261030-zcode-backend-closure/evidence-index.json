@@ -10,7 +10,7 @@
     {"sha": "3d8acb0b", "subject": "Pin local packaging identity and app-local C++ runtime staging", "files": 19},
     {"sha": "5957abce", "subject": "Add light brand mark asset", "files": 1},
     {"sha": "b2839075", "subject": "Record 20261029 handoff materials and progress documentation", "files": 17},
-    {"sha": "FINAL_GOVERNANCE_COMMIT_SEE_REPORT", "subject": "Ignore mimosa agent state and record local backend closure round"}
+    {"sha": "35e0854e", "subject": "Ignore mimosa agent state and record local backend closure round", "files": 4}
   ],
   "test_time_identity": {
     "rust_and_python_suites": {"head": "c4531c1bb6795ccda208a96ef8cc246a645d0199", "dirty_patch_sha256": "e885d1306c6e5da97914dc0fbff537dc444861dc666b0c93d20a417e8b5ef03a"},
