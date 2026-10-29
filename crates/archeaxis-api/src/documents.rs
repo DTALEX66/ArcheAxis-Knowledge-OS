@@ -64,13 +64,18 @@ pub(crate) async fn export(
     Path(id): Path<String>,
     Query(query): Query<ExportQuery>,
 ) -> Response {
-    if !matches!(query.format.as_str(), "markdown" | "obsidian") {
+    if !matches!(query.format.as_str(), "markdown" | "obsidian" | "canvas") {
         return failure(document::Error::Invalid(
-            "format must be markdown or obsidian",
+            "format must be markdown, obsidian or canvas",
         ));
     }
     crate::with_store(state, move |conn| {
         let snapshot = match document::read(conn,&id,None) {Ok(value)=>value,Err(error)=>return failure(error)};
+        if query.format=="canvas" {
+            return match archeaxis_domain::canvas_export::export(conn,&snapshot) {
+                Ok(value)=>Json(value).into_response(),Err(error)=>failure(error),
+            };
+        }
         let anchors = (|| -> rusqlite::Result<Vec<Value>> {
             let mut stmt=conn.prepare("SELECT anchor_id,source_revision,position FROM anchors WHERE source_id=?1 ORDER BY anchor_id")?;
             stmt.query_map([snapshot["source_id"].as_str()],|r|Ok(json!({"anchor_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,"position":r.get::<_,String>(2)?})))?.collect()

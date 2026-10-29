@@ -10,6 +10,7 @@ pub mod anchor;
 pub mod asset_context_grant;
 pub mod backup;
 pub mod bounded_formula;
+pub mod canvas_export;
 pub mod collection;
 pub mod context_grant;
 pub mod course;
