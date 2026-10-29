@@ -115,6 +115,10 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 
 ## 5. Owner 待决清单与最终状态（2026-10-30 收口）
 
+### 5.0 安装态冲突旅程在沙盒内 PASS（第六轮，填平 `installed_document_conflict_loop=NOT_EXECUTED`）
+
+guest 内变体成功执行：Windows Sandbox 中**静默安装 C1 安装器**（per-user 根由 guest 记录）→ 1.7GB 仓库克隆物化到可写映射 → 注册的 WebDriver 冲突 harness 从克隆内运行（`GIT_CONFIG_*` 进程级 safe.directory，仅此路径，无全局 git 状态）→ **409 恢复旅程对已安装宿主 `installed_draft_conflict_loop.status=PASS`、`TRUSTED_WEBDRIVER_CONTROLS`**（收据 176,726 字节 SHA `f2fd0bb3…`，harness exit 0）。途中修复：tauri-driver 在纯净 guest 即死（缺 VC 运行时）→ 官方 Redist trio app-local 随行（msvcp140 与 v7 注册供体逐字节一致）；六个失败 run（脚本缺staging、ROOT守卫、scoop junction、两轮 dubious ownership）逐个根因保留。沙盒官方停止 `STOP_CONFIRMED_OWNED_RESOURCES_CLEARED`。诚实标注：harness 自身 evidence_level 标签保持 `REAL_TAURI_WEBDRIVER_CANDIDATE`（未改探针），安装态来源由 staging/launch/stop 回执与 guest transcript（记录安装根）确立。
+
 **Owner 醒来先读**：[OWNER-决策清单.md](OWNER-决策清单.md)——两项只有 Owner 能做的决策，各附背景/解锁范围/选项/不做时的如实状态：
 
 1. **安装器版本号提升**（推荐提至 0.6.15 并提交一行配置变更）→ 解锁真跨版本升级/回滚沙盒旅程；不提升则两项保持 NOT_TESTED 如实登记。

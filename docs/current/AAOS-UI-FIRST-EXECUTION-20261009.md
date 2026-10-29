@@ -2700,6 +2700,14 @@ C1同候选收据链五段全通：`zcode-c1-j2-public-20261030`真实公开检�
 
 如实NOT_EXECUTED：`installed_document_conflict_loop`、跨版本升级/回滚（版本决策未做）、AI旅程（宿主模型127.0.0.1绑定阻断）。宿主离线边界全程成立（wsb模板Networking/VGpu等全Disable，guest transcript核对）。全部证据入[ZCODE完成报告](../../workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md)4.0b节与`evidence-index.json`的`installed_lifecycle_20261030`。未push/远端写入/发布/替换Green/覆盖真实数据；隔离沙盒内合成数据，Owner日用环境与Green未触碰；监控未操作。
 
+#### 2026-10-30 ZCODE续轮六：安装态冲突旅程在沙盒内PASS
+
+`installed_document_conflict_loop`缺口在沙盒内填平。新staging驱动`stage-mixed-conflict-v1.py`扩展guest输入：C1安装器+打包证据链、**本仓库的字节精确本地克隆**（`git clone --no-hardlinks`，HEAD `c1c4cfd0`与宿主一致，使harness的dev.py证据机器在guest内真实工作树运行）、portable git发行版、tauri-driver 2.1.0+msedgedriver edge-156、自研guest冲突脚本（替换模板logon脚本名，四映射与冻结launcher/stopper不变）。guest流程：清单哈希核对→静默NSIS安装（per-user根记录）→1.7GB克隆robocopy到可写映射→harness经dev.py从克隆内运行（`GIT_CONFIG_*`进程级safe.directory限定`C:/AAOSOutput/repo`，沿用v6精确例外先例、无全局git状态）→收据导出。
+
+六次失败run逐个根因保留：zc1c2（safe()ROOT守卫拒外部git→external_safe）、zc1c3（scoop `current` junction→resolve 2.54.0）、zc1c4（launcher/stopper未staging→pwsh参数绑定帮助转储）、zc1c5/zc1c6（git dubious ownership：宿主SID副本vs WDAGUtilityAccount→stderr捕获定位）、zc1c7（同因，进程级safe.directory修复）。zc1c8成功：静默安装→克隆物化→harness exit 0→**`installed_draft_conflict_loop.status=PASS`、`TRUSTED_WEBDRIVER_CONTROLS`**（收据176,726字节 SHA `f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6`）。途中tauri-driver在纯净guest即死（缺VC运行时、driver.log 0字节）→官方Redist trio（msvcp140 SHA `0f885b50…`与v7注册供体逐字节一致）app-local随行修复。沙盒官方停止`STOP_CONFIRMED_OWNED_RESOURCES_CLEARED`（0环境0进程）。launch的CIM绑定瞬时失败按既有先例回执保留，实际沙盒身份由官方清单+直接stop回执绑定。
+
+诚实标注：harness自身evidence_level标签保持`REAL_TAURI_WEBDRIVER_CANDIDATE`（未改探针），安装态来源由staging/launch/stop回执与guest transcript（安装根在案）确立，两者分别记录。Owner两项决策（版本号提升、LM Studio改绑+沙盒网络）仍待拍板，[OWNER-决策清单](../../workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md)在案。全部证据入[ZCODE完成报告](../../workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md)§5.0与`evidence-index.json`的`guest_installed_conflict_journey_20261030`。未push/远端写入/发布/替换Green/覆盖真实数据；沙盒内合成数据；监控未操作。
+
 #### 2026-10-30 ZCODE续轮四：文档草稿冲突旅程对C1一次通过
 
 `installed_document_conflict_loop`缺口按cpppdfexec1独立旅程模式补齐：`aaos01_tauri_webdriver_loop.py --installed-draft-conflict-loop`对C1候选（新Core `b6f5b591…`）真实trusted WebDriver UI自动化一次通过（run `zc1conf`，harness自分配journey目录`webdriver-4920511321ef`）：合成fixture经Core HTTP人会话初始化→受控停Core（terminate/reap，graceful_exit=NOT_CLAIMED如实）→可信UI驱动409冲突恢复，`installed_draft_conflict_loop.status=PASS`、`ui_result=PASS TRUSTED_WEBDRIVER_CONTROLS`，restore_epoch/state_revision断言在案，Owner验收NOT_EXECUTED，安装器`3337fce6…`与Host `ac4c399b…`身份绑定，源commit `80db733f`（干净树），端口清场`remaining_owned=[]`。收据177KB SHA `776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5`。
