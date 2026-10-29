@@ -163,6 +163,24 @@
     "honest_boundary": "this run drove the C1 CANDIDATE host on the host machine (c453-native-folder precedent), NOT the sandbox-installed tree; the in-guest installed-state conflict journey remains blocked by the harness's dev.py/git-repo evidence requirement (no git worktree inside the offline guest; fabricating one would violate evidence discipline) - named, not hidden; the lifecycle receipt's own installed_document_conflict_loop field stays NOT_EXECUTED while this receipt carries the conflict PASS independently (cpppdfexec1 pattern)",
     "first_run_result": "PASS on first attempt; no failed runs"
   },
+  "lint_cleanup_20261030": {
+    "summary": "all ten named clippy items eliminated (2 store-sqlite lints + 8 retained warnings); four-crate test suite fully green; workspace -D warnings clippy confirmed NOT a CI gate",
+    "gate_reality": "CI has no clippy step: lint job = ruff(E9,F63,F7,F82)+conventions+architecture+language+document authority; rust-vnext = cargo fmt --all --check + tests; desktop-fast carried the only cargo fmt. The workspace -D warnings clippy run was this session's own stricter check",
+    "fixed": [
+      "crates/archeaxis-store-sqlite/src/raw_objects.rs:165 unneeded unit expression -> {} arm",
+      "crates/archeaxis-store-sqlite/src/writer.rs:57 collapsible if -> let-chains",
+      "crates/archeaxis-domain/src/ai_asset.rs:7 unused import OptionalExtension removed",
+      "crates/archeaxis-domain/src/asset_context_grant.rs:4 unused import self removed",
+      "crates/archeaxis-application/src/lib.rs dead fn stable_id + its now-orphaned sha2 import removed",
+      "crates/archeaxis-application/src/executor.rs dead field worker removed (field only; constructor params kept - default_worker still feeds the text.extract route)",
+      "crates/archeaxis-api/tests/contract_absent_surfaces.rs dead field content_type + its header capture removed",
+      "crates/archeaxis-api/tests/qualification_api.rs expect_fun_call -> unwrap_or_else(panic!)",
+      "crates/archeaxis-api/tests/v01_journey.rs unused variables sid2/ok1 -> _sid2/_ok1 (side-effect calls kept)"
+    ],
+    "verification": {"clippy_4crates_all_targets": "each of the ten patterns greps 0 occurrences (raw output /tmp/clippy_after.txt); scoped warning count 156 -> 142", "fmt": "cargo fmt --all --check clean", "tests": "zclint-test-20261030: cargo test -p store-sqlite -p application -p domain -p api --offline --locked exit 0, 184 test binaries ok, 0 failures (includes contract_absent_surfaces/qualification_api/v01_journey on the fixed files)"},
+    "remaining_debt_honest": "142 clippy warnings remain across the four crates (collapsible-ifs, needless borrows, too_many_arguments etc.) - recorded as non-gated debt for a reviewed cleanup round, not silently claimed green",
+    "commit": "37f2c02e"
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
