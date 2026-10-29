@@ -227,7 +227,7 @@ def main() -> int:
         # 3. The real model answers the answerable question.
         status, answered = call("POST", "/api/v1/machine/answers", human,
                                 {"knowledge_id": knowledge_id, "question": QUESTION,
-                                 "timeout_s": 600})
+                                 "timeout_s": 120})
         receipt.stage("machine_answer", status=status, body=answered)
         if status != 200:
             # A host without a model is a real state, and the reason is the worker's own words.
@@ -239,7 +239,7 @@ def main() -> int:
         #    answer, so a grounded model has a real reason to fail rather than an invented one.
         status, ungrounded = call("POST", "/api/v1/machine/answers", human,
                                   {"knowledge_id": knowledge_id, "question": UNGROUNDED_QUESTION,
-                                   "timeout_s": 600})
+                                   "timeout_s": 120})
         receipt.stage("machine_answered_out_of_scope", status=status,
                       answer=(ungrounded.get("answer", {}) or {}).get("answer", "")[:400]
                       if status == 200 else str(ungrounded)[:300])
@@ -273,7 +273,7 @@ def main() -> int:
             "retest_of": failed_task,
             "knowledge_id": candidate,
             "question": QUESTION,
-            "timeout_s": 600,
+            "timeout_s": 120,
         })
         receipt.stage("machine_retest", status=status, body=retest)
         if status != 200:
