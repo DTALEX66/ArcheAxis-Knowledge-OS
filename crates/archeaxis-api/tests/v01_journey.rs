@@ -92,7 +92,7 @@ fn v01_twelve_step_journey() {
         "/api/v1/imports",
         format!(r#"{{"name":"s2.txt","content_base64":"{b}"}}"#),
     );
-    let sid2 = r2["source_id"].as_str().unwrap().to_string();
+    let _sid2 = r2["source_id"].as_str().unwrap().to_string();
     let dup = json_body(
         &router,
         "POST",
@@ -156,7 +156,7 @@ fn v01_twelve_step_journey() {
     );
 
     // 6) accept/reject produce immutable receipts; candidate not auto-verified
-    let ok1 = json_body(
+    let _ok1 = json_body(
         &router,
         "POST",
         &format!("/api/v1/knowledge-items/{mc_id}/review-decisions"),

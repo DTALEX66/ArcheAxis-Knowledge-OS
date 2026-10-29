@@ -48,7 +48,6 @@ struct Answer {
     status: u16,
     text: String,
     json: serde_json::Value,
-    content_type: Option<String>,
 }
 
 impl Answer {
@@ -69,20 +68,10 @@ async fn ask(router: &Router, method: &str, path: &str, body: Option<serde_json:
     };
     let resp = router.clone().oneshot(request).await.unwrap();
     let status = resp.status().as_u16();
-    let content_type = resp
-        .headers()
-        .get("content-type")
-        .and_then(|value| value.to_str().ok())
-        .map(str::to_owned);
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
     let text = String::from_utf8_lossy(&bytes).into_owned();
     let json = serde_json::from_str(&text).unwrap_or(serde_json::Value::Null);
-    Answer {
-        status,
-        text,
-        json,
-        content_type,
-    }
+    Answer { status, text, json }
 }
 
 /// Every family `DSH §6` says has no route, with the method a UI would reach for.

@@ -8,7 +8,6 @@
 
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 pub mod attempts;
 pub mod container;
@@ -40,10 +39,4 @@ pub fn bootstrap(db_path: &str) -> rusqlite::Result<(Connection, Handshake)> {
         workspace_ready: true,
     };
     Ok((conn, handshake))
-}
-
-fn stable_id(prefix: &str, seed: &str) -> String {
-    let mut h = Sha256::new();
-    h.update(seed.as_bytes());
-    format!("{prefix}_{}", &hex::encode(h.finalize())[..24])
 }

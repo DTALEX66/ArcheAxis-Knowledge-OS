@@ -91,7 +91,6 @@ pub struct Executor {
     store: Store,
     staging: PathBuf,
     python: PathBuf,
-    worker: PathBuf,
     /// R08: capability -> worker path and whether that route may import the
     /// interpreter's installed packages. The stdlib-only text route keeps the
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
@@ -169,7 +168,6 @@ impl Executor {
             store,
             staging,
             python: python.to_owned(),
-            worker: default_worker.to_owned(),
             routes: Arc::new(routes),
             document_check_config: None,
             document_check_config_error: None,
