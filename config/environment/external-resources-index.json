@@ -2,7 +2,7 @@
   "schema": "archeaxis/external-resources-index/v2",
   "generated_by": "scripts/environment/build_external_resources_index.py",
   "probed": true,
-  "probe_workdir": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\archeaxis-resource-probe",
+  "probe_workdir": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1extidx-20261030\\tmp\\resource-probe",
   "manifest": "config/environment/capability-requirements.yaml",
   "manifest_sha256": "40c60cf1fc5119a00081bac9334621084c46b3a49ec42c679d277cf699596580",
   "manifest_updated": "2026-10-25",
@@ -765,7 +765,7 @@
       "resolvable_location": "10-toolchains/antiword/antiword.exe",
       "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
       "binding": "declared",
-      "path_also_offers": null,
+      "path_also_offers": "antiword.EXE",
       "project_entry": "tool_paths.tool_path(\"antiword\") / ARCHEAXIS_ANTIWORD_CMD override",
       "required_env": {
         "HOME": "antiword"
@@ -1036,11 +1036,11 @@
       "type": "engine",
       "name": "rapidocr",
       "category": "engines",
-      "purpose": "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）",
+      "purpose": "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）；Python 3.12 安装包随包携带，Tesseract 缺失时 worker_ocr 自动回退（中英）",
       "platform": "windows-x64",
       "host_platform": "windows-x64",
       "version_range": ">=1.4",
-      "version_identification": "ci-venv 的 python 导入 rapidocr_onnxruntime 后读 __version__",
+      "version_identification": "ci-venv 的 python 用 importlib.metadata.version('rapidocr-onnxruntime') 读取（该包不提供 __version__）",
       "pinned_version_observed": "rapidocr_onnxruntime",
       "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime",
       "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime",
@@ -1073,7 +1073,7 @@
       "code_license": "Apache-2.0",
       "asset_license": null,
       "source_url": "https://github.com/RapidAI/RapidOCR",
-      "fallback": "导入失败即具名 NOT_VERIFIED；不拿 uv/pip 的存在当作引擎可用，也不装第二份",
+      "fallback": "导入失败即具名 NOT_VERIFIED；不拿 uv/pip 的存在当作引擎可用，也不装第二份。Tesseract 缺失时 worker_ocr 以 RapidOCR 承担中英回退，其他语言具名失败",
       "endpoint": null,
       "external_paths": [
         {
