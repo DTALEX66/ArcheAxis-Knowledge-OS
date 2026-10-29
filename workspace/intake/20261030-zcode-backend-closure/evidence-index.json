@@ -187,6 +187,11 @@
     "decision_2_lmstudio_listen_address": {"unlocks": "installed-state AI journey inside the sandbox guest (answer->out-of-scope->correction->retest->restart readback on the installed product)", "option_a": "LM Studio binds 0.0.0.0 or host vEthernet (host model-service config change by Owner) PLUS sub-decision A2: allow sandbox networking (wsb template currently Networking=Disable, tonight's offline boundary)", "option_b": "keep loopback-only; installed-state AI stays honestly NOT_EXECUTED; host-level REAL_MODEL receipts (colearning smoke, v3 dual-loop) remain the AI-chain evidence layer", "current_state": "ai=NOT_EXECUTED"},
     "no_decision_needed": ["guest-installed conflict journey design (workplan ready)", "142 non-gated clippy warnings (reviewed cleanup round)", "external resources index refresh (optional)"]
   },
+  "external_index_refresh_20261030": {
+    "run": "zc1extidx-20261030 (dev.py exit 3 INVALIDATED by the generator's own tracked-file write - inherent mechanism for index-builder runs, not a product failure; probe output fully captured)",
+    "result": "31 entries live-probed 2026-10-30: FILE_EXISTS 9, VERSION_PROBED 16, RESULT_VERIFIED 4, NOT_RUN 1 (rerank endpoint), unavailable 1 (desktop-runtime-v1, by declaration), probe_failed 0, declared_paths_missing 0 - identical distribution to the 2026-10-25 index",
+    "commit": "7d4fff8b (diff: probe_workdir now run-scoped; antiword path_also_offers observed; rapidocr purpose synced to the 2026-10-25 manifest)"
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
