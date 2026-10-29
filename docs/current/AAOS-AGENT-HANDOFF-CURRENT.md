@@ -14,6 +14,12 @@
 
 本轮后继证据及具名未闭合项读取[App-local C++依赖修补、安装态PDF与沙盒清场](AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-29-app-local-c依赖修补安装态pdf与沙盒清场)，本入口不重复维护结果状态。
 
+## 2026-10-30 ZCODE通宵后端闭环（五轮）与Owner待决清单
+
+ZCODE在`codex/local-backend-closure-20261029`完成五轮并逐轮回写唯一执行记录（续轮一至五小节）：归并/Canvas导出/打包身份转正并本地提交；合格Core构建`b6f5b591…`→staging→混合候选C1→五段同候选链（真实公开检索/格式/学习/j5/REAL_MODEL）→NSIS安装器`3337fce6…`→**沙盒安装生命周期`complete_lifecycle_verified=true`（LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE）**→文档冲突旅程PASS（候选层）；具名2+8条clippy项清零、四crate 184测试二进制全绿。整体如实`LOCAL_BACKEND_SCOPE_PARTIAL_PENDING_CODEX_AUDIT`。
+
+**Owner醒来先读[决策清单](../../workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md)**：两项待决——①安装器版本号提升（解锁真跨版本升级/回滚）；②LM Studio监听地址+沙盒网络子决策（解锁安装态AI旅程）。两项均附选项、执行工单与不做时的如实状态。无需决策即可继续的工单（guest内冲突旅程设计、142条非门禁clippy债务、外置索引刷新）已就绪。Codex审计入口在[ZCODE完成报告](../../workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md)。
+
 ## 范围与保护边界
 
 - 本期保留人类资料／研究／知识／学习／恢复、AI候选治理／授权使用／纠正复测／恢复，以及两侧按权限复用同一来源和版本。CL-01—07/J1—6不能缩成单次导入问答；外部原始上下文系统是否连接单独核实。

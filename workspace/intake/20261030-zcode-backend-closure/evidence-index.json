@@ -181,6 +181,12 @@
     "remaining_debt_honest": "142 clippy warnings remain across the four crates (collapsible-ifs, needless borrows, too_many_arguments etc.) - recorded as non-gated debt for a reviewed cleanup round, not silently claimed green",
     "commit": "37f2c02e"
   },
+  "owner_decisions_pending": {
+    "document": "workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md",
+    "decision_1_installer_version_bump": {"unlocks": "true cross-version upgrade/rollback in sandbox (old 53a83f20... -> new 0.6.15 package, data-preservation + rollback assertions)", "option_a": "tauri.conf.json version -> 0.6.15 (one-line committed change) then rerun bundle-mixed-v6 chain + upgrade/rollback journey variant", "option_b": "keep 0.6.14; cross_version_upgrade/rollback stay honestly NOT_TESTED", "current_state": "cross_version_upgrade=NOT_TESTED, rollback=NOT_TESTED"},
+    "decision_2_lmstudio_listen_address": {"unlocks": "installed-state AI journey inside the sandbox guest (answer->out-of-scope->correction->retest->restart readback on the installed product)", "option_a": "LM Studio binds 0.0.0.0 or host vEthernet (host model-service config change by Owner) PLUS sub-decision A2: allow sandbox networking (wsb template currently Networking=Disable, tonight's offline boundary)", "option_b": "keep loopback-only; installed-state AI stays honestly NOT_EXECUTED; host-level REAL_MODEL receipts (colearning smoke, v3 dual-loop) remain the AI-chain evidence layer", "current_state": "ai=NOT_EXECUTED"},
+    "no_decision_needed": ["guest-installed conflict journey design (workplan ready)", "142 non-gated clippy warnings (reviewed cleanup round)", "external resources index refresh (optional)"]
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},

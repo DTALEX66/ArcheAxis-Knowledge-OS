@@ -113,11 +113,23 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 
 **结论：`LOCAL_BACKEND_SCOPE_PARTIAL_PENDING_CODEX_AUDIT`。** 后端有限切片（归并、Canvas 导出、打包身份、测试门禁、构建身份）真实完成；因 UI 暂停未实现的统一缩放、缺失原生消费者、完整安装态旅程、跨版本升级/回滚、真实云推理、外部上下文连接按合同记产品层未完成，不阻塞已完成后端切片，也不据此宣称全产品完成。
 
-## 5. 延期/损失清单（沿既有登记，无新增延期）
+## 5. Owner 待决清单与最终状态（2026-10-30 收口）
+
+**Owner 醒来先读**：[OWNER-决策清单.md](OWNER-决策清单.md)——两项只有 Owner 能做的决策，各附背景/解锁范围/选项/不做时的如实状态：
+
+1. **安装器版本号提升**（推荐提至 0.6.15 并提交一行配置变更）→ 解锁真跨版本升级/回滚沙盒旅程；不提升则两项保持 NOT_TESTED 如实登记。
+2. **LM Studio 监听地址 + 沙盒网络子决策** → 解锁安装态 AI 旅程；不解除则安装态 AI 保持 NOT_EXECUTED，宿主级 REAL_MODEL 收据继续作为 AI 链证据层。
+
+无需决策即可继续的工单已就绪：guest 内冲突旅程设计（workplan）、142 条非门禁 clippy 债务（评审轮）、外置索引刷新。
+
+**最终状态**：`LOCAL_BACKEND_SCOPE_PARTIAL_PENDING_CODEX_AUDIT`。通宵五轮把合格 Core 构建一路推进到沙盒安装生命周期验证与冲突旅程 PASS，链条每环独立 SHA 收据；剩余 required 缺口全部具名（两项 Owner 决策 + guest 内冲突旅程变体 + 142 条非门禁 lint 债务 + 真实云推理 DEFERRED + 外部上下文 NOT_CONNECTED + Codex 独立审计 + Owner 验收）。CL-01—07/J1—6 逐项状态见 §4 表格与 §4.0a-d 增量；证据层不得互相晋升；云 CI 记 `NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY`；Mimosa hook `scanner_no_output` 已登记，未做项目安全宣称。
+
+
+## 6. 延期/损失清单（沿既有登记，无新增延期）
 
 复杂延期族（企业协作/多租户、通用 Agent Runtime、Marketplace、3D/VR/AR/XR、动态解释仿真、参数训练实验）沿 Atlas `formal_later`/FT01-04 冻结保持；外部跨项目原始会话 `EXTERNAL_CONTEXT_PROVIDER_NOT_CONNECTED`；真实云推理 `DEFERRED_UNEXECUTED`；旧真实 UNKNOWN 与 provider 停止状态按"不重放、不覆盖"保留（`PASS_UNKNOWN_RETAINED_NO_LOCAL_REPLAY_OBSERVED`）。Canvas 有限导出的损失范围（附件、非文本节点映射、富文本往返）由测试断言显式声明。
 
-## 6. Codex 独立审计入口
+## 7. Codex 独立审计入口
 
 1. **diff 审阅**：`git log c4531c1b..HEAD --stat`；六个 commit 均显式路径。重点：`runtime/mod.rs:47` 的 `MachineActive::request_cancel` 与四处调用点互斥语义；`capabilities.rs` provider 记录组装次序；`template_definition.rs:100` `commit_state` 事务边界；`canvas_export.rs` 拒绝路径。
 2. **测试复现**：九个 run 的 execution.json（SHA 见 evidence-index）逐条可复现，命令在各自 receipt 内；重跑入口 `scripts/ci/cargo_test.bat …` 经 `scripts/runtime/dev.py --run-id <new>`。
@@ -125,14 +137,14 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 4. **不移绑警告**：99+411 测试为源码级；`b6f5b591…` 构建未经 staging/安装；v7 安装态证据仍属历史候选 c453+6b30；J2 真实链为 REAL_CORE 层。各证据层不得互相晋升。
 5. **复现命令样例**（重跑归并域测试）：`cd /d D:\All projects\ArcheAxis-Knowledge-OS && .venv\Scripts\python.exe -B scripts\runtime\dev.py --run-id <新id> -- cmd.exe /d /c scripts\ci\cargo_test.bat test -p archeaxis-domain --test relation_projection --test research_metadata --test object_reference --test template_lifecycle --offline --locked`（Git Bash 下需 `MSYS_NO_PATHCONV=1`）。
 
-## 7. 边界遵守与清场
+## 8. 边界遵守与清场
 
 - 无 push/PR/远端合并/云 CI/发布/Green 替换/真实数据覆盖；云 CI 记 `NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY`。
 - 网络使用：仅 rustup 官方源下载 clippy 组件一次；无真实检索调用、无私有材料外发。
 - 进程清场：本轮仅运行短生命周期测试/构建命令，无常驻自有进程残留；未触碰共享 LM Studio 与未知进程。
 - `.mimosa/`、`.project-local/` 等运行态不入 Git；证据全部项目本地保存。
 
-## 8. 后继最短路径（供 Codex 审计后接续）
+## 9. 后继最短路径（供 Codex 审计后接续）
 
 1. store-sqlite 2条 lint + 范围内8条警告清理（小改动，先审后改）。
 2. 用 `b6f5b591…` 构建走 `stage_backend_runtime.py` staging → 新候选 → 安装态普通/冲突/AI旅程（v7 基建可复用）。
