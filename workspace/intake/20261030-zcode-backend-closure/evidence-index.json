@@ -114,6 +114,36 @@
     },
     "order": ["stage C1 install-lifecycle variant", "launch wsb (Windows Sandbox available on this host per v7)", "read back lifecycle receipt (install/start/close/force-cleanup/reinstall/uninstall-preserve/reinstall-readback)", "ordinary+conflict journeys via guest probe inputs (installed PDF path; PDF deps now stage-corrected)", "AI journey BLOCKED on host model binding", "cross-version BLOCKED on version decision"]
   },
+  "installed_lifecycle_20261030": {
+    "summary": "new-Core install lifecycle executed in Windows Sandbox on the staged C1 chain; complete_lifecycle_verified=true",
+    "c1_verifier": {
+      "path": ".project-local/zcode-newcore-20261030/verify-mixed-core-c1-v1.proposed.ps1",
+      "sha256": "b5e6b9272c4753979cc9cbcb354aaddb8f36d022c0bb2828688346dae349fc03",
+      "built_by": "build-c1-verifier.py (exact-substitution build from the reviewed v2 verifier; every anchor asserted unique; old-identity tokens asserted absent)",
+      "changes": "packaging-identity validation re-targeted to the mixed-core chain (8 sidecars, core-build receipt binding, host donor pin, no msvcp140 delta, no pdf-validation precondition, no portable.flag); lifecycle machinery reused unchanged; mode strings renamed to mixed-core with parameter/function names kept for reviewability"
+    },
+    "host_proof_review": {
+      "run": "zc1r-v9",
+      "driver": ".project-local/zcode-newcore-20261030/verify-real-mixed-core-proof-v1.ps1",
+      "result": "PASS_REAL_OFFLINE_MIXED_CORE_PROOF_ONLY, members=19747, sidecars=8",
+      "failed_attempts_retained": ["zc1r (v2 param alias missing)", "zc1r-v2 (receipt alias)", "zc1r-v3 (candidate manifest object-vs-sha)", "zc1r-v4 (assembly receipt assignment)", "zc1r-v5..v8 (pin sync churn)"]
+    },
+    "sandbox_runs": [
+      {"run": "zc1i", "staging": "STAGED_ONLY_NOT_EXECUTED", "launch": "STARTED_OWNERSHIP_BOUND_ONLY (sandbox f87d4f49...)", "guest": "FAILED_GUEST_ORCHESTRATION - installed frontend readiness TIMEOUT at CDP_EVALUATE (about:blank, 30s) after successful install and responding window", "disposition": "cold-start variance; original FAIL retained; sandbox stopped via official exact-owned stopper STOP_CONFIRMED_OWNED_RESOURCES_CLEARED"},
+      {"run": "zc1i2", "staging": "STAGED_ONLY_NOT_EXECUTED", "launch": "BLOCKED_BINDING_NO_AUTO_STOP (transient CIM observation; v7 cppstart1 precedent) - sandbox actually ran as official id b169109b...", "guest": "VERIFIER_RETURNED_REQUIRES_LIFECYCLE_RECEIPT_REVIEW, error=null"}
+    ],
+    "lifecycle_receipt": {
+      "path": ".project-local/runs/be268a2d33/zc1i2/output/2e85b70d1f0047a2a0d7dd368ce695d7/lifecycle-receipt.json",
+      "sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887",
+      "complete_lifecycle_verified": true,
+      "qualification_scope": "LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE",
+      "bindings": {"installer": "3337fce6...", "host": "ac4c399b...", "core": "b6f5b591... (NEW)", "runtime_manifest": "440e9084...", "identity": "293e5f1f..."},
+      "assertions": {"graceful_shutdown": true, "same_version_reinstall": "SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION", "forced_tree_cleanup": true, "clean_uninstall": true, "uninstall_retains_data": true, "reinstall_readback": true, "pyc_growth": 0, "product_version": "0.6.14", "core_schema_version": 14, "persisted_job": "installer-lifecycle-b935563ce1627ca4"},
+      "honest_not_executed": {"cross_version_upgrade": "NOT_TESTED", "rollback": "NOT_TESTED", "installed_document_conflict_loop": "NOT_EXECUTED", "ai": "NOT_EXECUTED (host LM Studio binds 127.0.0.1; unreachable from guest)"}
+    },
+    "stop": "zc1i2/sandbox-stop-v3-request.json + terminal.json: direct official wsb stop of the single owned environment after the formal stopper was unavailable (launch binding blocker); STOP_CONFIRMED_OWNED_RESOURCES_CLEARED, official list empty, zero sandbox processes",
+    "guest_tooling_note": "guest transcript shows pwsh 7.6.5, WDAGUtilityAccount, offline (Networking Disable, VGpu Disable)"
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},

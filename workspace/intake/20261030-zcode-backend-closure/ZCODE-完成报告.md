@@ -55,6 +55,17 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 
 ## 4. CL-01—07 / J1—6 逐项状态（证据层分列）
 
+### 4.0b C1 安装生命周期在沙盒完全验证（2026-10-30 第四轮）
+
+按工单执行到底：**新 Core 的 NSIS 安装器在 Windows Sandbox 隔离安装并完成全部生命周期断言**。
+
+1. **C1 验证器**（`verify-mixed-core-c1-v1.proposed.ps1`，SHA `b5e6b927…`）：由 v2 验证器经逐锚点断言的精确替换构建（旧身份 token 断言不存在），打包身份校验重定向到混合链（8份sidecar、core-build回执绑定、host供体钉、无 msvcp140 delta、无 pdf 前置、无 portable.flag）；安装/启动/关闭/强制清理/重装/卸载保全/读回的生命周期机制原样复用。
+2. **宿主 proof-review**（`zc1r-v9`）：`PASS_REAL_OFFLINE_MIXED_CORE_PROOF_ONLY`，19,747成员/8份sidecar；六次失败尝试（参数别名、对象vs裸SHA、赋值遗漏、pin同步）全部保留。
+3. **沙盒运行**：`zc1i` 首跑在安装成功、窗口响应后于前端就绪 CDP 评估 30 秒超时（about:blank）——**判为冷启动方差，原 FAIL 保留**，经官方 exact-owned stopper 清场；`zc1i2` 重跑**走完全程**：guest 终态 `VERIFIER_RETURNED_REQUIRES_LIFECYCLE_RECEIPT_REVIEW`（error=null）。
+4. **生命周期回执**（SHA `37684512…`）：`complete_lifecycle_verified=true`，scope `LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE`，安装器 `3337fce6…` + Host `ac4c399b…` + **Core `b6f5b591…`（新）** + manifest `440e9084…` 全绑定；优雅关闭、同版本重装数据保全、强制树清理、干净卸载、卸载保留数据、重装读回全 true，pyc 增长 0，持久 job 读回成功。
+5. **清场**：zc1i2 因 launch 绑定瞬时阻断（v7 cppstart1 同型先例，回执保留）无法走形式化 stopper，按其核心语义执行一次直接官方 stop（单一 owned 环境核对 + 意图回执先行）：`STOP_CONFIRMED_OWNED_RESOURCES_CLEARED`，官方清单空、零沙盒进程。
+6. **如实 NOT_EXECUTED**：冲突旅程、跨版本升级/回滚、AI 旅程（宿主模型 127.0.0.1 绑定阻断）。
+
 ### 4.0a 新 Core NSIS 安装器（2026-10-30 第三轮）
 
 合格构建 → staging（R2）→ 混合候选（C1）之后，本轮完成 **C1 专属打包链并产出新 Core 的 NSIS 安装器**：
