@@ -211,21 +211,80 @@ def validate_app_local_vc_runtime(runtime: Path) -> dict[str, dict[str, object]]
     return observed
 
 
-def stage_app_local_vc_runtime(runtime: Path, root: Path) -> dict:
-    observed = validate_app_local_vc_runtime(runtime)
+APP_LOCAL_CPP_COHORTS = ({
+    "vcruntime140.dll": {**APP_LOCAL_VC_RUNTIME["vcruntime140.dll"][0]},
+    "vcruntime140_1.dll": {**APP_LOCAL_VC_RUNTIME["vcruntime140_1.dll"][0]},
+    "msvcp140.dll": {"version": "14.44.35211", "bytes": 557728,
+                     "sha256": "0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9"},
+},)
+
+
+def validate_cpp_runtime(source: Path) -> dict:
+    """A complete reviewed x64 cohort; no system/PATH fallback or mixed versions."""
+    observed = {}
+    for name in APP_LOCAL_CPP_COHORTS[0]:
+        path = source / name
+        reject_links_along(path)
+        try:
+            info = filesystem_path(path).lstat()
+        except FileNotFoundError as error:
+            raise ValueError(f"required app-local C++ runtime missing: {name}") from error
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ValueError(f"app-local C++ runtime is not an independent regular file: {name}")
+        observed[name] = {"bytes": info.st_size, "sha256": sha256(path)}
+    for cohort in APP_LOCAL_CPP_COHORTS:
+        if all(observed[name] == {k: row[k] for k in ("bytes", "sha256")}
+               for name, row in cohort.items()):
+            return {name: dict(row) for name, row in cohort.items()}
+    raise ValueError(f"app-local C++ runtime cohort identity mismatch: {observed}")
+
+
+def stage_app_local_vc_runtime(runtime: Path, root: Path, vc_runtime: Path | None = None) -> dict:
+    original = validate_app_local_vc_runtime(runtime)
+    source = vc_runtime if vc_runtime is not None else runtime
+    observed = validate_cpp_runtime(source)
+    for donor in (runtime, source):
+        if root.absolute() == donor.absolute() or root.absolute().is_relative_to(donor.absolute()):
+            raise ValueError("runtime output must be independent of its donor")
+    for name in APP_LOCAL_VC_RUNTIME:
+        for directory in (root, root / "core"):
+            target = directory / name
+            reject_links_along(target)
+            if filesystem_path(target).exists():
+                raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
+    target_runtime = root / "runtime"
+    reject_links_along(target_runtime)
+    filesystem_path(target_runtime).mkdir(exist_ok=True)
     for name, identity in observed.items():
+        target = target_runtime / name
+        reject_links_along(target)
+        if filesystem_path(target).exists():
+            info = filesystem_path(target).lstat()
+            expected = original.get(name, observed[name])
+            if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                    or info.st_size != expected["bytes"] or sha256(target) != expected["sha256"]):
+                raise ValueError(f"app-local C++ runtime replacement identity mismatch: {name}")
+        shutil.copy2(filesystem_path(source / name), filesystem_path(target))
+        if filesystem_path(target).stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
+            raise ValueError(f"app-local VC runtime copy mismatch: {name}")
+    for name in APP_LOCAL_VC_RUNTIME:
+        identity = observed[name]
         for directory in (root, root / "core"):
             target = directory / name
             reject_reparse(target)
             if target.exists():
                 raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
-            shutil.copy2(runtime / name, target)
-            if target.stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
+            shutil.copy2(filesystem_path(source / name), filesystem_path(target))
+            if filesystem_path(target).stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
                 raise ValueError(f"app-local VC runtime copy mismatch: {name}")
     versions = sorted({str(row["version"]) for row in observed.values()})
+    if validate_app_local_vc_runtime(runtime) != original or validate_cpp_runtime(source) != observed:
+        raise ValueError("app-local C++ runtime donor changed during staging")
     return {"version": versions[0] if len(versions) == 1 else "+".join(versions),
-            "architecture": "x64", "source": "selected Python runtime",
-            "members": observed, "install_locations": [".", "core/"],
+            "architecture": "x64", "source": "explicit VC runtime" if vc_runtime is not None else "complete selected Python runtime",
+            "donor_path": str(source.absolute()), "original_python_members": original,
+            "members": {name: {**row, "install_locations": (["runtime/", ".", "core/"]
+                       if name in APP_LOCAL_VC_RUNTIME else ["runtime/"])} for name, row in observed.items()},
             "maintenance": "Application publisher must update and redistribute these app-local files."}
 
 
@@ -703,6 +762,8 @@ def main() -> int:
     parser.add_argument("--webview2-manifest", type=Path,
                         help="complete pinned extracted inventory for --webview2-runtime")
     parser.add_argument("--workers", required=True, type=Path)
+    parser.add_argument("--vc-runtime", type=Path,
+                        help="explicit reviewed x64 VC three-file donor; otherwise --runtime must contain the complete cohort")
     parser.add_argument("--external-root", type=Path,
                         help="explicit existing local shared tool root; referenced, never bundled")
     parser.add_argument("--shared", type=Path,
@@ -756,6 +817,7 @@ def main() -> int:
     # thing being staged. The source root itself still faces the full rule above.
     validate_runtime_tree(args.runtime)
     validate_app_local_vc_runtime(args.runtime)
+    validate_cpp_runtime(args.vc_runtime if args.vc_runtime is not None else args.runtime)
     validate_tree(args.workers)
     if not shared_donor.is_file():
         raise ValueError(f"scheduler donor is missing: {shared_donor}")
@@ -766,6 +828,9 @@ def main() -> int:
     if args.archive and args.archive.exists():
         raise ValueError("refusing to overwrite an existing archive")
     root = args.out.absolute()
+    for donor in (args.runtime, args.vc_runtime):
+        if donor is not None and (root == donor.absolute() or root.is_relative_to(donor.absolute())):
+            raise ValueError("runtime output must be independent of its donor")
     if root.exists():
         raise ValueError(f"refusing to overwrite an existing runtime root: {root}")
     if not (args.runtime / "python.exe").is_file():
@@ -777,7 +842,7 @@ def main() -> int:
     shutil.copy2(args.core, root / "core" / "archeaxis-api.exe")
     shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
-    app_local_vc = stage_app_local_vc_runtime(args.runtime, root)
+    app_local_vc = stage_app_local_vc_runtime(args.runtime, root, args.vc_runtime)
     app_local_webview2 = (stage_fixed_webview2(args.webview2_runtime.absolute(),
                          args.webview2_manifest.absolute(), root) if args.webview2_runtime else None)
     copy_tree(args.workers, root / "workers")

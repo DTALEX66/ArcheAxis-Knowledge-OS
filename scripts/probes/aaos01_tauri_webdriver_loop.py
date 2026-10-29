@@ -459,46 +459,109 @@ def confirm_restored_working_state(bridge, ui_click, wait, js, *, prepare_naviga
     assert isinstance(before["recovery_candidates"], dict)
     wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
     # Observe the UI's real invoke responses without changing arguments or results.
-    js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
+    js("""const original=window.__TAURI__,invoke=original.core.invoke;
+window.__aaosRecoveryOriginal=original;
+window.__aaosRecoveryObservation={seq:0,pending:0,events:[],replies:[]};
+const observed=async function(command,args){
+ const operation=args?.request?.operation;
+ if(command!=='core_command'||!['ui_state_recover','ui_state_write'].includes(operation))return invoke(command,args);
+ const o=window.__aaosRecoveryObservation,b=args?.request?.payload?.body??{},id=++o.seq;
+ const basis={workspace_id:b.workspace_id,restore_epoch:b.restore_epoch,state_revision:b.state_revision};
+ o.pending++;o.events.push({id,phase:'dispatch',operation,basis:structuredClone(basis)});
+ try{const value=await invoke(command,args);o.replies.push({id,operation,value:structuredClone(value)});
+ o.events.push({id,phase:'ack',operation,status:value?.status});return value;
+ }catch(error){o.events.push({id,phase:'unknown',operation,error_kind:'INVOKE_REJECTED'});throw error;
+ }finally{o.pending--;o.seq++;o.events.push({id,phase:'settled',operation});}
+};
+window.__TAURI__={...original,core:{...original.core,invoke:observed}};
+if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');""")
+    def safe_summary(value):
+        return {key: value.get(key) for key in ("workspace_id", "restore_epoch", "state_revision", "recovery_requires_confirmation")}
+
+    def differences(left, right, path="", result=None):
+        result = [] if result is None else result
+        if len(result) >= 40 or left == right:
+            return result
+        if isinstance(left, dict) and isinstance(right, dict):
+            for key in sorted(set(left) | set(right)):
+                differences(left.get(key), right.get(key), path + "/" + str(key), result)
+        else:
+            result.append(path or "/")
+        return result
+
+    def expected_from(observation):
+        assert observation["pending"] == 0
+        assert not any(event["phase"] == "unknown" for event in observation["events"]), {"recovery_events": observation["events"]}
+        replies = observation["replies"]
+        recovery = [row["value"] for row in replies if row["operation"] == "ui_state_recover"]
+        assert len(recovery) == 1 and recovery[0]["status"] == 200, {"observed_operations": [row["operation"] for row in replies], "recovery_statuses": [row["status"] for row in recovery]}
+        acknowledged = recovery[0]["body"]
+        assert acknowledged["workspace_id"] == before["workspace_id"]
+        assert acknowledged["restore_epoch"] == before["restore_epoch"]
+        assert acknowledged["state_revision"] == before["state_revision"] + 1
+        assert acknowledged["state"] == before["recovery_candidates"], {"state_difference_paths": differences(acknowledged["state"], before["recovery_candidates"])}
+        assert acknowledged["recovery_requires_confirmation"] is False
+        assert acknowledged["recovery_candidates"] is None
+        expected = acknowledged
+        for row in replies:
+            if row["operation"] != "ui_state_write":
+                continue
+            assert 200 <= row["value"]["status"] < 300
+            saved = row["value"]["body"]
+            assert saved["workspace_id"] == before["workspace_id"]
+            assert saved["restore_epoch"] == before["restore_epoch"]
+            assert saved["recovery_requires_confirmation"] is False
+            assert saved["recovery_candidates"] is None
+            assert saved["state_revision"] == expected["state_revision"] + 1
+            assert {k:v for k,v in saved["state"].items() if k != "page_id"} == {k:v for k,v in expected["state"].items() if k != "page_id"}, {"state_difference_paths": differences(saved["state"], expected["state"])}
+            expected = saved
+        return acknowledged, expected
+
+    samples = []
     try:
         ui_click("保留恢复候选")
         # The draft-state banner only exists while a draft or recovery state does; the
         # workspace busy flag and identity are the real hydration barrier.
         wait("return document.querySelector('.app-body')?.getAttribute('aria-busy')==='false'&&!!document.querySelector('[data-current-page-id]')")
-        after = bridge("ui_state_read")
-        observed = js("return window.__aaosRecoveryReplies")
+        # Busy=false proves scene hydration, not the later journal ACK. Observe a
+        # stable read cut; mutations are never repeated to repair an observation.
+        for _ in range(20):
+            wait("return window.__aaosRecoveryObservation.pending===0&&window.__aaosRecoveryObservation.events.some(e=>e.operation==='ui_state_recover'&&e.phase==='settled')")
+            left = js("return structuredClone(window.__aaosRecoveryObservation)")
+            if left["pending"]:
+                continue
+            acknowledged, expected = expected_from(left)
+            after = bridge("ui_state_read")
+            right = js("return structuredClone(window.__aaosRecoveryObservation)")
+            samples.append({"left_seq": left["seq"], "right_seq": right["seq"], "pending": right["pending"], "after": safe_summary(after), "expected": safe_summary(expected)})
+            if left["seq"] != right["seq"] or right["pending"]:
+                continue
+            observed = right["replies"]
+            assert after == expected, {"before": safe_summary(before), "after": safe_summary(after), "expected": safe_summary(expected), "difference_paths": differences(after, expected), "events": right["events"], "samples": samples}
+            break
+        else:
+            raise AssertionError({"recovery_observation": "NO_STABLE_READ_CUT", "samples": samples})
+    except Exception as error:
+        # Failure evidence contains identities, paths and event ordering, never
+        # journal bodies, prompt text, tokens or original material.
+        try:
+            last = js("return structuredClone(window.__aaosRecoveryObservation)")
+            diagnostic = {"seq": last["seq"], "pending": last["pending"], "events": last["events"],
+                          "replies": [{"operation": row["operation"], "status": row["value"].get("status"), "body": safe_summary(row["value"].get("body", {}))} for row in last["replies"]]}
+        except Exception:
+            diagnostic = {"observation": "UNAVAILABLE"}
+        raise AssertionError({"recovery_observation": "FAILED_NO_REPLAY", "cause_kind": type(error).__name__,
+                              "detail": error.args[0] if error.args and isinstance(error.args[0], dict) else None,
+                              "samples": samples, "observer": diagnostic}) from error
     finally:
-        js("window.__TAURI__=window.__aaosRecoveryOriginal;delete window.__aaosRecoveryOriginal;delete window.__aaosRecoveryReplies;")
-    recovery = [row["value"] for row in observed if row["operation"] == "ui_state_recover"]
-    assert len(recovery) == 1 and recovery[0]["status"] == 200, {"observed_operations": [row["operation"] for row in observed], "recovery_statuses": [row["status"] for row in recovery]}
-    acknowledged = recovery[0]["body"]
-    assert acknowledged["workspace_id"] == before["workspace_id"]
-    assert acknowledged["restore_epoch"] == before["restore_epoch"]
-    assert acknowledged["state_revision"] == before["state_revision"] + 1
-    assert acknowledged["state"] == before["recovery_candidates"]
-    assert acknowledged["recovery_requires_confirmation"] is False
-    assert acknowledged["recovery_candidates"] is None
-    expected = acknowledged
-    for row in observed:
-        if row["operation"] != "ui_state_write":
-            continue
-        assert 200 <= row["value"]["status"] < 300
-        saved = row["value"]["body"]
-        assert saved["workspace_id"] == before["workspace_id"]
-        assert saved["restore_epoch"] == before["restore_epoch"]
-        assert saved["recovery_requires_confirmation"] is False
-        assert saved["recovery_candidates"] is None
-        assert saved["state_revision"] == expected["state_revision"] + 1
-        assert {k:v for k,v in saved["state"].items() if k != "page_id"} == {k:v for k,v in expected["state"].items() if k != "page_id"}
-        expected = saved
-    assert after == expected
+        js("window.__TAURI__=window.__aaosRecoveryOriginal;delete window.__aaosRecoveryOriginal;delete window.__aaosRecoveryObservation;")
     assert after["workspace_id"] == before["workspace_id"]
     assert after["restore_epoch"] == before["restore_epoch"]
     assert after["recovery_requires_confirmation"] is False
     assert after["recovery_candidates"] is None
     if prepare_navigation is not None:
         prepare_navigation()
-    return {"decision": "EXPLICIT_UI_PRESERVE", "before": before, "acknowledged": acknowledged, "subsequent_ui_writes": observed, "after": after}
+    return {"decision": "EXPLICIT_UI_PRESERVE", "before": before, "acknowledged": acknowledged, "subsequent_ui_writes": observed, "after": after, "stable_read_samples": samples}
 
 
 def navigate_compatibility_space(js, wait, space: str) -> None:
@@ -1594,6 +1657,7 @@ def main():
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--grouped-model", help="Explicit already-authorized local model choice through the formal UI; no endpoint or global configuration change")
+    parser.add_argument("--grouped-save-binding-lane", choices=("fast", "deep"), help="Save explicit answer/retest lane through formal configuration UI, verify frozen requests and cold reopen")
     parser.add_argument("--grouped-save-deep-binding", action="store_true", help="Save answer/retest DEEP bindings through UI on the fresh synthetic workspace; require frozen binding receipts and cold reopen")
     parser.add_argument("--grouped-material-companion-loop", action="store_true", help="Extend saved-DEEP actual-model journey to material/companion UI calls, readonly receipts and cold/restore reopen on the synthetic workspace")
     parser.add_argument("--grouped-material-companion-cancel", action="store_true", help="After the material/companion journey, cancel one admitted request per purpose through UI and verify cold readback; provider stop remains UNKNOWN")
@@ -1638,8 +1702,14 @@ def main():
         parser.error("closure features require the grouped native journey")
     if args.grouped_model and not args.grouped_run_ai:
         parser.error("explicit local selection requires an actual-model grouped journey")
+    if args.grouped_save_deep_binding and args.grouped_save_binding_lane not in (None, "deep"):
+        parser.error("legacy DEEP flag conflicts with explicit FAST lane")
+    if args.grouped_save_binding_lane:
+        args.grouped_save_deep_binding = True
+    if args.grouped_material_companion_loop and args.grouped_save_binding_lane == "fast":
+        parser.error("material/companion qualification remains DEEP-only")
     if args.grouped_save_deep_binding and (not args.require_actual_ai_loop or not args.grouped_model or args.grouped_machine_ack_loss or args.grouped_machine_cancel):
-        parser.error("saved DEEP binding requires explicit model and required actual AI loop; separate ACK-loss/cancellation qualification")
+        parser.error("saved binding requires explicit model and required actual AI loop; separate ACK-loss/cancellation qualification")
     if args.grouped_max_tokens and not args.grouped_run_ai:
         parser.error("explicit output budget requires an actual-model grouped journey")
     if args.grouped_material_companion_loop and not args.grouped_save_deep_binding:
@@ -2216,6 +2286,7 @@ def main():
                 selected_model=args.grouped_model,
                 selected_max_tokens=args.grouped_max_tokens,
                 save_deep_binding=args.grouped_save_deep_binding,
+                saved_binding_lane=args.grouped_save_binding_lane or "deep",
                 material_companion_loop=args.grouped_material_companion_loop,
                 material_companion_cancel=args.grouped_material_companion_cancel,
                 accept_navigation_alert=grouped_accept_navigation_alert,

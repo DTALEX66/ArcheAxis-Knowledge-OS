@@ -111,6 +111,60 @@ def test_stage_runtime_refuses_to_overwrite_existing_destination(monkeypatch, tm
         stage_runtime(repository=repository, destination=destination)
 
 
+@pytest.mark.parametrize("minor", [13, 11])
+def test_bundle_runtime_requires_python312_before_any_preparation(monkeypatch, tmp_path, minor):
+    from unittest.mock import Mock
+    from desktop.scripts import prepare_bundle
+
+    repository = tmp_path / "repo"
+    repository.mkdir()
+    destination = repository / ".project-local/rt"
+    marker = tmp_path / "existing-runtime-ready.marker"
+    marker.write_bytes(b"preserve existing runtime marker")
+    monkeypatch.setattr(prepare_bundle, "sys", SimpleNamespace(version_info=(3, minor, 0)))
+    boundaries = {}
+    for name in ("stage_runtime", "runtime_build_environment", "_run"):
+        boundaries[name] = Mock(side_effect=AssertionError("preparation must not begin"))
+        monkeypatch.setattr(prepare_bundle, name, boundaries[name])
+    uv_lookup = Mock(side_effect=AssertionError("uv must not be looked up"))
+    monkeypatch.setattr(prepare_bundle.shutil, "which", uv_lookup)
+
+    with pytest.raises(RuntimeError, match=r"请使用 Python 3\.12.*Python 3\." + str(minor)):
+        prepare_bundle.prepare_bundle_runtime(repository=repository, destination=destination)
+
+    for boundary in boundaries.values():
+        boundary.assert_not_called()
+    uv_lookup.assert_not_called()
+    assert not destination.parent.exists()
+    assert marker.read_bytes() == b"preserve existing runtime marker"
+
+
+def test_bundle_runtime_python312_reaches_existing_stage_pipeline(monkeypatch, tmp_path):
+    from contextlib import nullcontext
+    from desktop.scripts import prepare_bundle
+
+    repository = tmp_path / "repo"
+    destination = repository / ".project-local/rt"
+    observed = []
+    monkeypatch.setattr(prepare_bundle, "sys", SimpleNamespace(version_info=(3, 12, 9)))
+    monkeypatch.setattr(prepare_bundle.shutil, "which", lambda name: "synthetic-uv" if name == "uv" else None)
+    monkeypatch.setattr(prepare_bundle, "runtime_build_environment", lambda root: {"ARCHEAXIS_RUN_ROOT": str(tmp_path / "run")})
+    monkeypatch.setattr(prepare_bundle, "BuildTimings", lambda *_: SimpleNamespace(stage=lambda name: nullcontext({})))
+
+    class ReachedOriginalStage(Exception):
+        pass
+
+    def original_stage_boundary(**kwargs):
+        observed.append(kwargs)
+        raise ReachedOriginalStage
+
+    monkeypatch.setattr(prepare_bundle, "stage_runtime", original_stage_boundary)
+    with pytest.raises(ReachedOriginalStage):
+        prepare_bundle.prepare_bundle_runtime(repository=repository, destination=destination)
+    assert observed == [{"repository": repository.resolve(), "destination": destination.resolve()}]
+    assert not destination.exists()
+
+
 def test_tauri_maps_the_staged_runtime_to_the_installed_runtime_root() -> None:
     repository = Path(__file__).resolve().parents[1]
     config = json.loads(
@@ -267,7 +321,9 @@ def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypa
     authority = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(authority)
     monkeypatch.setattr(authority, "validate_app_local_vc_runtime", lambda runtime: None)
-    def synthetic_vc(runtime, root):
+    monkeypatch.setattr(authority, "validate_cpp_runtime", lambda runtime: {})
+    monkeypatch.setattr(prepare_bundle, "resolve_vc_runtime", lambda explicit=None: tmp_path / "vc-donor")
+    def synthetic_vc(runtime, root, vc_runtime=None):
         for name in ("vcruntime140.dll", "vcruntime140_1.dll"):
             for directory in (root, root / "core"):
                 directory.mkdir(parents=True, exist_ok=True)
@@ -310,6 +366,7 @@ def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypa
     python = prepare_bundle.prepare_backend_candidate(repository=repository, destination=destination, core=core)
 
     assert len(observed) == 1
+    assert observed[0][observed[0].index("--vc-runtime") + 1] == str(tmp_path / "vc-donor")
     assert python == destination / "runtime/python.exe"
     assert python.read_bytes() == b"synthetic interpreter fixture"
     config = json.loads((repository / "src-tauri/tauri.conf.json").read_text())

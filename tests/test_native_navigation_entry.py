@@ -324,6 +324,10 @@ def harness_helper(name):
     return namespace[name]
 
 
+def recovery_observation(replies, *, seq=2, pending=0, events=None):
+    return {'seq': seq, 'pending': pending, 'events': events or [], 'replies': replies}
+
+
 @pytest.mark.parametrize('recovery_status', [200, 409])
 def test_guide_deferred_by_restore_confirmation_is_paused_only_after_valid_ack(recovery_status):
     """SIMULATED delayed guide; execute the actual journal fence and pause helper."""
@@ -352,9 +356,13 @@ def test_guide_deferred_by_restore_confirmation_is_paused_only_after_valid_ack(r
         ui.markup = ui.markup.replace(restore_dialog, GUIDE)
 
     def js(script):
-        if script == 'return window.__aaosRecoveryReplies':
-            return [{'operation': 'ui_state_recover',
-                     'value': {'status': recovery_status, 'body': acknowledged}}]
+        if script == 'return structuredClone(window.__aaosRecoveryObservation)':
+            return recovery_observation([{'operation': 'ui_state_recover',
+                     'value': {'status': recovery_status, 'body': acknowledged}}])
+
+    def recovery_wait(script):
+        if 'window.__aaosRecoveryObservation' not in script:
+            ui.wait(script)
 
     def prepare():
         assert events == ['read-pending', 'preserve', 'read-confirmed']
@@ -364,10 +372,10 @@ def test_guide_deferred_by_restore_confirmation_is_paused_only_after_valid_ack(r
     confirm = harness_helper('confirm_restored_working_state')
     if recovery_status != 200:
         with pytest.raises(AssertionError):
-            confirm(bridge, click, ui.wait, js, prepare_navigation=prepare)
+            confirm(bridge, click, recovery_wait, js, prepare_navigation=prepare)
         assert ui.clicks == [] and GUIDE in ui.markup
         return
-    result = confirm(bridge, click, ui.wait, js, prepare_navigation=prepare)
+    result = confirm(bridge, click, recovery_wait, js, prepare_navigation=prepare)
     assert result['decision'] == 'EXPLICIT_UI_PRESERVE'
     assert result['after']['state'] == candidate
     assert events[-1] == 'guide-paused'
@@ -423,8 +431,8 @@ def test_actual_plain_launch_confirms_recovery_before_hydrated_guide_preparation
         ui.markup = '<div class="app-body" aria-busy="false">' + shell(hidden=True) + '</div>' + GUIDE
 
     def js(script):
-        if script == 'return window.__aaosRecoveryReplies':
-            return [{'operation': 'ui_state_recover', 'value': {'status': recovery_status, 'body': acknowledged}}]
+        if script == 'return structuredClone(window.__aaosRecoveryObservation)':
+            return recovery_observation([{'operation': 'ui_state_recover', 'value': {'status': recovery_status, 'body': acknowledged}}])
         if 'window.__aaosRecovery' in script:
             return None  # Adapter for the real recovery-response observer only.
         return ui.js(script)
@@ -433,8 +441,12 @@ def test_actual_plain_launch_confirms_recovery_before_hydrated_guide_preparation
         assert space == 'library' and events[-1] == 'guide-paused'
         events.append('compatibility-navigation')
 
+    def recovery_wait(script):
+        if 'window.__aaosRecoveryObservation' not in script:
+            ui.wait(script)
+
     adapter = SimpleNamespace(GroupedUI=lambda *a: ui, prepare_rendered_navigation=probe.prepare_rendered_navigation)
-    namespace = dict(REPO=ROOT, receipt=receipt, js=js, wait=ui.wait, bridge=bridge,
+    namespace = dict(REPO=ROOT, receipt=receipt, js=js, wait=recovery_wait, bridge=bridge,
                      ui_click=click, ui_element=Mock(), trusted_grouped_element_command=Mock(),
                      load=lambda name, path: adapter, request=Mock(), session='SIMULATED',
                      args=SimpleNamespace(**{key: False for key in ('grouped_common_owner_loop',
@@ -446,7 +458,7 @@ def test_actual_plain_launch_confirms_recovery_before_hydrated_guide_preparation
     if recovery_status != 200:
         with pytest.raises(AssertionError):
             exec(code, namespace)
-        assert events == ['read-pending', 'preserve', 'read-confirmed']
+        assert events == ['read-pending', 'preserve']
         assert ui.clicks == [] and receipt['navigation_entry'] == []
         assert 'launch_working_state_recovery' not in receipt
     else:
@@ -469,6 +481,110 @@ def test_rendered_page_helper_uses_current_native_menu_navigation_and_rejects_mi
     assert actions == [('03', True)] and ui.accept_navigation_alert is accept
     with pytest.raises(AssertionError, match='No visible product navigation'):
         navigate(ui, lambda source: evaluate(source, shell('')), lambda source: None, '03', accept)
+
+
+@pytest.mark.parametrize('race', ['old_read_new_ack', 'commit_before_ack'])
+def test_recovery_sampling_retries_only_reads_across_ack_races(race):
+    """Actual helper; deterministic synthetic commit/ACK interleavings, no Host."""
+    before, recovered, saved = recovery_fixture()
+    recover_reply = {'operation': 'ui_state_recover', 'value': {'status': 200, 'body': recovered}}
+    write_reply = {'operation': 'ui_state_write', 'value': {'status': 200, 'body': saved}}
+    old = recovery_observation([recover_reply])
+    pending = recovery_observation([recover_reply], seq=3, pending=1)
+    complete = recovery_observation([recover_reply, write_reply], seq=4)
+    snapshots = iter([old, complete, complete, complete] if race == 'old_read_new_ack'
+                     else [pending, complete, complete])
+    reads = iter([before, recovered, saved] if race == 'old_read_new_ack' else [before, saved])
+    operations, clicks, waits = [], [], []
+    def bridge(op):
+        operations.append(op)
+        return next(reads)
+    def js(script):
+        if script == 'return structuredClone(window.__aaosRecoveryObservation)':
+            return next(snapshots)
+    result = harness_helper('confirm_restored_working_state')(bridge, clicks.append, waits.append, js)
+    assert clicks == ['保留恢复候选']
+    assert set(operations) == {'ui_state_read'}
+    assert len(operations) == (3 if race == 'old_read_new_ack' else 2)
+    assert result['after'] == saved
+    assert result['acknowledged'] == recovered
+    if race == 'old_read_new_ack':
+        assert result['stable_read_samples'][0]['left_seq'] != result['stable_read_samples'][0]['right_seq']
+
+
+def recovery_fixture():
+    state = {'page_id': '01', 'drafts': {'synthetic-doc': {'base_version': 2,
+             'editor_json': {'type': 'doc', 'content': [{'type': 'paragraph', 'content': [
+                 {'type': 'text', 'text': 'SYNTHETIC_BODY_MUST_NOT_ENTER_ERROR'}]}]}}},
+             'pending_machine': {}, 'opened_documents': ['synthetic-doc'], 'active_document': 'synthetic-doc'}
+    before = dict(schema='archeaxis.ui-working-state/v1', workspace_id='synthetic-workspace',
+                  restore_epoch='synthetic-epoch', state_revision=3, state={},
+                  recovery_requires_confirmation=True, recovery_candidates=state)
+    recovered = {**before, 'state_revision': 4, 'state': state,
+                 'recovery_requires_confirmation': False, 'recovery_candidates': None}
+    saved = {**recovered, 'state_revision': 5, 'state': {**state, 'page_id': '03'}}
+    return before, recovered, saved
+
+
+def test_actual_recovery_observer_tracks_dispatch_and_clones_only_identity_basis():
+    """Execute real observer JS with an unresolved synthetic native Promise."""
+    tree = ast.parse((ROOT / 'scripts/probes/aaos01_tauri_webdriver_loop.py').read_text())
+    confirm = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'confirm_restored_working_state')
+    install = next(n.args[0].value for n in ast.walk(confirm) if isinstance(n, ast.Call)
+                   and isinstance(n.func, ast.Name) and n.func.id == 'js' and n.args
+                   and isinstance(n.args[0], ast.Constant) and 'const observed=async function' in str(n.args[0].value))
+    result = evaluate("const window={__TAURI__:{core:{invoke:()=>new Promise(()=>{})}}};" + install + """
+const body={workspace_id:'synthetic-workspace',restore_epoch:'synthetic-epoch',state_revision:3,
+ state:{drafts:{private:'SYNTHETIC_NOT_FOR_OBSERVER'}}};
+window.__TAURI__.core.invoke('core_command',{request:{operation:'ui_state_write',payload:{body}}});
+body.workspace_id='changed-after-dispatch';body.state_revision=99;
+return window.__aaosRecoveryObservation;
+""", '')
+    assert result['pending'] == 1 and result['replies'] == []
+    assert result['events'] == [{'id': 1, 'phase': 'dispatch', 'operation': 'ui_state_write',
+                                'basis': {'workspace_id': 'synthetic-workspace', 'restore_epoch': 'synthetic-epoch', 'state_revision': 3}}]
+    assert 'SYNTHETIC_NOT_FOR_OBSERVER' not in json.dumps(result)
+
+
+@pytest.mark.parametrize('fault', ['read_content', 'ack_content', 'epoch', 'revision', 'non2xx', 'unknown', 'never_settled'])
+def test_recovery_sampling_preserves_strict_fences_and_redacts_failure(fault):
+    before, recovered, saved = recovery_fixture()
+    saved = json.loads(json.dumps(saved))
+    after = json.loads(json.dumps(saved))
+    status, events = 200, []
+    if fault == 'read_content':
+        after['state']['drafts'] = {}
+    elif fault == 'ack_content':
+        saved['state']['drafts'] = {}
+        after = saved
+    elif fault == 'epoch':
+        saved['restore_epoch'] = 'wrong-epoch'
+    elif fault == 'revision':
+        saved['state_revision'] += 1
+    elif fault == 'non2xx':
+        status = 409
+    elif fault == 'unknown':
+        events = [{'phase': 'unknown', 'operation': 'ui_state_write', 'error_kind': 'INVOKE_REJECTED'}]
+    observation = recovery_observation([
+        {'operation': 'ui_state_recover', 'value': {'status': 200, 'body': recovered}},
+        {'operation': 'ui_state_write', 'value': {'status': status, 'body': saved}}],
+        seq=4, pending=1 if fault == 'never_settled' else 0, events=events)
+    operations, clicks = [], []
+    def bridge(op):
+        operations.append(op)
+        return before if len(operations) == 1 else after
+    def js(script):
+        if script == 'return structuredClone(window.__aaosRecoveryObservation)':
+            return observation
+    with pytest.raises(AssertionError) as raised:
+        harness_helper('confirm_restored_working_state')(bridge, clicks.append, lambda script: None, js)
+    diagnostic = str(raised.value)
+    assert 'FAILED_NO_REPLAY' in diagnostic
+    assert 'SYNTHETIC_BODY_MUST_NOT_ENTER_ERROR' not in diagnostic
+    assert clicks == ['保留恢复候选']
+    assert set(operations) == {'ui_state_read'}
+    if fault in {'read_content', 'ack_content'}:
+        assert '/drafts' in diagnostic
 
 
 def test_library_object_navigation_recognizes_exact_current_all_pages_label():

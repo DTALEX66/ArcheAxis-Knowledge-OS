@@ -1298,7 +1298,10 @@ def run_grouped_loop(
     material_companion_loop=False,
     material_companion_cancel=False,
     accept_navigation_alert=None,
+    saved_binding_lane="deep",
 ):
+    assert saved_binding_lane in ("fast", "deep"), "Unsupported saved model lane"
+    assert not material_companion_loop or saved_binding_lane == "deep", "Material/companion remains DEEP-only"
     assert not material_companion_loop or (save_deep_binding and require_actual_ai_loop and run_ai), "Material/companion requires saved DEEP actual-model qualification"
     assert not material_companion_cancel or material_companion_loop, "Cancellation requires the explicit material/companion journey"
     teaching_only = os.environ.get("AAOS01_TEACHING_DRAFT_ONLY") == "1"
@@ -1595,7 +1598,7 @@ def run_grouped_loop(
     result["review_title"] = {"status": "PASS", "item_key": key, "projection": title_row, "layout": title_layout}
     screenshot("grouped-learning-review.png")
     purposes = ("answer", "retest", "material", "companion") if material_companion_loop else ("answer", "retest")
-    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel, save_deep_binding, purposes)
+    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel, save_deep_binding, purposes, saved_binding_lane)
     result["stages"].append(ai_stage)
     if machine_ack_loss:
         require_machine_ack_recovery(ai_stage)
@@ -1880,9 +1883,10 @@ def model_configuration_status_observation(message):
     )
 
 
-def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "retest"), *, budget=1024):
+def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "retest"), *, budget=1024, lane="deep"):
     """Explicit finite configuration on the harness's fresh synthetic workspace only."""
     assert type(budget) is int and budget in (1024, 2048, 4096), "Unsupported probe output budget"
+    assert lane in ("fast", "deep"), "Unsupported saved model lane"
     before = read("model_configuration_get")
     assert before["revision"] == 0 and before["profiles"] == {} and before["bindings"] == [], "Requires fresh isolated model configuration"
     assert isinstance(model, str) and re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", model)
@@ -1902,7 +1906,7 @@ def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "r
     wait(model_configuration_status_observation('目录读取成功，已找到所选模型'))
     assert set(purposes) <= {"answer", "retest", "material", "companion"} and len(set(purposes)) == len(purposes)
     for purpose in purposes:
-        selector = scope + "/descendant::label[contains(.,'" + purpose + " / DEEP')]/select"
+        selector = scope + "/descendant::label[contains(.,'" + purpose + " / " + lane.upper() + "')]/select"
         ui.reveal_selector(selector)
         ui.click_selector(selector + "/option[@value='local']")
     ui.click_revealed("保存配置与用途绑定", scope)
@@ -1912,15 +1916,15 @@ def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "r
                "credential_ref":None, "max_tokens":budget, "timeout_s":120}
     assert saved["revision"] == 1 and saved["profiles"] == {"local": profile}
     assert sorted(saved["bindings"], key=lambda row: row["purpose"]) == [
-        {"purpose":purpose, "lane":"deep", "profile_id":"local"} for purpose in sorted(purposes)]
+        {"purpose":purpose, "lane":lane, "profile_id":"local"} for purpose in sorted(purposes)]
     assert saved["workspace_id"] == before["workspace_id"] and saved["restore_epoch"] == before["restore_epoch"]
-    resolved = {purpose: read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":"deep"}}) for purpose in purposes}
+    resolved = {purpose: read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":lane}}) for purpose in purposes}
     for purpose, value in resolved.items():
-        assert value["purpose"] == purpose and value["lane"] == "deep" and value["profile_id"] == "local"
+        assert value["purpose"] == purpose and value["lane"] == lane and value["profile_id"] == "local"
         assert value["profile"] == profile and value["configuration_revision"] == saved["revision"]
         assert value["workspace_id"] == saved["workspace_id"] and value["restore_epoch"] == saved["restore_epoch"]
     assert machine_tasks(read) == tasks, "Configuration save or directory diagnosis dispatched inference"
-    stage["saved_deep_binding"] = {"status":"SAVED_NOT_YET_EXECUTED", "configuration":saved, "resolved":resolved,
+    stage["saved_deep_binding"] = {"status":"SAVED_NOT_YET_EXECUTED", "lane":lane, "configuration":saved, "resolved":resolved,
                                    "configuration_inference_calls":0, "compatibility_model_selection":"NOT_USED"}
 
 
@@ -1936,11 +1940,12 @@ def assert_saved_model_request(value, saved, purpose):
     assert request["timeout_s"] == expected["profile"]["timeout_s"] == 120
 
 
-def select_saved_deep_lane(ui, wait):
+def select_saved_deep_lane(ui, wait, lane="deep"):
+    assert lane in ("fast", "deep")
     selector = "//label[contains(.,'用途执行通道')]/select"
     ui.reveal_selector(selector)
-    ui.click_selector(selector + "/option[@value='deep']")
-    wait("return [...document.querySelectorAll('label')].find(n=>n.textContent.includes('用途执行通道'))?.querySelector('select')?.value==='deep'")
+    ui.click_selector(selector + "/option[@value=" + xpath_literal(lane) + "]")
+    wait("return [...document.querySelectorAll('label')].find(n=>n.textContent.includes('用途执行通道'))?.querySelector('select')?.value===" + json.dumps(lane))
 
 
 def read_saved_model_configuration(ui, read, wait, stage, *, restored):
@@ -1956,10 +1961,22 @@ def read_saved_model_configuration(ui, read, wait, stage, *, restored):
             assert current[key] == saved[key], "Restored configuration mismatch: " + key
         assert current["restore_epoch"] == read("ui_state_read")["restore_epoch"]
         assert current["restore_epoch"] != saved["restore_epoch"], "Restore epoch did not advance"
-    stage["saved_deep_binding"]["restore_readback" if restored else "cold_reopen"] = {"status":"PASS", "configuration":current}
+    resolved = {}
+    for purpose, expected in stage["saved_deep_binding"].get("resolved", {}).items():
+        value = read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":expected["lane"]}})
+        if restored:
+            assert re.fullmatch(r"[0-9a-f]{64}", value["configuration_sha256"])
+            assert value["configuration_sha256"] != expected["configuration_sha256"], "Restored configuration digest did not advance"
+            assert {k:v for k,v in value.items() if k != "configuration_sha256"} == {
+                k:v for k,v in {**expected, "restore_epoch":current["restore_epoch"]}.items() if k != "configuration_sha256"
+            }, "Restored model resolution mismatch"
+        else:
+            assert value == expected, "Cold reopened model resolution mismatch"
+        resolved[purpose] = value
+    stage["saved_deep_binding"]["restore_readback" if restored else "cold_reopen"] = {"status":"PASS", "configuration":current, "resolved":resolved}
 
 
-def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False, save_deep_binding=False, purposes=("answer", "retest")):
+def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False, save_deep_binding=False, purposes=("answer", "retest"), saved_binding_lane="deep"):
     stage = {
         "id": "distill",
         "status": "NOT_EXECUTED",
@@ -2000,7 +2017,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     if save_deep_binding:
         assert run_ai and selected_model and not machine_ack_loss and not machine_cancel
         save_deep_model_binding(ui, read, wait, stage, selected_model, purposes,
-                                budget=1024 if selected_max_tokens is None else selected_max_tokens)
+                                budget=1024 if selected_max_tokens is None else selected_max_tokens, **({"lane":saved_binding_lane} if saved_binding_lane != "deep" else {}))
     ui.page("13")
     purpose = "Grouped native original " + pin["knowledge_id"]
     document = create_ui_grant(ui, read, wait, pin["knowledge_id"], "answer", purpose)
@@ -2024,7 +2041,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     assert machine_tasks(read) == before_tasks
     stage["inventory_read"] = {"status":"PASS", "evidence_scope":"FORMAL_UI_LOCAL_INVENTORY_ONLY", "listed_model_count":int(inventory_match[1]), "selected_model_listed":inventory_match[2] == "已列出", "loaded_status":"UNKNOWN", "inference_status":"NOT_EXECUTED", "machine_tasks_unchanged":True}
     if save_deep_binding:
-        select_saved_deep_lane(ui, wait)
+        select_saved_deep_lane(ui, wait, **({"lane":stage["saved_deep_binding"].get("lane", "deep")} if stage["saved_deep_binding"].get("lane", "deep") != "deep" else {}))
     elif selected_model is not None:
         assert isinstance(selected_model,str) and selected_model.strip() == selected_model and 0 < len(selected_model.encode()) <= 256
         ui.click_selector("descendant::label[contains(.,'兼容模式本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
@@ -2363,7 +2380,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
     )
     stage["retest_grant"] = document
     if stage.get("saved_deep_binding"):
-        select_saved_deep_lane(ui, wait)
+        select_saved_deep_lane(ui, wait, **({"lane":stage["saved_deep_binding"].get("lane", "deep")} if stage["saved_deep_binding"].get("lane", "deep") != "deep" else {}))
     ui.click("以已接受纠正知识运行独立复测", scope)
     wait(
         "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('本地知识库明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
@@ -2519,8 +2536,8 @@ def restored_grant_refusal(ui, read, wait, stage):
     select_restored_original(ui, wait, stage)
     current_binding = None
     if stage.get("saved_deep_binding"):
-        select_saved_deep_lane(ui, wait)
-        current_binding = read("model_configuration_resolve", {"body":{"purpose":"answer","lane":"deep"}})
+        select_saved_deep_lane(ui, wait, **({"lane":stage["saved_deep_binding"].get("lane", "deep")} if stage["saved_deep_binding"].get("lane", "deep") != "deep" else {}))
+        current_binding = read("model_configuration_resolve", {"body":{"purpose":"answer","lane":stage["saved_deep_binding"].get("lane", "deep")}})
         assert current_binding["restore_epoch"] == read("ui_state_read")["restore_epoch"]
         assert current_binding["profile"] == stage["saved_deep_binding"]["configuration"]["profiles"]["local"]
     ui.type("实际问题", stage["original_answer"]["question"], "textarea")

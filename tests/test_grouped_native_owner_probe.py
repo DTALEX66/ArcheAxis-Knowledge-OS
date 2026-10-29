@@ -184,13 +184,13 @@ class GroupedNativeProbeTests(unittest.TestCase):
             click.assert_not_called()
             self.assertFalse(ui.evidence)
 
-    def test_saved_binding_waits_for_load_and_opens_advanced_before_all_fields_and_bindings(self):
+    def test_saved_binding_waits_for_load_and_opens_advanced_before_all_fields_and_bindings(self, lane="deep"):
         probe = load_probe()
         actions, state = [], {"loaded": False, "open": False, "saved": False}
         before = {"revision": 0, "profiles": {}, "bindings": [], "workspace_id": "isolated", "restore_epoch": "initial"}
         profile = {"endpoint": "http://127.0.0.1:1234/v1", "protocol": "openai", "model": "authorized-model", "credential_ref": None, "max_tokens": 4096, "timeout_s": 120}
-        purposes = ("answer", "retest", "material", "companion")
-        after = {**before, "revision": 1, "profiles": {"local": profile}, "bindings": [{"purpose": purpose, "lane": "deep", "profile_id": "local"} for purpose in purposes]}
+        purposes = ("answer", "retest") if lane == "fast" else ("answer", "retest", "material", "companion")
+        after = {**before, "revision": 1, "profiles": {"local": profile}, "bindings": [{"purpose": purpose, "lane": lane, "profile_id": "local"} for purpose in purposes]}
         class UI:
             def page(self, page):
                 assert page == '19'
@@ -221,17 +221,21 @@ class GroupedNativeProbeTests(unittest.TestCase):
             if operation == 'machine_tasks_list':
                 return {"items": [], "next_cursor": None}
             assert operation == 'model_configuration_resolve' and state['saved']
-            return {"purpose": args['body']['purpose'], "lane": "deep", "profile_id": "local", "profile": profile, "configuration_revision": 1, "workspace_id": "isolated", "restore_epoch": "initial"}
+            assert args['body']['lane'] == lane
+            return {"purpose": args['body']['purpose'], "lane": lane, "profile_id": "local", "profile": profile, "configuration_revision": 1, "workspace_id": "isolated", "restore_epoch": "initial"}
         def wait(script):
             if script == probe.model_configuration_status_observation('已读取版本 0'):
                 actions.append('wait_loaded')
         stage = {}
-        probe.save_deep_model_binding(UI(), read, wait, stage, 'authorized-model', purposes, budget=4096)
+        probe.save_deep_model_binding(UI(), read, wait, stage, 'authorized-model', purposes, budget=4096, lane=lane)
         self.assertLess(actions.index('advanced_open'), actions.index('本地服务地址'))
         self.assertEqual(stage['saved_deep_binding']['configuration'], after)
         self.assertEqual(stage['saved_deep_binding']['configuration_inference_calls'], 0)
         for purpose in purposes:
-            self.assertTrue(any(purpose + " / DEEP" in action for action in actions))
+            self.assertTrue(any(purpose + " / " + lane.upper() in action for action in actions))
+
+    def test_fast_binding_uses_formal_ui_and_matching_resolved_profile(self):
+        self.test_saved_binding_waits_for_load_and_opens_advanced_before_all_fields_and_bindings(lane="fast")
 
     def test_saved_binding_receipt_rejects_stale_purpose_profile_epoch_or_budget(self):
         probe = load_probe()
@@ -244,7 +248,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
         value = {'request': {'model_configuration': resolved, 'resolved_model': resolved,
                             'model': resolved['profile']['model'], 'max_tokens': 1024, 'timeout_s': 120}}
         probe.assert_saved_model_request(value, saved, 'answer')
-        for key, wrong in [('purpose', 'retest'), ('configuration_revision', 0), ('restore_epoch', 'old'),
+        for key, wrong in [('purpose', 'retest'), ('lane', 'fast'), ('configuration_revision', 0), ('restore_epoch', 'old'),
                            ('profile_id', 'other'), ('configuration_sha256', 'b'*64)]:
             bad = copy.deepcopy(value); bad['request']['model_configuration'][key] = wrong
             with self.subTest(key=key), self.assertRaises(AssertionError):
@@ -308,6 +312,55 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 def bad_read(op, *_): return bad if op == 'model_configuration_get' else {'restore_epoch':'restored'}
                 with self.subTest(restored=restored,field=field), self.assertRaises(AssertionError):
                     probe.read_saved_model_configuration(UI(),bad_read,lambda *_:None,stage,restored=restored)
+
+    def test_fast_saved_resolution_cold_and_restore_identity_fences(self):
+        probe = load_probe()
+        profile = {'endpoint':'http://127.0.0.1:1234/v1','protocol':'openai','model':'authorized-fast',
+                   'credential_ref':None,'max_tokens':2048,'timeout_s':120}
+        saved = {'schema':'archeaxis.model-configuration/v1','revision':1,'profiles':{'local':profile},
+                 'bindings':[{'purpose':'answer','lane':'fast','profile_id':'local'}],
+                 'workspace_id':'isolated','restore_epoch':'initial'}
+        resolution = {'schema':'archeaxis.resolved-model/v1','workspace_id':'isolated','restore_epoch':'initial',
+                      'configuration_revision':1,'configuration_sha256':'a'*64,'purpose':'answer',
+                      'lane':'fast','profile_id':'local','profile':profile}
+        class UI:
+            def page(self, *_): pass
+            def click_revealed(self, *_): pass
+        def exercise(restored, mutation=None):
+            current = copy.deepcopy(saved)
+            resolved = copy.deepcopy(resolution)
+            if restored:
+                current['restore_epoch'] = resolved['restore_epoch'] = 'restored'
+                resolved['configuration_sha256'] = 'b'*64
+            if mutation:
+                mutation(resolved)
+            def read(operation, payload=None):
+                if operation == 'model_configuration_get': return current
+                if operation == 'ui_state_read': return {'restore_epoch':'restored'}
+                self.assertEqual(operation, 'model_configuration_resolve')
+                self.assertEqual(payload, {'body':{'purpose':'answer','lane':'fast'}})
+                return resolved
+            stage = {'saved_deep_binding':{'lane':'fast','configuration':saved,'resolved':{'answer':resolution}}}
+            probe.read_saved_model_configuration(UI(),read,lambda *_:None,stage,restored=restored)
+            key = 'restore_readback' if restored else 'cold_reopen'
+            self.assertEqual(stage['saved_deep_binding'][key]['resolved']['answer'], resolved)
+        for restored in (False, True):
+            with self.subTest(restored=restored, mutation='none'):
+                exercise(restored)
+            for field, wrong in [('configuration_revision',2),('purpose','retest'),('lane','deep'),
+                                 ('profile_id','other'),('workspace_id','other'),('restore_epoch','stale'),
+                                 ('schema','unknown')]:
+                with self.subTest(restored=restored,field=field), self.assertRaises(AssertionError):
+                    exercise(restored, lambda value, field=field, wrong=wrong: value.update({field:wrong}))
+            for field, wrong in [('model','different'),('max_tokens',4096),('timeout_s',60),
+                                 ('endpoint','http://127.0.0.1:9999/v1'),('credential_ref','changed')]:
+                with self.subTest(restored=restored,profile_field=field), self.assertRaises(AssertionError):
+                    exercise(restored, lambda value, field=field, wrong=wrong: value['profile'].update({field:wrong}))
+        for digest in ('a'*64, 'invalid'):
+            with self.subTest(restored=True,digest=digest), self.assertRaises(AssertionError):
+                exercise(True, lambda value, digest=digest: value.update(configuration_sha256=digest))
+        with self.assertRaises(AssertionError):
+            exercise(False, lambda value: value.update(configuration_sha256='b'*64))
 
     def test_restore_refusal_digest_binds_current_saved_model_and_effective_budget(self):
         probe = load_probe()
@@ -973,7 +1026,7 @@ for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','
                 reads = iter([copy.deepcopy(before), last]); actions = []
                 def js(script):
                     actions.append(script)
-                    return observed if script == "return window.__aaosRecoveryReplies" else None
+                    return {"seq": 4, "pending": 0, "events": [], "replies": observed} if script == "return structuredClone(window.__aaosRecoveryObservation)" else None
                 invoke = lambda: run(lambda *_: next(reads), actions.append, lambda *_: None, js)
                 if mutation is None:
                     self.assertEqual(invoke()["acknowledged"], ack)

@@ -6,6 +6,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -66,12 +67,13 @@ def asr_model_name(donor: Path) -> str:
 
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
-                              asr_model: Path | None = None) -> Path:
+                              asr_model: Path | None = None, vc_runtime: Path | None = None) -> Path:
     """Prepare locked Python, then delegate the complete layout to the authority."""
     repository = repository.resolve()
     destination = destination.resolve()
     if destination.exists():
         raise RuntimeError(f"candidate destination already exists: {destination}")
+    vc_runtime = resolve_vc_runtime(vc_runtime)
     donor = destination.with_name(destination.name + "-python-input")
     staged_python = prepare_bundle_runtime(repository=repository, destination=donor)
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
@@ -84,6 +86,7 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
         "--shared", str(repository / "shared/learning_scheduler.py"),
         "--out", str(destination), "--version", version,
         "--source-commit", commit, "--source-tree", tree,
+        "--vc-runtime", str(vc_runtime),
     ]
     if asr_model is not None:
         command += ["--asr-model", str(Path(asr_model).resolve()),
@@ -91,6 +94,43 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
     subprocess.run(command, cwd=repository, check=True)
     clear_cached_bundle_resources(repository=repository)
     return destination / "runtime/python.exe"
+
+
+def resolve_vc_runtime(explicit: Path | None = None) -> Path:
+    """Builder-only official VS discovery; the stager never searches for donors."""
+    spec = importlib.util.spec_from_file_location("desktop_vc_authority",
+        Path(__file__).resolve().parents[2] / "scripts/release/stage_backend_runtime.py")
+    authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(authority)
+    def validated(path):
+        path = Path(os.path.abspath(path))
+        authority.validate_cpp_runtime(path)
+        return path
+    selected = explicit or os.environ.get("ARCHEAXIS_VC_RUNTIME_DIR")
+    if selected:
+        return validated(selected)
+    program_files = os.environ.get("ProgramFiles(x86)")
+    if not program_files:
+        raise RuntimeError("VC runtime donor unavailable; pass --vc-runtime or ARCHEAXIS_VC_RUNTIME_DIR")
+    vswhere = Path(program_files) / "Microsoft Visual Studio/Installer/vswhere.exe"
+    authority.reject_links_along(vswhere)
+    if not vswhere.is_file():
+        raise RuntimeError("official vswhere missing; pass an explicit VC runtime donor")
+    result = subprocess.run([str(vswhere), "-latest", "-products", "*", "-requires",
+                             "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"],
+                            check=True, capture_output=True, text=True, encoding="utf-8-sig", timeout=30)
+    installations = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if len(installations) != 1 or not Path(installations[0]).is_absolute():
+        raise RuntimeError("official vswhere did not return one absolute installationPath")
+    vc = Path(installations[0]) / "VC"
+    version_file = vc / "Auxiliary/Build/Microsoft.VCRedistVersion.default.txt"
+    authority.reject_links_along(version_file)
+    if version_file.stat().st_nlink != 1:
+        raise RuntimeError("linked official VC Redist version file")
+    version = version_file.read_text(encoding="utf-8-sig").strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise RuntimeError("invalid official VC Redist default version")
+    return validated(vc / "Redist/MSVC" / version / "x64/Microsoft.VC143.CRT")
 
 
 def clear_cached_bundle_resources(*, repository: Path) -> None:
@@ -152,6 +192,11 @@ def runtime_build_environment(repository: Path) -> dict[str, str]:
 
 
 def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
+    if sys.version_info[:2] != (3, 12):
+        raise RuntimeError(
+            "请使用 Python 3.12 制备桌面运行时；当前执行解释器为 "
+            f"Python {sys.version_info[0]}.{sys.version_info[1]}。"
+        )
     repository = repository.resolve()
     destination = destination.resolve()
     uv = shutil.which("uv")
@@ -318,6 +363,8 @@ def main() -> int:
     parser.add_argument("--asr-model", type=Path,
                         help="explicit transcript model directory to bundle inside runtime/models/asr; "
                              "defaults to the model the capability declaration names")
+    parser.add_argument("--vc-runtime", type=Path,
+                        help="explicit reviewed x64 VC donor; defaults to build-local environment or official VS registration")
     args = parser.parse_args()
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
@@ -331,6 +378,7 @@ def main() -> int:
             parser.error("--backend-candidate requires --repository and --core, without --core-only")
         print(prepare_backend_candidate(
             repository=args.repository, destination=destination, core=args.core,
+            vc_runtime=args.vc_runtime,
             asr_model=args.asr_model or declared_asr_model(args.repository.resolve())))
         return 0
     # Placing the Core beside an already-prepared runtime must not reinstall the runtime:

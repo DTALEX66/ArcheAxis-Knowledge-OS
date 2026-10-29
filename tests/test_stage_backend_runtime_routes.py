@@ -96,6 +96,12 @@ def synthetic_vc(runtime, monkeypatch):
         identities[name] = ({"version": "synthetic", "bytes": len(payload),
                              "sha256": hashlib.sha256(payload).hexdigest()},)
     monkeypatch.setattr(stager, "APP_LOCAL_VC_RUNTIME", identities)
+    cpp = {name: rows[0] for name, rows in identities.items()}
+    payload = b"synthetic msvcp140.dll"
+    (runtime / "msvcp140.dll").write_bytes(payload)
+    cpp["msvcp140.dll"] = {"version": "synthetic", "bytes": len(payload),
+                           "sha256": hashlib.sha256(payload).hexdigest()}
+    monkeypatch.setattr(stager, "APP_LOCAL_CPP_COHORTS", (cpp,))
 
 
 def test_no_worker_present_declares_no_routes(tmp_path):
