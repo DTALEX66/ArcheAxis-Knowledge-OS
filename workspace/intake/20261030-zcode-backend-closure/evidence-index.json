@@ -202,6 +202,21 @@
     "stop": "zc1c8 direct official stop STOP_CONFIRMED_OWNED_RESOURCES_CLEARED (0 environments, 0 processes)",
     "honest_labels": {"receipt_evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE (the harness's own label is unchanged; the sandbox-installed provenance is established by the staging/launch/stop receipts and the guest transcript recording the per-user install root)", "launch_binding": "BLOCKED_BINDING_NO_AUTO_STOP transient CIM observation on every launch (zc1i2/zc1c4-c8 pattern); official list + direct stop receipts bind the actual sandbox identities", "retained_fails": "zc1c2..zc1c7 six retained staging/guest failures with one-root-cause-per-run diagnosis"}
   },
+  "post_decision_workplans": {
+    "decision_1_version_bump_accepted": [
+      "1. edit src-tauri/tauri.conf.json version -> 0.6.15 (one line) + commit 'Bump installer version for cross-version qualification'",
+      "2. rerun packaging: fresh Core release build (--qualify-core-build, new HEAD) -> stage_backend_runtime (version 0.6.15) -> assemble_mixed_candidate_v1 -> generate_candidate_manifest -> bundle-mixed-v6 (new request; adapter sha unchanged unless the script changed) -> new installer ~0.6.15 label",
+      "3. sandbox cross-version journey (new guest script variant of guest-mixed-conflict pattern): silent install OLD installer 53a83f20 (0.6.14) -> seed synthetic document -> silent install NEW 0.6.15 installer -> assertions: data preserved (document/version readable), schema migration clean, cross_version_upgrade=PASS -> silent install OLD installer again -> rollback assertion: data still readable -> official stop",
+      "4. receipts: upgrade-receipt.json + rollback-receipt.json bound to both installer shas; record in this index"
+    ],
+    "decision_2_lmstudio_listen_accepted": [
+      "1. Owner-side or explicitly authorized: LM Studio listen 0.0.0.0 (only this setting; no endpoint/model/credential changes)",
+      "2. wsb template variant with Networking enabled (new template file, sha-pinned by a new staging variant; four mappings unchanged)",
+      "3. guest AI journey variant of the zc1i2 lifecycle pattern: install -> configure model lane to host gateway address (http://<host-ip>:1234/v1, Owner-approved) -> real answer -> out-of-scope -> correction -> retest -> restart readback -> ai=PASS receipt",
+      "4. boundaries: no cloud, no credential changes, budget/timeout contract unchanged (1..=120s, 128..=4096 tokens)"
+    ],
+    "conflict_guest_followup": "DONE 2026-10-30: zc1c8 PASS (see guest_installed_conflict_journey_20261030)"
+  },
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
