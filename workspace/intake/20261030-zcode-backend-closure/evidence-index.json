@@ -84,6 +84,26 @@
                        "installed-state ordinary/conflict/AI journeys in sandbox",
                        "cross-version upgrade/rollback (old installer 53a83f20... -> new candidate)"]
   },
+  "nsis_installer_20261030": {
+    "summary": "new-Core NSIS installer produced through a C1-specific packaging chain reusing repo lp/rr machinery",
+    "chain": [
+      {"step": "candidate-manifest", "run": "zcode-c1-manifest-20261030", "result": "19747 members, manifest sha ad855a9a4d12b95b47ab18f689ddc20af1b1f99a30dd1928698bf21fad0d8017"},
+      {"step": "consumers re-verified", "run": "zcode-c1-consumers-20261030", "result": "EXACT_EXISTING_BUNDLE_CONSUMERS_VERIFIED (cross-checked vs lpns3 baseline)"},
+      {"step": "preflight qualify", "run": "zcode-c1-nsis-preflight-20261030-v3", "result": "PREFLIGHT_ONLY members=19747 (full request chain: candidate manifest, mixed-assembly, host donor pin, stage receipt, core build receipt, host build receipt, consumers)"},
+      {"step": "bundle execute (failed, retained)", "run": "zcode-c1-nsis-20261030", "result": "FAIL at BUNDLE: makensis could not open litellm deep path beyond MAX_PATH (longer run name than v7)"},
+      {"step": "bundle execute", "run": "zc1n", "result": "LOCAL_MIXED_CORE_PACKAGING_PASS COMPLETE"}
+    ],
+    "adapter": ".project-local/zcode-newcore-20261030/bundle-mixed-v6.py (adapted from v5; correction delta pins replaced by mixed-candidate qualification; no pdf_validation precondition - install-state PDF is exercised directly by the next sandbox round)",
+    "request": ".project-local/zcode-newcore-20261030/bundle-request-c1.json (sha256 2bf45cd755559aebde7cd69e8bfd68b504365032ad98eee211c6bedcf224c4e7)",
+    "identity": ".project-local/runs/be268a2d33/zc1n/artifacts/p/mixed-core-identity.json (PINNED_MIXED_INPUTS_VERIFIED, installed_qualification NOT_RUN, ci NOT_CLAIMED)",
+    "installer": {"path": ".project-local/runs/be268a2d33/zc1n/artifacts/p/target/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe", "bytes": 424441075, "sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b", "version_label": "0.6.14 (frozen tauri config version; backend manifest declares 0.6.15 staging version)"},
+    "not_claims": ["not installed", "no sandbox run yet", "no CI", "no release", "no Green write"]
+  },
+  "installed_state_blockers_named": [
+    {"id": "sandbox-drivers-pinned-to-old-identity", "detail": "stage-correction-sandbox-v3.py hard-pins cppinst1 RUN, old CORE sha 40b56362..., old bundler sha and fixed PREP dir; running C1 install needs a staged variant with the new pins (installer 3337fce6..., mixed-core-identity, same guest lifecycle scripts)"},
+    {"id": "installed-ai-journey-model-binding", "detail": "host LM Studio serves on 127.0.0.1 only; a Windows Sandbox guest cannot reach it, and changing the listen address is a host model-config change outside tonight's boundaries - this is why v7 installed journeys never ran AI either"},
+    {"id": "cross-version-requires-version-decision", "detail": "installer version label comes from frozen tauri.conf.json (0.6.14); a true cross-version upgrade/rollback needs a version bump decision or commit, otherwise it repeats the proven same-version reinstall path"}
+  ],
   "named_diagnoses": [
     {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
     {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},

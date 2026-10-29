@@ -55,6 +55,18 @@ v2 失败步骤34实测：`finish_reason=length`、2048 输出 token 全部消�
 
 ## 4. CL-01—07 / J1—6 逐项状态（证据层分列）
 
+### 4.0a 新 Core NSIS 安装器（2026-10-30 第三轮）
+
+合格构建 → staging（R2）→ 混合候选（C1）之后，本轮完成 **C1 专属打包链并产出新 Core 的 NSIS 安装器**：
+
+1. **candidate-manifest**（`zcode-c1-manifest-20261030`）：C1 全量 19,747 成员逐字节清单（扩展路径枚举），envelope `aaos.mixed-core-candidate/v1`，无构建/CI身份合成。
+2. **consumers 复核**（`zcode-c1-consumers-20261030`）：`EXACT_EXISTING_BUNDLE_CONSUMERS_VERIFIED`，与 lpns3 基线逐字节一致。
+3. **新打包适配器 `bundle-mixed-v6.py`**：v5 的资格逻辑钉死"旧候选仅加一个DLL"场景，不适于新 Core；v6 保留 v5 的打包机制（consumer 清点、overlay、tauri bundle 命令、回执），将资格校验替换为 C1 混合身份链（candidate-manifest + mixed-assembly + host供体钉 + stage回执 + **core-build回执**（Core exe 的真实来源绑定）+ host构建回执 + consumers），proof sidecars 全部落盘并离线复核。**不设 pdf_validation 前置**：安装态 PDF 由下一轮沙盒旅程直接行使（更强证据），如实记 NOT_RUN。
+4. **打包执行**：首次执行失败于 makensis 长路径（我的 run 名比 v7 长，litellm 深层文件越界 MAX_PATH——失败 run 保留）；改用短输出路径 `zc1n` 后 **`LOCAL_MIXED_CORE_PACKAGING_PASS`**。
+5. **安装器**：`ArcheAxis Knowledge_0.6.14_x64-setup.exe`，424,441,075 字节，SHA256 `3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b`（版本标签来自冻结的 tauri 配置 0.6.14；backend manifest 声明 staging 版本 0.6.15，两处身份分别记录）。
+
+**具名阻断（安装态旅程）**：v7 沙盒驱动硬钉旧身份（旧 CORE SHA、固定 RUN、旧 bundler SHA），C1 安装需按新钉扎staged变体；安装态 AI 旅程的真正阻断是宿主 LM Studio 只监听 127.0.0.1、沙盒 guest 不可达（v7 安装态也因此从未跑过 AI），改监听地址属宿主模型配置变更，超出本轮边界；真跨版本升级/回滚需要版本号提升决策（安装器版本标签来自冻结 tauri 配置），否则只能重复已验证的同版本重装路径。
+
 ### 4.0 新 Core 同候选纵向链（2026-10-30 第二轮，C1 campaign）
 
 合格 Core 构建 `b6f5b591…` 已从"仅构建身份"推进到**可运行混合候选**并重建同候选收据链：
