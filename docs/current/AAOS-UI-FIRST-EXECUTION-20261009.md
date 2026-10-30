@@ -2768,3 +2768,15 @@ Owner另要求R5未来能力包“审计、加入任务、统一归档”。[独
 结论 `DESIGN_INPUT_CONDITIONALLY_ACCEPTABLE / ENGINEERING_PARTIAL`，3项P1（真实操作绑定仍空、WORK-LAB职责越界、方法标签缺现行资产类型映射）及3项P2（示例版本衔接、教学变量/参数非受控示意、单尺寸静态图缺恢复/可访问性证据）已吸收到既有R2/CL/J及F05，未另建任务包/资产库/API。顺序仍为体积/规范化/外溢→F01—F05→R2+R5有限后端→同候选可靠性。原输入提示词不成为授权；UI实施/监控暂停、未来冻结、远端/云CI/Green/真实数据/模型设置边界不变。
 
 封存架构检查 `r5-arch1` 误报裸 Win32 UNC 前缀；修正只排除无host/share的完整前缀，完整外部目标仍拒绝，未放行机器目录。`r5-gate1` 守卫26项、`r5-arch2` 全仓架构、`r5-lint2` 四改动文件的Ruff均通过；原失败保留。活动指针的 `permission_recovery_current` 已指向本轮实际部分恢复，旧20261023恢复记录保留为历史；归档/维护检查最终结果沿本轮 verification 读取，仍不构成产品全量通过。
+
+#### 2026-10-30 共享输入启动链：真实只读隔离与同候选安装生命周期
+
+继续整体目标，上一轮R5审计归档与权限/长路径修正已本地提交 `801ebbea`。剩余533条精确ACL批次尚无管理员执行收据；未重复请求访问授权或自行补权，先推进不依赖它的膨胀生成方式治理。
+
+新增正式 `scripts/runtime/shared_sandbox.py` 及受控guest探针，复用全成员/私有边界检查，绑定本run归属、清单、模板、命令、配置、候选与空输出，使用已安装官方CLI的显式唯一ID和持久启动/停止意图。未知返回不重启，其他实例不停止；事后重核全部源输入。`ssp-t2` 30passed、11subtests passed，Ruff `ssp-l2` 与架构 `ssp-a2`通过，均LOCAL_PASS/source_consistent=true。
+
+`ssp-vm1` 真实离线VM映射探针PASS；后继 `ssp-life1` 在新VM复用 `zc1i2` 672成员/688,965,713字节，host前后及guest全量哈希通过，三路代表文件写句柄均AccessDenied、独立输出标记读回一致，输入载荷复制0。后者同时执行冻结C1同版本安装生命周期，`complete_lifecycle_verified=true`、正常关闭/重装保全/强制清场/卸载/卸载保留资料/重装读回均true、pyc增长0，安装器3337fce6/Host ac4c399b/Core b6f5b591/runtime manifest440e9084身份独立绑定，fresh job `installer-lifecycle-6522617e96657c0c`。生命周期收据SHA `92c3aa1eb8467a7cfb7a1af62283fa7fbf14c7705629b71ae5110566d7582095`，同候选有限安装资格，不重绑成新编译/CI/跨版本/AI/Owner通过。
+
+两次均按自身ID官方停止并确认不存在，最终官方清单空，guest只读进程观察为诊断证据，没有人工补操作。`ssp-vm1` 21文件/33,462字节，`ssp-life1` 492文件/157,112字节，无计量错误或链接；不再复制约689MB输入。未删除文件或外部迁移，不计回收空间，不因小run再全仓扫描。来源输入、旧失败、历史launcher和清单原样保留；具体机制、命令、候选身份和局限见[本轮冻结记录](../history/storage-cleanup/2026-10-30-shared-sandbox/README.md)。旧冲突输入的 `.mimosa` 仍拒绝，洁净冲突来源、其他staging生产者、旧候选/散落归位仍待处理，不能据这一个类别宣称全量停止膨胀。
+
+外溢续查只在登记范围核导航和归档元数据：当前Git仅正式根一个worktree；历史 `.project-local/mig` 入口未解析到，现有Record121条登记及已登记runtime-migration入口尚无三组迁移档案的直接恢复映射，ZIP/CAS成员未全量追溯。保持UNVERIFIED，不称原件丢失或迁移完成，不扫描Home/其他项目。远端/云CI/Green/真实数据/模型设置与UI实施/监控边界不变；整体维护与后端目标仍PARTIAL。
