@@ -2941,3 +2941,8 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 `e08-a208217f`19业务HTTP/3次owned Core顺序启动，actual/wrapper0且clean387c6898源码一致。复用原V2 mixed 5成员与bpr1解释器，fresh合成DB、0runtime复制/worker/model/外URL操作。冻结Observation草稿遇旧revision409、未发布清理422均保留；第一次中断重启pending精确且记录404无自动发布；第二次明确观察POST201后故意保留草稿停机（非丢网络ACK实测），再启record与pending精确；显式同body POST200 duplicate、exact saved record后ACK清除200，最终读回一致。最终四表3/0/0/0，root另只读query_only复核；三PID39528/36188/34512均reapexit1+双族两相complete无LISTEN，10035仍UNKNOWN。
 
 原52选择/5mixed/4source/override前后同，root及非作者另核当前SHA。独立审阅初版误套清理nlink1门槛导致reviewer exit1保留；共享Cargo producer的nlink2不违背只读复用合同，最终记录实际metadata及size/SHA，目标run0不改。执行run计量11文件550,701逻辑B（不含随后计量收据和此前准备文件，非全仓/物理空间测量）。仅新增E08后端typed草稿/冻结意图冷恢复有限资格，不验专门start/教程替换/mastery/UI/备份恢复或完整R6/CL；原模型FAIL/F05 PARTIAL、存储HOLD和未核历史授权不变。[实际旅程与分层证据](../history/teaching-plan-observation-20261031/DRAFT-RECOVERY.md)。
+
+
+### 2026-10-31 两条现有短名的占用控制核验
+
+`shrt-3eebd817`两条261 UTF-16长路径各获现有151单元短名，long/alias身份相同；六guard保留原拼写，11close成功。`aliaspc-562bc26d`因Popen/RM身份不同HOLD、未做第二会话，自有child释放回收0，redirector仅假设；原收据保留。v2显式child实际身份先验门下，`alias2-807cb889`Popen/child/RM同PID30224及创建时间，file-only正控准确报告该child，释放回收0后同8资源无locker、两End0；9RM/2session，31+3close及自有processhandle关闭确认。三run actual/wrapper0且clean05cc2601源码一致。仅固定资源和普通读句柄的有限控制，不证明整批闲置或29根因；1,350,261,264源逻辑B仍保留，cleanupfalse，删除/迁移/ACL0。[身份、原HOLD与边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。

@@ -248,5 +248,134 @@
         "sha256": "689b7bd44cdd77c3d6568a6895606c913a23cd5b1df6270326aa41718836bc79"
       }
     ]
+  },
+  "short_alias_control": {
+    "scope": "FIXED_TWO_EXISTING_ALIAS_AND_SIX_ORIGINAL_GUARDS_ONLY",
+    "source_commit": "05cc260123b169a04864f2435dda095f5941f0ee",
+    "source_consistent": true,
+    "runs": {
+      "shrt-3eebd817": "IDENTITY_ONLY",
+      "aliaspc-562bc26d": "HOLD_OWNED_IDENTITY_MISMATCH_NEGATIVE_NOT_EXECUTED",
+      "alias2-807cb889": "FINITE_POSITIVE_RELEASE_CONTROL_PASS"
+    },
+    "cleanup_qualified": false,
+    "deleted_or_moved": 0,
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/RM-PATH-STRING-REVIEW.md",
+        "bytes": 2712,
+        "sha256": "cec204d19680e0561d90c4bf81994e1f6c759b04ddf238e83b1c1a7106bdbd45"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/RM-SHORT-ALIAS-FEASIBILITY.md",
+        "bytes": 4371,
+        "sha256": "f86d6095d9bd9161ee2a4c391a725dae15f8b38be9c8dcfa44cd7deafcb49ee0"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_existing_short_alias_v2.py",
+        "bytes": 10540,
+        "sha256": "7f807b7085457906bc232f159b5656b99594d7b1cb8578e32df4fab04472e6ad"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/short-alias-pins.json",
+        "bytes": 935,
+        "sha256": "2a8b124a3981e8a4d9ee3ebe207249f33f5605d7d55f773172abbb7a9ce4683c"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-SHORT-ALIAS-REVIEW.json",
+        "bytes": 430,
+        "sha256": "1fe78f2739cb2585879995ed208f11e4a50622a7bf429ea19a67add72a07eb70"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_alias_positive_control.py",
+        "bytes": 14846,
+        "sha256": "fa380129e5986a417bfbc78451ec5ee4bed8fc693647c68005d648248d7dda2b"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/alias-positive-candidatePlan.json",
+        "bytes": 6022,
+        "sha256": "47995dcc5a5a516eed7d6f898efc099e61107892f25487fbc6c2ac9dfa1cf164"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-ALIAS-CONTROL-REVIEW.json",
+        "bytes": 693,
+        "sha256": "36a1a8f01578dbbbb04c9eb71197c9a120ed0a88fc9b147657ad7550750cfb5e"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_alias_positive_control_v2.py",
+        "bytes": 16342,
+        "sha256": "042acc22c54db4c3ee18a904ca6a2b3594ca0ecd2c63f2451c94719f7e1201ff"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/alias-positive-v2.diff",
+        "bytes": 5548,
+        "sha256": "9e214d2552418fb67892864b7965f420946e0add1a094e47f6d6cddd6cd02059"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/alias-positive-candidatePlan-v2.json",
+        "bytes": 6783,
+        "sha256": "8513303b565b4d8d938a6e5fe4dfecc06cc07896ce3d03987bdcc1c27a5e7d30"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-ALIAS-CONTROL-V2-REVIEW.json",
+        "bytes": 561,
+        "sha256": "d2225d11e65da41e416550ec93bbaec25c9140f6cc87956fb378e37e17a4f6d9"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/ALIAS-POSITIVE-STATIC-REVIEW.json",
+        "bytes": 6036,
+        "sha256": "a8430db55f232fb66d88aace60b922eb1a05f4823d703cf69cca681020590972"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/asr-offline-guard/alias-v2-static-peer.md",
+        "bytes": 3789,
+        "sha256": "2ff831f2b838d628eb181a01e5250f9215257607d8467037155a5e3b41a8d64d"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/shrt-3eebd817/artifacts/existing-short-alias.json",
+        "bytes": 10751,
+        "sha256": "3a820225f32d17b9d95fb66986dffd2b527b909fef80d0fb260c464bfc71399e"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/shrt-3eebd817/artifacts/execution.json",
+        "bytes": 1331,
+        "sha256": "56fd77266f4e0a90ab8edd05687be79429801b372824e56ab57bcee20150917b"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/shrt-3eebd817/logs/execution.log",
+        "bytes": 126,
+        "sha256": "22fb44d329d40b33da622e714e88e466825e541da6ddfba412cf6ae96701f6c2"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/aliaspc-562bc26d/artifacts/alias-control-result.json",
+        "bytes": 5637,
+        "sha256": "7c436a5f071134ade7e5a0b24be5c71cea89864302057995d39e8565817fb840"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/aliaspc-562bc26d/artifacts/execution.json",
+        "bytes": 1436,
+        "sha256": "88fdebbab7d2e3dcc497e86661fb2ee965f77fb90ec5c473e41e2fd93dc7bf0f"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/aliaspc-562bc26d/logs/execution.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/alias2-807cb889/artifacts/alias-control-result.json",
+        "bytes": 8046,
+        "sha256": "dba1b06efa87ad05a6fcdae317cee2ad9eb574f1aaa0383892a3a9dd727eca63"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/alias2-807cb889/artifacts/execution.json",
+        "bytes": 1548,
+        "sha256": "da95e63a60d60b8f7888566dcb1ca0b952aca8ca29c6aed536afeef4d331ffe5"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/alias2-807cb889/logs/execution.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
   }
 }
