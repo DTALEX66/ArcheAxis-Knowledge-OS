@@ -2955,3 +2955,10 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 `asrwav-b2ab23a7`真实原bpr1 ASR+当前043834e0 Core，41HTTP/两独立job/两owned Core；同合成英文WAV两次4cue/4raw、14028ms，固定投影、原件/结果/时间anchor冷启精确一致，坏checksum400。actual/wrapper0、clean58803b80源码一致，52/5/123/4成员前后SHA同；0runtimecopy/LLM，计量11文件1165874逻辑B。两Core回收exit1且双相双族noLISTEN，10035仍UNKNOWN；异常取消未走、OS worker独立reap和尾垫正例未实测。仅该样本资格，不是MP3/MP4/中文普遍识别/安装/UI/完整J1/CL/F05。
 
 当前源另加初始model/config/tokenizer非空及local_files_only保护。正式旧源RED17失败3通过；实际tracked源GREEN75通过（含真实ffmpeg/PyAV既有测试、ASR构造替身），绑定58803b80+dirty9f61c1bd…；旧informal和Ruff既有未用import失败保留。新源未改原bpr1，不移绑真实ASR；TOCTOU及OS网络隔离未解决，未宣称无任何下载可能。[实现、原失败及独立复核](../history/bundled-asr-offline-20261031/README.md)。
+
+
+### 2026-10-31 V11精确重复叶退役与全量保留链核验
+
+既有Owner条件授权下，已审v3仅一次执行`delleaves-49e75422`，精确删除19711公共重复叶、1,350,261,264源路径逻辑B；fresh全39424资源单RM五调用空/End0、4588目录pins、逐叶独占同柄身份/ownerACL/完整SHA门均满足。19711原生disposition成功及持久COMMIT、83507close全1，cleanup errors空。后继只读`delpost-55f1c4d0`逐项确认源WinError2缺失、全部保留件完整SHA/旧WinID一致、errors0；两run actual/wrapper0且clean144e2cc3源码一致，非作者另核收据及intent/COMMIT/POST精确双射。
+
+两个不同Host旧SHA/ID及两manifest旧SHA保持；manifest旧ID未冻结。root重哈V11原FAIL与V12后继PASS收据不变；33保护名不读/不探/不入操作集，身份仍未验证。合成12测试+13子测试及真实小叶删除/排他恢复通过；静态发现的错误保全、占用负例、入口收据、POST close计数/命令绑定问题均在执行前修正，旧候选和RM29保留。四新run计30,066,886逻辑B，不含准备/此前完整观察/后续门禁；不算物理释放或全仓净变化。V11旧重放须先按原map排他恢复19711原路径并重新资格核验，全量恢复未执行。[部署、64份身份和恢复边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/DEPLOYMENT.md)。49项归属等剩余治理、F05及完整J1/CL仍PARTIAL；无新队列/UI构建/上传/Green或真实库操作。

@@ -1,0 +1,437 @@
+{
+  "schema": "aaos.exact-public-portable-retirement/v1",
+  "status": "EXACT_PUBLIC_MAP_REMOVAL_AND_RETAINED_CHAIN_VERIFIED",
+  "source_commit": "144e2cc3168cdca6a31e9b35154c5948cc7913e0",
+  "authorization": "Existing explicit conditional Owner cleanup grant; root and independent reviews plus fresh gates; no new scope from attached documents or PASS.",
+  "source_root": ".project-local/runs/be268a2d33/ui-audit-remediation-v11-portable/artifacts/星环便携候选",
+  "retained_root": ".project-local/runs/be268a2d33/ui-audit-remediation-v12-portable/artifacts/星环便携候选",
+  "source_leaf_files_removed": 19711,
+  "source_logical_path_bytes_removed": 1350261264,
+  "directories_deleted": 0,
+  "payload_copies": 0,
+  "acl_changes": 0,
+  "other_processes_stopped": 0,
+  "replacement_map_sha256": "95eb37772e9e514385c25ad7526004bf4c89bafafb7f72448a94276fb029326d",
+  "actual": {
+    "run_id": "delleaves-49e75422",
+    "actual_exit": 0,
+    "wrapper_exit": 0,
+    "source_consistent": true,
+    "source_clean": true,
+    "durable_commits": 19711,
+    "confirmed_native_dispositions": 19711,
+    "close_observations": 83507,
+    "all_close_returns": 1,
+    "directory_pins_and_confirmed_closes": 4588,
+    "fresh_rm_sessions": 1,
+    "fresh_rm_calls": 5,
+    "resources_registered_per_group": 19712,
+    "groups": 2,
+    "reported_lockers": 0,
+    "session_end_return": 0
+  },
+  "post": {
+    "run_id": "delpost-55f1c4d0",
+    "actual_exit": 0,
+    "wrapper_exit": 0,
+    "source_consistent": true,
+    "source_missing_winerror2": 19711,
+    "retained_full_sha_and_frozen_identity_matches": 19711,
+    "retained_bytes": 1350261264,
+    "errors": 0,
+    "different_hosts_old_sha_and_identity_match": 2,
+    "manifests_old_sha_match": 2,
+    "manifests_old_identity": "NOT_FROZEN; current identity only",
+    "protected33": "Excluded; not targeted, no existence/content probes; not independently verified"
+  },
+  "original_guide_receipts_unchanged": [
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v11-guide-native/artifacts/guide-lifecycle/receipt.json",
+      "sha256": "5db3e8df8015e73857d4d5081ab6e37b25d56e8086e15da7158a194727d865b2",
+      "status": "FAIL_NATIVE_GUIDE_REGRESSION"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v12-guide-native/artifacts/guide-lifecycle/receipt.json",
+      "sha256": "830336662dfb3fc9a3544455ddacede029508a79e03aeb57d6200a55b87cc3c4",
+      "status": "PASS_NATIVE_GUIDE_REGRESSION"
+    }
+  ],
+  "new_four_runs_at_measurement": {
+    "delmock-994292ed": {
+      "files": 4,
+      "logical_bytes": 2914
+    },
+    "delsyn-f061f319": {
+      "files": 15,
+      "logical_bytes": 10381
+    },
+    "delleaves-49e75422": {
+      "files": 8,
+      "logical_bytes": 22266647
+    },
+    "delpost-55f1c4d0": {
+      "files": 6,
+      "logical_bytes": 7786944
+    }
+  },
+  "new_four_runs_logical_bytes": 30066886,
+  "size_boundary": "Only four named new runs, including run metadata/logs/receipts; excludes preparation files, earlier fullalias proofs and later gates/public files. Logical size only, not physical or whole-repo delta.",
+  "historical_pre_operation_documents": {
+    "source_commit": "144e2cc3168cdca6a31e9b35154c5948cc7913e0",
+    "manifest": {
+      "path": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/MANIFEST.json",
+      "bytes": 18511,
+      "sha256": "28b865f7c7c342ecabe57c812d16742087da22354754f1ad29d846c39075f8ac"
+    },
+    "readme_before_navigation_append": {
+      "path": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/README.md",
+      "bytes": 1320,
+      "sha256": "c7f277637269c65ab2895faadd9c816260af10e8d7c8bff0cc3d794f92937160"
+    },
+    "meaning": "Original HOLD/failures remain dated history; only README navigation is appended. Original manifest is not rewritten."
+  },
+  "recovery": {
+    "authority": ".project-local/runs/be268a2d33/delleaves-49e75422/artifacts/restore-ALL-INTENT.json",
+    "original_map": ".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-map.jsonl",
+    "rules": "Verify each retained full SHA; exclusive-create missing original paths only; never overwrite existing different content. V11 historical replay first requires full19711 restoration and original manifest/config plus fresh permission/idleness qualification. Restored file IDs are new identities; original failure is unchanged.",
+    "full_restore_replay": "NOT_EXECUTED",
+    "automatic_restore_or_redelete": false,
+    "crash_boundary": "Durable ALLINTENT precedes mutation; COMMIT fsync256; on crash last up to256 un-fsynced commits plus current in-flight item require read-only reconciliation, never automatic retry. This actual completed with all19711 durable."
+  },
+  "preserved_failures": {
+    "candidate_v1": "Never executed; static primary-error/disposition-attempt/crash-window defects corrected in v2",
+    "candidate_v2": "Never executed; static busy-negative false-positive corrected to WinError32 in v3",
+    "entry_v1": "Never executed; exact peer and synthetic execution SHA bindings fixed before actual",
+    "post_v1": "Never executed; exact close count and full command bindings fixed before read-only v2",
+    "original_rm_errors": "29 preserved in QUALIFICATION-FOLLOWUP.md; no claimed root cause",
+    "mock_warning": "One cache_dir warning with cacheprovider disabled; no strict warning-free claim"
+  },
+  "limits": [
+    "Logical path bytes only; no physical disk or whole-repository net claim.",
+    "Actual executor legacy cleanup_qualified=false field retained; exact operation and postconditions are separately qualified here.",
+    "No bulk directory deletion, private data or cross-project cleanup; all nonmap objects outside action set.",
+    "No UI/Host rebuild, install/Green replacement, real-data overwrite, cloud CI or upload. Whole project and full J1/CL/F05 remain PARTIAL."
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact_delete_candidate.py",
+      "bytes": 16648,
+      "sha256": "8090bd4e3b2a369c2fbf65feb640346fc8ab4e975d67c1ef2459644a5b688de6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact_delete_candidate_v2.py",
+      "bytes": 17465,
+      "sha256": "b57f7ae0e9131dd21058f4b5c3684d8c5c3621857d56e3361cd75dceda5b09a3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact_delete_candidate_v3.py",
+      "bytes": 21453,
+      "sha256": "d710e77254c434f57425097362c3bf0f2a4b5b75e7c27ebf7dac33ad5bd911c1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/test_exact_delete_candidate_v3.py",
+      "bytes": 7429,
+      "sha256": "5e70af310ed79003da7ec32a032d53fb53a15a55c47b4cf66951240d5971e657"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact_delete_synthetic_harness_v3.py",
+      "bytes": 7910,
+      "sha256": "41ae6f19302b1478440279217c3d50f18ba837cea9c93fb478100cd088b81cb5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact-delete-candidatePlan-v3.json",
+      "bytes": 6884,
+      "sha256": "3d0227b2bf94e05e783400d5a3f91a6e9b3080cc80c7c85d9b1710049049140d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact-delete-v2.diff",
+      "bytes": 16466,
+      "sha256": "3b26c92f37ae9b73bfcc1d2c8f6e01af20687667f019ee6ab3549cc652f9496f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/exact-delete-v3.diff",
+      "bytes": 13975,
+      "sha256": "531b0eccf449a1e1a603ef33ad3dfe530fdfb1a61e2e4cdb2d2ba4c282ed9bcb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/root_exact_delete_entry.py",
+      "bytes": 5061,
+      "sha256": "91650d5af1bd99583da18dd9b643f19b0f3b29b2a1fd12610278a108a89d8be6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-EXACT-DELETE-REVIEW.json",
+      "bytes": 2616,
+      "sha256": "4352306e5f57c7cbe2f477c3bf264cfd86d4fe3b740e117fdf2cb0988db2f1bc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-EXACT-DELETE-ACTUAL-ALLOCATION.json",
+      "bytes": 635,
+      "sha256": "0989cabf3d334fad575fd1711fead13d759bea0e71042f305657ecaa2ff38a14"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-EXACT-DELETE-LAUNCH.json",
+      "bytes": 1135,
+      "sha256": "fd5ec557ea4c4db1ddcc4b98ca20d5d11fed96fdc3e057b9c088462ee4a84daf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-ACTUAL-TERMINAL-FREEZE.json",
+      "bytes": 4537,
+      "sha256": "7b7dec6e5b8fe72da5ea13545c7c89f6041069b6dd37969242e4c93fccf10969"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-POST-RECONCILIATION.json",
+      "bytes": 1689,
+      "sha256": "6721b913274d33f4f652cb23adad6760689fe481db40a465ed2d6ac76e6eda6e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/root_post_reconciliation.py",
+      "bytes": 3411,
+      "sha256": "b20a9b4361a09173404ad27c482487a1389348b7e3b3952c0d3defc3e9749f25"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/post_exact_delete_review.py",
+      "bytes": 13061,
+      "sha256": "a9dd5d5907e6921951ee97c4a703c0d75bb7b41627a57fd8a174cffb7c713fe6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/post_exact_delete_review_v2.py",
+      "bytes": 14320,
+      "sha256": "379f512cce6ac0912dfef19643fe3e6c43f4228044a9de9d2359e8a3d2954358"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/post-exact-delete-v2.diff",
+      "bytes": 3377,
+      "sha256": "e87c1cb539b504506f51ef7f90e5b7e7b2f1a5fb63cad9ff6e7a42533d48a958"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/post-exact-delete-candidatePlan-v2.json",
+      "bytes": 2671,
+      "sha256": "e7e0cea390b0c3653de1e822bee3b9d35c824c83e3b1d7e3f8a668e73a7c8b7a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-DELETE-V3-SYNTHETIC-ALLOCATION.json",
+      "bytes": 847,
+      "sha256": "efa3a548f32f5896aea61f7968ade92afa89820e049bb266039101c1cdfc79f3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-EXACT-POST-ALLOCATION.json",
+      "bytes": 286,
+      "sha256": "63673abf6b11e9cbe4100faee09d69c6f01e323767a5d9885cfb24aa47dd9ecf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/EXACT-DELETE-V1-STATIC-REVIEW.json",
+      "bytes": 11085,
+      "sha256": "347a81eca094d1bda8e74821f71becc7d5588c27243b85011cf64d354f4ea76c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/EXACT-DELETE-V2-DELTA-REVIEW.json",
+      "bytes": 7094,
+      "sha256": "6c0931b570eaa56f9869d4b4fcb5f578350036fcdca6971b07e94843baef8669"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/EXACT-DELETE-V3-DELTA-REVIEW.json",
+      "bytes": 5598,
+      "sha256": "c41178f8595b561d5cdc660d09474f11616552000b6305e0ba979b5214c6119b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/EXACT-DELETE-ACTUAL-QUALIFICATION-REVIEW.json",
+      "bytes": 6865,
+      "sha256": "ad85557e96cfe6238ea0db73238374d02b470817acd578ee5115b308d3a687db"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/EXACT-DELETE-ENTRY-FINAL-REVIEW.json",
+      "bytes": 3494,
+      "sha256": "a98a2476207985675c98f72857bf1390e57f8c0e25c9cefd1943710f7360292b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/EXACT-DELETE-POSTRUN-INDEPENDENT-REVIEW.json",
+      "bytes": 7939,
+      "sha256": "b05055cade1fab8d0e57e5d13c211e2d8d8dc16ce0959abdd5a4dc1a0475a9a4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/asr-offline-guard/post-v1-static-peer.md",
+      "bytes": 5115,
+      "sha256": "1f43cdbb8c2564db1e51c041bd06f437c343928a651b6b9c0c7f3c0cb48ded44"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/asr-offline-guard/post-v2-final-delta-review.md",
+      "bytes": 2402,
+      "sha256": "73c88e37f57211d24c55cb37f3b5d36293d98ea36db803b2e0584282c69f71ab"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delmock-994292ed/artifacts/execution.json",
+      "bytes": 1745,
+      "sha256": "c46fd89b1d707803aa1933b57ca8f328931f77f75818d653ed0647ac0268a666"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delmock-994292ed/logs/execution.log",
+      "bytes": 558,
+      "sha256": "8a9b010f39e72c6b072b38e45bffc21db300096c53017e6cc4adea1d9548aaee"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delmock-994292ed/run-metadata.json",
+      "bytes": 505,
+      "sha256": "62d0f3f274d5aaf763f06a65e97013da52c564f4689969ed8c7eb72210f913af"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delmock-994292ed/tmp/tauri-build.json",
+      "bytes": 106,
+      "sha256": "4c9e21b032f33c004bd4e3fe914f6219f43df8ffc95173c4de21a5f51a589702"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/exact-delete-synthetic-result.json",
+      "bytes": 7905,
+      "sha256": "229a0b9a70a304ea75210512a012e5b44f5aa1ab261eb083b9634cc90fb8e349"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/execution.json",
+      "bytes": 1449,
+      "sha256": "08d8542a40bd2633dcaa1ca6576fe534cb1101412e80d697f7b9fea0069d34b8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/busy-0-journal.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/busy-1-journal.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/normal-journal.jsonl",
+      "bytes": 130,
+      "sha256": "d77033854d3fb05851a12e45718549459696763e4cbf91391b9ea92f72f481ed"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/retained/busy-0.txt",
+      "bytes": 44,
+      "sha256": "22dabcbc653b7edcf0337f41abe05008d3719fa474ea8acb5fea7af843f6866a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/retained/busy-1.txt",
+      "bytes": 44,
+      "sha256": "22dabcbc653b7edcf0337f41abe05008d3719fa474ea8acb5fea7af843f6866a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/retained/normal.txt",
+      "bytes": 44,
+      "sha256": "22dabcbc653b7edcf0337f41abe05008d3719fa474ea8acb5fea7af843f6866a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/source/busy-0.txt",
+      "bytes": 44,
+      "sha256": "22dabcbc653b7edcf0337f41abe05008d3719fa474ea8acb5fea7af843f6866a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/source/busy-1.txt",
+      "bytes": 44,
+      "sha256": "22dabcbc653b7edcf0337f41abe05008d3719fa474ea8acb5fea7af843f6866a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/owned-delete-synthetic-0172dd57490243d8831cf3c4221ae433/nested/source/normal.txt",
+      "bytes": 44,
+      "sha256": "22dabcbc653b7edcf0337f41abe05008d3719fa474ea8acb5fea7af843f6866a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/artifacts/share0-synthetic-8cf02b08f09a447fb2d2b5ed8c535187/owned.txt",
+      "bytes": 24,
+      "sha256": "e759f609c168d23399f20eee8f06d765d2de96c21f287e2cdd1470e29d52dd6b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/logs/execution.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/run-metadata.json",
+      "bytes": 504,
+      "sha256": "f7991ccd1d602dbf4c0c998485e2054e6799193f68c98f4454e4462e73bd59ed"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delsyn-f061f319/tmp/tauri-build.json",
+      "bytes": 105,
+      "sha256": "f25607310813d53d37e0a394b0e1573dcc2eedb1ce94641b180293d58827eba8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/artifacts/commit-journal.jsonl",
+      "bytes": 3598117,
+      "sha256": "14b822b409ec28b478620e45f8540f23b13eb3fb282e06eba489e273e796b112"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/artifacts/consumer-contract.json",
+      "bytes": 722,
+      "sha256": "6a3ece2818f3ae1ce0c9ebdcff9bc451f36fb58aa4f014e0c69a2bc5fbfa3c14"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/artifacts/exact-delete-summary.json",
+      "bytes": 10554257,
+      "sha256": "9f1e9633d8804b7fba5f923dac65f89062c3c6e7ac8cec757eb901c636df7024"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/artifacts/execution.json",
+      "bytes": 1689,
+      "sha256": "d09b235be30cc9e22f07c9ff5c04fd3de83bed53c49fa2a71288a0c16a7150be"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/artifacts/restore-ALL-INTENT.json",
+      "bytes": 8111073,
+      "sha256": "39fae0f9e31899a6fbedb650b63cfe6f4b9b0e78ba9e1ca0c0cc2130d929bfe3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/logs/execution.log",
+      "bytes": 174,
+      "sha256": "17bbe9d575001fa0e9a033f072f690dfe5e02d2c42d233406fed521672ea8a22"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/run-metadata.json",
+      "bytes": 507,
+      "sha256": "bc7de327302e6cc62aa1b73b37ec7ba0a3ac99bd87c80ab18707d3a7e44e1b4e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delleaves-49e75422/tmp/tauri-build.json",
+      "bytes": 108,
+      "sha256": "044c4cca9c47406381d1f850e8ae40abe00059eb66bd9cbd0e977164af764e00"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delpost-55f1c4d0/artifacts/execution.json",
+      "bytes": 1845,
+      "sha256": "9ed7f2133a7658862defe2577e55495d9c67a72caca2414ec3d5238bdf6027d1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delpost-55f1c4d0/artifacts/post-rows.jsonl",
+      "bytes": 6377960,
+      "sha256": "6ec73b89ea970b785aa094c9cae4e887b510f2fe3277e473c0e513e265420271"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delpost-55f1c4d0/artifacts/post-summary.json",
+      "bytes": 1406176,
+      "sha256": "5d14d241fa4e58b92a3e0f5c817a84ceab0cf97e0747873dff67fd629269dca1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delpost-55f1c4d0/logs/execution.log",
+      "bytes": 352,
+      "sha256": "d8d32e2ca0fd5f380d49bf7e1a59e0f8b7d2be238bf2aafb82421ccff8231512"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delpost-55f1c4d0/run-metadata.json",
+      "bytes": 505,
+      "sha256": "cb96880e2dc62a1679649af4054c52da02d8339169a3110b84afd6af2bd58fe6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/delpost-55f1c4d0/tmp/tauri-build.json",
+      "bytes": 106,
+      "sha256": "2216c115f5f4cab895b97ee576a7a5035183f82be859186274f957045c73a85d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-plan.json",
+      "bytes": 1734,
+      "sha256": "d78010d636686cb1b7919bfb9f99bddc14163ccbd0361947a10d75d0659f8cfc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-map.jsonl",
+      "bytes": 8110099,
+      "sha256": "95eb37772e9e514385c25ad7526004bf4c89bafafb7f72448a94276fb029326d"
+    }
+  ]
+}
