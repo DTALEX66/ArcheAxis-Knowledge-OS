@@ -2908,3 +2908,9 @@ Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-i
 ### 2026-10-31 F04自有连接终态修复
 
 `shared_sandbox.py`补自有Popen逐连接终态、严格wait/returncode核对、失败保全和重复收场不重试；环境ID消失不再替代进程回收证据。正式`f04d2`43项模拟测试后，root新增两项反例在`f04neg1`复现停止失败跳过回收；后继改为finally仍尝试回收，分别保留停止/回收双错误。正式`f04d3`45项、`f04lint3`Ruff均actual/wrapper0且源码一致，原反例和排序失败保留。实际沙盒/Core/模型启动均0，没有处理历史进程，旧F04“零环境、一进程”矛盾仍UNVERIFIED，不能追认通过。[源码身份、原失败与验证范围](../history/storage-cleanup/2026-10-31-owned-connection-terminal/README.md)。
+
+### 2026-10-31 混合批次实际续做与大型重复载荷核验
+
+`j1b1`实际复用原bpr1包，以六合成成员/四唯一job/六attempt验证终态间中断、running取消202后cancelled、显式新尝试、未处理成员续做和两次冷重启。160HTTP、七次同key摘要、两对快照一致；actual/wrapper0且clean35de7ce6源码一致。坏DOCX两次均失败且retryable=false，非成功恢复；三自有Core守卫成立，10035仍PENDING。阶段观测最大1,880,695B、0runtime复制；完整J1/CL/UI/安装仍未资格化。[角色、原失败及范围](../history/bpr1-mixed-batch-20261031/README.md)。
+
+体积线沿旧尺寸索引定位V11/V12，`nrm-port2`19,711对公共叶当前完整SHA及独立文件身份全部匹配，源侧1,350,261,264逻辑B，actual/wrapper0且源码一致。保留两个不同Host、manifest及V11原FAIL；33保护名排除。闲置/清理授权/删除句柄/恢复重放仍缺证，cleanup_qualified=false，删除搬迁0。[逐项映射身份及后续边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/README.md)。
