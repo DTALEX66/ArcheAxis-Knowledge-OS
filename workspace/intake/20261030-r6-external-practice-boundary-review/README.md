@@ -37,3 +37,5 @@ Owner 追加要求将 `AAOS_外部实践边界纠偏_前端与本地Codex_R6_202
 后继专门对象边界导航：[未提交教学草稿与冻结意图的冷恢复](../../../docs/history/teaching-plan-observation-20261031/DRAFT-RECOVERY.md)。原验收 CSV 与静态快照保留，不把局部后端验证改写为 E08 的完整 UI/运行验收。
 
 后继有限音频导航：[随包ASR真实转录、重解析和冷恢复及当前源缺失保护](../../../docs/history/bundled-asr-offline-20261031/README.md)。真实旧包组件与当前源码mock资格分列，不重签原R6验收。
+
+后继人工反馈导航：[文字记录直接接收反馈及有限domain/API资格](../../../docs/history/teaching-plan-observation-20261031/FEEDBACK.md)。普通记录不必伪造Delivery；未计分不等于掌握，专门开始状态及完整R6验收仍分开读取。

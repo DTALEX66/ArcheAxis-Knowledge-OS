@@ -2962,3 +2962,10 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 既有Owner条件授权下，已审v3仅一次执行`delleaves-49e75422`，精确删除19711公共重复叶、1,350,261,264源路径逻辑B；fresh全39424资源单RM五调用空/End0、4588目录pins、逐叶独占同柄身份/ownerACL/完整SHA门均满足。19711原生disposition成功及持久COMMIT、83507close全1，cleanup errors空。后继只读`delpost-55f1c4d0`逐项确认源WinError2缺失、全部保留件完整SHA/旧WinID一致、errors0；两run actual/wrapper0且clean144e2cc3源码一致，非作者另核收据及intent/COMMIT/POST精确双射。
 
 两个不同Host旧SHA/ID及两manifest旧SHA保持；manifest旧ID未冻结。root重哈V11原FAIL与V12后继PASS收据不变；33保护名不读/不探/不入操作集，身份仍未验证。合成12测试+13子测试及真实小叶删除/排他恢复通过；静态发现的错误保全、占用负例、入口收据、POST close计数/命令绑定问题均在执行前修正，旧候选和RM29保留。四新run计30,066,886逻辑B，不含准备/此前完整观察/后续门禁；不算物理释放或全仓净变化。V11旧重放须先按原map排他恢复19711原路径并重新资格核验，全量恢复未执行。[部署、64份身份和恢复边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/DEPLOYMENT.md)。49项归属等剩余治理、F05及完整J1/CL仍PARTIAL；无新队列/UI构建/上传/Green或真实库操作。
+
+
+### 2026-10-31 文字实践记录直接人工反馈
+
+修复Feedback仅能挂Delivery导致candidate知识的文字实践记录无法直接接收反馈的断点；仅放行既有Feedback parent Observation，原同course/knowledge/assessment、人类权限、隐私、撤回/导出及Delivery准入保留，仍not_scored、knowledge candidate，不生成学习/评估/job。两正式新测试RED均child/receipt101复现非法parent/API422；最小修补后完整domain21/API10及Rustfmt0，actual/wrapper0且aab6c27d+dirty7ebaaee8…源码一致。domain原exchange到独立文件workspace、API原库冷重开/重复import、撤回原字节保全及负控通过；非真实socket/新Core运行/安装/UI/掌握或完整R6资格。24份身份与[反馈修补证据](../history/teaching-plan-observation-20261031/FEEDBACK.md)分列原失败，原R6/R5/186静态快照不重签。
+
+前后可读下界142277318793→142280381205B，差3062412B、build差2142316B；两次measure均PARTIAL/child1，674错误/243私有/581布局项不变，NO_NEW_GROWTH_TRIGGER非全仓治理通过。根分配候选路径一度误落两个无run元数据新目录，8个本轮自有文件已完整SHA不变迁入既有canonical artifacts并精确清除4空目录，未计为产品/清理收益；原路径映射保留。专门start/self-report、独立mastery、第二产品消费者和同候选/完整CL/F05仍待接续。

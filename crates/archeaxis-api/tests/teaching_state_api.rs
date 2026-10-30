@@ -1012,3 +1012,268 @@ async fn text_observations_bind_plan_versions_without_delivery_or_scoring() {
         );
     }
 }
+
+#[tokio::test]
+async fn candidate_text_observation_feedback_reopens_without_delivery_or_mastery() {
+    let (_dir, db, _) = fixture();
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (status, candidate) = human(&app, "POST", "/api/v1/knowledge-items", json!({"knowledge_type":"FACTUAL_CLAIM","body":"Synthetic text practice feedback candidate","status":"candidate","created_by":"owner"})).await;
+    assert_eq!(status, 201, "{candidate}");
+    let kid = candidate["knowledge_id"].as_str().unwrap().to_owned();
+    let mut records = vec![
+        row(RecordKind::Requirement, "of-api-req", None, &kid),
+        row(
+            RecordKind::Proposal,
+            "of-api-plan",
+            Some("of-api-req"),
+            &kid,
+        ),
+        row(
+            RecordKind::Observation,
+            "of-api-note",
+            Some("of-api-plan"),
+            &kid,
+        ),
+    ];
+    records[2].content = "  人工文字记录\n教程跳过，无作品或专业工具执行证据。  ".into();
+    put_chain(&app, &records).await;
+    let delivery = row(
+        RecordKind::Delivery,
+        "of-api-denied-delivery",
+        Some("of-api-plan"),
+        &kid,
+    );
+    assert_eq!(
+        human(
+            &app,
+            "POST",
+            "/api/v2/teaching/records",
+            serde_json::to_value(&delivery).unwrap()
+        )
+        .await
+        .0,
+        409
+    );
+    let mut feedback = row(
+        RecordKind::Feedback,
+        "of-api-feedback",
+        Some("of-api-note"),
+        &kid,
+    );
+    feedback.content = "  人工反馈\n请补充理由；mastery只是分类，不是已掌握。  ".into();
+    feedback.feedback_class = Some(FeedbackClass::Mastery);
+    let payload = serde_json::to_value(&feedback).unwrap();
+    // Missing and machine principals cannot use the new parent shape as an admission bypass.
+    for actor in [None, Some("machine")] {
+        assert_eq!(
+            call(
+                &app,
+                "POST",
+                "/api/v2/teaching/records",
+                payload.clone(),
+                actor,
+                None
+            )
+            .await
+            .0,
+            403
+        );
+    }
+    let (status, first) = human(&app, "POST", "/api/v2/teaching/records", payload.clone()).await;
+    assert_eq!(
+        status, 201,
+        "manual Observation -> Feedback failed: {first}"
+    );
+    assert_eq!(first["duplicate"], false);
+    assert_eq!(first["item"]["record"], payload);
+    assert_eq!(first["item"]["scoring_status"], "not_scored");
+    assert!(first["item"]["record"]["assessment_id"].is_null());
+    assert!(first["item"]["record"]["rubric_version"].is_null());
+    records.push(feedback.clone());
+    let revision = row(
+        RecordKind::Revision,
+        "of-api-plan-v2",
+        Some("of-api-feedback"),
+        &kid,
+    );
+    put_chain(&app, &[revision.clone()]).await;
+    records.push(revision);
+    let (status, duplicate) =
+        human(&app, "POST", "/api/v2/teaching/records", payload.clone()).await;
+    assert_eq!(status, 200);
+    assert_eq!(duplicate["duplicate"], true);
+    assert_eq!(duplicate["item"], first["item"]);
+    let mut changed = payload.clone();
+    changed["content"] = json!("different bytes");
+    assert_eq!(
+        human(&app, "POST", "/api/v2/teaching/records", changed)
+            .await
+            .0,
+        409
+    );
+    for (id, field, value, expected) in [
+        (
+            "of-api-course-injection",
+            "course_id",
+            json!("not-parent-course"),
+            422,
+        ),
+        (
+            "of-api-missing-assessment",
+            "assessment_id",
+            json!("nonexistent"),
+            404,
+        ),
+        (
+            "of-api-wrong-parent",
+            "parent_id",
+            json!("of-api-plan"),
+            422,
+        ),
+    ] {
+        let mut bad = payload.clone();
+        bad["record_id"] = json!(id);
+        bad[field] = value;
+        assert_eq!(
+            human(&app, "POST", "/api/v2/teaching/records", bad).await.0,
+            expected
+        );
+    }
+    let mut bad = payload.clone();
+    bad["record_id"] = json!("of-api-not-teachback");
+    bad["kind"] = json!("teach_back");
+    bad["feedback_class"] = Value::Null;
+    assert_eq!(
+        human(&app, "POST", "/api/v2/teaching/records", bad).await.0,
+        422
+    );
+    let (status, other) = human(&app, "POST", "/api/v1/knowledge-items", json!({"knowledge_type":"FACTUAL_CLAIM","body":"Other synthetic feedback context","status":"candidate","created_by":"owner"})).await;
+    assert_eq!(status, 201, "{other}");
+    let mut bad = payload.clone();
+    bad["record_id"] = json!("of-api-mixed-knowledge");
+    bad["knowledge_id"] = other["knowledge_id"].clone();
+    bad["knowledge_version"] = other["knowledge_id"].clone();
+    assert_eq!(
+        human(&app, "POST", "/api/v2/teaching/records", bad).await.0,
+        422
+    );
+    let mut original_views = Vec::new();
+    for record in &records {
+        let (status, view) = human(
+            &app,
+            "GET",
+            &format!("/api/v2/teaching/records/{}", record.record_id),
+            json!({}),
+        )
+        .await;
+        assert_eq!(status, 200);
+        assert_eq!(view["record"], serde_json::to_value(record).unwrap());
+        original_views.push(view);
+    }
+    let (status, exported) = human(
+        &app,
+        "GET",
+        "/api/v2/teaching/records/of-api-plan-v2/export",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, 200, "{exported}");
+    assert_eq!(exported["records"], serde_json::to_value(&records).unwrap());
+    assert_eq!(exported["package_sha256"], package_hash(&records).unwrap());
+    drop(app);
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    for (record, original) in records.iter().zip(&original_views) {
+        let (status, current) = human(
+            &app,
+            "GET",
+            &format!("/api/v2/teaching/records/{}", record.record_id),
+            json!({}),
+        )
+        .await;
+        assert_eq!(status, 200);
+        assert_eq!(&current, original);
+    }
+    let (status, preview) = human(
+        &app,
+        "POST",
+        "/api/v2/teaching/imports/preview",
+        exported.clone(),
+    )
+    .await;
+    assert_eq!(status, 200, "{preview}");
+    assert_eq!(preview["valid"], true);
+    assert_eq!(preview["duplicate_count"], 5);
+    assert_eq!(count(&app).await, 5);
+    let (status, imported) = human(&app, "POST", "/api/v2/teaching/imports", exported).await;
+    assert_eq!(status, 200, "{imported}");
+    assert_eq!(imported["duplicate_count"], 5);
+    for original in &original_views {
+        assert!(imported["items"].as_array().unwrap().contains(original));
+    }
+    let (status, receipt) = human(&app, "POST", "/api/v2/teaching/withdrawals", json!({"schema":WITHDRAWAL_SCHEMA,"withdrawal_id":"of-api-withdraw","record_id":"of-api-note","reason":"withdraw synthetic manual observation"})).await;
+    assert_eq!(status, 201, "{receipt}");
+    assert_eq!(receipt["affected_record_ids"].as_array().unwrap().len(), 3);
+    let mut late = payload;
+    late["record_id"] = json!("of-api-late-feedback");
+    assert_eq!(
+        human(&app, "POST", "/api/v2/teaching/records", late)
+            .await
+            .0,
+        409
+    );
+    assert_eq!(
+        human(
+            &app,
+            "GET",
+            "/api/v2/teaching/records/of-api-plan-v2/export",
+            json!({})
+        )
+        .await
+        .0,
+        409
+    );
+    drop(app);
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    for (record, original) in records.iter().zip(&original_views) {
+        let (status, historical) = human(
+            &app,
+            "GET",
+            &format!("/api/v2/teaching/records/{}", record.record_id),
+            json!({}),
+        )
+        .await;
+        assert_eq!(status, 200);
+        assert_eq!(historical["record"], original["record"]);
+        assert_eq!(historical["content_sha256"], original["content_sha256"]);
+        assert_eq!(historical["scoring_status"], "not_scored");
+        assert_eq!(
+            historical["withdrawn"],
+            json!(
+                ["of-api-note", "of-api-feedback", "of-api-plan-v2"]
+                    .contains(&record.record_id.as_str())
+            )
+        );
+    }
+    assert_eq!(count(&app).await, 5);
+    drop(app);
+    let conn =
+        rusqlite::Connection::open_with_flags(&db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
+    assert_eq!(
+        conn.query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [&kid],
+            |r| r.get::<_, String>(0)
+        )
+        .unwrap(),
+        "candidate"
+    );
+    for table in ["learning_events", "learning_assessments", "jobs"] {
+        assert_eq!(
+            conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+    }
+}

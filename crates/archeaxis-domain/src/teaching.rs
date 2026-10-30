@@ -246,7 +246,9 @@ fn parent_shape(record: &TeachingRecord, parent: Option<&TeachingRecord>) -> Res
         | (Delivery, Some(Proposal))
         | (Delivery, Some(Revision))
         | (TeachBack, Some(Delivery))
-        | (Feedback, Some(Delivery))
+        // Human feedback may follow an ordinary text observation without delivery.
+        // It remains unscored; knowledge/course/assessment bindings still apply.
+        | (Feedback, Some(Delivery | Observation))
         // Planning may change before any delivery or feedback exists. Reuse the
         // append-only revision lineage instead of inventing completed practice.
         | (Revision, Some(Proposal | Revision | Feedback)) => {}
