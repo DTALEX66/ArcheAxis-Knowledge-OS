@@ -1,0 +1,263 @@
+{
+  "schema": "aaos.teaching-plan-revision-history/v1",
+  "status": "FINITE_BACKEND_REVISION_GREEN_PRODUCT_PARTIAL",
+  "target_directory": "docs/history/teaching-plan-revision-20261031",
+  "readme": {
+    "path": "README.md",
+    "bytes": 3973,
+    "sha256": "4f8213c231eaf24d8f823d7d48660e65f90e448017b3fda27aa57f26dd49133a"
+  },
+  "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+  "source_patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+  "dirty": true,
+  "source_files": [
+    {
+      "path": "crates/archeaxis-domain/src/teaching.rs",
+      "bytes": 28481,
+      "sha256": "b2604012bd78c05d91cd9005e6e3c037ef3d099a52520710dfc1e0d5f5011c6f"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/teaching_state_api.rs",
+      "bytes": 27095,
+      "sha256": "58e814e5120ac57a5b4b6ae8ab1a7d2c037d90f42553e6e288e544388a912ffa"
+    },
+    {
+      "path": "scripts/probes/backup_restore_probe.py",
+      "bytes": 6406,
+      "sha256": "34b3c51ca62fc0a9cfda2c869aa0135a7549bff1df4db90e29a95ddb3e327b8b"
+    }
+  ],
+  "run_results": {
+    "bkr-r6plan1": {
+      "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+      "dirty": false,
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-r6api1": {
+      "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+      "dirty": true,
+      "source_patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-r6dom1": {
+      "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+      "dirty": true,
+      "source_patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-r6build1": {
+      "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+      "dirty": true,
+      "source_patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-r6green1": {
+      "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+      "dirty": true,
+      "source_patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    }
+  },
+  "test_counts": {
+    "teaching_state_api": 8,
+    "teaching_records": 19
+  },
+  "fixed_identity": {
+    "knowledge_id": "k_7cfbd0a645948ed7d0087cfd",
+    "proposal_sha256": "5c4bdac5d00efcd81055ae3f3dd269c7e3fbba64bcb5665d30c9a73bb72f20ae"
+  },
+  "red_http": 422,
+  "green_revision_http": [
+    201,
+    201
+  ],
+  "late_child_http": 409,
+  "model_calls": 0,
+  "external_practice_tools_executed": 0,
+  "core_preserved_copy": {
+    "path": ".project-local/runs/be268a2d33/bkr-r6green1/artifacts/practice-runtime/core/archeaxis-api.exe",
+    "bytes": 27844096,
+    "sha256": "6b503641cb971ddc0135f79237e036c138cae0db8986cd3510ccefa06b75de6d"
+  },
+  "core_copy_policy": "Retained evidence; do not overwrite. Shared Cargo binary is mutable.",
+  "cleanup": {
+    "red": [
+      {
+        "pid": 38048,
+        "exit_code": 1,
+        "port": 52262,
+        "port_closed": true,
+        "graceful": "NOT_CLAIMED"
+      },
+      {
+        "pid": 40380,
+        "exit_code": 1,
+        "port": 52285,
+        "port_closed": true,
+        "graceful": "NOT_CLAIMED"
+      }
+    ],
+    "green": [
+      {
+        "pid": 32552,
+        "exit_code": 1,
+        "port": 51072,
+        "port_closed": true,
+        "graceful": "NOT_CLAIMED"
+      },
+      {
+        "pid": 32876,
+        "exit_code": 1,
+        "port": 51092,
+        "port_closed": true,
+        "graceful": "NOT_CLAIMED"
+      }
+    ]
+  },
+  "cache": {
+    "measurement": "per-path logical bytes, build stage only, baseline after tests",
+    "before": 7605359513,
+    "after": 7605359513,
+    "delta": 0,
+    "changes": [
+      {
+        "path": "debug/archeaxis-api.d",
+        "before": {
+          "bytes": 9799,
+          "mtime_ns": 1793379658775359100
+        },
+        "after": {
+          "bytes": 9799,
+          "mtime_ns": 1793380973759337100
+        }
+      }
+    ],
+    "physical_allocation": "NOT_MEASURED"
+  },
+  "limitations": [
+    "UI/IME/native unverified",
+    "Tutorial execution and dedicated workflow unverified",
+    "Full Course journey unverified",
+    "Start/self-report product states and independent mastery unverified",
+    "No real model effect qualification",
+    "Whole closed loop remains PARTIAL"
+  ],
+  "local_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6plan1/artifacts/execution.json",
+      "bytes": 8616,
+      "sha256": "2496684f0bcb1ab48c84a4f3795841291984498b45a465d4d31571304238ea5f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6plan1/logs/execution.log",
+      "bytes": 1155,
+      "sha256": "cc58059a9ea73110e94b61c6046cdd2d1276dd2f04d68e94e3b9a4bcf3fed833"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6api1/artifacts/execution.json",
+      "bytes": 1321,
+      "sha256": "d162b541b029a3d9df98f229d4cae7a376b27d5c3535b886e887850685bc697e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6api1/logs/execution.log",
+      "bytes": 1745,
+      "sha256": "0660949aaf5affda98a782252c6e82d981b3ce6d20d9b2b3d9b92e9769c47bbd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6dom1/artifacts/execution.json",
+      "bytes": 1323,
+      "sha256": "0a755690d55c4c164937743805bcadf2a58eebc8a5b987324df4a4f4e6252244"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6dom1/logs/execution.log",
+      "bytes": 2962,
+      "sha256": "511e48bc46ed6847885d83c2b53011bff7dff2af4a76eb089adcbd8fdc9f8042"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6build1/artifacts/execution.json",
+      "bytes": 3005,
+      "sha256": "4f78c23809a18fe065578cf0da8be669fe14b27e9279724b22618bb32f0a9b3b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6build1/logs/execution.log",
+      "bytes": 844,
+      "sha256": "d53a22c660841922d92e035b56544a57e7d3223a109c7db3e4f12b23e373305c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6green1/artifacts/execution.json",
+      "bytes": 5495,
+      "sha256": "e30498b69ad8be1b0aa5936e2febf9651138a5ff91023b27153be2ac71bf15de"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6green1/logs/execution.log",
+      "bytes": 1168,
+      "sha256": "75b7ae0b63aa13261e2195e12e775c485847a7ce4672d4ff517b9e26de5c4325"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6plan1/artifacts/r6_plan_counterexample.py",
+      "bytes": 7034,
+      "sha256": "69794eb1fad5754d876e64397df7d54f7f8f6492649faabeac5391832cc25407"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6plan1/artifacts/r6-plan-counterexample.json",
+      "bytes": 19796,
+      "sha256": "f579150e85d4417fd04a50f8df64181c2d8720552c9dba457d4bd9c485892673"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6green1/artifacts/r6_plan_green.py",
+      "bytes": 8521,
+      "sha256": "0dd91ea4deec905b702306c5c6921396acb3d17119dfcc801940bd09e5d42513"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6green1/artifacts/r6-plan-green.json",
+      "bytes": 38781,
+      "sha256": "07744357f72a8bca900ea5f12a70361ffde20ca79b6a9c17bb5f8db4a7dd7f68"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6green1/artifacts/main-process.json",
+      "bytes": 229,
+      "sha256": "b2631c35242ae757b19648754b7f9ccd5493050f86c2166517f21966b5cfd89f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6build1/artifacts/current-core-build.json",
+      "bytes": 811,
+      "sha256": "91fdb16e3201933992babe92c9fbf16116705ad5970638b48d34351db0b1abc6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6build1/artifacts/cargo-build.log",
+      "bytes": 296,
+      "sha256": "a99f4539eef46bb8fe2e4e5283dea93ff46f7762e46da074180ccab6b73931a6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6build1/artifacts/cargo-target-before.json",
+      "bytes": 7216881,
+      "sha256": "18d6d145d8638a57c8ae7ef77cbd8be283b09ef781f77b3b0612dd15500d01bf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6build1/artifacts/cargo-target-after.json",
+      "bytes": 7216881,
+      "sha256": "d62d5abb0bcdebec8618d085fc00fd6268a0a441a28a41e0f0462ee7bdae9f84"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6prep2/artifacts/teaching-plan-revision.diff",
+      "bytes": 6721,
+      "sha256": "e1d0f4ebb1234ce80f59e82521c023270582b35bccd859f7d3a96862ffc54cf1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-r6prep2/artifacts/candidate.json",
+      "bytes": 1698,
+      "sha256": "143ef50c06bca06b51351bf108639ac5efff0d704ed38756461197535f886072"
+    }
+  ]
+}

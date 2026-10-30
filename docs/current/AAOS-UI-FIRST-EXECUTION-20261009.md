@@ -2845,3 +2845,15 @@ R6一致性确认后，按原Owner精确清理授权部署126公开重复素材�
 #### 2026-10-31 当前Core的单一资产合成资格
 
 干净`bfea02c3`上实际执行一次offline/locked debug build，`bkr-corebuild1`实际build/wrapper0且source_consistent=true，复用27,844,096B Core/SHA d8352b9de954cb32a70a26b234c01de45be7b58424b6fcaaa1d48d145cf350be，不称重新编译或Release。共享target仅新增9,799B的debug/archeaxis-api.d；原DirEntry dev/ino为零使unique-identity聚合无效，原收据保留，只采用逐路径logical尺寸差，不推物理增量。随后`bkr-currentmain1`用仓库已部署LF probe/adapter与当前Core只跑一个纠正分支，actual main0/wrapper0/source_consistent=true，5个生产worker输入的context/packet SHA与持久化逐项相同，实际模型0。仅1个同SHA Core副本保全，不复制C1包；Core terminate/reap退出1且端口关闭，5个已观察worker退出，不称优雅停止或全机进程盘点。完整身份、缓存边界与原失败关系见[当前构建资格](../history/asset-scoped-probe-20261031/BUILD-QUALIFICATION.md)。当前源码Core的有限合成链已补验；真实模型资产效果、完整F05/CL/J/native/installer/Owner仍未建立，旧real1失败不替换，目录/外溢保留项和既有执行边界不变。
+
+#### 2026-10-31 R6计划连续修订与备份生成落点修复
+
+[Teaching计划修订](../history/teaching-plan-revision-20261031/README.md)补齐尚未开始实践时的后端缺口：现有Revision允许父项Proposal/Revision/Feedback，仍append-only，不虚构Delivery/Feedback/成果或掌握。相同knowledge和proposal正文SHA的真实HTTP反例422→201，连续修订、幂等200/同ID改文409、重启保全、撤回沿袭及晚到写入409通过；API8/8、领域19/19，offline/locked Core build及真实HTTP均actual/wrapper0/source_consistent=true。资格绑定f5d8b570+稳定dirty patch2ce0aa…，27,844,096B Core/SHA6b503641…仅保全一个不可变run副本；模型/外部实践调用0，自有进程terminate/reap退出1且端口关闭，不称优雅退出。专用UI/教程交互/完整Course/start-self-report状态/独立mastery及R6 E01—E10整体仍未验，原真实模型FAIL不替换。
+
+[Legacy备份探针](../history/storage-cleanup/2026-10-31-backup-probe-routing/README.md)修复真实生成者：固定`.project-local/runs/backup-restore-probe-run`及启动删旧目录改为现有dev分配当前run的`artifacts/backup-restore-probe/<uuid>`。实际仓库原8tests未替换PROBE路径，真实CLI0、唯一UUID/source/target实见，原固定路径前后不存在且未改旧资料；Ruff最小门槛通过。证据是Python legacy合成库，不能写成RustCore备份资格。6份23,781B旧脚本仅既有保全候选，0迁移/删除/回收；49目录与外溢不确定项仍保留。root精确复核44文件身份/收据及R6原件—归档ZIP一致，不扩扫描。
+
+#### 2026-10-31 Native宿主输入复用正式落地，业务仍待验
+
+[Native输入复用](../history/storage-cleanup/2026-10-31-native-input-reuse/README.md)部署有限adapter/guest模板/共享mode及反例测试，精确复用cnprep3三组6,477成员/1,984,670,438逻辑B，宿主不复制载荷。候选94tests+14subtests和唯一离线mapping VM通过：三输入只读、fresh输出、全部guest树SHA、三write-open拒绝、nonce/ownedID绑定、host全量事后重核、官方exact-ID停止后库存空；旧parent/安装/native/UI未执行。代理在具体脚本预审窗口完成前已开始该在途VM，root暂停消息后仅封存该ID，控制缺口和不确定消息时刻如实保留，无新VM或重试。
+
+实际部署`r6n1`在测试/prepare前发现既有ps1 CRLF过滤导致rawSHA差异即FAIL，原证据保留；`r6n2`核候选LF/部署CRLF双身份与同binding完整encoded命令相同，实际正式源码94tests+14subtests及prepare-only CLI0/source_consistent=true，未新开VM。每次避免宿主输入复制不等于已回收字节或业务全程零copy；旧guest仍复制source/合成快照，原native命令仅`.proposed`，未来完整输入/空output/owned生命周期重核和业务验收另行，整包producer全面替代PARTIAL。目录治理、F05/CL/J整体和Owner验收仍PARTIAL；UI/监控暂停、本地禁上传、Green和真实资料边界不变。

@@ -20,11 +20,12 @@ from pathlib import Path, PureWindowsPath
 from xml.etree import ElementTree as ET
 
 if __package__:
-    from . import dev, sandbox_inputs as inputs, conflict_inputs
+    from . import dev, sandbox_inputs as inputs, conflict_inputs, native_inputs
 else:
     import dev
     import sandbox_inputs as inputs
     import conflict_inputs
+    import native_inputs
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -134,8 +135,9 @@ def probe_binding(stage: Path, pin: str, nonce: str, roots: dict | None = None) 
             'output_marker': str(output / 'shared-probe-marker.txt'), 'receipt': str(output / 'shared-probe.json')}
 
 
-def command_for(binding: dict) -> tuple[str, dict]:
-    template = inputs.regular(Path(__file__).with_name('shared_sandbox_guest.ps1'))
+def command_for(binding: dict, mode: str = 'mapping') -> tuple[str, dict]:
+    name = 'shared_native_sandbox_guest.ps1' if mode == 'native-mapping' else 'shared_sandbox_guest.ps1'
+    template = inputs.regular(Path(__file__).with_name(name))
     source = template.read_text(encoding='utf-8')
     if source.count('__BINDING_BASE64__') != 1:
         raise ValueError('Unexpected guest probe template')
@@ -147,9 +149,10 @@ def command_for(binding: dict) -> tuple[str, dict]:
 
 
 def config_for(stage: Path, output: Path, pin: str, mode: str = 'mapping', roots: dict | None = None) -> bytes:
-    config = ET.fromstring(inputs.proposal(stage, output, pin, roots))
+    maker = native_inputs.proposal if mode == 'native-mapping' else inputs.proposal
+    config = ET.fromstring(maker(stage, output, pin, roots))
     # The historical lifecycle entry must not run during a mapping-only probe.
-    if mode == 'mapping':
+    if mode in {'mapping', 'native-mapping'}:
         config.remove(config.find('LogonCommand'))
     elif mode not in {'lifecycle', 'conflict'}:
         raise ValueError('Unknown shared sandbox mode')
@@ -202,13 +205,16 @@ def conflict_identity(stage: Path, roots: dict) -> dict:
 
 
 def prepare(paths: dict, stage: Path, pin: str, mode: str = 'mapping') -> dict:
-    proposal = inputs.prepare(paths, stage, pin)
+    proposal = (native_inputs.prepare(paths, stage, pin, mapping_probe=True)
+                if mode == 'native-mapping' else inputs.prepare(paths, stage, pin))
     if proposal['status'] != 'SHARED_INPUT_PROPOSAL_ONLY':
         raise ValueError('Inputs did not pass complete proposal verification')
     stage = Path(proposal['source_stage'])
     nonce = uuid.uuid4().hex
-    binding = probe_binding(stage, pin, nonce, proposal['source_roots'])
-    command, template_identity = command_for(binding)
+    owned = str(uuid.uuid4())
+    binding = (native_inputs.probe_binding(stage, pin, nonce, proposal['source_roots'], owned)
+               if mode == 'native-mapping' else probe_binding(stage, pin, nonce, proposal['source_roots']))
+    command, template_identity = command_for(binding, mode)
     expected_lifecycle = lifecycle_identity(stage, proposal['source_roots']) if mode == 'lifecycle' else None
     expected_conflict = conflict_identity(stage, proposal['source_roots']) if mode == 'conflict' else None
     data = config_for(stage, Path(proposal['output']), pin, mode, proposal['source_roots'])
@@ -219,12 +225,15 @@ def prepare(paths: dict, stage: Path, pin: str, mode: str = 'mapping') -> dict:
             'run_root': str(paths['run']), 'stage': str(stage), 'source_manifest_sha256': pin,
             'source_roots': proposal['source_roots'],
             'members': proposal['members'], 'shared_logical_bytes': proposal['shared_logical_bytes'],
-            'payload_bytes_copied': 0, 'sandbox_id': str(uuid.uuid4()), 'nonce': nonce, 'mode': mode,
+            'payload_bytes_copied': 0, 'sandbox_id': owned, 'nonce': nonce, 'mode': mode,
             'config': str(destination), 'config_identity': inputs.identity(destination),
             'output': proposal['output'], 'binding': binding, 'guest_template': template_identity,
             'run_metadata': inputs.identity(paths['run'] / 'run-metadata.json'),
             'command': command, 'expected_lifecycle': expected_lifecycle,
             'expected_conflict': expected_conflict, 'product_lifecycle': 'NOT_EXECUTED'}
+    if mode == 'native-mapping':
+        plan['native_retry_proposal'] = proposal['native_replay']
+        plan['native_business'] = 'NOT_EXECUTED_REQUIRES_SEPARATE_QUALIFICATION'
     write_json(paths['artifacts'] / 'shared-sandbox-plan.json', plan)
     return plan
 
@@ -351,7 +360,8 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
     stage = Path(plan['stage'])
     stage = inputs.contained(stage, paths['dev'] / 'runs')
     # Recheck the entire declaration/private boundary before any declared payload.
-    checked = inputs.inspect_stage(stage, paths['dev'], plan['source_manifest_sha256'])
+    inspect = native_inputs.inspect_stage if plan['mode'] == 'native-mapping' else inputs.inspect_stage
+    checked = inspect(stage, paths['dev'], plan['source_manifest_sha256'])
     output = inputs.contained(Path(plan['output']), artifacts)
     config = inputs.regular(Path(plan['config']))
     if (plan['run_root'] != str(paths['run']) or output != artifacts / 'sandbox-output'
@@ -364,8 +374,11 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
         source = Path(value)
         if source == paths['run'] or source.is_relative_to(paths['run']) or paths['run'].is_relative_to(source):
             raise ValueError('Shared source overlaps the writable caller run')
-    binding = probe_binding(stage, plan['source_manifest_sha256'], plan['nonce'], checked['source_roots'])
-    command, template_identity = command_for(binding)
+    binding = (native_inputs.probe_binding(stage, plan['source_manifest_sha256'], plan['nonce'],
+                                          checked['source_roots'], plan['sandbox_id'])
+               if plan['mode'] == 'native-mapping' else
+               probe_binding(stage, plan['source_manifest_sha256'], plan['nonce'], checked['source_roots']))
+    command, template_identity = command_for(binding, plan['mode'])
     expected_lifecycle = lifecycle_identity(stage, checked['source_roots']) if plan['mode'] == 'lifecycle' else None
     expected_conflict = conflict_identity(stage, checked['source_roots']) if plan['mode'] == 'conflict' else None
     if (plan['binding'] != binding or plan['command'] != command or plan['guest_template'] != template_identity
@@ -394,7 +407,7 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
         if owned not in inventory(cli):
             raise ValueError('Requested sandbox ID was not observed')
         cli(['exec', '--id', owned, '--command', plan['command'], '--run-as', 'System', '--raw'])
-        result['guest'] = verify_guest(plan)
+        result['guest'] = native_inputs.verify_guest(plan) if plan['mode'] == 'native-mapping' else verify_guest(plan)
         result['guest_write_isolation'] = 'PASS_DECLARED_THREE_MAPPING_WRITE_HANDLES'
         if plan['mode'] in {'lifecycle', 'conflict'}:
             result['product_lifecycle' if plan['mode'] == 'lifecycle' else 'product_conflict'] = 'STARTED_PENDING_RECEIPT'
@@ -440,12 +453,13 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
                 result['stop'] = 'OWNED_ID_ALREADY_ABSENT'
             if hasattr(cli, 'reap_connections'):
                 cli.reap_connections()
-            after = inputs.inspect_stage(stage, paths['dev'], plan['source_manifest_sha256'])
+            after = inspect(stage, paths['dev'], plan['source_manifest_sha256'])
             result['host_inputs_after'] = after
             if qualified and not result['error'] and result['guest_write_isolation'].startswith('PASS_'):
                 result['status'] = {'lifecycle': 'PASS_REAL_OFFLINE_SHARED_SAME_VERSION_LIFECYCLE',
                                     'conflict': 'PASS_REAL_OFFLINE_SHARED_INSTALLED_CONFLICT',
-                                    'mapping': 'PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY'}[plan['mode']]
+                                    'mapping': 'PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY',
+                                    'native-mapping': 'PASS_REAL_OFFLINE_NATIVE_COMPLETE_INPUT_MAPPING_ONLY'}[plan['mode']]
         except (OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as error:
             result['cleanup_or_reverification_error'] = {'type': type(error).__name__, 'message': str(error)}
         write_json(result_path, result)
@@ -460,15 +474,18 @@ def main() -> int:
     actions.add_argument('--execute-probe', action='store_true')
     actions.add_argument('--execute-lifecycle', action='store_true')
     actions.add_argument('--execute-conflict', action='store_true')
+    actions.add_argument('--prepare-native-probe', action='store_true')
+    actions.add_argument('--execute-native-probe', action='store_true')
     args = parser.parse_args()
     try:
         run = os.environ.get('ARCHEAXIS_RUN_ROOT', '')
         paths = dev.layout(Path(__file__).resolve().parents[2], Path(run).name)
         if not run or Path(run) != paths['run']:
             raise ValueError('Run through scripts/runtime/dev.py')
-        mode = 'conflict' if args.execute_conflict else 'lifecycle' if args.execute_lifecycle else 'mapping'
+        mode = ('native-mapping' if args.prepare_native_probe or args.execute_native_probe else
+                'conflict' if args.execute_conflict else 'lifecycle' if args.execute_lifecycle else 'mapping')
         plan = prepare(paths, args.stage, args.manifest_sha256, mode)
-        result = execute(paths, plan) if args.execute_probe or args.execute_lifecycle or args.execute_conflict else plan
+        result = execute(paths, plan) if args.execute_probe or args.execute_lifecycle or args.execute_conflict or args.execute_native_probe else plan
         print(json.dumps({key: value for key, value in result.items() if key != 'command'}, ensure_ascii=False))
         return 0 if result['status'].startswith(('PASS_', 'MAPPING_PROBE_PREPARED_')) else 1
     except (OSError, ValueError, TypeError, KeyError) as error:

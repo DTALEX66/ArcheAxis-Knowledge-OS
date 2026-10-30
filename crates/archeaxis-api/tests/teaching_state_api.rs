@@ -650,3 +650,165 @@ async fn pagination_and_invalid_complete_bundle_are_bounded_and_atomic() {
         .unwrap();
     assert_eq!(total, 23);
 }
+
+#[tokio::test]
+async fn unstarted_plan_revisions_keep_lineage_without_delivery_feedback_or_tool_results() {
+    let (_dir, db, kid) = fixture();
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let mut requirement = row(RecordKind::Requirement, "practice-need", None, &kid);
+    requirement.scope = RecordScope::Personal;
+    requirement.privacy = RecordPrivacy::LocalOnly;
+    requirement.content =
+        "SYNTHETIC goal: compare alignment; beginner; 20 minutes; no tools or connection.".into();
+    let mut plan = requirement.clone();
+    plan.kind = RecordKind::Proposal;
+    plan.record_id = "practice-plan-v1".into();
+    plan.parent_id = Some(requirement.record_id.clone());
+    plan.content = "Plan v1: optional tutorial https://example.invalid/a; availability unknown; no result yet.".into();
+    put_chain(&app, &[requirement.clone(), plan.clone()]).await;
+    let (_, original) = human(
+        &app,
+        "GET",
+        "/api/v2/teaching/records/practice-plan-v1",
+        json!({}),
+    )
+    .await;
+
+    let mut revision = plan.clone();
+    revision.kind = RecordKind::Revision;
+    revision.record_id = "practice-plan-v2".into();
+    revision.parent_id = Some(plan.record_id.clone());
+    revision.content =
+        "Plan v2: tutorial unavailable; skip it and keep the same source knowledge; 10 minutes."
+            .into();
+    let mut revision_again = revision.clone();
+    revision_again.record_id = "practice-plan-v3".into();
+    revision_again.parent_id = Some(revision.record_id.clone());
+    revision_again.content = "Plan v3: replace the optional tutorial with https://example.invalid/b; still no result or feedback.".into();
+    put_chain(&app, &[revision.clone(), revision_again.clone()]).await;
+    let (_, page) = human(&app, "GET", "/api/v2/teaching/records", json!({})).await;
+    assert_eq!(page["items"].as_array().unwrap().len(), 4);
+    for item in page["items"].as_array().unwrap() {
+        assert_eq!(item["scoring_status"], "not_scored");
+        assert!(item["record"]["assessment_id"].is_null());
+        assert!(!matches!(
+            item["record"]["kind"].as_str(),
+            Some("delivery" | "feedback")
+        ));
+    }
+    let (status, retry) = human(
+        &app,
+        "POST",
+        "/api/v2/teaching/records",
+        serde_json::to_value(&revision).unwrap(),
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(retry["duplicate"], true);
+    let mut changed = revision.clone();
+    changed.content = "Same identity must not overwrite the first plan revision.".into();
+    assert_eq!(
+        human(
+            &app,
+            "POST",
+            "/api/v2/teaching/records",
+            serde_json::to_value(&changed).unwrap()
+        )
+        .await
+        .0,
+        409
+    );
+    let mut wrong_parent = revision.clone();
+    wrong_parent.record_id = "invalid-parent-kind".into();
+    wrong_parent.parent_id = Some(requirement.record_id.clone());
+    assert_eq!(
+        human(
+            &app,
+            "POST",
+            "/api/v2/teaching/records",
+            serde_json::to_value(&wrong_parent).unwrap()
+        )
+        .await
+        .0,
+        422
+    );
+    assert_eq!(
+        human(
+            &app,
+            "GET",
+            "/api/v2/teaching/records/practice-plan-v1",
+            json!({})
+        )
+        .await
+        .1,
+        original
+    );
+    drop(app);
+
+    // Reopening reads the exact typed plan/revision graph, without resubmitting any action.
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        human(
+            &app,
+            "GET",
+            "/api/v2/teaching/records/practice-plan-v1",
+            json!({})
+        )
+        .await
+        .1,
+        original
+    );
+    for expected in [&revision, &revision_again] {
+        let (status, readback) = human(
+            &app,
+            "GET",
+            &format!("/api/v2/teaching/records/{}", expected.record_id),
+            json!({}),
+        )
+        .await;
+        assert_eq!(status, 200);
+        assert_eq!(readback["record"], serde_json::to_value(expected).unwrap());
+        assert_eq!(readback["scoring_status"], "not_scored");
+    }
+    let (status, withdrawn) = human(&app, "POST", "/api/v2/teaching/withdrawals", json!({
+        "schema":WITHDRAWAL_SCHEMA, "withdrawal_id":"withdraw-plan", "record_id":plan.record_id, "reason":"owner withdraws this plan"
+    })).await;
+    assert_eq!(status, 201);
+    assert_eq!(
+        withdrawn["affected_record_ids"].as_array().unwrap().len(),
+        3
+    );
+    let mut late = revision_again;
+    late.record_id = "late-plan-revision".into();
+    late.parent_id = Some("practice-plan-v3".into());
+    assert_eq!(
+        human(
+            &app,
+            "POST",
+            "/api/v2/teaching/records",
+            serde_json::to_value(late).unwrap()
+        )
+        .await
+        .0,
+        409
+    );
+    let (_, historical) = human(
+        &app,
+        "GET",
+        "/api/v2/teaching/records/practice-plan-v1",
+        json!({}),
+    )
+    .await;
+    assert_eq!(historical["record"], original["record"]);
+    assert_eq!(historical["content_sha256"], original["content_sha256"]);
+    assert_eq!(historical["withdrawn"], true);
+    let conn =
+        rusqlite::Connection::open_with_flags(&db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
+    assert_eq!(
+        conn.query_row("SELECT count(*) FROM learning_events", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}

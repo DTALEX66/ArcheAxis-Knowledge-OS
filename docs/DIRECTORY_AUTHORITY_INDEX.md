@@ -104,6 +104,10 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 
 共享来源的后继正式执行入口为 [`scripts/runtime/shared_sandbox.py`](../scripts/runtime/shared_sandbox.py)，按新run完整重核后，由显式开关执行映射探针或具名同版本混合Core生命周期。其唯一ID意图、三路只读输入、独立输出、精确停止和源输入事后核验，已有[真实离线有限验证](history/storage-cleanup/2026-10-30-shared-sandbox/README.md)；这是该类别的替代路径，不回写冻结旧 launcher，不自动恢复UI/网络/模型权限，也不放行历史混合私有输入。继续保留共享来源供所有消费者和恢复使用，未完成的其他生产者仍单独审阅。
 
+Native 历史公开胶囊的有限准备入口为 [`scripts/runtime/native_inputs.py`](../scripts/runtime/native_inputs.py)，仅接受已审来源/完整清单指纹，复用现存三路输入，输出落当前独立 run。共享入口的 `--prepare-native-probe` / `--execute-native-probe` 只准备或验证映射；原 native 命令另存 `.wsb.proposed`，不在该模式执行。[有限验证与接续条件](history/storage-cleanup/2026-10-31-native-input-reuse/README.md)区分宿主不复制输入与 guest 业务仍有复制；未来业务须重核输入/空输出并单独资格，不从 mapping PASS 推出整包生产者全面替代。
+
+Legacy 备份探针 [`scripts/probes/backup_restore_probe.py`](../scripts/probes/backup_restore_probe.py) 沿 `dev.artifact_directory` 分配当前 run 下唯一 UUID，启动时不删除旧固定目录。其[实际合成库验证](history/storage-cleanup/2026-10-31-backup-probe-routing/README.md)不替代 Rust Core 备份/恢复验收；未知归属的旧散落资料继续保留。
+
 ### 外溢追踪与迁移
 
 冲突旅程的洁净准备入口为 [`scripts/runtime/conflict_inputs.py`](../scripts/runtime/conflict_inputs.py)：只提取固定Git身份的有限harness文件，不复制旧repo/历史/私有状态，安装包和PowerShell沿清单 `source_roots` 复用本仓保留输入。其显式共享冲突执行已有[真实离线有限验证](history/storage-cleanup/2026-10-30-clean-conflict-inputs/README.md)。有限harness快照不是产品构建身份；旧输入及恢复映射仍保护，未自动授权旧目录清理。

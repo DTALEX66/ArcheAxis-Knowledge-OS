@@ -1,0 +1,102 @@
+{
+  "schema": "aaos.backup-probe-routing-history/v1",
+  "status": "PASS_FINITE_PYTHON_LEGACY_SYNTHETIC_BACKUP_ROUTING_ONLY",
+  "source_head": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+  "source_dirty": true,
+  "source_patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+  "source_patch_unchanged": true,
+  "actual_source": {
+    "path": "scripts/probes/backup_restore_probe.py",
+    "sha256": "34b3c51ca62fc0a9cfda2c869aa0135a7549bff1df4db90e29a95ddb3e327b8b"
+  },
+  "existing_test_source": {
+    "path": "tests/test_backup_restore_probe.py",
+    "sha256": "24c8138917479a5ca74224eb2730b665463f9a9182a91955c4f0b730f379cc7d"
+  },
+  "checks": {
+    "actual_existing_tests": 8,
+    "pytest_exit": 0,
+    "actual_cli_exit": 0,
+    "probe_path_override": false,
+    "canonical_uuid_allocations_observed": 1,
+    "source_target_observed": true,
+    "legacy_fixed_path_metadata_unchanged": true,
+    "old_path_exists_before": false,
+    "old_path_exists_after": false,
+    "python_ruff_minimal_gate_exit": 0,
+    "three_path_diff_check_exit": 0,
+    "rust_ruff": "NOT_APPLICABLE",
+    "cache_dir_warning": 1,
+    "core_api_model_calls": 0,
+    "real_user_data": false
+  },
+  "retained_scatter": {
+    "groups": 3,
+    "files": 6,
+    "bytes": 23781,
+    "original_moves": 0,
+    "original_deletions": 0,
+    "reclaimed_bytes": 0,
+    "classification": "RETAINED_COPY_PROPOSAL_ONLY"
+  },
+  "not_qualified": [
+    "Rust Core backup/restore",
+    "Teaching API behavior",
+    "installed runtime",
+    "whole CL/J",
+    "Owner acceptance",
+    "complete directory normalization"
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-actual1/artifacts/actual-backup-review.json",
+      "phase": "ACTUAL_REPOSITORY_SOURCE",
+      "bytes": 1943,
+      "sha256": "62944d301b9ed0bf9fbe9a8cf5bcd09ad4c586636308878b64ffbf8937ad80d4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-actual1/artifacts/actual-existing-tests.log",
+      "phase": "ACTUAL_EXISTING8TESTS",
+      "bytes": 550,
+      "sha256": "2c443d9bdf05188152918d857a6ed85603f283c77d4bd7715b134f8e564abef0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-actual1/artifacts/actual-test-invocations.json",
+      "phase": "ORIGINAL_PROBE_PATH_NO_OVERRIDE",
+      "bytes": 415,
+      "sha256": "677345e10e62430cbba5c5fec4820eeea8f6ade4202442ac5455266295c3960b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-actual1/artifacts/ruff-gate.log",
+      "phase": "PYTHON_MINIMAL_GATE",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-actual1/artifacts/diff-check.log",
+      "phase": "THREE_DIRTY_PATHS_DIFF_CHECK",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-actual1/artifacts/execution.json",
+      "phase": "ACTUAL_DEV_EXIT0",
+      "bytes": 6976,
+      "sha256": "371b8edce747cbbfeaffe0d370404a4f32d88e358df3f6322b1b56fa47ec268a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-scatter2/artifacts/scatter-producer-review.json",
+      "phase": "IGNORED_SOURCE_CANDIDATE_ALLOCATION_AND_RETAINED_COPIES",
+      "bytes": 7142,
+      "sha256": "d54147aa4b582c9fa16f965097224d2286cdbc48f599aae8227741ad3636440e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-scatter5/artifacts/scatter-producer-review.json",
+      "phase": "CANDIDATE_OVERRIDE_EXISTING8TESTS",
+      "bytes": 1600,
+      "sha256": "e70b1d3cb5444ae99cd9c9bfdf31ddf397a5c2203b4610acceffb61a2f6cffca"
+    }
+  ],
+  "readme_sha256": "1e8fb0222b1c8c5befe2a3041ca0293e4397795504e0e2687cc5f0d230b34a95",
+  "encoding": "UTF-8 LF"
+}

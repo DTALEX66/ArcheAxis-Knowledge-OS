@@ -245,7 +245,9 @@ fn parent_shape(record: &TeachingRecord, parent: Option<&TeachingRecord>) -> Res
         | (Delivery, Some(Revision))
         | (TeachBack, Some(Delivery))
         | (Feedback, Some(Delivery))
-        | (Revision, Some(Feedback)) => {}
+        // Planning may change before any delivery or feedback exists. Reuse the
+        // append-only revision lineage instead of inventing completed practice.
+        | (Revision, Some(Proposal | Revision | Feedback)) => {}
         _ => return Err(invalid("parent kind does not follow teaching lineage")),
     }
     if let Some(parent) = parent {
