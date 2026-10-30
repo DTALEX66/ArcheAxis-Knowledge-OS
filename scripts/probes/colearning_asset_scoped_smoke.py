@@ -5,6 +5,7 @@ Adoption/use authority changes are the intervention. No accepted knowledge rewri
 parameter learning, private session access, general learning or human review is claimed.
 """
 from __future__ import annotations
+
 import copy
 import hashlib
 import importlib.util
@@ -219,7 +220,7 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
                            ("ARCHEAXIS_MACHINE_PROTOCOL", ROUTE["protocol"])):
             require(not os.environ.get(key, "").strip() or os.environ[key].strip() == value,
                     "existing process route override differs: " + key)
-        require(worker.PROMPT_VERSION == ROUTE["prompt_version"],
+        require(ROUTE["prompt_version"] == worker.PROMPT_VERSION,
                 "production prompt version differs")
         worker_identity = {"path": worker_path.relative_to(repo_root).as_posix(),
                            "sha256": hashlib.sha256(worker_path.read_bytes()).hexdigest(),
@@ -322,11 +323,12 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
             return response
 
         original = execute("asset_original_before", "original", answer_request("original-before", "original"))
+        require(bindings["asset_original_before"]["score"] != "REVIEW_REQUIRED",
+                "baseline requires review; comparison cannot be scored")
         execute("asset_abstention_before", "abstention", answer_request("abstention-before", "abstention"))
-        execute("asset_transfer_before", "transfer", answer_request("transfer-before", "transfer"))
         require(bindings["asset_abstention_before"]["score"] == "CORRECT", "grounding control failed fixed rubric")
-        require(bindings["asset_original_before"]["score"] != "REVIEW_REQUIRED"
-                and bindings["asset_transfer_before"]["score"] != "REVIEW_REQUIRED",
+        execute("asset_transfer_before", "transfer", answer_request("transfer-before", "transfer"))
+        require(bindings["asset_transfer_before"]["score"] != "REVIEW_REQUIRED",
                 "baseline requires review; comparison cannot be scored")
         require(len({b["model"] for b in bindings.values()}) == 1, "baseline model changed")
         package = adopt("adopt-package", candidate)
@@ -335,7 +337,8 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
         before_meta = copy.deepcopy(candidate["editor_json"]["attrs"][NAMESPACE])
         after_meta = copy.deepcopy(package["editor_json"]["attrs"][NAMESPACE])
         for value in (before_meta, after_meta):
-            value.pop("state"); value.pop("review")
+            value.pop("state")
+            value.pop("review")
         require(before_meta == after_meta, "asset content changed after baseline")
 
         correction = None
@@ -352,7 +355,8 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
                     "asset_context_grant": consumption("original-retest", package, use_grant, "retest")}
             after = execute("asset_original_after", "original", body,
                             packet(package, member, use_grant, "retest"), retest=True)
-            prior = copy.deepcopy(original); prior["correction"] = correction
+            prior = copy.deepcopy(original)
+            prior["correction"] = correction
             require(after["prior"]["conditions"] == prior
                     and after["retest_of"] == correction["failed_task_id"],
                     "retest prior failure binding mismatch")
@@ -371,7 +375,8 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
         positive = sent_requests["asset_transfer_after"]
         require(api("asset_exact_retry", "POST", "/api/v1/machine/answers", positive)
                 == persisted["asset_transfer_after"][0], "exact retry differs")
-        omitted = copy.deepcopy(positive); omitted.pop("asset_context_grant")
+        omitted = copy.deepcopy(positive)
+        omitted.pop("asset_context_grant")
         api("asset_omission_conflict", "POST", "/api/v1/machine/answers", omitted, expected=(409,))
         if correction:
             retest_body = sent_requests["asset_original_after"]
@@ -381,7 +386,8 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
                                  ("purpose", "purpose", "different-purpose"),
                                  ("operation", "operation", "read_packet"),
                                  ("cross-package", "asset", snapshot(member))):
-            use = consumption(name, package, use_grant); use[field] = bad
+            use = consumption(name, package, use_grant)
+            use[field] = bad
             api("asset_" + name + "_denied", "POST", "/api/v1/machine/answers",
                 answer_request(name, "original", use), expected=(403,))
             checks.append(name + "_denied")
@@ -402,7 +408,7 @@ def run(call, receipt, knowledge_id, human, machine_token, run_root, repo_root):
         if correction:
             api("asset_withdrawn_retest_denied", "POST", "/api/v1/machine/retests",
                 sent_requests["asset_original_after"], expected=(403,))
-        for name, (response, original_readback) in persisted.items():
+        for name, (_response, original_readback) in persisted.items():
             reread = api(name + "_prior_preserved", "GET",
                          "/api/v1/machine/tasks/" + bindings[name]["answer_id"], token=machine_token)
             require(reread == original_readback, "prior answer mutated after negative controls")

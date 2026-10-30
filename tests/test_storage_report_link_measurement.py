@@ -464,3 +464,31 @@ def test_baseline_without_class_proof_cannot_hide_current_budget_debt():
     review = report.growth_review(current, baseline)
     assert review['status'] == 'REVIEW_REQUIRED'
     assert review['new_over_budget_classes'] == ['runs/']
+
+
+@pytest.mark.parametrize("growth,over,expected", [
+    (3 * 1024 ** 3, True, "REVIEW_REQUIRED"),
+    (0, True, "NO_NEW_GROWTH_TRIGGER"),
+    (-1024 ** 3, True, "NO_NEW_GROWTH_TRIGGER"),
+    (2 * 1024 ** 3 - 1, True, "NO_NEW_GROWTH_TRIGGER"),
+    (2 * 1024 ** 3, True, "NO_NEW_GROWTH_TRIGGER"),
+    (2 * 1024 ** 3 + 1, True, "REVIEW_REQUIRED"),
+    (3 * 1024 ** 3, False, "NO_NEW_GROWTH_TRIGGER"),
+])
+def test_over_budget_class_growth_cannot_be_hidden_by_other_class_reduction(growth, over, expected):
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100 * 1024 ** 3, 'out_of_layout': [],
+                'dev_root': [{'name': 'runs/', 'bytes': 40 * 1024 ** 3, 'over_budget': over},
+                             {'name': 'build/', 'bytes': 20 * 1024 ** 3, 'over_budget': False}]}
+    current = {**baseline, 'measurement_status': 'PARTIAL',
+               'readable_bytes': baseline['readable_bytes'] - 1024 ** 3,
+               'dev_root': [{'name': 'runs/', 'bytes': 40 * 1024 ** 3 + growth, 'over_budget': over},
+                            {'name': 'build/', 'bytes': 19 * 1024 ** 3 - growth, 'over_budget': False}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == expected
+    assert review['new_over_budget_classes'] == []
+    assert review['delta_readable_bytes'] == -1024 ** 3
+    assert review['over_budget_class_delta_bytes'] == ({'runs/': growth} if over else {})
+    assert review['growing_over_budget_classes'] == (['runs/'] if expected == 'REVIEW_REQUIRED' else [])
+    assert review['measurement_status'] == 'PARTIAL'
+    assert review['deletion_authorized'] is False

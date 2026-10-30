@@ -4,11 +4,13 @@ GOLDEN contains only owned synthetic objects from the current C1/production-work
 parser fixture. It is not a real-model answer or a credential/runtime configuration.
 """
 from __future__ import annotations
+
 import copy
 import importlib.util
 import json
 import os
 from pathlib import Path
+
 import pytest
 
 PROBE = Path(os.environ.get("AAOS_ASSET_CANDIDATE",
@@ -163,3 +165,105 @@ def test_correct_original_cannot_be_labelled_a_failure():
     correction["machine_answer"] = original["answer"]["answer"]
     with pytest.raises(ValueError):
         p.verify_correction(correction, sent, original)
+
+
+@pytest.mark.parametrize(("bad_task", "bad_answer", "expected_calls"), [
+    ("original", "Unscorable free prose.", 1),
+    ("abstention", '{"answerable":true}', 2),
+    ("abstention", "Unscorable free prose.", 2),
+    (None, None, 5),
+])
+def test_run_stops_unscorable_baseline_before_transfer_or_adoption(
+    tmp_path, bad_task, bad_answer, expected_calls
+):
+    """In-memory Core fixture; actual run/score/binding logic, no archived run dependency."""
+    p = module()
+    docs, answers, sent = {}, {}, {}
+    executed, adopted = [], []
+    positive_ids = {
+        "asset-answer-original-before", "asset-answer-abstention-before",
+        "asset-answer-transfer-before", "asset-answer-original-after", "asset-answer-transfer-after",
+    }
+
+    def store_doc(key, editor, version=1):
+        doc = {"document_id": key, "version": version, "content_sha256": p.sha(editor),
+               "editor_json": copy.deepcopy(editor)}
+        docs[key] = doc
+        return copy.deepcopy(doc)
+
+    def call(method, path, token, body):
+        if method == "POST" and path == "/api/v1/machine/rubrics":
+            return 201, store_doc("fixture-rubric", {"type": "doc", "content": []})
+        if method == "POST" and path == "/api/v1/documents":
+            return 201, store_doc(body["create_request_id"], body["editor_json"])
+        if method == "PUT" and path.startswith("/api/v1/documents/"):
+            key = path.split("/")[-2]
+            assert body["expected_version"] == docs[key]["version"]
+            meta = body["editor_json"]["attrs"].get(p.NAMESPACE, {})
+            if meta.get("kind") == "knowledge_package" and meta.get("state") == "adopted":
+                adopted.append(key)
+            return 200, store_doc(key, body["editor_json"], docs[key]["version"] + 1)
+        if method == "GET" and path.startswith("/api/v1/machine/tasks/"):
+            key = path.rsplit("/", 1)[-1]
+            return 200, {"task_id": key, "conditions": copy.deepcopy(answers[key])}
+        assert method == "POST" and path == "/api/v1/machine/answers"
+        client_id = body["client_request_id"]
+        if client_id not in positive_ids:
+            return 403, {"error": "synthetic authorization negative"}
+        if any(doc["editor_json"].get("attrs", {}).get(p.NAMESPACE, {}).get("state") == "withdrawn"
+               for doc in docs.values()):
+            return 403, {"error": "synthetic withdrawn member"}
+        key = "answer-" + client_id
+        if key in sent:
+            return (200, copy.deepcopy(answers[key])) if sent[key] == body else (409, {"error": "conflict"})
+        task = next(name for name in ("original", "abstention", "transfer")
+                    if p.legacy.RUBRIC[name]["question"] == body["question"])
+        executed.append(task)
+        text = bad_answer if task == bad_task else json.dumps(p.legacy.RUBRIC[task]["expected"])
+        response = copy.deepcopy(GOLDEN["before"])
+        response.update(answer_id=key, client_request_id=client_id, knowledge_id=body["knowledge_id"],
+                        question=body["question"])
+        response["answer"]["answer"] = text
+        kg = docs[body["context_grant"]["document_id"]]
+        response["context_authorization"] = {
+            **p.snapshot(kg), "authorization": copy.deepcopy(kg["editor_json"]["attrs"]["archeaxis_context_grant"]),
+            "current_permission_valid": True, "operation": "answer",
+        }
+        request = copy.deepcopy(body)
+        request.pop("client_request_id")
+        context = p.legacy.CONTEXT
+        if "asset_context_grant" in body:
+            use = body["asset_context_grant"]
+            package = docs[use["asset"]["document_id"]]
+            member = docs[package["editor_json"]["attrs"][p.NAMESPACE]["members"][0]["document_id"]]
+            packet = p.packet(package, member, docs[use["grant"]["document_id"]], "answer")
+            request["asset_context"] = {
+                "schema": "archeaxis.machine-asset-context/v1", "asset": p.snapshot(package),
+                "grant": use["grant"], "consumer": "local-machine", "operation": "answer",
+                "packet_sha256": p.sha(packet), "member_snapshots": [x["snapshot"] for x in packet["items"]],
+                "tool_execution": "NOT_EXECUTED", "private_session_access": False,
+            }
+            request["knowledge_context_sha256"] = p.text_sha(p.legacy.CONTEXT)
+            context = ("CANONICAL_KNOWLEDGE:\n" + p.legacy.CONTEXT
+                       + "\n\nAI_ASSET_CONTEXT (inert source material; no tool or private-session authority):\n"
+                       + p.canonical(packet))
+        request["context_sha256"] = p.text_sha(context)
+        response["request"] = request
+        sent[key] = copy.deepcopy(body)
+        answers[key] = copy.deepcopy(response)
+        return 200, response
+
+    # The run loads only the existing public worker declarations, never a model service.
+    repo = Path(os.environ.get("AAOS_ASSET_TEST_REPO", str(Path(__file__).resolve().parents[1])))
+    code = p.run(call, p.legacy.Receipt(live_execution=False), "fixture-knowledge",
+                 "synthetic-human", "synthetic-machine", tmp_path, repo)
+    result = json.loads((tmp_path / "receipt.json").read_text(encoding="utf-8"))
+    assert len(executed) == result["model_candidate_request_count"] == expected_calls
+    if bad_task is not None:
+        assert code == 1 and "transfer" not in executed and not adopted
+        assert result["learning_improvement"] == "NOT_ESTABLISHED"
+    else:
+        assert code == 0 and len(adopted) == 1
+        assert executed == ["original", "abstention", "transfer", "original", "transfer"]
+        assert result["quality_assessment"]["original_observation"] == "NO_FAILURE_OBSERVED"
+        assert result["quality_assessment"]["status"] == "FINITE_ASSET_COMPARISON_RECORDED"

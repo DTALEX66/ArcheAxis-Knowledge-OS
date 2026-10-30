@@ -1,10 +1,25 @@
 /** Explicit local model loading; never edits provider settings or unloads shared instances. */
 import {readFileSync, mkdirSync, writeFileSync, lstatSync, existsSync} from 'node:fs';
 import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {projectPython, safePath} from './frontend_paths.mjs';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const configPath = path.join(root, 'config/model-profiles/lm-studio.json');
+
+export function receiptPath(operation, projectRoot = root) {
+  if (!['inspect', 'load', 'smoke'].includes(operation)) throw Error('INVALID_ARGUMENT');
+  const code = `import importlib.util, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+spec = importlib.util.spec_from_file_location("lm_profile_dev", root / "scripts/runtime/dev.py")
+runtime = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(runtime)
+print(runtime.artifact_directory(root, "lm-studio-profile"))`;
+  const directory = safePath(execFileSync(projectPython(projectRoot), ['-B', '-X', 'utf8', '-c', code, projectRoot],
+    {cwd: projectRoot, encoding: 'utf8'}).trim());
+  return safePath(path.join(directory, `${operation}.json`));
+}
 
 export function effectiveConfig(config) {
   return Object.fromEntries([
@@ -70,7 +85,7 @@ async function main(args) {
   const quiet = () => {};
   const client = new LMStudioClient({baseUrl: declaration.endpoint, verboseErrorMessages: false,
     logger: {info: quiet, warn: quiet, error: quiet, debug: quiet}});
-  const output = projectLocalPath(`.project-local/runs/lm-studio-profile/${Date.now()}-${operation}.json`);
+  const output = receiptPath(operation);
   const receipt = {schema: 'archeaxis.lm-studio-profile-result/v1', observed_at: new Date().toISOString(),
     operation, profile: profileName, model_key: profile.model_key, identifier: profile.identifier,
     evidence_level: 'REAL_LOCAL_SDK_NOT_APPLICATION_QUALIFICATION', status: 'RUNNING'};

@@ -2884,3 +2884,23 @@ Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-i
 [文字实践记录](../history/teaching-plan-observation-20261031/README.md)补齐既有Observation只能无父项的缺口，现可关联Proposal/Revision；保留知识/课程身份、human写入、append-only、撤回及not_scored。旧Core同输入真实HTTP 422、新实际候选201；未接纳知识的Delivery仍409。当前API9/9、领域20/20、正式offline/locked Core release构建、真实Python3.12后端直备及实际候选22 HTTP均actual/wrapper0/source_consistent=true，绑定71569d17+dirty patch5bbc8d12…，不是新提交clean-SHA构建。实际包内Python/launcher/profile/Core配独立合成DB，五记录重启精确、四记录撤回保全、late409、learning/assessment0；模型/worker/外部工具任务0。两个自有Core terminate/reap exit1且端口关闭，不称优雅退出。UI消费者、完整实践状态、独立掌握、完整R6/CL/F05及安装/Owner仍未建立，原真实模型FAIL不替换。
 
 [实际runtime后继](../history/storage-cleanup/2026-10-31-backend-runtime-in-place/ACTUAL-PREPARATION.md)完成107锁依赖离线安装、单wheel构建/安装及隔离import；最终16947声明成员加manifest共839558775逻辑B，只有1份最终runtime/0份中间树。ASR四成员147882941B按显式供体核SHA后BUNDLED，不等于推理。调用者仅对子进程移除Cargo目标环境，复用既有backend-only缓存清理早返回；原CI路径不改，8个Tauri对象顶层身份前后不变，不声称所有后代独立重核。obspre1→obspost1全项目前/后测可读下界141985368043→142856788334B，区间+871420291B；PARTIAL/原退出1、674元数据错误/231私有排除/581布局债务保留，无新越线或散落信号，不是全仓PASS或回收字节。新增用途/输入/复用/保留条件已先记计划与intent，0删除/ACL/Green/真实数据改写。root obsrev1精确核源、终态收据、四关键成员及F03九输入，未重hash整runtime；本轮文档发布后的最终规范检查按obsfin2原收据读取，不迁移旧运行资格。
+
+#### 2026-10-31 Staged routes探针生成落点与缓存筛选
+
+[正式探针维护](../history/storage-cleanup/2026-10-31-staged-route-probe/README.md)消除固定runs/staged-routes及启动递归删旧树，改用现有dev的当前run/artifacts/staged-routes/UUID；workers复制排除Python缓存。旧函数反例exit1、候选exit0原证据保留；部署后nrm-route2真实import正式完整模块，2/2/actual与wrapper0/source_consistent=true，真实allocator/main启动前trap及实际copytree筛选通过，copy2仅对Core/解释器mock，stager.present_routes不替换。nrm-rlint1最小Ruff0，源码7080d4c7…，head33ccac5a+dirty patch8f3fda46…；后继归档发布不移绑旧收据。未验证完整probe/近期调用或runtime新资格，无Core/API/job/model/构建、0迁移/删除/回收；旧49项0项获得清理资格及PARTIAL不变。
+
+### 2026-10-31 旧超预算类别增长抵消漏报
+
+已有超预算类别增长可被其他类别减少抵消，先前只看总量与新越线会漏报。已按既有严格大于2GiB阈值单列当前超预算类别增量；持平/下降/恰阈值及underbudget对照不额外触发。`nrm-grow4`正式35通过；既有三项lint失败保留，微修后`nrm-lint3`通过，`nrm-grow5`35通过及`nrm-route3`2/2通过，actual/wrapper0且源码一致。[证据与原失败](../history/storage-cleanup/2026-10-31-over-budget-class-growth/README.md)保留原PARTIAL基线；GiB反例仅内存构造，没有实际新增GiB、清理或全仓重测，49项仍0获清理资格。
+
+### 2026-10-31 LM Studio profile收据归位
+
+49项固定清单的唯一当前完整字面量producer已将未来收据改由既有Node路径助手及正式dev分配器生成canonical worktree/run/artifacts/UUID目录。root部署补UTF8与测试env缺省恢复；`nrm-lmp2`原4合成策略+新3路径测试7通过、actual/wrapper0、源码一致。未执行main/SDK/client/真实模型、未改provider/profile/加载卸载策略，旧49仍0获清理资格。[证据](../history/storage-cleanup/2026-10-31-lm-profile-routing/README.md)。
+
+### 2026-10-31 同bpr1四格式分段恢复
+
+`fmt1`完成4真实Office/PDF worker、1坏DOCX失败保全、8定位/8checksum负控、4笔记版本/冲突/导出，但严格连接观测FAIL；`fmtc1`冷启读回及Core verified备份380928B成功，进程对象消失断言过严仍FAIL；`fmtr1`复用该备份仅维护恢复及独立读回，actual/wrapper0/source_consistent=true。三阶段复用同包，非一跑全旅程PASS；原FAIL不改。后继守卫区分Windows已终止但暂存的对象、owned reap、精确noLISTEN与socket pending，不冒称拒连/graceful/全机清场。[身份与完整边界](../history/bpr1-format-recovery-20261031/README.md)；完整J1/CL、OCR/ASR、UI/安装仍未资格化。
+
+### 2026-10-31 F05真实首答未评分，固定量规早停
+
+正式探针补提前停止，`bkr-stop2`123通过、`bkr-sl2`Ruff0。`bkr-ar1`是入口负控断言错误，0Core/HTTP/model；v4纯preflight0且主程序未执行。`bkr-ar2`实际包/生产worker在合成库仅1正向HTTP200（7.891s，output497，finishstop），返回fenced JSON不满足冻结纯JSON量规，REVIEW_REQUIRED后立即停止，actual adapter/entry/wrapper均1且源码一致。候选包负控403；前置rule成员采用及候选包准备不等于package干预采用/使用；packet=null/members=[]，拒答、迁移前后、纠正复测未执行。原real1的NO_FINAL_ANSWER及两次入口/风格失败保留；不去围栏重评分、不调参重试、不宣称学习改善，F05仍PARTIAL。[全部身份与证据](../history/asset-scoped-real-model-20261031/README.md)。

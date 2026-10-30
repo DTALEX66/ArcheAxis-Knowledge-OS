@@ -31,3 +31,5 @@ Owner 追加要求将 `AAOS_外部实践边界纠偏_前端与本地Codex_R6_202
 [186项后端承接与证据](BACKEND-BINDING-6d556c48.md)定位到固定6d556c48源码：65已有有限实现、84部分承接、18设计或缺口、19具名未来/外部未实现。它是既有任务静态审计附录，不是新队列或能力PASS，不自行延期required。51行选定共享操作缺第二产品前端消费者，不要求为凑数重复建设UI。原186/22输入不改；实际运行、F05及最新失败仍只查唯一执行记录。
 
 后继运行历史导航：[文字实践与计划版本](../../../docs/history/teaching-plan-observation-20261031/README.md)、[实际后端直备与计量](../../../docs/history/storage-cleanup/2026-10-31-backend-runtime-in-place/ACTUAL-PREPARATION.md)。这些记录各保留原源码身份；本页不另维护当前进度。
+
+后继有限验证导航：[同包四格式分段恢复](../../../docs/history/bpr1-format-recovery-20261031/README.md)、[F05真实首答未评分与早停](../../../docs/history/asset-scoped-real-model-20261031/README.md)。两者分别保留原FAIL、源码与适用边界，不重签R6 E01—E10或完整闭环。

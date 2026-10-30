@@ -143,7 +143,7 @@ def directory_measurement(path: Path) -> dict:
     result = {"bytes": 0, "files": 0, "errors": [], "excluded_private": [], "links": []}
     parts = tuple(part.casefold() for part in path.parts)
     if (any(protected_name(part) for part in parts)
-            or any(a == ".project-local" and b == "agents" for a, b in zip(parts, parts[1:]))):
+            or any(a == ".project-local" and b == "agents" for a, b in zip(parts, parts[1:], strict=False))):
         result["excluded_private"].append(str(path))
         return result
     try:
@@ -542,10 +542,9 @@ def print_report(report: dict) -> None:
 
 def growth_review(report: dict, baseline: dict | None = None) -> dict:
     """Review signals only. Private exclusions and old budget debt never become a PASS."""
-    if baseline is not None:
-        if (baseline.get("schema") != "aaos.storage-footprint/v2" or
-                baseline.get("repository") != report.get("repository")):
-            raise ValueError("baseline must be a v2 snapshot of the same repository")
+    if baseline is not None and (baseline.get("schema") != "aaos.storage-footprint/v2" or
+                                 baseline.get("repository") != report.get("repository")):
+        raise ValueError("baseline must be a v2 snapshot of the same repository")
     delta = None if baseline is None else report["readable_bytes"] - baseline["readable_bytes"]
     old_layout = set() if baseline is None else set(baseline.get("out_of_layout", []))
     new_layout = sorted(set(report["out_of_layout"]) - old_layout)
@@ -556,11 +555,22 @@ def growth_review(report: dict, baseline: dict | None = None) -> dict:
     new_over = sorted(set(over) - old_over)
     # A frozen baseline acknowledges old retention debt, not newly exceeded ceilings.
     growth_limit = 2 * 1024 ** 3
-    required = bool(new_layout or new_over or
+    old_sizes = {} if baseline is None else {
+        row["name"]: row["bytes"] for row in baseline.get("dev_root", []) if "bytes" in row
+    }
+    class_deltas = {
+        row["name"]: row["bytes"] - old_sizes[row["name"]]
+        for row in report["dev_root"]
+        if row["over_budget"] and "bytes" in row and row["name"] in old_sizes
+    }
+    growing_over = sorted(name for name, size in class_deltas.items() if size > growth_limit)
+    required = bool(new_layout or new_over or growing_over or
                     (delta is not None and delta > growth_limit))
     return {"status": "REVIEW_REQUIRED" if required else "NO_NEW_GROWTH_TRIGGER",
             "delta_readable_bytes": delta, "growth_review_bytes": growth_limit,
             "over_budget_classes": over, "new_over_budget_classes": new_over,
+            "over_budget_class_delta_bytes": class_deltas,
+            "growing_over_budget_classes": growing_over,
             "new_out_of_layout": new_layout,
             "measurement_status": report["measurement_status"], "deletion_authorized": False}
 
