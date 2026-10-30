@@ -2875,3 +2875,12 @@ R6一致性确认后，按原Owner精确清理授权部署126公开重复素材�
 真实uv/wheel构建/依赖安装/下载、应用构建、VM与模型本轮均0；没有当前磁盘节省字节或生产包资格。旧中间载荷未删除，其他native生产者、完整打包/安装和F05/CL/J仍按原未验边界接续；本批仅本地源码及轻量历史归档，不上传、不恢复UI/监控、不替换Green或覆盖真实资料。
 
 Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-in-place/ROOT-VERIFICATION.json)：fin4文档authority、路径、Git index规范、架构、Core DTO再生字节相等、能力投影Python/Node、Cargo fmt、bridge rustfmt与既有Ruff最小门槛共10项退出0，actual/wrapper0/source_consistent=true，绑定e792dadc+dirty patch bd4cb8b3…；21份实现/合同/测试实际字节SHA另列。该轻量收尾记录及本句在fin4之后发布，未改实现，不称clean commit或全部严格lint通过。root对两批精确manifest分别核53/36身份，原spr-pa1总FAIL保留；两轮元数据、报告、源码与轻量收据核验不扩成全仓扫描、载荷迁移/删除或产品验收。完整目标仍PARTIAL。
+
+#### 2026-10-31 F03最终交付冻结摘要补齐
+
+[最终冻结快照](../../workspace/intake/20261030-zcode-backend-closure/FINAL-SNAPSHOT-1e78ab93.md)将ZCODE截止1e78ab93的21提交/68路径与初轮六提交分开，按真实收据调和C1已staging/NSIS/生命周期、后继安装态冲突子集、42步真实公开网络及具名lint清理的旧“未做”措辞。f03a仅核9份精确输入/收据、Git范围和组件交叉身份，actual/wrapper0/source_consistent=true；原报告与非法JSON按历史Git身份核不变，不重hash全部安装载荷、不启动模型/程序/VM。F03历史摘要可消费性已补，不提升旧C1到当前构建；F01历史豁免未核、F04原0环境/1进程与清场status冲突及F05质量缺口明确保留。该截止摘要不维护第二当前状态，完整目标仍PARTIAL。
+#### 2026-10-31 R6文字观察关联计划与实际离线后端资格
+
+[文字实践记录](../history/teaching-plan-observation-20261031/README.md)补齐既有Observation只能无父项的缺口，现可关联Proposal/Revision；保留知识/课程身份、human写入、append-only、撤回及not_scored。旧Core同输入真实HTTP 422、新实际候选201；未接纳知识的Delivery仍409。当前API9/9、领域20/20、正式offline/locked Core release构建、真实Python3.12后端直备及实际候选22 HTTP均actual/wrapper0/source_consistent=true，绑定71569d17+dirty patch5bbc8d12…，不是新提交clean-SHA构建。实际包内Python/launcher/profile/Core配独立合成DB，五记录重启精确、四记录撤回保全、late409、learning/assessment0；模型/worker/外部工具任务0。两个自有Core terminate/reap exit1且端口关闭，不称优雅退出。UI消费者、完整实践状态、独立掌握、完整R6/CL/F05及安装/Owner仍未建立，原真实模型FAIL不替换。
+
+[实际runtime后继](../history/storage-cleanup/2026-10-31-backend-runtime-in-place/ACTUAL-PREPARATION.md)完成107锁依赖离线安装、单wheel构建/安装及隔离import；最终16947声明成员加manifest共839558775逻辑B，只有1份最终runtime/0份中间树。ASR四成员147882941B按显式供体核SHA后BUNDLED，不等于推理。调用者仅对子进程移除Cargo目标环境，复用既有backend-only缓存清理早返回；原CI路径不改，8个Tauri对象顶层身份前后不变，不声称所有后代独立重核。obspre1→obspost1全项目前/后测可读下界141985368043→142856788334B，区间+871420291B；PARTIAL/原退出1、674元数据错误/231私有排除/581布局债务保留，无新越线或散落信号，不是全仓PASS或回收字节。新增用途/输入/复用/保留条件已先记计划与intent，0删除/ACL/Green/真实数据改写。root obsrev1精确核源、终态收据、四关键成员及F03九输入，未重hash整runtime；本轮文档发布后的最终规范检查按obsfin2原收据读取，不迁移旧运行资格。

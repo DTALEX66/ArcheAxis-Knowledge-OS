@@ -10,6 +10,7 @@ Owner 2026-10-30 要求：“统一归档都本项目仓库里，加入到后端
 - [内嵌 186 项 CSV](AAOS_186项双系统能力归位_20261030_R2.csv)：从内嵌 Base64 原字节提取；186 行原 14 字段、2604 个值与本地冻结输入逐项一致，新增 6 个解释字段。该核验不证明全部分类或实现正确。
 - [Codex 后端独立审计](local-audit/审计报告.md)与[机器结果](local-audit/audit-result.json)：保全既有审计目录的全部 10 份报告、结果及复现脚本。原运行目录保留；报告中仓库相对路径仍以项目根为基准，归档脚本不在新位置直接执行。
 - [原 ZCODE 报告](../20261030-zcode-backend-closure/ZCODE-完成报告.md)和[原独立审计清单](../20261029-stitch-zcode-handoff/ZCODE-仅本地/03-Codex独立审计清单.md)已经位于本仓库，继续引用原路径。
+- [截至1e78ab93的最终冻结快照](../20261030-zcode-backend-closure/FINAL-SNAPSHOT-1e78ab93.md)调和原报告各轮staging、安装、冲突、检索及lint的历史状态；保留F01/F04/F05和原件字节，不作为当前进度或新产品资格。
 - [MANIFEST.json](MANIFEST.json)记录 12 个归档文件的来源、大小及 SHA-256。大型原始证据仍保存在项目 ignored `.project-local/`，不复制进 Git。
 
 - [严格 JSON 历史后继索引](../20261030-zcode-backend-closure/evidence-index.successor.json)：保留原索引及历史状态原文，补合法机器入口；引用可达性、大小与哈希分别记账，缺失／未知／私有／外部项不算通过。当前状态仍只读唯一执行记录。
