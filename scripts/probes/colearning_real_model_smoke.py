@@ -469,6 +469,10 @@ def main() -> int:
                          {"action": "accepted", "reviewer": "owner"})
         receipt.stage("accept_knowledge", status=status)
 
+        if "--asset-scoped" in sys.argv[2:]:
+            adapter = _load("asset_scoped_journey", Path(__file__).with_name("colearning_asset_scoped_smoke.py"))
+            return adapter.run(call, receipt, knowledge_id, human, machine_token, RUN, REPO)
+
         # 3. The real model answers the answerable question.
         status, answered = call("POST", "/api/v1/machine/answers", human,
                                 {"knowledge_id": knowledge_id, "question": QUESTION,
