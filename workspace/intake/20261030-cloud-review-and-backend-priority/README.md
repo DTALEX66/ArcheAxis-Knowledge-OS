@@ -12,6 +12,8 @@ Owner 2026-10-30 要求：“统一归档都本项目仓库里，加入到后端
 - [原 ZCODE 报告](../20261030-zcode-backend-closure/ZCODE-完成报告.md)和[原独立审计清单](../20261029-stitch-zcode-handoff/ZCODE-仅本地/03-Codex独立审计清单.md)已经位于本仓库，继续引用原路径。
 - [MANIFEST.json](MANIFEST.json)记录 12 个归档文件的来源、大小及 SHA-256。大型原始证据仍保存在项目 ignored `.project-local/`，不复制进 Git。
 
+- [严格 JSON 历史后继索引](../20261030-zcode-backend-closure/evidence-index.successor.json)：保留原索引及历史状态原文，补合法机器入口；引用可达性、大小与哈希分别记账，缺失／未知／私有／外部项不算通过。当前状态仍只读唯一执行记录。
+
 ## R2 的本地复核
 
 总体认同：通用知识基础与 Human–AI 双向学习是两个核心；人类侧、AI 侧各有过程，共享对象、版本、关系和权限。普通保存不增加联网或人工审批前置；外部原始 Agent 上下文仍按现行边界连接，不建设第二正典库。

@@ -1,0 +1,1585 @@
+{
+  "schema": "aaos.zcode-evidence-index-successor/v1",
+  "status": "FROZEN_HISTORICAL_SUCCESSOR_INDEX",
+  "source_commit_observed": "1363d883f51c7cbaa1bbf615b0c463053c4ddb12",
+  "original_index": {
+    "path": "workspace/intake/20261030-zcode-backend-closure/evidence-index.json",
+    "bytes": 33490,
+    "sha256": "80a37096f2f054e0d3d486b2f914c3c18e4588dccb8d5b36dbda3d1f3585a74b"
+  },
+  "original_parse_failure": {
+    "message": "Invalid \\escape",
+    "line": 82,
+    "column": 47,
+    "offset": 10065
+  },
+  "recovery": "Exactly one backslash inserted at the recorded invalid escape, decoded with duplicate-key/nonfinite rejection, serialized normally. Historical source bytes unchanged.",
+  "historical_delivery_not_current_state": {
+    "schema": "archeaxis.zcode-backend-closure-evidence/v1",
+    "date": "2026-10-30",
+    "executor": "ZCODE session (cloud model GLM-5.3-Flash; model-mode deviation from handoff section 0.3 waived by Owner instruction 2026-10-30, registered here and in the sole execution record)",
+    "branch": "codex/local-backend-closure-20261029",
+    "baseline_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+    "commits_created": [
+      {
+        "sha": "7c9c95ba",
+        "subject": "Share validation and cancellation policy across backend domains",
+        "files": 11
+      },
+      {
+        "sha": "c09c7d20",
+        "subject": "Export edited canvas documents preserving structure and current text",
+        "files": 5
+      },
+      {
+        "sha": "3d8acb0b",
+        "subject": "Pin local packaging identity and app-local C++ runtime staging",
+        "files": 19
+      },
+      {
+        "sha": "5957abce",
+        "subject": "Add light brand mark asset",
+        "files": 1
+      },
+      {
+        "sha": "b2839075",
+        "subject": "Record 20261029 handoff materials and progress documentation",
+        "files": 17
+      },
+      {
+        "sha": "35e0854e",
+        "subject": "Ignore mimosa agent state and record local backend closure round",
+        "files": 4
+      }
+    ],
+    "test_time_identity": {
+      "rust_and_python_suites": {
+        "head": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "dirty_patch_sha256": "e885d1306c6e5da97914dc0fbff537dc444861dc666b0c93d20a417e8b5ef03a"
+      },
+      "core_release_build": {
+        "head": "b28390759da7d65606fb478126bf9a843cf407e9",
+        "dirty_patch_sha256": "81d472165a6c6f854d5db05f36dc4d62dbbf5b11497fb1f3bec6b7f6b75da13b",
+        "note": "the only dirty file at build time was .gitignore (mimosa line); committed content of tested paths is byte-identical across both identities"
+      }
+    },
+    "verification_runs_20261030": {
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33",
+      "all_status": "LOCAL_PASS source_consistent=true child_exit_code=0",
+      "runs": [
+        {
+          "run": "zcode-final-domain-20261030",
+          "tests": 19,
+          "suites": [
+            "object_reference(2)",
+            "relation_projection(9)",
+            "research_metadata(4)",
+            "template_lifecycle(4)"
+          ],
+          "execution_sha256": "50f5409d4457cd458e8a3b13fc1f7973d45e087ea25f41c6d0db320a0455e223"
+        },
+        {
+          "run": "zcode-final-api-20261030",
+          "tests": 50,
+          "suites": [
+            "contract_capability_registry(16)",
+            "conversation_api(8)",
+            "material_question_api(16)",
+            "public_research_api(6)",
+            "template_lifecycle(4)"
+          ],
+          "execution_sha256": "3dcd23d731b9c5f4a3673c813b89ff19d0bf2a886cfa1ef364943aab6bab9772"
+        },
+        {
+          "run": "zcode-final-cancel-20261030",
+          "tests": 5,
+          "suites": [
+            "machine_cancel_registry_tests(5)"
+          ],
+          "execution_sha256": "f045ddd0a999d2900b546f70bfde8fea9bf3c91d681b3d3aa897f888a852a85f"
+        },
+        {
+          "run": "zcode-final-journal-20261030",
+          "tests": 20,
+          "suites": [
+            "contract_machine_answer(20)"
+          ],
+          "execution_sha256": "fe4d12f471e2069fa45ac54ef0b3e4d62985af6c8175a7018821ec04ed91e146"
+        },
+        {
+          "run": "zcode-final-canvas-domain-20261030",
+          "tests": 3,
+          "suites": [
+            "canvas_export unit tests(3)"
+          ],
+          "execution_sha256": "79a4564f25e65ce9ad6e50c1134684599170b9f71e48859f8f0b8ed34c120e40"
+        },
+        {
+          "run": "zcode-final-canvas-api-20261030",
+          "tests": 2,
+          "suites": [
+            "document_canvas_export(2)"
+          ],
+          "execution_sha256": "6837f018003979f512ef9cadefe16ce4262468a4f35447087b236218434d2a30"
+        },
+        {
+          "run": "zcode-final-py-targeted-20261030",
+          "tests": 412,
+          "result": "411 passed, 1 skipped",
+          "files": [
+            "test_backend_runtime_safety.py",
+            "test_desktop_staging.py",
+            "test_release_manifest.py",
+            "test_stage_backend_runtime_routes.py",
+            "test_tauri_shell_authority.py",
+            "test_native_navigation_entry.py",
+            "test_grouped_native_owner_probe.py",
+            "test_app_local_cpp_runtime.py",
+            "test_local_pinned_packaging.py",
+            "test_local_pinned_installer_identity.py"
+          ],
+          "execution_sha256": "c6a924462a4c9cfe18d32d1a075c3b132e2f8aa04f8a1833fcecc3080b190153"
+        },
+        {
+          "run": "zcode-final-clippy-scope-20261030",
+          "command": "cargo clippy -p archeaxis-domain -p archeaxis-api --all-targets --offline --locked",
+          "result": "pass with 8 retained pre-existing warnings in scope",
+          "execution_sha256": "2772bfabf2975b2fefd15a250fdf87959abb88264a13e2244f3a8e5ff45b5931"
+        },
+        {
+          "run": "zcode-final-corebuild-20261030-v3",
+          "command": "scripts\\ci\\cargo_test.bat build --release --locked --offline -p archeaxis-api (canonical, --qualify-core-build)",
+          "core_build": {
+            "path": ".project-local\\build\\cargo\\release\\archeaxis-api.exe",
+            "bytes": 19181056,
+            "sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b"
+          },
+          "execution_sha256": "a8480168dd4364fbce5914f04819eb1d7fe8213349fd8db9ae03a4c2486813dc"
+        }
+      ],
+      "failed_or_discarded_runs_retained": [
+        {
+          "run": "zcode-baseline-py-targeted-20261030",
+          "status": "INVALIDATED (exit 3)",
+          "child_result": "411 passed, 1 skipped",
+          "cause": ".mimosa/hook-state written during run changed worktree identity; fixed by .gitignore entry; run retained as evidence of the mechanism"
+        },
+        {
+          "run": "zcode-baseline-domain-20261030 / zcode-baseline-api-20261030",
+          "status": "cmd.exe opened interactively",
+          "cause": "MSYS path conversion turned cmd /d /c into paths; re-run with MSYS_NO_PATHCONV=1; retained"
+        }
+      ],
+      "fmt": {
+        "command": "cargo fmt --check -p archeaxis-domain -p archeaxis-api",
+        "before": "2 files needed formatting (capabilities.rs:295, relation_projection.rs:160)",
+        "after": "clean; applied via cargo fmt on those crates only"
+      },
+      "clippy_out_of_scope": {
+        "command": "cargo clippy --all-targets -D warnings on full dependency path",
+        "result": "exit 101: 2 pre-existing lints in archeaxis-store-sqlite (raw_objects.rs:165 unneeded unit expression; writer.rs:57 collapsible if)",
+        "decision": "not fixed tonight to avoid unrelated-module churn; retained as named debt for audit/next round"
+      }
+    },
+    "historical_evidence_cited_not_rebound": {
+      "backend_merge_94_tests": ".project-local/runs/be268a2d33/backend-merge-api-final-20261029/artifacts/backend-consolidation-receipt.json",
+      "retest_503_fail_retained": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v2/artifacts/core-fast-dual-loop.json",
+      "retest_reissue_pass": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v3/artifacts/core-fast-dual-loop.json",
+      "j2_public_research_real_channel": ".project-local/runs/be268a2d33/c453-j2-public/artifacts/public-research-receipt.json (PARTIAL, evidence_level REAL_CORE_PUBLIC_NETWORK, 42 steps)",
+      "j2_learning": ".project-local/runs/be268a2d33/c453-j2-learning/artifacts/research-learning-runtime.json (PASS_DECLARED_INTEGRATED_SUBSET)",
+      "collection_canvas_roundtrip": ".project-local/runs/be268a2d33/c453-collection-canvas-20261029/artifacts/collection-canvas-receipt.json (PASS_SYNTHETIC_COLLECTION_RAW_CANVAS_SUBSET)",
+      "durable_batch": ".project-local/runs/be268a2d33/c453-durable-batch-backend-20261029/artifacts/durable-batch-receipt.json (PASS_FINITE_FORMAL_DURABLE_BATCH_CORE_SUBSET)",
+      "cancel_boundary_real_core": ".project-local/runs/be268a2d33/c453-core-cancel-boundary-20261029-v3/artifacts/core-cancel-boundary.json (PASS_SYNTHETIC_CORE_MATERIAL_SUBSET)",
+      "unknown_recovery_retained": ".project-local/runs/be268a2d33/c453-fast-unknown-recovery-20261028-v2/artifacts/recovery-receipt.json (PASS_UNKNOWN_RETAINED_NO_LOCAL_REPLAY_OBSERVED)",
+      "installed_lifecycle_and_pdf": "v6/v7 closeouts: backend-feasibility-closeout-20261029-v6/-v7 artifacts; cppinst1 lifecycle-receipt (complete_lifecycle_verified=true); cpppdfexec1 installed-pdf-receipt (PASS_INSTALLED_PDF_IMPORT_CORE_RESTART_EXPORT_RESTORE_SUBSET)",
+      "external_resources_index": "config/environment/external-resources-index.json (probed 2026-10-25; RESULT_VERIFIED 4, VERSION_PROBED 16, FILE_EXISTS 9, NOT_RUN 1, unavailable 1)"
+    },
+    "newcore_candidate_campaign_20261030": {
+      "summary": "qualified Core build staged, mixed candidate assembled, five-leg same-candidate receipt chain rebuilt on the NEW Core",
+      "staged_backend_r2": {
+        "run": "zcode-stage-newcore-20261030",
+        "tool": "scripts/release/stage_backend_runtime.py (canonical args: version 0.6.15, source b2839075 + tree a502f9d2)",
+        "members": 19744,
+        "manifest_sha256": "440e9084240f283071304e0d85dfef0e51b7dbc49e93955bb6b1536fde4c6d8b",
+        "core": ".project-local/build/cargo/release/archeaxis-api.exe (b6f5b591...)"
+      },
+      "mixed_candidate_c1": {
+        "run": "zcode-assemble-c1-20261030-v8",
+        "assembler": ".project-local/zcode-newcore-20261030/assemble_mixed_candidate_v1.py (byte-exact copy + per-file hash verify + pinned host donor; refuses on any mismatch)",
+        "members": 19746,
+        "components": {
+          "core": "b6f5b591... (new, current source)",
+          "host": "ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145 (historical Tauri host, donor-pinned, cross-checked c453portable1 == cppcand1)",
+          "runtime_workers": "staged from cppdon1 donor + current services/python-workers (unchanged since c453)"
+        },
+        "receipt": "c1/mixed-candidate-assembly.json",
+        "not_claims": [
+          "not one whole fresh build",
+          "no installer",
+          "no installed qualification"
+        ]
+      },
+      "chain_on_c1": [
+        {
+          "leg": "j2-public (REAL network, quantum computing)",
+          "run": "zcode-c1-j2-public-20261030",
+          "result": "PARTIAL REAL_CORE_PUBLIC_NETWORK, 42 steps, three channels"
+        },
+        {
+          "leg": "common formats",
+          "run": "zcode-c1-formats-20261030 -> e22d9b5d4937/artifacts/common-formats.json",
+          "result": "ok=true source_consistent=true"
+        },
+        {
+          "leg": "research-learning",
+          "run": "zcode-c1-learning-20261030",
+          "result": "PASS_DECLARED_INTEGRATED_SUBSET, 108 requests"
+        },
+        {
+          "leg": "j5 template same-workspace",
+          "run": "zcode-c1-j5-template-20261030",
+          "result": "PASS_FINITE_T3_SAME_CANDIDATE_WORKSPACE, 58 requests"
+        },
+        {
+          "leg": "REAL_MODEL colearning smoke",
+          "run": "zcode-c1-colearning-smoke-20261030-v2",
+          "result": "REAL_MODEL complete chain (answer 200 finish_reason=stop 9.18s qwen3.5-4b -> out-of-scope -> correction -> retest), failed_stage=null; required probe timeout fix committed as 1d10938b"
+        }
+      ],
+      "r2_preliminary_runs_superseded_by_c1_chain": [
+        "zcode-j2-public-newcore-20261030",
+        "zcode-formats-newcore-20261030 (receipt b35b724654e9)"
+      ],
+      "long_path_lesson": "assembly required \\?\\ extended paths for both enumeration and hashing beyond 260 chars (litellm site-packages depth); fixed in assembler v1",
+      "still_not_done": [
+        "NSIS installer for the new Core (v7 bundle chain pins cppcand1 identity; needs its own request chain)",
+        "installed-state ordinary/conflict/AI journeys in sandbox",
+        "cross-version upgrade/rollback (old installer 53a83f20... -> new candidate)"
+      ]
+    },
+    "nsis_installer_20261030": {
+      "summary": "new-Core NSIS installer produced through a C1-specific packaging chain reusing repo lp/rr machinery",
+      "chain": [
+        {
+          "step": "candidate-manifest",
+          "run": "zcode-c1-manifest-20261030",
+          "result": "19747 members, manifest sha ad855a9a4d12b95b47ab18f689ddc20af1b1f99a30dd1928698bf21fad0d8017"
+        },
+        {
+          "step": "consumers re-verified",
+          "run": "zcode-c1-consumers-20261030",
+          "result": "EXACT_EXISTING_BUNDLE_CONSUMERS_VERIFIED (cross-checked vs lpns3 baseline)"
+        },
+        {
+          "step": "preflight qualify",
+          "run": "zcode-c1-nsis-preflight-20261030-v3",
+          "result": "PREFLIGHT_ONLY members=19747 (full request chain: candidate manifest, mixed-assembly, host donor pin, stage receipt, core build receipt, host build receipt, consumers)"
+        },
+        {
+          "step": "bundle execute (failed, retained)",
+          "run": "zcode-c1-nsis-20261030",
+          "result": "FAIL at BUNDLE: makensis could not open litellm deep path beyond MAX_PATH (longer run name than v7)"
+        },
+        {
+          "step": "bundle execute",
+          "run": "zc1n",
+          "result": "LOCAL_MIXED_CORE_PACKAGING_PASS COMPLETE"
+        }
+      ],
+      "adapter": ".project-local/zcode-newcore-20261030/bundle-mixed-v6.py (adapted from v5; correction delta pins replaced by mixed-candidate qualification; no pdf_validation precondition - install-state PDF is exercised directly by the next sandbox round)",
+      "request": ".project-local/zcode-newcore-20261030/bundle-request-c1.json (sha256 2bf45cd755559aebde7cd69e8bfd68b504365032ad98eee211c6bedcf224c4e7)",
+      "identity": ".project-local/runs/be268a2d33/zc1n/artifacts/p/mixed-core-identity.json (PINNED_MIXED_INPUTS_VERIFIED, installed_qualification NOT_RUN, ci NOT_CLAIMED)",
+      "installer": {
+        "path": ".project-local/runs/be268a2d33/zc1n/artifacts/p/target/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+        "bytes": 424441075,
+        "sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b",
+        "version_label": "0.6.14 (frozen tauri config version; backend manifest declares 0.6.15 staging version)"
+      },
+      "not_claims": [
+        "not installed",
+        "no sandbox run yet",
+        "no CI",
+        "no release",
+        "no Green write"
+      ]
+    },
+    "installed_state_blockers_named": [
+      {
+        "id": "sandbox-drivers-pinned-to-old-identity",
+        "detail": "stage-correction-sandbox-v3.py hard-pins cppinst1 RUN, old CORE sha 40b56362..., old bundler sha and fixed PREP dir; running C1 install needs a staged variant with the new pins (installer 3337fce6..., mixed-core-identity, same guest lifecycle scripts)"
+      },
+      {
+        "id": "installed-ai-journey-model-binding",
+        "detail": "host LM Studio serves on 127.0.0.1 only; a Windows Sandbox guest cannot reach it, and changing the listen address is a host model-config change outside tonight's boundaries - this is why v7 installed journeys never ran AI either"
+      },
+      {
+        "id": "cross-version-requires-version-decision",
+        "detail": "installer version label comes from frozen tauri.conf.json (0.6.14); a true cross-version upgrade/rollback needs a version bump decision or commit, otherwise it repeats the proven same-version reinstall path"
+      }
+    ],
+    "sandbox_next_session_workplan": {
+      "summary": "exact pin-diff map so the C1 install-lifecycle variant is mechanical, not exploratory",
+      "to_adapt": {
+        "driver": "stage-correction-sandbox-v3.py -> variant with RUN=zc1i, packaging schema aaos.mixed-core-packaging/v1, status LOCAL_MIXED_CORE_PACKAGING_PASS, identity file mixed-core-identity.json, bundler sha = sha256(bundle-mixed-v6.py), installer sha 3337fce6...",
+        "proof_review": "verify-real-packaging-proof-v2.ps1 + verify-runtime-correction-v2.proposed.ps1 expect correction schema, declared_installed_members=19746 and proof_sidecars=11; C1 has 19747 members and 8 sidecars -> a C1 verifier variant must be generated and sha-pinned by the driver",
+        "guest_substitutions": "guest-local-pinned-lifecycle.ps1 exact anchors: identity receipt sha, installer sha 24839e3c... -> 3337fce6..., backend sha dbdade71... -> 440e9084..., scope string",
+        "launch_stop": "launcher.v3.ps1 / stopper.v3.ps1 in .project-local/local-pinned-sandbox-20261029 are reusable unchanged (sha-pinned); wsb template tokens unchanged; launch is a separate step after staging, then bind/stop via official stopper"
+      },
+      "order": [
+        "stage C1 install-lifecycle variant",
+        "launch wsb (Windows Sandbox available on this host per v7)",
+        "read back lifecycle receipt (install/start/close/force-cleanup/reinstall/uninstall-preserve/reinstall-readback)",
+        "ordinary+conflict journeys via guest probe inputs (installed PDF path; PDF deps now stage-corrected)",
+        "AI journey BLOCKED on host model binding",
+        "cross-version BLOCKED on version decision"
+      ]
+    },
+    "installed_lifecycle_20261030": {
+      "summary": "new-Core install lifecycle executed in Windows Sandbox on the staged C1 chain; complete_lifecycle_verified=true",
+      "c1_verifier": {
+        "path": ".project-local/zcode-newcore-20261030/verify-mixed-core-c1-v1.proposed.ps1",
+        "sha256": "b5e6b9272c4753979cc9cbcb354aaddb8f36d022c0bb2828688346dae349fc03",
+        "built_by": "build-c1-verifier.py (exact-substitution build from the reviewed v2 verifier; every anchor asserted unique; old-identity tokens asserted absent)",
+        "changes": "packaging-identity validation re-targeted to the mixed-core chain (8 sidecars, core-build receipt binding, host donor pin, no msvcp140 delta, no pdf-validation precondition, no portable.flag); lifecycle machinery reused unchanged; mode strings renamed to mixed-core with parameter/function names kept for reviewability"
+      },
+      "host_proof_review": {
+        "run": "zc1r-v9",
+        "driver": ".project-local/zcode-newcore-20261030/verify-real-mixed-core-proof-v1.ps1",
+        "result": "PASS_REAL_OFFLINE_MIXED_CORE_PROOF_ONLY, members=19747, sidecars=8",
+        "failed_attempts_retained": [
+          "zc1r (v2 param alias missing)",
+          "zc1r-v2 (receipt alias)",
+          "zc1r-v3 (candidate manifest object-vs-sha)",
+          "zc1r-v4 (assembly receipt assignment)",
+          "zc1r-v5..v8 (pin sync churn)"
+        ]
+      },
+      "sandbox_runs": [
+        {
+          "run": "zc1i",
+          "staging": "STAGED_ONLY_NOT_EXECUTED",
+          "launch": "STARTED_OWNERSHIP_BOUND_ONLY (sandbox f87d4f49...)",
+          "guest": "FAILED_GUEST_ORCHESTRATION - installed frontend readiness TIMEOUT at CDP_EVALUATE (about:blank, 30s) after successful install and responding window",
+          "disposition": "cold-start variance; original FAIL retained; sandbox stopped via official exact-owned stopper STOP_CONFIRMED_OWNED_RESOURCES_CLEARED"
+        },
+        {
+          "run": "zc1i2",
+          "staging": "STAGED_ONLY_NOT_EXECUTED",
+          "launch": "BLOCKED_BINDING_NO_AUTO_STOP (transient CIM observation; v7 cppstart1 precedent) - sandbox actually ran as official id b169109b...",
+          "guest": "VERIFIER_RETURNED_REQUIRES_LIFECYCLE_RECEIPT_REVIEW, error=null"
+        }
+      ],
+      "lifecycle_receipt": {
+        "path": ".project-local/runs/be268a2d33/zc1i2/output/2e85b70d1f0047a2a0d7dd368ce695d7/lifecycle-receipt.json",
+        "sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887",
+        "complete_lifecycle_verified": true,
+        "qualification_scope": "LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE",
+        "bindings": {
+          "installer": "3337fce6...",
+          "host": "ac4c399b...",
+          "core": "b6f5b591... (NEW)",
+          "runtime_manifest": "440e9084...",
+          "identity": "293e5f1f..."
+        },
+        "assertions": {
+          "graceful_shutdown": true,
+          "same_version_reinstall": "SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION",
+          "forced_tree_cleanup": true,
+          "clean_uninstall": true,
+          "uninstall_retains_data": true,
+          "reinstall_readback": true,
+          "pyc_growth": 0,
+          "product_version": "0.6.14",
+          "core_schema_version": 14,
+          "persisted_job": "installer-lifecycle-b935563ce1627ca4"
+        },
+        "honest_not_executed": {
+          "cross_version_upgrade": "NOT_TESTED",
+          "rollback": "NOT_TESTED",
+          "installed_document_conflict_loop": "NOT_EXECUTED",
+          "ai": "NOT_EXECUTED (host LM Studio binds 127.0.0.1; unreachable from guest)"
+        }
+      },
+      "stop": "zc1i2/sandbox-stop-v3-request.json + terminal.json: direct official wsb stop of the single owned environment after the formal stopper was unavailable (launch binding blocker); STOP_CONFIRMED_OWNED_RESOURCES_CLEARED, official list empty, zero sandbox processes",
+      "guest_tooling_note": "guest transcript shows pwsh 7.6.5, WDAGUtilityAccount, offline (Networking Disable, VGpu Disable)"
+    },
+    "conflict_journey_next_session_workplan": {
+      "summary": "installed-state document conflict journey (installed_document_conflict_loop gap) - full executable design per v7 cpppdfexec1 precedent (separate guest journey run after lifecycle)",
+      "why_not_a_verifier_flag": "the v2/C1 verifier contract FORBIDS -NativeTools in Correction/mixed-core mode (Assert-RuntimeCorrectionMode: 'correction mode forbids local identity inputs and CI native tooling'); the conflict journey is therefore an independent guest journey run with its own receipt, exactly like cpppdfexec1 was a separate installed-PDF run after cppinst1's lifecycle",
+      "harness": "scripts/probes/aaos01_tauri_webdriver_loop.py --host <ArcheAxis.exe> --driver <tauri-driver> --native-driver <msedgedriver> --installer <setup.exe> --installed-draft-conflict-loop (initializes fixture via Core HTTP human session BEFORE host launch, stops that Core, then drives the trusted UI 409 recovery journey)",
+      "adapters": "scripts/probes/aaos01_installed_draft_conflict_loop.py (reader/draft hydration observation + ui-state basis restore_epoch/state_revision conflict assertions)",
+      "drivers_on_host": [
+        ".project-local/task-runtime/aaos01-native-tools-20261026/tauri-driver-2.1.0",
+        ".project-local/task-runtime/aaos01-native-tools-20261026/edge-156.0.4314.42/msedgedriver.exe",
+        "also tools/edge-155 variants; WebView2 CDP confirmed working inside the guest (lifecycle frontend-startup receipt used CDP_EVALUATE)"
+      ],
+      "staging": "extend stage-mixed-core-sandbox-v1.py: add driver trees + both probe files + a guest conflict script to the specs; guest flow = verify inputs -> run harness with staged driver paths -> write conflict receipt to C:\\AAOSOutput; offline guest means every binary must be staged (no driver download)",
+      "risks": [
+        "driver/WebView2 version pairing inside the guest (tauri-driver 2.1.0 vs installed WebView2)",
+        "GPU-disabled software rendering GUI automation latency",
+        "harness python dependencies must resolve against the installed runtime interpreter",
+        "each iteration costs a full sandbox boot cycle"
+      ],
+      "order": [
+        "stage zc1c with drivers+probes+guest conflict script",
+        "launch via launcher",
+        "read conflict journey receipt (ui-state restore_epoch/state_revision 409 recovery)",
+        "official stop",
+        "record receipt sha in this index"
+      ]
+    },
+    "conflict_journey_20261030": {
+      "summary": "installed-draft conflict journey (409 recovery) PASSED against the C1 candidate with the new Core, real trusted WebDriver UI automation",
+      "run": "zc1conf (harness self-allocated journey dir webdriver-4920511321ef)",
+      "command_shape": "aaos01_tauri_webdriver_loop.py --host <C1>/ArcheAxis.exe --driver <tauri-driver-2.1.0> --native-driver <msedgedriver-edge-156> --installer <setup.exe 3337fce6...> --installed-draft-conflict-loop",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/webdriver-4920511321ef/tmp/journey/receipt.json",
+        "bytes": 177256,
+        "sha256": "776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5"
+      },
+      "result": {
+        "ok": true,
+        "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+        "installed_draft_conflict_loop_status": "PASS",
+        "ui_result": "PASS TRUSTED_WEBDRIVER_CONTROLS, synthetic initialization, owner_acceptance NOT_EXECUTED",
+        "bindings": {
+          "host": "ac4c399b...",
+          "installer": "3337fce6...",
+          "source_commit": "80db733f... (clean tree)"
+        },
+        "http_calls": 12,
+        "ui_actions": 70,
+        "cleanup": "port_listeners cleared, remaining_owned=[]"
+      },
+      "honest_boundary": "this run drove the C1 CANDIDATE host on the host machine (c453-native-folder precedent), NOT the sandbox-installed tree; the in-guest installed-state conflict journey remains blocked by the harness's dev.py/git-repo evidence requirement (no git worktree inside the offline guest; fabricating one would violate evidence discipline) - named, not hidden; the lifecycle receipt's own installed_document_conflict_loop field stays NOT_EXECUTED while this receipt carries the conflict PASS independently (cpppdfexec1 pattern)",
+      "first_run_result": "PASS on first attempt; no failed runs"
+    },
+    "lint_cleanup_20261030": {
+      "summary": "all ten named clippy items eliminated (2 store-sqlite lints + 8 retained warnings); four-crate test suite fully green; workspace -D warnings clippy confirmed NOT a CI gate",
+      "gate_reality": "CI has no clippy step: lint job = ruff(E9,F63,F7,F82)+conventions+architecture+language+document authority; rust-vnext = cargo fmt --all --check + tests; desktop-fast carried the only cargo fmt. The workspace -D warnings clippy run was this session's own stricter check",
+      "fixed": [
+        "crates/archeaxis-store-sqlite/src/raw_objects.rs:165 unneeded unit expression -> {} arm",
+        "crates/archeaxis-store-sqlite/src/writer.rs:57 collapsible if -> let-chains",
+        "crates/archeaxis-domain/src/ai_asset.rs:7 unused import OptionalExtension removed",
+        "crates/archeaxis-domain/src/asset_context_grant.rs:4 unused import self removed",
+        "crates/archeaxis-application/src/lib.rs dead fn stable_id + its now-orphaned sha2 import removed",
+        "crates/archeaxis-application/src/executor.rs dead field worker removed (field only; constructor params kept - default_worker still feeds the text.extract route)",
+        "crates/archeaxis-api/tests/contract_absent_surfaces.rs dead field content_type + its header capture removed",
+        "crates/archeaxis-api/tests/qualification_api.rs expect_fun_call -> unwrap_or_else(panic!)",
+        "crates/archeaxis-api/tests/v01_journey.rs unused variables sid2/ok1 -> _sid2/_ok1 (side-effect calls kept)"
+      ],
+      "verification": {
+        "clippy_4crates_all_targets": "each of the ten patterns greps 0 occurrences (raw output /tmp/clippy_after.txt); scoped warning count 156 -> 142",
+        "fmt": "cargo fmt --all --check clean",
+        "tests": "zclint-test-20261030: cargo test -p store-sqlite -p application -p domain -p api --offline --locked exit 0, 184 test binaries ok, 0 failures (includes contract_absent_surfaces/qualification_api/v01_journey on the fixed files)"
+      },
+      "remaining_debt_honest": "142 clippy warnings remain across the four crates (collapsible-ifs, needless borrows, too_many_arguments etc.) - recorded as non-gated debt for a reviewed cleanup round, not silently claimed green",
+      "commit": "37f2c02e"
+    },
+    "owner_decisions_pending": {
+      "document": "workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md",
+      "decision_1_installer_version_bump": {
+        "unlocks": "true cross-version upgrade/rollback in sandbox (old 53a83f20... -> new 0.6.15 package, data-preservation + rollback assertions)",
+        "option_a": "tauri.conf.json version -> 0.6.15 (one-line committed change) then rerun bundle-mixed-v6 chain + upgrade/rollback journey variant",
+        "option_b": "keep 0.6.14; cross_version_upgrade/rollback stay honestly NOT_TESTED",
+        "current_state": "cross_version_upgrade=NOT_TESTED, rollback=NOT_TESTED"
+      },
+      "decision_2_lmstudio_listen_address": {
+        "unlocks": "installed-state AI journey inside the sandbox guest (answer->out-of-scope->correction->retest->restart readback on the installed product)",
+        "option_a": "LM Studio binds 0.0.0.0 or host vEthernet (host model-service config change by Owner) PLUS sub-decision A2: allow sandbox networking (wsb template currently Networking=Disable, tonight's offline boundary)",
+        "option_b": "keep loopback-only; installed-state AI stays honestly NOT_EXECUTED; host-level REAL_MODEL receipts (colearning smoke, v3 dual-loop) remain the AI-chain evidence layer",
+        "current_state": "ai=NOT_EXECUTED"
+      },
+      "no_decision_needed": [
+        "guest-installed conflict journey design (workplan ready)",
+        "142 non-gated clippy warnings (reviewed cleanup round)",
+        "external resources index refresh (optional)"
+      ]
+    },
+    "external_index_refresh_20261030": {
+      "run": "zc1extidx-20261030 (dev.py exit 3 INVALIDATED by the generator's own tracked-file write - inherent mechanism for index-builder runs, not a product failure; probe output fully captured)",
+      "result": "31 entries live-probed 2026-10-30: FILE_EXISTS 9, VERSION_PROBED 16, RESULT_VERIFIED 4, NOT_RUN 1 (rerank endpoint), unavailable 1 (desktop-runtime-v1, by declaration), probe_failed 0, declared_paths_missing 0 - identical distribution to the 2026-10-25 index",
+      "commit": "7d4fff8b (diff: probe_workdir now run-scoped; antiword path_also_offers observed; rapidocr purpose synced to the 2026-10-25 manifest)"
+    },
+    "guest_installed_conflict_journey_20261030": {
+      "summary": "the installed-state document-conflict journey PASSED inside Windows Sandbox: guest installed the C1 installer silently, then the registered WebDriver harness ran the 409 recovery journey against the installed host from a byte-exact repository clone",
+      "staging_runs": [
+        "zc1c2 FAIL (safe() ROOT guard rejected external git dist -> external_safe added)",
+        "zc1c3 FAIL (scoop 'current' junction -> resolved to 2.54.0)",
+        "zc1c4 FAIL (launcher/stopper ps1 not staged -> pwsh -File parameter-binding help dump)",
+        "zc1c5 FAIL (git dubious ownership: clone owned by host SID vs WDAGUtilityAccount)",
+        "zc1c6 FAIL (same root cause; stderr capture added)",
+        "zc1c7 FAIL (same; GIT_CONFIG_* process-scoped safe.directory added per v6 exact-exception precedent)",
+        "zc1c8 STAGED_ONLY_NOT_EXECUTED -> EXECUTED"
+      ],
+      "journey_run": "zc1c8 (sandbox bbd90173-6a47-4844-828b-c92b016e169c, stopped after the journey)",
+      "guest_flow": "manifest+inventory verification -> silent NSIS install (per-user root recorded) -> robocopy of the 1.7GB repository clone to the writable mapped output -> harness run via dev.py from the clone (GIT_CONFIG_* process-scoped safe.directory for C:/AAOSOutput/repo only; no global git state) -> receipt exported to output root",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/zc1c8/output/conflict-journey-receipt.json",
+        "bytes": 176726,
+        "sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6",
+        "result": {
+          "ok": true,
+          "conflict_status": "PASS",
+          "ui": "TRUSTED_WEBDRIVER_CONTROLS",
+          "owner_acceptance": "NOT_EXECUTED",
+          "harness_exit": 0
+        }
+      },
+      "driver_fix": "tauri-driver exited instantly in the fresh guest (0-byte driver.log): missing VC runtime DLLs; fixed by staging the official reviewed Redist trio (msvcp140 sha 0f885b50... byte-identical to the v7 registered donor) app-local beside the driver",
+      "stop": "zc1c8 direct official stop STOP_CONFIRMED_OWNED_RESOURCES_CLEARED (0 environments, 0 processes)",
+      "honest_labels": {
+        "receipt_evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE (the harness's own label is unchanged; the sandbox-installed provenance is established by the staging/launch/stop receipts and the guest transcript recording the per-user install root)",
+        "launch_binding": "BLOCKED_BINDING_NO_AUTO_STOP transient CIM observation on every launch (zc1i2/zc1c4-c8 pattern); official list + direct stop receipts bind the actual sandbox identities",
+        "retained_fails": "zc1c2..zc1c7 six retained staging/guest failures with one-root-cause-per-run diagnosis"
+      }
+    },
+    "post_decision_workplans": {
+      "decision_1_version_bump_accepted": [
+        "1. edit src-tauri/tauri.conf.json version -> 0.6.15 (one line) + commit 'Bump installer version for cross-version qualification'",
+        "2. rerun packaging: fresh Core release build (--qualify-core-build, new HEAD) -> stage_backend_runtime (version 0.6.15) -> assemble_mixed_candidate_v1 -> generate_candidate_manifest -> bundle-mixed-v6 (new request; adapter sha unchanged unless the script changed) -> new installer ~0.6.15 label",
+        "3. sandbox cross-version journey (new guest script variant of guest-mixed-conflict pattern): silent install OLD installer 53a83f20 (0.6.14) -> seed synthetic document -> silent install NEW 0.6.15 installer -> assertions: data preserved (document/version readable), schema migration clean, cross_version_upgrade=PASS -> silent install OLD installer again -> rollback assertion: data still readable -> official stop",
+        "4. receipts: upgrade-receipt.json + rollback-receipt.json bound to both installer shas; record in this index"
+      ],
+      "decision_2_lmstudio_listen_accepted": [
+        "1. Owner-side or explicitly authorized: LM Studio listen 0.0.0.0 (only this setting; no endpoint/model/credential changes)",
+        "2. wsb template variant with Networking enabled (new template file, sha-pinned by a new staging variant; four mappings unchanged)",
+        "3. guest AI journey variant of the zc1i2 lifecycle pattern: install -> configure model lane to host gateway address (http://<host-ip>:1234/v1, Owner-approved) -> real answer -> out-of-scope -> correction -> retest -> restart readback -> ai=PASS receipt",
+        "4. boundaries: no cloud, no credential changes, budget/timeout contract unchanged (1..=120s, 128..=4096 tokens)"
+      ],
+      "conflict_guest_followup": "DONE 2026-10-30: zc1c8 PASS (see guest_installed_conflict_journey_20261030)"
+    },
+    "named_diagnoses": [
+      {
+        "id": "retest-503-no-final-answer",
+        "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)",
+        "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"
+      },
+      {
+        "id": "dev-run-invalidated-mechanism",
+        "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)",
+        "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"
+      },
+      {
+        "id": "get-canvas-created-at",
+        "finding": "Obsidian compatibility receipt (20261025 installed build) recorded 'get_canvas reports unknown order column: created_at'",
+        "resolution": "grep across crates/ and services/ finds no get_canvas and no canvas created_at ordering in current source; recorded UNREPRODUCED_IN_CURRENT_SOURCE"
+      }
+    ],
+    "boundaries": {
+      "pushed": false,
+      "remote_writes": false,
+      "cloud_ci": "NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY",
+      "real_cloud_inference": "DEFERRED_UNEXECUTED",
+      "external_context_provider": "NOT_CONNECTED (by contract)",
+      "green_replaced": false,
+      "real_user_data_touched": false,
+      "mimosa_hook_note": "Mimosa commit hook reported scanner_no_output (no full scan conclusion before commits); commits proceeded under its compatibility policy; no project-safety claim is made; full audit left to Codex/Owner",
+      "downloads": [
+        "rustup component clippy 0.1.97 into pinned shared toolchain (official static.rust-lang.org; precedent: rustfmt 2026-09-24)"
+      ]
+    }
+  },
+  "current_progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "authority_ref": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+  "resolution_snapshot": {
+    "F01": "UNVERIFIED_OWNER_WAIVER: no independent Owner waiver evidence in reviewed current scope; no private-session search.",
+    "F02": "Original strict JSON FAIL retained. This historical successor parses strictly and preserves decoded content; reference qualification remains PARTIAL with explicit missing/unresolved/private/external cases.",
+    "F03": "All original still_not_done/not_claims and workplan sections remain byte-derived historical claims; current status exclusively follows current_progress_ref. No historical narrative is rewritten or interpreted as authorization.",
+    "F04": {
+      "historical_contradiction": {
+        "path": ".project-local/runs/be268a2d33/zc1c8/sandbox-stop-v3-terminal.json",
+        "bytes": 215,
+        "sha256": "3010eb85ca51c39eb693d88b67bc141a2659dd9c78fb0a74a1b3062a1597621a"
+      },
+      "historical_observation": {
+        "status": "STOP_CONFIRMED_OWNED_RESOURCES_CLEARED",
+        "owned_id": "bbd90173-6a47-4844-828b-c92b016e169c",
+        "stop_exit": 0,
+        "stop_output": "",
+        "remaining_environments": 0,
+        "remaining_processes": 1
+      },
+      "successor_observation": {
+        "identity": {
+          "path": ".project-local/runs/be268a2d33/sci-conf2/artifacts/shared-sandbox-execution.json",
+          "bytes": 2874,
+          "sha256": "a39529860402add8c681026f23e47904c9eec5a86761e3a4fe1a10b5ab2157f1"
+        },
+        "status": "PASS_REAL_OFFLINE_SHARED_INSTALLED_CONFLICT",
+        "sandbox_id": "f850c96c-6450-4b62-b9f2-dfd93f2d179e",
+        "stop": "OWNED_ID_ABSENT_AFTER_OFFICIAL_STOP"
+      },
+      "limit": "Different runs and IDs: new owned-ID absence never resolves original remaining_processes=1 retrospectively."
+    },
+    "F05": "PARTIAL: finite legacy probe fixes and synthetic tests; real model/main/asset scoped effects unverified."
+  },
+  "current_evidence_navigation": [
+    {
+      "path": "docs/history/storage-cleanup/2026-10-30-shared-sandbox/MANIFEST.json",
+      "bytes": 6271,
+      "sha256": "de32945719b5c7d91e8f4d0bde39220e56cc304b5c45d4b869740bdd0f078fb6"
+    },
+    {
+      "path": "docs/history/storage-cleanup/2026-10-30-clean-conflict-inputs/MANIFEST.json",
+      "bytes": 2317,
+      "sha256": "7052957b271f928fa1de1b69ace77e7faea17e6790ba3ec324e8af684764b07e"
+    }
+  ],
+  "not_claims": [
+    "full product qualification",
+    "historical Owner waiver",
+    "historical process count zero",
+    "real model improvement",
+    "all index references verified"
+  ],
+  "qualification": {
+    "strict_json": "PASS",
+    "historical_decoded_content_preservation": "PASS",
+    "payload_qualification": "PARTIAL_NOT_ALL_REFERENCES_QUALIFIED",
+    "reference_review_counts": {
+      "PROJECT_DIRECTORY_PRESENT_NOT_ENUMERATED": 2,
+      "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION": 58,
+      "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED": 13,
+      "PRIVATE_REFERENCE_NOT_READ": 3,
+      "HARDLINK_OWNERSHIP_UNVERIFIED_NOT_READ": 1
+    },
+    "declared_identity_mismatch_pointers": [],
+    "scope": "Reference existence/size/hash is not semantic qualification, runtime acceptance, Owner approval, or current progress."
+  },
+  "reference_review": {
+    "entries": [
+      {
+        "pointer": "$.verification_runs_20261030.run_root",
+        "declared_reference": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_DIRECTORY_PRESENT_NOT_ENUMERATED"
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[0].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-domain-20261030/artifacts/execution.json",
+        "expected_sha256": "50f5409d4457cd458e8a3b13fc1f7973d45e087ea25f41c6d0db320a0455e223",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-domain-20261030/artifacts/execution.json",
+          "bytes": 1505,
+          "sha256": "50f5409d4457cd458e8a3b13fc1f7973d45e087ea25f41c6d0db320a0455e223"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[1].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-api-20261030/artifacts/execution.json",
+        "expected_sha256": "3dcd23d731b9c5f4a3673c813b89ff19d0bf2a886cfa1ef364943aab6bab9772",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-api-20261030/artifacts/execution.json",
+          "bytes": 1553,
+          "sha256": "3dcd23d731b9c5f4a3673c813b89ff19d0bf2a886cfa1ef364943aab6bab9772"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[2].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-cancel-20261030/artifacts/execution.json",
+        "expected_sha256": "f045ddd0a999d2900b546f70bfde8fea9bf3c91d681b3d3aa897f888a852a85f",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-cancel-20261030/artifacts/execution.json",
+          "bytes": 1388,
+          "sha256": "f045ddd0a999d2900b546f70bfde8fea9bf3c91d681b3d3aa897f888a852a85f"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[3].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-journal-20261030/artifacts/execution.json",
+        "expected_sha256": "fe4d12f471e2069fa45ac54ef0b3e4d62985af6c8175a7018821ec04ed91e146",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-journal-20261030/artifacts/execution.json",
+          "bytes": 1385,
+          "sha256": "fe4d12f471e2069fa45ac54ef0b3e4d62985af6c8175a7018821ec04ed91e146"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[4].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-canvas-domain-20261030/artifacts/execution.json",
+        "expected_sha256": "79a4564f25e65ce9ad6e50c1134684599170b9f71e48859f8f0b8ed34c120e40",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-canvas-domain-20261030/artifacts/execution.json",
+          "bytes": 1389,
+          "sha256": "79a4564f25e65ce9ad6e50c1134684599170b9f71e48859f8f0b8ed34c120e40"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[5].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-canvas-api-20261030/artifacts/execution.json",
+        "expected_sha256": "6837f018003979f512ef9cadefe16ce4262468a4f35447087b236218434d2a30",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-canvas-api-20261030/artifacts/execution.json",
+          "bytes": 1390,
+          "sha256": "6837f018003979f512ef9cadefe16ce4262468a4f35447087b236218434d2a30"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[6].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-py-targeted-20261030/artifacts/execution.json",
+        "expected_sha256": "c6a924462a4c9cfe18d32d1a075c3b132e2f8aa04f8a1833fcecc3080b190153",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-py-targeted-20261030/artifacts/execution.json",
+          "bytes": 2104,
+          "sha256": "c6a924462a4c9cfe18d32d1a075c3b132e2f8aa04f8a1833fcecc3080b190153"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[7].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-clippy-scope-20261030/artifacts/execution.json",
+        "expected_sha256": "2772bfabf2975b2fefd15a250fdf87959abb88264a13e2244f3a8e5ff45b5931",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-clippy-scope-20261030/artifacts/execution.json",
+          "bytes": 1409,
+          "sha256": "2772bfabf2975b2fefd15a250fdf87959abb88264a13e2244f3a8e5ff45b5931"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[8].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-final-corebuild-20261030-v3/artifacts/execution.json",
+        "expected_sha256": "a8480168dd4364fbce5914f04819eb1d7fe8213349fd8db9ae03a4c2486813dc",
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-final-corebuild-20261030-v3/artifacts/execution.json",
+          "bytes": 1752,
+          "sha256": "a8480168dd4364fbce5914f04819eb1d7fe8213349fd8db9ae03a4c2486813dc"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.verification_runs_20261030.runs[8].core_build.path",
+        "declared_reference": ".project-local\\build\\cargo\\release\\archeaxis-api.exe",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.verification_runs_20261030.failed_or_discarded_runs_retained[0].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-baseline-py-targeted-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-baseline-py-targeted-20261030/artifacts/execution.json",
+          "bytes": 2118,
+          "sha256": "c7d7b46bb8427b84674cf63e7c5baad300c554d8977cc0ec8169233c0b15f5c8"
+        }
+      },
+      {
+        "pointer": "$.verification_runs_20261030.failed_or_discarded_runs_retained[0].cause",
+        "declared_reference": ".mimosa/hook-state written during run changed worktree identity; fixed by .gitignore entry; run retained as evidence of the mechanism",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "private-state mention; never dereferenced",
+        "classification": "PRIVATE_REFERENCE_NOT_READ"
+      },
+      {
+        "pointer": "$.verification_runs_20261030.failed_or_discarded_runs_retained[1].run",
+        "declared_reference": "zcode-baseline-domain-20261030 / zcode-baseline-api-20261030",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.backend_merge_94_tests",
+        "declared_reference": ".project-local/runs/be268a2d33/backend-merge-api-final-20261029/artifacts/backend-consolidation-receipt.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/backend-merge-api-final-20261029/artifacts/backend-consolidation-receipt.json",
+          "bytes": 10267,
+          "sha256": "937b7aaeb2a29b4515a8d4575ab46ecf5a034d27cf74e8da40aa5eaeed7c7ac9"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.retest_503_fail_retained",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v2/artifacts/core-fast-dual-loop.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v2/artifacts/core-fast-dual-loop.json",
+          "bytes": 216198,
+          "sha256": "3a6ae01199d09306a9937c3a9dc35b04b029a74d45b80b3eab3dfce19e0c8906"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.retest_reissue_pass",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v3/artifacts/core-fast-dual-loop.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v3/artifacts/core-fast-dual-loop.json",
+          "bytes": 925230,
+          "sha256": "b7e2dc6345d3aced1734b34bce0747053db5d8e72d3caeffb533386f0c4a38f8"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.j2_public_research_real_channel",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-j2-public/artifacts/public-research-receipt.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-j2-public/artifacts/public-research-receipt.json",
+          "bytes": 2031716,
+          "sha256": "d6175941efd7a8dd064999da543ae6316bcaa627c8a5f7f20e2a02fc6c06f8f6"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.j2_learning",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-j2-learning/artifacts/research-learning-runtime.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-j2-learning/artifacts/research-learning-runtime.json",
+          "bytes": 26292,
+          "sha256": "8c926c3e9d423207c92a16ff0a0542f544dfffa6c2540f18c78743a44c65a362"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.collection_canvas_roundtrip",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-collection-canvas-20261029/artifacts/collection-canvas-receipt.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-collection-canvas-20261029/artifacts/collection-canvas-receipt.json",
+          "bytes": 206581,
+          "sha256": "4305ec0367de8c5bc2f59b4156a6cc0a0d4ed86934c8496c9c18a7cc107ecaa4"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.durable_batch",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-durable-batch-backend-20261029/artifacts/durable-batch-receipt.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-durable-batch-backend-20261029/artifacts/durable-batch-receipt.json",
+          "bytes": 15651082,
+          "sha256": "04f19a0ce0394af7d4f81623cf1ce5ab830c560ea52af1f522089bcd00a072e8"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.cancel_boundary_real_core",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-core-cancel-boundary-20261029-v3/artifacts/core-cancel-boundary.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-core-cancel-boundary-20261029-v3/artifacts/core-cancel-boundary.json",
+          "bytes": 97905,
+          "sha256": "f33f15564cec67914cac2e3650cbffdc818b4bfed1978a9f0ef0c70cf62b690b"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.unknown_recovery_retained",
+        "declared_reference": ".project-local/runs/be268a2d33/c453-fast-unknown-recovery-20261028-v2/artifacts/recovery-receipt.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/c453-fast-unknown-recovery-20261028-v2/artifacts/recovery-receipt.json",
+          "bytes": 27142,
+          "sha256": "6f6e6601d2a876a6c2bfbde9959d1c663e7655d873cec66fd52b4c03e5c1d5cb"
+        }
+      },
+      {
+        "pointer": "$.historical_evidence_cited_not_rebound.external_resources_index",
+        "declared_reference": "config/environment/external-resources-index.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "config/environment/external-resources-index.json",
+          "bytes": 75001,
+          "sha256": "6072ed3139341723d0e96fc41fef8068a225e0cbe7e9213d560d22206dc18c5e"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.staged_backend_r2.run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-stage-newcore-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-stage-newcore-20261030/artifacts/execution.json",
+          "bytes": 2666,
+          "sha256": "c46297fd4e24217afdd811a38a9f06cf6a62c03d6fb4882de01030bf59c5edb0"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.staged_backend_r2.tool",
+        "declared_reference": "scripts/release/stage_backend_runtime.py",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "scripts/release/stage_backend_runtime.py",
+          "bytes": 52764,
+          "sha256": "51fe479853c685b06c7c3ee292e1fb8abef43fba1450250c3d681f622dc0025c"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.staged_backend_r2.core",
+        "declared_reference": ".project-local/build/cargo/release/archeaxis-api.exe",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "HARDLINK_OWNERSHIP_UNVERIFIED_NOT_READ"
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.mixed_candidate_c1.run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-assemble-c1-20261030-v8/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-assemble-c1-20261030-v8/artifacts/execution.json",
+          "bytes": 1899,
+          "sha256": "a275d9d9101f24105471e57f377486d62a1d9d3aa9b4490cb03afd5472a80b3b"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.mixed_candidate_c1.assembler",
+        "declared_reference": ".project-local/zcode-newcore-20261030/assemble_mixed_candidate_v1.py",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/zcode-newcore-20261030/assemble_mixed_candidate_v1.py",
+          "bytes": 5661,
+          "sha256": "4d879942b0db2dc53c845631054e83b513838726dd5d86ee106c295e33da2e6d"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.mixed_candidate_c1.receipt",
+        "declared_reference": "c1/mixed-candidate-assembly.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.chain_on_c1[0].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-j2-public-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-j2-public-20261030/artifacts/execution.json",
+          "bytes": 1520,
+          "sha256": "407e2e9852e0fe6c02950bd55eaded1506bd566e76ae9d2f46d41e39ed8e7d4f"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.chain_on_c1[1].run",
+        "declared_reference": "zcode-c1-formats-20261030 -> e22d9b5d4937/artifacts/common-formats.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.chain_on_c1[2].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-learning-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-learning-20261030/artifacts/execution.json",
+          "bytes": 1662,
+          "sha256": "bfd7e185c895baf9e9192db1d9ed884da458b0f4e81e553b1dca9cdc5ee85a23"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.chain_on_c1[3].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-j5-template-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-j5-template-20261030/artifacts/execution.json",
+          "bytes": 1692,
+          "sha256": "2f494922809c6761f1a556cd5baff9a4ff526be327c38982b9af57d82f8cd69a"
+        }
+      },
+      {
+        "pointer": "$.newcore_candidate_campaign_20261030.chain_on_c1[4].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-colearning-smoke-20261030-v2/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-colearning-smoke-20261030-v2/artifacts/execution.json",
+          "bytes": 1483,
+          "sha256": "6562d78156fb3df9aaa8faeb73b07400e2402ed8859f59544a2069bad78a72f2"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.chain[0].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-manifest-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-manifest-20261030/artifacts/execution.json",
+          "bytes": 1933,
+          "sha256": "b7f7bc07d7a2c1589f6ef76fb6a14c32816080ff06c3e585b0408ac5d55efc85"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.chain[1].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-consumers-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-consumers-20261030/artifacts/execution.json",
+          "bytes": 1343,
+          "sha256": "71756cf1d4cde268fcbd7d0f3a1d31045b9d1a33d40c84f58f290b7bccabc464"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.chain[2].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-nsis-preflight-20261030-v3/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-nsis-preflight-20261030-v3/artifacts/execution.json",
+          "bytes": 1571,
+          "sha256": "49e6ac9f1d2f31da5c42c1c373adc8e0074db71646f454cc1de8914286a65006"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.chain[3].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zcode-c1-nsis-20261030/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zcode-c1-nsis-20261030/artifacts/execution.json",
+          "bytes": 1564,
+          "sha256": "5d861fc805c6080eefc3a3884cbefe93ed7dca8cf255b79ca4196b064fc2ddc4"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.chain[4].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1n/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1n/artifacts/execution.json",
+          "bytes": 1534,
+          "sha256": "559c2ac5489551178eb17f5474d2894584edfc686ad82c9c611c413922511ad2"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.adapter",
+        "declared_reference": ".project-local/zcode-newcore-20261030/bundle-mixed-v6.py",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/zcode-newcore-20261030/bundle-mixed-v6.py",
+          "bytes": 15855,
+          "sha256": "74a3fb112b05677e19d87a09eec77a4391c8c1e009f0f79b3b2eca8670d6c0b4"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.request",
+        "declared_reference": ".project-local/zcode-newcore-20261030/bundle-request-c1.json",
+        "expected_sha256": "2bf45cd755559aebde7cd69e8bfd68b504365032ad98eee211c6bedcf224c4e7",
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/zcode-newcore-20261030/bundle-request-c1.json",
+          "bytes": 2323,
+          "sha256": "2bf45cd755559aebde7cd69e8bfd68b504365032ad98eee211c6bedcf224c4e7"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.identity",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1n/artifacts/p/mixed-core-identity.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1n/artifacts/p/mixed-core-identity.json",
+          "bytes": 3828576,
+          "sha256": "293e5f1fdfcf985a241688fc40e937ea93c8790a25c6b63d4a710174b3078fd1"
+        }
+      },
+      {
+        "pointer": "$.nsis_installer_20261030.installer.path",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1n/artifacts/p/target/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+        "expected_sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b",
+        "expected_bytes": 424441075,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1n/artifacts/p/target/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "bytes": 424441075,
+          "sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b"
+        },
+        "hash_match": true,
+        "size_match": true
+      },
+      {
+        "pointer": "$.sandbox_next_session_workplan.to_adapt.driver",
+        "declared_reference": "stage-correction-sandbox-v3.py -> variant with RUN=zc1i, packaging schema aaos.mixed-core-packaging/v1, status LOCAL_MIXED_CORE_PACKAGING_PASS, identity file mixed-core-identity.json, bundler sha = sha256(bundle-mixed-v6.py), installer sha 3337fce6...",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.sandbox_next_session_workplan.to_adapt.launch_stop",
+        "declared_reference": "launcher.v3.ps1 / stopper.v3.ps1 in .project-local/local-pinned-sandbox-20261029 are reusable unchanged (sha-pinned); wsb template tokens unchanged; launch is a separate step after staging, then bind/stop via official stopper",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.c1_verifier.path",
+        "declared_reference": ".project-local/zcode-newcore-20261030/verify-mixed-core-c1-v1.proposed.ps1",
+        "expected_sha256": "b5e6b9272c4753979cc9cbcb354aaddb8f36d022c0bb2828688346dae349fc03",
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/zcode-newcore-20261030/verify-mixed-core-c1-v1.proposed.ps1",
+          "bytes": 63119,
+          "sha256": "b5e6b9272c4753979cc9cbcb354aaddb8f36d022c0bb2828688346dae349fc03"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.host_proof_review.run",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1r-v9/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1r-v9/artifacts/execution.json",
+          "bytes": 2138,
+          "sha256": "8fb46f5d24b11b74454a1bf54fd35ba2af77419eb27854eeb0b6ea483c5505a7"
+        }
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.host_proof_review.driver",
+        "declared_reference": ".project-local/zcode-newcore-20261030/verify-real-mixed-core-proof-v1.ps1",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/zcode-newcore-20261030/verify-real-mixed-core-proof-v1.ps1",
+          "bytes": 3399,
+          "sha256": "4d13852ee06e1e5789de8ba3b4a270ecae2faf2b6bb433c4a2163aec68febe4e"
+        }
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.sandbox_runs[0].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1i/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1i/artifacts/execution.json",
+          "bytes": 1957,
+          "sha256": "1167d8bc0d80a87b66c4204af1b58e3fa6092d127ba4c2fe9e3b78c42d8edc89"
+        }
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.sandbox_runs[0].staging",
+        "declared_reference": "STAGED_ONLY_NOT_EXECUTED",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.sandbox_runs[1].run",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1i2/artifacts/execution.json",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "canonical run execution receipt, not whole run qualification",
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1i2/artifacts/execution.json",
+          "bytes": 1959,
+          "sha256": "318e460e782aca874ec3ee49414e2e3be8f8ce0e069375789e6c8e9e09854f5a"
+        }
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.sandbox_runs[1].staging",
+        "declared_reference": "STAGED_ONLY_NOT_EXECUTED",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.installed_lifecycle_20261030.lifecycle_receipt.path",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1i2/output/2e85b70d1f0047a2a0d7dd368ce695d7/lifecycle-receipt.json",
+        "expected_sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887",
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1i2/output/2e85b70d1f0047a2a0d7dd368ce695d7/lifecycle-receipt.json",
+          "bytes": 2059,
+          "sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887"
+        },
+        "hash_match": true
+      },
+      {
+        "pointer": "$.conflict_journey_next_session_workplan.harness",
+        "declared_reference": "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "scripts/probes/aaos01_tauri_webdriver_loop.py",
+          "bytes": 183420,
+          "sha256": "ddd94ba1e245141241c55b7e7bdb91a46ca18480231f0a309e7edb4dcf1ebbc1"
+        }
+      },
+      {
+        "pointer": "$.conflict_journey_next_session_workplan.adapters",
+        "declared_reference": "scripts/probes/aaos01_installed_draft_conflict_loop.py",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "scripts/probes/aaos01_installed_draft_conflict_loop.py",
+          "bytes": 17837,
+          "sha256": "d41894820a0c14d7eaf24216101692ad196f593ef4e2e86ca3b66315fdca0182"
+        }
+      },
+      {
+        "pointer": "$.conflict_journey_next_session_workplan.drivers_on_host[0]",
+        "declared_reference": ".project-local/task-runtime/aaos01-native-tools-20261026/tauri-driver-2.1.0",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_DIRECTORY_PRESENT_NOT_ENUMERATED"
+      },
+      {
+        "pointer": "$.conflict_journey_next_session_workplan.drivers_on_host[1]",
+        "declared_reference": ".project-local/task-runtime/aaos01-native-tools-20261026/edge-156.0.4314.42/msedgedriver.exe",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/task-runtime/aaos01-native-tools-20261026/edge-156.0.4314.42/msedgedriver.exe",
+          "bytes": 23956864,
+          "sha256": "b59373240dc039baf425ac53969f8037efcdf2f14d7aa6ac40011ef56545b1fc"
+        }
+      },
+      {
+        "pointer": "$.conflict_journey_next_session_workplan.staging",
+        "declared_reference": "extend stage-mixed-core-sandbox-v1.py: add driver trees + both probe files + a guest conflict script to the specs; guest flow = verify inputs -> run harness with staged driver paths -> write conflict receipt to C:\\AAOSOutput; offline guest means every binary must be staged (no driver download)",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.conflict_journey_20261030.run",
+        "declared_reference": "zc1conf (harness self-allocated journey dir webdriver-4920511321ef)",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.conflict_journey_20261030.receipt.path",
+        "declared_reference": ".project-local/runs/be268a2d33/webdriver-4920511321ef/tmp/journey/receipt.json",
+        "expected_sha256": "776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5",
+        "expected_bytes": 177256,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/webdriver-4920511321ef/tmp/journey/receipt.json",
+          "bytes": 177256,
+          "sha256": "776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5"
+        },
+        "hash_match": true,
+        "size_match": true
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[0]",
+        "declared_reference": "crates/archeaxis-store-sqlite/src/raw_objects.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-store-sqlite/src/raw_objects.rs",
+          "bytes": 8182,
+          "sha256": "ee494c0e5c1dad4997ba9da2c647b26bf47ac8eb4446982a576969efc3d185ed"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[1]",
+        "declared_reference": "crates/archeaxis-store-sqlite/src/writer.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-store-sqlite/src/writer.rs",
+          "bytes": 11058,
+          "sha256": "2ab6cbf574d3414ea9f708f3db5298dd4448afad0a05a78539e465e2468840c9"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[2]",
+        "declared_reference": "crates/archeaxis-domain/src/ai_asset.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-domain/src/ai_asset.rs",
+          "bytes": 12445,
+          "sha256": "44ba2edd82aad407070ee7f6ad1b0599f067f07bfbcc8db8f828c0510732dafa"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[3]",
+        "declared_reference": "crates/archeaxis-domain/src/asset_context_grant.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-domain/src/asset_context_grant.rs",
+          "bytes": 9567,
+          "sha256": "b3e5684ff1b8766d83bb8f64abd13a85e43e9926b447fc10587701abcb3417c5"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[4]",
+        "declared_reference": "crates/archeaxis-application/src/lib.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-application/src/lib.rs",
+          "bytes": 1440,
+          "sha256": "8a234a18ca59dcb5d5b98e4701e84c6c94e8a8e322664bd829eacf22af00fbaa"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[5]",
+        "declared_reference": "crates/archeaxis-application/src/executor.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-application/src/executor.rs",
+          "bytes": 71265,
+          "sha256": "ec2e013b3a75717d5bed93ec5352a399890b00606e477b3d1ecc1f7b7d98b1b7"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[6]",
+        "declared_reference": "crates/archeaxis-api/tests/contract_absent_surfaces.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-api/tests/contract_absent_surfaces.rs",
+          "bytes": 9357,
+          "sha256": "63ea437fe44aa2024165dead92ede6af079453d3131bd9e01f5224673ba8fab6"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[7]",
+        "declared_reference": "crates/archeaxis-api/tests/qualification_api.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-api/tests/qualification_api.rs",
+          "bytes": 5225,
+          "sha256": "a41b1cca68beb19e35041ab7929dab1bf523d78c10d9eb19a2213677e7c64f44"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.fixed[8]",
+        "declared_reference": "crates/archeaxis-api/tests/v01_journey.rs",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "crates/archeaxis-api/tests/v01_journey.rs",
+          "bytes": 11968,
+          "sha256": "315d03a9604a2b8aa2fcf63c8f2036d3dfb8e187337ee7d9561dbd82abacc258"
+        }
+      },
+      {
+        "pointer": "$.lint_cleanup_20261030.verification.clippy_4crates_all_targets",
+        "declared_reference": "each of the ten patterns greps 0 occurrences (raw output /tmp/clippy_after.txt); scoped warning count 156 -> 142",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "external/guest/network narrative; no access",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.owner_decisions_pending.document",
+        "declared_reference": "workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": "workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md",
+          "bytes": 4242,
+          "sha256": "7e2847985a393c2877abbd279477646b3cefecbd29fc966e5dc99a4966966a41"
+        }
+      },
+      {
+        "pointer": "$.external_index_refresh_20261030.run",
+        "declared_reference": "zc1extidx-20261030 (dev.py exit 3 INVALIDATED by the generator's own tracked-file write - inherent mechanism for index-builder runs, not a product failure; probe output fully captured)",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "ambiguous or narrative reference; not guessed",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.guest_installed_conflict_journey_20261030.guest_flow",
+        "declared_reference": "manifest+inventory verification -> silent NSIS install (per-user root recorded) -> robocopy of the 1.7GB repository clone to the writable mapped output -> harness run via dev.py from the clone (GIT_CONFIG_* process-scoped safe.directory for C:/AAOSOutput/repo only; no global git state) -> receipt exported to output root",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "external/guest/network narrative; no access",
+        "classification": "UNRESOLVED_OR_EXTERNAL_NOT_ACCESSED"
+      },
+      {
+        "pointer": "$.guest_installed_conflict_journey_20261030.receipt.path",
+        "declared_reference": ".project-local/runs/be268a2d33/zc1c8/output/conflict-journey-receipt.json",
+        "expected_sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6",
+        "expected_bytes": 176726,
+        "derivation": null,
+        "classification": "PROJECT_FILE_HASHED_NO_SEMANTIC_QUALIFICATION",
+        "observed": {
+          "path": ".project-local/runs/be268a2d33/zc1c8/output/conflict-journey-receipt.json",
+          "bytes": 176726,
+          "sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6"
+        },
+        "hash_match": true,
+        "size_match": true
+      },
+      {
+        "pointer": "$.named_diagnoses[1].finding",
+        "declared_reference": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "private-state mention; never dereferenced",
+        "classification": "PRIVATE_REFERENCE_NOT_READ"
+      },
+      {
+        "pointer": "$.named_diagnoses[1].resolution",
+        "declared_reference": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit",
+        "expected_sha256": null,
+        "expected_bytes": null,
+        "derivation": "private-state mention; never dereferenced",
+        "classification": "PRIVATE_REFERENCE_NOT_READ"
+      }
+    ],
+    "security_review": {
+      "scope": "All string values in historical index; no private paths dereferenced; referenced payload bytes hashed only, never embedded or printed. Pattern scan is bounded and not proof of absence of all secrets.",
+      "string_values_scanned": 318,
+      "credential_findings_location_and_type_only": [],
+      "private_reference_count": 3,
+      "payload_bodies_copied": 0
+    }
+  }
+}

@@ -161,7 +161,16 @@
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
       "remote_writes": "DENIED_UNCHANGED",
-      "monitor": "NO_MONITOR_OPERATION"
+      "monitor": "NO_MONITOR_OPERATION",
+      "r6_followup": {
+        "owner_instruction": "这也加入进去统一归档到仓库 这是刚才压缩包的边界修补包",
+        "source_and_review": "workspace/intake/20261030-r6-external-practice-boundary-review/README.md",
+        "role": "R5_BOUNDARY_REPAIR_INPUT_STATICALLY_REVIEWED_ENGINEERING_PARTIAL; attachment instructions do not grant execution",
+        "absorption": "AAOS learning plans/tutorials/manual records/feedback; professional production and execution external; start/self-report/mastery distinct; optional user-selected return without raw-context capture. Preserve 186/22 and existing required/long-term capability identities.",
+        "retained_findings": "R5-F01/F03-F06 not closed; R5-F02 WORK-LAB dependency residue remains. 186 operation bindings and R6 E01-E10 NOT_EXECUTED; R5 25 cases not requalified; F05 PARTIAL.",
+        "boundary": "WORK-LAB optional, AAOS standalone. UI pause/local-only/no upload/no arbitrary execution/no cross-project write/no Green replacement or real-data overwrite unchanged.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      }
     },
     "owner_handoff_20261029": {
       "id": "OWNER-STITCH-ZCODE-LOCAL-HANDOFF-20261029",
@@ -199,14 +208,16 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "permission_recovery_current": {
-      "observed_at": "2026-10-30T13:36:30Z",
-      "state": "PARTIAL_READ_ACCESS_RECOVERY_ADMINISTRATOR_REMAINDER_PENDING",
+      "observed_at": "2026-10-30T15:35:18.683008+00:00",
+      "state": "BACKUP_VERIFIED_APPLY_PROGRESS_OBSERVED_TERMINAL_PENDING",
       "record": "docs/history/storage-cleanup/2026-10-30-access-and-spillover/README.md",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
       "previous_recovery_record": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
       "supersedes": "The previous recovery and permission_blocker_previous are historical checkpoints, not proof that all current project artifact paths are readable.",
-      "whole_scope": "PARTIAL; first exact read-access batch independently verified, remaining exact batch requires the Owner administrator process. No product/build/installed qualification follows from ACL checks.",
-      "monitor": "PAUSED_UNCHANGED"
+      "whole_scope": "PARTIAL; original ACL backup hash verified and journal prefix advancing. No terminal receipt observed; whole-batch ordinary-token readback not yet qualified. No product/build/installed qualification follows from ACL checks.",
+      "monitor": "PAUSED_UNCHANGED",
+      "observation_ref": ".project-local/runs/be268a2d33/acl-observe2/artifacts/apply-prefix-observation.json",
+      "verification_pending": "Preserve the existing administrator run; wait for its terminal receipt, then independently verify eligible exact objects and preserved exceptions with ordinary read access. Do not restart or replace its frozen module."
     },
     "permission_blocker_previous": {
       "observed_date": "2026-10-23",

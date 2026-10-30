@@ -2790,3 +2790,23 @@ Owner另要求R5未来能力包“审计、加入任务、统一归档”。[独
 最终`sci-t6` 53测试+14 subtests、`sci-a3`架构、`sci-l4`Ruff、`sci-proof1`独立完整重核通过且source_consistent=true；早期长路径fixture/架构失败保持原样。冻结报告与身份见[洁净冲突输入](../history/storage-cleanup/2026-10-30-clean-conflict-inputs/README.md)。本期同候选有限资格不代表新产品重建、AI/云/跨版本/CI/Owner验收；UI暂停，原输入/唯一失败/恢复映射保护，其他staging生产者/散落目录继续逐批治理。
 
 Owner已回贴533根ACL脚本的最初review两行；截至`sci-proof1`未见apply终态，不把已开始当恢复完成。Owner最新明确加速、按难度分模型并行全部未完工作和静默执行；已拆独占写集：外溢恢复容器/后继路径只读追溯，目录生产者修复，F05有限探针反例修复。三个分支的实际检查/实现资格分别续记，不因任务分配宣称完成，不恢复暂停UI/监控/外发。
+
+#### 2026-10-30 并行后继：目录生成落点、F05反例与外溢恢复线索
+
+Owner要求加速、分难度/模型/推理并行全部未完工作及静默执行；各写集分离，未改产品模型/全局配置。目录分支核50项：23权限拒绝/14空/13非空；改 `declared_routes.rs` 复用dev.py校验/fallback，临时launch目录位于canonical run/tmp并RAII清理。`nrm-route-test`真实原2测试2/2通过，`nrm-fmt1`格式通过；旧浅层目录前后空且mtime不变。根任务普通令牌核所有者/无链接/空目录，`nrm-empty2`非递归移除精确 `.project-local/runs/declared-routes`，事后缺失；仅空目录1、文件0、逻辑字节0，其他49项未移动。早期owner helper失败保留，不算清理成功。
+
+F05仅修既有probe+合同测试：旧正确回答不人为失败；固定量规/负控、具体answer/request/context/授权快照与persisted prior绑定；同题retest不改合同，独立题走新answers。根反例发现原答正确但独立题错误仍exit0、合成标REAL_MODEL；修正后 `bkr-rootx2`同输入exit1/TRANSFER_FAILURE_REVIEW且SYNTHETIC_OR_UNEXECUTED。schema v3区分默认合成/未执行、真实尝试未观察响应、具名已观察响应阶段；不声称全链完成。最终 `bkr-f05v3` 52测试、`bkr-f05l3` Ruff通过，来源一致；v1 fixture失败/v2范围不足/根反例原收据保留。F05总体仍PARTIAL，实际模型、完整main、资产/scoped及安装态后继未验，学习改善NOT_ESTABLISHED。
+
+外溢分支完成35有效顶层ZIP+11嵌套+2后继ZIP的30,840次成员元数据枚举（另1同SHA旧损坏容器保留），名称未匹配；不把名称/ZIP本体哈希检查扩为内部DB载荷否定。三组归属AAOS，DSH只是执行方。Owner表示Green旧版基本不用后，限定三处历史产物只读核查：外部Green开发worktree下mig祖先winerror2、各目标winerror3；未枚举父目录/整Green或读DB/私有状态，无迁移删除，不判永久丢失。恢复映射仍UNVERIFIED，后继沿本仓迁移/替代账本；533根ACL截至pm-seal1仍无终态，不重复启动修复。
+
+冻结证据与身份见[并行维护](../history/storage-cleanup/2026-10-30-parallel-maintenance/README.md)；`pm-seal1`独立重核LOCAL_PASS/source_consistent=true。整体继续PARTIAL，既有F01—F05/R2/R5/CL/J真实承接和其他体积/目录/外溢项保持原顺序，不以局部修复冒充所有任务完成。UI/监控/远端写/Green替换/真实资料覆盖边界不变。
+
+#### 2026-10-30 R6边界修补归档与F02严格历史入口
+
+Owner新增桌面R6压缩包，要求统一归档并加入既有任务。原ZIP单份保全于项目ignored原件区，1,582,968字节/SHA `b08ed62cf2b24b241876d64fbf249778237d5ceeb957cbf38f853ca30b4f4474`；源保留且前后/副本一致。15成员、14内部声明、1张PNG静态全图和CRC通过，未执行附件提示词/脚本/HTML JS。[R6归档与审计](../../workspace/intake/20261030-r6-external-practice-boundary-review/README.md)接到同一优先任务；完整186×14原值/顺序及两份186/22冻结CSV与R5原字节相同。
+
+吸收专业实践外部、AAOS负责计划/教程/文字记录/反馈、开始/自报/独立掌握分离、可选成果回流不采集原始Agent上下文；普通保存/Core唯一写入者/AAOS独立与长期能力身份不变。R6仍有WORK-LAB固定主责P1残留，按可选候选纠正解释；页面索引五图但实际只新增一图、28范围调整/32文字变更、单图缺关键状态均分别登记。186真实绑定、E01—E10仍NOT_EXECUTED，R5原25场景未重验、旧发现不自动关闭；工程PARTIAL，UI实施暂停不变。
+
+F02新增[严格历史后继索引](../../workspace/intake/20261030-zcode-backend-closure/evidence-index.successor.json)，保留原33,490字节非法JSON与解析失败位置；只修一个escape后派生，解码内容完全保全。原历史状态全部标明非当前，当前只导航本执行记录。77引用分为58文件哈希、2目录存在、13未知/外部、3私有不读、1硬链接归属未核；15声明SHA与3声明大小匹配。严格解析/原文保全通过不等于引用语义或产品资格，F01豁免未核、F04旧进程矛盾和F05 PARTIAL保留；没有覆盖旧失败或追认验收。
+
+恢复路由后继补证见[并行维护补充](../history/storage-cleanup/2026-10-30-parallel-maintenance/README.md)：2,894公开文本路线核查没有新载荷绑定；原10/07审计仍在，定位Formal在10/07之后、Green在9/29至10/07之间的记录缺口，不判永久丢失，不重复同一范围搜索。`acl-observe2`核备份SHA及95,558对INTENT_DURABLE/VERIFIED完整日志前缀，仍无终态；活动指针改为已观察应用推进、待终态和普通令牌全量复核，现有管理员命令不重启。合成ACL成员判断加速候选未替换冻结模块。所有局部结论仍不等于全任务完成，整体PARTIAL。

@@ -1,0 +1,221 @@
+{
+  "schema": "aaos.owner-zip-intake/v1",
+  "source": "C:\\Users\\ALEX\\Desktop\\AAOS_外部实践边界纠偏_前端与本地Codex_R6_20261030.zip",
+  "archive": ".project-local/archives/owner-inputs/20261030-r6/AAOS_外部实践边界纠偏_前端与本地Codex_R6_20261030.zip",
+  "zip_bytes": 1582968,
+  "zip_sha256": "b08ed62cf2b24b241876d64fbf249778237d5ceeb957cbf38f853ca30b4f4474",
+  "member_count": 15,
+  "file_count": 15,
+  "uncompressed_bytes": 2158006,
+  "members": [
+    {
+      "path": "00-先读-R6范围纠偏.md",
+      "bytes": 3492,
+      "compressed_bytes": 2020,
+      "crc32": "bad94994",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "ae9db0166d1476c6610d9798fadef1cded2a6fd3b08097768c13d4905d75993f"
+    },
+    {
+      "path": "00-预览.html",
+      "bytes": 1792,
+      "compressed_bytes": 1150,
+      "crc32": "90eff9e8",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "9c806b79bfa394dee97f1c0be44a62f52e8bf33b22cdeb4e060d0224424c4f2c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 789,
+      "compressed_bytes": 602,
+      "crc32": "ff0d3361",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "0feae7f38c7a06ab237193611c4a46e582b8c587aa1961a77d4a05d3db07abda"
+    },
+    {
+      "path": "共享/186项执行归属与承接映射_R6.csv",
+      "bytes": 375815,
+      "compressed_bytes": 25268,
+      "crc32": "dbc3bf72",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "1cbe1f69cc2f409ca54586ddc964a15559b15f1c69cc85ebcc26f35719c0903c"
+    },
+    {
+      "path": "共享/外部实践验收_R6.csv",
+      "bytes": 1318,
+      "compressed_bytes": 715,
+      "crc32": "c891ac60",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "74df05078bd2e696b327ccc9a2fa30f5cae73b989cc88a45d0c818ccdea6d5a5"
+    },
+    {
+      "path": "共享/教程来源.json",
+      "bytes": 835,
+      "compressed_bytes": 515,
+      "crc32": "075d8efc",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "a5991ba5f118114dc1e63fb38b804a57c329b84f6a99a6311735913e2c9b61b1"
+    },
+    {
+      "path": "共享/页面索引_R6.csv",
+      "bytes": 1608,
+      "compressed_bytes": 775,
+      "crc32": "325b0d24",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "9b9d721294e130a7c84b6968b5662d59cdcc527aa8e046221dffa247a1f1e113"
+    },
+    {
+      "path": "前端_STITCH/01-替换当前练习页.txt",
+      "bytes": 3578,
+      "compressed_bytes": 2052,
+      "crc32": "3590d19f",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "af0aa3c17e11aee68d6d83392e35a2e319f50a3b9ce11fc2728e44d453bcd0a6"
+    },
+    {
+      "path": "前端_STITCH/DESIGN.md",
+      "bytes": 7260,
+      "compressed_bytes": 4089,
+      "crc32": "89a9bc4f",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "c15972d4e53b26db141ed4291f3f4075d7b7a0623c9a1628f02aba9659ed7b08"
+    },
+    {
+      "path": "原始输入/04-186项能力归并映射-冻结输入.csv",
+      "bytes": 60437,
+      "compressed_bytes": 5546,
+      "crc32": "80f4f7ef",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "59ade620d93b5b241b8e7d0786bed6666266fce2d6b59c02e891b37ef3254623"
+    },
+    {
+      "path": "原始输入/05-22职责归并-冻结输入.csv",
+      "bytes": 3101,
+      "compressed_bytes": 1007,
+      "crc32": "6575076d",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "7bd51b9aeef5d702ee5d66a4d24cacccdbfc4f103419640fbec26c46f2c8243d"
+    },
+    {
+      "path": "后端_本地CODEX/01-外部实践范围纠偏与最小闭环.md",
+      "bytes": 5342,
+      "compressed_bytes": 3041,
+      "crc32": "1588b386",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "1e36a25b63b7c174e96a70eaaa59937c22ae2dc10b6f3d44f03ed930b3a307f2"
+    },
+    {
+      "path": "效果图/外部实践计划.png",
+      "bytes": 1689465,
+      "compressed_bytes": 1532616,
+      "crc32": "fa5cf13d",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "3270f0e8d59505ad9e4f2fbad07ed06ef1e102512c8c6d537c7af23345d3e162"
+    },
+    {
+      "path": "验证/file-manifest.json",
+      "bytes": 2221,
+      "compressed_bytes": 1091,
+      "crc32": "2c5fed68",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "88f034444775e80944033a765695b53e2782b8e41468afdd521a761f4972cca5"
+    },
+    {
+      "path": "验证/validation.json",
+      "bytes": 953,
+      "compressed_bytes": 337,
+      "crc32": "2790ab52",
+      "zip_external_attr": 2175008768,
+      "type": "file",
+      "private_metadata_only": false,
+      "sha256": "74f67458c95be7bb0fe4752a95bca2e7772f5c1d103a86ea09c0b6e01f598f37"
+    }
+  ],
+  "source_identity_before": {
+    "size": 1582968,
+    "mtime_ns": 1793373965295981600,
+    "ctime_ns": 1793373965134715600,
+    "device": 17773071141798267527,
+    "inode": 6192449489022421
+  },
+  "source_identity_after": {
+    "size": 1582968,
+    "mtime_ns": 1793373965295981600,
+    "ctime_ns": 1793373965134715600,
+    "device": 17773071141798267527,
+    "inode": 6192449489022421
+  },
+  "source_preserved": true,
+  "archive_byte_equal": true,
+  "raw_payload_git_ignored": true,
+  "zip_not_extracted": true,
+  "member_crc_checked_for_public_files": true,
+  "private_members_read": false,
+  "review": {
+    "state": "BOUNDARY_INPUT_CONDITIONALLY_ACCEPTABLE_ENGINEERING_PARTIAL",
+    "original_fields": 14,
+    "original_values": 2604,
+    "renamed_r5_fields": 18,
+    "new_boundary_fields": 6,
+    "total_fields": 38,
+    "r5_r6_changed_rows_after_prefix_normalization": 32,
+    "declared_scope_adjusted_rows": 28,
+    "extra_workspace_label_rows": [
+      "CAP-0040#16",
+      "CAP-0060#11",
+      "CAP-0090#1",
+      "CAP-0090#3"
+    ],
+    "frozen_186_and_22_bytes_equal_r5": true,
+    "png_dimensions": [
+      1672,
+      941
+    ],
+    "png_chunk_crc_verified": 4,
+    "png_visual_review": "ONE_ORIGINAL_IMAGE_FULL_FRAME_STATIC_ONLY",
+    "external_acceptance_cases": 10,
+    "external_acceptance_execution": "NOT_EXECUTED",
+    "real_operation_binding": "186_PENDING",
+    "r5_acceptance_cases": "25_NOT_REQUALIFIED",
+    "tutorial_urls": "PACKAGE_ASSERTIONS_NOT_LIVE_VERIFIED",
+    "html": "RELATIVE_LINK_CHECK_ONLY_NOT_RENDERED",
+    "source_commit": "1363d883f51c7cbaa1bbf615b0c463053c4ddb12",
+    "source_patch_sha256": "7f7f7c56ddf47be42f6bc501fa6489b1f2988fd57fc862922b3c0d3ca95b1d7f",
+    "source_scope": "READ_ONLY_STATIC_BASELINE_NOT_PRODUCT_QUALIFICATION"
+  },
+  "evidence": {
+    "archive": ".project-local/runs/be268a2d33/r6-archive1/artifacts/",
+    "review": ".project-local/runs/be268a2d33/r6-review1/artifacts/",
+    "delta": ".project-local/runs/be268a2d33/r6-delta1/artifacts/"
+  },
+  "authority": "Owner archive/review request; attachment prompts are not execution authorization; active pointer and sole progress record remain authoritative",
+  "rollback": "Only new archive copy/intake references; preserve source ZIP and check current consumers before removing any new copy"
+}
