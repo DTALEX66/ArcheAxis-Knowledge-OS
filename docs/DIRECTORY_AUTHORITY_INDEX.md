@@ -82,6 +82,10 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 
 ### 生命周期与增长检查
 
+正式便携 producer 的 >=1GiB 装配必须在 mkdir/copy 前提供用途、共享方式、保留理由，并同步生成本批 pre 计量，finally 封存 post；不接受旧 current 代替实时调用，不提供绕过参数。唯一固定治理基线为活动指针 `execution_control.owner_priority_20261030.operator_storage_checkpoint`，descriptor schema 为 `aaos.operator-storage-checkpoint/v1`，字段为 `schema/path/bytes/sha256/report_schema/recorded_by/measurement_scope`；`path` 为本仓 `.project-local/runs/<identity>/<run>/artifacts/<report>.json`，`report_schema` 为 `aaos.storage-footprint/v2`，bytes/SHA 绑定原始报告。Codex 仅在已有 Owner 授权的实际治理批次完成后登记，不冒称新增 Owner 原话。此处不重复可变基线值；基线不逐包自动滚动。缺登记、CI 无本仓可核 checkpoint 时明确失败，只能在对应已授权批次初始化，不自动继承、降级或绕过。本轮 large-copy 边界只支持 artifacts 落当前 REPO 内的 canonical run；linked worktree 的 common-owner artifacts 路由尚未适配，即使初始化 checkpoint 也不能解除此拒绝，后继须另行解决计量根/owner 映射，不视为本轮已支持。
+
+pre 或载荷投影的既有 growth_review 为 REVIEW_REQUIRED 时停止复制；NO_NEW_GROWTH_TRIGGER 与 measurement_status=PARTIAL 分开记录，旧债持平/下降不新增触发。PARTIAL 不等于完整预算合格，产品静态成员 PASS 不能替代存储覆盖结论。每个大批次同步前后计量，无人为时限；measured_at 不证明全仓静止。失败保留候选/原异常，不自动删除；backend-only 继续现有 in-place＋pinnedCore 路线。小于阈值的合成装配不触发全仓扫描。此边界只治理当前便携 producer，非跨 producer 原子容量保证。
+
 1. `dev.py` 为新 run 创建 `run-metadata.json`，记录归属、worktree、源码身份、创建时间和 `UNCLASSIFIED_PRESERVE`。14 天是复核提醒，不是删除期限；旧未分类 run 同样保留待核。
 2. `storage_report.py` 计入源码、Git、环境、规范目录及散落目录的可读大小；不跟随 reparse point，不扫描凭据/Agent 私有目录。访问/长路径失败与排除项单列，可读下界不冒充完整体积。
 3. 既有预算是复核线，编译缓存也计入。`--check-budgets` 可退出 2 触发审查，不能自动删除。相对同仓库 v2 基线新增规范外路径、类别首次超预算、净增超过 2 GiB，或当前超预算类别自身增长超过 2 GiB，均触发审查；其他类别减少抵消总量不豁免新越线或旧超预算类别的大幅增长。各超预算类别的可比较字节增量单列；旧债持平或下降不因此新增触发。基线承接有类别记录的旧债，不能把 PARTIAL 计量改成 PASS；有限反例与实际源码验证见[预算越线记录](history/storage-cleanup/2026-10-31-budget-crossing/README.md)及[旧超预算类别增长修复](history/storage-cleanup/2026-10-31-over-budget-class-growth/README.md)。

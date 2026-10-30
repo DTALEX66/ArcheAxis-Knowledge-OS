@@ -11,3 +11,5 @@
 其他六源的后继只读字节／身份核验见[当前公共集合](BATCH-CURRENT.md)，与已执行V11清理分开；该导航不授予后继删除。
 
 六源后继精确操作、独立POST及整仓有限计量见[六源部署与恢复边界](BATCH-DEPLOYMENT.md)。本页保留原观察时点，不另维护当前进度。
+
+后继producer有限改动及原RED/GREEN收据见[复制前增长约束](GROWTH-ENFORCEMENT.md)；它仅覆盖该producer，不替代全仓或产品验收。

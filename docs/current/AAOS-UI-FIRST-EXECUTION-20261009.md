@@ -2981,3 +2981,12 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 既有Owner条件授权下，消费者/恢复合同、当前owner/DACL/DELETE/别名及六fresh全RM只读资格闭合后，仅一次执行`batchdel-40e21d2a`：六源每19709项，合计118254公共重复叶/8101280628源路径逻辑B；118254原生disposition及持久COMMIT、500963close全1，六对全部闭合，无cleanup error。后继`batchpost-b71be9b1`独立确认全部源WinError2缺失、19709保留件完整SHA/原WinID及35公开保护项原SHA/ID一致，errors0；两run actual/wrapper0、clean96e43008源码一致。目录/ACL/载荷复制/他人进程操作0，33denied名仍不探。完整恢复未演练，历史重放须先排他恢复原相对路径并重新核新身份；旧FAIL/PARTIAL与旧false收据不改。[部署、原收据身份及恢复](../history/storage-cleanup/2026-10-31-portable-pair-qualification/BATCH-DEPLOYMENT.md)。
 
 一次`batchsize-12792afb`可读下界142280381205→134357299417B、差−7923081788B，PARTIAL/actual-wrapper1；674错误/243私有/581布局原列表逐项不变，NO_NEW_GROWTH_TRIGGER不是预算通过。四具名hash/eligibility/actual/POST run共184414241逻辑B，非物理释放或全仓原子净值。存量归属/规范化、producer大包增长门禁仍待后继；静态复核发现复制到EOF可突破尺寸门槛，候选已转有界copy，尚未应用/测试。F05第二题length未完成根因未确认，不强行调参重试，真实资格仍FAIL；完整J1/CL/R6及整体PARTIAL，无UI构建/上传/Green/真实库操作。
+
+
+### 2026-10-31 正式便携producer复制前增长门禁
+
+既有assemble直接API/CLI现对>=1GiB强制三声明、同仓canonical artifacts、固定活动指针checkpoint及同步pre/投影growth_review；REVIEW_REQUIRED在mkdir/copy前停止，有效pre后finally尝试post保留PARTIAL及原复制主异常，无bypass/自动删除。基线绑定实际batchsize-12792afb原字节，不逐包滚动。每成员改有界copy，解决prestat后源增长仍向目标写到EOF；旧源21B计划写85B的反例已复现，当前目标不超21B。原首轮3FAIL保留，行为断言改实际尺寸后的正式RED2FAIL/1PASS；最终受影响57PASS、Ruff0、真实checkpoint/直接CLI读取0，同d7f17757+dirty68ca7987…源码一致，中途Ruff19项FAIL亦保留。[精确身份与限制](../history/storage-cleanup/2026-10-31-portable-pair-qualification/GROWTH-ENFORCEMENT.md)。
+
+本次仅微小合成复制/fake measure及读取已存真实报告，没有新大包/全仓扫描/UI或Host构建。linked common-owner路由未适配，缺本仓基线的CI/其他机器大包拒绝；不是跨producer原子容量保证。local_pinned_packaging、其他stager/build增长约束与存量49项归属/规范化仍待接续，F05/完整J1/CL/R6仍PARTIAL；无上传/Green/真实库/全局模型配置操作。
+
+Owner随后质询“一晚上你就清理了这么点体积吗？什么项目能有100多个G，云端仓库源码才多大”。root承认逐叶核验/留证占用过多时间，按原体积优先顺序转向剩余最大产物，暂缓新增后端功能。当前本地HEAD d7f17757的5835个Git blob合计785127379B（含文档/素材；非云端当前分支核验）；最新有限snapshot中runs100262216903B/build14078469637B是主因。三路只读并行查runs/build/其他大类的精确归属、再生、消费者及保全边界，复用既有索引、不再先铺大量逐叶报告；本段不直接把未核目录授权为可删，实际结果后继追加。

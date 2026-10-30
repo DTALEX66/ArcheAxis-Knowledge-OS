@@ -261,3 +261,237 @@ def test_self_consistent_manifest_still_rejects_different_crt_copy(tmp_path, pre
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(ValueError, match="copies differ"):
         portable.plan(host, build, portable.RESOURCES)
+
+
+# All payloads stay tiny: lower only the synthetic threshold, never allocate GiB.
+def growth_fixture(tmp_path, monkeypatch):
+    import copy
+    import hashlib
+    host, build = fixture_bundle(tmp_path)
+    manifest = portable.plan(host, build, portable.RESOURCES)
+    monkeypatch.setattr(portable, "REPO", tmp_path)
+    monkeypatch.setattr(portable, "LARGE_COPY_BYTES", 1)
+    run = tmp_path / ".project-local/runs/0123456789/growth"
+    artifacts = run / "artifacts"
+    artifacts.mkdir(parents=True)
+    paths = {"root": tmp_path, "run": run, "artifacts": artifacts}
+    monkeypatch.setattr(portable.dev, "layout", lambda root, run_id: paths)
+    context = {"paths": paths, "purpose": "finite synthetic packaging", "sharing": "existing backend reused",
+               "retention_reason": "bounded qualification evidence"}
+    report = {"schema": "aaos.storage-footprint/v2", "repository": str(tmp_path),
+              "measured_at": "2026-10-31T00:00:00+00:00", "readable_bytes": 3 * 1024 ** 3,
+              "measurement_status": "PARTIAL", "measurement_errors": [{"path": "unknown", "error": "denied"}],
+              "excluded_private": ["private-preserved"], "excluded_checkouts": [], "out_of_layout": ["old/"],
+              "dev_root": [{"name": "runs/", "bytes": 3 * 1024 ** 3, "budget_gb": 2.0,
+                            "over_budget": True, "budgeted_bytes": 3 * 1024 ** 3}]}
+    baseline_path = tmp_path / ".project-local/runs/0123456789/checkpoint/artifacts/footprint.json"
+    baseline_path.parent.mkdir(parents=True)
+    raw = json.dumps(report).encode()
+    baseline_path.write_bytes(raw)
+    descriptor = {"schema": portable.CHECKPOINT_SCHEMA, "path": baseline_path.relative_to(tmp_path).as_posix(),
+                  "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
+                  "report_schema": report["schema"], "recorded_by": "Codex authorized governance batch",
+                  "measurement_scope": "synthetic lower-bound snapshot; partial exclusions retained"}
+    pointer = tmp_path / "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    pointer.parent.mkdir(parents=True)
+    pointer.write_text(json.dumps({"execution_control": {"owner_priority_20261030": {
+        "operator_storage_checkpoint": descriptor}}}), encoding="utf-8")
+    calls = []
+    def measure(root):
+        calls.append(root)
+        return copy.deepcopy(report)
+    monkeypatch.setattr(portable.storage_report, "measure", measure)
+    return host, manifest, artifacts / "candidate", context, report, calls, pointer, baseline_path
+
+
+def test_large_direct_api_missing_declarations_never_copies(tmp_path, monkeypatch):
+    # Uses only the old public API, so the original implementation fails with
+    # DID NOT RAISE rather than a missing new helper/constant/import.
+    host, build = fixture_bundle(tmp_path)
+    manifest = portable.plan(host, build, portable.RESOURCES)
+    dest = tmp_path / "requires-declarations"
+    monkeypatch.setattr(portable, "LARGE_COPY_BYTES", 1, raising=False)
+    with pytest.raises(ValueError, match="requires run paths"):
+        portable.assemble(host, dest, manifest)
+    assert not dest.exists()
+
+
+@pytest.mark.parametrize("mutation", ["missing", "sha", "bytes_bool", "foreign", "path"])
+def test_checkpoint_identity_fail_closed(tmp_path, monkeypatch, mutation):
+    host, manifest, dest, context, report, calls, pointer, baseline = growth_fixture(tmp_path, monkeypatch)
+    obj = json.loads(pointer.read_bytes())
+    d = obj["execution_control"]["owner_priority_20261030"]["operator_storage_checkpoint"]
+    if mutation == "missing":
+        del obj["execution_control"]["owner_priority_20261030"]["operator_storage_checkpoint"]
+    elif mutation == "sha":
+        d["sha256"] = "0" * 64
+    elif mutation == "bytes_bool":
+        d["bytes"] = True
+    elif mutation == "path":
+        d["path"] = "../external.json"
+    else:
+        import hashlib
+        foreign = json.loads(baseline.read_bytes())
+        foreign["repository"] = "foreign"
+        raw = json.dumps(foreign).encode()
+        baseline.write_bytes(raw)
+        d["bytes"] = len(raw)
+        d["sha256"] = hashlib.sha256(raw).hexdigest()
+    pointer.write_text(json.dumps(obj), encoding="utf-8")
+    with pytest.raises(ValueError):
+        portable.assemble(host, dest, manifest, storage_context=context)
+    assert not dest.exists() and not calls
+
+
+@pytest.mark.parametrize("mutation", ["sum", "bool", "understated_source"])
+def test_manifest_cannot_lower_threshold_by_false_totals(tmp_path, monkeypatch, mutation):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    first = next(iter(manifest["files"].values()))
+    # Keep the falsified plan below threshold: size validation must still run.
+    monkeypatch.setattr(portable, "LARGE_COPY_BYTES", manifest["logical_bytes"] + 1)
+    monkeypatch.setattr(portable, "_copy_candidate", lambda *args: pytest.fail("copy invoked"))
+    if mutation == "sum":
+        manifest["logical_bytes"] = 0
+    elif mutation == "bool":
+        first["bytes"] = True
+    else:
+        first["bytes"] -= 1
+        manifest["logical_bytes"] -= 1
+    with pytest.raises(ValueError):
+        portable.assemble(host, dest, manifest, storage_context=context)
+    assert not dest.exists() and not calls
+
+
+def test_unchanged_old_debt_partial_is_not_storage_pass(tmp_path, monkeypatch):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    portable.assemble(host, dest, manifest, storage_context=context)
+    receipt = json.loads((dest.parent / "portable-storage-receipt.json").read_bytes())
+    assert len(calls) == 2 and dest.is_dir()
+    assert receipt["measurement_status"] == "PARTIAL"
+    assert receipt["pre_review"]["status"] == receipt["projected_review"]["status"] == "NO_NEW_GROWTH_TRIGGER"
+    pre = json.loads((dest.parent / "portable-storage-pre.json").read_bytes())
+    assert pre == report
+    assert receipt["pre"]["measurement_started_at"] <= receipt["pre"]["measurement_ended_at"]
+    assert receipt["pre"]["measurement_ended_at"] <= receipt["post"]["measurement_started_at"]
+
+
+def test_existing_growth_stops_copy_but_still_seals_post(tmp_path, monkeypatch):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    report["readable_bytes"] += 2 * 1024 ** 3 + 1
+    report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+    monkeypatch.setattr(portable, "_copy_candidate", lambda *a: pytest.fail("copy invoked"))
+    with pytest.raises(portable.GrowthReviewRequiredError):
+        portable.assemble(host, dest, manifest, storage_context=context)
+    receipt = json.loads((dest.parent / "portable-storage-receipt.json").read_bytes())
+    assert len(calls) == 2 and not dest.exists()
+    assert receipt["copy_outcome"] == "NOT_STARTED"
+    assert receipt["pre_review"]["status"] == "REVIEW_REQUIRED"
+
+
+def test_projected_growth_uses_same_checkpoint_and_cannot_be_offset(tmp_path, monkeypatch):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    total = manifest["logical_bytes"]
+    # Current remains just below the fixed 2GiB class-growth line. Payload crosses it.
+    report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 - total + 1
+    # Other class reductions hide total growth but cannot hide over-budget class growth.
+    report["readable_bytes"] -= 1
+    monkeypatch.setattr(portable, "_copy_candidate", lambda *a: pytest.fail("copy invoked"))
+    with pytest.raises(portable.GrowthReviewRequiredError):
+        portable.assemble(host, dest, manifest, storage_context=context)
+    receipt = json.loads((dest.parent / "portable-storage-receipt.json").read_bytes())
+    assert receipt["pre_review"]["status"] == "NO_NEW_GROWTH_TRIGGER"
+    assert receipt["projected_review"]["status"] == "REVIEW_REQUIRED"
+    assert not dest.exists()
+
+
+def test_original_copy_error_survives_post_failure_and_partial_is_preserved(tmp_path, monkeypatch):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    original = OSError("original-copy-failure")
+    def fail_copy(*args):
+        dest.mkdir()
+        (dest / "partial").write_bytes(b"preserve")
+        raise original
+    monkeypatch.setattr(portable, "_copy_candidate", fail_copy)
+    original_measure = portable.storage_report.measure
+    def measure(root):
+        if calls:
+            raise OSError("post-measure-failure")
+        return original_measure(root)
+    monkeypatch.setattr(portable.storage_report, "measure", measure)
+    with pytest.raises(OSError, match="original-copy-failure") as caught:
+        portable.assemble(host, dest, manifest, storage_context=context)
+    assert caught.value is original and (dest / "partial").read_bytes() == b"preserve"
+    receipt = json.loads((dest.parent / "portable-storage-receipt.json").read_bytes())
+    assert receipt["post_error"]["message"] == "post-measure-failure"
+    assert receipt["original_error"]["message"] == "original-copy-failure"
+
+
+def test_small_assembly_never_scans(tmp_path, monkeypatch):
+    host, build = fixture_bundle(tmp_path)
+    manifest = portable.plan(host, build, portable.RESOURCES)
+    monkeypatch.setattr(portable.storage_report, "measure", lambda *args: pytest.fail("small copy scanned"))
+    portable.assemble(host, tmp_path / "small", manifest)
+
+
+def test_refuses_overwrite_before_large_measurement(tmp_path, monkeypatch):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    dest.mkdir()
+    with pytest.raises(FileExistsError):
+        portable.assemble(host, dest, manifest, storage_context=context)
+    assert not calls
+
+
+@pytest.mark.parametrize("change", ["grow", "short"])
+def test_source_changes_after_pre_stat_copy_is_bounded(tmp_path, monkeypatch, change):
+    import builtins
+
+    from scripts.runtime import storage_report
+    host, build = fixture_bundle(tmp_path)
+    manifest = portable.plan(host, build, portable.RESOURCES)
+    # Small plan sits below threshold; the grown source would cross it.
+    threshold = manifest["logical_bytes"] + 8
+    monkeypatch.setattr(portable, "LARGE_COPY_BYTES", threshold, raising=False)
+    monkeypatch.setattr(storage_report, "measure", lambda *args: pytest.fail("small plan scanned"))
+    name = next(iter(manifest["files"]))
+    source = host.parent / name
+    declared = manifest["files"][name]["bytes"]
+    original = source.read_bytes()
+    opened = []
+    def open_after_stat(path, mode="r", *args, **kwargs):
+        if os.fspath(path) == portable.native(source) and mode == "rb":
+            assert not opened
+            opened.append(True)
+            if change == "grow":
+                # This occurs only at input open, after every pre-copy stat.
+                source.write_bytes(original + b"g" * 64)
+            else:
+                source.write_bytes(original[:max(0, declared - 1)])
+        return builtins.open(path, mode, *args, **kwargs)
+    monkeypatch.setattr(portable, "open", open_after_stat, raising=False)
+    destination = tmp_path / "changed-after-stat"
+    with pytest.raises(ValueError):
+        portable.assemble(host, destination, manifest)
+    target = destination / name
+    assert opened and target.is_file()
+    assert target.stat().st_size <= declared
+    assert target.read_bytes() == source.read_bytes()[:target.stat().st_size]
+    assert source.is_file()  # Preserve source and partial candidate on failure.
+    if change == "grow":
+        assert manifest["logical_bytes"] + 64 > threshold
+        assert target.stat().st_size == declared
+        assert source.read_bytes() == original + b"g" * 64
+
+
+
+def test_linked_common_owner_artifacts_are_explicitly_unsupported(tmp_path, monkeypatch):
+    host, manifest, dest, context, report, calls, _, _ = growth_fixture(tmp_path, monkeypatch)
+    linked = tmp_path / "linked-checkout"
+    linked.mkdir()
+    # Simulate dev.layout's common-owner routing without Git or product calls.
+    context["paths"]["root"] = linked
+    monkeypatch.setattr(portable, "REPO", linked)
+    monkeypatch.setattr(portable, "_copy_candidate", lambda *a: pytest.fail("copy invoked"))
+    monkeypatch.setattr(portable, "_checkpoint", lambda: pytest.fail("checkpoint cannot lift root restriction"))
+    with pytest.raises(ValueError, match="linked checkout evidence cannot silently inherit"):
+        portable.assemble(host, dest, manifest, storage_context=context)
+    assert not calls and not dest.exists()

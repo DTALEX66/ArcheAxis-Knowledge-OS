@@ -157,6 +157,15 @@
       "frontend_design": "OWNER_CONTINUES_CLOUD_GPT_LAYOUT_REFINEMENT; no agent upload or invocation authorized by this statement",
       "cleanup": "Explicit project cleanup authorization; exact reviewed path manifest, ownership, regenerability or retained hash-identical replacement, idleness, protected inputs and postcondition required. No blanket deletion or cross-project cleanup.",
       "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "operator_storage_checkpoint": {
+        "schema": "aaos.operator-storage-checkpoint/v1",
+        "path": ".project-local/runs/be268a2d33/batchsize-12792afb/artifacts/storage-after.json",
+        "bytes": 838252,
+        "sha256": "a7df0255b316c104ff34118b41744e24db84a5ec33bc3b173fef2fb3c7dd1f06",
+        "report_schema": "aaos.storage-footprint/v2",
+        "recorded_by": "Codex governance checkpoint under existing OWNER-ARCHIVE-STORAGE-NORMALIZE-BACKEND-PRIORITY-20261030; not a new Owner statement",
+        "measurement_scope": "Post exact six-source cleanup; readable-owned lower bound, PARTIAL with 674 access errors, 243 private exclusions and 581 existing layout entries; non-atomic. Fixed cumulative baseline, never advanced automatically per package."
+      },
       "preservation": "Unique originals/failures, user data, valid candidate/rollback evidence and private agent state remain protected; uncertainty retained and reported",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
