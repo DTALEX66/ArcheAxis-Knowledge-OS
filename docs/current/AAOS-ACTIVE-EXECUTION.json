@@ -130,6 +130,28 @@
   ],
   "execution_control": {
     "state": "RUNNING_BY_OWNER",
+    "owner_priority_20261030": {
+      "id": "OWNER-ARCHIVE-STORAGE-NORMALIZE-BACKEND-PRIORITY-20261030",
+      "instruction": "统一归档都本项目仓库里，加入到后端任务优先任务里，先清理项目体积，和项目文件规范化（任何子文件夹/目录/文件/文档/构建/产物/缓存等等），还有现在不断膨胀后续该怎么治理？我去云端GPT继续修正前端界面布局等",
+      "source_and_acceptance": "workspace/intake/20261030-cloud-review-and-backend-priority/README.md",
+      "order": [
+        "ARCHIVE_CLOUD_R2_AND_CODEX_AUDIT_IN_PROJECT",
+        "MEASURE_AND_REVIEW_EXACT_REGENERABLE_OR_DUPLICATE_CLEANUP",
+        "DIRECTORY_NORMALIZATION_AND_CONTINUOUS_STORAGE_GOVERNANCE",
+        "AUDIT_EVIDENCE_AND_SEMANTIC_RETEST_GAPS",
+        "R2_HUMAN_AI_REQUIREMENTS_TO_EXISTING_BACKEND_AND_SAME_CANDIDATE_QUALIFICATION"
+      ],
+      "backend": "PRIORITIZE_STORAGE_AND_NORMALIZATION_THEN_EXISTING_FINITE_BACKEND_SCOPE",
+      "ui_implementation": "PAUSED_BY_OWNER",
+      "frontend_design": "OWNER_CONTINUES_CLOUD_GPT_LAYOUT_REFINEMENT; no agent upload or invocation authorized by this statement",
+      "cleanup": "Explicit project cleanup authorization; exact reviewed path manifest, ownership, regenerability or retained hash-identical replacement, idleness, protected inputs and postcondition required. No blanket deletion or cross-project cleanup.",
+      "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "preservation": "Unique originals/failures, user data, valid candidate/rollback evidence and private agent state remain protected; uncertainty retained and reported",
+      "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "remote_writes": "DENIED_UNCHANGED",
+      "monitor": "NO_MONITOR_OPERATION"
+    },
     "owner_handoff_20261029": {
       "id": "OWNER-STITCH-ZCODE-LOCAL-HANDOFF-20261029",
       "instruction": "整理全部可见对话与材料，交付完整STITCH前端设计提示词和ZCODE后端闭环执行提示词；新本地分支优化合并迁移，复杂能力具名延期且保留；ZCODE全部本地，禁止云仓库和数据上传；其报告后由Codex独立审计",
@@ -184,7 +206,7 @@
       "owner_authorization": "RETAINED; not an Owner pause",
       "monitor": "PAUSED_UNCHANGED"
     },
-    "instruction": "Owner resumed finite parallel execution and subsequently prioritized backend closed-loop qualification while pausing UI implementation. UI research, full Stitch text and architecture/reuse planning continue. Read owner_priority_20261029 and the sole progress record. Preserve <=10 percent stop guard; development resumption does not resume monitoring. Full human/AI/permissioned-connection scope CL-01..07/J1..6 remains PARTIAL.",
+    "instruction": "Owner 2026-10-30 prioritizes project-local report/audit archival, reviewed storage cleanup, directory normalization and continued growth governance before existing finite backend qualification. Read owner_priority_20261030 and the sole progress record. UI implementation remains paused while Owner refines frontend layouts in cloud GPT; no agent upload or monitor operation. Preserve the <=10 percent allowance guard, local-only handoff, original evidence, frozen scope and distinct acceptance layers.",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
@@ -838,6 +860,8 @@
     "supersession": "SUP-025"
   },
   "execution_priority_overlay": {
+    "current_order_ref": "#/execution_control/owner_priority_20261030/order",
+    "historical_order_note": "The dated order below is superseded for current execution by owner_priority_20261030; UI implementation remains paused",
     "id": "OWNER-STITCH-FULL-UI-PARALLEL-INTEGRATION-20261021",
     "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
     "owner_decided_at": "2026-10-21",

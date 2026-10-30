@@ -321,3 +321,55 @@ def test_linked_development_and_runs_roots_are_not_enumerated(tmp_path, monkeypa
     make_junction(dev/'runs',outside)
     with pytest.raises(ValueError,match='linked'):
         report.runs_layout(dev,repo)
+
+
+def test_full_footprint_counts_ignored_and_misplaced_bytes_once(tmp_path):
+    repo = tmp_path / 'repo'
+    subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+    for relative, data in [('frontend/a.ts', b'a'), ('.venv/runtime', b'bb'),
+                           ('.project-local/stray-copy/file', b'ccc'),
+                           ('loose-copy/file', b'xxxx')]:
+        path = repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    subprocess.run(['git', 'add', 'frontend/a.ts'], cwd=repo, check=True)
+    measured = report.measure(repo)
+    rows = measured['root'] + measured['ignored_root_measurements'] + measured['unclassified_root_measurements'] + measured['dev_root']
+    assert measured['readable_bytes'] == sum(row['bytes'] for row in rows)
+    assert next(row for row in measured['ignored_root_measurements'] if row['name'] == '.venv/')['bytes'] == 2
+    assert next(row for row in measured['dev_root'] if row['name'] == 'stray-copy/')['bytes'] == 3
+    assert next(row for row in measured['unclassified_root_measurements'] if row['name'] == 'loose-copy/')['bytes'] == 4
+
+
+def test_retained_build_cache_is_counted_against_review_ceiling(tmp_path, monkeypatch):
+    repo = tmp_path / 'repo'
+    subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+    cache = repo / '.project-local/build/cargo'
+    cache.mkdir(parents=True)
+    (cache / 'object').write_bytes(b'12345678')
+    monkeypatch.setitem(report.DEV_BUDGET_GB, 'build', 4 / 1024 ** 3)
+    measured = report.measure(repo)
+    row = next(row for row in measured['dev_root'] if row['name'] == 'build/')
+    assert row['protected_bytes'] == 8
+    assert row['budgeted_bytes'] == 8
+    assert row['over_budget'] is True
+
+
+def test_growth_review_retains_old_debt_but_flags_new_growth_and_layout():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': ['old/']}
+    current = {**baseline, 'dev_root': [{'name': 'runs/', 'over_budget': True}],
+               'measurement_status': 'PARTIAL'}
+    reviewed = report.growth_review(current, baseline)
+    assert reviewed['status'] == 'NO_NEW_GROWTH_TRIGGER'
+    assert reviewed['measurement_status'] == 'PARTIAL'
+    assert reviewed['over_budget_classes'] == ['runs/']
+    assert reviewed['deletion_authorized'] is False
+    assert report.growth_review(current)['status'] == 'REVIEW_REQUIRED'
+    current['readable_bytes'] += 2 * 1024 ** 3 + 1
+    assert report.growth_review(current, baseline)['status'] == 'REVIEW_REQUIRED'
+    current['readable_bytes'] = baseline['readable_bytes']
+    current['out_of_layout'] = ['old/', 'new/']
+    assert report.growth_review(current, baseline)['new_out_of_layout'] == ['new/']
+    with pytest.raises(ValueError, match='same repository'):
+        report.growth_review(current, {**baseline, 'repository': 'foreign'})

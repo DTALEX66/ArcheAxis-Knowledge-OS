@@ -63,6 +63,41 @@ deletion state still stops any exact-path move or deletion.
   not authorize a move or deletion.
 
 
+## 2026-10-30 体积与文件规范
+
+Owner 要求先清理项目体积、规范全部项目目录和文件，再推进后端优先任务；前端布局由 Owner 在云端修订。授权与顺序只沿活动指针 `execution_control.owner_priority_20261030`，本节不维护第二份进度。明确的本轮清理授权允许按已审查的精确清单清理可再生成缓存，替代旧注释中“所有历史编译缓存永不清理”的无限保留理解；大小、年龄、ignored 身份均不单独授予删除权限。
+
+### 文件落点
+
+| 内容 | 落点与规则 |
+| --- | --- |
+| 源码、合同、配置、维护工具和测试 | 保持上表模块归属；正式工具放 `scripts/`，不按后缀批量搬移。模块边界变更先核消费者与回退。 |
+| 当前授权和进度 | 活动指针、现行决定与唯一执行记录。来源报告不成为第二状态中心，旧片段保持历史身份。 |
+| Owner 输入和外部报告 | `workspace/intake/YYYYMMDD-topic/`，附原件、来源、大小、SHA-256 和证据边界；已有归档引用原位置。 |
+| 历史正文和轻量索引 | `docs/history/`；迁移需哈希、消费者和旧路径映射；运行库、日志包和完整构建载荷不进 Git。 |
+| 临时脚本、测试输出、日志和回执 | `dev.py` 分配的 `.project-local/runs/<worktree-id>/<run-id>/` 下 `tmp/`、`logs/`、`artifacts/`，不再散落至仓库根或 `.project-local/` 根。 |
+| 编译和依赖缓存 | 沿 `dev.py` 的共享 Core/Host target 与 lock；同一依赖锁不每 run 完整复制。保留离线依赖源；清理中间产物会增加后续编译成本。 |
+| 候选、回滚材料和运行证据 | 大载荷留项目 ignored 目录，Git 仅保存轻量 manifest/哈希/结论。保护有效候选、必要回滚及唯一失败；相同载荷收敛为一份，经逐文件替代映射与恢复验证保全旧引用。 |
+| 原件、真实数据、共享资源和 Agent 私有状态 | 不因规范化改动；Green、模型库及共享盘不属本次清理。私有目录不读正文，不据项目名认领。 |
+
+### 生命周期与增长检查
+
+1. `dev.py` 为新 run 创建 `run-metadata.json`，记录归属、worktree、源码身份、创建时间和 `UNCLASSIFIED_PRESERVE`。14 天是复核提醒，不是删除期限；旧未分类 run 同样保留待核。
+2. `storage_report.py` 计入源码、Git、环境、规范目录及散落目录的可读大小；不跟随 reparse point，不扫描凭据/Agent 私有目录。访问/长路径失败与排除项单列，可读下界不冒充完整体积。
+3. 既有预算是复核线，编译缓存也计入。`--check-budgets` 可退出 2 触发审查，不能自动删除。相对同仓库 v2 基线新增规范外路径、净增超过 2 GiB，同样触发审查；基线承接旧债，不能把 PARTIAL 计量改成 PASS。
+4. 大构建、打包、沙盒批次开始前和封存后各计量一次；单 run 预计超过 1 GiB，先记录载荷来源、共享方式、预计大小和保留理由。小测试不重复全仓扫描。生成者负责封存证据并清理可重建临时副本。
+5. 沙盒输入应按源码/候选/工具指纹复用已验证的只读输入，重试只生成独立输出；不默认复制整套仓库、解释器、PowerShell 和安装器。共享输入改造须验证 guest 权限、写入隔离和身份绑定。
+6. 目录规范化按“归属 → 消费者 → 目标与哈希 → 回退 → 执行 → 链接/行为验证”逐批处理。现有散落路径进入清单，不扩大 allowlist 掩盖问题，不一次批量改名破坏路径。
+7. 精确删除须确认项目根内、无 reparse 逃逸、无人使用、源码/保护证据不在清单；副本有保留的同哈希替代，可重建缓存有锁定输入和重建命令；事后核对缺失/保留及退出码。拒绝项保留，不改 ACL 或终止共享进程。
+
+检查示例（新的唯一 run ID；输出目录由 dev.py 创建）：
+
+```powershell
+.\.venv\Scripts\python.exe scripts/runtime/dev.py --run-id storage-review-YYYYMMDD-N -- .\.venv\Scripts\python.exe scripts/runtime/storage_report.py --json .project-local/runs/be268a2d33/storage-review-YYYYMMDD-N/artifacts/footprint.json --baseline <本仓库已登记的v2基线.json> --check-budgets
+```
+
+退出 2 表示增长/布局/预算需要复核，退出 1 表示布局或计量有未覆盖项；`NO_NEW_GROWTH_TRIGGER` 仅表示没有新增触发条件。精确清理结果沿唯一执行记录与对应 manifest 查询。
+
 ### Frozen donor archive — 2026-09-26
 
 `docs/history/branch-donors/execution-reliability-20260926/` is HISTORICAL_RECORD, not execution authority. ARCHIVE.json identifies three exact-tip, byte-preserved repository documents and source hashes. This bounded archive is repository documentation; it does not classify other mixed history paths. The source branch was retired on 2026-09-27 after review and a verified full-history local bundle; the six bounded imported documents and duplicate/move dispositions are recorded in [the consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json). Other mixed history paths retain their protected classification.

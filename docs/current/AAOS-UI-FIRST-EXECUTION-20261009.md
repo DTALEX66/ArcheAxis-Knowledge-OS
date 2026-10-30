@@ -2719,3 +2719,18 @@ C1同候选收据链五段全通：`zcode-c1-j2-public-20261030`真实公开检�
 核实CI门禁现实：lint job为ruff(E9,F63,F7,F82)+约定/架构/语言/文档权威检查，rust-vnext为`cargo fmt --all --check`+测试，desktop-fast携带唯一cargo fmt——**CI不存在clippy -D warnings门禁**；本轮`-D warnings`全工作区clippy是本会话自查口径，不虚构为门禁。诚实范围因此收窄到具名项：store-sqlite两条既有lint（raw_objects.rs:165 unneeded unit expression、writer.rs:57 collapsible if→let-chains）与八条保留警告（domain两个unused import、application死函数stable_id及其孤儿sha2导入、Executor死字段worker仅删字段保留构造参数——default_worker仍供给text.extract路由、api测试死字段content_type及其采集、expect_fun_call→unwrap_or_else(panic!)、v01_journey两个未用变量改下划线保留副作用调用）。
 
 验证：clippy四crate --all-targets原始输出逐项grep，十项全部归零（scoped警告156→142）；`cargo fmt --all --check`干净；`cargo test -p store-sqlite -p application -p domain -p api --offline --locked`退出0，184个测试二进制全ok零失败（含被改文件上的contract_absent_surfaces/qualification_api/v01_journey）。commit `37f2c02e`。如实登记：四crate仍有142条未列名clippy警告（collapsible-ifs、needless borrows、too_many_arguments等），属非门禁债务，留给有评审的清理轮，不宣称workspace -D全绿。证据入`evidence-index.json`的`lint_cleanup_20261030`。未push/远端写入/发布/替换Green/覆盖真实数据；监控未操作。
+
+
+#### 2026-10-30 Owner 云端 R2／Codex 审计归档、体积清理与后端优先覆盖
+
+Owner 本轮要求统一归档在本项目、加入后端优先任务，先清理项目体积并规范全部目录/文件，治理持续膨胀；前端布局由 Owner 在云端继续修订。授权顺序已写入活动指针 `execution_control.owner_priority_20261030`，原任务 ID、有限双侧闭环、UI 实施暂停、禁远端写入/云 CI/项目上传、Green/真实数据/模型设置及监控边界不变。
+
+[统一归档与后端验收要求](../../workspace/intake/20261030-cloud-review-and-backend-priority/README.md)保存云端 R2 原始 HTML、内嵌 186 项 CSV、本地审计 10 文件，12 成员哈希核验；原 CSV 的 2604 值逐项匹配。R2 是需求/设计复核，有限工程审计仍 PARTIAL，不能替代真实学习效果或实现验收。后端按体积/规范化→F01—F05 证据与语义复测→R2 双侧实际对象/接口/权限/版本/调用方映射→同候选安装可靠性接续，原清单与报告未改写。
+
+清理按本项目精确清单执行：98,417 文件、50,379,897,904 逻辑字节（46.919936 GiB）、10,820 空目录；5,208 个可重建 Debug 缓存文件和 93,209 个同哈希沙盒重试副本，错误 0。可读逻辑计量 175.781533→128.932729 GiB（私有/不可读范围排除）。后验 98,417 原路径缺失、21,841 替代文件哈希匹配、47 保护输入不变、C1 19,747 payload/8 sidecar 匹配，7 项复制恢复验证通过；验证副本已清理。原始失败/收据、当前候选、release、交接 41 文件和真实数据均保留。清理回退和逐文件替代映射见[冻结维护结果](../history/storage-cleanup/2026-10-30/README.md)及 MANIFEST。
+
+`dev.py` 新增每 run 归属/源码/保留元数据；`storage_report.py` 补齐散落/Git/环境计量、缓存预算及同仓库 v2 基线的新路径/净增长 >2 GiB 审查。目录规则沿既有索引维护，14 天仅复核不自动删除。功能验证 57 passed、1 skipped、9 subtests passed，原始运行 `8099128c3dc0` 的 execution.json 为 LOCAL_PASS/source_consistent=true；后继仅将预算告警的控制台输出截断，定向运行 `b65d4c2f1083` 的 21 项检查通过，原始退出 0。Windows root Cargo 离线 metadata 99 包解析及 manifest 存在检查通过（storage-offline-windows-20261030-v2），非重建；全平台缺 bumpalo 的原失败和一次包装器解析失败均保留，未下载或升级。
+
+仍为维护 PARTIAL：runs 约 99.36 GiB，550 个开发根散落入口、31 个错误层级 run、19 个退役 worktree 身份与 1,390 个访问/长路径错误未逐一迁移/解除；私有排除 92。已冻结 637 入口分类和待核清单，不扩大 allowlist 掩盖、不按目录名认领、不绕过 ACL；预算检查原始子退出 2 的 REVIEW_REQUIRED 保留。后继继续审阅旧候选重复载荷与引用/恢复映射，优先修正 staging 重试整包复制的生成方式；本轮不宣称全仓规范化完成或全后端验收通过。
+
+本轮封存检查：文档权威、5823 跟踪路径规范均通过；19 个新增归档路径另逐项 owner 匹配且新 README 链接无缺失。源补丁、原退出码与上述测试收据见[维护验证记录](../history/storage-cleanup/2026-10-30/verification.json)。此句仅记录结果，不将既有产品证据重绑本轮文档。

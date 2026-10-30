@@ -23,10 +23,11 @@ import json
 import os
 import stat
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-PRIVATE_NAMES = frozenset({".codex", ".hermes", ".zcode", ".dsh", ".ui-task-tree"})
+PRIVATE_NAMES = frozenset({".codex", ".hermes", ".zcode", ".mimosa", ".trae", ".dsh", ".ui-task-tree", ".hilo"})
 PRIVATE_FILES = frozenset({".npmrc", ".pypirc", "id_rsa", "id_ed25519"})
 
 
@@ -384,26 +385,25 @@ def measure(repo: Path | None = None) -> dict:
     repo = safe_path(repo)
     out_of_layout: list[str] = []
     tracked = _git_root_names(repo)
-    root_entries = []
+    root_entries, ignored_entries, unclassified_entries, excluded_roots = [], [], [], []
     for entry in sorted(repo.iterdir()):
         name = entry.name
-        if name in PRIVATE_NAMES:
+        if protected_name(name):
+            excluded_roots.append(str(entry))
             continue
         directory = stat.S_ISDIR(entry.lstat().st_mode)
+        if name == ".project-local":
+            continue  # Count its classes below, exactly once.
+        measured = directory_measurement(entry) if directory or is_reparse_point(entry) else {
+            "bytes": entry.stat().st_size, "files": 1, "errors": [], "excluded_private": [], "links": []}
+        record = {"name": name + "/" if directory else name, **measured, "tracked": name in tracked}
         if name in tracked:
-            if directory:
-                measured = directory_measurement(entry)
-                record = {"name": name + "/", **measured, "tracked": True}
-                # Name what was excluded. A directory that reports 1.1 MB while a 190 MB install
-                # sits behind a link inside it is only honest if the link and its target are shown;
-                # otherwise the shared bytes look like they vanished from the measurement.
-                links = measured["links"]
-                if links:
-                    record["links"] = links
-                root_entries.append(record)
+            root_entries.append(record)
             continue
         if name in ALLOWED_IGNORED:
+            ignored_entries.append(record)
             continue
+        unclassified_entries.append(record)
         out_of_layout.append(f"root: {name}/" if directory else f"root: {name}")
 
     dev = repo / ".project-local"
@@ -412,38 +412,47 @@ def measure(repo: Path | None = None) -> dict:
     if dev.is_dir():
         for entry in sorted(dev.iterdir()):
             name = entry.name
+            if protected_name(name) or name == "agents":
+                excluded_roots.append(str(entry))
+                continue
             directory = stat.S_ISDIR(entry.lstat().st_mode)
             if not dev_allowed(name):
                 dev_strays.append(entry)
                 out_of_layout.append(f".project-local: {name}/" if directory else f".project-local: {name}")
-                continue
             measured = directory_measurement(entry) if directory or is_reparse_point(entry) else {
                 "bytes": entry.stat().st_size, "files": 1, "errors": [], "excluded_private": [], "links": []}
             size = measured["bytes"]
-            # Compile caches are exempt from the budget rather than silently over it. `dev.py`
-            # states the rule - "Do not move or remove any historical cache" - so a class that is
-            # mostly that cache cannot be brought under a ceiling by deleting it, and a ceiling that
-            # is knowingly exceeded is noise. Only the rest of the class is budgeted.
+            # Retention is a deletion boundary, not a measurement/budget exemption.
+            # Owner's 2026-10-30 cleanup request permits reviewed regenerable caches;
+            # size alone still never grants deletion.
             protected = protected_bytes(entry, measured["errors"]) if directory and not measured["links"] else 0
             budget = DEV_BUDGET_GB.get(name) or DEV_BUDGET_GB.get(name.split("-")[0])
             dev_classes.append({
                 "name": name + "/" if directory else name,
+                "layout_declared": dev_allowed(name),
                 **measured,
                 "gb": round(size / 1024 ** 3, 2),
                 "protected_bytes": protected,
-                "budgeted_bytes": size - protected,
+                "budgeted_bytes": size,
                 "budget_gb": budget,
                 "total_over_budget": bool(budget and size > budget * 1024 ** 3),
-                "over_budget": bool(budget and size - protected > budget * 1024 ** 3),
+                "over_budget": bool(budget and size > budget * 1024 ** 3),
             })
     runs_violations, runs_stale = runs_layout(dev, repo)
-    errors = [error for row in root_entries + dev_classes for error in row["errors"]]
-    excluded_private = sorted({path for row in root_entries + dev_classes for path in row["excluded_private"]})
+    measured_rows = root_entries + ignored_entries + unclassified_entries + dev_classes
+    errors = [error for row in measured_rows for error in row["errors"]]
+    excluded_private = sorted(set(excluded_roots) | {path for row in measured_rows for path in row["excluded_private"]})
     excluded_checkouts: list[str] = []
     checkout_roots(repo, excluded_checkouts)
     return {
+        "schema": "aaos.storage-footprint/v2",
+        "measured_at": datetime.now(timezone.utc).isoformat(),
         "repository": str(repo),
         "root": root_entries,
+        "ignored_root_measurements": ignored_entries,
+        "unclassified_root_measurements": unclassified_entries,
+        "readable_bytes": sum(row["bytes"] for row in measured_rows),
+        "readable_files": sum(row["files"] for row in measured_rows),
         "ignored_root": sorted(ALLOWED_IGNORED),
         "dev_root": dev_classes,
         "dev_strays": [str(path.relative_to(repo)).replace("\\", "/") for path in dev_strays],
@@ -461,24 +470,26 @@ def measure(repo: Path | None = None) -> dict:
 def print_report(report: dict) -> None:
     print(f"repository {report['repository']}")
     print(f"measurement {report['measurement_status']}: {report['byte_semantics']}")
+    print(f"total {report['readable_bytes']} readable bytes / {report['readable_files']} files")
     for error in report["measurement_errors"][:10]:
         print(f"  unreadable {error['path']}: {error['error']} errno={error['errno']}")
     print(f"  private subtrees excluded: {len(report['excluded_private'])}; "
           f"foreign/private checkouts excluded: {len(report['excluded_checkouts'])}")
     print("root classes:")
-    for entry in sorted(report["root"], key=lambda item: -item["bytes"]):
+    for entry in sorted(report["root"] + report["ignored_root_measurements"] +
+                        report["unclassified_root_measurements"], key=lambda item: -item["bytes"])[:20]:
         # Say so out loud: the number is owned bytes, and what it left out is named here.
         links = entry.get("links") or []
         shared = f"   links out -> {', '.join(link['target'] for link in links)}" if links else ""
         print(f"  {entry['bytes'] / 1024 ** 3:8.2f} GB  {entry['name']}{shared}")
-    print(".project-local classes (budget in GB; retained compile caches shown separately):")
-    for entry in sorted(report["dev_root"], key=lambda item: -item["bytes"]):
+    print(".project-local classes (review ceilings in GiB, including retained caches; top 20):")
+    for entry in sorted(report["dev_root"], key=lambda item: -item["bytes"])[:20]:
         flag = f"  OVER budget {entry['budget_gb']}" if entry["over_budget"] else ""
         budget = f"{entry['budget_gb']}" if entry["budget_gb"] else "-"
         if entry.get("total_over_budget") and not entry["over_budget"]:
             flag += "  TOTAL OVER (retained cache; no automatic deletion)"
         protected = entry.get("protected_bytes") or 0
-        held = f"  ({protected / 1024 ** 3:.2f} GB of it is a cache dev.py forbids removing)" if protected else ""
+        held = f"  ({protected / 1024 ** 3:.2f} GiB retained compile cache; reviewed cleanup only)" if protected else ""
         print(f"  {entry['gb']:8.2f} GB  {entry['name']:<24} budget {budget}{flag}{held}")
     runs = report.get("runs_layout") or []
     stale = report.get("runs_stale_identity") or []
@@ -502,17 +513,42 @@ def print_report(report: dict) -> None:
         print("layout: every entry is inside the documented set")
 
 
+def growth_review(report: dict, baseline: dict | None = None) -> dict:
+    """Review signals only. Private exclusions and old budget debt never become a PASS."""
+    if baseline is not None:
+        if (baseline.get("schema") != "aaos.storage-footprint/v2" or
+                baseline.get("repository") != report.get("repository")):
+            raise ValueError("baseline must be a v2 snapshot of the same repository")
+    delta = None if baseline is None else report["readable_bytes"] - baseline["readable_bytes"]
+    old_layout = set() if baseline is None else set(baseline.get("out_of_layout", []))
+    new_layout = sorted(set(report["out_of_layout"]) - old_layout)
+    over = [row["name"] for row in report["dev_root"] if row["over_budget"]]
+    # A frozen baseline acknowledges old retention debt, not unchecked new growth.
+    growth_limit = 2 * 1024 ** 3
+    required = bool(new_layout or (delta is not None and delta > growth_limit) or
+                    (baseline is None and over))
+    return {"status": "REVIEW_REQUIRED" if required else "NO_NEW_GROWTH_TRIGGER",
+            "delta_readable_bytes": delta, "growth_review_bytes": growth_limit,
+            "over_budget_classes": over, "new_out_of_layout": new_layout,
+            "measurement_status": report["measurement_status"], "deletion_authorized": False}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", default=None)
     parser.add_argument("--rank-runs", action="store_true",
                         help="rank scoped launcher runs by readable owned bytes; never qualify deletion")
+    parser.add_argument("--baseline", type=Path, help="same-repository v2 snapshot for growth review")
+    parser.add_argument("--check-budgets", action="store_true",
+                        help="exit 2 on unreviewed growth/layout or standalone budget review triggers; never delete")
     # The linked worktrees hold the current scripts while the checked-out repositories hold the
     # dev roots, so measuring a *different* checkout has to be a parameter rather than a reason to
     # copy this file over or to edit the other checkout.
     parser.add_argument("--repo", default=None,
                         help="checkout to measure (default: the repository this script lives in)")
     args = parser.parse_args()
+    if args.rank_runs and (args.baseline or args.check_budgets):
+        parser.error("growth review requires a complete footprint, not --rank-runs")
     if args.rank_runs:
         report = rank_runs(Path(args.repo) if args.repo else REPO)
         print(f"runs measurement {report['measurement_status']}: {report['readable_bytes']} readable bytes")
@@ -520,9 +556,21 @@ def main() -> int:
             print(f"  {row['bytes']:12} B  {row['identity']}/{row['run_id']}  {row['measurement_status']} PRESERVE")
     else:
         report = measure(Path(args.repo) if args.repo else None)
+        baseline = json.loads(safe_path(args.baseline).read_text(encoding="utf-8")) if args.baseline else None
+        report["growth_review"] = growth_review(report, baseline)
         print_report(report)
+        review = report["growth_review"]
+        console_review = {key: value for key, value in review.items() if key != "new_out_of_layout"}
+        console_review["new_out_of_layout_count"] = len(review["new_out_of_layout"])
+        console_review["new_out_of_layout_sample"] = review["new_out_of_layout"][:5]
+        print("growth review: " + json.dumps(console_review, ensure_ascii=False))
     if args.json:
-        Path(args.json).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        output = safe_path(Path(args.json))
+        if not output.is_relative_to(Path(report["repository"])):
+            parser.error("report output must stay inside the measured repository")
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if args.check_budgets and report["growth_review"]["status"] == "REVIEW_REQUIRED":
+        return 2
     return 1 if report.get("out_of_layout") or report["measurement_status"] != "PASS" else 0
 
 

@@ -1,0 +1,83 @@
+{
+  "schema": "aaos.storage-maintenance-validation/v1",
+  "checks": [
+    {
+      "description": "57 passed, 1 skipped, 9 subtests passed",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/8099128c3dc0/artifacts/execution.json",
+        "bytes": 1727,
+        "sha256": "ff7097a9867158327fbeb860b7a77f1e5876954b9431decc2294647c4fc5ae1d"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+      "source_patch_sha256": "7eae54254310c645e26444ec097e5e2e4c185862910f95c58f1bde23598974b6"
+    },
+    {
+      "description": "21 passed",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/b65d4c2f1083/artifacts/execution.json",
+        "bytes": 1632,
+        "sha256": "f45d2abcb9e188dc9aebf7baebad4361306802c91ff57fe6f07d28d741d58103"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+      "source_patch_sha256": "a8a968fb9d886d5a430bd77d85cd9f9ca4c14f89f1cd73924021f7f2994e7f3e"
+    },
+    {
+      "description": "Document authority passed",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/storage-doc-authority-20261030/artifacts/execution.json",
+        "bytes": 1294,
+        "sha256": "a6588c7423d1aa1d316e2ef53cbeccfd9b7fa3f61d9413eec3a88c9d997e3ac8"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+      "source_patch_sha256": "9ccd45ec52d3b18c414f22477b8fcc121756387292b503fc22c216be238c0eda"
+    },
+    {
+      "description": "5823 tracked paths owned, no ambiguities/denied tracked/shared install duplicates",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/storage-path-conventions-20261030/artifacts/execution.json",
+        "bytes": 1295,
+        "sha256": "cffd7584164d58d72fc28de1772011442c04718199facd0ed025980f41e0e4ee"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+      "source_patch_sha256": "9ccd45ec52d3b18c414f22477b8fcc121756387292b503fc22c216be238c0eda"
+    },
+    {
+      "description": "99 root Cargo Windows packages resolved offline; no rebuild",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/storage-offline-windows-20261030-v2/artifacts/execution.json",
+        "bytes": 1360,
+        "sha256": "4aef7b34a54a0279cd2c0aa3b7be0f5552e81e483a29474453d8365b78081afb"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+      "source_patch_sha256": "7eae54254310c645e26444ec097e5e2e4c185862910f95c58f1bde23598974b6"
+    }
+  ],
+  "new_paths_and_links": {
+    "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/new-path-and-link-validation.json",
+    "bytes": 3440,
+    "sha256": "7272d7cafa121943134ac7b394a87c43900b458d1d84f9459c26d47cccce1bff"
+  },
+  "new_archive_files_ownership_checked": 19,
+  "new_readme_missing_links": 0,
+  "boundary": "Checks bind their measured source patches; this result recording adds documentation only. Not CI, rebuild, installed or Owner product acceptance.",
+  "git_archive_byte_preservation": {
+    "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/git-index-archive-validation.json",
+    "bytes": 1446,
+    "sha256": "8185fa1b6aaf2364858483084dffa22375996565a301bb9982032332b04da79e"
+  }
+}

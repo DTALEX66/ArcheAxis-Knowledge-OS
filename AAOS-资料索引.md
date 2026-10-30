@@ -13,6 +13,10 @@
 
 查资料先查本入口。原件已保全到本项目 `.project-local/archives/record-20261009/`；历史 TaskPack 仅为来源资料，不授予执行权限。
 
+## 2026-10-30 云端 R2、本地后端审计与体积治理
+
+[统一归档与后端验收要求](workspace/intake/20261030-cloud-review-and-backend-priority/README.md)保存云端 HTML、186 项内嵌 CSV、本地审计及 SHA-256 清单。当前顺序沿活动指针 `execution_control.owner_priority_20261030`，实际清理与后端进度只读唯一执行记录。
+
 ## 2026-10-18 客户端会话与修复/UI交接恢复
 
 [Codex专项索引](docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md)登记7个主会话、53个执行/审计子会话、134个自动审批元数据，以及307份历史final的关系与本地证据入口。[跨客户端总对账](docs/current/AAOS-SESSION-RECONCILIATION-20261018.md)一并整合Claude Code原始/fork、Cowork同主题交接包及云端Pages线索。

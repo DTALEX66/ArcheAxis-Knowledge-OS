@@ -6,11 +6,13 @@
 
 ## 接续顺序
 
+2026-10-30 Owner 后继优先级读取活动指针 `execution_control.owner_priority_20261030`：先完成[云端 R2／本地审计归档与任务承接](../../workspace/intake/20261030-cloud-review-and-backend-priority/README.md)，先清理项目体积、规范目录和持续增长治理，再按本地审计缺口及 R2 双侧要求推进既有有限后端。前端布局由 Owner 在云端继续修订；本地 UI 实施与监控不恢复。精确清理清单及结果只沿唯一执行记录读取。
+
 1. 先读[唯一闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)，再核活动指针的 `owner_scope_current`、`execution_control`、`continuation_context`、`delivery_authorization`、`green_update_authorization` 与 `active_progress`。同时核本地Git状态及受保护材料；历史PASS不移绑新源码或候选。
 2. 从唯一执行记录末段接续具名阻断，沿原任务ID与[前后端执行覆盖](AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md)落实；不另建任务包、业务库或进度表，不重复无变化的全审计。
 3. 独立工作可并行，每个写集一个writer；构建和原生验收期间冻结其绑定的源码与文档。原始失败保留，后继结果另记；本地测试、真实Core／worker、同候选、安装、Green、精确SHA托管CI和Owner接受分别判定。
 
-最新优先级读取活动指针 `execution_control.owner_priority_20261029`：后端有限闭环继续，UI构建暂停，允许融合研究、完整STITCH提示词与可落地方案。窗口要求读取 `native_window_policy.latest_owner_clarification`：同一套流式布局，只验看普通较小非最大化窗口与1920×1080满屏；中间自然适配，过小统一缩放，不另造多套尺寸版。1280×800上限和640×480观测属于既有实现记录，不是新增设计套数或已完成统一缩放的证明。有效保存偏好、草稿及降低模糊的要求继续保留。
+2026-10-29 的既有边界如下，优先顺序已由 `execution_control.owner_priority_20261030` 更新：后端有限闭环继续，UI构建暂停，允许融合研究、完整STITCH提示词与可落地方案。窗口要求读取 `native_window_policy.latest_owner_clarification`：同一套流式布局，只验看普通较小非最大化窗口与1920×1080满屏；中间自然适配，过小统一缩放，不另造多套尺寸版。1280×800上限和640×480观测属于既有实现记录，不是新增设计套数或已完成统一缩放的证明。有效保存偏好、草稿及降低模糊的要求继续保留。
 
 本轮后继证据及具名未闭合项读取[App-local C++依赖修补、安装态PDF与沙盒清场](AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-29-app-local-c依赖修补安装态pdf与沙盒清场)，本入口不重复维护结果状态。
 
