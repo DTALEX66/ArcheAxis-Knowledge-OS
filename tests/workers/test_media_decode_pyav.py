@@ -135,6 +135,8 @@ def test_windows_are_cut_by_the_bundled_decoder_and_cues_keep_their_offsets(monk
     model = tmp_path / "model"
     model.mkdir()
     (model / "model.bin").write_bytes(b"weights")
+    (model / "config.json").write_text("{}", encoding="utf-8")
+    (model / "tokenizer.json").write_text("{}", encoding="utf-8")
     plan = {
         "windows": [
             {"index": 0, "start_ms": 0, "end_ms": 1000, "audio_ms": 1000, "estimated_ms": 2000},

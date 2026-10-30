@@ -27,3 +27,10 @@ Restart Manager 首批注册 19,712 个资源返回系统错误 29，未执行 G
 另立显式身份门的v2：父/子固定复用已核bpr1解释器，child-ready实际PID/FILETIME先与保留的Popen句柄精确一致，才允许RM。`alias2-807cb889`的三处身份同为PID30224/创建FILETIME134378695662523993；file-only登记固定8资源，nApplications=0，正控只报该child。End0后明确释放两原长路径句柄、child终态RELEASED、退出0并回收；第二新会话同8资源无占用报告、End0。共9次RM/2会话，父31次、child3次文件/token CloseHandle均成功，Popen句柄关闭已确认。原HOLD收据不改。
 
 两次控制及短名run actual/wrapper均0、clean05cc2601且源码一致，只表示各自审计执行完成。v2通过的是两条短名和该普通读句柄场景的有限正/释放控制，不证明整批19,711对闲置、原子安全或错误29根因。全部重复源仍保留，cleanup_qualified=false，删除/迁移/ACL修改均0；1,350,261,264逻辑B仍不能报告为已回收。完整集合如需后继资格，必须另冻结清单并完整核验；没有自动重试或删除授权从本控制产生。
+
+
+## 完整固定集合的后继观察
+
+`fullalias-6f7260b4`冻结原39,424资源（19,711对公共叶加两不同Host）；仅70条原超长路径读取已存在短名，原/别名并开句柄身份及最终长路径一致。前后各39,424文件完整SHA/身份/祖先核验一致，精确读取最多5,600,888,896B、不复制载荷。单会话两次固定19,712资源登记均0，GetList0/count0/needed0，End0；共5RM调用。78,989次CloseHandle观察均成功。actual/wrapper0、58803b80+dirty9f61c1bd…且源码一致（dirty为无关当前ASR guard实现），162.36s。v1累计close扫描成本已在执行前改为线性检查，源v1和精确diff保留。
+
+该run取得完整固定集合一次RM无locker观察及前后内容一致，仍不是全局原子闲置或永久清理资格。没有在本片重测owner/DACL/DELETE，后继精确删除须在同句柄下重新保护源和保留端并留下恢复意图/逐项持久账。cleanup_qualified仍false，删除/迁移/ACL0；原Host/manifests/失败及33保护名不动。两个主要观察文件合计59,054,428B，其余元数据另计，未生成第二runtime。原29与第一次控制HOLD不改，也不单凭别名成功确认29根因。

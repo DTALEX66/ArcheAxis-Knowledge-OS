@@ -2946,3 +2946,12 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 ### 2026-10-31 两条现有短名的占用控制核验
 
 `shrt-3eebd817`两条261 UTF-16长路径各获现有151单元短名，long/alias身份相同；六guard保留原拼写，11close成功。`aliaspc-562bc26d`因Popen/RM身份不同HOLD、未做第二会话，自有child释放回收0，redirector仅假设；原收据保留。v2显式child实际身份先验门下，`alias2-807cb889`Popen/child/RM同PID30224及创建时间，file-only正控准确报告该child，释放回收0后同8资源无locker、两End0；9RM/2session，31+3close及自有processhandle关闭确认。三run actual/wrapper0且clean05cc2601源码一致。仅固定资源和普通读句柄的有限控制，不证明整批闲置或29根因；1,350,261,264源逻辑B仍保留，cleanupfalse，删除/迁移/ACL0。[身份、原HOLD与边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。
+
+
+### 2026-10-31 固定重复集合完整占用观察与有限真实ASR
+
+`fullalias-6f7260b4`前后各39424公共资源SHA/ID一致，70条既有短名身份相同；单session两19712登记0、GetList0空、End0，5RM，78989close成功。actual/wrapper0、58803b80+dirty9f61c1bd…源码一致；无payloadcopy，最多5.60GB精确读，主要观察59,054,428B。仅一次完整占用观察，非原子闲置；新鲜owner/ACL/同柄删除条件仍须独立满足，cleanupfalse，删除/迁移/ACL0。[原失败和完整后继](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。
+
+`asrwav-b2ab23a7`真实原bpr1 ASR+当前043834e0 Core，41HTTP/两独立job/两owned Core；同合成英文WAV两次4cue/4raw、14028ms，固定投影、原件/结果/时间anchor冷启精确一致，坏checksum400。actual/wrapper0、clean58803b80源码一致，52/5/123/4成员前后SHA同；0runtimecopy/LLM，计量11文件1165874逻辑B。两Core回收exit1且双相双族noLISTEN，10035仍UNKNOWN；异常取消未走、OS worker独立reap和尾垫正例未实测。仅该样本资格，不是MP3/MP4/中文普遍识别/安装/UI/完整J1/CL/F05。
+
+当前源另加初始model/config/tokenizer非空及local_files_only保护。正式旧源RED17失败3通过；实际tracked源GREEN75通过（含真实ffmpeg/PyAV既有测试、ASR构造替身），绑定58803b80+dirty9f61c1bd…；旧informal和Ruff既有未用import失败保留。新源未改原bpr1，不移绑真实ASR；TOCTOU及OS网络隔离未解决，未宣称无任何下载可能。[实现、原失败及独立复核](../history/bundled-asr-offline-20261031/README.md)。

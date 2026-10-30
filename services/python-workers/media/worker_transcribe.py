@@ -194,6 +194,17 @@ def _resolve_model(path: str | None) -> tuple[Path, str]:
     marker = candidate / "model.bin"
     if not marker.is_file():
         raise ValueError(f"ASR model directory has no model.bin: {candidate}")
+    # A local CTranslate2 model also needs its config and tokenizer. In this
+    # faster-whisper version a missing tokenizer silently calls from_pretrained;
+    # local_files_only does not cover that independent fallback.
+    for name in ("model.bin", "config.json", "tokenizer.json"):
+        asset = candidate / name
+        try:
+            usable = asset.is_file() and asset.stat().st_size > 0
+        except OSError as exc:
+            raise ValueError(f"ASR local model asset is unreadable: {asset}") from exc
+        if not usable:
+            raise ValueError(f"ASR local model asset missing or empty: {asset}")
     return candidate, source
 
 
@@ -318,7 +329,8 @@ def extract(path: str, model_path: str | None, language: str, device: str,
     if not input_path.is_file():
         raise ValueError(f"input media file not found: {input_path}")
 
-    model = WhisperModel(str(model_dir), device=device, compute_type="int8")
+    model = WhisperModel(str(model_dir), device=device, compute_type="int8",
+                         local_files_only=True)
     raw_cues, text_parts, info, processing_error = _segment_cues(
         model, path, language, word_timestamps)
     processing_status = "partial" if processing_error else "complete"
@@ -434,7 +446,8 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
 
     def per_window(window):
         if not loaded:
-            loaded.append(WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8"))
+            loaded.append(WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8",
+                         local_files_only=True))
         target = workspace / f"window-{int(window['index']):04d}.wav"
         if engine["kind"] == "ffmpeg":
             import subprocess

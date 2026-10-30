@@ -41,6 +41,7 @@ def bundle_model(root, name="faster-whisper-base", marker=True):
     if marker:
         (directory / "model.bin").write_bytes(b"synthetic weights")
     (directory / "config.json").write_text("{}", encoding="utf-8")
+    (directory / "tokenizer.json").write_text("{}", encoding="utf-8")
     (directory / "aaos-model.json").write_text(json.dumps({
         "schema": "archeaxis.asr-model/v1",
         "name": name,
@@ -86,6 +87,8 @@ def test_an_explicit_argument_and_override_still_win(tmp_path, monkeypatch):
     chosen = tmp_path / "chosen"
     chosen.mkdir()
     (chosen / "model.bin").write_bytes(b"weights")
+    (chosen / "config.json").write_text("{}", encoding="utf-8")
+    (chosen / "tokenizer.json").write_text("{}", encoding="utf-8")
     assert worker._resolve_model(str(chosen)) == (chosen, "argument")
     monkeypatch.setenv("ARCHEAXIS_ASR_MODEL_DIR", str(chosen))
     assert worker._resolve_model(None) == (chosen, "override")

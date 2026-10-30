@@ -7,7 +7,6 @@ whether a second invocation repeats work it already did.
 """
 
 import importlib.util
-import json
 import os
 import subprocess
 import sys
@@ -166,6 +165,8 @@ def test_windows_are_cut_by_the_bundled_decoder_when_no_binary_is_declared(tmp_p
     model = tmp_path / "model"
     model.mkdir()
     (model / "model.bin").write_bytes(b"weights")
+    (model / "config.json").write_text("{}", encoding="utf-8")
+    (model / "tokenizer.json").write_text("{}", encoding="utf-8")
     merged = worker.extract_windowed(str(source), str(model), "auto", "cpu", two_window_plan(),
                                      None, staging=str(tmp_path / "staging"),
                                      work_dir=str(tmp_path / "work"))

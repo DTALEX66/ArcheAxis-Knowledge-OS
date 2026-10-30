@@ -53,6 +53,8 @@ def external(tmp_path, monkeypatch):
     model = tmp_path / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
     model.mkdir(parents=True)
     (model / "model.bin").write_bytes(b"stub")
+    (model / "config.json").write_text("{}", encoding="utf-8")
+    (model / "tokenizer.json").write_text("{}", encoding="utf-8")
     manifest = root / "capability-requirements.yaml"
     manifest.write_text(MANIFEST, encoding="utf-8")
     monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(root))
@@ -102,6 +104,8 @@ def test_transcribe_explicit_path_wins_over_the_declaration(external, monkeypatc
     other = external["root"] / "other-model"
     other.mkdir()
     (other / "model.bin").write_bytes(b"stub")
+    (other / "config.json").write_text("{}", encoding="utf-8")
+    (other / "tokenizer.json").write_text("{}", encoding="utf-8")
     assert module._model_dir(str(other)).resolve() == other.resolve()
 
 

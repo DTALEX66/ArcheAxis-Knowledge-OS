@@ -76,6 +76,8 @@ def test_probe_declares_the_formats_the_decoder_actually_opened(tmp_path):
     model = tmp_path / "model"
     model.mkdir()
     (model / "model.bin").write_bytes(b"weights")
+    (model / "config.json").write_text("{}", encoding="utf-8")
+    (model / "tokenizer.json").write_text("{}", encoding="utf-8")
     report = worker.probe(str(model))
     # The declared container contract is independent of the Python engine being installed in
     # this particular environment; the minimal test job does not carry faster-whisper.

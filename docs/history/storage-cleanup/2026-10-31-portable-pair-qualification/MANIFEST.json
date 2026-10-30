@@ -377,5 +377,74 @@
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
     ]
+  },
+  "full_alias_observation": {
+    "run": "fullalias-6f7260b4",
+    "source_commit": "58803b80e9fb33f1ac4a96ab25c95337d9b43444",
+    "source_patch_sha256": "9f61c1bdd67e62a534d59945105e9bd378ffcb3495f0207066f1c314234809df",
+    "source_consistent": true,
+    "verified_pre": 39424,
+    "verified_post": 39424,
+    "existing_aliases": 70,
+    "rm_calls": 5,
+    "cleanup_qualified": false,
+    "deleted_or_moved": 0,
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_full_alias_qualification.py",
+        "bytes": 13063,
+        "sha256": "77e53eaa8dcbf8b4c241c429fa390f49701ad2b0f5de201124d71250e9585648"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_full_alias_qualification_v2.py",
+        "bytes": 13407,
+        "sha256": "c31fc024ab139748556ac929cead06fa3cb0ea21d59700928ed8edd1c243e0f8"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/full-alias-v2.diff",
+        "bytes": 2438,
+        "sha256": "e9dd9e9313fb0534c11a0fcc7cb57f0c9f69e051868ea6ddc0a7bb036ab24426"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/full-alias-candidatePlan.json",
+        "bytes": 4467,
+        "sha256": "1fb15df9cbfaee34b991273a9e55976bb4269aeec938f2e7c42ad60fc4d8ad98"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/full-alias-candidatePlan-v2.json",
+        "bytes": 4667,
+        "sha256": "d5e2b289ecccc44884fd310597b956c79268190539393b7240008fe6930f5e9d"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-FULL-AND-ASR-GUARD-ALLOCATION.json",
+        "bytes": 858,
+        "sha256": "ac61ec367147e1e1d19d048266e5c2f20b86ad84636d1597bbef27a049ea2cb9"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/asr-offline-guard/fullalias-v1-static-peer.md",
+        "bytes": 5612,
+        "sha256": "072878edbf12e4e88488711d4ad32a36ff2c0d5579f43eedad74e0490605d80c"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/fullalias-6f7260b4/artifacts/full-alias-summary.json",
+        "bytes": 3715002,
+        "sha256": "f90329d3a491073c2ed9762dabd209f27bf7dc48223dfa97810caa17af9a89a2"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/fullalias-6f7260b4/artifacts/full-alias-rows.jsonl",
+        "bytes": 55339426,
+        "sha256": "fbfcdd0d2fff86c9da9ba1e2e56537633c4a9b24443e837a0b230f73a9c56e7b"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/fullalias-6f7260b4/artifacts/execution.json",
+        "bytes": 1444,
+        "sha256": "5853700d680da767ff61253b6cccb6e9af07d998be652fd65f9dd585ea79c550"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/fullalias-6f7260b4/logs/execution.log",
+        "bytes": 1425,
+        "sha256": "c8e028c3012225dfb7c0c8881f1bfc73dd16cb27ef599edaa43d9ff3548982bf"
+      }
+    ]
   }
 }
