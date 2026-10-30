@@ -172,6 +172,59 @@ class SharedSandboxInputs(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "independent"):
             subject.inspect_stage(self.stage, self.dev, self.pin)
 
+    def split_sources(self):
+        retained = self.dev / 'runs/other/retained'
+        retained.mkdir(parents=True)
+        for name in ('package', 'tools'):
+            (self.stage / name).rename(retained / name)
+        body = json.loads(self.manifest.read_text(encoding='utf-8'))
+        body['source_roots'] = {name: str(self.stage / name if name == 'input' else retained / name)
+                                for name in subject.ROOTS.values()}
+        self.manifest.write_text(json.dumps(body), encoding='utf-8')
+        self.pin = hashlib.sha256(self.manifest.read_bytes()).hexdigest()
+        return body
+
+    def test_split_retained_roots_are_verified_and_mapped_without_copies(self):
+        body = self.split_sources()
+        result = subject.prepare(self.paths('split'), self.stage, self.pin)
+        self.assertEqual(result['status'], 'SHARED_INPUT_PROPOSAL_ONLY', result)
+        mappings = ET.parse(result['config']).findall('./MappedFolders/MappedFolder')
+        self.assertEqual([m.findtext('HostFolder') for m in mappings[:3]],
+                         [body['source_roots'][name] for name in subject.ROOTS.values()])
+        self.assertEqual(result['payload_bytes_copied'], 0)
+        source = Path(body['source_roots']['tools']) / 'pwsh.exe'
+        source.write_bytes(b'changed retained source')
+        with self.assertRaisesRegex(ValueError, 'bytes/hash'):
+            subject.inspect_stage(self.stage, self.dev, self.pin)
+
+    def test_split_root_private_escape_and_input_redirect_fail_before_payloads(self):
+        original = self.split_sources()
+        for field, path in [('tools', self.root / 'tools'),
+                            ('tools', self.dev / 'runs/.mimosa/tools'),
+                            ('input', Path(original['source_roots']['tools']))]:
+            with self.subTest(field=field, path=path):
+                body = dict(original, source_roots=dict(original['source_roots'], **{field: str(path)}))
+                self.manifest.write_text(json.dumps(body), encoding='utf-8')
+                pin = hashlib.sha256(self.manifest.read_bytes()).hexdigest()
+                identity = subject.identity
+                def guard(value):
+                    self.assertEqual(value, self.manifest, 'No selected payload may be hashed')
+                    return identity(value)
+                with patch.object(subject, 'identity', side_effect=guard), self.assertRaises(ValueError):
+                    subject.inspect_stage(self.stage, self.dev, pin)
+
+    def test_split_root_may_not_be_a_writable_callers_ancestor(self):
+        body = self.split_sources()
+        paths = self.paths('writable')
+        body['source_roots']['tools'] = str(paths['run'] / 'tools')
+        (paths['run'] / 'tools').mkdir()
+        (paths['run'] / 'tools/pwsh.exe').write_bytes(self.files[r'C:\AAOSTools\pwsh.exe'])
+        self.manifest.write_text(json.dumps(body), encoding='utf-8')
+        pin = hashlib.sha256(self.manifest.read_bytes()).hexdigest()
+        result = subject.prepare(paths, self.stage, pin)
+        self.assertEqual(result['status'], 'FAIL_CLOSED')
+        self.assertIn('overlaps', result['error'])
+
     @unittest.skipUnless(os.name == "nt", "Windows junction regression")
     def test_junction_input_rejected_without_following(self):
         target = self.root / "outside-stage"

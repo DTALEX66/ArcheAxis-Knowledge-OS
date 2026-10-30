@@ -3,7 +3,7 @@ import hashlib
 import json
 import subprocess
 import uuid
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
@@ -114,6 +114,19 @@ def test_existing_environment_is_preserved_without_a_start_intent(prepared):
     assert all(args[0] == 'list' for args in cli.calls)
 
 
+def test_unexpected_verifier_exception_never_saves_a_passing_execution(prepared, monkeypatch):
+    paths, plan = prepared
+    cli = FakeCli(plan)
+    def fail(_):
+        raise RuntimeError('Unexpected verifier fault')
+    monkeypatch.setattr(subject, 'verify_guest', fail)
+    with pytest.raises(RuntimeError, match='Unexpected'):
+        subject.execute(paths, plan, cli)
+    receipt = subject.inputs.read_manifest(paths['artifacts'] / 'shared-sandbox-execution.json')
+    assert receipt['status'] == 'FAIL_OR_INCOMPLETE'
+    assert cli.environments == set()
+
+
 @pytest.mark.parametrize('change', ['config', 'output', 'command', 'template', 'run-metadata'])
 def test_changed_mappings_commands_and_nonempty_outputs_fail_before_os_calls(prepared, change):
     paths, plan = prepared
@@ -156,6 +169,45 @@ def test_private_declaration_rechecked_before_binding_or_declared_payload(prepar
         subject.execute(paths, plan, lambda _: pytest.fail('No OS call allowed'))
 
 
+@pytest.mark.parametrize('change', ['none', 'plan-root-drift', 'post-guest-input-drift'])
+def test_split_roots_are_bound_to_the_plan_and_reverified_after_stop(prepared, change):
+    paths, old_plan = prepared
+    stage = Path(old_plan['stage'])
+    retained = paths['dev'] / 'runs/shared/retained'
+    retained.mkdir(parents=True)
+    for name in ('package', 'tools'):
+        (stage / name).rename(retained / name)
+    document = subject.inputs.read_manifest(stage / 'input/inputs.json')
+    document['source_roots'] = {name: str(stage / name if name == 'input' else retained / name)
+                                for name in subject.inputs.ROOTS.values()}
+    manifest = stage / 'input/inputs.json'
+    manifest.write_text(json.dumps(document), encoding='utf-8')
+    run = paths['run'].with_name('split-retry')
+    artifacts = run / 'artifacts'
+    artifacts.mkdir(parents=True)
+    (run / 'run-metadata.json').write_text(json.dumps({'owner': 'ArcheAxis-Knowledge-OS',
+        'worktree_root': str(paths['root']), 'run_id': run.name}), encoding='utf-8')
+    split_paths = {**paths, 'run': run, 'artifacts': artifacts}
+    plan = subject.prepare(split_paths, stage, subject.inputs.identity(manifest)['sha256'])
+    if change == 'plan-root-drift':
+        plan['source_roots']['tools'] = str(stage / 'tools')
+        (artifacts / 'shared-sandbox-plan.json').write_text(json.dumps(plan), encoding='utf-8')
+        with pytest.raises(ValueError, match='mapping/command/template'):
+            subject.execute(split_paths, plan, lambda _: pytest.fail('No OS call allowed'))
+        return
+    cli = FakeCli(plan)
+    def invoke(args):
+        value = cli(args)
+        if args[0] == 'exec' and change == 'post-guest-input-drift':
+            (retained / 'tools/pwsh.exe').write_bytes(b'changed after guest proof')
+        return value
+    result = subject.execute(split_paths, plan, invoke)
+    assert result['status'] == ('PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY' if change == 'none' else 'FAIL_OR_INCOMPLETE')
+    assert cli.environments == set(), 'The owned sandbox must still be stopped'
+    if change != 'none':
+        assert result.get('cleanup_or_reverification_error')
+
+
 @pytest.mark.parametrize('change', ['identity', 'boolean', 'ambiguous'])
 def test_lifecycle_receipt_must_be_unique_complete_and_match_the_candidate(prepared, change):
     _, plan = prepared
@@ -180,3 +232,69 @@ def test_lifecycle_receipt_must_be_unique_complete_and_match_the_candidate(prepa
         (directory / 'lifecycle-receipt.json').write_text(json.dumps(receipt), encoding='utf-8')
     with pytest.raises(ValueError, match='identity|predicates|Exactly one'):
         subject.verify_lifecycle(plan)
+
+
+@pytest.mark.parametrize('change', ['none', 'wrong-candidate', 'wrong-source', 'harness-failed',
+                                  'canonical-drift', 'missing-restart', 'malformed-ui', 'journey-escape', 'metadata-drift'])
+def test_conflict_requires_actual_canonical_receipts_source_candidate_and_restart(prepared, change):
+    _, plan = prepared
+    output = Path(plan['output'])
+    empty = hashlib.sha256(b'').hexdigest()
+    expected = {'harness_commit': 'a' * 40, 'harness_tree': 'b' * 40,
+                'host_sha256': 'c' * 64, 'installer_sha256': 'd' * 64, 'core_sha256': 'e' * 64}
+    plan['expected_conflict'] = expected
+    source = {'commit': expected['harness_commit'], 'patch_sha256': empty}
+    guest_repo = str(subject.inputs.GUEST_FOLDERS['AAOSOutput'] / 'repo')
+    key = hashlib.sha256(guest_repo.casefold().encode()).hexdigest()[:10]
+    guest_run = str(subject.inputs.GUEST_FOLDERS['AAOSOutput'] / f'repo/.project-local/runs/{key}/wdconf')
+    host_run = output / f'repo/.project-local/runs/{key}/wdconf'
+    probe_name = 'webdriver-123456789abc'
+    host_probe = host_run.parent / probe_name
+    execution = {'status': 'LOCAL_PASS', 'source_consistent': True, 'child_exit_code': 0, 'exit_code': 0,
+                 'source_commit': expected['harness_commit'], 'source_commit_after': expected['harness_commit'],
+                 'source_tree': expected['harness_tree'], 'source_patch_sha256': empty,
+                 'source_patch_sha256_after': empty, 'run_root': guest_run}
+    conflict = {'status': 'PASS', 'fixture': {'source': source}, 'initializer_exit': {'stopped': True},
+                'launcher': {'core': {'sha256': expected['core_sha256']}},
+                'ui_result': {'status': 'PASS', 'installed_ui': 'TRUSTED_WEBDRIVER_CONTROLS',
+                              'restart_readback': True, 'source': source, 'final_source': source}}
+    body = {'ok': True, 'source_consistent': True,
+            'run_root': str(PureWindowsPath(guest_run).parent / probe_name),
+            'host': {'sha256': expected['host_sha256']},
+            'installer': {'sha256': expected['installer_sha256']}, 'installed_draft_conflict_loop': conflict,
+            'owned_identity_collection_verified': True, 'owned_ports_released': True, 'owned_process_cleanup': True,
+            'remaining_same_creation_owned_hosts': [], 'remaining_owned_port_listeners': []}
+    terminal = {'status': 'CONFLICT_JOURNEY_RECEIPT_COLLECTED', 'verifier_invoked': True, 'error': None, 'harness_exit': 0}
+    metadata = {'schema': 'aaos.run-retention/v1', 'owner': 'ArcheAxis-Knowledge-OS',
+                'worktree_root': guest_repo, 'run_id': probe_name, 'source_commit': expected['harness_commit'],
+                'source_patch_sha256': empty}
+    if change == 'wrong-candidate':
+        body['host']['sha256'] = 'f' * 64
+    elif change == 'wrong-source':
+        execution['source_commit'] = 'f' * 40
+    elif change == 'harness-failed':
+        terminal['harness_exit'] = 1
+    elif change == 'missing-restart':
+        conflict['ui_result']['restart_readback'] = False
+    elif change == 'malformed-ui':
+        conflict['ui_result'] = []
+    elif change == 'journey-escape':
+        body['run_root'] = str(PureWindowsPath(guest_run).parent.parent / probe_name)
+    elif change == 'metadata-drift':
+        metadata['owner'] = 'other-owner'
+    for path, value in [(output / 'guest-terminal.json', terminal),
+                        (output / 'conflict-run-execution.json', execution),
+                        (output / 'conflict-journey-receipt.json', body),
+                        (host_run / 'artifacts/execution.json', execution),
+                        (host_probe / 'tmp/journey/receipt.json', body),
+                        (host_probe / 'run-metadata.json', metadata)]:
+        native = Path(subject.inputs.native(path))
+        native.parent.mkdir(parents=True, exist_ok=True)
+        native.write_text(json.dumps(value), encoding='utf-8')
+    if change == 'canonical-drift':
+        Path(subject.inputs.native(host_probe / 'tmp/journey/receipt.json')).write_bytes(b'{}')
+    if change == 'none':
+        assert subject.verify_conflict(plan)['status'] == 'PASS_TRUSTED_INSTALLED_CONFLICT_AND_RESTART_ONLY'
+    else:
+        with pytest.raises(ValueError, match='Conflict'):
+            subject.verify_conflict(plan)

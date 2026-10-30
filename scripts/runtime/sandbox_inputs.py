@@ -95,6 +95,34 @@ def identity(path: Path) -> dict:
     return {"bytes": os.stat(native(path)).st_size, "sha256": digest(path)}
 
 
+def source_roots(stage: Path, dev_root: Path, document: dict) -> dict[str, Path]:
+    """Explicit split sources, still confined to retained project-run inputs.
+
+    The input manifest remains in this stage's input directory. A pinned manifest
+    may reuse another retained package/tools directory, never a writable output.
+    """
+    declared = document.get("source_roots")
+    if declared is None:
+        return {name: stage / name for name in ROOTS.values()}
+    if not isinstance(declared, dict) or set(declared) != set(ROOTS.values()):
+        raise ValueError("Exactly three explicit input source roots required")
+    result = {}
+    for name, value in declared.items():
+        if not isinstance(value, str) or not Path(value).is_absolute():
+            raise ValueError("Canonical absolute input source required")
+        path = contained(Path(value), dev_root / "runs")
+        if str(path) != value or path.name != name or not Path(native(path)).is_dir():
+            raise ValueError("Source root identity or directory differs")
+        result[name] = path
+    if result["input"] != stage / "input":
+        raise ValueError("The manifest input root may not be redirected")
+    values = list(result.values())
+    if any(a == b or a.is_relative_to(b) or b.is_relative_to(a)
+           for i, a in enumerate(values) for b in values[i + 1:]):
+        raise ValueError("Overlapping input source roots")
+    return result
+
+
 def read_manifest(path: Path) -> dict:
     regular(path)
     if os.stat(native(path)).st_size > 32 * 1024 * 1024:
@@ -163,20 +191,22 @@ def inspect_stage(stage: Path, dev_root: Path, expected_sha256: str) -> dict:
         expected[folder][relative] = {k: row[k] for k in ("bytes", "sha256")}
     if ENTRY.casefold() not in seen or str(GUEST_FOLDERS["AAOSTools"] / "pwsh.exe").casefold() not in seen:
         raise ValueError("Required guest entry point or PowerShell missing")
+    roots = source_roots(stage, dev_root, document)
     for guest, folder in ROOTS.items():
-        actual = inventory(stage / folder, guest)
+        actual = inventory(roots[folder], guest)
         if folder == "input":
             actual.discard("inputs.json")
         if actual != set(expected[folder]):
             raise ValueError("Input inventory differs from the complete pinned declaration")
     for folder, values in expected.items():
         for relative, row in values.items():
-            if identity(stage / folder / relative) != row:
+            if identity(roots[folder] / relative) != row:
                 raise ValueError("Input member bytes/hash changed")
     if identity(manifest) != before:
         raise ValueError("Manifest changed during verification")
     return {"schema": "aaos.sandbox-shared-inputs/v1", "status": "INPUTS_VERIFIED_HOST_ONLY",
             "source_stage": str(stage), "source_manifest": before,
+            "source_roots": {name: str(path) for name, path in roots.items()},
             "source_scope": document["scope"], "source_approval_is_provenance_only": True,
             "members": len(seen), "shared_logical_bytes": sum(
                 row["bytes"] for values in expected.values() for row in values.values()),
@@ -184,7 +214,7 @@ def inspect_stage(stage: Path, dev_root: Path, expected_sha256: str) -> dict:
             "launch": "NOT_EXECUTED", "host_inputs": "MUTABLE_REVERIFY_BEFORE_LAUNCH"}
 
 
-def proposal(stage: Path, output: Path, manifest_sha256: str) -> bytes:
+def proposal(stage: Path, output: Path, manifest_sha256: str, roots: dict | None = None) -> bytes:
     config = ET.Element("Configuration")
     for name in ("VGpu", "Networking", "AudioInput", "VideoInput",
                  "PrinterRedirection", "ClipboardRedirection"):
@@ -193,7 +223,8 @@ def proposal(stage: Path, output: Path, manifest_sha256: str) -> bytes:
     mappings = ET.SubElement(config, "MappedFolders")
     for guest, folder in (*ROOTS.items(), ("AAOSOutput", None)):
         mapping = ET.SubElement(mappings, "MappedFolder")
-        ET.SubElement(mapping, "HostFolder").text = str(stage / folder if folder else output)
+        ET.SubElement(mapping, "HostFolder").text = str(
+            (roots[folder] if roots else stage / folder) if folder else output)
         ET.SubElement(mapping, "SandboxFolder").text = str(GUEST_FOLDERS[guest])
         ET.SubElement(mapping, "ReadOnly").text = "true" if folder else "false"
     logon = ET.SubElement(config, "LogonCommand")
@@ -205,7 +236,7 @@ def proposal(stage: Path, output: Path, manifest_sha256: str) -> bytes:
     return ET.tostring(config, encoding="utf-8", xml_declaration=True) + b"\n"
 
 
-def prepare(paths: dict, stage: Path, manifest_sha256: str) -> dict:
+def caller_run(paths: dict) -> Path:
     run = contained(paths["run"], paths["dev"] / "runs")
     # The caller is a dev.py-allocated run, never an arbitrary existing folder.
     run_meta = read_manifest(run / "run-metadata.json")
@@ -216,12 +247,18 @@ def prepare(paths: dict, stage: Path, manifest_sha256: str) -> dict:
             or run_meta.get("worktree_root") != str(paths["root"])
             or run_meta.get("run_id") != run.name):
         raise ValueError("Caller run ownership/identity mismatch")
-    stage = contained(stage, paths["dev"] / "runs")
-    if stage == run or stage.is_relative_to(run) or run.is_relative_to(stage):
-        raise ValueError("Shared input stage overlaps the writable caller run")
     artifacts = contained(paths["artifacts"], run)
     if artifacts != run / "artifacts":
         raise ValueError("Canonical run artifacts required")
+    return run
+
+
+def prepare(paths: dict, stage: Path, manifest_sha256: str) -> dict:
+    run = caller_run(paths)
+    stage = contained(stage, paths["dev"] / "runs")
+    if stage == run or stage.is_relative_to(run) or run.is_relative_to(stage):
+        raise ValueError("Shared input stage overlaps the writable caller run")
+    artifacts = paths["artifacts"]
     receipt_path = artifacts / "sandbox-shared-inputs.json"
     config = artifacts / "lifecycle.wsb.proposed"
     output = artifacts / "sandbox-output"
@@ -231,8 +268,12 @@ def prepare(paths: dict, stage: Path, manifest_sha256: str) -> dict:
               "launch": "NOT_EXECUTED", "payload_bytes_copied": 0}
     try:
         result.update(inspect_stage(stage, paths["dev"], manifest_sha256))
+        for source in result["source_roots"].values():
+            path = Path(source)
+            if path == run or path.is_relative_to(run) or run.is_relative_to(path):
+                raise ValueError("Shared source overlaps the writable caller run")
         output.mkdir()
-        data = proposal(stage, output, manifest_sha256)
+        data = proposal(stage, output, manifest_sha256, result["source_roots"])
         with open(native(config), "xb") as stream:
             stream.write(data)
         result.update(status="SHARED_INPUT_PROPOSAL_ONLY", config=str(config),

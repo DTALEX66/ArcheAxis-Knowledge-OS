@@ -8,20 +8,23 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
 import uuid
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from xml.etree import ElementTree as ET
 
 if __package__:
-    from . import dev, sandbox_inputs as inputs
+    from . import dev, sandbox_inputs as inputs, conflict_inputs
 else:
     import dev
     import sandbox_inputs as inputs
+    import conflict_inputs
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -31,6 +34,21 @@ def write_json(path: Path, value: dict) -> None:
         stream.write('\n')
         stream.flush()
         os.fsync(stream.fileno())
+
+
+def read_object(path: Path) -> dict:
+    body = inputs.read_manifest(path)
+    if not isinstance(body, dict):
+        raise ValueError('Receipt must be a JSON object')
+    return body
+
+
+def nested(body: dict, *names: str) -> dict:
+    for name in names:
+        body = body.get(name)
+        if not isinstance(body, dict):
+            raise ValueError('Conflict receipt object missing or malformed')
+    return body
 
 
 def inventory(cli) -> set[str]:
@@ -97,7 +115,7 @@ def native_cli(artifacts: Path):
     return invoke
 
 
-def probe_binding(stage: Path, pin: str, nonce: str) -> dict:
+def probe_binding(stage: Path, pin: str, nonce: str, roots: dict | None = None) -> dict:
     if inputs.identity(stage / 'input/inputs.json')['sha256'] != pin:
         raise ValueError('Manifest changed before probe binding')
     manifest = inputs.read_manifest(stage / 'input/inputs.json')
@@ -108,7 +126,8 @@ def probe_binding(stage: Path, pin: str, nonce: str) -> dict:
     for guest in probes:
         folder, relative = inputs.member(guest)
         # A read-only file attribute would not prove mapping-level isolation.
-        if getattr(os.stat(inputs.native(stage / folder / relative)), 'st_file_attributes', 0) & 1:
+        source = Path(roots[folder]) if roots else stage / folder
+        if getattr(os.stat(inputs.native(source / relative)), 'st_file_attributes', 0) & 1:
             raise ValueError('Probe representative is already a read-only host file')
     output = inputs.GUEST_FOLDERS['AAOSOutput']
     return {'nonce': nonce, 'manifest_sha256': pin, 'manifest': inputs.MANIFEST, 'probes': probes,
@@ -127,23 +146,25 @@ def command_for(binding: dict) -> tuple[str, dict]:
             + base64.b64encode(guest.encode('utf-16-le')).decode(), inputs.identity(template))
 
 
-def config_for(stage: Path, output: Path, pin: str, mode: str = 'mapping') -> bytes:
-    config = ET.fromstring(inputs.proposal(stage, output, pin))
+def config_for(stage: Path, output: Path, pin: str, mode: str = 'mapping', roots: dict | None = None) -> bytes:
+    config = ET.fromstring(inputs.proposal(stage, output, pin, roots))
     # The historical lifecycle entry must not run during a mapping-only probe.
     if mode == 'mapping':
         config.remove(config.find('LogonCommand'))
-    elif mode != 'lifecycle':
+    elif mode not in {'lifecycle', 'conflict'}:
         raise ValueError('Unknown shared sandbox mode')
     return ET.tostring(config, encoding='utf-8', xml_declaration=True) + b'\n'
 
 
-def lifecycle_identity(stage: Path) -> dict:
+def lifecycle_identity(stage: Path, roots: dict | None = None,
+                       scope: str = 'MIXED_CORE_SAME_VERSION_LIFECYCLE_ONLY') -> dict:
     manifest = inputs.read_manifest(stage / 'input/inputs.json')
-    if manifest['scope'] != 'MIXED_CORE_SAME_VERSION_LIFECYCLE_ONLY':
+    if manifest['scope'] != scope:
         raise ValueError('Only the reviewed mixed-core same-version lifecycle scope is supported')
-    packaging = inputs.read_manifest(stage / 'package/packaging-receipt.json')
-    identity = inputs.read_manifest(stage / 'package/mixed-core-identity.json')
-    identity_pin = inputs.identity(stage / 'package/mixed-core-identity.json')
+    package = Path(roots['package']) if roots else stage / 'package'
+    packaging = inputs.read_manifest(package / 'packaging-receipt.json')
+    identity = inputs.read_manifest(package / 'mixed-core-identity.json')
+    identity_pin = inputs.identity(package / 'mixed-core-identity.json')
     installers = [row for row in manifest['files'] if inputs.member(row['path'])[0] == 'package'
                   and row['path'].casefold().endswith('-setup.exe')]
     if (packaging.get('schema') != 'aaos.mixed-core-packaging/v1'
@@ -153,9 +174,31 @@ def lifecycle_identity(stage: Path) -> dict:
         raise ValueError('Incomplete or inconsistent mixed-core packaging identity')
     mixed = identity['payload']['mixed_components']
     return {'installer_sha256': installers[0]['sha256'], 'mixed_core_identity_sha256': identity_pin['sha256'],
-            'mixed_core_receipt_sha256': inputs.identity(stage / 'package/packaging-receipt.json')['sha256'],
+            'mixed_core_receipt_sha256': inputs.identity(package / 'packaging-receipt.json')['sha256'],
             'host_sha256': mixed['host_sha256'], 'core_sha256': mixed['core_sha256'],
             'runtime_manifest_sha256': mixed['backend_runtime_manifest_sha256']}
+
+
+def conflict_identity(stage: Path, roots: dict) -> dict:
+    result = lifecycle_identity(stage, roots, conflict_inputs.SCOPE)
+    manifest = inputs.read_manifest(stage / 'input/inputs.json')
+    harness = manifest.get('harness_source', {})
+    if (harness.get('kind') != 'HARNESS_SUBSET_NOT_PRODUCT_SOURCE'
+            or not isinstance(harness.get('files'), list)
+            or [row.get('path') for row in harness['files']] != list(conflict_inputs.HARNESS)):
+        raise ValueError('Unreviewed conflict harness subset')
+    repo = Path(roots['input']) / 'repo'
+    for row in harness['files']:
+        if inputs.identity(repo / row['path']) != {key: row[key] for key in ('bytes', 'sha256')}:
+            raise ValueError('Conflict harness file changed')
+    commit = conflict_inputs.git(repo, 'rev-parse', 'HEAD').decode().strip()
+    tree = conflict_inputs.git(repo, 'rev-parse', 'HEAD^{tree}').decode().strip()
+    if commit != harness.get('snapshot_commit') or tree != harness.get('snapshot_tree'):
+        raise ValueError('Conflict harness snapshot identity differs')
+    if conflict_inputs.git(repo, 'status', '--porcelain').strip():
+        raise ValueError('Conflict harness snapshot is dirty')
+    return {**result, 'harness_commit': commit, 'harness_tree': tree,
+            'harness_origin_commit': harness['original_commit']}
 
 
 def prepare(paths: dict, stage: Path, pin: str, mode: str = 'mapping') -> dict:
@@ -164,28 +207,31 @@ def prepare(paths: dict, stage: Path, pin: str, mode: str = 'mapping') -> dict:
         raise ValueError('Inputs did not pass complete proposal verification')
     stage = Path(proposal['source_stage'])
     nonce = uuid.uuid4().hex
-    binding = probe_binding(stage, pin, nonce)
+    binding = probe_binding(stage, pin, nonce, proposal['source_roots'])
     command, template_identity = command_for(binding)
-    expected_lifecycle = lifecycle_identity(stage) if mode == 'lifecycle' else None
-    data = config_for(stage, Path(proposal['output']), pin, mode)
+    expected_lifecycle = lifecycle_identity(stage, proposal['source_roots']) if mode == 'lifecycle' else None
+    expected_conflict = conflict_identity(stage, proposal['source_roots']) if mode == 'conflict' else None
+    data = config_for(stage, Path(proposal['output']), pin, mode, proposal['source_roots'])
     destination = paths['artifacts'] / 'shared-probe.wsb'
     with open(inputs.native(destination), 'xb') as stream:
         stream.write(data)
     plan = {'schema': 'aaos.shared-sandbox-plan/v1', 'status': 'MAPPING_PROBE_PREPARED_ONLY',
             'run_root': str(paths['run']), 'stage': str(stage), 'source_manifest_sha256': pin,
+            'source_roots': proposal['source_roots'],
             'members': proposal['members'], 'shared_logical_bytes': proposal['shared_logical_bytes'],
             'payload_bytes_copied': 0, 'sandbox_id': str(uuid.uuid4()), 'nonce': nonce, 'mode': mode,
             'config': str(destination), 'config_identity': inputs.identity(destination),
             'output': proposal['output'], 'binding': binding, 'guest_template': template_identity,
             'run_metadata': inputs.identity(paths['run'] / 'run-metadata.json'),
-            'command': command, 'expected_lifecycle': expected_lifecycle, 'product_lifecycle': 'NOT_EXECUTED'}
+            'command': command, 'expected_lifecycle': expected_lifecycle,
+            'expected_conflict': expected_conflict, 'product_lifecycle': 'NOT_EXECUTED'}
     write_json(paths['artifacts'] / 'shared-sandbox-plan.json', plan)
     return plan
 
 
 def verify_guest(plan: dict) -> dict:
     output = Path(plan['output'])
-    result = inputs.read_manifest(output / 'shared-probe.json')
+    result = read_object(output / 'shared-probe.json')
     binding = plan['binding']
     if (result.get('schema') != 'aaos.shared-sandbox-guest-probe/v1'
             or result.get('nonce') != plan['nonce'] or result.get('manifest_sha256') != plan['source_manifest_sha256']
@@ -205,7 +251,7 @@ def verify_guest(plan: dict) -> dict:
 
 def verify_lifecycle(plan: dict) -> dict:
     output = Path(plan['output'])
-    terminal = inputs.read_manifest(output / 'guest-terminal.json')
+    terminal = read_object(output / 'guest-terminal.json')
     if (terminal.get('status') != 'VERIFIER_RETURNED_REQUIRES_LIFECYCLE_RECEIPT_REVIEW'
             or terminal.get('verifier_invoked') is not True or terminal.get('error') is not None):
         raise ValueError('Lifecycle guest did not finish successfully')
@@ -218,7 +264,7 @@ def verify_lifecycle(plan: dict) -> dict:
                 receipts.append(candidate)
     if len(receipts) != 1:
         raise ValueError('Exactly one fresh lifecycle receipt required')
-    body = inputs.read_manifest(receipts[0])
+    body = read_object(receipts[0])
     if (body.get('schema') != 'archeaxis/installed-lifecycle-receipt/v1'
             or body.get('qualification_scope') != 'LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE'
             or body.get('same_installer_scope') != 'SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION'
@@ -228,6 +274,70 @@ def verify_lifecycle(plan: dict) -> dict:
             or any(body.get(key) != value for key, value in plan['expected_lifecycle'].items())):
         raise ValueError('Lifecycle predicates or same-candidate identity do not match')
     return {'identity': inputs.identity(receipts[0]), 'receipt': body}
+
+
+def verify_conflict(plan: dict) -> dict:
+    output = Path(plan['output'])
+    terminal = read_object(output / 'guest-terminal.json')
+    execution = read_object(output / 'conflict-run-execution.json')
+    body = read_object(output / 'conflict-journey-receipt.json')
+    expected = plan['expected_conflict']
+    empty_patch = hashlib.sha256(b'').hexdigest()
+    guest_repo = str(inputs.GUEST_FOLDERS['AAOSOutput'] / 'repo')
+    key = hashlib.sha256(guest_repo.casefold().encode()).hexdigest()[:10]
+    guest_run = str(inputs.GUEST_FOLDERS['AAOSOutput'] / f'repo/.project-local/runs/{key}/wdconf')
+    host_run = output / f'repo/.project-local/runs/{key}/wdconf'
+    if (terminal.get('status') != 'CONFLICT_JOURNEY_RECEIPT_COLLECTED'
+            or terminal.get('verifier_invoked') is not True or terminal.get('error') is not None
+            or type(terminal.get('harness_exit')) is not int or terminal['harness_exit'] != 0
+            or execution.get('status') != 'LOCAL_PASS' or execution.get('source_consistent') is not True
+            or execution.get('child_exit_code') != 0 or execution.get('exit_code') != 0
+            or execution.get('source_commit') != expected['harness_commit']
+            or execution.get('source_tree') != expected['harness_tree']
+            or execution.get('source_commit_after') != expected['harness_commit']
+            or execution.get('source_patch_sha256') != empty_patch
+            or execution.get('source_patch_sha256_after') != empty_patch
+            or execution.get('run_root') != guest_run):
+        raise ValueError('Conflict terminal/execution/source binding did not pass')
+    # The harness owns a second canonical run inside the outer wdconf wrapper.
+    # Bind its exact generated ID and metadata before resolving a host path.
+    name = body.get('run_root')
+    if not isinstance(name, str):
+        raise ValueError('Conflict journey run root missing')
+    probe_run = PureWindowsPath(name)
+    if (str(probe_run) != name or probe_run.parent != PureWindowsPath(guest_run).parent
+            or not re.fullmatch(r'webdriver-[0-9a-f]{12}', probe_run.name)):
+        raise ValueError('Conflict journey run escaped the canonical guest namespace')
+    host_probe = host_run.parent / probe_run.name
+    metadata = read_object(host_probe / 'run-metadata.json')
+    if (metadata.get('schema') != 'aaos.run-retention/v1'
+            or metadata.get('owner') != 'ArcheAxis-Knowledge-OS'
+            or metadata.get('worktree_root') != guest_repo or metadata.get('run_id') != probe_run.name
+            or metadata.get('source_commit') != expected['harness_commit']
+            or metadata.get('source_patch_sha256') != empty_patch):
+        raise ValueError('Conflict journey run ownership/source metadata differs')
+    # Check the actual canonical run, not a copied first-match receipt alone.
+    if (inputs.identity(output / 'conflict-run-execution.json') != inputs.identity(host_run / 'artifacts/execution.json')
+            or inputs.identity(output / 'conflict-journey-receipt.json') != inputs.identity(host_probe / 'tmp/journey/receipt.json')):
+        raise ValueError('Conflict exported receipts differ from the actual canonical run')
+    conflict = nested(body, 'installed_draft_conflict_loop')
+    ui = nested(conflict, 'ui_result')
+    source = {'commit': expected['harness_commit'], 'patch_sha256': empty_patch}
+    if (body.get('ok') is not True or body.get('source_consistent') is not True
+            or nested(body, 'host').get('sha256') != expected['host_sha256']
+            or nested(body, 'installer').get('sha256') != expected['installer_sha256']
+            or nested(conflict, 'launcher', 'core').get('sha256') != expected['core_sha256']
+            or conflict.get('status') != 'PASS' or ui.get('status') != 'PASS'
+            or ui.get('installed_ui') != 'TRUSTED_WEBDRIVER_CONTROLS'
+            or ui.get('restart_readback') is not True or ui.get('source') != source or ui.get('final_source') != source
+            or nested(conflict, 'fixture').get('source') != source
+            or nested(conflict, 'initializer_exit').get('stopped') is not True
+            or any(body.get(k) is not True for k in ('owned_identity_collection_verified', 'owned_ports_released', 'owned_process_cleanup'))
+            or body.get('remaining_same_creation_owned_hosts') != [] or body.get('remaining_owned_port_listeners') != []):
+        raise ValueError('Conflict predicates, cleanup or same-candidate identity do not match')
+    return {'identity': inputs.identity(output / 'conflict-journey-receipt.json'),
+            'execution_identity': inputs.identity(output / 'conflict-run-execution.json'),
+            'status': 'PASS_TRUSTED_INSTALLED_CONFLICT_AND_RESTART_ONLY', 'source': source}
 
 
 def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
@@ -250,12 +360,19 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
             or str(uuid.UUID(plan['sandbox_id'])) != plan['sandbox_id']
             or uuid.UUID(plan['nonce']).hex != plan['nonce']):
         raise ValueError('Prepared run/output/ID boundary changed')
-    binding = probe_binding(stage, plan['source_manifest_sha256'], plan['nonce'])
+    for value in checked['source_roots'].values():
+        source = Path(value)
+        if source == paths['run'] or source.is_relative_to(paths['run']) or paths['run'].is_relative_to(source):
+            raise ValueError('Shared source overlaps the writable caller run')
+    binding = probe_binding(stage, plan['source_manifest_sha256'], plan['nonce'], checked['source_roots'])
     command, template_identity = command_for(binding)
-    expected_lifecycle = lifecycle_identity(stage) if plan['mode'] == 'lifecycle' else None
+    expected_lifecycle = lifecycle_identity(stage, checked['source_roots']) if plan['mode'] == 'lifecycle' else None
+    expected_conflict = conflict_identity(stage, checked['source_roots']) if plan['mode'] == 'conflict' else None
     if (plan['binding'] != binding or plan['command'] != command or plan['guest_template'] != template_identity
             or plan['expected_lifecycle'] != expected_lifecycle
-            or config.read_bytes() != config_for(stage, output, plan['source_manifest_sha256'], plan['mode'])):
+            or plan['expected_conflict'] != expected_conflict
+            or plan['source_roots'] != checked['source_roots']
+            or config.read_bytes() != config_for(stage, output, plan['source_manifest_sha256'], plan['mode'], checked['source_roots'])):
         raise ValueError('Prepared mapping/command/template differs from the reviewed policy')
     if (checked['members'] != plan['members'] or checked['shared_logical_bytes'] != plan['shared_logical_bytes']
             or inputs.identity(Path(plan['config'])) != plan['config_identity']
@@ -271,6 +388,7 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
     result = {'schema': 'aaos.shared-sandbox-execution/v1', 'status': 'FAIL_OR_INCOMPLETE',
               'sandbox_id': owned, 'payload_bytes_copied': 0, 'product_lifecycle': 'NOT_EXECUTED',
               'guest_write_isolation': 'NOT_VERIFIED', 'stop': 'NOT_REQUESTED', 'error': None}
+    qualified = False
     try:
         cli(['start', '--id', owned, '--config', Path(plan['config']).read_text(encoding='utf-8'), '--raw'])
         if owned not in inventory(cli):
@@ -278,8 +396,8 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
         cli(['exec', '--id', owned, '--command', plan['command'], '--run-as', 'System', '--raw'])
         result['guest'] = verify_guest(plan)
         result['guest_write_isolation'] = 'PASS_DECLARED_THREE_MAPPING_WRITE_HANDLES'
-        if plan['mode'] == 'lifecycle':
-            result['product_lifecycle'] = 'STARTED_PENDING_RECEIPT'
+        if plan['mode'] in {'lifecycle', 'conflict'}:
+            result['product_lifecycle' if plan['mode'] == 'lifecycle' else 'product_conflict'] = 'STARTED_PENDING_RECEIPT'
             cli(['connect', '--id', owned, '--raw'])
             for _ in range(480):
                 if (output / 'guest-terminal.json').exists():
@@ -294,8 +412,13 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
                 pause(0.5)
             else:
                 raise ValueError('Lifecycle guest terminal observation timed out')
-            result['lifecycle'] = verify_lifecycle(plan)
-            result['product_lifecycle'] = 'PASS_SAME_CANDIDATE_SAME_VERSION_INSTALLED_LIFECYCLE'
+            if plan['mode'] == 'lifecycle':
+                result['lifecycle'] = verify_lifecycle(plan)
+                result['product_lifecycle'] = 'PASS_SAME_CANDIDATE_SAME_VERSION_INSTALLED_LIFECYCLE'
+            else:
+                result['conflict'] = verify_conflict(plan)
+                result['product_conflict'] = 'PASS_SAME_CANDIDATE_INSTALLED_CONFLICT_AND_RESTART'
+        qualified = True
     except (OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as error:
         result['error'] = {'type': type(error).__name__, 'message': str(error)}
     finally:
@@ -319,9 +442,10 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
                 cli.reap_connections()
             after = inputs.inspect_stage(stage, paths['dev'], plan['source_manifest_sha256'])
             result['host_inputs_after'] = after
-            if not result['error'] and result['guest_write_isolation'].startswith('PASS_'):
-                result['status'] = ('PASS_REAL_OFFLINE_SHARED_SAME_VERSION_LIFECYCLE'
-                                    if plan['mode'] == 'lifecycle' else 'PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY')
+            if qualified and not result['error'] and result['guest_write_isolation'].startswith('PASS_'):
+                result['status'] = {'lifecycle': 'PASS_REAL_OFFLINE_SHARED_SAME_VERSION_LIFECYCLE',
+                                    'conflict': 'PASS_REAL_OFFLINE_SHARED_INSTALLED_CONFLICT',
+                                    'mapping': 'PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY'}[plan['mode']]
         except (OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as error:
             result['cleanup_or_reverification_error'] = {'type': type(error).__name__, 'message': str(error)}
         write_json(result_path, result)
@@ -335,14 +459,16 @@ def main() -> int:
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument('--execute-probe', action='store_true')
     actions.add_argument('--execute-lifecycle', action='store_true')
+    actions.add_argument('--execute-conflict', action='store_true')
     args = parser.parse_args()
     try:
         run = os.environ.get('ARCHEAXIS_RUN_ROOT', '')
         paths = dev.layout(Path(__file__).resolve().parents[2], Path(run).name)
         if not run or Path(run) != paths['run']:
             raise ValueError('Run through scripts/runtime/dev.py')
-        plan = prepare(paths, args.stage, args.manifest_sha256, 'lifecycle' if args.execute_lifecycle else 'mapping')
-        result = execute(paths, plan) if args.execute_probe or args.execute_lifecycle else plan
+        mode = 'conflict' if args.execute_conflict else 'lifecycle' if args.execute_lifecycle else 'mapping'
+        plan = prepare(paths, args.stage, args.manifest_sha256, mode)
+        result = execute(paths, plan) if args.execute_probe or args.execute_lifecycle or args.execute_conflict else plan
         print(json.dumps({key: value for key, value in result.items() if key != 'command'}, ensure_ascii=False))
         return 0 if result['status'].startswith(('PASS_', 'MAPPING_PROBE_PREPARED_')) else 1
     except (OSError, ValueError, TypeError, KeyError) as error:

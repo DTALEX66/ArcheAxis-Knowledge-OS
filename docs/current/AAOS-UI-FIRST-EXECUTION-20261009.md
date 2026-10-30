@@ -2780,3 +2780,13 @@ Owner另要求R5未来能力包“审计、加入任务、统一归档”。[独
 两次均按自身ID官方停止并确认不存在，最终官方清单空，guest只读进程观察为诊断证据，没有人工补操作。`ssp-vm1` 21文件/33,462字节，`ssp-life1` 492文件/157,112字节，无计量错误或链接；不再复制约689MB输入。未删除文件或外部迁移，不计回收空间，不因小run再全仓扫描。来源输入、旧失败、历史launcher和清单原样保留；具体机制、命令、候选身份和局限见[本轮冻结记录](../history/storage-cleanup/2026-10-30-shared-sandbox/README.md)。旧冲突输入的 `.mimosa` 仍拒绝，洁净冲突来源、其他staging生产者、旧候选/散落归位仍待处理，不能据这一个类别宣称全量停止膨胀。
 
 外溢续查只在登记范围核导航和归档元数据：当前Git仅正式根一个worktree；历史 `.project-local/mig` 入口未解析到，现有Record121条登记及已登记runtime-migration入口尚无三组迁移档案的直接恢复映射，ZIP/CAS成员未全量追溯。保持UNVERIFIED，不称原件丢失或迁移完成，不扫描Home/其他项目。远端/云CI/Green/真实数据/模型设置与UI实施/监控边界不变；整体维护与后端目标仍PARTIAL。
+
+#### 2026-10-30 洁净冲突输入、共享来源与真实安装态验证
+
+沿Owner体积/规范化/外溢优先项，正式入口 `scripts/runtime/conflict_inputs.py` 从固定Git身份仅提取8个冲突harness文件，独立快照明确不是产品构建身份；旧zc1c8 repo及私有状态不枚举/读正文/复制。新输入清单SHA `590663a74d81321467af9a6ffe342a3fd3491030e7a1fe5e67e3a684a5086ce2`，完整映射10,228成员/1,125,405,225逻辑B；其中新input 436,700,573 B+清单2,037,599 B，公开Git/驱动/guest一次复制436,098,577 B，安装包和PowerShell复制0。旧repo清单1,739,282,907 B，新有限repo含Git元数据601,996 B；后续重试只读复用三路来源、输入载荷复制0。本轮删除/外部迁移0，不把避免新增当释放空间。
+
+`sci-vm1` 真实只读映射PASS；`sci-conf2` 真实离线安装冲突及独立重启读回PASS，guest核完整10,228成员、三映射代表写句柄拒绝、输出读回，绑定实际外层/内层canonical run和C1安装器/Host/Core/source快照；进程/端口清场通过。收据SHA `e47c29b43021e3a14bdf1e9c0990fab28d21971098d142136b8e74bfe32a3dcb`，沙盒ID `f850c96c-6450-4b62-b9f2-dfd93f2d179e` 精确停止，最终官方清单为空。`sci-conf1` guest通过但宿主错定位外层收据，原FAIL保留；定位修正后用全新run验，不重签旧收据。
+
+最终`sci-t6` 53测试+14 subtests、`sci-a3`架构、`sci-l4`Ruff、`sci-proof1`独立完整重核通过且source_consistent=true；早期长路径fixture/架构失败保持原样。冻结报告与身份见[洁净冲突输入](../history/storage-cleanup/2026-10-30-clean-conflict-inputs/README.md)。本期同候选有限资格不代表新产品重建、AI/云/跨版本/CI/Owner验收；UI暂停，原输入/唯一失败/恢复映射保护，其他staging生产者/散落目录继续逐批治理。
+
+Owner已回贴533根ACL脚本的最初review两行；截至`sci-proof1`未见apply终态，不把已开始当恢复完成。Owner最新明确加速、按难度分模型并行全部未完工作和静默执行；已拆独占写集：外溢恢复容器/后继路径只读追溯，目录生产者修复，F05有限探针反例修复。三个分支的实际检查/实现资格分别续记，不因任务分配宣称完成，不恢复暂停UI/监控/外发。
