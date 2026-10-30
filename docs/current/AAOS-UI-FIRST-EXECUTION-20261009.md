@@ -2826,3 +2826,12 @@ R6一致性确认后，按原Owner精确清理授权部署126公开重复素材�
 [真实模型检查点](../history/colearning-real-model-20261031/README.md)：bkr-real1在6d556c48干净源、同C1及生产worker上实际请求2次，既有qwen3.5-4b/loopback路由不改配置。首答HTTP200/20.44s、固定量规CORRECT；第二资料不足控制HTTP503/NO_FINAL_ANSWER，25.09s/finish_reason=length，2048输出token耗尽而无final，非传输超时。用量诊断共2份、成功final仅1，报告合计3592tokens；不把原model_response_observed_count1当总推理次数。实际main1/FAIL/source_consistent=true，转移题/纠正/复测未执行，无重试或改正确答案。10个已观察自有进程退出、端口关闭，不称优雅停止。F05真实legacy完整质量、asset/scoped效果和学习改善仍PARTIAL/未建立。
 
 [权限后体积测量](../history/storage-cleanup/2026-10-31-post-access-measurement/README.md)：当前可读下界142,698,156,985B/1,319,188文件，预算审查exit2/PARTIAL。比旧下界多4,913,174,112B；旧533拒绝根现可见3,359,378,401B，残差1,553,795,711B不能算精确新增生成。674拒绝分599测试.git/61长路径/14名字似链接但类型未核，183私有和133链接保持；根本体读恢复不等于所有后代可读。布局582→581、无新增债，runs/candidates仍超预算；zc1c8/lpinst4/current5822继续HOLD，下一批仅审cnprep2/3/cppns1/2公开叶级副本，不复跑管理员Apply或批删。整体PARTIAL，原执行顺序/本地禁上传/监控及UI暂停/Green与真实资料边界保留。
+
+
+#### 2026-10-31 目录角色纠正与重复staging清理前恢复导航
+
+[剩余49项目录复核](../history/storage-cleanup/2026-10-31-directory-review/README.md)纠正容器角色：第一层worktree命名空间不要求run级metadata，不能据缺根metadata认定归属失败。原23拒绝项均可浅层列举，49项OWNER/DACL普通读取成功；13空目录、22疑似可再生测试输出及其余14项仍缺不同的生产者/退休/闲置/锁定输入/唯一失败或fixture映射，合格清理0、回收0B，不等于规范化通过。当前根ID正反斜杠规范正控均be268a2d33；87公开worktree候选无匹配，240扩展集合纠正为含URL误提取的文本前缀（235规范唯一、15原hash变化），重算仍无11空hex匹配，只支持有限候选未匹配。原SDDL/SID、外部路径文本只留ignored证据；不重复申请权限或扩大扫描。
+
+[重复staging恢复导航](../history/storage-cleanup/2026-10-31-staging-normalization/README.md)先于清理发布：20,415个公开叶文件、2,114,728,759逻辑B的精确来源→同SHA独立保留映射已核，map SHA为6535455ebf3395f08db1f0f202792d69cafe720405f814a361fd596fcc806711；本检查点删除0。cnprep2 package14/pwsh657拟沿cnprep3保全，cppns1公开runtime19,744拟沿cppns2保全。只在新的canonical run满足当前闲置、边界、完整SHA、同对象删除句柄、durable intent/journal和事后保留链核验后执行，不按目录递归删。cnprep2旧launcher重放须先恢复671原路径；cnprep3输入完整、不因本批需恢复。cppns1旧CLI0但POSTCHECK失败保持FAIL，重放需恢复19,744叶；全部input/output、2PEM、1个.agents命名依赖及唯一证据保留。cnprep2重复安装器副本在候选，cnprep3同SHA及cppns1/2各原安装器保留，纠正早期宽泛描述。
+
+这是维护资格与恢复导航，不构成产品、模型、安装或Owner验收；UI/监控暂停、禁止远端/云CI上传、Green和真实资料边界不变。F05资产/scoped后继仍在ignored候选验证，未部署或新增真实模型调用；整体PARTIAL。

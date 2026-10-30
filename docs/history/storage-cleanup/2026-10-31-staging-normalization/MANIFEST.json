@@ -1,0 +1,63 @@
+{
+  "schema": "aaos.public-staging-pre-retirement-routing/v1",
+  "state": "PRE_RETIREMENT_ROUTING_PUBLISHED_CLEANUP_PENDING",
+  "prepared_from_commit": "f10dedee225ad7b049b99668d3c3a43d8d105bd8",
+  "audited_payload_commit": "f10dedee225ad7b049b99668d3c3a43d8d105bd8",
+  "counts": {
+    "files": 20415,
+    "logical_path_bytes": 2114728759,
+    "deleted_at_publication": 0
+  },
+  "groups": [
+    {
+      "group": "cnprep2-package",
+      "files": 14,
+      "logical_bytes": 452771641
+    },
+    {
+      "group": "cnprep2-pwsh",
+      "files": 657,
+      "logical_bytes": 256592821
+    },
+    {
+      "group": "cppns1-public-runtime",
+      "files": 19744,
+      "logical_bytes": 1405364297
+    }
+  ],
+  "candidate_map": {
+    "path": ".project-local/runs/be268a2d33/spr-stageaudit2/artifacts/candidate-files.jsonl",
+    "sha256": "6535455ebf3395f08db1f0f202792d69cafe720405f814a361fd596fcc806711",
+    "bytes": 28104438
+  },
+  "candidate_summary": {
+    "path": ".project-local/runs/be268a2d33/spr-stageaudit2/artifacts/candidate-summary.json",
+    "sha256": "e2e5d2bb9135e765f5ea0f0e4a7cb1d8f2dd987d7ac8f06977f87be1ada0de45"
+  },
+  "corrected_restore_contract": {
+    "path": ".project-local/runs/be268a2d33/spr-stagepub1/artifacts/restore-consumer-contracts.corrected.json",
+    "sha256": "75510aa6b26e3e37c9680f420bb2f86306378b380970d5fc917e3b6f13d6b9b4"
+  },
+  "original_restore_contract": {
+    "path": ".project-local/runs/be268a2d33/spr-stageaudit2/artifacts/restore-consumer-contracts.json",
+    "sha256": "2e551120dbd6c40b93b2c3e6181a5f85a9e3794ef40a550c4db8dd5a8c83a242"
+  },
+  "public_consumer_audit": {
+    "path": ".project-local/runs/be268a2d33/spr-stageaudit2/artifacts/public-consumers.json",
+    "sha256": "294022afa65b1f34758908571fea384458832d3153ab009bd1d874f1a29d6b81",
+    "bytes": 137840
+  },
+  "current_state": "No deletion in this routing-preparation run. Source/retained locations and per-file recovery map are immutable references; future deployment needs new current qualification and journal.",
+  "cnprep3": "Unchanged retained inputs; no restore needed from this batch; future reuse fresh qualification required",
+  "installer_scope": "Only cnprep2 package installer copy is in candidate; cnprep3 same-SHA counterpart and cppns1/cppns2 original NSIS installers remain.",
+  "preservation": "All input/output,2PEM,1.agents-named dependency member, unique failure/success/identity/proof/log/config and all unlisted objects retained.",
+  "git_or_physical_space_release_claimed": false,
+  "whole_product_acceptance_claimed": false,
+  "readme_sha256": "e487250326e49dfc890aa22fbdd58a2de53eaa81cd94cbbcab30e948e28df487",
+  "publication_normalization": {
+    "transformation": "UTF-8/LF for public Git files; original ignored candidates unchanged",
+    "original_readme": ".project-local/runs/be268a2d33/spr-stagepub1/artifacts/publication-candidate/README.md",
+    "original_readme_sha256": "f1e884e011719fcb1f4bf7ca9b24d82c673d4b76f83c723915422754ef800439",
+    "original_manifest_sha256": "76909583c8798d1b75715f31387b70dabe1b93774dcc713028f48c91f0dba5cd"
+  }
+}
