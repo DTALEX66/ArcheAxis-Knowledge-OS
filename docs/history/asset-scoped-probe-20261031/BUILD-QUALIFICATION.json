@@ -1,0 +1,212 @@
+{
+  "schema": "aaos.asset-scoped-current-core-qualification/v1",
+  "source_commit": "bfea02c3cdd39c11711ea24ae79480f720f2efe3",
+  "overall_f05": "PARTIAL",
+  "scope": "CURRENT_SOURCE_DEBUG_CORE_AND_ONE_SYNTHETIC_CORRECTION_MAIN",
+  "model_calls": 0,
+  "checks": [
+    {
+      "run": "bkr-corebuild1",
+      "source_commit": "bfea02c3cdd39c11711ea24ae79480f720f2efe3",
+      "source_consistent": true,
+      "child_exit": 0,
+      "wrapper_exit": 0,
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/bkr-corebuild1/artifacts/execution.json",
+        "bytes": 5697,
+        "sha256": "f55aad8eed0941d023ecb499562c8e32ad9016660f2970a9711a7df3fd4a8da7"
+      }
+    },
+    {
+      "run": "bkr-currentmain1",
+      "source_commit": "bfea02c3cdd39c11711ea24ae79480f720f2efe3",
+      "source_consistent": true,
+      "child_exit": 0,
+      "wrapper_exit": 0,
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/bkr-currentmain1/artifacts/execution.json",
+        "bytes": 3617,
+        "sha256": "d5ba14bd8d5dfd1d5c1b8a83c950f480da5a74694e77c63ef545d1d0aaffaefa"
+      }
+    }
+  ],
+  "build": {
+    "actual_exit": 0,
+    "elapsed_s": 3.795,
+    "command": [
+      "C:\\Windows\\System32\\cmd.exe",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "build",
+      "--locked",
+      "--offline",
+      "-p",
+      "archeaxis-api",
+      "--bin",
+      "archeaxis-api"
+    ],
+    "binary_at_build": {
+      "path": ".project-local/build/cargo/debug/archeaxis-api.exe",
+      "bytes": 27844096,
+      "sha256": "d8352b9de954cb32a70a26b234c01de45be7b58424b6fcaaa1d48d145cf350be"
+    },
+    "shared_binary_is_mutable": true,
+    "inner_cargo_stdout": "NOT_CAPTURED; command/exit/inventories retained"
+  },
+  "main": {
+    "actual_exit": 0,
+    "wrapper_exit": 0,
+    "elapsed_s": 3.837,
+    "synthetic_transport_calls": 5,
+    "model_calls": 0,
+    "quality": {
+      "status": "FINITE_ASSET_COMPARISON_RECORDED",
+      "original": [
+        "INCORRECT",
+        "CORRECT"
+      ],
+      "independent_task": [
+        "INCORRECT",
+        "CORRECT"
+      ],
+      "learning_improvement": "NOT_ESTABLISHED",
+      "generalization": "NOT_ESTABLISHED",
+      "sample_count_original": 1,
+      "sample_count_independent_task": 1,
+      "original_observation": "FINITE_TASK_DELTA",
+      "transfer_observation": "FINITE_INDEPENDENT_TASK_DELTA"
+    },
+    "observation_matches": [
+      {
+        "stage": "asset_original_before",
+        "matches": 1,
+        "packet_sha_matches": true
+      },
+      {
+        "stage": "asset_abstention_before",
+        "matches": 1,
+        "packet_sha_matches": true
+      },
+      {
+        "stage": "asset_transfer_before",
+        "matches": 1,
+        "packet_sha_matches": true
+      },
+      {
+        "stage": "asset_original_after",
+        "matches": 1,
+        "packet_sha_matches": true
+      },
+      {
+        "stage": "asset_transfer_after",
+        "matches": 1,
+        "packet_sha_matches": true
+      }
+    ],
+    "cleanup": [
+      {
+        "pid": 40048,
+        "exit_code": 1,
+        "port": 53914,
+        "port_closed": true,
+        "emergency_cleanup": false,
+        "graceful_stop": "NOT_CLAIMED"
+      }
+    ],
+    "observed_worker_cleanup": [
+      {
+        "pid": 14012,
+        "state": "PID_ALREADY_ABSENT"
+      },
+      {
+        "pid": 19784,
+        "state": "PID_ALREADY_ABSENT"
+      },
+      {
+        "pid": 26816,
+        "state": "PID_ALREADY_ABSENT"
+      },
+      {
+        "pid": 29476,
+        "state": "PID_ALREADY_ABSENT"
+      },
+      {
+        "pid": 44028,
+        "state": "PID_ALREADY_ABSENT"
+      }
+    ],
+    "preserved_core_copy": {
+      "path": ".project-local/runs/be268a2d33/bkr-currentmain1/artifacts/colearning-real-model/e2f75f3f4e974ee68fd83e42aa70fc0a/core/archeaxis-api.exe",
+      "bytes": 27844096,
+      "sha256": "d8352b9de954cb32a70a26b234c01de45be7b58424b6fcaaa1d48d145cf350be"
+    },
+    "core_copy_count": 1,
+    "probe_sha256": "075f8d4e979e87791a17ee13856af847774cd67bf6e6acb8893ddeff97c53595",
+    "adapter_sha256": "efdad80667e2c6bf17ed01f79830c432ff37b8a5639759b729f6ffeada2722a0",
+    "harness_delta": "only Core source path and expected binary SHA; deployed probe and production worker unchanged"
+  },
+  "cache": {
+    "target": ".project-local/build/cargo",
+    "before_files": 52833,
+    "after_files": 52834,
+    "before_logical_path_bytes": 7167639543,
+    "after_logical_path_bytes": 7167649342,
+    "logical_path_delta_bytes": 9799,
+    "added": [
+      {
+        "path": "debug/archeaxis-api.d",
+        "bytes": 9799
+      }
+    ],
+    "removed_count": 0,
+    "changed_metadata_count": 0,
+    "raw_unique_identity_fields": "INVALID_ZERO_DEVICE_INODE_NOT_PHYSICAL_OR_DEDUP_DELTA; original preserved",
+    "physical_allocated_bytes": "NOT_MEASURED"
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-corebuild1/artifacts/current-core-build.json",
+      "bytes": 1616,
+      "sha256": "f4cbe78efe08a9b0932c4aae5f8341060d371e20b196730d5e9d00850b6789bf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-currentmain1/artifacts/asset-main-result.json",
+      "bytes": 22038,
+      "sha256": "e52db5e615d92a904e826b7820310a27edb24c14bae12910ade46220d450aa72"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-currentmain1/artifacts/colearning-real-model/e2f75f3f4e974ee68fd83e42aa70fc0a/receipt.json",
+      "bytes": 182531,
+      "sha256": "c4eedf63f5b7258906e1f6a03108d955864f7da30f41f3825d97b1a4f9a014a2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-currentmain1/artifacts/current-main-preflight.json",
+      "bytes": 1069,
+      "sha256": "f720fe5ead57ef110853599bcd692441a2446bdc9c62bd20f23ed88a7954d5e4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-corebuild1/artifacts/cargo-target-before.json",
+      "bytes": 10538112,
+      "sha256": "218a2d6e572b683de222dfcd587bca0495ce13bcec2a1bf01981ddab74e3273d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-corebuild1/artifacts/cargo-target-after.json",
+      "bytes": 10538264,
+      "sha256": "04086bb55bcc15bf5ba147306309977d403a107e3a5fdad708c3fdf2dea4a872"
+    }
+  ],
+  "public_markdown": {
+    "target": "docs/history/asset-scoped-probe-20261031/BUILD-QUALIFICATION.md",
+    "bytes": 2209,
+    "sha256": "83b20eee51c8bc258253545438a8e1f09f6ddf6c5ca9aaecfb3b8c661410c709"
+  },
+  "unverified": [
+    "real-model asset/scoped effect",
+    "general learning",
+    "whole F05/CL/J",
+    "native/installer",
+    "Owner acceptance"
+  ],
+  "real1": "NO_FINAL_ANSWER failure preserved without retry"
+}
