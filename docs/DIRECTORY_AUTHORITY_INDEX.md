@@ -98,6 +98,10 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 
 退出 2 表示增长/布局/预算需要复核，退出 1 表示布局或计量有未覆盖项；`NO_NEW_GROWTH_TRIGGER` 仅表示没有新增触发条件。精确清理结果沿唯一执行记录与对应 manifest 查询。
 
+共享沙盒输入的正式检查入口是 [`scripts/runtime/sandbox_inputs.py`](../scripts/runtime/sandbox_inputs.py)，沿 `dev.py` 使用独立 run。它要求精确的来源清单 SHA-256，先拒绝私有状态、开发缓存、Windows 路径别名和重复声明，再核完整文件集、大小和哈希；不复制载荷，不改原输入。`--prepare-proposal` 仅写三路只读输入、一路全新可写输出的 `lifecycle.wsb.proposed`，不会启动程序。输入仍可能被宿主修改，实际启动前须再次核验；历史清单的 approval 仅说明来源，不授予新一轮执行权限。
+
+冻结的旧 launcher 只接受每 run 自有的 package/input 映射，不能直接套用共享提案。共享 launcher 的配置/来源绑定与 guest 真实写入隔离未合格前，不把 `.proposed` 改成可执行配置或重跑旧 staging 生成整包副本。来源清单含 `.mimosa` 等私有状态时拒绝复用；保留旧证据，在新的 canonical run 准备洁净输入，不修改历史清单或扩大私有路径豁免。操作示例和本轮有限证据见[共享输入续批记录](history/storage-cleanup/2026-10-30-followup/README.md)。
+
 ### Frozen donor archive — 2026-09-26
 
 `docs/history/branch-donors/execution-reliability-20260926/` is HISTORICAL_RECORD, not execution authority. ARCHIVE.json identifies three exact-tip, byte-preserved repository documents and source hashes. This bounded archive is repository documentation; it does not classify other mixed history paths. The source branch was retired on 2026-09-27 after review and a verified full-history local bundle; the six bounded imported documents and duplicate/move dispositions are recorded in [the consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json). Other mixed history paths retain their protected classification.

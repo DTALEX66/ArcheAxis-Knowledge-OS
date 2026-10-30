@@ -2734,3 +2734,21 @@ Owner 本轮要求统一归档在本项目、加入后端优先任务，先清�
 仍为维护 PARTIAL：runs 约 99.36 GiB，550 个开发根散落入口、31 个错误层级 run、19 个退役 worktree 身份与 1,390 个访问/长路径错误未逐一迁移/解除；私有排除 92。已冻结 637 入口分类和待核清单，不扩大 allowlist 掩盖、不按目录名认领、不绕过 ACL；预算检查原始子退出 2 的 REVIEW_REQUIRED 保留。后继继续审阅旧候选重复载荷与引用/恢复映射，优先修正 staging 重试整包复制的生成方式；本轮不宣称全仓规范化完成或全后端验收通过。
 
 本轮封存检查：文档权威、5823 跟踪路径规范均通过；19 个新增归档路径另逐项 owner 匹配且新 README 链接无缺失。源补丁、原退出码与上述测试收据见[维护验证记录](../history/storage-cleanup/2026-10-30/verification.json)。此句仅记录结果，不将既有产品证据重绑本轮文档。
+
+#### 2026-10-30 体积治理续批：生命周期副本与共享输入主机检查
+
+按 Owner“继续任务”接续已授权的体积/规范化优先项。本批精确删除 `zc1i` 首次失败生命周期 run 中与保留的 `zc1i2` 同哈希的 672 个传输文件、688,965,713 逻辑字节、42 个空目录，错误 0；原始 inputs.json、WSB、staging/launch/stop 回执、失败输出和日志保留。672 原路径缺失、672 替代哈希匹配、69 保护文件不变；安装器、PowerShell、guest 脚本及混合身份四项复制恢复匹配，验证副本移除。加前批累计清理 99,089 文件、51,068,863,617 逻辑字节（约 47.562 GiB），不将逻辑字节等同物理磁盘释放。逐文件恢复映射、精确作用域、原始退出码及保护清单见[冻结续批记录](../history/storage-cleanup/2026-10-30-followup/README.md)与 MANIFEST。
+
+正式工具 `scripts/runtime/sandbox_inputs.py` 先审声明路径，再核完整成员/大小/哈希，拒绝私有状态、开发缓存、Windows 别名、重复成员、reparse 和硬链接；沿 dev.py 只生成共享输入配置提案，不复制 payload、不改原件或 ACL、不执行输入。在实际 `zc1i2` 672 成员/688,965,713 字节上，最终 `sfi-host3`、`sfi-host4` 两次独立输出均为空，三路相同输入映射只读，payload 复制 0；早期 host1/2 结果保留。源清单 approval 仅作来源；宿主输入仍可变，未来启动前须重核。旧 `zc1c8` 清单含两项 `.mimosa` 私有状态，`sfi-private1` 在任何声明载荷读取前 FAIL_CLOSED/exit 1，未生成配置，未读私有正文、未改历史清单。
+
+最终代码定向回归 `sf3`：142 passed、1 skipped、20 subtests passed，LOCAL_PASS/source_consistent=true，源码补丁 SHA `d49b6f9fe8e7d311955eb8eb85fe43f2a45828b7a18a3efdc11640e68b981b8d`；Ruff E9/F63/F7/F82、架构门禁及索引格式检查通过。Windows junction、私有路径先拒绝、同大小篡改、额外/缺失成员、重复 JSON/成员、输出重放与错误归属反例实际执行；既有文件 symlink 用例因本机能力跳过。早期长 run ID 触发既有路径测试 WinError 206，原 FAIL 保留，短 canonical ID 下同断言通过，无全局设置变化。
+
+封存规范修补将固定 guest 四映射移至 `config/sandbox/shared-inputs.v1.json` 并校验其虚拟命名空间，未为外部机器路径开架构豁免。既有格式检查按精确路径/哈希登记 12 份已归档材料及两份现存冻结 CSV；两份旧 Git LF blob 经精确属性和索引重新登记，保留现存工作树 BOM/CRLF，CSV 内容值未改。14 成员在工作树、暂存索引与 process-local autocrlf=true 实际 checkout 均逐字节匹配，14 项篡改/未登记路径用例通过；仅一个普通测试文件补末行 LF。7 项初始架构拒绝、11 项初始格式拒绝及首次索引未刷新时两项哈希拒绝均保留，未修改冻结原件换取检查通过。
+
+全仓复测 `sfi-size1` 为 137,761,270,223 可读逻辑字节（128.300181 GiB），较前批净减 679,193,807 字节。计量仍 PARTIAL、原子退出 1，1,390 个访问/长路径错误与 95 个私有排除单列；550 个开发根散落入口、31 个错误层级 run、19 个退役身份保持待核，out_of_layout 合计 582，无新增路径触发。`NO_NEW_GROWTH_TRIGGER` 不代表旧 runs/candidates 预算债务消失或全仓规范化完成；新测试/证据及测量时点使净差不同于精确删除量。
+
+共享 launcher 仍 NOT_QUALIFIED，guest 写入隔离 NOT_EXECUTED。冻结旧 launcher 仅接受每 run 自有 package/input，不能直接复用此共享提案；`.wsb.proposed` 未启动，不宣称已全面替代整包 staging。下一步先完成来源/映射/配置身份绑定的共享 launcher、洁净冲突输入与真实 guest 隔离，再审旧候选同哈希载荷的消费者/恢复映射及散落目录；随后接 F01—F05 与 R2 后端。UI 实施、模型/网络/版本待决及远端边界不变；本批无 VM/安装/推理/Green/真实数据操作。
+
+Owner 后继明确“给你访问权限”。即时复核本次计量已登记的三个精确项目路径：`artifacts/product-loop-20261019/ci-repair/temp/pytest`、`audits/execution-resume-20261019/manifest-candidate/tmp-red`、`cache/pytest`（均相对 `.project-local/`），系统仍返回 PermissionError/WinError 5；授权已收到不等于 Windows 实际可读。复核只枚举对应入口，未递归或读取私有正文、未改 ACL；原始结果归本轮 artifacts/access-recheck-after-owner-grant.json。不能将这三例外推为已核全部 1,390 个错误或已解决权限问题。
+
+封存检查：`sfi-doc2` 文档权威、`sfi-path2` 跟踪路径规范均 LOCAL_PASS/source_consistent=true，5,848/5,848 路径归属匹配、未归属/歧义/deny-commit/共享安装副本组均 0。索引格式 `sfi-conv3`、架构 `sfi-arch2`、Ruff `sfi-lint2` 及最终代码回归均通过，各自只证明其绑定的源码/补丁；本句及 summary/MANIFEST 仅记录结果，不将这些本地检查移绑成 CI、guest 或产品资格。

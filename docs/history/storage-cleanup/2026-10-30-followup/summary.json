@@ -1,0 +1,442 @@
+{
+  "schema": "aaos.storage-followup/v1",
+  "status": "MAINTENANCE_PARTIAL",
+  "cleanup": {
+    "status": "PASS_EXACT_SCOPED_CLEANUP",
+    "deleted_files": 672,
+    "deleted_logical_bytes": 688965713,
+    "removed_empty_directories": 42,
+    "errors": [],
+    "manifest_sha256": "d3bebf87342d8a98bbb92a3e62e6a5aa23008845e4897ad4c9c5ea56890cd24b"
+  },
+  "postconditions": {
+    "original_paths_absent": 672,
+    "retained_hashes_match": 672,
+    "protected_hashes_match": 69,
+    "restore_copies": 4,
+    "restore_temporary_copies_removed": true
+  },
+  "cumulative_reviewed_cleanup": {
+    "files": 99089,
+    "logical_bytes": 51068863617
+  },
+  "footprint": {
+    "measured_at": "2026-10-30T12:03:11.954111+00:00",
+    "readable_bytes": 137761270223,
+    "readable_files": 1244353,
+    "measurement_status": "PARTIAL",
+    "growth_review": {
+      "status": "NO_NEW_GROWTH_TRIGGER",
+      "delta_readable_bytes": -679193807,
+      "growth_review_bytes": 2147483648,
+      "over_budget_classes": [
+        "candidates/",
+        "runs/"
+      ],
+      "new_out_of_layout": [],
+      "measurement_status": "PARTIAL",
+      "deletion_authorized": false
+    }
+  },
+  "remaining": {
+    "measurement_errors": 1390,
+    "private_subtrees_excluded": 95,
+    "dev_strays": 550,
+    "out_of_layout_including_wrong_depth_runs": 582,
+    "wrong_depth_runs": 31,
+    "stale_worktree_identities": 19,
+    "shared_launcher": "NOT_QUALIFIED",
+    "guest_write_isolation": "NOT_EXECUTED",
+    "clean_conflict_input_profile": "REQUIRED_PRIVATE_STATE_DECLARED_IN_HISTORICAL_SOURCE",
+    "old_candidate_deduplication": "CONSUMER_AND_RESTORE_MAP_REVIEW_PENDING"
+  },
+  "access_recheck_after_owner_grant": {
+    "owner_message": "给你访问权限",
+    "checks": [
+      {
+        "path": ".project-local/artifacts/product-loop-20261019/ci-repair/temp/pytest",
+        "status": "ACCESS_STILL_FAILED",
+        "error_type": "PermissionError",
+        "errno": 13,
+        "winerror": 5
+      },
+      {
+        "path": ".project-local/audits/execution-resume-20261019/manifest-candidate/tmp-red",
+        "status": "ACCESS_STILL_FAILED",
+        "error_type": "PermissionError",
+        "errno": 13,
+        "winerror": 5
+      },
+      {
+        "path": ".project-local/cache/pytest",
+        "status": "ACCESS_STILL_FAILED",
+        "error_type": "PermissionError",
+        "errno": 13,
+        "winerror": 5
+      }
+    ],
+    "acl_changed": false,
+    "boundary": "Exact previously measured project paths only; no recursion or private content read."
+  },
+  "source_preservation": {
+    "members": 14,
+    "index_and_checkout_exact": true,
+    "restored_existing_worktree_crlf_in_index": 2,
+    "original_archive_bytes_changed": false,
+    "temporary_checkout_copies_removed": true,
+    "new_preservation_tamper_cases_passed": 14
+  },
+  "shared_proposal": {
+    "source_manifest_sha256": "82f2c42901049665b8b85a4d9620bbcdfd67419025ebe2746956e02d4e0e7fef",
+    "members": 672,
+    "shared_logical_bytes": 688965713,
+    "distinct_output_runs": 2,
+    "payload_bytes_copied": 0,
+    "three_readonly_inputs_one_writable_output": true,
+    "private_source_rejected_before_payload_access": true
+  },
+  "boundary": "Local maintenance and host configuration evidence only. No VM launch, install, product/AI acceptance, remote write, cloud CI, Green or user-data change.",
+  "checks": [
+    {
+      "run_id": "sf3",
+      "description": "Final code: 142 passed, 1 skipped, 20 subtests passed",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sf3/artifacts/execution.json",
+        "bytes": 1825,
+        "sha256": "bf8db3db264bf607a686ececc4d990c15888afbec685f56bad0455a6d3131bb6"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "d49b6f9fe8e7d311955eb8eb85fe43f2a45828b7a18a3efdc11640e68b981b8d"
+    },
+    {
+      "run_id": "sfit2",
+      "description": "Intermediate 81 passed, 1 skipped, 20 subtests passed; retained",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfit2/artifacts/execution.json",
+        "bytes": 1740,
+        "sha256": "c3f7f3cd157245fe1859913dca58338a6aff95a82925bf7f11b3aa81ce65255d"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "73eb027038bf8434b47196a55d124f1e4ace3579e08315a04a33a61f03391555"
+    },
+    {
+      "run_id": "sfi-lint2",
+      "description": "Final changed-file Ruff E9/F63/F7/F82",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-lint2/artifacts/execution.json",
+        "bytes": 1518,
+        "sha256": "cd39509e993fec14bfb677e992c5aff23dbb9f654e0e00e9e0d8ce139a48b4aa"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "d49b6f9fe8e7d311955eb8eb85fe43f2a45828b7a18a3efdc11640e68b981b8d"
+    },
+    {
+      "run_id": "sfi-arch1",
+      "description": "Initial guest-literal architecture refusal; retained FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-arch1/artifacts/execution.json",
+        "bytes": 1247,
+        "sha256": "31b3e041363f2ddfea9865be72d9a9ffa3015182fb02ae74089acb8d1584aede"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "6821046a3a9b48e61ca479820d8931ed7f139be11145f5c856ecbfb11c6dce86"
+    },
+    {
+      "run_id": "sfi-arch2",
+      "description": "Final architecture guard PASS after explicit guest protocol config",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-arch2/artifacts/execution.json",
+        "bytes": 1253,
+        "sha256": "c5faa2046748bb29a6a00c9fae90f6eaeb8c7adce06accf257224e2d92781517"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "d49b6f9fe8e7d311955eb8eb85fe43f2a45828b7a18a3efdc11640e68b981b8d"
+    },
+    {
+      "run_id": "sfi-conv1",
+      "description": "Initial existing original-byte conventions refusal; retained FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-conv1/artifacts/execution.json",
+        "bytes": 1289,
+        "sha256": "595d04913b6d524817c35303dec80d08e36171b44b74d8ce8bd813315519b808"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "6821046a3a9b48e61ca479820d8931ed7f139be11145f5c856ecbfb11c6dce86"
+    },
+    {
+      "run_id": "sfi-conv2",
+      "description": "CSV index identities not yet force-refreshed; retained FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-conv2/artifacts/execution.json",
+        "bytes": 1288,
+        "sha256": "8140005a676bba7f60d8854d4a4af3dfe50daaba6f26cc9b73b50e2b264d8b98"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "d49b6f9fe8e7d311955eb8eb85fe43f2a45828b7a18a3efdc11640e68b981b8d"
+    },
+    {
+      "run_id": "sfi-conv3",
+      "description": "Index conventions PASS after exact hash registrations and index refresh",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-conv3/artifacts/execution.json",
+        "bytes": 1295,
+        "sha256": "89a4289a74895b30daa873e8640ed4b2d68864c41124bafcea28d50464d8bb58"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "a13742b2fc87bb8a450fd21c078662ca50a304c1953fc660ab22e1c729222536"
+    },
+    {
+      "run_id": "sfi-size1",
+      "description": "Whole-repository readable footprint; expected nonzero PARTIAL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-size1/artifacts/execution.json",
+        "bytes": 1504,
+        "sha256": "2bb43d2b66376441a828e7a0a5a6bb7c5e4aca613909f39adf62905f68a0dd24"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "73eb027038bf8434b47196a55d124f1e4ace3579e08315a04a33a61f03391555"
+    },
+    {
+      "run_id": "sfi-host1",
+      "description": "First retained lifecycle shared mapping host proposal only",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-host1/artifacts/execution.json",
+        "bytes": 1483,
+        "sha256": "10da7b493a0248f94f3a0066a0b7764d6e9449d3b1e95577754cfdb826cae629"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "9bc17f7eba369a43b51fd8efe567bc92887c5b05474733465c0bf0ef719851f6"
+    },
+    {
+      "run_id": "sfi-host2",
+      "description": "Second independent shared mapping host proposal only",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-host2/artifacts/execution.json",
+        "bytes": 1483,
+        "sha256": "d90b13865238b30a6ca86c3b263a5526ff27f41edd8a843d00d658479944d31b"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "9bc17f7eba369a43b51fd8efe567bc92887c5b05474733465c0bf0ef719851f6"
+    },
+    {
+      "run_id": "sfi-host3",
+      "description": "Final guest-config profile, first independent host proposal only",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-host3/artifacts/execution.json",
+        "bytes": 1484,
+        "sha256": "f450995aad3d6110c3226a87acb021db8b22ac5c1badfbbc505ea968e3625724"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "a13742b2fc87bb8a450fd21c078662ca50a304c1953fc660ab22e1c729222536"
+    },
+    {
+      "run_id": "sfi-host4",
+      "description": "Final guest-config profile, second independent host proposal only",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-host4/artifacts/execution.json",
+        "bytes": 1484,
+        "sha256": "be6ed7deb9a617c628e8e8d26a81af7c7ec2b01638fbdfcd7ab7a731da5af075"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "a13742b2fc87bb8a450fd21c078662ca50a304c1953fc660ab22e1c729222536"
+    },
+    {
+      "run_id": "sfi-src1",
+      "description": "14 byte-exact index/checkout identities and final host proposals",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-src1/artifacts/execution.json",
+        "bytes": 1312,
+        "sha256": "0e6df6309ee4e62fdfc7caac7c7e1253259e05402248bd0ecd0908107c229d61"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "a13742b2fc87bb8a450fd21c078662ca50a304c1953fc660ab22e1c729222536"
+    },
+    {
+      "run_id": "sfi-private1",
+      "description": "Historical conflict inputs rejected before payload access; expected exit 1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-private1/artifacts/execution.json",
+        "bytes": 1484,
+        "sha256": "c3721734103759d882e82137ad5042a65a8e7c7262461a409e45e280a0a1219b"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "9bc17f7eba369a43b51fd8efe567bc92887c5b05474733465c0bf0ef719851f6"
+    },
+    {
+      "run_id": "sfi-plan1",
+      "description": "Exact lifecycle duplicate cleanup plan",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-plan1/artifacts/execution.json",
+        "bytes": 1313,
+        "sha256": "56a2511d7555fee3ed1c81f26f236d85a410583cfec70bf886202940a7d86c06"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "9bc17f7eba369a43b51fd8efe567bc92887c5b05474733465c0bf0ef719851f6"
+    },
+    {
+      "run_id": "sfi-clean1",
+      "description": "Exact lifecycle duplicate cleanup execution",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-clean1/artifacts/execution.json",
+        "bytes": 1326,
+        "sha256": "f29def3411e54d405c885a80e0c6d77cce586cda2d9a9bb0aafe5bb18d447b47"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "9bc17f7eba369a43b51fd8efe567bc92887c5b05474733465c0bf0ef719851f6"
+    },
+    {
+      "run_id": "sfi-verify1",
+      "description": "Cleanup hashes, four byte-exact restore copies, shared mapping checks",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-verify1/artifacts/execution.json",
+        "bytes": 1317,
+        "sha256": "0a0f254e435e897cebe2333103578c768834efb7f4173d02e2d2584424111147"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "73eb027038bf8434b47196a55d124f1e4ace3579e08315a04a33a61f03391555"
+    },
+    {
+      "run_id": "storage-shared-inputs-test-20261030-v2",
+      "description": "Earlier existing long-path regression FAIL preserved; no global setting change",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/storage-shared-inputs-test-20261030-v2/artifacts/execution.json",
+        "bytes": 1773,
+        "sha256": "9987a56134bdfdab9f1bac6a32a150843540c89ace00a18a741fb838af8278ce"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "5b7625f32ea712474d358ef4d9cf2d368ed7d87a51bf09aba0c31fb8d4162b15"
+    },
+    {
+      "run_id": "sfi-doc1",
+      "description": "Final document authority / staged path convention check",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-doc1/artifacts/execution.json",
+        "bytes": 1259,
+        "sha256": "6ed8624d8c6cea9e006cfc98b14f6e1d66fbebee2d11eb42894c8025f4d2beae"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "6821046a3a9b48e61ca479820d8931ed7f139be11145f5c856ecbfb11c6dce86"
+    },
+    {
+      "run_id": "sfi-path1",
+      "description": "Final document authority / staged path convention check",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-path1/artifacts/execution.json",
+        "bytes": 1258,
+        "sha256": "fcfc2c6a86c0a5cec23bdc09319b0cc839fd0572568996ffbedae6964beea79d"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "6821046a3a9b48e61ca479820d8931ed7f139be11145f5c856ecbfb11c6dce86"
+    },
+    {
+      "run_id": "sfi-doc2",
+      "description": "Final document authority / staged path convention check",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-doc2/artifacts/execution.json",
+        "bytes": 1261,
+        "sha256": "790a75bc249a15650ccd02fc8d8e6113f429483b6f29d4bfcc5874e71c1d220a"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "42742dc48c7d6d4b0c73eceda619f4ae5b47d49d2014e6b719d375e7fd2c91d8"
+    },
+    {
+      "run_id": "sfi-path2",
+      "description": "Final document authority / staged path convention check",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/sfi-path2/artifacts/execution.json",
+        "bytes": 1257,
+        "sha256": "b6713ede7c48bb4bcef3522f269e7c6ce7255f3dd7340141bea53ea6af345434"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true,
+      "source_commit": "d29fd800bc183b5b7681c69353405fd5b870d7d3",
+      "source_patch_sha256": "42742dc48c7d6d4b0c73eceda619f4ae5b47d49d2014e6b719d375e7fd2c91d8"
+    }
+  ]
+}

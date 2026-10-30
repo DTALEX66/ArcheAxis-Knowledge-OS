@@ -1,5 +1,9 @@
 * text=auto eol=lf
 
+# Frozen handoff CSV originals retain BOM/CRLF; checks pin each exact source hash.
+workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/04-186项能力归并映射-冻结输入.csv -text whitespace=cr-at-eol,-blank-at-eol
+workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/05-22职责归并-冻结输入.csv -text whitespace=cr-at-eol,-blank-at-eol
+
 # Owner 原始开发附件按 ARCHIVE-RECEIPT 的 SHA 保留 CRLF、末行和原字节。
 assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt -text whitespace=cr-at-eol,-blank-at-eol
 

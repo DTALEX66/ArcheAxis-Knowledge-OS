@@ -16,6 +16,16 @@ MANIFEST = "docs/archive/MANIFEST.json"
 MEMBER = "docs/archive/evidence.txt"
 
 
+@pytest.mark.parametrize("path,pinned", scanner._OCT30_PRESERVED_INPUT_HASHES.items())
+def test_oct30_originals_require_exact_path_and_bytes(path, pinned):
+    content = (Path(__file__).resolve().parents[1] / path).read_bytes()
+    assert hashlib.sha256(content).hexdigest() == pinned
+    assert scanner.scan_text_bytes(path, content) == []
+    assert [issue.code for issue in scanner.scan_text_bytes(path, content + b"x")] == ["preserved-fixture-mismatch"]
+    if b"\r" in content or content.startswith(b"\xef\xbb\xbf") or not content.endswith(b"\n"):
+        assert scanner.scan_text_bytes("workspace/intake/unregistered-copy.txt", content)
+
+
 def test_xiaoqi_original_crlf_is_accepted_only_at_exact_path_and_hash():
     path = "docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json"
     content = (Path(__file__).resolve().parents[1] / path).read_bytes()
