@@ -1,0 +1,90 @@
+{
+  "schema": "aaos.colearning-real-local-model-checkpoint/v1",
+  "source_commit": "6d556c489cac9ce1691c0228dece49216e0270d5",
+  "source_patch": "CLEAN",
+  "model": "existing qwen3.5-4b / existing numeric loopback OpenAI-compatible route",
+  "core": {
+    "path": ".project-local/runs/be268a2d33/zcode-assemble-c1-20261030-v8/artifacts/c1/core/archeaxis-api.exe",
+    "sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b",
+    "bytes": 19181056
+  },
+  "code_and_worker_identities": {
+    "core": {
+      "path": ".project-local/runs/be268a2d33/zcode-assemble-c1-20261030-v8/artifacts/c1/core/archeaxis-api.exe",
+      "sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b",
+      "bytes": 19181056
+    },
+    "probe": {
+      "path": "scripts/probes/colearning_real_model_smoke.py",
+      "sha256": "019136e4fcb05285ca7c55a3b08b61af2448efc54031f2db1489c9cdacb9e757",
+      "bytes": 33252
+    },
+    "worker": {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "sha256": "1cbe14fbc7dd53b485015372a9b3bfd98f167172770028bcb128870e73c40330",
+      "bytes": 36361
+    },
+    "transport": {
+      "path": "services/python-workers/transport/text_ndjson.py",
+      "sha256": "9dd026206d989a1b6878bfa4b1894e82069fd17f11de1e34a71812ad2650ef33",
+      "bytes": 43523
+    },
+    "launcher": {
+      "path": "scripts/release/backend_launcher.py",
+      "sha256": "5a468951c9e7c324d66723ac1eb70cdf42508dafcdf37ffa3524998d2a9018f9",
+      "bytes": 23264
+    },
+    "client": {
+      "path": "shared/core_client.py",
+      "sha256": "9a6e56ca1963e396f7d1c7cca5aa6dfb4e6aa040dfc9546380efa70ec732aba1",
+      "bytes": 13709
+    }
+  },
+  "identity_before_after_equal": true,
+  "model_route_requests": 2,
+  "successful_final_answers": 1,
+  "responses_with_model_usage_diagnostics": 2,
+  "reported_usage_total": {
+    "input_tokens": 326,
+    "output_tokens": 3266,
+    "total_tokens": 3592
+  },
+  "first_answer_score": "CORRECT",
+  "second_request": {
+    "http_status": 503,
+    "reason": "NO_FINAL_ANSWER",
+    "finish_reason": "length",
+    "answer_source": "reasoning_content",
+    "output_tokens": 2048,
+    "elapsed_s": 25.09
+  },
+  "main_exit_code": 1,
+  "qualification": "FAIL_REVIEW_REQUIRED",
+  "F05": "PARTIAL",
+  "transfer_correction_retest": "NOT_EXECUTED",
+  "learning_improvement": "NOT_ESTABLISHED",
+  "asset_scoped_effect": "NOT_QUALIFIED",
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-real1/artifacts/real-main-result.json",
+      "bytes": 9508,
+      "sha256": "877c3c7cb385b8ac9e9d8a811b7a9ea85806c490962b9f915b5aedd1751b874c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-real1/artifacts/colearning-real-model/3f09ea6376ed47619528f861563ab53d/receipt.json",
+      "bytes": 9345,
+      "sha256": "6859092387b9d8138e4e12a5b60fad8a3b9a87a24f059c925de1a7fdd70e438d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-real1/artifacts/execution.json",
+      "bytes": 11950,
+      "sha256": "b0b122aefc7172c233f2acd6ad9d35edb571554201fadb1dcad1e49ef817da0a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-real1/artifacts/preflight.json",
+      "bytes": 1681,
+      "sha256": "25ac12126b187d287a6249976efafc63661e001daf3fe53082762fa5645f3ccf"
+    }
+  ],
+  "automatic_retry_or_model_config_changes": false
+}

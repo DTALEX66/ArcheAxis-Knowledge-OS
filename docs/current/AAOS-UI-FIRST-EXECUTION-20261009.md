@@ -2818,3 +2818,11 @@ R6一致性确认后，按原Owner精确清理授权部署126公开重复素材�
 管理员原run已有终态，修改102,591/error0，未重新Apply。[普通权限独立核验](../history/storage-cleanup/2026-10-30-read-access-verification/README.md)以TokenElevation0/原readerSID，102,591计划对象（47,644目录/54,947文件）的预期ACL/owner/group/protection/ACE、同handle只读可开/size/mtime全通过，零正文读取/零权限写入。发现preserved769中9个目录在members/journal重叠，根因是先记录目录本身后子枚举失败catch又记preserved；760条无记录操作。首轮断言失败保留，v2虽全对象通过仍exit2/FAIL/source_consistent=true，整体PARTIAL，不宣称全部533根后代、私有/链接ACL或内容SHA已核；不改旧plan/模块/回退。活动指针从应用推进改为计划对象已读验、库存/后代缺口待查，后继再重计项目可读体积。
 
 [F05传输修正](../history/backend-probe-transport-20261030/README.md)已部署2文件候选：HTTP等待覆盖Core120秒模型预算及15秒admission/客户端余量；正式client的status0和异常都写UNKNOWN/脱敏收据，不自动重试，HTTP业务拒绝保留。真实C1 Core+同32秒合成worker重现旧main3→新main0；合成纠正链0、独立题错误1、status0脱敏3，66测试/Ruff通过，wrapper与实际main退出分开。真实模型调用仍0，Core是有限C1混合候选，未重建当前产品，asset/scoped真实效果/学习改善仍未建立，F05总体PARTIAL。UI、监控、远端写、Green替换、真实资料覆盖及全局模型边界不变。
+
+#### 2026-10-31 R6逐项静态承接、真实模型失败与体积后测
+
+[R6后端186项静态快照](../../workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md)已接原任务：65已有有限实现/84部分承接/18明确设计或缺口/19具名未来或外部未实现，16族原14字段2,604值和186顺序、原186/22字节保全。45证据组、337源码、555精确片段从固定6d556c48 Git对象重建；14份源码raw/Git字节仅换行不同，双身份均钉定。公开只保留403,514字节的说明/唯一CSV/精简证据，不复制等价JSON和源码正文；CSV已LF化并逐值验证、正式路径Git过滤前后一致，原CRLF/失败候选保留。51行只是选定共享操作缺第二distinct前端消费者，不强造UI入口；已定位semantic/vault后端有真实route但缺CoreOperation白名单，具体缺口不冒称未实现整能力。静态检查不关闭R5-F01、25场景或R6 E01—E10，也不授权新required延期，UI暂停不变。
+
+[真实模型检查点](../history/colearning-real-model-20261031/README.md)：bkr-real1在6d556c48干净源、同C1及生产worker上实际请求2次，既有qwen3.5-4b/loopback路由不改配置。首答HTTP200/20.44s、固定量规CORRECT；第二资料不足控制HTTP503/NO_FINAL_ANSWER，25.09s/finish_reason=length，2048输出token耗尽而无final，非传输超时。用量诊断共2份、成功final仅1，报告合计3592tokens；不把原model_response_observed_count1当总推理次数。实际main1/FAIL/source_consistent=true，转移题/纠正/复测未执行，无重试或改正确答案。10个已观察自有进程退出、端口关闭，不称优雅停止。F05真实legacy完整质量、asset/scoped效果和学习改善仍PARTIAL/未建立。
+
+[权限后体积测量](../history/storage-cleanup/2026-10-31-post-access-measurement/README.md)：当前可读下界142,698,156,985B/1,319,188文件，预算审查exit2/PARTIAL。比旧下界多4,913,174,112B；旧533拒绝根现可见3,359,378,401B，残差1,553,795,711B不能算精确新增生成。674拒绝分599测试.git/61长路径/14名字似链接但类型未核，183私有和133链接保持；根本体读恢复不等于所有后代可读。布局582→581、无新增债，runs/candidates仍超预算；zc1c8/lpinst4/current5822继续HOLD，下一批仅审cnprep2/3/cppns1/2公开叶级副本，不复跑管理员Apply或批删。整体PARTIAL，原执行顺序/本地禁上传/监控及UI暂停/Green与真实资料边界保留。

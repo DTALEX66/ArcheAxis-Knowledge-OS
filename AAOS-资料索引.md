@@ -58,3 +58,5 @@
 ## 2026-10-10 六项核心能力汇总：冻结来源
 
 [归档索引、原文与完整哈希](docs/history/conversation-summary-20261010/INDEX.md)。Owner 要求先归档，后续再考虑：**FROZEN_BY_OWNER / NOT_EXECUTED**。不加入当前执行队列；包内提示词、接口与48项测试仅为提案，不自动执行。原始ZIP及三个成员保存在项目本地归档；该冻结与 2026-10-11 已恢复的产品实施范围分别核对。
+
+R6后继：[固定源码186项后端承接快照](workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md)。唯一公开机器表与精简证据索引保留原14字段/顺序及源码Git字节身份；静态映射不替代运行验收或现行执行记录。

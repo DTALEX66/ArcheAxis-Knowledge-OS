@@ -167,9 +167,11 @@
         "source_and_review": "workspace/intake/20261030-r6-external-practice-boundary-review/README.md",
         "role": "R5_BOUNDARY_REPAIR_INPUT_STATICALLY_REVIEWED_ENGINEERING_PARTIAL; attachment instructions do not grant execution",
         "absorption": "AAOS learning plans/tutorials/manual records/feedback; professional production and execution external; start/self-report/mastery distinct; optional user-selected return without raw-context capture. Preserve 186/22 and existing required/long-term capability identities.",
-        "retained_findings": "R5-F01/F03-F06 not closed; R5-F02 WORK-LAB dependency residue remains. 186 operation bindings and R6 E01-E10 NOT_EXECUTED; R5 25 cases not requalified; F05 PARTIAL.",
+        "retained_findings": "R5-F01/F03-F06 not closed;R5-F02 WORK-LAB dependency residue remains.186 runtime bindings not qualified;static source snapshot linked.R6 E01-E10 NOT_EXECUTED;R5 25 cases not requalified;F05 PARTIAL.",
         "boundary": "WORK-LAB optional, AAOS standalone. UI pause/local-only/no upload/no arbitrary execution/no cross-project write/no Green replacement or real-data overwrite unchanged.",
-        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "backend_binding_snapshot": "workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md",
+        "binding_scope": "186 original rows statically mapped at fixed 6d556c48:65 bounded/84 partial/18 design-or-gap/19 named-future-or-external;not runtime qualification or new deferral authority"
       }
     },
     "owner_handoff_20261029": {
@@ -217,7 +219,8 @@
       "whole_scope": "PARTIAL;102591 planned objects independently verified with unelevated read handles and expected ACL/metadata. Nine directory enumeration failures are also labeled preserved in the original inventory;760 entries have no recorded operation. Not all descendants or private/excluded objects verified; no product qualification.",
       "monitor": "PAUSED_UNCHANGED",
       "observation_ref": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/unelevated-verification.json",
-      "verification_pending": "Re-measure project footprint and remaining exact access failures; review nine long-path child-enumeration gaps without rerunning Apply or modifying frozen backup/module."
+      "verification_pending": "Post-access measurement remains PARTIAL with674 metadata access errors;review exact protected test-Git,long-path,and unverified link-named cases.Original533 roots are readable in current measured scope;not all descendants.Private paths and frozen Apply/rollback unchanged.",
+      "storage_followup": "docs/history/storage-cleanup/2026-10-31-post-access-measurement/README.md"
     },
     "permission_blocker_previous": {
       "observed_date": "2026-10-23",
