@@ -1,1 +1,516 @@
-{"schema":"aaos.backend-response-format/v1","status":"IMPLEMENTED_FINITE_CONTRACTS_PASS_REAL_MODEL_NOT_EXECUTED","source_files":[{"path":"crates/archeaxis-api/src/runtime/colearning.rs","bytes":55934,"sha256":"e1edd26814bbe0885d524209d13241bbca2c5fbcc37d6317f755a8747597b48a"},{"path":"crates/archeaxis-api/src/runtime/context_refusal.rs","bytes":7083,"sha256":"4a7085199f63beb113de5a7c1b9175e1a669e51e891ba2f4c299820ab4637e32"},{"path":"crates/archeaxis-api/src/runtime/execution_claim.rs","bytes":16454,"sha256":"e952faa05dac118ae09c4904707a3f31713a9b49ec6f44300a0e5cbba9016a62"},{"path":"crates/archeaxis-api/src/runtime/mod.rs","bytes":54244,"sha256":"9092374fae4510708ebdd309074666a3969a2ba2f5272fdc443867cec5ba893a"},{"path":"crates/archeaxis-api/tests/contract_machine_answer.rs","bytes":54252,"sha256":"8a24303b9df33378144bf9a9a6451da46d39ea86b2ba33b0d7a768bcbe2c4300"},{"path":"crates/archeaxis-application/src/executor.rs","bytes":72612,"sha256":"3e13a0b861ec2ed66eefcfe31c44ef741df2c9f82cbfb40729b1d60f0d3c142b"},{"path":"crates/archeaxis-application/src/executor/machine_failure.rs","bytes":14579,"sha256":"7f9ab372f43a56802b8f6ff3c129c5ef9e472d74f36c2dbbe8d57a820e4809bb"},{"path":"crates/archeaxis-domain/src/lib.rs","bytes":1303,"sha256":"b15680fe578fdc5e2beff56f9ffdd0479075a33d9b86fe0cf0c746cbbedb0356"},{"path":"crates/archeaxis-domain/src/response_format.rs","bytes":8927,"sha256":"de449647d49a53b11bc686a1d23ea4b472e466f9a52c64f003d65bec71093ae1"},{"path":"crates/archeaxis-domain/src/ui_state.rs","bytes":72260,"sha256":"21474f775c57941cf5d7cb7c020cc918cd89e8b0e1d4063d24d32fa7a97776dc"},{"path":"crates/archeaxis-domain/tests/ui_working_state.rs","bytes":56093,"sha256":"7ced8b004a89ad4aedd0e0436f35360bbd8ee4e0faa23a8c00a10341304071ff"},{"path":"services/python-workers/machine/worker_machine_answer.py","bytes":43452,"sha256":"3169d947b988a37f92c499e1e10c65ee4c0e1b7c88025b492c157ede3685d9b9"},{"path":"tests/fixtures/machine-response-format.json","bytes":6099,"sha256":"6e270a590d8a20f8889457065fb801f7f337b34d16db8366c2eadd1d0a2b97d5"},{"path":"tests/test_worker_machine_answer.py","bytes":49499,"sha256":"c15354412486cd3bc3d7c17ad08301f19704e0cd1d13243dad05b22d5380289d"}],"formal_runs":[{"run":"bkr-fpy1","tests":0,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"498789bb60c28dc24ae6cca01765116b47669b028776744b5b71fee3cb4f278d","child_exit_code":4,"exit_code":4,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-fpy1/artifacts/execution.json","bytes":1701,"sha256":"2d575d9a9e6afbf8f06b378deafd2ce9356b83599b49c03a477555057ba8e9aa"},{"path":".project-local/runs/be268a2d33/bkr-fpy1/logs/execution.log","bytes":108,"sha256":"10025f432be41fd06d7b3302a8ef423feab8b37881a107e19813f1a2dfca17b7"}]},{"run":"bkr-flint1","tests":null,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"498789bb60c28dc24ae6cca01765116b47669b028776744b5b71fee3cb4f278d","child_exit_code":1,"exit_code":1,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-flint1/artifacts/execution.json","bytes":1349,"sha256":"4e2bb0951de8d1c27a9aab8d54f7250e6f48afd0fc9110072b5603badb4a5547"},{"path":".project-local/runs/be268a2d33/bkr-flint1/logs/execution.log","bytes":10331,"sha256":"99ed4171ae8aca245e3530c6f932c3cab8cb693f09b2e766b2117515805922a3"}]},{"run":"bkr-fpy2","tests":269,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":0,"exit_code":0,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-fpy2/artifacts/execution.json","bytes":1708,"sha256":"c2f0a3170b05cbf5a5b6b9433f1f8a8b61e7651424c7643330e5e777484b186f"},{"path":".project-local/runs/be268a2d33/bkr-fpy2/logs/execution.log","bytes":345,"sha256":"c69cefa18e5c857e4088278cbe8b64fa78da004f05aae536fc2419ef729f4a5f"}]},{"run":"bkr-flint2","tests":null,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":0,"exit_code":0,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-flint2/artifacts/execution.json","bytes":1355,"sha256":"fd698a4655e9eef5b84dc4c47ffa1c9c2621904e7efdee50fda02df4a1b50b86"},{"path":".project-local/runs/be268a2d33/bkr-flint2/logs/execution.log","bytes":20,"sha256":"a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"}]},{"run":"bkr-fmtlib1","tests":3,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":0,"exit_code":0,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-fmtlib1/artifacts/execution.json","bytes":1303,"sha256":"b469cda93c10745f07d2d75db708113f675c751eeb55fbc469b1a076bd91e616"},{"path":".project-local/runs/be268a2d33/bkr-fmtlib1/logs/execution.log","bytes":994,"sha256":"d3a2167df3dce11920528812bfef20b6257e56b845a1f90e96d3e9ca5b380020"}],"cargo_case":{"path":".project-local/runs/be268a2d33/bkr-fmtlib1/artifacts/cargo-case.json","bytes":761,"sha256":"528d207ffc9992a23d928e4b1c3174f7d812ecbd48a9f045573b3aa8c7cb68e9"}},{"run":"bkr-fmtui1","tests":1,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":0,"exit_code":0,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-fmtui1/artifacts/execution.json","bytes":1303,"sha256":"90bd4b69b655911e92491dd3387c59aec1712bd1e858ab3b5cf8777ccd5a49f9"},{"path":".project-local/runs/be268a2d33/bkr-fmtui1/logs/execution.log","bytes":916,"sha256":"b6cb135f6292fdd625e3d34be9cac25d561343b26c51aebc2882f41ed95edb10"}],"cargo_case":{"path":".project-local/runs/be268a2d33/bkr-fmtui1/artifacts/cargo-case.json","bytes":877,"sha256":"e76302e517c84b853c92ac1291da40960bfebccb309121dd66f22052b00dd70a"}},{"run":"bkr-fmtctx1","tests":1,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":0,"exit_code":0,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-fmtctx1/artifacts/execution.json","bytes":1305,"sha256":"0e2cb0d3b111f00f8f5ffdb3a1f28bf6712fabb69d4bb81ad8a47e39cfdee9b5"},{"path":".project-local/runs/be268a2d33/bkr-fmtctx1/logs/execution.log","bytes":1071,"sha256":"924688b5e935eee6006a8f27b4fd7dc378dd91ab98021a6bffe176719719ef34"}],"cargo_case":{"path":".project-local/runs/be268a2d33/bkr-fmtctx1/artifacts/cargo-case.json","bytes":765,"sha256":"2ef49b4b2d56affa2909d478f84e56447cd28480d3c34bb43a806b9fabbd2b76"}},{"run":"bkr-fmtapi1","tests":36,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":0,"exit_code":0,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/bkr-fmtapi1/artifacts/execution.json","bytes":1300,"sha256":"ff51aab22437760d04e9a361a081568365005109549d6067da5f4369abb23a80"},{"path":".project-local/runs/be268a2d33/bkr-fmtapi1/logs/execution.log","bytes":4055,"sha256":"f901157c8ed5a7efaa9ed99ea64fdee52b140c93071e99290afe308407bd69e8"}],"cargo_case":{"path":".project-local/runs/be268a2d33/bkr-fmtapi1/artifacts/cargo-case.json","bytes":862,"sha256":"0ec6c66b990350a8caa3de8a4f8c75c32705ff2a5c9275c92a9f383779cc9d72"}},{"run":"sfmt-pre1","tests":null,"source_commit":"35de7ce66fe150b31e190ddee4f3ed2a19970391","source_patch_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","child_exit_code":1,"exit_code":1,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/sfmt-pre1/artifacts/execution.json","bytes":1448,"sha256":"5604a99ddb38316e0186839f8ad6f2b622401da0ff2717795a4b342e5d5d90cc"},{"path":".project-local/runs/be268a2d33/sfmt-pre1/logs/execution.log","bytes":5782,"sha256":"0f2f2e936c44c5f9d3d7dee05812dfaa8669d4e93c2194176b0c26eef795b908"}]},{"run":"sfmt-post1","tests":null,"source_commit":"b7358272845beb8b93234b974e4a44b64ad2fbfe","source_patch_sha256":"c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173","child_exit_code":1,"exit_code":1,"source_consistent":true,"evidence":[{"path":".project-local/runs/be268a2d33/sfmt-post1/artifacts/execution.json","bytes":1451,"sha256":"38d03f0d10ba3dc8bbe611791507511b7bad6f0c90bdceae73ae2db2399ad18b"},{"path":".project-local/runs/be268a2d33/sfmt-post1/logs/execution.log","bytes":5783,"sha256":"80491e123f4bb3a71466437f6d93b7782005fb31c5297f54f12a25cc9aa98300"}]}],"tests":{"formal_python":269,"formal_rust":41,"rust_scope":"domain3+journal1+context1+API22/9/5; real Store and synthetic worker children, in-memory router","network_scope":"synthetic loopback HTTP test traffic exists; zero new production model or external network inference"},"compatibility":"legacy omitted/null projection and SHA checked against frozen vector; explicit retest format must match","limits":{"new_real_model_requests":0,"current_package_rebuilt_or_modified":false,"prior_F05_failures":"PRESERVED","F05_overall":"PARTIAL","learning_effect":"NOT_ESTABLISHED","UI_or_installed_acceptance":false},"storage":{"pre_readable_bytes":142872594863,"post_readable_bytes":143490535065,"delta_readable_bytes":617940202,"core_target_growth_bytes":605000086,"measurement_status":"PARTIAL","metadata_errors":674,"private_exclusions":243,"layout_items":581,"growth_review":"NO_NEW_GROWTH_TRIGGER","physical_bytes_released":"NOT_MEASURED_NO_DELETION","footprints":[{"path":".project-local/runs/be268a2d33/sfmt-pre1/artifacts/footprint.json","bytes":838248,"sha256":"03280faeb3b13db5ea91b23972d5368674ffb61b7ef9842dbdc5b89bd7bab95f"},{"path":".project-local/runs/be268a2d33/sfmt-post1/artifacts/footprint.json","bytes":838249,"sha256":"48b869f61d6a7054073127c4857236e83e4f740c4aab0d7cec2cda72e8c6263e"}]},"candidate_evidence":[{"path":".project-local/runs/be268a2d33/bkr-sfmt1/artifacts/product-candidate.json","bytes":9455,"sha256":"974e80e4541e7ec589f311b96e85a1aeb7d4846ed921f0e78abb55df7d4baced"},{"path":".project-local/runs/be268a2d33/bkr-sfmt1/artifacts/product.patch","bytes":59972,"sha256":"748f7f8ac1d62f6aa4a9a6962629d07a63e0f4a5277cc659d637182f672b42a9"},{"path":".project-local/runs/be268a2d33/bkr-sfmt3/artifacts/execution.json","bytes":1538,"sha256":"c7c75f69461b9b796633efa379019674f5ea663bbce3eafe3590d52875028993"},{"path":".project-local/runs/be268a2d33/bkr-sfmt3/logs/execution.log","bytes":264,"sha256":"d493f2a65da2e85d4a01a33f486c48f580f6b6755fd9a17e1b376124923a77c5"},{"path":".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/product-formatted.patch","bytes":62444,"sha256":"f33ef5b0dcc9236404d58bd322c46362cadf7c188e3885d48ccb3c28abd5aaf5"},{"path":".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/format-candidate.json","bytes":9538,"sha256":"8f5e043f8afe8c30777a35947b44407c6ce0468ab62150a679b6590bdc56892c"},{"path":".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/cargo-budget-plan.json","bytes":7194,"sha256":"0ea2ab79cbf111e63daba627c3d17ddffb2db64b95c11321ce4b45b44260ea7f"},{"path":".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/ROOT-REVIEW.json","bytes":1575,"sha256":"40434ce9dc02d404741d696d75accfae6eb5a58bd6fbf7f30e1239b70ab075a8"},{"path":".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/root_cargo_cases.py","bytes":3849,"sha256":"972f714c0a8cc5476201c99e62e7c27ca0e9e2abd25652129132411b466c42e3"},{"path":".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/target-baseline.json","bytes":46,"sha256":"4188d9b01bb36b2e08e39d153279560d88cb0fd01c36b5d417de7cb54bd32b83"}]}
+{
+  "schema": "aaos.backend-response-format/v1",
+  "status": "IMPLEMENTED_FINITE_CONTRACTS_PASS_REAL_MODEL_NOT_EXECUTED",
+  "source_files": [
+    {
+      "path": "crates/archeaxis-api/src/runtime/colearning.rs",
+      "bytes": 55934,
+      "sha256": "e1edd26814bbe0885d524209d13241bbca2c5fbcc37d6317f755a8747597b48a"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/context_refusal.rs",
+      "bytes": 7083,
+      "sha256": "4a7085199f63beb113de5a7c1b9175e1a669e51e891ba2f4c299820ab4637e32"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/execution_claim.rs",
+      "bytes": 16454,
+      "sha256": "e952faa05dac118ae09c4904707a3f31713a9b49ec6f44300a0e5cbba9016a62"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/mod.rs",
+      "bytes": 54244,
+      "sha256": "9092374fae4510708ebdd309074666a3969a2ba2f5272fdc443867cec5ba893a"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/contract_machine_answer.rs",
+      "bytes": 54252,
+      "sha256": "8a24303b9df33378144bf9a9a6451da46d39ea86b2ba33b0d7a768bcbe2c4300"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "bytes": 72612,
+      "sha256": "3e13a0b861ec2ed66eefcfe31c44ef741df2c9f82cbfb40729b1d60f0d3c142b"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "bytes": 14579,
+      "sha256": "7f9ab372f43a56802b8f6ff3c129c5ef9e472d74f36c2dbbe8d57a820e4809bb"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/lib.rs",
+      "bytes": 1303,
+      "sha256": "b15680fe578fdc5e2beff56f9ffdd0479075a33d9b86fe0cf0c746cbbedb0356"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/response_format.rs",
+      "bytes": 8927,
+      "sha256": "de449647d49a53b11bc686a1d23ea4b472e466f9a52c64f003d65bec71093ae1"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/ui_state.rs",
+      "bytes": 72260,
+      "sha256": "21474f775c57941cf5d7cb7c020cc918cd89e8b0e1d4063d24d32fa7a97776dc"
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/ui_working_state.rs",
+      "bytes": 56093,
+      "sha256": "7ced8b004a89ad4aedd0e0436f35360bbd8ee4e0faa23a8c00a10341304071ff"
+    },
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "bytes": 43452,
+      "sha256": "3169d947b988a37f92c499e1e10c65ee4c0e1b7c88025b492c157ede3685d9b9"
+    },
+    {
+      "path": "tests/fixtures/machine-response-format.json",
+      "bytes": 6099,
+      "sha256": "6e270a590d8a20f8889457065fb801f7f337b34d16db8366c2eadd1d0a2b97d5"
+    },
+    {
+      "path": "tests/test_worker_machine_answer.py",
+      "bytes": 49499,
+      "sha256": "c15354412486cd3bc3d7c17ad08301f19704e0cd1d13243dad05b22d5380289d"
+    }
+  ],
+  "formal_runs": [
+    {
+      "run": "bkr-fpy1",
+      "tests": 0,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "498789bb60c28dc24ae6cca01765116b47669b028776744b5b71fee3cb4f278d",
+      "child_exit_code": 4,
+      "exit_code": 4,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fpy1/artifacts/execution.json",
+          "bytes": 1701,
+          "sha256": "2d575d9a9e6afbf8f06b378deafd2ce9356b83599b49c03a477555057ba8e9aa"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fpy1/logs/execution.log",
+          "bytes": 108,
+          "sha256": "10025f432be41fd06d7b3302a8ef423feab8b37881a107e19813f1a2dfca17b7"
+        }
+      ]
+    },
+    {
+      "run": "bkr-flint1",
+      "tests": null,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "498789bb60c28dc24ae6cca01765116b47669b028776744b5b71fee3cb4f278d",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-flint1/artifacts/execution.json",
+          "bytes": 1349,
+          "sha256": "4e2bb0951de8d1c27a9aab8d54f7250e6f48afd0fc9110072b5603badb4a5547"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-flint1/logs/execution.log",
+          "bytes": 10331,
+          "sha256": "99ed4171ae8aca245e3530c6f932c3cab8cb693f09b2e766b2117515805922a3"
+        }
+      ]
+    },
+    {
+      "run": "bkr-fpy2",
+      "tests": 269,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fpy2/artifacts/execution.json",
+          "bytes": 1708,
+          "sha256": "c2f0a3170b05cbf5a5b6b9433f1f8a8b61e7651424c7643330e5e777484b186f"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fpy2/logs/execution.log",
+          "bytes": 345,
+          "sha256": "c69cefa18e5c857e4088278cbe8b64fa78da004f05aae536fc2419ef729f4a5f"
+        }
+      ]
+    },
+    {
+      "run": "bkr-flint2",
+      "tests": null,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-flint2/artifacts/execution.json",
+          "bytes": 1355,
+          "sha256": "fd698a4655e9eef5b84dc4c47ffa1c9c2621904e7efdee50fda02df4a1b50b86"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-flint2/logs/execution.log",
+          "bytes": 20,
+          "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+        }
+      ]
+    },
+    {
+      "run": "bkr-fmtlib1",
+      "tests": 3,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtlib1/artifacts/execution.json",
+          "bytes": 1303,
+          "sha256": "b469cda93c10745f07d2d75db708113f675c751eeb55fbc469b1a076bd91e616"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtlib1/logs/execution.log",
+          "bytes": 994,
+          "sha256": "d3a2167df3dce11920528812bfef20b6257e56b845a1f90e96d3e9ca5b380020"
+        }
+      ],
+      "cargo_case": {
+        "path": ".project-local/runs/be268a2d33/bkr-fmtlib1/artifacts/cargo-case.json",
+        "bytes": 761,
+        "sha256": "528d207ffc9992a23d928e4b1c3174f7d812ecbd48a9f045573b3aa8c7cb68e9"
+      }
+    },
+    {
+      "run": "bkr-fmtui1",
+      "tests": 1,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtui1/artifacts/execution.json",
+          "bytes": 1303,
+          "sha256": "90bd4b69b655911e92491dd3387c59aec1712bd1e858ab3b5cf8777ccd5a49f9"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtui1/logs/execution.log",
+          "bytes": 916,
+          "sha256": "b6cb135f6292fdd625e3d34be9cac25d561343b26c51aebc2882f41ed95edb10"
+        }
+      ],
+      "cargo_case": {
+        "path": ".project-local/runs/be268a2d33/bkr-fmtui1/artifacts/cargo-case.json",
+        "bytes": 877,
+        "sha256": "e76302e517c84b853c92ac1291da40960bfebccb309121dd66f22052b00dd70a"
+      }
+    },
+    {
+      "run": "bkr-fmtctx1",
+      "tests": 1,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtctx1/artifacts/execution.json",
+          "bytes": 1305,
+          "sha256": "0e2cb0d3b111f00f8f5ffdb3a1f28bf6712fabb69d4bb81ad8a47e39cfdee9b5"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtctx1/logs/execution.log",
+          "bytes": 1071,
+          "sha256": "924688b5e935eee6006a8f27b4fd7dc378dd91ab98021a6bffe176719719ef34"
+        }
+      ],
+      "cargo_case": {
+        "path": ".project-local/runs/be268a2d33/bkr-fmtctx1/artifacts/cargo-case.json",
+        "bytes": 765,
+        "sha256": "2ef49b4b2d56affa2909d478f84e56447cd28480d3c34bb43a806b9fabbd2b76"
+      }
+    },
+    {
+      "run": "bkr-fmtapi1",
+      "tests": 36,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtapi1/artifacts/execution.json",
+          "bytes": 1300,
+          "sha256": "ff51aab22437760d04e9a361a081568365005109549d6067da5f4369abb23a80"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/bkr-fmtapi1/logs/execution.log",
+          "bytes": 4055,
+          "sha256": "f901157c8ed5a7efaa9ed99ea64fdee52b140c93071e99290afe308407bd69e8"
+        }
+      ],
+      "cargo_case": {
+        "path": ".project-local/runs/be268a2d33/bkr-fmtapi1/artifacts/cargo-case.json",
+        "bytes": 862,
+        "sha256": "0ec6c66b990350a8caa3de8a4f8c75c32705ff2a5c9275c92a9f383779cc9d72"
+      }
+    },
+    {
+      "run": "sfmt-pre1",
+      "tests": null,
+      "source_commit": "35de7ce66fe150b31e190ddee4f3ed2a19970391",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/sfmt-pre1/artifacts/execution.json",
+          "bytes": 1448,
+          "sha256": "5604a99ddb38316e0186839f8ad6f2b622401da0ff2717795a4b342e5d5d90cc"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/sfmt-pre1/logs/execution.log",
+          "bytes": 5782,
+          "sha256": "0f2f2e936c44c5f9d3d7dee05812dfaa8669d4e93c2194176b0c26eef795b908"
+        }
+      ]
+    },
+    {
+      "run": "sfmt-post1",
+      "tests": null,
+      "source_commit": "b7358272845beb8b93234b974e4a44b64ad2fbfe",
+      "source_patch_sha256": "c92369384ce600882147601cea13868b67c2ded24a4b0c08c5d954a8be4d7173",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "source_consistent": true,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/sfmt-post1/artifacts/execution.json",
+          "bytes": 1451,
+          "sha256": "38d03f0d10ba3dc8bbe611791507511b7bad6f0c90bdceae73ae2db2399ad18b"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/sfmt-post1/logs/execution.log",
+          "bytes": 5783,
+          "sha256": "80491e123f4bb3a71466437f6d93b7782005fb31c5297f54f12a25cc9aa98300"
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "formal_python": 269,
+    "formal_rust": 41,
+    "rust_scope": "domain3+journal1+context1+API22/9/5; real Store and synthetic worker children, in-memory router",
+    "network_scope": "synthetic loopback HTTP test traffic exists; zero new production model or external network inference"
+  },
+  "compatibility": "legacy omitted/null projection and SHA checked against frozen vector; explicit retest format must match",
+  "limits": {
+    "new_real_model_requests": 0,
+    "current_package_rebuilt_or_modified": false,
+    "prior_F05_failures": "PRESERVED",
+    "F05_overall": "PARTIAL",
+    "learning_effect": "NOT_ESTABLISHED",
+    "UI_or_installed_acceptance": false
+  },
+  "storage": {
+    "pre_readable_bytes": 142872594863,
+    "post_readable_bytes": 143490535065,
+    "delta_readable_bytes": 617940202,
+    "core_target_growth_bytes": 605000086,
+    "measurement_status": "PARTIAL",
+    "metadata_errors": 674,
+    "private_exclusions": 243,
+    "layout_items": 581,
+    "growth_review": "NO_NEW_GROWTH_TRIGGER",
+    "physical_bytes_released": "NOT_MEASURED_NO_DELETION",
+    "footprints": [
+      {
+        "path": ".project-local/runs/be268a2d33/sfmt-pre1/artifacts/footprint.json",
+        "bytes": 838248,
+        "sha256": "03280faeb3b13db5ea91b23972d5368674ffb61b7ef9842dbdc5b89bd7bab95f"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/sfmt-post1/artifacts/footprint.json",
+        "bytes": 838249,
+        "sha256": "48b869f61d6a7054073127c4857236e83e4f740c4aab0d7cec2cda72e8c6263e"
+      }
+    ]
+  },
+  "candidate_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt1/artifacts/product-candidate.json",
+      "bytes": 9455,
+      "sha256": "974e80e4541e7ec589f311b96e85a1aeb7d4846ed921f0e78abb55df7d4baced"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt1/artifacts/product.patch",
+      "bytes": 59972,
+      "sha256": "748f7f8ac1d62f6aa4a9a6962629d07a63e0f4a5277cc659d637182f672b42a9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt3/artifacts/execution.json",
+      "bytes": 1538,
+      "sha256": "c7c75f69461b9b796633efa379019674f5ea663bbce3eafe3590d52875028993"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt3/logs/execution.log",
+      "bytes": 264,
+      "sha256": "d493f2a65da2e85d4a01a33f486c48f580f6b6755fd9a17e1b376124923a77c5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/product-formatted.patch",
+      "bytes": 62444,
+      "sha256": "f33ef5b0dcc9236404d58bd322c46362cadf7c188e3885d48ccb3c28abd5aaf5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/format-candidate.json",
+      "bytes": 9538,
+      "sha256": "8f5e043f8afe8c30777a35947b44407c6ce0468ab62150a679b6590bdc56892c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/cargo-budget-plan.json",
+      "bytes": 7194,
+      "sha256": "0ea2ab79cbf111e63daba627c3d17ddffb2db64b95c11321ce4b45b44260ea7f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/ROOT-REVIEW.json",
+      "bytes": 1575,
+      "sha256": "40434ce9dc02d404741d696d75accfae6eb5a58bd6fbf7f30e1239b70ab075a8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/root_cargo_cases.py",
+      "bytes": 3849,
+      "sha256": "972f714c0a8cc5476201c99e62e7c27ca0e9e2abd25652129132411b466c42e3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/target-baseline.json",
+      "bytes": 46,
+      "sha256": "4188d9b01bb36b2e08e39d153279560d88cb0fd01c36b5d417de7cb54bd32b83"
+    }
+  ],
+  "followup": {
+    "record": "FOLLOWUP.md",
+    "status": "CURRENT_CORE_BUILD_AND_PURE_V2_OFFLINE_ONLY",
+    "runs": [
+      {
+        "run": "cfcore-339a6bb6",
+        "source_commit": "89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/cfcore-339a6bb6/artifacts/execution.json",
+            "bytes": 1342,
+            "sha256": "8c96324bc4b3203c14a46d4a4706ba1e86ae39eb41b164867233e83c69258b45"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/cfcore-339a6bb6/logs/execution.log",
+            "bytes": 297,
+            "sha256": "34a5d2f77fcb51c64588691bbccc941e9e85470d165c2fdf578c01f89c55f978"
+          }
+        ]
+      },
+      {
+        "run": "v2prev-50860dba",
+        "source_commit": "89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/v2prev-50860dba/artifacts/execution.json",
+            "bytes": 1583,
+            "sha256": "5ffbc468270a109ba4782cc3b1d4dbd2eab6df2ed313bbe8babdb743e773cb9b"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/v2prev-50860dba/logs/execution.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "run": "v2unit-d6efc35b",
+        "source_commit": "89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/v2unit-d6efc35b/artifacts/execution.json",
+            "bytes": 1354,
+            "sha256": "86e7ed6a74c4eedd195d168870050343912c3be9b7915a91d56399e608a404bb"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/v2unit-d6efc35b/logs/execution.log",
+            "bytes": 101,
+            "sha256": "4bd8877f615bf6a3c0cacd53edebe38dd6d4772fd10c926e5c987451ebd6ddf4"
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/CURRENT-CORE-BUILD-PLAN.json",
+        "bytes": 1013,
+        "sha256": "7280f7b08d20cf33139936a11a7d94f4ff4a55714ce018fe46458e42377c4efb"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/CURRENT-CORE-BUILD-RUN.json",
+        "bytes": 278,
+        "sha256": "3b72e6f21fb11725d85182bbd1a67d64749c603c0029de5a67e0f222c1873741"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-sfmt5/artifacts/CURRENT-CORE-BUILD-RESULT.json",
+        "bytes": 566,
+        "sha256": "9c05547edd0735c641c838112f84a974858655dd78fdfe02dbefd555149d0f80"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2prev-50860dba/artifacts/v2-freeze-preview/preflight-preview.json",
+        "bytes": 3081,
+        "sha256": "b5805ae093ee1d20dc0f2df55ec14652dd5a9d8d1d3dbc81f9cc9694e859d951"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/test_asset_v2_offline.py",
+        "bytes": 9765,
+        "sha256": "d9f6eef1257406d8dd5805b9cffbac448ea5b72c3b7718e7f1ac4aa9fc9d4a29"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/colearning_asset_scoped_v2.py",
+        "bytes": 31170,
+        "sha256": "9c90e7dc742d9f02bc200d7626d6b40ed2e4e1df7f601bd096a0ad939492106c"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/prepare_mixed_plan.py",
+        "bytes": 4914,
+        "sha256": "dc4b2a944c79a4cbdac85e5eb6e5eed4f2d6080fdd956bc250119b0d92830632"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/real_asset_v2_mixed_entry.py",
+        "bytes": 22712,
+        "sha256": "8244f11d18713b558bf2e34abf23a3c6a9e6f6f5602be26b8b78d1f2be09ebb3"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/REVIEW.json",
+        "bytes": 10823,
+        "sha256": "be345209dfba6475ad7a92e17e08fc60e690c7a83bc92c04519c6e30b40198cc"
+      }
+    ],
+    "offline_tests": 16,
+    "real_model_requests": 0,
+    "F05": "PARTIAL",
+    "model_support": "UNKNOWN"
+  }
+}

@@ -2918,3 +2918,10 @@ Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-i
 ### 2026-10-31 F05可选结构化输出合同
 
 Core→执行器→生产worker增加请求级有限类型schema，绑定持久请求/缓存/拒绝/journal/复测，不给schema正确答案、不去围栏或重试；缺省身份兼容。正式`bkr-fpy2`269项、Rust四批41项及Ruff通过，actual/wrapper0、源码一致；原collection路径错误exit4、22风格诊断和候选格式diff保留。API验证为真实Store+合成子进程，未新发真实模型请求、未重建包；旧real1/ar2失败及F05 PARTIAL不变。共享Core target净增605,000,086B；全量前后下界净增617,940,202B、674错误/243私有排除/581布局项不变，PARTIAL且无新增增长触发，不称体积治理通过。[合同、测试身份和存储预算](../history/backend-response-format-20261031/README.md)。
+
+
+### 2026-10-31 重复载荷条件核验与当前Core离线后继
+
+`nrm-port3`普通令牌核19,711对owner/DACL及19,711次源独占DELETE权限句柄，有限两样本25,201B恢复成功，未调用删除disposition。当前Owner精确清理条件授权已核，非缺用户授权；整批RM注册29，后继六资源查询成功但仅覆盖六项，同session固定256批第26批仍29。完整占用未核，全部HOLD/eligible0/cleanupfalse，删除迁移ACL均0；不是已回收1.35GB或全量恢复。三run actual/wrapper0且源码一致表示审计完成，不是清理PASS。[精确观察与原错误](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。
+
+`cfcore-339a6bb6`以clean89b21d4e locked/offline显式构建当前Core，27,897,344B/SHA043834e0…，actual/wrapper0且源码一致。`v2prev-50860dba`纯预览及`v2unit-d6efc35b`16项全内存测试均0且源码一致；未运行新Core/API/model，bpr1原包不变。V2仅增加无正确值schema，保留问题/材料/prompt/预算，不能跨合同改判旧FAIL；独立静态审查不等于真实执行。混合入口须另冻结当期metadata并preflight，模型支持UNKNOWN、学习效果NOT_ESTABLISHED/F05 PARTIAL。[后继身份及边界](../history/backend-response-format-20261031/FOLLOWUP.md)。

@@ -1,1 +1,185 @@
-{"schema":"aaos.portable-pair-qualification/v1","status":"CURRENT_HASH_AND_REPLACEMENT_MAP_VERIFIED_CLEANUP_NOT_QUALIFIED","facts":{"pairs":19711,"source_logical_bytes":1350261264,"protected_names_excluded":33,"errors":0,"deleted_or_moved":0,"idle_proof":"NOT_COLLECTED","cleanup_authorization":"NOT_QUALIFIED","delete_handle":"NOT_COLLECTED","restore_replay":"NOT_EXECUTED"},"evidence":[{"path":".project-local/runs/be268a2d33/nrm-port1/artifacts/portable-pair-review.json","bytes":11024,"sha256":"91537289d3d16c7fb9c78fad5a3587cb498d9e6a49a67c7ba94dcdc2cd879a0d"},{"path":".project-local/runs/be268a2d33/nrm-port1/artifacts/verify_portable_pair_full.py","bytes":11335,"sha256":"2bf9c5e5250aa799b56c178e9979317f0d6726e8968b75fd96c288a89196fa4a"},{"path":".project-local/runs/be268a2d33/nrm-port1/artifacts/FULL-HASH-PLAN.md","bytes":2292,"sha256":"2f325fa4fc7667423d29147b6829fd46c16ed0e766f231236efaec302e3cb4e6"},{"path":".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-plan.json","bytes":1734,"sha256":"d78010d636686cb1b7919bfb9f99bddc14163ccbd0361947a10d75d0659f8cfc"},{"path":".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-map.jsonl","bytes":8110099,"sha256":"95eb37772e9e514385c25ad7526004bf4c89bafafb7f72448a94276fb029326d"},{"path":".project-local/runs/be268a2d33/nrm-port2/artifacts/execution.json","bytes":1318,"sha256":"ad43ef0985635635a71896047bbdffab3d3633970d0b94eb13a8b1f423c62e2d"},{"path":".project-local/runs/be268a2d33/nrm-port2/logs/execution.log","bytes":501,"sha256":"865648201901bccceeba6ebcb9b637d6f09a235f1ed99bcf4a03aea7c5a9c63d"}]}
+{
+  "schema": "aaos.portable-pair-qualification/v1",
+  "status": "CURRENT_HASH_AND_REPLACEMENT_MAP_VERIFIED_CLEANUP_NOT_QUALIFIED",
+  "facts": {
+    "pairs": 19711,
+    "source_logical_bytes": 1350261264,
+    "protected_names_excluded": 33,
+    "errors": 0,
+    "deleted_or_moved": 0,
+    "idle_proof": "NOT_COLLECTED",
+    "cleanup_authorization": "NOT_QUALIFIED",
+    "delete_handle": "NOT_COLLECTED",
+    "restore_replay": "NOT_EXECUTED"
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port1/artifacts/portable-pair-review.json",
+      "bytes": 11024,
+      "sha256": "91537289d3d16c7fb9c78fad5a3587cb498d9e6a49a67c7ba94dcdc2cd879a0d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port1/artifacts/verify_portable_pair_full.py",
+      "bytes": 11335,
+      "sha256": "2bf9c5e5250aa799b56c178e9979317f0d6726e8968b75fd96c288a89196fa4a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port1/artifacts/FULL-HASH-PLAN.md",
+      "bytes": 2292,
+      "sha256": "2f325fa4fc7667423d29147b6829fd46c16ed0e766f231236efaec302e3cb4e6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-plan.json",
+      "bytes": 1734,
+      "sha256": "d78010d636686cb1b7919bfb9f99bddc14163ccbd0361947a10d75d0659f8cfc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/restore-map.jsonl",
+      "bytes": 8110099,
+      "sha256": "95eb37772e9e514385c25ad7526004bf4c89bafafb7f72448a94276fb029326d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/execution.json",
+      "bytes": 1318,
+      "sha256": "ad43ef0985635635a71896047bbdffab3d3633970d0b94eb13a8b1f423c62e2d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port2/logs/execution.log",
+      "bytes": 501,
+      "sha256": "865648201901bccceeba6ebcb9b637d6f09a235f1ed99bcf4a03aea7c5a9c63d"
+    }
+  ],
+  "followup": {
+    "record": "QUALIFICATION-FOLLOWUP.md",
+    "status": "RESOURCE_ACTIVITY_HOLD_OR_UNKNOWN",
+    "owner_cleanup_authorization": "EXPLICIT_CONDITIONAL_AUTHORIZATION_VERIFIED",
+    "checked_pairs": 19711,
+    "source_exclusive_DELETE_access_probes": 19711,
+    "restore_samples": 2,
+    "restore_sample_bytes": 25201,
+    "full_restore_replay": false,
+    "eligible_at_observation": 0,
+    "deleted_or_moved": 0,
+    "acl_changes": 0,
+    "cleanup_qualified": false,
+    "runs": [
+      {
+        "run": "nrm-port3",
+        "source_commit": "89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/execution.json",
+            "bytes": 1324,
+            "sha256": "8cdd7b3e5587444ec508d5652010ac6a91e7b991e44c410fedb308bf3dd36548"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/nrm-port3/logs/execution.log",
+            "bytes": 532,
+            "sha256": "2974d02148b5eddcf25ddb87cddf10068ee87c2ea331e39ef818e286f53bb24d"
+          }
+        ]
+      },
+      {
+        "run": "rm6-1d709273",
+        "source_commit": "89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/rm6-1d709273/artifacts/execution.json",
+            "bytes": 1423,
+            "sha256": "324c89795ae97228eb3b7f5d57cba2a6fac88c4fdd84ce26fa5c08a1fa450761"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/rm6-1d709273/logs/execution.log",
+            "bytes": 222,
+            "sha256": "ee4d47306967d1b10f8147ddde566eec4d6aa9c475b94a420664f18eb696f6fc"
+          }
+        ]
+      },
+      {
+        "run": "rm256-f0ac10dd",
+        "source_commit": "89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/rm256-f0ac10dd/artifacts/execution.json",
+            "bytes": 1432,
+            "sha256": "65959c6326a1bb4bdbcea99a6859eba2ccd2099c153d96cdf3fd5471167f6c4b"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/rm256-f0ac10dd/logs/execution.log",
+            "bytes": 1059,
+            "sha256": "dedcdb4951d2828aa5314c88911280f547a7dc4a29b935b778af5b65c466d7b3"
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/authorization-consumer-review.json",
+        "bytes": 10311,
+        "sha256": "3d8ff0e64145c4ad3659202a025a771d9db81bb79b49bb31ea2afb76fb6ce21d"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/probe_portable_qualification_v2.py",
+        "bytes": 16362,
+        "sha256": "810a44a3b722c44cc69a445326a3c9bb236d2b5dbcf9e82650b287f597d64dbe"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port2/artifacts/ROOT-REVIEW-nrm-port3.json",
+        "bytes": 672,
+        "sha256": "66a0823460bfec7d045d6adbbf3671785c6e47832e68fbd3434ee79e4c1208fe"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/qualification-summary.json",
+        "bytes": 1753,
+        "sha256": "df1c1a73286bbe790a2533be193dc5df48c47685e94fdb93851372fc1447e0c8"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/qualification-distribution.json",
+        "bytes": 1168,
+        "sha256": "768cc59b92e502566ae4b3b07cfb06ad17778efa44b1ff17aa537292042ba1f5"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/qualification-rows.jsonl",
+        "bytes": 10360651,
+        "sha256": "fbbe0e9093801db3b7e8fc2b966ea4fce29b26aefe08b1358296f10faaeafb8a"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_rm_six.py",
+        "bytes": 3338,
+        "sha256": "29abd94ce5be93f84aea8d6e7ef6f1fc5b88088e74b105e9d24e2817a95acc24"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_rm_fixed256.py",
+        "bytes": 4521,
+        "sha256": "72b86c76ea03d5878ce37b5fcea0aaec0632f7a8adc567f9eabf278128a6ec37"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/rm6-1d709273/artifacts/rm-six-diagnostic.json",
+        "bytes": 1858,
+        "sha256": "6ca05f7cf176078c808db3f90dbcb9e70501a15fec1dd2726971fbc6b523a548"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/rm256-f0ac10dd/artifacts/rm-fixed256-diagnostic.json",
+        "bytes": 2775,
+        "sha256": "3d98536aea6d2f19e9ae88cac5991765285ee8223a6ddacdebba624213bcb4a8"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/RM-COMPONENT-FEASIBILITY.md",
+        "bytes": 4583,
+        "sha256": "80f347dcb7a597c8ff3f2eace3f9b4cee975866396671573d724dd7c2ea1640d"
+      }
+    ]
+  }
+}
