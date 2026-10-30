@@ -102,7 +102,7 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 
 冻结的旧 launcher 只接受每 run 自有的 package/input 映射，不能直接套用共享提案。共享 launcher 的配置/来源绑定与 guest 真实写入隔离未合格前，不把 `.proposed` 改成可执行配置或重跑旧 staging 生成整包副本。来源清单含 `.mimosa` 等私有状态时拒绝复用；保留旧证据，在新的 canonical run 准备洁净输入，不修改历史清单或扩大私有路径豁免。操作示例和本轮有限证据见[共享输入续批记录](history/storage-cleanup/2026-10-30-followup/README.md)。
 
-共享来源的后继正式执行入口为 [`scripts/runtime/shared_sandbox.py`](../scripts/runtime/shared_sandbox.py)，按新run完整重核后，由显式开关执行映射探针或具名同版本混合Core生命周期。其唯一ID意图、三路只读输入、独立输出、精确停止和源输入事后核验，已有[真实离线有限验证](history/storage-cleanup/2026-10-30-shared-sandbox/README.md)；这是该类别的替代路径，不回写冻结旧 launcher，不自动恢复UI/网络/模型权限，也不放行历史混合私有输入。继续保留共享来源供所有消费者和恢复使用，未完成的其他生产者仍单独审阅。
+共享来源的后继正式执行入口为 [`scripts/runtime/shared_sandbox.py`](../scripts/runtime/shared_sandbox.py)，按新run完整重核后，由显式开关执行映射探针或具名同版本混合Core生命周期。其唯一ID意图、三路只读输入、独立输出、精确停止和源输入事后核验，已有[真实离线有限验证](history/storage-cleanup/2026-10-30-shared-sandbox/README.md)；这是该类别的替代路径，不回写冻结旧 launcher，不自动恢复UI/网络/模型权限，也不放行历史混合私有输入。后继[自有连接终态修复](history/storage-cleanup/2026-10-31-owned-connection-terminal/README.md)要求环境清场与本次保留句柄的退出证据分别满足，停止环境失败仍尝试回收自有连接；45项模拟测试不追认历史未确认进程或新一轮真实沙盒资格。继续保留共享来源供所有消费者和恢复使用，未完成的其他生产者仍单独审阅。
 
 Native 历史公开胶囊的有限准备入口为 [`scripts/runtime/native_inputs.py`](../scripts/runtime/native_inputs.py)，仅接受已审来源/完整清单指纹，复用现存三路输入，输出落当前独立 run。共享入口的 `--prepare-native-probe` / `--execute-native-probe` 只准备或验证映射；原 native 命令另存 `.wsb.proposed`，不在该模式执行。[有限验证与接续条件](history/storage-cleanup/2026-10-31-native-input-reuse/README.md)区分宿主不复制输入与 guest 业务仍有复制；未来业务须重核输入/空输出并单独资格，不从 mapping PASS 推出整包生产者全面替代。
 

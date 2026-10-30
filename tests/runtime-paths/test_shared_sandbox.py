@@ -298,3 +298,168 @@ def test_conflict_requires_actual_canonical_receipts_source_candidate_and_restar
     else:
         with pytest.raises(ValueError, match='Conflict'):
             subject.verify_conflict(plan)
+
+
+@pytest.mark.parametrize('mode', ['natural', 'forced', 'unconfirmed', 'force-error', 'wait-error'])
+def test_owned_connection_handle_terminal_is_explicit_and_failures_are_retained(tmp_path, monkeypatch, mode):
+    class Child:
+        pid = 12345
+        returncode = None
+        def wait(self, timeout):
+            if mode == 'wait-error':
+                raise RuntimeError('synthetic wait failure')
+            if self.returncode is None:
+                if mode != 'natural':
+                    raise subprocess.TimeoutExpired('synthetic owned connect', timeout)
+                self.returncode = 0
+            return self.returncode
+    child = Child()
+    stops = []
+    def stop(owned):
+        assert owned is child
+        stops.append(owned.pid)
+        if mode == 'force-error':
+            raise RuntimeError('synthetic stop failure')
+        if mode != 'unconfirmed':
+            owned.returncode = 1
+    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
+    monkeypatch.setattr(subject.subprocess, 'Popen', lambda *a, **kw: child)
+    monkeypatch.setattr(subject.dev, 'stop_owned_process', stop)
+    cli = subject.native_cli(tmp_path)
+    assert cli.reap_connections() == []
+    cli(['connect', '--id', str(uuid.uuid4()), '--raw'])
+    rows = cli.reap_connections()
+    assert len(rows) == 1
+    row = rows[0]
+    assert row['pid'] == child.pid
+    assert row['ownership_basis'] == 'RETAINED_POPEN_HANDLE_FROM_THIS_CONNECT'
+    assert type(row['launch_observed_at_ns']) is int
+    assert row['force_stop_attempted'] == (mode not in {'natural', 'wait-error'})
+    assert stops == ([] if mode in {'natural', 'wait-error'} else [child.pid])
+    assert row['status'] == ('REAPED_OWNED_HANDLE' if mode in {'natural', 'forced'} else 'UNCONFIRMED')
+    assert bool(row['error']) == (mode not in {'natural', 'forced'})
+    assert subject.read_object(tmp_path / 'connection-001-terminal.json') == row
+    start = subject.read_object(tmp_path / row['start_receipt'])
+    assert start['pid'] == row['pid']
+    assert start['launch_observed_at_ns'] == row['launch_observed_at_ns']
+
+
+@pytest.mark.parametrize('connection', ['none', 'reaped', 'unconfirmed', 'exception', 'write-failure'])
+def test_environment_absence_does_not_replace_owned_connection_reaping(prepared, connection):
+    paths, plan = prepared
+    class Cli(FakeCli):
+        def reap_connections(self):
+            assert plan['sandbox_id'] not in self.environments
+            if connection == 'exception':
+                raise RuntimeError('synthetic reaper fault')
+            if connection == 'none':
+                return []
+            return [{'status': 'REAPED_OWNED_HANDLE' if connection == 'reaped' else (
+                        'TERMINAL_RECEIPT_WRITE_FAILED' if connection == 'write-failure' else 'UNCONFIRMED'),
+                     'wait_returncode': 1 if connection == 'reaped' else None,
+                     'returncode': 1 if connection == 'reaped' else None}]
+    result = subject.execute(paths, plan, Cli(plan), pause=lambda _: None)
+    assert result['stop'] == 'OWNED_ID_ABSENT_AFTER_OFFICIAL_STOP'
+    saved = subject.read_object(paths['artifacts'] / 'shared-sandbox-execution.json')
+    assert saved == result
+    if connection in {'none', 'reaped'}:
+        assert result['status'] == 'PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY'
+        assert result['owned_connections'] == ([] if connection == 'none' else [
+            {'status': 'REAPED_OWNED_HANDLE', 'wait_returncode': 1, 'returncode': 1}])
+    else:
+        assert result['status'] == 'FAIL_OR_INCOMPLETE'
+        assert result['cleanup_or_reverification_error']
+
+
+@pytest.mark.parametrize('confirmed', [True, False])
+def test_repeated_reaper_reuses_final_owned_handle_result_without_retry(tmp_path, monkeypatch, confirmed):
+    class Child:
+        pid = 12345
+        returncode = None
+        waits = 0
+        def wait(self, timeout):
+            self.waits += 1
+            if self.returncode is None:
+                raise subprocess.TimeoutExpired('synthetic owned connection', timeout)
+            return self.returncode
+    child = Child()
+    stops = []
+    writes = []
+    original_write = subject.write_json
+    def stop(owned):
+        assert owned is child
+        stops.append(owned.pid)
+        if confirmed:
+            owned.returncode = 1
+    def record_write(target, value):
+        writes.append(target.name)
+        original_write(target, value)
+    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
+    monkeypatch.setattr(subject.subprocess, 'Popen', lambda *a, **kw: child)
+    monkeypatch.setattr(subject.dev, 'stop_owned_process', stop)
+    monkeypatch.setattr(subject, 'write_json', record_write)
+    cli = subject.native_cli(tmp_path)
+    cli(['connect', '--id', str(uuid.uuid4()), '--raw'])
+    first = cli.reap_connections()
+    before = (child.waits, list(stops), list(writes), json.dumps(first, sort_keys=True))
+    assert cli.reap_connections() is first
+    assert before == (child.waits, stops, writes, json.dumps(first, sort_keys=True))
+    assert len(first) == 1
+    assert first[0]['status'] == ('REAPED_OWNED_HANDLE' if confirmed else 'UNCONFIRMED')
+
+
+def test_terminal_write_failure_still_reaps_later_owned_handles_and_is_not_retried(tmp_path, monkeypatch):
+    class Child:
+        returncode = 0
+        def __init__(self, pid):
+            self.pid, self.waits = pid, 0
+        def wait(self, timeout):
+            self.waits += 1
+            return self.returncode
+    children = [Child(12345), Child(12346)]
+    pending = iter(children)
+    attempted = []
+    original_write = subject.write_json
+    def write(target, value):
+        attempted.append(target.name)
+        if target.name == 'connection-001-terminal.json':
+            raise PermissionError('synthetic terminal write failure')
+        original_write(target, value)
+    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
+    monkeypatch.setattr(subject.subprocess, 'Popen', lambda *a, **kw: next(pending))
+    monkeypatch.setattr(subject, 'write_json', write)
+    cli = subject.native_cli(tmp_path)
+    for _ in children:
+        cli(['connect', '--id', str(uuid.uuid4()), '--raw'])
+    rows = cli.reap_connections()
+    assert [child.waits for child in children] == [1, 1]
+    assert rows[0]['status'] == 'TERMINAL_RECEIPT_WRITE_FAILED'
+    assert rows[0]['terminal_receipt_error']['type'] == 'PermissionError'
+    assert rows[1]['status'] == 'REAPED_OWNED_HANDLE'
+    assert subject.read_object(tmp_path / 'connection-002-terminal.json') == rows[1]
+    before = list(attempted)
+    assert cli.reap_connections() is rows
+    assert attempted == before
+    assert [child.waits for child in children] == [1, 1]
+
+
+@pytest.mark.parametrize('reaper_fails', [False, True])
+def test_failed_environment_stop_still_reaps_connections_and_preserves_both_errors(prepared, reaper_fails):
+    paths, plan = prepared
+    class Cli(FakeCli):
+        reaps = 0
+        def reap_connections(self):
+            self.reaps += 1
+            if reaper_fails:
+                raise RuntimeError('synthetic additional reaper failure')
+            return [{'status': 'REAPED_OWNED_HANDLE', 'wait_returncode': 1, 'returncode': 1}]
+    cli = Cli(plan, 'stop-failure')
+    result = subject.execute(paths, plan, cli, pause=lambda _: None)
+    assert cli.reaps == 1
+    assert result['status'] == 'FAIL_OR_INCOMPLETE'
+    assert result['cleanup_or_reverification_error']['message'] == 'synthetic stop failure'
+    if reaper_fails:
+        assert result['owned_connection_reap_error']['message'] == 'synthetic additional reaper failure'
+    else:
+        assert result['owned_connections'][0]['status'] == 'REAPED_OWNED_HANDLE'
+    assert subject.read_object(paths['artifacts'] / 'shared-sandbox-execution.json') == result

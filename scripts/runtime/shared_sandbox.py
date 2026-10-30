@@ -20,12 +20,13 @@ from pathlib import Path, PureWindowsPath
 from xml.etree import ElementTree as ET
 
 if __package__:
-    from . import dev, sandbox_inputs as inputs, conflict_inputs, native_inputs
+    from . import conflict_inputs, dev, native_inputs
+    from . import sandbox_inputs as inputs
 else:
-    import dev
-    import sandbox_inputs as inputs
     import conflict_inputs
+    import dev
     import native_inputs
+    import sandbox_inputs as inputs
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -85,8 +86,11 @@ def native_cli(artifacts: Path):
                 with open(inputs.native(artifacts / f'connection-{sequence:03}.log'), 'xb') as log:
                     child = subprocess.Popen([executable, *arguments], stdout=log, stderr=subprocess.STDOUT,
                                              creationflags=subprocess.CREATE_NO_WINDOW)
-                connections.append(child)
-                record.update(status='OWNED_CONNECTION_PROCESS_STARTED', pid=child.pid)
+                identity = {'pid': child.pid, 'launch_sequence': sequence,
+                            'launch_observed_at_ns': time.time_ns(), 'start_receipt': target.name,
+                            'ownership_basis': 'RETAINED_POPEN_HANDLE_FROM_THIS_CONNECT'}
+                connections.append((child, identity))
+                record.update(status='OWNED_CONNECTION_PROCESS_STARTED', **identity)
                 return {'pid': child.pid}
             result = subprocess.run([executable, *arguments], capture_output=True,
                                     text=True, encoding='utf-8', errors='strict', timeout=180,
@@ -106,13 +110,37 @@ def native_cli(artifacts: Path):
         finally:
             write_json(target, record)
 
+    connection_results = []
+
     def reap_connections():
-        for child in connections:
+        # Results are final per retained handle, including unconfirmed outcomes.
+        for child, identity in connections[len(connection_results):]:
+            row = {**identity, 'status': 'UNCONFIRMED', 'wait_returncode': None,
+                   'returncode': None, 'force_stop_attempted': False, 'error': None}
+            connection_results.append(row)
             try:
-                child.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                dev.stop_owned_process(child)
+                try:
+                    code = child.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    row['force_stop_attempted'] = True
+                    dev.stop_owned_process(child)
+                    code = child.wait(timeout=0)
+                row['wait_returncode'] = code
+                row['returncode'] = child.returncode
+                if type(code) is not int or type(child.returncode) is not int or code != child.returncode:
+                    raise ValueError('Owned connection wait/returncode not confirmed')
+                row['status'] = 'REAPED_OWNED_HANDLE'
+            except Exception as error:
+                row['error'] = {'type': type(error).__name__, 'message': str(error)}
+            finally:
+                try:
+                    write_json(artifacts / f"connection-{identity['launch_sequence']:03}-terminal.json", row)
+                except Exception as error:
+                    row['terminal_receipt_error'] = {'type': type(error).__name__, 'message': str(error)}
+                    row['status'] = 'TERMINAL_RECEIPT_WRITE_FAILED'
+        return connection_results
     invoke.reap_connections = reap_connections
+    invoke.connection_results = connection_results
     return invoke
 
 
@@ -400,7 +428,8 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
                         'config_identity': plan['config_identity']})
     result = {'schema': 'aaos.shared-sandbox-execution/v1', 'status': 'FAIL_OR_INCOMPLETE',
               'sandbox_id': owned, 'payload_bytes_copied': 0, 'product_lifecycle': 'NOT_EXECUTED',
-              'guest_write_isolation': 'NOT_VERIFIED', 'stop': 'NOT_REQUESTED', 'error': None}
+              'guest_write_isolation': 'NOT_VERIFIED', 'stop': 'NOT_REQUESTED', 'error': None,
+              'owned_connections': None}
     qualified = False
     try:
         cli(['start', '--id', owned, '--config', Path(plan['config']).read_text(encoding='utf-8'), '--raw'])
@@ -438,21 +467,41 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
         # The unique ID was bound in a durable intent before the one start attempt.
         # An unknown/timeout result never causes a second start or selection by PID.
         try:
-            if owned in inventory(cli):
-                write_json(artifacts / 'shared-sandbox-stop-intent.json', {'sandbox_id': owned,
-                    'start_intent': inputs.identity(intent), 'action': 'OFFICIAL_STOP_EXACT_ID_ONLY'})
-                cli(['stop', '--id', owned, '--raw'])
-                for _ in range(40):
-                    if owned not in inventory(cli):
-                        result['stop'] = 'OWNED_ID_ABSENT_AFTER_OFFICIAL_STOP'
-                        break
-                    pause(0.5)
+            try:
+                if owned in inventory(cli):
+                    write_json(artifacts / 'shared-sandbox-stop-intent.json', {'sandbox_id': owned,
+                        'start_intent': inputs.identity(intent), 'action': 'OFFICIAL_STOP_EXACT_ID_ONLY'})
+                    cli(['stop', '--id', owned, '--raw'])
+                    for _ in range(40):
+                        if owned not in inventory(cli):
+                            result['stop'] = 'OWNED_ID_ABSENT_AFTER_OFFICIAL_STOP'
+                            break
+                        pause(0.5)
+                    else:
+                        raise ValueError('Owned sandbox still present after stop')
                 else:
-                    raise ValueError('Owned sandbox still present after stop')
-            else:
-                result['stop'] = 'OWNED_ID_ALREADY_ABSENT'
-            if hasattr(cli, 'reap_connections'):
-                cli.reap_connections()
+                    result['stop'] = 'OWNED_ID_ALREADY_ABSENT'
+            finally:
+                # A failed environment stop must not skip our connection handles.
+                try:
+                    result['owned_connections'] = None if hasattr(cli, 'reap_connections') else []
+                    if hasattr(cli, 'reap_connections'):
+                        try:
+                            result['owned_connections'] = cli.reap_connections()
+                        finally:
+                            if hasattr(cli, 'connection_results'):
+                                result['owned_connections'] = cli.connection_results
+                    if not isinstance(result['owned_connections'], list) or any(
+                            not isinstance(row, dict) or row.get('status') != 'REAPED_OWNED_HANDLE'
+                            or type(row.get('wait_returncode')) is not int
+                            or type(row.get('returncode')) is not int
+                            or row['wait_returncode'] != row.get('returncode')
+                            for row in result['owned_connections']):
+                        raise ValueError('Owned connection processes are not confirmed reaped')
+                except (OSError, ValueError, TypeError, KeyError, RuntimeError, subprocess.TimeoutExpired) as error:
+                    result['owned_connection_reap_error'] = {'type': type(error).__name__, 'message': str(error)}
+            if result.get('owned_connection_reap_error'):
+                raise ValueError('Owned connection processes are not confirmed reaped')
             after = inspect(stage, paths['dev'], plan['source_manifest_sha256'])
             result['host_inputs_after'] = after
             if qualified and not result['error'] and result['guest_write_isolation'].startswith('PASS_'):
@@ -460,9 +509,10 @@ def execute(paths: dict, plan: dict, cli=None, *, pause=time.sleep) -> dict:
                                     'conflict': 'PASS_REAL_OFFLINE_SHARED_INSTALLED_CONFLICT',
                                     'mapping': 'PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY',
                                     'native-mapping': 'PASS_REAL_OFFLINE_NATIVE_COMPLETE_INPUT_MAPPING_ONLY'}[plan['mode']]
-        except (OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as error:
+        except (OSError, ValueError, TypeError, KeyError, RuntimeError, subprocess.TimeoutExpired) as error:
             result['cleanup_or_reverification_error'] = {'type': type(error).__name__, 'message': str(error)}
-        write_json(result_path, result)
+        finally:
+            write_json(result_path, result)
     return result
 
 

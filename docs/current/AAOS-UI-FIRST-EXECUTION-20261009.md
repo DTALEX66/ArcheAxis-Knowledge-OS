@@ -2904,3 +2904,7 @@ Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-i
 ### 2026-10-31 F05真实首答未评分，固定量规早停
 
 正式探针补提前停止，`bkr-stop2`123通过、`bkr-sl2`Ruff0。`bkr-ar1`是入口负控断言错误，0Core/HTTP/model；v4纯preflight0且主程序未执行。`bkr-ar2`实际包/生产worker在合成库仅1正向HTTP200（7.891s，output497，finishstop），返回fenced JSON不满足冻结纯JSON量规，REVIEW_REQUIRED后立即停止，actual adapter/entry/wrapper均1且源码一致。候选包负控403；前置rule成员采用及候选包准备不等于package干预采用/使用；packet=null/members=[]，拒答、迁移前后、纠正复测未执行。原real1的NO_FINAL_ANSWER及两次入口/风格失败保留；不去围栏重评分、不调参重试、不宣称学习改善，F05仍PARTIAL。[全部身份与证据](../history/asset-scoped-real-model-20261031/README.md)。
+
+### 2026-10-31 F04自有连接终态修复
+
+`shared_sandbox.py`补自有Popen逐连接终态、严格wait/returncode核对、失败保全和重复收场不重试；环境ID消失不再替代进程回收证据。正式`f04d2`43项模拟测试后，root新增两项反例在`f04neg1`复现停止失败跳过回收；后继改为finally仍尝试回收，分别保留停止/回收双错误。正式`f04d3`45项、`f04lint3`Ruff均actual/wrapper0且源码一致，原反例和排序失败保留。实际沙盒/Core/模型启动均0，没有处理历史进程，旧F04“零环境、一进程”矛盾仍UNVERIFIED，不能追认通过。[源码身份、原失败与验证范围](../history/storage-cleanup/2026-10-31-owned-connection-terminal/README.md)。
