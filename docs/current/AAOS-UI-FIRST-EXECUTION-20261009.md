@@ -2969,3 +2969,8 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 修复Feedback仅能挂Delivery导致candidate知识的文字实践记录无法直接接收反馈的断点；仅放行既有Feedback parent Observation，原同course/knowledge/assessment、人类权限、隐私、撤回/导出及Delivery准入保留，仍not_scored、knowledge candidate，不生成学习/评估/job。两正式新测试RED均child/receipt101复现非法parent/API422；最小修补后完整domain21/API10及Rustfmt0，actual/wrapper0且aab6c27d+dirty7ebaaee8…源码一致。domain原exchange到独立文件workspace、API原库冷重开/重复import、撤回原字节保全及负控通过；非真实socket/新Core运行/安装/UI/掌握或完整R6资格。24份身份与[反馈修补证据](../history/teaching-plan-observation-20261031/FEEDBACK.md)分列原失败，原R6/R5/186静态快照不重签。
 
 前后可读下界142277318793→142280381205B，差3062412B、build差2142316B；两次measure均PARTIAL/child1，674错误/243私有/581布局项不变，NO_NEW_GROWTH_TRIGGER非全仓治理通过。根分配候选路径一度误落两个无run元数据新目录，8个本轮自有文件已完整SHA不变迁入既有canonical artifacts并精确清除4空目录，未计为产品/清理收益；原路径映射保留。专门start/self-report、独立mastery、第二产品消费者和同候选/完整CL/F05仍待接续。
+
+
+### 2026-10-31 六源公共重复载荷当前完整SHA与身份
+
+`batchhash-6c4aae2b`只读六历史portable源对V12保留端：每源19709项／1350213438B，源合计118254路径／8101280628B完整SHA均匹配；逐relative七个Windows身份独立、nonreparse/nlink1且读前后/重开同。28个Host/公共管理项另核、七manifest前后同；errors0，actual/wrapper0、clean961554cd源码一致。root重算19709映射行与七声明逐项相符；restore-map22499572B/SHA17ca4402…，主要proof22521385B，非物理收益。仅取得当前字节/身份层，33denied名不探，消费者/有效回滚/ownerACL/DELETE/fresh全占用及实际持久清理仍未资格化，删除搬迁载荷复制ACL0，不用旧V11计数直接操作本批。[16份身份、精确六源和后继边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/BATCH-CURRENT.md)；项目整体及原失败保持PARTIAL。
