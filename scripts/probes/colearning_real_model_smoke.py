@@ -20,6 +20,7 @@ import os
 import shutil
 import sys
 import time
+import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -247,6 +248,39 @@ def _load(name: str, path: Path):
     return module
 
 
+class ProbeTransportFailure(RuntimeError):
+    """The request may have executed; stop without retry or guessed outcome."""
+
+
+def call_core(client, receipt, base, method, path, token, body=None, headers=None):
+    timeout = 30
+    if path in {'/api/v1/machine/answers', '/api/v1/machine/retests'}:
+        budget = body.get('timeout_s', 120) if isinstance(body, dict) else 120
+        if type(budget) is not int or not 1 <= budget <= 120:
+            raise ValueError('model request timeout outside Core contract')
+        # colearning.rs answer/retest admission is bounded at 10s. The additional
+        # 5s is client transport tolerance, not a claim of a total Core bound.
+        timeout = budget + 15
+
+    def unknown(error_type):
+        receipt.stage('transport_failure', problem='request outcome UNKNOWN; no retry',
+                      method=method, path=path, transport_timeout_s=timeout,
+                      request_sha256=digest(body), error_type=error_type)
+        receipt.block('transport', 'request outcome UNKNOWN; no automatic retry')
+        raise ProbeTransportFailure('request outcome UNKNOWN') from None
+
+    try:
+        status, response = client.call(base, method, path, token, body,
+                                       timeout=timeout, extra_headers=headers)
+    except (TimeoutError, OSError, urllib.error.URLError) as error:
+        unknown(type(error).__name__)
+    # The shared client normalizes URLError/OSError to status zero. Its error text
+    # is deliberately neither retained nor printed: it can contain URL details.
+    if status == 0:
+        unknown('CLIENT_TRANSPORT_STATUS_ZERO')
+    return status, response
+
+
 class Receipt:
     def __init__(self, *, live_execution: bool = False) -> None:
         self.stages: list[dict] = []
@@ -373,7 +407,7 @@ def main() -> int:
             machine_token = None
 
     def call(method: str, path: str, token: str, body=None, headers=None):
-        return client.call(base, method, path, token, body, extra_headers=headers)
+        return call_core(client, receipt, base, method, path, token, body, headers)
 
     try:
         # 1. A real file becomes an accepted knowledge item through the product's own text route.
@@ -533,6 +567,8 @@ def main() -> int:
 
         return report(receipt, correction_candidate=candidate, failed_task=failed_task,
                       retest_task=retest_id, knowledge_id=knowledge_id)
+    except ProbeTransportFailure:
+        return report(receipt)
     finally:
         launcher.stop(child)
 

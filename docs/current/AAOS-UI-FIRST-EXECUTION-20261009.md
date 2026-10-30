@@ -2810,3 +2810,11 @@ Owner新增桌面R6压缩包，要求统一归档并加入既有任务。原ZIP�
 F02新增[严格历史后继索引](../../workspace/intake/20261030-zcode-backend-closure/evidence-index.successor.json)，保留原33,490字节非法JSON与解析失败位置；只修一个escape后派生，解码内容完全保全。原历史状态全部标明非当前，当前只导航本执行记录。77引用分为58文件哈希、2目录存在、13未知/外部、3私有不读、1硬链接归属未核；15声明SHA与3声明大小匹配。严格解析/原文保全通过不等于引用语义或产品资格，F01豁免未核、F04旧进程矛盾和F05 PARTIAL保留；没有覆盖旧失败或追认验收。
 
 恢复路由后继补证见[并行维护补充](../history/storage-cleanup/2026-10-30-parallel-maintenance/README.md)：2,894公开文本路线核查没有新载荷绑定；原10/07审计仍在，定位Formal在10/07之后、Green在9/29至10/07之间的记录缺口，不判永久丢失，不重复同一范围搜索。`acl-observe2`核备份SHA及95,558对INTENT_DURABLE/VERIFIED完整日志前缀，仍无终态；活动指针改为已观察应用推进、待终态和普通令牌全量复核，现有管理员命令不重启。合成ACL成员判断加速候选未替换冻结模块。所有局部结论仍不等于全任务完成，整体PARTIAL。
+
+#### 2026-10-30 公共素材精确归一、普通读取复核与F05传输修正
+
+R6一致性确认后，按原Owner精确清理授权部署126公开重复素材（124PNG/2MD）及2元数据说明：全量252当前文件与75归档对象/126恢复映射先核，以独占读/删除句柄锁源及同句柄删除，不递归目录/触碰私有状态。[公共素材归一](../history/storage-cleanup/2026-10-30-public-asset-normalization/README.md)保留逐项durable journal与restore-map；新批减少459,018,818路径逻辑字节，不称Git/NTFS物理释放，不重复计入此前51,068,863,617字节。部署run child0/INVALIDATED/receipt3/source_consistent=false诚实保留；fresh后读回及root独立126缺失/126保留SHA/75archive CRC/SHA均通过。运行素材与许可原件未改；115定向测试和原13视口/5主题browser-smoke通过，浏览器为SIMULATED_HOST_CORE_FIXTURE。worktree约定126未暂存缺失+47既存CRLF及prospective index47CRLF结果保留，最终Git候选沿既有--source index核，不修改冻结原件/降低门槛。
+
+管理员原run已有终态，修改102,591/error0，未重新Apply。[普通权限独立核验](../history/storage-cleanup/2026-10-30-read-access-verification/README.md)以TokenElevation0/原readerSID，102,591计划对象（47,644目录/54,947文件）的预期ACL/owner/group/protection/ACE、同handle只读可开/size/mtime全通过，零正文读取/零权限写入。发现preserved769中9个目录在members/journal重叠，根因是先记录目录本身后子枚举失败catch又记preserved；760条无记录操作。首轮断言失败保留，v2虽全对象通过仍exit2/FAIL/source_consistent=true，整体PARTIAL，不宣称全部533根后代、私有/链接ACL或内容SHA已核；不改旧plan/模块/回退。活动指针从应用推进改为计划对象已读验、库存/后代缺口待查，后继再重计项目可读体积。
+
+[F05传输修正](../history/backend-probe-transport-20261030/README.md)已部署2文件候选：HTTP等待覆盖Core120秒模型预算及15秒admission/客户端余量；正式client的status0和异常都写UNKNOWN/脱敏收据，不自动重试，HTTP业务拒绝保留。真实C1 Core+同32秒合成worker重现旧main3→新main0；合成纠正链0、独立题错误1、status0脱敏3，66测试/Ruff通过，wrapper与实际main退出分开。真实模型调用仍0，Core是有限C1混合候选，未重建当前产品，asset/scoped真实效果/学习改善仍未建立，F05总体PARTIAL。UI、监控、远端写、Green替换、真实资料覆盖及全局模型边界不变。

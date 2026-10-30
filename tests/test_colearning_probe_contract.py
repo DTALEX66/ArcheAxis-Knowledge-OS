@@ -108,7 +108,7 @@ def test_the_probe_does_not_import_anything_outside_the_standard_library():
             imported.add(node.module.split(".")[0])
     third_party = imported - {
         "__future__", "importlib", "json", "os", "shutil", "sys", "time", "uuid",
-        "datetime", "pathlib", "hashlib",
+        "datetime", "pathlib", "hashlib", "urllib",
     }
     assert not third_party, f"the probe imports third-party modules: {sorted(third_party)}"
 
@@ -378,3 +378,95 @@ def test_f05_semantic_lineage_and_condition_counterexamples_fail_closed(case):
         stages['retest_readback']['body']['conditions'] = json.dumps(retest)
     assert probe.report(receipt) == 1
     assert receipt.document()['quality_assessment']['learning_improvement'] == 'NOT_ESTABLISHED'
+
+@pytest.mark.parametrize(('path', 'budget', 'timeout'), [
+    ('/api/v1/machine/answers', 120, 135),
+    ('/api/v1/machine/retests', 1, 16),
+    ('/api/v1/machine/retests', 120, 135),
+    ('/api/v1/jobs', 120, 30),
+])
+def test_probe_transport_covers_core_deadline_and_admission(path, budget, timeout):
+    probe = _module()
+    seen = []
+    class Client:
+        @staticmethod
+        def call(*args, **kwargs):
+            seen.append(kwargs)
+            return 200, {'ok': True}
+    receipt = probe.Receipt()
+    assert probe.call_core(Client, receipt, 'http://127.0.0.1:1', 'POST',
+                           path, 'test-token-never-logged', {'timeout_s': budget})[0] == 200
+    assert len(seen) == 1 and seen[0]['timeout'] == timeout
+    assert receipt.stages == []
+
+@pytest.mark.parametrize('error_type', ['timeout', 'url', 'os'])
+def test_probe_transport_unknown_is_recorded_without_retry_or_sensitive_message(error_type):
+    probe = _module()
+    failures = {'timeout': TimeoutError, 'url': probe.urllib.error.URLError, 'os': OSError}
+    seen = []
+    class Client:
+        @staticmethod
+        def call(*args, **kwargs):
+            seen.append(kwargs)
+            raise failures[error_type]('PRIVATE_SENTINEL_DO_NOT_LOG')
+    receipt = probe.Receipt()
+    with pytest.raises(probe.ProbeTransportFailure):
+        probe.call_core(Client, receipt, 'http://127.0.0.1:1', 'POST',
+                        '/api/v1/machine/answers', 'TOKEN_SENTINEL_DO_NOT_LOG',
+                        {'timeout_s': 120, 'client_request_id': 'fixed-request'})
+    assert len(seen) == 1
+    assert receipt.failed_stage == 'transport_failure'
+    document = receipt.document()
+    text = json.dumps(document)
+    assert 'PRIVATE_SENTINEL' not in text and 'TOKEN_SENTINEL' not in text
+    assert document['stages'][0]['transport_timeout_s'] == 135
+    assert 'UNKNOWN' in document['stages'][0]['problem']
+    assert document['stages'][0]['request_sha256'] == probe.digest(
+        {'timeout_s': 120, 'client_request_id': 'fixed-request'})
+    assert probe.report(receipt) == 3
+
+@pytest.mark.parametrize('budget', [0, 121, True, None, '120'])
+def test_probe_transport_rejects_outside_core_budget_before_request(budget):
+    probe = _module()
+    class Client:
+        @staticmethod
+        def call(*args, **kwargs):
+            pytest.fail('invalid deadline must not dispatch')
+    with pytest.raises(ValueError):
+        probe.call_core(Client, probe.Receipt(), 'http://127.0.0.1:1', 'POST',
+                        '/api/v1/machine/answers', 'unlogged', {'timeout_s': budget})
+
+def test_actual_core_client_status_zero_becomes_unknown_without_error_body(monkeypatch):
+    probe = _module()
+    client = probe._load('real_client_for_deadline_test', REPO / 'shared/core_client.py')
+    calls = []
+    def unreachable(*args, **kwargs):
+        calls.append(kwargs)
+        raise TimeoutError('PRIVATE_SENTINEL_DO_NOT_LOG')
+    monkeypatch.setattr(client.urllib.request, 'urlopen', unreachable)
+    receipt = probe.Receipt()
+    with pytest.raises(probe.ProbeTransportFailure):
+        probe.call_core(client, receipt, 'http://127.0.0.1:1', 'POST',
+                        '/api/v1/machine/answers', 'TOKEN_SENTINEL_DO_NOT_LOG',
+                        {'timeout_s': 120})
+    assert len(calls) == 1 and calls[0]['timeout'] == 135
+    document = receipt.document()
+    assert document['stages'][0]['error_type'] == 'CLIENT_TRANSPORT_STATUS_ZERO'
+    assert 'PRIVATE_SENTINEL' not in json.dumps(document)
+    assert 'TOKEN_SENTINEL' not in json.dumps(document)
+    assert probe.report(receipt) == 3
+
+
+def test_actual_core_client_http_refusal_remains_business_result(monkeypatch):
+    import io
+    probe = _module()
+    client = probe._load('real_client_for_http_test', REPO / 'shared/core_client.py')
+    def refusal(*args, **kwargs):
+        raise client.urllib.error.HTTPError('http://127.0.0.1:1', 403,
+                                            'Forbidden', {}, io.BytesIO(b'{"error":"refused"}'))
+    monkeypatch.setattr(client.urllib.request, 'urlopen', refusal)
+    receipt = probe.Receipt()
+    assert probe.call_core(client, receipt, 'http://127.0.0.1:1', 'POST',
+                           '/api/v1/machine/answers', 'unlogged',
+                           {'timeout_s': 120}) == (403, {'error': 'refused'})
+    assert receipt.stages == [] and receipt.blocked == {}

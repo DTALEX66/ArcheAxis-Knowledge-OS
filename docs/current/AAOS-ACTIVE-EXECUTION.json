@@ -208,16 +208,16 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "permission_recovery_current": {
-      "observed_at": "2026-10-30T15:35:18.683008+00:00",
-      "state": "BACKUP_VERIFIED_APPLY_PROGRESS_OBSERVED_TERMINAL_PENDING",
-      "record": "docs/history/storage-cleanup/2026-10-30-access-and-spillover/README.md",
+      "observed_at": "2026-10-30T16:00:33.850573+00:00",
+      "state": "EXACT_PLANNED_OBJECTS_READ_VERIFIED_INVENTORY_GAP_PARTIAL",
+      "record": "docs/history/storage-cleanup/2026-10-30-read-access-verification/README.md",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
       "previous_recovery_record": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
       "supersedes": "The previous recovery and permission_blocker_previous are historical checkpoints, not proof that all current project artifact paths are readable.",
-      "whole_scope": "PARTIAL; original ACL backup hash verified and journal prefix advancing. No terminal receipt observed; whole-batch ordinary-token readback not yet qualified. No product/build/installed qualification follows from ACL checks.",
+      "whole_scope": "PARTIAL;102591 planned objects independently verified with unelevated read handles and expected ACL/metadata. Nine directory enumeration failures are also labeled preserved in the original inventory;760 entries have no recorded operation. Not all descendants or private/excluded objects verified; no product qualification.",
       "monitor": "PAUSED_UNCHANGED",
-      "observation_ref": ".project-local/runs/be268a2d33/acl-observe2/artifacts/apply-prefix-observation.json",
-      "verification_pending": "Preserve the existing administrator run; wait for its terminal receipt, then independently verify eligible exact objects and preserved exceptions with ordinary read access. Do not restart or replace its frozen module."
+      "observation_ref": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/unelevated-verification.json",
+      "verification_pending": "Re-measure project footprint and remaining exact access failures; review nine long-path child-enumeration gaps without rerunning Apply or modifying frozen backup/module."
     },
     "permission_blocker_previous": {
       "observed_date": "2026-10-23",

@@ -446,7 +446,7 @@
       "class": "bounded-astryn-donor-custody",
       "disposition": "custody",
       "owner_doc": "docs/history/repository-consolidation-20261019/current/AAOS-XIAOQI-MIGRATION-20261018.md",
-      "note": "Only assets/astryn and assets/astryn-full are classified as preserved donor source/assets; other assets require their own reviewed ownership. No donor execution, source deletion or complete migration qualification."
+      "note": "Canonical preserved public donor source/assets remain under assets/astryn-full. The 126 hash-identical public paths formerly under assets/astryn are retired only with their same-relative canonical files and original-archive restore mapping retained. Private local state is outside this public normalization. Other assets require their own reviewed ownership. No donor execution, external source repository deletion or complete migration qualification."
     },
     {
       "paths": [
