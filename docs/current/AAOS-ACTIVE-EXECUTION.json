@@ -134,6 +134,17 @@
       "id": "OWNER-ARCHIVE-STORAGE-NORMALIZE-BACKEND-PRIORITY-20261030",
       "instruction": "统一归档都本项目仓库里，加入到后端任务优先任务里，先清理项目体积，和项目文件规范化（任何子文件夹/目录/文件/文档/构建/产物/缓存等等），还有现在不断膨胀后续该怎么治理？我去云端GPT继续修正前端界面布局等",
       "source_and_acceptance": "workspace/intake/20261030-cloud-review-and-backend-priority/README.md",
+      "spillover_followup": {
+        "owner_instruction": "还有外溢数据追踪迁移清理",
+        "scope": "Trace project-generated spillover through registered exact paths, producer/configuration/run evidence and consumers; verify ownership, hashes, target and recovery before migration or exact cleanup. No drive-wide scan, shared-library cleanup, private-state access or real-data overwrite.",
+        "order": "WITH_STORAGE_AND_NORMALIZATION_BEFORE_BACKEND_QUALIFICATION"
+      },
+      "r5_followup": {
+        "owner_instruction": "这个审计下，加入到任务里，统一归档到仓库里",
+        "source_and_review": "workspace/intake/20261030-r5-future-capability-review/README.md",
+        "absorption": "R5 is reviewed design/acceptance input, not executable instructions or implementation PASS. Incorporate five scenarios and 186/22 mappings into existing R2/CL/J binding after storage/normalization/spillover and F01-F05; preserve original IDs, UI pause and named future freezes.",
+        "boundary_correction": "WORK-LAB remains optional; AAOS standalone. Map method labels to actual existing AI asset types before implementation; no parallel registry, DB or Runtime."
+      },
       "order": [
         "ARCHIVE_CLOUD_R2_AND_CODEX_AUDIT_IN_PROJECT",
         "MEASURE_AND_REVIEW_EXACT_REGENERABLE_OR_DUPLICATE_CLEANUP",
@@ -188,13 +199,13 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "permission_recovery_current": {
-      "observed_at": "2026-10-23T00:10:02Z",
-      "state": "PERMISSIONS_RECOVERED",
-      "record": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
-      "supersedes": "permission_blocker_previous is historical; previous cloud-execution-blocker checkpoint is retained",
-      "python": "Canonical Python3.13.14 and canonical subprocess startup PASS",
-      "git": "Official Git temporary ref create/readback/delete PASS; HEAD, branch and staging unchanged",
-      "whole_scope": "PARTIAL; formal build, runtime, cloud production and delivery not qualified by permission checks",
+      "observed_at": "2026-10-30T13:36:30Z",
+      "state": "PARTIAL_READ_ACCESS_RECOVERY_ADMINISTRATOR_REMAINDER_PENDING",
+      "record": "docs/history/storage-cleanup/2026-10-30-access-and-spillover/README.md",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "previous_recovery_record": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
+      "supersedes": "The previous recovery and permission_blocker_previous are historical checkpoints, not proof that all current project artifact paths are readable.",
+      "whole_scope": "PARTIAL; first exact read-access batch independently verified, remaining exact batch requires the Owner administrator process. No product/build/installed qualification follows from ACL checks.",
       "monitor": "PAUSED_UNCHANGED"
     },
     "permission_blocker_previous": {

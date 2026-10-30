@@ -139,6 +139,59 @@ def test_private_subtree_is_excluded_before_any_descent(tmp_path, monkeypatch):
     assert report.directory_measurement(private)["excluded_private"] == [str(private)]
 
 
+def test_nested_agent_metadata_is_preserved_without_stat_or_descent(tmp_path, monkeypatch):
+    private = tmp_path / "fixture" / ".mimosa"
+    private.mkdir(parents=True)
+    (private / "config").write_bytes(b"not project evidence")
+    (tmp_path / "fixture" / "receipt.txt").write_bytes(b"ok")
+    real_stat = report.entry_stat
+
+    def guarded(entry):
+        assert entry.name != ".mimosa", "nested agent metadata was inspected"
+        return real_stat(entry)
+
+    monkeypatch.setattr(report, "entry_stat", guarded)
+    measured = report.directory_measurement(tmp_path)
+    assert measured["bytes"] == 2
+    assert measured["excluded_private"] == [str(private)]
+    assert report.directory_measurement(private)["excluded_private"] == [str(private)]
+
+
+def test_primary_repository_git_bytes_are_still_counted(tmp_path, monkeypatch):
+    own_git = tmp_path / ".git"
+    own_git.mkdir()
+    (own_git / "objects.pack").write_bytes(b"own repository objects")
+    monkeypatch.setattr(report, "REPO", tmp_path)
+    assert report.directory_measurement(own_git)["bytes"] == 22
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Win32 MAX_PATH regression")
+def test_real_long_directory_and_filename_are_measured_without_global_changes(tmp_path):
+    deep = tmp_path
+    while len(str(deep)) < 330:
+        deep /= "long-public-fixture-component"
+    # Prepare independently using the native extended Win32 spelling.
+    native = "\\\\?\\" + str(deep)
+    os.makedirs(native)
+    payload = native + "\\" + "public-fixture-payload.txt"
+    with open(payload, "wb") as output:
+        output.write(b"long-path-proof" * 11)
+    measured = report.directory_measurement(tmp_path)
+    assert measured["errors"] == []
+    assert measured["files"] == 1
+    assert measured["bytes"] == 165
+    assert report.display_path(report.io_path(deep)) == str(deep)
+    assert not any("\\\\?\\" in row["link"] for row in measured["links"])
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Win32 UNC path spelling")
+def test_unc_extended_spelling_roundtrips_without_accessing_network():
+    path = "\\\\server\\share\\" + "component\\" * 35 + "file.bin"
+    assert report.io_path(path).startswith("\\\\?\\UNC\\server\\share\\")
+    assert report.display_path(report.io_path(path)) == path
+    assert report.io_path(report.io_path(path)) == report.io_path(path)
+
+
 def test_report_cannot_certify_complete_measurement_after_access_denial(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     subprocess.run(["git", "init", "-q", str(repo)], check=True)

@@ -2752,3 +2752,19 @@ Owner 本轮要求统一归档在本项目、加入后端优先任务，先清�
 Owner 后继明确“给你访问权限”。即时复核本次计量已登记的三个精确项目路径：`artifacts/product-loop-20261019/ci-repair/temp/pytest`、`audits/execution-resume-20261019/manifest-candidate/tmp-red`、`cache/pytest`（均相对 `.project-local/`），系统仍返回 PermissionError/WinError 5；授权已收到不等于 Windows 实际可读。复核只枚举对应入口，未递归或读取私有正文、未改 ACL；原始结果归本轮 artifacts/access-recheck-after-owner-grant.json。不能将这三例外推为已核全部 1,390 个错误或已解决权限问题。
 
 封存检查：`sfi-doc2` 文档权威、`sfi-path2` 跟踪路径规范均 LOCAL_PASS/source_consistent=true，5,848/5,848 路径归属匹配、未归属/歧义/deny-commit/共享安装副本组均 0。索引格式 `sfi-conv3`、架构 `sfi-arch2`、Ruff `sfi-lint2` 及最终代码回归均通过，各自只证明其绑定的源码/补丁；本句及 summary/MANIFEST 仅记录结果，不将这些本地检查移绑成 CI、guest 或产品资格。
+
+#### 2026-10-30 权限恢复独立核验、长路径修正、外溢追踪与 R5 审计归档
+
+Owner 已运行管理员定点修复，首批3个入口下23个对象添加读取权、错误0、测试 `.git` 保留1。Codex 以当前普通 ALEX 令牌独立复核23/23可读、ACL与计划相符、原所有者不变；管理员原收据不重写。相同模块的合成用例添加3/恢复3，私有路径、deny、junction、硬链接、其他所有者、并发ACL、重复回退和错误计划哈希反例通过。首次普通权限复核因相对 Import-Module 失败，原无效收据保留，绝对路径重做结果另记。
+
+`storage_report.py` 只在进程内使用 Win32 扩展长路径，报告保持普通路径，私有项仍先拒绝，junction不跟随，Git计量覆盖不缩减。`acr-t2` 定向25项、`acr-lint1` Ruff E9/F63/F7/F82通过。正式 `acr-size4`：137,784,982,873可读逻辑字节、1,248,330文件、534个PermissionError、长路径FileNotFoundError 0、私有排除106；相对 `acr-size2` 的854项长路径错误消失，不是释放空间。582布局项/550散落入口/31错误层级run/19退役身份仍待处理，runs/candidates预算债务仍在；计量PARTIAL、原子退出1保留。`acr-size1` 的互斥参数退出2及中间 `acr-size3` 缩减Git覆盖的无效计量均保留，后者改法已撤回。
+
+余下534权限入口中保留测试 `.git`，533精确根已固化目录清单、已验证模块副本及新驱动；备份/计划哈希/意图日志/逐项漂移检查/回退齐备，只允许与首批相同的旧所有者受限ACL添加读取权。`acl-rem-preflight1` 在原生PowerShell 5.1普通令牌下按设计退出5 `ADMINISTRATOR_REQUIRED_NO_CHANGES`，源码身份一致、无真实计划和权限写入；不是实际管理员修复通过。当前进程无管理员令牌，等待Owner运行精确命令后再做普通权限核验，不推断533全部合格或全仓可读。具体命令、可回退边界及收据见[本轮维护封存](../history/storage-cleanup/2026-10-30-access-and-spillover/README.md)与同目录MANIFEST/summary。
+
+Owner追加“还有外溢数据追踪迁移清理”，纳入同一体积/规范化优先项及目录规则。沿历史登记仅复查8个精确外部路径，均在原路径未解析到；没有读数据库、扫描父目录、迁移或删除，不计回收量，也不称原件丢失。历史恢复映射仍待按索引追踪，系统/共享/私有状态不认领。后继按生产者/配置/命令/运行证据→所有者/消费者→精确源目标→哈希/恢复→迁移清理推进；先修生成落点，数据库侧文件按一致备份/导出处理。本轮新增实际删除和外部迁移均0，此前累计99,089文件、51,068,863,617逻辑字节保持原身份。
+
+Owner另要求R5未来能力包“审计、加入任务、统一归档”。[独立审计与任务承接](../../workspace/intake/20261030-r5-future-capability-review/README.md)已归档29原字节成员、14,605,383字节，8张图逐张静态审阅；原包28项manifest、186×14原字段、22×5职责字段/顺序、两份冻结CSV字节、9个示例引用与8PNG CRC/尺寸均核对。独立只读 `r5-verify1` LOCAL_PASS/source_consistent=true；审计文档生成期 `r5-review1` 因创建公开MANIFEST而INVALIDATED/child0 wrapper3，原件保留不计PASS。语义定向核16族/五场景及15源码身份，未做186项源码逐项验收；25产品场景仍NOT_EXECUTED，无HTML浏览器渲染/可点击/键盘/axe/引擎/模型/安装验证。
+
+结论 `DESIGN_INPUT_CONDITIONALLY_ACCEPTABLE / ENGINEERING_PARTIAL`，3项P1（真实操作绑定仍空、WORK-LAB职责越界、方法标签缺现行资产类型映射）及3项P2（示例版本衔接、教学变量/参数非受控示意、单尺寸静态图缺恢复/可访问性证据）已吸收到既有R2/CL/J及F05，未另建任务包/资产库/API。顺序仍为体积/规范化/外溢→F01—F05→R2+R5有限后端→同候选可靠性。原输入提示词不成为授权；UI实施/监控暂停、未来冻结、远端/云CI/Green/真实数据/模型设置边界不变。
+
+封存架构检查 `r5-arch1` 误报裸 Win32 UNC 前缀；修正只排除无host/share的完整前缀，完整外部目标仍拒绝，未放行机器目录。`r5-gate1` 守卫26项、`r5-arch2` 全仓架构、`r5-lint2` 四改动文件的Ruff均通过；原失败保留。活动指针的 `permission_recovery_current` 已指向本轮实际部分恢复，旧20261023恢复记录保留为历史；归档/维护检查最终结果沿本轮 verification 读取，仍不构成产品全量通过。

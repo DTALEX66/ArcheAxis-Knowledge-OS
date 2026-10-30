@@ -102,6 +102,12 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 
 冻结的旧 launcher 只接受每 run 自有的 package/input 映射，不能直接套用共享提案。共享 launcher 的配置/来源绑定与 guest 真实写入隔离未合格前，不把 `.proposed` 改成可执行配置或重跑旧 staging 生成整包副本。来源清单含 `.mimosa` 等私有状态时拒绝复用；保留旧证据，在新的 canonical run 准备洁净输入，不修改历史清单或扩大私有路径豁免。操作示例和本轮有限证据见[共享输入续批记录](history/storage-cleanup/2026-10-30-followup/README.md)。
 
+### 外溢追踪与迁移
+
+Owner 2026-10-30 追加外溢数据追踪、迁移和清理，沿活动指针的同一体积/规范化优先项执行。先查已登记历史精确路径、项目生成入口/配置、运行证据与当前消费者；路径登记和名称相似均不能单独证明所有权。每批记录生产者、所有者依据、精确源/目标、大小/哈希、数据库侧文件组与占用、恢复方式、源文件清理授权及事后读回。先修生成落点，再迁移保全和清理已确认冗余，避免旧入口继续外写。
+
+归档日志、测试输出和旧候选沿项目 ignored 归属路径存放；源码/文档沿正式模块和 intake/history。共享工具/模型缓存、系统文件、真实产品资料和代理私有状态分别保留；不以外溢治理授权扫描 Home、磁盘或重组其他项目。精确授权内可以连续处理；ACL/锁拒绝及未确认所有权只阻塞对应项，不能扩大权限或推断不存在。原始 DB/WAL/SHM/lock 不拆组或按旧时间删除，活动库须沿一致备份/导出。
+
 ### Frozen donor archive — 2026-09-26
 
 `docs/history/branch-donors/execution-reliability-20260926/` is HISTORICAL_RECORD, not execution authority. ARCHIVE.json identifies three exact-tip, byte-preserved repository documents and source hashes. This bounded archive is repository documentation; it does not classify other mixed history paths. The source branch was retired on 2026-09-27 after review and a verified full-history local bundle; the six bounded imported documents and duplicate/move dispositions are recorded in [the consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json). Other mixed history paths retain their protected classification.

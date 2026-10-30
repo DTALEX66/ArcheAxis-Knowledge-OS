@@ -1,0 +1,241 @@
+{
+  "schema": "aaos.access-and-spillover-evidence/v1",
+  "raw_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/acl-review-20261030/artifacts/administrator-acl-review.json",
+      "bytes": 7753,
+      "sha256": "095e1f574be11106f88d1e4cbdd2e3bec504bd15d030c206ee235d27552966e7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/apply-20261030T1300461710855Z-b84cf22a-result.json",
+      "bytes": 1732,
+      "sha256": "029d7b8d80b8ceda8fe112b0d497dcec809fa0e5ac7db22a30a4c38fdd85dc2a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/apply-20261030T1300461710855Z-b84cf22a.jsonl",
+      "bytes": 13048,
+      "sha256": "761f5aa1e14a7a96b31e5d1c9f5a59aa75429704a5211d105e372938424f1486"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/read-access-plan.json",
+      "bytes": 35041,
+      "sha256": "dbbeb39e76d22facd5bf67e6c22b8c14d143c619fd529146ccae9b7807de3d5c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/read-access-plan-identity.json",
+      "bytes": 1201,
+      "sha256": "aa5a66fa5b81115a23563f2b53d82730aceaea50fed4f8fbd0e7d0563f51c7f8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/unelevated-access-verification.json",
+      "bytes": 7900,
+      "sha256": "66eb730468676b62fa5983af0a8b4288311bcdeafd1a7fb7cc3fa4c0fcea6d8d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/unelevated-verification-first-attempt.json",
+      "bytes": 10644,
+      "sha256": "bf2fbf0cfcc1e39d88762425649f147563617b35bed21c8ab9b07edc9c0c4a6d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/artifacts/spillover-exact-path-recheck.json",
+      "bytes": 2429,
+      "sha256": "76d1f27248797b3a74c276f74118e00cd341c481b7ea3479ca4214357b463b46"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/tmp/ProjectAccess.psm1",
+      "bytes": 10705,
+      "sha256": "fcb6a253fc8fbd6c4ead11545ad3f5d6b8d82d57608b8059e53bf4803d3de141"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-repair-20261030/tmp/Repair-ProjectDirectoryAccess.ps1",
+      "bytes": 8304,
+      "sha256": "23d5a60755cde21d054729df4e1ff32de2889244daec435e5f6395098fb06bd2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-fixture-test-20261030-v5/artifacts/execution.json",
+      "bytes": 1349,
+      "sha256": "72a6fbb8c50a094fdf1f2aea5bebe8ad5e15681835f8a10479c8350cbf14c9c4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-fixture-test-20261030-v5/logs/execution.log",
+      "bytes": 349,
+      "sha256": "61ef85c0ea31ae5186513451d5e32a01d91f630dca223b4ec05e97427260b25d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-t2/artifacts/execution.json",
+      "bytes": 1608,
+      "sha256": "e7fb1e42428a7a3751778fa20796beba59972eb9ae5301e88ff9f15555e45e0d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-t2/logs/execution.log",
+      "bytes": 101,
+      "sha256": "4e9e692f39600d76e74bb04cb2323ba9479816d804fc575b52bf95eace4ca3ea"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-lint1/artifacts/execution.json",
+      "bytes": 1389,
+      "sha256": "613b242bd8a4796bb213202efece3fcbb5c0f7993da5ef806334465f2d8df0ac"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-lint1/logs/execution.log",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size1/artifacts/execution.json",
+      "bytes": 1501,
+      "sha256": "c89c838d872221f0dd517863bc85927c42fd373e3c7810732cb700b4917089df"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size1/logs/execution.log",
+      "bytes": 227,
+      "sha256": "6a28af4dffbf976e912d86b696f0aa20bae2f73ebfe3f623d741fdac69d88dbd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size2/artifacts/footprint.json",
+      "bytes": 1251917,
+      "sha256": "2ae76e2fe4b8614bb711cf93426be5e1e1e8558e6c0defb82fc1d18718ec4853"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size2/artifacts/execution.json",
+      "bytes": 1481,
+      "sha256": "63c22d170e41f69c9a8612c6bda4601871609d8d034284d3dcb1af12804934d9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size3/artifacts/footprint.json",
+      "bytes": 844494,
+      "sha256": "3797e8764f356d94dc06f374de20aa60acea0a7164942e75752b31f0e3855762"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size3/artifacts/execution.json",
+      "bytes": 1458,
+      "sha256": "8c9094987ba681f1f25a023ad902f18232edc18e2f83ec68ee4831873310e082"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size4/artifacts/footprint.json",
+      "bytes": 610934,
+      "sha256": "8a47a8286da2e71c0de05fbf4e398ac2695ca3738aa81b665c8b2cab373ba4f4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acr-size4/artifacts/execution.json",
+      "bytes": 1458,
+      "sha256": "535e8933db580cc9587c3b79ec5997c71b9da117f6706fa82d7d91403c826dff"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/exact-roots.json",
+      "bytes": 63512,
+      "sha256": "16daa3fb5aadabf19001fc32ce58b708587d9fd59a16bf8d06009a92b3237801"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/preparation-proof.json",
+      "bytes": 1390,
+      "sha256": "e8dbd17c85c4379455c10187c4fc5390a283a071ff2d2b59ee273ced1a0c8cb8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/tmp/ProjectAccess.psm1",
+      "bytes": 10705,
+      "sha256": "fcb6a253fc8fbd6c4ead11545ad3f5d6b8d82d57608b8059e53bf4803d3de141"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/tmp/Repair-RemainingProjectReadAccess.ps1",
+      "bytes": 6954,
+      "sha256": "b65b9bc3534cf50d5b85d9d6af39c5b2069f87136431714656b338d89a1daa64"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-rem-preflight1/artifacts/execution.json",
+      "bytes": 1369,
+      "sha256": "f7a2c2bff457c58d336bfc956cf3b2c29e081b3845d6d56c481ae724575a9a40"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-rem-preflight1/logs/execution.log",
+      "bytes": 35,
+      "sha256": "0cfe3cf3e2ae267f6b4366de24e1ae9196b882317048c2bf7ba42f391499210f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-audit1/artifacts/archive-check.json",
+      "bytes": 71580,
+      "sha256": "3586f60f3d737f83e0eb2983e901fde183eaa56f5ee3d2f5c1a0da96fd017cfb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-audit1/artifacts/source-review.json",
+      "bytes": 5286,
+      "sha256": "0937fa3a686f4c4f95144c7ad678b23e6a3381da881e9e301b4c1877eee5bd0d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-audit1/artifacts/intake-verification.json",
+      "bytes": 1264,
+      "sha256": "b92893397277dcacc2d89080b9d5a36feb86557e7245e02ee4534edd4b0503ed"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-archive1/artifacts/execution.json",
+      "bytes": 1294,
+      "sha256": "7e6bdecb9abd423277f846b677c58b4eac6235e7c79a1b76c0a03c2d977a20c0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-review1/artifacts/execution.json",
+      "bytes": 1292,
+      "sha256": "5b69e01810cfaeec47ef19ab7806d0694d36653b06dd83806fa992ea61d7c0f3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-verify1/artifacts/execution.json",
+      "bytes": 1288,
+      "sha256": "f0f4501828392c6a06aa66602732cf625bf80847cb0644131dd6adf1c0752e96"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-arch1/artifacts/execution.json",
+      "bytes": 1235,
+      "sha256": "6a0d7455b7e382ee7269a298c420848f1481457382dd636b71f87f34352115d8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-arch1/logs/execution.log",
+      "bytes": 301,
+      "sha256": "85ac0fc896f102e0565322eddae4d30e2e37ecea64db142d45cdacd8b5d5870a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-gate1/artifacts/execution.json",
+      "bytes": 1603,
+      "sha256": "26a7d208cd90aeaec971f901a04426b5f9057a4b3b4b12db42e7bcc2a95720b4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-gate1/logs/execution.log",
+      "bytes": 101,
+      "sha256": "3ee09b9829da3cce077d349d1f911a043d39d44f3c78e374a96b4b298ff404ba"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-arch2/artifacts/execution.json",
+      "bytes": 1241,
+      "sha256": "f6c0dfc3565275609c67ffd0749794c6f98528ce56a97f2067ca4531abc22b69"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-arch2/logs/execution.log",
+      "bytes": 27,
+      "sha256": "38aca1d27c053b8de58c1462a57fa7054cf16ef45b31f26b3975d28714193f5e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-lint2/artifacts/execution.json",
+      "bytes": 1456,
+      "sha256": "851dfe0c010071023f3729df61e79aea23e8a63a4b75d01a1aaf97a762ed3612"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-lint2/logs/execution.log",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-doc2/artifacts/execution.json",
+      "bytes": 1249,
+      "sha256": "4584f3984e1100f339efab322ba503565b2c8e1a4f8a501dc3c08114f0d7a79c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r5-doc2/logs/execution.log",
+      "bytes": 359,
+      "sha256": "778de05c6fefac8ff4b0d6c3645953df097f6e2b6fb8a8281ccc0b5219bb5535"
+    }
+  ],
+  "public_summary": {
+    "path": "docs/history/storage-cleanup/2026-10-30-access-and-spillover/summary.json",
+    "bytes": 2551,
+    "sha256": "1c3c262281e80dd300b55f644cf7a9333454789e6a4dddcf7073b758ff4be8f0"
+  },
+  "interpretation": "Preserved receipt identities, including original FAIL/INVALIDATED; no automatic promotion to PASS."
+}

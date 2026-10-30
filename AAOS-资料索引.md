@@ -47,6 +47,10 @@
 
 [原 ZIP、成员身份与 SHA-256 核验](docs/history/repository-consolidation-20261019/current/receipts/AAOS-DOT-CLOUD-AUDIT-INTAKE-20261012.json)，[AAOS 问题与当前实现对应分析](workspace/intake/AAOS-DOT-AUDIT-RECONCILIATION-20261012.md)。原 ZIP 为 `D:/All projects/Record/AAOS-WORK-DESIGN-cloud-audit-20261011.zip`；163 个成员中内部 manifest 登记的 162 个哈希均通过。43 个 AAOS 相关及共享报告成员保全在 `.project-local/archives/dot-cloud-audit-20261011/`。报告中的提示词仅为来源材料；历史 Linux、模拟及浏览器结果不替代当前 Windows 原生与模型验收。
 
+## 2026-10-30 R5 未来能力承接与效果图
+
+[原件全成员索引、独立审计及既有任务承接](workspace/intake/20261030-r5-future-capability-review/README.md)。29 个原字节文件统一保全在项目 ignored 原件区，Git 保存轻量索引；原 186 项/22 职责字段不变。R5 为设计与验收输入，不能替代当前源码、运行或安装态结论；现行任务/状态仍沿活动指针与唯一执行记录，前端实施暂停及未来冻结不变。
+
 ## 2026-10-10 六项核心能力汇总：冻结来源
 
 [归档索引、原文与完整哈希](docs/history/conversation-summary-20261010/INDEX.md)。Owner 要求先归档，后续再考虑：**FROZEN_BY_OWNER / NOT_EXECUTED**。不加入当前执行队列；包内提示词、接口与48项测试仅为提案，不自动执行。原始ZIP及三个成员保存在项目本地归档；该冻结与 2026-10-11 已恢复的产品实施范围分别核对。

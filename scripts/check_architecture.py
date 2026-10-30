@@ -423,6 +423,9 @@ def scan_architecture(root: Path) -> list[ArchitectureIssue]:
                 and isinstance(node.value, str)
                 and id(node) not in non_runtime_strings
                 and id(node) not in url_path_prefixes
+                # A bare Win32 namespace prefix has no host/share or destination.
+                # Complete extended UNC paths still match the boundary below.
+                and node.value.casefold() != "\\\\?\\unc\\"
                 and _ABSOLUTE_PATH.search(node.value)
             ):
                 issues.append(

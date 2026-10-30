@@ -73,19 +73,46 @@ def dev_allowed(name: str) -> bool:
     return name in DEV_ALLOWED or bool(DEV_ALLOWED_PATTERN.match(name))
 
 
+def io_path(path: Path | str) -> str:
+    """Extended Win32 spelling for long paths; no global settings or ACL changes."""
+    value = os.fspath(path)
+    if os.name != "nt" or value.startswith("\\\\?\\"):
+        return value
+    absolute = os.path.abspath(value)
+    if len(absolute) < 248:
+        return value
+    if absolute.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + absolute[2:]
+    return "\\\\?\\" + absolute
+
+
+def display_path(path: Path | str) -> str:
+    value = os.fspath(path)
+    if value.startswith("\\\\?\\UNC\\"):
+        return "\\\\" + value[8:]
+    return value[4:] if value.startswith("\\\\?\\") else value
+
+
+def entry_stat(entry: os.DirEntry):
+    # DirEntry.stat can fail beyond MAX_PATH even when enumeration succeeded.
+    if os.name == "nt" and len(entry.path) >= 248:
+        return os.stat(io_path(entry.path), follow_symlinks=False)
+    return entry.stat(follow_symlinks=False)
+
+
 def is_link(entry: os.DirEntry) -> bool:
     """A symlink or a Windows junction - either way, the bytes it reaches live elsewhere.
 
     `Path.is_symlink()` reports False for a junction and `is_dir(follow_symlinks=False)` reports
     True for one, so a walk that only consults those two descends straight through it.
     """
-    info = entry.stat(follow_symlinks=False)
+    info = entry_stat(entry)
     return stat.S_ISLNK(info.st_mode) or bool(
         getattr(info, "st_file_attributes", 0) & 0x400)
 
 
 def is_reparse_point(path: Path) -> bool:
-    info = path.lstat()
+    info = os.stat(io_path(path), follow_symlinks=False)
     return stat.S_ISLNK(info.st_mode) or bool(getattr(info, "st_file_attributes", 0) & 0x400)
 
 
@@ -126,7 +153,7 @@ def directory_measurement(path: Path) -> dict:
         return result
     if linked:
         try:
-            result["links"].append({"link": str(path), "target": os.readlink(path)})
+            result["links"].append({"link": str(path), "target": os.readlink(io_path(path))})
         except OSError as error:
             result["errors"].append({"path": str(path), "error": type(error).__name__, "errno": error.errno})
         return result
@@ -134,26 +161,26 @@ def directory_measurement(path: Path) -> dict:
     while stack:
         current = stack.pop()
         try:
-            with os.scandir(current) as entries:
+            with os.scandir(io_path(current)) as entries:
                 for entry in entries:
                     # Names are checked before stat or descent: private agent state is not
                     # project evidence, even when it sits below a project-owned worktree.
                     if protected_name(entry.name):
-                        result["excluded_private"].append(entry.path)
+                        result["excluded_private"].append(display_path(entry.path))
                         continue
                     if current.name.casefold() == ".project-local" and entry.name.casefold() == "agents":
-                        result["excluded_private"].append(entry.path)
+                        result["excluded_private"].append(display_path(entry.path))
                         continue
                     try:
                         if is_link(entry):
-                            result["links"].append({"link": entry.path, "target": os.readlink(entry.path)})
+                            result["links"].append({"link": display_path(entry.path), "target": os.readlink(io_path(entry.path))})
                         elif entry.is_file(follow_symlinks=False):
-                            result["bytes"] += entry.stat(follow_symlinks=False).st_size
+                            result["bytes"] += entry_stat(entry).st_size
                             result["files"] += 1
                         elif entry.is_dir(follow_symlinks=False):
-                            stack.append(Path(entry.path))
+                            stack.append(Path(display_path(entry.path)))
                     except OSError as error:
-                        result["errors"].append({"path": entry.path, "error": type(error).__name__,
+                        result["errors"].append({"path": display_path(entry.path), "error": type(error).__name__,
                                                  "errno": error.errno})
         except OSError as error:
             result["errors"].append({"path": str(current), "error": type(error).__name__,
