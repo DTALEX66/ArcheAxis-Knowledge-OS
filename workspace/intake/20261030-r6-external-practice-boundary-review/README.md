@@ -33,3 +33,5 @@ Owner 追加要求将 `AAOS_外部实践边界纠偏_前端与本地Codex_R6_202
 后继运行历史导航：[文字实践与计划版本](../../../docs/history/teaching-plan-observation-20261031/README.md)、[实际后端直备与计量](../../../docs/history/storage-cleanup/2026-10-31-backend-runtime-in-place/ACTUAL-PREPARATION.md)。这些记录各保留原源码身份；本页不另维护当前进度。
 
 后继有限验证导航：[同包四格式分段恢复](../../../docs/history/bpr1-format-recovery-20261031/README.md)、[F05真实首答未评分与早停](../../../docs/history/asset-scoped-real-model-20261031/README.md)。两者分别保留原FAIL、源码与适用边界，不重签R6 E01—E10或完整闭环。
+
+后继专门对象边界导航：[未提交教学草稿与冻结意图的冷恢复](../../../docs/history/teaching-plan-observation-20261031/DRAFT-RECOVERY.md)。原验收 CSV 与静态快照保留，不把局部后端验证改写为 E08 的完整 UI/运行验收。

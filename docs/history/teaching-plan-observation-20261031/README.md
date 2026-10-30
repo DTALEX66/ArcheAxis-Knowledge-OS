@@ -41,3 +41,5 @@ UI 消费者、实际教程打开/跳过/替换交互、专门 start/self-report
 实际 launcher readiness 上限 30 秒；stop 仅针对本 harness 的 Popen，terminate 后等 15 秒，必要 kill 再等 15 秒，记录 PID/退出码/端口关闭。无按端口杀任意进程。候选模式核 launcher/profile/Core 显式 SHA，限定本仓 ignored 内精确无链接路径，fresh DB 位于 GREEN run；这三份文件前后身份均入收据。该后继 harness 已由 root 在 obsgreen1 按上述实际候选运行；边界仅限这次 22 请求。
 
 原 RED harness、收据及准备阶段失败证据保留原字节。
+
+后继不同对象边界见 [typed 教学草稿冷恢复](DRAFT-RECOVERY.md)：它保留自己的源码、候选和真实 HTTP 身份，不扩签本页原 22 请求或完整 R6 资格。

@@ -2934,3 +2934,10 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 自有Core PID13056 reapexit1，端口50971双相完整IPv4/6无LISTEN，10035仍UNKNOWN；52选择成员、5混合成员和override前后同，root另核当前52SHA，未发生cleanup/identity次级失败。root只读检查曾把freeze字段当result字段产生KeyError，正确取freeze复核通过；原目标收据不改，不把检查错误算作产品失败或成功。
 
 `rm125-aff6b59c`一次固定原失败批125对+6guard/256资源：Start0/Register29/未GetList/End0，UNKNOWN/cleanupfalse，actual/wrapper0且源码一致仅表示审计完成。本诊断支路停止，不缩批换样本重试或多会话外推；六项成功与其他29无法确定具体系统根因。源侧1,350,261,264逻辑B全部保留，本批删除/迁移/ACL均0。[终态及边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。
+
+
+### 2026-10-31 R6未提交typed教学草稿的实际冷恢复
+
+`e08-a208217f`19业务HTTP/3次owned Core顺序启动，actual/wrapper0且clean387c6898源码一致。复用原V2 mixed 5成员与bpr1解释器，fresh合成DB、0runtime复制/worker/model/外URL操作。冻结Observation草稿遇旧revision409、未发布清理422均保留；第一次中断重启pending精确且记录404无自动发布；第二次明确观察POST201后故意保留草稿停机（非丢网络ACK实测），再启record与pending精确；显式同body POST200 duplicate、exact saved record后ACK清除200，最终读回一致。最终四表3/0/0/0，root另只读query_only复核；三PID39528/36188/34512均reapexit1+双族两相complete无LISTEN，10035仍UNKNOWN。
+
+原52选择/5mixed/4source/override前后同，root及非作者另核当前SHA。独立审阅初版误套清理nlink1门槛导致reviewer exit1保留；共享Cargo producer的nlink2不违背只读复用合同，最终记录实际metadata及size/SHA，目标run0不改。执行run计量11文件550,701逻辑B（不含随后计量收据和此前准备文件，非全仓/物理空间测量）。仅新增E08后端typed草稿/冻结意图冷恢复有限资格，不验专门start/教程替换/mastery/UI/备份恢复或完整R6/CL；原模型FAIL/F05 PARTIAL、存储HOLD和未核历史授权不变。[实际旅程与分层证据](../history/teaching-plan-observation-20261031/DRAFT-RECOVERY.md)。

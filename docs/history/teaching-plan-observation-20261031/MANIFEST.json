@@ -384,5 +384,141 @@
   "root_review": {
     "path": ".project-local/runs/be268a2d33/obsrev1/artifacts/root-review.json",
     "scope": "Exact source, terminal receipts, F03 nine inputs and four critical runtime members; not a second complete runtime rehash."
+  },
+  "draft_recovery": {
+    "record": "DRAFT-RECOVERY.md",
+    "status": "FINITE_E08_TYPED_DRAFT_HTTP_PASS_NOT_FULL_E08",
+    "run": "e08-a208217f",
+    "source_commit": "387c6898bd9ba7fcf29fa59b3bc2bc9010ba2944",
+    "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_consistent": true,
+    "actual_exit_code": 0,
+    "wrapper_exit_code": 0,
+    "facts": {
+      "business_http": 19,
+      "owned_core_starts": 3,
+      "cold_interruptions": [
+        "UNADMITTED_PENDING",
+        "OBSERVED_201_ADMITTED_NOT_CLEARED"
+      ],
+      "network_ack_lost_tested": false,
+      "stale_revision_status": 409,
+      "clear_unadmitted_status": 422,
+      "explicit_first_create_status": 201,
+      "explicit_duplicate_status": 200,
+      "exact_saved_ack_status": 200,
+      "runtime_copies": 0,
+      "worker_jobs_requested": 0,
+      "model_requests": 0,
+      "counts": {
+        "teaching_records": 3,
+        "jobs": 0,
+        "learning_events": 0,
+        "learning_assessments": 0
+      },
+      "selected_current_sha_rechecked": 52,
+      "mixed_current_sha_rechecked": 5,
+      "source_current_sha_rechecked": 4,
+      "owned_pids": [
+        39528,
+        36188,
+        34512
+      ],
+      "owned_exits": [
+        1,
+        1,
+        1
+      ],
+      "socket10035": "UNKNOWN",
+      "not_qualified": [
+        "whole_R6_E08",
+        "UI",
+        "mastery",
+        "backup_restore",
+        "full_CL",
+        "F05"
+      ]
+    },
+    "exact_run_storage": {
+      "schema": "aaos.exact-owned-run-output-size/v1",
+      "run": "e08-a208217f",
+      "observed_logical_bytes": 550701,
+      "files": 11,
+      "runtime_payload_copies": 0,
+      "limits": "exact new run metadata only; excludes this subsequently written receipt; not whole-project/physical allocation measurement"
+    },
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/R6-HUMAN-DRAFT-NEXT.md",
+        "bytes": 10903,
+        "sha256": "97e2a45a838ba691f1376a7b084c284290c7e9a689c175bf2762be5bbffe7668"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6_e08_draft_http.py",
+        "bytes": 20425,
+        "sha256": "384855b7e31b481247c1d7d4ad211d001b7b59196765b5889831e67b7d8f8686"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6_e08_draft_http_v2.py",
+        "bytes": 20572,
+        "sha256": "c69407486f0bf0df5fb8f19e987ca8d4c6d334947d62692be06f8927102cc77b"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6_e08_v1_to_v2.patch",
+        "bytes": 2116,
+        "sha256": "4b4a30d2c5b0cbb3409d1f5c8e93148e94c4fa0bf0578535ccca80966f91b13d"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/ROOT-E08-REVIEW.json",
+        "bytes": 771,
+        "sha256": "6ffb539b8a7d6fc8d6d8ff09fc7719ac504270d38c96781fd5849d0633ab6e58"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/e08-a208217f/artifacts/execution.json",
+        "bytes": 1550,
+        "sha256": "03ba357738be62813cd06269892c0dd3f1ee788c8e0b400684e572858fd7002e"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/e08-a208217f/logs/execution.log",
+        "bytes": 174,
+        "sha256": "2606e268c28f309639221deaafef48475d9392c87c3a09fffb29346fd0bc2fe5"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/e08-a208217f/artifacts/e08-result.json",
+        "bytes": 84718,
+        "sha256": "17f968b990df8ab7924897d6020f30e9a082e1a934f6f8a65b3c4d8342817196"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/e08-a208217f/artifacts/e08-pre-run-freeze.json",
+        "bytes": 14115,
+        "sha256": "36350880a98c43220f75b19f28799420592c8d03f07d60e45cdad02a44a78430"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/e08-a208217f/artifacts/ROOT-POSTRUN-REVIEW.json",
+        "bytes": 645,
+        "sha256": "32fc82078a7f744601f7fe33c69e36cb8daf3180eb47b4d38df813ad7b686713"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/e08-a208217f/artifacts/OUTPUT-SIZE.json",
+        "bytes": 307,
+        "sha256": "909f03830506ede40a208f36452ed4daff9650d3ec54e5c5974b1db9923b77c1"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/E08-STATIC-REVIEW-V2.json",
+        "bytes": 5718,
+        "sha256": "f4c78f759168f88e7b1747bb837f5dc12c40858de069ac518263b45821c77854"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/E08-POSTRUN-REVIEW.json",
+        "bytes": 7924,
+        "sha256": "a686d2fbc0ad45536782ecdbc8e0e3df0f349a16199f7a774fc6553b737b5d93"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/E08-POSTRUN-REVIEW-FAILED-v1.json",
+        "bytes": 544,
+        "sha256": "35eb93e00f4dbd1e6dc3e3ef8ec2b6d80b58fb6438957612d61d4fff9c7e1618"
+      }
+    ],
+    "review_failure_note": "Independent reviewer initially applied unrelated cleanup nlink1 constraint to readonly shared Cargo producer; target0 unaffected. Final report records producer nlink2 and exact size/SHA. Prior V2 frozen report already all_current_nlink1=false; previous chat summary overstatement corrected without rewriting report."
   }
 }
