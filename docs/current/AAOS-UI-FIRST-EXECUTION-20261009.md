@@ -2974,3 +2974,10 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 ### 2026-10-31 六源公共重复载荷当前完整SHA与身份
 
 `batchhash-6c4aae2b`只读六历史portable源对V12保留端：每源19709项／1350213438B，源合计118254路径／8101280628B完整SHA均匹配；逐relative七个Windows身份独立、nonreparse/nlink1且读前后/重开同。28个Host/公共管理项另核、七manifest前后同；errors0，actual/wrapper0、clean961554cd源码一致。root重算19709映射行与七声明逐项相符；restore-map22499572B/SHA17ca4402…，主要proof22521385B，非物理收益。仅取得当前字节/身份层，33denied名不探，消费者/有效回滚/ownerACL/DELETE/fresh全占用及实际持久清理仍未资格化，删除搬迁载荷复制ACL0，不用旧V11计数直接操作本批。[16份身份、精确六源和后继边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/BATCH-CURRENT.md)；项目整体及原失败保持PARTIAL。
+
+
+### 2026-10-31 六源精确公共重复叶清理及独立POST
+
+既有Owner条件授权下，消费者/恢复合同、当前owner/DACL/DELETE/别名及六fresh全RM只读资格闭合后，仅一次执行`batchdel-40e21d2a`：六源每19709项，合计118254公共重复叶/8101280628源路径逻辑B；118254原生disposition及持久COMMIT、500963close全1，六对全部闭合，无cleanup error。后继`batchpost-b71be9b1`独立确认全部源WinError2缺失、19709保留件完整SHA/原WinID及35公开保护项原SHA/ID一致，errors0；两run actual/wrapper0、clean96e43008源码一致。目录/ACL/载荷复制/他人进程操作0，33denied名仍不探。完整恢复未演练，历史重放须先排他恢复原相对路径并重新核新身份；旧FAIL/PARTIAL与旧false收据不改。[部署、原收据身份及恢复](../history/storage-cleanup/2026-10-31-portable-pair-qualification/BATCH-DEPLOYMENT.md)。
+
+一次`batchsize-12792afb`可读下界142280381205→134357299417B、差−7923081788B，PARTIAL/actual-wrapper1；674错误/243私有/581布局原列表逐项不变，NO_NEW_GROWTH_TRIGGER不是预算通过。四具名hash/eligibility/actual/POST run共184414241逻辑B，非物理释放或全仓原子净值。存量归属/规范化、producer大包增长门禁仍待后继；静态复核发现复制到EOF可突破尺寸门槛，候选已转有界copy，尚未应用/测试。F05第二题length未完成根因未确认，不强行调参重试，真实资格仍FAIL；完整J1/CL/R6及整体PARTIAL，无UI构建/上传/Green/真实库操作。
