@@ -28,6 +28,32 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/search/semantic:
+    post:
+      summary: Explicit bounded query-time ranking of current Core-owned accepted knowledge
+      description: No caller corpus, provider/model override, directory read, persistent vector index or vault mutation. HTTP 200 may be EMPTY, PARTIAL or UNAVAILABLE. No automatic retry or FTS replacement. Uses the existing launch credential and local worker configuration.
+      x-core-operation: semantic_search
+      x-core-deadline-seconds: 90
+      x-desktop-transport-seconds: 135
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: './core-document.schema.json#/$defs/SemanticSearchInput'}
+      responses:
+        "200":
+          description: Bound ranking projection; complete is separate from HTTP success
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/SemanticSearchDto'}
+        "401": {description: Invalid launch credential; AAK-AUTH-001}
+        "403": {description: Browser Origin refused; AAK-AUTH-002}
+        "409": {description: Knowledge or source revision changed; AAK-CON-002}
+        "422": {description: Invalid query/request or eligible body exceeds capacity; AAK-VAL-001}
+        "500": {description: Snapshot unavailable; AAK-WORKER-001}
+        "502": {description: Invalid worker rows or provider identity drift; AAK-WORKER-001}
+        "503": {description: Worker unavailable; AAK-WORKER-001; retryable true does not request automatic replay}
+        "504": {description: Overall deadline exceeded; AAK-WORKER-001; retryable false}
   /api/v1/workspace/operation-failures/read:
     post:
       operationId: readOperationFailureLog

@@ -68,19 +68,21 @@ def asr_model_name(donor: Path) -> str:
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
                               asr_model: Path | None = None, vc_runtime: Path | None = None) -> Path:
-    """Prepare locked Python, then delegate the complete layout to the authority."""
-    repository = repository.resolve()
-    destination = destination.resolve()
+    """Prepare locked Python directly in the authoritative fresh backend root."""
+    repository = runtime_paths.safe_path(repository)
+    destination = runtime_paths.safe_path(destination)
+    core = runtime_paths.safe_path(core)
+    if asr_model is not None:
+        asr_model = runtime_paths.safe_path(asr_model)
     if destination.exists():
         raise RuntimeError(f"candidate destination already exists: {destination}")
     vc_runtime = resolve_vc_runtime(vc_runtime)
-    donor = destination.with_name(destination.name + "-python-input")
-    staged_python = prepare_bundle_runtime(repository=repository, destination=donor)
+    environment = runtime_build_environment(repository)
+    staged_python = destination / "runtime/python.exe"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
     tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=repository, text=True).strip()
     version = json.loads((repository / "frontend/package.json").read_text(encoding="utf-8"))["version"]
     command = [
-        sys.executable, "-B", str(repository / "scripts/release/stage_backend_runtime.py"),
         "--core", str(core.resolve()), "--runtime", str(staged_python.parent),
         "--workers", str(repository / "services/python-workers"),
         "--shared", str(repository / "shared/learning_scheduler.py"),
@@ -91,9 +93,26 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
     if asr_model is not None:
         command += ["--asr-model", str(Path(asr_model).resolve()),
                     "--asr-model-name", asr_model_name(Path(asr_model))]
-    subprocess.run(command, cwd=repository, check=True)
+    authority = _backend_stager(repository)
+    timings = BuildTimings(Path(environment["ARCHEAXIS_RUN_ROOT"]) / "artifacts", environment)
+    with timings.stage("backend-runtime-in-place") as measured:
+        measured["destination"] = str(destination)
+        result = authority.main(command, _runtime_environment=environment,
+            _runtime_preparer=lambda root: prepare_bundle_runtime(
+                repository=repository, destination=root,
+                _backend_in_place=True, _environment=environment))
+        if result != 0:
+            raise RuntimeError("authoritative in-place backend staging failed")
     clear_cached_bundle_resources(repository=repository)
     return destination / "runtime/python.exe"
+
+
+def _backend_stager(repository: Path):
+    spec = importlib.util.spec_from_file_location("desktop_backend_stager",
+        repository / "scripts/release/stage_backend_runtime.py")
+    authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(authority)
+    return authority
 
 
 def resolve_vc_runtime(explicit: Path | None = None) -> Path:
@@ -191,25 +210,38 @@ def runtime_build_environment(repository: Path) -> dict[str, str]:
     return env
 
 
-def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
+def prepare_bundle_runtime(*, repository: Path, destination: Path,
+                           _backend_in_place: bool = False, _environment: dict | None = None) -> Path:
     if sys.version_info[:2] != (3, 12):
         raise RuntimeError(
             "请使用 Python 3.12 制备桌面运行时；当前执行解释器为 "
             f"Python {sys.version_info[0]}.{sys.version_info[1]}。"
         )
-    repository = repository.resolve()
-    destination = destination.resolve()
+    if _backend_in_place:
+        repository = runtime_paths.safe_path(repository)
+        destination = runtime_paths.safe_path(destination)
+    else:
+        repository = repository.resolve()
+        destination = destination.resolve()
     uv = shutil.which("uv")
     if uv is None:
         raise RuntimeError("uv is required to prepare the desktop runtime")
 
-    env = runtime_build_environment(repository)
+    env = dict(_environment) if _backend_in_place and _environment is not None else runtime_build_environment(repository)
+    if _backend_in_place:
+        # This build process only: uv's shared cache must not hardlink the final runtime.
+        env["UV_LINK_MODE"] = "copy"
     timings = BuildTimings(Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts", env)
     with timings.stage("python-copy") as copy:
-        staged_python = stage_runtime(repository=repository, destination=destination)
+        staged_python = (stage_runtime(repository=repository, destination=destination, _backend_in_place=True)
+                         if _backend_in_place else stage_runtime(repository=repository, destination=destination))
         copy["bytes"] = sum(path.stat().st_size for path in staged_python.parent.rglob("*") if path.is_file())
-    requirements = destination / "requirements.locked.txt"
-    wheels = destination / "wheels"
+    preparation = (Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts/python-preparation"
+                   if _backend_in_place else destination)
+    if _backend_in_place:
+        preparation.mkdir(exist_ok=False)
+    requirements = preparation / "requirements.locked.txt"
+    wheels = preparation / "wheels"
     # The pinned setuptools backend builds in place even when uv's wheel output
     # and isolated environment are routed elsewhere. Its command options must
     # also route egg_info and build intermediates; otherwise root drift returns.
@@ -285,6 +317,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         [
             str(staged_python),
             "-I",
+            *(["-B"] if _backend_in_place else []),
             "-c",
             "import app.runtime_entrypoint, fastapi, uvicorn; print('installed runtime imports passed')",
         ],

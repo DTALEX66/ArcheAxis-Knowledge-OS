@@ -1,0 +1,231 @@
+{
+  "schema": "aaos.backend-runtime-in-place-history/v1",
+  "status": "DEPLOYED_SYNTHETIC_127_PASS_AT_PRE_STYLE_SNAPSHOT_POST_STYLE_NEW_FILE_RUFF_PASS_REPOSITORY_GATE_PENDING",
+  "authorship": {
+    "mode": "direct ignored post-terminal authoring; not canonical",
+    "source_writer": "root only",
+    "payload_copied": false
+  },
+  "deployment": {
+    "before_authority": {
+      "path": ".project-local/runs/be268a2d33/sci-evidence1/artifacts/prepared-runtime-deployment.json",
+      "bytes": 1797,
+      "sha256": "a9cf1366726ff84e9b7bdfbe1ae3a788185e0751b0deecb89897dadf2f49e0b9"
+    },
+    "before_sha256": {
+      "desktop/scripts/prepare_bundle.py": "9044cc36bc7b2bb6e2d52095ddd44850348edf45ba6bd86d945cc00ae68b560c",
+      "desktop/scripts/stage_runtime.py": "315da0876384d2eef2701e772074b338150066650815add1da9b099f2822064c",
+      "scripts/release/stage_backend_runtime.py": "51fe479853c685b06c7c3ee292e1fb8abef43fba1450250c3d681f622dc0025c",
+      "tests/test_backend_in_place.py": null,
+      "tests/test_desktop_staging.py": "9cad1b455c6e488dc2937f191e415341e74313c6e24363d8abb3bcf8fb03d971",
+      "tests/runtime-paths/test_build_timing.py": "fdc0b7e8c454826097f680ac88b702bec69732d1119d70dcfc78fcf68f98f7fc"
+    },
+    "original_candidate_patch_sha256": "bc6ea92492abd25790ec1ee6df8a6ab9cfb29fa855f92bf7b4e87939fbb6b4d7",
+    "final_source_files": {
+      "desktop/scripts/prepare_bundle.py": {
+        "path": "desktop/scripts/prepare_bundle.py",
+        "bytes": 20010,
+        "sha256": "1e66dc8443b2992769235eba3c4cbb3bcd6ad391f2c2718131c5012fafe2ab01"
+      },
+      "desktop/scripts/stage_runtime.py": {
+        "path": "desktop/scripts/stage_runtime.py",
+        "bytes": 2408,
+        "sha256": "459c494b87c91820ab5e27d88f410c6891d07df10d7e361f41ff718dfda856be"
+      },
+      "scripts/release/stage_backend_runtime.py": {
+        "path": "scripts/release/stage_backend_runtime.py",
+        "bytes": 60754,
+        "sha256": "e425106e0956330870171687b135bbd6203b1fb3e689088829723824e3a88bcf"
+      },
+      "tests/test_backend_in_place.py": {
+        "path": "tests/test_backend_in_place.py",
+        "bytes": 19505,
+        "sha256": "639c6446230c0b7a687c971089452d0f30d1ab56a1ff6ab2bc132b22ffd0bf09"
+      },
+      "tests/test_desktop_staging.py": {
+        "path": "tests/test_desktop_staging.py",
+        "bytes": 18310,
+        "sha256": "dbe7ce39ac3e456fd0180536692c5fc7ae17d493108f4485079325ae4eaa7c08"
+      },
+      "tests/runtime-paths/test_build_timing.py": {
+        "path": "tests/runtime-paths/test_build_timing.py",
+        "bytes": 2529,
+        "sha256": "821c00bd047ea207d80d795264a618e630cad2affeb452d7256ce78eca5613c9"
+      }
+    }
+  },
+  "qualification": {
+    "candidate": {
+      "run": "spr-pyinput5",
+      "count": 127,
+      "pytest_exit_code": 0,
+      "receipt_exit_code": 0,
+      "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+      "source_consistent": true
+    },
+    "formal_pre_style": {
+      "run": "spr-pa1",
+      "count": 127,
+      "seconds": 19.59,
+      "pytest_exit_code": 0,
+      "strict_ruff_exit_code": 1,
+      "strict_ruff_errors": 11,
+      "new_errors": 3,
+      "existing_errors_preserved": 8,
+      "overall_status": "FAIL",
+      "receipt_exit_code": 1,
+      "source_consistent": true,
+      "source_patch_sha256": "41b112a09bf8bc7eb76598e351c7b1344f24c2504771d8e958e47e9f90088906",
+      "qualified_six_file_sha256": {
+        "desktop/scripts/prepare_bundle.py": {
+          "bytes": 20010,
+          "sha256": "1e66dc8443b2992769235eba3c4cbb3bcd6ad391f2c2718131c5012fafe2ab01"
+        },
+        "desktop/scripts/stage_runtime.py": {
+          "bytes": 2408,
+          "sha256": "459c494b87c91820ab5e27d88f410c6891d07df10d7e361f41ff718dfda856be"
+        },
+        "scripts/release/stage_backend_runtime.py": {
+          "bytes": 60754,
+          "sha256": "e425106e0956330870171687b135bbd6203b1fb3e689088829723824e3a88bcf"
+        },
+        "tests/test_backend_in_place.py": {
+          "bytes": 19515,
+          "sha256": "c91aaed94fc1ca33ffe2f1ba93ef6050dd7e45db4de07beec342991b2a48bd28"
+        },
+        "tests/test_desktop_staging.py": {
+          "bytes": 18309,
+          "sha256": "820bfd8d33aeef750d5e90084e0b4f3a1eba3f93048c5c7b71e65f4b4039d025"
+        },
+        "tests/runtime-paths/test_build_timing.py": {
+          "bytes": 2529,
+          "sha256": "821c00bd047ea207d80d795264a618e630cad2affeb452d7256ce78eca5613c9"
+        }
+      },
+      "pytest_arguments": [
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\spr-pa1\\tmp\\p",
+        "tests/test_desktop_staging.py",
+        "tests/test_backend_runtime_safety.py",
+        "tests/test_app_local_cpp_runtime.py",
+        "tests/runtime-paths/test_build_timing.py",
+        "tests/test_stage_backend_runtime_routes.py",
+        "tests/test_desktop_route_registration.py",
+        "tests/test_backend_in_place.py"
+      ],
+      "loading": "Actual formal source and test paths; no candidate overlays",
+      "tmp_path": "Fixture directory shortening only, canonical run/tmp/t/<counter>, Windows MAX_PATH mitigation",
+      "warning": "Unknown cache_dir after disabling cacheprovider"
+    },
+    "post_style": {
+      "run": "pa2",
+      "command": [
+        ".venv/Scripts/ruff.exe",
+        "check",
+        "--no-cache",
+        "tests/test_backend_in_place.py"
+      ],
+      "receipt_exit_code": 0,
+      "source_consistent": true,
+      "source_patch_sha256": "97e5e8954465d79ac7167e1c4e631b433b741d47f5424f6081e06c8a0cafd58a",
+      "coverage": "strict Ruff of actual new test only; no post-style 127 behavior rerun",
+      "style_only_changes": "sort imports and remove unused sys in new test; add import grouping blank line in rewritten existing test function"
+    },
+    "repository_existing_ruff_gate": {
+      "select": [
+        "E9",
+        "F63",
+        "F7",
+        "F82"
+      ],
+      "status": "PENDING_ROOT_FINALRUN"
+    },
+    "real_runtime_build_install_download_VM_model_count": 0
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pyinput5/artifacts/execution.json",
+      "bytes": 10794,
+      "sha256": "6bc420127efb6ce61b135e79ce0fc3540f70dee70367744c4583724e44528ffb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pyinput5/artifacts/fixture-review.json",
+      "bytes": 4132,
+      "sha256": "2e22ec57bb8c6ea29065ea682895b1a4b2e1a1d3085329b4c4d9d89251c2ea26"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pyinput5/artifacts/backend-in-place-candidate.patch",
+      "bytes": 49568,
+      "sha256": "bc6ea92492abd25790ec1ee6df8a6ab9cfb29fa855f92bf7b4e87939fbb6b4d7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pa1/artifacts/execution.json",
+      "bytes": 3469,
+      "sha256": "ae790113830668951a4c52acfe06669f9f469a6d76071d39802f326c3bf87267"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pa1/artifacts/actual-source-regression.json",
+      "bytes": 2329,
+      "sha256": "8ec695bf05f3dedb4b034bef17572dbc24d72332513079b603779d57bfd2084e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pa1/logs/ruff.log",
+      "bytes": 5541,
+      "sha256": "ad2718732cb1f32c9ceb8006825d099731a03a78ba698758068b6f933e2e3f69"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pa1/artifacts/post-run-lint-fix/lint-classification.json",
+      "bytes": 5369,
+      "sha256": "399ec12304452c3089f7c20d9d7199365a43e4deff23bf9be19cbe903af166a7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pa1/artifacts/post-run-lint-fix/new-lint-only.patch",
+      "bytes": 855,
+      "sha256": "be8b255f510e753b316c3126cf89b63add7cf80e085dd5127885324d354e646e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/pa2/artifacts/execution.json",
+      "bytes": 1251,
+      "sha256": "4629373d538bc60f680f8e55ec2440066dcdf8b060a8f854a1330ecea799e3dd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/pa2/logs/execution.log",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    }
+  ],
+  "prior_failures": [
+    {
+      "run": "spr-pyinput3",
+      "exit_code": 1,
+      "passed": 112,
+      "failed": 11,
+      "modified": false
+    },
+    {
+      "run": "spr-pyinput4",
+      "original_timing_baseline_exit_code": 1,
+      "candidate_exit_code": 0,
+      "candidate_passed": 123,
+      "baseline_log": {
+        "path": ".project-local/runs/be268a2d33/spr-pyinput4/logs/original-timing-baseline.log",
+        "bytes": 4711,
+        "sha256": "7536cc00d927c9fe3870605c6db6e4d90acf6838a90fb02e828e3023d6b17196"
+      }
+    }
+  ],
+  "readme": {
+    "path": ".project-local/runs/be268a2d33/spr-pyinput5/artifacts/post-run-handoff/README.md",
+    "bytes": 4002,
+    "sha256": "63139ce207922a60b679bc295dc1f46acbc55ecff05e828ea14fcbc493583222"
+  },
+  "remaining": [
+    "Root existing repository E9/F63/F7/F82 final gate",
+    "Real locked dependency build and full production packaging not executed",
+    "Installed runtime and product journey not executed"
+  ],
+  "rollback": "Only these 6 public source/test files; no payload or historical evidence deletion"
+}

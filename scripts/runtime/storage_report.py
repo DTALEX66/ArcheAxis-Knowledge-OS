@@ -550,13 +550,18 @@ def growth_review(report: dict, baseline: dict | None = None) -> dict:
     old_layout = set() if baseline is None else set(baseline.get("out_of_layout", []))
     new_layout = sorted(set(report["out_of_layout"]) - old_layout)
     over = [row["name"] for row in report["dev_root"] if row["over_budget"]]
-    # A frozen baseline acknowledges old retention debt, not unchecked new growth.
+    old_over = set() if baseline is None else {
+        row["name"] for row in baseline.get("dev_root", []) if row["over_budget"]
+    }
+    new_over = sorted(set(over) - old_over)
+    # A frozen baseline acknowledges old retention debt, not newly exceeded ceilings.
     growth_limit = 2 * 1024 ** 3
-    required = bool(new_layout or (delta is not None and delta > growth_limit) or
-                    (baseline is None and over))
+    required = bool(new_layout or new_over or
+                    (delta is not None and delta > growth_limit))
     return {"status": "REVIEW_REQUIRED" if required else "NO_NEW_GROWTH_TRIGGER",
             "delta_readable_bytes": delta, "growth_review_bytes": growth_limit,
-            "over_budget_classes": over, "new_out_of_layout": new_layout,
+            "over_budget_classes": over, "new_over_budget_classes": new_over,
+            "new_out_of_layout": new_layout,
             "measurement_status": report["measurement_status"], "deletion_authorized": False}
 
 

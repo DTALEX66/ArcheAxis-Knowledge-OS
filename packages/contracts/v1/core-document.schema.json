@@ -4893,6 +4893,303 @@
         }
       },
       "additionalProperties": false
+    },
+    "SemanticSearchInput": {
+      "type": "object",
+      "properties": {
+        "q": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "q"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticCandidateDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "status": {
+          "const": "accepted"
+        },
+        "receipt_hash": {
+          "type": "string"
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "current_source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "knowledge_version",
+        "body",
+        "status",
+        "receipt_hash",
+        "anchor_id",
+        "source_id",
+        "source_revision",
+        "current_source_revision"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticEmbeddingRankDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "knowledge_version",
+        "score",
+        "anchor_id",
+        "source_id",
+        "source_revision"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticRerankDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "yes_logprob": {
+          "type": "number",
+          "maximum": 0
+        },
+        "no_logprob": {
+          "type": "number",
+          "maximum": 0
+        },
+        "reasoning_tokens": {
+          "const": 0
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "knowledge_version",
+        "score",
+        "anchor_id",
+        "source_id",
+        "source_revision",
+        "yes_logprob",
+        "no_logprob",
+        "reasoning_tokens"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticBatchDto": {
+      "type": "object",
+      "properties": {
+        "candidate_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "worker_outcome": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "candidate_ids",
+        "worker_outcome"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticSearchDto": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "archeaxis.semantic-search/v1"
+        },
+        "q": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "\\S"
+        },
+        "status": {
+          "enum": [
+            "AVAILABLE",
+            "PARTIAL",
+            "UNAVAILABLE",
+            "EMPTY"
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticCandidateDto"
+          }
+        },
+        "embedding": {
+          "type": "object",
+          "properties": {
+            "complete": {
+              "type": "boolean"
+            },
+            "rank": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SemanticEmbeddingRankDto"
+              }
+            }
+          },
+          "required": [
+            "complete",
+            "rank"
+          ],
+          "additionalProperties": false
+        },
+        "reranker": {
+          "type": "object",
+          "properties": {
+            "complete": {
+              "type": "boolean"
+            },
+            "rank": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SemanticRerankDto"
+              }
+            }
+          },
+          "required": [
+            "complete",
+            "rank"
+          ],
+          "additionalProperties": false
+        },
+        "index_persisted": {
+          "const": false
+        },
+        "batches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticBatchDto"
+          }
+        },
+        "ranking_basis": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "q",
+        "status",
+        "complete",
+        "candidate_count",
+        "candidates",
+        "embedding",
+        "reranker",
+        "index_persisted"
+      ],
+      "additionalProperties": false
     }
   }
 }

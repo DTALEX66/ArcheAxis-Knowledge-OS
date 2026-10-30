@@ -2857,3 +2857,21 @@ R6一致性确认后，按原Owner精确清理授权部署126公开重复素材�
 [Native输入复用](../history/storage-cleanup/2026-10-31-native-input-reuse/README.md)部署有限adapter/guest模板/共享mode及反例测试，精确复用cnprep3三组6,477成员/1,984,670,438逻辑B，宿主不复制载荷。候选94tests+14subtests和唯一离线mapping VM通过：三输入只读、fresh输出、全部guest树SHA、三write-open拒绝、nonce/ownedID绑定、host全量事后重核、官方exact-ID停止后库存空；旧parent/安装/native/UI未执行。代理在具体脚本预审窗口完成前已开始该在途VM，root暂停消息后仅封存该ID，控制缺口和不确定消息时刻如实保留，无新VM或重试。
 
 实际部署`r6n1`在测试/prepare前发现既有ps1 CRLF过滤导致rawSHA差异即FAIL，原证据保留；`r6n2`核候选LF/部署CRLF双身份与同binding完整encoded命令相同，实际正式源码94tests+14subtests及prepare-only CLI0/source_consistent=true，未新开VM。每次避免宿主输入复制不等于已回收字节或业务全程零copy；旧guest仍复制source/合成快照，原native命令仅`.proposed`，未来完整输入/空output/owned生命周期重核和业务验收另行，整包producer全面替代PARTIAL。目录治理、F05/CL/J整体和Owner验收仍PARTIAL；UI/监控暂停、本地禁上传、Green和真实资料边界不变。
+
+#### 2026-10-31 类别预算越线与有限后端桥接补验
+
+[预算越线修复](../history/storage-cleanup/2026-10-31-budget-crossing/README.md)堵住baseline下的漏报：其他类别减少抵消总量时，新增超预算类别仍触发REVIEW_REQUIRED；已记录旧债和消债不额外触发。原spr-size5字节/PARTIAL不变，delta0只属内存反例，不是磁盘观察。实际正式源码28tests/Ruff最小门槛通过，growth及main分别REVIEW_REQUIRED/2，断言wrapper0；未新增全仓计量或删除。目录规则沿既有复核线澄清，不加自动清理或新allowlist。
+
+[semantic_search桥接](../history/semantic-search-bridge-20261031/README.md)只接通既有固定POST和query-only合同，保留EMPTY/AVAILABLE/PARTIAL/UNAVAILABLE、知识/来源版本身份与有限分数，拒绝额外模型、endpoint及候选权限；无UI调用器或新Runtime。实际headless Rust精确2/2、Schema和能力合同130/130、正常Vite CoreBridge62/62及scoped noEmit通过。首次Host缓存依赖不足与live PDF旧schema引用导致的失败保留；三个live引用、153个当前fixture引用及现有projection同步后再过正常门禁，不重签历史快照。headless使用现存Core tempfile3.27仅限测试，正式Host3.26 Cargo图未构建。具名输出8,619,586逻辑B，无输入载荷复制；共享缓存全量变化未测。实际语义模型质量、同安装候选及完整CL/F05未验。
+
+[Vault分隔符修复](../history/vault-separator-classification-20261031/README.md)以旧Core真实HTTP证实Windows/混合路径把.obsidian/.trash误归可导入；只提交七个合成路径字符串，不读vault正文。领域一行统一分隔符，实际当前源码API8/8、领域14/14，同行semantic合成4/4通过；旧HTTP RED与新源码GREEN分列，没有新exe/HTTP GREEN或新vault桥接授权。原自有Core terminate/reap exit1且端口关闭，不称优雅停止。三项均有精确源码/patch/轻量收据，root另核53个已登记身份；旧真实模型FAIL、其他保护目录和外溢不确定项、UI/监控及外发/Green/真实资料边界不变，整体仍PARTIAL。
+
+#### 2026-10-31 正式runtime生成者消除中间整树副本
+
+[Backend runtime直备](../history/storage-cleanup/2026-10-31-backend-runtime-in-place/README.md)修复当前CI代码实际调用的producer：既有stager绑定当前canonical run、独占fresh根后，内部callback直接准备最终runtime；默认CLI复制与donor保留不变。准备子进程copy link mode、link/nlink拒绝、VC三DLL和ASR精确成员预期SHA、最终成员集与owner/source复核保留，失败不删旧资料；metadata/wheel/timing沿独立run，不再留下第二整树input。新增真实junction负控通过，但没有长期OS句柄或原子TOCTOU保证。
+
+候选spr-pyinput5合成127通过；实际正式七测试路径spr-pa1无source overlay，127通过/pytest0，但严格Ruff11项导致总run FAIL，原收据不重写。HEAD对照8项既有，3项新增仅import/空行/未用sys，已精确修正；pa2实际新文件严格Ruff0。127资格仍绑定style前六SHA，最终两test style后SHA分列，不移绑。Windows fixture tmp_path只缩短至canonical run/tmp/t/<counter>避MAX_PATH，不改输入断言；禁cacheprovider后的单条cache_dir警告保留。旧spr-pyinput3的112P/11F及原timing前提失败保留，未降Python3.12版本守卫。全仓既有最小Ruff及静态/生成资格沿root后继最终run读取，历史候选中的pending不冒称已通过。
+
+真实uv/wheel构建/依赖安装/下载、应用构建、VM与模型本轮均0；没有当前磁盘节省字节或生产包资格。旧中间载荷未删除，其他native生产者、完整打包/安装和F05/CL/J仍按原未验边界接续；本批仅本地源码及轻量历史归档，不上传、不恢复UI/监控、不替换Green或覆盖真实资料。
+
+Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-in-place/ROOT-VERIFICATION.json)：fin4文档authority、路径、Git index规范、架构、Core DTO再生字节相等、能力投影Python/Node、Cargo fmt、bridge rustfmt与既有Ruff最小门槛共10项退出0，actual/wrapper0/source_consistent=true，绑定e792dadc+dirty patch bd4cb8b3…；21份实现/合同/测试实际字节SHA另列。该轻量收尾记录及本句在fin4之后发布，未改实现，不称clean commit或全部严格lint通过。root对两批精确manifest分别核53/36身份，原spr-pa1总FAIL保留；两轮元数据、报告、源码与轻量收据核验不扩成全仓扫描、载荷迁移/删除或产品验收。完整目标仍PARTIAL。

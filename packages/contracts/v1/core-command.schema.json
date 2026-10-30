@@ -134,7 +134,8 @@
         "ingest_batch_get",
         "ingest_member_import",
         "ingest_member_enqueue",
-        "ingest_member_relations_apply"
+        "ingest_member_relations_apply",
+        "semantic_search"
       ]
     },
     "payload": {

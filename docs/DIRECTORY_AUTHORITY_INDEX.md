@@ -84,7 +84,7 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 
 1. `dev.py` 为新 run 创建 `run-metadata.json`，记录归属、worktree、源码身份、创建时间和 `UNCLASSIFIED_PRESERVE`。14 天是复核提醒，不是删除期限；旧未分类 run 同样保留待核。
 2. `storage_report.py` 计入源码、Git、环境、规范目录及散落目录的可读大小；不跟随 reparse point，不扫描凭据/Agent 私有目录。访问/长路径失败与排除项单列，可读下界不冒充完整体积。
-3. 既有预算是复核线，编译缓存也计入。`--check-budgets` 可退出 2 触发审查，不能自动删除。相对同仓库 v2 基线新增规范外路径、净增超过 2 GiB，同样触发审查；基线承接旧债，不能把 PARTIAL 计量改成 PASS。
+3. 既有预算是复核线，编译缓存也计入。`--check-budgets` 可退出 2 触发审查，不能自动删除。相对同仓库 v2 基线新增规范外路径、类别首次超预算或净增超过 2 GiB，均触发审查；其他类别减少抵消总量不豁免新越线。基线承接有类别记录的旧债，不能把 PARTIAL 计量改成 PASS；有限反例与实际源码验证见[预算越线记录](history/storage-cleanup/2026-10-31-budget-crossing/README.md)。
 4. 大构建、打包、沙盒批次开始前和封存后各计量一次；单 run 预计超过 1 GiB，先记录载荷来源、共享方式、预计大小和保留理由。小测试不重复全仓扫描。生成者负责封存证据并清理可重建临时副本。
 5. 沙盒输入应按源码/候选/工具指纹复用已验证的只读输入，重试只生成独立输出；不默认复制整套仓库、解释器、PowerShell 和安装器。共享输入改造须验证 guest 权限、写入隔离和身份绑定。
 6. 目录规范化按“归属 → 消费者 → 目标与哈希 → 回退 → 执行 → 链接/行为验证”逐批处理。现有散落路径进入清单，不扩大 allowlist 掩盖问题，不一次批量改名破坏路径。
@@ -107,6 +107,8 @@ Owner 要求先清理项目体积、规范全部项目目录和文件，再推�
 Native 历史公开胶囊的有限准备入口为 [`scripts/runtime/native_inputs.py`](../scripts/runtime/native_inputs.py)，仅接受已审来源/完整清单指纹，复用现存三路输入，输出落当前独立 run。共享入口的 `--prepare-native-probe` / `--execute-native-probe` 只准备或验证映射；原 native 命令另存 `.wsb.proposed`，不在该模式执行。[有限验证与接续条件](history/storage-cleanup/2026-10-31-native-input-reuse/README.md)区分宿主不复制输入与 guest 业务仍有复制；未来业务须重核输入/空输出并单独资格，不从 mapping PASS 推出整包生产者全面替代。
 
 Legacy 备份探针 [`scripts/probes/backup_restore_probe.py`](../scripts/probes/backup_restore_probe.py) 沿 `dev.artifact_directory` 分配当前 run 下唯一 UUID，启动时不删除旧固定目录。其[实际合成库验证](history/storage-cleanup/2026-10-31-backup-probe-routing/README.md)不替代 Rust Core 备份/恢复验收；未知归属的旧散落资料继续保留。
+
+正式 backend candidate 的 [`prepare_bundle.py`](../desktop/scripts/prepare_bundle.py) 由既有 stager 独占创建 fresh 最终根，在该根直接准备 Python，不再先建完整 `*-python-input` 再复制一次。仅当前 canonical run 的内部 callback 使用该路径；默认独立 stager 仍复制 donor 并拒绝覆盖。锁定依赖、wheel 和 timing 留当前 run，`UV_LINK_MODE=copy` 只传准备子进程，拒绝 link/nlink、额外成员和非预期改动；失败保全，不启动删旧输出。其[合成资格与后继检查](history/storage-cleanup/2026-10-31-backend-runtime-in-place/README.md)不等于生产打包、实测回收或安装资格。
 
 ### 外溢追踪与迁移
 

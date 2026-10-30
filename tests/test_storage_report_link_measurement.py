@@ -410,7 +410,8 @@ def test_retained_build_cache_is_counted_against_review_ceiling(tmp_path, monkey
 
 def test_growth_review_retains_old_debt_but_flags_new_growth_and_layout():
     baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
-                'readable_bytes': 100, 'out_of_layout': ['old/']}
+                'readable_bytes': 100, 'out_of_layout': ['old/'],
+                'dev_root': [{'name': 'runs/', 'over_budget': True}]}
     current = {**baseline, 'dev_root': [{'name': 'runs/', 'over_budget': True}],
                'measurement_status': 'PARTIAL'}
     reviewed = report.growth_review(current, baseline)
@@ -426,3 +427,40 @@ def test_growth_review_retains_old_debt_but_flags_new_growth_and_layout():
     assert report.growth_review(current, baseline)['new_out_of_layout'] == ['new/']
     with pytest.raises(ValueError, match='same repository'):
         report.growth_review(current, {**baseline, 'repository': 'foreign'})
+
+
+def test_new_budget_crossing_is_reviewed_even_when_total_growth_is_offset():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': [],
+                'dev_root': [{'name': 'build/', 'over_budget': False},
+                             {'name': 'runs/', 'over_budget': True}]}
+    current = {**baseline, 'measurement_status': 'PARTIAL',
+               'dev_root': [{'name': 'build/', 'over_budget': True},
+                            {'name': 'runs/', 'over_budget': True}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == 'REVIEW_REQUIRED'
+    assert review['delta_readable_bytes'] == 0
+    assert review['new_over_budget_classes'] == ['build/']
+    assert review['measurement_status'] == 'PARTIAL'
+    assert review['deletion_authorized'] is False
+
+
+def test_paid_down_budget_debt_is_not_a_new_trigger():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': [],
+                'dev_root': [{'name': 'runs/', 'over_budget': True}]}
+    current = {**baseline, 'readable_bytes': 90, 'measurement_status': 'PASS',
+               'dev_root': [{'name': 'runs/', 'over_budget': False}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == 'NO_NEW_GROWTH_TRIGGER'
+    assert review['over_budget_classes'] == review['new_over_budget_classes'] == []
+
+
+def test_baseline_without_class_proof_cannot_hide_current_budget_debt():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': []}
+    current = {**baseline, 'measurement_status': 'PASS',
+               'dev_root': [{'name': 'runs/', 'over_budget': True}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == 'REVIEW_REQUIRED'
+    assert review['new_over_budget_classes'] == ['runs/']

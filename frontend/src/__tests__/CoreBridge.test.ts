@@ -131,3 +131,44 @@ it("accepts a real-shaped embedded relation receipt through the finite runtime v
  invoke.mockResolvedValue({status:200,body:{...body,links:[{...body.links[0],reason:"invented_render_success"}]}});
  await expect(coreCommand("ingest_member_relations_apply",{})).rejects.toMatchObject({status:502,code:"incompatible"});
 });
+
+
+function semanticFixture(status: "AVAILABLE"|"PARTIAL"|"UNAVAILABLE"|"EMPTY") {
+  const candidate={knowledge_id:"k_synthetic",knowledge_version:"k_synthetic",body:"SYNTHETIC accepted knowledge",status:"accepted",receipt_hash:"synthetic",anchor_id:null,source_id:null,source_revision:null,current_source_revision:null};
+  const rank={knowledge_id:candidate.knowledge_id,knowledge_version:candidate.knowledge_version,score:0.5,anchor_id:null,source_id:null,source_revision:null};
+  const empty=status==="EMPTY", available=status==="AVAILABLE", ranked=status==="PARTIAL"||available;
+  return {schema:"archeaxis.semantic-search/v1",q:"synthetic query",status,complete:available,candidate_count:empty?0:1,candidates:empty?[]:[candidate],embedding:{complete:ranked,rank:ranked?[rank]:[]},reranker:{complete:available,rank:available?[{...rank,yes_logprob:-1,no_logprob:-1,reasoning_tokens:0}]:[]},index_persisted:false,...(empty?{}:{batches:[{candidate_ids:[candidate.knowledge_id],worker_outcome:{document:{status}}}],ranking_basis:"SYNTHETIC query-time worker receipt"})};
+}
+
+it.each(["AVAILABLE","PARTIAL","UNAVAILABLE","EMPTY"] as const)("SIMULATED semantic %s retains its exact qualification",async status=>{
+  const body=semanticFixture(status);const invoke=vi.fn().mockResolvedValue({status:200,body});window.__TAURI__={core:{invoke}};
+  await expect(coreCommand("semantic_search",{body:{q:body.q}})).resolves.toEqual(body);
+  expect(invoke).toHaveBeenCalledWith("core_command",{request:{operation:"semantic_search",payload:{body:{q:body.q}}}});
+});
+it.each([{}, {body:{q:" "}}, {body:{q:"x".repeat(2049)}}, {body:{q:"q",model:"override"}}, {body:{q:"q",candidates:[]}}, {body:{q:"q"},endpoint:"https://example.invalid"}])("SIMULATED semantic invalid input never invokes native transport",async payload=>{
+  const invoke=vi.fn();window.__TAURI__={core:{invoke}};
+  await expect(coreCommand("semantic_search",payload)).rejects.toMatchObject({status:422});
+  expect(invoke).not.toHaveBeenCalled();
+});
+it.each(["query","count","foreign","version","duplicate","score","nonfinite","complete","batch","index","missing"])("SIMULATED semantic rejects %s readback",async mutation=>{
+  const body:any=semanticFixture("PARTIAL");
+  if(mutation==="query")body.q="different";
+  if(mutation==="count")body.candidate_count=2;
+  if(mutation==="foreign")body.embedding.rank[0].knowledge_id="foreign";
+  if(mutation==="version")body.embedding.rank[0].knowledge_version="other";
+  if(mutation==="duplicate")body.embedding.rank.push({...body.embedding.rank[0]});
+  if(mutation==="score")body.embedding.rank[0].score=2;
+  if(mutation==="nonfinite")body.embedding.rank[0].score=Infinity;
+  if(mutation==="complete")body.complete=true;
+  if(mutation==="batch")body.batches[0].candidate_ids=["foreign"];
+  if(mutation==="index")body.index_persisted=true;
+  if(mutation==="missing")delete body.candidates[0].knowledge_version;
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body})}};
+  await expect(coreCommand("semantic_search",{body:{q:"synthetic query"}})).rejects.toMatchObject({status:502,code:"incompatible"});
+});
+it.each([401,403,409,422,500,502,503,504])("SIMULATED semantic HTTP %s is not a ranking or raw diagnostic",async status=>{
+  const invoke=vi.fn().mockResolvedValue({status,body:{code:"AAK-WORKER-001",message:"SYNTHETIC_PRIVATE",retryable:status===503}});window.__TAURI__={core:{invoke}};
+  const error=await coreCommand("semantic_search",{body:{q:"synthetic query"}}).catch(error=>error);
+  if (!(error instanceof ApiError)) throw new Error("Expected semantic HTTP failure");
+  expect(error).toMatchObject({status});expect(error.message).not.toContain("SYNTHETIC_PRIVATE");expect(invoke).toHaveBeenCalledTimes(1);
+});
