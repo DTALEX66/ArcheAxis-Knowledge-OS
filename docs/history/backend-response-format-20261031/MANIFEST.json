@@ -318,7 +318,8 @@
     "prior_F05_failures": "PRESERVED",
     "F05_overall": "PARTIAL",
     "learning_effect": "NOT_ESTABLISHED",
-    "UI_or_installed_acceptance": false
+    "UI_or_installed_acceptance": false,
+    "phase": "FEATURE_CONTRACT_TEST_PHASE_ONLY; later real V2 is separately recorded"
   },
   "storage": {
     "pre_readable_bytes": 142872594863,
@@ -512,5 +513,171 @@
     "real_model_requests": 0,
     "F05": "PARTIAL",
     "model_support": "UNKNOWN"
+  },
+  "real_v2": {
+    "record": "REAL-V2.md",
+    "status": "FAIL_PRESERVED_SECOND_POSITIVE_INVALID_OUTPUT_LENGTH",
+    "qualification": "FINITE_MIXED_COMPONENTS_NOT_BPR1_PACKAGE",
+    "runs": [
+      {
+        "run": "v2meta-fdcea03b",
+        "source_commit": "152e66f6f58d163276c5899f2ea34f0968a32ed6",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/v2meta-fdcea03b/artifacts/execution.json",
+            "bytes": 1325,
+            "sha256": "f7309c51f9b57ce69c40db0b98b9a210877bcde6e80fe9dcc1784550c56123c2"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/v2meta-fdcea03b/logs/execution.log",
+            "bytes": 1169,
+            "sha256": "440a0a97d25c556429fe9a9926273db90433e18f50f36507aedc24d2643d69df"
+          }
+        ]
+      },
+      {
+        "run": "v2plan-7e4a093f",
+        "source_commit": "152e66f6f58d163276c5899f2ea34f0968a32ed6",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/v2plan-7e4a093f/artifacts/execution.json",
+            "bytes": 1634,
+            "sha256": "04779b75102be4bb2007a454975a5ebd6899846282b8aafd34beb27ec276baf5"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/v2plan-7e4a093f/logs/execution.log",
+            "bytes": 281,
+            "sha256": "b8541b7a0732acd100ccae6edefeaa76d262f5ea80e6e5e8c30ad7095333c625"
+          }
+        ]
+      },
+      {
+        "run": "v2pre-aeeb40a8",
+        "source_commit": "152e66f6f58d163276c5899f2ea34f0968a32ed6",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 0,
+        "exit_code": 0,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/v2pre-aeeb40a8/artifacts/execution.json",
+            "bytes": 1883,
+            "sha256": "43b8eefe25eb216be6a3d0d4724dd21dba949a30e9217e7a1239c42944eeba5e"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/v2pre-aeeb40a8/logs/execution.log",
+            "bytes": 115,
+            "sha256": "6d2eb1bf81b706d96d4cc523a8dbf70a565109b9587babe021670d415871286a"
+          }
+        ]
+      },
+      {
+        "run": "v2real-e06657fb",
+        "source_commit": "152e66f6f58d163276c5899f2ea34f0968a32ed6",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "child_exit_code": 1,
+        "exit_code": 1,
+        "evidence": [
+          {
+            "path": ".project-local/runs/be268a2d33/v2real-e06657fb/artifacts/execution.json",
+            "bytes": 1884,
+            "sha256": "bc4e53d8a246db42c8eb56d4dd0e82ac9b203bbb07e0fdb76b2f4608345ff3a7"
+          },
+          {
+            "path": ".project-local/runs/be268a2d33/v2real-e06657fb/logs/execution.log",
+            "bytes": 406,
+            "sha256": "e3dd802de07c35704222d695ff27cc3cec551d0dac524915a6070eb484fc1c82"
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/read_local_model_inventory_v2.py",
+        "bytes": 1823,
+        "sha256": "a9279f63015dca8fb87a427c197bd2d63a57814e6160651a43564e03be2ece34"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/METADATA-ALLOCATION.json",
+        "bytes": 338,
+        "sha256": "dc43bc5a4a077147d439107622da15fdd62ade62a5d72f23becf68fa5d81b1bb"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/ROOT-MIXED-PREFLIGHT-REVIEW.json",
+        "bytes": 496,
+        "sha256": "2e8a0f38cad8d9ed6d8c63e9f8f7cc0bc98526938adfd81690d24d20c9365ef0"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/v2-proposal/ROOT-MIXED-EXECUTION-REVIEW.json",
+        "bytes": 917,
+        "sha256": "d84bdbd53f47c1f2d247918f487e12179540dfe1b6f96eff214e483f297074c0"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2meta-fdcea03b/artifacts/readback.json",
+        "bytes": 1857,
+        "sha256": "b1acc4fad7baafdeaf59731df923aedc257ed4eb1dfeaa4da933b522656420d7"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2plan-7e4a093f/artifacts/mixed-v2-plan.json",
+        "bytes": 15979,
+        "sha256": "f2fc5f422980419cb4bcc229462b5e8ab8f7bc41db53ae6b3d7d3790981e0334"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2pre-aeeb40a8/artifacts/real-asset-result.json",
+        "bytes": 12296,
+        "sha256": "ddeaeee72af4bea90af410074ad0c280244a82df958735b420784d4216d6bfe9"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2real-e06657fb/artifacts/real-asset-result.json",
+        "bytes": 118035,
+        "sha256": "e26dcde151b7acee5249f95809084eb3d14926ae6f01eb4dbe1aa2e3de9d593c"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2real-e06657fb/artifacts/pre-inference-freeze.json",
+        "bytes": 21724,
+        "sha256": "bda22691cc9f91051597244be8be499b8a493c7a3ed0d31238e75fd9e7d17a3d"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2real-e06657fb/artifacts/asset-journey/receipt.json",
+        "bytes": 48245,
+        "sha256": "d2f3dca56194706487e8ec6bd15b434816b7db367c845530667a04c4419ad32e"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/v2real-e06657fb/artifacts/ROOT-POSTRUN-REVIEW.json",
+        "bytes": 878,
+        "sha256": "2419c62fb60ed2d5691814d4bcb1d1093dcb93330c1f609b5f17fa5f336f7230"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/spr-fmtplan1/artifacts/f05-mixed-review/V2REAL-POSTRUN-REVIEW.json",
+        "bytes": 10030,
+        "sha256": "2e46782903dc7b077bb96b123b574e3e5e8cdb7318a255a6d7901498dc2d9437"
+      }
+    ],
+    "facts": {
+      "core_http": 18,
+      "positive_candidates": 2,
+      "transport_count": "NOT_DIRECTLY_INSTRUMENTED",
+      "first": "HTTP200_CORRECT_VALID_STOP_PERSISTED_EXACT",
+      "second": "HTTP503_INVALID_OUTPUT_CONTENT_LENGTH_2048_TOKENS_NOT_PUBLISHED",
+      "runtime_copied_files": 4,
+      "runtime_copied_bytes": 27932123,
+      "profile_generated": true,
+      "selected_members_unchanged": 52,
+      "mixed_members_unchanged": 5,
+      "own_core_reaped_exit": 1,
+      "socket10035": "UNKNOWN",
+      "exact_port_50971": "COMPLETE_IPV4_IPV6_NO_LISTEN_TWO_SNAPSHOTS",
+      "learning_effect": "NOT_ESTABLISHED",
+      "F05": "PARTIAL"
+    }
   }
 }

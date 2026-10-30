@@ -181,5 +181,72 @@
         "sha256": "80f347dcb7a597c8ff3f2eace3f9b4cee975866396671573d724dd7c2ea1640d"
       }
     ]
+  },
+  "component_terminal": {
+    "run": {
+      "run": "rm125-aff6b59c",
+      "source_commit": "152e66f6f58d163276c5899f2ea34f0968a32ed6",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "evidence": [
+        {
+          "path": ".project-local/runs/be268a2d33/rm125-aff6b59c/artifacts/execution.json",
+          "bytes": 1328,
+          "sha256": "a0372cc31e25d5750ccfd12028219c7dad99c9489d0dc58778f08af4e293ec0c"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/rm125-aff6b59c/logs/execution.log",
+          "bytes": 474,
+          "sha256": "625aa200bd3ba3340327754f637adba62fc7ffa0216336fd8c5b2cbe9b9c86f5"
+        }
+      ]
+    },
+    "status": "UNKNOWN_REGISTER29_GETLIST_NOT_EXECUTED_END0",
+    "resources": 256,
+    "pairs": 125,
+    "guards": 6,
+    "cleanup_qualified": false,
+    "diagnostic_branch": "STOPPED_NO_FURTHER_RM_OR_ADAPTIVE_RETRIES",
+    "source_logical_bytes_retained": 1350261264,
+    "deleted_or_moved": 0,
+    "evidence": [
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_rm_component125.py",
+        "bytes": 8609,
+        "sha256": "bec4747ab439d11417701f563b31fe7f5cb493da1c79c3e6edf66e91629aac7d"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/probe_rm_component125_v2.py",
+        "bytes": 9786,
+        "sha256": "360115544811abb8a1dbec40b6b44cf4360be14b15cff356eb76da3482ae50a1"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/rm-component125-pins.json",
+        "bytes": 15290,
+        "sha256": "1493ee8b3fde86412af31fc1e88090567abc5605879201e06901933f34c3d2d7"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/rm-component125-v2.diff",
+        "bytes": 3329,
+        "sha256": "b4d2731a54848372156abeaf822384026eeac8d39a1ab377567e2e85511f5cfb"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/ROOT-RM-COMPONENT125-REVIEW.json",
+        "bytes": 397,
+        "sha256": "3ed082bf55bd69dc84f9884b013c06a835ca1517729da1c6d60f83f1e93ea1df"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/rm125-aff6b59c/artifacts/rm-component125.json",
+        "bytes": 281863,
+        "sha256": "abf7e6cd084c994900cfcb4bb37dabb8619f01ed3d62a4c9a6dfa0087f33a855"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/rm125-aff6b59c/artifacts/TERMINAL-REVIEW.md",
+        "bytes": 1215,
+        "sha256": "689b7bd44cdd77c3d6568a6895606c913a23cd5b1df6270326aa41718836bc79"
+      }
+    ]
   }
 }

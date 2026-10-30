@@ -14,3 +14,5 @@ Restart Manager 首批注册 19,712 个资源返回系统错误 29，未执行 G
 两次诊断 actual/wrapper 均 0、源码一致，绑定 clean `89b21d4e9b9be319ab58e6c10b9a4fd9bf5b0edc`。Restart Manager 会维护系统内部会话注册状态，本记录只承诺项目原文件未改，并非“零系统写入”。接口语义见 [RmRegisterResources](https://learn.microsoft.com/en-us/windows/win32/api/restartmanager/nf-restartmanager-rmregisterresources) 和 [RmGetList](https://learn.microsoft.com/en-us/windows/win32/api/restartmanager/nf-restartmanager-rmgetlist)。
 
 本批删除、迁移和 ACL 修改均为 0；1,350,261,264 B 仍是待审重复源的逻辑字节，不能报告为已回收空间。原两个 Host、manifest、V11 原失败、保护名及旧 49 项保持原边界。任何后继执行都需要重新核当前身份、保留替代、完整占用证据和同句柄后置条件。逐项证据的路径、字节与 SHA 见同目录 MANIFEST，当前进度只在唯一执行记录维护。
+
+后继一次固定 component 诊断 `rm125-aff6b59c`：从原失败第 26 批冻结最前 125 对可映射叶，双端加六个 Host/Core/Python guard，共 256 个资源；新会话 Start0、Register29、未调用 GetList、End0，身份前后稳定。actual/wrapper0、源码一致仅代表审计完成；仍 UNKNOWN、cleanupfalse。本支到此停止，不换样本、缩批重试或运行全覆盖多会话。六资源成功、单会话累计失败和固定 256 失败都不足以确定系统根因；Owner 授权不替代技术前提，整批旧副本保留。

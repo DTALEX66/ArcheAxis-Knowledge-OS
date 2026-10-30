@@ -2925,3 +2925,12 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 `nrm-port3`普通令牌核19,711对owner/DACL及19,711次源独占DELETE权限句柄，有限两样本25,201B恢复成功，未调用删除disposition。当前Owner精确清理条件授权已核，非缺用户授权；整批RM注册29，后继六资源查询成功但仅覆盖六项，同session固定256批第26批仍29。完整占用未核，全部HOLD/eligible0/cleanupfalse，删除迁移ACL均0；不是已回收1.35GB或全量恢复。三run actual/wrapper0且源码一致表示审计完成，不是清理PASS。[精确观察与原错误](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。
 
 `cfcore-339a6bb6`以clean89b21d4e locked/offline显式构建当前Core，27,897,344B/SHA043834e0…，actual/wrapper0且源码一致。`v2prev-50860dba`纯预览及`v2unit-d6efc35b`16项全内存测试均0且源码一致；未运行新Core/API/model，bpr1原包不变。V2仅增加无正确值schema，保留问题/材料/prompt/预算，不能跨合同改判旧FAIL；独立静态审查不等于真实执行。混合入口须另冻结当期metadata并preflight，模型支持UNKNOWN、学习效果NOT_ESTABLISHED/F05 PARTIAL。[后继身份及边界](../history/backend-response-format-20261031/FOLLOWUP.md)。
+
+
+### 2026-10-31 V2有限真实验证失败保全及清理诊断停止
+
+`v2meta-fdcea03b`两当期loopback GET200、`v2plan-7e4a093f`冻结52选择成员、`v2pre-aeeb40a8`纯preflight均actual/wrapper0；`v2real-e06657fb`只跑一次实际混合组件/独立合成库，adapter/entry/wrapper1，四run同clean152e66f6且源码一致。原17routes/default text保留，仅machine.answer指当前worker；复制4小成员27,932,123B及新profile，非bpr1或完整安装资格。18Core HTTP/2正向候选，首题HTTP200原始JSON CORRECT/VALID/stop及task读回一致；第二HTTP503 INVALID_OUTPUT、content/length、2048token上限，完整性守卫拒绝发布后即停。不是本次NO_FINAL或已证实超时/JSON语法错误，不提预算重试。candidate403成立；迁移、package干预、纠正复测未执行，packetnull/members[]、学习效果NOT_ESTABLISHED/F05 PARTIAL，旧FAIL不改。[实际身份和独立复核](../history/backend-response-format-20261031/REAL-V2.md)。
+
+自有Core PID13056 reapexit1，端口50971双相完整IPv4/6无LISTEN，10035仍UNKNOWN；52选择成员、5混合成员和override前后同，root另核当前52SHA，未发生cleanup/identity次级失败。root只读检查曾把freeze字段当result字段产生KeyError，正确取freeze复核通过；原目标收据不改，不把检查错误算作产品失败或成功。
+
+`rm125-aff6b59c`一次固定原失败批125对+6guard/256资源：Start0/Register29/未GetList/End0，UNKNOWN/cleanupfalse，actual/wrapper0且源码一致仅表示审计完成。本诊断支路停止，不缩批换样本重试或多会话外推；六项成功与其他29无法确定具体系统根因。源侧1,350,261,264逻辑B全部保留，本批删除/迁移/ACL均0。[终态及边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/QUALIFICATION-FOLLOWUP.md)。

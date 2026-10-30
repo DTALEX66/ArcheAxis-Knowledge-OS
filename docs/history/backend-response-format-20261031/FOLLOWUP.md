@@ -9,3 +9,5 @@
 `v2unit-d6efc35b` 实际执行 16 项全内存测试，16 passed，actual/wrapper 为 0、源码一致，绑定同一 clean HEAD。覆盖首答/拒答/迁移早停、NO_FINAL、request/worker 格式及哈希不符、持久读回不符、同题格式变化和复测绑定。没有 socket、Core、模型或真实入口执行。
 
 当前真实模型对结构化请求的支持仍 UNKNOWN，学习效果 NOT_ESTABLISHED，F05 整体 PARTIAL。旧真实模型失败、UI/安装/Owner 验收边界不变。证据身份见同目录 MANIFEST；后继实际执行不能由本文件的候选说明自动宣称完成。
+
+此后另行冻结并执行的有限真实检查见 [REAL-V2](REAL-V2.md)，上述零调用数只描述本页的离线阶段。

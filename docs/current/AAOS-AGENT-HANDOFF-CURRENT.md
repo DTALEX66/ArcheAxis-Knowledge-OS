@@ -8,6 +8,8 @@
 
 Owner 后继追加外溢数据追踪、迁移和清理，以及 [R5 未来能力承接包独立审计与归档](../../workspace/intake/20261030-r5-future-capability-review/README.md)。外溢先追生产者、配置、所有者、消费者与精确路径，按哈希/恢复核验迁移；不扫描整盘或清理共享库/真实库/私有状态。R5 五场景吸收到现有 R2/CL/J 工作，原始提示词不自动执行，不恢复 UI、不解冻重型扩展；WORK-LAB 仍为可选协调方。实际修复、验证、剩余权限及外溢结果沿唯一执行记录末段，不从本导航复制状态。
 
+后继 [R6 外部实践边界修补包](../../workspace/intake/20261030-r6-external-practice-boundary-review/README.md)沿同一承接入口归档；附件提示词只作审阅材料，不另产生执行或外发授权。R6 原件身份、186/22 静态映射与后继运行历史分层读取，不能以归档完成替代产品验收。
+
 2026-10-30 Owner 后继优先级读取活动指针 `execution_control.owner_priority_20261030`：先完成[云端 R2／本地审计归档与任务承接](../../workspace/intake/20261030-cloud-review-and-backend-priority/README.md)，先清理项目体积、规范目录和持续增长治理，再按本地审计缺口及 R2 双侧要求推进既有有限后端。前端布局由 Owner 在云端继续修订；本地 UI 实施与监控不恢复。精确清理清单及结果只沿唯一执行记录读取。
 
 1. 先读[唯一闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)，再核活动指针的 `owner_scope_current`、`execution_control`、`continuation_context`、`delivery_authorization`、`green_update_authorization` 与 `active_progress`。同时核本地Git状态及受保护材料；历史PASS不移绑新源码或候选。
