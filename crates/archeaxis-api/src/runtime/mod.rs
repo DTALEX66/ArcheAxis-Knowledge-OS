@@ -807,6 +807,8 @@ struct MachineAnswerBody {
     knowledge_id: String,
     question: String,
     #[serde(default)]
+    response_format: Option<serde_json::Value>,
+    #[serde(default)]
     context_grant: Option<archeaxis_domain::context_grant::Consumption>,
     #[serde(default)]
     asset_context_grant: Option<archeaxis_domain::asset_context_grant::PacketRequest>,
@@ -912,6 +914,8 @@ struct RetestBody {
     knowledge_id: String,
     /// The question to put again.
     question: String,
+    #[serde(default)]
+    response_format: Option<serde_json::Value>,
     #[serde(default)]
     context_grant: Option<archeaxis_domain::context_grant::Consumption>,
     #[serde(default)]

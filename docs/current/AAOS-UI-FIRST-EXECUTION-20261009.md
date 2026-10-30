@@ -2914,3 +2914,7 @@ Root最终[静态资格](../history/storage-cleanup/2026-10-31-backend-runtime-i
 `j1b1`实际复用原bpr1包，以六合成成员/四唯一job/六attempt验证终态间中断、running取消202后cancelled、显式新尝试、未处理成员续做和两次冷重启。160HTTP、七次同key摘要、两对快照一致；actual/wrapper0且clean35de7ce6源码一致。坏DOCX两次均失败且retryable=false，非成功恢复；三自有Core守卫成立，10035仍PENDING。阶段观测最大1,880,695B、0runtime复制；完整J1/CL/UI/安装仍未资格化。[角色、原失败及范围](../history/bpr1-mixed-batch-20261031/README.md)。
 
 体积线沿旧尺寸索引定位V11/V12，`nrm-port2`19,711对公共叶当前完整SHA及独立文件身份全部匹配，源侧1,350,261,264逻辑B，actual/wrapper0且源码一致。保留两个不同Host、manifest及V11原FAIL；33保护名排除。闲置/清理授权/删除句柄/恢复重放仍缺证，cleanup_qualified=false，删除搬迁0。[逐项映射身份及后续边界](../history/storage-cleanup/2026-10-31-portable-pair-qualification/README.md)。
+
+### 2026-10-31 F05可选结构化输出合同
+
+Core→执行器→生产worker增加请求级有限类型schema，绑定持久请求/缓存/拒绝/journal/复测，不给schema正确答案、不去围栏或重试；缺省身份兼容。正式`bkr-fpy2`269项、Rust四批41项及Ruff通过，actual/wrapper0、源码一致；原collection路径错误exit4、22风格诊断和候选格式diff保留。API验证为真实Store+合成子进程，未新发真实模型请求、未重建包；旧real1/ar2失败及F05 PARTIAL不变。共享Core target净增605,000,086B；全量前后下界净增617,940,202B、674错误/243私有排除/581布局项不变，PARTIAL且无新增增长触发，不称体积治理通过。[合同、测试身份和存储预算](../history/backend-response-format-20261031/README.md)。

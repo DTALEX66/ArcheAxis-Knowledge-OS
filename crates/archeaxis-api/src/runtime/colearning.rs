@@ -399,12 +399,25 @@ fn frozen_asset_request(
 
 pub(super) async fn machine_answer(
     State(runtime): State<Runtime>,
-    Json(body): Json<MachineAnswerBody>,
+    Json(mut body): Json<MachineAnswerBody>,
 ) -> Response {
+    body.response_format =
+        match archeaxis_domain::response_format::optional(body.response_format.as_ref()) {
+            Ok(format) => format,
+            Err(reason) => return (StatusCode::UNPROCESSABLE_ENTITY, reason).into_response(),
+        };
+
     if body.model.as_ref().is_some_and(|m| {
         m.trim().is_empty() || m != m.trim() || m.len() > 256 || m.chars().any(char::is_control)
     }) {
         return (StatusCode::UNPROCESSABLE_ENTITY, "invalid model selection").into_response();
+    }
+    if body.response_format.is_some() && body.client_request_id.is_none() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "response format requires frozen client_request_id",
+        )
+            .into_response();
     }
     if body.model.is_some() && body.client_request_id.is_none() {
         return (
@@ -482,6 +495,11 @@ pub(super) async fn machine_answer(
         "max_tokens":effective_tokens,"timeout_s":effective_timeout,
         "context_grant":body.context_grant
     });
+    if let Some(format) = &body.response_format {
+        base_request["response_format"] = format.clone();
+        base_request["response_format_sha256"] =
+            archeaxis_domain::response_format::fingerprint(format).into();
+    }
     if let Some(model) = &body.model {
         base_request["model"] = json!(model);
     }
@@ -579,7 +597,7 @@ pub(super) async fn machine_answer(
             Ok(()) => {
                 runtime
                     .executor
-                    .machine_answer_configured_detailed(
+                    .machine_answer_with_format_detailed(
                         text,
                         body.question.clone(),
                         effective_tokens,
@@ -594,6 +612,8 @@ pub(super) async fn machine_answer(
                             serde_json::from_value(v.clone())
                                 .expect("Core generated model configuration")
                         }),
+                        archeaxis_application::executor::AnswerPolicy::Grounded,
+                        body.response_format.clone(),
                     )
                     .await
             }
@@ -797,8 +817,14 @@ pub(super) async fn record_correction(
 
 pub(super) async fn run_retest(
     State(runtime): State<Runtime>,
-    Json(body): Json<RetestBody>,
+    Json(mut body): Json<RetestBody>,
 ) -> Response {
+    body.response_format =
+        match archeaxis_domain::response_format::optional(body.response_format.as_ref()) {
+            Ok(format) => format,
+            Err(reason) => return (StatusCode::UNPROCESSABLE_ENTITY, reason).into_response(),
+        };
+
     if body.model.as_ref().is_some_and(|m| {
         m.trim().is_empty() || m != m.trim() || m.len() > 256 || m.chars().any(char::is_control)
     }) {
@@ -856,6 +882,13 @@ pub(super) async fn run_retest(
         )
             .into_response();
     }
+    if prior["request"].get("response_format") != body.response_format.as_ref() {
+        return (
+            StatusCode::CONFLICT,
+            "a retest must retain the original response_format",
+        )
+            .into_response();
+    }
     if prior["request"]["model"].is_string() && body.model.is_none() {
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
@@ -891,6 +924,11 @@ pub(super) async fn run_retest(
     let cache_asset = body.asset_context_grant.clone();
     if let Some(config) = &body.model_configuration {
         request["model_configuration"] = json!(config);
+    }
+    if let Some(format) = &body.response_format {
+        request["response_format"] = format.clone();
+        request["response_format_sha256"] =
+            archeaxis_domain::response_format::fingerprint(format).into();
     }
     let cache_request = request.clone();
     let wanted = request.to_string();
@@ -1055,7 +1093,7 @@ pub(super) async fn run_retest(
             Ok(()) => {
                 runtime
                     .executor
-                    .machine_answer_configured_detailed(
+                    .machine_answer_with_format_detailed(
                         admitted_text,
                         body.question.clone(),
                         body.max_tokens.unwrap_or(2048),
@@ -1070,6 +1108,8 @@ pub(super) async fn run_retest(
                             serde_json::from_value(v.clone())
                                 .expect("Core generated model configuration")
                         }),
+                        archeaxis_application::executor::AnswerPolicy::Grounded,
+                        body.response_format.clone(),
                     )
                     .await
             }

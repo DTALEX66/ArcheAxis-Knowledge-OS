@@ -44,6 +44,7 @@ pub mod portable_document;
 pub mod configuration_plans;
 pub mod material_question;
 pub mod model_configuration;
+pub mod response_format;
 
 pub mod character_memory;
 

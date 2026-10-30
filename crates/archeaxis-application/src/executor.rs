@@ -333,6 +333,34 @@ impl Executor {
         configuration: Option<archeaxis_domain::model_configuration::Resolved>,
         policy: AnswerPolicy,
     ) -> Result<serde_json::Value, MachineFailure> {
+        self.machine_answer_with_format_detailed(
+            context,
+            question,
+            max_tokens,
+            timeout,
+            model,
+            cancel,
+            configuration,
+            policy,
+            None,
+        )
+        .await
+    }
+
+    pub async fn machine_answer_with_format_detailed(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+        configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+        policy: AnswerPolicy,
+        response_format: Option<serde_json::Value>,
+    ) -> Result<serde_json::Value, MachineFailure> {
+        let response_format =
+            archeaxis_domain::response_format::optional(response_format.as_ref())?;
         if let Some(c) = &configuration {
             require_material_local_transport(c)?;
             if c.profile.credential_ref.is_some() {
@@ -497,6 +525,12 @@ impl Executor {
                 use std::os::windows::process::CommandExt;
                 command.creation_flags(0x08000000);
             }
+            if let Some(format) = &response_format {
+                let format_path = dir.path().join("response-format.json");
+                std::fs::write(&format_path, format.to_string())
+                    .map_err(|_| "machine format staging failed")?;
+                command.arg("--response-format-file").arg(format_path);
+            }
             // 暂存与命令准备也消耗预算；已过期就不启动新的worker。
             if cancel.is_cancelled() {
                 return Err("machine worker cancelled".into());
@@ -599,6 +633,9 @@ impl Executor {
                 }
                 let value: serde_json::Value = serde_json::from_slice(&out.unwrap())
                     .map_err(|_| "machine worker returned invalid JSON")?;
+                if let Some(format) = &response_format {
+                    archeaxis_domain::response_format::validate_worker(format, &value)?;
+                }
                 accept_success(
                     value,
                     model.as_deref(),
