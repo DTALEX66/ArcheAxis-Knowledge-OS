@@ -3018,3 +3018,13 @@ Owner质疑剩余50多GB并要求全部未完清理/外溢，明确该提权提�
 Owner随后确认208个历史profile“都是测试，没有需要保留的资料或状态”，据此普通令牌实际退役54,683叶/1,460,157,114B，9关键当前文件size/mtime/SHA前后保持，未读DB/登录存储正文。Owner另手动退役10旧Host/Core preimage/139,617,974B，6份原manifest/脚本gzip读回通过、10叶独立全缺失，旧二进制即时回退保证明确退役；再清27,156空架子。本批总旧项目280,288叶/30,099,129,602B，累计857,456叶/106,384,249,964B，空目录本批56,647；105新raw证据副本仍单列不混旧收益。
 
 最终管理员v2原POST 28,352,993,453可读B/351,032文件、读取错误0/私有排除243/布局581，PARTIAL、actual/wrapper1、e1052d3f+本批文档dirty patch663bd53d源码前后一致。operator checkpoint仅登记此治理批次的原始POST，旧快照保留，不逐包自动滚动。源码Git blob仅785,203,413B；余下runs16.665GB不冒充全是必要依赖：当前主包7.319GB+sci0.439GB有消费者；历史metadata压缩、未确认数据归属、散落规范化及其他producer自动约束仍待后继，整体PARTIAL。完整范围/原SHA/收据/恢复映射见[深度续清记录](../history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md)。本批已核清单完成不等于全部清理或产品完成；F05/完整J1/CL/R6、UI/监控暂停与本地only边界不变。
+
+### 2026-10-31 云端整合 v3：仅审计与统一归档
+
+Owner要求审计并归档`AAOS-Cloud-Integration-20261031-v3.zip`，附件指令不作为执行授权。原包10,410,545B/SHA de984bf8917d24f4bc837221f76983dde20973f8285808e1fa6c351a5c68ac43保全于本仓ignored原件区，1,874成员CRC/SHA及内manifest1,873声明全匹配；只复制4份Markdown原文29,259B，不批量展开日志/数据库/构建物，外部原件保持。审计时70dfc397对云端最终5,129源文件为4,690同/437异/2未跟踪，主patch31路径全不等云端结果；只读apply --check退出1、13路径不适用，没有实际apply。
+
+独立日志/XML核验支持历史Python5,780/105skip/4deselect/379subtests、Rust1,025、前端1,983/4skip及真Core-jsdom8；105skip台账逐项一致、42窄补/63保留不重复相加。最后6文件晚改和补测边界保留，不能移绑当前候选。186原ID/名/序号/原文744值及22职责110值与R6原件一致；22格式/37平台原template只有hash、未在包内或本仓tracked找到，原文字段保留UNVERIFIED。主要新审计项：当前patch需选择重基、detector实际模型与receipt hash残留绑定问题（静态推断未运行反例）、复现脚本覆盖原证据/旧环境复用风险、命令索引缺2个stdout。原件复制子进程0、execution回执exit_code3/source_consistent=false（命令工具返回1），原因为新增文档导致source变动；原FAIL留证，字节身份另核。
+
+完整来源、问题定位和有条件继承规则见[云端v3审计入口](../../workspace/intake/20261031-cloud-integration-v3-review/README.md)。本批仅归档/独立静态证据审查，不执行包内代码、不联网/上传、不更新依赖或调用模型、不恢复UI/监控，不建立第二队列或改写原任务；F05、完整J1/CL/R6、目录规范化与整体产品仍PARTIAL。存储checkpoint保留此前实际测量身份，本次约10.41MB原包与轻量记录不冒称新全仓体积。
+
+2026-11-01 Owner要求直接向GPT云端DOT补件；当前会话/浏览器接口未提供该执行任务入口，未向“AAOS”规划对话误发或上传任何本地材料。Owner随后改为“给我提示词，我去问吧”；已整理[精确补件和定向核查提示词](../../workspace/intake/20261031-cloud-integration-v3-review/DOT-补件请求.md)，由Owner自行转交。补件未收到，缺件及静态疑点仍保留，不影响原包本仓归档完成。

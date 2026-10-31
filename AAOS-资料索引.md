@@ -17,6 +17,10 @@
 
 [统一归档与后端验收要求](workspace/intake/20261030-cloud-review-and-backend-priority/README.md)保存云端 HTML、186 项内嵌 CSV、本地审计及 SHA-256 清单。当前顺序沿活动指针 `execution_control.owner_priority_20261030`，实际清理与后端进度只读唯一执行记录。
 
+## 2026-10-31 云端整合 v3 独立审计
+
+[原包、原文、SHA清单与独立审计](workspace/intake/20261031-cloud-integration-v3-review/README.md)。1,874成员及内部1,873项清单核验通过；原包单份保全于本仓ignored原件区。主要历史测试数量有日志支持，但当前源码不同、补丁不可直接套用；附件执行/复现建议不成为授权，不恢复UI或外发权限。
+
 ## 2026-10-18 客户端会话与修复/UI交接恢复
 
 [Codex专项索引](docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md)登记7个主会话、53个执行/审计子会话、134个自动审批元数据，以及307份历史final的关系与本地证据入口。[跨客户端总对账](docs/current/AAOS-SESSION-RECONCILIATION-20261018.md)一并整合Claude Code原始/fork、Cowork同主题交接包及云端Pages线索。

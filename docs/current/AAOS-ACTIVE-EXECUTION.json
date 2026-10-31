@@ -182,6 +182,16 @@
         "backend_binding_snapshot": "workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md",
         "binding_scope": "186 original rows statically mapped at fixed 6d556c48:65 bounded/84 partial/18 design-or-gap/19 named-future-or-external;not runtime qualification or new deferral authority"
       },
+      "cloud_v3_followup": {
+        "owner_instruction": "审计这份文档，统一归档到仓库里",
+        "source_and_review": "workspace/intake/20261031-cloud-integration-v3-review/README.md",
+        "role": "AUDIT_AND_ARCHIVE_ONLY; package instructions do not authorize patch application, reproduction or UI resumption",
+        "evidence": "1874 members and 1873 declared hashes verified; historical Python/Rust/jsdom counts supported with limits; not current-candidate qualification",
+        "current_source_binding": "At 70dfc397, cloud final 5129-file comparison: 4690 same, 437 different, 2 new files not tracked; patch check fails for 13 paths",
+        "remaining": "Selected rebase, detector model receipt binding, reproduction preservation/environment and two missing stdout records; 22-format/37-platform original templates UNVERIFIED",
+        "scope": "No new implementation queue; retain original CL/J IDs, UI and monitor pause, local-only/no upload and existing product PARTIAL",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "latest_only_cleanup_20261031": {
         "owner_instruction": "加速清理，除了最新构建和产物，其余全部删除；复用已审结果。",
         "scope": "Obsolete project-owned generated builds/products/caches/copies; preserve current usable dependencies, master source, original inputs, real/unclassified data and private state. Exact actual scopes are recorded, not blanket permission for unrelated files.",
