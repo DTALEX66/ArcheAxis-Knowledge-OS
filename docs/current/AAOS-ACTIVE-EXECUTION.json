@@ -188,7 +188,15 @@
         "role": "AUDIT_AND_ARCHIVE_ONLY; package instructions do not authorize patch application, reproduction or UI resumption",
         "evidence": "1874 members and 1873 declared hashes verified; historical Python/Rust/jsdom counts supported with limits; not current-candidate qualification",
         "current_source_binding": "At 70dfc397, cloud final 5129-file comparison: 4690 same, 437 different, 2 new files not tracked; patch check fails for 13 paths",
-        "remaining": "Selected rebase, detector model receipt binding, reproduction preservation/environment and two missing stdout records; 22-format/37-platform original templates UNVERIFIED",
+        "remaining": "Local rebase and implementation remain; v3.1 supports detector/full-suite candidates but does not apply them. Two historical stdout remain MISSING with errata; original 22/37 templates now verified. Old reproduce.sh environment and log-wrapper version binding limits remain.",
+        "supplement_followup": {
+          "owner_input": "这是DOT补充的",
+          "source_and_review": "workspace/intake/20261101-cloud-integration-v3-1-review/README.md",
+          "role": "SUPPLEMENT_AUDIT_AND_ARCHIVE_ONLY; no patch application, package-code execution, download/upload or UI resumption",
+          "evidence": "1245 members/1244 declared hashes verified; templates match prior v3 hashes; detector two-file candidates reconstructed in memory, 42 tests/47 subtests historical logs; full-suite eight control-flow cases supported",
+          "qualification": "ACCEPT_AS_SCOPED_SUPPLEMENT_EVIDENCE; current implementation/Core-native-Owner acceptance NOT_ESTABLISHED",
+          "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        },
         "scope": "No new implementation queue; retain original CL/J IDs, UI and monitor pause, local-only/no upload and existing product PARTIAL",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },

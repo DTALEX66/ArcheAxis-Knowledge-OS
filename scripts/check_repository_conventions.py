@@ -250,6 +250,15 @@ _OCT30_PRESERVED_INPUT_HASHES = {
 }
 _PRESERVED_PACKAGE_MEMBER_HASHES.update(_OCT30_PRESERVED_INPUT_HASHES)
 
+# DOT v3.1 originals match the earlier v3 inventory and the preserved supplement.
+# Preserve their BOM/CRLF only at these exact paths and byte hashes.
+_PRESERVED_PACKAGE_MEMBER_HASHES.update({
+    "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/05-format-results-template.csv":
+        "ebd1180d8fbd702405becf55576e947affefd5c8386af35f5a604c6050bdb502",
+    "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/06-interop-results-template.csv":
+        "c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213",
+})
+
 # This DP audit intentionally quotes a superseded product name as branch
 # evidence. Pin the exact report bytes so it remains evidence, not a wildcard
 # naming exemption.

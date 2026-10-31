@@ -1,5 +1,8 @@
 * text=auto eol=lf
 
+# DOT v3.1 supplied originals retain manifest-pinned bytes, including CSV CRLF.
+workspace/intake/20261101-cloud-integration-v3-1-review/source/** -text whitespace=cr-at-eol,-blank-at-eol
+
 # Frozen handoff CSV originals retain BOM/CRLF; checks pin each exact source hash.
 workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/04-186项能力归并映射-冻结输入.csv -text whitespace=cr-at-eol,-blank-at-eol
 workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/05-22职责归并-冻结输入.csv -text whitespace=cr-at-eol,-blank-at-eol

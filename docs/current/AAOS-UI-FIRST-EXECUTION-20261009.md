@@ -3028,3 +3028,11 @@ Owner要求审计并归档`AAOS-Cloud-Integration-20261031-v3.zip`，附件指�
 完整来源、问题定位和有条件继承规则见[云端v3审计入口](../../workspace/intake/20261031-cloud-integration-v3-review/README.md)。本批仅归档/独立静态证据审查，不执行包内代码、不联网/上传、不更新依赖或调用模型、不恢复UI/监控，不建立第二队列或改写原任务；F05、完整J1/CL/R6、目录规范化与整体产品仍PARTIAL。存储checkpoint保留此前实际测量身份，本次约10.41MB原包与轻量记录不冒称新全仓体积。
 
 2026-11-01 Owner要求直接向GPT云端DOT补件；当前会话/浏览器接口未提供该执行任务入口，未向“AAOS”规划对话误发或上传任何本地材料。Owner随后改为“给我提示词，我去问吧”；已整理[精确补件和定向核查提示词](../../workspace/intake/20261031-cloud-integration-v3-review/DOT-补件请求.md)，由Owner自行转交。补件未收到，缺件及静态疑点仍保留，不影响原包本仓归档完成。
+
+### 2026-11-01 DOT v3.1补件：原模板补齐与云端候选复核
+
+Owner随后补交`v3.1-supplement.zip`，承接原审计/归档，不执行附件指令。原件728,330B/SHA0883f3e6e687bd5a9af8a00775bb59427cb22bb6bc7f664bc98ac2dc563fa2b6单份保全于本仓ignored档案，1,245成员CRC/SHA、内部1,244声明全匹配，绑定原v3 SHA de984bf8…。仅复制6说明+2原CSV共27,836B；精确source目录属性保护CRLF并核Git入库/checkout字节，原ZIP不展开、无日志/DB/候选源码载荷入Git。
+
+V3-F06原模板22/37的字节SHA与原v3登记一致、身份文本及顺序全保留，缺件关闭；F05两stdout仍MISSING、历史生成UNVERIFIED，独立勘误和4旁证匹配，不造空日志。F02真实ORT错绑反例得到日志支持；两文件候选从历史对象+两级patch在内存重建，前后像SHA匹配，云端42test/47subtests（9+7+10+16）不与前轮累计。本机两产品文件仍原基线，worker缺v3安装目录定位增量，候选未移植；不是当前修复或Core/Windows资格。F03新full-suite的8控制流场景/最终字节绑定一致，root内存重建脚本逐字节匹配；F04旧reproduce.sh system-site/固定输出风险仍保留。F01本机重基未完成；另S31-E01日志wrapper当前UTC代码与历史+08格式缺版本绑定说明，实际UTC时刻吻合、不指称造假、不使源码SHA失效。
+
+判定ACCEPT_AS_SCOPED_SUPPLEMENT_EVIDENCE；[完整复核与原件清单](../../workspace/intake/20261101-cloud-integration-v3-1-review/README.md)。无包内代码执行/产品重跑/补丁应用/安装依赖/联网/上传/UI或监控恢复；F05、完整J1/CL/R6、规范化及整体产品PARTIAL不变。原v3审计保留历史身份，后继关闭程度沿本段；不新增第二队列或滚动存储checkpoint。
