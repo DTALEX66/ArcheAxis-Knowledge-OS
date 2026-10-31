@@ -1322,7 +1322,9 @@ jobs:
   desktop-build:
     # Match desktop-fast's reviewed app-local C++ runtime producer toolset.
     runs-on: windows-2022
-    timeout-minutes: 30
+    # Cold setup/build can consume 30m; reserve time for evidence and post-cache.
+    # The release build's inner 20m deadline remains unchanged.
+    timeout-minutes: 45
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
     defaults:
