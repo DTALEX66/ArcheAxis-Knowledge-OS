@@ -198,6 +198,77 @@ def read_owned_core_shutdown_report(work):
                     "forced_attempted", "return_code", "wait_reaped", "elapsed_ms")})
 
 
+def read_owned_host_close_trace(work, launch_identity):
+    """Bounded passive diagnostics, attributed to this held Host launch only."""
+    path = work / "data" / "host-close-trace.json"
+    limit = 32768
+    try:
+        for item in (*reversed(path.parents), path):
+            if item.is_symlink() or getattr(item.lstat(), "st_file_attributes", 0) & 0x400:
+                return {"status": "REFUSED_LINK"}
+        with path.open("rb") as stream:
+            raw = stream.read(limit + 1)
+    except FileNotFoundError:
+        return {"status": "MISSING"}
+    except OSError as error:
+        return {"status": "READ_ERROR", "error_type": type(error).__name__}
+    if len(raw) > limit:
+        return {"status": "TOO_LARGE", "limit_bytes": limit}
+    result = {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+    try:
+        value = json.loads(raw)
+    except (UnicodeDecodeError, ValueError):
+        return dict(result, status="INVALID_JSON")
+    if not (isinstance(value, dict) and value.get("schema") == "archeaxis/host-close-trace/v1"
+            and type(value.get("host_pid")) is int
+            and type(value.get("host_trace_started_unix_ms")) is int
+            and isinstance(value.get("events"), list) and len(value["events"]) <= 64):
+        return dict(result, status="INVALID_SCHEMA")
+    if value["host_pid"] != launch_identity["pid"]:
+        return dict(result, status="FOREIGN_HOST")
+    # Windows process creation timestamps are 100 ns ticks since 1601, whereas
+    # the Rust trace marker uses Unix milliseconds. Preserve millisecond precision.
+    created = launch_identity["created"]
+    if type(created) is not int or created < 116444736000000000:
+        return dict(result, status="INVALID_LAUNCH_IDENTITY")
+    if value["host_trace_started_unix_ms"] < created // 10000 - 11644473600000:
+        return dict(result, status="STALE_HOST_TRACE")
+    fields = {
+        "EXIT_COMMAND": {}, "CLOSE_EVENT": {}, "ALREADY_EXITING": {},
+        "FRONTEND_CHECK_REQUESTED": {"fresh": bool},
+        "FALLBACK_CONFIRMATION": {}, "FRONTEND_RESPONSE": {"dirty": bool},
+        "CONFIRMATION_STARTED": {"unresponsive": bool},
+        "CONFIRMATION_RETURNED": {"accepted": bool, "yes": bool},
+        "BACKEND_EXIT_REQUESTED": {},
+        "BACKEND_EXIT_RETURNED": {"core_pid": int, "outcome": str, "return_code": int},
+        "APP_EXIT_REQUESTED": {"exit_code": int},
+    }
+    events = []
+    for event in value["events"]:
+        if not (isinstance(event, dict) and isinstance(event.get("stage"), str)
+                and type(event.get("elapsed_ms")) is int and 0 <= event["elapsed_ms"] < 2 ** 64
+                and isinstance(event.get("detail"), dict)
+                and (event.get("request_id") is None or (isinstance(event["request_id"], str)
+                    and re.fullmatch(r"close-[0-9]{1,20}", event["request_id"])))):
+            return dict(result, status="INVALID_SCHEMA")
+        stage = event["stage"]
+        if stage not in fields:
+            continue
+        detail = {}
+        for key, kind in fields[stage].items():
+            item = event["detail"].get(key)
+            if type(item) is kind:
+                if kind is str and item not in {"UNKNOWN", "ALREADY_EXITED", "FORCED", "GRACEFUL", "ERROR", "NO_OWNED_CORE"}:
+                    continue
+                if kind is int and not -(2 ** 31) <= item < 2 ** 32:
+                    continue
+                detail[key] = item
+        events.append({"stage": stage, "request_id": event.get("request_id"),
+                       "elapsed_ms": event["elapsed_ms"], "detail": detail})
+    return dict(result, status="READ_OK", host_pid=value["host_pid"],
+                host_trace_started_unix_ms=value["host_trace_started_unix_ms"], events=events)
+
+
 def owned_exit_timeout_snapshot(host, launch_identity, work):
     """Passive snapshot before cleanup retries; no IPC, window text or actions."""
     result = {"stage": "AFTER_WAIT_TIMEOUT_BEFORE_CLEANUP_RETRY",
@@ -215,6 +286,7 @@ def owned_exit_timeout_snapshot(host, launch_identity, work):
     except (OSError, RuntimeError, ValueError) as error:
         result["window_snapshot_error_type"] = type(error).__name__
     result["core_shutdown_result"] = read_owned_core_shutdown_report(work)
+    result["host_close_trace"] = read_owned_host_close_trace(work, launch_identity)
     return result
 
 

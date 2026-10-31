@@ -14,7 +14,7 @@ SOURCE = Path(__file__).resolve().parents[1] / "scripts/probes/aaos01_tauri_webd
 tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
 scope = {"re": re, "time": time, "subprocess": subprocess, "json": json, "hashlib": hashlib}
 nodes = [node for node in tree.body if isinstance(node, (ast.ClassDef, ast.FunctionDef))
-         and node.name in {"WebDriverProtocolError", "request_owned_product_exit", "read_owned_core_shutdown_report", "owned_exit_timeout_snapshot"}]
+         and node.name in {"WebDriverProtocolError", "request_owned_product_exit", "read_owned_core_shutdown_report", "read_owned_host_close_trace", "owned_exit_timeout_snapshot"}]
 exec(compile(ast.Module(body=nodes, type_ignores=[]), str(SOURCE), "exec"), scope)
 exit_owned = scope["request_owned_product_exit"]
 ProtocolError = scope["WebDriverProtocolError"]
@@ -266,3 +266,83 @@ def test_timeout_snapshot_never_enumerates_recycled_pid_windows(tmp_path, monkey
     assert snapshot["observed_processes"] == [{"pid":12, "created":78}]
     assert snapshot["core_shutdown_result"]["status"] == "MISSING"
     load.assert_not_called()
+
+
+HOST_LAUNCH = {"pid": 12, "created": 134379457045923926}
+
+
+def close_trace_fixture():
+    return {"schema": "archeaxis/host-close-trace/v1", "host_pid": 12,
+            "host_trace_started_unix_ms": 1793472104593,
+            "events": [{"stage": "APP_EXIT_REQUESTED", "request_id": "close-1",
+                        "elapsed_ms": 3000, "detail": {"exit_code": 0}}]}
+
+
+@pytest.mark.parametrize("case,status", [
+    ("missing", "MISSING"), ("large", "TOO_LARGE"), ("json", "INVALID_JSON"),
+    ("foreign", "FOREIGN_HOST"), ("stale", "STALE_HOST_TRACE"),
+    ("schema", "INVALID_SCHEMA"), ("events", "INVALID_SCHEMA"),
+    ("event", "INVALID_SCHEMA"), ("link", "REFUSED_LINK"), ("reparse", "REFUSED_LINK")])
+def test_host_close_trace_rejects_untrusted_or_unbounded_inputs(tmp_path, monkeypatch, case, status):
+    data = tmp_path / "data"
+    data.mkdir()
+    path = data / "host-close-trace.json"
+    value = close_trace_fixture()
+    if case == "foreign":
+        value["host_pid"] = 13
+    elif case == "stale":
+        value["host_trace_started_unix_ms"] = HOST_LAUNCH["created"] // 10000 - 11644473600000 - 1
+    elif case == "schema":
+        value["schema"] = "other"
+    elif case == "events":
+        value["events"] *= 65
+    elif case == "event":
+        value["events"][0]["elapsed_ms"] = True
+    raw = b"x" * 32769 if case == "large" else b"not-json" if case == "json" else json.dumps(value).encode()
+    if case != "missing":
+        path.write_bytes(raw)
+    if case == "link":
+        monkeypatch.setattr(Path, "is_symlink", lambda self: self == data)
+    if case == "reparse":
+        original = Path.lstat
+        monkeypatch.setattr(Path, "lstat", lambda self: Mock(st_mode=0o40755, st_file_attributes=0x400) if self == data else original(self))
+    if case in {"link", "reparse"}:
+        monkeypatch.setattr(Path, "open", Mock(side_effect=AssertionError("must not open redirected trace")))
+    result = scope["read_owned_host_close_trace"](tmp_path, HOST_LAUNCH)
+    assert result["status"] == status and "events" not in result
+
+
+def test_first_timeout_retains_current_host_trace_before_cleanup_can_overwrite_it(tmp_path, monkeypatch):
+    data = tmp_path / "data"
+    data.mkdir()
+    path = data / "host-close-trace.json"
+    value = close_trace_fixture()
+    value["private"] = value["events"][0]["detail"]["secret"] = "PRIVATE_BODY"
+    value["events"].append({"stage": "PRIVATE_STAGE", "request_id": None, "elapsed_ms": 4, "detail": {}})
+    raw = json.dumps(value).encode()
+    path.write_bytes(raw)
+    monkeypatch.setitem(scope, "native_process_rows", lambda: [])
+    host = Mock(pid=12)
+    host.poll.return_value = None
+    original_error = subprocess.TimeoutExpired("owned-host", 0)
+    host.wait.side_effect = original_error
+    receipt = {}
+    with pytest.raises(subprocess.TimeoutExpired) as raised:
+        exit_owned(host, HOST_LAUNCH, [HOST_LAUNCH], Mock(return_value=None), receipt,
+                   confirm_synthetic=Mock(return_value=0),
+                   diagnose_timeout=lambda: scope["owned_exit_timeout_snapshot"](host, HOST_LAUNCH, tmp_path))
+    assert raised.value is original_error
+    first = receipt["requested_product_exits"][0]
+    trace = first["timeout_snapshot"]["host_close_trace"]
+    assert trace["status"] == "READ_OK"
+    assert trace["events"] == close_trace_fixture()["events"]
+    assert trace["host_pid"] == 12 and trace["host_trace_started_unix_ms"] == value["host_trace_started_unix_ms"]
+    assert trace["bytes"] == len(raw) and trace["sha256"] == hashlib.sha256(raw).hexdigest()
+    path.write_text("{}", encoding="utf-8")
+    host.poll.side_effect = [None, 0]
+    host.wait.side_effect = None
+    host.wait.return_value = 0
+    exit_owned(host, HOST_LAUNCH, [HOST_LAUNCH], Mock(return_value=None), receipt)
+    assert receipt["requested_product_exits"][0] is first and first["wait_result"] == "TIMEOUT"
+    assert first["timeout_snapshot"]["host_close_trace"] is trace and trace["status"] == "READ_OK"
+    assert "PRIVATE" not in json.dumps(receipt) and "ok" not in receipt
