@@ -242,6 +242,10 @@ def read_owned_host_close_trace(work, launch_identity):
         "BACKEND_EXIT_REQUESTED": {},
         "BACKEND_EXIT_RETURNED": {"core_pid": int, "outcome": str, "return_code": int},
         "APP_EXIT_REQUESTED": {"exit_code": int},
+        "APP_EXIT_DISPATCH_RETURNED": {"exit_code": int},
+        "RUN_EXIT_REQUESTED_ENTER": {"exit_code": int},
+        "RUN_EXIT_REQUESTED_RETURN": {"exit_code": int},
+        "RUN_EXIT_ENTER": {},
     }
     events = []
     for event in value["events"]:
@@ -257,6 +261,10 @@ def read_owned_host_close_trace(work, launch_identity):
         detail = {}
         for key, kind in fields[stage].items():
             item = event["detail"].get(key)
+            if stage in {"APP_EXIT_DISPATCH_RETURNED", "RUN_EXIT_REQUESTED_ENTER", "RUN_EXIT_REQUESTED_RETURN"}:
+                if key in event["detail"] and (item is None or (type(item) is int and item in {0, 1})):
+                    detail[key] = item
+                continue
             if type(item) is kind:
                 if kind is str and item not in {"UNKNOWN", "ALREADY_EXITED", "FORCED", "GRACEFUL", "ERROR", "NO_OWNED_CORE"}:
                     continue

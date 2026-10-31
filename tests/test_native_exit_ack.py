@@ -346,3 +346,27 @@ def test_first_timeout_retains_current_host_trace_before_cleanup_can_overwrite_i
     assert receipt["requested_product_exits"][0] is first and first["wait_result"] == "TIMEOUT"
     assert first["timeout_snapshot"]["host_close_trace"] is trace and trace["status"] == "READ_OK"
     assert "PRIVATE" not in json.dumps(receipt) and "ok" not in receipt
+
+
+def test_exit_dispatch_and_run_event_trace_retains_only_typed_codes(tmp_path):
+    data = tmp_path / "data"
+    data.mkdir()
+    value = close_trace_fixture()
+    rows = [
+        ("APP_EXIT_DISPATCH_RETURNED", {"exit_code": 0, "secret": "PRIVATE"}, {"exit_code": 0}),
+        ("RUN_EXIT_REQUESTED_ENTER", {"exit_code": 0}, {"exit_code": 0}),
+        ("RUN_EXIT_REQUESTED_RETURN", {"exit_code": None}, {"exit_code": None}),
+        ("APP_EXIT_DISPATCH_RETURNED", {"exit_code": 1}, {"exit_code": 1}),
+        ("RUN_EXIT_REQUESTED_ENTER", {"exit_code": "PRIVATE"}, {}),
+        ("RUN_EXIT_REQUESTED_RETURN", {"exit_code": True}, {}),
+        ("APP_EXIT_DISPATCH_RETURNED", {"exit_code": 2}, {}),
+        ("RUN_EXIT_ENTER", {"exit_code": 0}, {}),
+    ]
+    value["events"] = [{"stage": stage, "request_id": None, "elapsed_ms": index,
+                        "detail": detail} for index, (stage, detail, _) in enumerate(rows)]
+    (data / "host-close-trace.json").write_text(json.dumps(value), encoding="utf-8")
+    result = scope["read_owned_host_close_trace"](tmp_path, HOST_LAUNCH)
+    assert result["status"] == "READ_OK"
+    assert result["events"] == [{"stage": stage, "request_id": None, "elapsed_ms": index,
+                                 "detail": expected} for index, (stage, _, expected) in enumerate(rows)]
+    assert "PRIVATE" not in json.dumps(result)

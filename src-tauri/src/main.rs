@@ -281,6 +281,19 @@ mod recovery_contract_tests {
     }
 
     #[test]
+    fn exit_trace_detail_only_records_known_application_exit_codes() {
+        for (code, expected) in [
+            (None, serde_json::json!({"exit_code": null})),
+            (Some(0), serde_json::json!({"exit_code": 0})),
+            (Some(1), serde_json::json!({"exit_code": 1})),
+            (Some(-1), serde_json::json!({"exit_code": null})),
+            (Some(i32::MAX), serde_json::json!({"exit_code": null})),
+        ] {
+            assert_eq!(super::application_exit_trace_detail(code), expected);
+        }
+    }
+
+    #[test]
     fn exit_waits_off_event_loop_and_prevents_new_operations() {
         let state = idle_backend();
         let operations = state.operations.clone();
@@ -1466,6 +1479,11 @@ fn trace_application_close(
 }
 
 #[cfg(windows)]
+fn application_exit_trace_detail(code: Option<i32>) -> serde_json::Value {
+    serde_json::json!({"exit_code": code.filter(|code| matches!(code, 0 | 1))})
+}
+
+#[cfg(windows)]
 fn finish_application_exit(app: AppHandle, request_id: String) {
     trace_application_close(
         &app,
@@ -1499,6 +1517,12 @@ fn finish_application_exit(app: AppHandle, request_id: String) {
                 serde_json::json!({"exit_code":code}),
             );
             app.exit(code);
+            trace_application_close(
+                &app,
+                "APP_EXIT_DISPATCH_RETURNED",
+                Some(&request_id),
+                application_exit_trace_detail(Some(code)),
+            );
         })
     });
 }
@@ -1896,13 +1920,27 @@ fn main() {
         })
         .expect("ArcheAxis desktop shell startup failed");
 
-    app.run(move |_handle, event| {
-        if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
+    app.run(move |handle, event| {
+        if let tauri::RunEvent::ExitRequested { code, .. } = event {
+            trace_application_close(
+                handle,
+                "RUN_EXIT_REQUESTED_ENTER",
+                None,
+                application_exit_trace_detail(code),
+            );
             let state = exit_backend.clone();
             // ExitRequested runs on Tauri's event loop. Keep its Core teardown
             // non-blocking; the Windows Job Object still owns the child if the
             // process exits before graceful shutdown ends.
             cleanup_backend_on_exit(state);
+            trace_application_close(
+                handle,
+                "RUN_EXIT_REQUESTED_RETURN",
+                None,
+                application_exit_trace_detail(code),
+            );
+        } else if matches!(event, tauri::RunEvent::Exit) {
+            trace_application_close(handle, "RUN_EXIT_ENTER", None, serde_json::json!({}));
         }
     });
 }
