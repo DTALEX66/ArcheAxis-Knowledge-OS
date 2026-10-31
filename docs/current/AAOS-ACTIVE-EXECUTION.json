@@ -159,12 +159,12 @@
       "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
       "operator_storage_checkpoint": {
         "schema": "aaos.operator-storage-checkpoint/v1",
-        "path": ".project-local/runs/be268a2d33/finalsize-28d9b4a7/artifacts/storage-after.json",
-        "bytes": 838203,
-        "sha256": "812f1c7e17200d273b4cccd322c02b6cab399daa5e8f4ec3e9b462e79124fd4b",
+        "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+        "bytes": 509805,
+        "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
         "report_schema": "aaos.storage-footprint/v2",
         "recorded_by": "Codex explicit governance checkpoint after Owner latest-only cleanup; not a new Owner statement or per-package rolling baseline",
-        "measurement_scope": "Post selected latest-only retirement; 62038724678B readable lower bound, PARTIAL. Original674 access errors/243 private exclusions/581 layout entries unchanged. Non-atomic, not budget/product PASS."
+        "measurement_scope": "After Owner renewed deep cleanup including confirmed-disposable test profile state and old preimages: normal UAC read-only 28352993453B, 351032 files, zero read errors, 243 private exclusions, 581 layout entries; PARTIAL. Actual/wrapper1, e1052d3f + document dirty patch663bd53d, source consistent. Previous snapshots preserved; no per-package rolling, full-budget or product PASS."
       },
       "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
@@ -187,6 +187,7 @@
         "scope": "Obsolete project-owned generated builds/products/caches/copies; preserve current usable dependencies, master source, original inputs, real/unclassified data and private state. Exact actual scopes are recorded, not blanket permission for unrelated files.",
         "record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/LATEST-ONLY-RETIREMENT.md",
         "old_payload_retention": "V12/C453/runtime-before and old clone standalone replay contracts superseded by this latest-only retirement; immutable historical receipts unchanged",
+        "deep_followup_record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "remaining_admin_execution": {
           "owner_instruction": "给你授权，如果还不行给我命令行",
@@ -254,7 +255,8 @@
       "whole_scope": "PARTIAL;102591 planned objects independently verified with unelevated read handles and expected ACL/metadata. Nine directory enumeration failures are also labeled preserved in the original inventory;760 entries have no recorded operation. Not all descendants or private/excluded objects verified; no product qualification.",
       "monitor": "PAUSED_UNCHANGED",
       "observation_ref": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/unelevated-verification.json",
-      "verification_pending": "Post-access measurement remains PARTIAL with674 metadata access errors;review exact protected test-Git,long-path,and unverified link-named cases.Original533 roots are readable in current measured scope;not all descendants.Private paths and frozen Apply/rollback unchanged.",
+      "verification_pending": "Superseding deep-cleanup administrator metadata snapshot has zero read errors, 243 private exclusions and581 layout entries; PARTIAL. Ordinary-token limitations and original frozen ACL Apply/rollback remain unchanged; no permission widening. See latest_administrator_read_only_verification. Unclassified/private data, normalization and producer governance remain open.",
+      "latest_administrator_read_only_verification": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md",
       "storage_followup": "docs/history/storage-cleanup/2026-10-31-staging-normalization/DEPLOYMENT.md",
       "storage_measurement": "docs/history/storage-cleanup/2026-10-31-post-access-measurement/README.md",
       "normalization_followup": "docs/history/storage-cleanup/2026-10-31-directory-review/README.md"
