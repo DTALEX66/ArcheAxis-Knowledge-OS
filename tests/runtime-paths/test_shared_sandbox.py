@@ -4,6 +4,7 @@ import json
 import subprocess
 import uuid
 from pathlib import Path, PureWindowsPath
+from types import SimpleNamespace
 
 import pytest
 
@@ -300,6 +301,16 @@ def test_conflict_requires_actual_canonical_receipts_source_candidate_and_restar
             subject.verify_conflict(plan)
 
 
+@pytest.fixture
+def synthetic_windows_cli(monkeypatch):
+    # Only the CLI under test sees Windows; pathlib and receipt I/O retain the
+    # real host OS. The tests supply fake Popen handles, never a real CLI process.
+    monkeypatch.setattr(subject, 'os', SimpleNamespace(**{**vars(subject.os), 'name': 'nt'}))
+    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
+    monkeypatch.setattr(subject.subprocess, 'CREATE_NO_WINDOW', 0, raising=False)
+
+
+@pytest.mark.usefixtures('synthetic_windows_cli')
 @pytest.mark.parametrize('mode', ['natural', 'forced', 'unconfirmed', 'force-error', 'wait-error'])
 def test_owned_connection_handle_terminal_is_explicit_and_failures_are_retained(tmp_path, monkeypatch, mode):
     class Child:
@@ -322,7 +333,6 @@ def test_owned_connection_handle_terminal_is_explicit_and_failures_are_retained(
             raise RuntimeError('synthetic stop failure')
         if mode != 'unconfirmed':
             owned.returncode = 1
-    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
     monkeypatch.setattr(subject.subprocess, 'Popen', lambda *a, **kw: child)
     monkeypatch.setattr(subject.dev, 'stop_owned_process', stop)
     cli = subject.native_cli(tmp_path)
@@ -371,6 +381,7 @@ def test_environment_absence_does_not_replace_owned_connection_reaping(prepared,
         assert result['cleanup_or_reverification_error']
 
 
+@pytest.mark.usefixtures('synthetic_windows_cli')
 @pytest.mark.parametrize('confirmed', [True, False])
 def test_repeated_reaper_reuses_final_owned_handle_result_without_retry(tmp_path, monkeypatch, confirmed):
     class Child:
@@ -394,7 +405,6 @@ def test_repeated_reaper_reuses_final_owned_handle_result_without_retry(tmp_path
     def record_write(target, value):
         writes.append(target.name)
         original_write(target, value)
-    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
     monkeypatch.setattr(subject.subprocess, 'Popen', lambda *a, **kw: child)
     monkeypatch.setattr(subject.dev, 'stop_owned_process', stop)
     monkeypatch.setattr(subject, 'write_json', record_write)
@@ -408,6 +418,7 @@ def test_repeated_reaper_reuses_final_owned_handle_result_without_retry(tmp_path
     assert first[0]['status'] == ('REAPED_OWNED_HANDLE' if confirmed else 'UNCONFIRMED')
 
 
+@pytest.mark.usefixtures('synthetic_windows_cli')
 def test_terminal_write_failure_still_reaps_later_owned_handles_and_is_not_retried(tmp_path, monkeypatch):
     class Child:
         returncode = 0
@@ -425,7 +436,6 @@ def test_terminal_write_failure_still_reaps_later_owned_handles_and_is_not_retri
         if target.name == 'connection-001-terminal.json':
             raise PermissionError('synthetic terminal write failure')
         original_write(target, value)
-    monkeypatch.setattr(subject.shutil, 'which', lambda _: 'synthetic-wsb.exe')
     monkeypatch.setattr(subject.subprocess, 'Popen', lambda *a, **kw: next(pending))
     monkeypatch.setattr(subject, 'write_json', write)
     cli = subject.native_cli(tmp_path)

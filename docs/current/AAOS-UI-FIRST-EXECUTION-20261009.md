@@ -3070,3 +3070,13 @@ Owner追加“这是新补丁”。独立复核后，该包实际是证据绑定
 root及独立复核者直接复读原v3.1 ZIP，final-scope/patch-readback.command.json起止实际为+00:00，与UTC wrapper一致，XML时刻换算也一致。上段及前版AUDIT所谓“历史+08与当前UTC不同”是本地审计事实误读，明确撤回；旧错误原版保留Git历史，不篡改原ZIP。真实限制是generator/test/source/patch及输出未在执行时完整自哈希，source-binding和final-byte-binding为测试后快照，现时hash不能追认历史运行版本。42testcase/47subtests和8控制流场景的原记录、候选文本重建身份仍成立，运行时字节绑定UNVERIFIED。
 
 新补件未伪造两份stdout，V3-F05仍MISSING/历史生成UNVERIFIED；V3-F06原模板关闭不变。详见[新补件复核、完整成员hash及限制](../../workspace/intake/20261101-log-binding-addendum-review/README.md)。本次归档勘误纳入同一Git交付，不扩大产品实施授权或取消既有剩余项。
+
+### 2026-11-01 公开分支收拢与必要CI修复
+
+公开整合PR为[204](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/204)；被完整包含的旧PR203已关闭，远端sync/ui-polish/trae及本地sync/trae已正常删除。6个旧本地/远端头均为整合候选祖先，旧UI吸收merge树保持不变；原件/运行/私有载荷仍ignored。初次凭据扫描发现33ccac5a的ROOT-REVIEW中源码摘要误报，独立对源码blob重算相同，仅登记该路径AND精确值；当前完整3121提交扫描0发现，反例证明不同值或不同路径仍各触发1发现。
+
+原[CI41221623021](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41221623021)在2776544a预检失败：71569d17变更Core schema后漏刷两UI host生成物摘要。726f3056按原生成器仅更新两常量，生成器检查、Rust2测及前端16测通过，后继CI预检已通过；不改schema语义或UI布局。
+
+后继[CI41222170992](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41222170992)暴露desktop-fast缺vcruntime140.dll：windows-latest实际迁至VS2026/v145/14.51，而现有app-local路径与批准cohort为VS2022/v143。仅两个runtime producer固定windows-2022，安装器消费仍latest；保留vswhere、精确DLL/cohort/缺件fail-closed，不扩批准hash或全局安装。镜像回归RED已保留，修复后runtime/native wiring19测通过；官方镜像清单只证明VS2022存在，不证明精确DLL已合格，最终云端仍须逐成员校验。当前阶段是必要合并修复，最终main及双端读回由后继收据/本段续记，不将旧失败或跳过记成PASS。
+
+同轮其余门禁收齐：12项success；Python主集6630pass/121skip/528subtests、8fail，全部是模拟Sandbox终态测试漏注入Windows平台/CREATE_NO_WINDOW；desktop-build与fast为相同DLL前置失败，a0据此FAIL。只给3类8参模拟测试加显式模块OS代理fixture，生产native_cli平台保护和全部断言保持；模拟Linux RED8fail→GREEN8pass，完整文件45pass，未启动真实Sandbox。一个长run-id触发WinError206，原失败保留，短run-id s204重跑通过，不改系统或降门槛；收尾继续使用短run-id。原故意失败、命令路径错误和环境失败均留在各自run，不计产品PASS。

@@ -1,14 +1,15 @@
 """C++ runtime staging and builder selection; synthetic bytes, never loads DLLs."""
 import hashlib
 import os
-from pathlib import Path
 import shutil
 import subprocess
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from scripts.release import stage_backend_runtime as stager
+
 from desktop.scripts import prepare_bundle
+from scripts.release import stage_backend_runtime as stager
 
 
 def row(payload, version):
@@ -19,7 +20,8 @@ def row(payload, version):
 def donors(tmp_path, monkeypatch):
     python = tmp_path / 'python'
     vc = tmp_path / 'vc'
-    python.mkdir(); vc.mkdir()
+    python.mkdir()
+    vc.mkdir()
     old, cohort = {}, {}
     for name in ('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll'):
         payload = ('SYNTHETIC new ' + name).encode()
@@ -143,10 +145,12 @@ def test_builder_official_vswhere_default_redist_version(monkeypatch, tmp_path, 
     monkeypatch.delenv('ARCHEAXIS_VC_RUNTIME_DIR', raising=False)
     monkeypatch.setenv('ProgramFiles(x86)', str(tmp_path / 'pf'))
     vswhere = tmp_path / 'pf/Microsoft Visual Studio/Installer/vswhere.exe'
-    vswhere.parent.mkdir(parents=True); vswhere.write_bytes(b'SYNTHETIC')
+    vswhere.parent.mkdir(parents=True)
+    vswhere.write_bytes(b'SYNTHETIC')
     vc = tmp_path / 'vs/VC'
     version_file = vc / 'Auxiliary/Build/Microsoft.VCRedistVersion.default.txt'
-    version_file.parent.mkdir(parents=True); version_file.write_text('14.44.35112\n')
+    version_file.parent.mkdir(parents=True)
+    version_file.write_text('14.44.35112\n')
     def discover(command, **kwargs):
         assert command[0] == str(vswhere) and '-latest' in command and 'installationPath' in command
         assert kwargs['check'] and kwargs['timeout'] == 30
@@ -165,3 +169,17 @@ def test_builder_missing_registration_never_searches_path(monkeypatch):
     monkeypatch.delenv('ProgramFiles(x86)', raising=False)
     with pytest.raises(RuntimeError, match='donor unavailable'):
         prepare_bundle.resolve_vc_runtime()
+
+
+def test_ci_backend_builders_use_reviewed_vs2022_runtime_image():
+    """Moving latest to VS2026 must not change the app-local donor/toolset."""
+    import yaml
+    root = Path(__file__).resolve().parents[1]
+    workflow = yaml.safe_load((root / '.github/workflows/ci.yml').read_text(encoding='utf-8'))
+    builders = {
+        name: job for name, job in workflow['jobs'].items()
+        if any('--backend-candidate' in step.get('run', '') for step in job.get('steps', []))
+    }
+    assert builders, 'no app-local backend producers found'
+    for name, job in builders.items():
+        assert job['runs-on'] == 'windows-2022', name

@@ -1041,7 +1041,9 @@ jobs:
         run: python -B -m unittest discover -s tests/workers -p "test_*.py"
 
   desktop-fast:
-    runs-on: windows-latest
+    # App-local runtime approval targets VS2022/v143; latest now selects VS2026/v145.
+    # Keep the producer toolset stable; exact DLL cohort hashes still fail closed.
+    runs-on: windows-2022
     timeout-minutes: 30
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
@@ -1318,7 +1320,8 @@ jobs:
           if-no-files-found: warn
 
   desktop-build:
-    runs-on: windows-latest
+    # Match desktop-fast's reviewed app-local C++ runtime producer toolset.
+    runs-on: windows-2022
     timeout-minutes: 30
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
