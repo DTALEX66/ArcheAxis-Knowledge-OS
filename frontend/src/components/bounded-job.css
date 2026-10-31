@@ -1,0 +1,10 @@
+.bounded-job-options { margin-block:16px; padding:12px 16px; border:1px solid var(--ax-border); border-radius:10px; }
+.bounded-job-options summary { cursor:pointer; min-height:28px; }
+.bounded-job-options > div { display:grid; gap:12px; padding-top:12px; }
+.bounded-job-options input[type="number"] { max-width:14rem; }
+.bounded-job-next { padding:16px; background:var(--ax-raised); border-radius:10px; }
+.bounded-job-selection { display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-block:20px 12px; }
+.bounded-job-selection h3,.bounded-job-selection p { margin:0; }
+.bounded-job-actions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.bounded-job-actions button { min-height:40px; padding:8px 12px; }
+.bounded-job-actions .bounded-job-primary { color:var(--ax-accent); border-color:var(--ax-accent); background:var(--ax-accent-soft); }

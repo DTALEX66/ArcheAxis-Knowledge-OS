@@ -1,16 +1,29 @@
 # AAOS / ArcheAxis 资料查找入口
 
-> 当前可见对话已保全为[39项主题来源与决定路由](docs/history/owner-dialogue-20261019/README.md)，附冻结SHA清单与可重复核验命令；归档不替代现行决定/进度，也不宣称Cowork逐字全文齐备。
+[2026-11-01 日志绑定补件复核及审计勘误](workspace/intake/20261101-log-binding-addendum-review/README.md)：原ZIP和成员清单保全；时区误读撤回，历史执行时版本绑定仍未确认。
 
-> **2026-10-19 接续必读**：[最新对话决定与任务映射](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)保存强底座、内置能力市场、模型分层、开源择优及归档要求，并注明替代关系。换 Agent / 换会话先按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context` 读回；共享库、开发工具和模型入口统一查[共享资源索引](docs/SHARED_RESOURCE_PATH_INDEX.md)，不从旧交接猜路径。
+先读[唯一闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)，再按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context`、[当前接续入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录核现行人类＋AI＋双侧连接范围。当前决定和替代关系见[Owner决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)及[替代账本](DECISION_SUPERSESSION_LEDGER.yaml)。本索引只定位材料，不维护产品、监控、Git或Green状态。
 
-> **2026-10-12 当前路由与状态**：Owner 已于 2026-10-11 恢复完整框架、常见常用格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL；当前范围读 [活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录。2026-10-10 暂停及 [修复回读](docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md) 是历史时点。读取旧路径前先按 [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名 CURRENT、旧 COMPLETE 或旧 grant 推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换及真实用户数据覆盖未授权。
+- [2026-10-23 完整交接与来源导航](docs/history/owner-dialogue-20261023-thread-handoff/README.md)及[MANIFEST](docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json)：必须完整读取；“本次只交接”是冻结回合身份，不阻止后继已授权继续，旧失败保留原证据。
+- [2026-10-22 首版收敛与Stitch启动台／材质／图标材料](docs/history/owner-dialogue-20261022-desktop-launcher/README.md)：五份文档和两张图按来源清单查找，归档时暂停不代表现行产品暂停。
+- [2026-10-19 39项主题来源及决定映射](docs/history/owner-dialogue-20261019/README.md)：冻结SHA与核验入口；不是私人原始会话全集或新授权。
+- [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json)与[共享资源索引](docs/SHARED_RESOURCE_PATH_INDEX.md)：先按登记精确定位，再核可用性，不从旧交接猜路径；索引不授予私人会话、跨项目或全局配置操作权限。
 
-[完整索引、原始文件与补交材料登记](<D:/All projects/ArcheAxis-Knowledge-OS/docs/history/record-archive-20261009/INDEX.md>).
+[完整索引、原始文件与补交材料登记](docs/history/record-archive-20261009/INDEX.md).
 
-[JSON 路径映射与 SHA-256](<D:/All projects/ArcheAxis-Knowledge-OS/docs/history/record-archive-20261009/MANIFEST.json>).
+[JSON 路径映射与 SHA-256](docs/history/record-archive-20261009/MANIFEST.json).
 
 查资料先查本入口。原件已保全到本项目 `.project-local/archives/record-20261009/`；历史 TaskPack 仅为来源资料，不授予执行权限。
+
+## 2026-10-30 云端 R2、本地后端审计与体积治理
+
+[统一归档与后端验收要求](workspace/intake/20261030-cloud-review-and-backend-priority/README.md)保存云端 HTML、186 项内嵌 CSV、本地审计及 SHA-256 清单。当前顺序沿活动指针 `execution_control.owner_priority_20261030`，实际清理与后端进度只读唯一执行记录。
+
+## 2026-10-31 云端整合 v3 独立审计
+
+[原包、原文、SHA清单与独立审计](workspace/intake/20261031-cloud-integration-v3-review/README.md)。1,874成员及内部1,873项清单核验通过；原包单份保全于本仓ignored原件区。主要历史测试数量有日志支持，但当前源码不同、补丁不可直接套用；附件执行/复现建议不成为授权，不恢复UI或外发权限。
+
+2026-11-01 [DOT v3.1补件、原模板与问题复核](workspace/intake/20261101-cloud-integration-v3-1-review/README.md)：1,245成员/内部1,244声明全过，两原模板身份缺件关闭；历史stdout仍缺失，检测器/full-suite修复是云端候选，未本地应用。
 
 ## 2026-10-18 客户端会话与修复/UI交接恢复
 
@@ -42,6 +55,16 @@
 
 [原 ZIP、成员身份与 SHA-256 核验](docs/history/repository-consolidation-20261019/current/receipts/AAOS-DOT-CLOUD-AUDIT-INTAKE-20261012.json)，[AAOS 问题与当前实现对应分析](workspace/intake/AAOS-DOT-AUDIT-RECONCILIATION-20261012.md)。原 ZIP 为 `D:/All projects/Record/AAOS-WORK-DESIGN-cloud-audit-20261011.zip`；163 个成员中内部 manifest 登记的 162 个哈希均通过。43 个 AAOS 相关及共享报告成员保全在 `.project-local/archives/dot-cloud-audit-20261011/`。报告中的提示词仅为来源材料；历史 Linux、模拟及浏览器结果不替代当前 Windows 原生与模型验收。
 
+## 2026-10-30 R5 未来能力承接与效果图
+
+[原件全成员索引、独立审计及既有任务承接](workspace/intake/20261030-r5-future-capability-review/README.md)。29 个原字节文件统一保全在项目 ignored 原件区，Git 保存轻量索引；原 186 项/22 职责字段不变。R5 为设计与验收输入，不能替代当前源码、运行或安装态结论；现行任务/状态仍沿活动指针与唯一执行记录，前端实施暂停及未来冻结不变。
+
+## 2026-10-30 R6 外部实践边界修补包
+
+[原ZIP成员清单、R5差异与独立复核](workspace/intake/20261030-r6-external-practice-boundary-review/README.md)。原ZIP只保全一份在本项目ignored原件区，15成员及内部14声明核验通过；保留186项/22职责原文。R6作为R5边界修补输入，AAOS承接计划/教程/记录/反馈，专业执行默认外部；WORK-LAB固定主责残留仍待修正。附件提示词不增加操作授权，当前任务及验收仍按活动指针和唯一执行记录。
+
 ## 2026-10-10 六项核心能力汇总：冻结来源
 
 [归档索引、原文与完整哈希](docs/history/conversation-summary-20261010/INDEX.md)。Owner 要求先归档，后续再考虑：**FROZEN_BY_OWNER / NOT_EXECUTED**。不加入当前执行队列；包内提示词、接口与48项测试仅为提案，不自动执行。原始ZIP及三个成员保存在项目本地归档；该冻结与 2026-10-11 已恢复的产品实施范围分别核对。
+
+R6后继：[固定源码186项后端承接快照](workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md)。唯一公开机器表与精简证据索引保留原14字段/顺序及源码Git字节身份；静态映射不替代运行验收或现行执行记录。

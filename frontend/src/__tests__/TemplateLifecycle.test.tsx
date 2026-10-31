@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { CanonicalResourcesSpace } from "../spaces/CanonicalResourcesSpace";
 import { collection, prepareTemplateCreate, type TemplateBinding } from "../templates/bindings";
 import { changeTemplate, readTemplateState, type TemplateState } from "../templates/templateLifecycle";
@@ -27,6 +28,8 @@ beforeEach(()=>{
 describe("SYNTHETIC first-party T3 host lifecycle through finite native commands",()=>{
   it("existing resource center offers actual update, rollback, disable, enable, uninstall and reinstall controls",async()=>{
     render(<CanonicalResourcesSpace/>);
+    await screen.findByText(/本次完整读回 0 个文档对象/);
+    await userEvent.click(screen.getByRole("tab",{name:"接入来源与运行设置"}));
     fireEvent.click(await screen.findByRole("button",{name:"更新到模板 v2"}));
     await waitFor(()=>expect(state.definition.version).toBe(2));
     fireEvent.click(await screen.findByRole("button",{name:"回退到模板 v1"}));

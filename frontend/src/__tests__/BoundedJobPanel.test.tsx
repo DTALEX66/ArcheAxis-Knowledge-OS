@@ -1,8 +1,9 @@
 import { DiagnosticConsole } from "../components/DiagnosticConsole";
-import { resetDiagnostics } from "../presentation/diagnostics";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { resetDiagnostics, useDiagnostics } from "../presentation/diagnostics";
+import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BoundedJobPanel, type BoundedJobCommand } from "../components/BoundedJobPanel";
+import { asrModelFailure } from "./fixtures/asrModelFailure";
 
 const source = { source_id: "s1", source_revision: "rev1", sha256: "a".repeat(64), original_name: "synthetic.txt", imported_at: "2026-10-10" };
 const job = { job_id: "j1", kind: "text", state: "queued", input_ref: "s1", created_at: "2026-10-10", completed_at: null, attempt: null, error: null };
@@ -33,11 +34,46 @@ async function select() {
   render(<><BoundedJobPanel command={command} pollMs={60000} /><DiagnosticConsole /></>);
   await screen.findByRole("option", { name: /synthetic.txt/ });
   fireEvent.change(screen.getByLabelText("已保存来源"), { target: { value: "s1" } });
-  await waitFor(() => expect(screen.getByRole("option", { name: "text · queued" })).toHaveValue("j1"));
+  await waitFor(() => expect(screen.getByRole("option", { name: "文字解析 · 排队中" })).toHaveValue("j1"));
   fireEvent.change(screen.getByLabelText("来源任务"), { target: { value: "j1" } });
   await waitFor(() => expect(screen.getByRole("button", { name: "执行已保存任务" })).toBeEnabled());
 }
 describe("BoundedJobPanel isolated finite-port behavior", () => {
+  it("keeps raw status failures behind explicit details without retrying the accepted request", async () => {
+    const diagnostics = renderHook(useDiagnostics);
+    await select(); fireEvent.click(screen.getByRole("button", { name: "执行已保存任务" }));
+    await screen.findByText(/^当前状态：正在处理。/);
+    const request = state.request_id;
+    const raw = "SyntaxError /workspace/private-input HTTP 503";
+    status = async () => { throw new Error(raw); };
+    fireEvent.click(screen.getByRole("button", { name: "刷新实际状态" }));
+    const message = await screen.findByText(/任务状态暂时无法确认/);
+    expect(message).not.toHaveTextContent(raw);
+    expect(message).not.toHaveTextContent(/SyntaxError|workspace|HTTP/);
+    expect(message).toHaveTextContent("已有处理记录和进度保留");
+    expect(diagnostics.result.current).toHaveLength(0);
+    expect(state.request_id).toBe(request);
+    expect(screen.getByRole("button", { name: "执行已保存任务" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "状态与诊断：任务状态读取错误详细信息" }));
+    expect(diagnostics.result.current[0]).toMatchObject({ payload: { name: "Error", message: raw } });
+    expect(diagnostics.result.current[0].automatic).not.toBe(true);
+    expect(command.mock.calls.filter(([op]) => op === "job_execute")).toHaveLength(1);
+  });
+  it("shows actual missing-model recovery without bypassing the Core retry condition",async()=>{
+    await select();fireEvent.click(screen.getByRole("button",{name:"执行已保存任务"}));
+    await screen.findByText(/^当前状态：正在处理。/);
+    const request=state.request_id!;
+    const error=JSON.stringify(asrModelFailure({job_id:"j1",request_id:request,attempt:1}));
+    state=row("failed",request,{error,attempts:[{attempt:1,request_id:request,continuation:{new_attempt_eligible_state:false}}]});
+    fireEvent.click(screen.getByRole("button",{name:"刷新实际状态"}));
+    expect(await screen.findByRole("region",{name:"语音转写组件恢复指引"})).toHaveTextContent("缺少语音转写模型");
+    expect(screen.getByRole("button",{name:"新请求重试（不等于检查点恢复）"})).toBeDisabled();
+    fireEvent.click(screen.getByRole("button",{name:"查看语音组件诊断：语音转写模型缺失诊断"}));
+    const details=screen.getByLabelText("诊断控制台").querySelector("details[open] pre")!;
+    expect(JSON.parse(details.textContent!).error).toBe(error);
+    expect(command.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
+    expect(screen.getByRole("button",{name:"刷新实际状态"})).toBeEnabled();
+  });
   it("allows a new bounded attempt only from actual current continuation condition", async () => {
     await select(); fireEvent.click(screen.getByText("执行已保存任务"));
     await screen.findByText(/^当前状态：正在处理。/);
@@ -59,7 +95,7 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
     render(<BoundedJobPanel command={command} pollMs={60000}/>);
     await screen.findByRole("option",{name:/synthetic.txt/});
     fireEvent.change(screen.getByLabelText("已保存来源"),{target:{value:"s1"}});
-    await waitFor(() => expect(screen.getByRole("option", { name: "video · queued" })).toHaveValue("j1"));
+    await waitFor(() => expect(screen.getByRole("option", { name: "视频解析 · 排队中" })).toHaveValue("j1"));
     fireEvent.change(screen.getByLabelText("来源任务"),{target:{value:"j1"}});
     await waitFor(()=>expect(screen.getByText("执行已保存任务")).toBeEnabled());
     expect(screen.getByLabelText("分段处理媒体")).toBeDisabled();
@@ -112,7 +148,7 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
     state = row("running", state.request_id, { checkpoint: { external_future_field: "keep-this" } });
     await act(async () => { fireEvent.click(screen.getByText("刷新实际状态")); }); expect(jobStatusDetails()).toHaveTextContent("keep-this");
     status = async () => { throw new Error("offline"); };
-    fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/状态读回未确认/);
+    fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/任务状态暂时无法确认/);
     expect(jobStatusDetails()).toHaveTextContent("keep-this");
   });
   it("wrong execute request identity cannot unlock the frozen payload", async () => {
@@ -133,7 +169,7 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
     await act(async () => { resolve(row("running", state.request_id)); });
     expect(screen.getByText(/^当前状态：已完成。/)).toBeInTheDocument();
     status = async () => row("failed", "different-request");
-    fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/状态读回未确认/);
+    fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/任务状态暂时无法确认/);
     expect(screen.getByText(/^当前状态：已完成。/)).toBeInTheDocument();
   });
   it("multiple panels have distinct dirty owners and unmount only clears their own", async () => {
@@ -150,7 +186,7 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
     render(<BoundedJobPanel command={command} pollMs={250} />);
     await screen.findByRole("option", { name: /synthetic.txt/ });
     fireEvent.change(screen.getByLabelText("已保存来源"), { target: { value: "s1" } });
-    await waitFor(() => expect(screen.getByRole("option", { name: "text · queued" })).toHaveValue("j1"));
+    await waitFor(() => expect(screen.getByRole("option", { name: "文字解析 · 排队中" })).toHaveValue("j1"));
     fireEvent.change(screen.getByLabelText("来源任务"), { target: { value: "j1" } });
     await waitFor(() => expect(screen.getByText("执行已保存任务")).toBeEnabled());
     fireEvent.click(screen.getByText("执行已保存任务"));
@@ -164,12 +200,12 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
     render(<BoundedJobPanel command={command} pollMs={60000} />);
     await screen.findByRole("option", { name: /synthetic.txt/ });
     fireEvent.change(screen.getByLabelText("已保存来源"), { target: { value: "s1" } });
-    await waitFor(() => expect(screen.getByRole("option", { name: "text · queued" })).toHaveValue("j1"));
+    await waitFor(() => expect(screen.getByRole("option", { name: "文字解析 · 排队中" })).toHaveValue("j1"));
     fireEvent.change(screen.getByLabelText("来源任务"), { target: { value: "j1" } });
     await waitFor(() => expect(screen.getByText("请求取消")).toBeEnabled());
     fireEvent.click(screen.getByText("请求取消")); await screen.findByText(/取消待确认/);
     state = row("cancelled", "unrelated-new-request");
-    fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/状态读回未确认/);
+    fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/任务状态暂时无法确认/);
     expect(screen.getByText(/取消待确认/)).toBeInTheDocument();
     state = row("cancelled", "saved-request");
     fireEvent.click(screen.getByText("刷新实际状态")); await screen.findByText(/^当前状态：已取消。/);
@@ -179,7 +215,7 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
 });
 
 function jobStatusDetails() {
-  fireEvent.click(screen.getByRole("button", { name: "查看诊断详情：任务状态与保存进度详细信息" }));
+  fireEvent.click(screen.getByRole("button", { name: "状态与诊断：任务状态与保存进度详细信息" }));
   const payloads = screen.getByLabelText("诊断控制台").querySelectorAll("details[open] pre");
   expect(payloads).toHaveLength(1);
   return payloads[0];

@@ -17,8 +17,10 @@ else:
     import dev
 
 RESOURCES = {"runtime", "core", "workers", "shared", "worker-profile.json",
-             "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json"}
+             "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json",
+             "vcruntime140.dll", "vcruntime140_1.dll"}
 SHA = re.compile(r"[0-9a-f]{64}\Z")
+FIXED_WEBVIEW2_MANIFEST_SHA256 = "d465623969d3ba9ac271deb6fb81865007261e20c93dd723ff65c38144bc89f7"
 # Public file shipped by the already qualified locked FastAPI distribution.
 # This exception never authorizes a native agent directory or changed bytes.
 PUBLIC_UPSTREAM_FILES = {
@@ -122,6 +124,14 @@ def verify_worker_contract(root: Path, members: dict) -> None:
             or profile.get("staging") != "data/worker-staging"):
         raise ValueError("Invalid formal worker launch contract")
     required = {profile["python"], profile["script"], "core/archeaxis-api.exe", "workers/routes.json"}
+    for name in ("vcruntime140.dll", "vcruntime140_1.dll"):
+        copies = [prefix + name for prefix in ("", "core/", "runtime/")]
+        required.update(copies)
+        if not all(member in members for member in copies):
+            raise ValueError("Required app-local VC runtime copy absent")
+        identities = [(members[member].get("bytes"), members[member].get("sha256")) for member in copies]
+        if any(identity != identities[0] for identity in identities[1:]):
+            raise ValueError("App-local VC runtime copies differ from runtime donor")
     mapping = routes.get("routes")
     if not isinstance(mapping, dict) or not mapping:
         raise ValueError("Missing native worker routes")
@@ -139,6 +149,31 @@ def verify_worker_contract(root: Path, members: dict) -> None:
         observed[row["capability"]] = relative_path(row["script"])
     if observed != expected or not required.issubset(members):
         raise ValueError("Native/profile routes differ or worker input absent")
+
+
+def verify_fixed_webview2(root: Path) -> dict:
+    """Qualify the desktop dependency separately from backend-only staging."""
+    directory = checked(root / "runtime/webview2")
+    manifest = regular(directory / "aaos-fixed-runtime-manifest.json")
+    if digest(manifest) != FIXED_WEBVIEW2_MANIFEST_SHA256:
+        raise ValueError("fixed WebView2 manifest identity mismatch")
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    if data.get("schema") != "archeaxis.official-fixed-runtime-files/v1":
+        raise ValueError("unrecognized fixed WebView2 manifest")
+    files = {}
+    for row in data["files"]:
+        name = relative_path(row["path"])
+        if name.casefold() in {p.casefold() for p in files}:
+            raise ValueError("duplicate fixed WebView2 member")
+        files[name] = {"bytes": row["bytes"], "sha256": row["sha256"]}
+    if not {"msedgewebview2.exe", "msedge.dll"}.issubset(files):
+        raise ValueError("missing fixed WebView2 executable")
+    verify_members(directory, files)
+    if inventory(directory) != set(files) | {manifest.name}:
+        raise ValueError("unmanifested fixed WebView2 resource")
+    return {"version": data["version"], "path": "runtime/webview2",
+            "manifest_sha256": digest(manifest),
+            "executable_sha256": files["msedgewebview2.exe"]["sha256"]}
 
 
 def verify_runtime_resources(root: Path, configured_resources: set[str]) -> dict:

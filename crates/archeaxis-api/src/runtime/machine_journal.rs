@@ -21,8 +21,8 @@ pub(super) async fn cancel(
             let Ok(entries) = runtime.machine_active.lock() else {
                 return (StatusCode::SERVICE_UNAVAILABLE,"machine registry unconfirmed").into_response();
             };
-            let requested = entries.get(&key).filter(|entry| entry.attempt == attempt && entry.restore_epoch == restore_epoch && entry.accepting)
-                .is_some_and(|entry| {entry.cancel.cancel();true});
+            let requested = entries.get(&key).filter(|entry| entry.attempt == attempt && entry.restore_epoch == restore_epoch)
+                .is_some_and(MachineActive::request_cancel);
             Json(json!({"schema":"archeaxis.machine-cancel-receipt/v1","journal_id":journal_id,"attempt":attempt,
                 "cancel_requested":requested,"execution_state":"UNKNOWN","provider_stop_state":"UNKNOWN"})).into_response()
         }

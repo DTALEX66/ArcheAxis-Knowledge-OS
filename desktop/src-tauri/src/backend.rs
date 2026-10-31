@@ -68,6 +68,7 @@ pub const CORE_LAUNCH_PROTOCOL: &str = "archeaxis.desktop-launch/v2";
 struct DocumentCheckConfig {
     provider: String,
     model: String,
+    credential_ref: String,
     endpoint: Option<String>,
     max_tokens: u64,
     timeout_seconds: u64,
@@ -164,6 +165,11 @@ fn document_check_config(data_dir: &Path) -> (Option<serde_json::Value>, Option<
                 .bytes()
                 .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
             || config.model.len() > 256
+            || config.credential_ref.len() != 41
+            || !config.credential_ref.starts_with("aak_cred_")
+            || !config.credential_ref[9..]
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
             || !config.model.starts_with(&format!("{}/", config.provider))
             || config
                 .model
@@ -1247,7 +1253,7 @@ mod tests {
         assert_eq!(super::document_check_config(root.path()), (None, None));
         std::fs::create_dir(root.path().join("config")).unwrap();
         let path = root.path().join("config/document-check.json");
-        let valid = serde_json::json!({"provider":"fixture","model":"fixture/exact-v1","endpoint":"https://fixture.invalid/v1","max_tokens":128,"timeout_seconds":10,"search_limit":1});
+        let valid = serde_json::json!({"provider":"fixture","model":"fixture/exact-v1","credential_ref":"aak_cred_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","endpoint":"https://fixture.invalid/v1","max_tokens":128,"timeout_seconds":10,"search_limit":1});
         std::fs::write(&path, serde_json::to_vec(&valid).unwrap()).unwrap();
         assert!(super::document_check_config(root.path()).0.is_some());
         for bad in [
@@ -1266,6 +1272,16 @@ mod tests {
                 let mut c = valid.clone();
                 c["endpoint"] =
                     serde_json::json!("https://fixture.invalid/".to_owned() + &"a".repeat(2048));
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["credential_ref"] = serde_json::json!("synthetic-raw-key");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["credential_ref"] = serde_json::json!(format!("aak_cred_{}界", "a".repeat(29)));
                 c
             },
             {

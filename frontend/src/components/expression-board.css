@@ -1,5 +1,12 @@
 .expression-board { min-width: 0; width: 100%; max-width: 100%; display: grid; gap: 12px; color: var(--ax-fg); }
 .expression-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.expression-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,280px); gap:16px; align-items:start; min-width:0; }
+.expression-canvas-column { min-width:0; }
+.expression-inspector { display:grid; gap:16px; min-width:0; max-height:clamp(400px,60dvh,680px); overflow:auto; overscroll-behavior:contain; padding:12px; border:1px solid var(--ax-border); border-radius:10px; background:var(--ax-raised); }
+.expression-inspector .expression-properties,.expression-inspector .expression-connect { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.expression-inspector .expression-connect > label:last-of-type { grid-column:1/-1; }
+.expression-inspector .expression-edge-list { grid-template-columns:minmax(0,1fr); }
+.expression-inspector .expression-edge-list textarea { min-height:60px; }
 .expression-board label { display: grid; gap: 4px; min-width: 0; }
 .expression-board input, .expression-board select, .expression-board textarea { min-width: 0; max-width: 100%; box-sizing: border-box; color: var(--ax-fg); background: var(--ax-bg-inset); border: 1px solid var(--ax-border); }
 .expression-properties, .expression-connect { min-width: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; border: 1px solid var(--ax-border); }
@@ -18,7 +25,10 @@
 .expression-edge-list { min-width: 0; list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .expression-edge-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
 .expression-node:focus-visible, .expression-viewport:focus-visible { outline: 2px solid var(--ax-accent-bright); outline-offset: 2px; }
+.expression-node[data-selected="true"] { border-color:var(--ax-accent); box-shadow:0 0 0 1px var(--ax-accent); }
 @container content (max-width: 520px) { .expression-properties, .expression-connect { grid-template-columns: minmax(0, 1fr); } .expression-viewport { height: 360px; } }
+@container content (max-width: 760px) { .expression-workspace { grid-template-columns:minmax(0,1fr); } .expression-inspector { max-height:400px; } }
+@media (max-width:760px) { .expression-workspace { grid-template-columns:minmax(0,1fr); } .expression-inspector { max-height:400px; } }
 
 .expression-geometry-input { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px; }
 

@@ -97,6 +97,91 @@ def _receipt_schema_of(path: Path, root: Path = ROOT) -> str | None:
     return None
 
 
+_CI_OBSERVATION_SURFACE = "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+_CI_OBSERVATION_SCHEMA = "aaos-ci-checkout-observation/v1"
+_CI_OBSERVATION_KIND = "github_actions_pr_merge_observation"
+_CI_OBSERVATION_QUALIFICATION = (
+    "EXTERNAL_RECORDED_OBSERVATION_NOT_LOCAL_OBJECT_OR_PRODUCT_QUALIFICATION"
+)
+
+
+def _mask_ci_observation_values(relative: str, text: str) -> str:
+    """Classify only explicit observed checkout/tree occurrences before set union.
+
+    Metadata shape and consistency are checked here; its log hash is a recorded
+    evidence identity, not proof that the log was fetched or a product qualified.
+    Durable head/base/parents and every occurrence outside these two values stay
+    subject to the existing object checks. Locked release paths get no waiver.
+    """
+    if relative != _CI_OBSERVATION_SURFACE:
+        return text
+
+    def require(condition: bool) -> None:
+        if not condition:
+            raise AssertionError("CI_CHECKOUT_OBSERVATION_INVALID")
+
+    def unique_object(pairs):
+        value = {}
+        for key, item in pairs:
+            require(key not in value)
+            value[key] = item
+        return value
+
+    masked = list(text)
+    seen_jobs: set[tuple[int, int]] = set()
+    opening = re.compile(r"^```json[ \t]*\n", re.MULTILINE)
+    closing = re.compile(r"^```[ \t]*$", re.MULTILINE)
+    for fence in opening.finditer(text):
+        end = closing.search(text, fence.end())
+        body = text[fence.end():end.start() if end else len(text)]
+        intended = "aaos-ci-checkout-observation" in body or '"checkout_merge"' in body
+        if not intended:
+            continue
+        require(end is not None)
+        try:
+            value = json.loads(body, object_pairs_hook=unique_object)
+        except (TypeError, ValueError):
+            require(False)
+        required = {
+            "schema", "source_kind", "repository", "workflow_run_id", "job_id",
+            "job_url", "pr_head", "base", "parents", "checkout_merge", "tree",
+            "raw_log_sha256", "qualification",
+        }
+        require(isinstance(value, dict) and set(value) == required)
+        require(value["schema"] == _CI_OBSERVATION_SCHEMA)
+        require(value["source_kind"] == _CI_OBSERVATION_KIND)
+        require(value["repository"] == "DTALEX66/ArcheAxis-Knowledge-OS")
+        require(value["qualification"] == _CI_OBSERVATION_QUALIFICATION)
+        for key in ("pr_head", "base", "checkout_merge", "tree"):
+            require(isinstance(value[key], str)
+                    and re.fullmatch(r"[0-9a-f]{40}", value[key]) is not None)
+        require(value["base"] != value["pr_head"])
+        require(value["parents"] == [value["base"], value["pr_head"]])
+        require(isinstance(value["raw_log_sha256"], str)
+                and re.fullmatch(r"[0-9a-f]{64}", value["raw_log_sha256"]) is not None)
+        for key in ("workflow_run_id", "job_id"):
+            require(type(value[key]) is int and value[key] > 0)
+        require(value["job_url"] == (
+            f"https://github.com/{value['repository']}/actions/runs/"
+            f"{value['workflow_run_id']}/job/{value['job_id']}"
+        ))
+        job_identity = (value["workflow_run_id"], value["job_id"])
+        require(job_identity not in seen_jobs)
+        seen_jobs.add(job_identity)
+        counts = {"checkout_merge": 0, "tree": 0}
+        for item in re.finditer(
+            r'"(?P<field>checkout_merge|tree)"\s*:\s*"(?P<sha>[0-9a-f]{40})"', body
+        ):
+            field = item.group("field")
+            require(item.group("sha") == value[field])
+            counts[field] += 1
+            start = fence.end() + item.start("sha")
+            stop = fence.end() + item.end("sha")
+            masked[start:stop] = " " * (stop - start)
+        require(counts == {"checkout_merge": 1, "tree": 1})
+    return "".join(masked)
+
+
 def _surface_shas(root: Path) -> set[str]:
     """40-hex identifiers the SHA-existence scan must check under ``root``."""
     surfaces = [root / _LOCKED_SURFACES[0]]
@@ -110,7 +195,8 @@ def _surface_shas(root: Path) -> set[str]:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         relative = path.relative_to(root).as_posix()
-        found.update(set(re.findall(r"\b[0-9a-f]{40}\b", text)) - _external_source_shas(relative, text))
+        scan_text = _mask_ci_observation_values(relative, text)
+        found.update(set(re.findall(r"\b[0-9a-f]{40}\b", scan_text)) - _external_source_shas(relative, scan_text))
     return found
 
 TASK_IDS = tuple(
@@ -620,3 +706,143 @@ def test_retired_tip_is_verified_when_not_in_fresh_clone(monkeypatch):
         return result
     monkeypatch.setattr(subprocess, "run", without_retired_object)
     test_tracked_current_surfaces_only_reference_declared_release_delta_or_source_objects()
+
+
+def _ci_observation_fixture_value() -> dict:
+    """Synthetic classification metadata; never a real CI/product receipt."""
+    return {
+        "schema": _CI_OBSERVATION_SCHEMA,
+        "source_kind": _CI_OBSERVATION_KIND,
+        "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+        "workflow_run_id": 101,
+        "job_id": 202,
+        "job_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/101/job/202",
+        "pr_head": "1" * 40,
+        "base": "2" * 40,
+        "parents": ["2" * 40, "1" * 40],
+        "checkout_merge": _FAKE_FULL_ID,
+        "tree": "fedcba9876543210fedcba9876543210fedcba98",
+        "raw_log_sha256": "a" * 64,
+        "qualification": _CI_OBSERVATION_QUALIFICATION,
+    }
+
+
+def _ci_observation_fixture_text(value: dict | None = None) -> str:
+    return "```json\n" + json.dumps(
+        _ci_observation_fixture_value() if value is None else value, indent=2
+    ) + "\n```\n"
+
+
+
+def test_ci_observation_multiple_independent_jobs_keep_local_value_scope(tmp_path: Path):
+    root = _fixture_root(tmp_path)
+    first = _ci_observation_fixture_value()
+    second = dict(first)
+    second.update({
+        "workflow_run_id": 303,
+        "job_id": 404,
+        "job_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/303/job/404",
+        "checkout_merge": "e" * 40,
+        "tree": "d" * 40,
+    })
+    text = _ci_observation_fixture_text(first) + _ci_observation_fixture_text(second)
+    (root / _CI_OBSERVATION_SURFACE).write_text(text, encoding="utf-8")
+    masked = _mask_ci_observation_values(_CI_OBSERVATION_SURFACE, text)
+    assert len(masked) == len(text)
+    assert masked.count(" " * 40) == 4
+    assert _surface_shas(root) == {first["pr_head"], first["base"]}
+
+
+def test_ci_observation_masks_only_checkout_tree_values_before_union(tmp_path: Path):
+    root = _fixture_root(tmp_path)
+    value = _ci_observation_fixture_value()
+    text = _ci_observation_fixture_text(value)
+    (root / _CI_OBSERVATION_SURFACE).write_text(text, encoding="utf-8")
+    masked = _mask_ci_observation_values(_CI_OBSERVATION_SURFACE, text)
+    assert len(masked) == len(text)
+    assert masked.count(" " * 40) == 2
+    assert _surface_shas(root) == {value["pr_head"], value["base"]}
+
+
+@pytest.mark.parametrize("target", [
+    _CI_OBSERVATION_SURFACE, "docs/SYSTEM_BOUNDARY.md", "reports/current/README.md",
+])
+def test_ci_observation_never_globally_waives_same_missing_primary_id(tmp_path: Path, target: str):
+    root = _fixture_root(tmp_path)
+    value = _ci_observation_fixture_value()
+    (root / _CI_OBSERVATION_SURFACE).write_text(_ci_observation_fixture_text(value), encoding="utf-8")
+    with (root / target).open("a", encoding="utf-8") as output:
+        output.write(f"primary durable source: {value['checkout_merge']}\n")
+    assert value["checkout_merge"] in _surface_shas(root)
+    # The same observed value is still rejected when it also claims durable source.
+    missing = subprocess.run(
+        ["git", "-C", str(ROOT), "cat-file", "-e", value["checkout_merge"]],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+    )
+    assert missing.returncode != 0
+
+
+@pytest.mark.parametrize("target", [
+    "docs/current/other.md", "docs/SYSTEM_BOUNDARY.md", "reports/current/README.md",
+])
+def test_ci_observation_exact_block_on_other_or_locked_path_has_no_waiver(tmp_path: Path, target: str):
+    root = _fixture_root(tmp_path)
+    value = _ci_observation_fixture_value()
+    (root / target).write_text(_ci_observation_fixture_text(value), encoding="utf-8")
+    assert {value["checkout_merge"], value["tree"]} <= _surface_shas(root)
+
+
+@pytest.mark.parametrize(("field", "bad"), [
+    ("schema", "aaos-ci-checkout-observation/v0"),
+    ("source_kind", "durable_source"),
+    ("repository", "other/project"),
+    ("qualification", "PRODUCT_PASS"),
+    ("checkout_merge", "a" * 39),
+    ("tree", "g" * 40),
+    ("pr_head", None),
+    ("parents", ["1" * 40, "2" * 40]),
+    ("raw_log_sha256", "a" * 63),
+    ("workflow_run_id", True),
+    ("job_id", 0),
+    ("job_url", "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/101/job/203"),
+])
+def test_ci_observation_explicit_invalid_metadata_fails(tmp_path: Path, field: str, bad):
+    root = _fixture_root(tmp_path)
+    value = _ci_observation_fixture_value()
+    value[field] = bad
+    (root / _CI_OBSERVATION_SURFACE).write_text(_ci_observation_fixture_text(value), encoding="utf-8")
+    with pytest.raises(AssertionError, match="^CI_CHECKOUT_OBSERVATION_INVALID$"):
+        _surface_shas(root)
+
+
+@pytest.mark.parametrize("defect", [
+    "missing", "extra", "duplicate", "malformed", "unclosed", "duplicate-job", "escaped-key",
+])
+def test_ci_observation_invalid_json_shape_is_not_silently_ignored(tmp_path: Path, defect: str):
+    root = _fixture_root(tmp_path)
+    value = _ci_observation_fixture_value()
+    if defect == "missing":
+        value.pop("raw_log_sha256")
+    if defect == "extra":
+        value["installed"] = True
+    text = _ci_observation_fixture_text(value)
+    if defect == "duplicate":
+        text = text.replace('"schema":', '"checkout_merge": "' + _FAKE_FULL_ID + '",\n  "schema":', 1)
+    if defect == "malformed":
+        text = text.replace('"schema":', '"schema" ', 1)
+    if defect == "unclosed":
+        text = text.removesuffix("```\n")
+    if defect == "duplicate-job":
+        text += text
+    if defect == "escaped-key":
+        text = text.replace('"checkout_merge"', '"checkout\\u005fmerge"')
+    (root / _CI_OBSERVATION_SURFACE).write_text(text, encoding="utf-8")
+    with pytest.raises(AssertionError, match="^CI_CHECKOUT_OBSERVATION_INVALID$"):
+        _surface_shas(root)
+
+
+def test_ci_observation_marker_or_ordinary_json_never_waives_primary_hash(tmp_path: Path):
+    root = _fixture_root(tmp_path)
+    text = f'CI observation\n```json\n{{"source": "{_FAKE_FULL_ID}"}}\n```\n'
+    (root / _CI_OBSERVATION_SURFACE).write_text(text, encoding="utf-8")
+    assert _FAKE_FULL_ID in _surface_shas(root)

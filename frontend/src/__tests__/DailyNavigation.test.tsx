@@ -8,20 +8,23 @@ import { UI_PAGES, UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS, uiEntryForPage 
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 
 // SIMULATED UI evidence; no fixture is a Core authorization or implementation claim.
-describe("five daily navigation", () => {
-  it("preserves every original page assignment and deep link from the immutable mapping", () => {
+describe("current daily navigation", () => {
+  it("preserves all original deep links and assigns one primary domain to each page", () => {
     const rows=mappingText.trim().split(/\r?\n/).slice(1);
     expect(rows).toHaveLength(22);expect(UI_PAGES).toHaveLength(22);
-    for(const row of rows){const [id,,entry]=row.split(",");expect(uiEntryForPage(id)?.label).toBe(entry);expect(resolveNavigationHash(`#page=${id}`)?.pageId).toBe(id);}
+    for(const row of rows){const [id]=row.split(",");expect(uiEntryForPage(id)).toBeDefined();expect(resolveNavigationHash(`#page=${id}`)?.pageId).toBe(id);}
+    expect(uiEntryForPage("05")?.label).toBe("研究专题");expect(uiEntryForPage("20")?.label).toBe("知识");expect(uiEntryForPage("19")?.label).toBe("设置");
     const ids=[...UI_DAILY_ENTRY_POINTS,...UI_FIXED_ENTRY_POINTS].flatMap(entry=>entry.pageIds);
     expect(new Set(ids).size).toBe(22);expect(ids.slice().sort()).toEqual(UI_PAGES.map(page=>page.id).sort());
     expect(EFFECTIVE_NAVIGATION_ENTRIES.filter(entry=>entry.page)).toHaveLength(22);
   });
-  it("shows five daily and two fixed entries while preserving research, canvas and receipt children", () => {
+  it("shows six daily and two fixed entries while preserving research, canvas and receipt children", () => {
     const onPage=vi.fn();const view=render(<SpaceRail active="vault" pageId="05" onPage={onPage} onNavigate={vi.fn()} spaces={SPACES}/>);
-    expect(within(screen.getByRole("list",{name:"日常工作流"})).getAllByRole("button").map(button=>button.textContent)).toEqual(["工作台","知识","学习","AI","资源"]);
+    expect(within(screen.getByRole("list",{name:"日常工作流"})).getAllByRole("button").map(button=>button.textContent)).toEqual(["工作台","知识","学习","研究专题","AI","资源"]);
     expect(within(screen.getByRole("list",{name:"固定入口"})).getAllByRole("button").map(button=>button.textContent)).toEqual(["全部能力","设置"]);
-    expect(screen.getByRole("button",{name:"研究空间"})).toHaveAttribute("aria-current","page");
+    expect(screen.getByRole("button",{name:"研究专题"})).toHaveAttribute("aria-current","page");
+    view.rerender(<SpaceRail active="library" pageId="02" onPage={onPage} onNavigate={vi.fn()} spaces={SPACES}/>);
+    fireEvent.click(screen.getByText("知识页面"));
     fireEvent.click(screen.getByRole("button",{name:"阅读与编辑"}));expect(onPage).toHaveBeenCalledWith("03");
     view.rerender(<SpaceRail active="learning" pageId="21" onPage={onPage} onNavigate={vi.fn()} spaces={SPACES}/>);
     expect(screen.getByRole("button",{name:"画布与视觉表达"})).toHaveAttribute("aria-current","page");

@@ -5,6 +5,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { SourcesListDto, SourceJobsDto } from "../api/generated/core-contract";
 import { FormatQualificationPanel } from "./FormatQualificationPanel";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { ConversionRecoveryNotice } from "./ConversionRecoveryNotice";
+import { failureMessage, jobKindLabel, stateLabel } from "../presentation/labels";
+import "./bounded-job.css";
 
 /** Integration port: add these finite operations to generated Core/native contracts first. */
 export type BoundedJobOperation = "sources_list" | "source_jobs" | "jobs_get" | "job_execute" | "job_execution_status" | "job_execution_cancel" | "source_job_format_qualification";
@@ -51,6 +54,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   const [cancelPending, setCancelPending] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [readFailure, setReadFailure] = useState<unknown>(null);
   const epoch = useRef(0), alive = useRef(true), readSerial = useRef(0), action = useRef(false);
   const currentAttempt = useRef(attempt); currentAttempt.current = attempt;
   const cancelRequest = useRef<string | null>(null);
@@ -73,7 +77,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   }, [command]);
   useEffect(() => {
     const generation = ++epoch.current; ++readSerial.current;
-    setJobs([]); setJobId(""); setStatus(null); setCapped(false); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null;
+    setJobs([]); setJobId(""); setStatus(null); setReadFailure(null); setCapped(false); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null;
     if (!sourceId) return;
     command("source_jobs", { source_id: sourceId }).then(value => {
       const row = object(value);
@@ -95,6 +99,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
       const expectedRequest = frozen?.request_id ?? cancelRequest.current;
       if (expectedRequest && value.request_id !== expectedRequest) throw new Error("当前任务已是另一请求；保留原请求回执");
       setStatus(value);
+      setReadFailure(null);
       if (!frozen && terminal(value.state)) setCancelPending(false);
       if(frozen&&journal.available&&terminal(value.state)&&value.request_id===frozen.request_id){
         await journal.clear(frozen.request_id);
@@ -105,13 +110,16 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
         if (terminal(value.state)) setCancelPending(false);
       }
     } catch (error) {
-      if (alive.current && generation === epoch.current && serial === readSerial.current) setMessage(`状态读回未确认：${String(error)}；已有回执与检查点保留。`);
+      if (alive.current && generation === epoch.current && serial === readSerial.current) {
+        setMessage(`任务状态暂时无法确认。${failureMessage(error)}已有处理记录和进度保留。`);
+        setReadFailure(error instanceof Error ? { name: error.name, message: error.message } : error);
+      }
     }
   }
   useEffect(() => {
     if (!jobId) return;
     const generation = ++epoch.current; ++readSerial.current;
-    setStatus(null); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null; setSplit(false); setWords(false);
+    setStatus(null); setReadFailure(null); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null; setSplit(false); setWords(false);
     const restored=restoreEntry.current;
     if(restored?.job_id===jobId&&restored.source_id===sourceId){
       const frozen={job_id:restored.job_id,request_id:restored.request_id,body:restored.body};
@@ -132,7 +140,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   }, [jobId, sourceId, pending, status?.state, command, pollMs]);
   async function execute(retry: boolean) {
     if (action.current || !jobId || journal.blocked) return;
-    if(!retry&&journal.getJobOwner(jobId)){setMessage("该任务已有 Core 保全的冻结请求；请明确恢复原身份，不创建新请求。");return;}
+    if(!retry&&journal.getJobOwner(jobId)){setMessage("该任务有尚未确认的处理请求；请先找回原操作，避免重复提交。");return;}
     const budget = Number(deadline);
     if (!retry && (!/^\d+$/.test(deadline) || !Number.isSafeInteger(budget) || budget < 1 || budget > 300000)) { setMessage("预算必须为 1..300000 的整数毫秒。"); return; }
     const frozen = retry ? currentAttempt.current : { job_id: jobId, request_id: `job_${crypto.randomUUID()}`, body: { deadline_ms: budget, split: selectedJob?.kind === "transcribe" && split, words: selectedJob?.kind === "transcribe" && words } };
@@ -147,7 +155,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
       if(!alive.current||generation!==epoch.current)return;
       const receipt = object(await command("job_execute", { ...frozen }));
       if (receipt.job_id !== frozen.job_id || receipt.request_id !== frozen.request_id || typeof receipt.state !== "string") throw new Error("执行回执身份不匹配");
-      if (alive.current && generation === epoch.current) { setMessage("执行请求已读回；以持久化状态确认结果。"); await refresh(); }
+      if (alive.current && generation === epoch.current) { setMessage("处理请求已收到，正在核对保存的任务状态。"); await refresh(); }
     } catch {
       if (alive.current && generation === epoch.current) setMessage("执行未确认；请用同一请求重试或读取状态，不能改预算产生另一请求。");
     } finally { action.current = false; if (alive.current && generation === epoch.current) setBusy(false); }
@@ -159,32 +167,39 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     try {
       const receipt = object(await command("job_execution_cancel", { job_id: jobId, request_id: request }));
       if (receipt.job_id !== jobId || receipt.request_id !== request || typeof receipt.cancel_requested !== "boolean") throw new Error("取消回执身份不匹配");
-      if (alive.current && generation === epoch.current) { setMessage("取消请求已接收或此前已终止；尚须状态读回确认。202 不等于已取消。"); await refresh(); }
+      if (alive.current && generation === epoch.current) { setMessage("取消申请已收到，或任务此前已结束；请以更新后的任务状态确认是否取消。"); await refresh(); }
     } catch { if (alive.current && generation === epoch.current) setMessage("取消请求未确认；保留请求身份，请重试取消或读取状态。"); }
     finally { action.current = false; if (alive.current && generation === epoch.current) setBusy(false); }
   }
   const locked = busy || pending || status?.state === "running";
   return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.allEntries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("待确认任务已找回；仅检查实际状态，不会自动执行。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
-    <h2>受限任务与检查点</h2>
+    <h2>资料处理与进度</h2>
     {message ? <p role="status">{message}</p> : null}
+      {readFailure !== null ? <RawReceiptButton label="任务状态读取错误详细信息" payload={readFailure} /> : null}
     <p>这里只运行已保存的任务；AI 回答历史可另行查看。</p>
     <label>已保存来源 <select value={sourceId} disabled={locked} onChange={event => { setSourceId(event.target.value); setMessage(""); }}><option value="">选择来源</option>{sources.map(row => <option key={row.source_id} value={row.source_id}>{row.original_name}</option>)}</select></label>
-    <label>来源任务 <select value={jobId} disabled={locked} onChange={event => { setJobId(event.target.value); setMessage(""); }}><option value="">选择任务</option>{jobs.map(row => <option key={row.job_id} value={row.job_id}>{row.kind} · {row.state}</option>)}</select></label>
+    <label>来源任务 <select value={jobId} disabled={locked} onChange={event => { setJobId(event.target.value); setMessage(""); }}><option value="">选择任务</option>{jobs.map(row => <option key={row.job_id} value={row.job_id}>{jobKindLabel(row.kind)} · {stateLabel(row.state)}</option>)}</select></label>
     {capped ? <p>只列最近 50 个来源任务；未列出不表示不存在。</p> : null}
+    <details className="bounded-job-options"><summary>处理选项 · 默认等待 60 秒</summary><div>
     <label>最长等待时间（毫秒）<input type="number" min={1} max={300000} step={1} value={deadline} disabled={locked} onChange={event => setDeadline(event.target.value)} /></label>
     <label><input type="checkbox" checked={split} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setSplit(event.target.checked)} />分段处理媒体</label>
     <label><input type="checkbox" checked={words} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setWords(event.target.checked)} />词级时间</label>
-    <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} onClick={() => void execute(false)}>执行已保存任务</button>
-    <button disabled={!attempt || !uncertain || busy} onClick={() => void execute(true)}>同请求重试</button>
-    <button disabled={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
-    <button disabled={!jobId || busy} onClick={() => void refresh()}>刷新实际状态</button>
-    <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} onClick={() => void cancel()}>请求取消</button>
+    </div></details>
+    {!jobId?<p className="bounded-job-next">先选择已保存来源，再选择该来源的处理任务。</p>:<header className="bounded-job-selection"><h3>{selectedJob?jobKindLabel(selectedJob.kind):"所选处理任务"}</h3><p>{status?stateLabel(status.state):"正在核对任务的实际状态"}</p></header>}
+    <div className="bounded-job-actions">
+    <button className={uncertain||cancelPending?"bounded-job-primary":undefined} disabled={!jobId || busy} title={!jobId?"需要先执行或选择一项任务":undefined} onClick={() => void refresh()}>刷新实际状态</button>
+    <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} title={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)?"需要先选择已保存来源和任务，且没有正在运行的请求":undefined} onClick={() => void execute(false)}>执行已保存任务</button>
+    <button disabled={!attempt || !uncertain || busy} title={!attempt || !uncertain?"当前没有需要同请求重试的任务":undefined} onClick={() => void execute(true)}>同请求重试</button>
+    <button disabled={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} title={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true?"当前状态不允许新请求重试":undefined} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
+    <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} title={!(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)?"当前没有可取消的请求":undefined} onClick={() => void cancel()}>请求取消</button>
+    </div>
     {cancelPending ? <p>取消待确认：继续轮询实际状态。</p> : null}
+    <ConversionRecoveryNotice status={status}/>
     {status && status.job_id === jobId && status.input_ref === sourceId ? <FormatQualificationPanel
       key={JSON.stringify([sourceId, sources.find(row => row.source_id === sourceId)?.source_revision, jobId, status.attempt, status.state])}
       command={command} identity={{sourceId, sourceRevision: sources.find(row => row.source_id === sourceId)?.source_revision ?? "", jobId, attempt: status.attempt, jobState: status.state}} error={status.error}/> : null}
     {attempt ? <><p>有待确认的任务请求，最长等待 {attempt.body.deadline_ms} 毫秒。</p><RawReceiptButton label="待确认任务详细信息" payload={attempt}/></> : null}
-    {currentReceipt ? <><h3>实际尝试步骤与提交记录</h3><p>{checkpointSummary(currentReceipt)}</p><RawReceiptButton label="任务步骤与继续条件详细信息" payload={currentReceipt}/><p>已保存进度只代表应用记录过的步骤；未观察到不等于没有数据。不支持继续的任务需重新开始，并再次检查来源和使用权限。</p></> : <p>当前接口未提供预算、步骤或检查点明细，不能推导进度或保证可恢复。</p>}
+    {currentReceipt ? <><h3>处理进度与记录</h3><p>{checkpointSummary(currentReceipt)}</p><RawReceiptButton label="任务步骤与继续条件详细信息" payload={currentReceipt}/><p>已保存进度只代表应用记录过的步骤；未观察到不等于没有数据。不支持继续的任务需重新开始，并再次检查来源和使用权限。</p></> : <p>暂未获取到详细进度，尚不能确认能否从保存位置继续。</p>}
     {status ? <><p>当前状态：{status.state === "succeeded" ? "已完成" : status.state === "failed" ? "失败" : status.state === "cancelled" ? "已取消" : status.state === "running" ? "正在处理" : "待确认"}。{status.error ? "失败详情可在运行诊断中查看。" : ""}</p><RawReceiptButton label="任务状态与保存进度详细信息" payload={status}/>{["failed", "cancelled", "rejected"].includes(status.state) ? <p>此尝试已终止，原提交记录与错误保留。只有当前任务允许时才开放新请求重试；它不是同请求重放，也不自动证明媒体检查点已恢复。</p> : null}</> : null}
   </section>;
 }

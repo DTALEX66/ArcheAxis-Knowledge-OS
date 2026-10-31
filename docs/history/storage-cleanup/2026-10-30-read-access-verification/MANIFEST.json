@@ -1,0 +1,92 @@
+{
+  "schema": "aaos.exact-read-access-readback-history/v1",
+  "observed_at": "2026-10-30T16:00:33.845487+00:00",
+  "status": "EXACT_PLANNED_OBJECTS_VERIFIED_OVERALL_PARTIAL",
+  "counts": {
+    "passed": 102591,
+    "directories": 47644,
+    "files": 54947
+  },
+  "roots_with_planned_objects": 533,
+  "preserved_inventory": {
+    "count": 769,
+    "only_evidence": "760 inventory entries have no recorded operation;9 long-path enumeration-error directories overlap explicit planned/VERIFIED operations. No current ACL/content verification of excluded entries claimed.",
+    "journal_intersection": 9,
+    "nonoperated_inventory_entries": 760,
+    "overlap_detail": "preserved-member-overlap.json"
+  },
+  "input_identities": [
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/exact-roots.json",
+      "bytes": 63512,
+      "sha256": "16daa3fb5aadabf19001fc32ce58b708587d9fd59a16bf8d06009a92b3237801"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/tmp/ProjectAccess.psm1",
+      "bytes": 10705,
+      "sha256": "fcb6a253fc8fbd6c4ead11545ad3f5d6b8d82d57608b8059e53bf4803d3de141"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/tmp/Repair-RemainingProjectReadAccess.ps1",
+      "bytes": 6954,
+      "sha256": "b65b9bc3534cf50d5b85d9d6af39c5b2069f87136431714656b338d89a1daa64"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/read-access-plan.json",
+      "bytes": 156988637,
+      "sha256": "d658f4b7ca54f319b669825ba7c39bb50f2753bac0dc0a29bd206baaa5f52f24"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/read-access-plan-identity.json",
+      "bytes": 70847,
+      "sha256": "7df16fa6a4402a8471a60fc8d8805d7c6bf316797ae51fef609db6552f1db329"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/apply-20261030T1441201050914Z-f7a83d50-result.json",
+      "bytes": 1314,
+      "sha256": "ec5bc118a8460f874bc8b061c39805c7679a5382637af5fce1e534387a282ccf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/apply-20261030T1441201050914Z-f7a83d50.jsonl",
+      "bytes": 68079861,
+      "sha256": "0359342d3a06ffbb275bb364505354bcfeade969a4eeaf24840bc7180a77a58e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-remainder-20261030/artifacts/preparation-proof.json",
+      "bytes": 1390,
+      "sha256": "e8dbd17c85c4379455c10187c4fc5390a283a071ff2d2b59ee273ced1a0c8cb8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/unelevated-verification.json",
+      "bytes": 105242,
+      "sha256": "c85ccc2d55fbf941626d321cbdaf8bced85c228a955bb02798560dddd8b12e3c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/preserved-member-overlap.json",
+      "bytes": 6013,
+      "sha256": "c52e44329bcb4f45dec0d490365adad906eaefb022b1c19642c36de57cf03aca"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/execution.json",
+      "bytes": 4283,
+      "sha256": "7b2682ffdfd7be337f0f955f4dca78bd6b2bbe6a7efeab620bc6a3144dba6c1e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-aclverify1/artifacts/execution.json",
+      "bytes": 14092,
+      "sha256": "34c22d6a4663260b2dacb97b9a413ad12cf0bd063305d01005d48b98299a12e5"
+    }
+  ],
+  "verification_receipt": {
+    "status": "FAIL",
+    "child_exit_code": 2,
+    "exit_code": 2,
+    "source_consistent": true,
+    "reason": "Nine inventory labels overlap explicit planned verified operations"
+  },
+  "content_body_reads": 0,
+  "acl_or_owner_writes_by_verifier": 0,
+  "whole_repository_or_descendants_claimed": false
+}

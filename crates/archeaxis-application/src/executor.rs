@@ -6,6 +6,7 @@ mod dispatch;
 mod health;
 mod inventory;
 mod machine_failure;
+mod material_cloud;
 mod public_research;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
@@ -62,8 +63,8 @@ impl Cancellation {
     }
 }
 
-/// A declaration is not an egress grant. Cloud Material execution is dormant;
-/// preserve every existing local path and all other purposes' validation.
+/// Generic model execution remains local. Cloud Material requires the separate
+/// journal-bound owned bridge, never a profile passed to this local executor.
 pub fn require_material_local_transport(
     configuration: &archeaxis_domain::model_configuration::Resolved,
 ) -> Result<(), &'static str> {
@@ -90,7 +91,6 @@ pub struct Executor {
     store: Store,
     staging: PathBuf,
     python: PathBuf,
-    worker: PathBuf,
     /// R08: capability -> worker path and whether that route may import the
     /// interpreter's installed packages. The stdlib-only text route keeps the
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
@@ -168,7 +168,6 @@ impl Executor {
             store,
             staging,
             python: python.to_owned(),
-            worker: default_worker.to_owned(),
             routes: Arc::new(routes),
             document_check_config: None,
             document_check_config_error: None,
@@ -334,6 +333,34 @@ impl Executor {
         configuration: Option<archeaxis_domain::model_configuration::Resolved>,
         policy: AnswerPolicy,
     ) -> Result<serde_json::Value, MachineFailure> {
+        self.machine_answer_with_format_detailed(
+            context,
+            question,
+            max_tokens,
+            timeout,
+            model,
+            cancel,
+            configuration,
+            policy,
+            None,
+        )
+        .await
+    }
+
+    pub async fn machine_answer_with_format_detailed(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+        configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+        policy: AnswerPolicy,
+        response_format: Option<serde_json::Value>,
+    ) -> Result<serde_json::Value, MachineFailure> {
+        let response_format =
+            archeaxis_domain::response_format::optional(response_format.as_ref())?;
         if let Some(c) = &configuration {
             require_material_local_transport(c)?;
             if c.profile.credential_ref.is_some() {
@@ -498,6 +525,12 @@ impl Executor {
                 use std::os::windows::process::CommandExt;
                 command.creation_flags(0x08000000);
             }
+            if let Some(format) = &response_format {
+                let format_path = dir.path().join("response-format.json");
+                std::fs::write(&format_path, format.to_string())
+                    .map_err(|_| "machine format staging failed")?;
+                command.arg("--response-format-file").arg(format_path);
+            }
             // 暂存与命令准备也消耗预算；已过期就不启动新的worker。
             if cancel.is_cancelled() {
                 return Err("machine worker cancelled".into());
@@ -600,6 +633,9 @@ impl Executor {
                 }
                 let value: serde_json::Value = serde_json::from_slice(&out.unwrap())
                     .map_err(|_| "machine worker returned invalid JSON")?;
+                if let Some(format) = &response_format {
+                    archeaxis_domain::response_format::validate_worker(format, &value)?;
+                }
                 accept_success(
                     value,
                     model.as_deref(),
@@ -1345,6 +1381,7 @@ fn run_worker(
 pub struct DocumentCheckConfig {
     pub provider: String,
     pub model: String,
+    pub credential_ref: String,
     pub endpoint: Option<String>,
     pub max_tokens: u64,
     pub timeout_seconds: u64,
@@ -1359,6 +1396,11 @@ impl DocumentCheckConfig {
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || b == b'_')
             || self.model.len() > 256
+            || self.credential_ref.len() != 41
+            || !self.credential_ref.starts_with("aak_cred_")
+            || !self.credential_ref[9..]
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
             || !self.model.starts_with(&format!("{}/", self.provider))
             || self
                 .model

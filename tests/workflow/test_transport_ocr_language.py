@@ -73,6 +73,23 @@ def test_language_data_is_taken_from_the_declared_entry(declared):
     assert resolved.resolve() == declared["pack"].resolve()
 
 
+@pytest.mark.parametrize("language", ["chi_sim+eng", "eng+chi_sim"])
+def test_combined_languages_use_a_pack_holding_every_requested_model(declared, language):
+    resolved = declared["module"]._ocr_tessdata(language)
+    assert resolved == declared["pack"], "Tesseract combines model names, not filenames"
+
+
+def test_combined_languages_skip_an_incomplete_explicit_pack(declared, monkeypatch):
+    explicit = traineddata(declared["pack"].parent / "chinese-only", ["chi_sim"])
+    monkeypatch.setenv("ARCHEAXIS_OCR_TESSDATA", str(explicit))
+    assert declared["module"]._ocr_tessdata("chi_sim+eng") == declared["pack"]
+
+
+@pytest.mark.parametrize("language", ["chi_sim+fra", "chi_sim+", "+eng"])
+def test_incomplete_combined_language_requests_do_not_qualify_a_pack(declared, language):
+    assert declared["module"]._ocr_tessdata(language) is None
+
+
 def test_a_directory_without_the_language_is_not_used(declared, monkeypatch):
     module = declared["module"]
     wrong = traineddata(declared["pack"].parent.parent / "other", ["deu"])

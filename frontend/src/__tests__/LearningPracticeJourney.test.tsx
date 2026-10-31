@@ -36,7 +36,7 @@ function Journey({initial="07"}:{initial?:string}){const[page,setPage]=useState(
 beforeEach(()=>{bridge.call.mockReset();events.length=0;vi.stubGlobal("crypto",webcrypto);});
 it("SIMULATED mounted accepted knowledge→actual course/assessment→page11 practice→page12 review keeps one immutable object",async()=>{
  setup();render(<Journey/>);
- fireEvent.click(screen.getByRole("button",{name:"搜索知识"}));fireEvent.click(await screen.findByRole("button",{name:"已接受的同源知识"}));
+ fireEvent.click(screen.getByRole("button",{name:"课程来源"}));fireEvent.click(screen.getByRole("button",{name:"搜索知识"}));fireEvent.click(await screen.findByRole("button",{name:"已接受的同源知识"}));
  fireEvent.click(await screen.findByRole("button",{name:"从当前知识生成课程与课时"}));fireEvent.click(await screen.findByRole("button",{name:"由课程课时建立学习问题"}));
  fireEvent.click(await screen.findByRole("button",{name:"练习此学习项目"}));
  await waitFor(()=>expect(within(screen.getByLabelText("同对象练习与复习")).getByText("同源课程")).toBeInTheDocument());
@@ -132,7 +132,7 @@ it.each(["11","12"])("SYNTHETIC page%s presents the verified course title and pu
  await screen.findByLabelText("本次答案");const section=screen.getByLabelText("同对象练习与复习");
  expect(within(section).getByRole("heading",{name:"同源课程"})).toBeInTheDocument();
  expect(section.textContent).not.toContain("知识 knowledge-exact · 问题 assessment-exact");
- const identity=within(section).getByRole("button",{name:"查看诊断详情：同对象学习身份"});
+ const identity=within(section).getByRole("button",{name:"状态与诊断：同对象学习身份"});
  fireEvent.click(identity);
  expect(getDiagnosticEntries().at(0)?.payload).toMatchObject({item_key:key,knowledge_id:knowledgeId,knowledge_version:knowledgeId,assessment_id:"assessment-exact",source_id:"source-exact",anchor_id:"anchor-exact",course:{id:"course-exact",artifactId:"lesson-exact"}});
  expect(within(section).getByLabelText("学习项目键").closest("details")).not.toHaveAttribute("open");

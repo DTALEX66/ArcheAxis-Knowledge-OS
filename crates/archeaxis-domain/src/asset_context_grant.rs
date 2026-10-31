@@ -1,7 +1,7 @@
 //! Explicit finite asset packet authority; never imports executable tool/session authority.
 use crate::{
     ai_asset::{self, Snapshot},
-    document::{self, Error},
+    document::Error,
     machine,
 };
 use rusqlite::{Connection, OptionalExtension};

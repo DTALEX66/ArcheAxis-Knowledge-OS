@@ -1,10 +1,13 @@
 import { StrictMode } from "react";
 import { webcrypto } from "node:crypto";
-import { act,fireEvent,render,screen,waitFor,cleanup } from "@testing-library/react";
+import { act,fireEvent,render,renderHook,screen,waitFor,cleanup } from "@testing-library/react";
 import { afterEach,beforeEach,describe,expect,it,vi } from "vitest";
 import { CanonicalExchangeSpace } from "../spaces/CanonicalExchangeSpace";
 import { coreCommand } from "../api/core";
+import { downloadBytes } from "../presentation/exchangeProof";
+import { resetDiagnostics, useDiagnostics } from "../presentation/diagnostics";
 vi.mock("../api/core",()=>({coreCommand:vi.fn()}));
+vi.mock("../presentation/exchangeProof",async importOriginal=>({...await importOriginal<typeof import("../presentation/exchangeProof")>(),downloadBytes:vi.fn()}));
 vi.mock("../components/FolderIngest",()=>({FolderIngest:({onOpenSource}:{onOpenSource:(s:string,j?:string)=>void})=><button onClick={()=>onOpenSource("source-1","job-old-77")}>定位批量结果</button>}));
 vi.mock("../components/JobContent",()=>({JobContent:({sourceId,pinnedJobId}:{sourceId:string;pinnedJobId?:string})=><p>真实作业入口 {sourceId} / {pinnedJobId??"latest"}</p>}));
 vi.mock("../spaces/CanonicalTeachingSpace",()=>({CanonicalTeachingSpace:()=> <label>保留交换会话<input aria-label="交换会话草稿"/></label>}));
@@ -13,21 +16,70 @@ const source=()=>({source_id:"source-1",source_revision:"rev-1",sha256:sha,origi
 const doc=(id="doc-1")=>({document_id:id,version:1,title:"普通笔记",source_id:null,source_revision:null,content_sha256:"a".repeat(64),editor_json:{type:"doc",content:[]},text_projection:"正文",blocks:[]});
 const empty={documents:[],next_cursor:null,snapshot_count:0};
 let implementation:(op:string,payload?:Record<string,unknown>)=>Promise<unknown>;
-beforeEach(async()=>{vi.stubGlobal("crypto",webcrypto);sha=Buffer.from(await webcrypto.subtle.digest("SHA-256",bytes)).toString("hex");implementation=async(op)=>{if(op==="sources_list")return {sources:[source()]};if(op==="documents_list")return empty;if(op==="source_original")return {...source(),name:"原件.txt",media_type:"text/plain",content_base64:Buffer.from(bytes).toString("base64")};if(op==="document_get")return doc();throw new Error(op);};vi.mocked(coreCommand).mockImplementation((op,p)=>implementation(op,p) as never);});
+beforeEach(async()=>{resetDiagnostics();vi.stubGlobal("crypto",webcrypto);sha=Buffer.from(await webcrypto.subtle.digest("SHA-256",bytes)).toString("hex");implementation=async(op)=>{if(op==="sources_list")return {sources:[source()]};if(op==="documents_list")return empty;if(op==="source_original")return {...source(),name:"原件.txt",media_type:"text/plain",content_base64:Buffer.from(bytes).toString("base64")};if(op==="document_get")return doc();throw new Error(op);};vi.mocked(coreCommand).mockImplementation((op,p)=>implementation(op,p) as never);});
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.clearAllMocks();});
 describe("page16 distinct exchange workflow (SIMULATED Core)",()=>{
+ it("imports one ordinary file through page16 and continues with the exact verified source identity",async()=>{
+  const read=vi.fn(),normal=implementation;implementation=async(op,p)=>op==="source_import"?{source_id:"source-1",sha256:sha,duplicate:false}:normal(op,p);
+  render(<CanonicalExchangeSpace onReadSource={read}/>);
+  const file=new File([bytes],"原件.txt",{type:"text/plain"});Object.defineProperty(file,"arrayBuffer",{value:async()=>bytes.slice().buffer});
+  fireEvent.change(screen.getByLabelText("导入原件",{exact:true}),{target:{files:[file]}});
+  fireEvent.click(await screen.findByRole("button",{name:"打开刚导入的原件"}));
+  fireEvent.click(await screen.findByRole("button",{name:"阅读此原件与整理知识候选"}));
+  expect(read).toHaveBeenCalledWith({source_id:"source-1",source_revision:"rev-1",sha256:sha,job_id:undefined});
+  expect(vi.mocked(coreCommand).mock.calls.filter(([op])=>op==="source_import")).toEqual([["source_import",{body:{name:"原件.txt",content_base64:Buffer.from(bytes).toString("base64")}}]]);
+  expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="job_enqueue")).toBe(false);
+  expect(screen.getByText("第一次导入：从一份文档开始")).toBeInTheDocument();
+ });
  it("preserves hidden manual exchange session across tabs",async()=>{render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"人工教学交换"}));const input=screen.getByRole("textbox",{name:"交换会话草稿"});fireEvent.change(input,{target:{value:"未提交材料"}});fireEvent.click(screen.getByRole("button",{name:"原件与转换"}));fireEvent.click(screen.getByRole("button",{name:"人工教学交换"}));expect(screen.getByRole("textbox",{name:"交换会话草稿"})).toHaveValue("未提交材料");});
  it("opens exact batch job identity after original hash verification",async()=>{render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"定位批量结果"}));await screen.findByText("真实作业入口 source-1 / job-old-77");expect(screen.getByRole("button",{name:"下载已核对的原文件"})).toBeEnabled();expect(coreCommand).toHaveBeenCalledWith("source_original",{source_id:"source-1"});});
  it("refuses byte drift without mounting derived content or download",async()=>{const normal=implementation;implementation=async(op,p)=>op==="source_original"?{...source(),name:"原件.txt",media_type:"text/plain",content_base64:Buffer.from("changed").toString("base64")}:normal(op,p);render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"定位批量结果"}));expect(await screen.findByRole("alert")).toHaveTextContent("字节核验失败");expect(screen.queryByRole("button",{name:"下载已核对的原文件"})).toBeNull();expect(screen.queryByText(/真实作业入口/)).toBeNull();});
  it("cannot substitute same-name source when exact ID absent",async()=>{implementation=async(op)=>op==="documents_list"?empty:{sources:[{...source(),source_id:"other"}]};render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"定位批量结果"}));expect(await screen.findByRole("alert")).toHaveTextContent("无法唯一确认所选原件；不会改用同名文件");expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="source_original")).toBe(false);});
  it("does not present Core directory failure as empty success",async()=>{implementation=async(op)=>{if(op==="sources_list")throw new Error("offline");return empty;};render(<CanonicalExchangeSpace/>);expect(await screen.findByRole("alert")).toHaveTextContent("目录读取失败");expect(screen.queryByText("当前返回目录没有原件。")).toBeNull();});
+ it.each([
+  ["sources_list","原件目录读取错误详情"],
+  ["documents_list","文档目录读取错误详情"],
+  ["source_original","原件读取错误详情"],
+  ["document_get","文档读取与导出错误详情"],
+ ] as const)("keeps %s errors in diagnostics while showing plain-language feedback without extra calls",async(operation,label)=>{
+  const raw=`SQLite worker failure ${operation} at D:/synthetic/input.py:71`;
+  const failure=Object.assign(new Error(raw),operation==="document_get"?{status:409}:{}),normal=implementation;
+  implementation=async(op,p)=>{if(op===operation)throw failure;return normal(op,p);};
+  render(<CanonicalExchangeSpace initialDocumentId={operation==="document_get"?"doc-1":undefined}/>);
+  if(operation==="documents_list")fireEvent.click(screen.getByRole("button",{name:"文档导出"}));
+  if(operation==="source_original")fireEvent.click(screen.getByRole("button",{name:"定位批量结果"}));
+  const alert=await screen.findByRole("alert");
+  expect(alert).toHaveTextContent(operation==="document_get"?"对象版本已变化":"本地数据暂时不可用");
+  expect(alert).not.toHaveTextContent(raw);expect(alert).not.toHaveTextContent(/SQLite|worker|input\.py/);
+  const diagnostics=renderHook(useDiagnostics);
+  expect(diagnostics.result.current).toHaveLength(0);
+  const before=vi.mocked(coreCommand).mock.calls.length;
+  fireEvent.click(screen.getByRole("button",{name:`状态与诊断：${label}`}));
+  expect(diagnostics.result.current[0].payload).toEqual({error:raw});
+  expect(vi.mocked(coreCommand).mock.calls).toHaveLength(before);
+  expect(vi.mocked(coreCommand).mock.calls.every(([op])=>["sources_list","documents_list","source_original","document_get"].includes(op))).toBe(true);
+ });
  it("retains page and opaque cursor when later page fails",async()=>{implementation=async(op,p)=>{if(op==="sources_list")return {sources:[]};if(op==="documents_list"&&!p?.cursor)return {documents:[doc()],next_cursor:"opaque-next",snapshot_count:2};throw new Error("page unavailable");};render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"文档导出"}));fireEvent.click(await screen.findByRole("button",{name:"加载更多文档"}));await screen.findByRole("alert");expect(screen.getByRole("button",{name:/普通笔记/})).toBeInTheDocument();expect(screen.getByRole("button",{name:"加载更多文档"})).toBeEnabled();expect(coreCommand).toHaveBeenCalledWith("documents_list",{cursor:"opaque-next"});});
  it.each(["duplicate","short-terminal","empty-nonterminal","over-budget"])("refuses corrupt pagination %s and retries the unchanged cursor",async kind=>{let nextCalls=0;implementation=async(op,p)=>{if(op==="sources_list")return {sources:[]};if(op==="documents_list"&&!p?.cursor)return {documents:[doc()],next_cursor:"opaque-original",snapshot_count:3};nextCalls++;if(nextCalls>1)return {documents:[doc("doc-2"),doc("doc-3")],next_cursor:null,snapshot_count:3};return {documents:kind==="duplicate"?[doc(),doc("doc-2")]:kind==="short-terminal"?[doc("doc-2")]:kind==="over-budget"?Array.from({length:501},(_,i)=>doc(`extra-${i}`)):[],next_cursor:kind==="empty-nonterminal"?"should-not-advance":null,snapshot_count:3};};render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"文档导出"}));fireEvent.click(await screen.findByRole("button",{name:"加载更多文档"}));await screen.findByRole("alert");expect(screen.getAllByRole("button",{name:/普通笔记/})).toHaveLength(1);expect(screen.getByText("已读 1 / 3")).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"加载更多文档"}));await waitFor(()=>expect(screen.getAllByRole("button",{name:/普通笔记/})).toHaveLength(3));const calls=vi.mocked(coreCommand).mock.calls.filter(([op,p])=>op==="documents_list"&&p?.cursor);expect(calls.map(([,p])=>p)).toEqual([{cursor:"opaque-original"},{cursor:"opaque-original"}]);expect(screen.queryByRole("button",{name:"加载更多文档"})).toBeNull();});
  it("late original receipt cannot replace a newer selected source",async()=>{let release!:(x:unknown)=>void;const normal=implementation;implementation=async(op,p)=>{if(op==="sources_list")return {sources:[source(),{...source(),source_id:"source-2",original_name:"第二.txt"}]};if(op==="source_original"&&p?.source_id==="source-1")return new Promise(r=>release=r);if(op==="source_original")return {...source(),source_id:"source-2",name:"第二.txt",media_type:"text/plain",content_base64:Buffer.from(bytes).toString("base64")};return normal(op,p);};render(<CanonicalExchangeSpace/>);fireEvent.click(await screen.findByRole("button",{name:/原件.txt/}));await waitFor(()=>expect(release).toBeTypeOf("function"));fireEvent.click(screen.getByRole("button",{name:/第二.txt/}));await screen.findByRole("heading",{name:"第二.txt"});release({...source(),name:"原件.txt",media_type:"text/plain",content_base64:Buffer.from(bytes).toString("base64")});await waitFor(()=>expect(screen.getByRole("heading",{name:"第二.txt"})).toBeInTheDocument());expect(screen.queryByRole("heading",{name:"原件.txt"})).toBeNull();});
- it("changed saved version prevents export, not a success message",async()=>{let reads=0;const normal=implementation;implementation=async(op,p)=>op==="document_get"?{...doc(),version:++reads}:normal(op,p);render(<CanonicalExchangeSpace initialDocumentId="doc-1"/>);fireEvent.click(await screen.findByRole("button",{name:"核验两文件导出"}));expect(await screen.findByRole("alert")).toHaveTextContent("版本变化");expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="document_export")).toBe(false);expect(screen.queryByRole("button",{name:"下载完整 manifest.json"})).toBeNull();});
- it("exposes both exact Core files only after stable version/projection/manifest readback",async()=>{const normal=implementation;implementation=async(op,p)=>{if(op!=="document_export")return normal(op,p);const saved=doc();const hash=Buffer.from(await webcrypto.subtle.digest("SHA-256",new TextEncoder().encode(saved.text_projection))).toString("hex");return {document_id:saved.document_id,version:1,format:"markdown",source_revision:null,projection_sha256:hash,files:[{path:"document.md",media_type:"text/markdown",content:"正文\n\n## Source identity\n\n    {}"},{path:"manifest.json",media_type:"application/json",content:JSON.stringify({schema:"archeaxis-document-export-1",document:saved,anchors:[],loss:[{code:"media_reference_only",message:"未打包原件"}],projection_sha256:hash})}]};};render(<CanonicalExchangeSpace initialDocumentId="doc-1"/>);fireEvent.click(await screen.findByRole("button",{name:"核验两文件导出"}));await screen.findByRole("button",{name:"下载完整 manifest.json"});expect(screen.getByRole("button",{name:"下载 document.md"})).toBeEnabled();expect(screen.getByText("media_reference_only：未打包原件")).toBeInTheDocument();expect(vi.mocked(coreCommand).mock.calls.filter(([op])=>op==="document_get")).toHaveLength(3);expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="document_export_save")).toBe(false);});
- it("synchronous export double click cannot launch a second export",async()=>{let release!:(x:unknown)=>void;let reads=0;const normal=implementation;implementation=async(op,p)=>op==="document_get"&&++reads===2?new Promise(r=>release=r):normal(op,p);render(<CanonicalExchangeSpace initialDocumentId="doc-1"/>);const button=await screen.findByRole("button",{name:"核验两文件导出"});fireEvent.click(button);fireEvent.click(button);await waitFor(()=>expect(reads).toBe(2));release({...doc(),version:2});await screen.findByRole("alert");expect(reads).toBe(2);});
- it("keeps all four qualification goals independent and honest",()=>{render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"互通资格"}));for(const name of ["功能等价","数据兼容","双向往返","增量同步"])expect(screen.getByRole("heading",{name})).toBeInTheDocument();expect(screen.getByText("NOT_EXECUTED")).toBeInTheDocument();expect(screen.getAllByText("PARTIAL")).toHaveLength(3);});
+ it("changed saved version prevents export, not a success message",async()=>{let reads=0;const normal=implementation;implementation=async(op,p)=>op==="document_get"?{...doc(),version:++reads}:normal(op,p);render(<CanonicalExchangeSpace initialDocumentId="doc-1"/>);fireEvent.click(await screen.findByRole("button",{name:"检查导出内容"}));expect(await screen.findByRole("alert")).toHaveTextContent("版本变化");expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="document_export")).toBe(false);expect(screen.queryByRole("button",{name:"下载完整 manifest.json"})).toBeNull();});
+ it("exposes both exact Core files only after stable version/projection/manifest readback",async()=>{const normal=implementation;implementation=async(op,p)=>{if(op!=="document_export")return normal(op,p);const saved=doc();const hash=Buffer.from(await webcrypto.subtle.digest("SHA-256",new TextEncoder().encode(saved.text_projection))).toString("hex");return {document_id:saved.document_id,version:1,format:"markdown",source_revision:null,projection_sha256:hash,files:[{path:"document.md",media_type:"text/markdown",content:"正文\n\n## Source identity\n\n    {}"},{path:"manifest.json",media_type:"application/json",content:JSON.stringify({schema:"archeaxis-document-export-1",document:saved,anchors:[],loss:[{code:"media_reference_only",message:"未打包原件"}],projection_sha256:hash})}]};};render(<CanonicalExchangeSpace initialDocumentId="doc-1"/>);fireEvent.click(await screen.findByRole("button",{name:"检查导出内容"}));await screen.findByRole("button",{name:"下载完整 manifest.json"});expect(screen.getByRole("button",{name:"下载 document.md"})).toBeEnabled();expect(screen.getByText("未打包原件")).toBeInTheDocument();expect(screen.queryByText(/media_reference_only/)).toBeNull();
+  expect(screen.getByLabelText("导出格式")).toHaveValue("markdown");
+  expect(screen.getByRole("option",{name:"Obsidian Markdown（包含来源信息）"})).toHaveValue("obsidian");
+  expect(screen.getByText(/请保留同版本的正文和完整记录两个文件/)).toHaveTextContent("图片、音频和视频只保留引用，不包含原文件");
+  const diagnostics=renderHook(useDiagnostics);
+  fireEvent.click(screen.getByRole("button",{name:"状态与诊断：导出核对详细信息"}));
+  const retained=diagnostics.result.current[0].payload as {files:Array<{path:string;content:string}>};
+  const exactManifest=retained.files.find(file=>file.path==="manifest.json")!.content;
+  expect(JSON.parse(exactManifest).loss).toEqual([{code:"media_reference_only",message:"未打包原件"}]);
+  fireEvent.click(screen.getByRole("button",{name:"下载 document.md"}));
+  expect(downloadBytes).toHaveBeenLastCalledWith(retained.files.find(file=>file.path==="document.md")!.content,"doc-1-v1-document.md","text/markdown");
+  expect(screen.getByText("已请求下载 document.md，请在下载文件夹确认是否完成。请保留同版本的两个文件。")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button",{name:"下载完整 manifest.json"}));
+  expect(downloadBytes).toHaveBeenLastCalledWith(exactManifest,"doc-1-v1-manifest.json","application/json");
+  expect(screen.getByText("已请求下载 manifest.json，请在下载文件夹确认是否完成。请保留同版本的两个文件。")).toBeInTheDocument();expect(vi.mocked(coreCommand).mock.calls.filter(([op])=>op==="document_get")).toHaveLength(3);expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="document_export_save")).toBe(false);});
+ it("synchronous export double click cannot launch a second export",async()=>{let release!:(x:unknown)=>void;let reads=0;const normal=implementation;implementation=async(op,p)=>op==="document_get"&&++reads===2?new Promise(r=>release=r):normal(op,p);render(<CanonicalExchangeSpace initialDocumentId="doc-1"/>);const button=await screen.findByRole("button",{name:"检查导出内容"});fireEvent.click(button);fireEvent.click(button);await waitFor(()=>expect(reads).toBe(2));release({...doc(),version:2});await screen.findByRole("alert");expect(reads).toBe(2);});
+ it("keeps all four qualification goals independent and honest",()=>{render(<CanonicalExchangeSpace/>);fireEvent.click(screen.getByRole("button",{name:"互通资格"}));for(const name of ["功能等价","数据兼容","双向往返","增量同步"])expect(screen.getByRole("heading",{name})).toBeInTheDocument();expect(screen.getByText("尚未执行")).toBeInTheDocument();expect(screen.getAllByText("部分完成")).toHaveLength(3);});
 });
 
 it("SIMULATED StrictMode replays document loading and a late first receipt cannot unlock or replace the current request",async()=>{
@@ -35,6 +87,8 @@ it("SIMULATED StrictMode replays document loading and a late first receipt canno
  implementation=async(op,p)=>op==="documents_list"?new Promise(resolve=>resolves.push(resolve)):normal(op,p);
  render(<StrictMode><CanonicalExchangeSpace/></StrictMode>);fireEvent.click(screen.getByRole("button",{name:"文档导出"}));
  await waitFor(()=>expect(resolves).toHaveLength(2));
+  expect(screen.getByText("已读 0 / 总数待确认")).toBeInTheDocument();
+  expect(screen.queryByText("当前列表没有文档。")).not.toBeInTheDocument();
  await act(async()=>{resolves[0]({documents:[{...doc("stale"),title:"过期目录"}],next_cursor:null,snapshot_count:1});});
  expect(screen.getByRole("button",{name:"刷新文档目录"})).toBeDisabled();expect(screen.queryByRole("button",{name:/过期目录/})).toBeNull();
  await act(async()=>{resolves[1]({documents:[{...doc("current"),title:"当前目录"}],next_cursor:null,snapshot_count:1});});

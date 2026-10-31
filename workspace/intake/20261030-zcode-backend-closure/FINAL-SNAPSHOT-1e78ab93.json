@@ -1,0 +1,115 @@
+{
+  "schema": "aaos.zcode-historical-final-snapshot/v1",
+  "role": "FROZEN_F03_RECONCILIATION_NOT_CURRENT_PROGRESS_OR_AUTHORIZATION",
+  "cutoff": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+  "baseline": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+  "commits": [
+    "7c9c95ba14ebb6647d8e86facc661e310e2c69a7",
+    "c09c7d2050871b0be7015ba83d9014ff4def0fbc",
+    "3d8acb0b1fa19e6ef76f3d5ac01eec38f234e6c8",
+    "5957abce20451bc31f59b1b9c28acbfd8f4da0a7",
+    "b28390759da7d65606fb478126bf9a843cf407e9",
+    "35e0854e08bf530ca8d468ee3ba1fca29c89d6cc",
+    "35105ec46d35aeb60d107c9d91241d5a52b3450b",
+    "1d10938b1df9844599482b923c7f912323021e9d",
+    "47bce15885d53d5596b1f427e6aa848ec7274aa6",
+    "042eeac1eb719e0a8571d561781419f433aa0aa5",
+    "11f96a2810bb0268ac88ed971930f3b06ecba669",
+    "0919e789b161de004ebbbe259ffd962d99275226",
+    "80db733f4c32c087063d63de195541574e67072c",
+    "9f308f704d2315f1b3839371948c5d88a44d5245",
+    "37f2c02e25956731cfc5e6e131ef58ed2cf54de7",
+    "fa8893ac7c6bd1293a0c278bbeef84de65dc53f4",
+    "dab743392a0d501f4e5e871346f919c39d545989",
+    "7d4fff8b199e98ba4efa05e2385dc980d28d9d30",
+    "c1c4cfd0419312b6e3050e47c4606588a2958027",
+    "bdc8fdec24daddac4b5ce479414c7fa19b3e3cf7",
+    "1e78ab9332164bcf1248ff33216d62e5f8b250a0"
+  ],
+  "commit_count": 21,
+  "changed_paths": 68,
+  "current_progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "mixed_components": {
+    "host_sha256": "ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145",
+    "core_sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b",
+    "backend_runtime_manifest_sha256": "440e9084240f283071304e0d85dfef0e51b7dbc49e93955bb6b1536fde4c6d8b",
+    "worker_profile_sha256": "62614ce3da3770b0bf93a02e33de54e7de174e0800d3e11f0c1a79a1e0b76053",
+    "member_count": 19747
+  },
+  "installer_sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b",
+  "installer_version": "0.6.14",
+  "reconciliation": {
+    "staging_and_nsis": "C1_DONE_HISTORICAL_MIXED_COMPONENTS_NOT_NEW_HEAD",
+    "installed_lifecycle": "LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE",
+    "installed_conflict_successor": "PASS_SUBSET_IN_ZC1C8_NOT_ALL_INSTALLED_JOURNEYS",
+    "public_research": "REAL_NETWORK_42_STEPS_PARTIAL_NOT_INSTALLED_QUALIFICATION",
+    "named_clippy": "TEN_NAMED_ITEMS_REPORTED_FIXED_142_NON_GATE_DEBT_NOT_REQUALIFIED",
+    "old_initial_six_commits": "SUPERSEDED_BY_21_COMMIT_CUTOFF_NOT_A_COMPLETE_DELIVERY_LIST"
+  },
+  "retained": {
+    "F01": "UNVERIFIED_OWNER_WAIVER",
+    "F04": "HISTORICAL_STOP_STATUS_COUNT_CONFLICT_RETAINED",
+    "F05": "REAL_MODEL_ENGINEERING_SMOKE_NOT_ERROR_CORRECTION_QUALITY",
+    "cross_version_upgrade": "NOT_TESTED",
+    "rollback": "NOT_TESTED",
+    "installed_ai": "NOT_EXECUTED",
+    "complete_installed_business": "NOT_EXECUTED",
+    "real_cloud_inference": "DEFERRED_UNEXECUTED",
+    "external_raw_context": "NOT_CONNECTED",
+    "cloud_ci": "NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY",
+    "Owner_acceptance": "NOT_EXECUTED"
+  },
+  "F04_original_observation": {
+    "status": "STOP_CONFIRMED_OWNED_RESOURCES_CLEARED",
+    "remaining_environments": 0,
+    "remaining_processes": 1
+  },
+  "evidence": [
+    {
+      "path": "workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md",
+      "bytes": 22301,
+      "sha256": "fa379503161c8e5fbab7326013dcbda5c2ef498c7090e86d673c7d97809ef763"
+    },
+    {
+      "path": "workspace/intake/20261030-zcode-backend-closure/evidence-index.json",
+      "bytes": 33490,
+      "sha256": "80a37096f2f054e0d3d486b2f914c3c18e4588dccb8d5b36dbda3d1f3585a74b"
+    },
+    {
+      "path": "workspace/intake/20261030-zcode-backend-closure/evidence-index.successor.json",
+      "bytes": 87864,
+      "sha256": "d8849ee8322ebf2a71341e92d1a72385bd9fe5e8d0cb209aa98a59d40492df93"
+    },
+    {
+      "path": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/审计报告.md",
+      "bytes": 16577,
+      "sha256": "515ba63785d4c16754c6b67ae702b0584d6dadad0364d524a0fbc9d244b4b5d3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/zc1i2/output/2e85b70d1f0047a2a0d7dd368ce695d7/lifecycle-receipt.json",
+      "bytes": 2059,
+      "sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/zc1c8/output/conflict-journey-receipt.json",
+      "bytes": 176726,
+      "sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/zc1c8/sandbox-stop-v3-terminal.json",
+      "bytes": 215,
+      "sha256": "3010eb85ca51c39eb693d88b67bc141a2659dd9c78fb0a74a1b3062a1597621a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/zcode-c1-j2-public-20261030/artifacts/public-research-receipt.json",
+      "bytes": 2028071,
+      "sha256": "41b7803c4292e58f201282fab8edd39bfc848d4d13d0e4218849bc49a3d5cae5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/zc1n/artifacts/p/mixed-core-identity.json",
+      "bytes": 3828576,
+      "sha256": "293e5f1fdfcf985a241688fc40e937ea93c8790a25c6b63d4a710174b3078fd1"
+    }
+  ],
+  "verification_scope": "Nine exact public inputs/receipts, Git range and cross-receipt component equality. No payload tree or installer rehash, no network, launch, stop, model or current runtime qualification."
+}

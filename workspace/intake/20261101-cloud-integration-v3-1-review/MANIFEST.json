@@ -1,0 +1,192 @@
+{
+  "schema": "aaos.owner-zip-intake/v1",
+  "date": "2026-11-01",
+  "source": "D:\\All projects\\Record\\v3.1-supplement.zip",
+  "archive": ".project-local/archives/owner-inputs/20261101-cloud-integration-v3-1/v3.1-supplement.zip",
+  "zip_bytes": 728330,
+  "zip_sha256": "0883f3e6e687bd5a9af8a00775bb59427cb22bb6bc7f664bc98ac2dc563fa2b6",
+  "original_v3_archive": ".project-local/archives/owner-inputs/20261031-cloud-integration-v3/AAOS-Cloud-Integration-20261031-v3.zip",
+  "original_v3_sha256": "de984bf8917d24f4bc837221f76983dde20973f8285808e1fa6c351a5c68ac43",
+  "member_count": 1245,
+  "uncompressed_bytes": 2154265,
+  "crc_and_sha_checked_files": 1245,
+  "package_manifest_checked": 1244,
+  "package_manifest_failures": [],
+  "unlisted_files": [],
+  "source_preserved": true,
+  "archive_byte_equal": true,
+  "raw_payload_git_ignored": true,
+  "zip_not_bulk_extracted": true,
+  "member_inventory": {
+    "path": ".project-local/runs/be268a2d33/cloud-v31-audit/artifacts/archive-verification.json",
+    "bytes": 350436,
+    "sha256": "4af79b64b0ecb435ff696579b8db76504354745c8bba692afe2aaf115733709a"
+  },
+  "source_report_and_template_copies": [
+    {
+      "zip_member": "v3.1-supplement/README.zh.md",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/README.zh.md",
+      "bytes": 4241,
+      "sha256": "ed9dd3b6b35ee0d89aff5bd3b54c3f38f1b2dd9a460550faa32da2a3880a1f23",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/detector/README.zh.md",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/detector/README.zh.md",
+      "bytes": 5450,
+      "sha256": "946d8b716c605b5a34a7810658f392aca3fcd50f7f12b68d1089758ee9bbf11f",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/reproduce/README.zh-CN.md",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/reproduce/README.zh-CN.md",
+      "bytes": 6233,
+      "sha256": "650bf0653b22f953ce17cd710c30f86acdc16c5ce5279330e95577aa57a41e65",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/provenance/原件与索引补充说明.md",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/provenance/原件与索引补充说明.md",
+      "bytes": 3041,
+      "sha256": "29219f17767b0d5c0f66d74fa31ecdc5924cef8ba7eaf8da0418d136e974dfce",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/handoff/HANDOFF.zh.md",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/handoff/HANDOFF.zh.md",
+      "bytes": 4380,
+      "sha256": "2a97874b1f899bb255d13b20d9f5b4e51cae4b21a370863b6e1fe534975cadc3",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/review/INDEPENDENT-REVIEW.zh.md",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/review/INDEPENDENT-REVIEW.zh.md",
+      "bytes": 2401,
+      "sha256": "c7ecdaabdf39774012ab7a3df02bde28c3dc06710ef1958cd53487d48fb72a5c",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/originals/05-format-results-template.csv",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/05-format-results-template.csv",
+      "bytes": 814,
+      "sha256": "ebd1180d8fbd702405becf55576e947affefd5c8386af35f5a604c6050bdb502",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    },
+    {
+      "zip_member": "v3.1-supplement/originals/06-interop-results-template.csv",
+      "repository_copy": "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/06-interop-results-template.csv",
+      "bytes": 1276,
+      "sha256": "c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213",
+      "original_relative_path_base": "Inside supplement ZIP; not repository source copy directory."
+    }
+  ],
+  "source_copy_bytes": 27836,
+  "git_clean_index_checkout_verified": 8,
+  "public_review_files": [
+    {
+      "path": "workspace/intake/20261101-cloud-integration-v3-1-review/README.md",
+      "bytes": 2869,
+      "sha256": "01f2ebd718b634bbc6f9623695c24f8bfbc59eda3648f41dfe47514286577177"
+    },
+    {
+      "path": "workspace/intake/20261101-cloud-integration-v3-1-review/AUDIT.md",
+      "bytes": 7271,
+      "sha256": "1dd9c92b32444ad4514e2abdcb2d2acb125e37492687a527cbdcb60dcd800469"
+    }
+  ],
+  "review": {
+    "state": "ACCEPT_AS_SCOPED_SUPPLEMENT_EVIDENCE",
+    "current_local_head_at_review": "0ed5bcbf5bda828ebd7f2ad3c196e6046a8e31f6",
+    "V3-F01": "OPEN_LOCAL_APPLICABILITY; PATCH_ROLE_CLARIFIED",
+    "V3-F02": "CLOUD_TWO_FILE_CANDIDATE_SUPPORTED; NOT_APPLIED_LOCAL; CORE_NATIVE_NOT_QUALIFIED",
+    "V3-F03": "CLOUD_CONTROL_FLOW_CANDIDATE_SUPPORTED; NOT_APPLIED_LOCAL",
+    "V3-F04": "PARTIAL_NEW_FULL_SUITE_ONLY; OLD_REPRODUCE_SYSTEM_SITE_AND_FIXED_OUTPUT_REMAIN",
+    "V3-F05": "ERRATA_ACCEPTED; HISTORICAL_STDOUT_MISSING; GENERATION_UNVERIFIED",
+    "V3-F06": "CLOSED_ORIGINAL_TEMPLATE_IDENTITY; NOT_RUNTIME_QUALIFICATION",
+    "S31-E01": "TIMEZONE_MISREAD_RETRACTED; ORIGINAL_COMMAND_JSON_IS_UTC_PLUS00; RUNTIME_GENERATOR_TEST_SOURCE_BINDING_UNVERIFIED; SEE_LOG_BINDING_ADDENDUM",
+    "detector_historical_tests": 42,
+    "detector_historical_subtests": 47,
+    "detector_group_counts": [
+      9,
+      7,
+      10,
+      16
+    ],
+    "detector_reconstruction": "TWO_V3_AND_TWO_CANDIDATE_HASHES_MATCH_IN_MEMORY_RECONSTRUCTION",
+    "reproduce_historical_scenarios": 8,
+    "reproduce_tests_scope": "SYNTHETIC_CONTROL_FLOW_NOT_BUSINESS_SUITES",
+    "reproduce_patch_independently_reconstructed": true,
+    "template_data_rows": [
+      22,
+      37
+    ],
+    "original_format_template_sha256": "ebd1180d8fbd702405becf55576e947affefd5c8386af35f5a604c6050bdb502",
+    "original_interop_template_sha256": "c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213",
+    "product_status": "PARTIAL_UNCHANGED",
+    "package_code_executed": false,
+    "product_tests_executed": false,
+    "patch_applied": false,
+    "dependencies_installed": false,
+    "network_downloads": false,
+    "remote_writes": false,
+    "ui_or_monitor_resumed": false
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-audit/artifacts/archive-verification.json",
+      "bytes": 350436,
+      "sha256": "4af79b64b0ecb435ff696579b8db76504354745c8bba692afe2aaf115733709a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-audit/artifacts/source-copies.json",
+      "bytes": 3212,
+      "sha256": "44ccaa840504d291c9b7a560f2910d898ab32b9c925c8776e7ac10b3d12656c1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-audit/artifacts/source-byte-postverify.json",
+      "bytes": 2783,
+      "sha256": "9f6c22f02c871a0efa4d2f93ba76604179edf47c8e80b4be40087ec0fb172adc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-audit/artifacts/reproduction-static-verification.json",
+      "bytes": 678,
+      "sha256": "3ecce7f588752425f188a92f6b9e73f1330e34cbbcb2b5d9e209fe3f5f05d281"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-audit/agents/detector-audit.md",
+      "bytes": 9821,
+      "sha256": "62f8624b6281d081524e26ce13106bd9f0b1eb12ab963d9dcc2558838d9bc8b1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-audit/agents/evidence-audit.md",
+      "bytes": 8218,
+      "sha256": "34eb615b62c7eb728124b1ca12caec3c0f9f9d7074f8b397097ab31b3b09b15f"
+    }
+  ],
+  "execution_receipts": [
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-archive/artifacts/execution.json",
+      "bytes": 1327,
+      "sha256": "464f2cde49cab9bfbe28b6d15bb0cffc48eea9c22321a71f4e4d6da6d3155934",
+      "source_commit": "0ed5bcbf5bda828ebd7f2ad3c196e6046a8e31f6",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v31-repro-verify/artifacts/execution.json",
+      "bytes": 1339,
+      "sha256": "f7545f7e48e19d0dfea64456cf170b879d66801f1a824a8f0ef84c1a7495ae24",
+      "source_commit": "0ed5bcbf5bda828ebd7f2ad3c196e6046a8e31f6",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    }
+  ],
+  "authority": "Owner supplement to prior audit/archive request; document instructions are not implementation authority.",
+  "rollback": "Review new consumers before removing only new copy/attributes/navigation; preserve original v3, external supplement and unrelated existing work."
+}

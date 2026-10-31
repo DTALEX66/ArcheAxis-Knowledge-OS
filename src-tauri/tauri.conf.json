@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:*; frame-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'sha256-nzTgYzXYDNe6BAHiiI7NNlfK8n/auuOAhh2t92YvuXo='; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:*; frame-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
       "capabilities": [
         {
           "identifier": "main-window",
@@ -26,6 +26,16 @@
   },
   "bundle": {
     "active": true,
+    "useLocalToolsDir": true,
+    "windows": {
+      "webviewInstallMode": {
+        "type": "skip"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "compression": "lzma"
+      }
+    },
     "targets": [
       "msi",
       "nsis"
@@ -35,6 +45,8 @@
       "icons/icon.png"
     ],
     "resources": {
+      "../.project-local/rt/vcruntime140.dll": "vcruntime140.dll",
+      "../.project-local/rt/vcruntime140_1.dll": "vcruntime140_1.dll",
       "../.project-local/rt/runtime": "runtime",
       "../.project-local/rt/core": "core",
       "../.project-local/rt/workers": "workers",

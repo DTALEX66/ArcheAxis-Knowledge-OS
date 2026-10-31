@@ -1,0 +1,43 @@
+{
+  "schema": "aaos.execution-permission-recovery/v1",
+  "observed_at": "2026-10-23T00:10:02Z",
+  "state": "PERMISSIONS_RECOVERED",
+  "whole_scope": "PARTIAL_NOT_COMPLETE",
+  "authorization": "Owner changed this session to full access, requested recheck, then explicitly requested resolution. Scope is permission recovery and truthful handoff; no new feature or model call.",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "branch": "codex/sync-20261019",
+  "python": {
+    "version": "Python 3.13.14",
+    "canonical_command": ".venv/Scripts/python.exe -V",
+    "canonical_exit": 0,
+    "child_process": "Canonical interpreter used subprocess.run with sys.executable; child returned PYTHON_CHILD_OK; exit0",
+    "result": "PASS_REAL_PROCESS_STARTUP"
+  },
+  "git": {
+    "executable": "C:/Program Files/Git/cmd/git.exe",
+    "prior_probe": "Direct temporary-file creation/readback/removal script targeting .git was rejected before execution: blocked by policy. Exact rule was not supplied. Preserve rejection; it did not prove Git itself was read-only.",
+    "safe_verification": "After read-only inspection and confirming no matching ref existed, official Git created a temporary ref with an expected absent old SHA; readback matched HEAD; official Git deleted only that ref with expected SHA",
+    "create_command": "git update-ref refs/codex/permission-check-20261023 95b463c12dbd40744b43039add69c48ceaeba94e 0000000000000000000000000000000000000000",
+    "create_exit": 0,
+    "readback_command": "git show-ref --verify refs/codex/permission-check-20261023",
+    "readback": "95b463c12dbd40744b43039add69c48ceaeba94e refs/codex/permission-check-20261023",
+    "delete_command": "git update-ref -d refs/codex/permission-check-20261023 95b463c12dbd40744b43039add69c48ceaeba94e",
+    "delete_exit": 0,
+    "cleanup_lookup_exit": 1,
+    "dirty_entries_before_documentation": 44,
+    "staged_paths_before_documentation": [],
+    "head_and_branch": "UNCHANGED",
+    "result": "PASS_REAL_GIT_REF_WRITE_READBACK_CLEANUP",
+    "limits": "No commit, index staging, remote connectivity, push or exact-remote-SHA verification performed"
+  },
+  "historical_blocker": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+  "unchanged_gaps": [
+    "Current-source formal build, targeted runtime tests and same-candidate native qualification remain unverified",
+    "REAL local final answer and full save/reopen chain remain incomplete",
+    "Cloud production execution remains unimplemented; credential adapter and simulation are not cloud qualification",
+    "Finite formats/features, restart/export/recovery, installed runtime and Owner acceptance remain incomplete"
+  ],
+  "boundary": "No ACL, global configuration, interpreter/provider/auth settings or accounts changed by agent; no elevation, commit, push, merge, release, Green replacement or monitor restart",
+  "monitor": "PAUSED_UNCHANGED",
+  "next": "Use recovered canonical execution for the previously selected build and same-candidate acceptance scope; do not inherit historical PASS or activate optional expansions"
+}

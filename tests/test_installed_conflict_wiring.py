@@ -8,7 +8,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 HARNESS = ROOT / 'scripts/probes/aaos01_tauri_webdriver_loop.py'
 TREE = ast.parse(HARNESS.read_text(encoding='utf-8-sig'))
-NAMES = {'WebDriverProtocolError','accept_native_alert','validate_conflict_branch','navigate_rendered_product_page'}
+NAMES = {'WebDriverProtocolError','accept_native_alert','validate_conflict_branch','navigate_rendered_product_page','trusted_grouped_element_command'}
 NAMESPACE = {'json': __import__('json'), 're': __import__('re')}
 exec(compile(ast.Module(body=[node for node in TREE.body if getattr(node,'name',None) in NAMES],type_ignores=[]),str(HARNESS),'exec'),NAMESPACE)
 
@@ -131,3 +131,39 @@ def test_required_ai_rejects_missing_opt_ins_before_any_host_launch(flags):
     assert result.returncode == 2
     assert 'required actual AI loop requires' in result.stderr
     assert 'Traceback' not in result.stderr
+
+
+def test_installed_grouped_transport_forwards_pointer_wheel_and_element_without_replay():
+    calls=[]
+    def request(method,path,body):
+        calls.append((method,path,body)); return 'ack'
+    command=NAMESPACE['trusted_grouped_element_command']
+    assert command(request,'owned',None,'pointer_click',{'x':12,'y':34})=='ack'
+    assert calls[-1][1]=='/session/owned/actions'
+    assert calls[-1][2]['actions'][0]['actions']==[
+        {'type':'pointerMove','origin':'viewport','duration':0,'x':12,'y':34},
+        {'type':'pointerDown','button':0},{'type':'pointerUp','button':0}]
+    command(request,'owned',None,'wheel',{'x':12,'y':34,'deltaX':0,'deltaY':240})
+    assert calls[-1][1]=='/session/owned/actions'
+    assert calls[-1][2]['actions'][0]['actions'][0]['type']=='scroll'
+    command(request,'owned','native-option','click',{})
+    assert calls[-1]==('POST','/session/owned/element/native-option/click',{})
+    assert len(calls)==3
+    def failure(*args):
+        calls.append(args); raise OSError('unknown dispatch ACK')
+    with pytest.raises(OSError,match='unknown dispatch ACK'):
+        command(failure,'owned',None,'pointer_click',{'x':12,'y':34})
+    assert len(calls)==4
+
+
+def test_installed_branch_uses_current_grouped_navigation_and_transport():
+    main=next(n for n in TREE.body if isinstance(n,ast.FunctionDef) and n.name=='main')
+    functions={n.name:n for n in ast.walk(main) if isinstance(n,ast.FunctionDef)}
+    control=SimpleNamespace(page=lambda *args,**kwargs:(args,kwargs))
+    namespace={'controls':control}
+    exec(compile(ast.Module(body=[functions['conflict_navigate']],type_ignores=[]),str(HARNESS),'exec'),namespace)
+    observed=[]; control.page=lambda *args,**kwargs:observed.append((args,kwargs))
+    namespace['conflict_navigate']('03')
+    assert observed==[(('03',),{'confirm_navigation':True})]
+    for name in ('conflict_command','grouped_element_command'):
+        assert any(isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='trusted_grouped_element_command' for n in ast.walk(functions[name]))

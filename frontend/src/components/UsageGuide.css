@@ -1,0 +1,11 @@
+.usage-guide-panel { display: grid; gap: 12px; min-width: 0; font-size: 13px; color: var(--ax-fg-secondary); }
+.usage-guide-panel > p { margin: 0; line-height: 1.55; }
+.usage-guide-steps { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.usage-guide-steps li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--stitch-glass-edge, var(--ax-border)); border-radius: 10px; background: var(--stitch-glass-card, var(--ax-panel)); }
+.usage-guide-icon { flex: 0 0 auto; color: var(--ax-accent); }
+.usage-guide-index { display: inline-grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; background: var(--ax-accent-soft); color: var(--ax-accent); font-size: 12px; }
+.usage-guide-steps strong { display: block; font-size: 14px; color: var(--ax-fg); }
+.usage-guide-steps small { display: block; margin-top: 3px; font-size: 12px; line-height: 1.5; color: var(--ax-fg-tertiary); overflow-wrap: anywhere; }
+.usage-guide-note { margin: 0; font-size: 12px; line-height: 1.55; color: var(--ax-fg-tertiary); }
+.usage-guide-panel .usage-guide-resume { justify-self: start; min-height: 36px; padding: 8px 14px; border: 1px solid var(--ax-border-strong); border-radius: 8px; color: var(--ax-fg); background: var(--stitch-glass-card); font: inherit; cursor: pointer; }
+.usage-guide-panel .usage-guide-resume:focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 3px; }

@@ -1,0 +1,209 @@
+{
+  "schema": "aaos.stitch-ui-local-checkpoint/v1",
+  "observed_at": "2026-10-22T12:33:05.038Z",
+  "state": "PARTIAL_PRODUCT_QUALIFICATION",
+  "owner_decision": "Stitch is the only new UI; no parallel legacy layout maintenance or optional feature expansion",
+  "base_branch": "codex/sync-20261019",
+  "base_head": "8d367bac4a85bebfbb523503678ade0838faa73e",
+  "working_tree": "DIRTY; includes inherited changes; not a committed candidate",
+  "design": {
+    "project": "10243059433218383839",
+    "screen": "206611daf7a948edb97ea60c7a7d8654",
+    "dedicated_mock_pages": 5,
+    "coverage": "22 existing semantic pages in 12 existing consumer families; other pages adapt the received design language, not unseen pixel specifications"
+  },
+  "families": [
+    {
+      "pages": [
+        "01"
+      ],
+      "component": "CanonicalWorkspaceSpace",
+      "layout": "工作台概览、文档与到期复习卡"
+    },
+    {
+      "pages": [
+        "02",
+        "03",
+        "20"
+      ],
+      "component": "CanonicalLibrarySpace",
+      "layout": "知识库快筛与文档卡、正文/原件/版本、内容详情与历史"
+    },
+    {
+      "pages": [
+        "04"
+      ],
+      "component": "CanonicalRelationSpace",
+      "layout": "原ConstellationGraph主舞台与关系工具卡"
+    },
+    {
+      "pages": [
+        "05"
+      ],
+      "component": "CanonicalResearchSpace",
+      "layout": "主题与页内导航、证据卡、笔记/结论、右下真实材料联动"
+    },
+    {
+      "pages": [
+        "06",
+        "07"
+      ],
+      "component": "CanonicalLearningJourneySpace / CanonicalLearningSpace",
+      "layout": "课程/练习/来源/导入内容槽与保留状态"
+    },
+    {
+      "pages": [
+        "08",
+        "09",
+        "10",
+        "11",
+        "12"
+      ],
+      "component": "CanonicalTeachingSpace",
+      "layout": "教学阶段、当前编辑与来源/历史辅助卡"
+    },
+    {
+      "pages": [
+        "13",
+        "14",
+        "22"
+      ],
+      "component": "CanonicalControlledAiSpace",
+      "layout": "记忆/纠正评测/回执与共用陪伴会话"
+    },
+    {
+      "pages": [
+        "15"
+      ],
+      "component": "CanonicalResourcesSpace",
+      "layout": "现有资源目录、列表与详情"
+    },
+    {
+      "pages": [
+        "16"
+      ],
+      "component": "CanonicalExchangeSpace",
+      "layout": "现有交换流程与折叠交接资料"
+    },
+    {
+      "pages": [
+        "17",
+        "18"
+      ],
+      "component": "CanonicalCapabilitiesSpace",
+      "layout": "现有能力目录筛选与详情"
+    },
+    {
+      "pages": [
+        "19"
+      ],
+      "component": "StitchSettingsSpace",
+      "layout": "模型/工作区恢复/配置计划"
+    },
+    {
+      "pages": [
+        "21"
+      ],
+      "component": "CanonicalExpressionSpace",
+      "layout": "原画布renderer主舞台、工具与支持卡"
+    }
+  ],
+  "tests": {
+    "state": "PASS",
+    "files": 54,
+    "cases": 660,
+    "evidence": "LOCAL_SYNTHETIC_COMPONENT_CONTRACTS",
+    "log": ".project-local/runs/stitch-research-stage-20261022/unified-tests.log",
+    "sha256": "886ec01229bbd945f3c41f41cca2eada6e92a855a8b316517b8231d8b612accf",
+    "file_list": ".project-local/runs/stitch-research-stage-20261022/final-test-files.txt"
+  },
+  "typescript": {
+    "state": "PASS",
+    "command": "existing Node typescript/bin/tsc --noEmit",
+    "exit_code": 0,
+    "log": ".project-local/runs/stitch-research-stage-20261022/final-typecheck.log"
+  },
+  "browser": {
+    "state": "PASS",
+    "evidence": "SYNTHETIC_BROWSER_WITH_SIMULATED_HOST_AND_CORE",
+    "receipt": ".project-local/runs/stitch-research-stage-20261022/artifacts/receipt.json",
+    "sha256": "e796c40808d51d1f8a39319fb36f76e947a83d87687d5960e0e7e14dee22145a",
+    "cases": 67,
+    "page_count": 22,
+    "viewport_sizes": [
+      "1440x1000",
+      "640x480"
+    ],
+    "dock_split_pages": [
+      "02",
+      "08",
+      "21"
+    ],
+    "themes": [
+      "cosmic",
+      "blueprint",
+      "blueprint-light",
+      "black",
+      "white"
+    ],
+    "source_consistent": true,
+    "source_manifest_sha256": "df7bc18b007ae8e78dc53204ca5727232c5ea4b88ec7d169a6f5c6394117c983",
+    "errors": [],
+    "external_requests": [],
+    "cleanup": {
+      "browser_closed": true,
+      "vite_exit_code": null,
+      "vite_signal": "SIGTERM",
+      "vite_stopped": true,
+      "port_closed": true
+    },
+    "limits": "Existing a0 bridge has no valid layout Snapshot; LAYOUT_DTO_INVALID and working-state notices are fixture limitations, not accepted product integration."
+  },
+  "repairs": [
+    "Single Stitch titlebar and global navigation; removed old navigation layout preference and duplicate search owners",
+    "Research evidence focus, retained panels and draft, auxiliary material outlet",
+    "Dock body container breakpoints; learning content intrinsic height and leaving-focus state",
+    "Verified reader locator opens original before post-mount UTF-8 selection; STALE and late old-source proof refused"
+  ],
+  "resource_catalog": {
+    "state": "MANUAL_RECONCILIATION_OF_LIVE_SOURCE_METADATA_ONLY",
+    "path": "frontend/src/api/generated/resource-catalog.ts",
+    "sha256": "8582801dc9985262d43348ffee6c4e3cf6e33a1b1214d4e93908718e6547153d",
+    "changed_field": "/sources/2/sha256",
+    "entries_unchanged": 68,
+    "conflicts_unchanged": 115,
+    "historical_qualification_hashes": "7 deep references remain unchanged and drifted; not requalified by rebind",
+    "canonical_generator": "BLOCKED / NOT_EXECUTED: existing Python permission denial"
+  },
+  "formal_build": "BLOCKED: existing uv trampoline child Python permission denied (os error 5); no bypass",
+  "real_core_native_installed_owner_acceptance": "NOT_EXECUTED_FOR_THIS_UI_CANDIDATE",
+  "exact_sha_ci": "NOT_EXECUTED_FOR_DIRTY_CANDIDATE",
+  "delivery": {
+    "state": "BLOCKED_GIT_METADATA_READ_ONLY",
+    "commit": "NOT_EXECUTED",
+    "push": "NOT_EXECUTED",
+    "local_remote_consistency": "UNVERIFIED",
+    "dirty_paths_at_observation": 155,
+    "dirty_count_scope": "Final git status --short --untracked-files=all file entries, including inherited work; not this unit ownership count",
+    "existing_recovery_zip": "STALE; does not cover this UI unit"
+  },
+  "allowance": {
+    "measurement_upper_bound_utc": "2026-10-22T12:27:43Z",
+    "source": "official get_usage_limits rateLimitsByLimitId.codex.primary",
+    "used_percent": 44,
+    "remaining_percent": 56,
+    "secondary": "UNKNOWN",
+    "threshold": 20,
+    "triggered": false
+  },
+  "next": [
+    "Restore normal authorized Python execution and canonical generator/build without bypass",
+    "Re-observe changed source contracts for historical qualification; do not repaint old receipts",
+    "Use one qualified new candidate for actual existing Core consumers and CL/J, native/installed and Owner acceptance",
+    "Use normally writable Git metadata for authorized public-only delivery; verify remote exact SHA; no force/automatic merge/release"
+  ],
+  "scope_exclusions": [
+    "No new marketplace, extension package, third-party API or software-specific compatibility development",
+    "No replacement of Green or real user data; no credentials/private session/runtime/cache upload"
+  ]
+}

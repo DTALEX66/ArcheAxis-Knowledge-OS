@@ -1,4 +1,17 @@
-.ui-resources { min-width: 0; }
+.stitch-resources { display:grid; gap:12px; min-width:0; font-size:var(--ax-text-ui); }
+.stitch-resource-topic { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-raised); }
+.stitch-resource-topic h2 { margin:4px 0 0; font-size:var(--ax-text-body); }
+.stitch-resource-topic p,.stitch-resource-topic > span { margin:0; color:var(--ax-accent); font-size:var(--ax-text-caption); }
+.stitch-resource-browser { display:grid; grid-template-columns:minmax(170px,.8fr) minmax(0,1.5fr); gap:12px; align-items:start; }
+.stitch-resource-details { padding:12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-panel); }
+.stitch-resources .resources-list { max-height:34rem; overflow:auto; }
+.stitch-resources .resources-list li { margin:0 0 8px; padding:0; }
+.stitch-resources .resources-list button { gap:6px; padding:10px; font:inherit; border:1px solid var(--ax-border-strong); border-radius:6px; background:var(--ax-panel); }
+.stitch-resources .resources-list button[aria-pressed="true"] { color:var(--ax-accent); background:var(--ax-accent-soft); border-color:var(--ax-accent); }
+.stitch-resources .resources-list span { color:var(--ax-fg-secondary); font-size:var(--ax-text-caption); }
+.stitch-resources [aria-label="当前可用能力"] { margin-top:12px; padding:12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-panel); }
+.stitch-resources :focus-visible { outline:2px solid var(--ax-focus-ring); outline-offset:2px; }
+@container content (max-width:680px) { .stitch-resource-browser { grid-template-columns:minmax(0,1fr); } }
 .resources-controls { display: flex; flex-wrap: wrap; gap: var(--ax-space-4, 1rem); align-items: end; }
 .resources-controls > * { min-width: 0; flex: 1 1 15rem; }
 .resources-controls select { display: block; width: 100%; }

@@ -137,7 +137,8 @@ def main():
                     cdp.send('Emulation.setDeviceMetricsOverride', {'width':width, 'height':height, 'deviceScaleFactor':scale, 'mobile':False})
                     page.wait_for_function('expected => Math.abs(window.devicePixelRatio-expected)<=1e-6', arg=scale)
                     page.wait_for_timeout(100)
-                    case = {'viewport':label, 'theme':theme, 'viewport_mode':'CDP_SIMULATED_DPI', 'geometry':check_native_geometry(a0.measure_geometry(page, a0.CHROME_BANDS), width=width, height=height, scale=scale, bands=a0.CHROME_BANDS), 'status_accessibility':a0.check_status_accessibility(page)}
+                    bands = a0.chrome_bands(page)
+                    case = {'viewport':label, 'theme':theme, 'viewport_mode':'CDP_SIMULATED_DPI', 'geometry':check_native_geometry(a0.measure_geometry(page, bands), width=width, height=height, scale=scale, bands=bands), 'status_accessibility':a0.check_status_accessibility(page)}
                     resources = page.evaluate("() => [...document.querySelectorAll('script[src],link[rel=stylesheet][href],.status-bar-brand img')].map(e=>e.src||e.href)")
                     for url in resources:
                         if url in report['assets']:

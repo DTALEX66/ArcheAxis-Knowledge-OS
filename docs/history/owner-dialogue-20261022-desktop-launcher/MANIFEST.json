@@ -1,0 +1,101 @@
+{
+  "schema": "aaos.owner-discussion-archive/v1",
+  "archive_date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "source_scope": "Sanitized visible discussion from desktop/voice proposal through archive approval and subsequent glass/icon correction; no native sessions",
+  "decision_ref": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "decision_ids": [
+    "OWNER-USABLE-KNOWLEDGE-LAUNCHPAD-20261022",
+    "OWNER-STITCH-GLASS-STANDARD-ICONS-20261022"
+  ],
+  "normative_status": "Sources are not an independent authority or task queue",
+  "product_state": "PAUSED_BY_OWNER / PARTIAL",
+  "concept_state": "LAYOUT_REFERENCE_ONLY_ICONS_REJECTED_BY_OWNER_NOT_IMPLEMENTED_NOT_VISUALLY_ACCEPTED",
+  "concept_original_path": "C:\\Users\\ALEX\\.codex\\generated_images\\01a15ef7-8df1-7073-afaf-1e5b78f5928a\\exec-c3762576-b3c6-4834-a329-b461dc9668a1.png",
+  "private_native_sessions_accessed": false,
+  "public_members": [
+    {
+      "archive_path": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+      "bytes": 3344,
+      "sha256": "9c1cfe2aab3fc44c1c14c7ca5828811ff1964000d5144fde40b53c184c23f5e3"
+    },
+    {
+      "archive_path": "docs/history/owner-dialogue-20261022-desktop-launcher/SOURCE-EXCERPTS.md",
+      "bytes": 3830,
+      "sha256": "ee88c0ffde856c72cbb6fdf0a602b052f37000424a179bbf8657f2974837862f"
+    },
+    {
+      "archive_path": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
+      "bytes": 6496,
+      "sha256": "0c608392beeb2aa69e27e3e894129bbf7e3dc62ea11a99c1854e5b0abb090775"
+    },
+    {
+      "archive_path": "docs/history/owner-dialogue-20261022-desktop-launcher/concept-desktop-launcher.png",
+      "bytes": 2051175,
+      "sha256": "57b636a3307a6011088ac5080a593df098a859964f928c5a79771d83cfe5029d"
+    },
+    {
+      "archive_path": "docs/history/owner-dialogue-20261022-desktop-launcher/verify_archive.ps1",
+      "bytes": 2398,
+      "sha256": "bde22bd870ba5252c2d2eb60fe91d1bb2ec716d5196bde4725579f859dcad007"
+    }
+  ],
+  "local_sources": [
+    {
+      "original_path": "C:\\Users\\ALEX\\Doubao\\chats\\2026-10-22\\new-chat\\贾维斯语音能力-ArcheAxis交接与融入方案.md",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-01-jarvis-integration.md",
+      "bytes": 18530,
+      "sha256": "b988b33c7334d717075665c2ee59bfc63722ad4e5d983aa9f052593abce1dc39",
+      "role": "RESEARCH_PROPOSAL_NOT_AUTHORITY",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    },
+    {
+      "original_path": "C:\\Users\\ALEX\\Doubao\\chats\\2026-10-22\\new-chat\\贾维斯语音能力-ArcheAxis融入交接与审计包.md",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-02-jarvis-audit.md",
+      "bytes": 16910,
+      "sha256": "35f425b147deffeb33d0b774c559f5bfae28b39c513e62eb575e8f3f1cf74e26",
+      "role": "RESEARCH_PROPOSAL_NOT_AUTHORITY",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    },
+    {
+      "original_path": "C:\\Users\\ALEX\\Doubao\\chats\\2026-10-22\\new-chat\\贾维斯复刻-成熟案例调研与选型清单.md",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-03-jarvis-candidates.md",
+      "bytes": 32960,
+      "sha256": "a67c0f430e0ea2b2f95660b7ccd1a6d6ee45bba7e71646adf58b8163236e87c5",
+      "role": "RESEARCH_PROPOSAL_NOT_AUTHORITY",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    },
+    {
+      "original_path": "D:\\All projects\\Record\\ArcheAxis_OS_Full_Context_Handoff_2026-08-19.md",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-04-context-20260819.md",
+      "bytes": 31193,
+      "sha256": "ba068457076ec3cd02bb8e66e74838790628b86d8fb66f386c59cd80afde827f",
+      "role": "HISTORICAL_CONTEXT_NOT_CURRENT_EXECUTION",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    },
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_本次对话完整汇总_六项核心优势与开发方案_20261010.md",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-05-six-capabilities-20261010.md",
+      "bytes": 47918,
+      "sha256": "053e16b2b895c4d8549a90610c81cc95e8024e5648419bffbcb2a21949fac6d4",
+      "role": "FROZEN_PROPOSAL_NOT_ACTIVATED",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    },
+    {
+      "original_path": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\codex-clipboard-8d7bf3e2-7a4b-4512-b923-37431cf33feb.png",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-06-stitch-reference.png",
+      "bytes": 917756,
+      "sha256": "f78353c749d8bdb34babae1136b3f5828cb21465fe29c8ecde40c10d3f468035",
+      "role": "OWNER_VISUAL_REFERENCE_NOT_RUNTIME",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    },
+    {
+      "original_path": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\codex-clipboard-3125ca57-27f4-4785-9f6c-943bf21aa29d.png",
+      "archive_path": ".project-local/archives/owner-dialogue-20261022-desktop-launcher/source-07-launcher-reference.png",
+      "bytes": 1144220,
+      "sha256": "c9d08e11f26d2e2922f6656e27faf8d2f3c912778ac62b4d8c45b8a153e00aea",
+      "role": "OWNER_INTERACTION_REFERENCE_NOT_RUNTIME",
+      "git_policy": "IGNORED_LOCAL_ONLY"
+    }
+  ]
+}

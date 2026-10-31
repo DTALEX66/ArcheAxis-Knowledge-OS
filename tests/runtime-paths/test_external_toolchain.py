@@ -79,6 +79,8 @@ class ExternalToolchainTest(unittest.TestCase):
 
         for name in self._saved:
             os.environ.pop(name, None)
+        # Individual PATH fixtures must not leak fake, deleted tool directories.
+        self._saved["PATH"] = os.environ.get("PATH")
         self.os = __import__("os")
 
     def tearDown(self) -> None:
@@ -226,6 +228,52 @@ class ExternalToolchainTest(unittest.TestCase):
             self.os.environ["PATH"] = tesseract + self.os.pathsep + self.os.environ.get("PATH", "")
             found = dev.external_toolchain()
             self.assertNotIn(tesseract, found.get("PATH", "").split(self.os.pathsep)[:1])
+
+    def test_declared_native_media_bin_is_promoted_past_an_earlier_shim(self) -> None:
+        import shutil
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _fake_root(Path(tmp), msvc=False, rust=False, tesseract=False,
+                              tessdata=False, ffmpeg=True)
+            native = root / FFMPEG
+            shim = Path(tmp) / "stale-shims" / "ffmpeg.exe"
+            shim.parent.mkdir()
+            shim.write_bytes(b"MZ-stale-target")
+            native.chmod(0o755)
+            shim.chmod(0o755)
+            original = self.os.pathsep.join([str(shim.parent), str(native.parent)])
+            self.os.environ.update(OS_EXTERNAL_CONFIG=str(root), PATH=original)
+            self.assertEqual(shutil.which("ffmpeg.exe", path=original), str(shim))
+
+            found = dev.external_toolchain()
+
+            self.assertEqual(shutil.which("ffmpeg.exe", path=found["PATH"]), str(native))
+            self.assertEqual(found["PATH"].split(self.os.pathsep),
+                             [str(native.parent), str(shim.parent)])
+            self.assertEqual(self.os.environ["PATH"], original,
+                             "discovery changes only the returned child environment")
+
+    def test_promoting_native_bin_deduplicates_it_and_preserves_other_path_entries(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _fake_root(Path(tmp), msvc=False, rust=False, tesseract=False,
+                              tessdata=False, ffmpeg=True)
+            native = str(root / FFMPEG.parent)
+            first = str(Path(tmp) / "first")
+            last = str(Path(tmp) / "last")
+            original = [first, native, last, native + self.os.sep + ".", "", first]
+            self.os.environ.update(OS_EXTERNAL_CONFIG=str(root),
+                                   PATH=self.os.pathsep.join(original))
+
+            found = dev.external_toolchain()
+
+            self.assertEqual(found["PATH"].split(self.os.pathsep),
+                             [native, first, last, "", first])
+            self.os.environ["PATH"] = found["PATH"]
+            self.assertNotIn("PATH", dev.external_toolchain(),
+                             "an already promoted PATH stays stable on a nested launch")
 
     def test_a_recorded_root_is_used_when_the_environment_registers_none(self) -> None:
         """The tracked index may supply the host's root, but never override the environment.

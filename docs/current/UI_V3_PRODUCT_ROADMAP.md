@@ -1,5 +1,7 @@
 # 当前 UI 设计与历史路线图
 
+> **2026-10-28 导航说明**：本文件在 [路径身份路由](AAOS-AUTHORITY-ROUTES.json) 中为 `LIVE_NAVIGATION`，不是独立进度或执行授权。当前主题规则读取 [活动指针](AAOS-ACTIVE-EXECUTION.json) 的 `theme_policy`：新用户或无效偏好默认 `cosmic`，已有有效偏好保留，五主题仍可切换。下列 2026-10-09／10 的暂停、默认 `blueprint` 与主题定位保留为当时记录，已不作为当前状态；执行控制与实际进度只读活动指针及其唯一执行记录。
+
 > **2026-10-10 路由修正**：产品PAUSED_BY_OWNER；本轮仅治理维护，六项增量冻结。旧路线和下一队列不是恢复指令。先查 [路径身份路由](AAOS-AUTHORITY-ROUTES.json) 与活动指针；当前事实使用最新分域回执。
 
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](../taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
@@ -10,7 +12,7 @@
 
 - 新22页参考、tokens与资产来源通过 [UI任务包](../taskpacks/aaos-ui-first-20261009/README.md) 和来源登记核对，页面职责以 [PAGE-PLAN](../taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv) 承接。
 - 五域布局和语义页面按新任务实施；普通文档、Tiptap与Core逻辑复用，历史hash兼容不作为新默认布局。
-- `blueprint` 是新设计默认，`blueprint-light` 是配套浅色，旧 `black` / `white` / `cosmic` 只作额外主题；五主题共用新布局、组件状态、页面密度和缩放规则，按钮、菜单、侧栏及正文用统一语义颜色。主题切换只更新前端宿主资源，不更改 Core 配置或知识数据。
+- 新用户或无效偏好默认 `cosmic`，保留有效已存偏好；`blueprint`、`blueprint-light`、`black`、`white` 与 `cosmic` 均可切换。五主题共用新布局、组件状态、页面密度和缩放规则，按钮、菜单、侧栏及正文用统一语义颜色。主题切换只更新前端宿主资源，不更改 Core 配置或知识数据。
 - B10/Aurora/Archive Desk/Liquid Glass 是历史参考，不是默认主题或当前新布局权威。当前任务尚未接通的页面明示不可用；不把22页意图、原型演示内容或截图当产品完成度。
 
 ## 历史视觉与路线说明（原日期与证据范围保留）

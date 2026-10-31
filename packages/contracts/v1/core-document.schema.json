@@ -2,6 +2,36 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/core-document/v1",
   "$defs": {
+    "FailureLogOperation": {"enum": ["sources_list", "source_get", "source_original", "documents_list", "document_get", "document_create", "document_draft", "document_restore", "search", "learning_items", "learning_state", "learning_review", "machine_answer", "machine_retest", "machine_tasks_list", "job_execute", "job_execution_status", "job_execution_cancel", "model_configuration_get", "model_configuration_put", "workspace_backups", "ui_state_read", "ui_state_write", "local_request", "local_write", "unknown_operation"]},
+    "FailureLogCode": {"enum": ["offline", "backend_starting", "migrating", "incompatible", "unauthorized", "unavailable", "unknown"]},
+    "FailureLogReason": {"enum": ["unknown_result", "offline", "starting", "migrating", "conflict", "permission", "missing", "busy", "incompatible", "not_admitted", "restored_authorization", "withheld", "model_unconfirmed"]},
+    "FailureLogEntry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entry_id", "operation", "status", "code", "reason", "restore_epoch", "first_at", "at", "count"],
+      "properties": {
+        "entry_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "operation": {"$ref": "#/$defs/FailureLogOperation"},
+        "status": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0, "maximum": 599}]},
+        "code": {"$ref": "#/$defs/FailureLogCode"},
+        "reason": {"$ref": "#/$defs/FailureLogReason"},
+        "restore_epoch": {"type": "string", "pattern": "^(initial|[a-f0-9]{32})$"},
+        "first_at": {"type": "string", "format": "date-time"},
+        "at": {"type": "string", "format": "date-time"},
+        "count": {"type": "integer", "minimum": 1, "maximum": 1000000}
+      }
+    },
+    "FailureLogSnapshot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "workspace_id", "restore_epoch", "log_generation", "entries", "corrupt", "limit"],
+      "properties": {
+        "schema": {"const": "archeaxis.operation-failure-log/v1"},
+        "workspace_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "restore_epoch": {"type": "string", "pattern": "^(initial|[a-f0-9]{32})$"},
+        "log_generation": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-f0-9]{32}$"}]},
+        "entries": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/FailureLogEntry"}},
+        "corrupt": {"type": "boolean"}, "limit": {"const": 50}
+      }
+    },
     "DocumentPackageDto": {
       "description": "Bounded document exchange: at most 8 MiB of original/media bytes in aggregate and 40 MiB serialized JSON. Source import has a separate budget.",
       "type": "object",
@@ -321,7 +351,30 @@
             "$ref": "#/$defs/BlockDto"
           }
         },
-        "revision_basis": {}
+        "revision_basis": {},
+        "tags": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/DocumentTagDto"
+          }
+        },
+        "metadata_status": {
+          "type": "string",
+          "enum": [
+            "COMPLETE",
+            "PARTIAL"
+          ]
+        },
+        "properties": {
+          "type": "object"
+        },
+        "metadata_issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
       "required": [
         "document_id",
@@ -827,6 +880,10 @@
     "DocumentSummaryDto": {
       "type": "object",
       "properties": {
+        "has_collection": {
+          "type": "boolean",
+          "description": "Presence of attrs.archeaxis_collection in this saved version; not schema validity or external-platform parity. Absence means an older producer did not provide discovery metadata."
+        },
         "document_id": {
           "type": "string"
         },
@@ -850,6 +907,20 @@
         },
         "content_sha256": {
           "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/DocumentTagDto"
+          }
+        },
+        "metadata_status": {
+          "type": "string",
+          "enum": [
+            "COMPLETE",
+            "PARTIAL"
+          ]
         }
       },
       "required": [
@@ -904,6 +975,17 @@
       ],
       "additionalProperties": true
     },
+    "UnavailableBackupDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backup_id", "filename", "code", "message"],
+      "properties": {
+        "backup_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "filename": { "type": "string" },
+        "code": { "const": "AAK-BACKUP-INVALID" },
+        "message": { "type": "string" }
+      }
+    },
     "BackupsListDto": {
       "type": "object",
       "properties": {
@@ -912,6 +994,10 @@
           "items": {
             "$ref": "#/$defs/BackupDto"
           }
+        },
+        "unavailable_backups": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/UnavailableBackupDto" }
         }
       },
       "required": [
@@ -1534,6 +1620,11 @@
         },
         "target": {
           "$ref": "#/$defs/ObjectReferenceDto"
+        },
+        "presentation": {
+          "enum": [
+            "embed"
+          ]
         }
       },
       "required": [
@@ -3469,6 +3560,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 3
+        },
+        "community_site": {
+          "enum": [
+            "academia",
+            "stats"
+          ]
         }
       }
     },
@@ -3571,7 +3668,8 @@
           "enum": [
             "wikipedia",
             "stackexchange",
-            "openalex"
+            "openalex",
+            "crossref"
           ]
         },
         "title": {
@@ -3683,7 +3781,8 @@
           "enum": [
             "wikipedia",
             "stackexchange",
-            "openalex"
+            "openalex",
+            "crossref"
           ]
         },
         "status": {
@@ -3827,7 +3926,7 @@
                 "$ref": "#/$defs/PublicResearchChannelDto"
               },
               "minItems": 1,
-              "maxItems": 3
+              "maxItems": 4
             },
             {
               "type": "null"
@@ -3851,6 +3950,12 @@
         },
         "knowledge_admission": {
           "const": "not_executed"
+        },
+        "community_site": {
+          "enum": [
+            "academia",
+            "stats"
+          ]
         }
       }
     },
@@ -4611,7 +4716,8 @@
                 "fragment_resolution_not_supported",
                 "target_binding_required",
                 "note_document_binding_required",
-                "embed_rendering_not_supported"
+                "embed_rendering_not_supported",
+                "embed_presentation_requested"
               ]
             },
             {
@@ -4726,6 +4832,10 @@
               "no_worker_conversion_or_knowledge_admission"
             ]
           }
+        },
+        "updated_relations": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -4765,6 +4875,321 @@
           "pattern": "^[A-Za-z0-9_.-]+$"
         }
       }
+    },
+    "DocumentTagDto": {
+      "type": "object",
+      "required": [
+        "name",
+        "key"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "key": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "SemanticSearchInput": {
+      "type": "object",
+      "properties": {
+        "q": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "q"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticCandidateDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "status": {
+          "const": "accepted"
+        },
+        "receipt_hash": {
+          "type": "string"
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "current_source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "knowledge_version",
+        "body",
+        "status",
+        "receipt_hash",
+        "anchor_id",
+        "source_id",
+        "source_revision",
+        "current_source_revision"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticEmbeddingRankDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "knowledge_version",
+        "score",
+        "anchor_id",
+        "source_id",
+        "source_revision"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticRerankDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "yes_logprob": {
+          "type": "number",
+          "maximum": 0
+        },
+        "no_logprob": {
+          "type": "number",
+          "maximum": 0
+        },
+        "reasoning_tokens": {
+          "const": 0
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "knowledge_version",
+        "score",
+        "anchor_id",
+        "source_id",
+        "source_revision",
+        "yes_logprob",
+        "no_logprob",
+        "reasoning_tokens"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticBatchDto": {
+      "type": "object",
+      "properties": {
+        "candidate_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "worker_outcome": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "candidate_ids",
+        "worker_outcome"
+      ],
+      "additionalProperties": false
+    },
+    "SemanticSearchDto": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "archeaxis.semantic-search/v1"
+        },
+        "q": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "\\S"
+        },
+        "status": {
+          "enum": [
+            "AVAILABLE",
+            "PARTIAL",
+            "UNAVAILABLE",
+            "EMPTY"
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticCandidateDto"
+          }
+        },
+        "embedding": {
+          "type": "object",
+          "properties": {
+            "complete": {
+              "type": "boolean"
+            },
+            "rank": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SemanticEmbeddingRankDto"
+              }
+            }
+          },
+          "required": [
+            "complete",
+            "rank"
+          ],
+          "additionalProperties": false
+        },
+        "reranker": {
+          "type": "object",
+          "properties": {
+            "complete": {
+              "type": "boolean"
+            },
+            "rank": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SemanticRerankDto"
+              }
+            }
+          },
+          "required": [
+            "complete",
+            "rank"
+          ],
+          "additionalProperties": false
+        },
+        "index_persisted": {
+          "const": false
+        },
+        "batches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticBatchDto"
+          }
+        },
+        "ranking_basis": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "q",
+        "status",
+        "complete",
+        "candidate_count",
+        "candidates",
+        "embedding",
+        "reranker",
+        "index_persisted"
+      ],
+      "additionalProperties": false
     }
   }
 }

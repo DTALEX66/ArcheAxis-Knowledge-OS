@@ -1,0 +1,67 @@
+{
+  "schema": "aaos.post-access-storage-checkpoint/v1",
+  "source_commit": "6d556c489cac9ce1691c0228dece49216e0270d5",
+  "status": "PARTIAL_REVIEW_REQUIRED",
+  "readable_lower_bound_bytes": 142698156985,
+  "readable_files": 1319188,
+  "visible_lower_bound_delta_bytes": 4913174112,
+  "current_formerly_denied_scope_bytes": 3359378401,
+  "residual_visible_scope_delta_bytes": 1553795711,
+  "real_generation_bytes_claimed": false,
+  "permission_errors": 674,
+  "error_classification": {
+    "protected_test_git_paths": 599,
+    "long_path_descendant_paths": 61,
+    "link_named_type_unverified_paths": 14
+  },
+  "private_excluded": 183,
+  "links_preserved": 133,
+  "layout_before": 582,
+  "layout_now": 581,
+  "new_layout_debt": 0,
+  "measurement_exit_code": 2,
+  "source_consistent": true,
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-size5/artifacts/footprint.json",
+      "bytes": 789677,
+      "sha256": "ae6462f2875bb10cd04d591cab76f436a63c7174d2cce86da8a2245608886d9a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-size5/artifacts/execution.json",
+      "bytes": 1449,
+      "sha256": "1952b6550a6e981c71d537b01ae8253054256e08051fa69a4d6c1149d71870fb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-sizediff1/artifacts/storage-comparison.json",
+      "bytes": 28207,
+      "sha256": "437fc23e720101adb596c4627bbc92b9a23d8b86aa43fb2b10f13e5a722f4ac5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-sizediff1/artifacts/remaining-access-errors.json",
+      "bytes": 649452,
+      "sha256": "67d320a48ac65fad99b9444421844b8d1944b3329427df3d21b3344961c6a234"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-sizediff1/artifacts/nine-long-path-gap-routing.json",
+      "bytes": 12042,
+      "sha256": "1fddeaa15d72c84c1c7a2d4389126c59b85ad286e3c53677e99f4e1f6648514e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-sizediff1/artifacts/execution.json",
+      "bytes": 9803,
+      "sha256": "caaa9fc36ef6946db72e5b7d7573c1ae404a58a683fa2c9e4126387e6700312e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-sizeplan1/artifacts/next-review-routes.json",
+      "bytes": 14668,
+      "sha256": "1fdaf115ffe4e57e763ae7c0c67da4f64d11068c6c2aacb484a29f11c554e63a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-sizeplan1/artifacts/execution.json",
+      "bytes": 7428,
+      "sha256": "2d1dc1b0ad9abe9e47d7b26e26fa4643d22340582e651647e0131f2859e253d8"
+    }
+  ],
+  "actions": "MEASUREMENT_AND_BOUNDED_METADATA_ANALYSIS_ONLY_NO_ACL_OR_CLEANUP"
+}

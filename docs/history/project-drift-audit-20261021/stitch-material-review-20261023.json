@@ -1,0 +1,47 @@
+{
+  "schema": "aaos.stitch-material-review/v1",
+  "observed_at": "2026-10-23T00:13:18.2363979+08:00",
+  "state": "PARTIAL",
+  "scope": "Owner requested glass material and standard library icon correction only; no capability expansion",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "source_binding": "DIRTY_WORKTREE_NOT_BUILT_NOT_INSTALLED",
+  "source_files": {
+    "frontend/src/components/AaosIcon.tsx": "dcdaafe32145e919146f9262d854628818e6930fdfed7a7ed221bac319d597c6",
+    "frontend/src/components/StitchLaunchpad.tsx": "5ba9f00333d3bf66a379c7053356f257b1bae8c92aa67a44b99f23aa2e909b9b",
+    "frontend/src/components/StitchWorkspaceChrome.tsx": "0dcff3ed12ef402ea448be8aa54ce7efeef78f3180b2e9b54a438d138ab939d3",
+    "frontend/src/components/StitchWorkspaceChrome.css": "a2e8b800f138eca050de39e4e36279c2d736a49061ac2f880a2b384999042e40",
+    "frontend/src/components/StitchLaunchpad.css": "78fc51eac2a7932be49d520809858317e5a7463f5facbbd095ecd56d432eda3a"
+  },
+  "local_artifacts": {
+    ".project-local/artifacts/stitch-material-review-20261023/launchpad-fresh-tab.png": "c8069d9d0c2c6d07cd43d211107c5233c409577f6ee514f9fcc21ff893692598",
+    ".project-local/artifacts/stitch-material-review-20261023/workbench-fresh-tab.png": "c481fc6c578edba9545aede2bf6305c908cc8f846a2dc38eace92877fe83f832",
+    ".project-local/artifacts/stitch-material-review-20261023/readback.json": "1a0ae01c63b4b2ae1013910884a952b7e15ba1f017957c4379043f80bee38e9f"
+  },
+  "previous_visual_checkpoint": "docs/history/project-drift-audit-20261021/stitch-glass-correction-20261022.json",
+  "changes": [
+    "No CSS adjustment this turn: verified existing glass CSS hashes match previous checkpoint",
+    "Use existing pinned lucide-react 1.61.0; no dependency install",
+    "LearningPath=Route; Canvas=PanelsTopLeft; Context=BrainCircuit; Dock learning=GraduationCap"
+  ],
+  "checks": {
+    "component": "PASS: 2 files 10 tests; SYNTHETIC",
+    "typescript": "PASS: tsc --noEmit exit0",
+    "browser": "INTEGRATED_FRONTEND_ONLY_NO_CORE: IAB/Vite5.4.21; cosmic1280x720 DPR1.25; fresh tab screenshots actually viewed; no horizontal overflow; Escape keeps page01 and restores trigger focus",
+    "material": "Main rgba(14,20,29,.62) backdrop blur20px saturate1.25; card rgba(22,28,37,.28); launcher blur24px; content filter none",
+    "stitch": "REAL_READ_ONLY_GET_SCREEN: projects/10243059433218383839/screens/206611daf7a948edb97ea60c7a7d8654; no edit/generation/upload",
+    "icon_exports": "PASS: installed lucide exports checked before use",
+    "build": "NOT_EXECUTED: historical Python child permission blocker unchanged; no bypass",
+    "native_and_owner_visual": "NOT_EXECUTED",
+    "git_delivery": "NOT_COMMITTED_NOT_PUSHED",
+    "model_calls": "NOT_EXECUTED",
+    "other_themes_and_reduced_transparency": "NOT_EXECUTED_THIS_TURN"
+  },
+  "screenshot_issue": "Existing tab after viewport resize produced blurred captures; reload did not resolve. Preserved captures locally. Fresh tab created at desktop viewport produced sharp screenshot. No CSS filter added or disabled to hide issue; no native visual PASS inferred.",
+  "sources": [
+    "https://lucide.dev/guide/react/",
+    "https://lucide.dev/guide/react/basics/stroke-width",
+    "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/backdrop-filter"
+  ],
+  "cleanup": "Owned tabs4/5 closed, viewport reset; own Vite session18696 stopped via stdin with terminal exit readback; no shared process terminated",
+  "monitor": "PAUSED_UNCHANGED"
+}

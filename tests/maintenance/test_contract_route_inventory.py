@@ -115,9 +115,14 @@ def test_the_conditional_exceptions_are_still_conditional():
 
 
 def test_the_inventory_is_the_size_the_contract_claims():
-    """The production inventory includes the two local-human handoff read method/path additions."""
-    assert len(documented_routes()) == 135, (
-        "the inventory size changed; update §3's heading and this expectation together")
+    """The heading, route table and unconditional source surface share one derived count."""
+    unconditional, _conditional = served_routes()
+    production = unconditional - set(KNOWN_CONDITIONAL)
+    contract = CONTRACT.read_text(encoding="utf-8")
+    heading = re.search(r"## 3\. Route inventory \((\d+) pairs", contract)
+    assert heading, "§3's route-pair count is missing"
+    assert len(documented_routes()) == len(production)
+    assert int(heading.group(1)) == len(production)
 
 
 def test_handoff_reads_openapi_bind_strict_context_and_exact_response_schemas():
@@ -165,3 +170,123 @@ def test_handoff_reads_openapi_bind_strict_context_and_exact_response_schemas():
         assert schema["properties"]["grants_knowledge_acceptance"] == {"const": False}
         assert {"400", "401", "403", "409", "413", "503"} <= set(operation["responses"])
         assert ("404" in operation["responses"]) == (kind == "snapshot")
+
+
+def test_external_context_openapi_matches_strict_offline_http_contract():
+    """The two new routes document the handler DTOs, bounds, actor and existing response."""
+    import yaml
+
+    outline = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    status_path = "/api/v1/machine/external-context/status"
+    import_path = "/api/v1/machine/external-context/candidates"
+    unconditional, _ = served_routes()
+    assert ("GET", status_path) in unconditional
+    assert ("POST", import_path) in unconditional
+    status = outline["paths"][status_path]["get"]
+    status_schema = status["responses"]["200"]["content"]["application/json"]["schema"]
+    assert status_schema["additionalProperties"] is False
+    assert status_schema["properties"]["fetch_status"] == {"const": "NOT_CONNECTED"}
+    assert status_schema["properties"]["provider_id"]["type"] == "null"
+    for name in ("raw_context_capture", "network_fetch", "automatic_recall"):
+        assert status_schema["properties"][name] == {"const": False}
+
+    operation = outline["paths"][import_path]["post"]
+    assert operation["x-allowed-actor"] == "human"
+    assert operation["x-max-request-bytes"] == 65536
+    request = operation["requestBody"]["content"]["application/json"]["schema"]
+    assert request["additionalProperties"] is False
+    assert request["properties"]["material_authorized"] == {"const": True}
+    assert request["properties"]["redaction_confirmed"] == {"const": True}
+    candidate = request["properties"]["candidate"]
+    assert candidate["additionalProperties"] is False
+    assert candidate["properties"]["failed_attempts"]["maxItems"] == 16
+    assert candidate["properties"]["evidence_refs"]["maxItems"] == 32
+    verification = candidate["properties"]["verification"]
+    assert verification["additionalProperties"] is False
+    assert verification["required"] == ["status"]
+    assert verification["properties"]["exit_code"]["minimum"] == -2147483648
+    assert verification["properties"]["exit_code"]["maximum"] == 2147483647
+    assert candidate["properties"]["title"]["x-max-utf8-bytes"] == 4096
+    assert candidate["properties"]["source"]["properties"]["auth_scope"] == {"const": "knowledge_candidate:import"}
+    assert candidate["properties"]["source"]["properties"]["fetch_status"] == {"const": "AVAILABLE"}
+    assert candidate["x-max-serialized-bytes"] == 48000
+    assert operation["responses"]["201"]["content"]["application/json"]["schema"] == {
+        "$ref": "./core-document.schema.json#/$defs/DocumentDto"
+    }
+    assert {"400", "401", "403", "413", "422", "500"} <= set(operation["responses"])
+    assert "syntax" in operation["responses"]["400"]["description"]
+    assert "unknown fields" in operation["responses"]["422"]["description"]
+
+
+def test_problem_history_openapi_preserves_strict_scope_optional_metadata_and_response():
+    """The three human-only routes expose actual Rust Option inputs and one bounded DTO."""
+    import copy
+    import json
+    import yaml
+    from jsonschema import Draft202012Validator
+    from referencing import Registry, Resource
+
+    outline = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    base_path = REPO / "packages/contracts/v1/core-document.schema.json"
+    base = json.loads(base_path.read_text(encoding="utf-8"))
+    registry = Registry().with_resource(base_path.as_uri(), Resource.from_contents(base))
+    scope = {"workspace_id": "a" * 32, "restore_epoch": "initial"}
+    event = {**scope, "log_generation": "b" * 32,
+             "operation": "document_get", "code": "unavailable", "reason": "missing"}
+    required = {
+        "read": {"workspace_id", "restore_epoch"},
+        "append": {"workspace_id", "restore_epoch", "log_generation", "operation", "code", "reason"},
+        "clear": {"workspace_id", "restore_epoch"},
+    }
+    unconditional, _ = served_routes()
+    documented = documented_routes()
+    for action in ("read", "append", "clear"):
+        path = f"/api/v1/workspace/operation-failures/{action}"
+        assert ("POST", path) in unconditional
+        assert ("POST", path) in documented
+        item = outline["paths"][path]
+        assert set(item) == {"post"}
+        operation = item["post"]
+        assert operation["x-allowed-actor"] == "human"
+        assert operation["x-max-request-bytes"] == 2048
+        assert operation["requestBody"]["required"] is True
+        request = operation["requestBody"]["content"]["application/json"]["schema"]
+        assert request["type"] == "object"
+        assert request["additionalProperties"] is False
+        assert set(request["required"]) == required[action]
+        optional = {"status"} if action == "append" else {"log_generation"} if action == "clear" else set()
+        assert set(request["properties"]) == required[action] | optional
+        validation_schema = copy.deepcopy(request)
+        if action == "append":
+            for name, definition in (("operation", "FailureLogOperation"), ("code", "FailureLogCode"), ("reason", "FailureLogReason")):
+                assert request["properties"][name] == {"$ref": f"./core-document.schema.json#/$defs/{definition}"}
+                validation_schema["properties"][name]["$ref"] = f"{base_path.as_uri()}#/$defs/{definition}"
+        validator = Draft202012Validator(validation_schema, registry=registry)
+        valid = event if action == "append" else scope
+        assert validator.is_valid(valid), action
+        for name in required[action]:
+            missing = dict(valid)
+            del missing[name]
+            assert not validator.is_valid(missing), (action, name)
+        for field in ("message", "body", "stack", "endpoint", "count", "at"):
+            assert not validator.is_valid({**valid, field: "unregistered"}), (action, field)
+        assert not validator.is_valid({**valid, "workspace_id": "not-a-workspace"})
+        assert not validator.is_valid({**valid, "restore_epoch": "not-an-epoch"})
+        assert validator.is_valid({**valid, "restore_epoch": "c" * 32})
+        if action == "append":
+            for status in (None, 0, 599):
+                assert validator.is_valid({**valid, "status": status})
+            for status in (-1, 600, "404"):
+                assert not validator.is_valid({**valid, "status": status})
+            for field in ("operation", "code", "reason", "log_generation"):
+                assert not validator.is_valid({**valid, field: "unregistered"}), field
+            assert not validator.is_valid({**valid, "log_generation": None})
+        elif action == "clear":
+            assert validator.is_valid({**valid, "log_generation": None})
+            assert validator.is_valid({**valid, "log_generation": "b" * 32})
+            assert not validator.is_valid({**valid, "log_generation": "unregistered"})
+        response = operation["responses"]["200"]["content"]["application/json"]["schema"]
+        assert response == {"$ref": "./core-document.schema.json#/$defs/FailureLogSnapshot"}
+        assert {"400", "401", "403", "409", "413", "422", "503"} <= set(operation["responses"])
+        assert "syntax" in operation["responses"]["400"]["description"]
+        assert "unknown fields" in operation["responses"]["422"]["description"]

@@ -1,5 +1,6 @@
 import {afterEach,beforeEach,expect,it,vi} from "vitest";
-import {fireEvent,render,screen,waitFor,act} from "@testing-library/react";
+import {fireEvent,render,screen,waitFor,act,within} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {webcrypto} from "node:crypto";
 import {MaterialQuestionPanel} from "../components/MaterialQuestionPanel";
 const bridge=vi.hoisted(()=>({call:vi.fn(),configuration:{revision:0} as Record<string,unknown>}));vi.mock("../api/core",()=>({coreCommand:(op:string,p:unknown)=>op==="model_configuration_get"?Promise.resolve(bridge.configuration):bridge.call(op,p)}));
@@ -30,6 +31,80 @@ it.each(["reject","wrong-id","invalid-outcome"])("keeps recovered request locked
  fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("SYNTHETIC confirmed recovery");expect(bridge.call.mock.calls.at(-1)?.[1].body).toEqual({request_id:request.request_id});expect(bridge.call.mock.calls.every(c=>c[0]==="material_question_status")).toBe(true);
 });
 beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);bridge.call.mockReset();bridge.configuration={revision:0};});afterEach(()=>vi.unstubAllGlobals());
+
+it.each([["fast",1024],["deep",2048]] as const)("SYNTHETIC recovers %s no-final-answer through the exact bound budget and an explicitly previewed new request",async(lane,budget)=>{
+ const base={endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"unrelated",credential_ref:null,max_tokens:512,timeout_s:120};
+ const configuration={schema:"archeaxis.model-configuration/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",revision:3,profiles:{unrelated:base,chosen:{...base,model:"qwen3.5-4b",max_tokens:budget}},bindings:[{purpose:"material",lane,profile_id:"chosen"},{purpose:"companion",lane:"fast",profile_id:"chosen"}]};
+ bridge.configuration=configuration;
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="model_configuration_resolve"){
+   const current=bridge.configuration as typeof configuration;
+   return {schema:"archeaxis.resolved-model/v1",workspace_id:current.workspace_id,restore_epoch:current.restore_epoch,configuration_revision:current.revision,configuration_sha256:"c".repeat(64),purpose:"material",lane:p.body.lane,profile_id:"chosen",profile:structuredClone(current.profiles.chosen)};
+  }
+  if(op==="model_configuration_put"){bridge.configuration={...p.body.configuration,revision:4};return bridge.configuration;}
+  if(p.body.preview)return {schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)};
+  return p.body.max_tokens===budget?{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"failed",reason_code:"material_no_final_answer",answer:null,diagnostics:{finish_reason:"length"}}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"SYNTHETIC recovered final answer"}};
+ });
+ render(<MaterialQuestionPanel material={material} text="saved material"/>);
+ fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:lane}});fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"original question"}});fireEvent.click(screen.getByText("预览材料提问"));
+ fireEvent.click(await screen.findByText("确认提问或查询原请求"));await screen.findByText(/模型在输出上限处停止/);
+ const original=structuredClone(bridge.call.mock.calls.find(([op,p])=>op==="material_question"&&!p.body.preview)![1].body);
+ fireEvent.click(screen.getByRole("button",{name:"调整材料模型输出预算"}));
+ const dialog=screen.getByRole("dialog",{name:"调整材料模型输出预算"});
+ expect(dialog).toHaveClass("material-budget-dialog");expect(within(dialog).getByRole("region",{name:"当前材料模型输出预算"})).toBeInTheDocument();
+ expect(await screen.findByLabelText("最大输出 token")).toHaveValue(budget);
+ expect(screen.getByText(new RegExp(`当前配置：chosen；模型：qwen3.5-4b；已保存预算：${budget}`))).toBeInTheDocument();
+ expect(bridge.call.mock.calls.some(([op])=>op==="model_configuration_put")).toBe(false);
+ fireEvent.change(screen.getByLabelText("最大输出 token"),{target:{value:"4096"}});fireEvent.click(screen.getByRole("button",{name:"保存材料输出预算"}));await screen.findByText(/请回到材料问答点击/);
+ const saved=bridge.call.mock.calls.find(([op])=>op==="model_configuration_put")![1].body;
+ expect(saved).toEqual({expected_revision:3,configuration:{...configuration,profiles:{...configuration.profiles,chosen:{...configuration.profiles.chosen,max_tokens:4096}}}});
+ fireEvent.click(within(dialog).getByRole("button",{name:"返回材料问答"}));
+ await waitFor(()=>expect(screen.queryByRole("dialog",{name:"调整材料模型输出预算"})).toBeNull());
+ await waitFor(()=>expect(screen.getByRole("button",{name:"调整材料模型输出预算"})).toHaveFocus());
+ expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent(`最多 ${budget} token`);
+ expect(screen.getByText("确认提问或查询原请求")).toBeDisabled();expect(screen.getByLabelText("材料问题")).toHaveValue("original question");
+ expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(1);
+ expect(bridge.call.mock.calls.find(([op,p])=>op==="material_question"&&!p.body.preview)![1].body).toEqual(original);
+ fireEvent.click(screen.getByText("预览材料提问"));await waitFor(()=>expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("最多 4096 token"));
+ expect(screen.queryByRole("region",{name:"当前材料模型输出预算"})).toBeNull();
+ const next=bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&p.body.preview).at(-1)![1].body;
+ expect(next.request_id).not.toBe(original.request_id);expect(next).toMatchObject({max_tokens:4096,model_configuration:{configuration_revision:4,lane,profile_id:"chosen"}});
+ expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(1);
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("SYNTHETIC recovered final answer");
+ expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(2);
+});
+
+it("SYNTHETIC Escape cancels an unsaved budget edit and returns focus without saving or repeating inference",async()=>{
+ const profile={endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"existing",credential_ref:null,max_tokens:2048,timeout_s:120};
+ bridge.configuration={schema:"archeaxis.model-configuration/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",revision:1,profiles:{local:profile},bindings:[{purpose:"material",lane:"fast",profile_id:"local"}]};
+ const request={request_id:"real-shape-failed",material,selection:null,question:"old question",purpose:"understand",model:"existing",max_tokens:2048,timeout_s:120,preview:false,confirmed_plan_sha256:null};
+ bridge.call.mockImplementation(async(op,p)=>{expect(op).toBe("material_question_status");return p.body.request_id===null?{schema:"archeaxis.material-question-journal/v1",plans:[{request}]}:{schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"failed",reason_code:"material_no_final_answer",answer:null};});
+ const user=userEvent.setup();render(<MaterialQuestionPanel material={material} text="saved material"/>);
+ await user.click(screen.getByRole("button",{name:"恢复本版材料的上次提问"}));
+ const opener=await screen.findByRole("button",{name:"调整材料模型输出预算"});await user.click(opener);
+ const input=await screen.findByLabelText("最大输出 token");await user.clear(input);await user.type(input,"4096");
+ expect(screen.queryByRole("region",{name:"待确认请求"})).toBeNull();
+ await user.keyboard("{Escape}");await waitFor(()=>expect(screen.queryByRole("dialog",{name:"调整材料模型输出预算"})).toBeNull());
+ await waitFor(()=>expect(opener).toHaveFocus());expect(profile.max_tokens).toBe(2048);
+ expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("最多 2048 token");
+ await user.click(opener);expect(await screen.findByLabelText("最大输出 token")).toHaveValue(2048);
+ await user.click(screen.getByRole("button",{name:"返回材料问答"}));
+ expect(bridge.call.mock.calls.every(([op])=>op==="material_question_status")).toBe(true);
+});
+it.each(["length","stop"])("explains a missing final answer with finish reason %s without retrying or exposing reasoning",async finishReason=>{
+ bridge.call.mockImplementation(async(_op,p)=>p.body.preview
+  ?{schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}
+  :{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"failed",reason_code:"material_no_final_answer",answer:null,diagnostics:{finish_reason:finishReason,answer_source:"reasoning_content",max_tokens:2048,reasoning_content:"PRIVATE reasoning must stay absent"}});
+ render(<MaterialQuestionPanel material={material} text="saved material"/>);
+ fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));
+ fireEvent.click(await screen.findByText("确认提问或查询原请求"));
+ await screen.findByText(finishReason==="length"
+  ?"模型在输出上限处停止，未生成最终回答；可在模型设置调整预算后预览新请求。原请求保留，没有自动重试。"
+  :"模型未返回最终回答；原请求与材料保留，没有自动重试。");
+ expect(screen.queryByText("PRIVATE reasoning must stay absent")).toBeNull();
+ expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(1);
+ expect(screen.getByText("预览材料提问")).toBeEnabled();
+});
 it("does not preview or infer an unconfigured DEEP material request",async()=>{
  render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:"deep"}});fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText(/DEEP 尚未配置/);expect(bridge.call).not.toHaveBeenCalled();
 });
@@ -45,14 +120,14 @@ it.each(["lost-response","invalid-receipt"])("retains a submitted %s request and
  expect(screen.getByText("预览材料提问")).toBeDisabled();expect(screen.getByText("确认提问或查询原请求")).toBeDisabled();
  fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("SYNTHETIC recovered");expect(bridge.call.mock.calls.filter(c=>c[0]==="material_question")).toHaveLength(2);expect(bridge.call.mock.calls.find(c=>c[0]==="material_question_status")![1].body).toEqual({request_id:id});expect(screen.getByLabelText("材料模型通道")).toBeEnabled();
 });
-it("resolves the selected DEEP material lane once and freezes it across confirmation",async()=>{
+it.each([1024,3072])("resolves the selected DEEP material lane with saved budget %i and freezes it across confirmation",async maxTokens=>{
  bridge.configuration={revision:3,workspace_id:"a".repeat(32),restore_epoch:"initial"};
- const resolved={workspace_id:"a".repeat(32),restore_epoch:"initial",schema:"archeaxis.resolved-model/v1",configuration_revision:3,purpose:"material",lane:"deep",profile_id:"mtp",profile:{endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"aaos-deep-27b-mtp",credential_ref:null,max_tokens:1024,timeout_s:120}};
+ const resolved={workspace_id:"a".repeat(32),restore_epoch:"initial",schema:"archeaxis.resolved-model/v1",configuration_revision:3,purpose:"material",lane:"deep",profile_id:"mtp",profile:{endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"aaos-deep-27b-mtp",credential_ref:null,max_tokens:maxTokens,timeout_s:120}};
  bridge.call.mockImplementation(async(op,p)=>op==="model_configuration_resolve"?resolved:p.body.preview?{schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"SYNTHETIC DEEP"}});
  render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:"deep"}});fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
  expect(bridge.call.mock.calls.find(c=>c[0]==="model_configuration_resolve")![1].body).toEqual({purpose:"material",lane:"deep"});
  const preview=bridge.call.mock.calls.find(c=>c[0]==="material_question")![1].body;
- expect(preview).toMatchObject({model:"aaos-deep-27b-mtp",max_tokens:1024,model_configuration:resolved});
+ expect(preview).toMatchObject({model:"aaos-deep-27b-mtp",max_tokens:maxTokens,model_configuration:resolved});
  fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("SYNTHETIC DEEP");
  expect(bridge.call.mock.calls.filter(c=>c[0]==="model_configuration_resolve")).toHaveLength(1);
  expect(bridge.call.mock.calls.filter(c=>c[0]==="material_question")[1][1].body).toEqual({...preview,preview:false,confirmed_plan_sha256:"b".repeat(64)});
@@ -225,4 +300,19 @@ it("SYNTHETIC async cancel remains explicit and keeps the provider state unknown
  fireEvent.click(screen.getByText("取消材料提问"));await screen.findByText("取消已请求，等待实际回执；提供者停止状态未确认。");
  await act(async()=>finish({schema:"archeaxis.material-answer/v1",request_id:id,outcome:"failed",reason_code:"material_question_cancelled",answer:null}));await screen.findByText("执行失败或取消，原请求和材料保留。");
  expect(bridge.call.mock.calls.filter(([op])=>op==="material_question_submit")).toHaveLength(1);expect(bridge.call.mock.calls.find(([op])=>op==="material_question_cancel")![1].body).toEqual({request_id:id});
+});
+
+it("SYNTHETIC cloud consent precedes preview, is frozen for submit, and edits revoke consent",async()=>{
+ bridge.configuration={revision:1,workspace_id:"a".repeat(32),restore_epoch:"initial"};
+ const resolved={schema:"archeaxis.resolved-model/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",configuration_revision:1,configuration_sha256:"c".repeat(64),purpose:"material",lane:"fast",profile_id:"cloud",profile:{endpoint:"https://api.openai.com/v1",protocol:"openai-buffered",model:"synthetic-cloud",credential_ref:"aak_cred_"+"a".repeat(32),max_tokens:512,timeout_s:9}};
+ bridge.call.mockImplementation(async(op,p)=>op==="model_configuration_resolve"?resolved:p.body.preview?{schema:"archeaxis.material-question-preview/v1",plan:{destination:"PUBLIC_HTTPS",destination_candidates:[resolved.profile.endpoint]},plan_sha256:"b".repeat(64)}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"SYNTHETIC cloud answer"}});
+ render(<MaterialQuestionPanel material={material} text="saved material" materialTitle="测试材料"/>);
+ fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"cloud question"}});fireEvent.click(screen.getByText("预览材料提问"));
+ await screen.findByRole("region",{name:"云端材料发送确认"});expect(bridge.call.mock.calls.filter(([op])=>op==="material_question")).toHaveLength(0);
+ expect(screen.getByText(/费用未知（unknown cost）/)).toBeInTheDocument();expect(screen.getByText(/PUBLIC_HTTPS/)).toHaveTextContent(resolved.profile.endpoint);
+ fireEvent.click(screen.getByLabelText("我确认向上述云端目的地上传本次材料与问题"));fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("请先确认材料上传和未知费用。");expect(bridge.call.mock.calls.filter(([op])=>op==="material_question")).toHaveLength(0);
+ fireEvent.click(screen.getByLabelText("我确认费用未知并继续本次请求"));fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
+ const preview=structuredClone(bridge.call.mock.calls.find(([op])=>op==="material_question")![1].body);expect(preview).toMatchObject({cloud_upload_confirmed:true,cloud_unknown_cost_confirmed:true,execution_mode:"async"});
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("SYNTHETIC cloud answer");expect(bridge.call.mock.calls.at(-1)![1].body).toEqual({...preview,preview:false,confirmed_plan_sha256:"b".repeat(64)});
+ fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"changed question"}});expect(screen.queryByText("确认提问或查询原请求")).toBeNull();fireEvent.click(screen.getByText("预览材料提问"));await screen.findByRole("region",{name:"云端材料发送确认"});expect(screen.getByLabelText("我确认向上述云端目的地上传本次材料与问题")).not.toBeChecked();
 });

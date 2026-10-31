@@ -1,3 +1,4 @@
+import {StrictMode,useEffect,useState} from "react";
 import {beforeEach,it,expect,vi} from "vitest";
 import {render,screen,fireEvent,waitFor,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -43,7 +44,7 @@ it("SYNTHETIC missing display title is explicitly unverified and never replaced 
 });
 it("SYNTHETIC the existing diagnostic channel preserves all exact assessment identity fields without opening the answer",async()=>{
  render(<><CanonicalLearningSpace initialItemKey={key}/><DiagnosticConsole/></>);await screen.findByLabelText("本次答案");
- fireEvent.click(screen.getByRole("button",{name:"查看诊断详情：学习项目与题目版本"}));
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：学习项目与题目版本"}));
  const payload=JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!);
  expect(payload).toEqual({item_key:key,assessment_id:assessment.assessment_id,knowledge_id:revision,knowledge_version:revision,question_version:assessment.question_version,source_id:assessment.source_id,anchor_id:assessment.anchor_id});
  expect(screen.queryByText("尚未揭示的答案")).not.toBeInTheDocument();
@@ -64,4 +65,29 @@ it("SYNTHETIC entering an answer does not put the opaque item and revision back 
  expect(screen.getByLabelText(`保留的学习答案 ${assessment.assessment_id}`)).toHaveValue("保留的独立答案");
  expect(screen.getByLabelText("本次答案")).toHaveValue("保留的独立答案");
  expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
+});
+
+it("SYNTHETIC focus toggle emits one transition per click without updating the shell during render",async()=>{
+ const transitions:boolean[]=[];
+ function FocusShell(){
+  const [focused,setFocused]=useState(false);
+  useEffect(()=>{
+   const listener=(event:Event)=>{const next=(event as CustomEvent<boolean>).detail;transitions.push(next);setFocused(next);};
+   window.addEventListener("archeaxis-learning-focus",listener);
+   return()=>window.removeEventListener("archeaxis-learning-focus",listener);
+  },[]);
+  return <><output aria-label="学习壳聚焦状态">{focused?"聚焦":"普通"}</output><CanonicalLearningSpace/></>;
+ }
+ const errors=vi.spyOn(console,"error").mockImplementation(()=>{});
+ try{
+  render(<StrictMode><FocusShell/></StrictMode>);
+  await screen.findByRole("button",{name:"来源证据练习"});
+  const user=userEvent.setup();
+  await user.click(screen.getByRole("button",{name:"进入聚焦模式"}));
+  expect(screen.getByLabelText("学习壳聚焦状态")).toHaveTextContent("聚焦");
+  await user.click(screen.getByRole("button",{name:"退出聚焦模式"}));
+  expect(screen.getByLabelText("学习壳聚焦状态")).toHaveTextContent("普通");
+  expect(transitions).toEqual([true,false]);
+  expect(errors.mock.calls.flat().join(" ")).not.toMatch(/Cannot update a component|setstate-in-render/);
+ }finally{errors.mockRestore();}
 });

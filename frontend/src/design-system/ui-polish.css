@@ -174,8 +174,8 @@
 .command-palette .command-search-input { width: 100%; }
 .command-palette [role="option"] { align-items: flex-start; padding: 12px; text-align: left; }
 .command-palette [role="option"] > span:last-child { display: grid; gap: 4px; min-width: 0; justify-items: start; text-align: left; }
-.command-palette [role="option"] b { font-size: var(--ax-text-ui); }
-.command-palette [role="option"] small { font-size: var(--ax-text-caption); line-height: 1.55; color: var(--ax-fg-secondary); }
+.command-palette [role="option"] b { font-size: 14px; }
+.command-palette [role="option"] small { font-size: 13px; line-height: 1.55; color: var(--ax-fg-secondary); }
 .command-palette .command-icon { width: 18px; flex: 0 0 18px; }
 .command-palette .command-icon svg { width: 18px; height: 18px; }
 .app-shell .app-center { container-type: inline-size; }

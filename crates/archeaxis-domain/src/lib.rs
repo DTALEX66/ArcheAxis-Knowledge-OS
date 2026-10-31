@@ -10,11 +10,15 @@ pub mod anchor;
 pub mod asset_context_grant;
 pub mod backup;
 pub mod bounded_formula;
+pub mod canvas_export;
 pub mod collection;
 pub mod context_grant;
 pub mod course;
 pub mod document;
+mod document_tags;
 pub mod expression;
+pub mod external_context;
+pub mod failure_log;
 pub mod ingest_batches;
 pub mod ingest_relations;
 pub mod knowledge;
@@ -40,6 +44,7 @@ pub mod portable_document;
 pub mod configuration_plans;
 pub mod material_question;
 pub mod model_configuration;
+pub mod response_format;
 
 pub mod character_memory;
 

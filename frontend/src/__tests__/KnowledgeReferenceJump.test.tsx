@@ -22,7 +22,7 @@ it("SIMULATED: missing bound source is an error and never substitutes another or
 });
 it("SIMULATED: late source lookup cannot replace a newly selected knowledge object", async () => {
   let done!: (value: unknown) => void;
-  bridge.call.mockImplementation((op: string, p: { knowledge_id?: string }) => op === "sources_list" ? new Promise(resolve => { done = resolve; }) : Promise.resolve({ ...knowledge, knowledge_id: p.knowledge_id }));
+  bridge.call.mockImplementation((op: string, p: { id?: string }) => op === "sources_list" ? new Promise(resolve => { done = resolve; }) : Promise.resolve({ ...knowledge, knowledge_id: p.id }));
   const jump = vi.fn(); const host = render(<PinnedReferencePanel reference={reference} onClose={() => {}} onOpenReference={jump} />);
   fireEvent.click(await screen.findByRole("button", { name: "读取知识绑定的来源原件" }));
   host.rerender(<PinnedReferencePanel reference={{ kind: "knowledge", knowledge_id: "knowledge_v2" }} onClose={() => {}} onOpenReference={jump} />);

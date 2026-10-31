@@ -149,11 +149,18 @@ pub fn read(conn: &Connection, id: &str, requested: Option<i64>) -> Result<Value
             "node_json":serde_json::from_str::<Value>(&node).map_err(|_|rusqlite::Error::InvalidQuery)?,
             "text_projection":r.get::<_,String>(4)?,"codec_status":r.get::<_,String>(5)?}))
     })?.collect::<Result<Vec<_>,_>>()?;
-    Ok(
-        json!({"document_id":id,"source_id":source_id,"source_revision":source_revision,"title":title,"version":version,
+    let parsed_editor = serde_json::from_str::<Value>(&editor)
+        .map_err(|_| Error::Invalid("stored editor JSON is invalid"))?;
+    let source_is_markdown = source_markdown(conn, source_id.as_deref())?;
+    let metadata = crate::document_tags::project(&parsed_editor, source_is_markdown);
+    let mut result = json!({"document_id":id,"source_id":source_id,"source_revision":source_revision,"title":title,"version":version,
         "editor_json":serde_json::from_str::<Value>(&editor).map_err(|_|Error::Invalid("stored editor JSON is invalid"))?,
-        "text_projection":projection,"content_sha256":digest,"blocks":blocks,"revision_basis":basis.map(|raw|serde_json::from_str::<Value>(&raw)).transpose().map_err(|_|Error::Invalid("stored revision basis is invalid"))?}),
-    )
+        "text_projection":projection,"content_sha256":digest,"blocks":blocks,"revision_basis":basis.map(|raw|serde_json::from_str::<Value>(&raw)).transpose().map_err(|_|Error::Invalid("stored revision basis is invalid"))?});
+    result
+        .as_object_mut()
+        .unwrap()
+        .extend(metadata.as_object().unwrap().clone());
+    Ok(result)
 }
 
 fn append(
@@ -354,14 +361,66 @@ pub fn restore(
     save(conn, id, expected, snapshot["editor_json"].clone())
 }
 
+fn source_markdown(conn: &Connection, source_id: Option<&str>) -> Result<bool, Error> {
+    let Some(id) = source_id else {
+        return Ok(false);
+    };
+    let name: Option<String> = conn
+        .query_row(
+            "SELECT original_name FROM sources WHERE source_id=?1",
+            [id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    Ok(name.is_some_and(|n| {
+        let lower = n.to_lowercase();
+        lower.ends_with(".md") || lower.ends_with(".markdown")
+    }))
+}
+
+fn summary_metadata(conn: &Connection, summary: &mut Value, editor: &str) -> Result<(), Error> {
+    let parsed: Value = serde_json::from_str(editor)
+        .map_err(|_| Error::Invalid("stored editor JSON is invalid"))?;
+    let metadata = crate::document_tags::project(
+        &parsed,
+        source_markdown(conn, summary["source_id"].as_str())?,
+    );
+    // 500 summaries must remain below the host's 24 MiB response ceiling.
+    // Full tags stay in the immutable document; truncation is explicitly partial.
+    let mut bytes = 2usize;
+    let mut tags = Vec::new();
+    let mut truncated = false;
+    for tag in metadata["tags"].as_array().unwrap() {
+        let size = tag.to_string().len() + usize::from(!tags.is_empty());
+        if bytes + size > 16 * 1024 {
+            truncated = true;
+            break;
+        }
+        bytes += size;
+        tags.push(tag.clone());
+    }
+    summary["tags"] = json!(tags);
+    summary["metadata_status"] = metadata["metadata_status"].clone();
+    if truncated {
+        summary["metadata_status"] = json!("PARTIAL");
+    }
+    Ok(())
+}
+
 pub fn list(conn: &Connection) -> Result<Vec<Value>, Error> {
     let mut stmt = conn.prepare(
-        "SELECT d.document_id,d.source_id,d.source_revision,d.title,d.current_version,v.content_sha256 FROM documents d JOIN document_versions v ON v.document_id=d.document_id AND v.version=d.current_version ORDER BY d.created_at DESC,d.document_id LIMIT 500",
+        "SELECT d.document_id,d.source_id,d.source_revision,d.title,d.current_version,v.content_sha256,json_type(v.editor_json,'$.attrs.archeaxis_collection') IS NOT NULL,v.editor_json FROM documents d JOIN document_versions v ON v.document_id=d.document_id AND v.version=d.current_version ORDER BY d.created_at DESC,d.document_id LIMIT 500",
     )?;
     let summaries = stmt
-        .query_map([], |r| Ok(json!({"document_id":r.get::<_,String>(0)?,"source_id":r.get::<_,Option<String>>(1)?,"source_revision":r.get::<_,Option<String>>(2)?,"title":r.get::<_,String>(3)?,"version":r.get::<_,i64>(4)?,"content_sha256":r.get::<_,String>(5)?})))?
+        .query_map([], |r| Ok((json!({"document_id":r.get::<_,String>(0)?,"source_id":r.get::<_,Option<String>>(1)?,"source_revision":r.get::<_,Option<String>>(2)?,"title":r.get::<_,String>(3)?,"version":r.get::<_,i64>(4)?,"content_sha256":r.get::<_,String>(5)?,"has_collection":r.get::<_,bool>(6)?}),r.get::<_,String>(7)?)))?
         .collect::<Result<Vec<_>, _>>()?;
-    Ok(summaries)
+    summaries
+        .into_iter()
+        .map(|(mut summary, editor)| {
+            summary_metadata(conn, &mut summary, &editor)?;
+            Ok(summary)
+        })
+        .collect()
 }
 
 #[derive(Clone, Debug)]
@@ -405,12 +464,12 @@ pub fn list_page(
             }
         }
     };
-    let mut stmt = tx.prepare("SELECT d.document_id,d.source_id,d.source_revision,d.title,d.current_version,v.content_sha256,d.created_at FROM documents d JOIN document_versions v ON v.document_id=d.document_id AND v.version=d.current_version WHERE d.rowid<=?1 AND (?2='' OR d.created_at<?2 OR (d.created_at=?2 AND d.document_id>?3)) ORDER BY d.created_at DESC,d.document_id ASC LIMIT 501")?;
-    let mut rows = stmt.query_map(params![boundary.watermark_rowid,boundary.after_created_at,boundary.after_document_id], |r| Ok((json!({"document_id":r.get::<_,String>(0)?,"source_id":r.get::<_,Option<String>>(1)?,"source_revision":r.get::<_,Option<String>>(2)?,"title":r.get::<_,String>(3)?,"version":r.get::<_,i64>(4)?,"content_sha256":r.get::<_,String>(5)?}),r.get::<_,String>(6)?)))?.collect::<Result<Vec<_>,_>>()?;
+    let mut stmt = tx.prepare("SELECT d.document_id,d.source_id,d.source_revision,d.title,d.current_version,v.content_sha256,d.created_at,json_type(v.editor_json,'$.attrs.archeaxis_collection') IS NOT NULL,v.editor_json FROM documents d JOIN document_versions v ON v.document_id=d.document_id AND v.version=d.current_version WHERE d.rowid<=?1 AND (?2='' OR d.created_at<?2 OR (d.created_at=?2 AND d.document_id>?3)) ORDER BY d.created_at DESC,d.document_id ASC LIMIT 501")?;
+    let mut rows = stmt.query_map(params![boundary.watermark_rowid,boundary.after_created_at,boundary.after_document_id], |r| Ok((json!({"document_id":r.get::<_,String>(0)?,"source_id":r.get::<_,Option<String>>(1)?,"source_revision":r.get::<_,Option<String>>(2)?,"title":r.get::<_,String>(3)?,"version":r.get::<_,i64>(4)?,"content_sha256":r.get::<_,String>(5)?,"has_collection":r.get::<_,bool>(7)?}),r.get::<_,String>(6)?,r.get::<_,String>(8)?)))?.collect::<Result<Vec<_>,_>>()?;
     let more = rows.len() > 500;
     rows.truncate(500);
     let next = if more {
-        let (summary, time) = rows.last().unwrap();
+        let (summary, time, _) = rows.last().unwrap();
         boundary.after_created_at = time.clone();
         boundary.after_document_id = summary["document_id"].as_str().unwrap().to_owned();
         Some(boundary.clone())
@@ -418,12 +477,15 @@ pub fn list_page(
         None
     };
     drop(stmt);
+    let summaries = rows
+        .into_iter()
+        .map(|(mut summary, _, editor)| {
+            summary_metadata(&tx, &mut summary, &editor)?;
+            Ok(summary)
+        })
+        .collect::<Result<Vec<_>, Error>>()?;
     tx.commit()?;
-    Ok((
-        rows.into_iter().map(|(value, _)| value).collect(),
-        next,
-        boundary.snapshot_count,
-    ))
+    Ok((summaries, next, boundary.snapshot_count))
 }
 
 fn validate_basis(conn: &Connection, id: &str, expected: i64, basis: &Value) -> Result<(), Error> {

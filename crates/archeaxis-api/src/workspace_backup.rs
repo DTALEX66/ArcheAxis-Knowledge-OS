@@ -53,15 +53,94 @@ fn regular_file(path: &Path) -> rusqlite::Result<std::fs::File> {
     Ok(file)
 }
 
+// v1 has one fixed-width SHA per actual SQLite source row. This budget grows
+// with the verified artifact, never a count supplied by an untrusted manifest.
+// Both the producer and every reader use it; no fixed library-size cutoff.
+fn manifest_budget(source_count: u64, database_bytes: u64) -> rusqlite::Result<u64> {
+    let by_rows = source_count.checked_mul(128);
+    let by_file = database_bytes.checked_mul(4);
+    by_rows
+        .zip(by_file)
+        .and_then(|(rows, bytes)| rows.min(bytes).checked_add(16 * 1024))
+        .ok_or(rusqlite::Error::InvalidQuery)
+}
+
+fn verified_manifest(root: &Path, id: &str) -> rusqlite::Result<serde_json::Value> {
+    let filename = format!("{id}.sqlite");
+    let artifact = root.join(&filename);
+    let (sha, bytes) = digest(&artifact)?;
+    let snapshot = rusqlite::Connection::open_with_flags(
+        artifact.canonicalize().map_err(io)?,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )?;
+    // A forged view/virtual table must not supply an unbounded or recursive
+    // source-count query. The canonical v1 inventory uses ordinary b-tree tables.
+    for table in ["sources", "workspace_meta"] {
+        let ordinary: bool = snapshot.query_row(
+            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name=?1 AND type='table' AND rootpage>0)",
+            [table], |r| r.get(0),
+        )?;
+        if !ordinary {
+            return Err(rusqlite::Error::InvalidQuery);
+        }
+    }
+    let count: i64 = snapshot.query_row("SELECT count(*) FROM sources", [], |r| r.get(0))?;
+    let count = u64::try_from(count).map_err(|_| rusqlite::Error::InvalidQuery)?;
+    let budget = manifest_budget(count, bytes)?;
+    let mut file = regular_file(&root.join(format!("{filename}.manifest.json")))?;
+    let length = file.metadata().map_err(io)?.len();
+    if length > budget {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    let value: serde_json::Value = serde_json::from_reader(std::io::BufReader::new(
+        Read::by_ref(&mut file).take(budget + 1),
+    ))
+    .map_err(|_| rusqlite::Error::InvalidQuery)?;
+    let schema: String = snapshot.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
+    )?;
+    if file.metadata().map_err(io)?.len() != length
+        || value["schema"] != "archeaxis-core-backup-1"
+        || value["backup_id"] != id
+        || value["filename"] != filename
+        || value["sha256"] != sha
+        || value["bytes"] != bytes
+        || value["schema_version"] != schema
+        || value["sqlite_version"].as_str().is_none()
+    {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    let sources = value["source_sha_list"]
+        .as_array()
+        .ok_or(rusqlite::Error::InvalidQuery)?;
+    if u64::try_from(sources.len()).ok() != Some(count) {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    let mut statement = snapshot.prepare("SELECT sha256 FROM sources ORDER BY sha256")?;
+    for (index, actual) in statement
+        .query_map([], |r| r.get::<_, String>(0))?
+        .enumerate()
+    {
+        let actual = actual?;
+        if !hex(&actual, 64) || sources[index].as_str() != Some(actual.as_str()) {
+            return Err(rusqlite::Error::InvalidQuery);
+        }
+    }
+    Ok(value)
+}
+
 pub(crate) async fn list(State(state): State<AppState>) -> Response {
     crate::with_store(state, |conn| {
-        let result = (|| -> rusqlite::Result<Vec<serde_json::Value>> {
+        let result = (|| -> rusqlite::Result<serde_json::Value> {
             let directory = directory(conn)?;
             archeaxis_store_sqlite::raw_objects::reject_links(&directory)?;
             if !directory.exists() {
-                return Ok(Vec::new());
+                return Ok(json!({"backups":[], "unavailable_backups":[]}));
             }
             let mut results = Vec::new();
+            let mut unavailable = Vec::new();
             for entry in std::fs::read_dir(&directory).map_err(io)? {
                 let entry = entry.map_err(io)?;
                 let filename = entry.file_name().to_string_lossy().into_owned();
@@ -71,39 +150,19 @@ pub(crate) async fn list(State(state): State<AppState>) -> Response {
                 if !hex(id, 32) {
                     continue;
                 }
-                let manifest = directory.join(format!("{filename}.manifest.json"));
-                if !manifest.exists() {
-                    continue;
+                match verified_manifest(&directory, id) {
+                    Ok(value) => results.push(value),
+                    Err(_) => unavailable.push(json!({"backup_id":id,"filename":filename,
+                        "code":"AAK-BACKUP-INVALID",
+                        "message":"Backup manifest, database identity or source inventory could not be verified; this backup was preserved."})),
                 }
-                archeaxis_store_sqlite::raw_objects::reject_links(&manifest)?;
-                let file = regular_file(&manifest)?;
-                if file.metadata().map_err(io)?.len() > 1024 * 1024 {
-                    return Err(rusqlite::Error::InvalidQuery);
-                }
-                let value: serde_json::Value =
-                    serde_json::from_reader(file).map_err(|_| rusqlite::Error::InvalidQuery)?;
-                if value["schema"] != "archeaxis-core-backup-1"
-                    || value["backup_id"] != id
-                    || value["filename"] != filename
-                    || value["schema_version"].as_str().is_none()
-                    || value["sqlite_version"].as_str().is_none()
-                    || value["source_sha_list"].as_array().is_none_or(|v| {
-                        v.iter().any(|sha| sha.as_str().is_none_or(|s| !hex(s, 64)))
-                    })
-                {
-                    return Err(rusqlite::Error::InvalidQuery);
-                }
-                let (sha, bytes) = digest(&entry.path())?;
-                if value["sha256"] != sha || value["bytes"] != bytes {
-                    return Err(rusqlite::Error::InvalidQuery);
-                }
-                results.push(value);
             }
             results.sort_by_key(|v| v["backup_id"].as_str().unwrap().to_owned());
-            Ok(results)
+            unavailable.sort_by_key(|v| v["backup_id"].as_str().unwrap().to_owned());
+            Ok(json!({"backups":results,"unavailable_backups":unavailable}))
         })();
         match result {
-            Ok(backups) => Json(json!({"backups":backups})).into_response(),
+            Ok(backups) => Json(backups).into_response(),
             Err(error) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"code":"AAK-BACKUP-002","message":error.to_string()})),
@@ -145,10 +204,12 @@ pub(crate) async fn create(
             let source_sha_list=snapshot.prepare("SELECT sha256 FROM sources ORDER BY sha256")?.query_map([],|r|r.get::<_,String>(0))?.collect::<rusqlite::Result<Vec<_>>>()?;
             let (sha256,bytes)=digest(&artifact)?;
             let receipt=json!({"schema":"archeaxis-core-backup-1","backup_id":backup_id,"filename":filename,"sha256":sha256,"bytes":bytes,"schema_version":schema_version,"sqlite_version":sqlite_version,"source_sha_list":source_sha_list,"verified":true});
+            let encoded=serde_json::to_vec_pretty(&receipt).map_err(|_|rusqlite::Error::InvalidQuery)?;
+            if encoded.len() as u64 > manifest_budget(receipt["source_sha_list"].as_array().unwrap().len() as u64,bytes)? {return Err(rusqlite::Error::InvalidQuery);}
             let manifest=directory.join(format!("{filename}.manifest.json"));
             let staging=directory.join(format!(".{backup_id}.manifest.tmp"));
             let mut staged=std::fs::OpenOptions::new().create_new(true).write(true).open(&staging).map_err(io)?;
-            staged.write_all(serde_json::to_string_pretty(&receipt).map_err(|_|rusqlite::Error::InvalidQuery)?.as_bytes()).map_err(io)?;
+            staged.write_all(&encoded).map_err(io)?;
             staged.sync_all().map_err(io)?;
             drop(staged);
             archeaxis_domain::backup::publish_backup_file_noclobber(&staging,&manifest)?;
@@ -183,11 +244,9 @@ pub(crate) async fn preview(
             archeaxis_store_sqlite::raw_objects::reject_links(&root)?;
             let filename=format!("{}.sqlite",body.backup_id);
             let artifact=root.join(&filename);
-            let mut file=regular_file(&root.join(format!("{filename}.manifest.json")))?;
-            if file.metadata().map_err(io)?.len()>1024*1024 {return Err(rusqlite::Error::InvalidQuery);}
-            let manifest:serde_json::Value=serde_json::from_reader(&mut file).map_err(|_|rusqlite::Error::InvalidQuery)?;
-            let (sha,bytes)=digest(&artifact)?;
-            if manifest["schema"]!="archeaxis-core-backup-1" || manifest["backup_id"]!=body.backup_id || manifest["filename"]!=filename || manifest["sha256"]!=sha || manifest["bytes"]!=bytes || sha!=body.expected_sha256 { return Err(rusqlite::Error::InvalidQuery); }
+            let manifest=verified_manifest(&root,&body.backup_id)?;
+            let sha=manifest["sha256"].as_str().ok_or(rusqlite::Error::InvalidQuery)?;
+            if sha!=body.expected_sha256 { return Err(rusqlite::Error::InvalidQuery); }
             archeaxis_domain::backup::preview(&artifact)?;
             let snapshot=rusqlite::Connection::open_with_flags(artifact.canonicalize().map_err(io)?,rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
             let schema:String=snapshot.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get(0))?;

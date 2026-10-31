@@ -1,4 +1,4 @@
-import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import {afterEach,beforeEach,expect,it,vi} from "vitest";
 import {useState} from "react";
 import {webcrypto} from "node:crypto";
@@ -7,6 +7,7 @@ import {getRecoveryStatus} from "../api/workspace";
 import {verifyCanonicalCore} from "../api/core";
 import type {WorkingRead,WorkingState} from "../presentation/coreWorkingState";
 import {layoutPresets} from "../workspace/WorkspaceController";
+import {findUiPage} from "../presentation/uiPages";
 
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call,verifyCanonicalCore:vi.fn().mockResolvedValue(undefined)}));
@@ -20,6 +21,7 @@ let read:WorkingRead;
 let resolveLayout:(value:unknown)=>void;
 const layoutReply=()=>({status:200,body:{workspace_id:read.workspace_id,restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});
 beforeEach(()=>{
+ localStorage.removeItem("aaos.navigation-appearance.v1");
  vi.mocked(getRecoveryStatus).mockResolvedValue({state:"ready",safe_mode:false,backend_available:true,message:"SIMULATED ready",backups:[],external_dev:false});vi.mocked(verifyCanonicalCore).mockResolvedValue(undefined);
  vi.stubGlobal("ResizeObserver",ResizeObserverStub);vi.stubGlobal("crypto",webcrypto);
  window.history.replaceState(null,"","#page=01");
@@ -29,7 +31,7 @@ beforeEach(()=>{
 });
 afterEach(()=>{delete window.__TAURI__;vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState(null,"","#page=01");});
 async function start(hydrate=true){const view=render(<App/>);await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());if(hydrate){await act(async()=>resolveLayout(layoutReply()));await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());}return view;}
-async function page(id:string){fireEvent.click(document.querySelector(`.navigation-sidebar button[data-page-id="${id}"]`)??screen.getByRole("button",{name:`SIMULATED goto ${id}`}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
+async function page(id:string){fireEvent.click(document.querySelector<HTMLButtonElement>("#stitch-launchpad-toggle")!);const dialog=screen.getByRole("dialog",{name:"全部能力"});fireEvent.click(within(dialog).getByRole("button",{name:"全部页面"}));fireEvent.click(within(dialog).getByRole("button",{name:new RegExp(`^${findUiPage(id)!.label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")} `)}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
 function tab(name:string){return screen.getByRole("tab",{name});}
 function select(name:string){tab(name).focus();fireEvent.keyDown(tab(name),{key:"Enter"});}
 function dirty(value:boolean){act(()=>window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:"dock-regression",dirty:value}})));}
@@ -67,8 +69,8 @@ it("late layout hydration cannot reopen a final view the user has already closed
 it("late layout hydration keeps the accepted object presentation instead of replacing it with singleton 03",async()=>{
  await start(false);fireEvent.click(screen.getByRole("button",{name:"模拟打开A"}));await screen.findByLabelText("draft-03");
  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
- await waitFor(()=>expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true"));
- await act(async()=>resolveLayout(layoutReply()));expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true");expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
+ await waitFor(()=>expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true"));
+ await act(async()=>resolveLayout(layoutReply()));expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true");expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
 });
 it("native return to an AI family restores the last requested receipt page and retained session",async()=>{
  await start();await page("14");const draft=screen.getByLabelText("draft-14");fireEvent.change(draft,{target:{value:"frozen request"}});dirty(true);
@@ -83,8 +85,8 @@ it("native object activation preserves full document identity and does not overw
  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
  await waitFor(()=>expect(screen.getAllByLabelText("draft-03")).toHaveLength(2));
  const object=screen.getAllByLabelText("draft-03").find(input=>input!==main)!;fireEvent.change(object,{target:{value:"object A"}});
- await page("17");select("文档 doc_a");await waitFor(()=>expect(window.location.hash).toBe("#page=03"));
- expect(object).toBeVisible();expect(object).toHaveValue("object A");expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true");
+ await page("17");select("文档 · doc_a");await waitFor(()=>expect(window.location.hash).toBe("#page=03"));
+ expect(object).toBeVisible();expect(object).toHaveValue("object A");expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true");
  select("阅读与编辑");await waitFor(()=>expect(main).toBeVisible());expect(main).toHaveValue("singleton A");expect(screen.getAllByTestId("dock-document").filter(node=>node.textContent==="doc_a").length).toBeGreaterThanOrEqual(2);
 });
 
@@ -102,7 +104,7 @@ it("explicit working recovery adopts its scene without overwriting a retained do
   return original(op,p);
  });
  fireEvent.click(screen.getByRole("button",{name:"模拟打开A"}));await screen.findByLabelText("draft-03");const main=screen.getByLabelText("draft-03");
- fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true"));
+ fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(tab("文档 · doc_a")).toHaveAttribute("aria-selected","true"));
  const object=screen.getAllByLabelText("draft-03").find(input=>input!==main)!;fireEvent.change(object,{target:{value:"object A is not page17"}});
  await waitFor(()=>expect(rejectWrite).toBeTypeOf("function"));await act(async()=>rejectWrite!(new Error("SIMULATED scene write acknowledgement lost")));
  recovery={...structuredClone(failedBase!),recovery_candidates:candidate,recovery_requires_confirmation:true};
@@ -110,3 +112,20 @@ it("explicit working recovery adopts its scene without overwriting a retained do
  await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ui_state_recover")).toHaveLength(1));
  await waitFor(()=>expect(tab("全部能力与未来蓝图")).toHaveAttribute("aria-selected","true"));expect(window.location.hash).toBe("#page=17");expect(object).toHaveAttribute("aria-label","draft-03");expect(object).toHaveValue("object A is not page17");
 });
+
+it("uses only the Stitch navigation even when a retired sidebar preference is saved", async()=>{
+ localStorage.setItem("aaos.navigation-appearance.v1","sidebar");await start();
+ expect(screen.getByRole("navigation",{name:"应用菜单"})).toBeInTheDocument();
+ expect(document.querySelector(".navigation-sidebar")).toBeNull();expect(document.querySelector(".app-shell")).not.toHaveAttribute("data-navigation-appearance");
+ await page("17");expect(screen.getByLabelText("draft-17")).toBeVisible();
+ localStorage.removeItem("aaos.navigation-appearance.v1");
+});
+it("the new application dock uses the existing draft refusal guard without replacing the active view", async()=>{
+ await start();await page("17");const draft=screen.getByLabelText("draft-17");fireEvent.change(draft,{target:{value:"retained through new Dock"}});dirty(true);
+ const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+ fireEvent.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
+ await waitFor(()=>expect(confirm).toHaveBeenCalledOnce());expect(window.location.hash).toBe("#page=17");expect(draft).toBeVisible();expect(draft).toHaveValue("retained through new Dock");dirty(false);
+});
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

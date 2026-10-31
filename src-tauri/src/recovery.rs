@@ -530,29 +530,47 @@ fn sha256(file: &mut File) -> Result<String, String> {
     }
     result
 }
-fn core_source_hashes(name: &str, file: &mut File) -> Result<Vec<String>, String> {
+fn core_source_hashes(
+    name: &str,
+    file: &mut File,
+    backup_bytes: u64,
+) -> Result<Vec<String>, String> {
     let Some(id) = name.strip_suffix(".sqlite").filter(|id| valid_hex(id, 32)) else {
         return Ok(Vec::new());
     };
-    if file
+    // Bound the v1 manifest by the held snapshot's actual byte length, never its
+    // declared bytes/source count. Core additionally checks real SQLite rows.
+    // Every canonical fixed-width SHA inventory fits this structural envelope;
+    // growing libraries do not acquire a new arbitrary 1MiB cutoff in the Host.
+    let budget = backup_bytes
+        .checked_mul(4)
+        .and_then(|n| n.checked_add(16 * 1024))
+        .ok_or("backup manifest budget overflow")?;
+    let length = file
         .metadata()
         .map_err(|_| "backup manifest metadata unavailable")?
-        .len()
-        > 1024 * 1024
-    {
+        .len();
+    if length > budget {
         return Err("backup manifest exceeds limit".into());
     }
     file.seek(SeekFrom::Start(0))
         .map_err(|_| "backup manifest cannot be read")?;
-    let value: serde_json::Value =
-        serde_json::from_reader(&mut *file).map_err(|_| "Core backup manifest is invalid")?;
+    let value: serde_json::Value = serde_json::from_reader(std::io::BufReader::new(
+        Read::by_ref(file).take(budget.saturating_add(1)),
+    ))
+    .map_err(|_| "Core backup manifest is invalid")?;
     file.seek(SeekFrom::Start(0))
         .map_err(|_| "backup manifest cannot be rewound")?;
     if value["schema"] != "archeaxis-core-backup-1"
         || value["backup_id"] != id
         || value["filename"] != name
         || value["sha256"].as_str().is_none_or(|v| !valid_hex(v, 64))
-        || value["bytes"].as_u64().is_none()
+        || value["bytes"].as_u64() != Some(backup_bytes)
+        || file
+            .metadata()
+            .map_err(|_| "backup manifest metadata unavailable")?
+            .len()
+            != length
         || value["schema_version"].as_str().is_none()
         || value["sqlite_version"].as_str().is_none()
     {
@@ -562,12 +580,13 @@ fn core_source_hashes(name: &str, file: &mut File) -> Result<Vec<String>, String
         .as_array()
         .ok_or("Core backup object list is missing")?;
     let mut hashes = Vec::new();
+    let mut seen = std::collections::HashSet::new();
     for value in values {
         let digest = value
             .as_str()
             .filter(|v| valid_hex(v, 64))
             .ok_or("Core backup object digest is invalid")?;
-        if hashes.iter().any(|v| v == digest) {
+        if !seen.insert(digest) {
             return Err("Core backup object list contains duplicates".into());
         }
         hashes.push(digest.to_owned());
@@ -649,7 +668,7 @@ pub fn enumerate_backups(data_dir: &Path) -> Result<Vec<EnumeratedBackup>, Strin
         let Ok((mut manifest_file, manifest_identity)) = open_backup_source(&manifest_path) else {
             continue;
         };
-        if core_source_hashes(&name, &mut manifest_file).is_err() {
+        if core_source_hashes(&name, &mut manifest_file, backup_identity.size).is_err() {
             continue;
         }
         let Ok(canonical_path) = std::fs::canonicalize(&backup_path) else {
@@ -766,10 +785,18 @@ impl StagedBackup {
         if self.snapshot_sha256()? != expected_sha {
             return Err("sealed restore snapshot hash mismatch".into());
         }
+        let backup_bytes = self
+            .backup_file
+            .as_ref()
+            .ok_or("restore staging handle unavailable")?
+            .metadata()
+            .map_err(|_| "restore staging snapshot metadata unavailable")?
+            .len();
         let manifest = self
             .manifest_file
             .as_mut()
             .ok_or("restore staging manifest unavailable")?;
+        core_source_hashes(&format!("{backup_id}.sqlite"), manifest, backup_bytes)?;
         manifest
             .seek(SeekFrom::Start(0))
             .map_err(|_| "sealed manifest seek failed")?;
@@ -1045,7 +1072,11 @@ where
     let mut backup_source = verified_source(&selected.canonical_path, selected.backup_identity)?;
     let mut manifest_source =
         verified_source(&selected.canonical_manifest, selected.manifest_identity)?;
-    let hashes = core_source_hashes(&selected.name, &mut manifest_source)?;
+    let hashes = core_source_hashes(
+        &selected.name,
+        &mut manifest_source,
+        selected.backup_identity.size,
+    )?;
     if selected
         .name
         .strip_suffix(".sqlite")
@@ -1387,6 +1418,68 @@ mod tests {
     use tempfile::tempdir;
 
     const BACKUP_NAME: &str = "cognitive_os_20260823T010203_000000Z.sqlite";
+
+    #[test]
+    fn large_core_v1_inventory_uses_held_snapshot_size_and_rewinds_without_trusting_declared_size()
+    {
+        // Host enumeration/parser fixture only. SQLite/CAS validity and the real
+        // 15k-source maintenance restore are exercised by the separate Core test;
+        // this byte fixture is deliberately not claimed to be a restorable DB.
+        let directory = tempdir().unwrap();
+        let data = directory.path().join("data");
+        let backups = data.join("backups");
+        fs::create_dir_all(&backups).unwrap();
+        let id = "0123456789abcdef0123456789abcdef";
+        let name = format!("{id}.sqlite");
+        let snapshot = backups.join(&name);
+        fs::write(&snapshot, vec![0u8; 1024 * 1024]).unwrap();
+        let (mut held_snapshot, identity) = super::open_backup_source(&snapshot).unwrap();
+        let sha = super::sha256(&mut held_snapshot).unwrap();
+        let hashes: Vec<_> = (0..15_000).map(|index| format!("{index:064x}")).collect();
+        let manifest = backups.join(format!("{name}.manifest.json"));
+        fs::write(
+            &manifest,
+            serde_json::to_vec_pretty(&serde_json::json!({
+                "schema":"archeaxis-core-backup-1","backup_id":id,"filename":name,
+                "sha256":sha,"bytes":identity.size,"schema_version":"14",
+                "sqlite_version":"3.51.3","source_sha_list":hashes,
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        assert!(fs::metadata(&manifest).unwrap().len() > 1024 * 1024);
+        let (mut held_manifest, _) = super::open_backup_source(&manifest).unwrap();
+        assert_eq!(
+            super::core_source_hashes(&name, &mut held_manifest, identity.size).unwrap(),
+            hashes
+        );
+        assert_eq!(
+            std::io::Seek::stream_position(&mut held_manifest).unwrap(),
+            0
+        );
+        assert_eq!(enumerate_backups(&data).unwrap().len(), 1);
+
+        let bad_id = "1".repeat(32);
+        let bad_name = format!("{bad_id}.sqlite");
+        let bad_snapshot = backups.join(&bad_name);
+        fs::write(&bad_snapshot, b"tiny").unwrap();
+        let bad_manifest = backups.join(format!("{bad_name}.manifest.json"));
+        fs::write(
+            &bad_manifest,
+            serde_json::to_vec(&serde_json::json!({
+                "schema":"archeaxis-core-backup-1","backup_id":bad_id,"filename":bad_name,
+                "sha256":"a".repeat(64),"bytes":u64::MAX,"source_count":u64::MAX,
+                "schema_version":"14","sqlite_version":"3.51.3","source_sha_list":[],
+                "padding":"x".repeat(32 * 1024),
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        let (mut bad_file, _) = super::open_backup_source(&bad_manifest).unwrap();
+        let actual_bytes = fs::metadata(&bad_snapshot).unwrap().len();
+        assert!(super::core_source_hashes(&bad_name, &mut bad_file, actual_bytes).is_err());
+        assert_eq!(enumerate_backups(&data).unwrap().len(), 1);
+    }
 
     #[test]
     fn core_backup_manifest_and_cas_are_staged_verified_and_cleaned_without_touching_source() {

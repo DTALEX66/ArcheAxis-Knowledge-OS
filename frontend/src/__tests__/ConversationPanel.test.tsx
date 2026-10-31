@@ -23,6 +23,20 @@ it.each(["reject","empty-history"])("preserves the submitted UNKNOWN request aft
  expect(await screen.findByText("SYNTHETIC recovered")).toBeVisible();
 });
 beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);bridge.call.mockReset();bridge.configuration={revision:0};});afterEach(()=>vi.unstubAllGlobals());
+it("changes portrait framing without replacing the shared draft or issuing a request",async()=>{
+ const original={width:window.innerWidth,height:window.innerHeight};
+ Object.defineProperty(window,"innerWidth",{configurable:true,value:1920});Object.defineProperty(window,"innerHeight",{configurable:true,value:1080});
+ try{
+  bridge.call.mockImplementation(async(op,p)=>normal(op,p));render(<ConversationPanel slot="sidebar"/>);await selectSession();
+  expect(screen.getByRole("button",{name:"半身"})).toHaveAttribute("aria-pressed","true");
+  fireEvent.change(screen.getByLabelText("会话问题"),{target:{value:"展示切换时保留的草稿"}});
+  const question=screen.getByLabelText("会话问题");
+  fireEvent.click(screen.getByRole("button",{name:"全幅"}));fireEvent.click(screen.getByRole("button",{name:"收起人物"}));
+  expect(screen.getByLabelText("会话问题")).toBe(question);expect(question).toHaveValue("展示切换时保留的草稿");
+  expect(screen.getByRole("img",{name:"小栖：待命"}).closest(".xiaoqi-avatar")).toHaveAttribute("data-presentation","avatar");
+  expect(bridge.call.mock.calls.every(([operation])=>operation==="conversation_history")).toBe(true);
+ }finally{Object.defineProperty(window,"innerWidth",{configurable:true,value:original.width});Object.defineProperty(window,"innerHeight",{configurable:true,value:original.height});}
+});
 async function selectSession(){await screen.findByText("SYNTHETIC session · 1");fireEvent.change(screen.getByLabelText("已保存会话"),{target:{value:"session_a"}});await screen.findByText("当前会话：SYNTHETIC session");}
 function normal(op:string,p:{body:Record<string,unknown>}){if(op==="conversation_history")return p.body.session_id?session:catalog;if(op==="conversation_request")return p.body.preview?{schema:"archeaxis.conversation-preview/v1",plan:{request:{...p.body,preview:false,confirmed_plan_sha256:null}},plan_sha256:"b".repeat(64),network_performed:false}:{schema:"archeaxis.conversation-receipt/v1",session_id:p.body.session_id,request_id:p.body.request_id,state:"completed",answer:{answer:"SYNTHETIC answer"},delivery:"BUFFERED"};if(op==="conversation_cancel")return {...p.body,cancel_requested:true};throw Error(op);}
 it.each(["status","cancel"] as const)("sends only the finite identity for %s even when the caller holds a full request",async operation=>{

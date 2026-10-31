@@ -1,0 +1,182 @@
+{
+  "candidate_members": {
+    "count": 19747,
+    "mismatches": []
+  },
+  "sidecars": [
+    {
+      "name": "candidate-manifest",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "mixed-assembly",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "host-donor-pin",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "stage-receipt",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "core-build-receipt",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "host-build-receipt",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "consumers",
+      "exists": true,
+      "hash_match": true
+    },
+    {
+      "name": "packaging-request",
+      "exists": true,
+      "hash_match": true
+    }
+  ],
+  "capabilities": {
+    "intents": 186,
+    "families": 16,
+    "unique_intents": 186,
+    "roles": 22,
+    "unique_roles": 22,
+    "operation_binding_states": [
+      "待逐项核对；不得按父族声明自动补齐"
+    ],
+    "operation_evidence_states": [
+      "本轮未执行"
+    ]
+  },
+  "protected_sources_unchanged": {
+    "docs/truth/CAPABILITY_ATLAS_V2.yaml": true,
+    "config/capability-map.v1.json": true,
+    "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json": true
+  },
+  "source_changes_after_built_core": [
+    "crates/archeaxis-api/tests/contract_absent_surfaces.rs",
+    "crates/archeaxis-api/tests/qualification_api.rs",
+    "crates/archeaxis-api/tests/v01_journey.rs",
+    "crates/archeaxis-application/src/executor.rs",
+    "crates/archeaxis-application/src/lib.rs",
+    "crates/archeaxis-domain/src/ai_asset.rs",
+    "crates/archeaxis-domain/src/asset_context_grant.rs",
+    "crates/archeaxis-store-sqlite/src/raw_objects.rs",
+    "crates/archeaxis-store-sqlite/src/writer.rs"
+  ],
+  "guest_receipt_top_keys": [
+    "ok",
+    "evidence_level",
+    "host",
+    "driver",
+    "edge",
+    "data_root",
+    "steps",
+    "run_root",
+    "source_patch_sha256",
+    "compiled_source_binding",
+    "conditions",
+    "limitations",
+    "installer",
+    "installation_context",
+    "owned_driver_pid",
+    "installed_draft_conflict_loop",
+    "owned_host_pids",
+    "launch_attempts",
+    "driver_compatibility",
+    "navigation_entry",
+    "navigation_scope",
+    "brand_images",
+    "launches",
+    "system_version",
+    "windows",
+    "screenshots",
+    "requested_product_exits",
+    "host_shutdowns",
+    "owned_process_cleanup",
+    "owned_identity_collection_verified",
+    "owned_cleanup_readback_stage",
+    "owned_descendant_drain",
+    "remaining_same_creation_owned_hosts",
+    "remaining_owned_port_listeners",
+    "owned_ports_released",
+    "driver_log",
+    "native_driver_log",
+    "source_consistent"
+  ],
+  "guest_execution": {
+    "source_commit": "c1c4cfd0419312b6e3050e47c4606588a2958027",
+    "source_tree": "8d05eb4bb470e952cd39fd1badd8294e17bb99ff",
+    "dirty": false,
+    "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "worktree_root": "C:\\AAOSOutput\\repo",
+    "started_at": "2026-10-29T20:11:38.505789+00:00",
+    "run_root": "C:\\AAOSOutput\\repo\\.project-local\\runs\\eb7c295f96\\wdconf",
+    "executable": "C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ArcheAxis Knowledge\\runtime\\python.exe",
+    "argument_count": 13,
+    "command": [
+      "C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ArcheAxis Knowledge\\runtime\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "--host",
+      "C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ArcheAxis Knowledge\\ArcheAxis.exe",
+      "--driver",
+      "C:\\AAOSInput\\drivers\\tauri-driver\\bin\\tauri-driver.exe",
+      "--native-driver",
+      "C:\\AAOSInput\\drivers\\msedgedriver\\msedgedriver.exe",
+      "--installer",
+      "C:\\AAOSInstall\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+      "--installed-draft-conflict-loop"
+    ],
+    "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+    "boundary": "environment-routing-not-sandbox",
+    "child_exit_code": 0,
+    "source_commit_after": "c1c4cfd0419312b6e3050e47c4606588a2958027",
+    "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_consistent": true,
+    "status": "LOCAL_PASS",
+    "log": "C:\\AAOSOutput\\repo\\.project-local\\runs\\eb7c295f96\\wdconf\\logs\\execution.log",
+    "exit_code": 0,
+    "ended_at": "2026-10-29T20:15:26.421987+00:00",
+    "seconds": 227.91619489999997
+  },
+  "guest_terminal": {
+    "installed_root": "C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ArcheAxis Knowledge",
+    "scope": "MIXED_CORE_INSTALLED_CONFLICT_JOURNEY",
+    "status": "CONFLICT_JOURNEY_RECEIPT_COLLECTED",
+    "cross_version": "NOT_EXECUTED",
+    "harness_exit": 0,
+    "error": null,
+    "verifier_invoked": true,
+    "ai": "NOT_EXECUTED"
+  },
+  "stop_terminal": {
+    "status": "STOP_CONFIRMED_OWNED_RESOURCES_CLEARED",
+    "owned_id": "bbd90173-6a47-4844-828b-c92b016e169c",
+    "stop_exit": 0,
+    "stop_output": "",
+    "remaining_environments": 0,
+    "remaining_processes": 1
+  },
+  "baseline_snapshot_dirs": [
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\stitch-zcode-handoff-20261029\\artifacts\\baseline-before-handoff"
+  ],
+  "baseline_preservation": {
+    "files": 41,
+    "snapshot_mismatches": [],
+    "current_missing": []
+  },
+  "git_status": ""
+}

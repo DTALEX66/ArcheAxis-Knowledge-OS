@@ -135,12 +135,49 @@ class Harness:
             deadline=kwargs.pop("deadline", 105), clock=lambda: self.now, **kwargs)
 
 
-def test_production_entry_has_no_activation_transport_or_secret_default(cloud):
-    def forbidden(*args, **kwargs):
-        pytest.fail("production dormant entry consumed material or a resolver")
-    for args, kwargs in [((), {}), ((intent(),), {"activated": True, "transport": forbidden, "resolve_credential": forbidden})]:
-        with pytest.raises(cloud.CloudFailure, match="^MATERIAL_CLOUD_NOT_ACTIVATED$"):
-            cloud.execute(*args, **kwargs)
+def test_production_entry_requires_core_frozen_grant(cloud):
+    h = Harness(cloud)
+    with pytest.raises(cloud.CloudFailure):
+        cloud.execute(intent(), resolve_credential=h.resolve, transport=h.transport)
+    assert not h.refs and not h.calls
+
+
+def production_frame():
+    i = intent()
+    i["configuration"]["profile"]["protocol"] = "openai-buffered"
+    request = {"request_id": i["request_id"], "model_configuration": i["configuration"],
+               "question": i["question"], "max_tokens": i["max_tokens"], "timeout_s": i["timeout_s"],
+               "cloud_upload_confirmed": True, "cloud_unknown_cost_confirmed": True, "execution_mode": "async"}
+    return {"context": i["context"], "plan": {"schema": "archeaxis.material-question-plan/v1", "request": request,
+            "context": i["context_proof"], "destination": "PUBLIC_HTTPS", "workspace_id": "a"*32, "restore_epoch": "initial"}}
+
+
+def test_owned_worker_mock_vault_private_input_to_single_transport(cloud):
+    import io
+    path = WORKER.with_name("material_cloud_worker.py")
+    spec = importlib.util.spec_from_file_location("test_owned_cloud_worker", path)
+    worker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(worker)
+    h = Harness(cloud)
+    result = worker.run(io.BytesIO(json.dumps(production_frame()).encode()), resolver=h.resolve, transport=h.transport)
+    assert result["answer"] == "Synthetic answer"
+    assert result["protocol"] == "openai-buffered" and result["cost"] is None
+    assert len(h.refs) == len(h.calls) == 1 and not any(h.secret)
+    assert "SYNTHETIC_PRIVATE_KEY" not in json.dumps(result)
+    assert worker.credential_target("aak_cred_"+"a"*32) == "ArcheAxis.Knowledge/product-model/aak_cred_"+"a"*32
+    for bad in ["Codex", "aak_cred_../x", "aak_cred_"+"A"*32]:
+        with pytest.raises(worker.cloud.CloudFailure):
+            worker.credential_target(bad)
+
+
+@pytest.mark.parametrize("field", ["cloud_upload_confirmed", "cloud_unknown_cost_confirmed"])
+def test_owned_entry_refuses_missing_grant_before_secret(cloud, field):
+    frame = production_frame()
+    frame["plan"]["request"][field] = False
+    h = Harness(cloud)
+    with pytest.raises(cloud.CloudFailure):
+        cloud.execute(frame, resolve_credential=h.resolve, transport=h.transport)
+    assert not h.refs and not h.calls
 
 
 def test_simulation_freezes_only_selected_material_and_reuses_http_policy(cloud):
@@ -175,7 +212,7 @@ def test_simulation_freezes_only_selected_material_and_reuses_http_policy(cloud)
     "https://user:password@synthetic.invalid/v1", "https://synthetic.invalid:444/v1",
     "https://synthetic.invalid/v1?key=private", "https://synthetic.invalid/v1#fragment",
     "https://synthetic.invalid/%2e%2e/v1", "https://synthetic.invalid/../v1",
-    "https://synthetic.invalid./v1", "https://SYNTHETIC.invalid/v1"])
+    "https://synthetic.invalid./v1"])
 def test_endpoint_policy_refuses_before_any_resolver_or_transport(cloud, endpoint):
     h = Harness(cloud)
     h.request["configuration"]["profile"]["endpoint"] = endpoint
@@ -307,8 +344,14 @@ def test_whole_fixed_material_uses_same_proof_without_knowledge_acceptance(cloud
     proof["selection"] = None
     if kind == "transform":
         proof["material"] = {"kind": "transform", "source_id": "src_synthetic", "raw_sha256": "e"*64,
-                             "job_id": "job_synthetic", "transform_id": "transform_synthetic", "transform_sha256": "f"*64}
+                             "job_id": "job_synthetic", "transform_id": 1, "transform_sha256": "f"*64}
         proof["provenance"] = {"source_id": "src_synthetic", "source_revision": "e"*64,
-                               "job_id": "job_synthetic", "transform_id": "transform_synthetic"}
+                               "job_id": "job_synthetic", "transform_id": 1}
     result = h.run()
     assert result["evidence_scope"] == "SYNTHETIC" and result["grants_knowledge_acceptance"] is False
+
+
+def test_hostname_case_is_insensitive_and_transform_identity_is_integer(cloud):
+    h = Harness(cloud)
+    h.request["configuration"]["profile"]["endpoint"] = "https://SYNTHETIC.invalid/v1"
+    assert h.run()["answer"] == "Synthetic answer"

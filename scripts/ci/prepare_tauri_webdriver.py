@@ -17,33 +17,64 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def select_webview(explicit: Path | None) -> Path:
+    if explicit is not None:
+        if not explicit.is_absolute():
+            raise ValueError("Explicit WebView2 executable must be an absolute path")
+        if str(explicit).startswith(("\\\\", "//")):
+            raise ValueError("Explicit WebView2 executable must be on a local filesystem")
+        runtime = explicit.resolve(strict=True)
+    else:
+        program_files = os.environ.get("PROGRAMFILES(X86)")
+        if not program_files:
+            raise RuntimeError("Windows PROGRAMFILES(X86) environment path is missing")
+        webview = Path(program_files) / "Microsoft/EdgeWebView/Application"
+        versions = [
+            item
+            for item in webview.iterdir()
+            if re.fullmatch(r"\d+\.\d+\.\d+\.\d+", item.name)
+            and (item / "msedgewebview2.exe").is_file()
+        ]
+        if not versions:
+            raise RuntimeError("No installed WebView2 executable in declared standard system path")
+        runtime = max(versions, key=lambda p: tuple(map(int, p.name.split(".")))) / "msedgewebview2.exe"
+        runtime = runtime.resolve(strict=True)
+    if not runtime.is_file() or runtime.name.casefold() != "msedgewebview2.exe":
+        raise ValueError("WebView2 executable must be a regular msedgewebview2.exe file")
+    # Inspect the PE container without executing the caller-selected runtime.
+    with runtime.open("rb") as binary:
+        header = binary.read(64)
+        if len(header) < 64 or header[:2] != b"MZ":
+            raise ValueError("WebView2 executable is not a PE file")
+        pe_offset = int.from_bytes(header[60:64], "little")
+        if pe_offset < 64 or pe_offset > runtime.stat().st_size - 24:
+            raise ValueError("WebView2 PE header offset is invalid")
+        binary.seek(pe_offset)
+        if binary.read(4) != b"PE\x00\x00":
+            raise ValueError("WebView2 executable PE signature is invalid")
+    return runtime
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--cargo", default="cargo")
+    parser.add_argument(
+        "--webview-executable", type=Path,
+        help="Absolute packaged WebView2 executable; default detects the installed system runtime",
+    )
     args = parser.parse_args()
     root = args.root.resolve()
     root.mkdir(parents=True, exist_ok=True)
     receipt = {
         "ok": False,
         "scope": "Project local only; no registry or global configuration writes",
+        "preparation_script": str(Path(__file__).resolve()),
+        "preparation_script_sha256": sha(Path(__file__).resolve()),
     }
     try:
-        program_files = os.environ.get("PROGRAMFILES(X86)")
-        if not program_files:
-            raise RuntimeError("Windows PROGRAMFILES(X86) environment path is missing")
-        webview = Path(program_files) / "Microsoft/EdgeWebView/Application"
-        versions = []
-        for item in webview.iterdir():
-            if (
-                re.fullmatch(r"\d+\.\d+\.\d+\.\d+", item.name)
-                and (item / "msedgewebview2.exe").is_file()
-            ):
-                versions.append(item)
-        if not versions:
-            raise RuntimeError("No installed WebView2 executable in declared standard system path")
-        selected = max(versions, key=lambda p: tuple(map(int, p.name.split("."))))
-        runtime = selected / "msedgewebview2.exe"
+        runtime = select_webview(args.webview_executable)
+        runtime_sha256 = sha(runtime)
         powershell = subprocess.run(
             [
                 "powershell.exe",
@@ -60,6 +91,8 @@ def main():
         version = powershell.stdout.strip()
         if not re.fullmatch(r"\d+\.\d+\.\d+\.\d+", version):
             raise RuntimeError("WebView2 actual executable version missing")
+        if sha(runtime) != runtime_sha256:
+            raise RuntimeError("WebView2 executable changed while reading its version")
         env = dict(os.environ)
         env["CARGO_HOME"] = str(root / "official-cargo")
         env["CARGO_TARGET_DIR"] = str(root / "target")
@@ -76,6 +109,8 @@ def main():
         ]
         with (root / "cargo-install.log").open("wb") as log:
             subprocess.run(command, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+        if sha(runtime) != runtime_sha256:
+            raise RuntimeError("WebView2 executable changed while preparing tools")
         driver = install / "bin/tauri-driver.exe"
         assert driver.is_file() and driver.stat().st_size
         source = f"https://msedgedriver.microsoft.com/{version}/edgedriver_win64.zip"
@@ -109,6 +144,8 @@ def main():
         ).stdout.strip()
         if f"Microsoft Edge WebDriver {version} " not in actual:
             raise RuntimeError("EdgeDriver executable version differs from runtime")
+        if sha(runtime) != runtime_sha256:
+            raise RuntimeError("WebView2 executable changed while preparing tools")
         receipt.update(
             ok=True,
             driver=str(driver),
@@ -123,6 +160,8 @@ def main():
             edge_actual_version=actual,
             webview_version=version,
             webview_path=str(runtime),
+            webview_sha256=runtime_sha256,
+            webview_selection="explicit" if args.webview_executable is not None else "system",
         )
         locks = list((root / "official-cargo/registry/src").glob("*/tauri-driver-2.1.0/Cargo.lock"))
         if len(locks) != 1:

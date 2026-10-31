@@ -104,6 +104,7 @@ def donor(name):
         module.fetch=fetch
     return module
 worker.donor=donor
+worker.read_product_credential=lambda reference: bytearray(b'SIMULATED synthetic credential')
 original_dispatch=worker.authorize_dispatch
 def dispatch(kind,destination,material):
     if kind=='model' and {tamper}:
@@ -115,6 +116,7 @@ worker.authorize_dispatch=dispatch
 def completion(**kwargs):
     assert kwargs['num_retries']==0 and kwargs['api_base']=='https://fixture.invalid/v1'
     assert kwargs['model']=='fixture/explicit'
+    assert kwargs['api_key']=='SIMULATED synthetic credential'
     return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
 sys.modules['litellm']=SimpleNamespace(completion=completion)
 original_execute=worker.execute
@@ -144,9 +146,10 @@ raise SystemExit(worker.main())
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
-            timeout_seconds: 10,
+            timeout_seconds: 30,
             search_limit: 1,
         }))
         .unwrap();
@@ -170,19 +173,51 @@ raise SystemExit(worker.main())
         assert!(!events.exists());
         let (status, result) = call(&router, "POST", &execute, body, "human").await;
         assert_eq!(status, 201, "{result}");
-        let operations: Value = serde_json::from_slice(&std::fs::read(events).unwrap()).unwrap();
+        let diagnostics = || {
+            format!(
+                "tamper={tamper}; synthetic check result: {result}; synthetic worker stack: {}",
+                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+            )
+        };
+        // HTTP 201 also persists failed attempts. Assert the expected outcome
+        // before reading a file that is only created by an actual dispatch.
         if tamper {
-            assert_eq!(operations, json!(["search", "article"]));
-            assert_eq!(result["reason"], "dispatch_actual_material_mismatch");
-            assert_eq!(result["execution_verified"], false);
+            assert_eq!(
+                result["reason"],
+                "dispatch_actual_material_mismatch",
+                "{}",
+                diagnostics()
+            );
+            assert_eq!(result["execution_verified"], false, "{}", diagnostics());
+        } else {
+            assert_eq!(result["execution_verified"], true, "{}", diagnostics());
+        }
+        let events = std::fs::read(&events).unwrap_or_else(|error| {
+            panic!(
+                "Cannot read synthetic worker events: {error}; {}",
+                diagnostics()
+            )
+        });
+        let operations: Value = serde_json::from_slice(&events).unwrap_or_else(|error| {
+            panic!(
+                "Invalid synthetic worker events: {error}; {}",
+                diagnostics()
+            )
+        });
+        if tamper {
+            assert_eq!(
+                operations,
+                json!(["search", "article"]),
+                "{}",
+                diagnostics()
+            );
         } else {
             assert_eq!(
                 operations,
                 json!(["search", "article", "model"]),
-                "{result}; synthetic worker stack: {}",
-                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+                "{}",
+                diagnostics()
             );
-            assert_eq!(result["execution_verified"], true, "{result}");
             assert_eq!(result["engine_receipt"]["model"], "SIMULATED-model");
         }
     }
@@ -226,6 +261,7 @@ def donor(name):
         module.fetch=fetch
     return module
 worker.donor=donor
+worker.read_product_credential=lambda reference: bytearray(b'SIMULATED synthetic credential')
 original_dispatch=worker.authorize_dispatch
 def dispatch(kind,destination,material):
     original_dispatch(kind,destination,material)
@@ -234,6 +270,7 @@ worker.authorize_dispatch=dispatch
 def completion(**kwargs):
     assert kwargs['num_retries']==0 and kwargs['api_base']=='https://fixture.invalid/v1'
     assert kwargs['model']=='fixture/explicit'
+    assert kwargs['api_key']=='SIMULATED synthetic credential'
     return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
 sys.modules['litellm']=SimpleNamespace(completion=completion)
 original_execute=worker.execute
@@ -245,8 +282,15 @@ def delayed_execute(request):
     deadline=__import__('time').monotonic()+10
     while not release.exists() and __import__('time').monotonic()<deadline: __import__('time').sleep(.01)
     assert release.exists(), 'fixture timeout'
-    prepare_real_retrieval_parsers()
-    return original_execute(request)
+    try:
+        prepare_real_retrieval_parsers()
+        result = original_execute(request)
+        Path(__file__).with_suffix('.response').write_text(json.dumps(result), encoding='utf8')
+        return result
+    except Exception:
+        import traceback
+        Path(__file__).with_suffix('.exception').write_text(traceback.format_exc(), encoding='utf8')
+        raise
 worker.execute=delayed_execute
 raise SystemExit(worker.main())
 "#,
@@ -270,9 +314,10 @@ raise SystemExit(worker.main())
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
-        timeout_seconds: 10,
+        timeout_seconds: 30,
         search_limit: 1,
     }))
     .unwrap();
@@ -370,8 +415,10 @@ raise SystemExit(worker.main())
     assert_eq!(
         terminal["execution_verified"],
         true,
-        "{terminal}; synthetic worker stack: {}",
-        std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+        "{terminal}; synthetic worker stack: {}; response: {}; exception: {}",
+        std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default(),
+        std::fs::read_to_string(script.with_extension("response")).unwrap_or_default(),
+        std::fs::read_to_string(script.with_extension("exception")).unwrap_or_default()
     );
     assert_eq!(terminal["status"], "uncertain");
     assert_eq!(terminal["actor"], "machine");
@@ -445,9 +492,10 @@ sys.exit(1)
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
-        timeout_seconds: 10,
+        timeout_seconds: 30,
         search_limit: 1,
     }))
     .unwrap();
@@ -567,9 +615,10 @@ async fn local_only_and_durable_withdrawal_preserve_save_with_or_without_engine(
         .with_document_check_config(configured.then(|| DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
-            timeout_seconds: 10,
+            timeout_seconds: 30,
             search_limit: 1,
         }))
         .unwrap();
@@ -709,6 +758,7 @@ async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 1,
@@ -818,6 +868,7 @@ async fn invalid_owned_config_preserves_save_and_records_failed_attempt() {
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "invalid-provider".into(),
         model: "invalid-provider/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 1,
@@ -884,6 +935,7 @@ async fn legitimate_material_failure_is_persisted_retryable_and_never_runs_worke
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 1,
@@ -1052,9 +1104,10 @@ async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_sav
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
-            timeout_seconds: 10,
+            timeout_seconds: 30,
             search_limit: 1,
         }))
         .unwrap();

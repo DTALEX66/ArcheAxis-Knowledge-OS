@@ -58,6 +58,10 @@
           "recognition_fidelity": "original_vs_local_extraction",
           "professional_support": "claim_vs_support_and_counterevidence"
         },
+        "source_role": {
+          "purpose": "traceable-and-revisable-clue",
+          "authority": "no-preset-high-authority-or-exclusive-truth"
+        },
         "ordinary_save": {
           "missing_external_source_or_evidence": "allow",
           "missing_cloud_verification": "allow",
@@ -78,9 +82,18 @@
           "source_recognition_search_fact_check": "separate",
           "unconfigured_or_failed": "retryable-not-fabricated",
           "uncertainty_conflicts": "retain",
-          "judgment_basis": "original",
+          "judgment_basis": "original-for-recognition-fidelity-only",
           "empty_search": "not-proof-of-falsehood",
           "online_answers": "never-overwrite-original"
+        },
+        "multi_source_comparison": {
+          "targets": "facts-and-recognition-doubts",
+          "sources": "encyclopedia-community-academic-independent-origins",
+          "independence": "compare-origins-not-duplicate-counts",
+          "disagreement": "retain-with-source-and-version",
+          "no_result_single_source_rate_limit_timeout": "per-source-status-continue-others",
+          "unavailable": "never-block-local-save-display-or-learning",
+          "originals": "never-auto-overwrite"
         },
         "knowledge_admission": {
           "final_choice": "human-only",

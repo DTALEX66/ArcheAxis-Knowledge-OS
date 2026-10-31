@@ -23,11 +23,11 @@ it.each(["FAILED","UNKNOWN","ACK_LOSS","CANCELLED_LOCAL_WORKER"])("SIMULATED col
   render(<CoreWorkingStateProvider session={session}><MachineAnswerPanel knowledgeId="k1"/></CoreWorkingStateProvider>);
   const user=userEvent.setup();await screen.findByText(/已恢复未确认/);
   if(mode==="CANCELLED_LOCAL_WORKER"){
-    await user.click(screen.getByRole("button",{name:"请求取消当前本地 worker"}));
+    await user.click(screen.getByRole("button",{name:"请求取消本次本地生成"}));
     await screen.findByText(/取消请求已接收；尚未确认停止/);
     expect(clear).not.toHaveBeenCalled();expect(session.getSnapshot().state.pending_machine?.failed_fixed).toEqual(entry);
   }
-  await user.click(screen.getByRole("button",{name:"核对冻结机器请求的失败状态"}));
+  await user.click(screen.getByRole("button",{name:"检查上次调用结果"}));
   if(mode==="UNKNOWN"){
     await screen.findByText(/未确认当前请求的失败终态/);expect(screen.queryByRole("button",{name:"结束失败请求，保留草稿"})).not.toBeInTheDocument();expect(clear).not.toHaveBeenCalled();
     expect(session.getSnapshot().state.pending_machine?.failed_fixed).toEqual(entry);expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();

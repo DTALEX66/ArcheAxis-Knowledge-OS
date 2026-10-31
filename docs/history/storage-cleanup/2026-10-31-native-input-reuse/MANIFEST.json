@@ -1,0 +1,375 @@
+{
+  "schema": "aaos.native-input-reuse-history/v1",
+  "status": "PARTIAL_HOST_PREPARE_AND_OFFLINE_MAPPING_ONLY",
+  "handoff_creation": {
+    "canonical": false,
+    "method": "DIRECT_IGNORED_WRITE_ROOT_EXPLICIT_AUTHORIZATION",
+    "original_receipts_unchanged": true,
+    "no_new_execution": true
+  },
+  "source": {
+    "commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+    "dirty": true,
+    "patch_sha256": "2ce0aa81962609e0f867975c18db68f68b134b47d17d8b9005dbd351fe97e55c",
+    "source_consistent": true,
+    "later_native_runtime_not_qualified": true,
+    "actual_host_followup": "r6n2; separate actual-source qualification below"
+  },
+  "source_manifest": {
+    "path": ".project-local/runs/be268a2d33/cnprep3/artifacts/full-inputs.json",
+    "bytes": 1361472,
+    "sha256": "f5e1b73674dd9110d51d7b81912c50b7ad46b18af2e8df068bac3dbd25754d0f"
+  },
+  "members": 6477,
+  "host_logical_input_bytes": 1984670438,
+  "payload_bytes_copied": 0,
+  "retained": {
+    "package": {
+      "path": ".project-local/runs/be268a2d33/cnprep3/artifacts/package",
+      "members": 14,
+      "bytes": 452771641
+    },
+    "input": {
+      "path": ".project-local/runs/be268a2d33/cnprep3/input",
+      "members": 5806,
+      "bytes": 1275305976
+    },
+    "tools": {
+      "path": ".project-local/runs/be268a2d33/cnprep3/artifacts/pwsh",
+      "members": 657,
+      "bytes": 256592821
+    }
+  },
+  "zero_copy_scope": "HOST_PREPARATION_MAPPING_ONLY; guest-launch.py:57 still copytree source -> guest capsule; guest-parent.ps1:118 still copies synthetic snapshot -> output",
+  "producer_routes": [
+    {
+      "path": ".project-local/installed-native-correction-20261029/installer-ci/prepare-v2.py",
+      "bytes": 9357,
+      "sha256": "471612e85fb8d9751eb5049037c3ba3a314b7da2029c8d5c8fbe5c5a09525016",
+      "role": "FROZEN_NATIVE_WHOLE_HOST_COPY_ADAPTER_CANDIDATE"
+    },
+    {
+      "path": ".project-local/installed-native-correction-20261029/installer-ci/prepare-v3.py",
+      "bytes": 11528,
+      "sha256": "b1dbbf87223c108e002cee5b2ef134abaea6881e282fa73c3812c2ad52dbf06c",
+      "role": "FROZEN_NATIVE_WHOLE_HOST_COPY_ADAPTER_CANDIDATE"
+    },
+    {
+      "path": ".project-local/pdf-runtime-fix-20261029/runtime-validation/bundle-runtime-correction-v4.py",
+      "bytes": 19811,
+      "sha256": "74bdc6e6021d860a83f7bc6d24aeff48bb935302f01b73bae4c44d7686128dc6",
+      "role": "FROZEN_PACKAGING_NOT_REPLACED"
+    },
+    {
+      "path": ".project-local/pdf-runtime-fix-20261029/runtime-validation/bundle-runtime-correction-v5.py",
+      "bytes": 20384,
+      "sha256": "19a38a11efca697f5e14b1f08e14741cf0beaf8c2775ca9a51a7836aaedca83c",
+      "role": "FROZEN_PACKAGING_NOT_REPLACED"
+    }
+  ],
+  "candidate_files": {
+    "scripts/runtime/native_inputs.py": {
+      "bytes": 18454,
+      "sha256": "55f8b8c3cb608899f47ebede912b4aa723393b61b375268b1e250b67a3855cd0"
+    },
+    "scripts/runtime/shared_native_sandbox_guest.ps1": {
+      "bytes": 6512,
+      "sha256": "ff7e4213eccf309d126a8c6bfa01e7fa1888ecdd2afb1d9534e2c3cd60161d52"
+    },
+    "scripts/runtime/shared_sandbox.py": {
+      "bytes": 29920,
+      "sha256": "5bb16837b29af40be9645591082b0d518b0677b13b7b4c5df8dec1d15e057f4c"
+    },
+    "tests/runtime-paths/test_native_inputs.py": {
+      "bytes": 7572,
+      "sha256": "bf977a67c479dd34c65139205afeb0f98be73401e7275ac37956f3ff0f6ee209"
+    }
+  },
+  "candidate_patch": {
+    "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/native-inputs-candidate.patch",
+    "bytes": 43033,
+    "sha256": "7077e4826bf1d9f09bc54569e5e323563e7239b9a34ebf9a8a5183b436e4d0bd"
+  },
+  "template_dual_identity": {
+    "candidate_LF_VM_bound": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/source-candidate/scripts/runtime/shared_native_sandbox_guest.ps1",
+      "bytes": 6512,
+      "sha256": "ff7e4213eccf309d126a8c6bfa01e7fa1888ecdd2afb1d9534e2c3cd60161d52"
+    },
+    "deployed_CRLF_not_old_VM_bound": {
+      "path": "scripts/runtime/shared_native_sandbox_guest.ps1",
+      "bytes": 6606,
+      "sha256": "8826f6f2a51a82f5899ad05e81607c124cec942a87ee4369f77eb7356dbe3a7d"
+    },
+    "universal_newline_read_text_equal": true,
+    "root_actual_source_host_and_same_binding_command_verification": "PASS_R6N2_HOST_ONLY; same-binding encoded command equal; no new VM"
+  },
+  "prepare_contract": {
+    "status": "PREPARED_ONLY_NOT_NATIVE_BUSINESS_EXECUTION_ENTRY",
+    "after_root_deployment_host_only_argv": [
+      ".venv/Scripts/python.exe",
+      "-B",
+      "scripts/runtime/dev.py",
+      "--run-id",
+      "FRESH_ID",
+      "--",
+      ".venv/Scripts/python.exe",
+      "-B",
+      "scripts/runtime/native_inputs.py",
+      "--stage",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\cnprep3",
+      "--manifest-sha256",
+      "f5e1b73674dd9110d51d7b81912c50b7ad46b18af2e8df068bac3dbd25754d0f",
+      "--prepare-proposal"
+    ],
+    "future_use_requires": [
+      "explicit root execution window",
+      "fresh all-input SHA/inventory/nlink/reparse verification",
+      "fresh empty owned output",
+      "controlled exact owned-ID lifecycle",
+      "separate native business qualification"
+    ],
+    "cnprep2": "FROZEN restore contract unchanged",
+    "cnprep3": "Inputs intact; no restore required by preceding cleanup"
+  },
+  "tests": {
+    "passed": 94,
+    "subtests_passed": 14,
+    "pytest_exit_code": 0,
+    "powershell_ast_exit_code": 0,
+    "actual_pytest_main_arguments": [
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\spr-nativecand4\\tmp\\p",
+      "tests/runtime-paths/test_sandbox_inputs.py",
+      "tests/runtime-paths/test_shared_sandbox.py",
+      "tests/runtime-paths/test_conflict_inputs.py",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\spr-nativecand4\\artifacts\\source-candidate\\tests\\runtime-paths\\test_native_inputs.py"
+    ],
+    "short_tmp_plugin": "ShortTemporaryDirectories.tmp_path -> run/tmp/t/<incrementing integer>; same assertions, no lowered gate",
+    "full_actual_inline_host_command_script": {
+      "path": ".project-local/runs/be268a2d33/spr-nativereview1/artifacts/executed-host-review-command.py",
+      "bytes": 4539,
+      "sha256": "29272c636435307b02f59e1bc4952c9b382d67feee93b5eef0a1baacde6a6a46"
+    },
+    "canonical_full_command_record": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/execution.json",
+      "bytes": 6033,
+      "sha256": "26757364b72d061bae4281f076cb18a64a274fe9c7ec2402ede524d837952f4c"
+    },
+    "vm_actual_inline_script": {
+      "path": ".project-local/runs/be268a2d33/spr-nativereview1/artifacts/executed-native-mapping-runner.py",
+      "bytes": 2224,
+      "sha256": "40229f0aa52748323fe1a073989d211f5cf7336c102c0de0cfe974a406fa954a"
+    }
+  },
+  "vm": {
+    "sandbox_id": "1683c059-decc-4082-9f19-126bbfedc839",
+    "seconds": 38.46441950002918,
+    "mapping_only": true,
+    "guest_members_verified": 6477,
+    "mapping_write_handle_denials": 3,
+    "stop": "OWNED_ID_ABSENT_AFTER_OFFICIAL_STOP",
+    "remaining_inventory": [],
+    "no_connect_installer_oldparent_native_UI": true
+  },
+  "control_window": {
+    "status": "STARTED_BEFORE_ROOT_CONCRETE_SCRIPT_PRE_REVIEW_COMPLETED",
+    "observed_order": [
+      "canonical invocation returned running",
+      "root pause message received",
+      "first post-message observation had intent and official start/list",
+      "only exact owned-ID probe completed and cleared"
+    ],
+    "limit": "No independent message wall clock; no millisecond ordering claim",
+    "no_new_VM_or_retry_after_pause": true
+  },
+  "preserved_failures": [
+    "spr-nativecand2 MAX_PATH fixture failure",
+    "spr-nativecand3 installer origin/package namespace binding failure",
+    "r6n1 exact-raw Windows EOL identity guard before tests/prepare"
+  ],
+  "receipts": {
+    "spr-nativecand4/artifacts/execution.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/execution.json",
+      "bytes": 6033,
+      "sha256": "26757364b72d061bae4281f076cb18a64a274fe9c7ec2402ede524d837952f4c"
+    },
+    "spr-nativecand4/artifacts/host-review.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/host-review.json",
+      "bytes": 5184,
+      "sha256": "e795b15bc7b33096a3ed2d6aed61356a6df36ea94c37914df8861ce6cabc3031"
+    },
+    "spr-nativecand4/artifacts/native-inputs-candidate.patch": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/native-inputs-candidate.patch",
+      "bytes": 43033,
+      "sha256": "7077e4826bf1d9f09bc54569e5e323563e7239b9a34ebf9a8a5183b436e4d0bd"
+    },
+    "spr-nativecand4/artifacts/shared-sandbox-plan.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/shared-sandbox-plan.json",
+      "bytes": 24440,
+      "sha256": "371b2229133841f91d71839a1808d7444c1b50f266b4fdfb518e9e132fbcf9fd"
+    },
+    "spr-nativecand4/artifacts/native-retry.wsb.proposed": {
+      "path": ".project-local/runs/be268a2d33/spr-nativecand4/artifacts/native-retry.wsb.proposed",
+      "bytes": 2007,
+      "sha256": "0f979673036b63b0c96f2ca904871e8c619178734aa632e8e9c509469799451d"
+    },
+    "spr-nativevm1/artifacts/execution.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/execution.json",
+      "bytes": 3602,
+      "sha256": "5ef243e446c73c121524addabad29681ab614d05230e304ac2f6d78af038de43"
+    },
+    "spr-nativevm1/artifacts/shared-sandbox-execution.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/shared-sandbox-execution.json",
+      "bytes": 4518,
+      "sha256": "ab4d98dde23f091acfbb908a8952259ec28ff6c289cb71dd39b6131515db8f9c"
+    },
+    "spr-nativevm1/artifacts/native-mapping-summary.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/native-mapping-summary.json",
+      "bytes": 995,
+      "sha256": "e97ce25959aa3b27195658119c3e53cb072eb94c7ef3455d2e3c0affa86f2eec"
+    },
+    "spr-nativevm1/artifacts/sandbox-output/shared-probe.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/sandbox-output/shared-probe.json",
+      "bytes": 1439,
+      "sha256": "abd738152017fd6ff12e1ac6ad4bf2915bef444d999d58cd9fa1830491cac394"
+    },
+    "spr-nativevm1/artifacts/shared-sandbox-start-intent.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/shared-sandbox-start-intent.json",
+      "bytes": 365,
+      "sha256": "e4f354f61ab78c8add7871617e918c07fd3be9fec30bb16ba41b5a5e6fd45c8f"
+    },
+    "spr-nativevm1/artifacts/shared-sandbox-stop-intent.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/shared-sandbox-stop-intent.json",
+      "bytes": 226,
+      "sha256": "3fac32d92b3c21bc591eaaebba708a51828c18042556fe5c3af3e969dd0222bf"
+    },
+    "spr-nativereview1/artifacts/executed-native-mapping-runner.py": {
+      "path": ".project-local/runs/be268a2d33/spr-nativereview1/artifacts/executed-native-mapping-runner.py",
+      "bytes": 2224,
+      "sha256": "40229f0aa52748323fe1a073989d211f5cf7336c102c0de0cfe974a406fa954a"
+    },
+    "spr-nativevm1/artifacts/official-cli-001.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-001.json",
+      "bytes": 167,
+      "sha256": "cf4e25dfb243829a223b75732098aa3bb5daf6ff0a2f8b77240523a1b29dba31"
+    },
+    "spr-nativevm1/artifacts/official-cli-002.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-002.json",
+      "bytes": 1638,
+      "sha256": "4139b1f302983ba1c39a2753209ce88176ecb4d2fd10500f57bbf86a8a1831ef"
+    },
+    "spr-nativevm1/artifacts/official-cli-003.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-003.json",
+      "bytes": 241,
+      "sha256": "6b1937d70475db226fc29cde6d42ea1c4177abb95e2adbb6679980c481dca1b8"
+    },
+    "spr-nativevm1/artifacts/official-cli-004.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-004.json",
+      "bytes": 21098,
+      "sha256": "b9ca418b2bbda5635d706a0ae888f2a0a9d1a9006a135e2b5c131cbea294aa1f"
+    },
+    "spr-nativevm1/artifacts/official-cli-005.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-005.json",
+      "bytes": 241,
+      "sha256": "6b1937d70475db226fc29cde6d42ea1c4177abb95e2adbb6679980c481dca1b8"
+    },
+    "spr-nativevm1/artifacts/official-cli-006.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-006.json",
+      "bytes": 179,
+      "sha256": "ffa6b4736d417c44a23e764d12b58de234419553a20631cb6d6451ed942e72ed"
+    },
+    "spr-nativevm1/artifacts/official-cli-007.json": {
+      "path": ".project-local/runs/be268a2d33/spr-nativevm1/artifacts/official-cli-007.json",
+      "bytes": 167,
+      "sha256": "cf4e25dfb243829a223b75732098aa3bb5daf6ff0a2f8b77240523a1b29dba31"
+    },
+    "r6n2/artifacts/deployment-review.json": {
+      "path": ".project-local/runs/be268a2d33/r6n2/artifacts/deployment-review.json",
+      "bytes": 2524,
+      "sha256": "6eb3c45a2072838bae5fec00e8e3149d97727cf015452faf01c4c847f5c7b1f8"
+    },
+    "r6n2/artifacts/execution.json": {
+      "path": ".project-local/runs/be268a2d33/r6n2/artifacts/execution.json",
+      "bytes": 1284,
+      "sha256": "f1d9d300674153915ac3ae2c0f1a4321690141567aaab464b884abca2c8ed58c"
+    },
+    "r6n2/logs/execution.log": {
+      "path": ".project-local/runs/be268a2d33/r6n2/logs/execution.log",
+      "bytes": 808,
+      "sha256": "b886d3c59a15adb071e71c098589385137a497d4b84f6bc71cd11d9e5c4468ad"
+    },
+    "r6n2/artifacts/prepare-cli.log": {
+      "path": ".project-local/runs/be268a2d33/r6n2/artifacts/prepare-cli.log",
+      "bytes": 3183,
+      "sha256": "ec9e8be570bfc582a4553d67202126f25b02acd0447ce532ca6c7632fd584c4c"
+    },
+    "r6n2/artifacts/shared-sandbox-plan.json": {
+      "path": ".project-local/runs/be268a2d33/r6n2/artifacts/shared-sandbox-plan.json",
+      "bytes": 24385,
+      "sha256": "914377cdea64ff028fb22e11c4a47233dffe35f4b14a9b27ee5c2b0e1039afee"
+    },
+    "r6n2/artifacts/native-retry.wsb.proposed": {
+      "path": ".project-local/runs/be268a2d33/r6n2/artifacts/native-retry.wsb.proposed",
+      "bytes": 1996,
+      "sha256": "2e4397464a9a8c1a1594bbb46e85c8c9d5f46879bbf34e9fc4b9583113bf5f18"
+    },
+    "r6n1/artifacts/execution.json": {
+      "path": ".project-local/runs/be268a2d33/r6n1/artifacts/execution.json",
+      "bytes": 1275,
+      "sha256": "6910ac8468e2d2a2f27192c1b285152910037b871905778d02ce432344407e5a"
+    }
+  },
+  "readme": {
+    "path": "docs/history/storage-cleanup/2026-10-31-native-input-reuse/README.md",
+    "bytes": 4409,
+    "sha256": "8b80c0234980f6832e4a44315e62af648bd5083f04a96100dd09d7ddc3225cf3"
+  },
+  "rollback": "Only revert newly deployed adapter/mode/test source. Frozen producer/manifest/FAIL and payload preserved; no restore or delete by this manifest",
+  "actual_deployment": {
+    "run": "r6n2",
+    "source_commit": "f5d8b570409ba6b0a1915fa7ab336c4be1879485",
+    "dirty": true,
+    "patch_sha256": "9b61d5f632933c5540940299c5079074e5551898d9aefb0010973b80021e6c1c",
+    "source_consistent": true,
+    "actual_exit_code": 0,
+    "wrapper_exit_code": 0,
+    "passed": 94,
+    "subtests_passed": 14,
+    "existing_cache_dir_warning": 1,
+    "vm_started": false,
+    "actual_source_files": {
+      "scripts/runtime/native_inputs.py": {
+        "bytes": 18454,
+        "sha256": "55f8b8c3cb608899f47ebede912b4aa723393b61b375268b1e250b67a3855cd0"
+      },
+      "scripts/runtime/shared_native_sandbox_guest.ps1": {
+        "bytes": 6606,
+        "sha256": "8826f6f2a51a82f5899ad05e81607c124cec942a87ee4369f77eb7356dbe3a7d"
+      },
+      "scripts/runtime/shared_sandbox.py": {
+        "bytes": 29920,
+        "sha256": "5bb16837b29af40be9645591082b0d518b0677b13b7b4c5df8dec1d15e057f4c"
+      },
+      "tests/runtime-paths/test_native_inputs.py": {
+        "bytes": 7572,
+        "sha256": "bf977a67c479dd34c65139205afeb0f98be73401e7275ac37956f3ff0f6ee209"
+      }
+    },
+    "same_binding_encoded_command_equal": true,
+    "windows_eol_filter_only": true,
+    "native_business": "NOT_EXECUTED",
+    "outputs_empty_after_prepare": true
+  },
+  "publication_derivation": {
+    "agent_manifest": {
+      "path": ".project-local/runs/be268a2d33/spr-nativereview1/artifacts/publication-candidate/MANIFEST.json",
+      "bytes": 13213,
+      "sha256": "814129a222627fe71681f0c3e6cf69210e8057165ee39071bb84b9fc05155785"
+    },
+    "root_compilation": "Reviewed derivative, adds actual deployment and public README identity. Original receipts unchanged."
+  }
+}

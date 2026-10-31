@@ -1,0 +1,47 @@
+{
+  "schema": "aaos.historical-resource-source-binding/v1",
+  "observed_at": "2026-10-23T19:55:02.155806+00:00",
+  "baseline_commit": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "status": "HISTORICAL_SOURCE_CUSTODY_ONLY",
+  "reason": "Preserve exact HEAD source bytes referenced by earlier resource evidence after current lucide/WebView notices changes. Existing SHA and all qualification/activation/evidence states preserved; current sources not requalified.",
+  "files": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
+      "original_path": "frontend/package.json",
+      "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a",
+      "bytes": 1209,
+      "git_blob_oid": "928f19d208cfb2061f15fe5d60fb0eb93380fc6b",
+      "current_source_sha256": "0004454d735e6204d295e541014e6531c9dd741cffde213fc113e27dfdf90aa5",
+      "baseline_commit": "95b463c12dbd40744b43039add69c48ceaeba94e"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md",
+      "original_path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+      "bytes": 10713,
+      "git_blob_oid": "8484f5a072c06f00aa717d74ffd26e140b6c380e",
+      "current_source_sha256": "ceebe44842b6e119715e5bc89692a871c154115fcd985f8fb7740bf5c8bf1fb3",
+      "baseline_commit": "95b463c12dbd40744b43039add69c48ceaeba94e"
+    }
+  ],
+  "references": [
+    {
+      "pointer": "/entries/47/evidence/version/source_refs/1",
+      "original_path": "frontend/package.json",
+      "historical_path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
+      "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
+    },
+    {
+      "pointer": "/entries/60/evidence/version/source_refs/1",
+      "original_path": "frontend/package.json",
+      "historical_path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
+      "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
+    },
+    {
+      "pointer": "/sources/7",
+      "original_path": "THIRD_PARTY_NOTICES.md",
+      "historical_path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md",
+      "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
+    }
+  ]
+}

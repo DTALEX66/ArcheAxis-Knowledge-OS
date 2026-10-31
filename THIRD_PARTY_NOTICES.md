@@ -90,6 +90,60 @@ Magika is © Google LLC, licensed under the Apache License 2.0. The full
 license text is preserved alongside the model; inference code is
 `shared/file_detection.py` (pure Python, no magika pip dependency).
 
+## Bundled speech-to-text model and media decoder (2026-10-25)
+
+The packaged Windows candidate ships one transcript model inside its own runtime, so an
+installed machine can transcribe an MP4/MP3 without a model library, an environment variable
+or a first-run download. `scripts/release/stage_backend_runtime.py` copies an explicit donor
+directory to `runtime/models/asr/<name>/` (a `runtime/` bundle resource), records every file's
+SHA-256 in `backend-runtime-manifest.json`, and writes `aaos-model.json` beside the weights.
+`services/python-workers/media/worker_transcribe.py` discovers that directory before it
+consults any machine-level declaration; when no model is present it fails by name.
+
+| Component | Version | License | Bundled location |
+|---|---|---|---|
+| Systran `faster-whisper-base` CTranslate2 weights (`model.bin`, `config.json`, `tokenizer.json`, `vocabulary.txt`) | base (upstream snapshot `ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66`) | MIT per the upstream model card; the weights are not relicensed by this repository | `runtime/models/asr/faster-whisper-base/` |
+| faster-whisper (runtime code) | 1.2.1 | MIT | `runtime/Lib/site-packages/faster_whisper/` |
+| CTranslate2 (runtime code) | 4.8.1 | MIT | `runtime/Lib/site-packages/ctranslate2/` |
+| PyAV (bundled media decoder code) | 18.0.0 | BSD-3-Clause | `runtime/Lib/site-packages/av/` |
+| FFmpeg shared libraries inside the PyAV wheel (`avcodec`/`avformat`/`avutil`/`avfilter`/`avdevice` 8.1.2 and their codec libraries in `av.libs/`) | 8.1.2 | LGPL-2.1-or-later (`libmp3lame`, `libopus`, `libdav1d`, `libiconv` are their own licences; no GPL component is listed in the wheel's `av.libs`) | `runtime/Lib/site-packages/av.libs/` |
+
+Weights measured on this host before packaging (bytes / SHA-256): `model.bin` 145,217,532 /
+`d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9`; `tokenizer.json`
+2,203,239 / `fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab`;
+`vocabulary.txt` 459,861 / `34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913`;
+`config.json` 2,309 / `56a6d8110d311f19c8f0471e562832c7527f146b567275bfca59fcf7c184da9a`.
+The donor stays outside Git; only the built candidate carries a copy.
+
+The decoder is PyAV with the FFmpeg libraries it distributes. The project does **not** ship a
+system `ffmpeg.exe`: the only build available on this host is a GPLv3 full build (695 MB), which
+this repository may not redistribute, and an LGPL static build was not available offline. PyAV
+covers container demux and audio/video decode for the formats the media routes accept; a future
+LGPL `ffmpeg`/`ffprobe` pair can be added later as a declared app-local asset without changing
+the worker contract, which already prefers a resolved binary over the bundled decoder.
+
+Not bundled in this round: sherpa-onnx and the SenseVoice/segmentation/embedding ONNX assets
+(diarization lane), and a silero VAD ONNX (needed for anchors on SenseVoice output). The
+diarization worker already reports the exact missing artefacts by name.
+
+
+## 2026-10-25 PyMuPDF / MuPDF (AGPL) disclosure
+
+| Component | Version | License | Bundled location |
+|---|---|---|---|
+| PyMuPDF / MuPDF (PDF text, structure, table geometry and page rendering) | 1.28.2 (`uv.lock`; present in the built runtime) | AGPL-3.0-or-later **or** Artifex commercial licence | `runtime/Lib/site-packages/pymupdf/` |
+
+PyMuPDF is used by `services/python-workers/document/worker_pdf.py` and is copied into the
+installer payload by `scripts/release/stage_backend_runtime.py`. Its upstream licensing page
+states that PyMuPDF and MuPDF are available under AGPL-3.0 or a commercial licence from
+Artifex. The repository's own MIT licence does not relicense this bundled component.
+
+Anyone redistributing the installer must meet the AGPL-3.0 obligations (including the
+corresponding-source and notice requirements) or hold a commercial licence. The replacement
+pilot (`pypdfium2` Apache-2.0/BSD-3 + `pdfplumber` MIT) and the licence decision are recorded in
+`workspace/intake/20261025-full-technology-audit.md`; no replacement was executed in this round.
+
+
 ## 2026-08-11 上游许可纠错与补充
 
 ## 2026-10-07 AAOS UI adapters
@@ -143,3 +197,113 @@ the upstream shell, importer, localStorage, sample content or astronomical table
 
 中文说明：本次吸收星团布局、聚焦展开、曲线与光点的呈现算法；保留完整版权许可，
 不新增知识推断或业务存储。GlassBoard 仅为文档设计参考，未复制其程序或资源。
+
+## Lucide React — standard interface icons (2026-10-22)
+
+Pinned `lucide-react@1.61.0`, official source https://github.com/lucide-icons/lucide,
+registry https://registry.npmjs.org/lucide-react/-/lucide-react-1.61.0.tgz.
+ISC, Copyright (c) 2026 Lucide Icons and Contributors; inherited Feather icons
+also retain their MIT notice, Copyright (c) 2013-present Cole Bemis.
+The complete upstream LICENSE is preserved byte-for-byte in
+`frontend/src/components/lucide-NOTICE.txt` and emitted as a Vite URL asset
+referenced by `AaosIcon`. Named imports preserve one standard SVG family.
+This adds no runtime service, execution plugin, cloud request or paid dependency.
+
+
+## Microsoft Visual C++ x64 app-local runtime (2026-10-24)
+
+The selected Python runtime already contains Microsoft's `vcruntime140.dll` and
+`vcruntime140_1.dll`, version 14.44.35211. Packaging copies these two approved
+files unchanged next to both `ArcheAxis.exe` and `core/archeaxis-api.exe`; it does
+not download a runtime or install a system-wide redistributable. The desktop runtime
+is staged from the interpreter that builds it, so a CI tool-cache donor may carry a
+different-but-official VC redist build; `APP_LOCAL_VC_RUNTIME` in
+`scripts/release/stage_backend_runtime.py` lists the reviewed donor identities and an
+unrecognised byte sequence fails the build with its observed bytes and SHA-256. Every
+packaged copy and its recorded identity is inventoried in
+`backend-runtime-manifest.json`.
+
+| File (x64) | Approved donor version | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| `vcruntime140.dll` | 14.44.35211 | 124544 | `d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066` |
+| `vcruntime140.dll` | 14.42.34438 | 120400 | `052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4` |
+| `vcruntime140_1.dll` | 14.44.35211 | 49792 | `1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f` |
+| `vcruntime140_1.dll` | 14.42.34438 | 49776 | `6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8` |
+
+Both approved donor versions come from Microsoft's redistributable VC runtime as
+shipped inside a CPython Windows build: 14.44.35211 from the uv-managed local
+interpreter and 14.42.34438 from the 3.12.10 installer used by cloud CI. The
+selected files are copied unchanged; no other donor byte pattern is accepted.
+
+These Microsoft binaries remain subject to the applicable Microsoft Software
+License Terms and redistribution entitlement; this project does not relicense
+them. See [Microsoft redistribution guidance](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-170).
+App-local deployment does not receive the independent servicing benefits of a
+centrally installed redistributable. The application publisher must track runtime
+security updates, review replacement provenance/version compatibility, update
+both approved pins, and requalify and redistribute the application. The current
+qualification is for these two x64 files, not a general DLL-discovery mechanism.
+
+## Microsoft Edge WebView2 Evergreen offline prerequisite — historical attempt (2026-10-24)
+
+Earlier isolated installer candidates included Microsoft's x64 Evergreen Standalone
+Installer through Tauri's official `offlineInstaller` mode. This is proprietary
+Microsoft software, subject to its applicable Microsoft Software License Terms;
+the project does not relicense it. It was executed only in disposable Sandbox
+qualification; Microsoft selected a machine installation under the elevated guest.
+It was not executed on the build host. Those attempts failed; current packaging
+uses the application-local Fixed Version below.
+
+The build receipt records the official redirect URL, Authenticode verification,
+installer version, byte count and SHA-256. Installer version is distinct from
+the installed Runtime version. Tauri CLI 2.12.3 still resolves the official URL
+during bundling even when the payload is cached; installation uses the embedded
+payload without requiring a network connection. Existing registry entries alone
+do not prove that the Runtime is usable by the current user. Runtime availability
+and the full installed lifecycle require separate qualification.
+
+See [Microsoft distribution guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)
+and [Tauri offline installer guidance](https://v2.tauri.app/distribute/windows-installer/#offline-installer).
+Project-local bundler tools avoid modifying a shared Tauri tool cache.
+
+## Microsoft WebView2 Fixed Version (application-local desktop runtime)
+
+The offline desktop candidate uses the complete Microsoft WebView2 Fixed Version
+156.0.4314.42 x64 package under `runtime/webview2`. Microsoft terms apply separately
+from this repository's license. The original CAB, Microsoft EULA response and
+third-party license files are preserved in the local dependency receipt; the
+package's third-party notices remain unmodified in the distributed files.
+
+The publisher must distribute security updates for this fixed runtime. It does
+not run the Evergreen system installer or depend on an existing Runtime registry
+entry. The stager verifies the pinned complete extracted inventory before copying,
+and desktop build/candidate qualification binds every runtime member. Availability
+and installation lifecycle still require actual target execution; preparation and
+signature checks alone do not establish those results.
+
+## Driver.js 1.10.2 (first-use operation hints)
+
+Locally bundled from https://github.com/nilbuild/driver.js at pinned npm version 1.10.2.
+Used only to highlight existing controls; the application retains navigation and saving rules.
+
+The MIT License
+
+Copyright (c) Kamran Ahmed
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

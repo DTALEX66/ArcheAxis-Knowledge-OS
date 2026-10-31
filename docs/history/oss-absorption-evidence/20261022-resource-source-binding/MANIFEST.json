@@ -1,0 +1,77 @@
+{
+  "schema": "aaos.historical-resource-source-binding/v1",
+  "observed_at": "2026-10-22T13:01:18.263Z",
+  "baseline_commit": "8d367bac4a85bebfbb523503678ade0838faa73e",
+  "status": "HISTORICAL_SOURCE_CUSTODY_ONLY",
+  "reason": "Restore exact historical qualification source bytes. Hashes and evidence states preserved. Current source runtime is not requalified by archival repair.",
+  "files": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
+      "original_path": "crates/archeaxis-domain/src/document.rs",
+      "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755",
+      "bytes": 95122,
+      "current_source_sha256": "d2ddb420a8c2706153d752a06e0dceb2668f84d53a3c3ca9cb874a95725171eb",
+      "baseline_commit": "8d367bac4a85bebfbb523503678ade0838faa73e"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
+      "original_path": "frontend/src/api/generated/core-contract.ts",
+      "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143",
+      "bytes": 91374,
+      "current_source_sha256": "8e303642a7a8e740231d505c5541f6ef264e85b89a2f141a0ae8473828ae6e72",
+      "baseline_commit": "8d367bac4a85bebfbb523503678ade0838faa73e"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
+      "original_path": "Cargo.lock",
+      "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c",
+      "bytes": 25015,
+      "current_source_sha256": "32215d8af53615046cd823d68a0d8d58a802b5c4d8f486442ea638fbaaeef7d4",
+      "baseline_commit": "8d367bac4a85bebfbb523503678ade0838faa73e"
+    }
+  ],
+  "references": [
+    {
+      "pointer": "/entries/3/evidence/version/source_refs/0",
+      "original_path": "crates/archeaxis-domain/src/document.rs",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
+      "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
+    },
+    {
+      "pointer": "/entries/5/evidence/version/source_refs/0",
+      "original_path": "crates/archeaxis-domain/src/document.rs",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
+      "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
+    },
+    {
+      "pointer": "/entries/3/evidence/version/source_refs/1",
+      "original_path": "frontend/src/api/generated/core-contract.ts",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
+      "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143"
+    },
+    {
+      "pointer": "/entries/5/evidence/version/source_refs/1",
+      "original_path": "frontend/src/api/generated/core-contract.ts",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
+      "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143"
+    },
+    {
+      "pointer": "/entries/3/evidence/license/source_refs/1",
+      "original_path": "Cargo.lock",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
+      "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+    },
+    {
+      "pointer": "/entries/5/evidence/license/source_refs/1",
+      "original_path": "Cargo.lock",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
+      "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+    },
+    {
+      "pointer": "/sources/5",
+      "original_path": "Cargo.lock",
+      "historical_path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
+      "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+    }
+  ]
+}

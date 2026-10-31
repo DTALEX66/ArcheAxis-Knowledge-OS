@@ -24,7 +24,106 @@ def load_probe():
     return module
 
 
+def pointer_ready(x=30, y=40):
+    return {"hit": True, "disabled": False, "stable": True, "armed": True,
+            "count": 1, "point": {"x": x, "y": y}}
+
+
+def pointer_proof():
+    return {"overflow": 0, "events": [
+        {"type": kind, "trusted": True, "target": True, "button": 0}
+        for kind in ("pointerdown", "pointerup", "click")]}
+
+
 class GroupedNativeProbeTests(unittest.TestCase):
+    def test_restored_original_diagnostic_rejects_wrong_knowledge_body_or_grant(self):
+        probe = load_probe()
+        grant = {"knowledge_id":"original-k", "purpose":"answer"}
+        document = {"document_id":"grant-doc", "version":1, "content_sha256":"a"*64,
+                    "editor_json":{"attrs":{"archeaxis_context_grant":grant}}}
+        knowledge = {"knowledge_id":"original-k", "body":"original body", "version":"original-k@v1"}
+        selection = {"document":document, "grant":grant, "snapshot":probe.grant_snapshot(document), "knowledge":knowledge, "current":True}
+        probe.assert_restored_original_selection(selection, document, knowledge)
+        for field in ('knowledge_id', 'body'):
+            wrong = copy.deepcopy(selection); wrong['knowledge'][field] = 'other'
+            with self.assertRaises(AssertionError):
+                probe.assert_restored_original_selection(wrong, document, knowledge)
+        wrong = copy.deepcopy(selection); wrong['snapshot']['version'] = 2
+        with self.assertRaises(AssertionError):
+            probe.assert_restored_original_selection(wrong, document, knowledge)
+
+    def test_native_option_click_reveals_select_and_verifies_selection(self):
+        probe = load_probe()
+        selector = "//select[@id='profile']/option[@value='local']"
+        for mode in ('success', 'disabled', 'not_selected', 'wrong_value'):
+            commands, reveals, evidence = [], [], []
+            def observe(script):
+                disabled = ' disabled' if mode == 'disabled' else ''
+                selected = bool(commands) and mode != 'not_selected'
+                markup = '<select id="profile"' + disabled + '><option value="other">Other</option><option value="local"' + (' selected' if selected else '') + '>Local</option></select>'
+                value = evaluate(script, markup)
+                if mode == 'wrong_value' and commands:
+                    value['parent_value'] = 'other'
+                return value
+            ui = probe.GroupedUI(observe, lambda _: None, lambda *_: 'option', lambda *args: commands.append(args), evidence)
+            with patch.object(ui, 'reveal_selector', lambda value: reveals.append(value)):
+                if mode == 'success':
+                    ui.click_selector(selector)
+                    self.assertEqual(evidence[-1]['action'], 'trusted_native_option_click')
+                    self.assertEqual(evidence[-1]['selected_value'], 'local')
+                else:
+                    with self.assertRaises(AssertionError):
+                        ui.click_selector(selector)
+                    self.assertFalse(evidence)
+            self.assertEqual(reveals, ['(' + selector + ')/ancestor::select[1]'])
+            self.assertEqual(commands, [] if mode == 'disabled' else [('option', 'click', {})])
+
+    def test_regular_xpath_button_keeps_pointer_path(self):
+        probe = load_probe()
+        ui = probe.GroupedUI(lambda _: None, lambda _: None, lambda *_: None, lambda *_: None, [])
+        with patch.object(ui, 'click_revealed_selector') as pointer, patch.object(ui, 'click_native_option') as option:
+            ui.click_selector("//button[@id='save']")
+        pointer.assert_called_once_with("//button[@id='save']")
+        option.assert_not_called()
+
+    def test_initial_grouped_review_selects_authored_normal_rating_once(self):
+        probe = load_probe()
+        tree = ast.parse((ROOT / "scripts/probes/aaos01_grouped_owner_loop.py").read_text(encoding="utf-8"))
+        journey = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "run_grouped_loop")
+        history_index = next(index for index, node in enumerate(journey.body)
+                             if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "history_before" for target in node.targets))
+        selection = ast.Module(body=[journey.body[history_index - 1]], type_ignores=[])
+        commands, reveals, evidence = [], [], []
+
+        def observe(script):
+            options = '<option value="">选择本次难度</option><option value="1">忘记</option><option value="2">困难</option><option value="3"' + (' selected' if commands else '') + '>一般</option><option value="4">轻松</option>'
+            return evaluate(script, '<label>学习者自评 <select>' + options + '</select></label>')
+
+        ui = probe.GroupedUI(observe, lambda _: None, lambda *_: "rating-option",
+                             lambda *args: commands.append(args), evidence)
+        with patch.object(ui, "reveal_selector", lambda value: reveals.append(value)), \
+             patch.object(ui, "click_revealed_selector", side_effect=AssertionError("Native rating must use option semantics")):
+            exec(compile(selection, "<initial grouped review selection>", "exec"),
+                 {"ui": ui, "label_selector": probe.label_selector})
+        self.assertEqual(commands, [("rating-option", "click", {})])
+        self.assertEqual(evidence[-1]["action"], "trusted_native_option_click")
+        self.assertEqual(evidence[-1]["selected_value"], "3")
+        self.assertEqual(len(reveals), 1)
+        self.assertIn("ancestor::select[1]", reveals[0])
+
+    def test_saved_model_configuration_scope_matches_current_panel_and_rejects_ambiguity(self):
+        probe = load_probe()
+        panel = '<div class="card"><h2>产品模型与用途绑定</h2><button>读取模型配置</button><p role="status">已读取版本 1</p></div>'
+        hidden = '<section hidden>' + panel + '</section>'
+        unrelated = '<div><h2>其他配置</h2><p>已读取版本 1</p></div>'
+        for markup, expected in [(panel + hidden + unrelated, True), (panel + panel, False),
+                                 (hidden + unrelated, False), (panel.replace('已读取版本 1', '读取失败'), False)]:
+            with self.subTest(markup=markup):
+                self.assertEqual(evaluate(probe.model_configuration_status_observation('已读取版本 1'), markup), expected)
+        selector = probe.button_selector('读取模型配置', probe.MODEL_CONFIGURATION_SCOPE)
+        script = 'return document.evaluate(' + json.dumps(selector) + ',document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null).snapshotLength;'
+        self.assertEqual(evaluate(script, panel + hidden + unrelated), 1)
+
     def test_saved_binding_probe_refuses_existing_configuration_before_ui_writes(self):
         probe = load_probe()
         class UI:
@@ -33,6 +132,110 @@ class GroupedNativeProbeTests(unittest.TestCase):
         existing = {'revision': 1, 'profiles': {'owned': {}}, 'bindings': []}
         with self.assertRaisesRegex(AssertionError, 'fresh isolated'):
             probe.save_deep_model_binding(UI(), lambda *a: existing, lambda *a: None, {}, 'aaos-deep-27b-mtp')
+
+    def test_model_advanced_disclosure_opens_by_trusted_summary_and_keeps_open_state(self):
+        probe = load_probe()
+        for initially_open in (False, True):
+            state, clicks, evidence = {"open": initially_open}, [], []
+            def observe(script):
+                panel = '<div><h2>产品模型与用途绑定</h2><details class="model-advanced" ' + ('open' if state["open"] else '') + '><summary>' + probe.MODEL_ADVANCED_SUMMARY + '</summary><fieldset><label>本地服务地址 <input></label></fieldset></details></div>'
+                return evaluate(script, '<main data-current-page-id="19"></main>' + panel + '<aside hidden>' + panel + '</aside>')
+            def wait(script):
+                self.assertTrue(observe(script), "Disclosure must be open before field interaction")
+            def click(selector):
+                clicks.append(selector)
+                self.assertEqual(selector, probe.MODEL_ADVANCED_DETAILS_SCOPE + '/summary')
+                state["open"] = True
+            ui = probe.GroupedUI(observe, wait, lambda *_: "node", lambda *_: None, evidence)
+            with patch.object(ui, 'click_revealed_selector', click):
+                ui.open_model_advanced_configuration()
+            self.assertEqual(len(clicks), 0 if initially_open else 1)
+            self.assertEqual(evidence[-1]['decision'], 'ALREADY_OPEN' if initially_open else 'OPENED_BY_RENDERED_UI')
+            self.assertFalse(evidence[-1]['business_completion'])
+
+    def test_model_advanced_disclosure_rejects_wrong_page_missing_hidden_or_ambiguous_controls(self):
+        probe = load_probe()
+        panel = '<div><h2>产品模型与用途绑定</h2><details class="model-advanced"><summary>' + probe.MODEL_ADVANCED_SUMMARY + '</summary><input></details></div>'
+        for page, markup in [('03', panel), ('19', ''), ('19', '<aside hidden>' + panel + '</aside>'),
+                             ('19', panel + panel), ('19', panel.replace(probe.MODEL_ADVANCED_SUMMARY, '其他设置')),
+                             ('19', panel.replace('<summary>', '<summary hidden>')),
+                             ('19', panel.replace('</details>', '</details><details class="model-advanced"><summary>重复</summary></details>'))]:
+            with self.subTest(page=page, markup=markup):
+                ui = probe.GroupedUI(lambda script: evaluate(script, '<main data-current-page-id="' + page + '"></main>' + markup), lambda _: None, lambda *_: None, lambda *_: None, [])
+                with patch.object(ui, 'click_revealed_selector') as click, self.assertRaisesRegex(AssertionError, 'model advanced disclosure'):
+                    ui.open_model_advanced_configuration()
+                click.assert_not_called()
+
+    def test_model_advanced_disclosure_refuses_click_that_did_not_open_it(self):
+        probe = load_probe()
+        ui = probe.GroupedUI(lambda _: {"page": "19", "panels": 1, "count": 1, "summary": True, "open": False, "enabled": False}, lambda _: None, lambda *_: None, lambda *_: None, [])
+        with patch.object(ui, 'click_revealed_selector') as click, self.assertRaisesRegex(AssertionError, 'did not open'):
+            ui.open_model_advanced_configuration()
+        click.assert_called_once_with(probe.MODEL_ADVANCED_DETAILS_SCOPE + '/summary')
+        self.assertFalse(ui.evidence)
+
+    def test_model_advanced_disclosure_waits_for_enabled_fields_after_load(self):
+        probe = load_probe()
+        for fieldset in ('<fieldset disabled><input></fieldset>', '', '<fieldset><input></fieldset><fieldset></fieldset>'):
+            markup = '<main data-current-page-id="19"></main><div><h2>产品模型与用途绑定</h2><details class="model-advanced" open><summary>' + probe.MODEL_ADVANCED_SUMMARY + '</summary>' + fieldset + '</details></div>'
+            ui = probe.GroupedUI(lambda script: evaluate(script, markup), lambda _: None, lambda *_: None, lambda *_: None, [])
+            with self.subTest(fieldset=fieldset), patch.object(ui, 'click_revealed_selector') as click, self.assertRaisesRegex(AssertionError, 'editable fields'):
+                ui.open_model_advanced_configuration()
+            click.assert_not_called()
+            self.assertFalse(ui.evidence)
+
+    def test_saved_binding_waits_for_load_and_opens_advanced_before_all_fields_and_bindings(self, lane="deep"):
+        probe = load_probe()
+        actions, state = [], {"loaded": False, "open": False, "saved": False}
+        before = {"revision": 0, "profiles": {}, "bindings": [], "workspace_id": "isolated", "restore_epoch": "initial"}
+        profile = {"endpoint": "http://127.0.0.1:1234/v1", "protocol": "openai", "model": "authorized-model", "credential_ref": None, "max_tokens": 4096, "timeout_s": 120}
+        purposes = ("answer", "retest") if lane == "fast" else ("answer", "retest", "material", "companion")
+        after = {**before, "revision": 1, "profiles": {"local": profile}, "bindings": [{"purpose": purpose, "lane": lane, "profile_id": "local"} for purpose in purposes]}
+        class UI:
+            def page(self, page):
+                assert page == '19'
+            def click_revealed(self, label, scope):
+                if label == '读取模型配置':
+                    state['loaded'] = True
+                else:
+                    assert state['open'], 'Advanced action attempted while collapsed'
+                if label == '保存配置与用途绑定':
+                    state['saved'] = True
+                actions.append(label)
+            def open_model_advanced_configuration(self):
+                assert state['loaded'] and actions[-1] == 'wait_loaded'
+                state['open'] = True
+                actions.append('advanced_open')
+            def type(self, label, value, **_):
+                assert state['open'], 'Hidden advanced field must not be typed'
+                actions.append(label)
+            def reveal_selector(self, selector):
+                assert state['open']
+                actions.append(selector)
+            def click_selector(self, selector):
+                assert state['open']
+                actions.append(selector)
+        def read(operation, args=None):
+            if operation == 'model_configuration_get':
+                return after if state['saved'] else before
+            if operation == 'machine_tasks_list':
+                return {"items": [], "next_cursor": None}
+            assert operation == 'model_configuration_resolve' and state['saved']
+            assert args['body']['lane'] == lane
+            return {"purpose": args['body']['purpose'], "lane": lane, "profile_id": "local", "profile": profile, "configuration_revision": 1, "workspace_id": "isolated", "restore_epoch": "initial"}
+        def wait(script):
+            if script == probe.model_configuration_status_observation('已读取版本 0'):
+                actions.append('wait_loaded')
+        stage = {}
+        probe.save_deep_model_binding(UI(), read, wait, stage, 'authorized-model', purposes, budget=4096, lane=lane)
+        self.assertLess(actions.index('advanced_open'), actions.index('本地服务地址'))
+        self.assertEqual(stage['saved_deep_binding']['configuration'], after)
+        self.assertEqual(stage['saved_deep_binding']['configuration_inference_calls'], 0)
+        for purpose in purposes:
+            self.assertTrue(any(purpose + " / " + lane.upper() in action for action in actions))
+
+    def test_fast_binding_uses_formal_ui_and_matching_resolved_profile(self):
+        self.test_saved_binding_waits_for_load_and_opens_advanced_before_all_fields_and_bindings(lane="fast")
 
     def test_saved_binding_receipt_rejects_stale_purpose_profile_epoch_or_budget(self):
         probe = load_probe()
@@ -45,13 +248,42 @@ class GroupedNativeProbeTests(unittest.TestCase):
         value = {'request': {'model_configuration': resolved, 'resolved_model': resolved,
                             'model': resolved['profile']['model'], 'max_tokens': 1024, 'timeout_s': 120}}
         probe.assert_saved_model_request(value, saved, 'answer')
-        for key, wrong in [('purpose', 'retest'), ('configuration_revision', 0), ('restore_epoch', 'old'),
+        for key, wrong in [('purpose', 'retest'), ('lane', 'fast'), ('configuration_revision', 0), ('restore_epoch', 'old'),
                            ('profile_id', 'other'), ('configuration_sha256', 'b'*64)]:
             bad = copy.deepcopy(value); bad['request']['model_configuration'][key] = wrong
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 probe.assert_saved_model_request(bad, saved, 'answer')
         bad = copy.deepcopy(value); bad['request']['max_tokens'] = 2048
         with self.assertRaises(AssertionError): probe.assert_saved_model_request(bad, saved, 'answer')
+
+    def test_saved_binding_budget_accepts_matching_profile_and_rejects_mismatch(self):
+        probe = load_probe()
+        for purpose in ("answer", "retest"):
+            for budget in (1024, 2048, 4096):
+                resolved = {"purpose": purpose, "lane": "deep",
+                            "profile": {"model": "authorized-model", "max_tokens": budget, "timeout_s": 120}}
+                saved = {"resolved": {purpose: copy.deepcopy(resolved)}}
+                request = {"model_configuration": copy.deepcopy(resolved), "model": "authorized-model",
+                           "max_tokens": budget, "timeout_s": 120}
+                value = {"request": request}
+                if purpose == "retest":
+                    value["execution_request"] = {"resolved_model": copy.deepcopy(resolved)}
+                else:
+                    request["resolved_model"] = copy.deepcopy(resolved)
+                with self.subTest(purpose=purpose, budget=budget):
+                    probe.assert_saved_model_request(value, saved, purpose)
+                    wrong = copy.deepcopy(value)
+                    wrong["request"]["max_tokens"] = 2048 if budget == 1024 else 1024
+                    with self.assertRaises(AssertionError):
+                        probe.assert_saved_model_request(wrong, saved, purpose)
+
+    def test_saved_binding_rejects_unsupported_probe_budget_before_io(self):
+        probe = load_probe()
+        def no_io(*args):
+            raise RuntimeError("Unexpected product IO")
+        for budget in (None, True, 0, 1025, 8192):
+            with self.subTest(budget=budget), self.assertRaisesRegex(AssertionError, "Unsupported probe output budget"):
+                probe.save_deep_model_binding(None, no_io, no_io, {}, "authorized-model", budget=budget)
 
     def test_saved_binding_retest_requires_executor_binding_not_only_request_selection(self):
         probe = load_probe()
@@ -80,6 +312,55 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 def bad_read(op, *_): return bad if op == 'model_configuration_get' else {'restore_epoch':'restored'}
                 with self.subTest(restored=restored,field=field), self.assertRaises(AssertionError):
                     probe.read_saved_model_configuration(UI(),bad_read,lambda *_:None,stage,restored=restored)
+
+    def test_fast_saved_resolution_cold_and_restore_identity_fences(self):
+        probe = load_probe()
+        profile = {'endpoint':'http://127.0.0.1:1234/v1','protocol':'openai','model':'authorized-fast',
+                   'credential_ref':None,'max_tokens':2048,'timeout_s':120}
+        saved = {'schema':'archeaxis.model-configuration/v1','revision':1,'profiles':{'local':profile},
+                 'bindings':[{'purpose':'answer','lane':'fast','profile_id':'local'}],
+                 'workspace_id':'isolated','restore_epoch':'initial'}
+        resolution = {'schema':'archeaxis.resolved-model/v1','workspace_id':'isolated','restore_epoch':'initial',
+                      'configuration_revision':1,'configuration_sha256':'a'*64,'purpose':'answer',
+                      'lane':'fast','profile_id':'local','profile':profile}
+        class UI:
+            def page(self, *_): pass
+            def click_revealed(self, *_): pass
+        def exercise(restored, mutation=None):
+            current = copy.deepcopy(saved)
+            resolved = copy.deepcopy(resolution)
+            if restored:
+                current['restore_epoch'] = resolved['restore_epoch'] = 'restored'
+                resolved['configuration_sha256'] = 'b'*64
+            if mutation:
+                mutation(resolved)
+            def read(operation, payload=None):
+                if operation == 'model_configuration_get': return current
+                if operation == 'ui_state_read': return {'restore_epoch':'restored'}
+                self.assertEqual(operation, 'model_configuration_resolve')
+                self.assertEqual(payload, {'body':{'purpose':'answer','lane':'fast'}})
+                return resolved
+            stage = {'saved_deep_binding':{'lane':'fast','configuration':saved,'resolved':{'answer':resolution}}}
+            probe.read_saved_model_configuration(UI(),read,lambda *_:None,stage,restored=restored)
+            key = 'restore_readback' if restored else 'cold_reopen'
+            self.assertEqual(stage['saved_deep_binding'][key]['resolved']['answer'], resolved)
+        for restored in (False, True):
+            with self.subTest(restored=restored, mutation='none'):
+                exercise(restored)
+            for field, wrong in [('configuration_revision',2),('purpose','retest'),('lane','deep'),
+                                 ('profile_id','other'),('workspace_id','other'),('restore_epoch','stale'),
+                                 ('schema','unknown')]:
+                with self.subTest(restored=restored,field=field), self.assertRaises(AssertionError):
+                    exercise(restored, lambda value, field=field, wrong=wrong: value.update({field:wrong}))
+            for field, wrong in [('model','different'),('max_tokens',4096),('timeout_s',60),
+                                 ('endpoint','http://127.0.0.1:9999/v1'),('credential_ref','changed')]:
+                with self.subTest(restored=restored,profile_field=field), self.assertRaises(AssertionError):
+                    exercise(restored, lambda value, field=field, wrong=wrong: value['profile'].update({field:wrong}))
+        for digest in ('a'*64, 'invalid'):
+            with self.subTest(restored=True,digest=digest), self.assertRaises(AssertionError):
+                exercise(True, lambda value, digest=digest: value.update(configuration_sha256=digest))
+        with self.assertRaises(AssertionError):
+            exercise(False, lambda value: value.update(configuration_sha256='b'*64))
 
     def test_restore_refusal_digest_binds_current_saved_model_and_effective_budget(self):
         probe = load_probe()
@@ -128,13 +409,13 @@ class GroupedNativeProbeTests(unittest.TestCase):
         scripts = []
         def js(script):
             scripts.append(script)
-            return {"ready": True}
+            return {"ready": True, "disabled": False}
         probe.GroupedUI(js, lambda _: None, lambda *_: "node", lambda *_: None, []).reveal_selector("//button")
         harness = r"""
 const nav={parentElement:null,clientLeft:0,clientTop:0,clientWidth:217,clientHeight:400,
  scrollWidth:500,scrollHeight:400,scrollLeft:0,scrollTop:0,
  getBoundingClientRect:()=>({left:322,right:539,top:100,bottom:500})};
-const target={parentElement:nav,getBoundingClientRect:()=>({left:640,right:688,top:200,bottom:240,width:48,height:40}),contains:n=>n===target};
+const target={parentElement:nav,matches:()=>false,closest:()=>null,getBoundingClientRect:()=>({left:640,right:688,top:200,bottom:240,width:48,height:40}),contains:n=>n===target};
 nav.contains=n=>n===nav||n===target;
 const innerWidth=1000,innerHeight=700;
 const document={evaluate:()=>({singleNodeValue:target}),elementFromPoint:x=>x>=322&&x<539?nav:null};
@@ -150,6 +431,47 @@ console.log(JSON.stringify({scroll,hidden}));
         self.assertEqual(proof["scroll"]["wheel"]["deltaX"], 240)
         self.assertEqual(proof["scroll"]["wheel"]["deltaY"], 0)
         self.assertNotIn("wheel", proof["hidden"])
+
+    def test_reveal_fractional_clip_edge_uses_real_wheel_and_keeps_hit_requirement(self):
+        probe = load_probe()
+        scripts = []
+        probe.GroupedUI(lambda script: scripts.append(script) or {"ready": True, "disabled": False},
+                        lambda _: None, lambda *_: "node", lambda *_: None, []).reveal_selector("//button")
+        harness = r"""
+const observe=new Function('document','XPathResult','innerWidth','innerHeight','getComputedStyle',SOURCE);
+const result={};
+for(const scene of ['bottom','top','blocked','at-end','hidden','disabled','hit']){
+ let cy=scene==='top'?181.3:scene==='blocked'?600:957.1;
+ const panel={parentElement:null,clientLeft:0,clientTop:0,clientWidth:1171,clientHeight:776,
+  scrollWidth:1171,scrollHeight:2000,scrollLeft:0,scrollTop:scene==='at-end'?1224:400,
+  getBoundingClientRect:()=>({left:82,right:1253,top:181.2,bottom:957.2})};
+ const target={parentElement:panel,matches:()=>scene==='disabled',closest:()=>null,
+  getBoundingClientRect:()=>({left:100,right:250,top:cy-20,bottom:cy+20,width:150,height:40}),contains:n=>n===target};
+ panel.contains=n=>n===panel||n===target;
+ const main={};
+ const document={evaluate:()=>({singleNodeValue:target}),elementFromPoint:(x,y)=>{
+  if(x===175&&Math.abs(y-cy)<1e-6)return scene==='hit'||(scene!=='blocked'&&cy>182.2&&cy<956.2)?target:main;
+  return y>181.2&&y<957.2?panel:main;
+ }};
+ const getComputedStyle=()=>({overflowX:'visible',overflowY:scene==='hidden'?'hidden':'auto'});
+ const read=()=>observe(document,{FIRST_ORDERED_NODE_TYPE:1},1920,1080,getComputedStyle);
+ const before=read();
+ if(before.wheel){cy-=before.wheel.deltaY;panel.scrollTop+=before.wheel.deltaY;}
+ result[scene]={before,after:read()};
+}
+console.log(JSON.stringify(result));
+""".replace("SOURCE", json.dumps(scripts[0]))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True, text=True, check=True)
+        proof = json.loads(result.stdout)
+        for scene, direction in (("bottom", 240), ("top", -240)):
+            self.assertFalse(proof[scene]["before"]["ready"])
+            self.assertEqual(proof[scene]["before"]["wheel"]["deltaY"], direction)
+            self.assertTrue(proof[scene]["after"]["ready"])
+        for scene in ("blocked", "at-end", "hidden", "disabled"):
+            self.assertFalse(proof[scene]["before"]["ready"])
+            self.assertNotIn("wheel", proof[scene]["before"])
+        self.assertTrue(proof["hit"]["before"]["ready"])
+        self.assertNotIn("wheel", proof["hit"]["before"])
 
     def test_pointer_observer_reads_semantic_page_identity_instead_of_old_title(self):
         probe = load_probe()
@@ -167,7 +489,7 @@ console.log(JSON.stringify({scroll,hidden}));
         harness = """
 const button={dataset:{pageId:'06'},getBoundingClientRect:()=>({x:0,y:0,width:40,height:20})};
 const root={querySelectorAll:()=>[button]};
-const document={querySelector:s=>s==='.navigation-sidebar'?root:s==='.ui-page-heading'?{dataset:{currentPageId:'06'}}:s==='.ui-page-heading small'?{textContent:'UI / 20'}:s.includes('button')?button:null};
+const document={querySelector:s=>s==='.stitch-workspace-dock'?root:s==='.ui-page-heading'?{dataset:{currentPageId:'06'}}:s==='.ui-page-heading small'?{textContent:'UI / 20'}:s.includes('button')?button:null};
 const location={hash:'#page=06'},window={addEventListener:()=>{},removeEventListener:()=>{}};
 eval(OBSERVER);
 console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
@@ -177,16 +499,97 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
     def test_revealed_click_is_one_pointer_click_after_hit_testing(self):
         probe = load_probe()
-        commands = []
-        ui = probe.GroupedUI(lambda _:{"ready":True,"point":{"x":30,"y":40}}, lambda _:None,
-            lambda *_:"node", lambda *args:commands.append(args), [])
+        commands, evidence = [], []
+        values = iter([{"ready":True,"disabled":False,"point":{"x":30,"y":40}}, pointer_ready(), pointer_proof()])
+        ui = probe.GroupedUI(lambda _:next(values), lambda _:None,
+            lambda *_:"node", lambda *args:commands.append(args), evidence)
         ui.click_revealed_selector("//button[@id='target']")
         self.assertEqual(commands, [(None,"pointer_click",{"x":30,"y":40})])
+        self.assertIs(evidence[-1]["disabled"], False)
+
+    def test_revealed_click_refuses_native_fieldset_and_aria_disabled_targets(self):
+        probe = load_probe()
+        for markup in [
+            '<button id="target" disabled>Save</button>',
+            '<fieldset disabled><button id="target">Save</button></fieldset>',
+            '<button id="target" aria-disabled="true">Save</button>',
+            '<div aria-disabled="TRUE"><button id="target">Save</button></div>',
+        ]:
+            with self.subTest(markup=markup):
+                commands, evidence, samples = [], [], []
+                def observe(script):
+                    if not samples:
+                        samples.append(evaluate(script, markup))
+                    return samples[0]
+                ui = probe.GroupedUI(observe, lambda _: None,
+                    lambda *_: "node", lambda *args: commands.append(args), evidence)
+                # Replace this probe's clock reference, not the shared time module:
+                # subprocess.run's POSIX timeout wait can also call time.sleep.
+                with patch.object(probe, "time") as probe_time:
+                    sleep = probe_time.sleep
+                    with self.assertRaisesRegex(TimeoutError, "Target remains disabled"):
+                        ui.click_revealed_selector("//button[@id='target']")
+                self.assertEqual(commands, [])
+                self.assertEqual(sleep.call_args_list, [unittest.mock.call(.15)] * 5)
+                self.assertEqual(evidence[-1]["action"], "target_disabled")
+                self.assertIs(evidence[-1]["observation"]["disabled"], True)
+
+    def test_revealed_click_observes_temporary_disabled_state_then_clicks_once(self):
+        probe = load_probe()
+        commands, evidence = [], []
+        values = iter([{"ready": False, "disabled": True},
+                       {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}},
+                       pointer_ready(), pointer_proof()])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), evidence)
+        with patch.object(probe.time, "sleep") as sleep:
+            ui.click_revealed_selector("//button[@id='target']")
+        sleep.assert_called_once_with(.15)
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
+        self.assertEqual(evidence[0]["action"], "wait_for_target_enabled")
+        self.assertIs(evidence[-1]["disabled"], False)
+
+    def test_revealed_click_refuses_disable_after_layout_before_pointer(self):
+        probe = load_probe()
+        for markup in ['<button id="target" disabled>Save</button>',
+                       '<div aria-disabled="true"><button id="target">Save</button></div>']:
+            with self.subTest(markup=markup):
+                commands, evidence, observations = [], [], []
+                def observe(script):
+                    observations.append(script)
+                    if len(observations) % 2 == 1:
+                        return {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}
+                    return {"hit": False, "disabled": True, "count": 1, "stable": False}
+                ui = probe.GroupedUI(observe, lambda _: None, lambda *_: "node",
+                    lambda *args: commands.append(args), evidence)
+                with patch.object(probe.time, "sleep") as sleep, self.assertRaisesRegex(TimeoutError, "remained disabled"):
+                    ui.click_revealed_selector("//button[@id='target']")
+                self.assertEqual(commands, [])
+                self.assertEqual(len(observations), 6)
+                self.assertEqual(sleep.call_count, 3)
+                self.assertTrue(all(0 < call.args[0] <= .15 for call in sleep.call_args_list))
+                self.assertEqual(evidence[-1]["action"], "target_pointer_readiness")
+                self.assertIs(evidence[-1]["observation"]["disabled"], True)
+
+    def test_revealed_click_rechecks_temporary_pointer_disable_without_replaying_action(self):
+        probe = load_probe()
+        commands = []
+        values = iter([{"ready": True, "disabled": False, "point": {"x": 10, "y": 20}},
+                       {"hit": False, "disabled": True},
+                       {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}},
+                       pointer_ready(), pointer_proof()])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), [])
+        with patch.object(probe.time, "sleep") as sleep:
+            ui.click_revealed_selector("//button[@id='target']")
+        self.assertEqual(sleep.call_count, 1)
+        self.assertTrue(0 < sleep.call_args.args[0] <= .15)
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
 
     def test_reveal_uses_bounded_wheel_input_without_clicking_or_mutating_dom(self):
         probe = load_probe()
         commands, evidence = [], []
-        values = iter([{"ready":False,"wheel":{"x":30,"y":40,"deltaX":0,"deltaY":240}}, {"ready":True}])
+        values = iter([{"ready":False,"wheel":{"x":30,"y":40,"deltaX":0,"deltaY":240}}, {"ready":True,"disabled":False}])
         ui = probe.GroupedUI(lambda _:next(values), lambda _:None, lambda *_:"node",
             lambda *args:commands.append(args), evidence)
         with patch.object(probe.time, "sleep", lambda _:None):
@@ -212,7 +615,8 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         commands, evidence = [], []
         values = iter([
             {"ready": False, "reason": "No reachable scroll container", "target": {"x": 1043, "y": 679}},
-            {"ready": True, "point": {"x": 770, "y": 679}},
+            {"ready": True, "disabled": False, "point": {"x": 770, "y": 679}},
+            pointer_ready(770, 679), pointer_proof(),
         ])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), evidence)
@@ -220,6 +624,172 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             ui.click_revealed_selector("//button[@id='restored-document']")
         self.assertEqual(commands, [(None, "pointer_click", {"x": 770, "y": 679})])
         self.assertTrue(any(row["action"] == "wait_for_target_layout" for row in evidence))
+
+    def test_click_rechecks_the_point_instead_of_using_a_stale_coordinate(self):
+        probe = load_probe()
+        commands = []
+        values = iter([
+            {"ready": True, "disabled": False, "point": {"x": 10, "y": 20}}, {"hit": False, "disabled": False},
+            {"ready": True, "disabled": False, "point": {"x": 30, "y": 40}}, pointer_ready(), pointer_proof(),
+        ])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), [])
+        with patch.object(probe.time, "sleep", lambda _: None):
+            ui.click_revealed_selector("//button[@id='moving']")
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
+
+    def test_pointer_actionability_observes_two_frames_same_node_box_scroll_and_hit(self):
+        probe = load_probe()
+        # Execute the actual observation script with deterministic frame/geometry
+        # fixtures. This is simulated event evidence, not a browser/Host verdict.
+        harness = r"""
+const script=SCRIPT;
+(async()=>{const result=[];
+for(const scene of ['stable','moving','node-changed','scroll-changed','hidden','duplicate','disabled','aria-disabled','covered','frame-stalled']){
+ let frame=0;const listeners=new Map(),window={},late=[];
+ const parent={parentElement:null,getClientRects:()=>[{}],closest:()=>null,
+  get scrollTop(){return scene==='scroll-changed'?frame:0;},scrollLeft:0};
+ const make=()=>({parentElement:parent,getClientRects:()=>scene==='hidden'?[]:[{}],
+  closest:s=>s.includes('aria-disabled')&&scene==='aria-disabled'?parent:null,
+  matches:()=>scene==='disabled',contains(n){return n===this;},
+  getBoundingClientRect(){const top=scene==='moving'?10+frame:10;return {left:10,top,right:50,bottom:top+20,width:40,height:20};}});
+ const original=make(),replacement=make();
+ const node=()=>scene==='node-changed'&&frame===2?replacement:original;
+ const document={evaluate:()=>({snapshotLength:scene==='duplicate'?2:1,snapshotItem:()=>node()}),
+  elementFromPoint:()=>scene==='covered'?{}:node(),
+  addEventListener:(kind,fn)=>listeners.set(kind,fn),removeEventListener:kind=>listeners.delete(kind)};
+ const run=new Function('document','window','getComputedStyle','XPathResult','requestAnimationFrame','innerWidth','innerHeight',script);
+ const facts=await run(document,window,()=>({display:'block',visibility:'visible'}),{ORDERED_NODE_SNAPSHOT_TYPE:7},cb=>{if(scene==='frame-stalled'){late.push(cb);return 1;}frame++;cb();},800,600);
+ const frames_before_late=frame;late.forEach(cb=>cb());
+ let proof=null;if(facts.armed){for(const type of ['pointerdown','pointerup','click'])listeners.get(type)({type,isTrusted:true,target:node(),button:0,clientX:30,clientY:20});proof=window.__aaosTargetPointerProbe.finish();}
+ result.push({scene,frame,frames_before_late,facts,proof,listeners:listeners.size,observer_removed:!window.__aaosTargetPointerProbe});
+}console.log(JSON.stringify(result));})().catch(e=>{console.error(e);process.exit(1)});
+""".replace("SCRIPT", json.dumps(probe.pointer_actionability_script("//button[@id='target']")))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True,
+                                text=True, encoding="utf-8", check=True)
+        for row in json.loads(result.stdout):
+            with self.subTest(scene=row["scene"]):
+                self.assertEqual(row["frame"], 0 if row["scene"] == "frame-stalled" else 2)
+                self.assertTrue(row["observer_removed"])
+                self.assertEqual(row["listeners"], 0)
+                if row["scene"] == "stable":
+                    self.assertTrue(row["facts"]["armed"])
+                    probe.assert_pointer_delivery(row["proof"])
+                else:
+                    self.assertFalse(row["facts"].get("armed", False))
+
+    def test_unstable_pre_pointer_samples_share_three_original_attempts_without_input(self):
+        probe = load_probe()
+        for change in ({"stable": False}, {"count": 2}, {"disabled": True}, {"hit": False}):
+            with self.subTest(change=change):
+                commands, evidence = [], []
+                values = iter(sum(([{"ready": True, "disabled": False}, {**pointer_ready(), **change}] for _ in range(3)), []))
+                ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+                                     lambda *args: commands.append(args), evidence)
+                with patch.object(probe.time, "sleep") as sleep, self.assertRaises(TimeoutError):
+                    ui.click_revealed_selector("//button[@id='target']")
+                self.assertEqual(commands, [])
+                self.assertEqual(sleep.call_count, 3)
+
+    def test_post_pointer_unknown_or_wrong_events_never_replays_a_possible_write(self):
+        probe = load_probe()
+        variants = [None, {"overflow": 0, "events": []}, {"overflow": 1, "events": pointer_proof()["events"]}]
+        variants.append({"overflow": 0, "events": pointer_proof()["events"] + [pointer_proof()["events"][-1]]})
+        for field in ("trusted", "target"):
+            proof = pointer_proof(); proof["events"][2][field] = False; variants.append(proof)
+        for proof in variants:
+            with self.subTest(proof=proof):
+                commands, evidence = [], []
+                values = iter([{"ready": True, "disabled": False, "point": {"x": 10, "y": 20}}, pointer_ready(), proof])
+                ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+                                     lambda *args: commands.append(args), evidence)
+                with self.assertRaisesRegex(AssertionError, "not replayed"):
+                    ui.click_revealed_selector("//button[@id='save']")
+                self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
+                self.assertEqual(evidence[-1]["action"], "trusted_pointer_delivery")
+                self.assertTrue(evidence[-1]["command_completed"])
+
+    def test_pointer_transport_error_keeps_original_exception_and_does_not_replay(self):
+        probe = load_probe()
+        commands, evidence = [], []
+        reason = RuntimeError("unknown delivery")
+        values = iter([{"ready": True, "disabled": False}, pointer_ready(), None])
+        def command(*args):
+            commands.append(args)
+            raise reason
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node", command, evidence)
+        with self.assertRaises(RuntimeError) as caught:
+            ui.click_revealed_selector("//button[@id='save']")
+        self.assertIs(caught.exception, reason)
+        self.assertEqual(len(commands), 1)
+        self.assertFalse(evidence[-1]["command_completed"])
+
+    def test_reader_source_tools_opens_current_stitch_disclosure_before_candidate(self):
+        probe = load_probe()
+        for initially_open in (False, True):
+            state, clicks = {"open": initially_open}, []
+
+            def observe(script):
+                markup = '<section class="stitch-reader-page" aria-label="阅读与编辑文档视图"><details class="reader-source-tools" ' + ('open' if state["open"] else '') + '><summary>整理关联来源</summary><button>整理此来源为知识候选</button></details></section>'
+                markup += '<div hidden><section aria-label="阅读与编辑文档视图"><details class="reader-source-tools"><summary>旧实例</summary></details></section></div>'
+                return evaluate(script, markup)
+
+            ui = probe.GroupedUI(observe, lambda _: None, lambda *_: "node", lambda *_: None, [])
+
+            def click(selector):
+                clicks.append(selector)
+                if selector.endswith("/summary"):
+                    state["open"] = True
+                else:
+                    self.assertTrue(state["open"], "Cannot click a collapsed source tool")
+
+            with patch.object(ui, "click_revealed_selector", click):
+                ui.open_reader_source_tools()
+            self.assertEqual(len(clicks), 1 if initially_open else 2)
+            self.assertIn("整理此来源为知识候选", clicks[-1])
+
+    def test_reader_source_tools_refuses_failed_or_ambiguous_disclosure(self):
+        probe = load_probe()
+        for values, expected_clicks in [
+            ([[{"open": False, "summary": True}], [{"open": False, "summary": True}]], 1),
+            ([[{"open": False, "summary": True}] * 2], 0),
+            ([[{"open": False, "summary": False}]], 0),
+        ]:
+            observations, clicks = iter(values), []
+            ui = probe.GroupedUI(lambda _: next(observations), lambda _: None, lambda *_: "node", lambda *_: None, [])
+            with patch.object(ui, "click_revealed_selector", lambda selector: clicks.append(selector)), self.assertRaises(AssertionError):
+                ui.open_reader_source_tools()
+            self.assertEqual(len(clicks), expected_clicks)
+
+    def test_page_navigation_uses_current_stitch_menu_without_legacy_drawer(self):
+        probe = load_probe()
+        clicks, commands = [], []
+        scope = 'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(1)'
+        # SIMULATED rendered menu; actual DOM readiness rejection is tested separately.
+        ready = dict(open=True, summaryFocused=True, index=0, targetVisible=True,
+            targetEnabled=True, hit=True, blockers=[], contentVisibility="visible",
+            opacity="1", runningAnimations=0, ready=True)
+        budgets = [30]
+        def wait(script, seconds=30):
+            if script.startswith("return !!document.querySelector("):
+                selector = json.loads(script.removeprefix("return !!document.querySelector(")[:-1])
+                self.assertIn(selector, [scope + ' button[data-page-id="03"]', scope + ' > summary'])
+                return
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, budgets[-1])
+            budgets.append(seconds)
+            if script.endswith("})().ready;"):
+                self.assertTrue(ready["ready"])
+            else:
+                self.assertTrue(script.startswith("return location.hash"))
+        ui = probe.GroupedUI(lambda script: {"page":"01","mode":"menu","scope":scope,"opened":False} if "const requested=" in script else "#page=01" if script == "return location.hash" else ready if "summaryFocused:" in script else "document.activeElement===n" in script,
+            wait, lambda _using, selector: selector, lambda *args: commands.append(args), [])
+        with patch.object(ui, "click_selector", lambda *args: clicks.append(args)):
+            ui.page("03")
+        self.assertEqual(len(clicks), 1)
+        self.assertEqual(scope + ' > summary', clicks[0][0])
+        self.assertEqual(commands[-1][1:], ("value", {"text": "\ue007"}))
+        self.assertIn('.stitch-workspace-menu', commands[-1][0])
 
     def test_type_replaces_react_controlled_value_instead_of_appending_after_clear(self):
         probe = load_probe()
@@ -274,17 +844,32 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
     def test_delayed_navigation_confirmation_never_replays_the_action(self):
         probe = load_probe()
         actions = []
+        # SIMULATED ready menu isolates delayed alert handling from DOM rendering.
+        ready = dict(open=True, summaryFocused=True, index=0, targetVisible=True,
+            targetEnabled=True, hit=True, blockers=[], contentVisibility="visible",
+            opacity="1", runningAnimations=0, ready=True)
+        budgets = [30]
         class Alert(Exception):
             value = {"error": "unexpected alert open"}
-        def wait(script):
-            if not script.startswith("return location.hash"):
-                return True
+        def wait(script, seconds=30):
+            if script.startswith("return !!document.querySelector("):
+                selector = json.loads(script.removeprefix("return !!document.querySelector(")[:-1])
+                self.assertIn(selector, [scope + ' button[data-page-id="12"]', scope + ' > summary'])
+                return
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, budgets[-1])
+            budgets.append(seconds)
+            if script.endswith("})().ready;"):
+                self.assertTrue(ready["ready"])
+                return
+            self.assertTrue(script.startswith("return location.hash"))
             actions.append("observe")
             if actions.count("observe") == 1:
                 raise Alert()
-        ui = probe.GroupedUI(lambda script: "#page=11" if script == "return location.hash" else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
+        scope = 'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(1)'
+        ui = probe.GroupedUI(lambda script: {"page":"11","mode":"menu","scope":scope,"opened":True} if "const requested=" in script else "#page=11" if script == "return location.hash" else ready if "summaryFocused:" in script else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
         ui.page("12", confirm_navigation=True)
-        self.assertEqual(actions, ["activate", "confirm", "observe", "confirm", "observe"])
+        self.assertEqual(actions, ["activate", "activate", "confirm", "observe", "confirm", "observe"])
 
     def test_cancel_ui_ack_does_not_imply_a_terminal_or_provider_stop(self):
         probe=load_probe();actions=[]
@@ -292,7 +877,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             def click(self,label): actions.append(label)
             def js(self,source): return "本地 worker 取消请求已接收；尚未确认停止"
         report=probe.request_owned_machine_cancellation(UI(),lambda source:None,{})
-        self.assertEqual(actions,["请求取消当前本地 worker"])
+        self.assertEqual(actions,["请求取消本次本地生成"])
         self.assertTrue(report["cancel_requested"])
         self.assertFalse(report["terminal_verified"])
         self.assertEqual(report["provider_stop_state"],"UNKNOWN")
@@ -308,15 +893,29 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         self.assertEqual(report["local_worker_terminal"],"CANCELLED_LOCAL_WORKER")
         self.assertEqual(report["provider_stop_state"],"UNKNOWN")
 
-    def test_trusted_pending_review_navigation_confirms_parent_and_child_without_replaying_clicks(self):
+    def test_trusted_pending_review_navigation_confirms_child_without_replaying_input(self):
         probe=load_probe();actions=[]
+        # SIMULATED menu readiness keeps the trusted action/confirmation order explicit.
+        ready = dict(open=True, summaryFocused=True, index=0, targetVisible=True,
+            targetEnabled=True, hit=True, blockers=[], contentVisibility="visible",
+            opacity="1", runningAnimations=0, ready=True)
+        budgets = [30]
+        def wait(source, seconds=30):
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, budgets[-1])
+            budgets.append(seconds)
+            if source.endswith("})().ready;"):
+                self.assertTrue(ready["ready"])
+            else:
+                self.assertTrue(source.startswith("return location.hash"))
         def js(source):
-            return '#page=19' if source=='return location.hash' else False
-        ui=probe.GroupedUI(js,lambda source:None,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
+            return {'page':'19','mode':'menu','scope':'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(7)','opened':False} if 'const requested=' in source else '#page=19' if source=='return location.hash' else ready if 'summaryFocused:' in source else 'document.activeElement===n' in source
+        ui=probe.GroupedUI(js,wait,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
         ui.find=lambda *args:'node'
         ui.click_selector=lambda *args:actions.append('parent')
         ui.page('12',confirm_navigation=True)
-        self.assertEqual(actions,['parent','confirm','child','confirm'])
+        # Disclosure does not navigate or open an alert; Tab then Enter precede confirmation.
+        self.assertEqual(actions,['parent','child','child','confirm'])
 
     def test_machine_ack_qualification_rejects_missing_model_and_unfinished_inference_attempt(self):
         probe=load_probe()
@@ -427,7 +1026,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 reads = iter([copy.deepcopy(before), last]); actions = []
                 def js(script):
                     actions.append(script)
-                    return observed if script == "return window.__aaosRecoveryReplies" else None
+                    return {"seq": 4, "pending": 0, "events": [], "replies": observed} if script == "return structuredClone(window.__aaosRecoveryObservation)" else None
                 invoke = lambda: run(lambda *_: next(reads), actions.append, lambda *_: None, js)
                 if mutation is None:
                     self.assertEqual(invoke()["acknowledged"], ack)
@@ -602,8 +1201,15 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
     def test_webdriver_only_interactions(self):
         commands, observations, actions = [], [], []
+        def observe(script):
+            observations.append(script)
+            if script.startswith("return window.__aaosTargetPointerProbe"):
+                return pointer_proof()
+            if "requestAnimationFrame" in script:
+                return pointer_ready()
+            return {"ready": True, "disabled": False, "hit": True, "point": {"x": 30, "y": 40}}
         ui = self.probe.GroupedUI(
-            lambda script: observations.append(script) or "#page=13",
+            observe,
             lambda script, **_: observations.append(script),
             lambda using, selector: "actual-element",
             lambda element, action, body: commands.append((element, action, body)),
@@ -613,11 +1219,18 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         ui.type("知识候选正文", "authored fixture", "textarea")
         ui.keys(self.probe.label_selector("选择实际引文", "textarea"), "\ue009\ue008\ue010\ue000")
         folder = ROOT / ".project-local" / "artifacts" / "unittest-fixture-no-files-written"
-        ui.upload_directory(folder)
+        with patch.object(ui, "open_folder_import") as disclosure:
+            ui.upload_directory(folder)
+        disclosure.assert_called_once_with()
         self.assertEqual(
-            [row[1] for row in commands], ["click", "click", "value", "value", "click", "value", "value"]
+            [row[1] for row in commands],
+            ["pointer_click", "click", "value", "value", "pointer_click", "value", "value"],
         )
-        self.assertTrue(all(row[0] == "actual-element" for row in commands))
+        self.assertIsNone(commands[0][0])
+        self.assertTrue(
+            all(row[0] == "actual-element" for row in commands if row[1] not in {"pointer_click", "wheel"})
+        )
+        self.assertTrue(all(row[0] is None for row in commands if row[1] in {"pointer_click", "wheel"}))
         self.assertEqual(commands[-1][2]["text"], str(folder.resolve()))
         self.assertFalse(
             any(
@@ -627,7 +1240,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         )
         self.assertEqual(
             {row["action"] for row in actions},
-            {"trusted_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
+            {"target_visible_and_hit_tested", "target_pointer_readiness", "trusted_pointer_delivery", "trusted_visible_pointer_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
         )
 
     def test_unconfirmed_route_never_grants_or_invokes(self):
@@ -673,8 +1286,14 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             with self.subTest(field=field), self.assertRaises(AssertionError):
                 self.probe.assert_quote_selection({**proof, field: wrong}, text)
         commands, scripts, result = [], [], {}
+        def observe(script):
+            if script.startswith("return window.__aaosTargetPointerProbe"):
+                return pointer_proof()
+            if "requestAnimationFrame" in script:
+                return pointer_ready(3, 4)
+            return {"ready": True, "disabled": False, "hit": True, "point": {"x": 3, "y": 4}} if "elementFromPoint" in script else proof
         ui = self.probe.GroupedUI(
-            lambda _: proof,
+            observe,
             lambda script: scripts.append(script),
             lambda *_: "quote",
             lambda element, action, body: commands.append((action, body)),
@@ -683,7 +1302,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         self.probe.select_full_quote(
             ui, lambda _: proof, lambda script: scripts.append(script), text, result
         )
-        self.assertEqual(commands, [("click", {}), ("value", {"text": "\ue009a\ue000"})])
+        self.assertEqual(commands, [("pointer_click", {"x": 3, "y": 4}), ("value", {"text": "\ue009a\ue000"})])
         self.assertEqual(result["quote_selection"]["status"], "PASS")
         self.assertFalse(
             any(
@@ -953,13 +1572,13 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         document = {
             **grant,
             "title": "original",
-            "editor_json": {"attrs": {"archeaxis_context_grant": {"purpose": "original"}}},
+            "editor_json": {"attrs": {"archeaxis_context_grant": {"purpose": "original", "knowledge_id": "original-knowledge"}}},
         }
         stage = {
             "original_grant": document,
             "original_answer": original,
             "status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
-            "knowledge_before": {"knowledge_id": "original-knowledge", "status": "accepted"},
+            "knowledge_before": {"knowledge_id": "original-knowledge", "status": "accepted", "body": "original body"},
         }
         actions, reads, waits = [], [], []
 
@@ -976,6 +1595,11 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
         class UI:
             def js(self, script):
+                if "原知识授权详细信息 ·" in script:
+                    return {"document": copy.deepcopy(document),
+                            "grant": copy.deepcopy(document["editor_json"]["attrs"]["archeaxis_context_grant"]),
+                            "snapshot": self_probe.grant_snapshot(document),
+                            "knowledge": copy.deepcopy(stage["knowledge_before"]), "current": True}
                 self_script = script
                 assert "contextAdmissionRefusal" in self_script
                 return copy.deepcopy(receipt)
@@ -984,6 +1608,12 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 actions.append(("page", page))
 
             def click(self, label):
+                actions.append(("click", label))
+
+            def click_revealed_selector(self, selector):
+                actions.append(("click_selector", selector))
+
+            def click_revealed(self, label, scope):
                 actions.append(("click", label))
 
             def type(self, label, text, tag):
@@ -1007,6 +1637,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 }
             raise AssertionError("Unexpected write or read " + op)
 
+        self_probe = self.probe
         observed = self.probe.restored_grant_refusal(
             UI(), read, lambda script, **_: waits.append(script), stage
         )
@@ -1023,7 +1654,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             self.probe.restored_admission_receipt(None, document, "original-knowledge", "question")
         self.assertIn(("type", "实际问题", "question", "textarea"), actions)
         self.assertIn(("click", "执行本地机器回答"), actions)
-        self.assertTrue(any("Core 明确拒绝此回答请求" in script for script in waits))
+        self.assertTrue(any("本地知识库明确拒绝此回答请求" in script for script in waits))
         self.assertTrue(all(op in self.probe.READ_OPERATIONS for op, _ in reads))
         self.assertEqual(
             self.probe.restored_grant_refusal(None, None, None, {})["status"], "NOT_EXECUTED"
@@ -1069,19 +1700,34 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         bound = [knowledge["knowledge_id"]]
         probe = self.probe
         saved_configuration = {}
-        def save_binding(ui, read, wait, stage, model, purposes):
-            profile = {"model":model,"max_tokens":1024,"timeout_s":120}
+        def save_binding(ui, read, wait, stage, model, purposes, *, budget=1024):
+            profile = {"model":model,"max_tokens":budget,"timeout_s":120}
             saved_configuration.update(resolved={p:{"purpose":p,"lane":"deep","profile":profile} for p in purposes})
             stage["saved_deep_binding"] = copy.deepcopy(saved_configuration)
 
         class UI:
+            diagnostic_open = False
+
             def page(self, page):
                 actions.append(("page", page))
 
             def click_revealed(self, label, scope=""):
                 actions.append(("revealed_click", label, scope))
+                if label == "关闭运行诊断":
+                    assert self.diagnostic_open and scope == "//*[@role='dialog']"
+                    self.diagnostic_open = False
+
+            def click_revealed_selector(self, selector):
+                assert selector == "//section[@aria-label='项目记忆与上下文内容' and not(ancestor-or-self::*[@hidden])]//button[@data-diagnostic-label='完整上下文授权']"
+                actions.append(("diagnostic_click", selector))
+                self.diagnostic_open = True
 
             def js(self, script):
+                if script == probe.CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION:
+                    assert self.diagnostic_open
+                    return {"schema": "archeaxis.context-grant/v1", "knowledge_id": bound[0],
+                            "state": "candidate", "consumer": "local-machine",
+                            "provenance": [{"kind": "knowledge", "knowledge_id": bound[0]}]}
                 assert '本地模型清单探测结果' in script
                 return '清单已读取，共 1 项；声明模型已列出。加载状态未知，推理尚未验证。'
 
@@ -1135,7 +1781,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                         },
                     }
                     if selected_max_tokens is not None:
-                        body["request"]["max_tokens"] = 1024 if save_deep_binding else selected_max_tokens
+                        body["request"]["max_tokens"] = saved_configuration["resolved"]["answer"]["profile"]["max_tokens"] if save_deep_binding else selected_max_tokens
                     if save_deep_binding:
                         resolved = saved_configuration["resolved"]["answer"]
                         body["answer"].update(requested_model=resolved["profile"]["model"], observed_model=resolved["profile"]["model"], answer_source="content")
@@ -1443,10 +2089,10 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         )
         self.assertEqual(restarts, [False, False, True])
         enable_index = actions.index(
-            ("click", "启用 text.extract", "//section[@aria-label='冻结请求的能力恢复']")
+            ("click", "启用文字解析", "//section[@aria-label='处理能力恢复']")
         )
         retries = [i for i, action in enumerate(actions) if action ==
-                   ("click", "同请求重试转换", "//section[@aria-label='真实转换产物']")]
+                   ("click", "重试上次处理", "//section[@aria-label='真实转换产物']")]
         self.assertEqual(len(retries), 2)
         self.assertLess(retries[0], enable_index, "disabled same-key proof refresh is a separate action")
         retry_index = retries[1]
@@ -1479,6 +2125,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             "finished": False,
             "hydrated": False,
             "journal": None,
+            "request_details_open": False,
         }
         actions, restarts = [], []
         text = "Authored source text\n"
@@ -1522,9 +2169,12 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
             def click_selector(self, selector):
                 actions.append(("selector", selector))
-                if "文档与来源详细信息：文档与来源详细信息" in selector:
+                if "@role='tab'" in selector and "接入来源与运行设置" in selector:
+                    assert state["page"] == "#page=15"
+                    state["resource_settings"] = True
+                elif "文档与来源详细信息：文档与来源详细信息" in selector:
                     state["diagnostic"] = True
-                elif "禁用 text.extract" in selector:
+                elif "禁用文字解析" in selector:
                     state["enabled"] = False
                 elif selector == "//*[@data-recovery-request=" + self_test.probe.xpath_literal(frozen["request_id"]) + "]//button[@data-recovery-action='restore']":
                     self_test.assertIsNotNone(state["journal"])
@@ -1533,6 +2183,9 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 elif "打开文档" in selector:
                     assert state["page"] == "#page=02", "document selection requires library page"
                     state["page"] = "#page=03"
+                elif selector == "//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary":
+                    self_test.assertIsNotNone(state["journal"])
+                    state["request_details_open"] = True
                 else:
                     raise AssertionError("unexpected selector")
 
@@ -1547,17 +2200,19 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
             def click(self, label, scope=""):
                 actions.append(("click", label, scope))
-                if label == "执行真实内容转换":
+                if label == "刷新本机可用功能":
+                    assert state.get("resource_settings"), "Capability refresh requires the real resource settings tab"
+                elif label == "执行真实内容转换":
                     state["new_job"] = True
                     state["journal"] = {**copy.deepcopy(frozen), "source_id": "source-exact",
                         "source_revision": document["source_revision"], "kind": "text",
                         "surface": "manual", "mode": "single", "relative": None,
                         "origin_restore_epoch": "initial"}
-                elif label == "启用 text.extract":
+                elif label == "启用文字解析":
                     state["enabled"] = True
                     if autoexecute:
                         state["status"] = copy.deepcopy(succeeded)
-                elif label == "同请求重试转换":
+                elif label == "重试上次处理":
                     self_test.assertTrue(state["hydrated"], "retry needs explicit restored scene")
                     if not state["enabled"]:
                         self_test.assertEqual(state["status"], refused)
@@ -1570,7 +2225,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                     state["finished"] = True
                 elif label == "关闭运行诊断":
                     state["diagnostic"] = False
-                elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
+                elif label not in {"刷新本机可用功能", "整理此来源为知识候选"}:
                     raise AssertionError("unexpected click " + label)
 
         self_test = self
@@ -1612,22 +2267,29 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             raise AssertionError("unexpected operation")
 
         def js(script):
+            if "资源与扩展内容" in script:
+                selected = state.get("resource_settings", False)
+                markup = '<main data-current-page-id="' + state["page"].removeprefix("#page=") + '"></main><section aria-label="资源与扩展内容"><button role="tab" aria-selected="' + str(selected).lower() + '">接入来源与运行设置</button>'
+                markup += '<button>刷新本机可用功能</button>' if selected else ''
+                return evaluate(script, markup + '</section>')
             if script.startswith("const visible=n") or script.startswith("const rows="):
                 return evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False)))
             if "const root=" in script:
+                self_test.assertTrue(state["request_details_open"], "Request identity must be revealed by its actual UI entry")
                 return {
                     "page": state["page"],
                     "frozen": "执行请求已冻结："
                     + frozen["request_id"]
                     + "；单次预算 60s。未知结果不会产生新作业。",
                     "latest": "最新任务 " + frozen["job_id"],
-                    "recovery": "Core 已证明原请求未受理",
+                    "recovery": "本地服务已确认本次处理请求未受理",
                 }
             return text
 
         def restart():
             restarts.append(state["enabled"])
             state["hydrated"] = False
+            state["request_details_open"] = False
             state["page"] = ""
             if state["journal"] is not None and not state["finished"]:
                 if restart_execute:
@@ -1636,7 +2298,9 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                     state["journal"]["body"]["deadline_ms"] = 1
 
         def wait(script, *args, **kwargs):
-            if "data-current-page-id" in script or "诊断控制台" in script:
+            if "资源与扩展内容" in script:
+                assert js(script), "Rendered resource settings predicate failed"
+            elif "data-current-page-id" in script or "诊断控制台" in script:
                 assert evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False))), "Rendered reader predicate failed; business page does not expose raw ID"
             if script == "return location.hash==='#page=03'":
                 assert state["page"] == "#page=03", "hydrated scene needs real same-page URL navigation"

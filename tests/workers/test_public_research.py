@@ -14,7 +14,9 @@ WORKER = ROOT / "services/python-workers/machine/public_research.py"
 
 
 @pytest.fixture
-def worker():
+def worker(monkeypatch):
+    # Synthetic fixtures must never inherit the developer's real Windows route.
+    monkeypatch.setenv("ARCHEAXIS_PUBLIC_RESEARCH_PROXY", "direct")
     spec = importlib.util.spec_from_file_location("public_research_fixture", WORKER)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -72,6 +74,7 @@ def test_three_families_keep_raw_and_distinguish_representations(worker, monkeyp
     {"query": " "}, {"query": "x\0y"}, {"query": "x"*1001}, {"document": "PRIVATE"},
     {"families": []}, {"families": ["research", "research"]}, {"families": ["unknown"]},
     {"limit": 0}, {"limit": 4}, {"limit": True}, {"schema": "other"},
+    {"community_site": "stackoverflow"}, {"community_site": None}, {"community_site": []},
 ])
 def test_invalid_request_never_dispatches(worker, monkeypatch, changes):
     monkeypatch.setattr(worker.http, "fetch", lambda *a, **k: pytest.fail("network must not run"))
@@ -207,3 +210,68 @@ def test_only_approved_protocol_fields_escape(worker, monkeypatch):
     assert set(channel) == {"family", "provider", "status", "retrieved_at", "request_url", "retry_after_seconds", "error_code", "raw_response_base64", "hits"}
     assert set(channel["hits"][0]) == {"id", "family", "provider", "title", "url", "retrieved_at", "content", "excerpt", "locator", "license", "free_access", "upstream_revision", "representation", "truncated"}
     assert "future_untrusted" not in channel["hits"][0]
+
+
+def test_selected_forum_site_binds_query_and_hit_identity(worker, monkeypatch):
+    calls, _ = fake_http(worker, monkeypatch, [{"items": [{"question_id": 42,
+        "title": "Synthetic stats", "link": "https://stats.stackexchange.com/questions/42/x",
+        "body": "<p>Public comparison</p>"}]}])
+    channel = worker.execute(request(families=["community"], community_site="stats"))["channels"][0]
+    assert "site=stats" in calls[0]
+    assert channel["hits"][0]["id"] == "stackexchange:stats:question:42"
+    fake_http(worker, monkeypatch, [{"items": [{"question_id": 42, "title": "Wrong site",
+        "link": "https://academia.stackexchange.com/questions/42/x"}]}])
+    channel = worker.execute(request(families=["community"], community_site="stats"))["channels"][0]
+    assert channel["status"] == "failed" and channel["error_code"] == "invalid_response"
+
+
+@pytest.mark.parametrize("status", [429, 500, 503])
+def test_openalex_unavailable_preserves_original_and_crossref_metadata_receipts(worker, monkeypatch, status):
+    calls = []
+    raw = b'{"status":"ok","message":{"items":[{"DOI":"10.1234/synthetic","title":["Synthetic title"]}]}}'
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        assert policy.max_redirects == 0 and policy.allowed_hosts == (url.split('/')[2],)
+        if len(calls) == 1:
+            raise worker.http.SafeHTTPStatusError(status, {"retry-after": "42"})
+        return SimpleNamespace(body=raw, headers={}, status=200)
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    primary, fallback = worker.execute(request(families=["research"], limit=3))["channels"]
+    assert primary["provider"] == "openalex" and primary["error_code"] == f"http_{status}"
+    assert primary["retry_after_seconds"] == 42 and primary["raw_response_base64"] is None
+    assert fallback["provider"] == "crossref" and fallback["status"] == "complete"
+    assert calls[1].startswith("https://api.crossref.org/works?query.bibliographic=") and "rows=3" in calls[1]
+    assert base64.b64decode(fallback["raw_response_base64"]) == raw
+    hit = fallback["hits"][0]
+    assert hit["provider"] == "crossref" and hit["id"] == hit["url"] == "https://doi.org/10.1234/synthetic"
+    assert hit["content"] == hit["representation"] == "metadata" and hit["excerpt"] == ""
+    assert hit["license"] is None and hit["upstream_revision"] is None
+
+
+def test_crossref_failure_and_cancellation_are_never_hidden(worker, monkeypatch):
+    calls = []
+    def fetch(url, **kwargs):
+        calls.append(url)
+        raise worker.http.SafeHTTPStatusError(429 if len(calls) == 1 else 503, {})
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    channels = worker.execute(request(families=["research"]))["channels"]
+    assert [(c["provider"], c["error_code"]) for c in channels] == [("openalex", "http_429"), ("crossref", "http_503")]
+    calls.clear()
+    with pytest.raises(worker.Cancelled):
+        worker.execute(request(families=["research"]), cancelled=lambda: bool(calls))
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize("failure", ["invalid_response", "proxy_tls_failed", "proxy_config_invalid", "http_403"])
+def test_crossref_does_not_bypass_invalid_response_or_security_refusal(worker, monkeypatch, failure):
+    calls = []
+    def fetch(url, **kwargs):
+        calls.append(url)
+        if failure == "invalid_response":
+            return SimpleNamespace(body=b'{"unexpected":[]}', headers={}, status=200)
+        if failure == "http_403":
+            raise worker.http.SafeHTTPStatusError(403, {})
+        raise worker.proxy_transport.ProxyFailure(failure)
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    channels = worker.execute(request(families=["research"]))["channels"]
+    assert len(calls) == len(channels) == 1 and channels[0]["error_code"] == failure

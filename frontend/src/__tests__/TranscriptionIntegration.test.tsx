@@ -72,7 +72,7 @@ describe("mock transcription UI integration",()=>{
  it("preserves the global cue index across pagination and rejects wrong anchor source",async()=>{
   const cues=Array.from({length:31},(_,i)=>({start_ms:i*100,end_ms:i*100+50,text:`cue ${i}`}));
   bridge.call.mockResolvedValue({anchor_id:"wrong",source_id:"other",source_revision:revision,position:"{}",location_status:"located"});
-  render(<TranscriptionCues proof={{sourceId:"source",revision,jobId:"original-job",attempt:1,resultSha256:"b".repeat(64),durationMs:4000,cues}}/>);const user=userEvent.setup();
+  render(<TranscriptionCues proof={{sourceId:"source",revision,jobId:"original-job",attempt:1,resultSha256:"b".repeat(64),durationMs:4000,cueToleranceMs:0,cues}}/>);const user=userEvent.setup();
   await user.click(screen.getByRole("button",{name:/下一/}));const row=screen.getByRole("cell",{name:"cue 30"}).closest("tr")!;
   await user.click(within(row).getByRole("button",{name:"引用时间段"}));await screen.findByText(/时间引用未确认/);
   expect(JSON.parse(bridge.call.mock.calls[0][1].body.position).cue_index).toBe(30);expect(screen.queryByText(/关联已校验/)).not.toBeInTheDocument();
@@ -81,7 +81,7 @@ describe("mock transcription UI integration",()=>{
  it("says a reopened transcript is only part of the recording when its segments did not all finish",()=>{
   const cues=[{start_ms:100,end_ms:900,text:"第一段"}];
   const shown=(windows:unknown)=>render(<TranscriptionCues proof={{sourceId:"source",revision,jobId:"job",attempt:1,
-   resultSha256:"b".repeat(64),durationMs:4000,cues,pipeline:{windows}}}/>);
+   resultSha256:"b".repeat(64),durationMs:4000,cueToleranceMs:0,cues,pipeline:{windows}}}/>);
   const partial=shown({status:"partial",windows_expected:3,windows_present:1,windows_missing:[1,2],windows_resumed:[]});
   expect(screen.getByText(/分段尚未全部完成/)).toHaveTextContent("1、2");
   partial.unmount();

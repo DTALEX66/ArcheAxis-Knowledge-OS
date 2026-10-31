@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 
 def test_simulated_native_journal_is_explicit_and_rejects_stale_or_frozen_writes():
@@ -54,6 +55,201 @@ def _load_smoke_module():
     finally:
         sys.path.remove(str(path.parent))
     return module
+
+
+@pytest.mark.parametrize('step', [10, 5])
+def test_companion_measurement_waits_for_entrance_and_exact_keyboard_target(step):
+    """Delayed rendering passes only for a full 10px move, never a stable wrong step."""
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {'headless': True}
+        if sys.platform == 'win32':
+            executable = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert executable, 'declared project Chromium required; do not install implicitly'
+            options['executable_path'] = executable
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={'width': 800, 'height': 600})
+            page.set_content('''<style>
+              @keyframes enter {from {transform:translateY(6px) scale(.98)} to {transform:none}}
+              #stitch-companion-window {position:fixed;left:200px;top:48px;width:300px;height:200px;
+                animation:enter .18s linear forwards}
+              </style><aside id="stitch-companion-window"><button>移动</button></aside>''')
+            page.evaluate('''step=>document.querySelector('button').addEventListener('keydown', event=>{
+              if(event.key==='ArrowLeft')setTimeout(()=>{
+                const panel=document.querySelector('#stitch-companion-window');
+                panel.style.left=`${panel.offsetLeft-step}px`;
+              },60);
+            })''', step)
+            before = smoke.wait_companion_bounds(page)
+            assert abs(before['x']-200) <= 1 and abs(before['y']-48) <= 1, before
+            page.get_by_role('button', name='移动', exact=True).focus()
+            page.keyboard.press('ArrowLeft')
+            expected = {'x':before['x']-10,'y':before['y']}
+            if step == 5:
+                with pytest.raises(PlaywrightTimeoutError, match='Timeout'):
+                    smoke.wait_companion_bounds(page, expected=expected, timeout=500)
+            else:
+                after = smoke.wait_companion_bounds(page, expected=expected)
+                assert abs(after['x']-expected['x']) <= 1
+                assert abs(after['y']-before['y']) <= 1
+        finally:
+            browser.close()
+
+
+def test_actual_dock_header_styles_keep_layout_and_open_views_text_separate():
+    """Real CSS cascade and painted text bounds, including legacy home/reader rules."""
+    smoke = _load_smoke_module()
+    root = Path(__file__).resolve().parents[1]
+    css = "\n".join((root / relative).read_text(encoding="utf-8") for relative in [
+        "frontend/src/design-system/glass-cabin.css",
+        "frontend/src/components/StitchWorkspaceChrome.css",
+        "frontend/src/workspace/dock-workspace.css",
+    ])
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == "win32":
+            options["executable_path"] = smoke._declared_tool("ext.toolchains.playwright-chromium", "playwright-chromium")
+            assert options["executable_path"]
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page()
+            page.set_content("""<style>body{margin:0;font:14px 'Segoe UI',sans-serif}
+              :root{--ax-text-ui:14px;--ax-fg-tertiary:#aaa;--ax-fg-secondary:#bbb}</style><style>""" + css + """</style>
+              <div class="app-shell cabin-shell" data-stitch-workspace="true" data-cabin-page="01"
+                style="position:relative;margin:48px 24px;width:calc(100vw - 48px);height:calc(100vh - 112px)">
+                <section class="dock-workspace" style="height:100%;min-height:0">
+                  <details class="dock-open-views"><summary>已打开视图（22）</summary><div class="dock-open-view-list"><button>文档</button></div></details>
+                  <details class="dock-layout-options"><summary>布局与面板</summary><div class="dock-toolbar"><button>恢复布局</button></div></details>
+                  <div class="dock-surface"></div>
+                </section>
+              </div>""")
+            for width, height in [(1920, 1080), (1280, 640), (640, 480)]:
+                page.set_viewport_size({"width": width, "height": height})
+                for page_id in ["01", "03"]:
+                    for theme in ["cosmic", "blueprint", "blueprint-light", "black", "white"]:
+                        page.evaluate("([id,theme])=>{document.querySelector('.cabin-shell').dataset.cabinPage=id;document.documentElement.dataset.aaosTheme=theme}", [page_id, theme])
+                        result = page.evaluate("""()=>{
+                          const measure=selector=>{const e=document.querySelector(selector),range=document.createRange();
+                            range.selectNodeContents(e);const r=range.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,hit:!!hit&&(hit===e||e.contains(hit))};};
+                          return {layout:measure('.dock-layout-options>summary'),views:measure('.dock-open-views>summary')};
+                        }""")
+                        a, b = result["layout"], result["views"]
+                        overlap = max(0, min(a["right"], b["right"]) - max(a["x"], b["x"])) * max(0, min(a["bottom"], b["bottom"]) - max(a["y"], b["y"]))
+                        context = {"viewport": [width, height], "page": page_id, "theme": theme, **result}
+                        assert a["width"] > 0 and b["width"] > 0 and overlap == 0, context
+                        assert a["hit"] and b["hit"], context
+        finally:
+            browser.close()
+
+
+def test_short_companion_keeps_workspace_header_navigation_and_dock_reachable():
+    """Real 1280x640 failure geometry: the portal must not intercept view summaries."""
+    smoke = _load_smoke_module()
+    root = Path(__file__).resolve().parents[1]
+    css = "\n".join((root / relative).read_text(encoding="utf-8") for relative in [
+        "frontend/src/design-system/glass-cabin.css",
+        "frontend/src/components/StitchWorkspaceChrome.css",
+        "frontend/src/workspace/dock-workspace.css",
+    ])
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == "win32":
+            options["executable_path"] = smoke._declared_tool("ext.toolchains.playwright-chromium", "playwright-chromium")
+            assert options["executable_path"]
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page()
+            page.set_content("""<style>body{margin:0;font:14px 'Segoe UI',sans-serif}
+              :root{--ax-text-ui:14px;--ax-fg-tertiary:#aaa;--ax-fg-secondary:#bbb}</style><style>""" + css + """</style>
+              <nav class="stitch-workspace-menu"><button id="menu-action">文件</button></nav>
+              <div class="app-shell cabin-shell" data-stitch-workspace="true" data-cabin-page="02" data-workspace-layout="companion"
+                style="position:absolute;left:5vw;top:56px;width:90vw;height:calc(100vh - 128px);padding:59.6px 18.8px 0;box-sizing:border-box">
+                <section class="dock-workspace" style="height:100%;min-height:0">
+                  <details class="dock-open-views"><summary>已打开视图（16）</summary></details>
+                  <details class="dock-layout-options"><summary>布局与面板</summary></details>
+                  <div class="dock-surface"></div>
+                </section>
+              </div>
+              <aside id="stitch-companion-window" class="stitch-companion-window">
+                <header class="stitch-window-titlebar"><button>小栖 · 陪伴会话</button></header>
+                <div class="stitch-companion-content"><div style="height:800px">保留同一会话</div></div>
+              </aside>
+              <nav class="stitch-workspace-dock"><button id="dock-action">工作台</button></nav>""")
+            for width, height in [(1280, 640), (960, 540), (640, 480)]:
+                page.set_viewport_size({"width": width, "height": height})
+                for page_id in ["02", "03"]:
+                    for theme in ["cosmic", "blueprint", "blueprint-light", "black", "white"]:
+                        page.evaluate("([id,theme])=>{document.querySelector('.cabin-shell').dataset.cabinPage=id;document.documentElement.dataset.aaosTheme=theme}", [page_id, theme])
+                        result = page.evaluate("""()=>{
+                          const bounds=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
+                          const target=selector=>{const e=document.querySelector(selector),range=document.createRange();range.selectNodeContents(e);
+                            const r=range.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                            return {...bounds(e),hit:!!hit&&(hit===e||e.contains(hit)),interceptor:hit?.className};};
+                          return {layout:target('.dock-layout-options>summary'),views:target('.dock-open-views>summary'),
+                            menu:target('#menu-action'),dock:target('#dock-action'),companion:bounds(document.querySelector('#stitch-companion-window'))};
+                        }""")
+                        context = {"viewport": [width, height], "page": page_id, "theme": theme, **result}
+                        assert all(result[key]["hit"] for key in ["layout", "views", "menu", "dock"]), context
+                        assert result["companion"]["y"] >= max(result["layout"]["bottom"], result["views"]["bottom"]), context
+                        assert result["companion"]["bottom"] <= result["dock"]["y"], context
+        finally:
+            browser.close()
+
+
+@pytest.mark.parametrize('empty,background,filtered,rejected', [
+    (False, '#111318', False, None),
+    (False, '#fff', True, None),
+    (False, '#fff', False, 'paint_contrast'),
+    (True, '#111318', False, 'SVG has no opaque paint'),
+])
+def test_real_brand_paint_gate_rejects_decoded_empty_or_invisible_svg(
+    empty, background, filtered, rejected,
+):
+    """A decoded file is insufficient; fractional CSS bounds/DPR keep real paint readable."""
+    smoke = _load_smoke_module()
+    asset = smoke.BRAND_ASSET_DIR / 'brand' / 'aaos-mark-light.svg'
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 40 296.11 125"/>'
+           if empty else asset.read_text(encoding='utf-8'))
+    html = f'''<style>
+      :root {{--ax-brand-glow:#fff}}
+      body {{margin:0;background:{background}}}
+      .stitch-brand {{display:flex;align-items:center;border:0;background:transparent;
+        padding:0 8px;height:32px;font-size:14px}}
+      .stitch-brand-logo {{height:16px;width:auto;object-fit:contain;transform:translateY(.5px);
+        filter:{'brightness(0)' if filtered else 'none'}}}
+      .status-bar-brand {{display:none}}
+      </style><button class="stitch-brand" aria-label="ArcheAxis Knowledge 今日工作台">
+      <img class="stitch-brand-logo" src="/brand/aaos-mark-light.svg" alt=""></button>
+      <span class="status-bar-brand"><img src="/aaos-brand-mark-cosmic.png" alt=""></span>'''
+    with smoke.sync_playwright() as playwright:
+        options = {'headless': True}
+        if sys.platform == 'win32':
+            executable = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert executable, 'declared project Chromium required; do not install implicitly'
+            options['executable_path'] = executable
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={'width': 800, 'height': 600}, device_scale_factor=1.25)
+            def fixture(route):
+                if route.request.url.endswith('/brand/aaos-mark-light.svg'):
+                    route.fulfill(content_type='image/svg+xml', body=svg)
+                elif route.request.url.endswith('/aaos-brand-mark-cosmic.png'):
+                    route.fulfill(content_type='image/png', body=(smoke.BRAND_ASSET_DIR / 'aaos-brand-mark-cosmic.png').read_bytes())
+                else:
+                    route.fulfill(content_type='text/html', body=html)
+            page.route('**/*', fixture)
+            page.goto('https://aaos-fixture.invalid/', wait_until='load')
+            if rejected:
+                with pytest.raises(AssertionError, match=rejected):
+                    smoke.check_brand_identity(page, 'cosmic', 'synthetic-fractional-dpr125')
+            else:
+                result = smoke.check_brand_identity(page, 'cosmic', 'synthetic-fractional-dpr125')
+                assert result['top_mark']['paint_contrast'] >= 3
+                assert not result['status_mark']['visible']
+        finally:
+            browser.close()
 
 
 @pytest.mark.parametrize('inner_overflow,inner_height,unreachable', [
@@ -190,26 +386,37 @@ def test_windows_readiness_timeout_reclaims_the_started_vite_process(monkeypatch
     assert calls == []
 
 
-def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_index(monkeypatch):
+def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_index(monkeypatch, tmp_path):
     smoke = _load_smoke_module()
     captured: list[object] = []
+    monkeypatch.setattr(smoke, "ROOT", tmp_path)
+    source = tmp_path / "frontend/src"
+    source.mkdir(parents=True)
+    (source / "tracked.ts").write_text("staged candidate", encoding="utf-8")
+    untracked = source / "new.ts"
+    untracked.write_text("new candidate", encoding="utf-8")
 
     def fake_check_output(command, **kwargs):
         captured.append(command)
         if command == ["git", "rev-parse", "HEAD"]:
             return "abc123\n"
-        if command == ["git", "diff", "--no-ext-diff", "--binary"]:
+        if command == ["git", "diff", "HEAD", "--no-ext-diff", "--binary"]:
             return b"diff --git a/a b/a\n"
+        if command[:4] == ["git", "ls-files", "-z", "--cached"]:
+            return b"frontend/src/tracked.ts\0frontend/src/new.ts\0frontend/src/deleted.ts\0"
         raise AssertionError(command)
 
     monkeypatch.setattr(smoke.subprocess, "check_output", fake_check_output)
+    before = smoke.source_revision()
+    assert before["base_commit"] == "abc123"
+    assert before["worktree_dirty"] is True
+    assert before["worktree_diff_sha256"] == "9e3e63fac9c92100f0f15e616e1abf395028edc8912bebfc42044c65eb17e114"
+    assert set(before["files"]) == {"frontend/src/tracked.ts", "frontend/src/new.ts", "frontend/src/deleted.ts"}
+    assert before["files"]["frontend/src/deleted.ts"] is None
+    untracked.write_text("changed during run", encoding="utf-8")
+    assert smoke.source_revision()["source_tree_sha256"] != before["source_tree_sha256"]
+    assert all(command[1] in {"rev-parse", "diff", "ls-files"} for command in captured)
 
-    assert smoke.source_revision() == {
-        "base_commit": "abc123",
-        "worktree_dirty": True,
-        "worktree_diff_sha256": "9e3e63fac9c92100f0f15e616e1abf395028edc8912bebfc42044c65eb17e114",
-    }
-    assert ["git", "write-tree"] not in captured
 
 
 def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
@@ -246,16 +453,19 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
     assert all(branch > 600 for branch in branches), branches
 
     # Exercise the actual gate, including the independent short-window branch.
-    # Boundary cases catch OR -> AND, a lowered 280px floor, or a moved cutoff.
+    # Every declaration retains a 280px reading floor, including short and wide views.
     gate = _load_smoke_module()
-    bands = {"navigation_trigger": ".ui-navigation-trigger"}
-    for width, height, required in ((1200, 761, True), (1201, 760, True),
+    bands = {"navigation_trigger": 'button[aria-label="全部页面，打开产品导航"]'}
+    for width, height, _historical_compact in ((1200, 761, True), (1201, 760, True),
                                     (640, 480, True), (1201, 761, False)):
         geometry = {
             "scrollWidth": width, "clientWidth": width,
-            "dock": {"y": 100, "bottom": 120}, "rail": {"width": 0},
-            "main": {"x": 0, "bottom": 100, "width": 280},
-            "body": {"x": 0, "width": 280}, "inspector": None,
+            "dock": {"y": 120, "bottom": 140}, "rail": None,
+            "main": {"x": 0, "right": 280, "bottom": 120, "width": 280, "height": 120},
+            "body": {"x": 0, "right": 280, "width": 280}, "inspector": 0,
+            "bodyPadding": {"left": 0, "right": 0, "top": 0, "bottom": 0, "gap": 0},
+            "applicationMenu": {"y": 0, "bottom": 42},
+            "applicationDock": {"y": 150, "bottom": 200},
             "devicePixelRatio": 1, "statusBarOverlaps": [], "missingBands": [],
             "landmarkCount": len(bands), "expectedBands": sorted(bands),
             "landmarkOverlaps": [], "clippedBands": [], "unreachableBands": [],
@@ -263,8 +473,48 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
         }
         assert gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands) is geometry
         geometry["main"]["width"] = geometry["body"]["width"] = 279
-        if required:
-            with pytest.raises(AssertionError):
-                gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)
-        else:
+        geometry["main"]["right"] = geometry["body"]["right"] = 279
+        with pytest.raises(AssertionError):
             gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)
+
+
+@pytest.mark.parametrize("containing_block", [False, True])
+def test_visible_fixed_menu_escapes_only_ordinary_clip_ancestors(containing_block):
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == 'win32':
+            options['executable_path'] = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert options['executable_path']
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={"width": 800, "height": 600})
+            transform = "transform:translateZ(0);" if containing_block else ""
+            page.set_content(f"""<style>body{{margin:0}} nav{{height:42px;width:250px;overflow:auto;{transform}}}
+                .popup{{position:fixed;top:60px;left:20px}}button{{height:38px;width:180px}}</style>
+                <nav><section class="popup"><button>固定菜单操作</button></section></nav>""")
+            box = smoke.visible_control_box(page.get_by_role('button'))
+            assert box['reachable'] is not containing_block, box
+            assert (box['height'] >= 24) is not containing_block, box
+        finally:
+            browser.close()
+
+
+def test_visible_control_box_counts_paint_containment_even_with_visible_overflow():
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == 'win32':
+            options['executable_path'] = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert options['executable_path']
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={"width": 800, "height": 600})
+            page.set_content("""<style>body{margin:0}nav{height:42px;width:250px;contain:paint;overflow:visible}
+              .popup{position:fixed;top:20px;left:20px}button{height:38px;width:180px}</style>
+              <nav><section class="popup"><button>部分裁剪菜单</button></section></nav>""")
+            box = smoke.visible_control_box(page.get_by_role('button'))
+            assert box['rawHeight'] == 38 and box['height'] == 22, box
+            assert box['reachable'] is True, box  # Center hit alone must not qualify a 24px target.
+        finally:
+            browser.close()

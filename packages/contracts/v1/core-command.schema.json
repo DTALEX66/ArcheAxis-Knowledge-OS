@@ -69,6 +69,9 @@
         "workspace_backup",
         "workspace_backups",
         "ui_state_read",
+        "operation_failure_log_read",
+        "operation_failure_log_append",
+        "operation_failure_log_clear",
         "ui_state_write",
         "ui_state_clear_saved",
         "ui_state_recover",
@@ -131,7 +134,8 @@
         "ingest_batch_get",
         "ingest_member_import",
         "ingest_member_enqueue",
-        "ingest_member_relations_apply"
+        "ingest_member_relations_apply",
+        "semantic_search"
       ]
     },
     "payload": {

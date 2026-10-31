@@ -220,11 +220,13 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
             # Core/manifest pair does not establish every copied member or closure.
             # Use the assembler's exact read-only verifier before issuing PASS.
             runtime_resources.verify_runtime_resources(host.parent, configured_resources)
+            webview_runtime = runtime_resources.verify_fixed_webview2(host.parent)
             runtime_resources.regular(host, cargo_host=True)
             qualification = {
                 "status": "PASS", "host": str(host), "core": actual_core["path"],
                 "portable_build_arguments": arguments,
                 "host_sha256": dev.build_file_identity(host)["sha256"],
+                "webview_runtime": webview_runtime,
                 "core_sha256": actual_core["sha256"],
                 "backend_manifest_sha256": actual_manifest["sha256"],
                 "core_build_receipt": core_receipt_identity,

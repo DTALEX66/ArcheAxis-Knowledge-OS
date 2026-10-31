@@ -1,0 +1,111 @@
+{
+  "schema": "aaos.shared-sandbox-qualification/v1",
+  "status": "MAINTENANCE_PARTIAL_SHARED_LIFECYCLE_QUALIFIED",
+  "qualification": {
+    "mapping_probe": "PASS_REAL_OFFLINE_SHARED_MAPPING_PROBE_ONLY",
+    "same_version_lifecycle": "PASS_REAL_OFFLINE_SHARED_SAME_VERSION_LIFECYCLE",
+    "new_build": "NOT_CLAIMED",
+    "cloud_ci": "NOT_EXECUTED",
+    "cross_version_upgrade_rollback": "NOT_TESTED",
+    "ai": "NOT_EXECUTED",
+    "owner_acceptance": "NOT_EXECUTED"
+  },
+  "inputs": {
+    "source_stage": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1i2",
+    "source_manifest": {
+      "bytes": 130915,
+      "sha256": "82f2c42901049665b8b85a4d9620bbcdfd67419025ebe2746956e02d4e0e7fef"
+    },
+    "source_scope": "MIXED_CORE_SAME_VERSION_LIFECYCLE_ONLY",
+    "members": 672,
+    "shared_logical_bytes": 688965713
+  },
+  "payload_bytes_copied": 0,
+  "run_measurements": {
+    "ssp-vm1": {
+      "bytes": 33462,
+      "files": 21
+    },
+    "ssp-life1": {
+      "bytes": 157112,
+      "files": 492
+    }
+  },
+  "bytes_deleted": 0,
+  "external_files_migrated": 0,
+  "source_unchanged_after": true,
+  "official_inventory_after": "EMPTY",
+  "cli_version": "0.8.107.0",
+  "lifecycle": {
+    "identity": {
+      "bytes": 2059,
+      "sha256": "92c3aa1eb8467a7cfb7a1af62283fa7fbf14c7705629b71ae5110566d7582095"
+    },
+    "receipt": {
+      "schema": "archeaxis/installed-lifecycle-receipt/v1",
+      "complete_lifecycle_verified": true,
+      "same_installer_scope": "SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION",
+      "cross_version_upgrade": "NOT_TESTED",
+      "rollback": "NOT_TESTED",
+      "qualification_scope": "LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE",
+      "mixed_core_receipt_sha256": "407a6c08072d681bf8fdd8d09ec348d52add2c1d1feb9d56f250ca5298c5b695",
+      "mixed_components": {
+        "host_sha256": "ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145",
+        "core_sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b",
+        "backend_runtime_manifest_sha256": "440e9084240f283071304e0d85dfef0e51b7dbc49e93955bb6b1536fde4c6d8b",
+        "worker_profile_sha256": "62614ce3da3770b0bf93a02e33de54e7de174e0800d3e11f0c1a79a1e0b76053",
+        "member_count": 19747
+      },
+      "mixed_core_identity_sha256": "293e5f1fdfcf985a241688fc40e937ea93c8790a25c6b63d4a710174b3078fd1",
+      "mixed_core_packaging_source": {
+        "commit": "b28390759da7d65606fb478126bf9a843cf407e9",
+        "tree": "a502f9d22829ad2eff7a1350150549e543f506e2"
+      },
+      "local_packaging_receipt_sha256": null,
+      "local_build_source": null,
+      "local_packaging_source": null,
+      "head_sha": null,
+      "run_id": null,
+      "run_attempt": null,
+      "installer_sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b",
+      "host_sha256": "ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145",
+      "core_sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b",
+      "runtime_manifest_sha256": "440e9084240f283071304e0d85dfef0e51b7dbc49e93955bb6b1536fde4c6d8b",
+      "product_version": "0.6.14",
+      "core_schema_version": 14,
+      "persisted_job": "installer-lifecycle-6522617e96657c0c",
+      "graceful_shutdown": true,
+      "in_place_upgrade": "SAME_VERSION_REINSTALL",
+      "forced_tree_cleanup": true,
+      "clean_uninstall": true,
+      "uninstall_retains_data": true,
+      "reinstall_readback": true,
+      "installed_document_conflict_loop": "NOT_EXECUTED",
+      "pyc_growth": 0
+    }
+  },
+  "tests": "30 passed, 11 subtests passed",
+  "remaining": [
+    "Clean conflict source",
+    "Other staging producers",
+    "Candidate consumer/recovery mapping",
+    "Directory normalization",
+    "533 ACL roots administrator batch",
+    "Historical spillover recovery resolution",
+    "F01-F05 and R2/R5 backend qualification"
+  ],
+  "external_lookup": {
+    "registered_worktrees": 1,
+    "record_archive_entries_examined": 121,
+    "historical_mig_current_exact_path": "NOT_RESOLVED",
+    "three_spillover_archive_recovery": "UNVERIFIED",
+    "all_zip_cas_members_searched": false
+  },
+  "limits": [
+    "Specific three denied write handles, not all-file ACL exhaustive proof",
+    "Host inputs remain mutable; fully reverify each run",
+    "Frozen historical evidence unchanged",
+    "No host installation, Green replacement, real data or model/global setting changes",
+    "UI implementation and monitor remain paused"
+  ]
+}

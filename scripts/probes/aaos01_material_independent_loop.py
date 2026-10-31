@@ -15,13 +15,13 @@ def create_document(ui, read, wait, grouped):
     assert config["revision"] == 0 and config["profiles"] == {} and config["bindings"] == [], "Requires fresh owned model configuration"
     ui.page("02")
     ui.click_revealed("新建笔记")
-    wait("""return location.hash==="#page=03" && !!document.querySelector('[aria-label="版本化草稿编辑器"] .tiptap')""")
+    wait("""return location.hash==="#page=03" && !!document.querySelector('[aria-label="文档草稿编辑器"] .tiptap')""")
     rows = grouped.poll(read, "documents_list", {}, lambda value: len(value["documents"]) == 1)["documents"]
     document = read("document_get", {"document_id": rows[0]["document_id"]})
     assert document["source_id"] is None and document["source_revision"] is None
     text = "Independent synthetic material " + uuid.uuid4().hex + ". ArcheAxis keeps a versioned local note for reading and review."
-    selector = '[aria-label="版本化草稿编辑器"] .tiptap'
-    ui.reveal_selector("//*[@aria-label='版本化草稿编辑器']//*[contains(concat(' ',normalize-space(@class),' '),' tiptap ')]")
+    selector = '[aria-label="文档草稿编辑器"] .tiptap'
+    ui.reveal_selector("//*[@aria-label='文档草稿编辑器']//*[contains(concat(' ',normalize-space(@class),' '),' tiptap ')]")
     ui.keys(selector, "\ue009a\ue000" + text, "css selector")
     ui.click_revealed("保存草稿")
     saved = grouped.poll(read, "document_get", {"document_id": document["document_id"]}, lambda value: value["version"] > document["version"])
@@ -53,12 +53,12 @@ def assert_cancel_bindings(stage, saved, document, material):
 def restore_backup(ui, read, wait, grouped):
     ui.page("19")
     prior = {row["backup_id"] for row in read("workspace_backups")["backups"]}
-    ui.click_revealed("创建一致备份")
+    ui.click_revealed("创建备份")
     backups = grouped.poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == len(prior) + 1)["backups"]
     assert len([row for row in backups if row["backup_id"] not in prior]) == 1
-    ui.click_revealed("预检此备份")
+    ui.click_revealed("检查此备份")
     ui.click_revealed("确认恢复整个工作区")
-    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
     wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
     before = read("ui_state_read")
     ui.click_revealed("保留恢复候选")

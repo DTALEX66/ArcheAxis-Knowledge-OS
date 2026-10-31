@@ -228,11 +228,8 @@ pub(super) async fn cancel(
     };
     let requested = entries
         .get(&key(&body.request_id))
-        .filter(|entry| entry.accepting && entry.restore_epoch == body.restore_epoch)
-        .is_some_and(|entry| {
-            entry.cancel.cancel();
-            true
-        });
+        .filter(|entry| entry.restore_epoch == body.restore_epoch)
+        .is_some_and(MachineActive::request_cancel);
     Json(json!({"schema":"archeaxis.public-research-cancel/v1","request_id":body.request_id,"cancel_requested":requested,"execution_state":"unknown","provider_stop_state":"unknown"})).into_response()
 }
 pub(super) async fn materialize(

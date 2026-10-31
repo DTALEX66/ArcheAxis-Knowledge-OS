@@ -89,14 +89,17 @@ def test_the_engine_would_have_interleaved_the_columns(tmp_path):
     import subprocess
 
     image = _two_column_image(tmp_path / "two-column.png")
+    # Match the formal route's byte transport. Leptonica fopen cannot reliably
+    # open the long Windows project-local paths used by this generated fixture.
     engine = subprocess.run(
-        [shutil.which("tesseract"), str(image), "stdout", "-l", "eng", "--psm", "6", "--tessdata-dir", str(TESSDATA)],
+        [worker._tesseract(), "stdin", "stdout", "-l", "eng", "--psm", "6", "--tessdata-dir", str(TESSDATA)],
+        input=image.read_bytes(),
         capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
+        timeout=30,
     )
-    assert _lines(engine.stdout)[1] == "LEFT SECOND RIGHT SECOND", engine.stdout
+    assert engine.returncode == 0, engine.stderr.decode("utf-8", errors="replace")
+    text = engine.stdout.decode("utf-8", errors="replace")
+    assert _lines(text)[1] == "LEFT SECOND RIGHT SECOND", text
     out = worker.extract(image, "eng", TESSDATA)
     assert _order(out)["differs_from_engine_order"] is True
 

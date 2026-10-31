@@ -183,3 +183,10 @@ Record 原件未迁出、未删除；项目内压缩副本可独立恢复，无�
 ## 2026-10-10 六项核心能力汇总：冻结来源
 
 [归档索引、原文与完整哈希](../conversation-summary-20261010/INDEX.md)。Owner 要求先归档，后续再考虑：**FROZEN_BY_OWNER / NOT_EXECUTED**。不加入当前执行队列；包内提示词、接口与48项测试仅为提案，不自动执行。原始ZIP及三个成员保存在项目本地归档，既有产品暂停状态保持。
+
+## 2026-10-24 引用解析与归档核验（非再归档）
+
+- 对 `docs/**` 的 4,959 条 `.project-local` 引用逐条解析：当前证据断点 0；2,575 条历史引用中 700 条位于归档目录、ZIP 成员或共享压缩 recipe，1,848 条指向授权清理的临时运行目录，27 条为历史日志/草稿且未保留。逐条结果见 [reference-resolution.json](<D:/All projects/ArcheAxis-Knowledge-OS/reports/full-audit-20261024/reference-resolution.json>).
+- 恢复并逐哈希校验：`conversation-summary-20261010`（原 ZIP + 3 个成员）、`dot-cloud-audit-20261011`（162 个成员）、`installers-0.5.0-20261015`（2 个安装包，取自 Git blob `8fc22a40`）；另实测 1 个共享压缩 recipe 重建（390,210,198B），SHA-256 完全匹配。回执见 `.project-local/runs/be268a2d33/reference-recovery-20261024/receipt.json`.
+- 归档容器核对：52 个 ZIP / 1,907 个成员、745 个归档目录文件、20 份 MANIFEST；1 个截断容器 `AAOS_UI_前端更新任务包_20261009.zip` 已按原说明标记为废弃并被补交包替代。
+- 本段只解释历史引用与恢复结果，不构成当前执行授权、产品验收、安装资格或 Green 替换依据。

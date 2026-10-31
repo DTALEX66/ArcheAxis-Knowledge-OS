@@ -238,14 +238,20 @@ fn parent_shape(record: &TeachingRecord, parent: Option<&TeachingRecord>) -> Res
     use RecordKind::*;
     match (&record.kind, parent.map(|r| &r.kind)) {
         (Observation, None)
+        // Manual practice notes retain the exact plan version, without delivery or scoring.
+        | (Observation, Some(Proposal | Revision))
         | (Requirement, None)
         | (Requirement, Some(Observation))
         | (Proposal, Some(Requirement))
         | (Delivery, Some(Proposal))
         | (Delivery, Some(Revision))
         | (TeachBack, Some(Delivery))
-        | (Feedback, Some(Delivery))
-        | (Revision, Some(Feedback)) => {}
+        // Human feedback may follow an ordinary text observation without delivery.
+        // It remains unscored; knowledge/course/assessment bindings still apply.
+        | (Feedback, Some(Delivery | Observation))
+        // Planning may change before any delivery or feedback exists. Reuse the
+        // append-only revision lineage instead of inventing completed practice.
+        | (Revision, Some(Proposal | Revision | Feedback)) => {}
         _ => return Err(invalid("parent kind does not follow teaching lineage")),
     }
     if let Some(parent) = parent {

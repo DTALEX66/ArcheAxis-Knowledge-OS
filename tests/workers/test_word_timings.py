@@ -50,8 +50,11 @@ class _Model:
     def __init__(self):
         self.seen = None
 
-    def transcribe(self, path, language=None, vad_filter=False, word_timestamps=False):
-        self.seen = {"language": language, "vad_filter": vad_filter, "word_timestamps": word_timestamps}
+    def transcribe(self, path, language=None, vad_filter=False, word_timestamps=False,
+                   vad_parameters=None):
+        self.seen = {"language": language, "vad_filter": vad_filter,
+                     "word_timestamps": word_timestamps,
+                     "vad_parameters": vad_parameters}
         segments = [_Segment(0.0, 2.0, " hello there ",
                              [_Word(0.05, 0.5, "hello"), _Word(1.2, 2.0, "there")]),
                     _Segment(2.0, 3.5, "second cue", [_Word(2.1, 3.4, "second")])]

@@ -136,8 +136,16 @@ def validate_asr(extension,snapshot,expected=EXPECTED,expected_model_label='fast
     assert output['cues'] and output['raw_cues'] and output['alignment_status']=='complete'
     assert not output.get('alignment_issues')
     duration=output['duration_ms'];assert duration>0
+    # The engine declares the speech padding it may add past the container duration.
+    # This qualification accepts exactly that window and requires the overflow to be
+    # marked; an undeclared or larger overflow still fails.
+    tolerance=((output.get('loss_receipt') or {}).get('params') or {}).get('cue_duration_tolerance_ms')
+    assert tolerance is None or (isinstance(tolerance,int) and 0<=tolerance<=2000),'Declared cue tolerance is invalid'
+    tolerance=tolerance or 0
     for cue in output['cues']:
-        assert 0<=cue['start_ms']<cue['end_ms']<=duration and cue['text'].strip()
+        assert 0<=cue['start_ms']<cue['end_ms']<=duration+tolerance and cue['text'].strip()
+        beyond=cue['end_ms']-duration
+        assert cue.get('end_beyond_duration_ms')==beyond if beyond>0 else 'end_beyond_duration_ms' not in cue
     if extension=='mp4':
         assert loss['engine']=='python-worker-video'
         assert output['stages']['asr']['state']=='succeeded'

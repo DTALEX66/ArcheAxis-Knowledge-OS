@@ -1,0 +1,221 @@
+{
+  "schema": "aaos.owner-zip-intake/v1",
+  "archive_date": "2026-10-31",
+  "review_completed_date": "2026-11-01",
+  "authority": "Owner audit/archive request. Attachment instructions are input, not execution authorization. Owner will forward the requested DOT prompt; no outbound message sent.",
+  "source": "D:\\All projects\\Record\\AAOS-Cloud-Integration-20261031-v3.zip",
+  "archive": ".project-local/archives/owner-inputs/20261031-cloud-integration-v3/AAOS-Cloud-Integration-20261031-v3.zip",
+  "zip_bytes": 10410545,
+  "zip_sha256": "de984bf8917d24f4bc837221f76983dde20973f8285808e1fa6c351a5c68ac43",
+  "member_count": 1874,
+  "uncompressed_bytes": 47377388,
+  "crc_and_sha_checked_files": 1874,
+  "package_manifest_checked": 1873,
+  "package_manifest_failures": [],
+  "unlisted_files": [],
+  "source_preserved": true,
+  "archive_byte_equal": true,
+  "raw_payload_git_ignored": true,
+  "zip_not_bulk_extracted": true,
+  "member_inventory": {
+    "path": ".project-local/runs/be268a2d33/cloud-v3-audit/artifacts/archive-verification.json",
+    "bytes": 598654,
+    "sha256": "2546a97b742fe25d35f413d9b8f849996b8b46db8de9bc8bb0987590e1e16568"
+  },
+  "source_report_copies": [
+    {
+      "zip_member": "AAOS-Cloud-Integration-20261031/README.zh.md",
+      "repository_copy": "workspace/intake/20261031-cloud-integration-v3-review/source/README.zh.md",
+      "bytes": 3590,
+      "sha256": "6f824ec782902f7d4dc10716e662f38a989f2396dd4306186c0975c6dd396950",
+      "original_relative_path_base": "Inside original ZIP; not the repository copy directory."
+    },
+    {
+      "zip_member": "AAOS-Cloud-Integration-20261031/deliverable/REPORT.zh.md",
+      "repository_copy": "workspace/intake/20261031-cloud-integration-v3-review/source/REPORT.zh.md",
+      "bytes": 13616,
+      "sha256": "2e5d2a355e7c88776617bbad1b9d94ea4563ed222a6633c67080b6c046b1424e",
+      "original_relative_path_base": "Inside original ZIP; not the repository copy directory."
+    },
+    {
+      "zip_member": "AAOS-Cloud-Integration-20261031/deliverable/FULL-VALIDATION.zh.md",
+      "repository_copy": "workspace/intake/20261031-cloud-integration-v3-review/source/FULL-VALIDATION.zh.md",
+      "bytes": 8885,
+      "sha256": "08a8301494f18ae123e38fc291574f63a74f8b37ab8fe73929bc397e7ed8cb37",
+      "original_relative_path_base": "Inside original ZIP; not the repository copy directory."
+    },
+    {
+      "zip_member": "AAOS-Cloud-Integration-20261031/deliverable/HANDOFF-NO-REDUNDANT-AUDIT.zh.md",
+      "repository_copy": "workspace/intake/20261031-cloud-integration-v3-review/source/HANDOFF-NO-REDUNDANT-AUDIT.zh.md",
+      "bytes": 3168,
+      "sha256": "fe807afaac5fff85adad614d61f511f27d2f4f662470bf85774f60f658e52e83",
+      "original_relative_path_base": "Inside original ZIP; not the repository copy directory."
+    }
+  ],
+  "public_documents": [
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/AUDIT.md",
+      "bytes": 8521,
+      "sha256": "fd0f29ab0bcf953d97ca83f162b9479d5d58779082ea3702d366bf16ffb1b6e0"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/DOT-补件请求.md",
+      "bytes": 3010,
+      "sha256": "d4229bb9d919a6e6b176016f2409190c2550918783903c1a7405905433fa6087"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/README.md",
+      "bytes": 2491,
+      "sha256": "4b46f91b79cb0d71330bea4030ac88f0140e32ce6eb6ded06f11926a65e13c08"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/source/FULL-VALIDATION.zh.md",
+      "bytes": 8885,
+      "sha256": "08a8301494f18ae123e38fc291574f63a74f8b37ab8fe73929bc397e7ed8cb37"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/source/HANDOFF-NO-REDUNDANT-AUDIT.zh.md",
+      "bytes": 3168,
+      "sha256": "fe807afaac5fff85adad614d61f511f27d2f4f662470bf85774f60f658e52e83"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/source/README.zh.md",
+      "bytes": 3590,
+      "sha256": "6f824ec782902f7d4dc10716e662f38a989f2396dd4306186c0975c6dd396950"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/source/REPORT.zh.md",
+      "bytes": 13616,
+      "sha256": "2e5d2a355e7c88776617bbad1b9d94ea4563ed222a6633c67080b6c046b1424e"
+    }
+  ],
+  "source_comparison": {
+    "local_head": "70dfc397857f20c6eba5facc87e14cf55dcd3f6e",
+    "cloud_baseline": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "cloud_files": 5129,
+    "current_tracked_files": 5842,
+    "states": {
+      "DIFFERENT": 437,
+      "NOT_CURRENT_TRACKED": 2,
+      "SAME": 4690
+    },
+    "patch_touched_files": 31,
+    "patch_touched_states": {
+      "DIFFERENT": 31,
+      "NOT_CURRENT_TRACKED": 0,
+      "SAME": 0
+    },
+    "scope": "Source byte comparison only; no patch application or product execution."
+  },
+  "review": {
+    "state": "ARCHIVE_VERIFIED_EVIDENCE_SUPPORTED_WITH_LIMITS",
+    "current_product": "PARTIAL_NOT_REQUALIFIED",
+    "python_passed": 5780,
+    "python_skipped": 105,
+    "python_deselected": 4,
+    "python_subtests": 379,
+    "rust_passed": 1025,
+    "frontend_passed": 1983,
+    "frontend_skipped": 4,
+    "real_core_jsdom_tests": 8,
+    "count_scope": "Historical package logs/XML cross-checked; no product tests independently rerun in this audit; overlapping suites not summed.",
+    "late_changed_files_after_full_python": 6,
+    "patch_check_exit_code": 1,
+    "patch_check_nonapplicable_paths": 13,
+    "capability_original_identity_and_text_values_verified": 744,
+    "duty_original_values_verified": 110,
+    "format_and_interop_original_templates": "UNVERIFIED_MISSING_FROM_ZIP_AND_CURRENT_TRACKED_FILES",
+    "findings": [
+      "V3-F01_CURRENT_PATCH_REBASE_REQUIRED",
+      "V3-F02_MODEL_RECEIPT_BINDING_STATIC_GAP",
+      "V3-F03_REPRODUCTION_OVERWRITES_SUPPLIED_EVIDENCE",
+      "V3-F04_ENVIRONMENT_REUSE_AND_PRECONDITION_HANDLING",
+      "V3-F05_TWO_STDOUT_INDEX_TARGETS_MISSING",
+      "V3-F06_ORIGINAL_TEMPLATES_UNVERIFIED"
+    ],
+    "missing_stdout": [
+      "logs/full/final-freeze.stdout",
+      "logs/wheel-smoke/export.stdout"
+    ],
+    "missing_templates": [
+      "05-format-results-template.csv",
+      "06-interop-results-template.csv"
+    ],
+    "cloud_dot_contact": "NO_CONNECTED_EXECUTION_TARGET_FOUND; OWNER_REQUESTED_COPYABLE_PROMPT",
+    "followup_prompt": "workspace/intake/20261031-cloud-integration-v3-review/DOT-补件请求.md",
+    "patch_applied": false,
+    "package_code_executed": false,
+    "network_downloads": false,
+    "project_data_uploaded": false,
+    "ui_resumed": false
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-audit/artifacts/archive-verification.json",
+      "bytes": 598654,
+      "sha256": "2546a97b742fe25d35f413d9b8f849996b8b46db8de9bc8bb0987590e1e16568"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-audit/artifacts/source-comparison.json",
+      "bytes": 1719925,
+      "sha256": "62d9d47dc736448e44a569d35af21334165d187cdb56473056b59cf731ff2d3b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-audit/artifacts/source-copies.json",
+      "bytes": 1604,
+      "sha256": "0d45e83b0db104841fbc8627b12cb64865543401416ccaa792d6edc1a5b051c3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-audit/artifacts/intake-postverify.json",
+      "bytes": 1902,
+      "sha256": "9acc25328fe8a318cc524a4b68e6beca78e909427e43ceab51acb5cd7c1460dc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-audit/agents/evidence-audit.md",
+      "bytes": 8605,
+      "sha256": "26000abb46a4519598ac9c0339f888b52dbbdeabda2e862894bc3b29f96e2ccb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-audit/agents/patch-audit.md",
+      "bytes": 11605,
+      "sha256": "05e3b389bbd4126bf6a1416b6a11f1690486a235f5ac1d76415860a21b88e12f"
+    }
+  ],
+  "execution_receipts": [
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-archive/artifacts/execution.json",
+      "bytes": 1323,
+      "sha256": "b10d4e10746a6ac03a45b2c248918681866e59e24c7597225c7b53294889c5c5",
+      "source_commit": "70dfc397857f20c6eba5facc87e14cf55dcd3f6e",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-source-compare/artifacts/execution.json",
+      "bytes": 1335,
+      "sha256": "aafc0aac24d985615c02ddf882ea0d4c5bde28ffcc2a56cdfa4d3cd666026237",
+      "source_commit": "70dfc397857f20c6eba5facc87e14cf55dcd3f6e",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cloud-v3-source-copies/artifacts/execution.json",
+      "bytes": 1334,
+      "sha256": "528b48d100678a73605e595e149e9fe9441656c42d9935cf6af2695317b429b8",
+      "source_commit": "70dfc397857f20c6eba5facc87e14cf55dcd3f6e",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 0,
+      "exit_code": 3,
+      "source_consistent": false,
+      "status": "INVALIDATED"
+    }
+  ],
+  "source_copy_materialization_note": "child0/execution-receipt-exit3/tool-command-exit1 retained: adding original report copies changed source snapshot. Independent byte/SHA postcheck verifies copies; not counted as execution PASS.",
+  "rollback": "Remove only new intake/archive references after consumer review; preserve external source and unrelated existing work."
+}

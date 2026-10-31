@@ -1,0 +1,133 @@
+{
+  "schema": "aaos.portable-six-source-current-hashes/v1",
+  "status": "CURRENT_BYTES_AND_IDENTITIES_VERIFIED_NOT_CLEANUP_QUALIFIED",
+  "source_commit": "961554cdb0ba1d355e123fe7ae4b371d7b2c69e0",
+  "run": "batchhash-6c4aae2b",
+  "actual_exit": 0,
+  "wrapper_exit": 0,
+  "source_consistent": true,
+  "source_clean": true,
+  "seconds": 157.40406110003823,
+  "source_roots": [
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v4-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v6-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v7-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v8-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v9-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-polish-20261027-portable/artifacts/星环便携候选"
+  ],
+  "retained_root": ".project-local/runs/be268a2d33/ui-audit-remediation-v12-portable/artifacts/星环便携候选",
+  "common_leaves_per_source": 19709,
+  "source_paths": 118254,
+  "source_logical_bytes": 8101280628,
+  "retained_leaves": 19709,
+  "retained_logical_bytes": 1350213438,
+  "common_member_set_sha256": "b39a4cd1637ad025d784218caaca2b570bc5495bff390a0c85ac98fa855600a8",
+  "restore_map": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\batchhash-6c4aae2b\\artifacts\\restore-map.jsonl",
+    "bytes": 22499572,
+    "sha256": "17ca4402536768ab23ec844926408a05ca321b5d6a672142a6866e6de9617f8b",
+    "complete_rows": 19709
+  },
+  "public_protected_management": 28,
+  "candidate_manifests_unchanged": 7,
+  "private_denied_names_per_endpoint": 33,
+  "deleted_moved_copied": 0,
+  "cleanup_qualified": false,
+  "output_budget_bytes": 67108864,
+  "main_proof_bytes": 22521385,
+  "limits": [
+    "Point-in-time samehandle pre/post/reopen byte/identity evidence, not atomic full-batch freeze.",
+    "All7per-relative fileIDs distinct and nlink1; all expected complete SHA match original declarations;33 denied names not probed.",
+    "Both public Hosts and three public management files per endpoint retained; different Hosts/backend manifests and original failures not retired.",
+    "Current consumer, valid rollback, owner/DACL, DELETE access, fresh whole resource activity and reviewed durable execution/postconditions remain unqualified.",
+    "No physical or whole-repo net claim, no V11 source reuse, no automatic delete/restore or new task queue."
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/batch-plan-v2.json",
+      "bytes": 44139,
+      "sha256": "2123614e8fc7d2687675d8506bc617df748aa6d3c90b2c42dc2ee5f303bac7c1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/verify_batch_current.py",
+      "bytes": 17572,
+      "sha256": "05c0f3fbf17772cbd310e60d6b8f64582862f9c381751dbe336008305238cf9e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-CURRENT-QUALIFICATION-ALLOCATION.json",
+      "bytes": 719,
+      "sha256": "e1004e55f92fc4cbd44fde002847b6e4be80609232db7f3644199457730b4462"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-MAP-RECONCILIATION.json",
+      "bytes": 437,
+      "sha256": "cd400e3ae800dc81019cc842fe02773c0a95ec3cf813561c650c27aad926909d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/artifacts/restore-plan.json",
+      "bytes": 21813,
+      "sha256": "5be4e9dfe5a88271e38bc391cb0be0374c5555cb60bebcff5228f660ee5f3070"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/artifacts/restore-map.jsonl",
+      "bytes": 22499572,
+      "sha256": "17ca4402536768ab23ec844926408a05ca321b5d6a672142a6866e6de9617f8b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/artifacts/execution.json",
+      "bytes": 1458,
+      "sha256": "d82bea5d1cb3745b6e9d67ce0b0ddc0f1e17cfa01cac7d7b8e0a35f7ae7edf71"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/logs/execution.log",
+      "bytes": 1231,
+      "sha256": "958b5445f9198c2a98ade5f488af11c8ae3d0961ba6e306957da2bc76b84089d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port1/artifacts/verify_portable_pair_full.py",
+      "bytes": 11335,
+      "sha256": "2bf9c5e5250aa799b56c178e9979317f0d6726e8968b75fd96c288a89196fa4a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v4-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665405,
+      "sha256": "90487240b66c0ed7249d5257afe61ec061811ab06f395bf12d6adb592d206207"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v6-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665405,
+      "sha256": "dcfa73da1f78077a2e82f711d5d2c9b40addee3d3bf167f619a9e8f6dbf40cbb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v7-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665405,
+      "sha256": "858bce61cdc50a2d3e4df25d6127d41fd8a27b1883d33a68a4da44281919b5b7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v8-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665405,
+      "sha256": "4f5540c965b8323187a8343e5ce9b5e9fdc30059b5a854a3e525115ebdfb8189"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v9-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665405,
+      "sha256": "642dcbe57812eca01afbe0d6bdaebab0fd57bb52efe79fbcc34ef5ff04edfbbb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-polish-20261027-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665400,
+      "sha256": "722f3ad1ba75d90dbb0af6fd73d0e7b66ca535782c56f135b56f66da72a5493e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ui-audit-remediation-v12-portable/artifacts/星环便携候选/candidate-manifest.json",
+      "bytes": 3665406,
+      "sha256": "6c3d8aeb39087c9c77e94c2a5b48d2ced66766a8888eba66212ca8a206e3831d"
+    }
+  ],
+  "probe_additional_subprocesses": 0,
+  "probe_network_calls": 0,
+  "probe_rm_calls": 0,
+  "acl_changes": 0,
+  "process_boundary": "Counts concern the read-only probe only; existing canonical launcher uses its normal owned Python/Git metadata processes, not instrumented as zero system processes."
+}

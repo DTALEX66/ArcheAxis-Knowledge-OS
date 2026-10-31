@@ -54,10 +54,10 @@ struct Inner {
 impl Drop for Inner {
     fn drop(&mut self) {
         self.sender.take(); // Close input before joining; queued writes finish first.
-        if let Some(thread) = self.thread.take() {
-            if thread.thread().id() != std::thread::current().id() {
-                let _ = thread.join();
-            }
+        if let Some(thread) = self.thread.take()
+            && thread.thread().id() != std::thread::current().id()
+        {
+            let _ = thread.join();
         }
     }
 }

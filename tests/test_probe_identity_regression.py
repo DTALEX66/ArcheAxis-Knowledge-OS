@@ -26,7 +26,7 @@ DOCUMENT = {"document_id": "owned-document", "source_id": "owned-source", "versi
             "editor_json": {"type": "doc", "content": []}}
 
 
-def test_saved_deep_journey_reports_2048_intent_and_1024_persisted_budget():
+def test_saved_deep_journey_reports_cli_intent_and_persisted_budget():
     from tests.test_grouped_native_owner_probe import GroupedNativeProbeTests
     case = GroupedNativeProbeTests()
     case.setUp()
@@ -34,7 +34,7 @@ def test_saved_deep_journey_reports_2048_intent_and_1024_persisted_budget():
     budget = result["ai_progress"]["explicit_output_budget"]
     assert isinstance(budget, dict), "Scalar CLI value misreports saved DEEP effective budget"
     assert budget["requested_cli_max_tokens"] == 2048
-    assert budget["effective_by_purpose"]["answer"]["max_tokens"] == 1024
+    assert budget["effective_by_purpose"]["answer"]["max_tokens"] == 2048
 
 
 @pytest.mark.parametrize("kind", ["manual", "queue"])
@@ -90,7 +90,7 @@ def test_manual_type_read_and_identity_queue_click_open_the_existing_disclosure_
 def test_review_title_reveal_opens_queue_before_layout_hit_test(monkeypatch):
     probe = load("identity_disclosure_layout", "aaos01_grouped_owner_loop.py")
     actions = []
-    ui = probe.GroupedUI(lambda _:actions.append("hit-test") or {"ready":True}, lambda *_:None,lambda *_:"node",lambda *_:None,[])
+    ui = probe.GroupedUI(lambda _:actions.append("hit-test") or {"ready":True,"disabled":False}, lambda *_:None,lambda *_:"node",lambda *_:None,[])
     ui.open_learning_disclosure = lambda kind:actions.append("open-" + kind)
     monkeypatch.setattr(probe.time,"sleep",lambda *_:None)
     ui.reveal_selector(probe.button_selector("owned", "//ul[@aria-label='复习队列']"))
@@ -111,7 +111,7 @@ def test_learning_restore_binds_rendered_question_diagnostic_and_full_core(chang
 
     def js(script):
         question = "wrong question" if change == "wrong-question" else assessment["question"]
-        markup = '<div aria-label="当前页面" data-current-page-id="' + ('12' if change == "wrong-page" else '06') + '"></div><div class="ui-learning-review"' + (' hidden' if change == "hidden" else '') + '><article><h3>复习题</h3><p>' + question + '</p></article></div>'
+        markup = '<div aria-label="当前页面" data-current-page-id="' + ('12' if change == "wrong-page" else '06') + '"></div><div class="stitch-learning-review"' + (' hidden' if change == "hidden" else '') + '><article><h3>复习题</h3><p>' + question + '</p></article></div>'
         if state["diagnostic"]:
             markup += '<div role="dialog"><section aria-label="诊断控制台"><details open><summary>学习项目与题目版本 · 对象与来源 · synthetic</summary><pre>' + html.escape(json.dumps(identity)) + '</pre></details></section></div>'
         return evaluate(script, markup)

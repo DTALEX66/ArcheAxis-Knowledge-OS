@@ -75,6 +75,80 @@ def xpath_literal(value: str) -> str:
     return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
 
 
+READER_SOURCE_TOOLS_OBSERVATION = r"""
+return [...document.querySelectorAll('section[aria-label="阅读与编辑文档视图"] .reader-source-tools')]
+ .filter(n=>!n.closest('[hidden],[aria-hidden="true"],[inert]')&&n.getClientRects().length>0)
+ .map(n=>({open:n.open,summary:!!n.querySelector(':scope>summary')?.getClientRects().length}));
+"""
+
+
+FOLDER_IMPORT_DISCLOSURE_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const panels=[...document.querySelectorAll('details.exchange-folder-import')].filter(visible);
+const panel=panels.length===1?panels[0]:null;
+const inputs=[...(panel?.querySelectorAll('input[type="file"][aria-label="选择文件夹"]')??[])];
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ count:panels.length,open:panel?.open??null,summary:visible(panel?.querySelector(':scope>summary')),
+ input_count:inputs.length,input_visible:inputs.length===1&&visible(inputs[0]),
+ input_enabled:inputs.length===1&&!inputs[0].matches(':disabled')};
+""".strip()
+
+
+READER_ATTRIBUTES_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+const readers=[...document.querySelectorAll('section[aria-label="阅读与编辑文档视图"]')].filter(visible);
+const reader=readers.length===1?readers[0]:null;
+const buttons=[...(reader?.querySelectorAll('.stitch-reader-toolbar button')??[])].filter(n=>n.textContent.trim()==='属性与引用'&&visible(n));
+const button=buttons.length===1?buttons[0]:null;
+const panel=button?.getAttribute('aria-controls')?document.getElementById(button.getAttribute('aria-controls')):null;
+return {reader_count:readers.length,toolbar_count:reader?.querySelectorAll('.stitch-reader-toolbar').length??0,
+ count:buttons.length,expanded:button?.getAttribute('aria-expanded')??null,panel_visible:visible(panel),
+ panel_in_reader:!!panel&&!!reader?.contains(panel)};
+""".strip()
+
+
+RESOURCE_SETTINGS_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const resources=[...document.querySelectorAll('section[aria-label="资源与扩展内容"]')].filter(visible);
+const root=resources.length===1?resources[0]:null;
+const tabs=[...(root?.querySelectorAll('button[role="tab"]')??[])].filter(n=>visible(n)&&n.textContent==='接入来源与运行设置');
+const refresh=[...(root?.querySelectorAll('button')??[])].filter(n=>visible(n)&&n.textContent==='刷新本机可用功能');
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ resource_count:resources.length,tab_count:tabs.length,tab_enabled:tabs.length===1&&!tabs[0].matches(':disabled'),
+ selected:tabs.length===1&&tabs[0].getAttribute('aria-selected')==='true',
+ refresh_count:refresh.length,refresh_enabled:refresh.length===1&&!refresh[0].matches(':disabled')};
+""".strip()
+
+
+def open_resource_settings(ui, js, wait):
+    """Use the current resource tab before changing a workspace capability."""
+    wait("const view=(()=>{" + RESOURCE_SETTINGS_OBSERVATION + "})();return view.page==='15'&&view.resource_count===1&&view.tab_count===1&&view.tab_enabled;")
+    observed = js(RESOURCE_SETTINGS_OBSERVATION)
+    assert observed["page"] == "15" and observed["resource_count"] == 1
+    assert observed["tab_count"] == 1 and observed["tab_enabled"], "Missing, ambiguous or disabled resource settings tab"
+    if not observed["selected"]:
+        ui.click_revealed_selector("//section[@aria-label='资源与扩展内容' and not(ancestor-or-self::*[@hidden])]//button[@role='tab' and normalize-space(.)='接入来源与运行设置']")
+    wait("const view=(()=>{" + RESOURCE_SETTINGS_OBSERVATION + "})();return view.page==='15'&&view.resource_count===1&&view.tab_count===1&&view.tab_enabled&&view.selected&&view.refresh_count===1&&view.refresh_enabled;")
+    current = js(RESOURCE_SETTINGS_OBSERVATION)
+    assert current["page"] == "15" and current["resource_count"] == 1 and current["tab_count"] == 1
+    assert current["tab_enabled"] and current["selected"] and current["refresh_count"] == 1 and current["refresh_enabled"], "Resource settings did not become uniquely visible and enabled"
+
+
+def open_reader_attributes(ui, js):
+    """Open current reader metadata through its rendered control, not hidden DOM."""
+    observed = js(READER_ATTRIBUTES_OBSERVATION)
+    assert observed["reader_count"] == 1, "Reader attributes belong to a missing or ambiguous reader"
+    assert observed["toolbar_count"] == 1 and observed["count"] == 1 and observed["panel_in_reader"], "Missing or ambiguous current reader attributes control"
+    if observed["expanded"] != "true":
+        scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
+        ui.click_revealed_selector(button_selector("属性与引用", scope))
+    opened = js(READER_ATTRIBUTES_OBSERVATION)
+    assert opened["reader_count"] == 1 and opened["toolbar_count"] == 1 and opened["count"] == 1
+    assert opened["expanded"] == "true" and opened["panel_visible"] and opened["panel_in_reader"], "Reader attributes did not open on the original reader"
+
+
 TEXT_SELECTION_OBSERVATION = """const regions=document.querySelectorAll('[aria-label="并排原件正文"]');
 const region=regions.length===1?regions[0]:null;
 const node=region?.firstChild;
@@ -185,7 +259,12 @@ def button_selector(label: str, scope: str = "") -> str:
 
 
 def label_selector(label: str, tag: str = "input", scope: str = "") -> str:
-    return f"{scope}//label[normalize-space(text())={xpath_literal(label)}]/{tag}[not(ancestor-or-self::*[@hidden])]"
+    # AaosField associates sibling controls via htmlFor/id; native forms may
+    # also wrap their controls. Resolve either actual HTML label association.
+    labels = f"{scope}//label[normalize-space(text())={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
+    associated = f"{scope}//{tag}[@id={labels}/@for and not(ancestor-or-self::*[@hidden])]"
+    wrapped = f"{scope}//label[normalize-space(text())={xpath_literal(label)}]/{tag}[not(ancestor-or-self::*[@hidden])]"
+    return associated + " | " + wrapped
 
 
 def one(rows, predicate, description):
@@ -376,6 +455,188 @@ def read_grant(read, purpose, knowledge_id, operation):
     return document
 
 
+VISIBLE_NAVIGATION_JS = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ [...(function*(x){for(;x;x=x.parentElement)yield x;})(n)].every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility==='visible';});
+"""
+
+
+def product_navigation_observation(page_id=None):
+    if page_id is not None:
+        assert re.fullmatch(r"\d{2}", page_id), "Invalid page identity"
+    return VISIBLE_NAVIGATION_JS + "const requested=" + json.dumps(page_id) + r""";
+const current=[...document.querySelectorAll('.stitch-page-identity[data-current-page-id],[aria-label="当前页面"][data-current-page-id]')].filter(visible);
+const pages=[...new Set(current.map(n=>n.dataset.currentPageId).filter(id=>/^\d{2}$/.test(id??'')))];
+const menu=document.querySelector('nav.stitch-workspace-menu[aria-label="应用菜单"]');
+const dock=document.querySelector('nav.stitch-workspace-dock[aria-label="工作空间快捷导航"]');
+const allPages='button[aria-label="全部页面，打开产品导航"]';
+const legacy='button[aria-label="打开产品导航"]';
+let scope=null,opened=false;
+if(visible(menu)){
+ const groups=[...menu.querySelectorAll('.stitch-menus > details')];
+ const index=groups.findIndex(n=>visible(n.querySelector('summary'))&&[...n.querySelectorAll('button[data-page-id]')].some(b=>b.dataset.pageId===requested));
+ if(index>=0){scope='nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type('+(index+1)+')';opened=groups[index].open;}
+}
+const mode=visible(menu)&&visible(dock)&&visible(document.querySelector(allPages))?'menu':visible(document.querySelector(legacy))?'drawer':visible(document.querySelector('.navigation-sidebar'))?'sidebar':null;
+return {page:pages.length===1?pages[0]:null,mode,scope,opened,
+ trigger:visible(document.querySelector(allPages))?allPages:visible(document.querySelector(legacy))?legacy:null};
+"""
+
+
+def menu_navigation_observation(scope, page_id):
+    """Observe actual popup readiness without changing focus or menu state."""
+    return "const menu=document.querySelector(" + json.dumps(scope) + ");const target=menu?.querySelector(" + json.dumps(f'button[data-page-id="{page_id}"]') + ");" + r"""
+const visible=n=>!!n&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&n.getClientRects().length>0&&typeof n.checkVisibility==='function'&&n.checkVisibility({checkOpacity:true,checkVisibilityCSS:true});
+const describe=n=>n?{tag:n.tagName,page:n.dataset?.pageId??null,text:n.textContent?.trim().slice(0,100),outer:n.outerHTML?.slice(0,1000)}:null;
+const summary=menu?.querySelector(':scope>summary'),pseudo=menu?getComputedStyle(menu,'::details-content'):null;
+const rect=target?.getBoundingClientRect(),targetVisible=visible(target);
+const hit=!!rect&&rect.width>0&&rect.height>0&&document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.closest('button')===target;
+const animations=menu&&typeof menu.getAnimations==='function'?menu.getAnimations({subtree:true}):null;
+const blockers=[...document.querySelectorAll('[role="dialog"],[role="alertdialog"]')].filter(visible).map(describe);
+const result={open:menu?.open??false,summaryFocused:!!summary&&document.activeElement===summary,
+index:menu?[...menu.querySelectorAll('button')].indexOf(target):-1,target:describe(target),active:describe(document.activeElement),
+targetVisible,targetEnabled:!!target&&!target.disabled,hit,blockers,
+contentVisibility:pseudo?.contentVisibility??null,opacity:pseudo?.opacity??null,
+runningAnimations:animations?.filter(animation=>animation.playState==='running').length??null};
+result.ready=result.open&&result.summaryFocused&&result.index>=0&&result.targetVisible&&result.targetEnabled&&result.hit
+&&result.contentVisibility!=='hidden'&&result.opacity==='1'&&result.runningAnimations===0&&result.blockers.length===0;
+return result;
+"""
+
+
+def prepare_rendered_navigation(ui, evidence, *, fresh_profile=False):
+    """Pause the actual guide through trusted UI; do not mark any business step complete."""
+    deadline = time.monotonic() + 30
+    ui.wait(r"""const shell=document.querySelector('.app-shell[data-stitch-workspace]');
+const page=shell?.querySelector('.stitch-page-identity[data-current-page-id]');
+const current=document.querySelector('nav[aria-label="应用菜单"] summary')&&document.querySelector('nav[aria-label="工作空间快捷导航"] button[data-page-id]')&&document.querySelector('button[aria-label="全部页面，打开产品导航"]');
+const legacy=document.querySelector('button[aria-label="打开产品导航"],.navigation-sidebar');
+return !!page&&/^\d{2}$/.test(page.dataset.currentPageId??'')&&!!(current||legacy);""", seconds=max(0, deadline - time.monotonic()))
+    observation = VISIBLE_NAVIGATION_JS + r"""
+const guides=[...document.querySelectorAll('[role="dialog"].first-use-guide')].filter(visible);
+const guide={count:guides.length,title:guides[0]?.querySelector('h2')?.textContent.trim(),
+ buttons:guides.length===1?[...guides[0].querySelectorAll('button')].filter(b=>visible(b)&&!b.disabled&&b.textContent.trim()==='暂时跳过').length:0};
+const navigation=(()=>{""" + product_navigation_observation() + r"""})();
+const shell=document.querySelector('.app-shell[data-stitch-workspace]');
+const hydrated=!!shell?.querySelector('.dock-workspace[aria-label="自由布局工作区"]');
+const page=shell?.querySelector('.stitch-page-identity[data-current-page-id]')?.dataset.currentPageId;
+const blockers=[...document.querySelectorAll('[role="dialog"],[role="alertdialog"],dialog[open]')].filter(visible).length;
+return {guide,navigation,hydrated,page,blockers};"""
+    readiness = ("(observed.navigation.mode!=='menu'||observed.hydrated)&&!observed.blockers&&"
+                 "!!observed.navigation.page&&['menu','drawer','sidebar'].includes(observed.navigation.mode)")
+    ready = "const observed=(()=>{" + observation + "})();return observed.guide.count>0||(" + readiness + ");"
+    fresh_ready = ("const observed=(()=>{" + observation + "})();return observed.guide.count>0||(" + readiness
+                   + "&&!(observed.hydrated&&observed.page==='01')); ")
+    # The shell mounts before working-state hydration enables the guide. Observe
+    # both possible visible states during the existing deadline; a one-off
+    # absent-guide snapshot must not strand us waiting behind its later modal.
+    paused = False
+    while time.monotonic() < deadline:
+        ui.wait(fresh_ready if fresh_profile and not paused else ready,
+                seconds=max(0, deadline - time.monotonic()))
+        observed = ui.js(observation)
+        guide, navigation = observed["guide"], observed["navigation"]
+        assert guide["count"] in {0, 1}, "Ambiguous first-use guide dialog"
+        if guide["count"]:
+            assert guide["title"] == "首次使用引导" and guide["buttons"] == 1, "First-use guide pause control missing or ambiguous"
+            assert not paused, "First-use guide unexpectedly reopened after pause"
+            ui.click_selector("//*[@role='dialog' and contains(concat(' ',normalize-space(@class),' '),' first-use-guide ')]//button[normalize-space(.)='暂时跳过']")
+            paused = True
+            evidence.append({"action": "first_use_guide_pause", "decision": "PAUSED_BY_RENDERED_UI", "business_completion": False, "guide_steps_marked_complete": False})
+            ui.wait(VISIBLE_NAVIGATION_JS + "return ![...document.querySelectorAll('[role=\"dialog\"].first-use-guide')].some(visible);", seconds=max(0, deadline - time.monotonic()))
+        elif (not (fresh_profile and not paused and observed["hydrated"] and observed["page"] == "01")
+              and navigation["page"] and navigation["mode"] in {"menu", "drawer", "sidebar"}
+              and (navigation["mode"] != "menu" or observed["hydrated"])
+              and not observed["blockers"]):
+            if not paused:
+                evidence.append({"action": "first_use_guide_pause", "decision": "NOT_PRESENT", "business_completion": False})
+            evidence.append({"action": "rendered_navigation_ready", **navigation})
+            return
+    raise TimeoutError("First-use guide or visible product navigation did not settle")
+
+
+def pointer_actionability_script(selector):
+    """Two animation-frame samples, following Playwright's actionability rules.
+
+    https://playwright.dev/docs/actionability — no input, scrolling or Core calls.
+    The temporary capture observer stores only event/target facts, never content.
+    """
+    return "const selector=" + json.dumps(selector) + ";" + r"""
+return new Promise(resolve=>{
+ let settled=false,firstFrame,secondFrame;
+ const finish=facts=>{
+  if(settled)return;settled=true;clearTimeout(timer);
+  if(typeof cancelAnimationFrame==='function'){cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);}
+  resolve(facts);
+ };
+ // A background/closing WebView must not leave an unresolved frame promise.
+ // This read-only sample uses one existing 150 ms observation interval.
+ const timer=setTimeout(()=>finish({hit:false,disabled:null,stable:false,armed:false,
+  reason:'Animation frame observation timed out'}),150);
+ const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+   const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+ const sample=()=>{
+  const matches=document.evaluate(selector,document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+  const nodes=Array.from({length:matches.snapshotLength},(_,i)=>matches.snapshotItem(i)).filter(visible);
+  if(nodes.length!==1)return {hit:false,disabled:null,count:nodes.length};
+  const node=nodes[0],disabled=node.matches(':disabled')||!!node.closest('[aria-disabled="true" i]');
+  if(disabled)return {hit:false,disabled:true,count:1};
+  const r=node.getBoundingClientRect(),point={x:Math.floor((r.left+r.right)/2),y:Math.floor((r.top+r.bottom)/2)};
+  const ancestors=[];
+  for(let a=node.parentElement;a;a=a.parentElement)ancestors.push({node:a,x:a.scrollLeft,y:a.scrollTop});
+  const target=document.elementFromPoint(point.x,point.y);
+  return {node,ancestors,rect:[r.left,r.top,r.right,r.bottom],point,count:1,disabled:false,
+   hit:r.width>0&&r.height>0&&point.x>=0&&point.y>=0&&point.x<innerWidth&&point.y<innerHeight&&!!target&&node.contains(target)};
+ };
+ firstFrame=requestAnimationFrame(()=>{if(settled)return;const first=sample();secondFrame=requestAnimationFrame(()=>{
+  if(settled)return;
+  const last=sample();
+  const stable=!!first.node&&first.node===last.node&&JSON.stringify(first.rect)===JSON.stringify(last.rect)&&
+   first.ancestors.length===last.ancestors.length&&first.ancestors.every((a,i)=>
+    a.node===last.ancestors[i].node&&a.x===last.ancestors[i].x&&a.y===last.ancestors[i].y);
+  const facts={hit:!!last.hit&&!!first.hit,disabled:last.disabled,count:last.count,stable,
+   point:last.point,rect:last.rect,ancestor_scroll:last.ancestors?.map(a=>({x:a.x,y:a.y}))};
+  if(!facts.hit||!stable||facts.disabled!==false||window.__aaosTargetPointerProbe){finish(facts);return;}
+  const node=last.node,events=[];let overflow=0;
+  const describe=n=>({tag:n?.tagName??null,button:n?.matches?.('button')===true});
+  const box=n=>{if(!n?.getBoundingClientRect)return null;const r=n.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom];};
+  const capture=e=>{
+   if(events.length===9){overflow++;return;}
+   const current=sample();
+   events.push({type:e.type,trusted:e.isTrusted,target:node===e.target||node.contains(e.target),
+    button:e.button,x:e.clientX,y:e.clientY,at_ms:performance.now(),tag:e.target?.tagName,
+    expected_rect:box(node),expected_connected:node.isConnected,expected_visible:visible(node),
+    current_rect:current.rect,current_point:current.point,current_hit:current.hit,
+    current_same_node:current.node===node,
+    hit_target:describe(document.elementFromPoint(e.clientX,e.clientY)),
+    path:(typeof e.composedPath==='function'?e.composedPath():[]).slice(0,12).map(describe)});
+  };
+  const kinds=['pointerdown','pointerup','click'];
+  kinds.forEach(kind=>document.addEventListener(kind,capture,true));
+  const observer={finish:()=>{
+   kinds.forEach(kind=>document.removeEventListener(kind,capture,true));
+   if(window.__aaosTargetPointerProbe===observer)delete window.__aaosTargetPointerProbe;
+   const current=sample();
+   return {events,overflow,after:{rect:current.rect,point:current.point,hit:current.hit,
+    same_node:current.node===node,connected:node.isConnected,visible:visible(node)}};
+  }};
+  window.__aaosTargetPointerProbe=observer;
+  finish({...facts,armed:true});
+ });});
+});
+"""
+
+
+def assert_pointer_delivery(proof):
+    assert isinstance(proof, dict) and proof.get("overflow") == 0, "Trusted pointer delivery evidence unavailable; action is not replayed"
+    events = proof.get("events", [])
+    assert len(events) == 3 and [event.get("type") for event in events] == ["pointerdown", "pointerup", "click"], "Trusted pointer sequence incomplete; action is not replayed"
+    assert all(event.get("trusted") is True and event.get("target") is True and event.get("button") == 0 for event in events), "Trusted pointer target delivery unproven; action is not replayed"
+
+
 class GroupedUI:
     """DOM evaluation is observation only; all interaction uses WebDriver commands."""
 
@@ -414,12 +675,25 @@ class GroupedUI:
 const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
-const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
 const page=pages.length===1?pages[0].getAttribute('data-current-page-id'):null;
 const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('aria-label')===label&&visible(n));
 const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
 return {page,count:nodes.length,open:nodes.length===1?nodes[0].open:null,
  summary:nodes.length===1&&visible(nodes[0].querySelector(':scope>summary')),visible_queues:queues.length};"""
+        # The page switch and the learning surface render in separate commits. Waiting for the
+        # expected page plus exactly one disclosure (or one visible queue) removes the race that
+        # let a correctly asserted surface fail because it had not mounted yet; the assertions
+        # below still reject a missing, hidden or ambiguous surface rather than relaxing them.
+        self.wait("const label=" + json.dumps(label) + ";" + r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('aria-label')===label&&visible(n));
+const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
+return pages.length===1&&["06","11","12"].includes(pages[0].getAttribute('data-current-page-id'))
+ &&(nodes.length===1||(label==='学习队列工具'&&queues.length===1));""")
         observed = self.js(script)
         assert observed["page"] in ("06", "11", "12"), "Learning disclosure belongs to another/hidden page"
         if kind == "queue" and observed["count"] == 0:
@@ -438,6 +712,8 @@ return {page,count:nodes.length,open:nodes.length===1?nodes[0].open:null,
         self.find(selector)
         script = "const n=document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;" + r"""
 if(!n)return {ready:false};
+const disabled=n.matches(':disabled')||!!n.closest('[aria-disabled="true" i]');
+if(disabled)return {ready:false,disabled:true,reason:'Target is disabled'};
 const r=n.getBoundingClientRect(), px=(r.left+r.right)/2, py=(r.top+r.bottom)/2;
 let left=0,top=0,right=innerWidth,bottom=innerHeight;const scroll=[];
 for(let a=n.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.getBoundingClientRect();
@@ -446,32 +722,39 @@ for(let a=n.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.g
  if((/auto|scroll/.test(s.overflowY)&&a.scrollHeight>a.clientHeight+1)||(/auto|scroll/.test(s.overflowX)&&a.scrollWidth>a.clientWidth+1))scroll.push(a);
 }
 const hit=document.elementFromPoint(px,py);
-if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(hit))return {ready:true,point:{x:Math.floor(px),y:Math.floor(py)}};
+if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(hit))return {ready:true,disabled:false,point:{x:Math.floor(px),y:Math.floor(py)}};
 for(const a of scroll){let b=a.getBoundingClientRect(),l=Math.max(0,b.left),t=Math.max(0,b.top),rr=Math.min(innerWidth,b.right),bb=Math.min(innerHeight,b.bottom);
  for(let p=a.parentElement;p;p=p.parentElement){const s=getComputedStyle(p),q=p.getBoundingClientRect();if(s.overflowX!=='visible'){l=Math.max(l,q.left+p.clientLeft);rr=Math.min(rr,q.left+p.clientLeft+p.clientWidth);}if(s.overflowY!=='visible'){t=Math.max(t,q.top+p.clientTop);bb=Math.min(bb,q.top+p.clientTop+p.clientHeight);}}
  const style=getComputedStyle(a);
- let dy=/auto|scroll/.test(style.overflowY)?(py>=bb?240:py<=t?-240:0):0;
- let dx=/auto|scroll/.test(style.overflowX)?(px>=rr?240:px<=l?-240:0):0;
+ // Keep a four-CSS-pixel inset when a center misses near a fractional clip
+ // edge. The final hit test above is unchanged; only real wheel placement moves.
+ let dy=/auto|scroll/.test(style.overflowY)?(py>=bb-4?240:py<=t+4?-240:0):0;
+ let dx=/auto|scroll/.test(style.overflowX)?(px>=rr-4?240:px<=l+4?-240:0):0;
  if((dy>0&&a.scrollTop+a.clientHeight>=a.scrollHeight-1)||(dy<0&&a.scrollTop<=0))dy=0;
  if((dx>0&&a.scrollLeft+a.clientWidth>=a.scrollWidth-1)||(dx<0&&a.scrollLeft<=0))dx=0;
  if((!dx&&!dy)||bb<=t||rr<=l)continue;
  const x=Math.floor((l+rr)/2),y=Math.floor((t+bb)/2),origin=document.elementFromPoint(x,y);
- if(origin&&a.contains(origin))return {ready:false,wheel:{x,y,deltaX:dx,deltaY:dy},scrollTop:a.scrollTop,scrollLeft:a.scrollLeft};
+ if(origin&&a.contains(origin))return {ready:false,disabled:false,wheel:{x,y,deltaX:dx,deltaY:dy},scrollTop:a.scrollTop,scrollLeft:a.scrollLeft};
 }
-return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},clip:{left,top,right,bottom},hit:hit?.tagName};
+return {ready:false,disabled:false,reason:'No reachable scroll container',target:{x:px,y:py},clip:{left,top,right,bottom},hit:hit?.tagName};
 """
         unsettled = 0
         for _ in range(16):
             observed = self.js(script)
-            if observed.get("ready"):
-                self.evidence.append({"action":"target_visible_and_hit_tested", "selector":selector, **observed.get("point",{})})
+            disabled = observed.get("disabled") is True
+            if observed.get("ready") and not disabled:
+                assert observed.get("disabled") is False, "Target enabled state is unverified"
+                self.evidence.append({"action":"target_visible_and_hit_tested", "selector":selector, "disabled":False, **observed.get("point",{})})
                 return observed
-            if not observed.get("wheel"):
+            if disabled or not observed.get("wheel"):
                 # 刚激活的保留面板可能先有 DOM、后完成 Dock/ResizeObserver 布局。
-                # 仅等有限次重新观察；永久遮挡仍失败，不绕过命中检查或强制点击。
+                # 瞬时禁用共用原布局观察上限；不滚动禁用目标、不增加等待预算。
                 unsettled += 1
+                if disabled and unsettled >= 6:
+                    self.evidence.append({"action": "target_disabled", "selector": selector, "observation": observed})
+                    raise TimeoutError("Target remains disabled within bounded layout observations")
                 assert unsettled < 6, observed
-                self.evidence.append({"action": "wait_for_target_layout", "selector": selector, "observation": observed})
+                self.evidence.append({"action": "wait_for_target_enabled" if disabled else "wait_for_target_layout", "selector": selector, "observation": observed})
                 time.sleep(.15)
                 continue
             self.command(None, "wheel", observed["wheel"])
@@ -480,11 +763,35 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         raise TimeoutError("Target remains clipped after bounded trusted scrolling")
 
     def click_revealed_selector(self, selector):
-        observed = self.reveal_selector(selector)
-        # Element-click may scroll the nested layout again. Pointer input uses
-        # the already visible, unobscured target without changing that scroll.
-        self.command(None, "pointer_click", observed["point"])
-        self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, **observed["point"]})
+        for _ in range(3):
+            self.reveal_selector(selector)
+            # Keep the original three pre-input attempts. Each attempt samples the
+            # same unique node/box/ancestor scroll on consecutive animation frames,
+            # then recalculates the point and arms a passive delivery observer.
+            sampled_at = time.monotonic()
+            still_there = self.js(pointer_actionability_script(selector))
+            self.evidence.append({"action": "target_pointer_readiness", "selector": selector, "observation": still_there})
+            if still_there.get("hit") and still_there.get("stable") and still_there.get("armed") and still_there.get("count") == 1 and still_there.get("disabled") is False:
+                point = still_there["point"]
+                delivered = {"action": "trusted_pointer_delivery", "selector": selector, "command_completed": False}
+                try:
+                    # Once input is dispatched, its outcome may be unknown. Never
+                    # retry a potentially delivered mutation, even without events.
+                    self.command(None, "pointer_click", point)
+                    delivered["command_completed"] = True
+                finally:
+                    try:
+                        delivered["proof"] = self.js("return window.__aaosTargetPointerProbe?.finish()??null;")
+                    except Exception as error:
+                        delivered["observation_error"] = type(error).__name__
+                    self.evidence.append(delivered)
+                assert_pointer_delivery(delivered.get("proof"))
+                self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, "disabled":False, **point})
+                return
+            remaining = 0.15 - (time.monotonic() - sampled_at)
+            if remaining > 0:
+                time.sleep(remaining)
+        raise TimeoutError("Target moved or remained disabled before the trusted pointer click")
 
     def click_revealed(self, label, scope=""):
         self.click_revealed_selector(button_selector(label, scope))
@@ -493,13 +800,54 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
         candidate = button_selector("整理此来源为知识候选", scope)
         self.find(candidate)
-        disclosure = self.js("return [...document.querySelectorAll('.ui-reader-page .reader-source-tools')].filter(n=>n.getClientRects().length>0).map(n=>({open:n.open}))")
+        disclosure = self.js(READER_SOURCE_TOOLS_OBSERVATION)
         assert len(disclosure) <= 1, "Ambiguous visible reader source tools"
-        if disclosure and not disclosure[0]["open"]:
-            self.click_revealed_selector(scope + "//details[contains(@class,'reader-source-tools')]/summary")
+        if disclosure:
+            assert disclosure[0]["summary"], "Missing reader source tools disclosure"
+            if not disclosure[0]["open"]:
+                self.click_revealed_selector(scope + "//details[contains(@class,'reader-source-tools')]/summary")
+                opened = self.js(READER_SOURCE_TOOLS_OBSERVATION)
+                assert len(opened) == 1 and opened[0]["open"] and opened[0]["summary"], "Reader source tools did not open"
         self.click_revealed_selector(candidate)
 
+    def open_model_advanced_configuration(self):
+        script = model_advanced_configuration_observation()
+        observed = self.js(script)
+        assert observed["page"] == "19" and observed["panels"] == 1 and observed["count"] == 1 and observed["summary"], "Missing/hidden/ambiguous model advanced disclosure on settings page"
+        if not observed["open"]:
+            self.click_revealed_selector(MODEL_ADVANCED_DETAILS_SCOPE + "/summary")
+        self.wait("const observed=(()=>{" + script + "})();return observed.page==='19'&&observed.panels===1&&observed.count===1&&observed.summary&&observed.open&&observed.enabled;")
+        opened = self.js(script)
+        assert opened["page"] == observed["page"] and opened["panels"] == 1 and opened["count"] == 1 and opened["summary"] and opened["open"] and opened["enabled"], "Model advanced disclosure did not open with editable fields on the original settings page"
+        self.evidence.append({"action": "model_advanced_disclosure", "decision": "ALREADY_OPEN" if observed["open"] else "OPENED_BY_RENDERED_UI", "page": "19", "business_completion": False})
+
+    def click_native_option(self, selector):
+        # Native option nodes need not have an independent visible rectangle.
+        # WebDriver Element Click applies the browser's select/option semantics.
+        self.reveal_selector("(" + selector + ")/ancestor::select[1]")
+        element = self.find(selector)
+        observation = (
+            "const nodes=document.evaluate(" + json.dumps(selector) +
+            ",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);"
+            "const n=nodes.snapshotLength===1?nodes.snapshotItem(0):null,s=n?.closest('select');"
+            "return {count:nodes.snapshotLength,valid:n?.tagName==='OPTION'&&!!s&&!s.multiple,"
+            "disabled:!n||!s||n.matches(':disabled')||s.matches(':disabled')||!!n.closest('optgroup[disabled]'),"
+            "hidden:!s||!!s.closest('[hidden],[aria-hidden=\"true\"],[inert]')||!s.getClientRects().length,"
+            "value:n?.value,selected:n?.selected,parent_value:s?.value};"
+        )
+        before = self.js(observation)
+        assert before["count"] == 1 and before["valid"] and not before["disabled"] and not before["hidden"], "Native option is ambiguous, disabled or unavailable"
+        self.command(element, "click", {})
+        after = self.js(observation)
+        assert after["count"] == 1 and after["valid"] and not after["disabled"] and not after["hidden"], "Native option became unavailable"
+        assert after["selected"] and after["value"] == after["parent_value"] == before["value"], "Native option selection was not retained"
+        self.evidence.append({"action": "trusted_native_option_click", "using": "xpath", "selector": selector, "selected_value": after["value"]})
+
     def click_selector(self, selector, using="xpath"):
+        if using == "xpath":
+            if re.search(r"/option(?:\[.*\])?$", selector):
+                return self.click_native_option(selector)
+            return self.click_revealed_selector(selector)
         element = self.find(selector, using)
         node = (
             "document.evaluate("
@@ -526,12 +874,18 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         self.evidence.append({"action": "trusted_type", "selector": selector})
 
     def keys(self, selector, keys, using="xpath"):
-        element = self.find(selector, using)
-        self.command(element, "click", {})
-        self.command(element, "value", {"text": keys})
+        # The Stitch console keeps a fixed task strip over the panel's lower edge.
+        # Native element-click scrolls the control under it and is refused as
+        # non-interactable; use the trusted in-container wheel plus pointer focus.
+        if using == "xpath":
+            self.click_revealed_selector(selector)
+        else:
+            self.command(self.find(selector, using), "click", {})
+        self.command(self.find(selector, using), "value", {"text": keys})
         self.evidence.append({"action": "trusted_keys", "using": using, "selector": selector})
 
     def upload_directory(self, folder):
+        self.open_folder_import()
         selector = 'input[type="file"][aria-label="选择文件夹"]'
         element = self.find(selector, "css selector")
         self.command(element, "value", {"text": str(folder.resolve())})
@@ -543,75 +897,81 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
             }
         )
 
+    def open_folder_import(self):
+        observed = self.js(FOLDER_IMPORT_DISCLOSURE_OBSERVATION)
+        assert observed["page"] == "16" and observed["count"] == 1 and observed["summary"], "Missing, hidden or ambiguous folder import disclosure on the current import page"
+        assert observed["input_count"] == 1 and observed["input_enabled"], "Folder input is missing, ambiguous or disabled"
+        if not observed["open"]:
+            self.click_revealed_selector("//details[contains(concat(' ',normalize-space(@class),' '),' exchange-folder-import ') and not(ancestor-or-self::*[@hidden or @aria-hidden='true'])]/summary")
+        opened = self.js(FOLDER_IMPORT_DISCLOSURE_OBSERVATION)
+        assert opened["page"] == "16" and opened["count"] == 1 and opened["summary"] and opened["open"], "Folder import disclosure did not open on the original page"
+        assert opened["input_count"] == 1 and opened["input_enabled"] and opened["input_visible"], "Folder input must be visible and enabled before trusted selection"
+        self.evidence.append({"action": "folder_import_disclosure", "decision": "ALREADY_OPEN" if observed["open"] else "OPENED_BY_RENDERED_UI", "page": "16", "business_completion": False})
+
     def page(self, page_id, confirm_navigation=False):
-        if self.js("return location.hash") == "#page=" + page_id:
+        assert re.fullmatch(r"\d{2}", page_id), "Invalid page identity"
+        navigation = self.js(product_navigation_observation(page_id))
+        if navigation["mode"] not in {"menu", "drawer", "sidebar"}:
+            # A later guide may appear after an earlier successful readiness
+            # sample. Re-observe it before any trusted navigation action.
+            prepare_rendered_navigation(self, self.evidence)
+            navigation = self.js(product_navigation_observation(page_id))
+        if self.js("return location.hash") == "#page=" + page_id and navigation["page"] == page_id:
             return
-        parents = {
-            "16": "15",
-            "03": "02",
-            "11": "06",
-            "12": "06",
-            "14": "13",
-            "22": "13",
-            "20": "19",
-        }
-        def visible_surface():
-            # 容器的窄/矮断点（≤1100px 或 ≤760px）下产品按设计隐藏侧栏，只保留“打开产品导航”抽屉；
-            # 探针必须走实际可见的导航面，不能对隐藏侧栏做 element not interactable 的点击。
-            mode = self.js(
-                "const visible=n=>!!n&&n.getClientRects().length>0&&"
-                "!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&getComputedStyle(n).visibility==='visible';"
-                "return visible(document.querySelector('.navigation-sidebar'))?'sidebar':"
-                "visible(document.querySelector('button[aria-label=\"打开产品导航\"]'))?'drawer':'none';"
-            )
-            if mode == "drawer":
-                self.click_selector('button[aria-label="打开产品导航"]', "css selector")
-                self.wait("const d=document.querySelector('.ui-navigation-drawer');return !!d&&d.getClientRects().length>0;")
-                return ".ui-navigation-drawer"
-            return ".navigation-sidebar"
-
-        def page_button_visible(scope, target):
-            probe = f'{scope} button[data-page-id="{target}"]'
-            return self.js(
-                "const n=document.querySelector(" + json.dumps(probe) + ");"
-                "if(!n||!n.getClientRects().length||n.closest('[hidden],[aria-hidden=\"true\"],[inert]'))return false;"
-                "for(let a=n;a;a=a.parentElement){const s=getComputedStyle(a);"
-                "if(s.display==='none'||s.visibility!=='visible')return false;}return true;"
-            )
-
-        scope = visible_surface()
-        if not page_button_visible(scope, page_id):
-            parent = parents[page_id]
-            try:
-                self.click_selector(f'{scope} button[data-page-id="{parent}"]', "css selector")
-            except Exception as error:
-                if not confirm_navigation or getattr(error, 'value', {}).get('error') != 'unexpected alert open':
-                    raise
-            if confirm_navigation:
-                assert self.accept_navigation_alert is not None, 'Trusted parent navigation confirmation unavailable'
-                self.accept_navigation_alert()
-            # 抽屉在激活父页面后会关闭：仅当父步骤发生在抽屉内时才重新展开可见导航。
-            if scope == ".ui-navigation-drawer":
-                scope = visible_surface()
+        assert navigation["mode"] in {"menu", "drawer", "sidebar"}, "No visible product navigation"
+        deadline = time.monotonic() + 30
+        menu = navigation["mode"] == "menu"
+        if menu:
+            scope = navigation["scope"]
+            assert scope, "Requested page has no rendered menu group"
+            if not navigation["opened"]:
+                self.click_selector(scope + " > summary", "css selector")
+        elif navigation["mode"] == "drawer":
+            self.click_selector(navigation["trigger"], "css selector")
+            scope = ".ui-navigation-drawer"
+        else:
+            scope = ".navigation-sidebar"
         selector = f'{scope} button[data-page-id="{page_id}"]'
         # Activate the exact focused navigation button using native WebDriver
         # keyboard input. Pointer activation remains separately qualified; do not
         # silently repeat a click that may have hit a moving layout neighbour.
         element = self.find(selector, "css selector")
+        if menu:
+            observed = menu_navigation_observation(scope, page_id)
+            try:
+                self.wait("return (()=>{" + observed + "})().ready;", seconds=max(0, deadline - time.monotonic()))
+            except Exception:
+                self.evidence.append({"action": "navigation_menu_not_ready", "page_id": page_id, "observed": self.js(observed)})
+                raise
+            focus = self.js(observed)
+            assert focus and focus["summaryFocused"] and focus["index"] >= 0, "Navigation summary must own native focus"
+            assert focus["ready"], "Menu readiness changed before native navigation"
+            self.evidence.append({"action": "navigation_menu_ready", "page_id": page_id, "observed": focus})
+            summary = self.find(scope + " > summary", "css selector")
+            self.command(summary, "value", {"text": "\ue004" * (focus["index"] + 1)})
+            focused = self.js("const n=document.querySelector(" + json.dumps(selector) + ");"
+                "return !!n && document.activeElement===n && n.dataset.pageId===" + json.dumps(page_id) + ";")
+            if not focused:
+                self.evidence.append({"action": "navigation_focus_failure", "page_id": page_id, "observed": self.js(observed)})
+            assert focused, "Native Tab did not focus the exact navigation target"
+            self.evidence.append({"action": "native_tab_to_navigation", "page_id": page_id, "tabs": focus["index"] + 1})
         try:
-            self.command(element, "value", {"text": "\ue007"})
+            if menu:
+                self.command(element, "value", {"text": "\ue007"})
+            else:
+                self.click_selector(selector, "css selector")
         except Exception as error:
             if not confirm_navigation or getattr(error,'value',{}).get('error')!='unexpected alert open':
                 raise
         if confirm_navigation:
             assert self.accept_navigation_alert is not None, 'Trusted navigation confirmation unavailable'
             self.accept_navigation_alert()
-        self.evidence.append({"action": "trusted_navigation_enter", "selector": selector})
+        self.evidence.append({"action": "trusted_navigation_enter" if menu else "trusted_legacy_navigation_click", "selector": selector})
         try:
-            observation = "return location.hash===" + json.dumps("#page=" + page_id)
+            observation = "return location.hash===" + json.dumps("#page=" + page_id) + "&&(()=>{" + product_navigation_observation(page_id) + "})().page===" + json.dumps(page_id)
             for attempt in range(3):
                 try:
-                    self.wait(observation)
+                    self.wait(observation, seconds=max(0, deadline - time.monotonic()))
                     break
                 except Exception as error:
                     if not confirm_navigation or getattr(error, "value", {}).get("error") != "unexpected alert open" or attempt == 2:
@@ -623,18 +983,18 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
 
 
     def pointer_page(self, page_id):
-        selector = f'.navigation-sidebar button[data-page-id="{page_id}"]'
+        selector = f'.stitch-workspace-dock button[data-page-id="{page_id}"]'
         self.find(selector, "css selector")
         self.js(r"""(() => {
-const root=document.querySelector('.navigation-sidebar'), requested=document.querySelector(""" + json.dumps(selector) + r""");
+const root=document.querySelector('.stitch-workspace-dock'), requested=document.querySelector(""" + json.dumps(selector) + r""");
 const out={events:[],samples:[]}, id=n=>/^\d{2}$/.test(n?.dataset?.pageId??'')?n.dataset.pageId:null;
 const rect=n=>{if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
-const scroll=()=>['.navigation-sidebar','.navigation-sidebar .space-rail','.navigation-sidebar .ui-page-navigation'].map(scope=>({scope,top:document.querySelector(scope)?.scrollTop??null}));
+const scroll=()=>['.stitch-workspace-dock'].map(scope=>({scope,top:document.querySelector(scope)?.scrollTop??null}));
 const route=()=>({hashPage:location.hash.match(/^#page=(\d{2})$/)?.[1]??null,renderPage:(value=>/^\d{2}$/.test(value??'')?value:null)(document.querySelector('.ui-page-heading')?.dataset.currentPageId),currentPages:[...root.querySelectorAll('button[data-page-id][aria-current="page"]')].map(id)});
 const sample=phase=>{if(out.samples.length<40)out.samples.push({phase,t:performance.now(),...route(),requestedRect:rect(requested),scroll:scroll()});};
 const listeners=[];
 for(const type of ['pointerdown','pointerup','pointercancel','mousedown','mouseup','click','focusin'])for(const capture of [true,false]){
- const fn=e=>{if(!(e.target instanceof Element)||!e.target.closest('.navigation-sidebar')||out.events.length>=64)return;
+ const fn=e=>{if(!(e.target instanceof Element)||!e.target.closest('.stitch-workspace-dock')||out.events.length>=64)return;
  const point='clientX' in e?{x:e.clientX,y:e.clientY}:null;
  out.events.push({type,phase:capture?'capture':'bubble',trusted:e.isTrusted,targetPage:id(e.target.closest('button[data-page-id]')),hitPage:point?id(document.elementFromPoint(point.x,point.y)?.closest('button[data-page-id]')):null,point,requestedRect:rect(requested),scroll:scroll(),...route()});
  if(type==='click'&&!capture){sample('click-bubble');queueMicrotask(()=>sample('click-microtask'));requestAnimationFrame(()=>sample('click-next-frame'));for(const ms of [100,250,1000])setTimeout(()=>sample('click+'+ms),ms);}};
@@ -715,7 +1075,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
     def recover(expected, history):
         prior=read('ui_state_read')
         prior_backups={row['backup_id'] for row in read('workspace_backups')['backups']}
-        ui.page('19',confirm_navigation=True);ui.click('创建一致备份')
+        ui.page('19',confirm_navigation=True);ui.click('创建备份')
         backups=poll(read,'workspace_backups',{},lambda value:len(value['backups'])==len(prior_backups)+1)['backups']
         saved=next(row for row in backups if row['backup_id'] not in prior_backups)
         restart()
@@ -733,10 +1093,10 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
         rows=[row for row in cleared['rows'] if row['operation']=='learning_review']
         assert len(rows)==1 and rows[0]['body']==expected['body'] and rows[0]['status'] in (200,201)
         assert expected['client_event_id'] not in read('ui_state_read')['state'].get('pending_reviews',{})
-        ui.page('19');ui.click('刷新备份产物')
-        ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="预检此备份"]')
+        ui.page('19');ui.click('刷新备份列表')
+        ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="检查此备份"]')
         ui.click('确认恢复整个工作区')
-        wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+        wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
         candidate=read('ui_state_read')
         assert candidate['restore_epoch']!=prior['restore_epoch'] and candidate['recovery_candidates']['pending_reviews'][expected['client_event_id']]==expected
@@ -852,7 +1212,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
             ui.accept_navigation_alert()
             wait(script)
     trusted_wait("return location.hash==='#page=06'")
-    trusted_wait("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value?.startsWith('assessment_')&&!!document.querySelector('.ui-learning-review article')")
+    trusted_wait("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value?.startsWith('assessment_')&&!!document.querySelector('.stitch-learning-review article')")
     second_key=js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value")
     assert isinstance(second_key,str) and second_key.startswith('assessment_') and second_key!=key
     second_assessment=read('assessment_get',{'item_key':second_key})
@@ -869,7 +1229,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
     try:
         for entry in (first,second,first):
             ui.click('恢复复习请求 '+entry['item_key'])
-            trusted_wait("return !!document.querySelector('.ui-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(entry['item_key'])+"&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value==="+json.dumps(entry['body']['answer']))
+            trusted_wait("return !!document.querySelector('.stitch-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(entry['item_key'])+"&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value==="+json.dumps(entry['body']['answer']))
             ui.accept_navigation_alert()
             assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.disabled") is True
             assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习者自评'))?.querySelector('select')?.value") == str(entry['body']['rating'])
@@ -886,7 +1246,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
             # The single remaining request has a normal queue button, and still
             # retains its frozen body when explicitly selected.
             ui.click(second_key,"//ul[@aria-label='复习队列']")
-            trusted_wait("return !!document.querySelector('.ui-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(second_key))
+            trusted_wait("return !!document.querySelector('.stitch-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(second_key))
             ui.accept_navigation_alert()
         install(entry['item_key'])
         try:
@@ -938,7 +1298,10 @@ def run_grouped_loop(
     material_companion_loop=False,
     material_companion_cancel=False,
     accept_navigation_alert=None,
+    saved_binding_lane="deep",
 ):
+    assert saved_binding_lane in ("fast", "deep"), "Unsupported saved model lane"
+    assert not material_companion_loop or saved_binding_lane == "deep", "Material/companion remains DEEP-only"
     assert not material_companion_loop or (save_deep_binding and require_actual_ai_loop and run_ai), "Material/companion requires saved DEEP actual-model qualification"
     assert not material_companion_cancel or material_companion_loop, "Cancellation requires the explicit material/companion journey"
     teaching_only = os.environ.get("AAOS01_TEACHING_DRAFT_ONLY") == "1"
@@ -1008,7 +1371,7 @@ def run_grouped_loop(
         original = read("source_original", {"source_id": source["source_id"]})
         assert original["sha256"] == sha and base64.b64decode(original["content_base64"]) == content
         imported[name] = source
-    ui.click("执行本批次转换")
+    ui.click("开始处理本批文件")
     jobs = {}
     for name, source in imported.items():
         listing = poll(
@@ -1042,8 +1405,8 @@ def run_grouped_loop(
     wait(
         "return location.hash==='#page=03' && !!document.querySelector('[aria-label=\"同源知识整理\"]')"
     )
-    ui.click("建立版本化草稿")
-    wait("return !!document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+    ui.click("创建可编辑草稿")
+    wait("return !!document.querySelector('[aria-label=\"文档草稿编辑器\"] .tiptap')")
     documents = read("documents_list")["documents"]
     document = one(
         documents,
@@ -1055,7 +1418,7 @@ def run_grouped_loop(
     )
     document = read("document_get", {"document_id": document["document_id"]})
     ui.keys(
-        '[aria-label="版本化草稿编辑器"] .tiptap',
+        '[aria-label="文档草稿编辑器"] .tiptap',
         "\ue009\ue010\ue000Grouped document revision. ",
         "css selector",
     )
@@ -1208,7 +1571,7 @@ def run_grouped_loop(
     result["practice_to_review_navigation"] = navigate_retained_review(ui, read, pin, candidate_body)
     # Explicit authored learner fixture; no inference that this proves mastery.
     ui.click_selector(label_selector("回答正确"))
-    ui.keys(label_selector("学习者自评", "select"), "\ue015\ue015\ue015\ue007")
+    ui.click_selector("(" + label_selector("学习者自评", "select") + ")/option[@value='3']")
     history_before = read("learning_history", {"item_key": key})
     if multi_review_ack_loss:
         learning, history = multi_review_ack_recovery(ui,read,js,wait,restart,key,history_before,knowledge,nonce,candidate_body,result.setdefault('multi_review_recovery',{}))
@@ -1235,7 +1598,7 @@ def run_grouped_loop(
     result["review_title"] = {"status": "PASS", "item_key": key, "projection": title_row, "layout": title_layout}
     screenshot("grouped-learning-review.png")
     purposes = ("answer", "retest", "material", "companion") if material_companion_loop else ("answer", "retest")
-    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel, save_deep_binding, purposes)
+    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel, save_deep_binding, purposes, saved_binding_lane)
     result["stages"].append(ai_stage)
     if machine_ack_loss:
         require_machine_ack_recovery(ai_stage)
@@ -1256,14 +1619,17 @@ def run_grouped_loop(
         assert machine_tasks(read) == tasks_before_reopen, "Configuration reopen dispatched inference"
         if material_companion_loop:
             mc.reopen(ui, read, js, wait, screenshot, document, result["material_companion"], "cold_reopen")
-    ui.page("19")
+    # The AI page retains the actual question as an unsaved draft; leaving it
+    # must take the product's native confirmation instead of a raw navigation.
+    ui.page("19", confirm_navigation=True)
+    ui.click("工作区与恢复")
     backup_ids={row['backup_id'] for row in read('workspace_backups')['backups']}
-    ui.click("创建一致备份")
+    ui.click("创建备份")
     backups = poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == len(backup_ids)+1)["backups"]
     backup = next(row for row in backups if row['backup_id'] not in backup_ids)
-    ui.click("预检此备份")
+    ui.click("检查此备份")
     ui.click("确认恢复整个工作区")
-    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
     wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
     before = read("ui_state_read")
     ui.click("保留恢复候选")
@@ -1385,9 +1751,34 @@ def assert_actual_ai_chain(result):
     assert result["capability_toggle"]["status"] == "PASS"
 
 
+CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION = r"""
+const rows=[...document.querySelectorAll('[aria-label="诊断控制台"] details[open]')].filter(n=>
+ n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ n.querySelector('summary')?.textContent.startsWith('完整上下文授权 ·'));
+return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null;
+""".strip()
+
+
+def assert_ui_grant_knowledge(ui, read, wait, knowledge_id):
+    """Read the full UI identity through its real diagnostic, then compare Core."""
+    scope = "//section[@aria-label='项目记忆与上下文内容' and not(ancestor-or-self::*[@hidden])]"
+    ui.click_revealed_selector(scope + "//button[@data-diagnostic-label='完整上下文授权']")
+    try:
+        wait("return (()=>{" + CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION + "})()!==null")
+        grant = ui.js(CONTEXT_GRANT_DIAGNOSTIC_OBSERVATION)
+        assert isinstance(grant, dict) and grant["schema"] == "archeaxis.context-grant/v1"
+        assert grant["knowledge_id"] == knowledge_id and grant["state"] == "candidate", "UI candidate knowledge identity mismatch"
+        assert grant["consumer"] == "local-machine" and grant["provenance"] == [{"kind": "knowledge", "knowledge_id": knowledge_id}], "UI candidate provenance mismatch"
+        knowledge = read("knowledge_get", {"id": knowledge_id})
+        assert knowledge["knowledge_id"] == knowledge_id and knowledge["status"] == "accepted", "UI candidate differs from accepted Core knowledge"
+    finally:
+        ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
+
+
 def create_ui_grant(ui, read, wait, knowledge_id, operation, purpose):
     ui.click("读取指定知识并建立上下文候选")
-    wait("return document.body.innerText.includes('固定知识：' + " + json.dumps(knowledge_id) + ")")
+    wait("const panels=[...document.querySelectorAll('[aria-label=\"项目记忆与上下文内容\"]')].filter(n=>!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.getClientRects().length);const buttons=panels.length===1?[...panels[0].querySelectorAll('button')].filter(n=>n.textContent==='读取指定知识并建立上下文候选'):[];return buttons.length===1&&!buttons[0].disabled&&panels[0].textContent.includes('指定知识当前正文与接受状态已读回');")
+    assert_ui_grant_knowledge(ui, read, wait, knowledge_id)
     ui.type("用途", purpose, "textarea")
     ui.type(
         "授权依据",
@@ -1421,7 +1812,7 @@ def selected_retest_binding(stage, selected_model):
 
 def request_owned_machine_cancellation(ui, wait, report):
     """Trusted UI opt-in; acceptance alone never qualifies worker/provider stop."""
-    ui.click("请求取消当前本地 worker")
+    ui.click("请求取消本次本地生成")
     wait("return document.body.innerText.includes('取消请求已接收；尚未确认停止') || document.body.innerText.includes('没有确认可取消的当前本地 worker')")
     text = ui.js("return document.body.innerText")
     accepted = "取消请求已接收；尚未确认停止" in text
@@ -1432,8 +1823,8 @@ def request_owned_machine_cancellation(ui, wait, report):
 
 def confirm_owned_machine_cancellation(ui, wait, report):
     """Invoke only after the original call finishes; observe the separate Core audit UI."""
-    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='核对冻结机器请求的失败状态' && !b.disabled)")
-    ui.click("核对冻结机器请求的失败状态")
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='检查上次调用结果' && !b.disabled)")
+    ui.click("检查上次调用结果")
     wait("return document.body.innerText.includes('本地 worker 取消审计；可结束请求并保留草稿')")
     text = ui.js("return document.body.innerText")
     assert "本地 worker 取消审计；可结束请求并保留草稿" in text
@@ -1460,42 +1851,80 @@ def read_local_model_inventory(ui, wait, stage, phase):
     raise AssertionError("Local inventory remains unverified after three explicit read-only observations")
 
 
-def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "retest")):
+MODEL_CONFIGURATION_SCOPE = "//div[h2[normalize-space(.)='产品模型与用途绑定'] and not(ancestor-or-self::*[@hidden or @aria-hidden='true' or @inert])]"
+MODEL_ADVANCED_SUMMARY = "高级配置（协议、端点、凭据、用途绑定）"
+MODEL_ADVANCED_DETAILS_SCOPE = MODEL_CONFIGURATION_SCOPE + "/details[contains(concat(' ',normalize-space(@class),' '),' model-advanced ')][summary[normalize-space(.)=" + xpath_literal(MODEL_ADVANCED_SUMMARY) + "]]"
+
+
+def model_advanced_configuration_observation():
+    return "const scope=" + json.dumps(MODEL_CONFIGURATION_SCOPE) + ";const label=" + json.dumps(MODEL_ADVANCED_SUMMARY) + ";" + r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const matches=document.evaluate(scope,document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+const panels=Array.from({length:matches.snapshotLength},(_,i)=>matches.snapshotItem(i)).filter(visible);
+const nodes=panels.length===1?[...panels[0].querySelectorAll(':scope>details.model-advanced')].filter(visible):[];
+const summary=nodes.length===1?nodes[0].querySelector(':scope>summary'):null;
+const fields=nodes.length===1?[...nodes[0].querySelectorAll(':scope>fieldset')]:[];
+const pages=[...document.querySelectorAll('[data-current-page-id]')].filter(visible);
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,panels:panels.length,
+ count:nodes.length,open:nodes.length===1?nodes[0].open:null,
+ enabled:fields.length===1&&visible(fields[0])&&!fields[0].matches(':disabled'),
+ summary:!!summary&&visible(summary)&&summary.textContent.trim()===label};"""
+
+
+def model_configuration_status_observation(message):
+    return (
+        "const matches=document.evaluate(" + json.dumps(MODEL_CONFIGURATION_SCOPE) +
+        ",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);"
+        "const panels=Array.from({length:matches.snapshotLength},(_,i)=>matches.snapshotItem(i))"
+        ".filter(n=>n.getClientRects().length>0&&getComputedStyle(n).visibility==='visible');"
+        "return panels.length===1&&panels[0].textContent.includes(" + json.dumps(message) + ");"
+    )
+
+
+def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "retest"), *, budget=1024, lane="deep"):
     """Explicit finite configuration on the harness's fresh synthetic workspace only."""
+    assert type(budget) is int and budget in (1024, 2048, 4096), "Unsupported probe output budget"
+    assert lane in ("fast", "deep"), "Unsupported saved model lane"
     before = read("model_configuration_get")
     assert before["revision"] == 0 and before["profiles"] == {} and before["bindings"] == [], "Requires fresh isolated model configuration"
     assert isinstance(model, str) and re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", model)
     tasks = machine_tasks(read)
-    scope = "//section[@aria-label='产品模型与用途绑定']"
+    scope = MODEL_CONFIGURATION_SCOPE
     ui.page("19")
     ui.click_revealed("读取模型配置", scope)
+    wait(model_configuration_status_observation('已读取版本 0'))
+    # Endpoints, protocol/credentials, model/budget and every purpose binding share
+    # this collapsed disclosure. Open it through real UI before touching any field.
+    ui.open_model_advanced_configuration()
     ui.type("本地服务地址", "http://127.0.0.1:1234/v1", scope=scope)
     ui.type("模型名称", model, scope=scope)
-    ui.type("最大输出 token", "1024", scope=scope)
+    ui.type("最大输出 token", str(budget), scope=scope)
     ui.type("超时秒数", "120", scope=scope)
     ui.click_revealed("测试连接", scope)
-    wait("return document.querySelector('[aria-label=\"产品模型与用途绑定\"]').textContent.includes('目录读取成功，已找到所选模型')")
+    wait(model_configuration_status_observation('目录读取成功，已找到所选模型'))
     assert set(purposes) <= {"answer", "retest", "material", "companion"} and len(set(purposes)) == len(purposes)
     for purpose in purposes:
-        selector = scope + "/descendant::label[contains(.,'" + purpose + " / DEEP')]/select"
+        selector = scope + "/descendant::label[contains(.,'" + purpose + " / " + lane.upper() + "')]/select"
         ui.reveal_selector(selector)
         ui.click_selector(selector + "/option[@value='local']")
     ui.click_revealed("保存配置与用途绑定", scope)
-    wait("return document.querySelector('[aria-label=\"产品模型与用途绑定\"]').textContent.includes('已保存版本 1')")
+    wait(model_configuration_status_observation('已保存版本 1'))
     saved = read("model_configuration_get")
     profile = {"endpoint":"http://127.0.0.1:1234/v1", "protocol":"openai", "model":model,
-               "credential_ref":None, "max_tokens":1024, "timeout_s":120}
+               "credential_ref":None, "max_tokens":budget, "timeout_s":120}
     assert saved["revision"] == 1 and saved["profiles"] == {"local": profile}
     assert sorted(saved["bindings"], key=lambda row: row["purpose"]) == [
-        {"purpose":purpose, "lane":"deep", "profile_id":"local"} for purpose in sorted(purposes)]
+        {"purpose":purpose, "lane":lane, "profile_id":"local"} for purpose in sorted(purposes)]
     assert saved["workspace_id"] == before["workspace_id"] and saved["restore_epoch"] == before["restore_epoch"]
-    resolved = {purpose: read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":"deep"}}) for purpose in purposes}
+    resolved = {purpose: read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":lane}}) for purpose in purposes}
     for purpose, value in resolved.items():
-        assert value["purpose"] == purpose and value["lane"] == "deep" and value["profile_id"] == "local"
+        assert value["purpose"] == purpose and value["lane"] == lane and value["profile_id"] == "local"
         assert value["profile"] == profile and value["configuration_revision"] == saved["revision"]
         assert value["workspace_id"] == saved["workspace_id"] and value["restore_epoch"] == saved["restore_epoch"]
     assert machine_tasks(read) == tasks, "Configuration save or directory diagnosis dispatched inference"
-    stage["saved_deep_binding"] = {"status":"SAVED_NOT_YET_EXECUTED", "configuration":saved, "resolved":resolved,
+    stage["saved_deep_binding"] = {"status":"SAVED_NOT_YET_EXECUTED", "lane":lane, "configuration":saved, "resolved":resolved,
                                    "configuration_inference_calls":0, "compatibility_model_selection":"NOT_USED"}
 
 
@@ -1506,22 +1935,24 @@ def assert_saved_model_request(value, saved, purpose):
     execution = value["execution_request"] if purpose == "retest" else request
     assert execution["resolved_model"] == expected, "Resolved model receipt mismatch"
     assert request["model"] == expected["profile"]["model"]
-    assert request["max_tokens"] == expected["profile"]["max_tokens"] == 1024
+    assert type(expected["profile"]["max_tokens"]) is int and expected["profile"]["max_tokens"] in (1024, 2048, 4096)
+    assert request["max_tokens"] == expected["profile"]["max_tokens"]
     assert request["timeout_s"] == expected["profile"]["timeout_s"] == 120
 
 
-def select_saved_deep_lane(ui, wait):
+def select_saved_deep_lane(ui, wait, lane="deep"):
+    assert lane in ("fast", "deep")
     selector = "//label[contains(.,'用途执行通道')]/select"
     ui.reveal_selector(selector)
-    ui.click_selector(selector + "/option[@value='deep']")
-    wait("return [...document.querySelectorAll('label')].find(n=>n.textContent.includes('用途执行通道'))?.querySelector('select')?.value==='deep'")
+    ui.click_selector(selector + "/option[@value=" + xpath_literal(lane) + "]")
+    wait("return [...document.querySelectorAll('label')].find(n=>n.textContent.includes('用途执行通道'))?.querySelector('select')?.value===" + json.dumps(lane))
 
 
 def read_saved_model_configuration(ui, read, wait, stage, *, restored):
     saved = stage["saved_deep_binding"]["configuration"]
     ui.page("19")
-    ui.click_revealed("读取模型配置", "//section[@aria-label='产品模型与用途绑定']")
-    wait("return document.querySelector('[aria-label=\"产品模型与用途绑定\"]').textContent.includes('已读取版本 1')")
+    ui.click_revealed("读取模型配置", MODEL_CONFIGURATION_SCOPE)
+    wait(model_configuration_status_observation('已读取版本 1'))
     current = read("model_configuration_get")
     if not restored:
         assert current == saved, "Saved configuration changed across cold reopen"
@@ -1530,10 +1961,22 @@ def read_saved_model_configuration(ui, read, wait, stage, *, restored):
             assert current[key] == saved[key], "Restored configuration mismatch: " + key
         assert current["restore_epoch"] == read("ui_state_read")["restore_epoch"]
         assert current["restore_epoch"] != saved["restore_epoch"], "Restore epoch did not advance"
-    stage["saved_deep_binding"]["restore_readback" if restored else "cold_reopen"] = {"status":"PASS", "configuration":current}
+    resolved = {}
+    for purpose, expected in stage["saved_deep_binding"].get("resolved", {}).items():
+        value = read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":expected["lane"]}})
+        if restored:
+            assert re.fullmatch(r"[0-9a-f]{64}", value["configuration_sha256"])
+            assert value["configuration_sha256"] != expected["configuration_sha256"], "Restored configuration digest did not advance"
+            assert {k:v for k,v in value.items() if k != "configuration_sha256"} == {
+                k:v for k,v in {**expected, "restore_epoch":current["restore_epoch"]}.items() if k != "configuration_sha256"
+            }, "Restored model resolution mismatch"
+        else:
+            assert value == expected, "Cold reopened model resolution mismatch"
+        resolved[purpose] = value
+    stage["saved_deep_binding"]["restore_readback" if restored else "cold_reopen"] = {"status":"PASS", "configuration":current, "resolved":resolved}
 
 
-def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False, save_deep_binding=False, purposes=("answer", "retest")):
+def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False, save_deep_binding=False, purposes=("answer", "retest"), saved_binding_lane="deep"):
     stage = {
         "id": "distill",
         "status": "NOT_EXECUTED",
@@ -1573,7 +2016,8 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     assert knowledge["knowledge_id"] == pin["knowledge_id"] and knowledge["status"] == "accepted"
     if save_deep_binding:
         assert run_ai and selected_model and not machine_ack_loss and not machine_cancel
-        save_deep_model_binding(ui, read, wait, stage, selected_model, purposes)
+        save_deep_model_binding(ui, read, wait, stage, selected_model, purposes,
+                                budget=1024 if selected_max_tokens is None else selected_max_tokens, **({"lane":saved_binding_lane} if saved_binding_lane != "deep" else {}))
     ui.page("13")
     purpose = "Grouped native original " + pin["knowledge_id"]
     document = create_ui_grant(ui, read, wait, pin["knowledge_id"], "answer", purpose)
@@ -1597,7 +2041,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     assert machine_tasks(read) == before_tasks
     stage["inventory_read"] = {"status":"PASS", "evidence_scope":"FORMAL_UI_LOCAL_INVENTORY_ONLY", "listed_model_count":int(inventory_match[1]), "selected_model_listed":inventory_match[2] == "已列出", "loaded_status":"UNKNOWN", "inference_status":"NOT_EXECUTED", "machine_tasks_unchanged":True}
     if save_deep_binding:
-        select_saved_deep_lane(ui, wait)
+        select_saved_deep_lane(ui, wait, **({"lane":stage["saved_deep_binding"].get("lane", "deep")} if stage["saved_deep_binding"].get("lane", "deep") != "deep" else {}))
     elif selected_model is not None:
         assert isinstance(selected_model,str) and selected_model.strip() == selected_model and 0 < len(selected_model.encode()) <= 256
         ui.click_selector("descendant::label[contains(.,'兼容模式本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
@@ -1656,7 +2100,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         before_tasks=machine_tasks(read)
         ui.click("执行本地机器回答")
     wait(
-        "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('Core 明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
+        "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('本地知识库明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
         seconds=150,
     )
     tasks = machine_tasks(read)
@@ -1771,7 +2215,7 @@ def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
     assert frozen['body']['client_request_id']==conditions['client_request_id'] and frozen['body']['question']==conditions['question']
     tasks=machine_tasks(read)
     old_backups={row['backup_id'] for row in read('workspace_backups')['backups']}
-    ui.page('19',confirm_navigation=True);ui.click('创建一致备份')
+    ui.page('19',confirm_navigation=True);ui.click('创建备份')
     backups=poll(read,'workspace_backups',{},lambda value:len(value['backups'])==len(old_backups)+1)['backups']
     saved=next(row for row in backups if row['backup_id'] not in old_backups)
     restart()
@@ -1790,10 +2234,10 @@ def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
     assert len(recovery['rows'])==1 and recovery['rows'][0]['operation']=='ui_state_clear_machine' and 200<=recovery['rows'][0]['status']<300
     assert frozen['journal_id'] not in read('ui_state_read')['state'].get('pending_machine',{})
     assert machine_tasks(read)==tasks and read('machine_task_get',{'task_id':task['task_id']})==task
-    ui.page('19');ui.click('刷新备份产物')
-    ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="预检此备份"]')
+    ui.page('19');ui.click('刷新备份列表')
+    ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="检查此备份"]')
     ui.click('确认恢复整个工作区')
-    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    wait("return document.body.innerText.includes('整个工作区已恢复，并已重新打开确认')")
     candidate=read('ui_state_read')
     assert candidate['restore_epoch']!=before['restore_epoch'] and candidate['recovery_candidates']['pending_machine'][frozen['journal_id']]==frozen
     wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
@@ -1847,10 +2291,10 @@ def machine_ui_diagnostic(ui):
 const text=root?.innerText??'';
 return {panel_present:!!root,answer_visible:!!root?.querySelector('[aria-label="真实机器回答"]'),
 retest_visible:!!root?.querySelector('[aria-label="独立复测机器回答"]'),
-unknown:text.includes('执行状态 UNKNOWN'),retest_incomplete:text.includes('复测未完成'),
-retest_refused:text.includes('Core 明确拒绝复测请求'),
+unknown:text.includes('执行状态尚未确认'),retest_incomplete:text.includes('复测未完成'),
+retest_refused:text.includes('本地知识库明确拒绝复测请求'),
 retest_withheld:text.includes('复测推理已执行，答案未发布'),
-same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textContent?.includes('重试同一冻结复测请求'))};""")
+same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textContent?.includes('重试上次复测'))};""")
         keys = ("panel_present", "answer_visible", "retest_visible", "unknown",
                 "retest_incomplete", "retest_refused", "retest_withheld", "same_request_retry")
         if not isinstance(value, dict) or any(type(value.get(key)) is not bool for key in keys):
@@ -1916,7 +2360,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
         scope,
     )
     ui.click("接受纠正知识", scope)
-    wait("return document.body.innerText.includes('Core 已接受此纠正知识')")
+    wait("return document.body.innerText.includes('本地知识库已接受此纠正知识')")
     accepted = read("knowledge_get", {"id": candidate["knowledge_id"]})
     assert (
         accepted["knowledge_id"] == candidate["knowledge_id"] and accepted["status"] == "accepted"
@@ -1936,10 +2380,10 @@ def run_authored_intervention(ui, read, wait, stage, result):
     )
     stage["retest_grant"] = document
     if stage.get("saved_deep_binding"):
-        select_saved_deep_lane(ui, wait)
+        select_saved_deep_lane(ui, wait, **({"lane":stage["saved_deep_binding"].get("lane", "deep")} if stage["saved_deep_binding"].get("lane", "deep") != "deep" else {}))
     ui.click("以已接受纠正知识运行独立复测", scope)
     wait(
-        "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
+        "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('本地知识库明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
         seconds=150,
     )
     stage["retest_ui_diagnostic"] = machine_ui_diagnostic(ui)
@@ -1957,8 +2401,8 @@ def run_authored_intervention(ui, read, wait, stage, result):
         # One explicit UI retry of the same frozen payload; never generate a new
         # request, replace its grant, or turn an unknown response into success.
         stage["retest_retry"] = {"limit": 1, "first_failure": stage["retest_ui_diagnostic"], "first_inventory": stage["retest_task_inventory"]}
-        ui.click("重试同一冻结复测请求", scope)
-        wait("return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')", seconds=150)
+        ui.click("重试上次复测", scope)
+        wait("return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('本地知识库明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')", seconds=150)
         stage["retest_retry"]["final_observation"] = machine_ui_diagnostic(ui)
         inventory = machine_tasks(read)
         matches = [task for task in inventory if task["scope"] == "runtime.retest" and task["retest_of"] == failed["task_id"]]
@@ -2034,6 +2478,40 @@ def restored_admission_receipt(receipt, document, knowledge_id, question, model_
     return receipt
 
 
+def assert_restored_original_selection(selection, document, knowledge):
+    assert isinstance(selection, dict), "Missing rendered original selection diagnostic"
+    assert selection["document"] == document, "Rendered original grant document mismatch"
+    assert selection["grant"] == document["editor_json"]["attrs"]["archeaxis_context_grant"], "Rendered original grant mismatch"
+    assert selection["snapshot"] == grant_snapshot(document), "Rendered original consumption snapshot mismatch"
+    assert selection["knowledge"] == knowledge, "Rendered original knowledge identity/body mismatch"
+    assert selection["grant"]["knowledge_id"] == knowledge["knowledge_id"]
+    assert selection["current"] is True, "Rendered original knowledge is not current"
+
+
+def select_restored_original(ui, wait, stage):
+    document, knowledge = stage["original_grant"], stage["knowledge_before"]
+    scope = "//section[@aria-label='纠正、评测与复测内容' and not(ancestor-or-self::*[@hidden])]"
+    selector = button_selector("选择原知识授权 " + document["title"], scope)
+    # Refresh is asynchronous; do not select from the retained list while it is loading.
+    wait("const roots=[...document.querySelectorAll('[aria-label=\"纠正、评测与复测内容\"]')].filter(n=>!n.closest('[hidden],[aria-hidden=\"true\"],[inert]'));"
+         "const buttons=document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);"
+         "return roots.length===1&&!roots[0].textContent.includes('正在读取实际上下文')&&buttons.snapshotLength===1&&!buttons.snapshotItem(0).disabled;")
+    ui.click_revealed_selector(selector)
+    try:
+        wait("const rows=[...document.querySelectorAll('[aria-label=\"原知识授权快照\"] [aria-label=\"原知识当前正文\"]')].filter(n=>!n.closest('[hidden],[aria-hidden=\"true\"],[inert]'));return rows.length===1&&rows[0].textContent===" + json.dumps(knowledge["body"]) + ";")
+    except BaseException:
+        stage["restore_selection_failure"] = ui.js("const roots=[...document.querySelectorAll('[aria-label=\"纠正、评测与复测内容\"]')].filter(n=>!n.closest('[hidden]'));return roots.map(n=>({alerts:[...n.querySelectorAll('[role=alert]')].map(x=>x.textContent),status:[...n.querySelectorAll('[role=status]')].map(x=>x.textContent),original:n.querySelector('[aria-label=\"原知识授权快照\"]')?.textContent}));")
+        raise
+    ui.click_revealed_selector(scope + "//section[@aria-label='原知识授权快照']//button[@data-diagnostic-label='原知识授权详细信息']")
+    try:
+        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('原知识授权详细信息 ·'))")
+        selection = ui.js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('原知识授权详细信息 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
+        assert_restored_original_selection(selection, document, knowledge)
+        stage["restore_selected_original"] = {"status":"PASS", "selection":selection}
+    finally:
+        ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
+
+
 def restored_grant_refusal(ui, read, wait, stage):
     if not stage.get("original_grant") or stage.get("status") != "EXECUTED_CANDIDATE_NOT_EVALUATED":
         return {
@@ -2055,18 +2533,17 @@ def restored_grant_refusal(ui, read, wait, stage):
     assert capability["enabled"] is True and capability["registered"] is True
     ui.page("14")
     ui.click("刷新上下文列表")
-    ui.click("选择原知识授权 " + document["title"])
-    wait("return !!document.querySelector('[aria-label=\"原知识当前正文\"]')")
+    select_restored_original(ui, wait, stage)
     current_binding = None
     if stage.get("saved_deep_binding"):
-        select_saved_deep_lane(ui, wait)
-        current_binding = read("model_configuration_resolve", {"body":{"purpose":"answer","lane":"deep"}})
+        select_saved_deep_lane(ui, wait, **({"lane":stage["saved_deep_binding"].get("lane", "deep")} if stage["saved_deep_binding"].get("lane", "deep") != "deep" else {}))
+        current_binding = read("model_configuration_resolve", {"body":{"purpose":"answer","lane":stage["saved_deep_binding"].get("lane", "deep")}})
         assert current_binding["restore_epoch"] == read("ui_state_read")["restore_epoch"]
         assert current_binding["profile"] == stage["saved_deep_binding"]["configuration"]["profiles"]["local"]
     ui.type("实际问题", stage["original_answer"]["question"], "textarea")
     # New UI client request; it cannot succeed through cached old-answer replay.
     ui.click("执行本地机器回答")
-    wait("return document.body.innerText.includes('Core 明确拒绝此回答请求')", seconds=150)
+    wait("return document.body.innerText.includes('本地知识库明确拒绝此回答请求')", seconds=150)
     receipt = restored_admission_receipt(ui.js("""const n=document.querySelector('[aria-label="恢复授权拒绝"]');
       return n?JSON.parse(n.dataset.contextAdmissionRefusal):null;"""), document,
       stage["original_answer"]["knowledge_id"], stage["original_answer"]["question"], current_binding)
@@ -2101,7 +2578,7 @@ def frozen_conversion_view(js):
       return {page:location.hash,
         frozen:[...root.querySelectorAll('p')].find(p=>p.textContent.startsWith('执行请求已冻结：'))?.textContent??null,
         latest:[...root.querySelectorAll('p')].find(p=>p.textContent.startsWith('最新任务 '))?.textContent??null,
-        recovery:root.querySelector('[aria-label="冻结请求的能力恢复"]')?.textContent??null};""")
+        recovery:root.querySelector('[aria-label="处理能力恢复"]')?.textContent??null};""")
 
 
 def assert_unadmitted(status, job_id, source_id):
@@ -2160,8 +2637,8 @@ LEARNING_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().lengt
  !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
   const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
-const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
-const articles=[...document.querySelectorAll('.ui-learning-review article')].filter(n=>visible(n)&&
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const articles=[...document.querySelectorAll('.stitch-learning-review article')].filter(n=>visible(n)&&
  [...n.children].some(c=>c.tagName==='H3'&&c.textContent==='复习题'&&visible(c)));
 return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
  count:articles.length,paragraphs:articles.length===1?[...articles[0].children].filter(c=>c.tagName==='P'&&visible(c)).map(c=>c.innerText):[]};"""
@@ -2172,7 +2649,7 @@ def restored_learning_view(ui, read, js, wait, key, assessment):
     wait("const v=(function(){" + LEARNING_RESTORE_OBSERVATION + "})();return v.page==='06'&&v.count===1&&v.paragraphs.includes(" + json.dumps(assessment["question"]) + ")")
     view = js(LEARNING_RESTORE_OBSERVATION)
     assert view["page"] == "06" and view["count"] == 1 and assessment["question"] in view["paragraphs"], "Restored learning question mismatch"
-    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='查看诊断详情：学习项目与题目版本']")
+    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='状态与诊断：学习项目与题目版本']")
     try:
         wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'))")
         identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
@@ -2210,16 +2687,19 @@ READER_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>
  !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
   const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
-const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
 const readers=[...document.querySelectorAll('[aria-label="阅读与编辑文档视图"]')].filter(visible);
 const reader=readers.length===1?readers[0]:null;
-const titles=reader?[...reader.querySelectorAll('article[aria-label="文档正文与编辑"]>header>h2')].filter(visible):[];
-const bodies=reader?[...reader.querySelectorAll('[aria-label="版本化草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
-const meta=reader?.querySelector('.ui-document-meta');
+const titles=reader?[...reader.querySelectorAll('.stitch-reader-heading h2')].filter(visible):[];
+const bodies=reader?[...reader.querySelectorAll('[aria-label="文档草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
+const metas=reader?[...reader.querySelectorAll('.stitch-document-version')].filter(visible):[];
+const meta=metas.length===1?metas[0]:null;
+const consoleNode=document.querySelector('.console-window');
 return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
  reader_count:readers.length,title:titles.length===1?titles[0].innerText:null,
  text:bodies.length===1?bodies[0].innerText:null,
- version:visible(meta)?Number(meta.textContent.match(/· v(\\d+) ·/)?.[1]??NaN):null};"""
+ console_height:consoleNode?consoleNode.clientHeight:null,
+ version:visible(meta)?Number(meta.textContent.match(/^v(\\d+)(?:$| ·)/)?.[1]??NaN):null};"""
 
 
 def restored_reader_expected_text(document):
@@ -2260,13 +2740,22 @@ def restored_reader_expected_text(document):
 
 def restored_reader(ui, read, js, wait, document):
     """Bind the rendered business view to its user-opened diagnostic and Core identity."""
-    wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.title!==null&&v.text!==null")
+    open_reader_attributes(ui, js)
+    wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.text!==null&&(v.title!==null||(v.console_height!==null&&v.console_height<=520))")
     view = js(READER_RESTORE_OBSERVATION)
     assert view["page"] == "03" and view["reader_count"] == 1
-    assert view["title"] == document["title"], "Restored reader title mismatch"
+    # The compact layout deliberately hides the duplicated page heading at <=520px;
+    # the document identity is still checked through visible prose and Core receipt.
+    compact_title_hidden = view["title"] is None
+    if compact_title_hidden:
+        assert view["console_height"] is not None and view["console_height"] <= 520, "Restored reader title missing outside the compact layout"
+        # The compact rule hides the whole heading, which also carries the version.
+        assert view["version"] is None, "Compact reader must not expose a partial heading version"
+    else:
+        assert view["title"] == document["title"], "Restored reader title mismatch"
+        assert view["version"] == document["version"], "Restored reader version mismatch"
     normalize = lambda value: value.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
     assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(restored_reader_expected_text(document)), "Restored reader content mismatch"
-    assert view["version"] == document["version"], "Restored reader version mismatch"
     scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
     ui.click_revealed_selector(scope + "//button[@aria-label='文档与来源详细信息：文档与来源详细信息']")
     try:
@@ -2279,7 +2768,8 @@ def restored_reader(ui, read, js, wait, document):
         ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
     # Closing the owned diagnostic must return to the same rendered document.
     assert js(READER_RESTORE_OBSERVATION) == view, "Reader changed during identity verification"
-    return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True}
+    return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True,
+            "compact_title_hidden": compact_title_hidden}
 
 
 def capability_refusal_recovery(
@@ -2292,9 +2782,10 @@ def capability_refusal_recovery(
         execution_surface="CURRENT_GROUPED_NATIVE_UI",
     )
     ui.page("15")
-    ui.click("重新读取当前宿主能力")
+    open_resource_settings(ui, js, wait)
+    ui.click("刷新本机可用功能")
     capability_permission(read, True)
-    ui.click_selector("//button[@aria-label='禁用 text.extract']")
+    ui.click_selector("//button[@aria-label='禁用文字解析']")
     result["disabled"] = poll(
         read,
         "capabilities_list",
@@ -2323,9 +2814,10 @@ def capability_refusal_recovery(
         'return !!document.querySelector(\'[aria-label="真实转换产物"] [aria-label="Core 提取正文"]\')'
     )
     ui.click_revealed("执行真实内容转换", "//section[@aria-label='真实转换产物']")
-    wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    wait("return !!document.querySelector('[aria-label=\"处理能力恢复\"]')")
+    ui.click_revealed_selector("//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary")
     view = frozen_conversion_view(js)
-    assert view["page"] == "#page=03" and "Core 已证明原请求未受理" in view["recovery"]
+    assert view["page"] == "#page=03" and "本地服务已确认本次处理请求未受理" in view["recovery"]
     match = re.fullmatch(
         r"执行请求已冻结：(read_run_[A-Za-z0-9-]+)；单次预算 60s。未知结果不会产生新作业。",
         view["frozen"],
@@ -2357,13 +2849,14 @@ def capability_refusal_recovery(
     wait("return location.hash==='#page=03'")
     ui.open_reader_source_tools()
     ui.click_revealed_selector("//*[@data-recovery-request=" + xpath_literal(frozen["request_id"]) + "]//button[@data-recovery-action='restore']")
+    ui.click_revealed_selector("//section[@aria-label='真实转换产物']//details[summary[normalize-space(.)='上次处理请求详情']]/summary")
     recovered_view = frozen_conversion_view(js)
     assert recovered_view["frozen"] == view["frozen"] and recovered_view["latest"] == view["latest"]
     assert read("job_execution_status", {"job_id": job_id}) == refused, "Restart silently executed frozen intent"
     assert read("source_jobs", {"source_id": pin["source_id"]}) == listing, "Restart created a replacement job"
     # Explicitly retry the original identity while still disabled to obtain a fresh admission proof.
-    ui.click_revealed("同请求重试转换", "//section[@aria-label='真实转换产物']")
-    wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    ui.click_revealed("重试上次处理", "//section[@aria-label='真实转换产物']")
+    wait("return !!document.querySelector('[aria-label=\"处理能力恢复\"]')")
     assert read("job_execution_status", {"job_id": job_id}) == refused
     result.update(
         execution_refusal="PASS",
@@ -2374,10 +2867,10 @@ def capability_refusal_recovery(
         refused_ui=view,
         body_evidence="Rendered bound NOT_ADMITTED proof + canonical single-text 60s/split:false/words:false contract; retry durable budget checked independently",
     )
-    scope = "//section[@aria-label='冻结请求的能力恢复']"
-    ui.click_revealed("启用 text.extract", scope)
+    scope = "//section[@aria-label='处理能力恢复']"
+    ui.click_revealed("启用文字解析", scope)
     wait(
-        "return document.body.innerText.includes('该能力已启用，工作区设置已读回。原冻结请求保留；请另点同请求重试。')"
+        "return document.body.innerText.includes('该能力已启用，并已重新核对工作区设置。本次处理记录保留；请另点原任务的重试按钮，不会自动执行。')"
     )
     result["enabled"] = capability_permission(read, True)
     after_enable = frozen_conversion_view(js)
@@ -2397,7 +2890,7 @@ def capability_refusal_recovery(
         "Capability enable enqueued another job"
     )
     result["enable_without_execution"] = "PASS"
-    ui.click_revealed("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    ui.click_revealed("重试上次处理", "//section[@aria-label='真实转换产物']")
     succeeded = poll(
         read,
         "job_execution_status",

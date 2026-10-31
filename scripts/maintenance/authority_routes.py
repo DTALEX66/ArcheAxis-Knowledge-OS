@@ -19,7 +19,8 @@ REGISTRY = "docs/current/AAOS-AUTHORITY-ROUTES.json"
 CONSOLIDATION = "docs/history/repository-consolidation-20261019/MANIFEST.json"
 PRIVATE = {".git", ".codex", ".claude", ".hermes", ".ssh", "memory", "memories",
            "session", "sessions", "credentials", "cookies", "browser-data",
-           ".project-local", ".hilo", ".dsh", ".zcode"}
+           ".project-local", ".hilo", ".dsh", ".zcode", ".npmrc", ".pypirc",
+           "id_rsa", "id_ed25519"}
 LINK = re.compile(r"\]\(([^)]+)\)")
 
 

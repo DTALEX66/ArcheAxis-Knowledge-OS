@@ -59,3 +59,9 @@ revision 0 仅保留 FAST 兼容执行；未配置的 DEEP 阻止执行，不静
 官方加载与推测解码说明：[lms load](https://lmstudio.ai/docs/cli/local-models/load)、
 [Speculative Decoding](https://lmstudio.ai/docs/app/advanced/speculative-decoding)。
 通用说明不替代本机有效参数和非零接受 token 的实际观测。
+
+## 2026-10-22 当前候选FAST实测补充
+
+项目显式加载配置现含fast-local：qwen3.5-4b／aaos-fast-4b，4096上下文、单并发、GPU ratio1、strict VRAM cap、KV留CPU、flashAttention开、draft关闭、TTL1800。使用既有@lmstudio/sdk2.0.0和scripts/runtime/lm_studio_profile.mjs load fast-local；不改LM Studio全局默认或deep-mtp，不替换其他驻留LLM。4.64秒加载及有效参数读回通过，既有加载围栏4项测试通过。
+
+同document-tags-portable-03候选在独立验证库完成真实公开摘要v1与人工范围补充v2两次最终content答案（worker71.17／42.4秒，stop、未截断），原请求重读及Core重启保持。具体失败／恢复／版本／来源／目的地／hash证据由唯一执行记录最新节和.project-local/artifacts/drift-audit-20261021/local-fast-current-candidate-chain.json导航。此处不是安装态、deep／cloud、独立质量或完整闭环验收；产品用途绑定仅保存于独立验证库，未覆盖用户工作区。

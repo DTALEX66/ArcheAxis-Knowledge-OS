@@ -20,7 +20,6 @@ is a packaging detail this probe is not testing.
 
 from __future__ import annotations
 
-import base64
 import contextlib
 import importlib.util
 import json
@@ -57,7 +56,8 @@ def build_staged_tree(root: Path, core_binary: Path) -> Path:
     interpreter = Path(sys.executable)
     (root / "runtime" / interpreter.name).write_bytes(b"")
     shutil.copy2(interpreter, root / "runtime" / interpreter.name)
-    shutil.copytree(REPO / "services" / "python-workers", root / "workers")
+    shutil.copytree(REPO / "services" / "python-workers", root / "workers",
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
     (root / "data").mkdir(parents=True, exist_ok=True)
     profile = {
         "schema": stager.PROFILE_SCHEMA,
@@ -71,6 +71,12 @@ def build_staged_tree(root: Path, core_binary: Path) -> Path:
     return root / "worker-profile.json"
 
 
+def _work_directory() -> Path:
+    """Allocate a unique staged probe tree within the current owned dev run."""
+    runtime = _load("runtime_staged_routes", REPO / "scripts/runtime/dev.py")
+    return runtime.artifact_directory(REPO, "staged-routes")
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -82,9 +88,7 @@ def main() -> int:
         print(json.dumps({"ok": False, "blocked": "golden canvas fixture missing"}))
         return 2
 
-    root = REPO / ".project-local" / "runs" / "staged-routes"
-    if root.exists():
-        shutil.rmtree(root, ignore_errors=True)
+    root = _work_directory()
     profile_path = build_staged_tree(root, core_binary)
 
     receipt: dict = {

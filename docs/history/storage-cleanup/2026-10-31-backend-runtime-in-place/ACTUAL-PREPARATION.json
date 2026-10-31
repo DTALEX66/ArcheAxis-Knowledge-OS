@@ -1,0 +1,316 @@
+{
+  "schema": "aaos.backend-runtime-in-place-actual-addendum/v1",
+  "status": "ACTUAL_OFFLINE_BACKEND_PREPARATION_AND_FINITE_SYNTHETIC_HTTP_PASS_PRODUCT_PARTIAL",
+  "authorship": "Direct ignored post-terminal authoring; no new canonical/product execution; root is public writer",
+  "publication_target": "docs/history/storage-cleanup/2026-10-31-backend-runtime-in-place/",
+  "source": {
+    "source_commit": "71569d174b517a2fce7656e742a2040d26fdc1ff",
+    "source_tree": "b12b9ad033c232c5a8ccc93ce8ccdf5215fe3a12",
+    "dirty": true,
+    "source_patch_sha256": "5bbc8d12939e37a3aa12e2723705bc77d0b079b7517258f25d6401fc9768444e",
+    "source_consistent": true
+  },
+  "actual_preparation": {
+    "producer_exit_code": 0,
+    "wrapper_exit_code": 0,
+    "canonical_exit_code": 0,
+    "seconds": 96.59332790004555,
+    "mode": "BACKEND_ONLY_NO_TAURI_INVALIDATION",
+    "Python": "3.12.13",
+    "UV_environment": {
+      "UV_OFFLINE": "1",
+      "UV_PYTHON_DOWNLOADS": "never"
+    },
+    "runtime_dependencies_installed": 107,
+    "project_wheel_build_and_install": true,
+    "runtime_import_check": "PASS",
+    "runtime_preparation": {
+      "mechanism": "FRESH_OWNED_IN_PLACE_CALLBACK",
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bpr1",
+      "host_runtime_tree_copies": 1,
+      "intermediate_runtime_tree_copies": 0
+    },
+    "manifest_declared_files": 16947,
+    "manifest_declared_member_bytes": 836484884,
+    "manifest_bytes": 3073891,
+    "candidate_logical_files": 16948,
+    "candidate_logical_bytes": 839558775,
+    "byte_semantics": "Manifest-declared members plus manifest itself, not independent filesystem payload rehash, physical allocation or Git storage",
+    "Core": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\release\\archeaxis-api.exe",
+      "bytes": 19177472,
+      "sha256": "07a9fe002eff4953cdada860e0cc4afe3395cee4d177c91b7dc15c8cbd0a9ee2"
+    },
+    "Core_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\obuild1\\artifacts\\execution.json",
+      "bytes": 1700,
+      "sha256": "4b9cf160d6686e249c657a95ff084570e0e61068c0ee8a29011d9cd22a55f15c"
+    },
+    "actual_model_inference": 0,
+    "protected_Tauri_metadata_unchanged": true,
+    "protection_limit": "Top-level 8-object identity cannot independently attest all descendant bytes; no-cache-clear control flow is the principal protection"
+  },
+  "ASR": {
+    "status": "BUNDLED",
+    "name": "faster-whisper-base",
+    "bytes": 147882941,
+    "payload_SHA_authority": "Referenced final backend-runtime-manifest.json four ASR member identities"
+  },
+  "provenance": "Original manifest ASSERTED_NOT_VERIFIED source fields retained; Core independently bound by qualified release receipt and repeated wrapper hash checks",
+  "timings": [
+    {
+      "evidence": {
+        "path": ".project-local/runs/be268a2d33/bpr1/artifacts/bt-b229ca74.json",
+        "bytes": 1742,
+        "sha256": "b0eae96d57d32acc308a60f995698f4506bf247ec7c917f957bb5d40542b3230"
+      },
+      "stages": [
+        {
+          "name": "python-copy",
+          "status": "PASS",
+          "seconds": 1.6658725999877788
+        },
+        {
+          "name": "dependency-export",
+          "status": "PASS",
+          "seconds": 0.0880963999661617
+        },
+        {
+          "name": "dependency-install",
+          "status": "PASS",
+          "seconds": 6.251400400011335
+        },
+        {
+          "name": "wheel-build",
+          "status": "PASS",
+          "seconds": 3.1110621000407264
+        },
+        {
+          "name": "wheel-install",
+          "status": "PASS",
+          "seconds": 0.431347600009758
+        },
+        {
+          "name": "runtime-import-check",
+          "status": "PASS",
+          "seconds": 0.8902041999972425
+        }
+      ]
+    },
+    {
+      "evidence": {
+        "path": ".project-local/runs/be268a2d33/bpr1/artifacts/bt-d8b42c73.json",
+        "bytes": 745,
+        "sha256": "abbc9fb3e8f08c768a13f49d4cce23962ab48ff6132871a118ab5dd939360651"
+      },
+      "stages": [
+        {
+          "name": "backend-runtime-in-place",
+          "status": "PASS",
+          "seconds": 90.07667700003367
+        }
+      ]
+    }
+  ],
+  "finite_HTTP": {
+    "canonical_exit_code": 0,
+    "source_consistent": true,
+    "qualification": "Synthetic Core HTTP manual records only; no UI/state machine/mastery qualification",
+    "runtime_qualification": "ACTUAL_CANDIDATE_LAUNCHER_PROFILE_CORE_SYNTHETIC_HTTP",
+    "mode": "green",
+    "traffic_count": 22,
+    "persisted_counts": {
+      "learning_events": 0,
+      "learning_assessments": 0,
+      "teaching_records": 5
+    },
+    "model_calls": 0,
+    "worker_execution_requests": 0,
+    "external_tool_requests": 0,
+    "runtime_inputs_unchanged": true,
+    "cleanup": [
+      {
+        "pid": 17128,
+        "port": 51258,
+        "exit_code": 1,
+        "port_closed": true,
+        "graceful": "NOT_CLAIMED"
+      },
+      {
+        "pid": 4904,
+        "port": 51288,
+        "exit_code": 1,
+        "port_closed": true,
+        "graceful": "NOT_CLAIMED"
+      }
+    ],
+    "scope": "Synthetic HTTP only; green mode is not external Green installation qualification"
+  },
+  "storage": {
+    "pre": {
+      "readable_bytes": 141985368043,
+      "files": 1310318,
+      "measurement_status": "PARTIAL",
+      "receipt_exit_code": 1
+    },
+    "post": {
+      "readable_bytes": 142856788334,
+      "files": 1328059,
+      "measurement_status": "PARTIAL",
+      "receipt_exit_code": 1,
+      "source_consistent": true
+    },
+    "whole_repository_delta_bytes": 871420291,
+    "dev_class_deltas": {
+      "runs/": 844312174,
+      "cache/": 2397154,
+      "build/": 24710963
+    },
+    "growth_review": {
+      "status": "NO_NEW_GROWTH_TRIGGER",
+      "delta_readable_bytes": 871420291,
+      "growth_review_bytes": 2147483648,
+      "over_budget_classes": [
+        "candidates/",
+        "runs/"
+      ],
+      "new_over_budget_classes": [],
+      "new_out_of_layout": [],
+      "measurement_status": "PARTIAL",
+      "deletion_authorized": false
+    },
+    "scope": "Readable logical lower bound only; period total, not candidate bytes. Old PARTIAL/private/errors unchanged; no new cleanup authority.",
+    "carried_partial_counts": {
+      "metadata_errors": 674,
+      "private_exclusions": 231,
+      "layout_items": 581
+    }
+  },
+  "independent_root_review": {
+    "evidence": {
+      "path": ".project-local/runs/be268a2d33/obsrev1/artifacts/root-review.json",
+      "bytes": 9506,
+      "sha256": "f2f3434c1b34a76aa87b61ac15ac98e51b74db595c7ff8712b1e66b2c5a401f7"
+    },
+    "canonical_receipt": {
+      "path": ".project-local/runs/be268a2d33/obsrev1/artifacts/execution.json",
+      "bytes": 1294,
+      "sha256": "67000fcfc765910c25dcbbe1f88096c296f95d235dc0b56704ee1038b99e7fe4"
+    },
+    "exit_code": 0,
+    "source_consistent": true,
+    "scope": "4 key members/receipt/source identities and empty candidate data; not full-runtime independent SHA rehash"
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-bpwrap1/artifacts/backend-only-prepare.py",
+      "bytes": 13156,
+      "sha256": "50017fc3a2182ae7240dfc633dff9ed8c33ea95021525b05440393f28c69fe8b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-bpwrap1/artifacts/wrapper-review.json",
+      "bytes": 6067,
+      "sha256": "d5b2670323b2f00d4d50a550dfe0fc5f71e4c8b3623908c3ffb6762351f87370"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-pypre1/artifacts/readonly-preflight.json",
+      "bytes": 14640,
+      "sha256": "48e2fb4188c3abda854f00b821d55e89ff213e2e81ad7e028c9baab930dfee50"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obuild1/artifacts/execution.json",
+      "bytes": 1700,
+      "sha256": "4b9cf160d6686e249c657a95ff084570e0e61068c0ee8a29011d9cd22a55f15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/artifacts/execution.json",
+      "bytes": 1280,
+      "sha256": "fa623036d0a80585cb9dfb206af7b2259706eb69ca41642b033ea3426a7724c3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/artifacts/backend-preparation-intent.json",
+      "bytes": 9729,
+      "sha256": "66cfc4f7c0babd2eeb00b4a856dff38d7ef28894cb9a26b7496adc0fc004faf0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/artifacts/backend-preparation-result.json",
+      "bytes": 4092,
+      "sha256": "74138ca9689f41f55fda5bc5189a6896a27f1308071ff94ba1029c337c1e39b5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/artifacts/bt-b229ca74.json",
+      "bytes": 1742,
+      "sha256": "b0eae96d57d32acc308a60f995698f4506bf247ec7c917f957bb5d40542b3230"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/artifacts/bt-d8b42c73.json",
+      "bytes": 745,
+      "sha256": "abbc9fb3e8f08c768a13f49d4cce23962ab48ff6132871a118ab5dd939360651"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/logs/execution.log",
+      "bytes": 4639,
+      "sha256": "c4f0aee44fc509a8e0f4176b3013133e3e116760ca689a04b5faaf4473ca2e50"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bpr1/artifacts/backend-runtime/backend-runtime-manifest.json",
+      "bytes": 3073891,
+      "sha256": "e2e22f8e04dfc9250d5eb6a293c3bbea310fa8b7aa3c2a7535f667129bb84a95"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obspre1/artifacts/execution.json",
+      "bytes": 1418,
+      "sha256": "8ee2b0bd3a3bbda09ec67af263b865f072b81502738601da72163382e61317f6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obspre1/artifacts/footprint.json",
+      "bytes": 825137,
+      "sha256": "34635628f4ca0ceb4d2307ef39822f82520ae7f9b7a7c0fd5860c40285123244"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obspost1/artifacts/execution.json",
+      "bytes": 1441,
+      "sha256": "190272dcc5b25294869b5eefada9694a8e1c3e8fdcced5c7a4628d6df725e650"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obspost1/artifacts/footprint.json",
+      "bytes": 825136,
+      "sha256": "5568e04f2cea0145ec1ac8a3204390d990e81492d8e03d72359ca65395d4c747"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obsgreen1/artifacts/execution.json",
+      "bytes": 2020,
+      "sha256": "024342cc27550fb3a4b289cfbe95ff4d58d67f949d335288ad33f2ab9b0cff3a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obsgreen1/artifacts/observation-http.json",
+      "bytes": 40842,
+      "sha256": "64db981233ac7f4b99fabd9f39315250b2d51647cb9e4b0cb0af2b631a8426b8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obsrev1/artifacts/execution.json",
+      "bytes": 1294,
+      "sha256": "67000fcfc765910c25dcbbe1f88096c296f95d235dc0b56704ee1038b99e7fe4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/obsrev1/artifacts/root-review.json",
+      "bytes": 9506,
+      "sha256": "f2f3434c1b34a76aa87b61ac15ac98e51b74db595c7ff8712b1e66b2c5a401f7"
+    }
+  ],
+  "preserved_history": [
+    "Original synthetic README/MANIFEST and spr-pa1 total FAIL",
+    "Original spr-pypre1 preflight HOLD bytes",
+    "Original before/post PARTIAL measurement receipts"
+  ],
+  "remaining": [
+    "UI/Tauri app build and Windows installer/installed desktop qualification",
+    "ASR/model inference and full product journey/Owner acceptance",
+    "Full independent runtime payload rehash not performed by root review"
+  ],
+  "readme": {
+    "path": "ACTUAL-PREPARATION.md",
+    "bytes": 2116,
+    "sha256": "5062d0b5ec7f609f24769850edc87a6f4763daa712d06ca503b34814ec97a6aa"
+  }
+}

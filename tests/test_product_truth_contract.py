@@ -5,8 +5,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_WORKSPACE = "Human–AI Learning Workspace"
-# Public prose may be Chinese; preserve the product meaning, not an old English sentence.
-EXPECTED_POSITIONING_TERMS = ("本地优先", "原件保全", "证据可追溯", "人机双向学习", "可信知识工作台")
+# SUP-029 updates the positioning; preservation and traceability remain in the
+# explanation, rather than forcing the superseded introduction back into use.
+EXPECTED_POSITIONING_TERMS = (
+    "本地优先", "多格式资料整理", "多源联网检索比对", "持续纠错", "人机双向知识与学习工作台",
+)
 
 
 def test_public_product_truth_uses_learning_workspace_positioning() -> None:
@@ -23,6 +26,18 @@ def test_public_product_truth_uses_learning_workspace_positioning() -> None:
                         if line.strip() and not line.startswith("#"))
     for term in EXPECTED_POSITIONING_TERMS:
         assert term in introduction, (term, introduction)
+    identity = (ROOT / "docs/truth/PRODUCT_IDENTITY_V2.md").read_text(encoding="utf-8")
+    canonical_introduction = next(
+        line.removeprefix("> ") for line in identity.splitlines()
+        if line.startswith("> 本地优先")
+    )
+    assert introduction == canonical_introduction
+    for rule in (
+        "保留原件便于回查",
+        "单份原件、网络结果或模型回答均不自动具有唯一事实权威",
+        "普通保存、展示和学习不等待联网核验或人工事实审批",
+    ):
+        assert rule in readme_head, rule
     assert "星环知识系统（ArcheAxis Knowledge）" in readme_head
     assert "认知闭环" not in readme_head
     assert 'description = "Local-first, evidence-driven Human–AI learning and knowledge workspace' in pyproject

@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.generated-artifact-manifest/v1",
   "artifact_name": "oss-reuse-crosswalk-20261008",
-  "recorded_at": "2026-10-19",
+  "recorded_at": "2026-10-24",
   "decision": {
     "what": "The generator is tracked; the full tables it produces are not.",
     "why": "A 20,584-line / 992,500-byte machine-generated table is a build output, not a source of truth: every byte of it is derivable from the tracked generator plus the tracked inputs named below. Committing it makes every future edit to any input either a stale table in Git or a 20k-line diff, and it hides the fact that the table's own embedded provenance can be out of date.",
@@ -30,9 +30,9 @@
   "artifact_root": {
     "layout_rule": ".project-local/runs/<identity>/<run-id>/artifacts/ (scripts/runtime/dev.py layout())",
     "identity_rule": "sha256(absolute worktree root, casefolded).hexdigest()[:10]",
-    "run_id": "oss-manifest-refresh-20261019",
-    "recording_scope": "isolated public-input snapshot; includes only current_crosswalk navigation replacement in SUPPLY_CHAIN_LEDGER",
-    "relative_path_at_recording": ".project-local/audits/current-doc-migration-20261019/oss-manifest-candidate/snapshot/.project-local/runs/candidate/artifacts"
+    "run_id": "oss-manifest-refresh-20261024",
+    "recording_scope": "re-recorded from current public inputs after SUPPLY_CHAIN_LEDGER changed to 55 rows; includes only current_crosswalk navigation replacement",
+    "relative_path_at_recording": ".project-local/runs/be268a2d33/oss-manifest-refresh-20261024/artifacts"
   },
   "inputs": {
     "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv": {
@@ -54,9 +54,9 @@
       "matches_current_file": true
     },
     "docs/truth/SUPPLY_CHAIN_LEDGER.json": {
-      "sha256_of_bytes_read_by_generator": "cf1652fd75e1d588aa9a545cd2437193c59dbe05886d2d9040f8fc16faca893d",
-      "sha256_of_current_file": "cf1652fd75e1d588aa9a545cd2437193c59dbe05886d2d9040f8fc16faca893d",
-      "recorded_rows": 51,
+      "sha256_of_bytes_read_by_generator": "93bf22ca9861775c849bcb7c1fd54a606f351f52cd4243976a6af7335246e528",
+      "sha256_of_current_file": "93bf22ca9861775c849bcb7c1fd54a606f351f52cd4243976a6af7335246e528",
+      "recorded_rows": 55,
       "matches_current_file": true
     },
     "inspiration_research/resources/open_source_absorption_ledger.json": {
@@ -75,12 +75,12 @@
   "outputs": {
     "json": {
       "file": "OSS-REUSE-CROSSWALK-20261008.json",
-      "bytes": 1012511,
-      "sha256": "d2d878d6dfc316e25d1ef44b9cb926e23a69d40709975da4d5e15fc54782a2e9",
-      "sha256_portable": "9e451abb4676df43a2c4f579f83992c46578380b15ad51ab16109976fdf4fef5",
+      "bytes": 1022079,
+      "sha256": "8770dcf27852f18fd073c3ca8ed05af2f8a44f11b1363eca5c69caac1af11f04",
+      "sha256_portable": "c8e878841d4244fe6ba74e9d3d83f259d2babebb818d2bf50e9842058c459262",
       "line_terminator": "CRLF",
-      "line_count": 20899,
-      "record_count": 701,
+      "line_count": 21080,
+      "record_count": 705,
       "pool_record_count": 369,
       "pool_counts": {
         "D": 351,
@@ -90,16 +90,16 @@
         "C": 2
       },
       "schema": "archeaxis.oss-reuse-crosswalk/v1",
-      "bytes_portable": 991612
+      "bytes_portable": 1000999
     },
     "csv": {
       "file": "OSS-REUSE-CROSSWALK-20261008.csv",
-      "bytes": 309521,
-      "sha256": "106a66fa0c5ddb042522b5dbc92e20fa404a6860b7b0d7e5979440280fc19add",
-      "sha256_portable": "fe44f746909b712e098d9ecd321980b5954c5d91eeb1dae2f62de26f30eff0e6",
+      "bytes": 311077,
+      "sha256": "3103f0da2b7e5e9bb0201ab01e62eaebf31c536b03a200a78b96f2854cde0525",
+      "sha256_portable": "e16374458a50d9ef085fb5c5c7e49d0dd649726ca6662e192784c14909b6397c",
       "line_terminator": "CRLF",
-      "line_count": 702,
-      "data_rows": 701,
+      "line_count": 706,
+      "data_rows": 705,
       "columns": [
         "record_key",
         "scope",
@@ -113,7 +113,7 @@
         "value",
         "reevaluate_when"
       ],
-      "bytes_portable": 308819
+      "bytes_portable": 310371
     }
   },
   "portability": {
@@ -155,5 +155,5 @@
     "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
   },
   "previous_manifest": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json",
-  "refresh_reason": "Repository consolidation changed public locators and source fingerprints. Regenerated from current inputs without changing decisions, verification or capability qualification. Archived manifest remains byte-identical."
+  "refresh_reason": "SUPPLY_CHAIN_LEDGER changed from 51 to 55 rows after the repository consolidation; regenerated both tables from current public inputs and re-recorded the exact digests. Decisions, verification and capability qualification are unchanged."
 }

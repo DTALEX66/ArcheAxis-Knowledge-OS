@@ -1,0 +1,158 @@
+{
+  "schema": "aaos.shared-sandbox-evidence/v1",
+  "checks": [
+    {
+      "run": "ssp-vm1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-vm1/artifacts/execution.json",
+        "bytes": 1467,
+        "sha256": "242076908483274977060d357ac42b6d21110d498053edacfa085d768b20897e"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "d3b94ff72b2c562104d35f425285d831ba5bf130292a606d08cabe82beeca14e",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-life1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-life1/artifacts/execution.json",
+        "bytes": 1475,
+        "sha256": "0d6cf04ae266d4c6769cf00acd5024b9a1f8ba0d31033e8d2efafa174d276e07"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "6c2cb19b9d57df2e4f5059b8bec057f5a9aa708610c956e5e977e5314d1a6dfe",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-t2",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-t2/artifacts/execution.json",
+        "bytes": 1656,
+        "sha256": "dee2ff07840b8b25d6824fc167ff67e83eb92fd1a82f7d40fe0cea0888d574e1"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "6c2cb19b9d57df2e4f5059b8bec057f5a9aa708610c956e5e977e5314d1a6dfe",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-l2",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-l2/artifacts/execution.json",
+        "bytes": 1369,
+        "sha256": "c9449fb55ddb000b4ee27b5437be102776aaa563170bfaa30fa4755457644dfe"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "6c2cb19b9d57df2e4f5059b8bec057f5a9aa708610c956e5e977e5314d1a6dfe",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-a2",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-a2/artifacts/execution.json",
+        "bytes": 1236,
+        "sha256": "4d8f1cef700f36274a3c2d58b578ee283e69f2d9f66980f8e66be02f96b65ba2"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "6c2cb19b9d57df2e4f5059b8bec057f5a9aa708610c956e5e977e5314d1a6dfe",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-os1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-os1/artifacts/execution.json",
+        "bytes": 1175,
+        "sha256": "da48ee1fced960d9d57903fceb7ebe2e17384898cd653642b2846c8a97551827"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "9d1b48db1e14476b2e8228d5dfcb00dbacadcfbbbf60657d24b1e2241ee92668",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-end1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ssp-end1/artifacts/execution.json",
+        "bytes": 1186,
+        "sha256": "d3317e66849366ca1486f9d1a32f3e691af600e91f086532b160e1ec906837a0"
+      },
+      "source_commit": "801ebbeaebed7d456802f42f99cd28cdaf778464",
+      "source_patch_sha256": "9d1b48db1e14476b2e8228d5dfcb00dbacadcfbbbf60657d24b1e2241ee92668",
+      "source_consistent": true
+    }
+  ],
+  "raw_file_catalog": {
+    "path": ".project-local/runs/be268a2d33/ssp-evidence1/artifacts/raw-run-files.jsonl",
+    "bytes": 91898,
+    "sha256": "c03731e665a4030a4580b97da780bce4aa499f4b0535213623c89eb0a2eb35c1",
+    "members": 513
+  },
+  "public_summary": {
+    "path": "docs/history/storage-cleanup/2026-10-30-shared-sandbox/summary.json",
+    "bytes": 4479,
+    "sha256": "11791d095904f300474f8eef4fbcf6420b6663eec441caa7598ecdde8c981100"
+  },
+  "final_code_files": [
+    {
+      "path": "scripts/runtime/shared_sandbox.py",
+      "bytes": 20134,
+      "sha256": "e26bd01136938ea944f2cde95f65ab5905041d55405c3d568f3ec9d897675635"
+    },
+    {
+      "path": "scripts/runtime/shared_sandbox_guest.ps1",
+      "bytes": 2686,
+      "sha256": "7184df7a9e7f3a0b083c4d9e920e6c31f77f016e02a09498b9e4563a72f1924b"
+    },
+    {
+      "path": "tests/runtime-paths/test_shared_sandbox.py",
+      "bytes": 9280,
+      "sha256": "d56460c43d8f919305dd017a0a6390d283319d1ab5293de9923a276ad62bc1d2"
+    }
+  ],
+  "raw_guest_lifecycle": {
+    "path": ".project-local/runs/be268a2d33/ssp-life1/artifacts/sandbox-output/0662fdd63b6943e2be01db897be7f647/lifecycle-receipt.json",
+    "bytes": 2059,
+    "sha256": "92c3aa1eb8467a7cfb7a1af62283fa7fbf14c7705629b71ae5110566d7582095"
+  },
+  "preserved_source_manifest": {
+    "path": ".project-local/runs/be268a2d33/zc1i2/input/inputs.json",
+    "bytes": 130915,
+    "sha256": "82f2c42901049665b8b85a4d9620bbcdfd67419025ebe2746956e02d4e0e7fef"
+  },
+  "routing_observation": {
+    "path": ".project-local/runs/be268a2d33/ssp-route1/artifacts/historical-recovery-routing.json",
+    "bytes": 532,
+    "sha256": "87f02e47b781943847ea599f564ffe3936c3728164a1374f884e0b9e4877178f"
+  },
+  "routing_execution": {
+    "path": ".project-local/runs/be268a2d33/ssp-route1/artifacts/execution.json",
+    "bytes": 2669,
+    "sha256": "ae076072a27f05bee11be59d159e7c0502502214fd4308d3572989de6fe826f5"
+  },
+  "final_document_checks": [
+    {
+      "run": "ssp-doc1",
+      "path": ".project-local/runs/be268a2d33/ssp-doc1/artifacts/execution.json",
+      "bytes": 1251,
+      "sha256": "c88f7152ab669761f6c51e8cbb5b6881b629d92fb1587503c4ddd81e9a16b29e",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-path1",
+      "path": ".project-local/runs/be268a2d33/ssp-path1/artifacts/execution.json",
+      "bytes": 1246,
+      "sha256": "68b0f3df2f44983554b0ebf97411327e4f68dc11f8f9ad80816f90f36f41658d",
+      "source_consistent": true
+    },
+    {
+      "run": "ssp-conv1",
+      "path": ".project-local/runs/be268a2d33/ssp-conv1/artifacts/execution.json",
+      "bytes": 1284,
+      "sha256": "d99752366041f8463cee869e757c3017bd4ba7dc1af6bb60de9c84bd00805d36",
+      "source_consistent": true
+    }
+  ],
+  "followup_verification": {
+    "receipt": ".project-local/runs/be268a2d33/ssp-proof1/artifacts/execution.json",
+    "report": ".project-local/runs/be268a2d33/ssp-proof1/artifacts/shared-sandbox-proof.json",
+    "scope": "Read actual status for the independent read-only check; a path alone is not PASS"
+  }
+}

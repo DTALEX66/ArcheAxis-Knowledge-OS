@@ -6,6 +6,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -16,27 +17,139 @@ from scripts.runtime import dev as runtime_paths
 from scripts.runtime.build_timing import BuildTimings
 
 
-def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path) -> Path:
-    """Prepare locked Python, then delegate the complete layout to the authority."""
-    repository = repository.resolve()
-    destination = destination.resolve()
+def _load_tool_paths(repository: Path):
+    """The shared capability resolver, loaded by path (it is a worker-side module)."""
+    path = repository / "services" / "python-workers" / "tool_paths.py"
+    if not path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("bundle_tool_paths", path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def declared_asr_model(repository: Path) -> Path | None:
+    """The transcript model the capability declaration names on this host, or None.
+
+    Packaging copies an explicit donor. Resolving the declared one here is what makes the
+    canonical build ship a model without a second hardcoded path in the build script; a host
+    without it prints a named reason instead of producing a candidate that looks complete.
+    """
+    module = _load_tool_paths(repository)
+    if module is None:
+        print("asr model: tool_paths.py is missing; this candidate ships no transcript model",
+              file=sys.stderr)
+        return None
+    try:
+        resolved = module.tool_path("faster-whisper-base")
+    except Exception as exc:  # noqa: BLE001 - a build reports what it could not resolve
+        print(f"asr model: the declared donor did not resolve ({type(exc).__name__}: {exc}); "
+              "this candidate ships no transcript model", file=sys.stderr)
+        return None
+    return Path(resolved)
+
+
+def asr_model_name(donor: Path) -> str:
+    """The directory name the model is bundled under, from an HF cache layout when it has one.
+
+    A Hugging Face snapshot directory is named by commit sha; the model's own name is in the
+    cache entry above it. Using the sha as the bundled name would make the identity unreadable
+    and defeat the worker's preference order.
+    """
+    for part in reversed(donor.parts):
+        if part.startswith("models--"):
+            pieces = [piece for piece in part[len("models--"):].split("--") if piece]
+            if pieces:
+                return pieces[-1]
+    return donor.name
+
+
+def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
+                              asr_model: Path | None = None, vc_runtime: Path | None = None) -> Path:
+    """Prepare locked Python directly in the authoritative fresh backend root."""
+    repository = runtime_paths.safe_path(repository)
+    destination = runtime_paths.safe_path(destination)
+    core = runtime_paths.safe_path(core)
+    if asr_model is not None:
+        asr_model = runtime_paths.safe_path(asr_model)
     if destination.exists():
         raise RuntimeError(f"candidate destination already exists: {destination}")
-    donor = destination.with_name(destination.name + "-python-input")
-    staged_python = prepare_bundle_runtime(repository=repository, destination=donor)
+    vc_runtime = resolve_vc_runtime(vc_runtime)
+    environment = runtime_build_environment(repository)
+    staged_python = destination / "runtime/python.exe"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
     tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=repository, text=True).strip()
     version = json.loads((repository / "frontend/package.json").read_text(encoding="utf-8"))["version"]
-    subprocess.run([
-        sys.executable, "-B", str(repository / "scripts/release/stage_backend_runtime.py"),
+    command = [
         "--core", str(core.resolve()), "--runtime", str(staged_python.parent),
         "--workers", str(repository / "services/python-workers"),
         "--shared", str(repository / "shared/learning_scheduler.py"),
         "--out", str(destination), "--version", version,
         "--source-commit", commit, "--source-tree", tree,
-    ], cwd=repository, check=True)
+        "--vc-runtime", str(vc_runtime),
+    ]
+    if asr_model is not None:
+        command += ["--asr-model", str(Path(asr_model).resolve()),
+                    "--asr-model-name", asr_model_name(Path(asr_model))]
+    authority = _backend_stager(repository)
+    timings = BuildTimings(Path(environment["ARCHEAXIS_RUN_ROOT"]) / "artifacts", environment)
+    with timings.stage("backend-runtime-in-place") as measured:
+        measured["destination"] = str(destination)
+        result = authority.main(command, _runtime_environment=environment,
+            _runtime_preparer=lambda root: prepare_bundle_runtime(
+                repository=repository, destination=root,
+                _backend_in_place=True, _environment=environment))
+        if result != 0:
+            raise RuntimeError("authoritative in-place backend staging failed")
     clear_cached_bundle_resources(repository=repository)
     return destination / "runtime/python.exe"
+
+
+def _backend_stager(repository: Path):
+    spec = importlib.util.spec_from_file_location("desktop_backend_stager",
+        repository / "scripts/release/stage_backend_runtime.py")
+    authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(authority)
+    return authority
+
+
+def resolve_vc_runtime(explicit: Path | None = None) -> Path:
+    """Builder-only official VS discovery; the stager never searches for donors."""
+    spec = importlib.util.spec_from_file_location("desktop_vc_authority",
+        Path(__file__).resolve().parents[2] / "scripts/release/stage_backend_runtime.py")
+    authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(authority)
+    def validated(path):
+        path = Path(os.path.abspath(path))
+        authority.validate_cpp_runtime(path)
+        return path
+    selected = explicit or os.environ.get("ARCHEAXIS_VC_RUNTIME_DIR")
+    if selected:
+        return validated(selected)
+    program_files = os.environ.get("ProgramFiles(x86)")
+    if not program_files:
+        raise RuntimeError("VC runtime donor unavailable; pass --vc-runtime or ARCHEAXIS_VC_RUNTIME_DIR")
+    vswhere = Path(program_files) / "Microsoft Visual Studio/Installer/vswhere.exe"
+    authority.reject_links_along(vswhere)
+    if not vswhere.is_file():
+        raise RuntimeError("official vswhere missing; pass an explicit VC runtime donor")
+    result = subprocess.run([str(vswhere), "-latest", "-products", "*", "-requires",
+                             "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"],
+                            check=True, capture_output=True, text=True, encoding="utf-8-sig", timeout=30)
+    installations = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if len(installations) != 1 or not Path(installations[0]).is_absolute():
+        raise RuntimeError("official vswhere did not return one absolute installationPath")
+    vc = Path(installations[0]) / "VC"
+    version_file = vc / "Auxiliary/Build/Microsoft.VCRedistVersion.default.txt"
+    authority.reject_links_along(version_file)
+    if version_file.stat().st_nlink != 1:
+        raise RuntimeError("linked official VC Redist version file")
+    version = version_file.read_text(encoding="utf-8-sig").strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise RuntimeError("invalid official VC Redist default version")
+    return validated(vc / "Redist/MSVC" / version / "x64/Microsoft.VC143.CRT")
 
 
 def clear_cached_bundle_resources(*, repository: Path) -> None:
@@ -97,20 +210,38 @@ def runtime_build_environment(repository: Path) -> dict[str, str]:
     return env
 
 
-def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
-    repository = repository.resolve()
-    destination = destination.resolve()
+def prepare_bundle_runtime(*, repository: Path, destination: Path,
+                           _backend_in_place: bool = False, _environment: dict | None = None) -> Path:
+    if sys.version_info[:2] != (3, 12):
+        raise RuntimeError(
+            "请使用 Python 3.12 制备桌面运行时；当前执行解释器为 "
+            f"Python {sys.version_info[0]}.{sys.version_info[1]}。"
+        )
+    if _backend_in_place:
+        repository = runtime_paths.safe_path(repository)
+        destination = runtime_paths.safe_path(destination)
+    else:
+        repository = repository.resolve()
+        destination = destination.resolve()
     uv = shutil.which("uv")
     if uv is None:
         raise RuntimeError("uv is required to prepare the desktop runtime")
 
-    env = runtime_build_environment(repository)
+    env = dict(_environment) if _backend_in_place and _environment is not None else runtime_build_environment(repository)
+    if _backend_in_place:
+        # This build process only: uv's shared cache must not hardlink the final runtime.
+        env["UV_LINK_MODE"] = "copy"
     timings = BuildTimings(Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts", env)
     with timings.stage("python-copy") as copy:
-        staged_python = stage_runtime(repository=repository, destination=destination)
+        staged_python = (stage_runtime(repository=repository, destination=destination, _backend_in_place=True)
+                         if _backend_in_place else stage_runtime(repository=repository, destination=destination))
         copy["bytes"] = sum(path.stat().st_size for path in staged_python.parent.rglob("*") if path.is_file())
-    requirements = destination / "requirements.locked.txt"
-    wheels = destination / "wheels"
+    preparation = (Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts/python-preparation"
+                   if _backend_in_place else destination)
+    if _backend_in_place:
+        preparation.mkdir(exist_ok=False)
+    requirements = preparation / "requirements.locked.txt"
+    wheels = preparation / "wheels"
     # The pinned setuptools backend builds in place even when uv's wheel output
     # and isolated environment are routed elsewhere. Its command options must
     # also route egg_info and build intermediates; otherwise root drift returns.
@@ -186,6 +317,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         [
             str(staged_python),
             "-I",
+            *(["-B"] if _backend_in_place else []),
             "-c",
             "import app.runtime_entrypoint, fastapi, uvicorn; print('installed runtime imports passed')",
         ],
@@ -261,6 +393,11 @@ def main() -> int:
                         help="workers tree to place beside the runtime")
     parser.add_argument("--candidate-root", type=Path,
                         help="candidate root holding the worker profile and launcher files")
+    parser.add_argument("--asr-model", type=Path,
+                        help="explicit transcript model directory to bundle inside runtime/models/asr; "
+                             "defaults to the model the capability declaration names")
+    parser.add_argument("--vc-runtime", type=Path,
+                        help="explicit reviewed x64 VC donor; defaults to build-local environment or official VS registration")
     args = parser.parse_args()
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
@@ -272,7 +409,10 @@ def main() -> int:
     if args.backend_candidate:
         if args.core is None or args.repository is None or args.core_only:
             parser.error("--backend-candidate requires --repository and --core, without --core-only")
-        print(prepare_backend_candidate(repository=args.repository, destination=destination, core=args.core))
+        print(prepare_backend_candidate(
+            repository=args.repository, destination=destination, core=args.core,
+            vc_runtime=args.vc_runtime,
+            asr_model=args.asr_model or declared_asr_model(args.repository.resolve())))
         return 0
     # Placing the Core beside an already-prepared runtime must not reinstall the runtime:
     # the install resolves and builds the whole locked dependency set, and a packaging step

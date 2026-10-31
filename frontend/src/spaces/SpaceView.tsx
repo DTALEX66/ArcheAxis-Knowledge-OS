@@ -18,9 +18,7 @@ import { CollectionPanel } from "../components/CollectionPanel";
 import type { ObjectReference } from "../api/generated/research-contract";
 import { CanonicalCapabilitiesSpace } from "./CanonicalCapabilitiesSpace";
 import { CanonicalResourcesSpace } from "./CanonicalResourcesSpace";
-import { BackupPanel } from "../components/BackupPanel";
-import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
-import { ConfigurationPlanPanel } from "../components/ConfigurationPlanPanel";
+import { StitchSettingsSpace } from "./StitchSettingsSpace";
 import { VersionSourcePanel } from "../components/VersionSourcePanel";
 import type { InspectionHandler } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
@@ -73,7 +71,7 @@ export function SpaceView({
   spaceId: SpaceId;
   onInspect: InspectionHandler;
   onNavigate: (id: SpaceId) => void;
-  onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>void;
+  onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>boolean|void;
   navigation?: SpaceNavigation;
   selectedCapabilityId?: string | null;
   uiPageId?: string; initialDocumentId?: string; onOpenDocument?: (id:string)=>void;
@@ -98,6 +96,12 @@ export function SpaceView({
   const externalDocument=useRef(initialDocumentId);
   useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;if(!sourceJourney)setLocalSourceTarget(undefined);}},[initialDocumentId,sourceJourney]);
   const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
+  const readSourceJourney=(target:SourceJourneyTarget)=>{
+    // The existing shell guard decides before a hidden retained reader changes.
+    if(!onOpenPage||onOpenPage("03")===false)return false;
+    setSourceTarget(target);setCandidateTarget(undefined);
+    return true;
+  };
   const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
   useEffect(()=>{if(sourceTarget)setCandidateTarget(undefined);},[sourceTarget]);
   useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setLocalSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
@@ -131,32 +135,27 @@ export function SpaceView({
   if (selectedCapabilityId) {
     return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
   }
-  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
+  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace onOpenReference={setPinnedReference} activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onOpenPage ? onOpenPage("16") : onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
   if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "04") return <CanonicalRelationSpace onOpenReference={setPinnedReference} renderCollection={(document,envelope,change,pending,readOnly)=>{
     const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
     return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
   }}/>;
-  if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
+  if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onReadSource={readSourceJourney} onTrail={onTrail}/>;
   if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
-  if (uiPageId === "16") return <><ProjectHandoffReader /><CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/></>;
+  if (uiPageId === "16") return <section className="stitch-exchange-workspace" aria-label="互通工作区"><CanonicalExchangeSpace onReadSource={readSourceJourney} onSelectRelations={selection=>readSourceJourney({source_id:selection.source_id,source_revision:selection.source_revision,sha256:selection.source_revision,folder_member:selection})} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/><details className="exchange-card"><summary>项目交接资料</summary><ProjectHandoffReader /></details></section>;
   const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
   if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;
-  if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings")) onOpenPage(id === "library" ? "02" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
-  if (uiPageId === "19") return <section className="ui-reliability-panel" aria-label="系统与可靠性" data-section="backup" tabIndex={-1}>
-    <h2>本地工作区与恢复</h2><p>普通笔记与草稿可先保存，依据分析、专业采用与 AI 资格分别记录。</p>
-    <BackupPanel hasUnsavedDrafts={hasUnsavedDrafts} /><p>权限配置界面尚未接通。恢复通过本地宿主执行，浏览器未连接时明确不可用。</p>
-    <section aria-label="产品模型与用途绑定"><ModelConfigurationPanel /></section>
-    <ConfigurationPlanPanel />
-  </section>;
-  if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
+  if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings" || id === "intake")) onOpenPage(id === "library" ? "02" : id === "intake" ? "16" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
+  if (uiPageId === "19") return <StitchSettingsSpace hasUnsavedDrafts={hasUnsavedDrafts} />;
+  if (uiPageId === "20") return <section className="stitch-history-page" aria-label="历史与来源"><CanonicalLibrarySpace onOpenReference={setPinnedReference} activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /><details className="stitch-runtime-details"><summary>当前运行身份与来源</summary><VersionSourcePanel /></details></section>;
   if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   switch (spaceId) {
     case "library": case "intake": case "exchange":
-      return <CanonicalLibrarySpace activationRevision={activationRevision} initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
+      return <CanonicalLibrarySpace onOpenReference={setPinnedReference} activationRevision={activationRevision} initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
     case "vault": case "evidence": case "ai-assets":
       return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} onTrail={onTrail}/>;
     case "learning": return <CanonicalLearningJourneySpace onOpenPage={onOpenPage} onTrail={onTrail}/>;

@@ -1,76 +1,121 @@
-/* XiaoqiAvatar Component Styles */
+/* Shared camera framing for the transparent v3 sheet and preserved original fallback. */
 .xiaoqi-avatar {
+  --xiaoqi-face-center: 50%;
   position: relative;
   display: inline-block;
-  border-radius: 50%;
+  flex: none;
+  width: var(--xiaoqi-avatar-size, 64px);
+  height: var(--xiaoqi-avatar-size, 64px);
   overflow: hidden;
-  background: var(--ax-elevated);
-  box-shadow: var(--ax-shadow-md);
-  cursor: pointer;
-  transition: box-shadow 200ms ease-out;
+  vertical-align: middle;
+  border-radius: 50%;
+  background: transparent;
+  isolation: isolate;
 }
-
-.xiaoqi-avatar:hover {
-  box-shadow: var(--ax-shadow-lg);
+.xiaoqi-avatar > img {
+  position: absolute;
+  left: var(--xiaoqi-face-center);
+  top: -16%;
+  width: auto;
+  height: 420%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  transform: translateX(-50%);
+  user-select: none;
+  pointer-events: none;
 }
-
-.xiaoqi-avatar img {
-  display: block;
+.xiaoqi-avatar[data-visible-state="idle"] { --xiaoqi-face-center: 46%; }
+.xiaoqi-avatar[data-visible-state="listening"] { --xiaoqi-face-center: 49%; }
+.xiaoqi-avatar[data-visible-state="interrupted"] { --xiaoqi-face-center: 52%; }
+.xiaoqi-avatar[data-presentation="portrait"], .xiaoqi-avatar[data-presentation="figure"] {
+  width: 100%;
+  height: 208px;
+  max-height: none;
+  border-radius: 12px;
+  background: transparent;
+}
+.xiaoqi-avatar[data-presentation="portrait"] > img { top: -6%; height: 205%; }
+.xiaoqi-avatar[data-presentation="figure"] > img { top: 0; height: 100%; }
+.xiaoqi-sheet-cell {
+  position: absolute;
+  left: 50%;
+  top: -48%;
+  height: 360%;
+  aspect-ratio: 2 / 3;
+  transform: translateX(-50%);
+  overflow: hidden;
+  /* The generated atlas extends sleeves/hem slightly across grid boundaries. */
+  clip-path: inset(3% 4% 0);
+  pointer-events: none;
+}
+.xiaoqi-sheet-cell > img {
+  position: absolute;
+  width: 300%;
+  height: 300%;
+  max-width: none;
+  max-height: none;
+  left: calc(var(--xiaoqi-sheet-col) * -100%);
+  top: calc(var(--xiaoqi-sheet-row) * -100%);
+  object-fit: fill;
   user-select: none;
 }
+.xiaoqi-avatar[data-presentation="portrait"] .xiaoqi-sheet-cell { top: -3%; height: 165%; }
+.xiaoqi-avatar[data-presentation="figure"] .xiaoqi-sheet-cell { top: 0; height: 100%; }
+.xiaoqi-avatar > [role="img"] { display: flex; align-items: center; justify-content: center; height: 100%; padding: 8px; box-sizing: border-box; font-size: 12px; text-align: center; }
 
-.xiaoqi-thinking-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  padding: 4px 8px;
-  background: var(--ax-panel);
-  border-radius: 12px;
+.stitch-companion-content .companion-context-header.companion-character-header {
+  display: grid;
+  grid-template-columns: minmax(180px, 45%) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  padding-bottom: 12px;
 }
-
-.xiaoqi-thinking-indicator .dot {
-  width: 4px;
-  height: 4px;
-  background: var(--ax-accent);
-  border-radius: 50%;
-  animation: thinking-pulse 1.4s ease-in-out infinite;
+.stitch-companion-content .companion-character-header .xiaoqi-avatar:not([data-presentation="avatar"]) {
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--ax-fg) 7%, transparent), transparent 72%);
+  border-radius: 14px;
+  box-shadow: inset 0 -1px 0 var(--ax-border);
 }
-
-.xiaoqi-thinking-indicator .dot:nth-child(2) {
-  animation-delay: 0.2s;
+.stitch-companion-content .companion-character-header .xiaoqi-avatar { max-height: none; }
+.stitch-companion-content .companion-context-header.companion-character-header[data-character-view="avatar"] { grid-template-columns: 72px minmax(0, 1fr); }
+.companion-character-identity { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.companion-character-copy { min-width: 0; }
+.companion-character-copy .companion-character-name { color: var(--ax-fg, #f3f4f6); font-size: 20px; font-weight: 600; letter-spacing: .04em; }
+.companion-character-copy .companion-character-state { display: inline-block; margin: 6px 0 12px; padding: 2px 8px; border: 1px solid var(--ax-border, #ffffff20); border-radius: 999px; color: var(--ax-fg-secondary, #bec4cc); font-size: 12px; }
+.companion-character-identity .companion-character-state { margin: 0; font-size: 14px; line-height: 1.5; }
+.companion-character-header[data-character-view="avatar"] { align-items: start; }
+.stitch-companion-content .companion-character-header[data-character-view="avatar"] .companion-character-copy h3 { margin-top: 5px; }
+.stitch-companion-content .companion-character-header[data-character-view="avatar"] .companion-character-copy p { margin: 4px 0; }
+.companion-character-header[data-character-view="avatar"] .companion-character-views { margin-top: 8px; }
+.companion-answer-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.stitch-companion-content .companion-character-header .companion-character-copy h3 { font-size: 14px; line-height: 1.5; }
+.stitch-companion-content .companion-character-header .companion-character-copy p { font-size: 14px; line-height: 1.6; }
+.companion-character-views { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 16px; padding: 3px; border: 1px solid var(--ax-border); border-radius: 9px; background: var(--stitch-glass-header, transparent); }
+.stitch-companion-content .companion-character-views button { min-height: 34px; padding: 5px 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--ax-fg-secondary, #bec4cc); font-size: 14px; }
+.stitch-companion-content .companion-character-views button { transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease; }
+.stitch-companion-content .companion-character-views button:active { transform: translateY(1px); }
+.stitch-companion-content .companion-character-views button:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: 2px; }
+.stitch-companion-content .companion-character-views button[aria-pressed="true"] { background: color-mix(in srgb, var(--ax-fg) 9%, transparent); color: var(--ax-fg, #f3f4f6); border-color: var(--ax-border-strong, #ffffff30); box-shadow: 0 1px 3px #0001; }
+.companion-session-actions .companion-create-primary { color: var(--ax-fg, #f3f4f6); background: var(--ax-raised, #ffffff12); }
+.stitch-companion-content [data-companion-slot="sidebar"] .companion-session-actions .companion-create-primary { min-height: 36px; font-size: 14px; font-weight: 500; background: var(--ax-raised, #ffffff12); border-color: var(--ax-border, #ffffff20); }
+.stitch-companion-content .companion-session-management { border: 1px solid var(--ax-border, #ffffff20); border-radius: 8px; }
+.stitch-companion-content .companion-session-management > summary { padding: 8px 10px; font-size: 14px; cursor: pointer; color: var(--ax-fg-secondary, #bec4cc); }
+.stitch-companion-content .companion-session-management > div { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 4px 10px 10px; }
+@media (min-width: 1280px) and (min-height: 800px) {
+  .stitch-companion-content [data-companion-slot="sidebar"] .xiaoqi-avatar[data-presentation="portrait"],
+  .stitch-companion-content [data-companion-slot="sidebar"] .xiaoqi-avatar[data-presentation="figure"] { height: 280px; }
 }
-
-.xiaoqi-thinking-indicator .dot:nth-child(3) {
-  animation-delay: 0.4s;
+@media (max-width: 1279px), (max-height: 799px) {
+  .xiaoqi-avatar[data-presentation="portrait"], .xiaoqi-avatar[data-presentation="figure"] { height: 160px; }
+  .stitch-companion-content .companion-context-header.companion-character-header { grid-template-columns: minmax(120px, 40%) minmax(0, 1fr); gap: 10px; }
+  .stitch-companion-content .companion-context-header.companion-character-header[data-character-view="avatar"] { grid-template-columns: 64px minmax(0, 1fr); }
+  .companion-character-copy .companion-character-name { font-size: 18px; }
 }
-
-@keyframes thinking-pulse {
-  0%, 80%, 100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  40% {
-    opacity: 1;
-    transform: scale(1);
-  }
+@media (prefers-reduced-motion: reduce) {
+  .stitch-companion-content .companion-character-views button { transition: none; }
+  .stitch-companion-content .companion-character-views button:active { transform: none; }
 }
-
-/* Utility classes */
-.w-full {
-  width: 100%;
-}
-
-.h-full {
-  height: 100%;
-}
-
-.object-cover {
-  object-fit: cover;
-}
-
-.rounded-full {
-  border-radius: 9999px;
+@media (forced-colors: active) {
+  .xiaoqi-avatar { background: Canvas; }
+  .companion-character-views button[aria-pressed="true"] { border: 2px solid Highlight; }
 }

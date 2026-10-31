@@ -73,6 +73,7 @@ pub(super) fn record_failure(conn: &Connection, id: &str, error: &str) -> rusqli
             | "machine selection budget exhausted"
             | "machine staging unavailable"
             | "machine context staging failed"
+            | "machine format staging failed"
             | "machine worker spawn failed"
             | "machine pipe read failed"
             | "machine worker output exceeds bound"
@@ -85,6 +86,8 @@ pub(super) fn record_failure(conn: &Connection, id: &str, error: &str) -> rusqli
             | "machine failure: MODEL_CALL_TIMEOUT"
             | "machine failure: NO_FINAL_ANSWER"
             | "machine failure: EMPTY_ANSWER"
+            | "machine failure: INVALID_OUTPUT"
+            | "machine worker returned invalid structured output"
             | "machine failure: WORKER_FAILED"
     );
     if !confirmed {

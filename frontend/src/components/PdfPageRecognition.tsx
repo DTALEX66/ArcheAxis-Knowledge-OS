@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { JobContent } from "./JobContent";
+import type {AnchorDto,OriginalDto} from "../api/generated/core-contract";
+import {sha256} from "../presentation/exchangeProof";
+import {OcrImageReader} from "./OcrImageReader";
 
 type Page = {
   page: number | null;
@@ -47,35 +50,43 @@ function pagesShape(value: unknown, sourceId: string): Pages {
   return item as unknown as Pages;
 }
 
-export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
+export function PdfPageRecognition({ sourceId,onPageSelect,currentPage }: { sourceId: string;currentPage?:number;onPageSelect?:(page:number)=>void }) {
   const [pages, setPages] = useState<Pages | null>(null);
   const [open, setOpen] = useState<Page | null>(null);
   const [recognitionOpen, setRecognitionOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const epoch=useRef(0),refreshing=useRef<number|null>(null);
+  const [image,setImage]=useState<{original:OriginalDto;anchors:AnchorDto[]}|null>(null);
+  const [imageBusy,setImageBusy]=useState(false),[imageError,setImageError]=useState("");
+  useEffect(()=>{epoch.current++;refreshing.current=null;setPages(null);setOpen(null);setImage(null);setImageError("");setImageBusy(false);setRecognitionOpen(false);setMessage("");setBusy(false);return()=>{epoch.current++;};},[sourceId]);
 
   async function run(action: () => Promise<void>) {
-    if (busy) return;
+    if (refreshing.current!==null) return;
+    const current=++epoch.current;refreshing.current=current;setImageBusy(false);
     setBusy(true);
     try {
       await action();
     } catch {
       // A refusal replaces the sentence only: whatever was really read stays on screen.
     } finally {
-      setBusy(false);
+      if(refreshing.current===current){refreshing.current=null;setBusy(false);}
     }
   }
 
   async function refresh() {
     await run(async () => {
+      const current=epoch.current;
       try {
         const read = pagesShape(await coreCommand<unknown>("source_pages", { source_id: sourceId }), sourceId);
+        if(current!==epoch.current)return;
         setPages(read);
-        setOpen(null);
+        setOpen(null);setImage(null);setImageError("");setRecognitionOpen(false);
         setMessage(read.page_count
           ? `已读取 ${read.page_count} 个页面，其中 ${read.recognised_count} 页有识别文本。`
           : "此来源没有被渲染过的页面：它的文字层本就可读，或从未走过 OCR 链。");
       } catch (error) {
+        if(current!==epoch.current)return;
         // A failed read never replaces what was really read before it: the list on screen is
         // the last one Core actually answered for.
         setMessage(String(error).includes("找不到")
@@ -85,14 +96,41 @@ export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
     });
   }
 
-  function openPage(page: Page) {
+  useEffect(()=>{
+    if(!open||currentPage===undefined||open.page===currentPage)return;
+    const target=pages?.pages.find(p=>p.page===currentPage);
+    if(target)openPage(target,false);
+    else{epoch.current++;setOpen(null);setImage(null);setImageError("");setImageBusy(false);setRecognitionOpen(false);setMessage("当前 PDF 页没有已读取的页图记录；未沿用其他页的识别结果。");}
+  },[currentPage]);
+
+  function openPage(page: Page,notify=true) {
+    epoch.current++;setImage(null);setImageError("");setImageBusy(false);
     setRecognitionOpen(false);
+    if(notify&&page.page!==null)onPageSelect?.(page.page);
     setOpen(page);
     if (!page.recognised) {
       setMessage(`第 ${page.page ?? "？"} 页没有识别文本：OCR 路由未对该页产出内容，原件仍在保管中。`);
     } else {
       setMessage(`第 ${page.page ?? "？"} 页显示的是该页自己的识别结果。`);
     }
+  }
+
+  async function openImage(){
+    if(!open||imageBusy||refreshing.current!==null)return;
+    const current=++epoch.current,target=open;setImageBusy(true);setImage(null);setImageError("");
+    try{
+      const original=await coreCommand<OriginalDto>("source_original",{source_id:target.source_id});
+      if(current!==epoch.current)return;
+      if(original.source_id!==target.source_id||original.sha256!==target.sha256||!original.media_type.startsWith("image/")||typeof original.content_base64!=="string")throw new Error("页面原件身份不符");
+      const bytes=Uint8Array.from(atob(original.content_base64),c=>c.charCodeAt(0));
+      if(await sha256(bytes)!==target.sha256)throw new Error("页面原件字节不符");
+      if(current!==epoch.current)return;
+      const result=await coreCommand<{anchors:AnchorDto[]}>("anchors_list",{source_id:target.source_id});
+      if(current!==epoch.current)return;
+      if(!Array.isArray(result.anchors)||result.anchors.some(a=>!a||a.source_id!==target.source_id||a.source_revision!==target.sha256||typeof a.anchor_id!=="string"||typeof a.position!=="string"))throw new Error("页面引用身份不符");
+      setImage({original,anchors:result.anchors});
+    }catch{if(current===epoch.current)setImageError("此页原图与引用未核对；保留 PDF 和识别记录，未替换为其他页面。");}
+    finally{if(current===epoch.current)setImageBusy(false);}
   }
 
   return (
@@ -131,8 +169,12 @@ export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
       ) : null}
       {open ? <div>
         <p>识别使用此页的本地图片原件；结果与 PDF 文字层分开保存。完成后点击“读取页面与识别文本”核对回写。</p>
+        <button type="button" disabled={busy||imageBusy} onClick={()=>void openImage()}>查看此页原图与引用</button>
+        {imageBusy?<p role="status">正在核对此页原图与引用…</p>:null}
+        {imageError?<p role="alert">{imageError}</p>:null}
+        {image?<OcrImageReader key={`${open.source_id}:${open.sha256}`} sourceId={open.source_id} revision={open.sha256} name={open.original_name} original={image.original} anchors={image.anchors}/>:null}
         <button onClick={() => setRecognitionOpen(true)}>处理此页识别文本</button>
-        {recognitionOpen ? <JobContent key={`${open.source_id}:${open.sha256}`} sourceId={open.source_id} sourceRevision={open.sha256} name={open.original_name} /> : null}
+        {recognitionOpen ? <JobContent key={`${open.source_id}:${open.sha256}`} sourceId={open.source_id} sourceRevision={open.sha256} name={open.original_name} pinnedJobId={open.job_id??undefined} onAnchor={anchor=>{if(image&&anchor.source_id===open.source_id&&anchor.source_revision===open.sha256)setImage({...image,anchors:[...image.anchors.filter(a=>a.anchor_id!==anchor.anchor_id),anchor]});}} /> : null}
       </div> : null}
     </section>
   );

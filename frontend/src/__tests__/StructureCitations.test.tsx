@@ -1,5 +1,5 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
-import {render,screen} from "@testing-library/react";
+import {render,screen,waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {StructureCitations} from "../components/StructureCitations";
 import {utf8Sha256} from "../components/TranscriptionCues";
@@ -26,10 +26,11 @@ describe("SIMULATED structure citations",()=>{
   if(mutation==="preview-change"){Object.assign(text,await output("text","丙😀乙"));Object.assign(loss,await output("loss_report",JSON.stringify({params:{worker_structure:[node],format:{locations:[{kind:"json_value",path:"$.lesson.title",value:"丙😀"}]}}})));}
   await userEvent.click(screen.getByRole("button",{name:"引用所选结构位置"}));
   if(mutation==="valid"||mutation==="second"){
-   expect(await screen.findByRole("status")).toHaveTextContent("已保存并解析");expect(adopted).toHaveBeenCalledOnce();
+   // Preview already created this status element; wait for the saved state.
+   await waitFor(()=>expect(screen.getByRole("status")).toHaveTextContent("已保存并解析"));expect(adopted).toHaveBeenCalledOnce();
    const body=bridge.call.mock.calls.find(([op])=>op==="anchor_create")![1].body;
    expect(body.checksum).toBe(await utf8Sha256(mutation==="second"?"乙":"甲😀"));expect(JSON.parse(body.position)).toEqual(kind==="format_location"?{type:kind,job_id:"job",attempt:2,kind:"json_value",path:mutation==="second"?"$.lesson.second":"$.lesson.title"}:{type:kind,job_id:"job",attempt:2,kind:"paragraph",path:mutation==="second"?["paragraph-2"]:["paragraph-1"]});
-  }else{expect(await screen.findByRole("status")).toHaveTextContent("未确认");expect(adopted).not.toHaveBeenCalled();}
+  }else{await waitFor(()=>expect(screen.getByRole("status")).toHaveTextContent("未确认"));expect(adopted).not.toHaveBeenCalled();}
   if(["source","failed","digest","out-of-range","preview-change"].includes(mutation))expect(bridge.call.mock.calls.some(([op])=>op==="anchor_create")).toBe(false);
   expect(bridge.call.mock.calls.some(([op])=>String(op).startsWith("knowledge_")||op==="document_draft")).toBe(false);
  });

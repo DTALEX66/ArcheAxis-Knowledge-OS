@@ -494,14 +494,7 @@ pub(super) async fn cancel(
         .and_then(|entries| {
             entries
                 .get(&request_key(&body.session_id, &body.request_id))
-                .map(|entry| {
-                    if entry.accepting {
-                        entry.cancel.cancel();
-                        true
-                    } else {
-                        false
-                    }
-                })
+                .map(MachineActive::request_cancel)
         })
         .unwrap_or(false);
     Json(json!({"session_id":body.session_id,"request_id":body.request_id,"cancel_requested":requested,"execution_state":"UNKNOWN","provider_stop_state":"UNKNOWN"})).into_response()

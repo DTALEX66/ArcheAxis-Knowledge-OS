@@ -27,6 +27,8 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-media", "0.1.0"),
     ("python-worker-office", "0.1.0"),
     ("python-worker-canvas", "0.1.0"),
+    // Preserve valid historical receipts and admit this explicitly qualified projection revision.
+    ("python-worker-canvas", "0.1.1"),
     ("python-worker-subtitles", "0.1.0"),
     ("python-worker-html", "0.1.0"),
     ("python-worker-caption", "0.1.0"),

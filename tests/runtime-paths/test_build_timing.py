@@ -26,6 +26,7 @@ def test_exception_and_nonzero_exit_are_saved_without_sensitive_error_text(tmp_p
 
 
 def test_runtime_dependency_failure_keeps_copy_export_and_install_timings(tmp_path, monkeypatch):
+    monkeypatch.setattr(prepare_bundle.sys, "version_info", (3, 12, 9))
     destination = tmp_path / "runtime-candidate"
     run = tmp_path / "run"
     (run / "tmp").mkdir(parents=True)

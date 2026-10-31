@@ -6,6 +6,7 @@ runtime does. The receipt records what happened; the tests assert only what must
 """
 
 import hashlib, json, os, shutil, sqlite3, subprocess, sys
+import importlib.util
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -36,12 +37,17 @@ def inventory(path: Path) -> dict:
         connection.close()
 
 
+def _work_directory() -> Path:
+    """Allocate a unique probe workspace through the current owned dev run."""
+    spec = importlib.util.spec_from_file_location(
+        "runtime_backup_restore", REPO / "scripts/runtime/dev.py")
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
+    return runtime.artifact_directory(REPO, "backup-restore-probe")
+
+
 def run() -> dict:
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    root = runs / "backup-restore-probe-run"
-    if root.exists():
-        shutil.rmtree(root, ignore_errors=True)
+    root = _work_directory()
     source = root / "source"
     target = root / "target"
     for directory in (source, target):

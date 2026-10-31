@@ -1,6 +1,7 @@
 import {StrictMode} from "react";
 import {beforeEach, afterEach, it, expect, vi} from "vitest";
 import {render, screen, within, fireEvent, act, waitFor} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {webcrypto} from "node:crypto";
 import {ConversationPanel} from "../components/ConversationPanel";
 import {CompanionSessionProvider} from "../companion/CompanionSessionProvider";
@@ -261,4 +262,80 @@ it("keeps the restore barrier across ordinary state readbacks, then requires a f
   identityAllowed = true; fireEvent.click(slot("home").getByText("核对陪伴工作区"));
   await waitFor(() => expect(slot("sidebar").getByText("新建陪伴会话")).not.toBeDisabled());
   expect(slot("reader").getByLabelText("会话问题")).toHaveValue("恢复前草稿");
+});
+
+it("keeps sidebar management folded, with explicit catalog/history reads and shared drafts", async () => {
+  const user = userEvent.setup();
+  render(<CompanionSessionProvider><Slots/></CompanionSessionProvider>);
+  await slot("home").findByText("SYNTHETIC session · 1");
+  const sidebar = slot("sidebar");
+  const management = sidebar.getByText("会话与历史管理").closest("details")!;
+  expect(management).not.toHaveAttribute("open");
+  expect(sidebar.getByRole("button", {name: "重读会话目录"})).not.toBeVisible();
+  expect(sidebar.getByRole("button", {name: "新建陪伴会话"})).toBeVisible();
+  expect(bridge.call.mock.calls.filter(c => c[0] === "conversation_history")).toHaveLength(1);
+  await user.click(sidebar.getByText("会话与历史管理"));
+  expect(management).toHaveAttribute("open");
+  await user.click(sidebar.getByRole("button", {name: "重读会话目录"}));
+  expect(bridge.call.mock.calls.filter(c => c[0] === "conversation_history" && !c[1].body.session_id)).toHaveLength(2);
+  await user.selectOptions(sidebar.getByLabelText("已保存会话"), "session_a");
+  await slot("reader").findByText("当前会话：SYNTHETIC session");
+  expect(sidebar.getByRole("button", {name: "查看会话诊断：会话运行记录"})).toBeVisible();
+  const reads = bridge.call.mock.calls.filter(c => c[0] === "conversation_history" && c[1].body.session_id).length;
+  await user.click(sidebar.getByRole("button", {name: "重读历史"}));
+  expect(bridge.call.mock.calls.filter(c => c[0] === "conversation_history" && c[1].body.session_id)).toHaveLength(reads + 1);
+  await user.click(sidebar.getByText("会话与历史管理"));
+  expect(management).not.toHaveAttribute("open");
+  expect(sidebar.getByRole("button", {name: "重读历史"})).not.toBeVisible();
+  await user.type(sidebar.getByLabelText("会话问题"), "管理折叠后继续提问");
+  expect(slot("home").getByLabelText("会话问题")).toHaveValue("管理折叠后继续提问");
+  expect(slot("reader").getByLabelText("会话问题")).toHaveValue("管理折叠后继续提问");
+  expect(sidebar.getByRole("button", {name: "预览会话请求"})).toBeEnabled();
+});
+
+it("preserves the explicit character view on resize without losing session state", async () => {
+  vi.stubGlobal("innerWidth", 1920); vi.stubGlobal("innerHeight", 1080);
+  const user = userEvent.setup();
+  render(<CompanionSessionProvider><Slots/></CompanionSessionProvider>);
+  await select();
+  fireEvent.change(slot("home").getByLabelText("会话问题"), {target: {value: "缩放前草稿"}});
+  const sidebar = slot("sidebar");
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
+  expect(slot("reader").getByRole("img", {name: "小栖：待命"}).closest(".xiaoqi-avatar")).toHaveAttribute("data-presentation", "avatar");
+  await user.click(sidebar.getByRole("button", {name: "半身"}));
+  vi.stubGlobal("innerHeight", 720);
+  act(() => window.dispatchEvent(new Event("resize")));
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
+  await user.click(sidebar.getByRole("button", {name: "半身"}));
+  expect(sidebar.getByRole("img", {name: "小栖：待命"}).closest(".xiaoqi-avatar")).toHaveAttribute("data-presentation", "portrait");
+  expect(sidebar.getByLabelText("会话问题")).toHaveValue("缩放前草稿");
+  vi.stubGlobal("innerHeight", 1080); vi.stubGlobal("innerWidth", 1000);
+  act(() => window.dispatchEvent(new Event("resize")));
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
+  vi.stubGlobal("innerWidth", 1920);
+  act(() => window.dispatchEvent(new Event("resize")));
+  expect(sidebar.getByRole("button", {name: "半身"})).toHaveAttribute("aria-pressed", "true");
+  expect(sidebar.getByLabelText("会话问题")).toHaveValue("缩放前草稿");
+});
+
+it("keeps the original UNKNOWN request query reachable while sidebar management stays closed", async () => {
+  let admitted: Record<string, unknown> = {};
+  bridge.call.mockImplementation(async (op, p) => {
+    if (op === "conversation_request" && !p.body.preview) {admitted = p.body; throw Error("SYNTHETIC lost ACK");}
+    return normal(op, p);
+  });
+  const user = userEvent.setup();
+  render(<CompanionSessionProvider><Slots/></CompanionSessionProvider>);
+  await select(); await preview();
+  const sidebar = slot("sidebar");
+  await user.click(sidebar.getByRole("button", {name: "确认执行同一会话请求"}));
+  await sidebar.findByText("请求状态未确认，请查询原请求。");
+  expect(sidebar.getByText("会话与历史管理").closest("details")).not.toHaveAttribute("open");
+  expect(sidebar.getByLabelText("会话问题")).toHaveValue("跨位置草稿");
+  expect(sidebar.getByRole("button", {name: "预览会话请求"})).toBeDisabled();
+  await user.click(sidebar.getByRole("button", {name: "查询未确认请求"}));
+  await sidebar.findByRole("img", {name: "小栖：已完成"});
+  expect(bridge.call.mock.calls.find(c => c[0] === "conversation_status")![1].body).toEqual({session_id: "session_a", request_id: admitted.request_id});
+  expect(bridge.call.mock.calls.filter(c => c[0] === "conversation_request")).toHaveLength(2);
+  expect(sidebar.getByText("会话与历史管理").closest("details")).not.toHaveAttribute("open");
 });

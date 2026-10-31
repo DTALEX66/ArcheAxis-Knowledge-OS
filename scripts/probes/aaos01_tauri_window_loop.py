@@ -165,7 +165,7 @@ def main():
             (work / "snapshot-open.txt").write_text(
                 page.locator("body").inner_text(), encoding="utf-8"
             )
-            page.get_by_role("button", name="建立版本化草稿", exact=True).click()
+            page.get_by_role("button", name="创建可编辑草稿", exact=True).click()
             editor = page.locator(".tiptap[contenteditable=true]")
             editor.wait_for(timeout=15000)
             editor.fill("中文自动保存与重启读回 evidence")

@@ -1,0 +1,74 @@
+{
+  "schema": "aaos.material-budget-recovery/v1",
+  "observed_at": "2026-10-23T00:20:44.1932782+08:00",
+  "state": "PARTIAL",
+  "goal_turn": "PROGRESS",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "source_binding": "DIRTY_WORKTREE_NOT_BUILT_NOT_INSTALLED",
+  "source_files": {
+    "frontend/src/api/machineFailure.ts": "cab8c85dfdc2248963ab5f564d0fc86bf9bcd675c58b71489d0aefc30d42f5e5",
+    "frontend/src/components/MaterialQuestionPanel.tsx": "450187cfd6c20b8c5d9f1f218f982a8b7919b3cda3de6a866b0fbc8f634473f6",
+    "frontend/src/__tests__/MaterialQuestionPanel.test.tsx": "4450a165cd57bc9176ce5fb2a5643e53cd5f3a59d31257ddd2cb54e280f5b703",
+    "frontend/src/__tests__/MachineFailureDiagnostics.test.ts": "3c6732384481803bafec3fb09960c3080d004a64047933899c4f52a083c11f5c"
+  },
+  "prior_checkpoint": "docs/history/project-drift-audit-20261021/stitch-reader-probe-repair-20261022.json",
+  "original_failure": {
+    "path": ".project-local/runs/be268a2d33/stitch-j4-local-material-02/artifacts/local-material-model-runtime.json",
+    "sha256": "001cbd02e5fac88b9f39becb14d72aea3cfbb520c2a2a689e347b725346b909c",
+    "candidate": "stitch-closure-portable-02",
+    "reason_code": "material_no_final_answer",
+    "diagnostics": {
+      "answer_source": "reasoning_content",
+      "body_read_elapsed_s": 0.0001,
+      "discovery_elapsed_s": 0.0,
+      "elapsed_s": 75.61,
+      "finish_reason": "length",
+      "http_open_elapsed_s": 75.6057,
+      "json_parse_elapsed_s": 0.0001,
+      "max_tokens": 2048,
+      "observed_model": "aaos-fast-4b",
+      "prompt_utf8_bytes": 1714,
+      "request_phase": "response_validation",
+      "request_stage": "response_deadline",
+      "requested_model": "aaos-fast-4b",
+      "response_bytes": 8968,
+      "serialized_request_bytes": 2185,
+      "timeout_s": 119,
+      "usage": {
+        "input_tokens": 491,
+        "output_tokens": 2048,
+        "total_tokens": 2539
+      }
+    },
+    "finding": "REAL failure consumed all2048 output tokens with finish_reason length and reasoning_content only; preserve FAIL; not a connection failure",
+    "causality": "Original saved profile was2048 too. New UI cap finding is a separate recovery defect, not proof that the original failure was caused by UI."
+  },
+  "change": [
+    "New material requests use resolved saved max_tokens rather than silently clamping to2048; revision0 FAST fallback remains2048",
+    "Preview and confirmation freeze same configuration and budget; no settings or old request mutation",
+    "Execution, status read and history recovery explain missing final answer separately from timeout/cancel",
+    "length-specific advice only for recognized failure and validated finish_reason; reasoning never used as answer; no automatic retry"
+  ],
+  "verification": {
+    "initial_regression": "37 tests: 3 FAIL 34 PASS; two new missing-answer messages and saved3072 incorrectly sent as2048",
+    "intermediate": "47 tests: 1 FAIL 46 PASS; history formatter stale symbol; TypeScript TS2304 retained",
+    "final": "PASS: 3 files47 tests; Material37 / MachineFailureDiagnostics4 / ModelBinding6",
+    "evidence_level": "SYNTHETIC",
+    "command": "node node_modules/vitest/vitest.mjs run src/__tests__/MaterialQuestionPanel.test.tsx src/__tests__/MachineFailureDiagnostics.test.ts src/__tests__/ModelBinding.test.ts --reporter=dot",
+    "typescript": "PASS: tsc --noEmit exit0",
+    "diff": "PASS",
+    "actual_model": "NOT_EXECUTED; original FAIL not reclassified",
+    "python_and_formal_build": "NOT_EXECUTED: existing child-process permission block unchanged; no alternate interpreter or bypass",
+    "native_install_ci": "NOT_EXECUTED",
+    "git": "NOT_COMMITTED_NOT_PUSHED; existing read-only boundary",
+    "browser": "NOT_EXECUTED_THIS_TURN",
+    "monitor": "PAUSED_UNCHANGED"
+  },
+  "remaining": [
+    "Current source formal build and same-candidate native reader validation",
+    "REAL local final answer plus material/version/correction/save/reopen chain",
+    "Product cloud binding and authorized public material validation",
+    "Finite common-format and selected knowledge features with same-candidate restart/export/recovery and installed/Owner qualification"
+  ],
+  "process": "No process or model request started this turn"
+}

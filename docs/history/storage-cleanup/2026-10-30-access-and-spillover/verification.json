@@ -1,0 +1,155 @@
+{
+  "schema": "aaos.maintenance-receipt-review/v1",
+  "created_at_utc": "2026-10-30T13:39:33.910635+00:00",
+  "status": "PASS_FROZEN_IDENTITIES_AND_DECLARED_LOCAL_CHECKS_ONLY",
+  "scope": "Review of exact preserved receipts and inputs; not a new product test campaign or CI.",
+  "checks": [
+    {
+      "run": "acr-t2",
+      "path": ".project-local/runs/be268a2d33/acr-t2/artifacts/execution.json",
+      "bytes": 1608,
+      "sha256": "e7fb1e42428a7a3751778fa20796beba59972eb9ae5301e88ff9f15555e45e0d",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "fb00333c187db95d9ffa92e70c3a890d70891499d51a92e557e941a3d842b0bd",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-verify1",
+      "path": ".project-local/runs/be268a2d33/r5-verify1/artifacts/execution.json",
+      "bytes": 1288,
+      "sha256": "f0f4501828392c6a06aa66602732cf625bf80847cb0644131dd6adf1c0752e96",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "dc39915ec3ddb7b61dff5e7526bbc938a6051058ea019a995371ac7edf75c34d",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-gate1",
+      "path": ".project-local/runs/be268a2d33/r5-gate1/artifacts/execution.json",
+      "bytes": 1603,
+      "sha256": "26a7d208cd90aeaec971f901a04426b5f9057a4b3b4b12db42e7bcc2a95720b4",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "db08ae5dd659450f89cf7a90bb7da5e696f4ba7d5127ae56d99b7c490ce57013",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-arch2",
+      "path": ".project-local/runs/be268a2d33/r5-arch2/artifacts/execution.json",
+      "bytes": 1241,
+      "sha256": "f6c0dfc3565275609c67ffd0749794c6f98528ce56a97f2067ca4531abc22b69",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "db08ae5dd659450f89cf7a90bb7da5e696f4ba7d5127ae56d99b7c490ce57013",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-lint2",
+      "path": ".project-local/runs/be268a2d33/r5-lint2/artifacts/execution.json",
+      "bytes": 1456,
+      "sha256": "851dfe0c010071023f3729df61e79aea23e8a63a4b75d01a1aaf97a762ed3612",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "db08ae5dd659450f89cf7a90bb7da5e696f4ba7d5127ae56d99b7c490ce57013",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-path1",
+      "path": ".project-local/runs/be268a2d33/r5-path1/artifacts/execution.json",
+      "bytes": 1246,
+      "sha256": "1500cddb93805f7eaed457dc4c31ab9a3852c28a8f8e8d5908cff453c947b4d9",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "5b45be17919555f386f6bd53c88453a13aba67b6449a7f95c6c1fa229a985091",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-doc3",
+      "path": ".project-local/runs/be268a2d33/r5-doc3/artifacts/execution.json",
+      "bytes": 1249,
+      "sha256": "c449bc2d617925531194d364dd15a17ab291632b91c448c337408113828c77cd",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "5b45be17919555f386f6bd53c88453a13aba67b6449a7f95c6c1fa229a985091",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "r5-conv1",
+      "path": ".project-local/runs/be268a2d33/r5-conv1/artifacts/execution.json",
+      "bytes": 1283,
+      "sha256": "3a3f7099049f2a4da10c9a6e948f30f8f23c66056524c5d925725a90f499874b",
+      "source_commit": "3fd0cf7835d2271abb65099a1c65f809e89127ab",
+      "source_patch_sha256": "5b45be17919555f386f6bd53c88453a13aba67b6449a7f95c6c1fa229a985091",
+      "child_exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    }
+  ],
+  "frozen_evidence_members": 46,
+  "r5_original_members_unchanged": 29,
+  "frozen_public_inputs": [
+    {
+      "path": "docs/history/storage-cleanup/2026-10-30-access-and-spillover/MANIFEST.json",
+      "bytes": 9978,
+      "sha256": "87fd719bf3ce47db152b6b57e441527e5c28720669095a3043b211c6a06a18d9"
+    },
+    {
+      "path": "docs/history/storage-cleanup/2026-10-30-access-and-spillover/summary.json",
+      "bytes": 2551,
+      "sha256": "1c3c262281e80dd300b55f644cf7a9333454789e6a4dddcf7073b758ff4be8f0"
+    },
+    {
+      "path": "workspace/intake/20261030-r5-future-capability-review/MANIFEST.json",
+      "bytes": 5680,
+      "sha256": "245764df772aaecf5c161db7e3cb852a4e7c6e6fbacf2ec4215cb473439a76ab"
+    },
+    {
+      "path": "workspace/intake/20261030-r5-future-capability-review/AUDIT.md",
+      "bytes": 8164,
+      "sha256": "fa2307ba38c3080ffb85da060aa08fa751e0cd3bec6d4ed5358310e8c203bdfa"
+    }
+  ],
+  "final_code_files": [
+    {
+      "path": "scripts/runtime/storage_report.py",
+      "bytes": 31050,
+      "sha256": "88056000f1dd101e721a771725eef36f6d32938df6e772e1f11ba114a30d97ee"
+    },
+    {
+      "path": "tests/test_storage_report_link_measurement.py",
+      "bytes": 18695,
+      "sha256": "ea76e09dc71637040a37f9c0a5bf4476875271f9491006bb53849740f40f9d90"
+    },
+    {
+      "path": "scripts/check_architecture.py",
+      "bytes": 17871,
+      "sha256": "50304e6aecde1fdec0a542f14274c38deb94e3e3ee8c857d0eebbef6cbf98f6a"
+    },
+    {
+      "path": "tests/test_architecture_guard.py",
+      "bytes": 8377,
+      "sha256": "0da254f558db66f101212c1322b77ce1133902997a84b825b33bca1deb256895"
+    }
+  ],
+  "remaining_acl_apply": "PENDING_OWNER_ADMINISTRATOR_PROCESS",
+  "preserved_failed_architecture_check": {
+    "path": ".project-local/runs/be268a2d33/r5-arch1/artifacts/execution.json",
+    "bytes": 1235,
+    "sha256": "6a0d7455b7e382ee7269a298c420848f1481457382dd636b71f87f34352115d8"
+  },
+  "limits": [
+    "No product cases run",
+    "No external file migration or deletion",
+    "UI implementation paused",
+    "Partial storage measurement",
+    "No remote writes, Green replacement or real data changes"
+  ]
+}

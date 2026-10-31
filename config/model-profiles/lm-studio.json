@@ -3,6 +3,22 @@
   "endpoint": "ws://127.0.0.1:1234",
   "sdk": {"package": "@lmstudio/sdk", "version": "2.0.0", "integrity": "sha512-h0DY+OQVdv0oJ1hebV97Z6eRPS8I7Hjo5QaCOp3XNnucfyNRga/smu8miigYp294HgMESvFJO69vhdpcnRD5vQ=="},
   "profiles": {
+    "fast-local": {
+      "model_key": "qwen3.5-4b",
+      "identifier": "aaos-fast-4b",
+      "ttl_seconds": 1800,
+      "basis": "Explicit project FAST loading for the existing local model; verify effective settings and actual Core answer separately",
+      "load": {
+        "gpu": {"ratio": 1},
+        "gpuStrictVramCap": true,
+        "offloadKVCacheToGpu": false,
+        "contextLength": 4096,
+        "maxParallelPredictions": 1,
+        "flashAttention": true,
+        "speculativeDraftMtp": false,
+        "speculativeDraftSimple": false
+      }
+    },
     "deep-mtp": {
       "model_key": "qwen3.8-27b",
       "identifier": "aaos-deep-27b-mtp",
@@ -26,6 +42,6 @@
     "Explicit project load only; does not edit LM Studio defaults or saved AAOS model-purpose settings",
     "On the current 8GB GPU, refuse to replace another loaded LLM; embedding instances are preserved",
     "Historical short synthetic MTP trial is not current application, sustained performance or quality qualification",
-    "2048 is a bounded context profile, not an unlimited document context"
+    "deep-mtp uses 2048 context and fast-local uses 4096; neither is unlimited document context"
   ]
 }

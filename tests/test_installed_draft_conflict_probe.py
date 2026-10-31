@@ -157,6 +157,7 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
     observed = copy.deepcopy(transport.read)
     docs = copy.deepcopy(transport.documents)
     a, b = (fixture['documents'][key] for key in ('A', 'B'))
+    active = {'document': a}
     actions = []
     comparisons = {'原基准': a['editor_json'], '当前已保存': fixture['current_a']['editor_json'],
                    '我的草稿': fixture['drafts'][a['document_id']]['editor_json']}
@@ -177,6 +178,9 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
                 del observed['draft_digests'][a['document_id']]
         def click_selector(self, selector, using):
             actions.append(('trusted_element_contract', selector, using))
+            for document in (a, b):
+                if '打开文档 ' + document['title'] in selector:
+                    active['document'] = document
     def bridge(operation, payload):
         actions.append(('readonly_bridge', operation))
         if operation == 'ui_state_read': return copy.deepcopy(observed)
@@ -187,6 +191,11 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
         raise AssertionError(operation)
     def js(script):
         import json
+        if script == probe.READER_DRAFT_OBSERVATION:
+            document = active['document']
+            return {'page': '03', 'reader_count': 1, 'heading_count': 1, 'editor_count': 1,
+                    'title': document['title'],
+                    'text': fixture['drafts'][document['document_id']]['editor_json']['content'][0]['content'][0]['text']}
         if 'document-snapshot-text' in script:
             selector = json.loads(script.split("document.querySelector(", 1)[1].rsplit(").textContent", 1)[0])
             return next(value['content'][0]['content'][0]['text'] for label,value in comparisons.items() if label in selector)
@@ -213,11 +222,68 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
     assert report['saved_a']['version']==3 and report['remaining_b']=={b['document_id']:fixture['drafts'][b['document_id']]}
     assert report['owner_acceptance']=='NOT_EXECUTED'
     labels=[action[1] for action in actions if action[0]=='trusted_click_contract']
+    assert labels.index('工作区与恢复') < labels.index('刷新备份列表')
     assert labels.index('保留恢复候选') < labels.index('保存草稿') < labels.index('读取当前版本并比较（保留草稿）')
     assert labels.count('明确保留本稿并按已比较版本保存')==1
     assert labels.count('关闭运行诊断') == 3
     assert all(action[1] in probe.READS for action in actions if action[0]=='readonly_bridge')
     assert docs[b['document_id']]==b
+    assert len(report['reader_observations']) == 2
+    assert all(item['status'] == 'PASS' and item['samples'] == 2 for item in report['reader_observations'])
+
+
+def test_reader_hydration_observation_uses_current_visible_page_and_reader():
+    # Actual observer JS against the current App marker, not a parallel page ID.
+    import json
+    import re
+    from tests.dom_harness import evaluate
+    app = (PATH.parents[2] / 'frontend/src/app/App.tsx').read_text(encoding='utf-8')
+    marker = re.search(r'<div\b[^>]*\bdata-current-page-id=\{uiPageId \?\? ""\}[^>]*>', app)
+    assert marker, 'Current App page identity contract changed; update this DOM fixture explicitly'
+    opening = marker.group(0).replace('className=', 'class=')
+    editor = '<section aria-label="文档草稿编辑器"><div role="textbox" aria-label="文档草稿">B exact\n draft </div></section>'
+    reader = '<section aria-label="阅读与编辑文档视图"><header class="stitch-reader-heading"><h2>Document B</h2></header>' + editor + '</section>'
+    for page, body, count in [('03', reader, 1), ('02', reader, 1), ('03', '', 0), ('03', '<aside hidden>' + reader + '</aside>', 0), ('03', reader + reader, 2)]:
+        markup = opening.replace('{uiPageId ?? ""}', json.dumps(page)) + '</div>' + body
+        observed = evaluate(probe.READER_DRAFT_OBSERVATION, markup)
+        assert observed['page'] == page and observed['reader_count'] == count
+        assert observed['text'] == ('B exact\n draft ' if count == 1 else None)
+
+
+def test_reader_hydration_wait_preserves_old_A_and_delayed_exact_B_samples(monkeypatch):
+    clock = [0.0]
+    monkeypatch.setattr(probe.time, 'monotonic', lambda: clock[0])
+    monkeypatch.setattr(probe.time, 'sleep', lambda duration: clock.__setitem__(0, clock[0] + duration))
+    document = {'document_id': 'B', 'title': 'Document B'}
+    def sample(title, text):
+        return {'page': '03', 'reader_count': 1, 'heading_count': 1, 'editor_count': 1, 'title': title, 'text': text}
+    old_a = sample('Document A', 'A exact')
+    expected = 'B exact\n draft '
+    final_b = sample('Document B', expected)
+    samples = iter([old_a, sample('Document B', 'A exact'), final_b, final_b])
+    evidence = []
+    assert probe.wait_for_document_draft(lambda _: next(samples), document, expected, evidence) == final_b
+    assert evidence[0]['first_sample'] == old_a
+    assert evidence[0]['last_sample'] == evidence[0]['final_stable_sample'] == final_b
+    assert evidence[0]['samples'] == 4 and evidence[0]['status'] == 'PASS'
+
+
+@pytest.mark.parametrize('fault', ['wrong_text', 'wrong_title', 'wrong_page', 'duplicate', 'trailing_space'])
+def test_reader_hydration_wait_refuses_persistent_wrong_identity_or_nonexact_text(monkeypatch, fault):
+    clock = [0.0]
+    monkeypatch.setattr(probe.time, 'monotonic', lambda: clock[0])
+    monkeypatch.setattr(probe.time, 'sleep', lambda duration: clock.__setitem__(0, clock[0] + duration))
+    sample = {'page': '03', 'reader_count': 1, 'heading_count': 1, 'editor_count': 1,
+              'title': 'Document B', 'text': 'B exact'}
+    key, value = {'wrong_text': ('text', 'A exact'), 'wrong_title': ('title', 'Document A'),
+                  'wrong_page': ('page', '02'), 'duplicate': ('editor_count', 2),
+                  'trailing_space': ('text', 'B exact ')}[fault]
+    sample[key] = value
+    evidence = []
+    with pytest.raises(TimeoutError, match='exact draft'):
+        probe.wait_for_document_draft(lambda _: sample, {'document_id': 'B', 'title': 'Document B'}, 'B exact', evidence, timeout=0.5)
+    assert evidence[0]['status'] == 'FAIL' and evidence[0]['final_stable_sample'] is None
+    assert evidence[0]['first_sample'] == evidence[0]['last_sample'] == sample
 
 
 @pytest.mark.parametrize('fault', ['preview', 'content', 'missing', 'duplicate', 'invalid_json'])

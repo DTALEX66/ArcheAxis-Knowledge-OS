@@ -1,0 +1,256 @@
+{
+  "schema": "aaos.manual-observation-feedback-history/v1",
+  "status": "FINITE_DOMAIN_AND_INPROCESS_API_BEHAVIOR_PASS_WHOLE_R6_PARTIAL",
+  "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+  "green_source_patch_sha256": "7ebaaee818e89aa5253123e81303adef9a511272d9848e518d27dd668f6c43da",
+  "change": "Existing Feedback may parent an existing Observation as well as Delivery. No new schema/enum/table/API/runtime. Inert content; all shared reference, privacy, withdrawal and human-principal gates preserved.",
+  "source_files": [
+    {
+      "path": "crates/archeaxis-domain/src/teaching.rs",
+      "bytes": 28805,
+      "sha256": "1ec114c429e05fc3fdb02b8b1714de3817128f3195a427ce33855e3e9492c2c9"
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/teaching_records.rs",
+      "bytes": 43621,
+      "sha256": "a7bbff88a4f1752ed7d86f20e894b80651adf1d6d0560443bec0814f7e5df1f6"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/teaching_state_api.rs",
+      "bytes": 42777,
+      "sha256": "f9d31f8a8145458fa3f69ce899593f65cb9a2b66dcd5cd19b6defe13317f94c9"
+    }
+  ],
+  "runs": {
+    "r6fb-redomain-52a5f9a5": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": true,
+      "source_patch_sha256": "bc116be9f0fec671c413b77ba8e05a0f51e1afe6c2337e4072b289fc94ddf3ba",
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "source_consistent": true
+    },
+    "r6fb-reapi-ca4fe84a": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": true,
+      "source_patch_sha256": "bc116be9f0fec671c413b77ba8e05a0f51e1afe6c2337e4072b289fc94ddf3ba",
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "source_consistent": true
+    },
+    "r6fb-domain-44c49e5a": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": true,
+      "source_patch_sha256": "7ebaaee818e89aa5253123e81303adef9a511272d9848e518d27dd668f6c43da",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "r6fb-api-5584c051": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": true,
+      "source_patch_sha256": "7ebaaee818e89aa5253123e81303adef9a511272d9848e518d27dd668f6c43da",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "r6fb-fmt-d119cf80": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": true,
+      "source_patch_sha256": "7ebaaee818e89aa5253123e81303adef9a511272d9848e518d27dd668f6c43da",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "r6fb-sizepre-83720ae7": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": false,
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "source_consistent": true
+    },
+    "r6fb-sizepost-375ec651": {
+      "source_commit": "aab6c27d69d564bf5e1d0691ba4c228207670f56",
+      "dirty": true,
+      "source_patch_sha256": "7ebaaee818e89aa5253123e81303adef9a511272d9848e518d27dd668f6c43da",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "source_consistent": true
+    }
+  },
+  "red": {
+    "domain": "one new test fails parent-kind validation",
+    "api": "one new test gets422 instead of201",
+    "original_receipts_preserved": true
+  },
+  "green": {
+    "domain_tests_passed": 21,
+    "api_tests_passed": 10,
+    "rustfmt": 0,
+    "coverage": [
+      "Candidate unaccepted knowledge supports text note then manual feedback and explicit plan revision without Delivery.",
+      "Original records/content hashes survive cold Store reopening; duplicate replay same, different-content reuse conflict.",
+      "Domain original exchange imported into independent file workspace; API same-workspace import and cold reopen.",
+      "Course injection, knowledge mixing, missing assessment, TeachBack-on-observation and machine/missing principal rejected.",
+      "Observation withdrawal preserves old bytes, affects feedback/revision descendants and blocks new child/export.",
+      "Mastery is only feedback classification; scoring_status not_scored, no assessment/rubric inferred, knowledge remains candidate and learning_events/learning_assessments/jobs0."
+    ]
+  },
+  "storage": {
+    "before_readable_bytes": 142277318793,
+    "after_readable_bytes": 142280381205,
+    "delta_readable_bytes": 3062412,
+    "build_delta_bytes": 2142316,
+    "growth_review": {
+      "status": "NO_NEW_GROWTH_TRIGGER",
+      "delta_readable_bytes": 3062412,
+      "growth_review_bytes": 2147483648,
+      "over_budget_classes": [
+        "candidates/",
+        "runs/"
+      ],
+      "new_over_budget_classes": [],
+      "over_budget_class_delta_bytes": {
+        "candidates/": 0,
+        "runs/": 904119
+      },
+      "growing_over_budget_classes": [],
+      "new_out_of_layout": [],
+      "measurement_status": "PARTIAL",
+      "deletion_authorized": false
+    },
+    "measurement_errors_each": 674,
+    "private_excluded_each": 243,
+    "layout_items_each": 581,
+    "limits": "Two non-atomic PARTIAL readable logical snapshots, not physical use or exact per-command created bytes; ignored planning and evidence writes may be included. Existing budget debt remains. No source/runtime copy or dependency/provider changes."
+  },
+  "limits": [
+    "Domain/API tests use real isolated SQLite/Store and in-process Router, not real socket, new standalone Core build, installed runtime or UI acceptance.",
+    "No actual provider/model/external professional execution. Prior runtime bpr1/mixed candidate qualification is not rebound to new source.",
+    "Original R6 E01-E10 NOT_EXECUTED and original R5 cases remain immutable; this only qualifies finite manual-record feedback behavior.",
+    "Dedicated start/self-report states, independent mastery, second product consumers, completeR6/J1/CL/F05 and Owner acceptance remain unqualified."
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/tests.patch",
+      "bytes": 14275,
+      "sha256": "91ee8e583ff2c69a2122e1d69e93c190283bd84325ac892d8fad22a4f384969b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/implementation.patch",
+      "bytes": 895,
+      "sha256": "1d13169da67fb85a45f54b4d5e33a55d1356236cd02709e7a40b1dc2c91c90b9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/domain-test.append.rs",
+      "bytes": 6019,
+      "sha256": "79794725e8466a087d0928c3d8157907085bf35bb33e341ee4dbce736752afce"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/api-test.append.rs",
+      "bytes": 7491,
+      "sha256": "35b3716099a1332f8f9e01f195e5ac303bb401c7754be79710ea9fbcb2f7f377"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/REPORT.md",
+      "bytes": 7367,
+      "sha256": "caebf0595573b50ff508715364c6eabf7bcafe0c6136d837d2144fdbfce173bd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/INDEPENDENT-STATIC-REVIEW.md",
+      "bytes": 5321,
+      "sha256": "7530820aca59ccadf41bc327d41ece488e2968cbd9bda3bdbd1b823c1315c277"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/ROOT-BUDGET-PLAN.json",
+      "bytes": 490,
+      "sha256": "8de65d7cd1121de122e35b1c629acbdd1bcab80a3daf8941226390042efc881e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-afreeze1/artifacts/r6-feedback/ROOT-RUN-ALLOCATION.json",
+      "bytes": 260,
+      "sha256": "fb29dd854912251dda8eb3585b1d3c1d49567659b654da958811f2355ab8ca12"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-redomain-52a5f9a5/artifacts/execution.json",
+      "bytes": 1473,
+      "sha256": "4748e47610939291106e99c33c097ac636e7da265e4347d9c7c6e6a210057bdb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-redomain-52a5f9a5/logs/execution.log",
+      "bytes": 1495,
+      "sha256": "63ceb8508fd56cb3926d3d858c8293cc8f9ea46ee42be5f2d5718371e32644de"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-reapi-ca4fe84a/artifacts/execution.json",
+      "bytes": 1459,
+      "sha256": "e5ed0a544928027cc60d24875ecf2060ceee79f5be2ba73cd7e9166451cbb893"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-reapi-ca4fe84a/logs/execution.log",
+      "bytes": 1488,
+      "sha256": "893a1c9be8058d6bd46fd4a367bf3538dc0d7c5c6e181e19bd9c4e5e3ce06400"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-domain-44c49e5a/artifacts/execution.json",
+      "bytes": 1358,
+      "sha256": "9b9ebae61b2dba1ce7de6b8a67fad7c052ab5fd553772c57f954d54af28f05b0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-domain-44c49e5a/logs/execution.log",
+      "bytes": 2308,
+      "sha256": "a9317780d15a063eeafe5ae203202b80367ae760828724b0f2a49e5e2d6452b1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-api-5584c051/artifacts/execution.json",
+      "bytes": 1349,
+      "sha256": "3eb1878c2e660d08f2ec93d01686931ffc1cd274c1bd845cffbb462bdf218811"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-api-5584c051/logs/execution.log",
+      "bytes": 1696,
+      "sha256": "10f1a05c0dc4750db0f31f849423e8e4c1c3969a5c32c574590c6c560415ff81"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-fmt-d119cf80/artifacts/execution.json",
+      "bytes": 1387,
+      "sha256": "8515165559a71f8138e0f674d6266c97cf1c64b14942fb2dcb09717b459621f3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-fmt-d119cf80/logs/execution.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepre-83720ae7/artifacts/execution.json",
+      "bytes": 1396,
+      "sha256": "2f752f7b10ce3c2187bd98225733572ed35aa358eb04089b7794f6b9154725ef"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepre-83720ae7/logs/execution.log",
+      "bytes": 6027,
+      "sha256": "6292ecef65c83be606b8a08bee44f1390797ea18ea5a9f39ffe651349642aa2e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepost-375ec651/artifacts/execution.json",
+      "bytes": 1531,
+      "sha256": "b113b79d26a3a7c6fb6d23b2e3942c60149289c8fde61ca5b1ce1b5dc411f923"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepost-375ec651/logs/execution.log",
+      "bytes": 5779,
+      "sha256": "77a8f004078e3845bbfefcce62a649e010bd083b454d2c06edca3913dd00f6a8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepre-83720ae7/artifacts/storage-before.json",
+      "bytes": 873654,
+      "sha256": "d19c8df13137305ee4b8fccb63d4e6d88bb932a3b8c008a81849ed33f7823a5c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepost-375ec651/artifacts/storage-after.json",
+      "bytes": 838245,
+      "sha256": "6f369394c60693ba3c17aacd4949ccc2d84d66c3764ff244b1cf519818c0121f"
+    }
+  ]
+}

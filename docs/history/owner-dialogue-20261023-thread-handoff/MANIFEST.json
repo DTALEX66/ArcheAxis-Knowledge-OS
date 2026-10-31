@@ -1,0 +1,441 @@
+{
+  "schema": "aaos.thread-handoff-snapshot/v1",
+  "observed_at": "2026-10-23T11:41:28.319030+00:00",
+  "snapshot": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+  "scope": "Visible conversation and registered project evidence; not a private raw-session export",
+  "authority_decision": "OWNER-HUMAN-AI-DUAL-LOOP-20261023",
+  "supersession": "SUP-028",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "branch": "codex/sync-20261019",
+  "dirty_status_entries_before": 54,
+  "status_entries_after_snapshot_before_manifest": 55,
+  "expanded_dirty_files_excluding_this_manifest": [
+    {
+      "path": "AAOS-资料索引.md",
+      "sha256": "d257e6a60c1f94cdfb1345aba33e8acd92faba32bb497f38260599699060b5bd",
+      "bytes": 6454
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "2c7a6dcc48e311b341b211a89622aafe84781601045b9a52316c55d53f59561c",
+      "bytes": 22671
+    },
+    {
+      "path": "AUTHORITY.md",
+      "sha256": "b699320b799befed10a271a67d10cc0a2c68f7c396e345eb8936f9d1cc578d24",
+      "bytes": 12871
+    },
+    {
+      "path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "sha256": "3ee095236b2feeda67ee79f4c385200d836c3d91101b72766ac746938c93786e",
+      "bytes": 23735
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "30c68fff74a10373f3db2f439003edcebbdab9c74d7446f39f5fe97c53e90b6f",
+      "bytes": 11375
+    },
+    {
+      "path": "crates/archeaxis-api/src/external_context.rs",
+      "sha256": "8a6b8b9d81693fddb0879a82ee10d220962a5868233a592360b03c62fa0b7382",
+      "bytes": 1498
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "53e6f12ef0df5a99d15c78595ce1e239088bdb65b8983cf8cf10b7852fd4a65a",
+      "bytes": 111778
+    },
+    {
+      "path": "crates/archeaxis-api/tests/external_context_api.rs",
+      "sha256": "386e54884561c14bcb03a81133239b2380946427a5e0ab468d691cbabd1cce25",
+      "bytes": 3506
+    },
+    {
+      "path": "crates/archeaxis-domain/src/external_context.rs",
+      "sha256": "3995e2503b762e5f63cab4b2062fb4c289ee12d8b2fa11238bae3f6dc6e3d492",
+      "bytes": 8527
+    },
+    {
+      "path": "crates/archeaxis-domain/src/lib.rs",
+      "sha256": "dbbd45fd30627e3f3308d2e357a4feeedd3a2fa91552c52ec5570f908b2dbea6",
+      "bytes": 1234
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/external_context_candidates.rs",
+      "sha256": "084c6943ae3f4cf5724a5bab28b7f1763786b4045035f82ffea1ff7e8f6bc72b",
+      "bytes": 7662
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "sha256": "0daa0139a28257ce9758baa6263ad66f23ce352b81e9555f85ca33d9b9ef59e0",
+      "bytes": 6867
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "sha256": "8c9c9b25b6d073c671d8ad29f2a703bed86053c5a886c29300384882e77ddbea",
+      "bytes": 50048
+    },
+    {
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "sha256": "34366d3e7a153a083448210f1a0e68e4bdd1537040b104c1fa9766aa21de9242",
+      "bytes": 83052
+    },
+    {
+      "path": "docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md",
+      "sha256": "0b4e8271dd604b8ab1f88229f9c693ec85b6e004a0d48795f1d57088e36a1887",
+      "bytes": 7508
+    },
+    {
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "sha256": "337081e9e4cc5276a9dc63e3682b3eaf86bf9ed26c43ad49d865ee6f46c21ba5",
+      "bytes": 11392
+    },
+    {
+      "path": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
+      "sha256": "02973284fa5c86be421440bd67921bfde05e3592c7366d2a238875c591eb39cb",
+      "bytes": 25592
+    },
+    {
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "sha256": "fbe4adfb49f1d43dd8d407b03ee1899534bc926558b273d27b7d17cd287b5630",
+      "bytes": 56493
+    },
+    {
+      "path": "docs/current/AAOS-STITCH-UI-INTEGRATION-20261021.md",
+      "sha256": "b83c7e25ab244300e907577997d5c13e1a16c962a1739a299381fcd17ac56104",
+      "bytes": 5752
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "sha256": "4a3c379c71651eb8c0af24df8a9ea974297a5685fda961635c250653facb5a5d",
+      "bytes": 346429
+    },
+    {
+      "path": "docs/history/README.md",
+      "sha256": "7475436e0e16a29752328ae752bc5dd6309e4bfe767307b140326f224abdd362",
+      "bytes": 2241
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
+      "sha256": "0c608392beeb2aa69e27e3e894129bbf7e3dc62ea11a99c1854e5b0abb090775",
+      "bytes": 6496
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/MANIFEST.json",
+      "sha256": "a16b5bab777b7c20d9d522c0960984afc59adfa2486ca93db72b859e3cb5ae2e",
+      "bytes": 5347
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+      "sha256": "9c1cfe2aab3fc44c1c14c7ca5828811ff1964000d5144fde40b53c184c23f5e3",
+      "bytes": 3344
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/SOURCE-EXCERPTS.md",
+      "sha256": "ee88c0ffde856c72cbb6fdf0a602b052f37000424a179bbf8657f2974837862f",
+      "bytes": 3830
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/concept-desktop-launcher.png",
+      "sha256": "57b636a3307a6011088ac5080a593df098a859964f928c5a79771d83cfe5029d",
+      "bytes": 2051175
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/verify_archive.ps1",
+      "sha256": "bde22bd870ba5252c2d2eb60fe91d1bb2ec716d5196bde4725579f859dcad007",
+      "bytes": 2398
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+      "sha256": "69bb8101987a6eb4e8350df449f189b33e5c1e41decec52e31a1e7be8ff5e8e6",
+      "bytes": 29891
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/ai-context-separation-20261023.json",
+      "sha256": "0ec887f515700bcfd93fbefba90e5e1f2bb45af2fb6ea76e62875f2487c0022e",
+      "bytes": 11819
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+      "sha256": "511e7763bc5c92957d6603bdddd22e40d4d85a5cb07013a63d710f6bb9e7aeea",
+      "bytes": 5092
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
+      "sha256": "b334c5f106ab6d3657e20d6babf1b3524f3dd7f73aa87bff1ab78ca7e7a3d081",
+      "bytes": 3115
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/material-budget-recovery-20261023.json",
+      "sha256": "c4e1a4c5b59b1abc51a60571ee41f2278007cd20a5ad5fb6f42ee93dd5f39564",
+      "bytes": 4331
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-glass-correction-20261022.json",
+      "sha256": "a1c9cda8c7ba0352f7b1d1434cda0fcfb0bb200c6309826bbf2b279dfb335d55",
+      "bytes": 3569
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-launchpad-checkpoint-20261022.json",
+      "sha256": "d5e24c53a9663491b94dddc957ceca4a78c25923adc949c2e920e27e8c9d635a",
+      "bytes": 5051
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-material-review-20261023.json",
+      "sha256": "cf6d71c24a4dc6356cc14901753d7b8fafb4364d5be6da0cc63b0874ee1ec41d",
+      "bytes": 3560
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-reader-probe-repair-20261022.json",
+      "sha256": "007b9c74aef3f881180c72afd8443b1a2210e6bd6ea4c6af7a51ba4f4561efd7",
+      "bytes": 5049
+    },
+    {
+      "path": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+      "sha256": "fea53f775b6fcf0d30d9665233ba6d2af17de1e56165f15b59a4cbc086a6b751",
+      "bytes": 18706
+    },
+    {
+      "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+      "sha256": "93bf22ca9861775c849bcb7c1fd54a606f351f52cd4243976a6af7335246e528",
+      "bytes": 54752
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "sha256": "8f8ca50f8099785a6269e37b0b54a0de1164cff1c7f79cbb3bce0fcb8b19ed4a",
+      "bytes": 177659
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "0004454d735e6204d295e541014e6531c9dd741cffde213fc113e27dfdf90aa5",
+      "bytes": 1239
+    },
+    {
+      "path": "frontend/src/__tests__/AppDockNavigation.test.tsx",
+      "sha256": "ac3cbb595900e34db0c5d589fabc041c7a84b8d2a42c9cdd8d8815140d0c1bfa",
+      "bytes": 14579
+    },
+    {
+      "path": "frontend/src/__tests__/AppSceneNavigationGuard.test.tsx",
+      "sha256": "2136efbee75c3680d1257252e408f1ef00862566ae4f75da179f50fdc3589264",
+      "bytes": 11340
+    },
+    {
+      "path": "frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "sha256": "3c6732384481803bafec3fb09960c3080d004a64047933899c4f52a083c11f5c",
+      "bytes": 3612
+    },
+    {
+      "path": "frontend/src/__tests__/MaterialQuestionPanel.test.tsx",
+      "sha256": "4450a165cd57bc9176ce5fb2a5643e53cd5f3a59d31257ddd2cb54e280f5b703",
+      "bytes": 32649
+    },
+    {
+      "path": "frontend/src/__tests__/SourceCandidateJourney.test.tsx",
+      "sha256": "339d31c8c290011c6244a9ffe6ead549e9c2d302da9f9e508ced4130de195f69",
+      "bytes": 17750
+    },
+    {
+      "path": "frontend/src/__tests__/StitchLaunchpad.test.tsx",
+      "sha256": "e631ed94bcb0618d82ed05f925c1dae72f693b3abae73d9db7e889981d223d79",
+      "bytes": 3651
+    },
+    {
+      "path": "frontend/src/api/machineFailure.ts",
+      "sha256": "cab8c85dfdc2248963ab5f564d0fc86bf9bcd675c58b71489d0aefc30d42f5e5",
+      "bytes": 3438
+    },
+    {
+      "path": "frontend/src/app/App.tsx",
+      "sha256": "4e3e0fde26f779d553b97db3674064825386f5a2ff6413bbb54ca21e031f0c4a",
+      "bytes": 49016
+    },
+    {
+      "path": "frontend/src/components/AaosIcon.tsx",
+      "sha256": "dcdaafe32145e919146f9262d854628818e6930fdfed7a7ed221bac319d597c6",
+      "bytes": 1238
+    },
+    {
+      "path": "frontend/src/components/MaterialQuestionPanel.tsx",
+      "sha256": "450187cfd6c20b8c5d9f1f218f982a8b7919b3cda3de6a866b0fbc8f634473f6",
+      "bytes": 14356
+    },
+    {
+      "path": "frontend/src/components/StitchLaunchpad.css",
+      "sha256": "78fc51eac2a7932be49d520809858317e5a7463f5facbbd095ecd56d432eda3a",
+      "bytes": 4885
+    },
+    {
+      "path": "frontend/src/components/StitchLaunchpad.tsx",
+      "sha256": "5ba9f00333d3bf66a379c7053356f257b1bae8c92aa67a44b99f23aa2e909b9b",
+      "bytes": 5334
+    },
+    {
+      "path": "frontend/src/components/StitchWorkspaceChrome.css",
+      "sha256": "a2e8b800f138eca050de39e4e36279c2d736a49061ac2f880a2b384999042e40",
+      "bytes": 23005
+    },
+    {
+      "path": "frontend/src/components/StitchWorkspaceChrome.tsx",
+      "sha256": "0dcff3ed12ef402ea448be8aa54ce7efeef78f3180b2e9b54a438d138ab939d3",
+      "bytes": 8614
+    },
+    {
+      "path": "frontend/src/components/lucide-NOTICE.txt",
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+      "bytes": 3208
+    },
+    {
+      "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+      "sha256": "1a48a1fc0f6e584fa70d0a9b2728662187490a8cf3da45bf104de6d23d144ff5",
+      "bytes": 138909
+    },
+    {
+      "path": "scripts/probes/stitch_ui_browser.py",
+      "sha256": "717341d6e8fa621f946f0c4e12875f2514d3056798a93feb573d8c01eec9a3af",
+      "bytes": 38002
+    },
+    {
+      "path": "tests/test_grouped_native_owner_probe.py",
+      "sha256": "c4e9f23c1955ea7610415b636eddc3cefb5f059a0c5af7b8500577d2c5d8cfbc",
+      "bytes": 95414
+    },
+    {
+      "path": "workspace/intake/AAOS-AI-CONTEXT-SEPARATION-20261023.md",
+      "sha256": "e04454e31b9ac655b0dedce3b430cd75afad4e1bf2baf76cedcfd047469925ea",
+      "bytes": 410
+    },
+    {
+      "path": "workspace/intake/AAOS-USABLE-LAUNCHPAD-20261022.md",
+      "sha256": "174de11eee79f1cff62f92da9d3f54dd65d5fe14eb9a60eb081f3074423c6566",
+      "bytes": 1008
+    }
+  ],
+  "self_hash_policy": "This manifest is excluded from its own file-hash list; its hash is recorded in ignored verification.json",
+  "ai_code_receipt_checks": [
+    {
+      "path": "crates/archeaxis-domain/src/lib.rs",
+      "sha256": "dbbd45fd30627e3f3308d2e357a4feeedd3a2fa91552c52ec5570f908b2dbea6",
+      "matches_receipt": true
+    },
+    {
+      "path": "crates/archeaxis-domain/src/external_context.rs",
+      "sha256": "3995e2503b762e5f63cab4b2062fb4c289ee12d8b2fa11238bae3f6dc6e3d492",
+      "matches_receipt": true
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/external_context_candidates.rs",
+      "sha256": "084c6943ae3f4cf5724a5bab28b7f1763786b4045035f82ffea1ff7e8f6bc72b",
+      "matches_receipt": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "53e6f12ef0df5a99d15c78595ce1e239088bdb65b8983cf8cf10b7852fd4a65a",
+      "matches_receipt": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/external_context.rs",
+      "sha256": "8a6b8b9d81693fddb0879a82ee10d220962a5868233a592360b03c62fa0b7382",
+      "matches_receipt": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/external_context_api.rs",
+      "sha256": "386e54884561c14bcb03a81133239b2380946427a5e0ab468d691cbabd1cce25",
+      "matches_receipt": true
+    }
+  ],
+  "original_test_log_readback": [
+    {
+      "path": ".project-local/runs/be268a2d33/ai-context-separation-rust-01/logs/execution.log",
+      "sha256": "f016d3c7aeb139170bbee95cb4f2f7a626f27eb07848e07885e470c07ce04f30",
+      "matches_receipt": true,
+      "historical_exit_code": 0,
+      "run": "ai-context-separation-rust-01"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ai-context-separation-api-01/logs/execution.log",
+      "sha256": "a837d3e0247174e150cc2418a0d2ea9eabe279dc36f9d43c4dfbc1f23a770254",
+      "matches_receipt": true,
+      "historical_exit_code": 101,
+      "run": "ai-context-separation-api-01"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ai-context-separation-api-02/logs/execution.log",
+      "sha256": "a75085a97fb4b9e7f63eaa204dfb9c53fc50da2d782dd32657fc73d03dd48d14",
+      "matches_receipt": true,
+      "historical_exit_code": 0,
+      "run": "ai-context-separation-api-02"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ai-context-separation-domain-final/logs/execution.log",
+      "sha256": "be3fe7150df8e55a93b9e1b92f987b76840b4a3552c0447567f57075212aef34",
+      "matches_receipt": true,
+      "historical_exit_code": 0,
+      "run": "ai-context-separation-domain-final"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ai-context-separation-frontend/logs/execution.log",
+      "sha256": "a6445e79078eed4ec03f2a7e4330a793618c0d7de5a0365ea8f91468844c8095",
+      "matches_receipt": true,
+      "historical_exit_code": 0,
+      "run": "ai-context-separation-frontend"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ai-context-separation-human-api/logs/execution.log",
+      "sha256": "b6fbbe96dc1cea33612223523f5435ca899a4179d7c22a971aba6342ddb718c2",
+      "matches_receipt": true,
+      "historical_exit_code": 0,
+      "run": "ai-context-separation-human-api"
+    }
+  ],
+  "checkpoints": [
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-ui-local-checkpoint-20261022.json",
+      "sha256": "019cc2245fa9744995b448134c5188726f9ee441ae77320d95bee0fe0926f15d"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-visual-pause-20261022.json",
+      "sha256": "ed0010cd18eb3c50bbdd6f2542bb6785df3de467fd856db413a14c61375f0b2a"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-launchpad-checkpoint-20261022.json",
+      "sha256": "d5e24c53a9663491b94dddc957ceca4a78c25923adc949c2e920e27e8c9d635a"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-glass-correction-20261022.json",
+      "sha256": "a1c9cda8c7ba0352f7b1d1434cda0fcfb0bb200c6309826bbf2b279dfb335d55"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-reader-probe-repair-20261022.json",
+      "sha256": "007b9c74aef3f881180c72afd8443b1a2210e6bd6ea4c6af7a51ba4f4561efd7"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/stitch-material-review-20261023.json",
+      "sha256": "cf6d71c24a4dc6356cc14901753d7b8fafb4364d5be6da0cc63b0874ee1ec41d"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/material-budget-recovery-20261023.json",
+      "sha256": "c4e1a4c5b59b1abc51a60571ee41f2278007cd20a5ad5fb6f42ee93dd5f39564"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+      "sha256": "511e7763bc5c92957d6603bdddd22e40d4d85a5cb07013a63d710f6bb9e7aeea"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
+      "sha256": "b334c5f106ab6d3657e20d6babf1b3524f3dd7f73aa87bff1ab78ca7e7a3d081"
+    },
+    {
+      "path": "docs/history/project-drift-audit-20261021/ai-context-separation-20261023.json",
+      "sha256": "0ec887f515700bcfd93fbefba90e5e1f2bb45af2fb6ea76e62875f2487c0022e"
+    }
+  ],
+  "evidence_level": "HANDOFF_DOCUMENT_AND_HASH_READBACK_ONLY_NOT_BUSINESS_REEXECUTION",
+  "external_provider": "NOT_CONNECTED",
+  "human_ai_overall": "PARTIAL",
+  "monitor": "PAUSED_UNCHANGED",
+  "git_delivery": "NOT_EXECUTED",
+  "remote_exact_sha": "UNVERIFIED",
+  "local_evidence": ".project-local/artifacts/thread-handoff-20261023/verification.json",
+  "local_evidence_uploaded": false
+}

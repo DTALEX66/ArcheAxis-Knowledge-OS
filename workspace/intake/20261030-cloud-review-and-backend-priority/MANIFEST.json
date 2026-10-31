@@ -1,0 +1,99 @@
+{
+  "schema": "aaos.review-intake/v1",
+  "date": "2026-10-30",
+  "role": "FROZEN_SOURCE_AND_AUDIT_INPUT_NOT_EXECUTION_INSTRUCTION",
+  "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+  "sole_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "files": [
+    {
+      "source": "D:\\All projects\\Record\\AAOS_双系统定位与能力归位复核_20261030_R2.html",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/AAOS_双系统定位与能力归位复核_20261030_R2.html",
+      "bytes": 269066,
+      "sha256": "fa960dde3fe9e33b2de343cc2fbc99710cbda77e601d993071e9bba7c67c8160",
+      "source_retained": true
+    },
+    {
+      "source": "embedded CSV in archived HTML",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/AAOS_186项双系统能力归位_20261030_R2.csv",
+      "bytes": 133024,
+      "sha256": "7eb48180cb66f0d1297542d1d34a1c89702581b767e36efe5396024db4685899",
+      "verification": {
+        "rows": 186,
+        "original_columns": 14,
+        "unchanged_values": 2604,
+        "mismatches": 0,
+        "added_columns": 6
+      }
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\audit-result.json",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/audit-result.json",
+      "bytes": 7509,
+      "sha256": "8213d5cd7ac75b3e90b1da9c75c3fa41633bcb6703c9110dd7d16aca120a8366",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\audit_evidence.py",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/audit_evidence.py",
+      "bytes": 4352,
+      "sha256": "075468295871c1de6f7f7d19e486cf13940ca65feb94a9cace1787efe6ad6f3b",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\evidence-validation.json",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/evidence-validation.json",
+      "bytes": 21397,
+      "sha256": "a39fed4f5f81fcbec9ce39d27adc89695d85f82c4c18f2e404bef317166f9b3e",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\finalize.py",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/finalize.py",
+      "bytes": 4241,
+      "sha256": "efa3397bfc05dd7f79726d82ea12e88fe2d7834f326f66db6b807cb18b005efb",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\integrity-result.json",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/integrity-result.json",
+      "bytes": 5690,
+      "sha256": "8a0504fb10c028b86dd79481b651bce506b88c9b00542d3b2745993972be6e8a",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\integrity.py",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/integrity.py",
+      "bytes": 3607,
+      "sha256": "91e8e686971b1b5080db008b411abade28a9b8d92426b2c2d588b69dc87f8172",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\process-readback.json",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/process-readback.json",
+      "bytes": 120,
+      "sha256": "83a1267d09e269ae6a938183ab19c2a74864053c84d179a52d09720892b29139",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\smoke-negative-control.json",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/smoke-negative-control.json",
+      "bytes": 296,
+      "sha256": "4633aac05758a16e238b2f0047749d9599d069ae27175fe7f01ac821d72190de",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\smoke_negative_control.py",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/smoke_negative_control.py",
+      "bytes": 1407,
+      "sha256": "77e3b69ad3a3263ca898557a9f265e307c6bb678f4bc79a8d19daa2fec970562",
+      "source_retained": true
+    },
+    {
+      "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\20261030-codex-zcode\\审计报告.md",
+      "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/审计报告.md",
+      "bytes": 16577,
+      "sha256": "515ba63785d4c16754c6b67ae702b0584d6dadad0364d524a0fbc9d244b4b5d3",
+      "source_retained": true
+    }
+  ]
+}

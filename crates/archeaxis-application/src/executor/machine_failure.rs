@@ -135,7 +135,9 @@ impl MachineFailure {
             }
             "machine worker timed out" => "WORKER_TIMEOUT",
             "machine worker output exceeds bound" => "OUTPUT_LIMIT",
-            "machine worker returned invalid JSON" => "INVALID_OUTPUT",
+            "machine worker returned invalid JSON"
+            | "machine worker returned invalid structured output"
+            | "machine failure: INVALID_OUTPUT" => "INVALID_OUTPUT",
             "machine worker pipe drain unavailable" => "PIPE_DRAIN_FAILED",
             _ => "WORKER_FAILED",
         }
@@ -148,7 +150,11 @@ impl MachineFailure {
         let code = valid.and_then(|v| v["reason_code"].as_str()).filter(|c| {
             matches!(
                 *c,
-                "MODEL_CALL_FAILED" | "MODEL_CALL_TIMEOUT" | "NO_FINAL_ANSWER" | "EMPTY_ANSWER"
+                "MODEL_CALL_FAILED"
+                    | "MODEL_CALL_TIMEOUT"
+                    | "NO_FINAL_ANSWER"
+                    | "EMPTY_ANSWER"
+                    | "INVALID_OUTPUT"
             )
         });
         Self {

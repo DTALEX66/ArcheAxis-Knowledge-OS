@@ -9,6 +9,34 @@ const configuration={schema:"archeaxis.model-configuration/v1",workspace_id:"a".
 beforeEach(()=>{bridge.call.mockReset();});
 afterEach(()=>vi.unstubAllGlobals());
 
+it("opens the actual material DEEP binding without rewriting its old budget, then saves only the explicit budget edit",async()=>{
+ const initial={...configuration,profiles:{unrelated:profile,deep:{...profile,model:"deep-model",endpoint:"http://127.0.0.1:1234/v1/",max_tokens:2048}},bindings:[...configuration.bindings,{purpose:"material",lane:"deep",profile_id:"deep"},{purpose:"companion",lane:"deep",profile_id:"deep"}]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:4});
+ const user=userEvent.setup();render(<ModelConfigurationPanel materialBudgetLane="deep"/>);
+ expect(await screen.findByLabelText("最大输出 token")).toHaveValue(2048);
+ expect(screen.getByText(/当前配置：deep；模型：deep-model；已保存预算：2048/)).toBeInTheDocument();
+ expect(screen.getByRole("button",{name:"保存材料输出预算"})).toBeDisabled();
+ expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
+ await user.clear(screen.getByLabelText("最大输出 token"));await user.type(screen.getByLabelText("最大输出 token"),"4096");
+ expect(bridge.call.mock.calls.some(c=>c[0]==="model_configuration_put")).toBe(false);
+ await user.click(screen.getByRole("button",{name:"保存材料输出预算"}));await screen.findByText(/请回到材料问答点击/);
+ const write=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body;
+ expect(write).toEqual({expected_revision:3,configuration:{...initial,profiles:{...initial.profiles,deep:{...initial.profiles.deep,max_tokens:4096}}}});
+ expect(bridge.call.mock.calls.every(c=>["model_configuration_get","model_configuration_put"].includes(c[0]))).toBe(true);
+});
+
+it("follows a changed material budget lane and ignores its stale read without creating an unbound profile",async()=>{
+ let oldRead!:(value:unknown)=>void;
+ const initial={...configuration,profiles:{fast:{...profile,max_tokens:1024}},bindings:[{purpose:"material",lane:"fast",profile_id:"fast"}]};
+ bridge.call.mockImplementationOnce(()=>new Promise(resolve=>{oldRead=resolve;})).mockResolvedValue(initial);
+ const view=render(<ModelConfigurationPanel materialBudgetLane="deep"/>);view.rerender(<ModelConfigurationPanel materialBudgetLane="fast"/>);
+ expect(await screen.findByLabelText("最大输出 token")).toHaveValue(1024);
+ oldRead({...initial,profiles:{deep:{...profile,max_tokens:2048}},bindings:[{purpose:"material",lane:"deep",profile_id:"deep"}]});
+ await waitFor(()=>expect(screen.getByText(/当前配置：fast/)).toBeInTheDocument());
+ view.rerender(<ModelConfigurationPanel materialBudgetLane="deep"/>);await screen.findByText(/当前材料通道尚未绑定有效模型/);
+ expect(screen.queryByLabelText("最大输出 token")).toBeNull();expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
+});
+
 it("generates a two-model draft from live inventory and saves eight missing lanes through the original CAS",async()=>{
  const initial={...configuration,revision:0,profiles:{},bindings:[]};
  bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:1});
@@ -21,6 +49,51 @@ it("generates a two-model draft from live inventory and saves eight missing lane
  const saved=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body;
  expect(saved.expected_revision).toBe(0);expect(saved.configuration.bindings).toHaveLength(8);expect(Object.keys(saved.configuration.profiles)).toHaveLength(2);
  expect(saved.configuration.profiles["lmstudio-deep"].model).toBe("aaos-deep-27b-mtp");
+ expect(saved.configuration.profiles["lmstudio-fast"].max_tokens).toBe(4096);
+ expect(saved.configuration.profiles["lmstudio-deep"].max_tokens).toBe(4096);
+});
+
+it("quick connects fresh product lanes with 4096 output tokens through one explicit CAS and no inference",async()=>{
+ const initial={...configuration,revision:0,profiles:{},bindings:[]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:1});
+ const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({data:[{id:"embedding-model"},{id:"qwen3.5-4b"},{id:"qwen3.8-27b"}]})});vi.stubGlobal("fetch",fetcher);
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByRole("button",{name:"一键连接本机 LM Studio"}));
+ await screen.findByText(/新配置输出预算为 4096/);
+ const writes=bridge.call.mock.calls.filter(c=>c[0]==="model_configuration_put");expect(writes).toHaveLength(1);
+ const saved=writes[0][1].body;
+ expect(saved.expected_revision).toBe(0);expect(saved.configuration.bindings).toHaveLength(8);
+ expect(saved.configuration.profiles.lmstudio).toMatchObject({model:"qwen3.5-4b",max_tokens:4096});
+ expect(saved.configuration.profiles["lmstudio-deep"]).toMatchObject({model:"qwen3.8-27b",max_tokens:4096});
+ expect(fetcher).toHaveBeenCalledTimes(1);
+ expect(bridge.call.mock.calls.every(c=>["model_configuration_get","model_configuration_put"].includes(c[0]))).toBe(true);
+});
+
+it("quick connection keeps saved profiles and bindings, allocating new 4096 profiles around existing names",async()=>{
+ const initial={...configuration,profiles:{lmstudio:profile,index:{...profile,model:"embedding-model"}},bindings:[{purpose:"material",lane:"fast",profile_id:"lmstudio"},{purpose:"embedding",lane:"fast",profile_id:"index"}]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:4});
+ vi.stubGlobal("fetch",vi.fn().mockResolvedValue({ok:true,json:async()=>({data:[{id:"qwen3.5-4b"},{id:"qwen3.8-27b"}]})}));
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByRole("button",{name:"一键连接本机 LM Studio"}));await screen.findByText(/已有配置与绑定保留/);
+ const saved=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body.configuration;
+ expect(saved.profiles.lmstudio).toEqual(profile);expect(saved.profiles.index).toEqual(initial.profiles.index);
+ expect(saved.bindings).toEqual(expect.arrayContaining(initial.bindings));
+ expect(saved.bindings.filter((binding:any)=>binding.purpose==="material"&&binding.lane==="fast")).toEqual([initial.bindings[0]]);
+ expect(saved.profiles["lmstudio-2"]).toMatchObject({model:"qwen3.5-4b",max_tokens:4096});
+ expect(saved.profiles["lmstudio-deep"].max_tokens).toBe(4096);
+ expect(screen.getByLabelText("最大输出 token")).toHaveValue(512);
+});
+
+it("reading and reconnecting complete existing bindings never rewrites their saved budgets",async()=>{
+ const initial={...configuration,profiles:{lmstudio:profile},bindings:["answer","retest","material","companion"].flatMap(purpose=>["fast","deep"].map(lane=>({purpose,lane,profile_id:"lmstudio"})))};
+ bridge.call.mockResolvedValue(initial);
+ vi.stubGlobal("fetch",vi.fn().mockResolvedValue({ok:true,json:async()=>({data:[{id:"qwen3.5-4b"}]})}));
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByText("读取模型配置"));expect(screen.getByLabelText("最大输出 token")).toHaveValue(512);
+ expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
+ await user.click(screen.getByRole("button",{name:"一键连接本机 LM Studio"}));await screen.findByText(/未重复保存/);
+ expect(screen.getByLabelText("最大输出 token")).toHaveValue(512);
+ expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
 });
 
 it("keeps edited custom profiles, existing bindings and embedding identity while filling missing lanes",async()=>{
@@ -77,3 +150,28 @@ it("blocks a DEEP machine answer before first configuration without invoking inf
 it("SIMULATED edits one profile and writes fenced CAS plus purpose/lane bindings",async()=>{bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?configuration:{...p.body.configuration,revision:4});render(<ModelConfigurationPanel/>);const user=userEvent.setup();await user.click(screen.getByText("读取模型配置"));await user.clear(await screen.findByLabelText("模型名称"));await user.type(screen.getByLabelText("模型名称"),"updated");await user.selectOptions(screen.getByLabelText("retest / FAST"),"local");await user.click(screen.getByText("保存配置与用途绑定"));await screen.findByText(/已保存版本 4/);const write=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body;expect(write.expected_revision).toBe(3);expect(write.configuration.workspace_id).toBe(configuration.workspace_id);expect(write.configuration.restore_epoch).toBe("initial");expect(write.configuration.profiles.local.model).toBe("updated");expect(write.configuration.bindings).toContainEqual({purpose:"retest",lane:"fast",profile_id:"local"});});
 it("SIMULATED resolves DEEP once and freezes effective destination and budgets before answer",async()=>{bridge.call.mockImplementation(async(op:string,p:any)=>{if(op==="model_configuration_get")return configuration;if(op==="model_configuration_resolve")return {schema:"archeaxis.resolved-model/v1",workspace_id:configuration.workspace_id,restore_epoch:"initial",configuration_revision:3,configuration_sha256:"b".repeat(64),purpose:p.body.purpose,lane:p.body.lane,profile_id:"local",profile};throw new Error("SIMULATED lost ack");});render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.selectOptions(screen.getByLabelText("用途执行通道"),"deep");await user.type(screen.getByLabelText("实际问题"),"question");await user.click(screen.getByText("执行本地机器回答"));await waitFor(()=>expect(bridge.call.mock.calls.some(c=>c[0]==="machine_answer")).toBe(true));const body=bridge.call.mock.calls.find(c=>c[0]==="machine_answer")![1].body;expect(body.model_configuration.lane).toBe("deep");expect(body.model_configuration.profile.endpoint).toBe(profile.endpoint);expect(body.model).toBe("configured");expect(body.max_tokens).toBe(512);expect(body.timeout_s).toBe(20);expect(bridge.call.mock.calls.filter(c=>c[0]==="model_configuration_resolve")).toHaveLength(1);});
 it("SIMULATED missing binding blocks inference without ambient fallback",async()=>{bridge.call.mockImplementation(async(op:string)=>{if(op==="model_configuration_get")return configuration;throw new Error("unbound");});render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"question");await user.click(screen.getByText("执行本地机器回答"));await screen.findByText(/回答用途配置未绑定/);expect(bridge.call.mock.calls.some(c=>c[0]==="machine_answer")).toBe(false);});
+
+it("SYNTHETIC cloud profiles bind only material FAST/DEEP and never run browser connection tests",async()=>{
+ const initial={...configuration,profiles:{cloud:{...profile,endpoint:"https://api.openai.com/v1",protocol:"openai-buffered",credential_ref:"aak_cred_"+"a".repeat(32),timeout_s:60},local:profile},bindings:[]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:4});
+ const fetcher=vi.fn();vi.stubGlobal("fetch",fetcher);const user=userEvent.setup();render(<ModelConfigurationPanel/>);
+ await user.click(screen.getByText("读取模型配置"));expect(screen.getByLabelText("云端 HTTPS 服务地址")).toHaveValue("https://api.openai.com/v1");expect(screen.getByText("测试连接")).toBeDisabled();
+ expect(Array.from((screen.getByLabelText("answer / FAST") as HTMLSelectElement).options).map(o=>o.value)).not.toContain("cloud");
+ await user.selectOptions(screen.getByLabelText("material / FAST"),"cloud");await user.selectOptions(screen.getByLabelText("material / DEEP"),"cloud");await user.click(screen.getByText("保存配置与用途绑定"));await screen.findByText(/已保存版本 4/);
+ const saved=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body.configuration;expect(saved.bindings).toEqual([{purpose:"material",lane:"fast",profile_id:"cloud"},{purpose:"material",lane:"deep",profile_id:"cloud"}]);expect(fetcher).not.toHaveBeenCalled();
+});
+
+it("writes a secret only to native Vault and keeps only its opaque reference in configuration",async()=>{
+ const cloud={...configuration,profiles:{cloud:{...profile,protocol:"openai-buffered",endpoint:"https://api.openai.com/v1",credential_ref:null}},bindings:[]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?cloud:{...p.body.configuration,revision:4});
+ const invoke=vi.fn().mockResolvedValue("aak_cred_"+"a".repeat(32));vi.stubGlobal("__TAURI__",{core:{invoke}});
+ const user=userEvent.setup();render(<ModelConfigurationPanel/>);await user.click(screen.getByText("读取模型配置"));
+ await user.type(screen.getByLabelText("新增云端密钥"),"SYNTHETIC_SECRET");await user.click(screen.getByText("存入本机安全存储"));
+ await screen.findByText(/凭证已存入/);expect(screen.getByLabelText("新增云端密钥")).toHaveValue("");
+ expect(invoke).toHaveBeenCalledWith("model_credential_create",{secret:"SYNTHETIC_SECRET"});
+ await user.click(screen.getByText("保存配置与用途绑定"));await screen.findByText(/已保存版本/);
+ expect(JSON.stringify(bridge.call.mock.calls)).not.toContain("SYNTHETIC_SECRET");
+ expect(screen.getByLabelText("凭证引用")).toHaveValue("aak_cred_"+"a".repeat(32));
+ invoke.mockRejectedValue(new Error("SYNTHETIC_SECRET"));await user.type(screen.getByLabelText("新增云端密钥"),"SYNTHETIC_SECRET");await user.click(screen.getByText("存入本机安全存储"));
+ await screen.findByText(/安全存储写入失败/);expect(screen.getByLabelText("新增云端密钥")).toHaveValue("");expect(document.body.textContent).not.toContain("SYNTHETIC_SECRET");
+});

@@ -1,11 +1,9 @@
 # AUTHORITY.md — 根入口
 
-> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
-
-> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；公开发布和真实用户数据覆盖未授权；Green程序精确目录更新已由Owner后继授权，范围读活动指针green_update_authorization。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
-
 本文件是仓库的**导航入口**，不是新的真值来源。它只回答"该读哪个文件"，每一项都指向本仓已存在的规范文件。
+旧路径与文件身份按[项目路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)解析，不从文件名或旧状态猜权威。
 用户所称闭环的唯一规范是 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`）；旧阶段对最短闭环的较窄解释按该定义及替代账本解析，实际进度仍由活动指针导航。
+产品定位与来源用途按[2026-10-26 Owner 澄清](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)、[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)及[合同 content_policy](PROJECT_CONTRACT.yaml)解释；替代关系为 `SUP-029`。这里的配置／执行“权威”用于解决软件规则冲突，不赋予资料内容唯一事实权威。来源记录服务回查、识别纠错与多源搜索比对，普通保存和学习沿内容规范正常进行。
 换 Agent／换会话先读[活动指针的 continuation_context](docs/current/AAOS-ACTIVE-EXECUTION.json)，再读[当前对话决定及替代关系](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录。权威、规划、会话来源及外置共用库按该指针导航，先读回登记再核实现场；不从旧摘要或私人记忆猜路径。
 此前两处记录写"根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）"（`docs/history/repository-consolidation-20261019/current/AAOS-UI-COVERAGE-MATRIX-20261001.md`、
 `docs/history/repository-consolidation-20261019/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md`）；这两处是当时的实测，保留不改写；本文件使该引用可解析。
@@ -60,7 +58,7 @@
 
 > 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。10/09 用户选中 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；当时的 blueprint 默认已由后续 UI 方向覆盖，现行主题策略读活动指针 theme_policy，同一主题全局一致。
 
-当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，本地/云端漂移与未发布范围见 [`docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md`](docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
+当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)；当前本地／云端接线、剩余资格与未发布边界，沿[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `current_execution.checkpoint` 和[唯一执行记录末段](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)核对。[10/09治理对齐记录](docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)仅保留为历史来源。
 
 ## 7. 审计索引（可导航链：根入口 → 有效规则 → 来源 → 能力/任务 → 代码或证据 → 两端读回）
 

@@ -4,6 +4,7 @@ import type { DocumentDto, KnowledgeDto, OriginalDto, SourcesListDto } from "../
 import type { ObjectReference } from "../api/generated/research-contract";
 import { MediaReader } from "./MediaReader";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { failureMessage } from "../presentation/labels";
 const PdfReader = lazy(() => import("./PdfReader").then(m => ({ default: m.PdfReader })));
 type Original = { dto: OriginalDto; bytes: Uint8Array; text: string | null };
 function OriginalView({ value }: { value: Original }) {
@@ -15,19 +16,20 @@ function OriginalView({ value }: { value: Original }) {
   },[value]);
   const mime=value.dto.media_type;
   return <><p>{value.dto.name} · {mime} · {value.bytes.length} bytes</p><code>{value.dto.sha256}</code>
-    {url ? <img src={url} alt={`原件 ${value.dto.name}`} /> : mime==="application/pdf" ? <Suspense fallback={<p role="status">正在加载原件阅读器…</p>}><PdfReader bytes={value.bytes} page={page} onPageChange={setPage}/></Suspense> : ["audio/mpeg","audio/wav","video/mp4","video/webm"].includes(mime) ? <MediaReader bytes={value.bytes} mediaType={mime}/> : value.text!==null ? <pre>{value.text}</pre> : <p>原件已校验；此格式暂无内嵌阅读器。</p>}
+    {url ? <img src={url} alt={`原件 ${value.dto.name}`} /> : mime==="application/pdf" ? <Suspense fallback={<p role="status">正在加载原件阅读器…</p>}><PdfReader bytes={value.bytes} page={page} onPageChange={setPage}/></Suspense> : mime.startsWith("audio/") || mime.startsWith("video/") ? <MediaReader bytes={value.bytes} mediaType={mime}/> : value.text!==null ? <pre>{value.text}</pre> : <p>原件已校验；此格式暂无内嵌阅读器。</p>}
   </>;
 }
 
 /** Read-only object jump in the current surface. Never switches a pinned version to current. */
-export function PinnedReferencePanel({ reference, onClose, onOpenReference, expectedDocumentSha }: { reference:ObjectReference;onClose:()=>void;onOpenReference?:(reference:ObjectReference)=>void;expectedDocumentSha?:string }) {
+export function PinnedReferencePanel({ reference, onClose, onOpenReference, expectedDocumentSha, embedded = false }: { reference:ObjectReference;onClose:()=>void;onOpenReference?:(reference:ObjectReference)=>void;expectedDocumentSha?:string;embedded?:boolean }) {
   const region=useRef<HTMLElement>(null);
   const selection=useRef(0),sourceLock=useRef(false);
   const [document,setDocument]=useState<DocumentDto|null>(null),[knowledge,setKnowledge]=useState<KnowledgeDto|null>(null),[original,setOriginal]=useState<Original|null>(null);
   const [error,setError]=useState<string|null>(null),[retry,setRetry]=useState(0),[loading,setLoading]=useState(true);
   const [sourceBusy,setSourceBusy]=useState(false),[sourceError,setSourceError]=useState<string|null>(null);
+  const [errorDetail,setErrorDetail]=useState<unknown>(null),[sourceErrorDetail,setSourceErrorDetail]=useState<unknown>(null);
   const identity=JSON.stringify([reference,expectedDocumentSha]);
-  useEffect(()=>{region.current?.focus();region.current?.scrollIntoView?.({block:"nearest"});},[identity]);
+  useEffect(()=>{if (!embedded) {region.current?.focus();region.current?.scrollIntoView?.({block:"nearest"});}},[identity,embedded]);
   useEffect(()=>{
     selection.current++;sourceLock.current=false;setSourceBusy(false);setSourceError(null);
     let alive=true;setLoading(true);setError(null);setDocument(null);setKnowledge(null);setOriginal(null);
@@ -37,14 +39,17 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
         if(d.document_id!==reference.document_id || d.version!==reference.version) throw new Error("返回对象与固定版本引用不符。");
         if(expectedDocumentSha&&d.content_sha256!==expectedDocumentSha)throw new Error("固定版本指纹与搜索观察不一致；未替换为其他版本。");
         if(reference.block_id && !d.blocks.some(b=>b.block_id===reference.block_id)) throw new Error("此固定版本没有引用的块；未替换为当前版本。");
+        if(embedded && (reference.block_id ? d.blocks.find(b=>b.block_id===reference.block_id)?.text_projection.length ?? 0 : d.text_projection.length) > 1024 * 1024) throw new Error("内容超过单个嵌入的阅读预算，请打开固定引用阅读。");
         if(alive)setDocument(d);
       } else if(reference.kind==="knowledge") {
-        const k=await coreCommand<KnowledgeDto>("knowledge_get",{knowledge_id:reference.knowledge_id});
+        const k=await coreCommand<KnowledgeDto>("knowledge_get",{id:reference.knowledge_id});
         if(k.knowledge_id!==reference.knowledge_id)throw new Error("知识身份不符。");
+        if(embedded && k.body.length > 1024 * 1024)throw new Error("知识正文超过单个嵌入的阅读预算，请打开固定引用阅读。");
         if(alive)setKnowledge(k);
       } else {
         const o=await coreCommand<OriginalDto>("source_original",{source_id:reference.source_id});
         if(o.source_id!==reference.source_id || o.sha256!==reference.sha256)throw new Error("原件身份或 SHA 与引用不符。");
+        if(embedded && o.content_base64.length > 4 * Math.ceil(8 * 1024 * 1024 / 3)) throw new Error("原件超过单个嵌入的 8 MiB 预算，请打开固定引用阅读。");
         const bytes=Uint8Array.from(atob(o.content_base64),c=>c.charCodeAt(0));
         const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map(x=>x.toString(16).padStart(2,"0")).join("");
         if(digest!==reference.sha256)throw new Error("原件字节校验失败。");
@@ -55,9 +60,13 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
         if(alive)setOriginal({dto:o,bytes,text});
       }
     }
-    load().catch(e=>{if(alive)setError(e instanceof Error?e.message:"引用读取失败。");}).finally(()=>{if(alive)setLoading(false);});
+    load().catch(e=>{if(alive){
+      const readable=failureMessage(e);
+      setError(`引用暂时无法读取，请核对来源或重新打开。${readable==="原件身份或 SHA 与引用不符。"?"原件与引用不一致，未显示其他来源。":readable}`);
+      setErrorDetail(e instanceof Error?{...e,name:e.name,message:e.message}:e);
+    }}).finally(()=>{if(alive)setLoading(false);});
     return()=>{alive=false;selection.current++;};
-  },[identity,retry]);
+  },[identity,retry,embedded]);
   async function openKnowledgeSource() {
     if(!knowledge?.source_id || !onOpenReference || sourceLock.current)return;
     const generation=selection.current,id=knowledge.source_id;sourceLock.current=true;setSourceBusy(true);setSourceError(null);
@@ -66,21 +75,21 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
       const source=list.sources.find(s=>s.source_id===id);
       if(!source || !/^[a-f0-9]{64}$/.test(source.sha256))throw new Error("知识绑定的来源记录不可用；未换成其他原件。");
       if(selection.current===generation)onOpenReference({kind:"source",source_id:id,sha256:source.sha256});
-    } catch(reason) {if(selection.current===generation)setSourceError(reason instanceof Error?reason.message:"来源读取失败。");}
+    } catch(reason) {if(selection.current===generation){setSourceError(`来源暂时无法读取，当前引用仍保留。${failureMessage(reason)}`);setSourceErrorDetail(reason instanceof Error?{...reason,name:reason.name,message:reason.message}:reason);}}
     finally {if(selection.current===generation){sourceLock.current=false;setSourceBusy(false);}}
   }
-  return <aside ref={region} tabIndex={-1} className="ui-pinned-reference" aria-label="固定版本引用阅读">
-    <header><h2>引用对象</h2><button type="button" onClick={onClose}>关闭引用</button></header>
-    <p>此处只读，研究和关系草稿仍保留。</p>
-    {loading?<p role="status">正在读取固定引用…</p>:error?<><p role="alert">{error}</p><button type="button" onClick={()=>setRetry(v=>v+1)}>重试引用</button></>:null}
-    {document?<><h3>{document.title} · v{document.version}</h3><code>{document.document_id}</code><p>版本 SHA：<code>{document.content_sha256}</code></p>
+  return <aside ref={region} tabIndex={-1} className="ui-pinned-reference" aria-label={embedded ? "固定版本嵌入阅读" : "固定版本引用阅读"}>
+    <header>{embedded ? <h5>嵌入内容</h5> : <h2>引用对象</h2>}<button type="button" onClick={onClose}>{embedded ? "收起嵌入" : "关闭引用"}</button></header>
+    <p>{embedded ? "固定版本只读快照；仅展开一层，嵌套嵌入仍保留为引用。" : "此处只读，研究和关系草稿仍保留。"}</p>
+    {loading?<p role="status">正在读取固定引用…</p>:error?<><p role="alert">{error}</p><RawReceiptButton label="引用读取错误详细信息" category="data" payload={errorDetail}/><button type="button" onClick={()=>setRetry(v=>v+1)}>重试引用</button></>:null}
+    {document?<><h3>{document.title} · v{document.version}</h3>{embedded ? <details><summary>固定版本身份</summary><code>{document.document_id}</code><p>SHA：<code>{document.content_sha256}</code></p></details> : <><code>{document.document_id}</code><p>版本 SHA：<code>{document.content_sha256}</code></p></>}
       {reference.kind==="document" && reference.block_id ? <section aria-label="引用块"><h4>块 {reference.block_id}</h4><pre>{document.blocks.find(b=>b.block_id===reference.block_id)?.text_projection}</pre></section>:<pre>{document.text_projection}</pre>}
       {document.source_id && document.source_revision?<button type="button" disabled={!onOpenReference} onClick={()=>onOpenReference?.({kind:"source",source_id:document.source_id!,sha256:document.source_revision!})}>读取此版本的来源原件</button>:<p>此版本为独立文档，无来源原件绑定。</p>}
-      <RawReceiptButton label={`固定文档 ${document.document_id} v${document.version}`} payload={document}/>
+      {!embedded && <RawReceiptButton label={`固定文档 ${document.document_id} v${document.version}`} payload={document}/>}
     </>:null}
     {knowledge?<><h3>知识 {knowledge.knowledge_id}</h3><p>不可变身份 · {knowledge.version} · {knowledge.status}</p><pre>{knowledge.body}</pre><p>来源：{knowledge.source_id??"无来源绑定"}；锚点：{knowledge.anchor_id??"无锚点"}</p>
       {knowledge.source_id && <button type="button" disabled={sourceBusy || !onOpenReference} onClick={()=>void openKnowledgeSource()}>读取知识绑定的来源原件</button>}
-      {sourceBusy && <p role="status">正在核对知识来源身份…</p>}{sourceError && <p role="alert">{sourceError}</p>}
+      {sourceBusy && <p role="status">正在核对知识来源身份…</p>}{sourceError && <><p role="alert">{sourceError}</p><RawReceiptButton label="引用来源读取错误详细信息" category="data" payload={sourceErrorDetail}/></>}
     </>:null}
     {original?<OriginalView value={original}/>:null}
   </aside>;

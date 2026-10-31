@@ -82,14 +82,7 @@ pub fn change(conn: &mut Connection, request: &Change) -> Result<Value, Error> {
             ));
         }
     }
-    state.epoch = state
-        .epoch
-        .checked_add(1)
-        .ok_or(Error::Invalid("template epoch exhausted"))?;
-    capability_settings::write_template_state(&tx, &state)?;
-    let result = record(&tx)?;
-    tx.commit()?;
-    Ok(result)
+    commit_state(tx, state)
 }
 
 pub fn set_enabled(conn: &mut Connection, enabled: bool) -> Result<Value, Error> {
@@ -99,6 +92,12 @@ pub fn set_enabled(conn: &mut Connection, enabled: bool) -> Result<Value, Error>
         return Err(Error::Invalid("template is uninstalled"));
     }
     state.enabled = enabled;
+    commit_state(tx, state)
+}
+
+/// Both entry points commit through the same state/epoch/readback transaction;
+/// their lifecycle and compatibility preconditions remain separate above.
+fn commit_state(tx: rusqlite::Transaction<'_>, mut state: TemplateState) -> Result<Value, Error> {
     state.epoch = state
         .epoch
         .checked_add(1)

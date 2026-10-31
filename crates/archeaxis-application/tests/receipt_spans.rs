@@ -158,3 +158,39 @@ fn a_package_name_is_not_an_observed_pdf_engine_version() {
     );
     assert!(attempts::finish(&mut conn, &req, &response, &bytes).is_err());
 }
+
+#[test]
+fn canvas_receipts_accept_only_explicitly_declared_current_and_historical_versions() {
+    for (version, accepted) in [("0.1.0", true), ("0.1.1", true), ("0.1.2", false)] {
+        let dir = tempfile::tempdir().unwrap();
+        let (mut conn, _) =
+            bootstrap(dir.path().join("canvas-receipt.sqlite").to_str().unwrap()).unwrap();
+        let source_id =
+            match source::import_source(&mut conn, TEXT.as_bytes(), "sample.canvas", None).unwrap()
+            {
+                ImportOutcome::Imported { source_id, .. }
+                | ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
+        jobs::enqueue(&mut conn, "canvas-version", "canvas", &source_id).unwrap();
+        let req = attempts::claim(&mut conn, "canvas-version", "run", 5000).unwrap();
+        let (mut response, mut bytes) =
+            pdf_style_output(&req, json!(["line-1"]), ("python-worker-canvas", version));
+        let mut loss: serde_json::Value = serde_json::from_slice(&bytes[2]).unwrap();
+        loss["params"] = json!({"worker_output":{"node_geometry":[],"edges":[]}});
+        bytes[2] = serde_json::to_vec(&loss).unwrap();
+        let output = response
+            .outputs
+            .iter_mut()
+            .find(|output| output.kind == "loss_report")
+            .unwrap();
+        output.byte_length = bytes[2].len() as u64;
+        output.sha256 = hex::encode(Sha256::digest(&bytes[2]));
+        output.uri = format!("job://output/{}", output.sha256);
+        let result = attempts::finish(&mut conn, &req, &response, &bytes);
+        assert_eq!(result.is_ok(), accepted, "{version}: {result:?}");
+        let output_count: i64 = conn
+            .query_row("SELECT count(*) FROM job_outputs", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(output_count, if accepted { 3 } else { 0 });
+    }
+}

@@ -22,7 +22,7 @@ export function NavTrail({ levels, onJump }: { levels: readonly ObjectTrailLevel
                 {level.detail ? <small className="nav-trail-detail">{level.detail}</small> : null}
               </button>
             ) : (
-              <span className="nav-trail-current" aria-current="location">
+              <span className={index === lastIndex ? "nav-trail-current" : "nav-trail-label"} aria-current={index === lastIndex ? "location" : undefined}>
                 {level.label}
                 {level.detail ? <small className="nav-trail-detail">{level.detail}</small> : null}
               </span>

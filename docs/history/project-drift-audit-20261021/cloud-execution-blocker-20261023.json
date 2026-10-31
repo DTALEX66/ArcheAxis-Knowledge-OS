@@ -1,0 +1,64 @@
+{
+  "schema": "aaos.cloud-execution-blocker/v1",
+  "observed_at": "2026-10-23T00:27:38.5536824+08:00",
+  "state": "BLOCKED_EXECUTION_PERMISSIONS",
+  "overall": "PARTIAL_NOT_COMPLETE",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "source_binding": "CURRENT_DIRTY_WORKTREE_READ_ONLY_REVIEW",
+  "source_files": {
+    "crates/archeaxis-domain/src/model_configuration.rs": "675a0256c490a552e3c661b7a0388d52b0e97c90b03013dc8bb3b8d09dc2c283",
+    "services/python-workers/machine/material_cloud.py": "be1eac54922879be773d0c7466b405b599fbb4c650d37e03b9048f8e8bd7292a",
+    "src-tauri/src/credentials.rs": "ba22326220a51c7e8347c047454592e3198bf22051abe0172d7b5191da9b4212",
+    "src-tauri/src/main.rs": "585ad6177f9552df71a417bac3ae987dd87158722bbdc509a2548f32558a60c2",
+    "frontend/src/components/ModelConfigurationPanel.tsx": "e3eb49f495f3f009600619daee891bf8739fc8cfd24cd21fe8ecc8813a6f725a",
+    "crates/archeaxis-api/tests/material_question_api.rs": "b5d56b1fe3470687fa6a0047c1471cb1a14da761feca0119d082af269582bc14",
+    "scripts/runtime/frontend.mjs": "e8124703d297f619ab0bbb629b9eb5d12e730e3d355f6ba08e5b4b659b5581b9"
+  },
+  "cloud": {
+    "configuration": "Production model configuration accepts numeric loopback only, not cloud HTTPS",
+    "credentials": "Product-owned Windows Credential Manager adapter and finite native create/remove commands exist; no credential accessed",
+    "adapter": "material_cloud.py preflight NOT_ACTIVATED; production execute always raises MATERIAL_CLOUD_NOT_ACTIVATED; injected transport is simulation only",
+    "api_test": "Existing negative API test requires422 and no worker start for cloud preview, execute and async submit; read this turn, NOT_EXECUTED",
+    "conclusion": "Cloud execution is NOT_IMPLEMENTED_PRODUCTION, not merely missing user endpoint/key. Existing secret adapter and simulation cannot prove functional cloud binding."
+  },
+  "blocker": {
+    "python": {
+      "command": ".venv/Scripts/python.exe -V",
+      "exit_code": 1,
+      "output": "uv trampoline failed to spawn Python child process; permission denied (os error5)",
+      "revalidation": "Canonical runtime metadata exists, then one minimal canonical check confirms execution still denied; no full build repeated, no alternate interpreter or elevation"
+    },
+    "git": "Current task permission profile explicitly marks this repository .git read-only; no write attempted or bypass",
+    "prior_channel": "Historical20261022 approved channel PASS is not current execution permission",
+    "same_condition_consecutive_goal_turns": [
+      "stitch-material-review-20261023.json: formal build and Git write unavailable",
+      "material-budget-recovery-20261023.json: same block retained while completing safe source unit",
+      "this turn: canonical Python -V denied and .git still read-only"
+    ],
+    "impasse": "Further production cloud activation requires compiling and exercising native Vault-to-Core-to-worker delivery, confinement and failure handling. Cannot qualify it in this environment; no silent activation or fake UI support. Current-source native/common-format/restart/install acceptance and authorized Git publication also remain blocked."
+  },
+  "safe_work_completed": [
+    "Glass/source icon fixes and actual frontend captures in prior checkpoint",
+    "Reader and current navigation probe source repair in prior checkpoint",
+    "Saved material output budget and explicit no-final-answer recovery fix;47 synthetic tests and tsc PASS in prior checkpoint",
+    "Current cloud activation boundary inspected without secrets, network, models or user configuration changes"
+  ],
+  "recovery": [
+    "Use a normal authorized execution session that permits project canonical Python subprocesses and Git writes; no Windows ACL/global/provider changes requested",
+    "First verify .venv/Scripts/python.exe -V and current git status/registered remote; preserve all existing dirty files",
+    "Run canonical frontend build and required targeted Python/Rust gates on current source; do not reuse old candidate qualification",
+    "Implement and verify product-owned cloud credential/material confirmation/worker path before claiming user-bindable cloud inference; user enters own credentials through product, not this chat",
+    "Run current same-candidate reader, local/cloud material/correction/save/reopen, finite selected formats/features, export/recovery and installed/Owner checks",
+    "Under existing grant explicitly stage only task-owned sanitized paths, commit/push registered branch and verify exact remote SHA; no merge/release/Green replacement from this audit"
+  ],
+  "not_executed": [
+    "Cloud production inference",
+    "Native credential store read/write",
+    "Python tests or formal build",
+    "Native/installed/Owner validation",
+    "Commit/push/CI"
+  ],
+  "changes_this_turn": "Authority/handoff blocker checkpoint only, no product code or new features",
+  "cleanup": "No task-owned process/session started or left running",
+  "monitor": "PAUSED_UNCHANGED"
+}

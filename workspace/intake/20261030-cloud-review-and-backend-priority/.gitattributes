@@ -1,0 +1,4 @@
+# Preserve source bytes and manifest hashes across Git staging and checkout.
+*.html -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+local-audit/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

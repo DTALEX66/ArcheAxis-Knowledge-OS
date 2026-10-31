@@ -4,6 +4,9 @@ import type { JobAdmissionRefusal } from "../api/client";
 import { jobAdmissionRefusal } from "../api/jobAdmission";
 import { readCapabilityDecision, readCapabilityPermission } from "../api/capabilitySettings";
 import type { FolderAttempt } from "../presentation/folderIngestExecution";
+import { capabilityOperationName } from "../presentation/capabilityCenter";
+import { jobKindLabel } from "../presentation/labels";
+import { RawReceiptButton } from "./DiagnosticConsole";
 
 /** Remain beside the frozen request: enabling never navigates, clears it or executes it. */
 export function FrozenCapabilityRecovery({proof,attempt,source,kind,disabled,current,onBusyChange}: {
@@ -18,6 +21,7 @@ export function FrozenCapabilityRecovery({proof,attempt,source,kind,disabled,cur
   callbacks.current = {current,onBusyChange};
   const [busy,setBusy] = useState(false), [message,setMessage] = useState("");
   const [needsRead,setNeedsRead] = useState(false), [enabled,setEnabled] = useState(false);
+  const capabilityName=proof.capability==="text.extract"?jobKindLabel(proof.capability):capabilityOperationName(proof.capability);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   const belongs = () => mounted.current && identityRef.current === identity && callbacks.current.current();
   async function decide(write: boolean) {
@@ -36,18 +40,19 @@ export function FrozenCapabilityRecovery({proof,attempt,source,kind,disabled,cur
       }
       const actual = write ? true : before;
       setEnabled(actual); setNeedsRead(false);
-      setMessage(actual ? "该能力已启用，工作区设置已读回。原冻结请求保留；请另点同请求重试。" : "该能力仍禁用，工作区设置已读回。原冻结请求保留，可显式启用。" );
+      setMessage(actual ? "该能力已启用，并已重新核对工作区设置。本次处理记录保留；请另点原任务的重试按钮，不会自动执行。" : "该能力仍未启用，并已重新核对工作区设置。本次处理记录保留；如需继续，请先启用此能力。" );
     } catch {
-      if (belongs()) { setNeedsRead(true); setMessage(writeSent ? "能力设置 UNKNOWN，可能已写入；原冻结请求保留。请先核对能力设置，不自动重发或执行。" : "能力设置 UNKNOWN；未发送启用请求。原冻结请求保留，请重新核对能力设置。" ); }
+      if (belongs()) { setNeedsRead(true); setMessage(writeSent ? "能力设置结果待确认，可能已保存。本次处理记录保留；请先核对设置，不会自动重发或执行。" : "能力设置结果待确认；未发送启用请求。本次处理记录保留，请先核对设置。" ); }
     } finally {
       flight.current = false;
       if (belongs()) { setBusy(false); callbacks.current.onBusyChange(false); }
     }
   }
   if (!valid) return null;
-  return <section aria-label="冻结请求的能力恢复"><p>Core 已证明原请求未受理；拒绝时 {proof.capability} 已禁用。启用只改变该工作区能力设置，不会自动执行。</p>
-    <button disabled={disabled || busy || needsRead || enabled} onClick={()=>void decide(true)}>启用 {proof.capability}</button>
-    <button disabled={disabled || busy} onClick={()=>void decide(false)}>核对 {proof.capability} 设置</button>
+  return <section aria-label="处理能力恢复"><p>本地服务已确认本次处理请求未受理，当时“{capabilityName}”未启用。如需继续，请先启用，再手动重试原任务；启用仅改变当前工作区设置，不会自动执行。</p>
+    <button disabled={disabled || busy || needsRead || enabled} onClick={()=>void decide(true)}>{`启用${capabilityName}`}</button>
+    <button disabled={disabled || busy} onClick={()=>void decide(false)}>{`核对${capabilityName}设置`}</button>
+    <RawReceiptButton label="未受理请求与能力记录" payload={{proof,attempt}}/>
     {message?<p role="status">{message}</p>:null}
   </section>;
 }

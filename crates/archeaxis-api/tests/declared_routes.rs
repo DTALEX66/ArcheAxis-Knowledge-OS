@@ -35,21 +35,39 @@ impl Drop for Owned {
 /// The system temporary directory can sit behind a reparse point on some machines,
 /// and the Core's launch validation refuses any linked ancestor. A project-local
 /// directory keeps this test measuring route registration rather than temp layout.
-struct Work(PathBuf);
-impl Drop for Work {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.0);
-    }
-}
+struct Work(tempfile::TempDir);
 fn work_dir(label: &str) -> Work {
-    let base = repo()
-        .join(".project-local")
-        .join("runs")
-        .join("declared-routes")
-        .join(format!("{label}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&base);
-    std::fs::create_dir_all(&base).unwrap();
-    Work(base)
+    // Reuse the launcher's validated run selection, including its canonical
+    // standalone fallback. Never recreate the historical shallow runs directory.
+    let python = std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("route tests require the selected project Python");
+    let output = Command::new(python)
+        .args([
+            "-B",
+            "-c",
+            "from pathlib import Path; from scripts.runtime.dev import pytest_environment; print(pytest_environment(Path.cwd()) / 'tmp')",
+        ])
+        .current_dir(repo())
+        .env("PYTHONDONTWRITEBYTECODE", "1")
+        .output()
+        .expect("select the canonical test run through scripts/runtime/dev.py");
+    assert!(
+        output.status.success(),
+        "canonical test run selection failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let parent = PathBuf::from(
+        String::from_utf8(output.stdout)
+            .expect("canonical run path must be UTF-8")
+            .trim(),
+    );
+    std::fs::create_dir_all(&parent).unwrap();
+    Work(
+        tempfile::Builder::new()
+            .prefix(&format!("declared-routes-{label}-"))
+            .tempdir_in(parent)
+            .expect("allocate an isolated launch directory inside the canonical run"),
+    )
 }
 
 fn repo() -> PathBuf {
@@ -198,7 +216,7 @@ fn run_declared_route(
     payload: &[u8],
 ) -> (u16, String) {
     let dir = work_dir("declared");
-    let db = dir.0.join("workspace.sqlite");
+    let db = dir.0.path().join("workspace.sqlite");
     let transport = repo().join("services/python-workers/transport/text_ndjson.py");
     let worker_script = repo().join(worker);
     let mut child = spawn(&db);
@@ -211,7 +229,7 @@ fn run_declared_route(
             "text_worker": {
                 "python": std::env::var("ARCHEAXIS_PYTHON").unwrap(),
                 "script": transport,
-                "staging": dir.0.join("staging"),
+                "staging": dir.0.path().join("staging"),
                 "routes": [{"capability": capability, "script": worker_script}],
             }
         })
@@ -288,7 +306,7 @@ fn an_undeclared_route_still_fails_closed() {
     let canvas =
         std::fs::read(repo().join("tests/fixtures/golden/learning-evidence.canvas")).unwrap();
     let dir = work_dir("undeclared");
-    let db = dir.0.join("workspace.sqlite");
+    let db = dir.0.path().join("workspace.sqlite");
     let transport = repo().join("services/python-workers/transport/text_ndjson.py");
     let mut child = spawn(&db);
     writeln!(
@@ -300,7 +318,7 @@ fn an_undeclared_route_still_fails_closed() {
             "text_worker": {
                 "python": std::env::var("ARCHEAXIS_PYTHON").unwrap(),
                 "script": transport,
-                "staging": dir.0.join("staging"),
+                "staging": dir.0.path().join("staging"),
             }
         })
     )

@@ -12,6 +12,14 @@
 .pdf-reader:focus-visible, .canonical-reading pre:focus-visible, .document-editor .tiptap:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: 3px; }
 .document-editor { margin-top: 20px; }
 .document-editor .tiptap { min-height: 160px; padding: 14px; border: 1px solid var(--ax-border-strong); border-radius: var(--ax-radius-sm); background: var(--ax-raised); color: var(--ax-fg); overflow-wrap: anywhere; }
+.document-editor .tiptap { position:relative; white-space:pre-wrap; word-wrap:break-word; font-variant-ligatures:none; }
+.document-editor .tiptap [contenteditable="false"] { white-space:normal; }
+.document-editor .tiptap pre { white-space:pre-wrap; }
+.document-editor .tiptap .ProseMirror-selectednode { outline:2px solid var(--ax-focus-ring); }
+.document-editor .tiptap .ProseMirror-gapcursor { display:none; pointer-events:none; position:absolute; margin:0; }
+.document-editor .tiptap.ProseMirror-focused .ProseMirror-gapcursor { display:block; }
+.document-editor .tiptap .ProseMirror-gapcursor:after { content:""; display:block; position:absolute; top:-2px; width:20px; border-top:1px solid currentColor; }
+.document-save-status { overflow-wrap:anywhere; }
 .document-editor [data-evidence-reference] { cursor: pointer; border-bottom: 1px solid var(--ax-fg-secondary); }
 .document-editor [data-preserved-node] { padding: 10px; border: 1px dashed var(--ax-border-strong); color: var(--ax-fg-secondary); }
 .draft-restore input { width: 80px; margin-left: 8px; }
@@ -89,3 +97,16 @@
 /* Keep batch actions reachable inside narrow panes, including keyboard focus. */
 .folder-ingest-table-scroll { max-width: 100%; overflow-x: auto; }
 .folder-ingest-table-scroll:focus-visible { outline: 2px solid var(--ax-active); outline-offset: 2px; }
+
+.ui-document-embeds { flex: 0 0 auto; min-width: 0; overflow-wrap: anywhere; }
+.ui-document-embed { margin-block: 12px; padding: 12px; border: 1px solid var(--ax-border); border-radius: 8px; }
+.ui-document-embed header, .ui-document-embeds nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ui-document-embed .ui-pinned-reference { position: static; width: auto; max-width: 100%; }
+.ui-document-embed pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ui-document-embed img, .ui-document-embed video { max-width: 100%; height: auto; }
+
+/* Saved embeds and collections share the reader's scroll flow. Preserve the
+   editor's content height so its toolbar/body cannot paint over later content. */
+.cabin-shell[data-cabin-page="03"] .ui-reader-document > .collection-panel { flex: 0 0 auto; }
+.cabin-shell[data-cabin-page="03"] .ui-reader-document:has(> .ui-document-embeds, > .collection-panel) > .document-editor { flex: 0 0 auto; min-height: 340px; }
+.cabin-shell[data-cabin-page="03"] .ui-reader-document:has(> .ui-document-embeds, > .collection-panel) > .document-editor > div { flex: 0 0 auto; min-height: 260px; overflow: visible; }

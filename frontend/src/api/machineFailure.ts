@@ -38,3 +38,12 @@ export function modelTimeoutMessage(reason: unknown): string | undefined {
   return typeof reason==="string" && ["MODEL_CALL_TIMEOUT","WORKER_TIMEOUT","material_model_timeout","conversation_model_timeout"].includes(reason)
     ? "模型调用超时，未生成可用回答；原请求已保留，没有自动重试。" : undefined;
 }
+
+/** A missing final answer is distinct from a transport timeout or cancellation. */
+export function materialModelFailureMessage(reason: unknown, diagnostics?: unknown): string | undefined {
+  if (reason !== "material_no_final_answer") return modelTimeoutMessage(reason);
+  const safe = readMachineFailureDiagnostics(diagnostics);
+  return safe?.finish_reason === "length"
+    ? "模型在输出上限处停止，未生成最终回答；可在模型设置调整预算后预览新请求。原请求保留，没有自动重试。"
+    : "模型未返回最终回答；原请求与材料保留，没有自动重试。";
+}

@@ -768,7 +768,7 @@ authorities:
     protected_resource: governance
   - path: docs/**
     owner: documentation
-    execution_lanes: [owner, contract, ci, release, rust-core, rust-store, avalonia-ui, python-worker, journey, migration]
+    execution_lanes: [owner, contract, ci, release, rust-core, rust-store, avalonia-ui, python-worker, journey, migration, frontend-host]
   - path: taskpacks/**
     owner: repository-governance
     execution_lane: owner
@@ -835,13 +835,16 @@ authorities:
     execution_lane: migration
     write_mode: maintenance-only-task-envelope
   - path: frontend/**
-    owner: legacy-react-product
-    execution_lane: migration
-    write_mode: maintenance-only-task-envelope
+    owner: frontend-host
+    execution_lane: frontend-host
+    language: typescript
+    note: Formal React/TypeScript/Vite product UI under SUP-022; no direct database, arbitrary file or Shell access.
   - path: src-tauri/**
-    owner: legacy-tauri-product
-    execution_lane: migration
-    write_mode: maintenance-only-task-envelope
+    owner: tauri-host
+    execution_lane: rust-core
+    language: rust
+    may_open_main_database: false
+    note: Formal Tauri 2 host under SUP-022; Rust Core remains the sole canonical writer.
   - path: desktop/**
     owner: legacy-desktop-product
     execution_lane: migration
@@ -980,6 +983,4 @@ legacy_roots:
     - app/**
     - shared/**
     - knowledge_base/**
-    - frontend/**
-    - src-tauri/**
     - desktop/**

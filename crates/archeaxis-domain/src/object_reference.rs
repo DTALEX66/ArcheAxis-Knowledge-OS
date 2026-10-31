@@ -81,15 +81,8 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
             version,
             block_id,
         } => {
-            token(document_id)?;
-            if *version < 1 {
-                return Err(Error::Invalid(
-                    "reference document version must be positive",
-                ));
-            }
             let snapshot = document::read(conn, document_id, Some(*version))?;
             if let Some(block_id) = block_id {
-                token(block_id)?;
                 if !snapshot["blocks"]
                     .as_array()
                     .is_some_and(|blocks| blocks.iter().any(|b| b["block_id"] == *block_id))
@@ -104,16 +97,6 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
             )
         }
         Reference::Source { source_id, sha256 } => {
-            token(source_id)?;
-            if sha256.len() != 64
-                || !sha256
-                    .bytes()
-                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
-            {
-                return Err(Error::Invalid(
-                    "reference source hash must be lowercase SHA-256",
-                ));
-            }
             let record: Option<(String, String)> = conn
                 .query_row(
                     "SELECT sha256,original_name FROM sources WHERE source_id=?1",
@@ -132,7 +115,6 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
             )
         }
         Reference::Knowledge { knowledge_id } => {
-            token(knowledge_id)?;
             let exists: bool = conn.query_row(
                 "SELECT EXISTS(SELECT 1 FROM knowledge WHERE knowledge_id=?1)",
                 [knowledge_id],

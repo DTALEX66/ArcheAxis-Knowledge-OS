@@ -110,7 +110,7 @@ it("refuses an oversized review journal before freezing input and permits freein
   const f=fixture();const drafts=Object.fromEntries(Array.from({length:15},(_,i)=>{const key=i===0?"a":`item${i}`;const id=i===0?"assessment_a_v1":`assessment_${i}`;return [id,{item_key:key,assessment_id:id,knowledge_version:"v1",answer:"x".repeat(65_536),checked_correct:true,rating:3,answer_revealed:true}];}));
   f.server().state.learning_drafts=drafts;await f.session.load();
   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace initialItemKey="a"/></CoreWorkingStateProvider>);
-  await screen.findByLabelText("本次答案");const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习请求保全将超过 1 MiB/);
+  await screen.findByLabelText("本次答案");const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习内容与其他草稿合计超过 1 MiB；请先保存或明确丢弃其他草稿/);
   expect(screen.getByLabelText("本次答案")).toBeEnabled();expect(f.session.getSnapshot().status).toBe("ready");expect(f.session.getSnapshot().state.pending_reviews).toBeUndefined();expect(f.transport.write).not.toHaveBeenCalled();
   expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
   vi.spyOn(window,"confirm").mockReturnValue(true);await user.click(screen.getByLabelText("保留的学习答案 assessment_1").closest("details")!.querySelector("summary")!);await user.click(screen.getByRole("button",{name:"丢弃草稿 item1"}));await screen.findByText("已丢弃这份学习草稿。");

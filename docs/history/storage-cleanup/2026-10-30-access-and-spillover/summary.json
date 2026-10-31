@@ -1,0 +1,87 @@
+{
+  "schema": "aaos.access-and-spillover-followup/v1",
+  "status": "MAINTENANCE_PARTIAL",
+  "first_acl_batch": {
+    "owner_applied": 23,
+    "unelevated_verified": 23,
+    "verification_failures": 0,
+    "owner_unchanged": true,
+    "private_git_preserved": 1
+  },
+  "measurement": {
+    "run": "acr-size4",
+    "status": "PARTIAL",
+    "readable_bytes": 137784982873,
+    "readable_files": 1248330,
+    "permission_errors": 534,
+    "long_path_file_not_found": 0,
+    "long_path_errors_removed_since_acr_size2": 854,
+    "private_excluded": 106,
+    "out_of_layout": 582,
+    "dev_strays": 550,
+    "wrong_depth_runs": 31,
+    "stale_identities": 19,
+    "growth_review": {
+      "status": "NO_NEW_GROWTH_TRIGGER",
+      "delta_readable_bytes": 25281509,
+      "growth_review_bytes": 2147483648,
+      "over_budget_classes": [
+        "candidates/",
+        "runs/"
+      ],
+      "new_out_of_layout": [],
+      "measurement_status": "PARTIAL",
+      "deletion_authorized": false
+    },
+    "child_exit": 1,
+    "not_claimed": "Size differences are not bytes reclaimed; original Git coverage retained."
+  },
+  "remaining_acl": {
+    "exact_roots": 533,
+    "status": "PREPARED_ADMINISTRATOR_APPLY_PENDING",
+    "preserved_private_entry": 1
+  },
+  "spillover": {
+    "exact_historical_paths_checked": 8,
+    "current_exact_path_resolution": "NOT_RESOLVED",
+    "migrations": 0,
+    "deletions": 0,
+    "historical_recovery_resolution": "PENDING_INDEX_LOOKUP"
+  },
+  "r5": {
+    "review": "workspace/intake/20261030-r5-future-capability-review/README.md",
+    "status": "DESIGN_INPUT_CONDITIONALLY_ACCEPTABLE_ENGINEERING_PARTIAL",
+    "members": 29,
+    "bytes": 14605383,
+    "findings_p1": 3,
+    "findings_p2": 3,
+    "product_cases_executed": 0
+  },
+  "this_followup_cleanup": {
+    "files_deleted": 0,
+    "external_files_migrated": 0
+  },
+  "prior_reviewed_cleanup": {
+    "files": 99089,
+    "logical_bytes": 51068863617
+  },
+  "validation": {
+    "acr_t2": "25 passed",
+    "acr_lint1": "PASS_E9_F63_F7_F82",
+    "r5_verify1": "LOCAL_PASS_SOURCE_CONSISTENT",
+    "acl_rem_preflight1": "EXPECTED_ADMIN_GATE_EXIT_5",
+    "r5_arch1": "FAIL_BARE_WIN32_UNC_PREFIX_FALSE_POSITIVE_PRESERVED",
+    "r5_gate1": "26_PASSED",
+    "r5_arch2": "LOCAL_PASS",
+    "r5_lint2": "LOCAL_PASS",
+    "r5_doc2": "LOCAL_PASS"
+  },
+  "limits": [
+    "UI implementation paused",
+    "shared launcher not qualified",
+    "guest isolation not executed",
+    "old candidate consumers/recovery pending",
+    "not CI or product qualification",
+    "no remote writes"
+  ]
+}

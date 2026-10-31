@@ -160,10 +160,7 @@ pub fn read_bounded(conn: &Connection, digest: &str, limit: usize) -> rusqlite::
         match owner.components().next() {
             Some(Component::Prefix(prefix)) => match prefix.kind() {
                 Prefix::Disk(drive) | Prefix::VerbatimDisk(drive)
-                    if !matches!(drive.to_ascii_uppercase(), b'E' | b'F') =>
-                {
-                    ()
-                }
+                    if !matches!(drive.to_ascii_uppercase(), b'E' | b'F') => {}
                 _ => return Err(rusqlite::Error::InvalidPath(owner.to_owned())),
             },
             _ => return Err(rusqlite::Error::InvalidPath(owner.to_owned())),

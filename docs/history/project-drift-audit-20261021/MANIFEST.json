@@ -1,0 +1,28 @@
+{
+  "schema": "aaos.drift-audit-manifest/v1",
+  "source_commit": "8d367bac4a85bebfbb523503678ade0838faa73e",
+  "role": "frozen-audit-snapshot-not-product-progress",
+  "members": [
+    {
+      "path": "REPORT.md",
+      "bytes": 12229,
+      "sha256": "423c6b911330320ce8a01aa3647e1600fd838fb4d71deefeed41e692f21c9922"
+    },
+    {
+      "path": "THREAD-MAP.md",
+      "bytes": 4670,
+      "sha256": "81fec6c3419aa10914a4c14e94cb392c7514fcf968e1a20eb4d9080eee4f9e11"
+    },
+    {
+      "path": "AUDIT.json",
+      "bytes": 8845,
+      "sha256": "14d96a46c864475da14c69e3e3ba04edf777f7486fac22078fa22a997f9f3e05"
+    }
+  ],
+  "local_only_evidence": [
+    ".project-local/runs/be268a2d33/drift-dialogue-20261021",
+    ".project-local/runs/be268a2d33/drift-readback-20261021"
+  ],
+  "private_raw_transcripts_included": false,
+  "product_changes": false
+}

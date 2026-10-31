@@ -1,13 +1,16 @@
 // SIMULATED UI journeys; native FE24 installation/restart is a separate gate.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
+import { DiagnosticCenter } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import type { ModelConfiguration } from "../api/generated/model-configuration-contract";
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
 let saved: ModelConfiguration;
 beforeEach(() => {
+  resetDiagnostics();
   saved = { schema: "archeaxis.model-configuration/v1", workspace_id: "a".repeat(32), restore_epoch: "initial", revision: 3,
     profiles: { local: { endpoint: "http://127.0.0.1:1234/v1", protocol: "openai", model: "chosen", credential_ref: null, max_tokens: 512, timeout_s: 20 } },
     bindings: [{ purpose: "answer", lane: "deep", profile_id: "local" }] };
@@ -18,11 +21,19 @@ beforeEach(() => {
     throw new Error(`Unexpected operation ${op}`);
   });
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { cleanup(); resetDiagnostics(); vi.unstubAllGlobals(); });
 async function open() {
-  const user = userEvent.setup(); render(<ModelConfigurationPanel />);
+  const user = userEvent.setup(); render(<><ModelConfigurationPanel /><DiagnosticCenter/></>);
   await user.click(screen.getByRole("button", { name: "读取模型配置" }));
   await screen.findByLabelText("模型名称"); return user;
+}
+async function originalDiagnostic(user:ReturnType<typeof userEvent.setup>, message:string) {
+  expect(document.body.textContent).not.toContain(message);
+  expect(screen.queryByRole("dialog",{name:"运行诊断"})).toBeNull();
+  await user.click(screen.getByRole("button",{name:"状态与诊断：最近模型连接错误详细信息"}));
+  const dialog=await screen.findByRole("dialog",{name:"运行诊断"});
+  expect(within(dialog).getByRole("region",{name:"诊断控制台"})).toHaveTextContent(message);
+  await user.click(within(dialog).getByRole("button",{name:"关闭运行诊断"}));
 }
 describe("SIMULATED configuration read → diagnose → save → read", () => {
   it("uses the native directory command in the actual settings component without browser CORS", async()=>{
@@ -74,8 +85,12 @@ describe("SIMULATED configuration read → diagnose → save → read", () => {
     const fetcher = vi.fn().mockResolvedValueOnce({ ok: false, status: 503 }).mockResolvedValue({ ok: true, json: async () => ({ data: [{ id: "unsaved" }] }) });
     vi.stubGlobal("fetch", fetcher); const user = await open();
     await user.clear(screen.getByLabelText("模型名称")); await user.type(screen.getByLabelText("模型名称"), "unsaved");
-    await user.click(screen.getByRole("button", { name: "测试连接" })); await screen.findByText(/HTTP 503/);
+    await user.click(screen.getByRole("button", { name: "测试连接" })); await screen.findByText(/本地数据暂时不可用/);
     expect(screen.getByLabelText("模型名称")).toHaveValue("unsaved");
+    expect(saved.profiles.local.model).toBe("chosen");
+    await originalDiagnostic(user,"目录读取失败：HTTP 503");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(bridge.call.mock.calls.some(([op])=>op==="model_configuration_put")).toBe(false);
     await user.click(screen.getByRole("button", { name: "测试连接" })); await screen.findByText(/目录读取成功/);
   });
   it("does not claim an absent configured model is available", async () => {
@@ -95,7 +110,11 @@ describe("SIMULATED configuration read → diagnose → save → read", () => {
   it.each(["https://example.com/v1", "http://localhost:1234/v1", "http://user:pass@127.0.0.1:1234/v1", "http://127.0.0.1:1234/v1?key=value"])("rejects unsupported destination %s before networking", async endpoint => {
     const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher); saved.profiles.local.endpoint = endpoint;
     const user = await open(); await user.click(screen.getByRole("button", { name: "测试连接" }));
-    await screen.findByText(/仅支持无凭据.*数值 loopback/); expect(fetcher).not.toHaveBeenCalled();
+    await screen.findByText(/只支持这台电脑的本地服务地址.*不要填用户名、密码或查询参数/);
+    await originalDiagnostic(user,"连接诊断仅支持无凭据、无查询参数的 HTTP 数值 loopback 地址。");
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(saved.profiles.local.endpoint).toBe(endpoint);
+    expect(bridge.call.mock.calls.some(([op])=>op==="model_configuration_put")).toBe(false);
   });
 });
 

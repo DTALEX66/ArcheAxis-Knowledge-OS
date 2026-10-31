@@ -33,7 +33,7 @@ const RECOVERY_STATES = new Set<RecoveryState>([
   "failed",
   "stopped",
 ]);
-const BACKUP_NAME = /^cognitive_os_\d{8}T\d{6}_\d{6}Z\.sqlite$/;
+const BACKUP_NAME = /^(?:[a-f0-9]{32}|cognitive_os_\d{8}T\d{6}_\d{6}Z)\.sqlite$/;
 const ANSI_SEQUENCE = /\u001b\[[0-?]*[ -/]*[@-~]/g;
 const CONTROL_CHARACTER = /[\u0000-\u001f\u007f-\u009f]/;
 const SENSITIVE_DIAGNOSTIC = [
@@ -60,7 +60,7 @@ export function sanitizeRecoveryDisplayText(value: unknown, fallback = ""): stri
 }
 
 export function isOpaqueBackupName(value: string): boolean {
-  return BACKUP_NAME.test(value) && !value.includes("/") && !value.includes("\\") && !value.includes(":");
+  return BACKUP_NAME.test(value) && !CONTROL_CHARACTER.test(value) && !value.includes("/") && !value.includes("\\") && !value.includes(":");
 }
 
 export function normalizeRecoveryStatus(value: unknown): RecoveryStatusDto {

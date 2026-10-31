@@ -1,0 +1,6 @@
+{
+  "evidence_class": "SYNTHETIC_AUDIT_NEGATIVE_CONTROL_NO_MODEL_CALL",
+  "semantic_answer_fixture": "INTENTIONALLY INCORRECT",
+  "probe_report_exit_code": 0,
+  "finding": "Smoke verdict accepts wrong semantic answer when statuses/stages/link flags pass; no claim of actual model error."
+}

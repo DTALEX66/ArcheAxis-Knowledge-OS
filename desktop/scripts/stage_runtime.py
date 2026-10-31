@@ -16,13 +16,22 @@ def _ignored(_: str, names: list[str]) -> set[str]:
     }
 
 
-def stage_runtime(*, repository: Path, destination: Path) -> Path:
-    repository = repository.resolve()
-    destination = destination.resolve()
+def stage_runtime(*, repository: Path, destination: Path, _backend_in_place: bool = False) -> Path:
+    if _backend_in_place:
+        from scripts.runtime import dev
+        repository = dev.safe_path(repository)
+        destination = dev.safe_path(destination)
+    else:
+        repository = repository.resolve()
+        destination = destination.resolve()
     ignored_root = (repository / ".project-local").resolve()
     if ignored_root not in destination.parents:
         raise RuntimeError("desktop runtime destination must stay under repository .project-local")
-    if destination.exists():
+    if _backend_in_place:
+        # The authoritative stager just exclusively created this empty root.
+        if not destination.is_dir() or any(destination.iterdir()):
+            raise RuntimeError("in-place runtime requires a newly created empty candidate root")
+    elif destination.exists():
         raise RuntimeError(f"desktop runtime destination already exists: {destination}")
 
     source = Path(sys.base_prefix).resolve()
@@ -30,8 +39,8 @@ def stage_runtime(*, repository: Path, destination: Path) -> Path:
     if not python_source.is_file():
         raise RuntimeError(f"base Python executable is missing: {python_source}")
 
-    python_destination = destination / "runtime" / "python"
-    python_destination.parent.mkdir(parents=True, exist_ok=False)
+    python_destination = destination / "runtime" if _backend_in_place else destination / "runtime/python"
+    python_destination.parent.mkdir(parents=True, exist_ok=_backend_in_place)
     shutil.copytree(source, python_destination, ignore=_ignored)
     staged_python = python_destination / "python.exe"
     if not staged_python.is_file():

@@ -34,7 +34,7 @@ describe("explicit per-file qualification", () => {
     render(<BoundedJobPanel command={command}/>);
     await screen.findByRole("option", { name: /controlled.docx/ });
     fireEvent.change(screen.getByLabelText("已保存来源"), { target: { value: identity.sourceId } });
-    expect(await screen.findByRole("option", { name: /office · succeeded/ })).toHaveValue(identity.jobId);
+    expect(await screen.findByRole("option", { name: "Office 文档解析 · 已完成" })).toHaveValue(identity.jobId);
     fireEvent.change(screen.getByLabelText("来源任务"), { target: { value: identity.jobId } });
     fireEvent.click(await screen.findByRole("button", { name: "查看此文件操作结果" }));
     await screen.findAllByText(/^已核实；/);

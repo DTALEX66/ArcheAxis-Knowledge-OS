@@ -121,6 +121,7 @@ def worker(monkeypatch):
     monkeypatch.setattr(
         worker, "donor", lambda name: http if name == "safe_http" else original_donor(name)
     )
+    monkeypatch.setattr(worker, "read_product_credential", lambda reference: bytearray(b"synthetic-api-token"))
     return worker
 
 
@@ -144,6 +145,7 @@ def request():
         "config": {
             "provider": "openai",
             "model": "openai/explicit-model",
+            "credential_ref": "aak_cred_" + "a" * 32,
             "endpoint": None,
             "max_tokens": 512,
             "timeout_seconds": 10,
@@ -168,6 +170,67 @@ def test_professional_check_without_independent_query_never_searches(worker, mon
     req["dimension"] = "professional_basis"
     assert worker.execute(req)["reason"] == "search_query_required"
     assert calls == []
+
+
+def test_vault_reference_is_resolved_and_passed_to_synthetic_sdk(worker, monkeypatch):
+    calls = []
+    order = []
+    materials = []
+    secret = bytearray(b"synthetic-api-token")
+    original_authorize = worker.authorize_dispatch
+    def authorize(kind, destination, material):
+        original_authorize(kind, destination, material)
+        order.append("dispatch")
+        materials.append(material)
+    monkeypatch.setattr(worker, "authorize_dispatch", authorize)
+    monkeypatch.setattr(worker, "retrieve_context", lambda query, *args: "Public synthetic context")
+    def resolve(reference):
+        order.append("vault")
+        calls.append(reference)
+        return secret
+    monkeypatch.setattr(worker, "read_product_credential", resolve)
+    sdk_calls = []
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(completion=lambda **kwargs: sdk_calls.append(kwargs) or {
+        "model": "fixture-model",
+        "choices": [{"finish_reason": "stop", "message": {"content": '{"status":"supported","basis":"Synthetic context"}'}}],
+        "usage": {"total_tokens": 3},
+    }))
+    req = request()
+    req.update(dimension="professional_basis", search_query="synthetic public query")
+    result = worker.execute(req)
+    assert result["outcome"] == "succeeded"
+    assert calls == [req["config"]["credential_ref"]]
+    assert order == ["dispatch", "vault"]
+    assert sdk_calls[0]["api_key"] == "synthetic-api-token"
+    assert secret == bytearray(b"\x00" * len(secret))
+    assert "synthetic-api-token" not in json.dumps(result)
+    assert "synthetic-api-token" not in json.dumps(materials)
+    assert "credential_ref_sha256" in materials[0]
+    assert "api_key" not in req["config"]
+
+
+@pytest.mark.parametrize("vault_state", ["missing", "invalid"])
+def test_unavailable_or_invalid_vault_secret_fails_before_sdk(worker, monkeypatch, vault_state):
+    order = []
+    sdk_calls = []
+    original_authorize = worker.authorize_dispatch
+    def authorize(*args, **kwargs):
+        original_authorize(*args, **kwargs)
+        order.append("dispatch")
+    monkeypatch.setattr(worker, "authorize_dispatch", authorize)
+    def resolve(reference):
+        order.append("vault")
+        if vault_state == "missing":
+            raise OSError("synthetic vault entry absent")
+        return bytearray()
+    monkeypatch.setattr(worker, "read_product_credential", resolve)
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(completion=lambda **kwargs: sdk_calls.append(kwargs)))
+    result = worker.execute(request())
+    assert result["outcome"] == "failed"
+    assert result["reason"] == "credential_unavailable"
+    assert order == ["dispatch", "vault"]
+    assert sdk_calls == []
+    assert "synthetic vault entry absent" not in json.dumps(result)
 
 
 @pytest.mark.parametrize("usage,expected", [(None, None), ({}, None), ({"total_tokens": None}, None), ({"total_tokens": 0}, 0), ({"total_tokens": 5}, 5)])

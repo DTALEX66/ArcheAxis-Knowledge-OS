@@ -71,7 +71,7 @@ describe("Recovery Shell", () => {
     expect(within(shell).getByRole("button", { name: "安全模式" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "恢复备份" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "退出" })).toBeInTheDocument();
-    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
   });
 
   it("shows only Tauri-provided sanitized logs and restores only a selected opaque backup", async () => {
@@ -115,7 +115,7 @@ describe("Recovery Shell", () => {
     await user.click(await screen.findByRole("button", { name: "重试启动" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
     });
     expect(recovery.retryDesktopBackend).toHaveBeenCalledOnce();
   });
@@ -169,7 +169,7 @@ describe("Recovery Shell", () => {
     });
     expect(await screen.findByText(/安全模式已启用/)).toBeInTheDocument();
 
-    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
@@ -200,7 +200,7 @@ describe("Recovery Shell", () => {
     expect(await screen.findByText("安全模式已启用；本地核心保持停止。")).toBeInTheDocument();
     await act(async () => handshake.resolve({ status: "available" }));
 
-    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
@@ -223,7 +223,7 @@ describe("Recovery Shell", () => {
 
     render(<App />);
     await act(async () => Promise.resolve());
-    expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
@@ -257,14 +257,39 @@ describe("Recovery Shell", () => {
 
     render(<App />);
     await act(async () => Promise.resolve());
-    expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
-    expect(screen.getByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
+    expect(screen.getByText("应用与本地服务暂时不能配合运行，请检查版本。")).toBeInTheDocument();
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(3);
     expect(recovery.verifyCanonicalCore).toHaveBeenCalledTimes(2);
+  });
+
+  it("SIMULATED App retains A's dirty guard after Core stops and B cleanup cannot enable recovery", async () => {
+    vi.useFakeTimers();
+    const ready = { ...failedRecovery, state: "ready", backend_available: true, backups: [] };
+    recovery.getRecoveryStatus.mockResolvedValueOnce(ready).mockResolvedValueOnce(ready)
+      .mockResolvedValue({ ...failedRecovery, state: "stopped" });
+    recovery.verifyCanonicalCore.mockResolvedValueOnce({ status: "available" })
+      .mockRejectedValueOnce(new Error("SIMULATED disconnected Core"));
+    render(<App />);
+    await act(async () => Promise.resolve());
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-A", dirty: true } })); });
+    await act(async () => vi.advanceTimersByTimeAsync(10_000));
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-B", dirty: false } })); });
+    const restore = screen.getByRole("button", { name: "恢复备份" });
+    expect(restore).toBeDisabled();
+    expect(screen.getByText("草稿尚未保存，请先保存或保留文字后恢复备份。")).toBeInTheDocument();
+    fireEvent.click(restore);
+    expect(recovery.restoreRecoveryBackup).not.toHaveBeenCalled();
+    const closing = new Event("beforeunload", { cancelable: true });window.dispatchEvent(closing);
+    expect(closing.defaultPrevented).toBe(true);
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-A", dirty: false } })); });
+    expect(restore).toBeEnabled();
   });
 
   it("cleans up one non-overlapping liveness loop on unmount", async () => {
@@ -283,7 +308,7 @@ describe("Recovery Shell", () => {
 
     const view = render(<App />);
     await act(async () => Promise.resolve());
-    expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
     await act(async () => vi.advanceTimersByTimeAsync(30_000));
@@ -362,7 +387,7 @@ describe("Recovery Shell", () => {
 
     expect(await screen.findByText("开发")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "重新加载当前核心" }));
-    await screen.findByRole("navigation", { name: "主空间导航" });
+    await screen.findByRole("button", { name: "全部页面，打开产品导航" });
 
     expect(order).toEqual([
       "safe-mode",
@@ -424,6 +449,9 @@ describe("Recovery Shell", () => {
     const reload = screen.getByRole("button", { name: "重新加载当前核心" });
     expect(reload).toBeEnabled();
     await user.click(reload);
-    expect(await screen.findByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
   });
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

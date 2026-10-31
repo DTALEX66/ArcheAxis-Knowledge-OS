@@ -70,3 +70,18 @@ def test_explicit_fragment_binding_remains_bounded_and_cannot_supply_other_claim
         assert not check.is_valid(changed), key
     value["fragment_bindings"] = [binding] * 257
     assert not check.is_valid(value)
+
+
+def test_embed_presentation_extends_existing_relation_without_changing_ordinary_links():
+    check = validator("RelationDto")
+    relation = {"id": "existing", "kind": "related", "label": "Authored link",
+                "target": {"kind": "document", "document_id": "peer", "version": 1}}
+    assert check.is_valid(relation)
+    assert check.is_valid({**relation, "presentation": "embed"})
+    for invalid in ("execute_html", None, [], {"mode": "embed"}):
+        assert not check.is_valid({**relation, "presentation": invalid})
+    assert not check.is_valid({**relation, "presentation": "embed", "execute": True})
+    updated = SCHEMA["$defs"]["IngestRelationsDto"]["properties"]["updated_relations"]
+    count = Draft202012Validator(updated)
+    assert count.is_valid(0) and count.is_valid(2)
+    assert not count.is_valid(-1) and not count.is_valid("1")

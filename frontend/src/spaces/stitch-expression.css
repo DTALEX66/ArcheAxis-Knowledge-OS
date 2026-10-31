@@ -1,0 +1,55 @@
+/* Stitch composition around the existing CanonicalExpressionBoard renderer. */
+.stitch-expression-page { display:flex; flex-direction:column; gap:12px; min-width:0; color:var(--ax-fg); font-size:var(--ax-text-ui); line-height:1.5; }
+.stitch-expression-page :is(h2,h3,p) { margin:0; }
+.stitch-expression-page :is(button,input,select,textarea,summary) { font:inherit; }
+.stitch-expression-page :is(button,input,select,textarea,summary):focus-visible { outline:2px solid var(--ax-focus-ring); outline-offset:2px; }
+.stitch-expression-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:10px 12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-panel); }
+.stitch-expression-heading>div>span { color:var(--ax-accent); font-size:var(--ax-text-caption); }
+.stitch-expression-heading h2 { font-size:1.1rem; font-weight:650; line-height:1.5; }
+.stitch-expression-primary-actions,.stitch-expression-secondary-actions,.stitch-expression-document-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.stitch-expression-page button { min-height:34px; padding:5px 9px; max-width:100%; border:1px solid var(--ax-border); border-radius:5px; color:var(--ax-fg-secondary); background:var(--ax-raised); white-space:normal; overflow-wrap:anywhere; cursor:pointer; }
+.stitch-expression-page button:disabled { cursor:default; opacity:.6; }
+.stitch-expression-page button:not(:disabled):hover { color:var(--ax-accent); border-color:var(--ax-accent); }
+.stitch-expression-primary-actions>button:last-child { border-color:var(--ax-accent); color:var(--ax-accent); background:var(--ax-accent-soft); }
+.stitch-expression-feedback,.stitch-expression-state { color:var(--ax-fg-secondary); overflow-wrap:anywhere; }
+.stitch-expression-state { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; font-size:var(--ax-text-caption); }
+.stitch-expression-stage { min-width:0; padding:12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-panel); }
+.stitch-expression-stage>.expression-board { gap:8px; }
+.stitch-expression-stage .expression-toolbar { gap:6px; }
+.stitch-expression-stage .expression-toolbar>span { margin-inline-start:auto; color:var(--ax-fg-secondary); font-size:var(--ax-text-caption); }
+.stitch-expression-stage .expression-board>p.muted { font-size:var(--ax-text-caption); color:var(--ax-fg-secondary); }
+.stitch-expression-stage .expression-picker { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.stitch-expression-stage .expression-picker>select { flex:1 1 220px; }
+.stitch-expression-stage .expression-properties { grid-template-columns:repeat(4,minmax(0,1fr)); padding:8px; border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-expression-stage .expression-viewport { height:clamp(320px,52dvh,580px); border-radius:7px; border-color:var(--ax-border-strong); }
+.stitch-expression-stage .expression-connect { grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; padding:10px; border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-expression-stage .expression-connect>button { align-self:end; }
+.stitch-expression-stage .expression-edge-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.stitch-expression-stage .expression-edge-list>li { min-width:0; border:1px solid var(--ax-border); border-radius:6px; padding:8px; background:var(--ax-bg-inset); }
+.stitch-expression-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(240px,270px); gap:16px; align-items:start; min-width:0; }
+.stitch-expression-toolkit { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; min-width:0; align-items:start; max-height:76dvh; overflow:auto; }
+.stitch-expression-stage .expression-inspector .expression-properties,.stitch-expression-stage .expression-inspector .expression-connect { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.stitch-expression-stage .expression-inspector .expression-edge-list { grid-template-columns:minmax(0,1fr); }
+.stitch-expression-card { min-width:0; padding:12px; border:1px solid var(--ax-border); border-radius:8px; background:var(--ax-panel); }
+.stitch-expression-card>header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--ax-border); margin-bottom:10px; padding-bottom:8px; }
+.stitch-expression-card h3 { font-size:var(--ax-text-ui); font-weight:600; line-height:1.5; }
+.stitch-expression-card>ul[aria-label="已保存文档"] { list-style:none; padding:0; margin:0; max-height:220px; overflow:auto; display:grid; gap:5px; }
+.stitch-expression-card>ul[aria-label="已保存文档"] button { width:100%; text-align:left; }
+.stitch-expression-page label { min-width:0; display:grid; gap:4px; color:var(--ax-fg-secondary); }
+.stitch-expression-page :is(input,select,textarea) { min-width:0; max-width:100%; width:100%; box-sizing:border-box; color:var(--ax-fg); background:var(--ax-bg-inset); border:1px solid var(--ax-border); border-radius:4px; padding:5px 8px; }
+.stitch-expression-page :is(input,select) { min-height:34px; }
+.stitch-expression-page textarea { min-height:70px; }
+.stitch-expression-stage .expression-node textarea { padding:8px; border-radius:0; }
+.stitch-expression-history>label { margin-top:10px; }
+.stitch-expression-history>button { margin-top:8px; }
+.stitch-expression-card p { margin-top:8px; color:var(--ax-fg-secondary); overflow-wrap:anywhere; }
+.stitch-expression-support { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; grid-column:1/-1; min-width:0; }
+.stitch-expression-card>details { min-width:0; }
+.stitch-expression-card summary { cursor:pointer; min-height:30px; }
+.stitch-expression-card details[open]>summary { margin-bottom:10px; color:var(--ax-accent); }
+.stitch-expression-card details[open]>:is(label,button,div) { margin-top:8px; }
+.stitch-expression-page pre { white-space:pre-wrap; overflow-wrap:anywhere; overflow:auto; }
+@container content (max-width:800px) { .stitch-expression-stage .expression-properties { grid-template-columns:repeat(2,minmax(0,1fr)); } .stitch-expression-stage .expression-edge-list { grid-template-columns:minmax(0,1fr); } }
+@container content (max-width:1120px) { .stitch-expression-workspace { grid-template-columns:minmax(0,1fr); } .stitch-expression-toolkit { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:none; overflow:visible; } }
+@container content (max-width:680px) { .stitch-expression-toolkit,.stitch-expression-support { grid-template-columns:minmax(0,1fr); } .stitch-expression-stage .expression-connect { grid-template-columns:repeat(2,minmax(0,1fr)); } .stitch-expression-heading,.stitch-expression-stage,.stitch-expression-card { padding:10px; } .stitch-expression-stage .expression-viewport { height:320px; } }
+@media (forced-colors:active) { .stitch-expression-primary-actions>button:last-child { border-color:Highlight; } }

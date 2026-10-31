@@ -129,7 +129,7 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, expectedItemKey, e
     <h4>课程与课时</h4><p>由已接受知识生成课程候选；课时是派生阅读内容，生成不等于人工接受或掌握。</p>
     {!readOnly && knowledgeId && !courseId ? <button disabled={busy} onClick={() => void generate()}>从当前知识生成课程与课时</button> : null}
     {courseId ? <button disabled={busy} onClick={() => {const request=++epoch.current;setCourse(null);setLesson(null);setMessage("");setFailure(null);void loadStored(courseId,request);}}>重新读取保存的课程</button> : null}
-    {course && (lesson !== null || course.stale) ? <article className="library-document" aria-label="课程候选课时"><h5>{course.title}</h5><p>{course.stale ? "历史课程 · 来源绑定失效 · 只读" : "课程候选 · 需人工复核 · 来源版本已由 Core 校验"}</p>
+    {course && (lesson !== null || course.stale) ? <article className="library-document" aria-label="课程候选课时"><h5>{course.title}</h5><p>{course.stale ? "历史课程 · 来源绑定失效 · 只读" : "课程候选 · 需人工复核 · 来源版本已由本地服务核对"}</p>
       <h6>知识要点</h6>{course.components.map((component, index) => <div key={index}><strong>{component.title}</strong><p className="course-statement">{component.statement}</p></div>)}
       <h6>学习目标</h6><ul>{course.objectives.map((objective, index) => <li key={index}>{objective}</li>)}</ul>
       <p>绑定知识版本：{course.knowledgeId} · 来源修订：{course.sourceRevision}</p>

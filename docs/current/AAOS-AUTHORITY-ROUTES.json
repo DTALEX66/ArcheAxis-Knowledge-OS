@@ -19,6 +19,14 @@
   ],
   "entries": [
     {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
       "path": ".codex.example/README.md",
       "role": "LIVE_NAVIGATION"
     },
@@ -229,6 +237,34 @@
     {
       "path": "docs/history/repository-consolidation-20261019/current/R6-VERSION-RELEASE-FREEZE.md",
       "role": "INHERITED_CONSTRAINT_NOT_ACTIVE_QUEUE"
+    },
+    {
+      "path": "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json",
+      "role": "SCOPED_ACCEPTANCE_INVENTORY_NOT_PRODUCT_QUALIFICATION"
+    },
+    {
+      "path": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+      "role": "CONCERN_RULE_REQUIRES_INDEX_AND_SUPERSESSION"
+    },
+    {
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "role": "OWNER_SCOPE_OVERLAY_NOT_REPLACEMENT_TASKPACK"
+    },
+    {
+      "path": "docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md",
+      "role": "DATED_SCOPED_RECORD_NOT_AUTOMATIC_AUTHORITY"
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+      "role": "HISTORICAL_HANDOFF"
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "path": "docs/history/README.md",
+      "role": "LIVE_NAVIGATION"
     }
   ],
   "rules": [

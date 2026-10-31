@@ -1,12 +1,27 @@
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-import { render,screen,waitFor,fireEvent,act } from "@testing-library/react";
+import { cleanup,render,renderHook,screen,waitFor,fireEvent,act } from "@testing-library/react";
+import { resetDiagnostics, useDiagnostics } from "../presentation/diagnostics";
 import { webcrypto } from "node:crypto";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
-beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
-afterEach(()=>{vi.unstubAllGlobals();});
+beforeEach(()=>{resetDiagnostics();bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+afterEach(()=>{cleanup();vi.unstubAllGlobals();});
 const doc={document_id:"doc_original",version:1,title:"原文 v1",source_id:"source_original",source_revision:"a".repeat(64),content_sha256:"b".repeat(64),text_projection:"原版本全文",editor_json:{type:"doc",content:[]},blocks:[{block_id:"evidence",text_projection:"固定依据块"}]};
+it.each([undefined,409])("keeps raw pinned read failure in explicit details and never substitutes another version (%s)",async status=>{
+ const error=Object.assign(new Error("FIXED_READ_FAILED /workspace/document"),status?{status}:{});bridge.call.mockRejectedValue(error);
+ const diagnostics=renderHook(useDiagnostics);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} onClose={()=>{}}/>);
+ const alert=await screen.findByRole("alert");expect(alert).not.toHaveTextContent(error.message);if(status)expect(alert).toHaveTextContent("冲突");
+ expect(screen.queryByText("原版本全文")).not.toBeInTheDocument();expect(bridge.call).toHaveBeenCalledTimes(1);expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:"doc_original",version:1});
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：引用读取错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({message:error.message,...(status?{status}:{})});expect(bridge.call).toHaveBeenCalledTimes(1);
+});
+it("does not mistake a structured conflict for a local original-identity error with the same message",async()=>{
+ const error=Object.assign(new Error("原件身份或 SHA 与引用不符。"),{status:409,code:"conflict"});bridge.call.mockRejectedValue(error);
+ const diagnostics=renderHook(useDiagnostics);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} onClose={()=>{}}/>);
+ const alert=await screen.findByRole("alert");expect(alert).toHaveTextContent("冲突：对象版本已变化");expect(alert).not.toHaveTextContent("原件与引用不一致");expect(alert).not.toHaveTextContent("SHA");
+ expect(bridge.call).toHaveBeenCalledTimes(1);expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:"doc_original",version:1});expect(screen.queryByText("原版本全文")).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"状态与诊断：引用读取错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({status:409,code:"conflict",message:error.message});expect(bridge.call).toHaveBeenCalledTimes(1);
+});
 it("refuses a fixed-version read whose SHA differs from the global search observation",async()=>{
  bridge.call.mockResolvedValue(doc);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} expectedDocumentSha={"c".repeat(64)} onClose={()=>{}}/>);
  expect(await screen.findByRole("alert")).toHaveTextContent("指纹与搜索观察不一致");
@@ -31,7 +46,28 @@ it("tampered source bytes are not displayed",async()=>{
  bridge.call.mockResolvedValue({source_id:"source_bad",sha256:"a".repeat(64),name:"source.txt",media_type:"text/plain",content_base64:btoa("tampered")});
  render(<PinnedReferencePanel reference={{kind:"source",source_id:"source_bad",sha256:"a".repeat(64)}} onClose={()=>{}}/>);expect(await screen.findByRole("alert")).toHaveTextContent("字节校验失败");expect(screen.queryByText("tampered")).not.toBeInTheDocument();
 });
+it("opens any audio or video original in the media reader instead of a missing-format notice",async()=>{
+ const text="flac fixture";const bytes=new TextEncoder().encode(text);const hash=Array.from(new Uint8Array(await webcrypto.subtle.digest("SHA-256",bytes))).map(x=>x.toString(16).padStart(2,"0")).join("");
+ const create=vi.fn((_blob:Blob)=> "blob:flac");vi.stubGlobal("URL",{createObjectURL:create,revokeObjectURL:vi.fn()});
+ bridge.call.mockResolvedValue({source_id:"source_flac",sha256:hash,name:"talk.flac",media_type:"audio/flac",content_base64:btoa(text)});
+ render(<PinnedReferencePanel reference={{kind:"source",source_id:"source_flac",sha256:hash}} onClose={()=>{}}/>);
+ expect(await screen.findByLabelText("音频原件")).toBeInTheDocument();
+ expect(create.mock.calls[0][0].type).toBe("audio/flac");
+ expect(screen.queryByText(/此格式暂无内嵌阅读器/)).not.toBeInTheDocument();
+});
 it("late reads cannot replace a newly selected pinned object",async()=>{
  let resolve:(value:unknown)=>void=()=>{};bridge.call.mockImplementation((_:string,p:{document_id?:string;knowledge_id?:string})=>p.document_id?new Promise(r=>{resolve=r}):Promise.resolve({knowledge_id:"knowledge_now",body:"当前知识",version:"v1",status:"candidate",source_id:null,anchor_id:null}));
  const rendered=render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} onClose={()=>{}}/>);rendered.rerender(<PinnedReferencePanel reference={{kind:"knowledge",knowledge_id:"knowledge_now"}} onClose={()=>{}}/>);await screen.findByText("当前知识");await act(async()=>{resolve(doc);});await waitFor(()=>expect(screen.queryByText("原文 v1 · v1")).not.toBeInTheDocument());
+});
+
+it("uses the finite bridge id payload to open a pinned knowledge reference",async()=>{
+ bridge.call.mockImplementation((operation:string,payload:Record<string,unknown>)=>{
+  if(operation!=="knowledge_get"||Object.keys(payload).length!==1||payload.id!=="knowledge_fixed")throw new Error("CORE_COMMAND_ID_REQUIRED");
+  return Promise.resolve({knowledge_id:"knowledge_fixed",body:"固定知识正文",version:"revision_1",status:"candidate",source_id:null,anchor_id:null});
+ });
+ render(<PinnedReferencePanel reference={{kind:"knowledge",knowledge_id:"knowledge_fixed"}} onClose={()=>{}}/>);
+ expect(await screen.findByText("固定知识正文")).toBeInTheDocument();
+ expect(bridge.call).toHaveBeenCalledTimes(1);
+ expect(bridge.call).toHaveBeenCalledWith("knowledge_get",{id:"knowledge_fixed"});
+ expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });

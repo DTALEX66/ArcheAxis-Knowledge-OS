@@ -197,6 +197,7 @@ def test_default_direct_ignores_generic_proxy_environment(modules, monkeypatch):
     _, worker = modules
     monkeypatch.delenv("ARCHEAXIS_PUBLIC_RESEARCH_PROXY", raising=False)
     monkeypatch.setenv("HTTPS_PROXY", "http://user:secret@external.invalid")
+    monkeypatch.setattr(worker.proxy_transport, "_windows_proxy", lambda: None)
     monkeypatch.setattr(worker.http, "fetch", lambda *a, **k: SimpleNamespace(body=b'{"results":[]}',headers={},status=200))
     monkeypatch.setattr(worker.proxy_transport, "fetch", lambda *a, **k: pytest.fail("opt-in absent"))
     result = worker.execute({"schema":worker.SCHEMA,"query":"synthetic","families":["research"]})

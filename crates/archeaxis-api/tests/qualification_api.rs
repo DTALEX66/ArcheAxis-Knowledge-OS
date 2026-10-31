@@ -49,7 +49,7 @@ async fn post_knowledge(router: &axum::Router, body_text: &str, status: &str) ->
     assert!(s == StatusCode::CREATED, "create failed {s}: {text}");
     serde_json::from_str::<Value>(&text).unwrap()["knowledge_id"]
         .as_str()
-        .expect(&format!("no id in {text}"))
+        .unwrap_or_else(|| panic!("no id in {text}"))
         .to_string()
 }
 

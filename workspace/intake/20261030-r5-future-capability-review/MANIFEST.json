@@ -1,0 +1,159 @@
+{
+  "schema": "aaos.owner-intake-local-archive/v1",
+  "source_root": "D:\\All projects\\Record\\AAOS_未来能力承接_前端效果图与本地Codex交接_20261030_R5",
+  "archive_root": ".project-local/archives/owner-inputs/20261030-r5",
+  "files": 29,
+  "bytes": 14605383,
+  "members": [
+    {
+      "path": "00-交接总览.html",
+      "bytes": 59216,
+      "sha256": "b7307abec8ca9897d3a7c219fbf6e940db8a5f2d67cddc255b39f65789d20338"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2284,
+      "sha256": "ef14aa74029a9b4c810462774154345d1a7649eba2462b07b74d10b0a8413f27"
+    },
+    {
+      "path": "共享/02-页面与环节索引.csv",
+      "bytes": 1596,
+      "sha256": "ebb1a3664dc51e5b830a54e1decda7fc1324201869a6141629656b914b2d4d7d"
+    },
+    {
+      "path": "共享/03-186项前后端承接映射.csv",
+      "bytes": 292477,
+      "sha256": "ab44594d7813c060ac8fd81df8d29deba46b4b8f894bcd66850c6eaefb4742db"
+    },
+    {
+      "path": "共享/04-22职责承接映射.csv",
+      "bytes": 6978,
+      "sha256": "84cfb6963a7836e430c9735ec325d67b9842db5c069e0ec0905e22acc3e766ba"
+    },
+    {
+      "path": "共享/05-代表场景与验收.csv",
+      "bytes": 5297,
+      "sha256": "aeacdb472cdf520656d77bcf4728e194f96d10bb81965b7c294af0ebffa27808"
+    },
+    {
+      "path": "共享/06-接入方式与难度分期.md",
+      "bytes": 5391,
+      "sha256": "e1c4874ce0c52e460e8abed5d88473b0c5fad9d81ad920111579596c2364d9f6"
+    },
+    {
+      "path": "共享/07-契约示例-非真实API.json",
+      "bytes": 4877,
+      "sha256": "a15990e4aedd7c308750c6a5b4527d2eef30d7a2cb17a314fd16e96e5069a780"
+    },
+    {
+      "path": "前端_STITCH/01-STITCH总控提示词-R5.txt",
+      "bytes": 5663,
+      "sha256": "0ee7a59877c85499023c28f0b24c2eb40cc38ad4437629e426e8bc09b068dc7e"
+    },
+    {
+      "path": "前端_STITCH/02-逐页执行提示词.md",
+      "bytes": 4390,
+      "sha256": "4e260cc588598b754f249cb6412d2bb82805f8d6e6944e4ff77865fea0abd924"
+    },
+    {
+      "path": "前端_STITCH/03-前端承接与状态规则.md",
+      "bytes": 3246,
+      "sha256": "d25f2b9768f5731546aac960978ae55f2303eabbcedb491c6d2fafe0a4c4742d"
+    },
+    {
+      "path": "前端_STITCH/DESIGN.md",
+      "bytes": 6840,
+      "sha256": "49fc942116e69dc668cf24059cff25ee65779e4b5d37c636c7c9187680e3cd5d"
+    },
+    {
+      "path": "原始输入/04-186项能力归并映射-冻结输入.csv",
+      "bytes": 60437,
+      "sha256": "59ade620d93b5b241b8e7d0786bed6666266fce2d6b59c02e891b37ef3254623"
+    },
+    {
+      "path": "原始输入/05-22职责归并-冻结输入.csv",
+      "bytes": 3101,
+      "sha256": "7bd51b9aeef5d702ee5d66a4d24cacccdbfc4f103419640fbec26c46f2c8243d"
+    },
+    {
+      "path": "后端_本地CODEX/01-执行入口.txt",
+      "bytes": 2400,
+      "sha256": "73ba37b3442b0537d72ac5161ba96579b3fbe3a8ffa3e599886b9a26db23b01f"
+    },
+    {
+      "path": "后端_本地CODEX/02-后端承接说明与核验任务.md",
+      "bytes": 12108,
+      "sha256": "9debb7960c5af1ed630e3067d578481098e1299fc90f4fbbeb265e57882e92ea"
+    },
+    {
+      "path": "效果图/新工作区/A1-人的反馈与AI纠正候选.png",
+      "bytes": 1732700,
+      "sha256": "5a5951ca69a619b0d3ce6eb4332836dea97814334174d799d29d38ccfd49ba3c"
+    },
+    {
+      "path": "效果图/新工作区/L1-学习讲解与活动切换.png",
+      "bytes": 1795718,
+      "sha256": "53d5bf6b5047fa16639fe3d65d5a5f918666bd6b7a5ff4af08f1eae2f2ab5bba"
+    },
+    {
+      "path": "效果图/新工作区/L2-仿真活动-设计预览.png",
+      "bytes": 1713116,
+      "sha256": "8cd3251b5b625783d3698e4b1c905290769ae8d9df53c317c6f50d22e41b7822"
+    },
+    {
+      "path": "效果图/新工作区/L3-空间记忆-设计预览.png",
+      "bytes": 1949971,
+      "sha256": "7948853e17add5aa5314ddd3a2d23c17358f705a151544dbcdc4c2bb8ef5e0b8"
+    },
+    {
+      "path": "效果图/新工作区/R1-科研方法与未来Agent接入.png",
+      "bytes": 1728639,
+      "sha256": "92fa856062be3bfbfd29079c6e0b0c0c59a19bda4a1d0fc6d05d56d8026137e9"
+    },
+    {
+      "path": "效果图/既有概览/A0-AI知识与能力.png",
+      "bytes": 1654375,
+      "sha256": "0aafc11884caf5e0bbbab9b03f4ea89cad95fa1787457ac605b98b308b700e91"
+    },
+    {
+      "path": "效果图/既有概览/B0-工作台.png",
+      "bytes": 1729479,
+      "sha256": "40fef1986ad70e135eecda22a772e7a94dd6565b94cb99abc0178e33f05a7345"
+    },
+    {
+      "path": "效果图/既有概览/L0-我的学习.png",
+      "bytes": 1796369,
+      "sha256": "eb83baeb15718433413f29bdef673eec25ce76c66f19bc356d30806f9f6e8581"
+    },
+    {
+      "path": "验证/file-manifest.json",
+      "bytes": 4678,
+      "sha256": "4a003c5c77404f3f45356aca82b5b778ef43a6822d852e921ff328e8092e5a75"
+    },
+    {
+      "path": "验证/image-manifest.json",
+      "bytes": 3091,
+      "sha256": "59ce60ff0d6efc1629b2919658dcf246ec14933a079e32856f021a4e78b3f895"
+    },
+    {
+      "path": "验证/validation.json",
+      "bytes": 914,
+      "sha256": "4b7d72aaea0430614de350cab1c33d3455aa0f581cfaaa032abc78e68e58a28e"
+    },
+    {
+      "path": "验证/图稿审阅与实施修正.md",
+      "bytes": 2003,
+      "sha256": "bb7c5b5cda5d481ee2ebd08dbf0d143b2b045e0f90ae8e8b3a77d7e19080b357"
+    },
+    {
+      "path": "验证/效果图生成提示词.json",
+      "bytes": 18029,
+      "sha256": "f5379f48e0dcf3bb3402e844f9f8825dff94914cf6d7f54b6329b242bfe78552"
+    }
+  ],
+  "source_preserved": true,
+  "all_members_readback_verified": true,
+  "raw_payload_git_ignored": true,
+  "original_inputs_not_normalized": true,
+  "rollback": "Only newly created local archive/indices; source unchanged. Check consumers before removing the archive."
+}

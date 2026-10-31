@@ -1,0 +1,65 @@
+{
+  "schema": "aaos.clean-conflict-history/v1",
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/sci-evidence1/artifacts/summary.json",
+      "bytes": 11749,
+      "sha256": "50a0078ed49063b7a10d822e72a863f5bf1a5362a8791a18f18e30d92149de66"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sci-evidence1/artifacts/raw-receipts.json",
+      "bytes": 68421,
+      "sha256": "152d391a3a6d74025b891dc1f6ee9cae40792c2ba2bf1f20684e840a03eff0db"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sci-evidence1/artifacts/official-final-inventory.json",
+      "bytes": 39,
+      "sha256": "226ac75953bcc5fe24da20f1d2b6fe3b262b71771cf14388337bf96cecbdf678"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "scripts/runtime/sandbox_inputs.py",
+      "bytes": 15600,
+      "sha256": "2a64c922bdcfdc6b3a392097c3c90290cba7a50ac0f0f6c8b72fcce0a447510d"
+    },
+    {
+      "path": "scripts/runtime/shared_sandbox.py",
+      "bytes": 28445,
+      "sha256": "71b6c0ce2a886ba4ac74bb6920bc5b121bd6bc3ad609da329411b2d8ad8d1894"
+    },
+    {
+      "path": "scripts/runtime/conflict_inputs.py",
+      "bytes": 11366,
+      "sha256": "a83626a95d5c6c23fbd5bba638774173d353dc57a14f132121d52b7c13132766"
+    },
+    {
+      "path": "scripts/runtime/shared_sandbox_guest.ps1",
+      "bytes": 2686,
+      "sha256": "7184df7a9e7f3a0b083c4d9e920e6c31f77f016e02a09498b9e4563a72f1924b"
+    },
+    {
+      "path": "tests/runtime-paths/test_sandbox_inputs.py",
+      "bytes": 13255,
+      "sha256": "d6820a8a3699520221fb0d6ecd8b0128375be303e1a4e46adfd31486d9065e61"
+    },
+    {
+      "path": "tests/runtime-paths/test_shared_sandbox.py",
+      "bytes": 16374,
+      "sha256": "da152ec808160f06e9e0aa484da349cbe6d34c4625b18ceb7082e1950214698f"
+    },
+    {
+      "path": "tests/runtime-paths/test_conflict_inputs.py",
+      "bytes": 5525,
+      "sha256": "fed0bab2e22163544ab0b1fc21e0a698651f14a0303a717d40062d023d720cce"
+    }
+  ],
+  "new_manifest": {
+    "path": ".project-local/runs/be268a2d33/sci-build1/artifacts/clean-conflict-source/input/inputs.json",
+    "bytes": 2037599,
+    "sha256": "590663a74d81321467af9a6ffe342a3fd3491030e7a1fe5e67e3a684a5086ce2"
+  },
+  "actual_deletions": 0,
+  "external_migrations": 0,
+  "final_proof_run": ".project-local/runs/be268a2d33/sci-proof1/artifacts/execution.json"
+}

@@ -135,6 +135,38 @@ def test_video_stages_preserve_available_results(tmp_path, monkeypatch, mode):
         assert result["alignment_issues"][0]["location_status"] == "unlocated"
 
 
+def test_video_keeps_a_cue_inside_the_asr_declared_vad_pad(tmp_path, monkeypatch):
+    """The ASR receipt declares the pad it tolerated; the video lane must not discard it again."""
+    spec = importlib.util.spec_from_file_location(
+        "video_vad_tolerance",
+        Path(__file__).resolve().parents[2] / "services/python-workers/media/worker_video.py",
+    )
+    worker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(worker)
+    source = tmp_path / "video.mp4"
+    source.write_bytes(b"video fixture")
+    cue = {"start_ms": 0, "end_ms": 4640, "text": "Learning evidence anchor.", "raw_index": 0}
+    decoded = {"duration_ms": 4500, "audio_wav": {"path": "controlled.wav"}, "frames": [],
+               "frame_errors": [], "loss_receipt": {}}
+
+    def asr(*_args):
+        return {"text": cue["text"], "cues": [cue], "raw_cues": [cue], "alignment_issues": [],
+                "alignment_status": "complete", "processing_status": "complete",
+                "processing_error": None,
+                "loss_receipt": {"params": {"cue_duration_tolerance_ms": 400}}}
+
+    monkeypatch.setattr(worker, "_ffmpeg", lambda: "controlled-ffmpeg")
+    monkeypatch.setattr(worker, "_probe_duration", lambda *a: 4500)
+    monkeypatch.setattr(worker, "extract", lambda *a, **k: decoded)
+    monkeypatch.setattr(worker, "_run_asr", asr)
+    monkeypatch.setattr(worker, "_load_worker", lambda name, path: SimpleNamespace(
+        OPENAI_BASE="http://127.0.0.1:1234/v1", OPENAI_MODEL="controlled-model"))
+    monkeypatch.setenv("ARCHEAXIS_CAPTION_ENDPOINT", "http://example.invalid/v1")
+    result = worker.extract_job(source, tmp_path, None, "auto", "cpu")
+    assert result["cues"] == [{**cue, "end_beyond_duration_ms": 140}]
+    assert result["alignment_issues"] == []
+
+
 def test_asr_subprocess_timeout_is_real_and_bounded(tmp_path, monkeypatch):
     import subprocess
     import time

@@ -1,0 +1,174 @@
+{
+  "schema": "aaos.storage-followup-evidence/v1",
+  "raw_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/cleanup-files.jsonl",
+      "bytes": 319305,
+      "sha256": "d3bebf87342d8a98bbb92a3e62e6a5aa23008845e4897ad4c9c5ea56890cd24b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/cleanup-scope.json",
+      "bytes": 20848,
+      "sha256": "1ecf5c30178a36513b099f5d0efb2448c7598aee77a55730da900953dc136bda"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/cleanup-result.json",
+      "bytes": 18143,
+      "sha256": "868c986df001d5b612d9627ce8e1eb9afc1916dbb4ea7700a51df33e4c5fc655"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/cleanup-verification.json",
+      "bytes": 2987,
+      "sha256": "9098cd39263335a0b228627bef515072e471ab5d72eec6af7c1282398a44e568"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/deleted-paths.jsonl",
+      "bytes": 137193,
+      "sha256": "47675fdf2d46c1ca3628cb4e2760ff1ed966f35b59cd6b1ec7f2c3e73d9e4bb4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/footprint-after.json",
+      "bytes": 1251412,
+      "sha256": "dc7fa001341d9f161035b162b45651f60ab56a059003164ae6faafb34f55740a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/source-preservation-and-profile.json",
+      "bytes": 7632,
+      "sha256": "3cb7f3bdde3bd0fd8498a556d2fc04b3116f45087cbf6661b89da2ada1ac49b5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/artifacts/access-recheck-after-owner-grant.json",
+      "bytes": 799,
+      "sha256": "556878f77cf33cac4f5a3a7aba40c87e770e8d2951448161ffed6a6c52caee6c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/tmp/prepare_lifecycle_cleanup.py",
+      "bytes": 4734,
+      "sha256": "4f9c61bdb70b5e874700c9feda86fa43057b79939e0c23b9411e40c0aafc1e67"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/tmp/apply_lifecycle_cleanup.ps1",
+      "bytes": 6553,
+      "sha256": "7c773a2cb63357877bca23b16bca3e982b5e854d9079e3944f339b4abf8863e8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/tmp/verify_lifecycle_cleanup.py",
+      "bytes": 4222,
+      "sha256": "e55d8e76a5d554e575bc33fe1dff08b94a6e5e1aa59fdf23324be1592857e2a6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/tmp/verify_source_preservation.py",
+      "bytes": 3610,
+      "sha256": "4346f2e53a9a2e69e6943a185d725b7e46f0a853f8bd58c401145151a8623c66"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-followup-20261030/tmp/finalize_records.py",
+      "bytes": 8102,
+      "sha256": "f2c60a839f1073eb10d02ff2cfc7f39313c7f8bb215e56f58c62355a1140803d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host1/artifacts/sandbox-shared-inputs.json",
+      "bytes": 1106,
+      "sha256": "1eae30141bff7aa2c3f947ad2a8c7644b418d9c8b74f915f10204447e4ee06fd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host2/artifacts/sandbox-shared-inputs.json",
+      "bytes": 1106,
+      "sha256": "0f03d6fa299ed07434fce852c400ba2e10e888dd398a364d1e0b7a5988f36b3d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host3/artifacts/sandbox-shared-inputs.json",
+      "bytes": 1209,
+      "sha256": "2c27fc8d259d6f1d179657cf064dcab016eb6d11049b5e3a0371805531830236"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host4/artifacts/sandbox-shared-inputs.json",
+      "bytes": 1209,
+      "sha256": "1c08e59f127811ab62bfe71427883435e3d5b81ce201cbef480588eaca3ebed1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-private1/artifacts/sandbox-shared-inputs.json",
+      "bytes": 235,
+      "sha256": "df4e7cc8bc125b087b1d377100f9859da462cd6cb388be6bba444bf4530626f1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host1/artifacts/lifecycle.wsb.proposed",
+      "bytes": 1560,
+      "sha256": "468eb4cc5e1da3dae3d684a487fed063d0b3976451781b42798527341b205f51"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host2/artifacts/lifecycle.wsb.proposed",
+      "bytes": 1560,
+      "sha256": "b7efbf193b4df641d7721cd06573e46702d7e32634251cd82e3ac44010b89387"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host3/artifacts/lifecycle.wsb.proposed",
+      "bytes": 1560,
+      "sha256": "a649480328f84c52133859663bbd805473d8007405fb81fcd234b899e8f965a1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sfi-host4/artifacts/lifecycle.wsb.proposed",
+      "bytes": 1560,
+      "sha256": "a95d6d01b9e17932c0a15d7f52598d400c7e8e3d7cf529b2fd9e281423a00db2"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "scripts/runtime/sandbox_inputs.py",
+      "bytes": 13574,
+      "sha256": "e4fe1834661f579a1e1ad8312562fd63ef1d43279336a341eb2c1a98382546ec"
+    },
+    {
+      "path": "tests/runtime-paths/test_sandbox_inputs.py",
+      "bytes": 10105,
+      "sha256": "d710fd1b343d0f8e38629111c95c9568840340d929c4346177d3b78d8da7af27"
+    },
+    {
+      "path": "config/sandbox/shared-inputs.v1.json",
+      "bytes": 274,
+      "sha256": "3b95e476897e80e3fda81b39f16f348083433e1761055d2385e0e9dbad60858b"
+    },
+    {
+      "path": "scripts/check_repository_conventions.py",
+      "bytes": 77658,
+      "sha256": "564e4a9ff8d2159c8880c3e94982112c023124d80f066d49fd044189f8cb7a13"
+    },
+    {
+      "path": "tests/test_frozen_manifest_conventions.py",
+      "bytes": 9180,
+      "sha256": "e28f31c97b64bb8fcfc8bcb8399cc6b0a90dc787fc0dea070a2be9468eab1ed5"
+    },
+    {
+      "path": "tests/test_app_local_cpp_runtime.py",
+      "bytes": 7712,
+      "sha256": "d840b6e943cfdd3bd9a7744f6e8c977497ecf2e1b700b860d9009107b00966bb"
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 7930,
+      "sha256": "3823544b12b0d5fb40eabd836ca2cdf21c0da8ef2be06be1e7444bd182360e53"
+    },
+    {
+      "path": "workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/04-186项能力归并映射-冻结输入.csv",
+      "bytes": 60437,
+      "sha256": "59ade620d93b5b241b8e7d0786bed6666266fce2d6b59c02e891b37ef3254623"
+    },
+    {
+      "path": "workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/05-22职责归并-冻结输入.csv",
+      "bytes": 3101,
+      "sha256": "7bd51b9aeef5d702ee5d66a4d24cacccdbfc4f103419640fbec26c46f2c8243d"
+    }
+  ],
+  "tracked_summary": {
+    "path": "docs/history/storage-cleanup/2026-10-30-followup/summary.json",
+    "bytes": 17593,
+    "sha256": "e1f79269867d2fcd946fe954258fb00006aa70fadf201cffd89cbe403001d704"
+  },
+  "tracked_readme": {
+    "path": "docs/history/storage-cleanup/2026-10-30-followup/README.md",
+    "bytes": 5856,
+    "sha256": "836c02b8b78430b6737412fa9b7c17a408296d669f813cb6afa52062fc526f90"
+  },
+  "previous_batch": "docs/history/storage-cleanup/2026-10-30/README.md",
+  "raw_evidence_policy": "Project-local ignored evidence retained; this manifest is a locator/hash index, not a second progress ledger."
+}

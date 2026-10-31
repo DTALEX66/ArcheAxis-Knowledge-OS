@@ -1,0 +1,247 @@
+{
+  "schema": "aaos.finite-portable-growth-enforcement/v1",
+  "status": "PASS_FINITE_PRODUCER_GUARDS_NOT_REAL_LARGE_PACKAGING",
+  "authorization": "Existing Owner storage governance priority; no new Owner instruction inferred from candidate documentation",
+  "source_parent": "d7f17757206625a0012021d6bd61e2c639a209bd",
+  "final_behavior_patch": "68ca79873c9aea3654d340c072b9db8fb619694c46718199f4cc888380893601",
+  "behavior_files": [
+    "scripts/release/tauri_portable_candidate.py",
+    "tests/test_tauri_portable_candidate.py"
+  ],
+  "declaration_threshold_bytes": 1073741824,
+  "growth_engine": "Existing scripts/runtime/storage_report.py measure/growth_review, unchanged",
+  "checkpoint_authority": "docs/current/AAOS-ACTIVE-EXECUTION.json#execution_control.owner_priority_20261030.operator_storage_checkpoint",
+  "copy_policy": "Validate real regular member sizes and sum before threshold; once copying, at most planned bytes per member, extra input one-byte detection without target write; retained partial on mismatch",
+  "large_gate": "Same-repository canonical artifacts, three nonempty declarations, fixed raw-SHA baseline, synchronous pre/current and projected cumulative growth review before destination mkdir/copy; no bypass",
+  "post_policy": "After valid pre state, finally attempt post and seal independent storage receipt; original copy failure preserved, post/receipt failures secondary; no automatic cleanup",
+  "measurement_semantics": "Known old debt and PARTIAL coverage preserved; NO_NEW_GROWTH_TRIGGER is not storage PASS; non-atomic reports/projected payload lower bound",
+  "baseline_update_policy": "Explicit authorized governance checkpoints only; no per-package automatic rolling baseline",
+  "runs": [
+    {
+      "run": "growred-8d9d9b23",
+      "role": "RED_INITIAL_EXCEPTION_WORDING",
+      "child_exit": 1,
+      "wrapper_exit": 1,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "c174dbca7e8fe8a9bdcef7777ff13c79a0cce3ce71c048f1e5699c96bcbb6ee3",
+      "source_consistent": true,
+      "result": "3 failed; message-specific mismatch retained"
+    },
+    {
+      "run": "growred-5ea9a17a",
+      "role": "RED_BEHAVIOR",
+      "child_exit": 1,
+      "wrapper_exit": 1,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "d7a4440d0abcaa73f360a13e13bf3f27ba5173ed2b7984540d6a6d459484e290",
+      "source_consistent": true,
+      "result": "2 failed, 1 passed; actual 85B target exceeded declared21B; missing declarations copied"
+    },
+    {
+      "run": "growgreen-30534d6a",
+      "role": "INTERMEDIATE_BEHAVIOR_GREEN",
+      "child_exit": 0,
+      "wrapper_exit": 0,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "c8140b8c3e39dd675653073a893195d30d133f64194f822886c97492652daef1",
+      "source_consistent": true,
+      "result": "57 passed; not style qualified"
+    },
+    {
+      "run": "growstyle-ba40b50e",
+      "role": "INTERMEDIATE_STYLE_FAIL",
+      "child_exit": 1,
+      "wrapper_exit": 1,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "c8140b8c3e39dd675653073a893195d30d133f64194f822886c97492652daef1",
+      "source_consistent": true,
+      "result": "19 Ruff errors; two existing SIM102 plus new style findings, preserved"
+    },
+    {
+      "run": "growgreen-fa65e0c8",
+      "role": "FINAL_GREEN",
+      "child_exit": 0,
+      "wrapper_exit": 0,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "68ca79873c9aea3654d340c072b9db8fb619694c46718199f4cc888380893601",
+      "source_consistent": true,
+      "result": "57 passed; one existing cacheprovider/config warning"
+    },
+    {
+      "run": "growstyle-dab7c730",
+      "role": "FINAL_STYLE",
+      "child_exit": 0,
+      "wrapper_exit": 0,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "68ca79873c9aea3654d340c072b9db8fb619694c46718199f4cc888380893601",
+      "source_consistent": true,
+      "result": "Ruff all checks passed"
+    },
+    {
+      "run": "growcli-c56e2a35",
+      "role": "ACTUAL_CHECKPOINT_READ_DIRECT_CLI",
+      "child_exit": 0,
+      "wrapper_exit": 0,
+      "source_commit": "d7f17757206625a0012021d6bd61e2c639a209bd",
+      "source_patch_sha256": "68ca79873c9aea3654d340c072b9db8fb619694c46718199f4cc888380893601",
+      "source_consistent": true,
+      "result": "Actual registered raw baseline and direct CLI loader/help; no measure/copy"
+    }
+  ],
+  "large_real_packaging": "NOT_EXECUTED",
+  "new_full_repository_measurements": 0,
+  "new_gib_payload_copies": 0,
+  "ui_host_builds": 0,
+  "network_calls": 0,
+  "deletions": 0,
+  "limits": [
+    "Only formal tauri portable assembler guarded; local_pinned_packaging and other stager/build producers remain separate followups",
+    "Linked common-owner artifacts outside REPO deliberately rejected, not fixed by checkpoint initialization; no linked/CI environment qualification",
+    "Concurrent other producers and unreadable/private content not locked or made known; no physical allocation claim",
+    "Synthetic threshold lowered only inside tiny-fixture tests; fake full measurements do not qualify actual large packaging",
+    "Initial message-sensitive RED refined to target-byte behavior; initial errors and intermediate style failure unchanged",
+    "Final import/style fixes and root exception-name adjustment differ from original static v3 patch; current behavior file hashes bind tested source"
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/growred-8d9d9b23/artifacts/execution.json",
+      "bytes": 1563,
+      "sha256": "1b9ab20bfa423da3b654ba0586855b567f8a358ca5117ce60187081af44b4f24"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growred-8d9d9b23/logs/execution.log",
+      "bytes": 10632,
+      "sha256": "03a67a7a6b28de043d36b4bb645ae06ce9c57729abd0c61ef0e86fa9c4b2f111"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growred-5ea9a17a/artifacts/execution.json",
+      "bytes": 1564,
+      "sha256": "37eb4f49ef078fec21dce24d7c41839d0dfd0585becdb7dd8b4f37092d59dbe2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growred-5ea9a17a/logs/execution.log",
+      "bytes": 7347,
+      "sha256": "8f59570cd3cbb24645b94744bc23d4e88625331f9de8a4fed5a0b5bc691eb57d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growgreen-30534d6a/artifacts/execution.json",
+      "bytes": 1457,
+      "sha256": "e708cee600d450cfed3486a7039b3acdf4c9afcff3715aac4b91ee668fee259e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growgreen-30534d6a/logs/execution.log",
+      "bytes": 551,
+      "sha256": "6e99266b4e9286f6fe8add81ce409e0cf2a62e031949a6db4cc77580dec4864e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growstyle-ba40b50e/artifacts/execution.json",
+      "bytes": 1379,
+      "sha256": "af95d1bc47bb77b7a5bbc097b4b00065829b0c20c5f3ba496927d46dacd06b30"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growstyle-ba40b50e/logs/execution.log",
+      "bytes": 9390,
+      "sha256": "eaea6dd2168dc416b6d697e90202c8d9c86ee604f3d816684deca07ebff0b2b0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growgreen-fa65e0c8/artifacts/execution.json",
+      "bytes": 1456,
+      "sha256": "93fc83c3f0eede63a0dd22b2625e0cdb5d1af74cba1ecc9d761657ca1536f8d2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growgreen-fa65e0c8/logs/execution.log",
+      "bytes": 551,
+      "sha256": "84eb82ca90ec7f8a0b2539330c4aa1bc97ed92f8b4f39d49b0c1d62aeac943c3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growstyle-dab7c730/artifacts/execution.json",
+      "bytes": 1385,
+      "sha256": "07c33ddf4b2ab8e8a4f15c33fcb289b71cc7766c71c9e14cd781a562e1528358"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growstyle-dab7c730/logs/execution.log",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growcli-c56e2a35/artifacts/execution.json",
+      "bytes": 1458,
+      "sha256": "79e66b2cf177558090b3c837e351fd315ef7c046c6c955ded22735bc7bfcdf52"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/growcli-c56e2a35/logs/execution.log",
+      "bytes": 2273,
+      "sha256": "7d9f8d5a2293c6ad610d518956216d6c65d2baaaea21ff33afb937633fa1d2b7"
+    },
+    {
+      "path": "scripts/release/tauri_portable_candidate.py",
+      "bytes": 25443,
+      "sha256": "e7509b990c2e23b1a12d62e5638af9b21d2b37d28bb833df9344936f5bcb7720"
+    },
+    {
+      "path": "tests/test_tauri_portable_candidate.py",
+      "bytes": 25358,
+      "sha256": "a7904711b4d111ca234a3259c4c215033fb169851b822c2d5fc4e75264d372b6"
+    },
+    {
+      "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "bytes": 20233,
+      "sha256": "6d007b8f9e11348389152b5dd8022de2526e3754e7778ee065fb152b471db91a"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 196816,
+      "sha256": "36f3a23aab8eac7ebb907df17e67870775be8e9c086e6c5b224edce905a9cce9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/GROWTH-implementation-v3.patch",
+      "bytes": 19449,
+      "sha256": "836e2d3a2bdb6f53e3584de41bf969a08601b74b1332eb7112ce7dbdbf7111c2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/GROWTH-tests-v3.patch",
+      "bytes": 12976,
+      "sha256": "c2475e7dc8b1d4fd05f259718a020f56c460a1b0e005dbc11d985e25dcd6661d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/GROWTH-WRITESET-v3.md",
+      "bytes": 7425,
+      "sha256": "707f992467e28ffba108701ff4cf3b46b67657c3ce9c9c1007517843f310c71f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/GROWTH-PEER-REVIEW.md",
+      "bytes": 5142,
+      "sha256": "6d9dff0f2ca87aa312b1a44b6ba0830b6a4601ff3858c6244716ec590d6051e1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-GROWTH-ALLOCATION.json",
+      "bytes": 743,
+      "sha256": "88f1c8204542488c72f2beae100bcca43a5372fcb084b2b30d43ba676b14714f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-GROWTH-RED-REFINEMENT.json",
+      "bytes": 194,
+      "sha256": "97972736330ca12e93a1a531c5c12eb50255d563906f2ca0c7f6a2675290fdef"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-GROWTH-FINAL-ALLOCATION.json",
+      "bytes": 103,
+      "sha256": "9b89dcc153c61efef7b49f8362d8f4db4e639a1f93fb424196b79b89c169c66c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-GROWTH-RUN-BINDINGS.json",
+      "bytes": 1383,
+      "sha256": "29cdaf47f893495628a9087ae1235d1ca6806dff79c60f99f1874d3d503283c8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/verify_growth_current_checkpoint.py",
+      "bytes": 1287,
+      "sha256": "a57f94974d444088c8908895989a417fd1a36b44cd105f11b078bc20ede1afbd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchsize-12792afb/artifacts/storage-after.json",
+      "bytes": 838252,
+      "sha256": "a7df0255b316c104ff34118b41744e24db84a5ec33bc3b173fef2fb3c7dd1f06"
+    }
+  ]
+}

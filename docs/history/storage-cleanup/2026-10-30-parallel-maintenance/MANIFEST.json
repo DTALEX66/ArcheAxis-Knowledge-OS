@@ -1,0 +1,117 @@
+{
+  "schema": "aaos.parallel-maintenance-history/v1",
+  "summary": {
+    "path": ".project-local/runs/be268a2d33/pm-seal1/artifacts/summary.json",
+    "bytes": 6558,
+    "sha256": "b52f48e58492ccd61085e0e0966f318c8ab16cf56d9b7252f300183b679208fc"
+  },
+  "code_identities": [
+    {
+      "path": "crates/archeaxis-api/tests/declared_routes.rs",
+      "bytes": 13416,
+      "sha256": "da26eba75f40940115a4593f2161108485acb9b1f1c5a15f42209c6d30d8f6e5"
+    },
+    {
+      "path": "scripts/probes/colearning_real_model_smoke.py",
+      "bytes": 31509,
+      "sha256": "c0f32f4461ce755d911441e3ebc6b2a4258de088861a09273c626f0b1c99c925"
+    },
+    {
+      "path": "tests/test_colearning_probe_contract.py",
+      "bytes": 18636,
+      "sha256": "336b57cb9a8d08293b1ca4ae91fa7dd6cd6e9f460f1c636a0b130ad951556055"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-probe50/artifacts/layout-probe.json",
+      "bytes": 49007,
+      "sha256": "a334984b9cfa2386bc8f41eab45b4c5fe824d93a2cded70a5dd544d548ba2cfd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-plan50/artifacts/next-batch-plan.json",
+      "bytes": 96039,
+      "sha256": "7ff4db34ef98db68ed598a4556136bdf97a0cdd0c785d954776116b399e72df9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-route-test/artifacts/layout-readback.json",
+      "bytes": 955,
+      "sha256": "c6361c4d6fe80ef9cfe1756d1b86485e1dcf36ced7484cd1fcc367b8f5321943"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-empty2/artifacts/empty-directory-cleanup.json",
+      "bytes": 993,
+      "sha256": "ccc580b051c2bd1430374142492d77cc99c1d7fdd369d001880995e17b5507a7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-f05a/artifacts/f05-counterexamples.json",
+      "bytes": 37268,
+      "sha256": "65787c8f11a5ed7b90bb92675c931d40f3d9cdf867cac99dd0a6d8155743a891"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-rootx1/artifacts/root-f05-counterexample.json",
+      "bytes": 270,
+      "sha256": "ed33cc00cb99febceb7cdbe9519732e053251b24dea2eeb8fff378bc93983fbb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-rootx2/artifacts/root-f05-counterexample.json",
+      "bytes": 287,
+      "sha256": "16b5d3517304d03e498a4be212ec8e438f460861da7751dd4c6c0b01e6628494"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-final1/artifacts/unified-recovery-trace-summary.json",
+      "bytes": 10901,
+      "sha256": "b044fa5e48489ac935fb194bb526357e415b25840cb10165da137092de3e8039"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-green2/artifacts/green-exact-recovery-readback.json",
+      "bytes": 3560,
+      "sha256": "1135bb161229c9e2bbac97ded03f0aef400b25beb2a341af474fe8982e0b33b0"
+    }
+  ],
+  "checks": [
+    {
+      "run": "nrm-route-test",
+      "path": ".project-local/runs/be268a2d33/nrm-route-test/artifacts/execution.json",
+      "bytes": 1326,
+      "sha256": "4f054905d6caca88b1864030f1073766386bb6041e86055da7a317044639fdc5"
+    },
+    {
+      "run": "nrm-fmt1",
+      "path": ".project-local/runs/be268a2d33/nrm-fmt1/artifacts/execution.json",
+      "bytes": 1197,
+      "sha256": "b96460d8ca81c2aa245ab7b021e915ed4be2ae7c971d1e3bfcfb47215a8ac359"
+    },
+    {
+      "run": "nrm-empty2",
+      "path": ".project-local/runs/be268a2d33/nrm-empty2/artifacts/execution.json",
+      "bytes": 1289,
+      "sha256": "f1fd43586984cec619976a50276aaa4800ca9352e1d3f02a9b6b36e82b2378ba"
+    },
+    {
+      "run": "bkr-f05v3",
+      "path": ".project-local/runs/be268a2d33/bkr-f05v3/artifacts/execution.json",
+      "bytes": 1291,
+      "sha256": "9e30a6853d9dfc283162a1c2fee86d4c5603db59f46f5618e3c6488570aaa3eb"
+    },
+    {
+      "run": "bkr-f05l3",
+      "path": ".project-local/runs/be268a2d33/bkr-f05l3/artifacts/execution.json",
+      "bytes": 1385,
+      "sha256": "76989bb2d0e7209bae30529816eade33265fe53aee3f73db9830ecfa772b4659"
+    },
+    {
+      "run": "bkr-rootx1",
+      "path": ".project-local/runs/be268a2d33/bkr-rootx1/artifacts/execution.json",
+      "bytes": 1288,
+      "sha256": "bb3ca32090a6980d8d9ca6b3f8f26e5c81cc4664c46de1784b65af11230e1856"
+    },
+    {
+      "run": "bkr-rootx2",
+      "path": ".project-local/runs/be268a2d33/bkr-rootx2/artifacts/execution.json",
+      "bytes": 1288,
+      "sha256": "43e70e51be36887e56f9671cee389187997254592e003f5824d371d32f3d47fd"
+    }
+  ],
+  "final_proof_run": ".project-local/runs/be268a2d33/pm-seal1/artifacts/execution.json"
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "aaos.public-asset-normalization-history/v1",
+  "date": "2026-10-30",
+  "base_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+  "authorization": "Owner exact reviewed project cleanup; parent independently reviewed126 public duplicate paths and2metadata files; R6 consistency qualified before deployment",
+  "deployed": {
+    "retired_files": 126,
+    "removed_path_logical_bytes": 459018818,
+    "retained_counterparts": 126,
+    "metadata_files": [
+      "frontend/src/companion/PROVENANCE.json",
+      "config/governance/path-disposition.json"
+    ],
+    "directories_removed": 0,
+    "private_untracked_touched": 0
+  },
+  "public_restore_map_sha256": "1cf99eff5f98b95adaf0a8e2f30336e648a080cb9d01a304a955a69081004991",
+  "post_readback": {
+    "path": ".project-local/runs/be268a2d33/spr-assetspost1/artifacts/post-readback.json",
+    "sha256": "7f7938955fe36df9435d7a2192acd76c0bbb88035746889f16b9e008bd5e4f6b"
+  },
+  "deployment_receipt": {
+    "child_exit_code": 0,
+    "status": "INVALIDATED",
+    "receipt_exit_code": 3,
+    "source_consistent": false,
+    "outer_observed_exit_code": 1
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsdeploy1/artifacts/intent.json",
+      "sha256": "572c1aa28b96c7227b60f2237cb24ac0a194a815c1454db69e9ffb2b68fac0bc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsdeploy1/artifacts/journal.jsonl",
+      "sha256": "64225f50465361c11802c6432782d2f65c55448b854292a80e1c85e0829ed60e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsdeploy1/artifacts/result.json",
+      "sha256": "07629044cf457717f64c85566a3975082d6ba1ad6362b57b35d637a05a3da349"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsdeploy1/artifacts/execution.json",
+      "sha256": "600438a4048295e52bfc2f33e526959c98ad5336c61f6409ef8551cd7790cfa4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetspatch1/artifacts/duplicate-retirement-candidate.json",
+      "sha256": "67526965d73d052da81acfb5b5194fe932adc1a2203e1778e16f84bdad100099"
+    }
+  ],
+  "qualification": "Exact public duplicate path retirement and restore preservation only; gates pending/read from separate canonical receipts, no capability absorption or installed/Owner acceptance",
+  "git_or_ntfs_space_claimed": false
+}

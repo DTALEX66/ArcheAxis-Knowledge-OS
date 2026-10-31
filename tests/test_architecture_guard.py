@@ -103,6 +103,18 @@ def test_architecture_guard_rejects_new_boundary_violations(tmp_path: Path):
     }
 
 
+@pytest.mark.parametrize("prefix", ["\\\\?\\UNC\\", "\\\\?\\unc\\"])
+def test_bare_win32_namespace_is_not_a_destination_but_real_paths_are_rejected(tmp_path: Path, prefix: str):
+    from scripts.check_architecture import scan_architecture
+
+    _write(tmp_path, "scripts/path_namespace.py", f"PREFIX = {prefix!r}\n")
+    assert scan_architecture(tmp_path) == []
+    for destination in [prefix + "server\\share\\vault", "\\\\server\\share\\vault", "\\\\?\\D:\\vault"]:
+        _write(tmp_path, "scripts/path_namespace.py", f"DESTINATION = {destination!r}\n")
+        issues = scan_architecture(tmp_path)
+        assert [(issue.line, issue.code) for issue in issues] == [(1, "forbidden-absolute-path")]
+
+
 def test_architecture_guard_does_not_transfer_grandfather_to_a_new_line(tmp_path: Path):
     from scripts.check_architecture import scan_architecture
 
@@ -197,6 +209,24 @@ def test_architecture_guard_covers_each_lower_runtime_boundary(
 
     assert [issue.code for issue in scan_architecture(tmp_path)] == [
         "reverse-facade-dependency"
+    ]
+
+
+def test_architecture_guard_distinguishes_url_route_prefix_from_workspace_path(
+    tmp_path: Path,
+):
+    from scripts.check_architecture import scan_architecture
+
+    _write(
+        tmp_path,
+        "scripts/local_browser.py",
+        "from urllib.parse import urlsplit\n"
+        "url = urlsplit('http://127.0.0.1:8080/')\n"
+        "matches_route = url.path.startswith('/workspace/api')\n"
+        "WORKSPACE_FILE = '/workspace/api'\n",
+    )
+    assert [(issue.line, issue.code) for issue in scan_architecture(tmp_path)] == [
+        (4, "forbidden-absolute-path")
     ]
 
 

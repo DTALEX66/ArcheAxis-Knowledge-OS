@@ -68,7 +68,7 @@ impl Role {
 /// One member of a vault, classified.
 fn classify_one(path: &str) -> (Role, Option<&'static str>) {
     let lower = path.to_ascii_lowercase();
-    let segments: Vec<&str> = lower.split('/').collect();
+    let segments: Vec<&str> = lower.split(['/', '\\']).collect();
     // Obsidian's own directory. Checked anywhere in the path, because a vault may be nested inside
     // another directory and the config directory travels with it.
     if segments.iter().any(|segment| *segment == ".obsidian") {

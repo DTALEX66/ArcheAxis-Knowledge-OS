@@ -1,0 +1,216 @@
+{
+  "schema": "aaos.public-staging-normalization-deployment/v1",
+  "status": "EXACT_20415_PUBLIC_LEAVES_RETIRED_FRESH_FULL_RETAINED_SHA_PASS",
+  "source_commit": "191d9006558a6eea90eefd8f2989cc69189ff091",
+  "pre_retirement_history_frozen": {
+    "README": {
+      "path": "docs/history/storage-cleanup/2026-10-31-staging-normalization/README.md",
+      "sha256": "e487250326e49dfc890aa22fbdd58a2de53eaa81cd94cbbcab30e948e28df487",
+      "bytes": 3136
+    },
+    "MANIFEST": {
+      "path": "docs/history/storage-cleanup/2026-10-31-staging-normalization/MANIFEST.json",
+      "sha256": "7103c3e49eae1525d23d177338d35b551bdb2bf2ad23c6c2ca9abdf0916e6249",
+      "bytes": 3086
+    },
+    "unchanged_by_this_deployment": true
+  },
+  "logical_path_bytes_retired": 2114728759,
+  "files_retired": 20415,
+  "groups": [
+    {
+      "source_prefix": ".project-local/runs/be268a2d33/cnprep2/artifacts/package/",
+      "retained_prefix": ".project-local/runs/be268a2d33/cnprep3/artifacts/package/",
+      "files": 14,
+      "logical_bytes": 452771641
+    },
+    {
+      "source_prefix": ".project-local/runs/be268a2d33/cnprep2/artifacts/pwsh/",
+      "retained_prefix": ".project-local/runs/be268a2d33/cnprep3/artifacts/pwsh/",
+      "files": 657,
+      "logical_bytes": 256592821
+    },
+    {
+      "source_prefix": ".project-local/runs/be268a2d33/cppns1/artifacts/p/target/release/",
+      "retained_prefix": ".project-local/runs/be268a2d33/cppns2/artifacts/p/target/release/",
+      "files": 19744,
+      "logical_bytes": 1405364297
+    }
+  ],
+  "frozen_exact_map": {
+    "path": ".project-local/runs/be268a2d33/spr-stageaudit2/artifacts/candidate-files.jsonl",
+    "sha256": "6535455ebf3395f08db1f0f202792d69cafe720405f814a361fd596fcc806711",
+    "copied_in_deployment": false
+  },
+  "corrected_restore_contract": {
+    "path": ".project-local/runs/be268a2d33/spr-stagepub1/artifacts/restore-consumer-contracts.corrected.json",
+    "sha256": "75510aa6b26e3e37c9680f420bb2f86306378b380970d5fc917e3b6f13d6b9b4",
+    "bytes": 8489
+  },
+  "deployment": {
+    "intent": {
+      "path": ".project-local/runs/be268a2d33/spr-stagedeploy2/artifacts/intent.json",
+      "sha256": "01dcf69f469d51f544c15a0ffa726a43481383334315fd8a618528f624e0ae2c",
+      "bytes": 1692
+    },
+    "preflight": {
+      "path": ".project-local/runs/be268a2d33/spr-stagedeploy2/artifacts/preflight.json",
+      "sha256": "fe429669f4ab620aa0fbf687f74fb1f53226d07b5ba19c3bdef796f8dbe060a6",
+      "bytes": 13011
+    },
+    "compact_journal": {
+      "path": ".project-local/runs/be268a2d33/spr-stagedeploy2/artifacts/journal.jsonl",
+      "sha256": "556f46516af1af7fe50ff41d3269a090431252dba1d1acab39c2d225b7deb39c",
+      "bytes": 4796082
+    },
+    "result": {
+      "path": ".project-local/runs/be268a2d33/spr-stagedeploy2/artifacts/result.json",
+      "sha256": "4118e9f3902170193655958b52fa850c9070695bb8098d7cf256b6b7f2f4d303",
+      "bytes": 2510
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/spr-stagedeploy2/artifacts/execution.json",
+      "sha256": "7dcdb07c32c19a358447a73652e40769f7b171f9ff9bb564bc89c205efefccd7",
+      "bytes": 2333
+    },
+    "protection": "All exact source+retained SHA/identity/mtime/nlink/reparse/final paths requalified. Sources held GENERIC_READ|DELETE/share0; parents pinned without delete sharing; same source handle validated then disposition+close+exact absence. Retained held against write/delete and rehashed after.",
+    "idleness": "12 official empty WSB inventories and12 exact-run process snapshots; no unrelated process stopped",
+    "operation_errors": 0,
+    "unlisted_operations": 0,
+    "directories_deleted": 0,
+    "acl_owner_changes": 0,
+    "tracked_index_writes": 0,
+    "payload_copies": 0
+  },
+  "fresh_full_readback": {
+    "report": {
+      "path": ".project-local/runs/be268a2d33/spr-stagepost1/artifacts/post-readback.json",
+      "sha256": "e6693efe6b921e7598766bc59f6ebb60f6391579766e4b03e5fc81a6af64d2e9",
+      "bytes": 7859
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/spr-stagepost1/artifacts/execution.json",
+      "sha256": "07711db33aa34f39b314eed3a75ce3e2773195a2008241bbd11141a3dd7fca64",
+      "bytes": 11372
+    },
+    "scope": "Independent new canonical run reopened every20415 retained file, full SHA+native identity/metadata and exact source absence after deployment handles released; map-indexed journal full set/order verified",
+    "full_sha_files": 20415,
+    "full_sha_logical_bytes": 2114728759,
+    "source_consistent": true
+  },
+  "root_independent_readback": {
+    "report": {
+      "path": ".project-local/runs/be268a2d33/root-stage1/artifacts/root-readback.json",
+      "sha256": "a8d05f3f6d7bfe845c5ce0dfff4d78251aeee23adf5fe38c497a91c0ba3215ff",
+      "bytes": 1371
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/root-stage1/artifacts/execution.json",
+      "sha256": "8dcb7546842be28b540ad68480cc3dcf61b8a75ec7498bd6fb14a8205e478c47",
+      "bytes": 1303
+    },
+    "scope": "Independent non-atomic postreadback. Root checks all missing/retained metadata and exact journal set, plus largest retained SHA per group; complete retained SHA is separately in deployment and fresh agent verification.",
+    "all_source_absence": 20415,
+    "all_retained_metadata": 20415,
+    "journal_pairs": 20415,
+    "full_sha_samples": 3,
+    "full_sha_sample_bytes": 799133734,
+    "not_claimed": "Root sample hashes are not full20415 SHA verification; full SHA evidence is separate fresh agent run."
+  },
+  "evidence_growth": {
+    "sealed_runs_before_this_publication": [
+      {
+        "run": "spr-stagedeploy1",
+        "files": 4,
+        "logical_evidence_bytes": 22261
+      },
+      {
+        "run": "spr-stagedeploy2",
+        "files": 37,
+        "logical_evidence_bytes": 4857114
+      },
+      {
+        "run": "spr-stagepost1",
+        "files": 8,
+        "logical_evidence_bytes": 29180
+      },
+      {
+        "run": "root-stage1",
+        "files": 5,
+        "logical_evidence_bytes": 3872
+      }
+    ],
+    "sealed_total_bytes": 4912427,
+    "net_retired_path_bytes_less_these_sealed_evidence_bytes": 2109816332,
+    "scope": "Only these explicit newly generated ignored deployment/readback/root-evidence runs. Active spr-stageclose1 and future tracked publication bytes not sealed yet and excluded here; final total reported after canonical closes. Earlier frozen28MB audit map not duplicated or counted as newly generated deployment. Not whole repository net change or Git/physical release."
+  },
+  "preservation": "All unlisted objects/input/output/2PEM/1.agents-named dependency member and unique failure/success/identity/proof/log/config retained. cnprep2 package setup.exe copy retired; cnprep3 same-SHA copy and cppns1/cppns2 original NSIS installers preserved. Content privacy was not established for name/extension exclusions.",
+  "replay": "cnprep2 frozen launcher requires restore671 exact leaves plus complete original manifest/config qualification; cppns1 original replay requires restore19744 leaves and original POSTCHECK FAIL stays FAIL. cnprep3 lost no input from this batch and only needs normal fresh qualification for future reuse.",
+  "preserved_failures": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-stageaudit1/artifacts/execution.json",
+      "sha256": "38a22489aa637aa05f79889346a2bdd63c88a6f105e09963556ca37117ebb587",
+      "bytes": 22054
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-stagedeploy1/artifacts/execution.json",
+      "sha256": "9143f47646b6fcc6ebe5e598e705470c7978684372de04f2b43a30442506b34a",
+      "bytes": 20614
+    }
+  ],
+  "whole_product_acceptance": false,
+  "git_or_physical_release_claimed": false,
+  "deployment_md_sha256": "8a1110d3f4b09618062827dacf041cf18dd4effb890590187c6bce4bccc01d29",
+  "publication_normalization": {
+    "transformation": "UTF-8/LF public files; frozen ignored candidates unchanged",
+    "original_md_sha256": "8a1110d3f4b09618062827dacf041cf18dd4effb890590187c6bce4bccc01d29",
+    "original_json_sha256": "f3aebb5bb77d9ee8dc752be22b9037d2edc51afccae22f6b4d3069997d92ff2b"
+  },
+  "sealed_named_run_totals": {
+    "runs": [
+      {
+        "run": "spr-stagedeploy1",
+        "files": 4,
+        "logical_bytes": 22261
+      },
+      {
+        "run": "spr-stagedeploy2",
+        "files": 37,
+        "logical_bytes": 4857114
+      },
+      {
+        "run": "spr-stagepost1",
+        "files": 8,
+        "logical_bytes": 29180
+      },
+      {
+        "run": "root-stage1",
+        "files": 5,
+        "logical_bytes": 3872
+      },
+      {
+        "run": "spr-stageclose1",
+        "files": 6,
+        "logical_bytes": 22385
+      },
+      {
+        "run": "spr-stageaudit1",
+        "files": 5,
+        "logical_bytes": 43631
+      },
+      {
+        "run": "spr-stageaudit2",
+        "files": 13,
+        "logical_bytes": 28286404
+      },
+      {
+        "run": "spr-stagepub1",
+        "files": 7,
+        "logical_bytes": 24287
+      }
+    ],
+    "logical_bytes": 33289134,
+    "retired_minus_these_named_runs": 2081439625,
+    "scope": "Only these eight sealed named runs. Excludes public publication, authoring scripts in other runs, later checks and other parallel generation. Not whole-repository or physical net change."
+  }
+}

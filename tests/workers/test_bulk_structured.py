@@ -110,9 +110,18 @@ class CanvasBulkTests(unittest.TestCase):
             {"node_id": "g", "type": "group", "geometry": {"y": -3}},
         ])
 
-    def test_missing_nodes_array_is_rejected(self):
-        with self.assertRaises(self.canvas.CanvasError):
-            self.canvas.extract(self._write({"edges": []}))
+    def test_optional_nodes_array_allows_an_empty_canvas(self):
+        for payload in ({}, {"edges": []}):
+            with self.subTest(payload=payload):
+                out = self.canvas.extract(self._write(payload))
+                self.assertEqual(out["text"], "")
+                self.assertEqual(out["structure"], [])
+                self.assertEqual(out["node_attributes"], [])
+
+    def test_explicit_non_array_nodes_are_rejected(self):
+        for nodes in (None, {}, "", 0):
+            with self.subTest(nodes=nodes), self.assertRaises(self.canvas.CanvasError):
+                self.canvas.extract(self._write({"nodes": nodes}))
 
     def test_node_type_without_id_is_rejected(self):
         with self.assertRaises(self.canvas.CanvasError):

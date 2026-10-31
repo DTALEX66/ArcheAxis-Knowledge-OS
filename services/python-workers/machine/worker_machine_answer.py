@@ -33,12 +33,12 @@ import re
 import sys
 import time
 import urllib.error
-import urllib.request
 import urllib.parse
+import urllib.request
 from pathlib import Path
 
 
-class ModelCallFailure(RuntimeError):
+class ModelCallFailure(RuntimeError):  # noqa: N818 - Preserve the existing imported exception API.
     reason_code = "MODEL_CALL_FAILED"
 
     def __init__(self, message: str, diagnostics: dict | None = None):
@@ -109,7 +109,7 @@ def read_model_json(response, measurements=None):
             measurements["json_parse_elapsed_s"] = round(max(0, time.monotonic() - started), 4)
 
 
-class FinalAnswerFailure(ValueError):
+class FinalAnswerFailure(ValueError):  # noqa: N818 - Preserve the existing imported exception API.
     def __init__(self, message: str, reason_code: str, diagnostics: dict | None = None):
         super().__init__(message)
         self.reason_code = reason_code
@@ -164,7 +164,7 @@ def failure_diagnostics(raw) -> dict:
 
 def failure_receipt(error: Exception) -> dict:
     code = getattr(error, "reason_code", "WORKER_FAILED")
-    if not isinstance(code, str) or code not in {"MODEL_CALL_FAILED", "MODEL_CALL_TIMEOUT", "NO_FINAL_ANSWER", "EMPTY_ANSWER"}:
+    if not isinstance(code, str) or code not in {"MODEL_CALL_FAILED", "MODEL_CALL_TIMEOUT", "NO_FINAL_ANSWER", "EMPTY_ANSWER", "INVALID_OUTPUT"}:
         code = "WORKER_FAILED"
     receipt = {"schema": "archeaxis.machine-worker-failure/v1", "reason_code": code}
     diagnostics = failure_diagnostics(getattr(error, "diagnostics", None))
@@ -400,13 +400,119 @@ def reported_usage(payload: dict, protocol: str) -> dict | None:
     return usage or None
 
 
+# This fragment is inserted into the existing worker; it is not a runtime module.
+def normalize_response_format(raw):
+    """The same bounded type-only schema as Core; no reference resolution or answer hints."""
+    invalid = "invalid bounded response_format"
+    def keys(value, names):
+        return type(value) is dict and set(value) == set(names)
+    try:
+        encoded = json.dumps(raw, ensure_ascii=False, allow_nan=False, sort_keys=True,
+                             separators=(",", ":")).encode("utf-8")
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise ValueError(invalid) from exc
+    if len(encoded) > 8192 or not keys(raw, ("type", "json_schema")) or raw["type"] != "json_schema":
+        raise ValueError(invalid)
+    spec = raw["json_schema"]
+    if (not keys(spec, ("name", "strict", "schema")) or spec["name"] != "archeaxis_response"
+            or spec["strict"] is not True):
+        raise ValueError(invalid)
+    schema = spec["schema"]
+    if (not keys(schema, ("type", "properties", "required", "additionalProperties"))
+            or schema["type"] != "object" or schema["additionalProperties"] is not False):
+        raise ValueError(invalid)
+    properties, required = schema["properties"], schema["required"]
+    if type(properties) is not dict or not 1 <= len(properties) <= 32:
+        raise ValueError(invalid)
+    for name, field in properties.items():
+        if (not isinstance(name, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", name)
+                or not keys(field, ("type",)) or field["type"] not in ("string", "boolean", "integer", "number")):
+            raise ValueError(invalid)
+    if (type(required) is not list or any(type(n) is not str for n in required)
+            or sorted(required) != sorted(properties)):
+        raise ValueError(invalid)
+    result = json.loads(encoded)
+    result["json_schema"]["schema"]["required"] = sorted(required)
+    return result
+
+
+def response_format_sha256(format_spec):
+    import hashlib
+    return hashlib.sha256(json.dumps(format_spec, ensure_ascii=False, allow_nan=False,
+                                    sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _unique_json_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate output key")
+        result[key] = value
+    return result
+
+
+def _invalid_json_constant(_value):
+    raise ValueError("non-finite JSON number")
+
+
+def _output_integer_token(text):
+    # serde_json 1.0.149 preserves -0 as floating-point negative zero.
+    return -0.0 if text == "-0" else int(text)
+
+
+def validate_structured_output(format_spec, text):
+    """Validate original final content only; never strip fences or manufacture a correction."""
+    format_spec = normalize_response_format(format_spec)
+    if len(text.encode("utf-8")) > 128_000:
+        raise ValueError("structured output exceeds bound")
+    value = json.loads(text, object_pairs_hook=_unique_json_object, parse_constant=_invalid_json_constant,
+                       parse_int=_output_integer_token)
+    properties = format_spec["json_schema"]["schema"]["properties"]
+    if type(value) is not dict or set(value) != set(properties):
+        raise ValueError("structured output fields differ")
+    for name, spec in properties.items():
+        item, kind = value[name], spec["type"]
+        valid = False
+        if kind == "string":
+            valid = type(item) is str
+            if valid:
+                item.encode("utf-8")  # Reject unpaired surrogate values, like serde_json.
+        elif kind == "boolean":
+            valid = type(item) is bool
+        elif kind == "integer":
+            valid = type(item) is int and abs(item) <= 2**53 - 1
+        elif kind == "number" and type(item) in (int, float):
+            try:
+                valid = math.isfinite(item)
+            except OverflowError:
+                valid = False
+        if not valid:
+            raise ValueError("structured output type differs")
+
+
+def read_response_format(path, context_path):
+    path, context = Path(path), Path(context_path)
+    if path.is_symlink() or path.name != "response-format.json" or path.resolve().parent != context.resolve().parent:
+        raise ValueError("invalid staged response format path")
+    with path.open("rb") as stream:
+        raw = stream.read(8193)
+    if len(raw) > 8192:
+        raise ValueError("response format exceeds bound")
+    return normalize_response_format(json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object,
+                                                parse_constant=_invalid_json_constant))
+
+
 def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
-          max_tokens: int) -> tuple[str, str, str | None, str]:
+          max_tokens: int, response_format=None) -> tuple[str, str, str | None, str]:
     """One text request, in whichever protocol the endpoint speaks.
 
     Returns text, finish reason, independently observed model identity and answer source.
     Missing response identity remains None; the request is never used as an observation.
     """
+    if response_format is not None:
+        response_format = normalize_response_format(response_format)
+        if endpoint["protocol"] != "openai":
+            raise ValueError("structured output is unsupported by this protocol")
     if endpoint["protocol"] == "openai":
         url = f"{endpoint['base']}/chat/completions"
         body = {
@@ -422,6 +528,8 @@ def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
             "stream": False,
             "options": {"num_predict": max_tokens},
         }
+    if response_format is not None:
+        body["response_format"] = response_format
     serialized = json.dumps(body).encode("utf-8")
     measurements = {"prompt_utf8_bytes": len(prompt.encode("utf-8")),
                     "serialized_request_bytes": len(serialized), "request_phase": "http_open"}
@@ -447,7 +555,7 @@ def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
             content, reasoning = message.get("content"), message.get("reasoning_content")
             if any(value is not None and not isinstance(value, str) for value in (content, reasoning)):
                 raise ValueError("Invalid completion text fields")
-            text = (content or "").strip()
+            text = (content or "") if response_format is not None else (content or "").strip()
             # Only the presence of nonempty reasoning establishes a reasoning-only reply.
             # When both fields are empty, preserve the separate EMPTY_ANSWER failure.
             answer_source = "content" if text else "none"
@@ -466,12 +574,15 @@ def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
 
 def answer(context: str, question: str, model: str | None = None,
            timeout_s: int = 300, max_tokens: int = DEFAULT_MAX_TOKENS, *,
-           answer_policy: str = "grounded", prompt_version: str | None = None) -> dict:
+           answer_policy: str = "grounded", prompt_version: str | None = None,
+           response_format=None) -> dict:
     """Ask the local model one question about one context.
 
     The result is labelled a candidate throughout: an answer that has not been reviewed by a human is
     a proposal, and `loss_receipt` says so in the terms the rest of the pipeline reads.
     """
+    if response_format is not None:
+        response_format = normalize_response_format(response_format)
     context = (context or "").strip()
     question = (question or "").strip()
     if not question:
@@ -504,7 +615,8 @@ def answer(context: str, question: str, model: str | None = None,
             raise TimeoutError("machine budget exhausted before inference")
         # 此阶段包含 HTTP 往返与响应解析；不能据此推断排队、prefill 或生成耗时。
         diagnostics["request_stage"] = "model_request"
-        reply = _call(endpoint, model, prompt, remaining, max_tokens)
+        reply = (_call(endpoint, model, prompt, remaining, max_tokens) if response_format is None
+                 else _call(endpoint, model, prompt, remaining, max_tokens, response_format))
         diagnostics.update(failure_diagnostics(getattr(reply, "measurements", None)))
         diagnostics["request_stage"] = "response_deadline"
         # HTTP socket timeout不是整个请求的总时限；迟到的完整回答也不能当成功。
@@ -541,7 +653,19 @@ def answer(context: str, question: str, model: str | None = None,
             "an empty answer", "EMPTY_ANSWER", diagnostics)
 
     truncated = finish_reason == "length"
+    format_receipt = {}
+    if response_format is not None:
+        try:
+            if answer_source != "content" or finish_reason != "stop" or truncated:
+                raise ValueError("structured answer is not a complete final content")
+            validate_structured_output(response_format, text)
+        except (ValueError, TypeError, UnicodeError, OverflowError) as exc:
+            raise FinalAnswerFailure("invalid structured final answer", "INVALID_OUTPUT", diagnostics) from exc
+        format_receipt = {"response_format": response_format,
+                          "response_format_sha256": response_format_sha256(response_format),
+                          "format_validation": "VALID"}
     return {
+        **format_receipt,
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "answer": text,
@@ -591,8 +715,11 @@ def answer(context: str, question: str, model: str | None = None,
 def extract(path: str, question: str | None = None,
             model: str | None = None,
             max_tokens: int = DEFAULT_MAX_TOKENS, timeout_s: int = 300, *,
-            answer_policy: str = "grounded", prompt_version: str | None = None) -> dict:
+            answer_policy: str = "grounded", prompt_version: str | None = None,
+            response_format=None) -> dict:
     """Route entry point: answer a question about the staged context file."""
+    if response_format is not None:
+        response_format = normalize_response_format(response_format)
     source = Path(path)
     if not source.is_file():
         raise ValueError(f"context file not found: {source}")
@@ -601,8 +728,11 @@ def extract(path: str, question: str | None = None,
             "this route needs a question; a machine answer without one is not a task")
     context = source.read_text(encoding="utf-8", errors="replace")
     result = answer(context, question, model=model, max_tokens=max_tokens, timeout_s=timeout_s,
-                    answer_policy=answer_policy, prompt_version=prompt_version)
+                    answer_policy=answer_policy, prompt_version=prompt_version,
+                    **({"response_format": response_format} if response_format is not None else {}))
     return {
+        **({k: result[k] for k in ("response_format", "response_format_sha256", "format_validation")}
+           if response_format is not None else {}),
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "text": result["answer"],
@@ -710,13 +840,19 @@ def main() -> int:
                         help="Core-frozen finite answer policy; material remains grounded")
     parser.add_argument("--prompt-version", default=None,
                         help="expected version of the selected policy; mismatch refuses before HTTP")
+    parser.add_argument("--response-format-file", default=None, help="Core-staged bounded output format")
     parser.add_argument("--probe", action="store_true")
     args = parser.parse_args()
 
     # 即使选择 --probe，错误冻结版本也不能触发服务发现。
     try:
         answer_prompt("", "", args.answer_policy, args.prompt_version)
-    except ValueError as exc:
+        response_format = None
+        if args.response_format_file:
+            if args.probe or not args.context:
+                raise ValueError("response format requires an answer context")
+            response_format = read_response_format(args.response_format_file, args.context)
+    except (ValueError, OSError) as exc:
         print(json.dumps(failure_receipt(exc), ensure_ascii=False))
         return 1
     if args.probe:
@@ -730,7 +866,8 @@ def main() -> int:
     try:
         result = extract(args.context, args.question, args.model, args.max_tokens,
                          timeout_s=args.timeout_s, answer_policy=args.answer_policy,
-                         prompt_version=args.prompt_version)
+                         prompt_version=args.prompt_version,
+                         **({"response_format": response_format} if response_format is not None else {}))
     except Exception as exc:
         print(json.dumps(failure_receipt(exc), ensure_ascii=False))
         return 1

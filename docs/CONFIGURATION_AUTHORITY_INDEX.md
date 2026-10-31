@@ -1,13 +1,8 @@
 # Configuration Authority Index (AXC-010)
 
-> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
+本页按 concern 指向唯一配置源，不维护第二份执行状态。当前范围与双侧闭环先读[唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md)、[活动指针](current/AAOS-ACTIVE-EXECUTION.json)的 `owner_scope_current`、`execution_control` 和 `continuation_context`；实施证据只读指针的 `active_progress`。任务包是不可变规划来源，旧状态、分支、暂停、权限和主题观察不能覆盖现行选择。
 
-> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](current/AAOS-AUTHORITY-ROUTES.json)核对。
-
-> **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
-> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
-> 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
-
+提交、推送、合并、CI、监控、冻结项与数据边界分别沿活动指针及当前 Owner 决定解析；Green 的精确路径、操作范围、候选资格、备份和数据保全条件只读 `green_update_authorization`，索引不另授予覆盖权限。路径身份按[路由登记](current/AAOS-AUTHORITY-ROUTES.json)核对；共享资源登记不是跨项目访问或修改全局配置授权。旧仓库身份与分支观察保留于[历史接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)，不得当作当前远端事实。
 
 > 唯一机器可读/人类可读的项目配置权威索引。一条规则只允许一个 canonical
 > source；其余引用或标记 SUPERSEDED。新增会话默认权威 = 本表，不取
@@ -17,8 +12,9 @@
 | Concern | Authority | 说明 |
 |---|---|---|
 | 项目 agent 边界 | `AGENTS.md` | 使命、目录边界、隐私/数据边界、工作规则 |
-| 内容保存、证据用途与 AI 使用原则 | `PROJECT_CONTRACT.yaml` 的 `content_policy`，由 `.project/schemas/project-contract.schema.json` 校验 | canonical 规范：原件识别忠实度与专业事实支持/反证独立，普通保存不以外部来源/证据/云核验/人工复核为前置；权限与结构完整性仍必需。人类可读解释见 `docs/architecture/CURRENT_ARCHITECTURE.md`，实现与验收状态只见现行执行台账，不由规范声明推定。 |
-| 当前执行与架构决策 | `docs/current/AAOS-ACTIVE-EXECUTION.json`、`PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml` | 当前活动指针是任务源与进度入口的规范投影；当前任务来源为 UI 优先新包，G01 已由用户选中。SUP-022 的正式 Tauri/React 宿主、Rust Core 唯一正典写者、隔离 Python workers 与1004有效合同继承。R6/M0旧顺序冻结；旧证据与无发布边界不变。 |
+| 内容保存、来源用途与多源纠错 | `PROJECT_CONTRACT.yaml` 的 `content_policy`，由 `.project/schemas/project-contract.schema.json` 校验 | SUP-029：来源为可回查、可修订的线索，无默认高权威或唯一性；识别忠实度对照原件，事实与疑点通过百科／社区／学术多源检索比较，单源失败不阻断其余来源或普通保存、展示、学习。人类可读解释见 `docs/architecture/CURRENT_ARCHITECTURE.md`；定位见 `docs/truth/PRODUCT_IDENTITY_V2.md`；实际接口与验收只见现行执行台账。配置权威不等于资料事实权威。 |
+| 当前执行与架构决策 | `docs/current/AAOS-ACTIVE-EXECUTION.json`、`PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml` | 指针选择现行任务、范围及唯一进度；SUP-022 正式 Tauri/React、Rust Core 唯一正典写者与隔离 Python workers 沿现行合同继承。旧整包顺序及其状态不作为新队列。 |
+| 人类与AI双侧闭环、原始上下文边界 | [唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md)、[当前决定](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[AI上下文边界](current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md) | 双侧知识及授权连接按现行范围验收；原始跨软件会话外置，合同不等于真实外部连接；AI专项原人类不改边界不冻结后续人类开发。 |
 | 本机共享库、绿色软件与资料根路径 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) | 用户 2026-09-07 指定的五个资源根；每次定位工具/模型/测试资料先查此表，不猜目录；真实资料库与测试库严格分离，不等于修改产品设置 |
 | 开发运行根 | `scripts/runtime/dev.py` | `.project-local` 下 worktree/run 隔离；Bash/PowerShell 共用；不是产品 workspace |
 | 正式桌面worker路径载荷 | `scripts/release/stage_backend_runtime.py`、`src-tauri/src/main.rs`、`desktop/src-tauri/src/backend.rs`、`desktop/src-tauri/src/runtime.rs`、`crates/archeaxis-api/src/launch.rs` | 权威暂存器统一生成 runtime/Core/workers、manifest 与 worker-profile；正式 Tauri 沿复用的 backend/runtime 构建 v2 Core 启动文档，Core 校验路径、权限及 text_worker 声明。实际启动解释器须与候选/profile/import 证据一致，text_worker 不添加 schema 字段。Avalonia `apps/ArcheAxis.Desktop/WorkerProfile.cs` 是历史供体，不能覆盖正式 Tauri 契约；保留隔离开发根和旧数据边界。 |
@@ -77,4 +73,4 @@ CLI explicit override
 | 能力吸收登记 | docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml + config/schemas/capability-absorption-registry.schema.json | R6 A03 唯一能力吸收登记；状态、许可、来源、边界和回退必须逐项记录；不得把候选或供体写成已集成 |
 
 
-集合／研究合同：正式writer中的 `packages/contracts/v2/collection.schema.json`、`research.schema.json` 为这两个metadata namespace的单源；生成React DTO不建立第二配置库。Rust Core拥有Document保存与引用验证、公式和只读图／视图投影。详细writer及源码SHA读 [CB03/UF08回执](history/repository-consolidation-20261019/current/receipts/AAOS-RESEARCH-STAGE-20261010.json)；上次源码/合同已合并发布，见仓库同步回执；本轮修复的最新发布状态单独读AAOS-AUTHORITY-REPAIR-20261010.md，不从历史writer路径推定当前文件缺失。
+集合／研究合同：正式writer中的 `packages/contracts/v2/collection.schema.json`、`research.schema.json` 为这两个metadata namespace的单源；生成React DTO不建立第二配置库。Rust Core拥有Document保存与引用验证、公式和只读图／视图投影。详细writer及源码SHA读 [CB03/UF08回执](history/repository-consolidation-20261019/current/receipts/AAOS-RESEARCH-STAGE-20261010.json)；上次源码/合同已合并发布，见仓库同步回执；该修复时点的发布观察见[历史修复记录](history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md)；当前交付状态只沿活动指针核实，不从历史writer路径推定当前文件缺失。

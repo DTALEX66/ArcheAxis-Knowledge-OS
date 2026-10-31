@@ -42,6 +42,16 @@ struct MachineActive {
     cancel: Cancellation,
     accepting: bool,
 }
+impl MachineActive {
+    /// Called while holding the registry lock shared with publication close.
+    fn request_cancel(&self) -> bool {
+        if !self.accepting {
+            return false;
+        }
+        self.cancel.cancel();
+        true
+    }
+}
 struct MachineLease {
     registry: Arc<std::sync::Mutex<HashMap<String, MachineActive>>>,
     key: String,
@@ -261,11 +271,7 @@ mod machine_cancel_registry_tests {
                 let entries = registry.lock().unwrap();
                 entries
                     .get("request")
-                    .filter(|entry| entry.accepting)
-                    .is_some_and(|entry| {
-                        entry.cancel.cancel();
-                        true
-                    })
+                    .is_some_and(MachineActive::request_cancel)
             });
             barrier.wait();
             let cancelled = lease.close().unwrap();
@@ -275,6 +281,25 @@ mod machine_cancel_registry_tests {
                 "accepted cancellation must prevent publication; closed publication must refuse late cancellation"
             );
         }
+    }
+
+    #[test]
+    fn cancellation_is_repeatable_until_publication_closes() {
+        let mut entry = MachineActive {
+            attempt: 1,
+            restore_epoch: "initial".into(),
+            cancel: Cancellation::new(),
+            accepting: false,
+        };
+        assert!(!entry.request_cancel());
+        assert!(!entry.cancel.is_cancelled());
+        entry.accepting = true;
+        assert!(entry.request_cancel());
+        assert!(entry.request_cancel());
+        assert!(entry.cancel.is_cancelled());
+        entry.accepting = false;
+        assert!(!entry.request_cancel());
+        assert!(entry.cancel.is_cancelled());
     }
 }
 async fn machine_configuration(State(runtime): State<Runtime>) -> Json<Value> {
@@ -782,6 +807,8 @@ struct MachineAnswerBody {
     knowledge_id: String,
     question: String,
     #[serde(default)]
+    response_format: Option<serde_json::Value>,
+    #[serde(default)]
     context_grant: Option<archeaxis_domain::context_grant::Consumption>,
     #[serde(default)]
     asset_context_grant: Option<archeaxis_domain::asset_context_grant::PacketRequest>,
@@ -887,6 +914,8 @@ struct RetestBody {
     knowledge_id: String,
     /// The question to put again.
     question: String,
+    #[serde(default)]
+    response_format: Option<serde_json::Value>,
     #[serde(default)]
     context_grant: Option<archeaxis_domain::context_grant::Consumption>,
     #[serde(default)]

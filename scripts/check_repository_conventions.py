@@ -200,14 +200,73 @@ _PRESERVED_PACKAGE_MEMBER_HASHES.update({
         'f1b0d6ff2659d4f1dead214049978c20f310426f782ac910840d65055125d835',
 })
 
+_PRESERVED_PACKAGE_MEMBER_HASHES.update({
+    # Exact frozen archive members and receipt manifests; no directory exemption.
+    "docs/history/rules-entry-repair-20261023/MANIFEST.json": "d5eedd9bb4bb09adaf24e07dfc99e0944aaa98cce65ddbba56ae02610ac34a03",
+    "docs/history/rules-entry-repair-20261023/before/AGENTS.md": "2c7a6dcc48e311b341b211a89622aafe84781601045b9a52316c55d53f59561c",
+    "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md": "b699320b799befed10a271a67d10cc0a2c68f7c396e345eb8936f9d1cc578d24",
+    "docs/history/rules-entry-repair-20261023/before/CLAUDE.md": "1c3d976d6c650a81a610ecd7dff1d93fe2bab39b183f530a1a6f608814217fd3",
+    "docs/history/rules-entry-repair-20261023/before/GEMINI.md": "7f3471aa7de94eda27e7dd6293ef32b2b292dbc881b7854a914b5213087a5f7f",
+    "docs/history/rules-entry-repair-20261023/before/docs/DOCUMENTATION_AUTHORITY_INDEX.md": "0daa0139a28257ce9758baa6263ad66f23ce352b81e9555f85ca33d9b9ef59e0",
+    "docs/history/owner-dialogue-20261022-desktop-launcher/MANIFEST.json": "a16b5bab777b7c20d9d522c0960984afc59adfa2486ca93db72b859e3cb5ae2e",
+    "docs/history/owner-dialogue-20261022-desktop-launcher/verify_archive.ps1": "bde22bd870ba5252c2d2eb60fe91d1bb2ec716d5196bde4725579f859dcad007",
+    "docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json": "96164bc842302770632ff7c145f51a8c47c492277364aa5d17eba40693d5f970",
+    "docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json": "077a866c85d9c65eb378245c5a1ada154d2fb270d91c3a8d89f47924fd77a00a",
+    "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a",
+    "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+})
+
+# Owner's frozen handoff CSVs and the Oct30 manifest-verified source/audit archive.
+# Exact byte identities only; changed bytes and unlisted siblings remain checked.
+_OCT30_PRESERVED_INPUT_HASHES = {
+    "workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/04-186项能力归并映射-冻结输入.csv":
+        "59ade620d93b5b241b8e7d0786bed6666266fce2d6b59c02e891b37ef3254623",
+    "workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/05-22职责归并-冻结输入.csv":
+        "7bd51b9aeef5d702ee5d66a4d24cacccdbfc4f103419640fbec26c46f2c8243d",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/AAOS_双系统定位与能力归位复核_20261030_R2.html":
+        "fa960dde3fe9e33b2de343cc2fbc99710cbda77e601d993071e9bba7c67c8160",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/AAOS_186项双系统能力归位_20261030_R2.csv":
+        "7eb48180cb66f0d1297542d1d34a1c89702581b767e36efe5396024db4685899",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/audit-result.json":
+        "8213d5cd7ac75b3e90b1da9c75c3fa41633bcb6703c9110dd7d16aca120a8366",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/audit_evidence.py":
+        "075468295871c1de6f7f7d19e486cf13940ca65feb94a9cace1787efe6ad6f3b",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/evidence-validation.json":
+        "a39fed4f5f81fcbec9ce39d27adc89695d85f82c4c18f2e404bef317166f9b3e",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/finalize.py":
+        "efa3397bfc05dd7f79726d82ea12e88fe2d7834f326f66db6b807cb18b005efb",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/integrity-result.json":
+        "8a0504fb10c028b86dd79481b651bce506b88c9b00542d3b2745993972be6e8a",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/integrity.py":
+        "91e8e686971b1b5080db008b411abade28a9b8d92426b2c2d588b69dc87f8172",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/process-readback.json":
+        "83a1267d09e269ae6a938183ab19c2a74864053c84d179a52d09720892b29139",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/smoke-negative-control.json":
+        "4633aac05758a16e238b2f0047749d9599d069ae27175fe7f01ac821d72190de",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/smoke_negative_control.py":
+        "77e3b69ad3a3263ca898557a9f265e307c6bb678f4bc79a8d19daa2fec970562",
+    "workspace/intake/20261030-cloud-review-and-backend-priority/local-audit/审计报告.md":
+        "515ba63785d4c16754c6b67ae702b0584d6dadad0364d524a0fbc9d244b4b5d3",
+}
+_PRESERVED_PACKAGE_MEMBER_HASHES.update(_OCT30_PRESERVED_INPUT_HASHES)
+
+# DOT v3.1 originals match the earlier v3 inventory and the preserved supplement.
+# Preserve their BOM/CRLF only at these exact paths and byte hashes.
+_PRESERVED_PACKAGE_MEMBER_HASHES.update({
+    "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/05-format-results-template.csv":
+        "ebd1180d8fbd702405becf55576e947affefd5c8386af35f5a604c6050bdb502",
+    "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/06-interop-results-template.csv":
+        "c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213",
+})
+
 # This DP audit intentionally quotes a superseded product name as branch
 # evidence. Pin the exact report bytes so it remains evidence, not a wildcard
 # naming exemption.
 _PRESERVED_HISTORICAL_REPORT_HASHES = {
     "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
     "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
-}
 
+}
 # Generated branch/lineage audit receipts quote historical commit subjects and
 # paths verbatim, so retired product names appear inside them by design. They
 # are evidence, not present-day naming surfaces: rewriting them would falsify

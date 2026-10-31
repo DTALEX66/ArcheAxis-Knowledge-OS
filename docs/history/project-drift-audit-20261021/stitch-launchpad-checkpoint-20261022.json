@@ -1,0 +1,82 @@
+{
+  "schema": "aaos.stitch-launchpad-checkpoint/v1",
+  "observed_at": "2026-10-22T23:30:12.5731515+08:00",
+  "owner_resume": "根据新的规划和闭环开始执行",
+  "state": "RUNNING_BY_OWNER / PARTIAL",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "source_binding": "DIRTY_WORKTREE_FILE_SHA256; not a built candidate or exact-SHA CI",
+  "source_files": {
+    "frontend/package.json": "0004454d735e6204d295e541014e6531c9dd741cffde213fc113e27dfdf90aa5",
+    "frontend/package-lock.json": "8f8ca50f8099785a6269e37b0b54a0de1164cff1c7f79cbb3bce0fcb8b19ed4a",
+    "frontend/src/components/AaosIcon.tsx": "777686924c1746198ddcb5f2f74803ae59f247452d86f624d5bb2c40312a7351",
+    "frontend/src/components/lucide-NOTICE.txt": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+    "frontend/src/components/StitchLaunchpad.tsx": "2042a89626edb330f0c0a1b88dbf15251fd0e234fdd6bdea83242309733f3c86",
+    "frontend/src/components/StitchLaunchpad.css": "f0e98997a832b1447a9ac8d6f3febd7e2ab13fc8c3dee140fcfd9922ef70b3c9",
+    "frontend/src/components/StitchWorkspaceChrome.tsx": "309629898575e15ccd59239fa397ba5ac3a1d6c6730a18bc8f74648a157a72fb",
+    "frontend/src/components/StitchWorkspaceChrome.css": "75f53738c3b58a78f4ab7e1c3da03341e7c122474e74df70d85f336bd59de008",
+    "frontend/src/app/App.tsx": "4e3e0fde26f779d553b97db3674064825386f5a2ff6413bbb54ca21e031f0c4a",
+    "frontend/src/__tests__/StitchLaunchpad.test.tsx": "e631ed94bcb0618d82ed05f925c1dae72f693b3abae73d9db7e889981d223d79",
+    "frontend/src/__tests__/AppDockNavigation.test.tsx": "ac3cbb595900e34db0c5d589fabc041c7a84b8d2a42c9cdd8d8815140d0c1bfa",
+    "frontend/src/__tests__/AppSceneNavigationGuard.test.tsx": "2136efbee75c3680d1257252e408f1ef00862566ae4f75da179f50fdc3589264"
+  },
+  "implementation": [
+    "Existing guarded navigation and capability projection reused",
+    "Dock reduced to six entries including shared companion",
+    "Pinned Lucide React 1.61.0; no unrelated lock upgrades",
+    "Window/card/header transparency separated; common business surfaces corrected"
+  ],
+  "checks": {
+    "typescript": {
+      "exit_code": 0,
+      "status": "PASS",
+      "command": "node node_modules/typescript/bin/tsc --noEmit"
+    },
+    "native": "NOT_EXECUTED_FOR_CURRENT_CHANGES",
+    "supply_chain": "PASS: official registry, exact version/integrity, full license bytes match, catalog counts/identity correct",
+    "git_delivery": "NOT_COMMITTED_NOT_PUSHED; prior SSH permission denial and current Git read-only boundary retained",
+    "ci": "NOT_EXECUTED",
+    "component": {
+      "files": 5,
+      "tests": 36,
+      "command": "npm test -- src/__tests__/StitchLaunchpad.test.tsx src/__tests__/StitchWorkspaceChrome.test.tsx src/__tests__/AppSceneNavigationGuard.test.tsx src/__tests__/AppDockNavigation.test.tsx src/__tests__/DailyAppNavigation.test.tsx --reporter=dot",
+      "status": "PASS",
+      "evidence_level": "SYNTHETIC",
+      "initial": "19 failed / 14 passed: launcher focus assertion timing and stale pre-Stitch sidebar/drawer consumers; preserved business/draft assertions while routing through current controls"
+    },
+    "installed": "NOT_EXECUTED",
+    "browser": {
+      "status": "PARTIAL",
+      "viewport": [
+        362,
+        686
+      ],
+      "screenshots": [
+        ".project-local/artifacts/stitch-launchpad-20261022/launchpad-narrow-final.png",
+        ".project-local/artifacts/stitch-launchpad-20261022/extensions-narrow.png"
+      ],
+      "limitations": [
+        "No Core connected; unavailable results retained honestly",
+        "Wide desktop, all five themes, reduced transparency, native host and Owner visual acceptance NOT_EXECUTED",
+        "Final reduced-transparency fallback specificity correction is source-reviewed only; browser screenshots precede this fallback-only change."
+      ],
+      "checks": [
+        "Search 导入 -> #page=16 existing exchange consumer",
+        "Future CAP-0070 -> catalog description, no execution entry",
+        "Escape/focus verified in component regression",
+        "No horizontal overflow; results clientHeight316/scrollHeight939, overflowY auto"
+      ],
+      "runtime": "Codex in-app browser; Vite 5.4.21 development server",
+      "readback": ".project-local/artifacts/stitch-launchpad-20261022/browser-readback.json",
+      "evidence_level": "INTEGRATED_FRONTEND_ONLY_NO_CORE"
+    },
+    "canonical_build": {
+      "error": "uv trampoline failed to spawn Python child process; permission denied (os error 5)",
+      "exit_code": 1,
+      "status": "BLOCKED",
+      "command": "npm run build",
+      "response": "No elevation, ACL change, alternate interpreter or bypass"
+    }
+  },
+  "scope": "UI slice only; CL-01..07/J1..6 remain incomplete; previous native and model failures preserved; monitor stays paused",
+  "cleanup": "PASS: task-created IAB tab closed; Vite exec session 95274 terminated via its own stdin, terminal exit read back. No shared process stopped."
+}

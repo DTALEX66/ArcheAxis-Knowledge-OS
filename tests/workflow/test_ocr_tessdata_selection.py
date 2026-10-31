@@ -75,6 +75,21 @@ def test_ambient_data_that_serves_the_language_is_kept(layout):
     assert resolved.resolve() == layout["ambient"].resolve()
 
 
+def test_combined_languages_skip_an_ambient_pack_with_only_one_model(layout):
+    module = layout["module"]
+    assert module._declared_tessdata("eng+deu") == layout["declared"]
+
+
+@pytest.mark.parametrize("language", ["eng+deu", "deu+eng"])
+def test_a_complete_pack_serves_combined_languages(layout, language):
+    assert layout["module"]._usable_tessdata(layout["declared"], language) == layout["declared"]
+
+
+@pytest.mark.parametrize("language", ["eng+fra", "eng+", "+deu"])
+def test_missing_or_empty_combined_language_components_are_not_available(layout, language):
+    assert layout["module"]._usable_tessdata(layout["declared"], language) is None
+
+
 def test_any_traineddata_is_not_enough(tmp_path, monkeypatch):
     """Directly: a directory with unrelated languages is not usable for another one."""
     module = load()

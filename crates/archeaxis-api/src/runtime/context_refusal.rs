@@ -11,6 +11,9 @@ pub(super) fn answer_request(body: &MachineAnswerBody) -> Value {
         "max_tokens":body.max_tokens.unwrap_or(2048),"timeout_s":body.timeout_s.unwrap_or(120),
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
         "client_request_id":body.client_request_id,"retest_of":null}});
+    if let Some(format) = &body.response_format {
+        request["request"]["response_format"] = format.clone();
+    }
     if let Some(model) = &body.model {
         request["request"]["model"] = json!(model);
     }
@@ -26,6 +29,9 @@ pub(super) fn retest_request(body: &RetestBody) -> Value {
         "max_tokens":body.max_tokens.unwrap_or(2048),"timeout_s":body.timeout_s.unwrap_or(120),
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
         "client_request_id":null,"retest_of":body.retest_of}});
+    if let Some(format) = &body.response_format {
+        request["request"]["response_format"] = format.clone();
+    }
     if let Some(model) = &body.model {
         request["request"]["model"] = json!(model);
     }
@@ -116,5 +122,43 @@ mod tests {
             digest
         );
         assert_eq!(answer_request(&selected)["request"]["model"], "m1");
+    }
+}
+
+#[cfg(test)]
+mod output_format_tests {
+    use super::*;
+    #[test]
+    fn output_format_fingerprint_matches_journal_and_preserves_omitted_bytes() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../../tests/fixtures/machine-response-format.json"
+        ))
+        .unwrap();
+        let mut input = fixture["legacy"]["body"].clone();
+        let old: MachineAnswerBody = serde_json::from_value(input.clone()).unwrap();
+        assert_eq!(answer_request(&old), fixture["legacy"]["projection"]);
+        assert_eq!(
+            withheld::digest(&answer_request(&old).to_string()),
+            fixture["legacy"]["sha256"]
+        );
+        assert_eq!(
+            archeaxis_domain::ui_state::machine_request_fingerprint("answer", &input),
+            fixture["legacy"]["sha256"]
+        );
+        input["response_format"] = fixture["formats"][0]["normalized"].clone();
+        let body: MachineAnswerBody = serde_json::from_value(input.clone()).unwrap();
+        let hash = withheld::digest(&answer_request(&body).to_string());
+        assert_ne!(hash, fixture["legacy"]["sha256"]);
+        assert_eq!(
+            hash,
+            archeaxis_domain::ui_state::machine_request_fingerprint("answer", &input)
+        );
+        input.as_object_mut().unwrap().remove("client_request_id");
+        input["retest_of"] = "failed".into();
+        let body: RetestBody = serde_json::from_value(input.clone()).unwrap();
+        assert_eq!(
+            withheld::digest(&retest_request(&body).to_string()),
+            archeaxis_domain::ui_state::machine_request_fingerprint("retest", &input)
+        );
     }
 }

@@ -154,17 +154,19 @@ export function ConstellationGraph({ nodes, edges, layoutNodes = nodes, centerId
   const groupCounts = new Map(GRAPH_GROUPS.map(group => [group.id, nodes.filter(node => node.id !== centerId && node.group === group.id).length]));
   return <div ref={host} className="constellation-graph" aria-label="同版本关系图" data-license-notice={noticeUrl} data-animated={animated} data-quality={effectiveQuality} data-focus-group={focusedGroup ?? "all"}>
     <div className="cg-toolbar" role="toolbar" aria-label="关系星图控制">
-      <button type="button" aria-pressed={!focusedGroup} onClick={() => focusGroup(null)}>全部星团</button>
-      {GRAPH_GROUPS.map(group => <button type="button" key={group.id} disabled={!groupCounts.get(group.id)} aria-pressed={focusedGroup === group.id} onClick={() => focusGroup(group.id)}>{group.label}星团 · {groupCounts.get(group.id) ?? 0}</button>)}
       <button type="button" aria-label="缩小关系图" disabled={viewport.scale <= .15} onClick={() => changeViewport(zoomViewport(viewport, viewport.scale / 1.2))}>−</button>
       <span aria-label="关系图缩放">{Math.round(viewport.scale * 100)}%</span>
       <button type="button" aria-label="放大关系图" disabled={viewport.scale >= 2.5} onClick={() => changeViewport(zoomViewport(viewport, viewport.scale * 1.2))}>＋</button>
       <button type="button" onClick={() => changeViewport(fitViewport(allPoints))}>适应全部节点</button>
       <button type="button" aria-label="重置关系图视角" onClick={() => changeViewport({ x: 0, y: 0, scale: 1 })}>100%</button>
+      <details className="cg-options"><summary>显示与分类</summary><div>
+      <button type="button" aria-pressed={!focusedGroup} onClick={() => focusGroup(null)}>全部星团</button>
+      {GRAPH_GROUPS.map(group => <button type="button" key={group.id} disabled={!groupCounts.get(group.id)} aria-pressed={focusedGroup === group.id} onClick={() => focusGroup(group.id)}>{group.label}星团 · {groupCounts.get(group.id) ?? 0}</button>)}
       <label>星图显示质量<select value={quality} onChange={event => setQuality(event.target.value as QualityProfile)}><option value="high">完整装饰</option><option value="medium">均衡装饰</option><option value="low">静态装饰</option></select></label>
       <button type="button" disabled={reduced || effectiveQuality === "low"} aria-pressed={paused} onClick={() => setPaused(value => !value)}>{paused ? "继续星图动画" : "暂停星图动画"}</button>
+      <p className="cg-help">聚焦星团展开列队；悬停或键盘聚焦查看一跳连接，选择节点打开固定对象。拖动空白平移，聚焦图面后方向键平移、＋/−缩放、Home适应全部。</p>
+      </div></details>
     </div>
-    <p className="cg-help">聚焦星团展开列队；悬停或键盘聚焦查看一跳连接，选择节点打开固定对象。拖动空白平移，聚焦图面后方向键平移、＋/−缩放、Home适应全部。</p>
     {large && <p className="cg-budget" aria-live="polite">当前图包含 {nodes.length} 个节点、{edges.length} 条关系，已降低装饰并停止连续动画；全部节点和关系列表保留。</p>}
     {edges.length !== drawableEdges.length && <p className="cg-budget">{edges.length - drawableEdges.length} 条关系端点未出现在当前投影，未绘制连线；完整关系列表保留。</p>}
     <svg ref={svg} className="cg-viewport" viewBox="0 0 1200 760" tabIndex={0} aria-label="关系星图视口"

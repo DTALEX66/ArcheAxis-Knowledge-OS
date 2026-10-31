@@ -4,7 +4,7 @@ use crate::{
     machine_evaluation::{Judgment, Outcome, Rubric},
     object_reference::{self, Reference},
 };
-use rusqlite::{Connection, OptionalExtension};
+use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};

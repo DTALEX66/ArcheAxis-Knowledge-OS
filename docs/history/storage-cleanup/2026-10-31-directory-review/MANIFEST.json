@@ -1,0 +1,578 @@
+{
+  "schema": "aaos.normalization-public-history-candidate/v1",
+  "state": "PARTIAL_NOT_NORMALIZATION_PASS",
+  "source_sha": "f10dedee225ad7b049b99668d3c3a43d8d105bd8",
+  "observed_utc": "2026-10-30T16:39:49.094886+00:00",
+  "scope": "49 exact prior directories only; ignored-only read review and candidate preparation",
+  "counts": {
+    "reviewed": 49,
+    "empty": 13,
+    "nonempty": 36,
+    "possibly_regenerable_tests_unqualified": 22,
+    "other_nonempty_preserved": 14,
+    "qualified_cleanup": 0,
+    "performed_cleanup": 0,
+    "reclaimed_bytes": 0,
+    "delete_handle_probes": 0
+  },
+  "classification_counts": {
+    "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED": 22,
+    "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN": 13,
+    "PROTECTED_HISTORICAL_FAILURE_EVIDENCE": 1,
+    "PROTECTED_DEPLOYMENT_OR_INSTALLED_RUNTIME_EVIDENCE": 2,
+    "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE": 6,
+    "UNKNOWN_PAYLOAD_OR_WORKFLOW_PRESERVE": 5
+  },
+  "metadata_role_correction": "Worktree namespace containers need not have root-level run metadata; missing metadata alone is not ownership failure",
+  "id_verification": {
+    "algorithm": "sha256(str(PureWindowsPath(path)).casefold().encode()).hexdigest()[:10]",
+    "positive_control": {
+      "backslash_id": "be268a2d33",
+      "forward_slash_id": "be268a2d33",
+      "expected": "be268a2d33"
+    },
+    "finite_recomputation": [
+      {
+        "dataset": "87_public_worktree_path_candidates",
+        "raw_count": 87,
+        "normalized_distinct_count": 87,
+        "original_hash_changed_after_windows_normalization": 0,
+        "normalized_matching_empty_hex_ids": []
+      },
+      {
+        "dataset": "240_raw_path_shaped_prefixes",
+        "raw_count": 240,
+        "normalized_distinct_count": 235,
+        "original_hash_changed_after_windows_normalization": 15,
+        "normalized_matching_empty_hex_ids": []
+      }
+    ],
+    "source_commit": "f10dedee225ad7b049b99668d3c3a43d8d105bd8",
+    "algorithm_file": "scripts/runtime/dev.py",
+    "algorithm_sha256": "468a961d0acd617e04c5aeb01151201e6be1f7ff6874cf4dc63cbaa99dd9080e",
+    "correction": "240 are raw path-shaped text prefixes including URL parsing artifacts; 15 old hashes change after Windows lexical normalization. Normalized no-match is finite candidate evidence only, not absence of historical ownership. No external path IO."
+  },
+  "public_history_only_match": {
+    "commit": "653cf7215859803855713ccf11a883d6ede9a69d",
+    "meaning": "Original Claude handoff reference, no retirement evidence",
+    "git_show_exit_code": 0
+  },
+  "local_full_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-next2/artifacts/normalization-next-review.json",
+      "sha256": "6513c56aff0b0bcb42523ec57d416fe7fb69965731fa99c58f2fdea826c49b76",
+      "dev_exit_code": 0
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-prod1/artifacts/normalization-producer-review.json",
+      "sha256": "42494d20e82ae1227ad760b067b5cce2792a2de934a5edb048ee6c46daecd937",
+      "dev_exit_code": 0
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-prod2/artifacts/normalization-next-review.json",
+      "sha256": "16cf6eddd3a97db0d512f10349a7847a693437e6813c71dea5cc8a4e1161c0e6",
+      "dev_exit_code": 0
+    }
+  ],
+  "rows": [
+    {
+      "source": ".project-local/runs/adapter-tests-20260913",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/adapter-tests-20260913b",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/asr-path-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/backup-regression-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/benchmark-root-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/boundary-regression-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/claude-frontend-execution-20261018",
+      "state": "EMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/deeptutor-bridge-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/deeptutor-run-root-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/entrypoint-regression-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/fulltest-clean-20260913",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/fulltest-final-20260913",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "PROTECTED_HISTORICAL_FAILURE_EVIDENCE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/green-39b627c4",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "PROTECTED_DEPLOYMENT_OR_INSTALLED_RUNTIME_EVIDENCE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/installed-av-04b3aa2f",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "PROTECTED_DEPLOYMENT_OR_INSTALLED_RUNTIME_EVIDENCE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/lm-studio-profile",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/media-root-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/path-regression-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/phase0-root-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/post-ruff-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/report-regression-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/report-root-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/report-root-regression-final",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/ruff-regression-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/run-root-entry-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/security-boundary-20260914",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/ssot-a0-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/ssot-docs-regression",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "TEST_OUTPUT_POSSIBLY_REGENERABLE_NOT_QUALIFIED",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/stitch-research-outlet-20261022",
+      "state": "EMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/stitch-research-stage-20261022",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/stitch-shell-node-20261022",
+      "state": "NONEMPTY",
+      "role": "LEGACY_NAMED_RUN_DIRECTORY",
+      "classification": "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/0797a903ed",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/13f8b8443b",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "UNKNOWN_PAYLOAD_OR_WORKFLOW_PRESERVE",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/2611ed9ca1",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/2ed1226197",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/32a5777d1d",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "UNKNOWN_PAYLOAD_OR_WORKFLOW_PRESERVE",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/4167981625",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/4df389eba9",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "UNKNOWN_PAYLOAD_OR_WORKFLOW_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/57489feb27",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "UNKNOWN_PAYLOAD_OR_WORKFLOW_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/7c86bf32d6",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/81a6b790ec",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/873e7133e2",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/8dcecc427b",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "REFERENCED_UNIQUE_OR_CURRENT_EVIDENCE_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/9456375f28",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/99371d31e4",
+      "state": "NONEMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "UNKNOWN_PAYLOAD_OR_WORKFLOW_PRESERVE",
+      "public_reference_exit_code": 0,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/a8069919c6",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/a8724c61a2",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/ab38f7b7c5",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/c764669f48",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    },
+    {
+      "source": ".project-local/runs/cdef8256c1",
+      "state": "EMPTY",
+      "role": "WORKTREE_NAMESPACE_CONTAINER_SHAPED_NOT_IDENTIFIED",
+      "classification": "EMPTY_OWNER_PRODUCER_RETIREMENT_UNPROVEN",
+      "public_reference_exit_code": 1,
+      "owner_dacl_readback": "READABLE",
+      "reparse": false,
+      "qualified_cleanup": false
+    }
+  ],
+  "readme_sha256": "d7d3fb5be7e8e3106d0d5d12b4c31ae825868230b707de358648c34c784e90a4",
+  "disclosure": "No raw SDDL/SID, expanded external path map or private payload/session body",
+  "remaining": "Producer/worktree identity, retirement, current consumer/idleness and preservation/rebuild mapping unresolved. Unknown ownership retained without repeated user confirmation escalation.",
+  "publication_normalization": {
+    "transformation": "UTF-8/LF for public Git files; original ignored candidates unchanged",
+    "original_readme": ".project-local/runs/be268a2d33/nrm-pub2/artifacts/public-history-candidate/README.md",
+    "original_readme_sha256": "d7d3fb5be7e8e3106d0d5d12b4c31ae825868230b707de358648c34c784e90a4",
+    "original_manifest_sha256": "22668baa4eea5d3c44b99079e845787d29f0797fdae3c073188113ae87b86d39"
+  }
+}

@@ -1108,3 +1108,48 @@ fn failed_machine_status_and_clear_require_current_attempt_after_reopen() {
         .unwrap();
     assert_eq!(audit, doc.to_string());
 }
+
+#[test]
+fn structured_machine_journal_preserves_format_after_reopen_and_refuses_changes() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("structured-journal.sqlite");
+    let mut conn = fixture(&path);
+    let basis = ui_state::read(&mut conn).unwrap();
+    let vectors: Value = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/machine-response-format.json"
+    ))
+    .unwrap();
+    let format = vectors["formats"][0]["normalized"].clone();
+    let body = json!({"knowledge_id":"k1","question":"Synthetic question","max_tokens":2048,"timeout_s":120,"client_request_id":"structured","response_format":format});
+    let entry = json!({"journal_id":"structured","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":body});
+    let mut payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"structured":entry}}});
+    let mut bad = payload.clone();
+    bad["state"]["pending_machine"]["structured"]["body"]["response_format"]["json_schema"]["schema"]
+        ["properties"]["writer"]["enum"] = json!(["known answer"]);
+    assert!(ui_state::write(&mut conn, serde_json::from_value(bad).unwrap()).is_err());
+    let written =
+        ui_state::write(&mut conn, serde_json::from_value(payload.clone()).unwrap()).unwrap();
+    drop(conn);
+    let mut conn = fixture(&path);
+    assert_eq!(
+        ui_state::read(&mut conn).unwrap()["state"]["pending_machine"]["structured"],
+        entry
+    );
+    payload["state_revision"] = written["state_revision"].clone();
+    let before = ui_state::machine_request_fingerprint("answer", &body);
+    let mut changed = body.clone();
+    changed["response_format"]["json_schema"]["schema"]["properties"]["frozen"]["type"] =
+        "string".into();
+    assert_ne!(
+        before,
+        ui_state::machine_request_fingerprint("answer", &changed)
+    );
+    payload["state"]["pending_machine"]["structured"]["body"] = changed;
+    assert!(ui_state::write(&mut conn, serde_json::from_value(payload.clone()).unwrap()).is_err());
+    payload["state"]["pending_machine"]["structured"]["body"] = body;
+    payload["state"]["pending_machine"]["structured"]["body"]
+        .as_object_mut()
+        .unwrap()
+        .remove("response_format");
+    assert!(ui_state::write(&mut conn, serde_json::from_value(payload).unwrap()).is_err());
+}

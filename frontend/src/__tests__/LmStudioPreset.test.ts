@@ -17,7 +17,10 @@ describe("LM Studio product preset", () => {
     const result = addLmStudioPreset(empty, inventory);
     expect(result).toMatchObject({revision:0,workspace_id:empty.workspace_id,restore_epoch:"initial"});
     expect(result.bindings).toHaveLength(8);
-    for (const binding of result.bindings) expect(result.profiles[binding.profile_id].model).toBe(LM_STUDIO_MODELS[binding.lane]);
+    for (const binding of result.bindings) {
+      expect(result.profiles[binding.profile_id].model).toBe(LM_STUDIO_MODELS[binding.lane]);
+      expect(result.profiles[binding.profile_id].max_tokens).toBe(4096);
+    }
     expect(empty.profiles).toEqual({}); expect(empty.bindings).toEqual([]);
     expect(addLmStudioPreset(result, [])).toEqual(result);
   });
@@ -27,6 +30,8 @@ describe("LM Studio product preset", () => {
     const result = addLmStudioPreset(initial, inventory);
     expect(result.profiles["lmstudio-deep"]).toBe(custom);
     expect(result.profiles["lmstudio-deep-2"].model).toBe(LM_STUDIO_MODELS.deep);
+    expect(result.profiles["lmstudio-deep"].max_tokens).toBe(512);
+    expect(result.profiles["lmstudio-deep-2"].max_tokens).toBe(4096);
     expect(result.bindings).toEqual(expect.arrayContaining(initial.bindings));
     expect(result.bindings.filter(binding => binding.purpose === "answer" && binding.lane === "deep")).toEqual([initial.bindings[0]]);
     expect(result.bindings.some(binding => binding.purpose === "document_check")).toBe(false);

@@ -10,7 +10,10 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
+
+from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs" / "current" / "AAOS-UI-ASSET-MANIFEST-20261007.json"
@@ -70,3 +73,20 @@ def test_the_logo_master_is_recorded_by_hash_because_the_file_is_not_repo_owned(
     assert isinstance(master, dict), "the manifest does not say which master the marks were cut from"
     assert re.fullmatch(r"[0-9a-f]{64}", master["sha256"]), master
     assert master["bytes"] > 0 and master["emblem_master_canvas"][0] > 0
+
+
+def test_native_icon_dimensions_and_all_ico_frames_match_current_png() -> None:
+    items = {item["path"]: item for item in manifest()["items"]}
+    png_path, ico_path, svg_path = ("src-tauri/icons/icon." + suffix for suffix in ("png", "ico", "svg"))
+    with Image.open(ROOT / png_path) as source, Image.open(ROOT / ico_path) as icon:
+        source.load()
+        assert list(source.size) == items[png_path]["canvas"]
+        frames = sorted(icon.ico.sizes())
+        assert [list(size) for size in frames] == items[ico_path]["frames"]
+        assert frames == [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
+        for size in frames:
+            actual = icon.ico.getimage(size).convert("RGBA")
+            expected = source.convert("RGBA").resize(size, Image.Resampling.LANCZOS)
+            assert ImageChops.difference(actual, expected).getbbox(alpha_only=False) is None, size
+    vector = ET.parse(ROOT / svg_path).getroot()
+    assert [int(vector.attrib[axis]) for axis in ("width", "height")] == items[svg_path]["canvas"]

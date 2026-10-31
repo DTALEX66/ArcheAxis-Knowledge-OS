@@ -2,8 +2,8 @@
 """ArcheAxis vNext vision worker: OCR text + boxes (F04 partial).
 
 Runs the system Tesseract binary over a still image and returns:
-- the OCR text (character-level order, no assumptions about reading order
-  beyond Tesseract's own layout),
+- the OCR text with any measured Tesseract gutter reconstruction recorded;
+  RapidOCR retains its returned line sequence without an additional layout model,
 - per-word boxes with confidence from the TSV stream,
 - a loss receipt noting engine/psm/language.
 
@@ -76,7 +76,7 @@ def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Pat
     carries a few unrelated languages passes that test, so the worker kept the ambient
     directory and never passed `--tessdata-dir`; tesseract then failed with
     `Failed loading language 'eng'` for a request the declared language data could have
-    served. Requiring the requested language is what makes "usable" mean usable.
+    served. Combined requests require every model in this same directory.
     """
     if candidate is None:
         return None
@@ -84,7 +84,10 @@ def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Pat
         if not candidate.is_dir():
             return None
         if language:
-            return candidate if (candidate / f"{language}.traineddata").is_file() else None
+            languages = language.split("+")
+            return candidate if all(languages) and all(
+                (candidate / f"{part}.traineddata").is_file() for part in languages
+            ) else None
         return candidate if any(candidate.glob("*.traineddata")) else None
     except OSError:
         return None
@@ -113,43 +116,45 @@ def _declared_tessdata(language: str | None = None) -> Path | None:
 
 
 def _tesseract() -> str:
-    def usable(candidate: Path) -> bool:
+    def usable(candidate: Path) -> str | None:
         command = str(candidate)
-        # Bare command names are resolved by the process environment (and are
-        # intentionally supported by unit-test fakes); absolute configured
-        # paths must be regular files before they are probed.
-        if not candidate.is_absolute():
-            return True
-        if candidate.is_absolute() and not candidate.is_file():
-            return False
+        # An existing relative file names that exact file, not a same-named
+        # executable elsewhere on PATH. Bare command names may still be resolved
+        # by the process environment, but never qualify without a real probe.
+        if candidate.is_file():
+            command = str(candidate.resolve())
+        elif candidate.is_absolute() or candidate.parent != Path("."):
+            return None
         try:
             probe = _run([command, "--version"], capture_output=True, text=True, timeout=5)
         except (OSError, subprocess.TimeoutExpired):
-            return False
-        return probe.returncode == 0 and "tesseract" in (probe.stdout + probe.stderr).casefold()
+            return None
+        if probe.returncode == 0 and "tesseract" in (probe.stdout + probe.stderr).casefold():
+            return command
+        return None
 
     configured = os.environ.get("TESSERACT_CMD", "").strip()
     if configured:
         candidate = Path(configured)
-        if usable(candidate):
-            return str(candidate)
+        if binary := usable(candidate):
+            return binary
         # A stale shim can still exist as a file after its package moves. When
         # language data is explicitly pinned, derive the sibling binary from
         # that same toolchain before falling back to PATH.
         tessdata = os.environ.get("TESSDATA_PREFIX", "").strip()
         if tessdata:
             derived = Path(tessdata).parent / "tesseract" / "current" / "tesseract.exe"
-            if usable(derived):
-                return str(derived)
+            if binary := usable(derived):
+                return binary
     # R6 A02: resolve the engine from the declared external registry before
     # guessing. The engine is installed and registered on this machine, but it is
     # not on PATH, so `which` was reporting "unavailable" for a working engine.
     declared_binary = _declared_path("tesseract")
-    if declared_binary and usable(Path(declared_binary)):
-        return declared_binary
-    binary = shutil.which("tesseract")
-    if binary and usable(Path(binary)):
+    if declared_binary and (binary := usable(Path(declared_binary))):
         return binary
+    binary = shutil.which("tesseract")
+    if binary and (verified := usable(Path(binary))):
+        return verified
     if configured:
         if candidate.is_absolute() and not candidate.is_file():
             raise RuntimeError(f"configured TESSERACT_CMD does not exist: {candidate}")
@@ -326,7 +331,135 @@ def _tessdata_args(tessdata_dir: Path | None) -> list[str]:
     return ["--tessdata-dir", str(tessdata_dir)] if tessdata_dir is not None else []
 
 
+# R15/F04: RapidOCR is the packaged fallback for a machine without Tesseract. It reads
+# Chinese + English line boxes through ONNX Runtime, so it is only offered for the
+# languages its PP-OCRv4 models actually serve; other languages keep failing by name.
+RAPIDOCR_LANGUAGES = {"eng", "chi_sim", "eng+chi_sim", "chi_sim+eng"}
+_RAPIDOCR_ENGINE = None
+
+
+def _rapidocr_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("rapidocr-onnxruntime")
+    except Exception:  # noqa: BLE001 - the identity is reported, not required
+        return "unknown"
+
+
+def _rapidocr_engine():
+    global _RAPIDOCR_ENGINE
+    if _RAPIDOCR_ENGINE is None:
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError as exc:
+            raise RuntimeError("rapidocr-onnxruntime not installed") from exc
+        _RAPIDOCR_ENGINE = RapidOCR()
+    return _RAPIDOCR_ENGINE
+
+
+def _rapidocr_words(image_bytes: bytes) -> tuple[list[dict], str, str]:
+    """Read line boxes through RapidOCR and project them into the worker's word shape.
+
+    RapidOCR returns one box per recognised line, not one per word. The box text is kept
+    whole so the projection never splits a word it did not measure; the confidence is the
+    engine's own score (rescaled to the 0-100 range used by the Tesseract lane).
+    """
+    engine = _rapidocr_engine()
+    result, _elapse = engine(image_bytes)
+    words: list[dict] = []
+    for index, entry in enumerate(result or [], start=1):
+        if not isinstance(entry, (list, tuple)) or len(entry) < 3:
+            raise RuntimeError("rapidocr returned an invalid row")
+        box, word_text, score = entry[0], entry[1], entry[2]
+        if not isinstance(word_text, str) or not word_text.strip():
+            continue
+        try:
+            points = [(float(point[0]), float(point[1])) for point in box]
+            confidence = float(score)
+        except (TypeError, ValueError, IndexError) as exc:
+            raise RuntimeError("rapidocr returned an invalid box/confidence") from exc
+        if not math.isfinite(confidence):
+            raise RuntimeError("rapidocr returned a non-finite confidence")
+        if confidence <= 1:
+            confidence *= 100
+        if confidence < 0 or confidence > 100:
+            raise RuntimeError("rapidocr confidence outside 0..100")
+        xs = [point[0] for point in points]
+        ys = [point[1] for point in points]
+        x, y = min(xs), min(ys)
+        width, height = max(xs) - x, max(ys) - y
+        if width <= 0 or height <= 0:
+            raise RuntimeError("rapidocr returned an empty box")
+        words.append(
+            {
+                "text": word_text.strip(),
+                "confidence": round(confidence, 1),
+                "x": x,
+                "y": y,
+                "w": width,
+                "h": height,
+                "block": "0",
+                "par": "0",
+                "line": str(index),
+            }
+        )
+    # Preserve the engine sequence: a (y, x) sort would interleave two columns
+    # even when the engine already returned each column together.
+    text = "\n".join(word["text"] for word in words)
+    return words, text, _rapidocr_version()
+
+
+def _rapidocr_probe(lang: str) -> dict:
+    try:
+        _rapidocr_engine()
+        # The package ships its ONNX models beside itself; report the names we can see,
+        # but do not turn a missing directory into a capability claim.
+        import rapidocr_onnxruntime
+
+        package_dir = Path(rapidocr_onnxruntime.__file__).resolve().parent
+        models = sorted(path.name for path in (package_dir / "models").glob("*.onnx"))
+        return {
+            "available": True,
+            "version": _rapidocr_version(),
+            "models": models,
+            "languages": sorted(RAPIDOCR_LANGUAGES),
+            "supports_requested_language": lang in RAPIDOCR_LANGUAGES,
+            "package_dir": str(package_dir),
+        }
+    except Exception as exc:  # noqa: BLE001 - capability failures must remain JSON
+        return {
+            "available": False,
+            "reason": f"{type(exc).__name__}: {exc}",
+            "languages": sorted(RAPIDOCR_LANGUAGES),
+            "supports_requested_language": lang in RAPIDOCR_LANGUAGES,
+        }
+
+
+def _choose_ocr_engine(engine: str, lang: str) -> tuple[str, str | None]:
+    requested = (engine or "auto").strip().lower()
+    if requested not in {"auto", "tesseract", "rapidocr"}:
+        raise ValueError(f"unknown OCR engine: {engine}")
+    if requested == "rapidocr":
+        if lang not in RAPIDOCR_LANGUAGES:
+            raise RuntimeError(f"rapidocr cannot serve language '{lang}'")
+        return "rapidocr", None
+    try:
+        _tesseract()
+        return "tesseract", None
+    except Exception as exc:  # noqa: BLE001 - an absent engine is a fallback decision
+        if requested == "tesseract":
+            raise
+        if lang not in RAPIDOCR_LANGUAGES:
+            raise RuntimeError(
+                f"tesseract unavailable ({type(exc).__name__}: {exc}) and "
+                f"rapidocr cannot serve language '{lang}'"
+            ) from exc
+        return "rapidocr", f"tesseract unavailable: {type(exc).__name__}: {exc}"
+
+
 def probe(lang: str = "eng", tessdata_dir: Path | None = None) -> dict:
+    rapidocr = _rapidocr_probe(lang)
     try:
         binary = _tesseract()
         version = _run(
@@ -347,6 +480,7 @@ def probe(lang: str = "eng", tessdata_dir: Path | None = None) -> dict:
             raise RuntimeError(f"required OCR languages unavailable: {lang}")
         return {
             "capability": True,
+            "capability_any": True,
             "engine": ENGINE,
             "tesseract": binary,
             "version": version.stdout.splitlines()[0],
@@ -355,14 +489,27 @@ def probe(lang: str = "eng", tessdata_dir: Path | None = None) -> dict:
             "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
             "warnings": [message.strip() for message in (version.stderr, listed.stderr) if message.strip()],
             "formats": sorted(SUPPORTED),
+            "fallback": rapidocr,
             "note": "text+boxes only; diagram description is the local vision-model lane",
         }
     except Exception as exc:  # noqa: BLE001 - capability failures must remain JSON
-        return {"capability": False, "reason": f"{type(exc).__name__}: {exc}", "engine": ENGINE}
+        return {
+            "capability": False,
+            "capability_any": bool(rapidocr.get("available")),
+            "reason": f"{type(exc).__name__}: {exc}",
+            "engine": ENGINE,
+            "fallback": rapidocr,
+        }
 
 
-def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
-    binary = _tesseract()
+def extract(
+    path: Path,
+    lang: str,
+    tessdata_dir: Path | None = None,
+    engine: str = "auto",
+) -> dict:
+    chosen, fallback_reason = _choose_ocr_engine(engine, lang)
+    binary = _tesseract() if chosen == "tesseract" else None
     if not path.is_file():
         raise ValueError(f"input image not found: {path}")
     if path.suffix.lower() not in SUPPORTED:
@@ -375,78 +522,119 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
     if not image_bytes or len(image_bytes) > MAX_IMAGE_BYTES:
         raise ValueError("input image is empty or exceeds the 64 MiB OCR budget")
 
-    def image_run(command: list[str]) -> subprocess.CompletedProcess:
-        result = _run(command, input=image_bytes, capture_output=True, timeout=300)
-        for field in ("stdout", "stderr"):
-            value = getattr(result, field)
-            if isinstance(value, bytes):
-                setattr(result, field, value.decode("utf-8", errors="replace"))
-        return result
+    warnings: list[dict] = []
+    if chosen == "tesseract":
+        def image_run(command: list[str]) -> subprocess.CompletedProcess:
+            result = _run(command, input=image_bytes, capture_output=True, timeout=300)
+            for field in ("stdout", "stderr"):
+                value = getattr(result, field)
+                if isinstance(value, bytes):
+                    setattr(result, field, value.decode("utf-8", errors="replace"))
+            return result
 
-    plain = image_run(
-        [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
-    )
-    if plain.returncode != 0:
-        raise RuntimeError(f"tesseract failed: {plain.stderr[-400:]}")
+        plain = image_run(
+            [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
+        )
+        if plain.returncode != 0:
+            raise RuntimeError(f"tesseract failed: {plain.stderr[-400:]}")
 
-    tsv = image_run(
-        # Language-only tessdata packages may omit configs/tsv. Tesseract's
-        # documented -c parameter selects the same renderer without that file.
-        [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
-         "-c", "tessedit_create_tsv=1"],
-    )
-    if tsv.returncode != 0:
-        raise RuntimeError(f"tesseract TSV failed: {tsv.stderr[-400:]}")
-    if not tsv.stdout.startswith("level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext"):
-        raise RuntimeError("tesseract TSV output is missing or invalid")
-    words: list[dict] = []
-    if tsv.returncode == 0:
-        lines = tsv.stdout.splitlines()
-        if lines and lines[0].startswith("level"):
-            for line in lines[1:]:
-                fields = line.split("\t")
-                if len(fields) < 12:
-                    raise RuntimeError("truncated Tesseract TSV row")
-                try:
-                    word_text = fields[11]
-                    conf = float(fields[10])
-                except (ValueError, IndexError) as exc:
-                    raise RuntimeError("invalid Tesseract TSV confidence") from exc
-                if not math.isfinite(conf):
-                    raise RuntimeError("non-finite Tesseract TSV confidence")
-                if word_text.strip() and conf >= 0:
-                    bounds = [int(fields[index]) for index in (6, 7, 8, 9)]
-                    if any(value < 0 for value in bounds) or bounds[2] == 0 or bounds[3] == 0 or conf > 100:
-                        raise RuntimeError("invalid Tesseract word bounds/confidence")
-                    words.append(
-                        {
-                            "text": word_text,
-                            "confidence": round(conf, 1),
-                            "x": bounds[0],
-                            "y": bounds[1],
-                            "w": bounds[2],
-                            "h": bounds[3],
-                            # The engine's own segmentation, kept so a line of words can be
-                            # regrouped without inventing one: block/paragraph/line ids.
-                            "block": fields[2],
-                            "par": fields[3],
-                            "line": fields[4],
-                        }
-                    )
+        tsv = image_run(
+            # Language-only tessdata packages may omit configs/tsv. Tesseract's
+            # documented -c parameter selects the same renderer without that file.
+            [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
+             "-c", "tessedit_create_tsv=1"],
+        )
+        if tsv.returncode != 0:
+            raise RuntimeError(f"tesseract TSV failed: {tsv.stderr[-400:]}")
+        if not tsv.stdout.startswith("level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext"):
+            raise RuntimeError("tesseract TSV output is missing or invalid")
+        words: list[dict] = []
+        if tsv.returncode == 0:
+            lines = tsv.stdout.splitlines()
+            if lines and lines[0].startswith("level"):
+                for line in lines[1:]:
+                    fields = line.split("\t")
+                    if len(fields) < 12:
+                        raise RuntimeError("truncated Tesseract TSV row")
+                    try:
+                        word_text = fields[11]
+                        conf = float(fields[10])
+                    except (ValueError, IndexError) as exc:
+                        raise RuntimeError("invalid Tesseract TSV confidence") from exc
+                    if not math.isfinite(conf):
+                        raise RuntimeError("non-finite Tesseract TSV confidence")
+                    if word_text.strip() and conf >= 0:
+                        bounds = [int(fields[index]) for index in (6, 7, 8, 9)]
+                        if any(value < 0 for value in bounds) or bounds[2] == 0 or bounds[3] == 0 or conf > 100:
+                            raise RuntimeError("invalid Tesseract word bounds/confidence")
+                        words.append(
+                            {
+                                "text": word_text,
+                                "confidence": round(conf, 1),
+                                "x": bounds[0],
+                                "y": bounds[1],
+                                "w": bounds[2],
+                                "h": bounds[3],
+                                # The engine's own segmentation, kept so a line of words can be
+                                # regrouped without inventing one: block/paragraph/line ids.
+                                "block": fields[2],
+                                "par": fields[3],
+                                "line": fields[4],
+                            }
+                        )
 
-    text = plain.stdout.strip()
-    if text and not words:
-        raise RuntimeError("tesseract returned text without word boxes; OCR output is incomplete")
-    warnings = [{"stage": stage, "message": result.stderr.strip()}
-                for stage, result in (("text", plain), ("tsv", tsv)) if result.stderr.strip()]
-    # R15/F04: the reading order of the projected text is decided here from the word boxes
-    # and reported as a fact. The route runs the engine in single-block mode (`--psm 6`), so
-    # on a two-column page the engine's own line spans both columns and its text interleaves
-    # them; that can only be corrected by splitting the line along the gutter, which is why
-    # the invariant here is "not one word added or lost" rather than "the same lines".
-    text, reading_order, ordered_words = _reading_order(words, text)
-    if text and not ordered_words:
+        text = plain.stdout.strip()
+        if text and not words:
+            raise RuntimeError("tesseract returned text without word boxes; OCR output is incomplete")
+        warnings = [{"stage": stage, "message": result.stderr.strip()}
+                    for stage, result in (("text", plain), ("tsv", tsv)) if result.stderr.strip()]
+        # R15/F04: the reading order of the projected text is decided here from the word boxes
+        # and reported as a fact. The route runs the engine in single-block mode (`--psm 6`), so
+        # on a two-column page the engine's own line spans both columns and its text interleaves
+        # them; that can only be corrected by splitting the line along the gutter, which is why
+        # the invariant here is "not one word added or lost" rather than "the same lines".
+        text, reading_order, ordered_words = _reading_order(words, text)
+        if text and not ordered_words:
+            ordered_words = words
+        engine_params = {
+            "lang": lang,
+            "psm": 6,
+            "engine": "tesseract",
+            "input_transport": "stdin",
+            "input_bytes": len(image_bytes),
+            "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
+            "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
+            "tsv_renderer": "tessedit_create_tsv=1",
+            "warnings": warnings,
+        }
+    else:
+        words, text, rapidocr_version = _rapidocr_words(image_bytes)
         ordered_words = words
+        # Preserve the returned line sequence without claiming it is the correct
+        # semantic reading order or inferring how many columns the image has.
+        reading_order = {
+            "model": "rapidocr-native-line-order",
+            "original_order": True,
+            "applied": False,
+            "columns": None,
+            "gutter": None,
+            "blank_lines_dropped": 0,
+            "differs_from_engine_order": False,
+            "reason": "the engine's returned line sequence is preserved; no geometric sorting or column reconstruction was applied",
+        }
+        engine_params = {
+            "lang": lang,
+            "engine": "rapidocr",
+            "engine_version": rapidocr_version,
+            "model": "PP-OCRv4",
+            "model_languages": sorted(RAPIDOCR_LANGUAGES),
+            "input_transport": "bytes",
+            "input_bytes": len(image_bytes),
+            "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
+            "fallback_reason": fallback_reason,
+            "warnings": warnings,
+        }
+
     # R08: the Core's projection contract is line-based for every route, so the
     # structure artifact carries the canonical line anchors of the recognised text
     # (identical shape to the text and PDF routes). OCR's own positions are word
@@ -520,6 +708,25 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
         "low_confidence_capped": len(low_confidence) > LOW_CONFIDENCE_CAP,
         "lowest_score": min(scored) if scored else None,
     }
+    losses = [f"subprocess warning: {w['message'][:200]}" for w in warnings]
+    if fallback_reason:
+        losses.append(f"tesseract was unavailable; the rapidocr fallback was used: {fallback_reason}")
+    if reading_order.get("applied") and reading_order.get("differs_from_engine_order"):
+        losses.append(
+            "the reading order was rebuilt from word boxes: the engine's single-block "
+            "order interleaved the columns, and the words were re-ordered column by "
+            "column without adding or dropping any"
+        )
+    if reading_order.get("applied") and reading_order.get("blank_lines_dropped"):
+        losses.append(
+            f"{reading_order['blank_lines_dropped']} blank separator line(s) in the "
+            "engine's text are not carried by the rebuilt projection"
+        )
+    if low_confidence:
+        losses.append(
+            f"{len(low_confidence)} region(s) scored below the review threshold "
+            f"{REVIEW_THRESHOLD}; they are listed in params.review for a human to check"
+        )
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -530,56 +737,26 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"lang": lang, "psm": 6, "engine": "tesseract",
-                       "input_transport": "stdin", "input_bytes": len(image_bytes),
-                       "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
-                       "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
-                       "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
-                       "coverage_unit": "line anchors",
-                       # R15/F04: the reading order is a decision with a reason, reported the
-                       # same way as every other fact, and the word regions below follow it.
-                       "reading_order": reading_order,
-                       # Recogniser confidence is review metadata, never an accuracy claim.
-                       "regions": regions,
-                       "review": review},
-            "losses": [
-                f"subprocess warning: {w['message'][:200]}" for w in warnings
-            ]
-            + (
-                [
-                    "the reading order was rebuilt from word boxes: the engine's single-block "
-                    "order interleaved the columns, and the words were re-ordered column by "
-                    "column without adding or dropping any"
-                ]
-                if reading_order.get("applied") and reading_order.get("differs_from_engine_order")
-                else []
-            )
-            + (
-                [
-                    f"{reading_order['blank_lines_dropped']} blank separator line(s) in the "
-                    "engine's text are not carried by the rebuilt projection"
-                ]
-                if reading_order.get("applied") and reading_order.get("blank_lines_dropped")
-                else []
-            )
-            + (
-                [
-                    f"{len(low_confidence)} region(s) scored below the review threshold "
-                    f"{REVIEW_THRESHOLD}; they are listed in params.review for a human to check"
-                ]
-                if low_confidence
-                else []
-            ),
+            "params": {
+                **engine_params,
+                "coverage_unit": "line anchors",
+                # R15/F04: the reading order is a decision with a reason, reported the
+                # same way as every other fact, and the word regions below follow it.
+                "reading_order": reading_order,
+                # Recogniser confidence is review metadata, never an accuracy claim.
+                "regions": regions,
+                "review": review,
+            },
+            "losses": losses,
             "covered": covered,
             "total": total,
             "coverage": (covered / total) if total else 1.0,
             "loss_note": (
-                "OCR text with per-word boxes/confidence kept as review metadata "
-                "(params.regions); the reading order is decided from the word boxes and "
-                "reported in params.reading_order, and the engine's single-block layout is "
-                "kept whenever the model would not account for exactly the same words; "
-                "diagram semantics, handwriting and low-quality region retries are separate "
-                "lanes"
+                "OCR text with per-region boxes/confidence kept as review metadata "
+                "(params.regions); the reading order is reported in params.reading_order, "
+                "and the engine's own layout is kept whenever the model would not account "
+                "for exactly the same words; diagram semantics, handwriting and "
+                "low-quality region retries are separate lanes"
                 + ("; subprocess warnings retained in params.warnings" if warnings else "")
             ),
         },
@@ -621,9 +798,15 @@ def main() -> int:
     parser.add_argument("--lang", default="eng")
     parser.add_argument("--probe", action="store_true")
     parser.add_argument("--profile", type=Path, help="explicit public OCR model-profile YAML")
+    parser.add_argument(
+        "--engine",
+        choices=["auto", "tesseract", "rapidocr"],
+        default="auto",
+        help="auto keeps Tesseract when usable and falls back to RapidOCR when it is absent",
+    )
     args = parser.parse_args()
     if not args.probe and not args.input:
-        print(json.dumps({"error": "usage: worker_ocr.py <image-file> [--lang eng]"}))
+        print(json.dumps({"error": "usage: worker_ocr.py <image-file> [--lang eng] [--engine auto|tesseract|rapidocr]"}))
         return 2
     try:
         if args.profile is not None:
@@ -646,7 +829,14 @@ def main() -> int:
             # No explicit profile: prefer language data that can serve this language over
             # an ambient TESSDATA_PREFIX that may be stale (see _declared_tessdata).
             tessdata_dir = _declared_tessdata(args.lang)
-        out = probe(args.lang, tessdata_dir) if args.probe else extract(Path(args.input), args.lang, tessdata_dir)
+        out = probe(args.lang, tessdata_dir) if args.probe else extract(
+            Path(args.input),
+            args.lang,
+            tessdata_dir,
+            # An explicit profile is a Tesseract instruction; do not silently answer it with
+            # another engine when the caller did not explicitly ask for a fallback.
+            engine="tesseract" if args.profile is not None and args.engine == "auto" else args.engine,
+        )
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1

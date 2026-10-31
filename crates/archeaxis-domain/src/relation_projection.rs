@@ -3,12 +3,12 @@ use crate::{
     collection::{self, PropertyKind},
     document::{self, Error},
     object_reference::{self, Reference},
-    research::{RELATION_SCHEMA, Relation, Relations},
+    research::{self, Relation, Relations},
 };
 use rusqlite::{Connection, params};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 fn reference(document_id: &str, version: i64) -> Reference {
     Reference::Document {
@@ -31,59 +31,15 @@ fn add_node(conn: &Connection, reference: &Reference, nodes: &mut BTreeMap<Strin
     };
     nodes.insert(key, value);
 }
-fn relation_metadata_valid(r: &Relations) -> bool {
-    if r.schema != RELATION_SCHEMA || r.relations.len() > 256 {
-        return false;
-    }
-    let mut ids = BTreeSet::new();
-    let token = |s: &str| {
-        !s.is_empty()
-            && s.len() <= 256
-            && s != "."
-            && s != ".."
-            && s.bytes()
-                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-' | b'.'))
-    };
-    r.relations.iter().all(|relation| {
-        let id = &relation.id;
-        if id.is_empty()
-            || id.len() > 128
-            || !id
-                .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-'))
-            || !ids.insert(id)
-            || relation.label.len() > 1024
-        {
-            return false;
-        }
-        match &relation.target {
-            Reference::Document {
-                document_id,
-                version,
-                block_id,
-            } => token(document_id) && *version > 0 && block_id.as_ref().is_none_or(|b| token(b)),
-            Reference::Source { source_id, sha256 } => {
-                token(source_id)
-                    && sha256.len() == 64
-                    && sha256
-                        .bytes()
-                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
-            }
-            Reference::Knowledge { knowledge_id } => token(knowledge_id),
-        }
-    })
-}
 fn relations(editor: &Value) -> Option<Result<Relations, ()>> {
     let raw = editor["attrs"].get("archeaxis_relations")?;
     Some(
         serde_json::from_value::<Relations>(raw.clone())
             .map_err(|_| ())
             .and_then(|r| {
-                if relation_metadata_valid(&r) {
-                    Ok(r)
-                } else {
-                    Err(())
-                }
+                research::validate_relations_with(&r, object_reference::validate_shape)
+                    .map(|()| r)
+                    .map_err(|_| ())
             }),
     )
 }
@@ -111,6 +67,7 @@ fn collection_edges(editor: &Value) -> Option<Result<Vec<DerivedEdge>, ()>> {
                         edges.push(DerivedEdge {
                             from: record.reference.clone(),
                             relation: Relation {
+                                presentation: None,
                                 id: format!(
                                     "collection:{}:{}:{}",
                                     record.record_id, p.property_id, index
