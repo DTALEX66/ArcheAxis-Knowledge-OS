@@ -190,7 +190,7 @@
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "remaining_admin_execution": {
           "owner_instruction": "给你授权，如果还不行给我命令行",
-          "state": "PREPARED_NOT_EXECUTED_REQUIRES_USER_ADMINISTRATOR_TOKEN",
+          "state": "USER_ADMIN_APPLIED_EXACT_PLAN_FILES_INDEPENDENTLY_VERIFIED_ABSENT",
           "execution_shell": "PowerShell 7 (pwsh.exe); actual 7.6.5 Review exit 0; full verified executable path in record",
           "record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/ADMIN-REMAINING-CLEANUP.md",
           "bundle": ".project-local/runs/be268a2d33/adminrem-09ea3c41",
@@ -198,7 +198,14 @@
           "reviewed_logical_bytes": 3921430366,
           "plan_sha256": "4c388943fc10127fd4b4f43c3b93a45d21fb1d22d760d8fcdc44b8519edede35",
           "acl_changes": 0,
-          "actual_deletion_this_followup": 0
+          "actual_deletion_this_followup": 18756,
+          "deleted_logical_bytes": 3921430366,
+          "receipt": ".project-local/runs/be268a2d33/adminrem-09ea3c41/artifacts/apply-20261031T142747022874Z-result.json",
+          "receipt_sha256": "6e5487c8014e8b222e24a070b81c93f9d8e636b98cac1114354d0ad7f94c6833",
+          "post_verification": ".project-local/runs/be268a2d33/adminrem-09ea3c41/artifacts/postverify-20261031.json",
+          "post_verification_sha256": "e02118f8d2396db4891378957d93b2d8786ae62a72ac307ad10d48b62e308f2e",
+          "remaining_scope_roots": 5,
+          "scope_limit": "Exact reviewed public files complete; 247 reviewed directories remain with out-of-plan entries. No private-entry inspection or additional deletion. Manual process exit not independently observed; physical release and fresh whole-repository size not measured. Existing operator checkpoint unchanged."
         }
       }
     },
