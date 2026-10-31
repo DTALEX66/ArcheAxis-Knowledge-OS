@@ -247,3 +247,13 @@ paths = [
   '''^docs/history/project\-drift\-audit\-20261021/cloud\-execution\-blocker\-20261023\.json$''',
 ]
 regexes = ['''^b5d56b1fe3470687fa6a0047c1471cb1a14da761feca0119d082af269582bc14$''']
+
+[[allowlists]]
+description = "verified teaching-state regression source digest in the root review receipt"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/history/teaching\-plan\-observation\-20261031/ROOT\-REVIEW\.json$''',
+]
+regexes = ['''^502b9f8e30172d41b977d064940d59231b1aba7117f71ae406a9b8ba6478f7ae$''']
