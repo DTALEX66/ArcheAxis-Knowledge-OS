@@ -113,7 +113,7 @@ def scenario():
         if op == "document_get": return copy.deepcopy(state["doc"])
         if op == "machine_tasks_list": return {"items": [], "next_cursor": None}
         if op == "model_configuration_get": return {"revision": 0, "profiles": {}, "bindings": []}
-        if op == "workspace_backups": return {"backups": [{"backup_id": "backup"}] if any(t == ("click", "创建一致备份") for t in trace) else []}
+        if op == "workspace_backups": return {"backups": [{"backup_id": "backup"}] if any(t == ("click", "创建备份") for t in trace) else []}
         if op == "ui_state_read": return {"restore_epoch": state["epoch"], "state": {"owned": True}, "recovery_candidates": {"owned": True}, "recovery_requires_confirmation": not any(t == ("click", "保留恢复候选") for t in trace)}
         raise AssertionError(op)
     def poll(read, op, payload, predicate, seconds=30):

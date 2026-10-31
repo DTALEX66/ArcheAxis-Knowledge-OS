@@ -1,0 +1,10 @@
+{
+  "schema": "aaos.sandbox-guest-mappings/v1",
+  "namespace": "GUEST_VIRTUAL_PATHS_NOT_HOST_FILESYSTEM_ROOTS",
+  "folders": {
+    "AAOSInstall": "C:\\AAOSInstall",
+    "AAOSInput": "C:\\AAOSInput",
+    "AAOSTools": "C:\\AAOSTools",
+    "AAOSOutput": "C:\\AAOSOutput"
+  }
+}

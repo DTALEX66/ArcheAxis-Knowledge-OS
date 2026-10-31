@@ -27,7 +27,7 @@ def worker(tmp_path, monkeypatch, first):
             return segments(), SimpleNamespace(duration=4, language="en", language_probability=1)
 
     monkeypatch.setitem(sys.modules, "faster_whisper", SimpleNamespace(WhisperModel=Model))
-    monkeypatch.setattr(module, "_model_dir", lambda value: tmp_path)
+    monkeypatch.setattr(module, "_resolve_model", lambda value: (tmp_path, "test-fixture"))
     source = tmp_path / "controlled.wav"
     source.write_bytes(b"synthetic engine output fixture")
     return module, source

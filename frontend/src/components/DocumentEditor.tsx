@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Extension, Node, type JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { Plugin } from "@tiptap/pm/state";
+import { Mapping } from "@tiptap/pm/transform";
 import StarterKit from "@tiptap/starter-kit";
 import { ApiError } from "../api/client";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
@@ -30,6 +32,48 @@ const BlockIdentity = Extension.create({
     block_id: { default: null },
     originalAttrs: { default: null, rendered: false },
   } }, {types:["doc"],attributes:{originalAttrs:{default:null,rendered:false}}}]; },
+  addProseMirrorPlugins() { return [new Plugin({
+    appendTransaction(transactions, previous, current) {
+      if (!transactions.some(transaction => transaction.docChanged)) return null;
+      const occupied = new Set<string>(), preserved = new Set<string>();
+      const owners = new Map<string, number>();
+      const collectPreserved = (node: JSONContent) => {
+        if (typeof node.attrs?.block_id === "string" && node.attrs.block_id) {
+          occupied.add(node.attrs.block_id); preserved.add(node.attrs.block_id);
+        }
+        node.content?.forEach(collectPreserved);
+      };
+      current.doc.descendants((node, position) => {
+        if (node.type.name === "preservedUnknown" && node.attrs.raw) collectPreserved(node.attrs.raw);
+        if (blockTypes.includes(node.type.name) && typeof node.attrs.block_id === "string" && node.attrs.block_id) {
+          occupied.add(node.attrs.block_id);
+          if (!owners.has(node.attrs.block_id)) owners.set(node.attrs.block_id, position);
+        }
+      });
+      // A paste before an existing block must not steal that block's identity.
+      // Map the previous owner through the edit before assigning IDs to copies.
+      const mapping = new Mapping();
+      transactions.forEach(transaction => mapping.appendMapping(transaction.mapping));
+      previous.doc.descendants((node, position) => {
+        if (!blockTypes.includes(node.type.name) || !node.attrs.block_id) return;
+        const mapped = mapping.mapResult(position, 1);
+        if (!mapped.deleted && current.doc.nodeAt(mapped.pos)?.attrs.block_id === node.attrs.block_id) {
+          owners.set(node.attrs.block_id, mapped.pos);
+        }
+      });
+      const repair = current.tr;
+      current.doc.descendants((node, position) => {
+        if (!blockTypes.includes(node.type.name)) return;
+        const id = node.attrs.block_id;
+        if (typeof id === "string" && id && owners.get(id) === position && !preserved.has(id)) return;
+        let replacement: string;
+        do { replacement = crypto.randomUUID(); } while (occupied.has(replacement));
+        occupied.add(replacement);
+        repair.setNodeMarkup(position, undefined, { ...node.attrs, block_id: replacement });
+      });
+      return repair.docChanged ? repair : null;
+    },
+  })]; },
 });
 const PreservedUnknown = Node.create({
   name: "preservedUnknown",
@@ -60,13 +104,14 @@ export function encodeEditorContent(content: JSONContent): JSONContent {
   return { ...node, ...(Object.keys(merged).length ? { attrs: merged } : {}), ...(content.content ? { content: content.content.map(encodeEditorContent) } : {}) };
 }
 
-export function DocumentEditor({ content, version, onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
+export function DocumentEditor({ content, version, documentTitle, onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
   content: JSONContent;
   version: number;
   onSave: (content: JSONContent, expectedVersion: number) => Promise<{ content: JSONContent; version: number; workingStateConfirmed?:boolean }>;
   onRetryWorkingState?:()=>Promise<boolean>;
   onReadConflict?: (baseVersion: number) => Promise<DocumentConflictRead>;
   onDirtyChange?: (dirty: boolean) => void;
+  documentTitle?: string;
   onDraftChange?: (content: JSONContent, baseVersion: number) => void;
   onCreateReference?: () => Promise<JSONContent>;
   onReferenceActivate?: (attributes: Record<string, unknown>) => void;
@@ -91,6 +136,9 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
   const callbacks = useRef({ onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate });
   callbacks.current = { onSave, onReadConflict, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate };
   const editor = useEditor({
+    // The desktop host disallows inline style injection. Base editor styles are
+    // bundled in content.css, so selecting text never creates a blocked <style>.
+    injectCSS: false,
     extensions: [StarterKit.configure({ link: { openOnClick: false } }), BlockIdentity, PreservedUnknown, EvidenceReference],
     content: decodeEditorContent(content),
     editorProps: {
@@ -124,11 +172,6 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
     onUpdate({ editor }) {
       editSerial.current++;
       if(!merging.current)setComparison(null);
-      const transaction = editor.state.tr;
-      editor.state.doc.descendants((node, position) => {
-        if (blockTypes.includes(node.type.name) && !node.attrs.block_id) transaction.setNodeMarkup(position, undefined, { ...node.attrs, block_id: crypto.randomUUID() });
-      });
-      if (transaction.docChanged) editor.view.dispatch(transaction);
       callbacks.current.onDraftChange?.(encodeEditorContent(editor.getJSON()), currentVersion.current);
       journalPending.current=false;
       setStatus(blocked.current==="conflict"?"版本冲突：草稿仍保留；请比较后明确决定。":blocked.current==="permission"?"身份拒绝：草稿仍保留；不会自动重试正文。":blocked.current==="journal"?"工作草稿保全待核对；输入仍保留，正文不会自动重试。":"尚未保存");
@@ -232,14 +275,14 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
     // Editor identity and callbacks are stable refs; updates debounce committed input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [changes]);
-  return <section className="document-editor" aria-label="版本化草稿编辑器">
+  return <section className="document-editor" aria-label="文档草稿编辑器" data-context-surface="document-editor">
     <nav aria-label="草稿工具栏">
       <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()}>加粗</button>
-      <button type="button" onClick={() => editor?.chain().focus().undo().run()}>撤销</button>
-      <button type="button" onClick={() => editor?.chain().focus().redo().run()}>重做</button>
-      <button type="button" disabled={journalPending.current||blocked.current==="conflict"} onClick={() => void save()}>保存草稿</button>
+      <button type="button" data-context-command="undo" onClick={() => editor?.chain().focus().undo().run()}>撤销</button>
+      <button type="button" data-context-command="redo" onClick={() => editor?.chain().focus().redo().run()}>重做</button>
+      <button type="button" data-guide="document-save" data-context-command="save" disabled={journalPending.current||blocked.current==="conflict"} onClick={() => void save()}>保存草稿</button>
       {journalPending.current&&onRetryWorkingState?<button type="button" onClick={()=>void retryJournal()}>仅核对工作草稿保全</button>:null}
-      {onCreateReference ? <button type="button" onClick={() => void cite()}>引用当前页</button> : null}
+      {onCreateReference ? <button type="button" data-context-command="cite" onClick={() => void cite()}>引用当前页</button> : null}
     </nav>
     <div onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; setChanges((value) => value + 1); }}>
       <EditorContent editor={editor} />
@@ -258,6 +301,6 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
         <button type="button" onClick={()=>void save(comparison.current.version)}>{mergeMode?"明确采用合并稿并按已比较版本保存":"明确保留本稿并按已比较版本保存"}</button>
       </>:null}
     </section>:null}
-    <p role={failure ? "alert" : "status"}>{status} · 当前已保存版本 {currentVersion.current}</p>
+    <p className="document-save-status" role={failure ? "alert" : "status"}>正文{documentTitle ? `「${documentTitle}」` : ""}：{status} · 当前已保存版本 {currentVersion.current}</p>
   </section>;
 }

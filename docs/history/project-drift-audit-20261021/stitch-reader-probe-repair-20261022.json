@@ -1,0 +1,87 @@
+{
+  "schema": "aaos.stitch-reader-probe-repair/v1",
+  "observed_at": "2026-10-23T00:00:19.8097466+08:00",
+  "state": "RUNNING_BY_OWNER / PARTIAL",
+  "previous_goal_turn": "PROGRESS",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "source_binding": "DIRTY_WORKTREE_FILE_SHA256_NOT_BUILT_CANDIDATE",
+  "source_files": {
+    "frontend/src/components/StitchWorkspaceChrome.tsx": "579f3b692498c0c083b88def1ef53a6b195da146cb816641dff3ba0f814293a4",
+    "frontend/src/__tests__/SourceCandidateJourney.test.tsx": "339d31c8c290011c6244a9ffe6ead549e9c2d302da9f9e508ced4130de195f69",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "1a48a1fc0f6e584fa70d0a9b2728662187490a8cf3da45bf104de6d23d144ff5",
+    "scripts/probes/stitch_ui_browser.py": "717341d6e8fa621f946f0c4e12875f2514d3056798a93feb573d8c01eec9a3af",
+    "tests/test_grouped_native_owner_probe.py": "c4e9f23c1955ea7610415b636eddc3cefb5f059a0c5af7b8500577d2c5d8cfbc"
+  },
+  "local_artifacts": {
+    ".project-local/artifacts/stitch-reader-probe-repair-20261022/navigation-readback.json": "7bdcf8248d9e4367cfd3c503d76ba684bb12638f04aa5c469d2ae1ef7cba5c38",
+    ".project-local/artifacts/stitch-reader-probe-repair-20261022/exchange-after-launchpad.png": "6f3784638268a0b0e5f0aa66e1cc8f65f340050b95691a78e34aa6e1d91fa635"
+  },
+  "original_failure": {
+    "sha256": "d294a860a0f946b5b6dff33ba6863cc148d9c1fb7a9e569819abbaf31e708096",
+    "reason": "No reachable scroll container",
+    "direct_source_cause": "Obsolete .ui-reader-page query omitted current reader disclosure; hidden candidate clicked without expanding",
+    "native_requalification": "NOT_EXECUTED",
+    "status": "FAIL_RETAINED",
+    "receipt": ".project-local/runs/be268a2d33/webdriver-65b88076c711/tmp/journey/receipt.json"
+  },
+  "implementation": [
+    "Observe current semantic reader source disclosure; exclude hidden retained readers; verify summary and opened readback before candidate click",
+    "Keep trusted wheel, hit testing and bounded failure",
+    "Native navigation uses current Stitch menus and Dock; no legacy UI restored",
+    "Browser matrix keeps22 pages via menu; four page Dock entries plus separate launcher and companion interactions"
+  ],
+  "checks": {
+    "browser": {
+      "core": "NOT_CONNECTED; offline errors preserved",
+      "evidence_level": "INTEGRATED_FRONTEND_ONLY_NO_CORE",
+      "full_matrix": "NOT_EXECUTED",
+      "viewport": [
+        1280,
+        720
+      ],
+      "theme": "cosmic",
+      "dpr": 1.25,
+      "actions": [
+        "Menu Enter -> hash/render03 and menu closed",
+        "Dock click -> hash/render/activeDock06",
+        "Launcher search import -> page16 and dialog closed",
+        "Launcher reopen+Escape -> page16 retained and focus returned"
+      ],
+      "horizontal_overflow": false,
+      "status": "PASS_FOR_DECLARED_NAVIGATION_SUBSET"
+    },
+    "models": "NOT_EXECUTED; previous local no-final-answer failure retained",
+    "canonical_build": "NOT_RETRIED; previous uv Python child os error5 unresolved; no elevation or alternate interpreter",
+    "diff_check": "PASS",
+    "python_suite": "NOT_EXECUTED_THIS_TURN; known canonical Python child launcher permission blocker unchanged",
+    "native": "NOT_EXECUTED_FOR_CURRENT_SOURCE",
+    "typescript": {
+      "initial": "FAIL TS2352 missing DOMRectList.item in new regression stub",
+      "final": "PASS exit0 after complete DOMRectList return",
+      "command": "node node_modules/typescript/bin/tsc --noEmit"
+    },
+    "git_delivery": "NOT_COMMITTED_NOT_PUSHED; .git read-only",
+    "python_syntax": {
+      "boundary": "Syntax and selected error rules only; not Python test execution",
+      "status": "PASS",
+      "exit_code": 0,
+      "command": ".venv/Scripts/ruff.exe check --no-cache --select E9,F63,F7,F82 scripts/probes/aaos01_grouped_owner_loop.py scripts/probes/stitch_ui_browser.py tests/test_grouped_native_owner_probe.py"
+    },
+    "component": {
+      "tests": 21,
+      "reader_regression": "Executes actual production probe observer against rendered current CanonicalLibrarySpace/Dockview DOM",
+      "evidence_level": "SYNTHETIC",
+      "files": 3,
+      "final_reader_rerun": "11 PASS after DOMRectList stub typing fix; subset of21, not additive",
+      "exit_code": 0,
+      "command": "node node_modules/vitest/vitest.mjs run src/__tests__/SourceCandidateJourney.test.tsx src/__tests__/StitchWorkspaceChrome.test.tsx src/__tests__/StitchLaunchpad.test.tsx --reporter=dot"
+    }
+  },
+  "cleanup": "Owned IAB tab closed; own Vite session25808 stopped via stdin and terminal exit read back; no shared process termination",
+  "monitor": "PAUSED_UNCHANGED",
+  "next": [
+    "Inspect actual local no-final-answer pipeline without repeating the unchanged failed call",
+    "Complete product user-owned cloud binding within existing contracts",
+    "When canonical execution permitted build current candidate and qualify native/installed same-candidate CL/J; preserve original failures"
+  ]
+}

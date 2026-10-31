@@ -7,10 +7,12 @@ info:
     Path/verb inventory below is the agreed surface for the closed loop;
     it remains a reference until each route actually carries it (route
     conformance is tracked in the T03/T04/T12 lanes, not claimed here).
-    Error semantics: errors.catalog.yaml codes map to HTTP statuses; every
+    Error semantics: errors.catalog.yaml codes map to HTTP statuses; the generic
     reference failure body is {code, message, retryable} (component Error).
     Current machine answer/retest execution failures use the independently
     bounded MachineCallFailure component; 503 does not prove non-execution.
+    Problem-history handler failures use {error: FAILURE_LOG_*}; their
+    extraction/authentication failures may use a different body.
     Status vocabulary: job-status.schema.json; review/evidence states:
     assessment-vocabulary.schema.json; anchors: anchor-coordinate.schema.json.
 servers:
@@ -26,6 +28,151 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/search/semantic:
+    post:
+      summary: Explicit bounded query-time ranking of current Core-owned accepted knowledge
+      description: No caller corpus, provider/model override, directory read, persistent vector index or vault mutation. HTTP 200 may be EMPTY, PARTIAL or UNAVAILABLE. No automatic retry or FTS replacement. Uses the existing launch credential and local worker configuration.
+      x-core-operation: semantic_search
+      x-core-deadline-seconds: 90
+      x-desktop-transport-seconds: 135
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: './core-document.schema.json#/$defs/SemanticSearchInput'}
+      responses:
+        "200":
+          description: Bound ranking projection; complete is separate from HTTP success
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/SemanticSearchDto'}
+        "401": {description: Invalid launch credential; AAK-AUTH-001}
+        "403": {description: Browser Origin refused; AAK-AUTH-002}
+        "409": {description: Knowledge or source revision changed; AAK-CON-002}
+        "422": {description: Invalid query/request or eligible body exceeds capacity; AAK-VAL-001}
+        "500": {description: Snapshot unavailable; AAK-WORKER-001}
+        "502": {description: Invalid worker rows or provider identity drift; AAK-WORKER-001}
+        "503": {description: Worker unavailable; AAK-WORKER-001; retryable true does not request automatic replay}
+        "504": {description: Overall deadline exceeded; AAK-WORKER-001; retryable false}
+  /api/v1/workspace/operation-failures/read:
+    post:
+      operationId: readOperationFailureLog
+      description: >
+        Human-only bounded metadata history for the current workspace and restore epoch.
+        The first read may initialize an independent workspace_meta record through the
+        canonical Store writer. Corrupt history is reported, not silently replaced.
+        No document, draft CAS or model execution is performed.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 2048
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch]
+              properties:
+                workspace_id: {type: string, pattern: '^[a-f0-9]{32}$'}
+                restore_epoch: {type: string, pattern: '^(initial|[a-f0-9]{32})$'}
+      responses:
+        "200":
+          description: At most 50 safe entries; corrupt history has corrupt true, null generation and no entries
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/FailureLogSnapshot'}
+        "400": {description: Malformed JSON syntax}
+        "401": {description: Invalid launch token}
+        "403": {description: Human actor required}
+        "409": {description: 'Workspace or restore scope changed; handler body is {error: FAILURE_LOG_SCOPE_CHANGED}'}
+        "413": {description: Request exceeds 2048 bytes}
+        "422": {description: 'Invalid typed JSON or unknown fields; invalid scope metadata uses {error: FAILURE_LOG_INVALID}'}
+        "503": {description: 'Store unavailable; handler body is {error: FAILURE_LOG_UNAVAILABLE}'}
+  /api/v1/workspace/operation-failures/append:
+    post:
+      operationId: appendOperationFailureLog
+      description: >
+        Append finite safe metadata under the current workspace, restore epoch and log
+        generation. The Core supplies timestamps and counts, retaining at most 50 entries
+        and 65536 stored bytes. Matching failures less than 30 seconds apart accumulate;
+        the count is not a rolling-window total. No raw message, body or stack is accepted.
+        An unknown append result is not replayed automatically and proves no business result.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 2048
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, log_generation, operation, code, reason]
+              properties:
+                workspace_id: {type: string, pattern: '^[a-f0-9]{32}$'}
+                restore_epoch: {type: string, pattern: '^(initial|[a-f0-9]{32})$'}
+                log_generation: {type: string, pattern: '^[a-f0-9]{32}$'}
+                operation: {$ref: './core-document.schema.json#/$defs/FailureLogOperation'}
+                status:
+                  anyOf:
+                    - {type: 'null'}
+                    - {type: integer, minimum: 0, maximum: 599}
+                code: {$ref: './core-document.schema.json#/$defs/FailureLogCode'}
+                reason: {$ref: './core-document.schema.json#/$defs/FailureLogReason'}
+      responses:
+        "200":
+          description: Bounded updated history with Core-generated identity, timestamps and accumulated counts
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/FailureLogSnapshot'}
+        "400": {description: Malformed JSON syntax}
+        "401": {description: Invalid launch token}
+        "403": {description: Human actor required}
+        "409": {description: 'Scope or generation changed or stored history is corrupt; handler body is {error: FAILURE_LOG_*}'}
+        "413": {description: Request exceeds 2048 bytes}
+        "422": {description: 'Invalid typed JSON or unknown fields; invalid status or generation metadata uses {error: FAILURE_LOG_INVALID}'}
+        "503": {description: 'Store unavailable; handler body is {error: FAILURE_LOG_UNAVAILABLE}'}
+  /api/v1/workspace/operation-failures/clear:
+    post:
+      operationId: clearOperationFailureLog
+      description: >
+        Explicitly clear only the current workspace and restore scope, then install a fresh
+        log generation. Healthy history requires its matching generation. An absent or null
+        generation is accepted only for missing or corrupt history. Late old append/clear
+        requests are refused. Unknown clear results require explicit readback, not a success
+        claim or automatic replay. Documents and working-state drafts are unchanged.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 2048
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch]
+              properties:
+                workspace_id: {type: string, pattern: '^[a-f0-9]{32}$'}
+                restore_epoch: {type: string, pattern: '^(initial|[a-f0-9]{32})$'}
+                log_generation:
+                  anyOf:
+                    - {type: 'null'}
+                    - {type: string, pattern: '^[a-f0-9]{32}$'}
+      responses:
+        "200":
+          description: Empty history under a new generation; acknowledgement of this clear only
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/FailureLogSnapshot'}
+        "400": {description: Malformed JSON syntax}
+        "401": {description: Invalid launch token}
+        "403": {description: Human actor required}
+        "409": {description: 'Workspace, restore scope or log generation changed; handler body is {error: FAILURE_LOG_*}'}
+        "413": {description: Request exceeds 2048 bytes}
+        "422": {description: 'Invalid typed JSON or unknown fields; invalid scope metadata uses {error: FAILURE_LOG_INVALID}'}
+        "503": {description: 'Store unavailable; handler body is {error: FAILURE_LOG_UNAVAILABLE}'}
   /api/v1/ingest-batches/{batch_id}/members/{ordinal}/relations:
     post:
       summary: Append original Markdown CAS links to an existing source-bound Document
@@ -208,6 +355,109 @@ paths:
           description: Nonempty payload rejected before worker launch
         "503":
           description: Shared model admission busy; inventory not executed
+  /api/v1/machine/external-context/status:
+    get:
+      operationId: readExternalContextStatus
+      description: >
+        Local status only. Provider state is NOT_CONNECTED and provider_id is null;
+        raw context capture, network fetch and automatic recall are always false.
+        No provider discovery, network request, session access or inference occurs.
+      x-contract-status: implemented-source-slice-not-provider-or-owner-acceptance
+      responses:
+        "200":
+          description: Fixed local external-context boundary status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [schema_version, owner, fetch_status, provider_id, capabilities, raw_context_capture, network_fetch, automatic_recall]
+                properties:
+                  schema_version: {const: 1}
+                  owner: {const: EXTERNAL_CONTEXT_PROVIDER}
+                  fetch_status: {const: NOT_CONNECTED}
+                  provider_id: {type: "null"}
+                  capabilities:
+                    const: [receive_knowledge_candidate, query_candidate_metadata, read_evidence_reference_status]
+                  raw_context_capture: {const: false}
+                  network_fetch: {const: false}
+                  automatic_recall: {const: false}
+  /api/v1/machine/external-context/candidates:
+    post:
+      operationId: receiveExternalContextCandidate
+      description: >
+        Human-only offline import of a bounded, already-redacted knowledge candidate.
+        Does not fetch or connect to a provider, capture sessions/raw context, follow
+        external URLs, recall or adopt knowledge. Candidate evidence remains
+        UNVERIFIED_EXTERNAL, even when its submitted verification claim is PASS.
+      x-contract-status: implemented-source-slice-not-provider-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [candidate, material_authorized, redaction_confirmed]
+              properties:
+                material_authorized: {const: true}
+                redaction_confirmed: {const: true}
+                candidate:
+                  type: object
+                  additionalProperties: false
+                  required: [schema_version, candidate_id, knowledge_kind, title, summary, problem, root_cause, failed_attempts, resolution, applicability, contraindications, evidence_refs, verification, source]
+                  x-max-serialized-bytes: 48000
+                  x-semantic-constraints: Candidate/provider/project/source_app identifiers are ASCII alphanumeric, underscore, dot or hyphen; references additionally reject leading slash/tilde, file URIs, drive-root paths, whitespace, controls, backslash, query and userinfo; nested strings reject NUL; nonempty semantic fields must contain non-whitespace text.
+                  properties:
+                    schema_version: {const: 1}
+                    candidate_id: {type: string, minLength: 1, maxLength: 128, x-max-utf8-bytes: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                    knowledge_kind: {type: string, enum: [coding_pitfall, root_cause, verified_fix, decision_rule, reusable_procedure, other]}
+                    title: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    summary: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    problem: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    root_cause: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    failed_attempts: {type: array, maxItems: 16, items: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}}
+                    resolution: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    applicability: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    contraindications: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    evidence_refs: {type: array, maxItems: 32, items: {type: string, minLength: 1, maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}}
+                    verification:
+                      type: object
+                      additionalProperties: false
+                      required: [status]
+                      properties:
+                        status: {type: string, enum: [PASS, FAIL, PARTIAL, UNKNOWN, NOT_RUN]}
+                        command: {type: [string, "null"], maxLength: 4096, x-max-utf8-bytes: 4096}
+                        exit_code: {type: [integer, "null"], minimum: -2147483648, maximum: 2147483647}
+                        artifact_hash: {type: [string, "null"], pattern: '^[A-Fa-f0-9]{64}$'}
+                        diff_ref: {type: [string, "null"], maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}
+                    source:
+                      type: object
+                      additionalProperties: false
+                      required: [provider_id, project_id, source_app, source_ref, auth_scope, fetch_status, provenance, updated_at]
+                      properties:
+                        provider_id: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                        project_id: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                        source_app: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                        source_ref: {type: string, minLength: 1, maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}
+                        auth_scope: {const: 'knowledge_candidate:import'}
+                        fetch_status: {const: AVAILABLE}
+                        provenance: {type: array, maxItems: 32, items: {type: string, minLength: 1, maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}}
+                        updated_at: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+      responses:
+        "201":
+          description: Existing versioned AI-asset Document candidate; external evidence remains unverified
+          content:
+            application/json:
+              schema: {$ref: ./core-document.schema.json#/$defs/DocumentDto}
+        "401": {description: Invalid launch credential}
+        "403": {description: Human actor required}
+        "413": {description: Request exceeds 65,536 bytes}
+        "400": {description: Malformed JSON syntax or semantic candidate/scope/bound rejection}
+        "422": {description: Valid JSON with invalid typed data or unknown fields}
+        "500": {description: Candidate persistence failed}
   /api/v1/machine/configuration:
     get:
       operationId: readMachineConfiguration

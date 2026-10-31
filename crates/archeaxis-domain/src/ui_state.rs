@@ -366,6 +366,10 @@ pub fn machine_request_fingerprint(operation: &str, body: &Value) -> String {
         "context_grant":body["context_grant"],"asset_context_grant":body["asset_context_grant"],
         "client_request_id":if operation=="answer" {body["client_request_id"].clone()} else {Value::Null},
         "retest_of":if operation=="retest" {body["retest_of"].clone()} else {Value::Null}});
+    if let Some(raw) = body.get("response_format").filter(|v| !v.is_null()) {
+        request["response_format"] =
+            crate::response_format::normalize(raw).unwrap_or_else(|_| raw.clone());
+    }
     if let Some(model) = body.get("model") {
         request["model"] = model.clone();
     }
@@ -384,6 +388,10 @@ fn machine_owner(conn: &Connection, pending: &PendingMachine) -> Result<(), Erro
         .map_err(|_| Error::Invalid("retest journey unreadable"))?;
     if prior["knowledge_id"] != pending.owner_knowledge_id
         || prior["question"] != pending.body["question"]
+        || !crate::response_format::equivalent(
+            prior["request"].get("response_format"),
+            pending.body.get("response_format"),
+        )
     {
         return Err(Error::Invalid(
             "retest journal owner or question differs from failed journey",
@@ -401,6 +409,9 @@ fn machine_snapshot_shape(document_id: &str, version: i64, hash: &str, max_id: u
             .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
 }
 fn machine_grant_shapes(body: &Value, operation: &str) -> bool {
+    if crate::response_format::optional(body.get("response_format")).is_err() {
+        return false;
+    }
     if let Some(value) = body.get("context_grant") {
         let Ok(grant) = serde_json::from_value::<crate::context_grant::Consumption>(value.clone())
         else {
@@ -697,6 +708,7 @@ fn validate(state: &State) -> Result<(), Error> {
             "timeout_s",
             "model",
             "model_configuration",
+            "response_format",
             "context_grant",
             "asset_context_grant",
             "client_request_id",
@@ -1703,6 +1715,10 @@ pub fn clear_machine(conn: &mut Connection, request: ClearMachine) -> Result<Val
         || doc["knowledge_id"] != body["knowledge_id"]
         || doc["question"] != body["question"]
         || common.iter().any(|k| proof[*k] != body[*k])
+        || !crate::response_format::equivalent(
+            proof.get("response_format"),
+            body.get("response_format"),
+        )
         || !doc["answer"]["answer"]
             .as_str()
             .is_some_and(|s| !s.trim().is_empty())

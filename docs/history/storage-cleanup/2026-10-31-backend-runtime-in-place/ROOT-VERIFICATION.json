@@ -1,0 +1,161 @@
+{
+  "schema": "aaos.finite-followup-root-verification/v1",
+  "status": "LOCAL_STATIC_AND_GENERATED_CHECKS_PASS_PRODUCT_PARTIAL",
+  "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+  "dirty": true,
+  "source_patch_sha256": "bd4cb8b38ccf92740c8382e315944037ca282839b08c1af45a18233c8be8533e",
+  "source_consistent": true,
+  "checks": [
+    "document-authority",
+    "path-conventions",
+    "repository-index-conventions",
+    "architecture",
+    "core-contract-generation",
+    "capability-generation",
+    "capability-projection",
+    "cargo-format",
+    "bridge-format",
+    "ruff-minimal"
+  ],
+  "execution": {
+    "path": ".project-local/runs/be268a2d33/fin4/artifacts/execution.json",
+    "bytes": 1283,
+    "sha256": "8f0b8e9d57d67a3ad899259dbfd311e0d7ac5d34fe3a9dde4827388246d9ecbb"
+  },
+  "gates": {
+    "path": ".project-local/runs/be268a2d33/fin4/artifacts/gates.json",
+    "bytes": 3475,
+    "sha256": "e980cf4eff6e32c6772c12facf9f41a73234377e7cf207c05e2c35a77946b954"
+  },
+  "exact_root_reviews": [
+    {
+      "path": ".project-local/runs/be268a2d33/sci-verify1/artifacts/root-review.json",
+      "bytes": 8058,
+      "sha256": "c6caaa9d17aea966b2c3ebd30bfa136e8b5feb35f2fd904921223b855582247e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sci-verify2/artifacts/root-review.json",
+      "bytes": 5638,
+      "sha256": "9b9a220710666ffde6672e91fd56a382e4171c448c0fdcc22eb09cff4ce2deea"
+    }
+  ],
+  "qualified_source_files": [
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "bytes": 2375,
+      "sha256": "1c6c5213bfc1bab068527e902ce96e84ed79f68ac1408ea6aacc8976d69e2619"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/contract_vault_members.rs",
+      "bytes": 8276,
+      "sha256": "9bd54b1684ffe7faf22ffdb420cd8ceabbca3e4bc430e14a9b7407ae0331cd5a"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/vault_members.rs",
+      "bytes": 16004,
+      "sha256": "7fe8087ffaddb17976505daf4c209e8908e71008272135a1d8e457ea86722a74"
+    },
+    {
+      "path": "desktop/scripts/prepare_bundle.py",
+      "bytes": 20010,
+      "sha256": "1e66dc8443b2992769235eba3c4cbb3bcd6ad391f2c2718131c5012fafe2ab01"
+    },
+    {
+      "path": "desktop/scripts/stage_runtime.py",
+      "bytes": 2408,
+      "sha256": "459c494b87c91820ab5e27d88f410c6891d07df10d7e361f41ff718dfda856be"
+    },
+    {
+      "path": "frontend/src/__tests__/CoreBridge.test.ts",
+      "bytes": 15913,
+      "sha256": "633f01669174905d9680152b11fb915c7fcc94fd8ed749a2ff09791948e8c40f"
+    },
+    {
+      "path": "frontend/src/api/core.ts",
+      "bytes": 16654,
+      "sha256": "cce3dea8e45f36109105787088b77842b8394b79d456eab693ad41da1144c3a4"
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "bytes": 5794,
+      "sha256": "96d563ba68e09acb17d3ebf4ed140288a3a702625997711e0a1bb1fd8e5980b8"
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "bytes": 102089,
+      "sha256": "42a893c10a58b5bd51ff1819ba4141f35340e79030d820dc753af7205d9ac2bf"
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "bytes": 4131,
+      "sha256": "efc1c54c35c94697d8f1a6836dbf5691846517ccc59632e1620c1f5ded54663a"
+    },
+    {
+      "path": "packages/contracts/v1/core-document.schema.json",
+      "bytes": 117095,
+      "sha256": "f0cad161f3ed65092d75ae0f95bfda614916bf867a695c4a823c556a4fcee69d"
+    },
+    {
+      "path": "packages/contracts/v1/openapi-outline.yaml",
+      "bytes": 55520,
+      "sha256": "c23ef829b722ac308808047fe6376f899c10b3f682987a35b63ef75bb5787d61"
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.cases.json",
+      "bytes": 163318,
+      "sha256": "802053ec21e6dcb8ef0b5fc088da469b16ddd95c178614b4efaae39ceb0a6b5b"
+    },
+    {
+      "path": "scripts/release/stage_backend_runtime.py",
+      "bytes": 60754,
+      "sha256": "e425106e0956330870171687b135bbd6203b1fb3e689088829723824e3a88bcf"
+    },
+    {
+      "path": "scripts/runtime/storage_report.py",
+      "bytes": 31263,
+      "sha256": "e72d1aaf5facefe9b9afd98b2b19374249e5a03824087ba80499b7f54aab0970"
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "bytes": 91879,
+      "sha256": "58ade206feb1bb7c184d12dbfe4450065ebd448d618374fc1316d1a258d6caf7"
+    },
+    {
+      "path": "tests/contract/test_semantic_bridge_contract.py",
+      "bytes": 2825,
+      "sha256": "a399a34d7a6efeca6e98418d98e025f3513612c3fd67003810e07a096aff9e47"
+    },
+    {
+      "path": "tests/runtime-paths/test_build_timing.py",
+      "bytes": 2529,
+      "sha256": "821c00bd047ea207d80d795264a618e630cad2affeb452d7256ce78eca5613c9"
+    },
+    {
+      "path": "tests/test_backend_in_place.py",
+      "bytes": 19505,
+      "sha256": "639c6446230c0b7a687c971089452d0f30d1ab56a1ff6ab2bc132b22ffd0bf09"
+    },
+    {
+      "path": "tests/test_desktop_staging.py",
+      "bytes": 18310,
+      "sha256": "dbe7ce39ac3e456fd0180536692c5fc7ae17d493108f4485079325ae4eaa7c08"
+    },
+    {
+      "path": "tests/test_storage_report_link_measurement.py",
+      "bytes": 20734,
+      "sha256": "4657081e97e962ab0b7223c8a7eeb0878eb29e877b7ff51d863026a1bd4a0587"
+    }
+  ],
+  "closing_record_boundary": "This lightweight record and final progress note are published after fin4; implementation bytes are unchanged. Not a clean-commit, full strict Ruff or runtime qualification.",
+  "preserved_failures": "spr-pa1 overall FAIL, pytest127 passed, strict Ruff11 (3 new fixed/8 existing retained); no historical receipt reassignment",
+  "not_executed": [
+    "full production dependency build/install",
+    "Tauri app build",
+    "UI",
+    "new semantic model quality",
+    "cloud CI",
+    "installed candidate",
+    "Green replacement",
+    "Owner acceptance"
+  ]
+}

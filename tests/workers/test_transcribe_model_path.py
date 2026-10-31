@@ -27,5 +27,7 @@ def test_explicit_model_override_remains_supported(tmp_path, monkeypatch):
     model = tmp_path / "model"
     model.mkdir()
     (model / "model.bin").write_bytes(b"fixture")
+    (model / "config.json").write_text("{}", encoding="utf-8")
+    (model / "tokenizer.json").write_text("{}", encoding="utf-8")
     monkeypatch.setenv("ARCHEAXIS_ASR_MODEL_DIR", str(model))
     assert module._model_dir(None) == model

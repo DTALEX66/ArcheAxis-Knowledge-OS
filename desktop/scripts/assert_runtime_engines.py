@@ -12,7 +12,8 @@ import importlib, importlib.metadata, json, pathlib, shutil, subprocess, sys
 root = pathlib.Path(sys.executable).parent.resolve()
 modules = []
 for name, distribution in [('openpyxl', 'openpyxl'), ('pptx', 'python-pptx'),
-                           ('markitdown', 'markitdown'), ('pytesseract', 'pytesseract')]:
+                           ('rapidocr_onnxruntime', 'rapidocr-onnxruntime'),
+                           ('pytesseract', 'pytesseract')]:
     module = importlib.import_module(name)
     path = pathlib.Path(module.__file__).resolve()
     if not path.is_relative_to(root):

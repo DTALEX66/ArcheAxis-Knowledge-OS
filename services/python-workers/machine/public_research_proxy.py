@@ -1,7 +1,8 @@
-"""Opt-in public-research-only HTTP CONNECT via an explicitly named loopback proxy.
+"""Public-research-only HTTP CONNECT via a validated loopback HTTP proxy.
 
-No system proxy discovery, credentials, environment lookup, redirects, or TLS bypass.
-This module accepts only the three fixed public GET endpoints owned by this worker.
+An explicit setting wins; Windows may reuse its enabled current-user literal proxy.
+No PAC execution, credentials, generic proxy environment, redirects, or TLS bypass.
+This module accepts only the fixed public GET endpoints owned by this worker.
 """
 from __future__ import annotations
 
@@ -10,11 +11,12 @@ import ipaddress
 import re
 import socket
 import ssl
+import sys
 import time
 from urllib.parse import urlsplit
 
 TARGETS = {"en.wikipedia.org": "/w/api.php", "api.stackexchange.com": "/2.3/search/advanced",
-           "api.openalex.org": "/works"}
+           "api.openalex.org": "/works", "api.crossref.org": "/works"}
 CONNECT_LIMIT = 8192
 HEADER_LIMIT = 16384
 
@@ -42,6 +44,58 @@ def _proxy(value):
         return str(address), parsed.port
     except (ValueError, TypeError):
         raise ProxyFailure("proxy_config_invalid") from None
+
+
+def _registered_proxy(value):
+    """Parse only a literal WinINet proxy; HTTPS mappings do not inherit HTTP-only ones."""
+    if not isinstance(value, str) or not 1 <= len(value) <= 2048 \
+            or any(ord(c) < 33 or ord(c) > 126 for c in value):
+        return None
+    if "=" in value:
+        mappings = {}
+        for item in value.split(";"):
+            parts = item.split("=")
+            if len(parts) != 2 or parts[0].lower() not in {"http", "https", "ftp", "socks"} \
+                    or parts[0].lower() in mappings or not parts[1]:
+                return None
+            mappings[parts[0].lower()] = parts[1]
+        value = mappings.get("https")
+        if value is None:
+            return None
+    candidate = value if "://" in value else "http://" + value
+    try:
+        _proxy(candidate)
+        return candidate
+    except ProxyFailure:
+        return None
+
+
+def _windows_proxy():
+    """Read two exact network values, never run PAC or change Windows configuration."""
+    if sys.platform != "win32":
+        return None
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Internet Settings",
+                0, winreg.KEY_QUERY_VALUE) as key:
+            enabled, kind = winreg.QueryValueEx(key, "ProxyEnable")
+            if kind != winreg.REG_DWORD or enabled != 1:
+                return None
+            value, kind = winreg.QueryValueEx(key, "ProxyServer")
+            return _registered_proxy(value) if kind == winreg.REG_SZ else None
+    except (ImportError, OSError, ValueError, TypeError, AttributeError):
+        return None
+
+
+def select_proxy(setting):
+    """Resolve once per public request. Explicit invalid/empty settings fail closed."""
+    if setting is not None:
+        if setting == "direct":
+            return None
+        _proxy(setting)
+        return setting
+    return _windows_proxy()
 
 
 def _remaining(deadline):

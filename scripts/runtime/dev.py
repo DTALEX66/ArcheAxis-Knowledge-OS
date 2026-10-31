@@ -81,7 +81,8 @@ def layout(root: Path, run_id: str | None = None) -> dict[str, Path]:
     paths["frontend_dist"] = paths["artifacts"] / "frontend-dist"
     paths["tauri_config"] = paths["tmp"] / "tauri-build.json"
     # Main checkout shares the checked-in bare Cargo target; linked worktrees
-    # retain independent outputs. Do not move or remove any historical cache.
+    # retain independent outputs. Historical caches require an explicit reviewed
+    # cleanup manifest; preservation does not exempt them from storage budgets.
     paths["cargo_build"] = (dev / "build" / "cargo" if root == owner
                             else paths["build"] / "cargo")
     paths["tauri_build"] = (dev / "build" / "tauri" if root == owner
@@ -151,8 +152,8 @@ GLOBAL_ENV_DENYLIST = frozenset({
 })
 
 # Resources whose consumers look them up by bare name (a worker calling `tesseract`, a shell
-# calling `cargo`), so their declared directory belongs on the child PATH. Prepend only, never
-# replace, and never a directory that is already there.
+# calling `cargo`), so their declared directory belongs first on the child PATH.
+# Promote existing entries too: a stale shim earlier on PATH must not shadow them.
 PATH_LOOKUP_RESOURCES = ("tesseract", "ffmpeg")
 
 
@@ -167,7 +168,7 @@ def external_toolchain(repo_root: Path | None = None, run_tmp: Path | None = Non
     ``AAK-WORKER-003`` even though every tool was installed. Discovery is deliberately
     conditional: with no registered root, or with a path that does not exist, nothing
     is set and CI is unaffected. A variable that is already set always wins, except
-    `PATH`, which is prepended to only when the directory is not already on it.
+    `PATH`, where declared native directories are promoted without duplicate entries.
     """
     root_text = ""
     for name in ("OS_EXTERNAL_CONFIG", "ARCHEAXIS_EXTERNAL_ROOT"):
@@ -233,21 +234,31 @@ def external_toolchain(repo_root: Path | None = None, run_tmp: Path | None = Non
     # The scoop shims on this host are stale - they point at a sibling `toolchains`
     # tree that does not exist, so a shim is present but cannot start its target. The
     # application trees themselves are intact, so expose those instead of the shims.
-    prepend: list[str] = []
+    declared_directories: list[str] = []
     for name in PATH_LOOKUP_RESOURCES:
         located = resolver.declared_location(name, root=root)
         if located:
-            directory = str(Path(located).parent)
-            if directory not in existing_path:
-                prepend.append(directory)
+            declared_directories.append(str(Path(located).parent))
     if rust_location:
         cargo_bin = str(Path(rust_location).parent)
-        if (Path(cargo_bin) / "cargo.exe").is_file() and cargo_bin not in existing_path:
-            prepend.append(cargo_bin)
-    if prepend:
-        discovered["PATH"] = os.pathsep.join(
-            [*prepend, existing_path] if existing_path else prepend
-        )
+        if (Path(cargo_bin) / "cargo.exe").is_file():
+            declared_directories.append(cargo_bin)
+    if declared_directories:
+        def path_key(value: str) -> str:
+            return os.path.normcase(os.path.normpath(value))
+
+        prepend: list[str] = []
+        declared_keys: set[str] = set()
+        for directory in declared_directories:
+            key = path_key(directory)
+            if key not in declared_keys:
+                prepend.append(directory)
+                declared_keys.add(key)
+        tail = [entry for entry in existing_path.split(os.pathsep)
+                if path_key(entry) not in declared_keys] if existing_path else []
+        child_path = os.pathsep.join([*prepend, *tail])
+        if child_path != existing_path:
+            discovered["PATH"] = child_path
 
     # The resource probe sample (a rendered OCR image the engine reads back) belongs to this
     # run, not to the machine temp, so a verification step cannot leave task-scoped residue.
@@ -409,6 +420,17 @@ def prepare(paths: dict[str, Path]) -> dict[str, str]:
         paths[key].mkdir(parents=True, exist_ok=True)
     with paths["tauri_config"].open("x", encoding="utf-8", newline="\n") as output:
         json.dump(tauri_overlay(paths), output)
+        output.write("\n")
+    # Every new run starts with a named ownership/retention record. Unknown
+    # retention is preserved until reviewed, never expired by age alone.
+    with (paths["run"] / "run-metadata.json").open("x", encoding="utf-8", newline="\n") as output:
+        json.dump({"schema": "aaos.run-retention/v1", "owner": "ArcheAxis-Knowledge-OS",
+                   "worktree_root": str(paths["root"]), "run_id": paths["run"].name,
+                   "created_at": datetime.now(timezone.utc).isoformat(),
+                   "source_commit": values["ARCHEAXIS_SOURCE_COMMIT"],
+                   "source_patch_sha256": values["ARCHEAXIS_SOURCE_PATCH_SHA256"],
+                   "class": "run-evidence", "retention": "UNCLASSIFIED_PRESERVE",
+                   "review_after_days": 14, "automatic_deletion": False}, output, indent=2)
         output.write("\n")
     return values
 

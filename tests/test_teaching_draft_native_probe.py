@@ -73,12 +73,22 @@ class TeachingDraftProbeTests(unittest.TestCase):
     def test_input_and_keys_scope_pin_current_dock_page(self):
         grouped = load('aaos01_grouped_owner_loop')
         calls = []
-        ui = grouped.GroupedUI(None, lambda script: True,
+        def observe(script):
+            # Synthetic facts keep this test focused on the current Dock scope.
+            if '__aaosTargetPointerProbe?.finish()' in script:
+                return {'overflow': 0, 'events': [
+                    {'type': kind, 'trusted': True, 'target': True, 'button': 0}
+                    for kind in ('pointerdown', 'pointerup', 'click')
+                ]}
+            return {'ready': True, 'disabled': False, 'hit': True, 'stable': True,
+                    'armed': True, 'count': 1, 'point': {'x': 1, 'y': 1}}
+        ui = grouped.GroupedUI(observe,
+                               lambda script: True,
                                lambda using, selector: calls.append(selector) or 'visible-current-page',
                                lambda *args: None, [])
         ui.type('用途', 'raw', scope=self.probe.form_scope('12'))
         ui.keys(self.probe.form_scope('12') + "//label[normalize-space(text())='反馈分类']/select", '\ue015\ue007')
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(calls), 3)
         for selector in calls:
             self.assertIn("contains(@data-session-key,':12:workspace')", selector)
             self.assertIn("not(ancestor-or-self::*[@hidden or @aria-hidden='true'])", selector)

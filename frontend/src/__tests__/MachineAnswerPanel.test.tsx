@@ -19,7 +19,7 @@ describe("SIMULATED machine candidate UI with Core bridge fixtures",()=>{
   const entries=renderHook(useDiagnostics);const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
   render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();
   await user.type(screen.getByLabelText("实际问题"),"保留原问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  const detail=await screen.findByRole("button",{name:"查看诊断详情：回答失败脱敏诊断"});
+  const detail=await screen.findByRole("button",{name:"状态与诊断：回答失败脱敏诊断"});
   expect(screen.getByLabelText("实际问题")).toHaveValue("保留原问题");
   expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
   expect(bridge.call.mock.calls.filter(([op])=>op==="machine_answer")).toHaveLength(1);
@@ -71,13 +71,13 @@ describe("machine identity and history regressions",()=>{
  it("rejects the wrong original question and blocks UNKNOWN inference retry",async()=>{
   bridge.call.mockResolvedValue({...answer,question:"错问题"});render(<MachineAnswerPanel knowledgeId="k1"/>);
   const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  expect(await screen.findByText(/状态 UNKNOWN。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
+  expect(await screen.findByText(/状态尚未确认。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
   expect(bridge.call).toHaveBeenCalledTimes(1);expect(screen.queryByRole("button",{name:"执行本地机器回答"})).not.toBeInTheDocument();expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));expect(bridge.call).toHaveBeenCalledTimes(1);
  });
  it("rejects wrong task knowledge with matching answer text",async()=>{
   bridge.call.mockImplementation(async(op:string)=>op==="machine_answer"?answer:task({...answer,knowledge_id:"other"}));
   render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  expect(await screen.findByText(/状态 UNKNOWN。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
+  expect(await screen.findByText(/状态尚未确认。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
  });
  it("restores a saved answer from paged Core history without inference",async()=>{
   const receipt={...task(answer),principal:"machine",recorded_at:"2026-10-10",method_version:null,tool_version:null,failure:null};
@@ -99,6 +99,25 @@ describe("persisted correction and withdrawal history",()=>{
  const evaluation={...answer,correction};
  const savedRetest={...retestReceipt,prior:{conditions:evaluation}};
  const failed={...task(answer),task_id:"evaluation_answer1",conditions:JSON.stringify(evaluation),scope:"runtime.evaluation.failed",outcome:"failed"};
+ it("presents a recorded correction without treating its storage outcome as independent model failure",async()=>{
+  const row={...failed,principal:"machine",recorded_at:"2026-10-10",method_version:null,tool_version:null,failure:"依据"};
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{
+   if(op==="machine_tasks_list")return {items:[row,{...row,task_id:"actual_failure",scope:"runtime.answer"}],next_cursor:null};
+   if(op==="machine_task_get")return payload.task_id==="evaluation_answer1"?row:task(answer);
+   if(op==="knowledge_get")return {knowledge_id:"correction1",body:"使用者纠正",version:"review-v1",status:"candidate"};
+   throw new Error("unexpected write");
+  });
+  render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
+  const history=await screen.findByRole("list",{name:"既有机器学习任务"});
+  expect(history).toHaveTextContent("使用者纠正 · 已记录");expect(history).not.toHaveTextContent("评测失败");
+  expect(history.querySelector('[data-task-id="actual_failure"]')).toHaveTextContent("回答 · 失败");
+  await user.click(await savedTaskButton("evaluation_answer1"));
+  expect(await screen.findByLabelText("真实机器回答")).toHaveTextContent("实际机器回答");
+  expect(screen.getByText("纠正记录本身不证明原回答错误，请结合提交者与依据核验。")).toBeInTheDocument();
+  expect(screen.getByText("纠正记录提交者").parentElement).toHaveTextContent("human");
+  expect(screen.getByText("提交的纠正依据").parentElement).toHaveTextContent("依据");
+  expect(bridge.call.mock.calls.every(([op])=>["machine_tasks_list","machine_task_get","knowledge_get"].includes(op))).toBe(true);
+ });
  it("recovers the whole withdrawn chain with original answer and retest visible",async()=>{
   const row={...task(savedRetest,"runtime.retest"),principal:"machine",recorded_at:"2026-10-10",method_version:null,tool_version:null,failure:null};
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{

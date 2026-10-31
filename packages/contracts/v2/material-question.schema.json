@@ -182,6 +182,14 @@
         },
         "execution_mode": {
           "const": "async"
+        },
+        "cloud_upload_confirmed": {
+          "type": "boolean",
+          "default": false
+        },
+        "cloud_unknown_cost_confirmed": {
+          "type": "boolean",
+          "default": false
         }
       },
       "required": [
@@ -278,7 +286,10 @@
           "$ref": "#/$defs/MaterialContextProofDto"
         },
         "destination": {
-          "const": "LOCAL_LOOPBACK_ONLY"
+          "enum": [
+            "LOCAL_LOOPBACK_ONLY",
+            "PUBLIC_HTTPS"
+          ]
         },
         "destination_candidates": {
           "type": "array",
@@ -298,7 +309,8 @@
         "network_scope": {
           "enum": [
             "fixed_owned_local_worker",
-            "configured_numeric_loopback_endpoint"
+            "configured_numeric_loopback_endpoint",
+            "single_confirmed_material_upload"
           ]
         },
         "restore_epoch": {
@@ -313,6 +325,11 @@
         "workspace_id": {
           "type": "string",
           "pattern": "^[a-f0-9]{32}$"
+        },
+        "cost_status": {
+          "enum": [
+            "UNKNOWN_EXPLICITLY_ACCEPTED"
+          ]
         }
       },
       "required": [
@@ -633,12 +650,13 @@
         "endpoint": {
           "type": "string",
           "maxLength": 256,
-          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+          "pattern": "^(http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?|https://[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z]{2,}(:443)?(/[A-Za-z0-9_-]+)*)$"
         },
         "protocol": {
           "enum": [
             "ollama",
-            "openai"
+            "openai",
+            "openai-buffered"
           ]
         },
         "model": {

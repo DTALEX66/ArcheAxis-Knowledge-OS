@@ -1,0 +1,33 @@
+{
+  "schema": "aaos.handoff-compaction/v1",
+  "source_commit": "cc0b14e9a233388728ddb696483fc2ab0c3158fc",
+  "original_path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "original_relative_link_base": "docs/current/",
+  "archive": {
+    "path": "docs/history/project-drift-audit-20261021/current-handoff-before-compaction-20261024.md",
+    "bytes": 84979,
+    "sha256": "6adead1984f9d3c8c6532e17791d224b84cc24c991302946d991adb338141eef"
+  },
+  "byte_preservation": "EXACT_ORIGINAL_BYTES_AND_SHA256",
+  "current_role": "LIVE_NAVIGATION_AND_INHERITED_CONTRACT_LINKS; no retired route",
+  "new_current": {
+    "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+    "bytes": 4964,
+    "sha256": "2a96634c9e88a1407167760d059726443aec3281c0e1785db2204fd31bf10136"
+  },
+  "historical_authorization": "Archived instructions and dated statuses remain source material; resolve current authorization and state through active pointer/sole ledger.",
+  "reference_review": {
+    "path": ".project-local/artifacts/dual-loop-resume-20261023/handoff-compaction-targeted-review-20261024.json",
+    "bytes": 11877,
+    "sha256": "a6c5c12efdf50393661bfac1dbb66f1c3866c18e46f2cd28e612384e686462f2"
+  },
+  "storage": "Archive retained, no disk-space reclamation claimed.",
+  "first_gate_failure": {
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/reader-folder-current-authority-20261024-01/artifacts/execution.json",
+      "bytes": 1339,
+      "sha256": "20026a35fbf48d834e7b52ef25ec69b6e30272c2661fac62deeb0c89b75f46e0"
+    },
+    "reason": "Compacted current handoff missed explicit inherited10/19 owner-dialogue source link required by archive verifier. Added the real normative/source navigation; checker and historical bytes unchanged."
+  }
+}

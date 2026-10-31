@@ -87,5 +87,13 @@
   "limits": [
     "Derived thinking/completed/failed alpha edges retain source-index limitations",
     "Source repository and remote preserved; no second runtime or model/memory store imported"
-  ]
+  ],
+  "donor_custody": {
+    "canonical_public_root": "assets/astryn-full",
+    "retired_public_copy_prefix": "assets/astryn",
+    "retired_public_copy_files": 126,
+    "retained_path_rule": "Same relative path under canonical_public_root; original source relative paths remain in records.",
+    "preservation": "Original source and source indexes remain in canonical_public_root and the retained hash-verified project-local originals archive.",
+    "scope": "Duplicate path normalization only; no donor capability absorption, private-state migration, runtime asset change or external source repository deletion."
+  }
 }

@@ -1,4 +1,5 @@
 import type { CapabilityCatalogEntry } from "../api/generated/capability-catalog";
+import { UI_CAPABILITY_INTENT } from "./uiCapabilityIntent";
 
 // User-purpose copy only. Identity/implementation remain in the generated Atlas/map;
 // these labels neither register executable packages nor qualify a runtime.
@@ -54,6 +55,12 @@ const detailNames: Readonly<Record<string,string>> = {
  "Worker / Plugin / Skill / Provider / Tool身份":"执行引擎、插件、技能、服务与工具的身份", "模型 / Provider":"模型与服务提供方",
 };
 export function capabilityDetailText(text:string):string{return detailNames[text]??text;}
+export const CAPABILITY_DESIGN_DETAIL_COUNT = Object.values(UI_CAPABILITY_INTENT).reduce((count, items) => count + items.length, 0);
+/** A searchable projection of authored intentions, never an implementation status. */
+export function capabilityDesignDetails(capabilityId: string, query = ""): readonly string[] {
+  const needle = query.trim().toLocaleLowerCase("zh-CN");
+  return (UI_CAPABILITY_INTENT[capabilityId] ?? []).filter(item => !needle || [item, capabilityDetailText(item)].some(text => text.toLocaleLowerCase("zh-CN").includes(needle)));
+}
 export function capabilityPresentation(entry: CapabilityCatalogEntry) {
   const future = entry.implementation.state === "not_implemented";
   const group: CapabilityGroup = future ? "future" : entry.atlas.capability_id === "CAP-0060" ? "extension" : "builtin";

@@ -1,9 +1,7 @@
-"""Dormant Material-only protocol adapter; production execute always refuses.
+"""Bounded Material-only adapter shared by owned execution and synthetic tests.
 
-The explicit simulation seam has no default transport or secret resolver. It is
-not an egress grant or native Vault integration. Future production activation
-still needs Owner service/material/cost choices, a Core fence and a bounded owned
-worker/secret channel. No provider identity, URL, key or proxy is inferred here.
+No provider, endpoint or credential is inferred. The owned process supplies the
+frozen Core-admitted request; Core controls cancellation and publication.
 """
 from __future__ import annotations
 
@@ -58,9 +56,33 @@ def preflight():
             "secret_accessed": False, "task_executed": False}
 
 
-def execute(*_args, **_kwargs):
-    # No flag/environment/credential reference can activate this entry point.
-    raise CloudFailure("MATERIAL_CLOUD_NOT_ACTIVATED")
+def execute(frame, *, resolve_credential, transport):
+    """Owned-worker entry. Core has admitted the exact frozen per-request grant."""
+    _keys(frame, "plan context")
+    plan = frame["plan"]
+    request = plan["request"]
+    _require(plan["schema"] == "archeaxis.material-question-plan/v1"
+             and plan["destination"] == "PUBLIC_HTTPS"
+             and request.get("cloud_upload_confirmed") is True
+             and request.get("cloud_unknown_cost_confirmed") is True
+             and request.get("execution_mode") == "async")
+    config = request["model_configuration"]
+    _require(config["profile"]["protocol"] == "openai-buffered"
+             and config["workspace_id"] == plan["workspace_id"]
+             and config["restore_epoch"] == plan["restore_epoch"])
+    intent = {"schema": "archeaxis.material-cloud-execution/v1", "request_id": request["request_id"],
+              "configuration": config, "context_proof": plan["context"], "context": frame["context"],
+              "question": request["question"], "max_tokens": request["max_tokens"], "timeout_s": request["timeout_s"],
+              "simulation_grant": {"evidence_scope": "CORE_ADMITTED", "material_upload_authorized": True,
+                                   "accept_unknown_cost": True, "hard_currency_cap": None}}
+    # Shared parser and bounded single attempt; these callbacks never retry or fall back.
+    prepared = preview(intent)
+    result = _run_once(intent, prepared["plan_sha256"], transport=transport,
+                           resolve_credential=resolve_credential, assert_current=lambda _: True,
+                           cancelled=lambda: False, deadline=time.monotonic()+request["timeout_s"])
+    result.update(activation="REQUEST_AUTHORIZED", evidence_scope="PROVIDER_RESPONSE",
+                  endpoint=config["profile"]["endpoint"], protocol="openai-buffered", model=result["observed_model"])
+    return result
 
 
 def _require(ok):
@@ -104,7 +126,7 @@ def _endpoint(base):
                      and re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}", host) is not None
                      and not host.endswith((".localhost", ".local", ".internal")))
         authority = (f"[{host}]" if ":" in host else host)
-        _require(url.netloc in (authority, authority + ":443"))
+        _require(url.netloc.lower() in (authority, authority + ":443"))
         _require(not url.path.endswith("/") and all(re.fullmatch(r"[A-Za-z0-9_-]+", p)
                  for p in url.path.split("/")[1:]))
         return host
@@ -114,7 +136,7 @@ def _endpoint(base):
 
 def _prepare(intent):
     _keys(intent, "schema request_id configuration context_proof context question max_tokens timeout_s simulation_grant")
-    _require(intent["schema"] == "archeaxis.material-cloud-simulation/v1" and _token(intent["request_id"]))
+    _require(intent["schema"] in ("archeaxis.material-cloud-simulation/v1", "archeaxis.material-cloud-execution/v1") and _token(intent["request_id"]))
     config = intent["configuration"]
     _keys(config, "schema workspace_id restore_epoch configuration_revision configuration_sha256 purpose lane profile_id profile")
     _require(config["schema"] == "archeaxis.resolved-model/v1" and config["purpose"] == "material"
@@ -125,8 +147,9 @@ def _prepare(intent):
     profile = config["profile"]
     _keys(profile, "endpoint protocol model credential_ref max_tokens timeout_s")
     host = _endpoint(profile["endpoint"])
-    _require(profile["protocol"] == "openai" and isinstance(profile["model"], str)
-             and re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", profile["model"]) is not None
+    _require(profile["protocol"] in ("openai", "openai-buffered") and isinstance(profile["model"], str)
+             and 0 < len(profile["model"].encode("utf-8")) <= 256 and profile["model"] == profile["model"].strip()
+             and not any(ord(c) < 32 or ord(c) == 127 for c in profile["model"])
              and isinstance(profile["credential_ref"], str)
              and re.fullmatch(r"aak_cred_[a-f0-9]{32}", profile["credential_ref"]) is not None
              and _integer(profile["max_tokens"], 128, 4096) and _integer(profile["timeout_s"], 1, 120)
@@ -152,7 +175,8 @@ def _prepare(intent):
                  or (_token(proof["provenance"]["source_id"]) and _sha(proof["provenance"]["source_revision"])))
     else:
         _keys(material, "kind source_id raw_sha256 job_id transform_id transform_sha256")
-        _require(material["kind"] == "transform" and all(_token(material[k]) for k in ("source_id", "job_id", "transform_id"))
+        _require(material["kind"] == "transform" and all(_token(material[k]) for k in ("source_id", "job_id"))
+                 and _integer(material["transform_id"], 1, 2**53-1)
                  and _sha(material["raw_sha256"]) and _sha(material["transform_sha256"]))
         _require(proof["provenance"] == {"source_id": material["source_id"], "source_revision": material["raw_sha256"],
                                       "job_id": material["job_id"], "transform_id": material["transform_id"]})
@@ -165,7 +189,7 @@ def _prepare(intent):
                  and selection["quote_sha256"] == proof["context_sha256"])
     grant = intent["simulation_grant"]
     _keys(grant, "evidence_scope material_upload_authorized accept_unknown_cost hard_currency_cap")
-    _require(grant["evidence_scope"] == "SYNTHETIC" and grant["material_upload_authorized"] is True
+    _require(grant["evidence_scope"] == ("CORE_ADMITTED" if intent["schema"] == "archeaxis.material-cloud-execution/v1" else "SYNTHETIC") and grant["material_upload_authorized"] is True
              and grant["accept_unknown_cost"] is True and grant["hard_currency_cap"] is None)
     prompt, version = machine.answer_prompt(context, question, "grounded")
     body = _encoded({"model": profile["model"], "max_tokens": intent["max_tokens"], "stream": False,
@@ -189,12 +213,12 @@ def preview(intent):
         raise CloudFailure("MATERIAL_CLOUD_INVALID_INTENT") from None
 
 
-def simulate_once(intent, confirmed_plan_sha256, *, _test_transport, _test_resolve_credential,
-                  _test_assert_current, cancelled, deadline, clock=time.monotonic):
-    """SYNTHETIC seam only: no default fetch/Vault, retry, fallback or activation.
+def _run_once(intent, confirmed_plan_sha256, *, transport, resolve_credential,
+                  assert_current, cancelled, deadline, clock=time.monotonic):
+    """Single bounded request; owned process lifecycle supplies the hard deadline.
 
-    In-flight blocking transport cancellation belongs to a future Core-owned
-    worker bridge; here pre/post checks reject cancellation and late publication.
+    Test callbacks exercise pre/post guards; Core rechecks current facts before
+    launch and publication and terminates the owned process on cancellation.
     """
     secret = None
     try:
@@ -212,14 +236,14 @@ def simulate_once(intent, confirmed_plan_sha256, *, _test_transport, _test_resol
 
         def guard():
             check_time()
-            if _test_assert_current(json.loads(_encoded(plan))) is not True:
+            if assert_current(json.loads(_encoded(plan))) is not True:
                 raise CloudFailure("MATERIAL_CLOUD_FENCE_CHANGED")
             check_time()
 
         guard()
         config = plan["configuration"]
         try:
-            secret = _test_resolve_credential(config["profile"]["credential_ref"])
+            secret = resolve_credential(config["profile"]["credential_ref"])
         except Exception:
             raise CloudFailure("MATERIAL_CLOUD_CREDENTIAL_UNAVAILABLE") from None
         _require(type(secret) is bytearray and 0 < len(secret) <= 2560 and all(33 <= c <= 126 for c in secret))
@@ -232,7 +256,7 @@ def simulate_once(intent, confirmed_plan_sha256, *, _test_transport, _test_resol
                                      allowed_content_types=("application/json",))
         url = config["profile"]["endpoint"] + "/chat/completions"
         try:
-            response = _test_transport(url, method="POST", body=body,
+            response = transport(url, method="POST", body=body,
                                        headers={"Content-Type": "application/json", "Authorization": "Bearer " + secret.decode("ascii")},
                                        policy=policy)
         except Exception:
@@ -260,6 +284,7 @@ def simulate_once(intent, confirmed_plan_sha256, *, _test_transport, _test_resol
         _require(type(message) is dict and choice.get("finish_reason") in ("stop", "length"))
         answer = message.get("content")
         _require(isinstance(answer, str) and answer.strip() and len(answer.encode("utf-8")) <= MAX_ANSWER)
+        _require(secret.decode("ascii") not in answer)
         guard()
         usage = machine.reported_usage(payload, "openai")
         return {"activation": "NOT_ACTIVATED", "evidence_scope": "SYNTHETIC", "plan_sha256": confirmed_plan_sha256,
@@ -275,3 +300,11 @@ def simulate_once(intent, confirmed_plan_sha256, *, _test_transport, _test_resol
     finally:
         if type(secret) is bytearray:
             secret[:] = b"\0" * len(secret)
+
+
+def simulate_once(intent, confirmed_plan_sha256, *, _test_transport, _test_resolve_credential,
+                  _test_assert_current, cancelled, deadline, clock=time.monotonic):
+    _require(intent.get("schema") == "archeaxis.material-cloud-simulation/v1")
+    return _run_once(intent, confirmed_plan_sha256, transport=_test_transport,
+                     resolve_credential=_test_resolve_credential, assert_current=_test_assert_current,
+                     cancelled=cancelled, deadline=deadline, clock=clock)

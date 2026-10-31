@@ -139,6 +139,59 @@ def test_private_subtree_is_excluded_before_any_descent(tmp_path, monkeypatch):
     assert report.directory_measurement(private)["excluded_private"] == [str(private)]
 
 
+def test_nested_agent_metadata_is_preserved_without_stat_or_descent(tmp_path, monkeypatch):
+    private = tmp_path / "fixture" / ".mimosa"
+    private.mkdir(parents=True)
+    (private / "config").write_bytes(b"not project evidence")
+    (tmp_path / "fixture" / "receipt.txt").write_bytes(b"ok")
+    real_stat = report.entry_stat
+
+    def guarded(entry):
+        assert entry.name != ".mimosa", "nested agent metadata was inspected"
+        return real_stat(entry)
+
+    monkeypatch.setattr(report, "entry_stat", guarded)
+    measured = report.directory_measurement(tmp_path)
+    assert measured["bytes"] == 2
+    assert measured["excluded_private"] == [str(private)]
+    assert report.directory_measurement(private)["excluded_private"] == [str(private)]
+
+
+def test_primary_repository_git_bytes_are_still_counted(tmp_path, monkeypatch):
+    own_git = tmp_path / ".git"
+    own_git.mkdir()
+    (own_git / "objects.pack").write_bytes(b"own repository objects")
+    monkeypatch.setattr(report, "REPO", tmp_path)
+    assert report.directory_measurement(own_git)["bytes"] == 22
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Win32 MAX_PATH regression")
+def test_real_long_directory_and_filename_are_measured_without_global_changes(tmp_path):
+    deep = tmp_path
+    while len(str(deep)) < 330:
+        deep /= "long-public-fixture-component"
+    # Prepare independently using the native extended Win32 spelling.
+    native = "\\\\?\\" + str(deep)
+    os.makedirs(native)
+    payload = native + "\\" + "public-fixture-payload.txt"
+    with open(payload, "wb") as output:
+        output.write(b"long-path-proof" * 11)
+    measured = report.directory_measurement(tmp_path)
+    assert measured["errors"] == []
+    assert measured["files"] == 1
+    assert measured["bytes"] == 165
+    assert report.display_path(report.io_path(deep)) == str(deep)
+    assert not any("\\\\?\\" in row["link"] for row in measured["links"])
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Win32 UNC path spelling")
+def test_unc_extended_spelling_roundtrips_without_accessing_network():
+    path = "\\\\server\\share\\" + "component\\" * 35 + "file.bin"
+    assert report.io_path(path).startswith("\\\\?\\UNC\\server\\share\\")
+    assert report.display_path(report.io_path(path)) == path
+    assert report.io_path(report.io_path(path)) == report.io_path(path)
+
+
 def test_report_cannot_certify_complete_measurement_after_access_denial(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
@@ -321,3 +374,121 @@ def test_linked_development_and_runs_roots_are_not_enumerated(tmp_path, monkeypa
     make_junction(dev/'runs',outside)
     with pytest.raises(ValueError,match='linked'):
         report.runs_layout(dev,repo)
+
+
+def test_full_footprint_counts_ignored_and_misplaced_bytes_once(tmp_path):
+    repo = tmp_path / 'repo'
+    subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+    for relative, data in [('frontend/a.ts', b'a'), ('.venv/runtime', b'bb'),
+                           ('.project-local/stray-copy/file', b'ccc'),
+                           ('loose-copy/file', b'xxxx')]:
+        path = repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    subprocess.run(['git', 'add', 'frontend/a.ts'], cwd=repo, check=True)
+    measured = report.measure(repo)
+    rows = measured['root'] + measured['ignored_root_measurements'] + measured['unclassified_root_measurements'] + measured['dev_root']
+    assert measured['readable_bytes'] == sum(row['bytes'] for row in rows)
+    assert next(row for row in measured['ignored_root_measurements'] if row['name'] == '.venv/')['bytes'] == 2
+    assert next(row for row in measured['dev_root'] if row['name'] == 'stray-copy/')['bytes'] == 3
+    assert next(row for row in measured['unclassified_root_measurements'] if row['name'] == 'loose-copy/')['bytes'] == 4
+
+
+def test_retained_build_cache_is_counted_against_review_ceiling(tmp_path, monkeypatch):
+    repo = tmp_path / 'repo'
+    subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+    cache = repo / '.project-local/build/cargo'
+    cache.mkdir(parents=True)
+    (cache / 'object').write_bytes(b'12345678')
+    monkeypatch.setitem(report.DEV_BUDGET_GB, 'build', 4 / 1024 ** 3)
+    measured = report.measure(repo)
+    row = next(row for row in measured['dev_root'] if row['name'] == 'build/')
+    assert row['protected_bytes'] == 8
+    assert row['budgeted_bytes'] == 8
+    assert row['over_budget'] is True
+
+
+def test_growth_review_retains_old_debt_but_flags_new_growth_and_layout():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': ['old/'],
+                'dev_root': [{'name': 'runs/', 'over_budget': True}]}
+    current = {**baseline, 'dev_root': [{'name': 'runs/', 'over_budget': True}],
+               'measurement_status': 'PARTIAL'}
+    reviewed = report.growth_review(current, baseline)
+    assert reviewed['status'] == 'NO_NEW_GROWTH_TRIGGER'
+    assert reviewed['measurement_status'] == 'PARTIAL'
+    assert reviewed['over_budget_classes'] == ['runs/']
+    assert reviewed['deletion_authorized'] is False
+    assert report.growth_review(current)['status'] == 'REVIEW_REQUIRED'
+    current['readable_bytes'] += 2 * 1024 ** 3 + 1
+    assert report.growth_review(current, baseline)['status'] == 'REVIEW_REQUIRED'
+    current['readable_bytes'] = baseline['readable_bytes']
+    current['out_of_layout'] = ['old/', 'new/']
+    assert report.growth_review(current, baseline)['new_out_of_layout'] == ['new/']
+    with pytest.raises(ValueError, match='same repository'):
+        report.growth_review(current, {**baseline, 'repository': 'foreign'})
+
+
+def test_new_budget_crossing_is_reviewed_even_when_total_growth_is_offset():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': [],
+                'dev_root': [{'name': 'build/', 'over_budget': False},
+                             {'name': 'runs/', 'over_budget': True}]}
+    current = {**baseline, 'measurement_status': 'PARTIAL',
+               'dev_root': [{'name': 'build/', 'over_budget': True},
+                            {'name': 'runs/', 'over_budget': True}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == 'REVIEW_REQUIRED'
+    assert review['delta_readable_bytes'] == 0
+    assert review['new_over_budget_classes'] == ['build/']
+    assert review['measurement_status'] == 'PARTIAL'
+    assert review['deletion_authorized'] is False
+
+
+def test_paid_down_budget_debt_is_not_a_new_trigger():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': [],
+                'dev_root': [{'name': 'runs/', 'over_budget': True}]}
+    current = {**baseline, 'readable_bytes': 90, 'measurement_status': 'PASS',
+               'dev_root': [{'name': 'runs/', 'over_budget': False}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == 'NO_NEW_GROWTH_TRIGGER'
+    assert review['over_budget_classes'] == review['new_over_budget_classes'] == []
+
+
+def test_baseline_without_class_proof_cannot_hide_current_budget_debt():
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100, 'out_of_layout': []}
+    current = {**baseline, 'measurement_status': 'PASS',
+               'dev_root': [{'name': 'runs/', 'over_budget': True}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == 'REVIEW_REQUIRED'
+    assert review['new_over_budget_classes'] == ['runs/']
+
+
+@pytest.mark.parametrize("growth,over,expected", [
+    (3 * 1024 ** 3, True, "REVIEW_REQUIRED"),
+    (0, True, "NO_NEW_GROWTH_TRIGGER"),
+    (-1024 ** 3, True, "NO_NEW_GROWTH_TRIGGER"),
+    (2 * 1024 ** 3 - 1, True, "NO_NEW_GROWTH_TRIGGER"),
+    (2 * 1024 ** 3, True, "NO_NEW_GROWTH_TRIGGER"),
+    (2 * 1024 ** 3 + 1, True, "REVIEW_REQUIRED"),
+    (3 * 1024 ** 3, False, "NO_NEW_GROWTH_TRIGGER"),
+])
+def test_over_budget_class_growth_cannot_be_hidden_by_other_class_reduction(growth, over, expected):
+    baseline = {'schema': 'aaos.storage-footprint/v2', 'repository': 'repo',
+                'readable_bytes': 100 * 1024 ** 3, 'out_of_layout': [],
+                'dev_root': [{'name': 'runs/', 'bytes': 40 * 1024 ** 3, 'over_budget': over},
+                             {'name': 'build/', 'bytes': 20 * 1024 ** 3, 'over_budget': False}]}
+    current = {**baseline, 'measurement_status': 'PARTIAL',
+               'readable_bytes': baseline['readable_bytes'] - 1024 ** 3,
+               'dev_root': [{'name': 'runs/', 'bytes': 40 * 1024 ** 3 + growth, 'over_budget': over},
+                            {'name': 'build/', 'bytes': 19 * 1024 ** 3 - growth, 'over_budget': False}]}
+    review = report.growth_review(current, baseline)
+    assert review['status'] == expected
+    assert review['new_over_budget_classes'] == []
+    assert review['delta_readable_bytes'] == -1024 ** 3
+    assert review['over_budget_class_delta_bytes'] == ({'runs/': growth} if over else {})
+    assert review['growing_over_budget_classes'] == (['runs/'] if expected == 'REVIEW_REQUIRED' else [])
+    assert review['measurement_status'] == 'PARTIAL'
+    assert review['deletion_authorized'] is False

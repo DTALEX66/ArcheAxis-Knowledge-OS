@@ -12,6 +12,170 @@ fn request(conn: &mut rusqlite::Connection) -> Request {
         query: "spaced repetition".into(),
         families: vec!["encyclopedia".into(), "community".into(), "research".into()],
         limit: 1,
+        community_site: None,
+    }
+}
+
+#[test]
+fn forum_site_is_explicit_bounded_and_legacy_request_bytes_are_preserved() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("site.sqlite").to_str().unwrap()).unwrap();
+    let mut req = request(&mut conn);
+    req.families = vec!["community".into()];
+    assert!(req.worker_request().get("community_site").is_none());
+    assert!(
+        serde_json::to_value(&req)
+            .unwrap()
+            .get("community_site")
+            .is_none()
+    );
+    req.community_site = Some("stats".into());
+    assert_eq!(req.worker_request()["community_site"], "stats");
+    research::begin(&mut conn, &req).unwrap();
+    let mut value = response(&req);
+    assert!(
+        research::publish(&mut conn, &req, value.clone()).is_err(),
+        "Academia cannot masquerade as selected stats"
+    );
+    value["channels"][0]["request_url"] = json!(
+        value["channels"][0]["request_url"]
+            .as_str()
+            .unwrap()
+            .replace("site=academia", "site=stats")
+    );
+    value["channels"][0]["hits"] = json!([{"id":"stackexchange:stats:question:42","family":"community","provider":"stackexchange","title":"Synthetic stats",
+        "url":"https://stats.stackexchange.com/questions/42/x","retrieved_at":"2026-10-21T00:00:00Z","content":"full_text","excerpt":"Public text",
+        "locator":"question_id=42;body","license":null,"free_access":"free","upstream_revision":null,"representation":"html_text","truncated":false}]);
+    let receipt = research::publish(&mut conn, &req, value).unwrap();
+    assert_eq!(receipt["community_site"], "stats");
+    let selected = research::materialize(
+        &mut conn,
+        &req.request_id,
+        "community",
+        "stackexchange:stats:question:42",
+    )
+    .unwrap();
+    assert_eq!(selected["knowledge_admission"], "not_executed");
+    req.community_site = Some("stackoverflow".into());
+    assert!(req.validate().is_err());
+}
+
+fn fallback_response(req: &Request) -> serde_json::Value {
+    json!({"schema":"public-research-worker/v1","query":req.query,"families":req.families,"channels":[
+        {"family":"research","provider":"openalex","status":"limited","retrieved_at":"2026-10-26T00:00:00Z",
+         "request_url":"https://api.openalex.org/works?search=spaced+repetition&per_page=1","retry_after_seconds":42,"error_code":"http_429","raw_response_base64":null,"hits":[]},
+        {"family":"research","provider":"crossref","status":"complete","retrieved_at":"2026-10-26T00:00:01Z",
+         "request_url":"https://api.crossref.org/works?query.bibliographic=spaced+repetition&rows=1&select=DOI%2Ctitle%2CURL%2Cpublished",
+         "retry_after_seconds":null,"error_code":null,"raw_response_base64":STANDARD.encode(br#"{"status":"ok","message":{"items":[{"DOI":"10.1234/synthetic","title":["Synthetic metadata"]}]}}"#),
+         "hits":[{"id":"https://doi.org/10.1234/synthetic","family":"research","provider":"crossref","title":"Synthetic metadata","url":"https://doi.org/10.1234/synthetic",
+         "retrieved_at":"2026-10-26T00:00:01Z","content":"metadata","excerpt":"","locator":null,"license":null,"free_access":"free","upstream_revision":null,"representation":"metadata","truncated":false}]}]})
+}
+
+#[test]
+fn crossref_fallback_preserves_primary_failure_and_raw_selection_after_reopen() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("fallback.sqlite");
+    let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
+    let mut req = request(&mut conn);
+    req.families = vec!["research".into()];
+    research::begin(&mut conn, &req).unwrap();
+    let receipt = research::publish(&mut conn, &req, fallback_response(&req)).unwrap();
+    assert_eq!(
+        receipt["state"], "partial",
+        "fallback must not erase upstream failure"
+    );
+    assert_eq!(receipt["channels"][0]["error_code"], "http_429");
+    assert_eq!(receipt["channels"][0]["retry_after_seconds"], 42);
+    assert_eq!(receipt["channels"][1]["provider"], "crossref");
+    let raw = receipt["channels"][1]["raw_source"].clone();
+    let selected = research::materialize(
+        &mut conn,
+        &req.request_id,
+        "research",
+        "https://doi.org/10.1234/synthetic",
+    )
+    .unwrap();
+    assert_eq!(
+        selected["raw_reference"], raw,
+        "selection must bind the fallback raw bytes, not first family channel"
+    );
+    let bytes =
+        archeaxis_store_sqlite::raw_objects::read(&conn, raw["sha256"].as_str().unwrap()).unwrap();
+    assert!(
+        String::from_utf8(bytes)
+            .unwrap()
+            .contains("10.1234/synthetic")
+    );
+    drop(conn);
+    let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
+    assert_eq!(
+        research::read(&conn, &req.request_id).unwrap().unwrap(),
+        receipt
+    );
+    assert_eq!(
+        research::materialize(
+            &mut conn,
+            &req.request_id,
+            "research",
+            "https://doi.org/10.1234/synthetic"
+        )
+        .unwrap(),
+        selected
+    );
+}
+
+#[test]
+fn crossref_cannot_hide_missing_primary_safety_refusal_or_false_full_text() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn =
+        init_workspace(dir.path().join("fallback-invalid.sqlite").to_str().unwrap()).unwrap();
+    let mut req = request(&mut conn);
+    req.families = vec!["research".into()];
+    research::begin(&mut conn, &req).unwrap();
+    for variant in 0..10 {
+        let mut value = fallback_response(&req);
+        match variant {
+            0 => {
+                value["channels"].as_array_mut().unwrap().remove(0);
+            }
+            1 => {
+                value["channels"].as_array_mut().unwrap().swap(0, 1);
+            }
+            2 => {
+                value["channels"][0]["status"] = json!("failed");
+                value["channels"][0]["error_code"] = json!("proxy_tls_failed");
+            }
+            3 => {
+                value["channels"][0]["status"] = json!("failed");
+                value["channels"][0]["error_code"] = json!("invalid_response");
+            }
+            4 => {
+                value["channels"][1]["request_url"] = json!(
+                    "https://api.crossref.org/works?query.bibliographic=other&rows=1&select=DOI%2Ctitle%2CURL%2Cpublished"
+                )
+            }
+            5 => value["channels"][1]["hits"][0]["content"] = json!("full_text"),
+            6 => value["channels"][1]["hits"][0]["url"] = json!("https://private.invalid/data"),
+            7 => value["channels"][1]["hits"][0]["license"] = json!("CC0"),
+            8 => {
+                value["channels"][1]["hits"][0]["id"] =
+                    json!("https://doi.org/10.1234/synthetic#unbound");
+                value["channels"][1]["hits"][0]["url"] =
+                    value["channels"][1]["hits"][0]["id"].clone();
+            }
+            _ => {
+                let duplicate = value["channels"][1].clone();
+                value["channels"].as_array_mut().unwrap().push(duplicate);
+            }
+        }
+        assert!(
+            research::publish(&mut conn, &req, value).is_err(),
+            "fallback mutation {variant} accepted"
+        );
+        let count: i64 = conn
+            .query_row("SELECT count(*) FROM sources", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(count, 0);
     }
 }
 

@@ -35,7 +35,9 @@ pub fn backup(conn: &Connection, dst_path: &str) -> rusqlite::Result<()> {
     let mut dst = Connection::open(&staged)?;
     {
         let bk = rusqlite::backup::Backup::new(conn, &mut dst)?;
-        bk.run_to_completion(5, std::time::Duration::from_millis(250), None)?;
+        // Yield between bounded chunks without imposing the documentation
+        // example's 250ms pause for every five pages of a large library.
+        bk.run_to_completion(128, std::time::Duration::from_millis(10), None)?;
     }
     // Read the snapshot's source set, not a potentially newer live source set.
     let digests = {
@@ -112,24 +114,302 @@ pub fn restore(snapshot_path: &str, dst: &mut Connection) -> rusqlite::Result<()
     // Keep validation and Online Backup on one SQLite read snapshot.
     let read_snapshot = src.unchecked_transaction()?;
     validate_workspace(&src)?;
-    let objects = {
-        let mut sources = src.prepare("SELECT sha256 FROM sources")?;
-        sources
-            .query_map([], |r| r.get::<_, String>(0))?
-            .map(|digest| raw_objects::read(&src, &digest?))
-            .collect::<rusqlite::Result<Vec<_>>>()?
-    };
     // Validate every original before overwriting any destination database page.
-    // Persisted immutable objects can safely precede the atomic SQLite backup.
-    for bytes in objects {
+    // Hold only one object's payload at a time, not the entire library. Immutable
+    // CAS publications before a late validation failure are harmless orphans;
+    // the destination SQLite references/authorization still remain unchanged.
+    let mut sources = src.prepare("SELECT sha256 FROM sources ORDER BY sha256")?;
+    for digest in sources.query_map([], |r| r.get::<_, String>(0))? {
+        let bytes = raw_objects::read(&src, &digest?)?;
         raw_objects::persist(dst, &bytes)?;
     }
+    drop(sources);
     {
         let bk = rusqlite::backup::Backup::new(&src, dst)?;
-        bk.run_to_completion(5, std::time::Duration::from_millis(250), None)?;
+        bk.run_to_completion(128, std::time::Duration::from_millis(10), None)?;
     }
     read_snapshot.commit()?;
     Ok(())
+}
+
+/// Prepare and verify the new authorization epoch on an independent snapshot.
+/// The only live database publication is the SQLite Online Backup transaction
+/// containing both the restored rows and their fence. An interrupted preparation
+/// leaves the old workspace; an interrupted publication cannot commit raw grants.
+/// Raw `restore` remains available for exact rollback without altering old rights.
+pub fn restore_authorized(snapshot_path: &str, dst: &mut Connection) -> rusqlite::Result<bool> {
+    restore_authorized_checked(snapshot_path, dst, |_, _| Ok(()))
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum RestorePhase {
+    BeforeFence,
+    BeforePublish,
+    AfterPublish,
+}
+
+#[cfg(test)]
+mod restore_interruption_tests {
+    use super::*;
+    use crate::{
+        context_grant::{self, Consumption, Operation},
+        document, knowledge,
+    };
+    use serde_json::json;
+
+    #[test]
+    fn failures_before_fence_before_publication_and_after_publication_never_revive_old_grants() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut original = archeaxis_store_sqlite::init_workspace(
+            dir.path().join("original.sqlite").to_str().unwrap(),
+        )
+        .unwrap();
+        let kid = knowledge::create_knowledge(
+            &mut original,
+            "NOTE",
+            "synthetic accepted",
+            "accepted",
+            None,
+            None,
+            "owner",
+        )
+        .unwrap();
+        let grant = document::create_optional_with_request(&mut original, None, None, "grant",
+            json!({"type":"doc","content":[],"attrs":{"archeaxis_context_grant":{
+                "schema":"archeaxis.context-grant/v1","purpose":"interruption fixture","consumer":"local-machine",
+                "operations":["answer"],"knowledge_id":kid,"provenance":[],"authorization_basis":"SYNTHETIC trusted human grant",
+                "expires_at":null,"state":"granted"}}}),Some("interrupt-original-grant")).unwrap();
+        let input = Consumption {
+            document_id: grant["document_id"].as_str().unwrap().into(),
+            version: 1,
+            content_sha256: grant["content_sha256"].as_str().unwrap().into(),
+            purpose: "interruption fixture".into(),
+        };
+        context_grant::consume(&original, &input, Operation::Answer, &kid, 1).unwrap();
+        let old = dir.path().join("old-granted.sqlite");
+        backup(&original, old.to_str().unwrap()).unwrap();
+        let mut editor = grant["editor_json"].clone();
+        editor["attrs"]["archeaxis_context_grant"]["state"] = json!("revoked");
+        let revoked = document::save(
+            &mut original,
+            grant["document_id"].as_str().unwrap(),
+            1,
+            editor,
+        )
+        .unwrap();
+        let before = dir.path().join("before-revoked.sqlite");
+        backup(&original, before.to_str().unwrap()).unwrap();
+        let frozen =
+            Connection::open_with_flags(&old, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        let current =
+            Connection::open_with_flags(&before, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+                .unwrap();
+        let backup_bytes = std::fs::read(&old).unwrap();
+        for (index, failure) in [
+            RestorePhase::BeforeFence,
+            RestorePhase::BeforePublish,
+            RestorePhase::AfterPublish,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let path = dir.path().join(format!("target-{index}.sqlite"));
+            let mut target =
+                archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
+            restore(before.to_str().unwrap(), &mut target).unwrap();
+            let result =
+                restore_authorized_checked(old.to_str().unwrap(), &mut target, |phase, visible| {
+                    // Every actual live state sampled at the three deterministic
+                    // failure boundaries must refuse the historical grant.
+                    assert!(
+                        context_grant::consume(visible, &input, Operation::Answer, &kid, 1)
+                            .is_err()
+                    );
+                    if phase == RestorePhase::AfterPublish {
+                        assert_eq!(
+                            document::read(visible, &input.document_id, None).unwrap(),
+                            grant
+                        );
+                        assert!(verify_restored_authorization(&frozen, visible).unwrap());
+                    } else {
+                        assert_eq!(
+                            document::read(visible, &input.document_id, None).unwrap(),
+                            revoked
+                        );
+                        assert!(verify_counts(&current, visible).unwrap());
+                    }
+                    if phase == failure {
+                        Err(rusqlite::Error::InvalidQuery)
+                    } else {
+                        Ok(())
+                    }
+                });
+            assert!(result.is_err());
+            drop(target);
+            let reopened = archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
+            assert!(context_grant::consume(&reopened, &input, Operation::Answer, &kid, 1).is_err());
+            if failure == RestorePhase::AfterPublish {
+                assert!(verify_restored_authorization(&frozen, &reopened).unwrap());
+            } else {
+                assert!(verify_counts(&current, &reopened).unwrap());
+            }
+            assert_eq!(std::fs::read(&old).unwrap(), backup_bytes);
+        }
+    }
+
+    #[test]
+    fn no_unwind_process_exit_at_restore_boundaries_never_revives_old_grants() {
+        const CHILD_ROOT: &str = "ARCHEAXIS_RESTORE_EXIT_TEST_ROOT";
+        const CHILD_PHASE: &str = "ARCHEAXIS_RESTORE_EXIT_TEST_PHASE";
+        if let Some(root) = std::env::var_os(CHILD_ROOT) {
+            let root = PathBuf::from(root);
+            let phase = std::env::var(CHILD_PHASE).unwrap();
+            let mut target = archeaxis_store_sqlite::init_workspace(
+                root.join("target.sqlite").to_str().unwrap(),
+            )
+            .unwrap();
+            restore_authorized_checked(
+                root.join("old-granted.sqlite").to_str().unwrap(),
+                &mut target,
+                |visible_phase, _| {
+                    if format!("{visible_phase:?}") == phase {
+                        // Process exit skips Rust connection/transaction and
+                        // TempDir destructors. This is not a physical power cut.
+                        std::process::exit(91);
+                    }
+                    Ok(())
+                },
+            )
+            .unwrap();
+            panic!("the requested restore boundary was not reached");
+        }
+
+        let dir = tempfile::tempdir().unwrap();
+        let mut original = archeaxis_store_sqlite::init_workspace(
+            dir.path().join("original.sqlite").to_str().unwrap(),
+        )
+        .unwrap();
+        let kid = knowledge::create_knowledge(
+            &mut original,
+            "NOTE",
+            "synthetic crash-recovery fixture",
+            "accepted",
+            None,
+            None,
+            "owner",
+        )
+        .unwrap();
+        let grant = document::create_optional_with_request(&mut original, None, None, "grant",
+            json!({"type":"doc","content":[],"attrs":{"archeaxis_context_grant":{
+                "schema":"archeaxis.context-grant/v1","purpose":"process exit fixture","consumer":"local-machine",
+                "operations":["answer"],"knowledge_id":kid,"provenance":[],"authorization_basis":"SYNTHETIC trusted human grant",
+                "expires_at":null,"state":"granted"}}}),Some("exit-original-grant")).unwrap();
+        let input = Consumption {
+            document_id: grant["document_id"].as_str().unwrap().into(),
+            version: 1,
+            content_sha256: grant["content_sha256"].as_str().unwrap().into(),
+            purpose: "process exit fixture".into(),
+        };
+        context_grant::consume(&original, &input, Operation::Answer, &kid, 1).unwrap();
+        let old = dir.path().join("old-granted.sqlite");
+        backup(&original, old.to_str().unwrap()).unwrap();
+        let backup_bytes = std::fs::read(&old).unwrap();
+        let mut editor = grant["editor_json"].clone();
+        editor["attrs"]["archeaxis_context_grant"]["state"] = json!("revoked");
+        let revoked = document::save(&mut original, &input.document_id, 1, editor).unwrap();
+        let before = dir.path().join("before-revoked.sqlite");
+        backup(&original, before.to_str().unwrap()).unwrap();
+        let frozen =
+            Connection::open_with_flags(&old, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        let current =
+            Connection::open_with_flags(&before, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+                .unwrap();
+
+        for phase in [
+            RestorePhase::BeforeFence,
+            RestorePhase::BeforePublish,
+            RestorePhase::AfterPublish,
+        ] {
+            let target_path = dir.path().join("target.sqlite");
+            let mut target =
+                archeaxis_store_sqlite::init_workspace(target_path.to_str().unwrap()).unwrap();
+            restore(before.to_str().unwrap(), &mut target).unwrap();
+            drop(target);
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "backup::restore_interruption_tests::no_unwind_process_exit_at_restore_boundaries_never_revives_old_grants",
+                    "--nocapture",
+                    "--test-threads=1",
+                ])
+                .env(CHILD_ROOT, dir.path())
+                .env(CHILD_PHASE, format!("{phase:?}"))
+                .output()
+                .unwrap();
+            assert_eq!(
+                output.status.code(),
+                Some(91),
+                "{phase:?}: {} {}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            let reopened =
+                archeaxis_store_sqlite::init_workspace(target_path.to_str().unwrap()).unwrap();
+            assert!(context_grant::consume(&reopened, &input, Operation::Answer, &kid, 1).is_err());
+            if phase == RestorePhase::AfterPublish {
+                assert_eq!(
+                    document::read(&reopened, &input.document_id, None).unwrap(),
+                    grant
+                );
+                assert!(verify_restored_authorization(&frozen, &reopened).unwrap());
+            } else {
+                assert_eq!(
+                    document::read(&reopened, &input.document_id, None).unwrap(),
+                    revoked
+                );
+                assert!(verify_counts(&current, &reopened).unwrap());
+            }
+            assert_eq!(std::fs::read(&old).unwrap(), backup_bytes);
+            eprintln!(
+                "RESTORE_NO_UNWIND_EXIT_REOPEN_PASS={phase:?}; old_grant_refused=true; source_backup_unchanged=true"
+            );
+        }
+    }
+}
+
+fn restore_authorized_checked(
+    snapshot_path: &str,
+    dst: &mut Connection,
+    mut checkpoint: impl FnMut(RestorePhase, &Connection) -> rusqlite::Result<()>,
+) -> rusqlite::Result<bool> {
+    let source_path = Path::new(snapshot_path);
+    raw_objects::reject_links(source_path)?;
+    let source = Connection::open_with_flags(
+        source_path.canonicalize().map_err(io_error)?,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )?;
+    let owner = Path::new(dst.path().ok_or(rusqlite::Error::InvalidQuery)?);
+    raw_objects::reject_links(owner)?;
+    let parent = owner.parent().ok_or(rusqlite::Error::InvalidQuery)?;
+    let staging = tempfile::tempdir_in(parent).map_err(io_error)?;
+    let staged = staging
+        .path()
+        .canonicalize()
+        .map_err(io_error)?
+        .join("restore.sqlite");
+    let staged_text = staged.to_str().ok_or(rusqlite::Error::InvalidQuery)?;
+    let mut prepared = archeaxis_store_sqlite::init_workspace(staged_text)?;
+    restore(snapshot_path, &mut prepared)?;
+    checkpoint(RestorePhase::BeforeFence, dst)?;
+    if !finalize_restore_authorization(&source, &mut prepared)? {
+        return Ok(false);
+    }
+    checkpoint(RestorePhase::BeforePublish, dst)?;
+    // Both source views have already been validated, including every CAS object.
+    // No raw historical-authorization database is ever installed in the live path.
+    restore(staged_text, dst)?;
+    checkpoint(RestorePhase::AfterPublish, dst)?;
+    verify_restored_authorization(&source, dst)
 }
 
 /// Verify a snapshot/restored db: compare schema and canonical row-content

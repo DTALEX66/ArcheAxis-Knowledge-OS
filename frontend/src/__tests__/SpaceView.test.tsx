@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { SpaceView } from "../spaces/SpaceView";
 
 // AXW-UI-802: SpaceView is the routing contract between the desktop shell and
@@ -17,6 +17,7 @@ vi.mock("../spaces/ExchangeSpace", () => ({ ExchangeSpace: () => <div>WEB-exchan
 vi.mock("../spaces/SettingsSpace", () => ({ SettingsSpace: () => <div>WEB-settings</div> }));
 vi.mock("../spaces/CanonicalLibrarySpace", () => ({ CanonicalLibrarySpace: () => <div>CANON-library</div> }));
 vi.mock("../spaces/CanonicalKnowledgeSpace", () => ({ CanonicalKnowledgeSpace: () => <div>CANON-knowledge</div> }));
+vi.mock("../spaces/CanonicalResearchSpace",()=>({CanonicalResearchSpace:({onReadSource}:{onReadSource?:(target:{source_id:string;source_revision:string;sha256:string})=>void})=><button onClick={()=>onReadSource?.({source_id:"derived-public",source_revision:"a".repeat(64),sha256:"a".repeat(64)})}>在阅读页整理此来源</button>}));
 vi.mock("../spaces/CanonicalLearningSpace", () => ({ CanonicalLearningSpace: () => <div>CANON-learning</div> }));
 vi.mock("../spaces/CanonicalCapabilitiesSpace", () => ({ CanonicalCapabilitiesSpace: () => <div>CANON-capabilities</div> }));
 vi.mock("../components/BackupPanel", () => ({ BackupPanel: () => <div>BACKUP</div> }));
@@ -112,6 +113,16 @@ describe("SpaceView motion interruption", () => {
 });
 
 describe("SpaceView routing", () => {
+  it.each([true,false])("submits research reader selection only after the shell navigation guard allows=%s",allowed=>{
+    const order:string[]=[],changed=vi.fn(()=>order.push("selection"));
+    const page=vi.fn((id:string)=>{expect(id).toBe("03");expect(changed).not.toHaveBeenCalled();order.push("guard");return allowed;});
+    const prior={source_id:"previous-source",source_revision:"b".repeat(64),sha256:"b".repeat(64)};
+    render(<SpaceView {...props} spaceId="vault" uiPageId="05" onOpenPage={page} sourceJourney={{target:prior,onChange:changed}}/>);
+    fireEvent.click(screen.getByRole("button",{name:"在阅读页整理此来源"}));
+    expect(page).toHaveBeenCalledOnce();
+    if(allowed){expect(changed).toHaveBeenCalledOnce();expect(changed).toHaveBeenCalledWith({source_id:"derived-public",source_revision:"a".repeat(64),sha256:"a".repeat(64)});expect(order).toEqual(["guard","selection"]);}
+    else{expect(changed).not.toHaveBeenCalled();expect(order).toEqual(["guard"]);expect(prior.source_id).toBe("previous-source");}
+  });
   it("wraps the active space in the space-view container", () => {
     webMode();
     const { container } = render(<SpaceView spaceId="library" {...props} />);
@@ -165,6 +176,7 @@ describe("current settings plan route",()=>{
  it("mounts configuration and plans on page19 alongside existing recovery",()=>{
   render(<SpaceView spaceId="settings" uiPageId="19" {...props}/>);
   expect(screen.getByRole("button",{name:"读取模型配置"})).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab",{name:"配置计划"}));
   expect(screen.getByRole("button",{name:"读取配置与部署计划"})).toBeInTheDocument();
  });
  it("keeps capability detail and catalogs free of settings configuration forms",()=>{

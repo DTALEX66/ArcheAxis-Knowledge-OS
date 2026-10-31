@@ -1,6 +1,5 @@
 """Regression coverage for staged-runtime trust and child lifetime boundaries."""
 import importlib.util
-import io
 import json
 import os
 import subprocess
@@ -21,6 +20,23 @@ def module(name):
 
 launcher = module("backend_launcher")
 stager = module("stage_backend_runtime")
+
+
+def synthetic_vc(runtime, monkeypatch):
+    import hashlib
+    identities = {}
+    for name in stager.APP_LOCAL_VC_RUNTIME:
+        payload = ("synthetic " + name).encode()
+        (runtime / name).write_bytes(payload)
+        identities[name] = ({"version": "synthetic", "bytes": len(payload),
+                             "sha256": hashlib.sha256(payload).hexdigest()},)
+    monkeypatch.setattr(stager, "APP_LOCAL_VC_RUNTIME", identities)
+    cpp = {name: rows[0] for name, rows in identities.items()}
+    payload = b"synthetic msvcp140.dll"
+    (runtime / "msvcp140.dll").write_bytes(payload)
+    cpp["msvcp140.dll"] = {"version": "synthetic", "bytes": len(payload),
+                           "sha256": hashlib.sha256(payload).hexdigest()}
+    monkeypatch.setattr(stager, "APP_LOCAL_CPP_COHORTS", (cpp,))
 
 
 def test_runtime_accepts_recorded_distribution_internal_names(tmp_path):
@@ -96,6 +112,7 @@ def test_stager_copies_long_runtime_files_and_keeps_contract_paths_ordinary(tmp_
     runtime = tmp_path / "runtime"
     runtime.mkdir()
     (runtime / "python.exe").write_bytes(b"synthetic interpreter")
+    synthetic_vc(runtime, monkeypatch)
     member = Path("Lib/site-packages/example") / ("nested" * 12) / ("module" * 12 + ".py")
     source = runtime / member
     assert len(str(source)) > 260
@@ -116,7 +133,7 @@ def test_stager_copies_long_runtime_files_and_keeps_contract_paths_ordinary(tmp_
         "--version", "test", "--source-commit", "synthetic", "--source-tree", "synthetic",
     ])
     monkeypatch.setattr(stager, "packager_identity", lambda: "synthetic-tooling")
-    monkeypatch.setattr(stager.os, "popen", lambda *_: io.StringIO("synthetic-version"))
+    monkeypatch.setattr(stager.subprocess, "run", lambda cmd, **_: subprocess.CompletedProcess(cmd, 0, "3.13.14\n", ""))
     assert stager.main() == 0
     staged = output / "runtime" / member
     assert stager.filesystem_path(staged).read_bytes() == payload
@@ -399,6 +416,7 @@ def test_manifest_distinguishes_asserted_sources_and_measured_tooling(tmp_path, 
     runtime = tmp_path / "runtime"
     runtime.mkdir()
     (runtime / "python.exe").write_bytes(b"synthetic interpreter fixture")
+    synthetic_vc(runtime, monkeypatch)
     workers = tmp_path / "workers"
     (workers / "transport").mkdir(parents=True)
     (workers / "transport" / "text_ndjson.py").write_text("# fixture")
@@ -409,7 +427,7 @@ def test_manifest_distinguishes_asserted_sources_and_measured_tooling(tmp_path, 
     output = tmp_path / "output"
     monkeypatch.setattr(sys, "argv", ["stage_backend_runtime.py", "--core", str(core), "--runtime", str(runtime), "--workers", str(workers), "--shared", str(donor), "--out", str(output), "--version", "test", "--source-commit", "claimed-source", "--source-tree", "claimed-tree", "--runtime-commit", "claimed-runtime", "--packager-commit", "claimed-packager"])
     monkeypatch.setattr(stager, "packager_identity", lambda: "actual-tooling+dirty")
-    monkeypatch.setattr(stager.os, "popen", lambda *_: io.StringIO("fixture-version"))
+    monkeypatch.setattr(stager.subprocess, "run", lambda cmd, **_: subprocess.CompletedProcess(cmd, 0, "3.13.14\n", ""))
     assert stager.main() == 0
     manifest = json.loads((output / "backend-runtime-manifest.json").read_text())
     assert manifest["runtime_source"]["evidence"] == "ASSERTED_NOT_VERIFIED"

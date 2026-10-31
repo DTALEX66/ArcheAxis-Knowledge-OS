@@ -36,7 +36,7 @@ import shutil
 import stat
 import subprocess
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 _worker_routes_spec = importlib.util.spec_from_file_location(
     "stage_worker_routes", Path(__file__).with_name("worker_routes.py")
@@ -49,6 +49,15 @@ PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
+
+# The transcript model a candidate ships beside its own interpreter. It sits under `runtime/`
+# because that directory is already a declared bundle resource, so the model travels with the
+# interpreter instead of needing a second resource mapping, a machine-level model library or a
+# download on first use. `worker_transcribe.py` scans exactly this relative location.
+ASR_MODEL_ROOT = "runtime/models/asr"
+ASR_MODEL_IDENTITY = "aaos-model.json"
+ASR_MODEL_REQUIRED = ("model.bin", "config.json")
+ASR_MODEL_NAME = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 # Capability -> worker scripts that implement it, in preference order, relative to
 # the staged root. Each of these workers advertises the capability itself and
@@ -95,6 +104,270 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+# Approved x64 runtime donors already included in the selected Python runtime.
+# The desktop runtime comes from the build interpreter, so a developer donor and the
+# CI tool-cache donor carry different-but-official Microsoft VC redist builds. Approval
+# is therefore a reviewed set of exact identities per file: an unrecognised byte
+# sequence still fails closed and prints the observed identity for review, so accepting
+# a new donor stays a release maintenance action rather than discovery at build time.
+APP_LOCAL_VC_RUNTIME: dict[str, tuple[dict[str, object], ...]] = {
+    "vcruntime140.dll": (
+        {"version": "14.44.35211", "bytes": 124544,
+         "sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"},
+        {"version": "14.42.34438", "bytes": 120400,
+         "sha256": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"},
+    ),
+    "vcruntime140_1.dll": (
+        {"version": "14.44.35211", "bytes": 49792,
+         "sha256": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"},
+        {"version": "14.42.34438", "bytes": 49776,
+         "sha256": "6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8"},
+    ),
+}
+
+# Public Microsoft Fixed Version package selected for offline desktop packaging.
+# This is separate from the Python donor; updating it requires reviewing the
+# original CAB, complete extracted inventory, signatures and Microsoft terms.
+FIXED_WEBVIEW2 = {
+    "version": "156.0.4314.42", "architecture": "x64",
+    "cab_sha256": "cb4612ce79a62a0be094301a72f73cf91bb250f5e83dc51886f66a083fc0694f",
+    "manifest_sha256": "d465623969d3ba9ac271deb6fb81865007261e20c93dd723ff65c38144bc89f7",
+}
+
+
+def validate_fixed_webview2(source: Path, manifest: Path) -> dict:
+    validate_tree(source)
+    reject_reparse(manifest)
+    info = filesystem_path(manifest).lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or sha256(manifest) != FIXED_WEBVIEW2["manifest_sha256"]:
+        raise ValueError("fixed WebView2 manifest identity mismatch")
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    if (data.get("schema") != "archeaxis.official-fixed-runtime-files/v1"
+            or data.get("version") != FIXED_WEBVIEW2["version"]
+            or data.get("architecture") != FIXED_WEBVIEW2["architecture"]):
+        raise ValueError("fixed WebView2 package identity mismatch")
+    files = {}
+    for row in data["files"]:
+        name = row["path"]
+        parsed = PurePosixPath(name)
+        if (not name or "\\" in name or ":" in name or parsed.is_absolute()
+                or parsed.as_posix() != name or any(p in {".", ".."} for p in parsed.parts)
+                or name.casefold() in {p.casefold() for p in files}):
+            raise ValueError("unsafe fixed WebView2 member")
+        path = source / name
+        reject_reparse(path)
+        info = filesystem_path(path).lstat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                or info.st_size != row["bytes"] or sha256(path) != row["sha256"]):
+            raise ValueError("fixed WebView2 member identity mismatch")
+        files[name] = {"bytes": row["bytes"], "sha256": row["sha256"]}
+    actual = {ordinary_path(p).relative_to(source).as_posix()
+              for p in filesystem_path(source).rglob("*") if p.is_file()}
+    if actual != set(files) or not {"msedgewebview2.exe", "msedge.dll"}.issubset(files):
+        raise ValueError("fixed WebView2 inventory mismatch")
+    return files
+
+
+def stage_fixed_webview2(source: Path, manifest: Path, root: Path) -> dict:
+    files = validate_fixed_webview2(source, manifest)
+    target = root / "runtime" / "webview2"
+    reject_reparse(target)
+    if target.exists():
+        raise ValueError("refusing fixed WebView2 overwrite")
+    target.mkdir()
+    for name, row in files.items():
+        destination = target / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(filesystem_path(source / name), filesystem_path(destination))
+        if destination.stat().st_size != row["bytes"] or sha256(destination) != row["sha256"]:
+            raise ValueError("fixed WebView2 copy identity mismatch")
+    shutil.copy2(manifest, target / "aaos-fixed-runtime-manifest.json")
+    if sha256(target / "aaos-fixed-runtime-manifest.json") != FIXED_WEBVIEW2["manifest_sha256"]:
+        raise ValueError("fixed WebView2 copied manifest identity mismatch")
+    return {**FIXED_WEBVIEW2, "path": "runtime/webview2", "files": len(files),
+            "distribution": "Microsoft Fixed Version; application publisher maintains security updates"}
+
+
+def validate_app_local_vc_runtime(runtime: Path) -> dict[str, dict[str, object]]:
+    """Return the observed identity of each approved donor file, or fail closed."""
+    observed: dict[str, dict[str, object]] = {}
+    for name, approved in APP_LOCAL_VC_RUNTIME.items():
+        donor = runtime / name
+        reject_reparse(donor)
+        try:
+            info = filesystem_path(donor).lstat()
+        except FileNotFoundError as error:
+            raise ValueError(f"required app-local VC runtime missing: {name}") from error
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ValueError(f"app-local VC runtime is not an independent regular file: {name}")
+        identity = {"bytes": info.st_size, "sha256": sha256(donor)}
+        match = next((row for row in approved
+                      if identity == {"bytes": row["bytes"], "sha256": row["sha256"]}), None)
+        if match is None:
+            raise ValueError(f"app-local VC runtime identity mismatch: {name} observed {identity}")
+        observed[name] = {**identity, "version": match["version"]}
+    return observed
+
+
+APP_LOCAL_CPP_COHORTS = ({
+    "vcruntime140.dll": {**APP_LOCAL_VC_RUNTIME["vcruntime140.dll"][0]},
+    "vcruntime140_1.dll": {**APP_LOCAL_VC_RUNTIME["vcruntime140_1.dll"][0]},
+    "msvcp140.dll": {"version": "14.44.35211", "bytes": 557728,
+                     "sha256": "0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9"},
+},)
+
+
+def validate_cpp_runtime(source: Path) -> dict:
+    """A complete reviewed x64 cohort; no system/PATH fallback or mixed versions."""
+    observed = {}
+    for name in APP_LOCAL_CPP_COHORTS[0]:
+        path = source / name
+        reject_links_along(path)
+        try:
+            info = filesystem_path(path).lstat()
+        except FileNotFoundError as error:
+            raise ValueError(f"required app-local C++ runtime missing: {name}") from error
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ValueError(f"app-local C++ runtime is not an independent regular file: {name}")
+        observed[name] = {"bytes": info.st_size, "sha256": sha256(path)}
+    for cohort in APP_LOCAL_CPP_COHORTS:
+        if all(observed[name] == {k: row[k] for k in ("bytes", "sha256")}
+               for name, row in cohort.items()):
+            return {name: dict(row) for name, row in cohort.items()}
+    raise ValueError(f"app-local C++ runtime cohort identity mismatch: {observed}")
+
+
+def stage_app_local_vc_runtime(runtime: Path, root: Path, vc_runtime: Path | None = None,
+                               *, _runtime_in_place: bool = False) -> dict:
+    if _runtime_in_place and (runtime != root / "runtime" or vc_runtime is None):
+        raise ValueError("in-place VC update requires its final runtime and explicit donor")
+    original = validate_app_local_vc_runtime(runtime)
+    source = vc_runtime if vc_runtime is not None else runtime
+    observed = validate_cpp_runtime(source)
+    for donor in (runtime, source):
+        if root.absolute() == donor.absolute() or root.absolute().is_relative_to(donor.absolute()):
+            raise ValueError("runtime output must be independent of its donor")
+    for name in APP_LOCAL_VC_RUNTIME:
+        for directory in (root, root / "core"):
+            target = directory / name
+            reject_links_along(target)
+            if filesystem_path(target).exists():
+                raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
+    target_runtime = root / "runtime"
+    reject_links_along(target_runtime)
+    filesystem_path(target_runtime).mkdir(exist_ok=True)
+    for name, identity in observed.items():
+        target = target_runtime / name
+        reject_links_along(target)
+        if filesystem_path(target).exists():
+            info = filesystem_path(target).lstat()
+            expected = original.get(name, observed[name])
+            if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                    or info.st_size != expected["bytes"] or sha256(target) != expected["sha256"]):
+                raise ValueError(f"app-local C++ runtime replacement identity mismatch: {name}")
+        shutil.copy2(filesystem_path(source / name), filesystem_path(target))
+        if filesystem_path(target).stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
+            raise ValueError(f"app-local VC runtime copy mismatch: {name}")
+    for name in APP_LOCAL_VC_RUNTIME:
+        identity = observed[name]
+        for directory in (root, root / "core"):
+            target = directory / name
+            reject_reparse(target)
+            if target.exists():
+                raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
+            shutil.copy2(filesystem_path(source / name), filesystem_path(target))
+            if filesystem_path(target).stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
+                raise ValueError(f"app-local VC runtime copy mismatch: {name}")
+    versions = sorted({str(row["version"]) for row in observed.values()})
+    expected_runtime = ({name: observed[name] for name in original} if _runtime_in_place else original)
+    if validate_app_local_vc_runtime(runtime) != expected_runtime or validate_cpp_runtime(source) != observed:
+        raise ValueError("app-local C++ runtime donor changed during staging")
+    return {"version": versions[0] if len(versions) == 1 else "+".join(versions),
+            "architecture": "x64", "source": "explicit VC runtime" if vc_runtime is not None else "complete selected Python runtime",
+            "donor_path": str(source.absolute()), "original_python_members": original,
+            "members": {name: {**row, "install_locations": (["runtime/", ".", "core/"]
+                       if name in APP_LOCAL_VC_RUNTIME else ["runtime/"])} for name, row in observed.items()},
+            "maintenance": "Application publisher must update and redistribute these app-local files."}
+
+
+def asr_model_licence(name: str) -> dict:
+    """The licence identity asserted for a bundled transcript model.
+
+    Only a name whose upstream terms are known gets a licence claim. An unrecognised model is
+    recorded with `UNCONFIRMED` rather than inheriting another model's terms, so the notice and
+    the manifest cannot say "MIT" about weights nobody read a licence for.
+    """
+    if name.startswith("faster-whisper-"):
+        size = name[len("faster-whisper-"):]
+        return {
+            "code_license": "MIT",
+            "asset_license": f"MIT per the Systran/faster-whisper-{size} model card; the weights are "
+                             "not relicensed by this repository",
+            "source_url": f"https://huggingface.co/Systran/faster-whisper-{size}",
+            "evidence": "ASSERTED_FROM_MODEL_NAME",
+        }
+    return {
+        "code_license": "UNCONFIRMED",
+        "asset_license": "UNCONFIRMED",
+        "source_url": None,
+        "evidence": "NOT_READ",
+    }
+
+
+def stage_asr_model(model: Path, root: Path, name: str | None = None,
+                    license_override: str | None = None) -> dict:
+    """Copy a transcript model into the runtime and record the exact identity shipped.
+
+    The donor is an explicit directory - nothing is downloaded and nothing is searched for.
+    Files are copied byte for byte with their SHA-256, a real CTranslate2 layout is required
+    (`model.bin` and `config.json`), and a name that could escape the target directory is
+    refused. The identity record is written beside the weights so the worker can report which
+    model and which licence an installed product is actually running.
+    """
+    model = Path(os.path.abspath(model))
+    reject_reparse(model)
+    if not model.is_dir():
+        raise ValueError(f"ASR model donor is not a directory: {model}")
+    declared_name = (name or model.name).strip()
+    if not ASR_MODEL_NAME.fullmatch(declared_name):
+        raise ValueError(f"ASR model name is not a safe directory name: {declared_name!r}")
+    for required in ASR_MODEL_REQUIRED:
+        if not (model / required).is_file():
+            raise ValueError(f"ASR model donor has no {required}: {model}")
+    target = root / Path(ASR_MODEL_ROOT) / declared_name
+    if target.exists():
+        raise ValueError(f"refusing ASR model overwrite: {target}")
+    target.mkdir(parents=True)
+    files: dict[str, dict[str, object]] = {}
+    for source in sorted(model.iterdir()):
+        if not source.is_file():
+            # A CTranslate2 directory is flat; a nested tree is a different asset shape and is
+            # not copied silently as if it were one.
+            continue
+        reject_links_along(source)
+        destination = target / source.name
+        shutil.copy2(filesystem_path(source), filesystem_path(destination))
+        files[source.name] = {"bytes": destination.stat().st_size, "sha256": sha256(destination)}
+    licence = asr_model_licence(declared_name)
+    if license_override:
+        licence["asset_license"] = license_override
+        licence["evidence"] = "ASSERTED_BY_CALLER"
+    identity = {
+        "schema": "archeaxis.asr-model/v1",
+        "name": declared_name,
+        "engine": "faster-whisper",
+        "required_files": list(ASR_MODEL_REQUIRED),
+        "files": files,
+        "license": licence,
+        "donor_directory": str(model),
+        "bundled_location": f"{ASR_MODEL_ROOT}/{declared_name}",
+        "note": "copied from an explicit donor; no download and no search was performed",
+    }
+    (target / ASR_MODEL_IDENTITY).write_text(
+        json.dumps(identity, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return {"status": "BUNDLED", **identity}
 
 
 def packager_identity() -> str:
@@ -483,12 +756,91 @@ def stage_capability_manifest(root: Path, external_root: Path | None) -> dict:
             "ocr_paths": measured}
 
 
-def main() -> int:
+def prepared_runtime_snapshot(runtime: Path) -> dict:
+    """Measured in-memory input map; the existing final manifest remains authoritative."""
+    validate_runtime_tree(runtime)
+    files = {}
+    def fail(error):
+        raise error
+    for directory, dirs, names in os.walk(filesystem_path(runtime), followlinks=False, onerror=fail):
+        for name in dirs:
+            reject_links_along(ordinary_path(Path(directory) / name))
+        for name in names:
+            path = ordinary_path(Path(directory) / name)
+            reject_links_along(path)
+            info = filesystem_path(path).lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise ValueError("prepared runtime requires independent regular files")
+            files[path.relative_to(runtime).as_posix()] = {"bytes": info.st_size, "sha256": sha256(path)}
+    if not files:
+        raise ValueError("prepared runtime is empty")
+    return files
+
+
+def prepared_context(root: Path, runtime: Path, environment: dict) -> tuple:
+    """Only the current producer's fresh output; never an existing runtime adoption."""
+    if not isinstance(environment, dict):
+        raise ValueError("prepared runtime requires its canonical build environment")
+    repository = Path(environment.get("ARCHEAXIS_WORKTREE_ROOT", ""))
+    if not repository.is_absolute():
+        raise ValueError("prepared runtime has no canonical worktree")
+    spec = importlib.util.spec_from_file_location("prepared_runtime_paths",
+        Path(__file__).resolve().parents[1] / "runtime/dev.py")
+    paths_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(paths_module)
+    run = Path(environment.get("ARCHEAXIS_RUN_ROOT", ""))
+    paths = paths_module.layout(repository, run.name)
+    if run != paths["run"] or (os.environ.get("ARCHEAXIS_RUN_ROOT") and
+            os.environ["ARCHEAXIS_RUN_ROOT"] != str(run)):
+        raise ValueError("prepared runtime has a foreign run")
+    inherited_worktree = os.environ.get("ARCHEAXIS_WORKTREE_ROOT")
+    if inherited_worktree and inherited_worktree != str(repository):
+        raise ValueError("prepared runtime has a foreign worktree")
+    meta_path = paths_module.safe_path(run / "run-metadata.json")
+    metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+    if (metadata.get("schema") != "aaos.run-retention/v1"
+            or metadata.get("owner") != "ArcheAxis-Knowledge-OS"
+            or metadata.get("worktree_root") != str(repository)
+            or metadata.get("run_id") != run.name
+            or metadata.get("source_commit") != environment.get("ARCHEAXIS_SOURCE_COMMIT")
+            or metadata.get("source_patch_sha256") != environment.get("ARCHEAXIS_SOURCE_PATCH_SHA256")):
+        raise ValueError("prepared runtime canonical ownership/source differs")
+    paths_module.safe_path(root)
+    if (root != paths["dev"] / "rt" and not root.is_relative_to(paths["artifacts"])):
+        raise ValueError("prepared runtime output is outside its caller artifacts or formal rt")
+    if root == paths["artifacts"] or runtime != root / "runtime":
+        raise ValueError("prepared runtime output layout differs")
+    return meta_path, sha256(meta_path)
+
+
+def expected_model_members(model: Path, name: str | None) -> dict:
+    """Exact flat explicit donor files, pinned before the existing ASR copy."""
+    declared = (name or model.name).strip()
+    if not ASR_MODEL_NAME.fullmatch(declared):
+        raise ValueError("unsafe prepared ASR model name")
+    rows = {}
+    for source in sorted(model.iterdir()):
+        reject_reparse(source)
+        if source.is_file():
+            info = filesystem_path(source).lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise ValueError("prepared ASR donor requires independent regular files")
+            rows[source.name] = {"bytes": info.st_size, "sha256": sha256(source)}
+    return rows
+
+
+def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_environment: dict | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", required=True, type=Path)
     parser.add_argument("--runtime", required=True, type=Path,
                         help="portable interpreter directory containing python.exe")
+    parser.add_argument("--webview2-runtime", type=Path,
+                        help="explicit approved Microsoft Fixed Version directory; desktop packaging only")
+    parser.add_argument("--webview2-manifest", type=Path,
+                        help="complete pinned extracted inventory for --webview2-runtime")
     parser.add_argument("--workers", required=True, type=Path)
+    parser.add_argument("--vc-runtime", type=Path,
+                        help="explicit reviewed x64 VC three-file donor; otherwise --runtime must contain the complete cohort")
     parser.add_argument("--external-root", type=Path,
                         help="explicit existing local shared tool root; referenced, never bundled")
     parser.add_argument("--shared", type=Path,
@@ -507,7 +859,18 @@ def main() -> int:
     parser.add_argument("--packager-commit",
                         help="asserted tooling commit (recorded separately from detected Git identity)")
     parser.add_argument("--archive", type=Path, help="also write a zip beside the root")
-    args = parser.parse_args()
+    parser.add_argument("--asr-model", type=Path,
+                        help=f"explicit transcript model directory copied to {ASR_MODEL_ROOT}/<name>; "
+                             "nothing is downloaded or searched for")
+    parser.add_argument("--asr-model-name",
+                        help="directory name under the ASR model root; defaults to the donor's own name")
+    parser.add_argument("--asr-model-license",
+                        help="licence text asserted for a donor whose upstream terms are not recognised by name")
+    args = parser.parse_args(argv)
+    if bool(args.webview2_runtime) != bool(args.webview2_manifest):
+        raise ValueError("fixed WebView2 requires both runtime and manifest")
+    if args.webview2_runtime:
+        validate_fixed_webview2(args.webview2_runtime.absolute(), args.webview2_manifest.absolute())
 
     detected_packager_commit = packager_identity()
     packager_commit = detected_packager_commit or args.packager_commit
@@ -517,7 +880,7 @@ def main() -> int:
 
     shared_donor = args.shared or args.workers.parent.parent / "shared" / "learning_scheduler.py"
     for candidate in (args.core, args.runtime, args.workers, shared_donor, args.out,
-                      args.dep_source, args.archive):
+                      args.dep_source, args.archive, args.asr_model):
         if candidate is not None:
             reject_reparse(candidate)
     # Preflight all recursive donors before producing even a partial output root.
@@ -529,7 +892,30 @@ def main() -> int:
     # `.agents`, and neither holds a credential. Only the distributions actually being
     # copied are inspected, each at copy time, where its own tree is known to be the
     # thing being staged. The source root itself still faces the full rule above.
+    prepared_files = None
+    prepared_owner = None
+    if _runtime_preparer is not None:
+        if (args.vc_runtime is None or args.dep or args.webview2_runtime or args.archive):
+            raise ValueError("in-place producer supports only explicit VC and optional ASR inputs")
+        root = args.out.absolute()
+        prepared_owner = prepared_context(root, args.runtime, _runtime_environment)
+        if root.exists():
+            raise ValueError("refusing to overwrite an existing runtime root")
+        validate_tree(args.workers)
+        validate_cpp_runtime(args.vc_runtime)
+        if not args.core.is_file() or not shared_donor.is_file():
+            raise ValueError("in-place Core or scheduler donor is missing")
+        root.mkdir(parents=True, exist_ok=False)
+        returned = _runtime_preparer(root)
+        if (returned != root / "runtime/python.exe"
+                or {path.name for path in root.iterdir()} != {"runtime"}
+                or sha256(prepared_owner[0]) != prepared_owner[1]):
+            raise ValueError("prepared runtime layout or canonical owner changed")
+        prepared_context(root, args.runtime, _runtime_environment)
+        prepared_files = prepared_runtime_snapshot(args.runtime)
     validate_runtime_tree(args.runtime)
+    validate_app_local_vc_runtime(args.runtime)
+    validate_cpp_runtime(args.vc_runtime if args.vc_runtime is not None else args.runtime)
     validate_tree(args.workers)
     if not shared_donor.is_file():
         raise ValueError(f"scheduler donor is missing: {shared_donor}")
@@ -540,7 +926,10 @@ def main() -> int:
     if args.archive and args.archive.exists():
         raise ValueError("refusing to overwrite an existing archive")
     root = args.out.absolute()
-    if root.exists():
+    for donor in (args.runtime, args.vc_runtime):
+        if donor is not None and (root == donor.absolute() or root.is_relative_to(donor.absolute())):
+            raise ValueError("runtime output must be independent of its donor")
+    if root.exists() and prepared_files is None:
         raise ValueError(f"refusing to overwrite an existing runtime root: {root}")
     if not (args.runtime / "python.exe").is_file():
         raise ValueError(f"runtime has no python.exe: {args.runtime}")
@@ -549,10 +938,42 @@ def main() -> int:
 
     (root / "core").mkdir(parents=True)
     shutil.copy2(args.core, root / "core" / "archeaxis-api.exe")
-    shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
-                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    if prepared_files is None:
+        shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+        app_local_vc = stage_app_local_vc_runtime(args.runtime, root, args.vc_runtime)
+    else:
+        if prepared_runtime_snapshot(args.runtime) != prepared_files:
+            raise ValueError("prepared runtime changed before component staging")
+        vc_expected = validate_cpp_runtime(args.vc_runtime)
+        app_local_vc = stage_app_local_vc_runtime(args.runtime, root, args.vc_runtime, _runtime_in_place=True)
+        prepared_files.update({name: {key: row[key] for key in ("bytes", "sha256")}
+                               for name, row in vc_expected.items()})
+    app_local_webview2 = (stage_fixed_webview2(args.webview2_runtime.absolute(),
+                         args.webview2_manifest.absolute(), root) if args.webview2_runtime else None)
     copy_tree(args.workers, root / "workers")
     capability_manifest = stage_capability_manifest(root, args.external_root)
+    # The transcript model travels with the runtime, which is already a bundle resource: an
+    # installed machine needs no shared model library and no first-run download. When no donor
+    # is supplied the gap is recorded by name rather than left to be discovered at job time.
+    asr_expected = (expected_model_members(args.asr_model, args.asr_model_name)
+                    if prepared_files is not None and args.asr_model is not None else None)
+    asr_model = (stage_asr_model(args.asr_model, root, args.asr_model_name, args.asr_model_license)
+                 if args.asr_model is not None else {
+                     "status": "MISSING",
+                     "bundled_location": ASR_MODEL_ROOT,
+                     "reason": "no --asr-model donor was supplied; this candidate ships no transcript "
+                               "model, so media.transcribe / media.video fail by name until one is "
+                               "bundled (nothing is downloaded at run time)",
+                 })
+    if asr_expected is not None:
+        if asr_model["files"] != asr_expected or expected_model_members(args.asr_model, args.asr_model_name) != asr_expected:
+            raise ValueError("prepared ASR donor or copy changed")
+        relative = asr_model["bundled_location"].removeprefix("runtime/") + "/"
+        prepared_files.update({relative + name: row for name, row in asr_expected.items()})
+        identity = {key: value for key, value in asr_model.items() if key != "status"}
+        encoded = (json.dumps(identity, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+        prepared_files[relative + ASR_MODEL_IDENTITY] = {"bytes": len(encoded), "sha256": hashlib.sha256(encoded).hexdigest()}
     (root / "data").mkdir()
 
     # The scheduler worker imports the repository's shared donor rather than carrying a
@@ -597,11 +1018,26 @@ def main() -> int:
     shutil.copy2(Path(__file__).resolve().parent / "backend_launcher.py",
                  root / "start-backend.py")
 
-    def interpreter_version() -> str:
-        result = os.popen(f'"{root / "runtime" / "python.exe"}" -c '
-                          f'"import sys;print(sys.version.split()[0])"').read().strip()
-        return result or "unknown"
+    # Inspect before inventory, without writing startup bytecode into the runtime.
+    # A late probe used to add files after their hashes had already been recorded.
+    inspected = subprocess.run(
+        [str(root / "runtime" / "python.exe"), "-I", "-B", "-c",
+         "import sys;print(sys.version.split()[0])"],
+        cwd=root, capture_output=True, text=True, encoding="utf-8", check=True, timeout=30,
+    )
+    runtime_version = inspected.stdout.strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", runtime_version):
+        raise ValueError("staged interpreter did not report a valid Python version")
 
+    if prepared_files is not None:
+        expected_root = {"runtime", "core", "workers", "shared", "data", "worker-profile.json",
+                         "start-backend.py", "start-backend.cmd", *APP_LOCAL_VC_RUNTIME}
+        if {path.name for path in root.iterdir()} != expected_root:
+            raise ValueError("unexpected member in prepared backend root")
+        if (prepared_runtime_snapshot(args.runtime) != prepared_files
+                or sha256(prepared_owner[0]) != prepared_owner[1]):
+            raise ValueError("prepared runtime or canonical owner changed during staging")
+        prepared_context(root, args.runtime, _runtime_environment)
     files: dict[str, dict[str, object]] = {}
     for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
@@ -639,7 +1075,7 @@ def main() -> int:
              "version": args.version},
             {"component": "python-runtime", "path": "runtime/python.exe",
              "sha256": files["runtime/python.exe"]["sha256"], "install_location": "runtime/",
-             "protocol": "subprocess", "version": interpreter_version()},
+             "protocol": "subprocess", "version": runtime_version},
             {"component": "python-workers", "path": "workers/",
              "files": sum(1 for name in files if name.startswith("workers/")),
              "install_location": "workers/", "protocol": "archeaxis.sidecar-protocol over NDJSON",
@@ -647,9 +1083,20 @@ def main() -> int:
             {"component": "worker-profile", "path": "worker-profile.json",
              "sha256": files["worker-profile.json"]["sha256"], "install_location": ".",
              "protocol": PROFILE_SCHEMA, "version": "1"},
+            {"component": "asr-model",
+             "path": asr_model.get("bundled_location"),
+             "status": asr_model["status"],
+             "install_location": "runtime/",
+             "version": asr_model.get("name"),
+             "files": len(asr_model.get("files") or {}),
+             "license": asr_model.get("license"),
+             "note": asr_model.get("reason") or "shipped with the runtime; discovered by the transcribe worker"},
         ],
         "dependencies": dependencies,
+        "asr_model": asr_model,
         "capability_manifest": capability_manifest,
+        "app_local_vc_runtime": app_local_vc,
+        "app_local_webview2": app_local_webview2,
         "startup_order": [
             "1. set ARCHEAXIS_WORKER_PROFILE to <root>/worker-profile.json",
             "2. launch core/archeaxis-api.exe with the workspace db and port",
@@ -667,6 +1114,10 @@ def main() -> int:
         "manual_environment_required": False,
         "files": files,
     }
+    if prepared_files is not None:
+        manifest["runtime_preparation"] = {"mechanism": "FRESH_OWNED_IN_PLACE_CALLBACK",
+            "run_root": _runtime_environment["ARCHEAXIS_RUN_ROOT"],
+            "host_runtime_tree_copies": 1, "intermediate_runtime_tree_copies": 0}
     manifest_path = root / "backend-runtime-manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                              encoding="utf-8", newline="\n")

@@ -1,0 +1,115 @@
+{
+  "schema": "aaos.budget-crossing-history/v1",
+  "intended_history_path": "docs/history/storage-cleanup/2026-10-31-budget-crossing/",
+  "status": "PASS_FINITE_GROWTH_RULE_COUNTEREXAMPLE_AND_ACTUAL28TESTS_ONLY",
+  "source_head": "e792dadc062033a93914b433278cd1a41b6d368b",
+  "source_dirty": true,
+  "source_patch_sha256": "4e1a53deae95f1df0370d3a6e42a47f889f4ebae5131685cfb4987fe21992c7e",
+  "source_consistent": true,
+  "source_files": [
+    {
+      "path": "scripts/runtime/storage_report.py",
+      "sha256": "e72d1aaf5facefe9b9afd98b2b19374249e5a03824087ba80499b7f54aab0970"
+    },
+    {
+      "path": "tests/test_storage_report_link_measurement.py",
+      "sha256": "4657081e97e962ab0b7223c8a7eeb0878eb29e877b7ff51d863026a1bd4a0587"
+    }
+  ],
+  "baseline": {
+    "path": ".project-local\\runs\\be268a2d33\\spr-size5\\artifacts\\footprint.json",
+    "sha256": "ae6462f2875bb10cd04d591cab76f436a63c7174d2cce86da8a2245608886d9a",
+    "unchanged": true,
+    "measurement_status": "PARTIAL"
+  },
+  "counterexample": {
+    "kind": "IN_MEMORY_HYPOTHETICAL_NOT_CURRENT_DISK_MEASUREMENT",
+    "net_delta_bytes": 0,
+    "baseline_over_classes": [
+      "candidates/",
+      "runs/"
+    ],
+    "counterfactual_over_classes": [
+      "build/",
+      "candidates/",
+      "runs/"
+    ],
+    "new_over_classes": [
+      "build/"
+    ],
+    "actual_growth_status": "REVIEW_REQUIRED",
+    "actual_growth_measurement_status": "PARTIAL",
+    "actual_main_exit": 2,
+    "wrapper_exit": 0,
+    "old_growth_status": "NO_NEW_GROWTH_TRIGGER",
+    "old_main_exit": 1
+  },
+  "tests": {
+    "actual_formal_test_path": "tests/test_storage_report_link_measurement.py",
+    "test_source_override": false,
+    "passed": 28,
+    "pytest_exit": 0,
+    "ruff_minimal_gate_exit": 0,
+    "warning": "one preexisting unknown cache_dir option"
+  },
+  "operations": {
+    "tracked_writes": 0,
+    "baseline_writes": 0,
+    "large_files_created": 0,
+    "project_cleanup": 0,
+    "api_vm_model_calls": 0
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-gactual1/artifacts/actual-budget-review.json",
+      "phase": "ACTUAL_FORMAL_SOURCE_MEMORY_COUNTEREXAMPLE",
+      "bytes": 2308,
+      "sha256": "4bc25e1bcaa430101f04cfbc428182771fb1a767ef42c761a829eb33c190082e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-gactual1/artifacts/actual-storage-tests.log",
+      "phase": "ACTUAL_FORMAL28_TESTS",
+      "bytes": 542,
+      "sha256": "0aabb7697899c3981eee45d481b5cf2b9a67b89e50566cb449fc0da91f422791"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-gactual1/artifacts/ruff-gate.log",
+      "phase": "ACTUAL_RUFF_GATE",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-gactual1/artifacts/execution.json",
+      "phase": "ACTUAL_WRAPPER_DEV_EXIT0",
+      "bytes": 5896,
+      "sha256": "fe24e2380e107e205fb4aa2db6fb7d62629bf68a2667a603ee2b46699e17396d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-grow2/artifacts/budget-crossing-review.json",
+      "phase": "ORIGINAL_RED_AND_IGNORED_CANDIDATE_GREEN",
+      "bytes": 5390,
+      "sha256": "6bafc1235f878fea298155fb903582ed3062350e3d7a4238ed5dee862559d592"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-grow1/artifacts/execution.json",
+      "phase": "PRESERVED_CANDIDATE_PEER_LOADER_FAILURE",
+      "bytes": 11017,
+      "sha256": "eb767ee14eeed2e1729469cf99ea3a193840adc8c76d6f3e0c9864b87bbd4b89"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-size5/artifacts/footprint.json",
+      "phase": "ORIGINAL_PARTIAL_BASELINE_UNCHANGED",
+      "bytes": 789677,
+      "sha256": "ae6462f2875bb10cd04d591cab76f436a63c7174d2cce86da8a2245608886d9a"
+    }
+  ],
+  "readme_sha256": "ef58f432318a363569468dba272ef06bf969b4598d9ee50eef45f162ecf6fe39",
+  "encoding": "UTF-8 LF",
+  "not_proven": [
+    "current repository footprint",
+    "current disk delta0",
+    "complete measurement PASS",
+    "directory cleanup completion",
+    "VM/API/model/installed runtime/Owner acceptance"
+  ]
+}

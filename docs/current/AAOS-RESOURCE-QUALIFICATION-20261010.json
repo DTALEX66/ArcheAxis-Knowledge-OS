@@ -368,11 +368,11 @@
           },
           "source_refs": [
             {
-              "path": "crates/archeaxis-domain/src/document.rs",
+              "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
               "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
             },
             {
-              "path": "frontend/src/api/generated/core-contract.ts",
+              "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
               "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143"
             }
           ]
@@ -389,7 +389,7 @@
               "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334"
             },
             {
-              "path": "Cargo.lock",
+              "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
               "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
             }
           ],
@@ -592,11 +592,11 @@
           },
           "source_refs": [
             {
-              "path": "crates/archeaxis-domain/src/document.rs",
+              "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
               "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
             },
             {
-              "path": "frontend/src/api/generated/core-contract.ts",
+              "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
               "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143"
             }
           ]
@@ -613,7 +613,7 @@
               "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334"
             },
             {
-              "path": "Cargo.lock",
+              "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
               "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
             }
           ],
@@ -2014,11 +2014,11 @@
           "source_refs": [
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             },
             {
               "path": "pyproject.toml",
-              "sha256": "8df2995c350abea2dcb4d8b6f13e80c165abe9d7b2f5ca7d503ace3a6006a63c"
+              "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
             }
           ]
         },
@@ -2040,7 +2040,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             }
           ]
         },
@@ -2797,7 +2797,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             }
           ]
         },
@@ -5271,7 +5271,7 @@
               "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
             },
             {
-              "path": "frontend/package.json",
+              "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
               "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
             }
           ],
@@ -5389,11 +5389,11 @@
           "source_refs": [
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             },
             {
               "path": "pyproject.toml",
-              "sha256": "8df2995c350abea2dcb4d8b6f13e80c165abe9d7b2f5ca7d503ace3a6006a63c"
+              "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
             }
           ]
         },
@@ -5415,7 +5415,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             }
           ]
         },
@@ -6901,7 +6901,7 @@
               "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
             },
             {
-              "path": "frontend/package.json",
+              "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
               "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
             }
           ],
@@ -7126,11 +7126,11 @@
           "source_refs": [
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             },
             {
               "path": "pyproject.toml",
-              "sha256": "8df2995c350abea2dcb4d8b6f13e80c165abe9d7b2f5ca7d503ace3a6006a63c"
+              "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
             }
           ]
         },
@@ -7152,7 +7152,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+              "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
             }
           ]
         },
@@ -7783,14 +7783,14 @@
     },
     {
       "path": "uv.lock",
-      "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
+      "sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8"
     },
     {
       "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
       "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
     },
     {
-      "path": "Cargo.lock",
+      "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
       "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
     },
     {
@@ -7798,7 +7798,7 @@
       "sha256": "370731e01e29db9b97448ed872d131dec0abd288a2f779dcfe9d8f3273e3bfc4"
     },
     {
-      "path": "THIRD_PARTY_NOTICES.md",
+      "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md",
       "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
     },
     {
@@ -8197,7 +8197,7 @@
     "unchanged_package_records": 204,
     "boundary": "Current lock source binding only. Existing version/license values, runtime, activation and qualification states remain unchanged. Not installed runtime or Owner acceptance.",
     "previous_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c",
-    "current_sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970",
+    "current_sha256": "584e44b5a900a11631215ba000b040fe5e0c36598be0b0883754adaeb38478b8",
     "rebound_current_source_references": [
       "/entries/18/evidence/version/source_refs/0",
       "/entries/18/evidence/license/source_refs/1",
@@ -8207,6 +8207,30 @@
       "/entries/62/evidence/version/source_refs/0",
       "/entries/62/evidence/license/source_refs/1",
       "/sources/3"
+    ]
+  },
+  "historical_source_binding_20261022": {
+    "observed_at": "2026-10-22T13:01:18.263Z",
+    "baseline_commit": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "scope": "Seven paths now resolve to exact historical bytes; no hash refresh or evidence-state promotion",
+    "current_source_qualification": "NOT_REQUALIFIED_BY_ARCHIVAL_REPAIR",
+    "source_refs": [
+      {
+        "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/MANIFEST.json",
+        "sha256": "50bac4221f4c855ca65d7a06cec8b79babb51ac3b81f7cc4e9fd6889b9504f2f"
+      }
+    ]
+  },
+  "historical_source_binding_20261024": {
+    "observed_at": "2026-10-23T19:55:02.155806+00:00",
+    "baseline_commit": "95b463c12dbd40744b43039add69c48ceaeba94e",
+    "scope": "Three paths now resolve to exact historical HEAD bytes; no hash refresh or evidence-state promotion",
+    "current_source_qualification": "NOT_REQUALIFIED_BY_ARCHIVAL_REPAIR",
+    "source_refs": [
+      {
+        "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json",
+        "sha256": "077a866c85d9c65eb378245c5a1ada154d2fb270d91c3a8d89f47924fd77a00a"
+      }
     ]
   }
 }

@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type KeyboardEvent, type PointerEvent } from "react";
 import { EXPRESSION_LIMITS, expressionTextBytes, validExpressionMedia, type ExpressionDocument, type ExpressionMedia, type ExpressionNode } from "../presentation/expression";
+import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import "./expression-board.css";
 
 export interface CanonicalExpressionBoardProps {
@@ -21,11 +23,14 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
   const [from, setFrom] = useState(""); const [to, setTo] = useState(""); const [label, setLabel] = useState("");
   const [error, setError] = useState<string | null>(null); const [addingMedia, setAddingMedia] = useState(false);
   const drag = useRef<{ id: string; x: number; y: number; clientX: number; clientY: number } | null>(null);
+  const viewportElement=useRef<HTMLDivElement>(null);
   const locked = readOnly || disabled;
   const [geometryDrafts, setGeometryDrafts] = useState<Record<string, string>>({});
   const requestSerial = useRef(0);
   const pendingCallback = useRef(onPendingEditChange); pendingCallback.current = onPendingEditChange;
   const pending = !locked && (Object.keys(geometryDrafts).length > 0 || !!from || !!to || !!label || addingMedia);
+  const recoveryOwner = useDraftOwner("expression-input");
+  useDraftRecoverySource(recoveryOwner, "表达未提交输入", () => pending ? [{ label: `表达未提交输入 · ${documentKey}`, text: JSON.stringify({ geometry: geometryDrafts, connection: { from, to, label } }, null, 2) }] : []);
   useEffect(() => { onPendingEditChange?.(pending); }, [pending, onPendingEditChange]);
   useEffect(() => {
     requestSerial.current++; setGeometryDrafts({}); setFrom(""); setTo(""); setLabel(""); setAddingMedia(false); setError(null); setSelectedId(null); drag.current = null;
@@ -45,6 +50,15 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
   const width = Math.max(600, ...value.nodes.map(n => n.x + n.width - originX + 24));
   const height = Math.max(400, ...value.nodes.map(n => n.y + n.height - originY + 24));
   const nodeMap = new Map(value.nodes.map(n => [n.id, n]));
+  useLayoutEffect(()=>{
+    const viewport=viewportElement.current;if(!selected||!viewport||!viewport.clientWidth||!viewport.clientHeight)return;
+    const left=selected.x-originX,top=selected.y-originY;
+    const right=left+Math.min(selected.width,viewport.clientWidth),bottom=top+Math.min(selected.height,viewport.clientHeight);
+    if(left<viewport.scrollLeft)viewport.scrollLeft=left;
+    else if(right>viewport.scrollLeft+viewport.clientWidth)viewport.scrollLeft=right-viewport.clientWidth;
+    if(top<viewport.scrollTop)viewport.scrollTop=top;
+    else if(bottom>viewport.scrollTop+viewport.clientHeight)viewport.scrollTop=bottom-viewport.clientHeight;
+  },[selected?.id,selected?.x,selected?.y,selected?.width,selected?.height,originX,originY]);
   function emit(next: ExpressionDocument) { if (!locked) { setError(null); onChange(next); } }
   function updateNode(id: string, patch: Partial<ExpressionNode>) {
     emit({ ...value, nodes: value.nodes.map(n => n.id === id ? { ...n, ...patch } : n) });
@@ -114,9 +128,8 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
     </div>
     <p className="muted">选择节点后用方向键移动，Shift + 方向键移动 10；负坐标原样保留。媒体来自已校验来源。</p>
     {error ? <p role="alert">{error}</p> : null}
-    <label className="expression-picker">当前节点<select aria-label="当前节点" value={selected?.id ?? ""} onChange={e => setSelectedId(e.target.value || null)}><option value="">选择节点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1} · {n.type === "text" ? "文字" : "媒体"}</option>)}</select></label>
-    {selected ? <fieldset className="expression-properties" disabled={locked}><legend>节点位置与尺寸</legend>{(["x", "y", "width", "height"] as const).map((key, i) => <label key={key}>{["X 坐标", "Y 坐标", "宽度", "高度"][i]}<GeometryInput key={`${documentKey}-${selected.id}-${key}`} label={["X 坐标", "Y 坐标", "宽度", "高度"][i]} value={geometryDrafts[`${selected.id}:${key}`] ?? String(selected[key])} pending={geometryDrafts[`${selected.id}:${key}`] !== undefined} onDraft={raw => draftGeometry(`${selected.id}:${key}`, raw, selected[key])} onCommit={() => { const raw = geometryDrafts[`${selected.id}:${key}`]; if (raw !== undefined && changeNumber(selected, key, raw)) clearGeometry(`${selected.id}:${key}`); }} onCancel={() => { clearGeometry(`${selected.id}:${key}`); setError(null); }} /></label>)}</fieldset> : null}
-    <div className="expression-viewport" role="region" aria-label="画布滚动区域" tabIndex={0}>
+    <div className="expression-workspace"><div className="expression-canvas-column">
+    <div ref={viewportElement} className="expression-viewport" role="region" aria-label="画布滚动区域" tabIndex={0}>
       <div className="expression-plane" style={{ width, height }}>
         <svg className="expression-edges" width={width} height={height} aria-hidden="true">{value.edges.map(edge => {
           const a = nodeMap.get(edge.fromNode); const b = nodeMap.get(edge.toNode); if (!a || !b) return null;
@@ -128,7 +141,7 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
           if (!a || !b || !edge.label) return null;
           return <span key={edge.id} className="expression-edge-label" title={edge.label} aria-label={`连线 ${i + 1}: ${edge.label}`} style={{ left: (a.x + a.width / 2 + b.x + b.width / 2) / 2 - originX, top: (a.y + a.height / 2 + b.y + b.height / 2) / 2 - originY - 6 }}>{edge.label}</span>;
         })}
-        {value.nodes.map((node, i) => <article key={node.id} className="expression-node" aria-label={`节点 ${i + 1}`} tabIndex={0} onFocus={() => setSelectedId(node.id)} onKeyDown={event => keyboard(event, node)} style={{ left: node.x - originX, top: node.y - originY, width: node.width, height: node.height }}>
+        {value.nodes.map((node, i) => <article key={node.id} className="expression-node" data-selected={selectedId===node.id} aria-label={`节点 ${i + 1}`} tabIndex={0} onFocus={() => setSelectedId(node.id)} onKeyDown={event => keyboard(event, node)} style={{ left: node.x - originX, top: node.y - originY, width: node.width, height: node.height }}>
           <header><button type="button" aria-label={`拖动节点 ${i + 1}`} disabled={locked} onPointerDown={event => pointerDown(event, node)} onPointerMove={pointerMove} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }}>节点 {i + 1}</button><button type="button" aria-label={`删除节点 ${i + 1}`} disabled={locked} onClick={() => removeNode(node.id)}>删除</button></header>
           {node.type === "media" ? <div className="expression-media">{node.media && validExpressionMedia(node.media) && renderMedia ? renderMedia(node.media, node) : <p>媒体预览未接通或来源无效。</p>}</div> : null}
           <textarea aria-label={`${node.type === "media" ? "媒体说明" : "节点文字"} ${i + 1}`} value={node.text} readOnly={locked} onChange={event => changeText(node, event.target.value)} />
@@ -136,7 +149,11 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
       </div>
     </div>
     {value.nodes.length === 0 ? <p className="muted">空画布。添加节点开始表达。</p> : null}
-    <fieldset className="expression-connect" disabled={locked}><legend>添加连线</legend><label>起点<select aria-label="连线起点" value={from} onChange={e => setFrom(e.target.value)}><option value="">选择起点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1}</option>)}</select></label><label>终点<select aria-label="连线终点" value={to} onChange={e => setTo(e.target.value)}><option value="">选择终点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1}</option>)}</select></label><label>文字<textarea aria-label="新连线文字" value={label} onChange={e => setLabel(e.target.value)} /></label><button type="button" onClick={addEdge}>添加连线</button><button type="button" onClick={cancelConnection} disabled={!from && !to && !label}>取消未提交连线</button></fieldset>
+    </div><aside className="expression-inspector" aria-label="当前节点属性与连线">
+    <label className="expression-picker">当前节点<select aria-label="当前节点" value={selected?.id ?? ""} onChange={e => setSelectedId(e.target.value || null)}><option value="">选择节点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1} · {n.type === "text" ? "文字" : "媒体"}</option>)}</select></label>
+    {selected ? <fieldset className="expression-properties" disabled={locked}><legend>节点位置与尺寸</legend>{(["x", "y", "width", "height"] as const).map((key, i) => <label key={key}>{["X 坐标", "Y 坐标", "宽度", "高度"][i]}<GeometryInput key={`${documentKey}-${selected.id}-${key}`} label={["X 坐标", "Y 坐标", "宽度", "高度"][i]} value={geometryDrafts[`${selected.id}:${key}`] ?? String(selected[key])} pending={geometryDrafts[`${selected.id}:${key}`] !== undefined} onDraft={raw => draftGeometry(`${selected.id}:${key}`, raw, selected[key])} onCommit={() => { const raw = geometryDrafts[`${selected.id}:${key}`]; if (raw !== undefined && changeNumber(selected, key, raw)) clearGeometry(`${selected.id}:${key}`); }} onCancel={() => { clearGeometry(`${selected.id}:${key}`); setError(null); }} /></label>)}</fieldset> : <p className="muted">选择画布节点或上方列表中的节点，在此调整位置与尺寸。</p>}
+    <fieldset className="expression-connect" disabled={locked}><legend>添加连线</legend><label>起点<select aria-label="连线起点" value={from} onChange={e => setFrom(e.target.value)}><option value="">选择起点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1}</option>)}</select></label><label>终点<select aria-label="连线终点" value={to} onChange={e => setTo(e.target.value)}><option value="">选择终点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1}</option>)}</select></label><label>文字<textarea aria-label="新连线文字" value={label} onChange={e => setLabel(e.target.value)} /></label><button type="button" onClick={addEdge}>添加连线</button><button type="button" onClick={cancelConnection} disabled={!from && !to && !label} title={!from && !to && !label?"当前没有未提交的连线":undefined}>取消未提交连线</button></fieldset>
     <ul className="expression-edge-list" aria-label="连线列表">{value.edges.map((edge, i) => <li key={edge.id}><label>连线 {i + 1}<textarea aria-label={`连线文字 ${i + 1}`} value={edge.label} readOnly={locked} onChange={e => { if (expressionTextBytes(e.target.value) > EXPRESSION_LIMITS.labelBytes) { setError("连线文字超出 1024 字节上限。"); return; } emit({ ...value, edges: value.edges.map(item => item.id === edge.id ? { ...item, label: e.target.value } : item) }); }} /></label><button type="button" disabled={locked} aria-label={`删除连线 ${i + 1}`} onClick={() => emit({ ...value, edges: value.edges.filter(item => item.id !== edge.id) })}>删除连线</button></li>)}</ul>
+    </aside></div>
   </section>;
 }

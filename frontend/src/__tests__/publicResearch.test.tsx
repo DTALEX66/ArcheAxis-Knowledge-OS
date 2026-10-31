@@ -9,8 +9,53 @@ const restored="1".repeat(32),olderEpoch="2".repeat(32),changedScope="3".repeat(
 const ui:UiWorkingStateRead={schema:"archeaxis.ui-working-state/v1",...scope,state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:null},draft_digests:{},recovery_candidates:null,recovery_requires_confirmation:false,pending_document_id:null};
 function receipt(request:PublicResearchRequest):PublicResearchReceiptDto{return {schema:"archeaxis.public-research-receipt/v1",...request,state:"complete",channels:[{family:"research",provider:"openalex",status:"complete",retrieved_at:"2026-10-21T00:00:00Z",request_url:"https://api.openalex.org/works?search=public&per-page=1",retry_after_seconds:null,error_code:null,hits:[{id:"https://openalex.org/W123",family:"research",provider:"openalex",title:"Public result",url:"https://openalex.org/W123",retrieved_at:"2026-10-21T00:00:00Z",content:"metadata",excerpt:"",locator:null,license:null,free_access:"unknown",upstream_revision:null,representation:"metadata",truncated:false}],raw_source:{kind:"source",source_id:"raw_public",sha256:"a".repeat(64)},raw_representation:"http_entity_body_bytes"}],reason_code:null,provider_stop_state:"unknown",knowledge_admission:"not_executed"};}
 let resolveSearch:(v:unknown)=>void;
-beforeEach(()=>{assertUiWorkingState("Read",ui);bridge.call.mockReset();bridge.call.mockImplementation(async(op:string,p:any)=>{if(op==="ui_state_read")return ui;if(op==="public_research_search")return new Promise(resolve=>{resolveSearch=resolve;});if(op==="public_research_read")return receipt({...p.body,query:"public",families:["research"],limit:1});if(op==="public_research_cancel")return {schema:"archeaxis.public-research-cancel/v1",request_id:p.body.request_id,cancel_requested:true,execution_state:"unknown",provider_stop_state:"unknown"};throw Error(op);});});
-it("uses formal scoped body with explicit terms and never queries on mount",async()=>{const {result}=renderHook(()=>usePublicResearch("page-a",()=>true));expect(bridge.call).not.toHaveBeenCalled();act(()=>{void result.current.search("public",["research"]);});await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;expect(request).toEqual({...scope,request_id:expect.any(String),query:"public",families:["research"],limit:1});await act(async()=>resolveSearch(receipt(request)));expect(result.current.receipt?.query).toBe("public");});
+
+it("sends three bounded hits and the selected forum site while retaining canonical source states",async()=>{
+ const {result}=renderHook(()=>usePublicResearch("stats-page",()=>true));
+ act(()=>{void result.current.search("public",["community","research"],"stats");});
+ await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));
+ const request=bridge.call.mock.calls[1][1].body;
+ expect(request).toEqual({...scope,request_id:expect.any(String),query:"public",families:["community","research"],community_site:"stats",limit:3});
+ const returned=receipt(request);
+ returned.channels!.unshift({...returned.channels![0],family:"community",provider:"stackexchange",request_url:"https://api.stackexchange.com/2.3/search/advanced?site=stats",hits:[]});
+ await act(async()=>resolveSearch(returned));
+ expect(result.current.phase).toBe("read");
+ expect(result.current.snapshot).toMatchObject({communitySite:"stats",families:["community","research"]});
+});
+
+it("rejects a different forum site in the receipt instead of binding it to the selected request",async()=>{
+ const {result}=renderHook(()=>usePublicResearch("stats-page",()=>true));
+ act(()=>{void result.current.search("public",["community","research"],"stats");});
+ await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));
+ const request=bridge.call.mock.calls[1][1].body;
+ await act(async()=>resolveSearch({...receipt(request),community_site:"academia"}));
+ expect(result.current.phase).toBe("failed");expect(result.current.target?.request_id).toBe(request.request_id);expect(result.current.receipt).toBeNull();
+});
+
+it("rejects an arbitrary forum target before any bridge call",async()=>{
+ const {result}=renderHook(()=>usePublicResearch("page-a",()=>true));
+ await act(async()=>{await result.current.search("public",["community"],"stackoverflow" as "academia");});
+ expect(bridge.call).not.toHaveBeenCalled();expect(result.current.message).toContain("没有发出请求");
+});
+
+it("materializes Crossref using its own raw source while keeping the failed OpenAlex channel",async()=>{
+ const accept=vi.fn(()=>true);const {result}=renderHook(()=>usePublicResearch("fallback",accept));
+ act(()=>{void result.current.search("public",["research"]);});
+ await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));
+ const returned=receipt(bridge.call.mock.calls[1][1].body),original=returned.channels![0];
+ const crossrefHit={...original.hits[0],id:"https://doi.org/10.1234/synthetic",url:"https://doi.org/10.1234/synthetic",provider:"crossref" as const};
+ const fallbackRaw={kind:"source" as const,source_id:"raw_crossref",sha256:"c".repeat(64)};
+ returned.state="partial";returned.channels=[{...original,status:"limited",error_code:"rate_limited",hits:[]},{...original,provider:"crossref",request_url:"https://api.crossref.org/works?query.bibliographic=public&rows=3",hits:[crossrefHit],raw_source:fallbackRaw}];
+ await act(async()=>resolveSearch(returned));
+ const selection={schema:"archeaxis.public-research-selection/v1",request_id:returned.request_id,family:"research",hit_id:crossrefHit.id,reference:{kind:"source",source_id:"derived_crossref",sha256:"d".repeat(64)},raw_reference:fallbackRaw,title:crossrefHit.title,representation:"metadata",truncated:false,note:"Synthetic fallback metadata",knowledge_admission:"not_executed"};
+ const previous=bridge.call.getMockImplementation()!;bridge.call.mockImplementation((op:string,p:any)=>op==="public_research_materialize"?Promise.resolve(selection):previous(op,p));
+ await act(async()=>{await result.current.materialize(crossrefHit);});
+ expect(accept).toHaveBeenCalledWith(selection);
+ expect(result.current.receipt?.channels?.[0]).toMatchObject({provider:"openalex",status:"limited",hits:[]});
+ expect(result.current.receipt?.channels?.[1].raw_source).toEqual(fallbackRaw);
+});
+beforeEach(()=>{assertUiWorkingState("Read",ui);bridge.call.mockReset();bridge.call.mockImplementation(async(op:string,p:any)=>{if(op==="ui_state_read")return ui;if(op==="public_research_search")return new Promise(resolve=>{resolveSearch=resolve;});if(op==="public_research_read")return receipt({...p.body,query:"public",families:["research"],limit:3});if(op==="public_research_cancel")return {schema:"archeaxis.public-research-cancel/v1",request_id:p.body.request_id,cancel_requested:true,execution_state:"unknown",provider_stop_state:"unknown"};throw Error(op);});});
+it("uses formal scoped body with explicit terms and never queries on mount",async()=>{const {result}=renderHook(()=>usePublicResearch("page-a",()=>true));expect(bridge.call).not.toHaveBeenCalled();act(()=>{void result.current.search("public",["research"]);});await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;expect(request).toEqual({...scope,request_id:expect.any(String),query:"public",families:["research"],limit:3});await act(async()=>resolveSearch(receipt(request)));expect(result.current.receipt?.query).toBe("public");});
 it("cancel stops waiting, retains identity and rejects a late result until explicit read",async()=>{const {result}=renderHook(()=>usePublicResearch("page-a",()=>true));act(()=>{void result.current.search("public",["research"]);});await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;await act(async()=>{await result.current.cancel();});expect(result.current.phase).toBe("cancelled");expect(result.current.target?.request_id).toBe(request.request_id);await act(async()=>resolveSearch(receipt(request)));expect(result.current.receipt).toBeNull();await act(async()=>{await result.current.read();});expect(result.current.receipt?.request_id).toBe(request.request_id);expect(bridge.call.mock.calls.filter(([op])=>op==="public_research_search")).toHaveLength(1);});
 it("does not deliver late results into a different page",async()=>{const {result,rerender}=renderHook(({owner})=>usePublicResearch(owner,()=>true),{initialProps:{owner:"a"}});act(()=>{void result.current.search("public",["research"]);});await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;rerender({owner:"b"});await act(async()=>resolveSearch(receipt(request)));expect(result.current.receipt).toBeNull();});
 it("retains an interrupted page's unknown request for explicit read after returning",async()=>{const {result,rerender}=renderHook(({owner})=>usePublicResearch(owner,()=>true),{initialProps:{owner:"a"}});act(()=>{void result.current.search("public",["research"]);});await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;rerender({owner:"b"});rerender({owner:"a"});await act(async()=>resolveSearch(receipt(request)));expect(result.current.phase).toBe("failed");expect(result.current.target?.request_id).toBe(request.request_id);expect(result.current.receipt).toBeNull();await act(async()=>{await result.current.read();});expect(result.current.receipt?.request_id).toBe(request.request_id);});

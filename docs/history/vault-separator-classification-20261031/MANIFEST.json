@@ -1,0 +1,152 @@
+{
+  "schema": "aaos.vault-separator-classification-history/v1",
+  "target_directory": "docs/history/vault-separator-classification-20261031",
+  "status": "FINITE_CURRENT_SOURCE_CLASSIFICATION_TESTS_PASS_NEW_BINARY_HTTP_UNVERIFIED",
+  "readme": {
+    "path": "README.md",
+    "bytes": 3690,
+    "sha256": "c83c290e3c50f4ac6cab1a525d8ef0cc55aa4eb0afca89e764f91b8c5c38fad3"
+  },
+  "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+  "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+  "dirty": true,
+  "source_files": [
+    {
+      "path": "crates/archeaxis-domain/src/vault_members.rs",
+      "bytes": 16004,
+      "sha256": "7fe8087ffaddb17976505daf4c209e8908e71008272135a1d8e457ea86722a74"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/contract_vault_members.rs",
+      "bytes": 8276,
+      "sha256": "9bd54b1684ffe7faf22ffdb420cd8ceabbca3e4bc430e14a9b7407ae0331cd5a"
+    }
+  ],
+  "old_core": {
+    "path": ".project-local/runs/be268a2d33/bkr-r6green1/artifacts/practice-runtime/core/archeaxis-api.exe",
+    "bytes": 27844096,
+    "sha256": "6b503641cb971ddc0135f79237e036c138cae0db8986cd3510ccefa06b75de6d",
+    "identity_basis": "RED harness exact preflight and original_runtime_identities_unchanged; binary not rehashed during this history seal"
+  },
+  "red": {
+    "status": "CONFIRMED_WINDOWS_SEPARATOR_CLASSIFICATION_GAP",
+    "http_status": 200,
+    "importable": 6,
+    "excluded": 0,
+    "cleanup": {
+      "pid": 33512,
+      "exit_code": 1,
+      "port": 64111,
+      "port_closed": true,
+      "graceful": "NOT_CLAIMED"
+    },
+    "payload_copies": 0
+  },
+  "green": {
+    "contract_vault_members": 8,
+    "original_api_tests": 7,
+    "new_api_regression": 1,
+    "domain_classifier": 14,
+    "domain_filtered": 40,
+    "collateral_semantic_synthetic": 4,
+    "expected_importable": 3,
+    "expected_excluded": 3,
+    "new_binary_http": "NOT_EXECUTED"
+  },
+  "model_calls": 0,
+  "vault_body_reads": 0,
+  "new_vault_bridge": false,
+  "run_results": {
+    "vault-red1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "dirty": false,
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    },
+    "vapi1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+      "dirty": true,
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    },
+    "vdom1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+      "dirty": true,
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    }
+  },
+  "local_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/execution.json",
+      "bytes": 1294,
+      "sha256": "7482e643bb0051f09a5f5654b48a7feef6a5de9f653894a8a4d13a79bf7fa10f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/logs/execution.log",
+      "bytes": 163,
+      "sha256": "37384db253f6f9a15053752d8962351b7db6b22b9a723f15ba0a76ec174267eb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vapi1/artifacts/execution.json",
+      "bytes": 1364,
+      "sha256": "f97c7daebdeea86b8a0cc996782ddca7e76277011c36bf228fb54cef5ef68746"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vapi1/logs/execution.log",
+      "bytes": 1927,
+      "sha256": "d9f256ac0ac68cab474a336e1c13955893590327aaeea57666c8e282d2f9e494"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vdom1/artifacts/execution.json",
+      "bytes": 1325,
+      "sha256": "f25d2c4cc949ec2bd1372e6ed728f3a8e30984f7262dc4e70b7b8ce50fb39197"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vdom1/logs/execution.log",
+      "bytes": 1966,
+      "sha256": "eac36276a0c78bedeb0e417642175af674d1350cc468dc914ec3e3df6b4102c6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/candidate.json",
+      "bytes": 1086,
+      "sha256": "d9c2712b1a43ab8886a9d76a94eb5dc0ad14670f8a66cc751203309529e44e0e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/vault-separator-red.json",
+      "bytes": 2751,
+      "sha256": "7f2cd78b9c56c626dba4b4cf6311508cc2a4e07f3689294a22b056784f0ae87a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/vault-separator.patch",
+      "bytes": 2312,
+      "sha256": "0856e7a36132f682ef49d3c78981d120c5b9be118844d2023b44e90ca154bfbe"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/rustfmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sci-evidence1/tmp/vault_separator_candidate.py",
+      "bytes": 6306,
+      "sha256": "f1b9367d05cd3fa54a67388a9103002091d0462823fd7850a0e0ff3a07cd1fff"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/deploy/crates/archeaxis-domain/src/vault_members.rs",
+      "bytes": 16004,
+      "sha256": "7fe8087ffaddb17976505daf4c209e8908e71008272135a1d8e457ea86722a74"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/vault-red1/artifacts/deploy/crates/archeaxis-api/tests/contract_vault_members.rs",
+      "bytes": 8276,
+      "sha256": "9bd54b1684ffe7faf22ffdb420cd8ceabbca3e4bc430e14a9b7407ae0331cd5a"
+    }
+  ]
+}

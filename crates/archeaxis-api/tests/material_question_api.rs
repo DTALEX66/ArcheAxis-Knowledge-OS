@@ -9,7 +9,7 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 
 #[tokio::test]
-async fn dormant_material_cloud_never_admits_a_production_request() {
+async fn unconfigured_material_cloud_never_admits_a_production_request() {
     let dir = tempfile::tempdir().unwrap();
     let worker = dir.path().join("worker.py");
     std::fs::write(&worker,"from pathlib import Path\nPath(__file__).with_suffix('.started').touch()\nraise SystemExit(1)\n").unwrap();
@@ -27,7 +27,7 @@ async fn dormant_material_cloud_never_admits_a_production_request() {
     let body = json!({"request_id":"dormant_cloud","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},
         "selection":null,"question":"Synthetic question","purpose":"learning","model":"synthetic-model","max_tokens":128,"timeout_s":5,"preview":true,"confirmed_plan_sha256":null,
         "model_configuration":{"workspace_id":"a".repeat(32),"restore_epoch":"initial","schema":"archeaxis.resolved-model/v1","configuration_revision":1,"configuration_sha256":"b".repeat(64),"purpose":"material","lane":"fast","profile_id":"synthetic_cloud",
-            "profile":{"endpoint":"https://synthetic.invalid/v1","protocol":"openai","model":"synthetic-model","credential_ref":format!("aak_cred_{}","c".repeat(32)),"max_tokens":128,"timeout_s":5}}});
+            "profile":{"endpoint":"https://api.openai.com/v1","protocol":"openai","model":"synthetic-model","credential_ref":format!("aak_cred_{}","c".repeat(32)),"max_tokens":128,"timeout_s":5}}});
     for (path, preview, asynchronous) in [
         ("/api/v1/material/questions", true, false),
         ("/api/v1/material/questions", false, false),
@@ -43,7 +43,7 @@ async fn dormant_material_cloud_never_admits_a_production_request() {
         }
         let (status, receipt) = call(&router, path, request).await;
         assert_eq!(status, 422, "{receipt}");
-        assert_eq!(receipt["reason_code"], "MATERIAL_CLOUD_NOT_ACTIVATED");
+        assert_eq!(receipt["reason_code"], "MODEL_CONFIGURATION_CHANGED");
         assert_eq!(receipt["answer_published"], false);
     }
     assert!(!worker.with_extension("started").exists());
@@ -505,7 +505,9 @@ async fn async_fixture(dir: &std::path::Path) -> (Executor, Router, Value) {
     (executor, router, body)
 }
 async fn wait_started(dir: &std::path::Path) {
-    tokio::time::timeout(std::time::Duration::from_secs(3), async {
+    // Parallel Rust tests share the runner; a cold Python worker can take longer
+    // than three seconds to reach its first statement on a loaded machine.
+    tokio::time::timeout(std::time::Duration::from_secs(15), async {
         while !dir.join("async-started").exists() {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
@@ -1097,6 +1099,151 @@ async fn asynchronous_terminal_replay_after_configuration_or_restore_is_historic
             .await
             .0,
             403
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+            "1"
+        );
+    }
+}
+
+// SYNTHETIC: actual Core, private stdin, owned worker, MockVault and fake HTTP.
+#[tokio::test]
+async fn cloud_owned_worker_vault_transport_publication_cancel_and_replay() {
+    for cancel in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let (executor, router, mut body) = async_fixture(dir.path()).await;
+        let resolved = executor
+            .store()
+            .submit_wait(|conn| {
+                use archeaxis_domain::model_configuration::*;
+                let mut c = read(conn).unwrap();
+                c.profiles.insert(
+                    "cloud".into(),
+                    Profile {
+                        endpoint: "https://api.openai.com/v1".into(),
+                        protocol: "openai-buffered".into(),
+                        model: "synthetic-model".into(),
+                        credential_ref: Some(format!("aak_cred_{}", "c".repeat(32))),
+                        max_tokens: 128,
+                        timeout_s: 5,
+                    },
+                );
+                c.bindings.push(Binding {
+                    purpose: Purpose::Material,
+                    lane: Lane::Fast,
+                    profile_id: "cloud".into(),
+                });
+                put(conn, 0, c).unwrap();
+                resolve(conn, Purpose::Material, Lane::Fast).unwrap()
+            })
+            .await
+            .unwrap();
+        body["model_configuration"] = serde_json::to_value(&resolved).unwrap();
+        body["model"] = json!("synthetic-model");
+        body["cloud_upload_confirmed"] = json!(true);
+        body["cloud_unknown_cost_confirmed"] = json!(true);
+        let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../services/python-workers/machine/material_cloud_worker.py")
+            .canonicalize()
+            .unwrap();
+        let script = format!(
+            r#"import importlib.util,json,sys,time,socket
+from pathlib import Path
+from types import SimpleNamespace
+def forbidden(*a,**k): raise RuntimeError('NO_NETWORK')
+socket.getaddrinfo=socket.create_connection=socket.socket.connect=forbidden
+spec=importlib.util.spec_from_file_location('owned', {source})
+m=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+def vault(ref):
+ assert ref == 'aak_cred_'+'c'*32
+ return bytearray(b'SYNTHETIC_PRIVATE_KEY')
+def transport(url, **kwargs):
+ assert kwargs['headers']['Authorization']=='Bearer SYNTHETIC_PRIVATE_KEY'
+ p=Path({count})
+ p.write_text(str(int(p.read_text())+1) if p.exists() else '1')
+ Path({started}).touch()
+ while not Path({release}).exists(): time.sleep(.01)
+ return SimpleNamespace(url=url,status=200,headers={{'content-type':'application/json'}},body=json.dumps({{'model':'synthetic-model','choices':[{{'message':{{'content':'SYNTHETIC cloud answer'}},'finish_reason':'stop'}}]}}).encode())
+print(json.dumps(m.run(sys.stdin.buffer,resolver=vault,transport=transport)))
+"#,
+            source = serde_json::to_string(&source).unwrap(),
+            count = serde_json::to_string(&dir.path().join("async-count")).unwrap(),
+            started = serde_json::to_string(&dir.path().join("async-started")).unwrap(),
+            release = serde_json::to_string(&dir.path().join("async-release")).unwrap()
+        );
+        std::fs::write(dir.path().join("material_cloud_worker.py"), script).unwrap();
+        let body = confirmed_async(&router, body).await;
+        let (status, ack) = call(
+            &router,
+            "/api/v1/material/questions/submissions",
+            body.clone(),
+        )
+        .await;
+        assert_eq!(status, 202, "{ack}");
+        wait_started(dir.path()).await;
+        if cancel {
+            assert_eq!(
+                call(
+                    &router,
+                    "/api/v1/material/questions/cancel",
+                    json!({"request_id":"async_material"})
+                )
+                .await
+                .0,
+                200
+            );
+        }
+        std::fs::write(dir.path().join("async-release"), "release").unwrap();
+        let receipt = material_terminal(&router, "async_material").await;
+        assert_eq!(
+            receipt["outcome"],
+            if cancel { "failed" } else { "succeeded" },
+            "{receipt}"
+        );
+        if !cancel {
+            assert_eq!(receipt["answer"]["answer"], "SYNTHETIC cloud answer");
+        }
+        assert!(!receipt.to_string().contains("SYNTHETIC_PRIVATE_KEY"));
+        assert_eq!(
+            call(&router, "/api/v1/material/questions/submissions", body)
+                .await
+                .1,
+            receipt
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+            "1"
+        );
+        drop(router);
+        drop(executor);
+        let db = std::fs::read(dir.path().join("async.sqlite")).unwrap();
+        assert!(
+            !db.windows(b"SYNTHETIC_PRIVATE_KEY".len())
+                .any(|w| w == b"SYNTHETIC_PRIVATE_KEY")
+        );
+        let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+        let script = dir.path().join("async-worker.py");
+        let reopened = Executor::open_routes(
+            &dir.path().join("async.sqlite"),
+            &dir.path().join("async-staging"),
+            &python,
+            &script,
+            &[("machine.answer", script.clone())],
+        )
+        .await
+        .unwrap();
+        let router = archeaxis_api::runtime::router(reopened);
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":"async_material"})
+            )
+            .await
+            .1,
+            receipt
         );
         assert_eq!(
             std::fs::read_to_string(dir.path().join("async-count")).unwrap(),

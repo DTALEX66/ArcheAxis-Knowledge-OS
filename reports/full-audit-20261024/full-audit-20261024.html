@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星环知识系统 · 全量审计与对比分析 · 2026-10-24</title>
+<style>
+  :root{
+    --bg:#070b14; --bg2:#0c1322; --card:rgba(18,27,45,.72); --line:rgba(126,168,255,.18);
+    --text:#e8eefc; --muted:#94a3b8; --accent:#6ea8ff; --good:#4ade80; --warn:#fbbf24; --bad:#fb7185;
+    --mono:"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+    radial-gradient(900px 600px at 12% -10%,rgba(110,168,255,.18),transparent 60%),
+    radial-gradient(700px 500px at 100% 0%,rgba(167,139,250,.12),transparent 55%),
+    linear-gradient(160deg,var(--bg),var(--bg2) 55%,#070b14);
+    color:var(--text);font:15px/1.75 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:48px 28px 80px}
+  header{padding:34px 34px 26px;border:1px solid var(--line);border-radius:24px;
+    background:linear-gradient(150deg,rgba(22,33,54,.9),rgba(12,19,34,.72));
+    box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);position:relative;overflow:hidden}
+  header:before{content:"";position:absolute;inset:-40% 40% 40% -20%;background:radial-gradient(circle,rgba(110,168,255,.18),transparent 65%);pointer-events:none}
+  .kicker{font:12px/1.4 var(--mono);letter-spacing:.22em;color:var(--accent);text-transform:uppercase}
+  h1{font-size:34px;line-height:1.25;margin:10px 0 8px;letter-spacing:.01em}
+  .sub{color:var(--muted);max-width:840px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .chip{font:12px/1 var(--mono);padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:#c7d6ef;background:rgba(110,168,255,.06)}
+  h2{font-size:21px;margin:42px 0 6px;letter-spacing:.01em}
+  h2 .n{font:12px/1 var(--mono);color:var(--accent);margin-right:10px}
+  .lead{color:var(--muted);margin:0 0 18px;max-width:900px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{border:1px solid var(--line);border-radius:18px;padding:20px 22px;background:var(--card);
+    backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .card h3{margin:0 0 6px;font-size:14px;color:#cfe0fb;font-weight:600}
+  .big{font:700 32px/1.15 var(--mono);letter-spacing:-.02em}
+  .big.good{color:var(--good)} .big.warn{color:var(--warn)} .big.bad{color:var(--bad)}
+  .small{font-size:12.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid rgba(126,168,255,.12);vertical-align:top}
+  th{font:12px/1.3 var(--mono);letter-spacing:.08em;color:#9fb4d8;text-transform:uppercase}
+  tr:last-child td{border-bottom:none}
+  td.num{font-family:var(--mono);white-space:nowrap}
+  .mono{font-family:var(--mono);font-size:12.5px;color:#b9cdf0;word-break:break-all}
+  .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:6px}
+  .bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4f8cff,#8bb8ff)}
+  .bar.g>i{background:linear-gradient(90deg,#34d399,#a7f3d0)}
+  .row{display:grid;grid-template-columns:150px 1fr 95px;gap:12px;align-items:center;margin:9px 0;font-size:13px}
+  .row b{font-weight:600;color:#d7e5ff}
+  .row span{font-family:var(--mono);color:var(--muted);text-align:right}
+  .tag{display:inline-block;font:11px/1 var(--mono);padding:4px 7px;border-radius:6px;letter-spacing:.04em}
+  .ok{background:rgba(74,222,128,.12);color:#86efac;border:1px solid rgba(74,222,128,.28)}
+  .mid{background:rgba(251,191,36,.12);color:#fcd34d;border:1px solid rgba(251,191,36,.28)}
+  .no{background:rgba(251,113,133,.12);color:#fda4af;border:1px solid rgba(251,113,133,.28)}
+  ul{margin:8px 0 0;padding-left:20px;color:#cfdcf3}
+  li{margin:6px 0}
+  .callout{border-left:3px solid var(--accent);padding:12px 16px;background:rgba(110,168,255,.07);border-radius:0 12px 12px 0;margin:14px 0;color:#d5e3fb}
+  .risk{border-left-color:var(--bad);background:rgba(251,113,133,.07)}
+  .foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+  @media (max-width:840px){.g2,.g3,.g4{grid-template-columns:1fr}.wrap{padding:28px 16px 60px}h1{font-size:26px}.row{grid-template-columns:110px 1fr 80px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">ArcheAxis Knowledge · Full Audit</div>
+  <h1>全量审计与对比分析</h1>
+  <p class="sub">覆盖项目体积、外置库与绿色库、仓库/目录/分支、证据链与前端新手全流程。所有数字来自 2026-10-24 的现场测量，不沿用历史结论；区分“已修、部分完成、未验证、仍待处理”。</p>
+  <div class="meta">
+    <span class="chip">测量基线 c355800b</span>
+    <span class="chip">分支 trae/20261024</span>
+    <span class="chip">Host 97baf29c</span>
+    <span class="chip">审计时间 2026-10-24</span>
+    <span class="chip">归档核验 2026-10-24</span>
+    <span class="chip">术语收敛 b645c658</span>
+  </div>
+</header>
+
+<h2><span class="n">01</span>结论摘要</h2>
+<p class="lead">四项结论：体积治理已从“失控”回到“可解释”；仓库与分支已收敛；证据链当前断点为 0，历史引用已逐条分类到归档、recipe、授权清理或历史未保留；前端新手流程可完整走通，工程内容收敛只完成了一部分。</p>
+<div class="grid g4">
+  <div class="card"><h3>项目运行区体积</h3><div class="big good">30.75 GB</div><div class="small">会话初 165.78GB，下降 <b>81.4%</b></div></div>
+  <div class="card"><h3>文件数量</h3><div class="big good">159,516</div><div class="small">会话初 1,556,415，下降 <b>89.7%</b></div></div>
+  <div class="card"><h3>当前证据断点</h3><div class="big good">0</div><div class="small">历史引用 2,575 条已分类，见 §04</div></div>
+  <div class="card"><h3>新手主流程</h3><div class="big good">14/14</div><div class="small">真实原生点击，含退出与同目录重开</div></div>
+</div>
+
+<h2><span class="n">02</span>体积对比：从 165.78GB 到 30.75GB</h2>
+<p class="lead">删除只针对“无引用、可重建或已归档”的内容；源码、当前候选、安装输入、回滚副本与原始档案保留。以下为实测对比。</p>
+<div class="card">
+  <div class="row"><b>会话初</b><div class="bar"><i style="width:100%"></i></div><span>165.78 GB</span></div>
+  <div class="row"><b>当前</b><div class="bar g"><i style="width:18.5%"></i></div><span>30.75 GB</span></div>
+  <div class="row"><b>绿色库初</b><div class="bar"><i style="width:23.5%"></i></div><span>3.90 GB</span></div>
+  <div class="row"><b>绿色库现</b><div class="bar g"><i style="width:17.9%"></i></div><span>2.97 GB</span></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card">
+    <h3>当前运行区构成</h3>
+    <div class="row"><b>runs</b><div class="bar"><i style="width:100%"></i></div><span>17.73 GB</span></div>
+    <div class="row"><b>build</b><div class="bar"><i style="width:29.5%"></i></div><span>5.23 GB</span></div>
+    <div class="row"><b>archives</b><div class="bar"><i style="width:19.9%"></i></div><span>3.53 GB</span></div>
+    <div class="row"><b>artifacts</b><div class="bar"><i style="width:11.0%"></i></div><span>1.95 GB</span></div>
+    <div class="row"><b>cache</b><div class="bar"><i style="width:0.01%"></i></div><span>0.04 MB</span></div>
+    <div class="row"><b>rt</b><div class="bar"><i style="width:7.1%"></i></div><span>1.26 GB</span></div>
+  </div>
+  <div class="card">
+    <h3>其余体积</h3>
+    <table>
+      <tr><td>仓库（不含运行区）</td><td class="num">2.82 GB / 39,229 文件</td></tr>
+      <tr><td>Git 跟踪内容</td><td class="num">5,703 条路径 / 约 1,190 MB</td></tr>
+      <tr><td>绿色库</td><td class="num">2.97 GB / 67,620 文件</td></tr>
+      <tr><td>开发依赖 .venv</td><td class="num">约 0.91 GB（必需，未删）</td></tr>
+      <tr><td>assets 素材</td><td class="num">约 0.99 GB（跟踪/捐赠，未删）</td></tr>
+    </table>
+  </div>
+</div>
+<div class="callout">本轮新增删除：无引用审计目录 20,699 文件 / 3,177,839,763B（含旧 Green UI 压缩包 299MB），并把 `.project-local` 从 35.49GB 降到 31.26GB；随后可再生包缓存清理再删约 1.63GB，当前 30.75GB。更早的引用感知保留删除了 2,189 个根 / 317,174 文件 / 24,127,415,574B；Green 清理删除 4,331 文件 / 1,021,650,549B。</div>
+
+<h2><span class="n">03</span>仓库与目录规范化</h2>
+<div class="grid g3">
+  <div class="card"><h3>工作树</h3><div class="big">1</div><div class="small">会话初 17 个，已全部处置</div></div>
+  <div class="card"><h3>本地分支</h3><div class="big">3</div><div class="small">main / codex-sync / trae</div></div>
+  <div class="card"><h3>路径归属</h3><div class="big good">100%</div><div class="small">5,703 条跟踪路径，0 歧义</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <table>
+    <thead><tr><th>对象</th><th>状态</th><th>对比结论</th></tr></thead>
+    <tbody>
+      <tr><td>当前分支</td><td class="mono">trae/20261024 @ c355800b</td><td>领先 main 29 个提交，main 无独有提交</td></tr>
+      <tr><td><span class="mono">codex/sync-20261019</span></td><td class="mono">b4588d76，落后 7</td><td>无独有工作；不需合并</td></tr>
+      <tr><td>Worktree</td><td>仅主工作树</td><td>14 个 detached 与 3 个分支 worktree 已归档/删除</td></tr>
+      <tr><td>未提交改动</td><td>4 个既有脏文件</td><td><span class="mono">scripts/probes/*</span> 与两个 project-drift 文档，刻意保留</td></tr>
+      <tr><td>私有目录</td><td><span class="mono">.trae/</span>、<span class="mono">.trae-html-share-packages/</span></td><td>已加入 .gitignore；生成的分享包已删除</td></tr>
+      <tr><td>目录权威</td><td><span class="tag ok">已修订</span></td><td><span class="mono">DIRECTORY_AUTHORITY.yaml</span> 已按 SUP-022 把 <span class="mono">frontend/</span> 归入 <span class="mono">frontend-host</span>、<span class="mono">src-tauri/</span> 归入 <span class="mono">tauri-host</span>，并从 legacy 强制规则移除；实测 100% 路径有归属</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2><span class="n">04</span>证据链：当前断点 0，历史引用已分类</h2>
+<p class="lead">对 <span class="mono">docs/**</span> 中 4,959 条可解析 <span class="mono">.project-local</span> 引用逐条解析：2,384 条文件仍在；2,575 条指向已清理的临时运行目录、已归档 ZIP/recipe、文档镜像或历史未保留的日志与草稿。<b>当前文档中没有任何一条引用承载当前回执</b>；6 份当前关键回执全部存在且哈希通过。因此，把历史路径直接计为“失效”并不是证据链告警，只是未分类路径的计数结果。</p>
+<div class="grid g4">
+  <div class="card"><h3>可解析引用</h3><div class="big">4,959</div><div class="small">真实路径，非叙述片段</div></div>
+  <div class="card"><h3>仍在</h3><div class="big good">2,384</div><div class="small">48.1%</div></div>
+  <div class="card"><h3>已归档 / 可恢复</h3><div class="big">700</div><div class="small">ZIP 成员 478、目录 173、recipe 39、登记 10</div></div>
+  <div class="card"><h3>当前断点</h3><div class="big good">0</div><div class="small">6/6 关键回执哈希通过</div></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card">
+    <h3>2,575 条历史引用的去向</h3>
+    <table>
+      <tr><td>授权清理的临时运行目录</td><td class="num">1,781</td></tr>
+      <tr><td>归档 ZIP 中存在（100 条精确相对路径、276 条同构件、102 条同名）</td><td class="num">478</td></tr>
+      <tr><td>保留回执中的授权删除根</td><td class="num">67</td></tr>
+      <tr><td>归档目录中直接存在</td><td class="num">173</td></tr>
+      <tr><td>共享压缩 recipe（可按命令精确重建）</td><td class="num">39</td></tr>
+      <tr><td>Record 登记中的原始路径</td><td class="num">10</td></tr>
+      <tr><td>历史日志/草稿，未保留且无当前依赖</td><td class="num">27</td></tr>
+    </table>
+    <p class="small">其中 current 文档仅 7 条切片：6 条指向已清理的旧运行目录，1 条命中归档 ZIP。均已就地标注为历史，不影响当前执行或验收。</p>
+  </div>
+  <div class="card">
+    <h3>归档核验：已实际打开并验证</h3>
+    <table>
+      <tr><td>ZIP 容器</td><td class="num">52 个 / 1.65 GB</td></tr>
+      <tr><td>ZIP 成员</td><td class="num">1,907</td></tr>
+      <tr><td>归档目录文件</td><td class="num">745</td></tr>
+      <tr><td>已解析 MANIFEST</td><td class="num">20</td></tr>
+      <tr><td>损坏容器</td><td class="num">1（已登记为截断、被补交包替代）</td></tr>
+      <tr><td>本轮恢复并逐哈希校验</td><td class="num">conversation 4 项、dot-cloud 162 项、installers 2 项</td></tr>
+    </table>
+    <p class="small">39 个历史 ZIP 以共享压缩 recipe 保存，可用 <span class="mono">scripts/maintenance/compact_record_archives.py restore --sha256 …</span> 精确重建；已实测 1 个（390,210,198B）重建 SHA-256 完全匹配，不依赖在线来源。</p>
+  </div>
+</div>
+<div class="callout"><b>本轮修复：</b>① 恢复并逐哈希校验 3 组归档（conversation-summary、dot-cloud-audit、0.5.0 installers），共 168 个文件/成员；② 生成逐条分类的 <span class="mono">reference-resolution.json</span>，把 2,575 条历史引用全部归类，0 条遗留为“未知断链”；③ 修订 <span class="mono">DIRECTORY_AUTHORITY.yaml</span> 的 SUP-022 分类；④ 对 current 文档中 5 条历史引用就地标注，避免读者把历史路径当作当前回执。更早恢复的 <span class="mono">candidate-setup.exe</span>（SHA-256 <span class="mono">4661ce30…c3b3</span>）仍有效。</div>
+<div class="card" style="margin-top:16px">
+  <h3>已建立的兜底索引</h3>
+  <ul>
+    <li><span class="mono">reports/full-audit-20261024/reference-resolution.json</span>：4,953 条引用的逐条分类、归档证据与统计。</li>
+    <li><span class="mono">.project-local/runs/be268a2d33/reference-recovery-20261024/receipt.json</span>：本轮 3 组归档恢复的 SHA-256 回执。</li>
+    <li><span class="mono">.project-local/archives/audit-evidence-20261024/MANIFEST.json</span>：6 份当前关键回执副本与哈希。</li>
+    <li><span class="mono">…/SUPERSESSION.json</span>：清理事故中旧回执 → 新回执映射，含 4 组重建回执与驱动恢复路径。</li>
+    <li><span class="mono">runs/be268a2d33/evidence-retention-20261024-02/retention-applied.json</span>：2,189 个根的保留/删除判定。</li>
+  </ul>
+</div>
+
+<h2><span class="n">05</span>前端新手全流程对比</h2>
+<div class="grid g3">
+  <div class="card"><h3>行为回执 Host</h3><div class="mono">b645c658</div><div class="small">14/14 已在当前 Host 复跑；22/22 页面走查仍对应 97baf29c</div></div>
+  <div class="card"><h3>全量前端回归</h3><div class="big">2090 / 18</div><div class="small">18 项失败与改动前基线完全一致</div></div>
+  <div class="card"><h3>原生走查</h3><div class="big good">22/22</div><div class="small">直接路由逐页渲染</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <table>
+    <thead><tr><th>审计项</th><th>原始发现</th><th>当前状态</th><th>证据</th></tr></thead>
+    <tbody>
+      <tr><td>首次启动草稿告警</td><td>空库即显示“草稿尚未确认全部保存”</td><td><span class="tag ok">已修</span> 仅真实草稿/blocked/saving 时显示</td><td class="mono">App.tsx</td></tr>
+      <tr><td>阅读空状态</td><td>提示“新建笔记”但无按钮</td><td><span class="tag ok">已修</span> “新建原创笔记”“去知识库选择资料”</td><td class="mono">CanonicalLibrarySpace.tsx</td></tr>
+      <tr><td>导航重复</td><td>顶部菜单、Dock、启动台、页面轨道并存</td><td><span class="tag ok">已修</span> 侧栏分组折叠；“关闭其他视图”；诊断统一为 App 级“状态与诊断”中心</td><td class="mono">SpaceRail / DockWorkspace / DiagnosticConsole</td></tr>
+      <tr><td>禁用操作无原因</td><td>研究/学习/导入按钮不可用且无解释</td><td><span class="tag ok">已修</span> 三页就地说明；全页补充布局、学习、资产、评测、导入、受限任务与画布动作的原因；22 页扫描未解释禁用项 0</td><td class="mono">ui-token-scan-06</td></tr>
+      <tr><td>工程术语外露</td><td>04/14/15/21 出现 Core、CAS、IEEE754、NOT_EXECUTED</td><td><span class="tag ok">已修</span> 04/14/21/13 已改写为业务语言；22 页原生扫描工程词命中 0（页 15 的 ArcheAxis Core Knowledge 为资源专名）</td><td class="mono">ui-token-scan-06</td></tr>
+      <tr><td>窄窗遮挡</td><td>来源/证据面板浮在正文右上</td><td><span class="tag ok">已修</span> 改为底部停靠，不再遮挡头部</td><td class="mono">页面 03 窄窗截图</td></tr>
+      <tr><td>连续业务闭环</td><td>只证明页面可渲染</td><td><span class="tag ok">已补</span> 14/14 步：导入→阅读→保存→转换→知识候选→审核接受→学习→复习→退出→重开读回；已在同一重建候选复跑</td><td class="mono">journey-current 3dffdc01</td></tr>
+      <tr><td>AI 侧真实模型链</td><td>同一重建候选原生 UI</td><td><span class="tag ok">工程 PASS</span> 本地 qwen3.5-4b 实际回答→自编工程纠正→复测→重开恢复学习→恢复后授权拒绝；<span class="tag mid">PARTIAL</span> 质量未独立评测、无 Owner 签署</td><td class="mono">ai-current e04bef7b</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="callout"><b>2026-10-24 同一重建候选 AI 侧工程链：</b>Host <span class="mono">ca5fbfda</span> 的 grouped 原生 UI 使用本地 LM Studio <span class="mono">qwen3.5-4b</span> 完成实际 grounded 回答（156→1646 tokens，22.52s）→自编工程纠正→复测→重开恢复学习→恢复后旧授权 <span class="mono">RESTORED_GRANT_FENCED</span> 拒绝；能力停用执行拒绝与 5 次产品退出均 PASS。工程状态 <span class="mono">PASS</span>，链状态 <span class="mono">PARTIAL</span>：语义质量未独立评测、无 Owner 签署。回执 <span class="mono">webdriver-14c04460806a</span>（SHA-256 <span class="mono">e04bef7b…5d8a</span>）。</div>
+<div class="callout"><b>2026-10-24 同一重建候选人类闭环：</b>Host <span class="mono">ca5fbfda</span> 以隔离数据根完成 14／14 原生点击：导入→阅读→保存→转换→知识候选→审核接受→学习问答→复习→退出→同目录重开读回→再次退出；两次 exit 0、11 张截图、模型调用 0。回执 <span class="mono">ui-novice-journey-current-20261024-02</span>（SHA-256 <span class="mono">3dffdc01…a75f</span>）。早期 Host <span class="mono">b645c658</span> 的 journey-17 仅作历史留档。</div>
+<div class="callout"><b>2026-10-24 全页文案与禁用原因复核：</b>最终 Host <span class="mono">b645c658</span> 以隔离数据根原生启动，逐页读取 22／22（含页 16“互通资格”页签）；工程词命中 0、未解释禁用项 0、页面错误 0。回执 <span class="mono">ui-token-scan-20261024-07/receipt.json</span>。全量前端 2108 项：2090 PASS／18 FAIL，与改动前基线一致。</div>
+
+<h2><span class="n">06</span>外部库与绿色库对比</h2>
+<div class="grid g2">
+  <div class="card">
+    <h3>绿色运行库 <span class="mono">ArcheAxis.Knowledge.Green-x64</span></h3>
+    <table>
+      <tr><td>体积</td><td class="num">3.90 → 2.97 GB</td></tr>
+      <tr><td>清理</td><td class="num">4,331 文件 / 1.02 GB</td></tr>
+      <tr><td>删除对象</td><td>旧任务树副本、Avalonia 验收二进制、WebView2 缓存、旧 Green UI 压缩包</td></tr>
+      <tr><td>保留</td><td>程序、runtime、data、backups、AAOS-Tauri 回滚副本</td></tr>
+      <tr><td>身份校验</td><td><span class="tag ok">通过</span> 程序哈希与当前候选一致</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>外置依赖</h3>
+    <table>
+      <tr><td><span class="mono">.venv</span></td><td class="num">约 0.91 GB</td><td>开发/测试必需，保留</td></tr>
+      <tr><td><span class="mono">frontend/node_modules</span></td><td class="num">含于 290MB</td><td>构建必需，保留</td></tr>
+      <tr><td><span class="mono">.project-local/cache</span></td><td class="num">0.04 MB</td><td>已清理 1.63GB 可再生包缓存；17 个受保护 uv 文件保留</td></tr>
+      <tr><td><span class="mono">.project-local/rt</span></td><td class="num">1.26 GB</td><td>当前运行时，保留</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2><span class="n">07</span>CL-02 十八格式矩阵（当前 Host）</h2>
+<div class="grid g3">
+  <div class="card"><h3>导入与字节身份</h3><div class="big good">18 / 18</div><div class="small">真实文件输入；UI 回执“原件已保留”；<span class="mono">source_original</span> 逐字节一致</div></div>
+  <div class="card"><h3>转换与内容</h3><div class="big good">18 / 18</div><div class="small">全部 job <span class="mono">succeeded</span>；产物 SHA／字节长度回算；预览与持久化正文逐字相等</div></div>
+  <div class="card"><h3>结构与重启</h3><div class="big good">12 引用 + 18 回读</div><div class="small">12 格式锚点 <span class="mono">CURRENT</span>；关闭重开后 18/18 原件与产物不变</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <table>
+    <thead><tr><th>类别</th><th>实际引擎</th><th>内容信号</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>txt / md</td><td class="mono">python-worker-text</td><td>24 / 88 字符；中文标记全部命中</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>csv / json</td><td class="mono">python-worker-text</td><td>46 / 68 字符；结构引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>html</td><td class="mono">python-worker-html</td><td>18 字符；脚本文本未混入；引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>pdf-text</td><td class="mono">pymupdf-native-pdf</td><td>31 字符；2 页文字层；引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>pdf-scanned</td><td class="mono">pymupdf + OCR</td><td>文字层为空；2/2 页 OCR（26 / 27 字符）；回写 recognised 2</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>png / jpeg</td><td class="mono">python-worker-ocr</td><td>26 / 29 字符；引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>docx / xlsx / pptx</td><td class="mono">python-worker-office</td><td>35 / 51 / 107 字符；中文标记命中；引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>srt / vtt</td><td class="mono">python-worker-subtitles</td><td>17 字符；VTT NOTE 未混入；引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>wav / mp3 / mp4</td><td class="mono">transcribe / video</td><td>同一语音正文哈希一致（135 字符、4 个定位片段）；mp4 另有 3 帧与 3 段视觉描述</td><td><span class="tag ok">PASS</span></td></tr>
+      <tr><td>canvas</td><td class="mono">python-worker-canvas</td><td>11 字符、2 个节点位置；边标签按设计保留在损失回执；引用 CURRENT</td><td><span class="tag ok">PASS</span></td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="callout"><b>回执：</b>重建候选 Host <span class="mono">ca5fbfda</span>（含 worker <span class="mono">9af8977</span>）在合规运行根复跑 18/18：<span class="mono">.project-local/runs/be268a2d33/format-matrix-final-20261024/import/receipt.json</span>（47,305B，SHA-256 <span class="mono">1a63b035…e696</span>）与 <span class="mono">convert/receipt.json</span>（40,882B，SHA-256 <span class="mono">818211cd…d75b</span>）。材料为项目自撰写合成件；OCR／ASR 是引擎读回，不代表识别准确率。</div>
+<div class="callout"><b>长路径缺口（已修复）：</b>深隔离根曾产生 261／263 字符的视频产物路径，本机 <span class="mono">LongPathsEnabled=0</span> 时 ffmpeg 写出 WAV 与 3 帧，但 Python <span class="mono">Path.is_file()</span> 与 ASR 子进程读不到。worker 现使用扩展长度路径检查，并在 WAV 过长时复制到短临时路径再转写；单元测试 8 项 PASS，worker <span class="mono">9af89770…</span>。在原失败深根复跑：135 字符、4 个定位片段、3 帧、3 段视觉描述，<span class="mono">decode_errors</span>／<span class="mono">frame_errors</span> 为空。回执 <span class="mono">native-03-video-fix</span>（1,126B，<span class="mono">fde7cfdb…16eb</span>）。该 worker 已打包进重建候选 Host <span class="mono">ca5fbfda</span>，其深根 18/18 全矩阵同轮 PASS。</div>
+<div class="callout"><b>后续补全（2026-10-24）：</b>批量目录 5 成员（2 个排除、1 个真实导入失败并重试成功、3 个转换成功）、重启后续做 2 个未上传成员、检索命中与文本引用、Markdown 导出落盘逐字节一致、文档包跨新工作区导入均 PASS。回执 <span class="mono">batch/run</span>（4,731B，<span class="mono">d8b25b12…470c</span>）与 <span class="mono">batch/search-export</span>（3,434B，<span class="mono">099c68de…26be</span>）。</div>
+<div class="callout"><b>CL-03 当前候选真实三通道：</b>维基百科／StackExchange／OpenAlex 查询 <span class="mono">quantum computing</span> 均 complete：6 个原始/选定来源、3 个 CURRENT 锚点、支持与反对草稿、包导出、重启回读与备份校验 PASS。人类选择接纳未执行，因此仍为 PARTIAL。回执 <span class="mono">public-research-current-20261024-07</span>（2,023,013B，<span class="mono">0c95ce36…0adb</span>）。</div>
+<div class="callout"><b>重建候选的公开研究→知识候选→学习整合链：</b>同一暂存候选（Host <span class="mono">ca5fbfda</span>／Core <span class="mono">fd620735</span>）重新检索三通道均 complete，并完成 109 次 Core 请求：10 个原件、公开来源转写、公开知识候选（保持 <span class="mono">candidate</span>）、合成个人知识模拟审核 <span class="mono">accepted</span>、FSRS 学习、统一研究文档、重启/备份/独立恢复读回一致。公开摘录按 J2 保留未核实；人类接纳、内容真值与 Owner 验收仍 <span class="mono">NOT_EXECUTED</span>。回执 <span class="mono">j2-current-learning-20261024-04</span>（26,006B，<span class="mono">58d50fa2…4446</span>）。</div>
+<div class="callout"><b>同一重建候选的原生新手旅程：</b>在暂存候选的真实窗口中完成 14/14 原生点击（导入→阅读→文档保存→转换→知识候选→接受→学习复习→退出→同根重开读回→再退出），两次 exit 0、11 张截图、模型调用 0。回执 <span class="mono">ui-novice-journey-current-20261024-02</span>（4,308B，<span class="mono">3dffdc01…a75f</span>）；仍非安装态、Owner 验收或 CI。</div>
+<div class="callout"><b>同一重建候选的 AI 本地模型工程链：</b>通过 grouped 原生 UI 使用既有 <span class="mono">qwen3.5-4b</span> 完成真实 grounded 回答（156／1646 tokens，22.52s）、自编工程纠正、复测、重开恢复学习与恢复后旧授权 <span class="mono">RESTORED_GRANT_FENCED</span> 拒绝；能力停用拒绝 PASS，5 次产品退出均 exit 0。回执 <span class="mono">webdriver-14c04460806a</span>（329,741B，<span class="mono">e04bef7b…5d8a</span>）；语义质量、Owner 验收与 CI 仍未执行。</div>
+<div class="callout"><b>J6 当前重建安装器：</b>本地构建 NSIS（567,215,430B，<span class="mono">3b0bccd6…1ada</span>）在无网络 Windows Sandbox 完成 <span class="mono">/S</span> 安装 → 安装后 Host <span class="mono">eb268f29</span>／Core <span class="mono">fd620735</span>／规范数据库 → 原生文档三路冲突、保存、恢复、Host 重启 → <span class="mono">/S</span> 卸载，installer/native/uninstaller 均 exit 0，冲突回执 <span class="mono">PASS</span>，3 张截图与 55,457B 原生回执。最小生命周期回执 <span class="mono">minimal-result.json</span>（780B，<span class="mono">03d91293…1cb4</span>），安装态业务回执 <span class="mono">guest-business-result.json</span>（522B，<span class="mono">266de2bf…eba8</span>）。跨版本升级/回滚、CI 与 Owner 验收仍未执行。</div>
+
+<h2><span class="n">08</span>对比结论与风险</h2>
+<div class="grid g2">
+  <div class="card">
+    <h3>做对了什么</h3>
+    <ul>
+      <li>体积下降 81.4%，且源码、当前候选、安装输入、回滚副本、原始档案未动。</li>
+      <li>分支与 worktree 收敛到 1 个工作树、3 个分支，无独有工作待合并。</li>
+      <li>证据链当前断点 0：6/6 当前回执可验证；2,575 条历史引用全部有分类，其中 700 条在归档中、1,848 条属授权清理、27 条为历史未保留。</li>
+      <li>目录权威与 SUP-022 对齐：frontend/src-tauri 归入正式宿主演进线，100% 路径有归属。</li>
+      <li>同一重建候选 Host <span class="mono">ca5fbfda</span> 同时承载 18 格式矩阵、原生人类 14/14、公开研究整合链、AI 本地模型工程链与批量/检索/导出，不再是多分支局部 PASS 拼接。</li>
+      <li>重建候选 Host <span class="mono">ca5fbfda</span> 的 18 类格式矩阵 18/18 通过：真实导入与字节身份、真实转换、预览、结构位置、损失、12 个结构引用与重启回读。</li>
+      <li>批量目录、导入失败重试、重启续做、检索命中与文本引用、Markdown 导出、文档包跨工作区恢复全部有实际回执。</li>
+      <li>重建候选上真实三通道外部检索（维基／社区／科研）完整返回，并打通“公开来源→比较锚点→公开知识候选→关联个人资料→学习→统一研究文档→重启/导出/恢复”，公开摘录保留未核实。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>仍需处理</h3>
+    <ul>
+      <li><span class="tag ok">已关闭 P0</span> 历史引用索引已建立（<span class="mono">reference-resolution.json</span>）；不再把历史路径计为证据链断裂。</li>
+      <li><span class="tag ok">已关闭 P1</span> 诊断入口统一为 App 级“状态与诊断”中心；22 页工程词命中 0；禁用动作未解释项 0。</li>
+      <li><span class="tag mid">P2</span> 27 条历史日志/草稿未保留，仅存在于历史文档；建议保持标注，不重建临时日志。</li>
+      <li><span class="tag ok">已关闭 P2</span> <span class="mono">cache</span> 1.63GB 已清理到 0.04MB；17 个受 ACL 保护文件保留，Rust/uv 离线增量需重新下载依赖。<span class="mono">runs/archives/build</span> 不建议再动。</li>
+      <li><span class="tag ok">已关闭 P2</span> 视频路由的长路径产物存在性检查已修复（worker <span class="mono">9af89770</span>），并在原先失败的 261／263 字符深根复跑通过；已打包进重建候选 Host <span class="mono">ca5fbfda</span>，深根 18/18 全矩阵同轮 PASS。</li>
+      <li><span class="tag mid">P2</span> CL-03 的公开知识候选仍保持未核实，人类接纳决定未执行；CL-04／CL-05 保持延期范围；J6 当前重建安装器已完成隔离安装、安装态冲突/恢复/重启与卸载，但跨版本升级回滚、公共发布与真实数据覆盖仍未执行。</li>
+    </ul>
+  </div>
+</div>
+<div class="callout risk"><b>边界：</b>本次是前端切片与仓库治理审计，不是 Owner 验收，也不构成安装资格、Green 程序替换、exact-SHA CI 或真实云推理结论。重启后 <span class="mono">wsb list</span> 为 0 且无 <span class="mono">vmwp</span>／<span class="mono">vmmemWindowsSandbox</span> 残留；当前重建安装器已在无网络 Sandbox 完成安装、安装态冲突/恢复/重启与卸载，5822 已安装候选的完整业务回执独立 PASS。公共发布、真实用户数据覆盖、Green 替换与 CI 仍未执行。</div>
+
+<div class="foot">
+  数据来源：现场 git 测量、文件系统测量、<span class="mono">reports/full-audit-20261024/reference-resolution.json</span>、<span class="mono">metrics.json</span>、retention/green/audit 回执、归档核验回执 <span class="mono">reference-recovery-20261024/receipt.json</span>、全页文案/禁用原因扫描 <span class="mono">ui-token-scan-20261024-07/receipt.json</span>、当前 Host 人类闭环 <span class="mono">journey 3d2fb497</span>、当前 Host AI 工程链 <span class="mono">ai-loop 5e06d37f</span>、重建候选 Host 18 格式矩阵 <span class="mono">format-matrix ca5fbfda / 1a63b035 / 818211cd</span>、批量与续做 <span class="mono">batch d8b25b12</span>、检索与导出 <span class="mono">search-export 099c68de</span>、重建候选三通道检索 <span class="mono">public-research a3cfdfc5</span>、整合研究学习链 <span class="mono">j2-current-learning 58d50fa2</span>、同候选原生旅程 <span class="mono">journey-current 3dffdc01</span>、同候选 AI 工程链 <span class="mono">ai-current e04bef7b</span>、5822 已安装候选 <span class="mono">guest-result d9a3d7ad</span>、视频长路径修复 <span class="mono">video-fix fde7cfdb</span>、J6 当前安装器 <span class="mono">installer 3b0bccd6</span>、安装态业务 <span class="mono">host eb268f29 / result 266de2bf</span>、原生走查 <span class="mono">walk b1736f4e</span>、<span class="mono">closeout 14956c20</span>、<span class="mono">visual acc83b0d</span>。历史数字来自唯一执行记录，不重复计入本次验证。
+</div>
+</div>
+</body>
+</html>

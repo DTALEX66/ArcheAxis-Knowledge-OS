@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 import { resetRuntimeClient } from "../api/workspace";
@@ -25,7 +25,7 @@ describe("compact object navigation (SIMULATED shell)", () => {
   it("opens all four current object controls and closes before focusing each target", async () => {
     const user = userEvent.setup(); render(<App />);
     for (const [label, region] of [["来源锚点", "anchors"], ["文档版本", "versions"], ["已保存文档", "documents"], ["来源原件", "sources"]]) {
-      await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+      await user.click(screen.getByRole("button", { name: "全部页面，打开产品导航" }));
       const dialog = screen.getByRole("dialog", { name: "产品导航" });
       const list = within(dialog).getByRole("list", { name: "资料库对象导航" });
       expect(within(list).getAllByRole("button")).toHaveLength(4);
@@ -34,14 +34,15 @@ describe("compact object navigation (SIMULATED shell)", () => {
       expect(document.querySelectorAll("#space-section-heading")).toHaveLength(1);
       await user.click(within(list).getByRole("button", { name: new RegExp(label) }));
       expect(screen.queryByRole("dialog", { name: "产品导航" })).not.toBeInTheDocument();
-      expect(screen.getByRole("region", { name: region })).toHaveFocus();
+      // Activation runs after the drawer's focus scope has released the page.
+      await waitFor(() => expect(screen.getByRole("region", { name: region })).toHaveFocus());
       expect(window.location.hash).toBe("#space=library");
     }
   });
 
   it("returns focus to the trigger on Escape without choosing an object", async () => {
     const user = userEvent.setup(); render(<App />);
-    const trigger = screen.getByRole("button", { name: "打开产品导航" });
+    const trigger = screen.getByRole("button", { name: "全部页面，打开产品导航" });
     await user.click(trigger); await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
@@ -51,7 +52,7 @@ describe("compact object navigation (SIMULATED shell)", () => {
   it("keeps unavailable surfaces as explained rows without active object buttons", async () => {
     fixture.surface = "legacy";
     const user = userEvent.setup(); render(<App />);
-    await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+    await user.click(screen.getByRole("button", { name: "全部页面，打开产品导航" }));
     const list = within(screen.getByRole("dialog", { name: "产品导航" })).getByRole("list", { name: "资料库对象导航" });
     expect(within(list).queryAllByRole("button")).toHaveLength(0);
     expect(within(list).getAllByText("待开发")).toHaveLength(4);
@@ -60,3 +61,6 @@ describe("compact object navigation (SIMULATED shell)", () => {
     expect(window.location.hash).toBe("#space=library");
   });
 });
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

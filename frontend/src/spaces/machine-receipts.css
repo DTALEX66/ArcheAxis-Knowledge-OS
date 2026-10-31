@@ -1,0 +1,19 @@
+.ui-machine-receipts { display:grid; gap:20px; min-width:0; }
+.ui-machine-receipts [hidden] { display:none!important; }
+.machine-receipts-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; }
+.machine-receipts-heading h2 { margin:0 0 6px; }
+.machine-receipts-heading p { margin:0; color:var(--ax-fg-secondary); }
+.machine-receipts-heading [role="group"] { display:flex; flex-wrap:wrap; gap:8px; }
+.machine-receipts-heading button { min-height:40px; padding:8px 14px; }
+.machine-receipts-heading button[aria-pressed="true"] { color:var(--ax-accent); border-color:var(--ax-accent); background:var(--ax-accent-soft); }
+.machine-history-workspace { display:grid; grid-template-columns:minmax(220px,.72fr) minmax(0,2fr); gap:24px; align-items:start; }
+.machine-task-list,.machine-task-detail,.machine-processing-pane { min-width:0; overflow-wrap:anywhere; }
+.machine-task-list { padding-right:20px; border-right:1px solid var(--ax-border); }
+.machine-task-list .action-list { display:grid; gap:10px; padding:0; list-style:none; }
+.machine-task-list li > button { width:100%; text-align:left; min-height:42px; }
+.machine-task-list li > p { font-size:var(--ax-text-caption); color:var(--ax-fg-secondary); }
+.machine-task-detail { min-height:380px; }
+.machine-task-detail pre[aria-label="历史机器回答"] { white-space:pre-wrap; overflow-wrap:anywhere; padding:20px; font:inherit; font-size:var(--ax-text-body); line-height:1.8; background:var(--ax-raised); border:1px solid var(--ax-border); border-radius:12px; }
+.machine-task-empty { padding:44px 20px; color:var(--ax-fg-secondary); }
+@container content (max-width:760px) { .machine-history-workspace { grid-template-columns:minmax(0,1fr); } .machine-task-list { border-right:0; padding-right:0; } }
+@media (max-width:760px) { .machine-history-workspace { grid-template-columns:minmax(0,1fr); } .machine-task-list { border-right:0; padding-right:0; } }

@@ -1,0 +1,119 @@
+{
+  "schema": "aaos.owner-zip-intake/v1",
+  "date": "2026-11-01",
+  "source": "D:\\All projects\\Record\\v3.1-log-binding-addendum.zip",
+  "archive": ".project-local/archives/owner-inputs/20261101-log-binding-addendum/v3.1-log-binding-addendum.zip",
+  "zip_bytes": 26672,
+  "zip_sha256": "160fcab851c581069d90d58c871070e609c3f5ce0995617c2a08c8866bfbd476",
+  "member_count": 17,
+  "uncompressed_bytes": 63858,
+  "crc_and_sha_checked_files": 17,
+  "package_manifest_checked": 16,
+  "package_manifest_failures": [],
+  "unlisted_files": [],
+  "archive_byte_equal": true,
+  "source_preserved": true,
+  "zip_not_bulk_extracted": true,
+  "package_code_executed": false,
+  "patch_applied": false,
+  "original_v31_command_records": {
+    "v3.1-supplement/detector/logs/final-scope.command.json": {
+      "sha256": "314266c98795e1824349c50002ffbf074a445a368887bbe83a30f35b4d5691ca",
+      "started_at": "2026-10-31T16:13:16.557758+00:00",
+      "finished_at": "2026-10-31T16:13:21.304288+00:00"
+    },
+    "v3.1-supplement/detector/logs/patch-readback.command.json": {
+      "sha256": "9a5d13ffe4a310f91cd6fc1b89a4ab49779b203a355fd5827e0c5b713b922637",
+      "started_at": "2026-10-31T16:15:13.536431+00:00",
+      "finished_at": "2026-10-31T16:15:13.568130+00:00"
+    }
+  },
+  "review": "ACCEPT_EVIDENCE_LIMITATION_CLARIFICATION; RETRACT_PRIOR_TIMEZONE_MISREAD; RUNTIME_GENERATOR_TEST_SOURCE_BINDING_UNVERIFIED; TWO_HISTORICAL_STDOUT_MISSING",
+  "members": [
+    {
+      "path": "log-binding-addendum/INDEPENDENT-AUDIT.zh.md",
+      "bytes": 5301,
+      "sha256": "89d1a0d6512ff02311b97413d1c69c1269473b772bb5586b36a5308cd199d7c0"
+    },
+    {
+      "path": "log-binding-addendum/MANIFEST.sha256",
+      "bytes": 1460,
+      "sha256": "51c22ab1143086d5e4203324478d60ddae661d28523e96dbdf2fb819cc1e46fe"
+    },
+    {
+      "path": "log-binding-addendum/audit.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "log-binding-addendum/audit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "log-binding-addendum/audit.stdout",
+      "bytes": 1087,
+      "sha256": "a5acea323237dd3bf75ebe39a5559c777b913b5146cd65867fd9fba08aa66b8f"
+    },
+    {
+      "path": "log-binding-addendum/audit_log_bindings.py",
+      "bytes": 5971,
+      "sha256": "fcaac2daeb48af56c1bc45a6cd52a47ec667584c29a36bd3ec6eda827eef4b68"
+    },
+    {
+      "path": "log-binding-addendum/detector-generator-note.md",
+      "bytes": 6531,
+      "sha256": "bfc895c95439839907801ce4b33a93c7bf452592555116af8542d7a85e67a86e"
+    },
+    {
+      "path": "log-binding-addendum/detector-posthoc-snapshot.json",
+      "bytes": 6277,
+      "sha256": "4e5d2bcd94437a09bdf1216c2cfd442bafaf75553154d482920bc010184eb56d"
+    },
+    {
+      "path": "log-binding-addendum/generator-family-matrix.csv",
+      "bytes": 2892,
+      "sha256": "e9a38b33eab2a58619bfadd1f1ddba07f5ad39004b0055d5373571e4548d0bb3"
+    },
+    {
+      "path": "log-binding-addendum/generator-family-matrix.json",
+      "bytes": 3907,
+      "sha256": "2f898a385b845e674ddb5fa079303824d7f31955768ce6a3f90b3881c15de2d7"
+    },
+    {
+      "path": "log-binding-addendum/independent-binding-evidence.json",
+      "bytes": 17028,
+      "sha256": "5bfd9bbd870471b752284b5daadf195c1b7690a4bfcd7a9aa134b48354be6630"
+    },
+    {
+      "path": "log-binding-addendum/inspect_reproduce_binding.py",
+      "bytes": 3859,
+      "sha256": "1d381270857f3744ca768c8afa4ef42cd618bdc251eb0435e34d465ae8d89f11"
+    },
+    {
+      "path": "log-binding-addendum/reproduce-generator-note.md",
+      "bytes": 3425,
+      "sha256": "7ece8cbe879c3d945f7eeaffcbdfb4a3e93a45aeabba185ff659cced83881648"
+    },
+    {
+      "path": "log-binding-addendum/reproduce-generator-posthoc.json",
+      "bytes": 5835,
+      "sha256": "b31bec1284443d663adac307a9be7e3ef020dfd80d42ea4c9248df67978c2166"
+    },
+    {
+      "path": "log-binding-addendum/reproduce-inspection.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "log-binding-addendum/reproduce-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "log-binding-addendum/reproduce-inspection.stdout",
+      "bytes": 281,
+      "sha256": "e408a4342cca2be25ba69b776f363f8b08b727ffe41ce3777fc487ec283cb349"
+    }
+  ]
+}

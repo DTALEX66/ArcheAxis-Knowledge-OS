@@ -146,7 +146,7 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
         <AaosButton variant="ghost" aria-label="关闭全局命令" onClick={closePalette}>关闭</AaosButton>
       </header>
       <div id="command-options" role="listbox" aria-label="可用命令">
-        {matches.map((entry, index) => <button
+        {([{ label: "页面", accepts: (entry: EffectiveNavigationEntry) => Boolean(entry.page) }, { label: "产品空间", accepts: (entry: EffectiveNavigationEntry) => Boolean(entry.space) }, { label: "能力说明", accepts: (entry: EffectiveNavigationEntry) => Boolean(entry.capability) }]).map(group => matches.some(group.accepts) ? <div role="group" aria-label={group.label} key={group.label}><h3 className="command-result-heading">{group.label}</h3>{matches.map((entry, index) => group.accepts(entry) ? <button
           ref={(element) => { optionRefs.current[index] = element; }}
           key={entry.entry_id}
           data-entry-id={entry.entry_id}
@@ -176,10 +176,10 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
           onClick={() => select(entry)}
         >
           <span className="command-icon" aria-hidden="true">{entry.space ? <AaosIcon name={entry.space.icon} /> : "◇"}</span>
-          <span><b>{entry.label}</b><small>{entry.capability && !canNavigateToCapability(entry.capability) ? "查看详情 · 尚未实现" : `${entry.group_id} · ${entry.description}`}</small></span>
-        </button>)}
+          <span><b>{entry.label}</b><small>{entry.capability ? `${canNavigateToCapability(entry.capability) ? "能力说明" : "查看详情 · 尚未实现"} · ${entry.description}` : `${entry.group_id} · ${entry.description}`}</small></span>
+        </button> : null)}</div> : null)}
         {matches.length === 0 ? <p className="command-empty">没有匹配的可用空间</p> : null}
       </div>
-      {onOpenObject&&open?<GlobalObjectSearch query={query} composing={composing} onOpen={(reference,sha)=>{onOpenObject(reference,sha);closePalette();}}/>:null}
+      {onOpenObject&&open?<section aria-label="已保存内容"><h3 className="command-result-heading">已保存内容</h3><GlobalObjectSearch query={query} composing={composing} onOpen={(reference,sha)=>{onOpenObject(reference,sha);closePalette();}}/></section>:null}
   </AaosDialog>;
 }

@@ -76,6 +76,36 @@ class CanvasFactTests(unittest.TestCase):
         self.assertEqual(out["edges"], CANVAS_BODY["edges"],
                          "edges are preserved, not flattened into the text projection")
 
+    def test_file_subpath_group_background_and_extension_attributes_survive(self):
+        payload = {
+            "nodes": [
+                {"id": "g", "type": "group", "label": "研究材料", "background": "assets/sky.png",
+                 "backgroundStyle": "ratio", "plugin:layout": {"collapsed": True}},
+                {"id": "f", "type": "file", "file": "notes/研究.md", "subpath": "#^来源块",
+                 "color": " 4 "},
+                {"id": "t", "type": "text", "text": "首行\n\n末行", "custom": [1, "保留"]},
+            ],
+            "edges": [],
+            "plugin:canvas": {"version": 2, "preferences": [False, None]},
+        }
+        out = self.run_canvas(payload)
+        expected_nodes = [dict(node) for node in payload["nodes"]]
+        expected_nodes[2].pop("text")
+        self.assertEqual(out["node_attributes"], expected_nodes)
+        self.assertEqual(out["canvas_attributes"], {"plugin:canvas": payload["plugin:canvas"]})
+        self.assertEqual(out["references"][0]["file"], "notes/研究.md")
+        self.assertEqual(out["references"][0]["subpath"], "#^来源块")
+        self.assertEqual(out["references"][0]["resolution"], "NOT_EXECUTED")
+        anchor = out["structure"][0]
+        self.assertEqual(out["text"][anchor["char_start"]:anchor["char_end"]], "首行\n\n末行")
+        self.assertEqual(out["loss_receipt"]["params"]["attachment_ingestion"], "NOT_EXECUTED")
+
+    def test_source_array_order_is_preserved_even_when_geometry_overlaps(self):
+        nodes = [{"id": node_id, "type": "group", "x": 0, "y": 0, "width": 10, "height": 10}
+                 for node_id in ("back", "front")]
+        out = self.run_canvas({"nodes": nodes})
+        self.assertEqual(out["node_attributes"], nodes)
+
     def test_the_loss_note_states_what_is_not_read(self):
         out = self.run_canvas(CANVAS_BODY)
         note = out["loss_receipt"]["loss_note"]

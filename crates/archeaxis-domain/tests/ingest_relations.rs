@@ -134,7 +134,16 @@ fn contained_parent_links_resolve_original_four_member_batch() {
     );
     assert_eq!(r["links"][1]["target"], "../assets/evidence.svg");
     assert_eq!(r["links"][1]["status"], "resolved_reference");
-    assert_eq!(r["links"][1]["reason"], "embed_rendering_not_supported");
+    assert_eq!(r["links"][1]["reason"], "embed_presentation_requested");
+    assert_eq!(
+        r["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["presentation"],
+        "embed"
+    );
+    assert!(
+        r["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]
+            .get("presentation")
+            .is_none()
+    );
     assert_eq!(
         r["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["target"],
         expected
@@ -856,4 +865,106 @@ fn fragment_review_list_markers_accept_space_tab_and_line_end_only() {
             "ordinary text rejected: {text}"
         );
     }
+}
+
+#[test]
+fn embed_upgrade_is_exact_versioned_idempotent_and_preserved_on_reopen() {
+    let mut f = Fixture::new(
+        "![[target]] ![[../assets/a.txt]]",
+        &[("notes/target.md", "Target"), ("assets/a.txt", "Asset")],
+    );
+    let current = f.apply().unwrap()["document"].clone();
+    let mut legacy_editor = current["editor_json"].clone();
+    for relation in legacy_editor["attrs"]["archeaxis_relations"]["relations"]
+        .as_array_mut()
+        .unwrap()
+    {
+        relation.as_object_mut().unwrap().remove("presentation");
+        relation["label"] = json!(relation["label"].as_str().unwrap().replacen(
+            "embed: ",
+            "embed reference (not rendered): ",
+            1
+        ));
+    }
+    let legacy = document::save(&mut f.conn, &f.request.document_id, 2, legacy_editor).unwrap();
+    f.request.expected_version = 3;
+    f.request.content_sha256 = legacy["content_sha256"].as_str().unwrap().into();
+    let receipt = f.apply().unwrap();
+    assert_eq!(receipt["added_relations"], 0);
+    assert_eq!(receipt["updated_relations"], 2);
+    assert_eq!(receipt["document"]["version"], 4);
+    assert_eq!(
+        receipt["document"]["editor_json"]["content"],
+        f.original["editor_json"]["content"]
+    );
+    assert_eq!(
+        document::read(&f.conn, &f.request.document_id, Some(3)).unwrap(),
+        legacy
+    );
+    let projection =
+        relation_projection::query(&f.conn, &f.request.document_id, Some(4), None).unwrap();
+    assert_eq!(projection["edges"].as_array().unwrap().len(), 2);
+    for edge in projection["edges"].as_array().unwrap() {
+        assert_eq!(edge["relation"]["presentation"], "embed");
+    }
+    f.request.expected_version = 4;
+    f.request.content_sha256 = receipt["document"]["content_sha256"]
+        .as_str()
+        .unwrap()
+        .into();
+    drop(f.conn);
+    f.conn = init_workspace(f.path.to_str().unwrap()).unwrap();
+    let repeat = f.apply().unwrap();
+    assert_eq!(repeat["added_relations"], 0);
+    assert_eq!(repeat["updated_relations"], 0);
+    assert_eq!(repeat["document"], receipt["document"]);
+    let mut edited = receipt["document"]["editor_json"].clone();
+    edited["attrs"]["archeaxis_relations"]["relations"][0]["label"] =
+        json!("Human-edited relation");
+    let edited = document::save(&mut f.conn, &f.request.document_id, 4, edited).unwrap();
+    f.request.expected_version = 5;
+    f.request.content_sha256 = edited["content_sha256"].as_str().unwrap().into();
+    assert!(matches!(f.apply(), Err(links::Error::Conflict(5))));
+    assert_eq!(
+        document::read(&f.conn, &f.request.document_id, None).unwrap(),
+        edited
+    );
+}
+
+#[test]
+fn source_embed_presentation_survives_portable_remapping() {
+    let mut f = Fixture::new("![[../assets/a.txt]]", &[("assets/a.txt", "Asset bytes")]);
+    f.apply().unwrap();
+    let package =
+        archeaxis_domain::portable_document::export(&f.conn, &f.request.document_id).unwrap();
+    let mut target = init_workspace(
+        f._dir
+            .path()
+            .join("embed-portable.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let imported =
+        archeaxis_domain::portable_document::import(&mut target, package, "embed-import").unwrap();
+    let relation =
+        &imported["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0];
+    assert_eq!(relation["presentation"], "embed");
+    let reference = serde_json::from_value(relation["target"].clone()).unwrap();
+    archeaxis_domain::object_reference::resolve(&target, &reference).unwrap();
+}
+
+#[test]
+fn unknown_embed_presentation_is_rejected_by_normal_save() {
+    let mut f = Fixture::new("![[target]]", &[("notes/target.md", "Target")]);
+    let saved = f.apply().unwrap()["document"].clone();
+    for presentation in [json!("execute_html"), Value::Null] {
+        let mut invalid = saved["editor_json"].clone();
+        invalid["attrs"]["archeaxis_relations"]["relations"][0]["presentation"] = presentation;
+        assert!(document::save(&mut f.conn, &f.request.document_id, 2, invalid).is_err());
+    }
+    assert_eq!(
+        document::read(&f.conn, &f.request.document_id, None).unwrap(),
+        saved
+    );
 }

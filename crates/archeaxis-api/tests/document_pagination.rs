@@ -38,6 +38,13 @@ async fn fixed_membership_pagination_survives_same_second_insertion_and_restart(
     assert_eq!(status, 200);
     assert_eq!(first["snapshot_count"], 501);
     assert_eq!(first["documents"].as_array().unwrap().len(), 500);
+    assert!(
+        first["documents"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|d| d["has_collection"] == false)
+    );
     let cursor = first["next_cursor"].as_str().unwrap().to_owned();
     drop(router);
     let mut conn = archeaxis_store_sqlite::init_workspace(database.to_str().unwrap()).unwrap();
@@ -60,6 +67,7 @@ async fn fixed_membership_pagination_survives_same_second_insertion_and_restart(
     assert_eq!(second["snapshot_count"], 501);
     assert_eq!(second["next_cursor"], Value::Null);
     assert_eq!(second["documents"].as_array().unwrap().len(), 1);
+    assert_eq!(second["documents"][0]["has_collection"], false);
     let ids: first_set::Ids = first["documents"]
         .as_array()
         .unwrap()
@@ -84,6 +92,104 @@ async fn fixed_membership_pagination_survives_same_second_insertion_and_restart(
 }
 mod first_set {
     pub type Ids = std::collections::HashSet<String>;
+}
+
+#[tokio::test]
+async fn collection_presence_is_derived_from_the_current_saved_version_without_body_payloads_or_writes()
+ {
+    let dir = tempfile::tempdir().unwrap();
+    let database = dir.path().join("workspace.sqlite");
+    let mut conn = archeaxis_store_sqlite::init_workspace(database.to_str().unwrap()).unwrap();
+    let definition = json!({"schema":"archeaxis.collection/v1","properties":[],"records":[],"views":[{"view_id":"table","name":"Table","kind":"table"}]});
+    let plain = json!({"type":"doc","attrs":{"foreign":{"archeaxis_collection":definition.clone()}},"content":[]});
+    let with_collection = json!({"type":"doc","attrs":{"foreign":{"keep":true},"archeaxis_collection":definition},"content":[]});
+    let removed = archeaxis_domain::document::create_optional(
+        &mut conn,
+        None,
+        None,
+        "Removed",
+        with_collection.clone(),
+    )
+    .unwrap();
+    let added =
+        archeaxis_domain::document::create_optional(&mut conn, None, None, "Added", plain.clone())
+            .unwrap();
+    let ordinary = archeaxis_domain::document::create_optional(
+        &mut conn,
+        None,
+        None,
+        "Ordinary",
+        plain.clone(),
+    )
+    .unwrap();
+    let removed = archeaxis_domain::document::save(
+        &mut conn,
+        removed["document_id"].as_str().unwrap(),
+        1,
+        plain,
+    )
+    .unwrap();
+    let added = archeaxis_domain::document::save(
+        &mut conn,
+        added["document_id"].as_str().unwrap(),
+        1,
+        with_collection,
+    )
+    .unwrap();
+    let original_counts: (i64, i64) = (
+        conn.query_row("SELECT count(*) FROM documents", [], |r| r.get(0))
+            .unwrap(),
+        conn.query_row("SELECT count(*) FROM document_versions", [], |r| r.get(0))
+            .unwrap(),
+    );
+    let summaries = archeaxis_domain::document::list(&conn).unwrap();
+    assert_eq!(
+        summaries
+            .iter()
+            .find(|r| r["document_id"] == added["document_id"])
+            .unwrap()["has_collection"],
+        true
+    );
+    drop(conn);
+    for _ in 0..2 {
+        let router = archeaxis_api::app(database.to_str().unwrap()).unwrap();
+        let (status, page) = get(&router, "/api/v1/documents").await;
+        assert_eq!(status, 200);
+        assert_eq!(page["snapshot_count"], 3);
+        for (document, has_collection) in [(&removed, false), (&added, true), (&ordinary, false)] {
+            let summary = page["documents"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|r| r["document_id"] == document["document_id"])
+                .unwrap();
+            assert_eq!(summary["has_collection"], has_collection);
+            assert_eq!(summary["version"], document["version"]);
+            assert_eq!(summary["content_sha256"], document["content_sha256"]);
+            assert!(
+                summary.get("editor_json").is_none() && summary.get("text_projection").is_none()
+            );
+            let (status, readback) = get(
+                &router,
+                &format!(
+                    "/api/v1/documents/{}",
+                    document["document_id"].as_str().unwrap()
+                ),
+            )
+            .await;
+            assert_eq!(status, 200);
+            assert_eq!(readback, *document);
+        }
+        drop(router);
+    }
+    let conn = archeaxis_store_sqlite::init_workspace(database.to_str().unwrap()).unwrap();
+    let after: (i64, i64) = (
+        conn.query_row("SELECT count(*) FROM documents", [], |r| r.get(0))
+            .unwrap(),
+        conn.query_row("SELECT count(*) FROM document_versions", [], |r| r.get(0))
+            .unwrap(),
+    );
+    assert_eq!(after, original_counts);
 }
 
 #[tokio::test]

@@ -1,0 +1,330 @@
+/* One chrome for all existing AAOS pages. Semantic tokens keep all five themes. */
+:root:has(.app-shell[data-stitch-workspace]) {
+  --ax-text-ui: .875rem;
+  --ax-text-caption: .75rem;
+  --stitch-glass-panel: color-mix(in srgb, var(--ax-panel) 78%, transparent);
+  --stitch-glass-card: color-mix(in srgb, var(--ax-raised) 44%, transparent);
+  --stitch-glass-header: color-mix(in srgb, var(--ax-raised) 32%, transparent);
+  --stitch-glass-edge: color-mix(in srgb, var(--ax-accent) 18%, transparent);
+  --stitch-reading-surface: color-mix(in srgb, var(--ax-panel) 88%, transparent);
+  --stitch-material-shadow: 0 24px 64px -20px #0009, 0 4px 16px -6px #0006;
+  --stitch-material-rim: inset 0 1px 0 #ffffff30, inset 1px 0 0 #ffffff12, inset 0 -1px 0 #0005;
+}
+:root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) {
+  /* Separate material layers; opaque nested cards previously hid the scene. */
+  --stitch-glass-panel: rgb(23 25 29 / 64%);
+  --stitch-glass-card: rgb(38 40 44 / 52%);
+  --stitch-glass-header: rgb(32 34 38 / 58%);
+  --stitch-glass-edge: rgb(230 234 240 / 25%);
+  --stitch-reading-surface: rgb(23 25 29 / 82%);
+  --ax-panel: rgb(25 27 31 / 54%);
+  --ax-raised: rgb(55 58 64 / 30%);
+  --ax-bg-inset: rgb(14 16 20 / 62%);
+  --ax-elevated: rgb(48 51 57 / 65%);
+  --aaos-surface: var(--ax-panel);
+  --aaos-raised: var(--ax-raised);
+  --ax-fg-secondary: #c4c8d0;
+  --ax-fg-tertiary: #a5acb7;
+  --ax-border: rgb(225 232 240 / 11%);
+  --ax-border-strong: rgb(225 232 240 / 20%);
+}
+body:has(.app-shell[data-stitch-workspace]) {
+  background-image: linear-gradient(110deg, #101216b8, #10121640 60%, #1012168c), linear-gradient(#14161940,#14161940), url("../assets/cabin/deep-space-background-20261015.png") !important;
+}
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]):has(.app-shell[data-stitch-workspace]) {
+  --stitch-glass-panel: rgb(249 250 252 / 82%);
+  --stitch-glass-card: rgb(255 255 255 / 64%);
+  --stitch-glass-header: rgb(242 245 249 / 72%);
+  --stitch-glass-edge: rgb(78 96 117 / 24%);
+  --stitch-reading-surface: rgb(255 255 255 / 90%);
+  --stitch-material-shadow: 0 24px 60px -24px #23344938, 0 4px 16px -6px #23344920;
+  --stitch-material-rim: inset 0 1px 0 #ffffff, inset 1px 0 0 #ffffffb3, inset 0 -1px 0 #52657a18;
+}
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) body:has(.app-shell[data-stitch-workspace]) {
+  background-image: radial-gradient(ellipse at 15% 15%, #ffffffc7, transparent 65%), linear-gradient(125deg, #e8edf3, #dce4ed) !important;
+}
+.stitch-workspace-menu {
+  position: fixed; inset: 0 0 auto; z-index: 80; height: 40px; display: flex;
+  align-items: center; gap: 12px; padding: 0 16px; color: var(--ax-fg-secondary);
+  border-bottom: 1px solid var(--stitch-glass-edge); background: transparent;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  font-size: max(14px, var(--ax-text-ui)); line-height: 1.4;
+}
+/* A sibling material layer lets nested menus sample the page backdrop. */
+.stitch-workspace-menu::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--stitch-glass-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.stitch-workspace-menu button, .stitch-workspace-menu summary {
+  font: inherit; font-size: max(14px, var(--ax-text-ui)); color: inherit; background: transparent; border: 0; border-radius: 5px;
+  min-height: 32px; padding: 5px 9px; cursor: pointer; white-space: nowrap;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+.stitch-workspace-menu .stitch-brand { display: flex; align-items: center; gap: 7px; min-width: 28px; color: var(--ax-accent); font-weight: 600; padding-inline: 0; }
+.stitch-workspace-menu .stitch-brand .stitch-brand-logo { height: 16px; width: auto; max-height: 16px; flex: 0 0 auto; object-fit: contain; }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-menu .stitch-brand .stitch-brand-logo { filter: brightness(0); }
+.stitch-menus { display: flex; align-items: center; gap: 3px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.stitch-menus > :is(details, button) { flex: 0 0 auto; }
+.stitch-menus > details > summary { list-style: none; display: flex; align-items: center; gap: 7px; }
+.stitch-menus > details > summary[data-current-group] { color: var(--ax-fg); font-weight: 600; box-shadow: inset 0 -2px 0 var(--ax-accent); }
+.stitch-menus > details > summary::after { content: ""; width: 4px; height: 4px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-1px) rotate(45deg); opacity: .55; transition: transform 140ms ease; }
+.stitch-menus > details[open] > summary::after { transform: translateY(1px) rotate(225deg); }
+.stitch-menus > details::details-content { opacity: 0; transition: opacity 150ms ease; }
+.stitch-menus > details[open]::details-content { opacity: 1; }
+.stitch-menus > details:not([open]) .stitch-menu-popover { pointer-events: none; }
+.stitch-menus > details > summary::-webkit-details-marker { display: none; }
+.stitch-workspace-menu :is(button, summary):hover, .stitch-menus > details[open] > summary { color: var(--ax-fg); background: var(--ax-hover); }
+.stitch-menu-popover {
+  position: fixed; top: 46px; left: min(250px, 4vw); width: min(320px, calc(100vw - 24px)); box-sizing: border-box;
+  max-height: calc(100dvh - 110px); overflow: auto; padding: 7px; display: grid; gap: 3px;
+  background: var(--stitch-reading-surface); border: 1px solid var(--stitch-glass-edge); border-radius: 12px;
+  backdrop-filter: blur(14px) saturate(55%); -webkit-backdrop-filter: blur(14px) saturate(55%);
+  box-shadow: 0 16px 36px -10px #0008, var(--stitch-material-rim);
+}
+.stitch-menu-heading { margin: 0; padding: 5px 10px 8px; color: var(--ax-fg-tertiary); font-size: 14px; border-bottom: 1px solid var(--ax-border); }
+.stitch-menu-popover button { position: relative; display: flex; align-items: center; gap: 10px; text-align: left; justify-content: flex-start; min-height: 40px; padding: 9px 30px 9px 10px; white-space: normal; overflow-wrap: anywhere; border-radius: 6px; }
+.stitch-menu-popover button > svg { flex: 0 0 auto; color: var(--ax-fg-secondary); }
+.stitch-menu-popover button > span { min-width: 0; }
+.stitch-menu-popover button::after { content: ""; position: absolute; right: 13px; top: 50%; width: 5px; height: 5px; border-right: 1px solid currentColor; border-top: 1px solid currentColor; transform: translateY(-50%) rotate(45deg); opacity: 0; transition: opacity 140ms ease, transform 140ms ease; }
+.stitch-menu-popover button:is(:hover, :focus-visible)::after { opacity: .7; transform: translate(2px, -50%) rotate(45deg); }
+.stitch-menu-popover button[aria-current="page"]::after { content: "✓"; width: auto; height: auto; border: 0; opacity: 1; transform: translateY(-50%); font-size: 14px; }
+.stitch-workspace-menu :is(button, summary):active { background: var(--ax-active); }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-menu :is(button, summary) { background: transparent; border-color: transparent; box-shadow: none; }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-menus > details > summary[data-current-group] { box-shadow: inset 0 -2px 0 var(--ax-accent); }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-menu :is(button, summary):is(:hover, :focus-visible),
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-menus > details[open] > summary { background: var(--ax-hover); }
+.stitch-workspace-menu .stitch-menu-popover button[aria-current="page"] { color: var(--ax-fg); background: var(--ax-hover); font-weight: 600; }
+
+.stitch-workspace-dock {
+  position: fixed; z-index: 70; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; max-width: calc(100vw - 24px); padding: 6px 12px;
+  overflow-x: auto; scrollbar-width: thin; border: 1px solid var(--ax-border); border-radius: 999px;
+  background: var(--stitch-glass-panel); color: var(--ax-fg-secondary); box-shadow: 0 12px 32px -12px #0009;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.stitch-workspace-dock button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; min-height: 36px; padding: 5px 12px; font: inherit; font-size: max(14px, var(--ax-text-ui)); color: inherit; background: transparent; border: 1px solid transparent; border-radius: 999px; white-space: nowrap; cursor: pointer; transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+.stitch-workspace-dock button:is(:hover, [aria-current="page"], [aria-expanded="true"]) { color: var(--ax-fg); background: color-mix(in srgb, var(--ax-fg) 9%, transparent); border-color: color-mix(in srgb, var(--ax-fg) 22%, transparent); box-shadow: inset 0 1px 0 #ffffff12; }
+.stitch-workspace-dock button[aria-current="page"] svg { color: var(--ax-accent); }
+.stitch-workspace-dock button[aria-current="page"] { font-weight: 600; }
+.stitch-workspace-dock button:hover { transform: translateY(-2px); }
+.stitch-workspace-dock button:active { transform: translateY(1px); }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-dock button { background: transparent; border-color: transparent; box-shadow: none; }
+:root:is([data-aaos-theme="white"], [data-aaos-theme="blueprint-light"]) .stitch-workspace-dock button:is(:hover, [aria-current="page"], [aria-expanded="true"]) { background: var(--ax-hover); border-color: var(--ax-border); }
+.stitch-workspace-dock .stitch-companion-toggle { border-left-color: var(--ax-border); }
+.stitch-workspace-menu :focus-visible, .stitch-workspace-dock :focus-visible, .stitch-companion-window :focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+
+.app-shell.cabin-shell[data-stitch-workspace] {
+  --ax-text-ui: .875rem;
+  --stitch-surface: var(--stitch-glass-panel);
+  --stitch-edge: var(--stitch-glass-edge);
+  border-radius: 16px; padding: 0; border: 1px solid var(--stitch-edge);
+  background: linear-gradient(118deg, #ffffff0d, transparent 44%, #ffffff03), var(--stitch-surface) !important; backdrop-filter: blur(16px) saturate(45%); -webkit-backdrop-filter: blur(16px) saturate(45%);
+  box-shadow: var(--stitch-material-shadow), var(--stitch-material-rim);
+  font-weight: 400;
+}
+.app-shell[data-stitch-workspace] :is(button, input, textarea, select) { font-weight: 400; text-shadow: none; }
+.stitch-companion-window, .stitch-reference-window { background: var(--stitch-glass-card); }
+.app-shell[data-stitch-workspace] :is(button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; box-shadow: none;
+}
+.app-shell[data-stitch-workspace] :is(input, textarea, select):focus:not(:focus-visible) { box-shadow: none; }
+.app-shell.cabin-shell[data-stitch-workspace] > .ui-navigation-trigger { display: block; position: absolute; z-index: 50; top: 47px; left: 12px; height: 32px; min-height: 32px; margin: 0; padding: 4px 10px; font-size: var(--ax-text-ui); border-radius: 6px; }
+.app-shell.cabin-shell[data-stitch-workspace] .app-body { flex: 1 1 0; min-height: 0; padding: 12px; gap: 12px; }
+.app-shell.cabin-shell[data-stitch-workspace] .navigation-sidebar { flex: 0 0 184px; min-width: 184px; width: 184px; padding: 8px 0; border-right: 1px solid var(--ax-border); }
+.app-shell.cabin-shell[data-stitch-workspace] .space-rail { width: 100%; padding-inline: 6px; }
+.app-shell.cabin-shell[data-stitch-workspace] .space-rail-item { min-height: 36px; padding: 7px 10px; border-radius: 7px; font-size: var(--ax-text-ui); }
+.app-shell.cabin-shell[data-stitch-workspace] .app-center { min-width: 0; min-height: 0; flex: 1 1 0; padding: 12px; margin: 0; border: 0; border-radius: 0; background: transparent; overflow: auto; }
+.stitch-page-identity { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.app-shell[data-stitch-workspace] .dock-workspace { height:100%; min-height:0; }
+.app-shell[data-stitch-workspace] .app-center { display:flex; flex-direction:column; }
+.app-shell[data-stitch-workspace] .app-center > :not(.dock-workspace):not(.space-view) { flex:none; }
+.app-shell[data-stitch-workspace] .app-center > .dock-workspace { flex:1 1 0; height:auto; }
+.app-shell[data-stitch-workspace] .dock-surface { min-height:0; }
+.app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space),
+.app-shell[data-stitch-workspace] .app-center > .space-view:has(> .stitch-research-space) { height:100%; min-height:0; }
+.app-shell[data-stitch-workspace] .dock-business-host:has(.stitch-research-space) { overflow:hidden; }
+.app-shell[data-stitch-workspace] > [aria-label="工作草稿状态"] { flex:none; padding:4px 12px; font-size:var(--ax-text-caption); line-height:1.4; }
+.app-shell[data-stitch-workspace] > [aria-label="工作草稿状态"] p { margin:0; }
+.app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading { margin: 0 0 12px; padding: 0 0 12px; gap: 12px; border-bottom: 1px solid var(--ax-border); }
+.app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading h1 { margin: 0 0 4px; font-size: 1.25rem; line-height: 1.4; }
+.app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading p, .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading small { margin: 0; font-size: var(--ax-text-ui); line-height: 1.5; color: var(--ax-fg-secondary); }
+.app-shell.cabin-shell[data-stitch-workspace] .nav-trail { margin-bottom: 8px; padding-right: 0; font-size: var(--ax-text-ui); }
+.app-shell.cabin-shell[data-stitch-workspace] .activity-dock { flex: 0 0 auto; min-height: 32px; padding: 4px 12px; border-top: 1px solid var(--ax-border); font-size: var(--ax-text-ui); }
+.console-window[data-console-mode="floating"] > .app-shell.cabin-shell[data-stitch-workspace] .activity-dock { padding-right: 44px; }
+.app-shell.cabin-shell[data-stitch-workspace] .inspector { border: 1px solid var(--ax-border); border-radius: 10px; background: var(--stitch-glass-card); }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.space-view, .dock-workspace) { min-width: 0; }
+/* Inline-size containment cannot supply an intrinsic width when auto margins
+   stop flex stretching. Give the actual business view its available width and
+   let its own layout consume the remaining stage height before scrolling. */
+.app-shell.cabin-shell[data-stitch-workspace] .space-view { width: 100%; min-height: 100%; box-sizing: border-box; }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.ui-card, .capability-card, .ui-asset-card, .ui-learning-card) { border-radius: 12px; background: var(--stitch-glass-card); background-image: none; border-color: var(--ax-border); box-shadow: inset 0 1px 0 #ffffff0a, 0 3px 9px -6px #0004; }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-library-facets, .stitch-library-results, .stitch-reader-details, .stitch-reader-empty, .stitch-reader-document, .stitch-reader-original, .stitch-reader-source-tools, .stitch-runtime-details, .stitch-document-card, .stitch-reader-toolbar) { background: var(--stitch-reading-surface); background-image: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-workbench-summary, .stitch-workbench-search, .stitch-workbench-status, .stitch-workbench-card, .stitch-teaching-card, .stitch-settings-pane, .stitch-ai-card, .stitch-expression-stage, .stitch-expression-card, .stitch-relations-stage, .stitch-relations-card, .stitch-relations-collection, .stitch-library-heading, .stitch-reader-heading),
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-teaching-selected, .stitch-teaching-learning, .stitch-learning-course-detail, .stitch-ai-context-layout) > :is(section, article) { background: var(--stitch-glass-card); background-image: none; }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-workbench-local, .stitch-settings-intro, .stitch-ai-topic, .stitch-expression-heading, .stitch-relations-heading) { background: var(--stitch-glass-header); }
+.app-shell.cabin-shell[data-stitch-workspace][data-navigation-appearance="top"] .navigation-sidebar { display: none; }
+
+.stitch-companion-window { position: fixed; z-index: 60; right: max(22px, 4vw); top: max(152px, calc(8vh + 80px)); display: flex; flex-direction: column; width: 380px; max-width: calc(100vw - 24px); max-height: min(60vh, calc(100dvh - 216px)); min-height: 160px; border: 1px solid color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border)); border-radius: 12px; background: var(--ax-panel); color: var(--ax-fg); box-shadow: 0 14px 40px #0006; overflow: hidden; }
+.stitch-window-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 0 0 auto; min-height: 36px; padding: 4px 12px; background: var(--stitch-glass-header); border-bottom: 1px solid var(--ax-border); touch-action: none; cursor: move; }
+.stitch-window-titlebar button { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--ax-accent); font: inherit; font-size: var(--ax-text-ui); padding: 4px 6px; min-height: 32px; min-width: 32px; border: 0; border-radius: 5px; }
+.stitch-window-titlebar button:hover { background: var(--ax-hover); }
+.stitch-window-titlebar .stitch-companion-move { cursor: move; text-align: left; }
+.stitch-companion-content { overflow: auto; min-height: 0; padding: 14px; font-size: var(--ax-text-ui); line-height: 1.5; overflow-wrap: anywhere; }
+.stitch-companion-content [data-companion-slot] { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.stitch-companion-content .xiaoqi-avatar { align-self: center; }
+.stitch-companion-content :is(h3, p) { margin: 0 0 5px; }
+.stitch-companion-content h3 { font-size: 1rem; }
+.stitch-companion-content :is(input, select, textarea) { width: 100%; max-width: 100%; font: inherit; }
+.stitch-companion-content textarea { min-height: 80px; resize: vertical; }
+.stitch-companion-content button { min-height: 34px; font-size: var(--ax-text-ui); white-space: normal; }
+
+/* Keep the existing inspector outside the reader, in Stitch's lower auxiliary window. */
+.stitch-reference-window { position: fixed; z-index: 61; right: 12px; top: 132px; width: min(380px, calc(100vw - 24px)); max-height: calc(100dvh - 208px); overflow: auto; border: 1px solid color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border)); border-radius: 12px; background: var(--ax-panel); color: var(--ax-fg); box-shadow: 0 14px 40px #0006; }
+.stitch-reference-window .inspector { position: static; width: 100%; min-width: 0; height: 100%; max-height: none; margin: 0; padding: 0 14px 14px; border: 0; background: transparent; overflow: auto; box-sizing: border-box; }
+.stitch-reference-window .inspector-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 43px; margin: 0 -14px 12px; padding: 4px 10px; background: var(--stitch-glass-header); border-bottom: 1px solid var(--ax-border); }
+.stitch-reference-window .inspector-title { margin: 0; font-size: var(--ax-text-ui); color: var(--ax-accent); }
+.stitch-reference-window .inspector-heading button { position: static; min-height: 32px; min-width: 32px; border: 0; border-radius: 5px; background: transparent; color: var(--ax-fg); font: inherit; cursor: pointer; }
+.stitch-reference-window .inspector-details { margin: 0; font-size: var(--ax-text-ui); line-height: 1.5; }
+.stitch-reference-window .inspector-details dd { overflow-wrap: anywhere; }
+.stitch-reference-window .inspector-empty { padding: 12px 0; font-size: var(--ax-text-ui); color: var(--ax-fg-secondary); }
+.stitch-reference-window :focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.stitch-related-window { font-size: var(--ax-text-ui); line-height: 1.5; }
+.stitch-related-window .research-related-materials { position: static; margin: 0; padding: 0 14px 14px; border: 0; border-radius: 0; background: transparent; }
+.stitch-related-window .research-related-materials > header { position: sticky; top: 0; z-index: 1; min-height: 43px; box-sizing: border-box; margin: 0 -14px; padding: 8px 52px 8px 14px; background: var(--stitch-glass-header); border-bottom: 1px solid var(--ax-border); }
+.stitch-related-window .research-related-materials > header h3 { margin: 0; color: var(--ax-accent); font-size: var(--ax-text-ui); }
+.stitch-related-window .research-related-materials ul { grid-template-columns: minmax(0, 1fr); }
+.stitch-related-window .research-related-materials :is(p,h4) { margin: 0; overflow-wrap: anywhere; }
+.stitch-related-close { position: sticky; float: right; top: 6px; z-index: 2; min-width: 32px; min-height: 32px; margin: 6px 10px -38px 0; padding: 4px; border: 0; border-radius: 5px; background: var(--ax-raised); color: var(--ax-fg); font: inherit; cursor: pointer; }
+
+.stitch-companion-window, .stitch-reference-window {
+  background: var(--stitch-glass-panel); border-color: var(--stitch-glass-edge);
+  border-radius: 16px;
+  backdrop-filter: blur(16px) saturate(45%); -webkit-backdrop-filter: blur(16px) saturate(45%);
+  box-shadow: var(--stitch-material-shadow), var(--stitch-material-rim);
+}
+.stitch-window-titlebar { background: var(--stitch-glass-header); }
+.stitch-window-titlebar button, .stitch-reference-window .inspector-title { color: var(--ax-fg-secondary); }
+.app-shell[data-stitch-workspace] .stitch-window-toolbar { background: var(--stitch-glass-header); }
+.stitch-companion-window:focus-within { z-index: 62; }
+.stitch-companion-window[hidden] { display: none; }
+.stitch-menu-popover hr { width: 100%; border: 0; border-top: 1px solid var(--ax-border); margin: 6px 0; }
+.stitch-menu-popover button[aria-pressed="true"] { background: var(--ax-accent-soft); box-shadow: inset 3px 0 var(--ax-accent); }
+.command-result-heading { padding: 8px 12px 4px; margin: 0; color: var(--ax-fg-secondary); font-size: var(--ax-text-ui); font-weight: 600; }
+.stitch-companion-content, .stitch-reference-window { font-weight: 400; }
+.stitch-companion-content .companion-context-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--ax-border); }
+.stitch-companion-content .companion-context-header .xiaoqi-avatar { flex: none; }
+.stitch-companion-content .companion-context-header h3 { font-size: var(--ax-text-ui); font-weight: 500; }
+.stitch-companion-content .companion-context-header p { color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-companion-content .companion-session-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.stitch-companion-content .companion-session-actions button { flex: 1 1 8rem; padding: 4px 8px; border-color: var(--ax-border); background: transparent; font-weight: 400; }
+.app-shell[data-stitch-workspace] :is(.stitch-learning-topic, .stitch-learning-glass, .stitch-learning-review-heading, .research-topic-header) { background: var(--stitch-glass-card); }
+.app-shell[data-stitch-workspace] .dock-layout-options > summary { padding: 4px 170px 4px 0; text-align: left; color: var(--ax-fg-tertiary); font-size: max(14px, var(--ax-text-ui)); }
+.app-shell[data-stitch-workspace] .dock-workspace > .dock-layout-options { position: static; width: auto; margin: 0; padding: 0; }
+.app-shell[data-stitch-workspace] .dock-surface .dockview-theme-dark { --dv-background-color: transparent; }
+.app-shell[data-stitch-workspace] .stitch-window-title li[aria-current] { font-weight: 600; }
+.app-shell[data-stitch-workspace] .dock-surface .dv-tab { transition: color 140ms ease, background-color 140ms ease, box-shadow 140ms ease; }
+.app-shell[data-stitch-workspace] .dock-surface .dv-tab.dv-active-tab { box-shadow: inset 0 -2px 0 var(--ax-accent); font-weight: 600; }
+.app-shell[data-stitch-workspace] .dock-business-host > .space-view { animation: stitch-view-enter 160ms ease-out; }
+@keyframes stitch-view-enter { from { opacity: .88; } to { opacity: 1; } }
+
+/* Reserve the global chrome when ConsoleWindow uses its existing full/compact mode. */
+.console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] { padding-top: 42px; padding-bottom: 64px; border-radius: 0; }
+.console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 89px; }
+@media (min-width: 1440px) and (min-height: 800px) {
+  .stitch-companion-window, .stitch-reference-window {
+    --stitch-main-width: 64vw;
+    --stitch-aux-width: 29vw;
+    --stitch-stage-height: calc(100dvh - 112px);
+    --stitch-stage-top: 48px;
+    right: calc((100vw - var(--stitch-main-width) - var(--stitch-aux-width) - 20px) / 2);
+    width: var(--stitch-aux-width); height: calc((var(--stitch-stage-height) - 20px) / 2); max-height: none; min-height: 0;
+  }
+  .stitch-companion-window { top: var(--stitch-stage-top); }
+  .stitch-reference-window { top: calc(var(--stitch-stage-top) + (var(--stitch-stage-height) + 20px) / 2); }
+  body:has([data-workspace-layout="companion"]) .stitch-companion-window,
+  body:has([data-workspace-layout="compare"]) .stitch-reference-window { top: var(--stitch-stage-top); height: var(--stitch-stage-height); }
+  body:has([data-workspace-layout="compare"]) .stitch-reference-window.stitch-reference-empty { height: auto; max-height: 200px; }
+  /* Expanding the main window uses its available column without covering either auxiliary window. */
+  body:has(.console-window[data-console-mode="full"]) :is(.stitch-companion-window, .stitch-reference-window) {
+    --stitch-stage-height: calc(100dvh - 112px);
+    --stitch-stage-top: 48px;
+    right: 16px;
+  }
+}
+@media (max-width: 1439px), (max-height: 799px) {
+  /* The shared companion stays mounted; the explicit inspector takes the single auxiliary slot. */
+  body:has(.stitch-reference-window) .stitch-companion-window { display: none; }
+  /* Keep the main header and view tabs clickable; use the lower auxiliary slot
+     above the global Dock while retaining the same scrollable session. */
+  .stitch-companion-window { top: auto; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); max-height: min(40dvh, calc(100dvh - 260px)); }
+  /* Dock the auxiliary window above the bottom bar so it cannot cover the reader
+     header, tabs or refresh controls in narrow or short windows. */
+  .stitch-reference-window { top: auto; right: 8px; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); width: min(360px, calc(100vw - 16px)); max-height: min(45dvh, 420px); }
+  .app-shell[data-stitch-workspace] .dock-business-host:has(.stitch-research-space) { overflow:auto; }
+  .app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space) { height:auto; min-height:100%; }
+  .stitch-research-space .research-editor { height:auto; min-height:100%; }
+  .stitch-research-space .research-stage-content { flex:none; overflow:visible; }
+  .stitch-research-space .research-editor .research-workspace-grid { flex: 0 0 auto; }
+}
+@container console (max-width: 1100px) or (max-height: 760px) {
+  .app-shell.cabin-shell[data-stitch-workspace] .app-body { gap: 8px; padding: 8px; }
+  .app-shell.cabin-shell[data-stitch-workspace] .app-center { padding: 8px; }
+  .app-shell[data-stitch-workspace] .dock-layout-options > summary { padding-right: 0; white-space: normal; }
+  .app-shell[data-stitch-workspace] .stitch-window-toolbar { padding-inline: 8px; gap: 6px 8px; }
+  .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading { margin-bottom: 6px; padding-bottom: 6px; }
+  .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading :is(p, small) { display: none; }
+}
+@container console (max-height: 700px) {
+  /* Let short main windows scroll the research page instead of crushing its evidence viewport. */
+  .app-shell[data-stitch-workspace] .dock-business-host:has(.stitch-research-space) { overflow: auto; }
+  .app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space) { height: auto; min-height: 100%; }
+  .stitch-research-space .research-editor { height: auto; min-height: 100%; }
+  .stitch-research-space .research-stage-content { flex: none; overflow: visible; }
+  .stitch-research-space .research-editor .research-workspace-grid { flex: 0 0 auto; }
+}
+@media (max-width: 900px) {
+  .stitch-workspace-menu { padding-inline: 10px; gap: 8px; }
+  .stitch-brand span { display: none; }
+  .stitch-workspace-dock { justify-content: flex-start; border-radius: 16px; padding: 4px; bottom: max(5px, env(safe-area-inset-bottom)); }
+  .stitch-workspace-dock button { padding: 6px 10px; }
+  .stitch-workspace-dock button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .stitch-workspace-dock button svg { width: 20px; height: 20px; }
+  .stitch-companion-window { right: 12px; width: min(360px, calc(100vw - 24px)); }
+  .stitch-reference-window { right: 8px; bottom: max(70px, calc(env(safe-area-inset-bottom) + 64px)); width: calc(100vw - 16px); max-height: min(50dvh, 420px); }
+}
+@media (max-height: 600px) {
+  .stitch-reference-window { top: auto; bottom: max(64px, calc(env(safe-area-inset-bottom) + 58px)); max-height: min(55dvh, 360px); }
+  .app-shell.cabin-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 41px; }
+  .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 83px; }
+  .app-shell.cabin-shell[data-stitch-workspace] .activity-dock { min-height: 28px; padding-block: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stitch-workspace-menu *, .stitch-workspace-menu ::after, .stitch-workspace-dock *, .stitch-companion-window *, .app-shell[data-stitch-workspace] .dock-surface * { transition: none !important; animation: none !important; }
+  .stitch-menus > details::details-content { transition: none; }
+  .stitch-workspace-dock button:is(:hover, :active) { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) { --ax-panel: #191b1f; --ax-raised: #303339; --ax-elevated: #303339; --stitch-glass-header: #191b1f; }
+  :root:has(.app-shell[data-stitch-workspace]), :root[data-aaos-theme]:has(.app-shell[data-stitch-workspace]) { --stitch-glass-panel: var(--ax-panel); --stitch-glass-card: var(--ax-raised); --stitch-glass-header: var(--ax-raised); --stitch-reading-surface: var(--ax-panel); }
+  .app-shell.cabin-shell[data-stitch-workspace] { background: var(--ax-panel) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .stitch-workspace-menu, .stitch-workspace-menu::before, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .stitch-workspace-menu::before { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  :root:has(.app-shell[data-stitch-workspace]), :root[data-aaos-theme]:has(.app-shell[data-stitch-workspace]) { --stitch-glass-panel: var(--ax-panel); --stitch-glass-card: var(--ax-raised); --stitch-glass-header: var(--ax-raised); --stitch-reading-surface: var(--ax-panel); }
+}
+@media (forced-colors: active) {
+  .stitch-workspace-menu::before { background: Canvas; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  body:has(.app-shell[data-stitch-workspace]) { background-image: none !important; }
+  .stitch-workspace-menu, .stitch-menu-popover, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window, .app-shell.cabin-shell[data-stitch-workspace], .app-shell.cabin-shell[data-stitch-workspace] .app-center { background: Canvas !important; color: CanvasText; border-color: CanvasText; box-shadow: none; backdrop-filter: none; }
+  .stitch-workspace-dock button:is([aria-current="page"], [aria-expanded="true"]) { color: Highlight; border-color: Highlight; }
+  :root[data-aaos-theme] .stitch-workspace-menu :is(button, summary), :root[data-aaos-theme] .stitch-workspace-dock button { background: Canvas; color: CanvasText; box-shadow: none; }
+  :root[data-aaos-theme] .stitch-menus > details > summary[data-current-group] { text-decoration: underline; text-decoration-color: Highlight; text-underline-offset: 5px; }
+  :root[data-aaos-theme] .stitch-workspace-dock button[aria-current="page"] { border-color: Highlight; color: Highlight; }
+}
+
+/* An explicitly opened settings menu takes priority over the nonmodal companion. */
+
+@container console (max-height: 600px) {
+  .app-shell.cabin-shell[data-stitch-workspace] .app-center { padding-block: 6px; }
+}

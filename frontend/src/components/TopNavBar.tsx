@@ -1,124 +1,19 @@
+import type { ReactNode } from "react";
 import { useConsoleWindow } from "./ConsoleWindow";
-import { useAaosTheme } from '../design-system/ThemeProvider';
-import { AAOS_THEME_REGISTRY } from '../design-system/theme';
-import './TopNavBar.css';
-import { DiagnosticCenterTrigger } from './DiagnosticConsole';
-import { commandKeyLabel } from '../presentation/keyboardShortcuts';
+import { AaosIcon } from "./AaosIcon";
+import "./StitchWindowToolbar.css";
 
-interface Breadcrumb {
-  label: string;
-  onClick?: () => void;
-}
+interface Breadcrumb { label: string; onClick?: () => void }
 
-interface TopNavBarProps {
-  breadcrumbs: Breadcrumb[];
-  onSearch?: () => void;
-  onSettings?: () => void;
-  notificationCount?: number;
-  userName?: string;
-}
-
-export function TopNavBar({
-  breadcrumbs,
-  onSearch,
-  onSettings,
-  notificationCount = 0,
-  userName = 'User'
-}: TopNavBarProps) {
-  const { theme } = useAaosTheme();
-  const consoleWindow = useConsoleWindow();
-
-  return (
-    <>
-      <nav className="top-nav-bar">
-        <div className="top-nav-container">
-          {/* Left: Logo + Breadcrumbs */}
-          <div className="top-nav-left" onPointerDown={event=>consoleWindow?.begin(event,"move")} onPointerMove={consoleWindow?.move} onPointerUp={consoleWindow?.end} onPointerCancel={consoleWindow?.cancel} onLostPointerCapture={consoleWindow?.end}>
-            {consoleWindow && <span id="console-window-help" className="console-window-help">拖动标志或标题空白处移动；方向键移动，Shift加方向键调整大小；Esc取消正在进行的拖动。窄窗口自动铺满。</span>}
-            {consoleWindow ? <button type="button" className="console-move-handle" aria-label="移动主控台" aria-describedby="console-window-help" onKeyDown={consoleWindow.keys} disabled={consoleWindow.mode!=="floating"} title={consoleWindow.mode==="floating"?"拖动移动；方向键移动，Shift加方向键调整大小":"铺满时无需移动"}><img
-              src={AAOS_THEME_REGISTRY[theme].brandMark}
-              alt="ArcheAxis"
-              className="top-nav-logo"
-            /></button> : <img
-              src={AAOS_THEME_REGISTRY[theme].brandMark}
-              alt="ArcheAxis"
-              className="top-nav-logo"
-            />}
-            <div className="top-nav-breadcrumb">
-              {breadcrumbs.map((crumb, index) => (
-                <span key={index}>
-                  {index > 0 && (
-                    <span className="breadcrumb-separator">/</span>
-                  )}
-                  <span
-                    className={`breadcrumb-item ${
-                      index === breadcrumbs.length - 1 ? 'current' : ''
-                    }`}
-                  >
-                    {crumb.onClick ? (
-                      <button onClick={crumb.onClick}>
-                        {crumb.label}
-                      </button>
-                    ) : (
-                      crumb.label
-                    )}
-                  </span>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Center: Search */}
-          <div className="top-nav-center">
-            <button
-              className="top-nav-search-trigger"
-              type="button"
-              aria-label="搜索页面、能力与内容"
-              aria-keyshortcuts="Control+K Meta+K"
-              onClick={onSearch}
-            >
-              <span className="search-trigger-icon" aria-hidden="true">🔍</span>
-              <span className="search-trigger-text">
-                搜索页面、能力与内容
-              </span>
-            </button>
-              <div className="search-trigger-shortcut" aria-hidden="true">
-                <span className="search-trigger-key">{commandKeyLabel()}</span>
-                <span className="search-trigger-key">K</span>
-              </div>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="top-nav-right">
-            {consoleWindow && <><button type="button" className="top-nav-action console-window-action" aria-label={consoleWindow.mode==="floating"?"铺满主控台":"还原主控台"} onClick={consoleWindow.toggle} disabled={consoleWindow.mode==="compact"} title={consoleWindow.mode==="compact"?"可用空间较小，主控台自动铺满":consoleWindow.mode==="full"?"还原主控台":"铺满主控台"}>{consoleWindow.mode==="floating"?"□":"▣"}</button><button type="button" className="top-nav-action console-window-action" aria-label="复位主控台" onClick={consoleWindow.reset} title="复位主控台的位置和大小">↺</button></>}
-            <DiagnosticCenterTrigger />
-            <button
-              className={`top-nav-action ${notificationCount > 0 ? 'has-badge' : ''}`}
-              aria-label="通知"
-              title="通知"
-            >
-              🔔
-            </button>
-
-            <button
-              className="top-nav-action"
-              aria-label="设置"
-              title="设置"
-              type="button"
-              onClick={onSettings}
-            >
-              ⚙️
-            </button>
-
-            <button className="top-nav-user">
-              <div className="top-nav-avatar">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-    </>
-  );
+/** One window titlebar; App supplies its existing command/status tools as children. */
+export function TopNavBar({ breadcrumbs, children }: { breadcrumbs: Breadcrumb[]; children?: ReactNode }) {
+  const window = useConsoleWindow();
+  return <header className="stitch-window-toolbar" aria-label="主控台工具栏">
+    <div className="stitch-window-title" onPointerDown={event => window?.begin(event, "move")} onPointerMove={window?.move} onPointerUp={window?.end} onPointerCancel={window?.cancel} onLostPointerCapture={window?.end}>
+      {window ? <><span id="console-window-help" className="sr-only">拖动标题移动；方向键移动，Shift 加方向键调整大小；Esc 取消；窄窗口自动铺满。</span><button type="button" className="console-move-handle stitch-window-icon" aria-label="移动主控台" aria-describedby="console-window-help" onKeyDown={window.keys} disabled={window.mode !== "floating"} title={window.mode === "floating" ? "移动主控台" : "当前主控台已铺满"}><AaosIcon name="Workspace" size={18}/></button></> : <AaosIcon name="Workspace" size={18}/>}
+      <nav aria-label="当前工作位置"><ol>{breadcrumbs.map((crumb, index) => <li key={index} aria-current={index === breadcrumbs.length - 1 ? "page" : undefined}>{crumb.onClick ? <button type="button" onClick={crumb.onClick}>{crumb.label}</button> : <span title={crumb.label}>{crumb.label}</span>}</li>)}</ol></nav>
+    </div>
+    {children}
+    {window ? <div className="stitch-window-controls" role="group" aria-label="主控台窗口操作"><button type="button" className="stitch-window-icon" aria-label={window.mode === "floating" ? "铺满主控台" : "还原主控台"} onClick={window.toggle} disabled={window.mode === "compact"} title={window.mode === "compact" ? "可用空间较小，主控台自动铺满" : undefined}>{window.mode === "floating" ? "□" : "▣"}</button><button type="button" className="stitch-window-icon" aria-label="复位主控台" onClick={window.reset} title="复位主控台的位置和大小">↺</button></div> : null}
+  </header>;
 }

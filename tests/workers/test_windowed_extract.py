@@ -7,7 +7,6 @@ whether a second invocation repeats work it already did.
 """
 
 import importlib.util
-import json
 import os
 import subprocess
 import sys
@@ -139,10 +138,40 @@ def test_a_second_invocation_resumes_and_does_not_decode_again(tmp_path, monkeyp
 
 
 def test_a_missing_ffmpeg_is_named_rather_than_silently_skipped(tmp_path, monkeypatch):
+    """With neither a declared binary nor the bundled decoder, the failure says so."""
     worker = load_worker()
     install_fake_model(monkeypatch, worker)
+    monkeypatch.setattr(worker, "_media_decode",
+                        lambda: types.SimpleNamespace(available=lambda: False))
     source = tmp_path / "absent.wav"
     source.write_bytes(b"not audio")
     with pytest.raises(ValueError, match="ffmpeg"):
         worker.extract_windowed(str(source), None, "auto", "cpu", two_window_plan(),
                                 str(tmp_path / "no-such-ffmpeg.exe"))
+
+
+def test_windows_are_cut_by_the_bundled_decoder_when_no_binary_is_declared(tmp_path, monkeypatch):
+    """The installed product has no system ffmpeg; its own PyAV decoder must cut the windows.
+
+    The model is still stubbed, because the subject here is the windowing contract. The
+    recording is the project-owned golden MP4, decoded by the real runtime decoder.
+    """
+    worker = load_worker()
+    if not worker._media_decode().available():
+        pytest.skip("PyAV is not installed in this test interpreter")
+    fake = install_fake_model(monkeypatch, worker)
+    source = tmp_path / "golden.mp4"
+    source.write_bytes((HERE / "tests" / "fixtures" / "golden" / "golden-video-anchor.mp4").read_bytes())
+    model = tmp_path / "model"
+    model.mkdir()
+    (model / "model.bin").write_bytes(b"weights")
+    (model / "config.json").write_text("{}", encoding="utf-8")
+    (model / "tokenizer.json").write_text("{}", encoding="utf-8")
+    merged = worker.extract_windowed(str(source), str(model), "auto", "cpu", two_window_plan(),
+                                     None, staging=str(tmp_path / "staging"),
+                                     work_dir=str(tmp_path / "work"))
+    assert len(fake.calls) == 2, "two windows must each be decoded and transcribed once"
+    assert merged["window_identity"]["decoder"] == "pyav"
+    assert merged["windows"]["status"] == "complete"
+    assert merged["cues"], "a real recording must yield located cues"
+

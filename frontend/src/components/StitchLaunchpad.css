@@ -1,0 +1,41 @@
+.stitch-launchpad-overlay { background: rgb(2 6 17 / 12%); }
+.aaos-dialog-content.stitch-launchpad {
+  width: min(860px, calc(100vw - 32px)); max-height: min(720px, calc(100dvh - 100px));
+  box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; overflow: hidden;
+  padding: 26px; border: 1px solid var(--stitch-glass-edge); border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff0c, transparent 48%), var(--stitch-glass-panel, var(--ax-panel)); color: var(--ax-fg);
+  backdrop-filter: blur(24px) saturate(125%); -webkit-backdrop-filter: blur(24px) saturate(125%);
+  box-shadow: 0 24px 64px #0006, inset 0 1px 0 #ffffff24;
+}
+.stitch-launchpad .aaos-dialog-title { margin: 0 40px 0 0; font-size: 22px; font-weight: 500; }
+.stitch-launchpad > .aaos-help { margin: -8px 32px 0 0; color: var(--ax-fg-secondary); font-size: .8125rem; }
+.stitch-launchpad-close { position: absolute; top: 18px; right: 18px; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: var(--ax-fg-secondary); cursor: pointer; }
+.stitch-launchpad-search { flex: none; display: flex; align-items: center; gap: 10px; padding: 0 12px; border: 1px solid var(--ax-border-strong); border-radius: 10px; background: var(--stitch-glass-card); color: var(--ax-fg-secondary); }
+.stitch-launchpad-search input { flex: 1; min-width: 0; padding: 12px 0; background: transparent; border: 0; color: var(--ax-fg); font: inherit; font-size: .875rem; }
+.stitch-launchpad-search:focus-within { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.stitch-launchpad-search input:focus { outline: none; box-shadow: none; }
+.stitch-launchpad-categories { display: flex; flex-wrap: wrap; gap: 6px; }
+.stitch-launchpad-catalog { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; color: var(--ax-fg-secondary); font-size: .8125rem; }
+.stitch-launchpad-catalog button { min-height: 34px; padding: 5px 10px; border: 1px solid var(--ax-border-strong); border-radius: 8px; color: var(--ax-fg); background: var(--stitch-glass-card); font: inherit; cursor: pointer; }
+.stitch-launchpad-match { width: 100%; padding-top: 8px; border-top: 1px solid var(--ax-border); color: var(--ax-fg-secondary); font-size: .75rem; line-height: 1.5; text-align: center; }
+.stitch-launchpad-categories button { min-height: 34px; padding: 5px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ax-fg-secondary); font: inherit; font-size: .8125rem; cursor: pointer; }
+.stitch-launchpad-categories button[aria-pressed="true"] { background: var(--ax-accent-soft); color: var(--ax-accent); border-color: var(--stitch-glass-edge); }
+.stitch-launchpad-results { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 3px; margin: -3px; }
+.stitch-launchpad-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: stretch; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.stitch-launchpad-grid li { min-width: 0; }
+.stitch-launchpad-grid button { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; height: 100%; box-sizing: border-box; padding: 16px 8px 12px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--ax-fg); font: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.stitch-launchpad-icon { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border: 1px solid var(--stitch-glass-edge); border-radius: 14px; background: var(--stitch-glass-card); color: var(--ax-accent); box-shadow: inset 0 1px 0 #ffffff14; }
+.stitch-launchpad-label { font-size: .875rem; line-height: 1.5; }
+.stitch-launchpad-purpose { font-size: .75rem; line-height: 1.5; color: var(--ax-fg-secondary); text-align: center; }
+.stitch-launchpad-grid small { margin-top: auto; color: var(--ax-fg-tertiary); font-size: .6875rem; }
+.stitch-launchpad-grid [data-future] .stitch-launchpad-icon { color: var(--ax-fg-secondary); border-style: dashed; }
+.stitch-launchpad :is(button, input):focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.stitch-launchpad .stitch-launchpad-search input:focus-visible { outline: none; box-shadow: none; }
+.stitch-launchpad button:hover { background: var(--ax-hover); border-color: var(--stitch-glass-edge); }
+.stitch-launchpad-empty { padding: 24px 0; color: var(--ax-fg-secondary); }
+.stitch-launchpad footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; border-top: 1px solid var(--ax-border); padding-top: 12px; color: var(--ax-fg-secondary); font-size: .75rem; }
+@media (max-width: 680px) { .aaos-dialog-content.stitch-launchpad { padding: 20px 14px; gap: 12px; } .stitch-launchpad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .stitch-launchpad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@supports not (backdrop-filter: blur(1px)) { .aaos-dialog-content.stitch-launchpad { background: var(--ax-panel); } }
+@media (prefers-reduced-transparency: reduce) { .aaos-dialog-content.stitch-launchpad { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; } }
+@media (forced-colors: active) { .aaos-dialog-content.stitch-launchpad, .stitch-launchpad-icon { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; backdrop-filter: none; } }

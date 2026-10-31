@@ -143,19 +143,85 @@ fn valid_legacy_reference_to_missing_object_remains_unavailable_not_unsupported(
     )
     .unwrap();
     let id = d["document_id"].as_str().unwrap();
-    legacy_editor(
-        &c,
-        id,
-        envelope(
-            json!([{ "id":"r","kind":"related","label":"missing target","target":{"kind":"document","document_id":"missing_document","version":1}}]),
-        ),
-    );
-    let p = relation_projection::query(&c, id, Some(1), None).unwrap();
-    assert!(p["unsupported_sources"].as_array().unwrap().is_empty());
-    assert_eq!(p["edges"].as_array().unwrap().len(), 1);
-    assert!(p["nodes"].as_array().unwrap().iter().any(
-        |n| n["status"] == "unavailable" && n["reference"]["document_id"] == "missing_document"
+    for target in [
+        json!({"kind":"document","document_id":"missing_document","version":1,"block_id":null}),
+        json!({"kind":"source","source_id":"missing_source","sha256":"a".repeat(64)}),
+        json!({"kind":"knowledge","knowledge_id":"missing_knowledge"}),
+    ] {
+        let editor = envelope(json!([{
+            "id":"r","kind":"related","label":"missing target","target":target
+        }]));
+        assert!(matches!(
+            document::save(&mut c, id, 1, editor.clone()),
+            Err(document::Error::NotFound)
+        ));
+        legacy_editor(&c, id, editor);
+        let p = relation_projection::query(&c, id, Some(1), None).unwrap();
+        assert!(p["unsupported_sources"].as_array().unwrap().is_empty());
+        assert_eq!(p["edges"].as_array().unwrap().len(), 1);
+        assert!(
+            p["nodes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|n| n["status"] == "unavailable" && n["reference"] == target)
+        );
+    }
+}
+
+#[test]
+fn malformed_reference_identities_neither_save_nor_become_historical_edges() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut c = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let empty = json!({"type":"doc","content":[]});
+    let saved = document::create_optional(&mut c, None, None, "relations", empty.clone()).unwrap();
+    let id = saved["document_id"].as_str().unwrap();
+    for target in [
+        json!({"kind":"document","document_id":"missing_document","version":0}),
+        json!({"kind":"document","document_id":"missing_document","version":1,"block_id":"../block"}),
+        json!({"kind":"source","source_id":"missing_source","sha256":"A".repeat(64)}),
+        json!({"kind":"knowledge","knowledge_id":"../knowledge"}),
+    ] {
+        let editor = envelope(json!([{
+            "id":"r","kind":"related","label":"invalid target","target":target
+        }]));
+        assert!(matches!(
+            document::save(&mut c, id, 1, editor.clone()),
+            Err(document::Error::Invalid(_))
+        ));
+        assert_eq!(document::read(&c, id, None).unwrap(), saved);
+        legacy_editor(&c, id, editor);
+        let projection = relation_projection::query(&c, id, Some(1), None).unwrap();
+        assert_eq!(projection["unsupported_sources"][0]["document_id"], id);
+        assert!(projection["edges"].as_array().unwrap().is_empty());
+        legacy_editor(&c, id, empty.clone());
+    }
+    assert_eq!(document::read(&c, id, None).unwrap(), saved);
+}
+
+#[test]
+fn relation_write_reports_first_missing_target_before_later_invalid_metadata() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut c = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let saved = document::create_optional(
+        &mut c,
+        None,
+        None,
+        "relations",
+        json!({"type":"doc","content":[]}),
+    )
+    .unwrap();
+    let id = saved["document_id"].as_str().unwrap();
+    let target = json!({"kind":"document","document_id":"missing_document","version":1});
+    let editor = envelope(json!([
+        {"id":"first","kind":"related","label":"missing","target":target},
+        {"id":"bad/id","kind":"related","label":"invalid","target":target},
+    ]));
+    assert!(matches!(
+        document::save(&mut c, id, 1, editor),
+        Err(document::Error::NotFound)
     ));
+    assert_eq!(document::read(&c, id, None).unwrap(), saved);
 }
 fn collection_editor(from: &str, to: &str, rows: usize, links: usize) -> Value {
     let records:Vec<_>=(0..rows).map(|i|json!({"record_id":format!("row_{i}"),"reference":{"kind":"document","document_id":from,"version":1},"values":{"related":(0..links).map(|_|json!({"kind":"document","document_id":to,"version":1})).collect::<Vec<_>>()}})).collect();

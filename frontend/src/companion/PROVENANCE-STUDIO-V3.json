@@ -1,0 +1,46 @@
+{
+  "schema": "archeaxis.xiaoqi-generated-art/v1",
+  "version": "studio-v3",
+  "generated_at": "2026-10-26",
+  "generator": "built-in image_gen.imagegen",
+  "generation_id": "01a1780c-7a9f-7833-a4ac-a0d0e228e37a",
+  "references": [
+    {
+      "path": "frontend/src/companion/assets/idle.png",
+      "role": "Owner-authorized first-party adult character identity reference",
+      "sha256": "871219e822f60080dbf1675ab86819b59cc51301468df16f05874034a5e295ec"
+    },
+    {
+      "path": "frontend/src/companion/assets/xiaoqi-studio-states-v2.png",
+      "role": "Existing generated wardrobe and visual continuity reference; preserved unchanged",
+      "sha256": "1b5582f64da0a0dd3b3c70c314dfa972dfe27a327f4a6efdced7fc4d9963df11"
+    }
+  ],
+  "image": "frontend/src/companion/assets/xiaoqi-studio-states-v3.png",
+  "sha256": "c1ff62d2f641119631ab380272e99cbdd1257c1830e03708138fe2e1eae486e7",
+  "bytes": 2396017,
+  "size": [1024, 1536],
+  "grid": {
+    "columns": 3,
+    "rows": 3,
+    "reading_order": [
+      "idle", "listening", "thinking", "speaking", "interrupted",
+      "awaiting_approval", "executing", "completed", "failed"
+    ]
+  },
+  "media": "nine-static-illustrations-not-animation-or-lip-sync",
+  "originals": "Nine original state images and studio-v2 remain byte-for-byte intact. Original state images are the load-failure fallback; their original provenance remains in PROVENANCE.json.",
+  "license_record": "AI-generated with built-in image_gen under the generating account's applicable terms. First-party reference integration was authorized by Owner. No CC0, MIT or independent public relicensing claim is made.",
+  "transparent_background": true,
+  "alpha_validation": {
+    "mode": "RGBA",
+    "alpha_zero_pixels": 501688,
+    "alpha_le_8_pixels": 570930,
+    "alpha_ge_240_pixels": 962193,
+    "total_pixels": 1572864
+  },
+  "presentation": "The unmodified sheet is cropped with CSS, trimming the top 3% and horizontal 4% gutters of each cell to exclude neighboring sleeve/hem spill. Each cell is waist-up; figure means the complete framed pose, not a full-body illustration. The existing 280px wide-screen stage, 160px compact stage and 64px collapsed portrait behavior are retained.",
+  "prompt_file": "xiaoqi-studio-v3.prompt.txt",
+  "quality_scope": "Same character identity, clothing and light across nine poses; interrupted has a visible pause gesture. Static expressions remain subtle. No Live2D, 3D runtime, speech, animation, model connection or Owner aesthetic acceptance is established by the image generation.",
+  "owner_visual_acceptance": "PENDING_NONBLOCKING"
+}

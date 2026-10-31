@@ -1,0 +1,263 @@
+{
+  "schema": "aaos.project-drift-audit/v1",
+  "observed_date": "2026-10-21",
+  "timezone": "Asia/Shanghai",
+  "observed_at": "2026-10-21T23:09:26+08:00",
+  "scope": "Read-only product audit with project-local sanitized derived reports; no product or authority repair",
+  "baseline": {
+    "head": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "tree": "629d02d8ce5512e64efd9922aa793dbfcd698b08",
+    "branch": "codex/sync-20261019",
+    "main": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "initial_worktree_clean": true
+  },
+  "audit_status": "COMPLETE_WITH_FINDINGS",
+  "product_status": "PARTIAL",
+  "findings": [
+    {
+      "id": "D01",
+      "priority": 2,
+      "kind": "ARCHIVE_VALIDATOR_MIGRATION_REGRESSION",
+      "status": "CONFIRMED_NOT_FIXED",
+      "source": "docs/history/owner-dialogue-20261019/verify_archive.py:80",
+      "detail": "4 of 28 unique source references moved; direct-is_file verifier fails; all 4 archive targets retain matching bytes and hashes"
+    },
+    {
+      "id": "D02",
+      "priority": 2,
+      "kind": "EXECUTION_PRIORITY_NAVIGATION_DRIFT",
+      "status": "CONFIRMED_NOT_FIXED",
+      "source": "docs/DOCUMENTATION_AUTHORITY_INDEX.md:9",
+      "effective": "OWNER-BACKEND-CLOSED-LOOP-FIRST-20261021"
+    },
+    {
+      "id": "D03",
+      "priority": 2,
+      "kind": "CONTRACT_THEME_DEFAULT_DRIFT",
+      "status": "CONFIRMED_NOT_FIXED",
+      "source": "PROJECT_CONTRACT.yaml:19",
+      "additional": "AGENTS.md:88",
+      "effective": "cosmic; preserve valid stored preference",
+      "actual_code": "frontend/src/design-system/theme.ts:39"
+    },
+    {
+      "id": "D04",
+      "priority": 3,
+      "kind": "DATED_GREEN_AUTHORIZATION_BANNER_STALE",
+      "status": "CONFIRMED_NOT_FIXED",
+      "effective": "Precise program update granted, qualification unverified; no release or real-data overwrite"
+    },
+    {
+      "id": "D05",
+      "priority": 3,
+      "kind": "FIXED_SCHEMA_FAILURE_DESCRIBED_CURRENT",
+      "status": "CONFIRMED_NOT_FIXED",
+      "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md:101"
+    }
+  ],
+  "thread": {
+    "id": "01a158e8-ce8c-7921-bdaf-bf83fb6dd901",
+    "title": "接手 AAOS 全链路执行",
+    "provider": "mcp__codex_app.read_thread",
+    "pages": 2,
+    "top_level_turns": 12,
+    "has_more": false,
+    "raw_transcript_exported": false,
+    "turns": [
+      {
+        "id": "01a158e8-d28e-7772-8491-7427f15e3573",
+        "started_at": "2026-10-20T10:43:35.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 3
+      },
+      {
+        "id": "01a15915-9d54-7a82-8940-6c9fa531e808",
+        "started_at": "2026-10-20T11:32:31.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 1
+      },
+      {
+        "id": "01a15950-f333-7bc1-a3cb-c07b5c853ff0",
+        "started_at": "2026-10-20T12:37:19.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 2
+      },
+      {
+        "id": "01a15996-174d-7ef2-b479-28497aa80041",
+        "started_at": "2026-10-20T13:52:51.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 1
+      },
+      {
+        "id": "01a159e3-5156-79c3-aeb9-ce5a58f086b9",
+        "started_at": "2026-10-20T15:17:12.000Z",
+        "thread_turn_status": "failed",
+        "user_message_count": 2
+      },
+      {
+        "id": "01a15bbd-1e97-7173-a1fe-ead1f16217b6",
+        "started_at": "2026-10-20T23:54:43.000Z",
+        "thread_turn_status": "failed",
+        "user_message_count": 1
+      },
+      {
+        "id": "01a15e1e-9f28-7c13-9089-1d57f029ca19",
+        "started_at": "2026-10-21T11:00:27.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 2
+      },
+      {
+        "id": "01a15e73-efec-7f02-a936-7514e0806c27",
+        "started_at": "2026-10-21T12:33:38.000Z",
+        "thread_turn_status": "failed",
+        "user_message_count": 0
+      },
+      {
+        "id": "01a15eb7-7050-7a01-8188-b9140adf316c",
+        "started_at": "2026-10-21T13:47:22.000Z",
+        "thread_turn_status": "failed",
+        "user_message_count": 1
+      },
+      {
+        "id": "01a15ecb-fc5e-7e61-abcc-ba0128427fe2",
+        "started_at": "2026-10-21T14:09:49.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 1
+      },
+      {
+        "id": "01a15ede-6a72-7090-8a75-4ac48ce58247",
+        "started_at": "2026-10-21T14:29:57.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 1
+      },
+      {
+        "id": "01a15ef3-8f0a-79b3-9e74-4436d3c99dbb",
+        "started_at": "2026-10-21T14:53:02.000Z",
+        "thread_turn_status": "completed",
+        "user_message_count": 1
+      }
+    ]
+  },
+  "remote": {
+    "observed_at": "2026-10-21T23:03:00+08:00",
+    "main": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "sync_branch": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "identity_match": true,
+    "pr201": {
+      "state": "MERGED",
+      "head": "2adf5724359d2d9ea03e59ae660dacb661f7e3ef",
+      "merge": "fc75de866714d89e9d9605c60fba3240cba6246d",
+      "ci_run": 39616983445,
+      "successful_jobs": 8,
+      "conditional_skips": 11
+    },
+    "pr202": {
+      "state": "MERGED",
+      "head": "19b47ade1f6a53dce5cb3418308f81773d74d716",
+      "merge": "8d367bac4a85bebfbb523503678ade0838faa73e",
+      "ci_run": 39620182056,
+      "successful_jobs": 3,
+      "conditional_skips": 16
+    },
+    "current_head_ci": {
+      "workflow_runs": 0,
+      "check_runs": 0,
+      "status": "NO_EVIDENCE",
+      "not_equivalent_to_pr_ci": true
+    },
+    "older_main_ci": {
+      "sha": "86a486719b0d7a88602ff03c5ce393d447dfd9bd",
+      "run": 39597792036,
+      "status": "SUCCESS"
+    },
+    "old_prs": {
+      "pr192": "CLOSED_NOT_MERGED",
+      "pr193": "CLOSED_NOT_MERGED",
+      "pr194": "MERGED"
+    },
+    "worktrees": {
+      "total": 18,
+      "donor_dirty": 17,
+      "status_records": 278,
+      "files_equal_to_main": 119,
+      "files_different_from_main": 159,
+      "paths_absent_from_main": 0,
+      "interpretation": "Differences require ownership and absorption review; not deletion eligibility or proof of loss"
+    },
+    "branches": {
+      "local_heads": 11,
+      "remote_heads": 3,
+      "historical_retained_non_equivalent": 6,
+      "git_cherry_plus_total": 10,
+      "backend_ancestor_branches_occupied_by_dirty_worktrees": 3
+    }
+  },
+  "verification": {
+    "document_authority": {
+      "command": ".venv/Scripts/python.exe -X utf8 -B scripts/ci/check_document_authority.py",
+      "exit_code": 0,
+      "status": "STRUCTURAL_PASS",
+      "verified_inputs": 7,
+      "outside_private_unverified": 4,
+      "observed_at": "2026-10-21T23:02:24+08:00",
+      "source": "read-only authority auditor tool execution",
+      "does_not_cover_semantic_findings": true
+    },
+    "original_archive": {
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/drift-dialogue-20261021/artifacts/execution.json"
+    },
+    "bounded_readback": {
+      "status": "BYTE_INTEGRITY_PASS_ROUTING_FAIL",
+      "exit_code": 0,
+      "source_consistent": true,
+      "frozen_members": 6,
+      "local_attachments": 3,
+      "relocated_targets": 4,
+      "stitch_objects": 8,
+      "receipt": ".project-local/runs/be268a2d33/drift-readback-20261021/artifacts/execution.json",
+      "original_verifier_failure_unchanged": true
+    },
+    "historical_runtime_receipt_hashes": {
+      "a63_long_chain": {
+        "bytes": 201208273,
+        "sha256": "b0a927ecddcf9106062c31adb5e450e54ba8e8a7c954a45e270d6588cafe7e40",
+        "status": "BACKEND_SUBSET_PASS_WHOLE_PARTIAL"
+      },
+      "schema_upgrade_8475": {
+        "sha256": "fb851a6a7bd216c805cf2cacb4ec68907bf98db50c8d8d3ee1bcbb40d5846841"
+      },
+      "lifecycle_8475": {
+        "sha256": "2d0b8e2a030078b9adea4a49adc4b5a388242cccbd8eb5c199253f8cfe361cc4",
+        "requests": 54
+      }
+    },
+    "new_product_runtime": "NOT_EXECUTED",
+    "models": "NOT_EXECUTED",
+    "installed_runtime": "NOT_EXECUTED",
+    "owner_acceptance": "UNVERIFIED"
+  },
+  "limitations": [
+    "Not a complete scan of all historical native sessions",
+    "Cowork full transcript remains UNVERIFIED",
+    "No broad SQL-writer proof from bounded source inspection",
+    "No claim of current installed Green identity",
+    "No full J1-J6 qualification"
+  ],
+  "actions": {
+    "product_modified": false,
+    "authority_modified": false,
+    "frozen_sources_modified": false,
+    "private_transcript_saved": false,
+    "global_configuration_modified": false,
+    "external_upload": false,
+    "commit": false,
+    "push": false,
+    "merge": false,
+    "ci_dispatch": false,
+    "deletion": false,
+    "output": "Sanitized audit report, thread map, machine summary and bounded local evidence"
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "schema": "aaos.semantic-search-bridge-history/v1",
+  "target_directory": "docs/history/semantic-search-bridge-20261031",
+  "qualification": "FINITE_HEADLESS_BRIDGE_CONTRACT_PASSED_REAL_SEMANTIC_UNVERIFIED",
+  "readme": {
+    "path": "README.md",
+    "bytes": 4524,
+    "sha256": "c8b1de3b4a0f87e666e306c33aaaee3a232517f5a6ca69efb53501c7ceee105c"
+  },
+  "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+  "dirty": true,
+  "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+  "semantic_source_files": [
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "bytes": 4131,
+      "sha256": "efc1c54c35c94697d8f1a6836dbf5691846517ccc59632e1620c1f5ded54663a"
+    },
+    {
+      "path": "packages/contracts/v1/core-document.schema.json",
+      "bytes": 117095,
+      "sha256": "f0cad161f3ed65092d75ae0f95bfda614916bf867a695c4a823c556a4fcee69d"
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "bytes": 91879,
+      "sha256": "58ade206feb1bb7c184d12dbfe4450065ebd448d618374fc1316d1a258d6caf7"
+    },
+    {
+      "path": "frontend/src/api/core.ts",
+      "bytes": 16654,
+      "sha256": "cce3dea8e45f36109105787088b77842b8394b79d456eab693ad41da1144c3a4"
+    },
+    {
+      "path": "packages/contracts/v1/openapi-outline.yaml",
+      "bytes": 55520,
+      "sha256": "c23ef829b722ac308808047fe6376f899c10b3f682987a35b63ef75bb5787d61"
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "bytes": 102089,
+      "sha256": "42a893c10a58b5bd51ff1819ba4141f35340e79030d820dc753af7205d9ac2bf"
+    },
+    {
+      "path": "tests/contract/test_semantic_bridge_contract.py",
+      "bytes": 2825,
+      "sha256": "a399a34d7a6efeca6e98418d98e025f3513612c3fd67003810e07a096aff9e47"
+    },
+    {
+      "path": "frontend/src/__tests__/CoreBridge.test.ts",
+      "bytes": 15913,
+      "sha256": "633f01669174905d9680152b11fb915c7fcc94fd8ed749a2ff09791948e8c40f"
+    }
+  ],
+  "live_reference_files": [
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "bytes": 2375,
+      "sha256": "1c6c5213bfc1bab068527e902ce96e84ed79f68ac1408ea6aacc8976d69e2619"
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.cases.json",
+      "bytes": 163318,
+      "sha256": "802053ec21e6dcb8ef0b5fc088da469b16ddd95c178614b4efaae39ceb0a6b5b"
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "bytes": 5794,
+      "sha256": "96d563ba68e09acb17d3ebf4ed140288a3a702625997711e0a1bb1fd8e5980b8"
+    }
+  ],
+  "run_results": {
+    "bkr-semprep1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": false,
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-semtest1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": false,
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-semseal1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": false,
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true
+    },
+    "bkr-semfinal1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": false,
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-semhead1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": true,
+      "source_patch_sha256": "4e1a53deae95f1df0370d3a6e42a47f889f4ebae5131685cfb4987fe21992c7e",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true
+    },
+    "bkr-semrepo1": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": true,
+      "source_patch_sha256": "4e1a53deae95f1df0370d3a6e42a47f889f4ebae5131685cfb4987fe21992c7e",
+      "exit_code": 1,
+      "child_exit_code": 1,
+      "source_consistent": true
+    },
+    "bkr-semhead2": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": true,
+      "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    },
+    "bkr-semrepo2": {
+      "source_commit": "e792dadc062033a93914b433278cd1a41b6d368b",
+      "dirty": true,
+      "source_patch_sha256": "6ee00f37206a138433014e683efa4bed72c2ade0c3c48b54dc175897d970bf55",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "source_consistent": true
+    }
+  },
+  "headless_dependencies": {
+    "serde": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\deps\\libserde-817a72278b314383.rlib",
+      "bytes": 992156,
+      "sha256": "7d0b29ebddb31f94aa34664028bbedf5d96e116e5d8681c8cd2551aa6e5dbb4c",
+      "version": "1.0.228",
+      "features": "alloc/default/derive/rc/serde_derive/std",
+      "origin": "HOST_RELEASE"
+    },
+    "serde_json": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\deps\\libserde_json-219c6537bd856630.rlib",
+      "bytes": 2375538,
+      "sha256": "b648555e7a494a1ec51306392fce3801aa86ae115dd8da2dc9cf4a224dd3797b",
+      "version": "1.0.149",
+      "features": "alloc/default/raw_value/std",
+      "origin": "HOST_RELEASE"
+    },
+    "reqwest": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\deps\\libreqwest-c14afa5e995cb6ba.rlib",
+      "bytes": 5980026,
+      "sha256": "53fa318006d38f7614f6cd0f981950d48aea987dbd0a534c5839475cfd790d7b",
+      "version": "0.13.4",
+      "features": "blocking/json",
+      "origin": "HOST_RELEASE"
+    },
+    "url": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\deps\\liburl-427bb71aab54b3ce.rlib",
+      "bytes": 834978,
+      "sha256": "2e737590f666ce4230ee32c1106bf40be0e2a5e6e31425d464425c53e5150bc9",
+      "version": "2.5.8",
+      "features": "default/serde/std",
+      "origin": "HOST_RELEASE"
+    },
+    "tempfile": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\debug\\deps\\libtempfile-780330a1f757c211.rlib",
+      "bytes": 1807682,
+      "sha256": "0b4d9127b2bba947d84be86b2a273f188574afe38a39ccc48553fa2c73c93897",
+      "version": "3.27.0",
+      "features": "default/getrandom",
+      "origin": "CORE_DEBUG_TEST_ONLY_ROOT_APPROVED"
+    },
+    "getrandom": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\deps\\libgetrandom-78290106e844faab.rlib",
+      "bytes": 69210,
+      "sha256": "9bcfa325acc59fce88784aa99923d194a5bde6dc7aa014d2bec5c4245a7ea227",
+      "version": "0.3.4",
+      "features": "none",
+      "origin": "HOST_RELEASE"
+    }
+  },
+  "headless_dependencies_unchanged": true,
+  "host_original_cargo_graph": "NOT_BUILT; locked tempfile3.26 unchanged",
+  "tests": {
+    "rust_semantic_exact": 2,
+    "schema": 3,
+    "capability_contract": 127,
+    "core_bridge_simulated": 62,
+    "scoped_types_diagnostics": 0
+  },
+  "headless_outputs_logical_bytes": 8619586,
+  "model_calls": 0,
+  "real_core_api_calls": 0,
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semprep1/artifacts/execution.json",
+      "bytes": 21387,
+      "sha256": "5a25745108b0aa1242c718ba15c604237dd1f158506fb27d23dddbac52468924"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semtest1/artifacts/execution.json",
+      "bytes": 4311,
+      "sha256": "ef6c43b102d51d9f6fed5c541dc722386a612d3cd9a10ecac988a2e406154637"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semseal1/artifacts/execution.json",
+      "bytes": 6689,
+      "sha256": "2f9c9fb6b2a714b3024296cc0937008dc95d3f404429cbaf37321482c5e00c09"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semfinal1/artifacts/execution.json",
+      "bytes": 5963,
+      "sha256": "b42d2ba915b3df88606019a19a37c2e9623a9358d678247171cd2b6331b7713b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead1/artifacts/execution.json",
+      "bytes": 4729,
+      "sha256": "e8c6314f2e4880468123cd5874b9596c5bb81aad1c07fe590178e59397b3a23b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo1/artifacts/execution.json",
+      "bytes": 3777,
+      "sha256": "6b109ab47a1b7f28ca1e86f3526b0d62eb77b6a733566b04e3709229623fb3e9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/execution.json",
+      "bytes": 5268,
+      "sha256": "a47642cccda4af08933f9d7beb437118ecce91a8aaf97e1bfc164d54b6cd79b7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo2/artifacts/execution.json",
+      "bytes": 2674,
+      "sha256": "0024f024ce265b4f13b4cd2a64faca7537ae4fa39d8d8d81a5e2ad817c2540b3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semfinal1/artifacts/candidate.json",
+      "bytes": 3861,
+      "sha256": "3c8df85545674647ad3ac4f4f5effb047dbf9f6c99c12d2a4ef129a645870628"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semfinal1/artifacts/semantic-bridge.diff",
+      "bytes": 170637,
+      "sha256": "248165c59aa44ccc9162b0913ccd1080dcefa60decd139846a09ae6067c3875f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead1/artifacts/headless-result.json",
+      "bytes": 5966,
+      "sha256": "8024802c0b452929390a0c3d879eb43af4cc29d4e5f11b3b9eebe1dbec57ebbb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead1/artifacts/compile.log",
+      "bytes": 791,
+      "sha256": "fe953b475e2442ea0067842bee567872c8e95111ba01c3598fbb9b594d9205dc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo1/artifacts/repo-tests.json",
+      "bytes": 490,
+      "sha256": "eb914909f615f5918b11c56be3970f21bcb5287baecc69a5c53c53026a56c6c5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo1/artifacts/core-bridge.log",
+      "bytes": 1652,
+      "sha256": "a5bcf8b25f8deb58d0865b268d101859a021daf88a890a9d7ae7d727ac835bb9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/headless-result.json",
+      "bytes": 10078,
+      "sha256": "66c2ffe932174b7c2355e889ed6bc01ea30a52a89aee26ec1815d8b33e08cbb4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/compile.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/rustc-version.log",
+      "bytes": 194,
+      "sha256": "7fad09dd8c16d49de37932475436003b5b1763c1015c5ce081ad7692db368ca3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/semantic_search_is_exact_query_only_post_with_finite_budget.log",
+      "bytes": 192,
+      "sha256": "2d37caed265a0d922346d88d1e1d7b3d5db9cfc54c4bc2205f35ac7a29b78092"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/semantic_search_refuses_extra_authority_and_invalid_queries.log",
+      "bytes": 192,
+      "sha256": "fa8dac48a44089111c8a1cbba6f14ec293d56728ba4d4037fa36ce4bcb77db5f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/core-bridge-headless.exe",
+      "bytes": 3601408,
+      "sha256": "8af3c134c08a81c931b82c81249c2eae21663547d8839dcd8058353f785d2996"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semhead2/artifacts/core-bridge-headless.pdb",
+      "bytes": 5017600,
+      "sha256": "55f6a6a8f1c6d10a46667a379ed9a8730380beda046554cd01ac832f85c21129"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo2/artifacts/repo-tests.json",
+      "bytes": 1548,
+      "sha256": "ee90c3696fc76cb69c60714735f928f22585fe2e5bd5226bda025896bdeb1086"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo2/artifacts/schema-and-capability-cases.log",
+      "bytes": 183,
+      "sha256": "addbc1506747e4a0194131158c73cee2cf9bcf82f2796044d3ea4608860f2382"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo2/artifacts/core-bridge.log",
+      "bytes": 305,
+      "sha256": "d9c69f86aa597f35329026fe9bbdf21af392e79926436331ae827355c30c1567"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-semrepo2/artifacts/scoped-types.log",
+      "bytes": 116,
+      "sha256": "30f11739e757d262d2cfd735d1c9b1d7b32bd55b91e2235f139b66d45715bb35"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/sci-evidence1/artifacts/semantic-live-reference-sync.json",
+      "bytes": 741,
+      "sha256": "0de0f630b096f85a47a933b159127f5269295801171bf5bce9d67ece7628080a"
+    }
+  ]
+}

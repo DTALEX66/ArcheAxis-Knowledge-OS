@@ -1,5 +1,36 @@
 {
+  "ai_context_separation": {
+    "authority": "docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md",
+    "decision": "Only AI raw cross-project/agent context belongs to EXTERNAL_CONTEXT_PROVIDER; human learning unchanged",
+    "state": "LOCAL_BOUNDARY_TESTED",
+    "external_connection": "NOT_CONNECTED",
+    "receipt": "docs/history/project-drift-audit-20261021/ai-context-separation-20261023.json",
+    "other_development": "NOT_STARTED",
+    "overall": "PARTIAL",
+    "observation_scope": "LOCAL_BOUNDARY_TESTED and other_development=NOT_STARTED describe the earlier AI-only unit. They do not freeze subsequent human development or qualify the complete AI loop. Owner latest scope is owner_scope_current."
+  },
   "schema": "archeaxis.active-execution/v1",
+  "usable_release_and_launcher_decision": {
+    "id": "OWNER-USABLE-KNOWLEDGE-LAUNCHPAD-20261022",
+    "decided_at": "2026-10-22",
+    "normative_ref": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+    "normative_sections": [
+      19,
+      20
+    ],
+    "archive_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+    "design_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
+    "scope": "First usable common-format capture/import-to-knowledge-to-display/learning loop; finite selected personal knowledge-software features; other OSS and complex capabilities deferred",
+    "ui": "Add an icon launchpad within existing Stitch UI; reuse existing business views and Core, converge Dock and duplicate navigation; standard icon library selection, visible glass material rather than opaque cards",
+    "concept_state": "LAYOUT_REFERENCE_ONLY_ICONS_REJECTED_BY_OWNER_NOT_IMPLEMENTED_NOT_VISUALLY_ACCEPTED",
+    "authorization": "Owner subsequently resumed: 根据新的规划和闭环开始执行. Implement the selected usable-release loop and Stitch launchpad/material/icon corrections; optional expansion stays frozen; monitor remains paused",
+    "development_state": "IN_PROGRESS_SOURCE_IMPLEMENTATION; qualification in sole execution record",
+    "latest_visual_checkpoint": "docs/history/project-drift-audit-20261021/stitch-material-review-20261023.json",
+    "latest_closed_loop_checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
+    "automatic_backlog_expansion": false,
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "previous_closed_loop_checkpoint": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json"
+  },
   "selected_at": "2026-10-09",
   "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI; Owner 2026-10-11 explicitly resumed complete core framework, common formats and shortest closed loop",
   "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
@@ -59,14 +90,28 @@
     "colors": "semantic colors from selected theme; new reference palette values preserved",
     "preference": "New or invalid preference defaults to cosmic per current UI package; valid saved theme remains unchanged."
   },
+  "native_window_policy": {
+    "owner_date": "2026-10-28",
+    "owner_instruction": "默认界面打开不要最大化，并按照小窗口重新优化，适配缩放",
+    "startup": "Normal centered window; logical client size up to 1280x800, capped by primary monitor work area and DPI; existing 640x480 minimum retained",
+    "layout": "Existing implementation observation: reading space priority below 1440x800. Latest design target is the single fluid layout in latest_owner_clarification; UI implementation is paused.",
+    "latest_owner_clarification": {
+      "recorded_at": "2026-10-29",
+      "owner_instruction": "能适配窗口缩放就好，太小的话就直接缩放；常规一个小一些的窗口，加一个满屏（1920X1080）的窗口就好了",
+      "design_target": "One fluid component/layout system; ordinary smaller non-maximized window and 1920x1080 full-screen are the only review baselines; intermediate sizes adapt naturally, very small windows may use unified zoom",
+      "no_separate_size_designs": true,
+      "implementation": "PAUSED_BY_OWNER; this clarification is not a claim that unified zoom is implemented"
+    },
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+  },
   "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
   "drift_readback": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
   "permissions": {
-    "remote_description_update": "OWNER_REQUESTED",
-    "commit": "NOT_GRANTED_BY_THIS_POINTER",
-    "push": "NOT_GRANTED_BY_THIS_POINTER",
-    "merge": "NOT_GRANTED_BY_THIS_POINTER; current delivery grant recorded separately",
-    "cloud_ci": "OWNER_REQUESTED_CURRENT_SCOPE_QUALIFICATION; independent V01 remains paused",
+    "remote_description_update": "DENIED_CURRENT_LOCAL_HANDOFF_AND_ZCODE_PHASE_OWNER_20261029",
+    "commit": "LOCAL_ONLY_CURRENT_OWNER_HANDOFF_20261029; preserve existing dirty work and stage explicit reviewed paths",
+    "push": "DENIED_CURRENT_LOCAL_HANDOFF_AND_ZCODE_PHASE_OWNER_20261029",
+    "merge": "LOCAL_ONLY_NECESSARY_QUALIFIED_PROJECT_CHANGES_OWNER_20261029; no remote merge or history rewrite",
+    "cloud_ci": "DENIED_CURRENT_LOCAL_HANDOFF_AND_ZCODE_PHASE_OWNER_20261029; report NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY",
     "release": "NOT_GRANTED",
     "bulk_delete": "EXACT_PATH_GRANT_REQUIRED"
   },
@@ -84,13 +129,180 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
+    "owner_delivery_20261101": {
+      "instruction": "总结好内容和对话 未完成任务 合并分支，能合并的全部合并，过时的删除掉 双端仓库一致",
+      "scope": "Summarize this dialogue and remaining work; consolidate qualifying project branches, delete absorbed obsolete branches, publish public source/task records and verify corresponding local/remote refs.",
+      "supersession": "For this bounded delivery, overrides prior owner_handoff_20261029 remote-write prohibition. Does not retroactively authorize historical cloud-model egress or resume product/UI/monitor work.",
+      "merge_conditions": "Preserve current work; absorb unique valid changes or prove prior identical absorption; honor main a0-gates and verify exact candidate SHA. No force push, protection bypass, release, Green replacement or real-data overwrite.",
+      "excluded": "Ignored archives/runtime/build/cache/database, credentials and agent-private state remain local. No model/provider/listener/global settings changes.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
-    "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
+    "owner_priority_20261030": {
+      "id": "OWNER-ARCHIVE-STORAGE-NORMALIZE-BACKEND-PRIORITY-20261030",
+      "instruction": "统一归档都本项目仓库里，加入到后端任务优先任务里，先清理项目体积，和项目文件规范化（任何子文件夹/目录/文件/文档/构建/产物/缓存等等），还有现在不断膨胀后续该怎么治理？我去云端GPT继续修正前端界面布局等",
+      "source_and_acceptance": "workspace/intake/20261030-cloud-review-and-backend-priority/README.md",
+      "spillover_followup": {
+        "owner_instruction": "还有外溢数据追踪迁移清理",
+        "scope": "Trace project-generated spillover through registered exact paths, producer/configuration/run evidence and consumers; verify ownership, hashes, target and recovery before migration or exact cleanup. No drive-wide scan, shared-library cleanup, private-state access or real-data overwrite.",
+        "order": "WITH_STORAGE_AND_NORMALIZATION_BEFORE_BACKEND_QUALIFICATION"
+      },
+      "r5_followup": {
+        "owner_instruction": "这个审计下，加入到任务里，统一归档到仓库里",
+        "source_and_review": "workspace/intake/20261030-r5-future-capability-review/README.md",
+        "absorption": "R5 is reviewed design/acceptance input, not executable instructions or implementation PASS. Incorporate five scenarios and 186/22 mappings into existing R2/CL/J binding after storage/normalization/spillover and F01-F05; preserve original IDs, UI pause and named future freezes.",
+        "boundary_correction": "WORK-LAB remains optional; AAOS standalone. Map method labels to actual existing AI asset types before implementation; no parallel registry, DB or Runtime."
+      },
+      "order": [
+        "ARCHIVE_CLOUD_R2_AND_CODEX_AUDIT_IN_PROJECT",
+        "MEASURE_AND_REVIEW_EXACT_REGENERABLE_OR_DUPLICATE_CLEANUP",
+        "DIRECTORY_NORMALIZATION_AND_CONTINUOUS_STORAGE_GOVERNANCE",
+        "AUDIT_EVIDENCE_AND_SEMANTIC_RETEST_GAPS",
+        "R2_HUMAN_AI_REQUIREMENTS_TO_EXISTING_BACKEND_AND_SAME_CANDIDATE_QUALIFICATION"
+      ],
+      "backend": "PRIORITIZE_STORAGE_AND_NORMALIZATION_THEN_EXISTING_FINITE_BACKEND_SCOPE",
+      "ui_implementation": "PAUSED_BY_OWNER",
+      "frontend_design": "OWNER_CONTINUES_CLOUD_GPT_LAYOUT_REFINEMENT; no agent upload or invocation authorized by this statement",
+      "cleanup": "Explicit project cleanup authorization; exact reviewed path manifest, ownership, regenerability or retained hash-identical replacement, idleness, protected inputs and postcondition required. No blanket deletion or cross-project cleanup.",
+      "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "operator_storage_checkpoint": {
+        "schema": "aaos.operator-storage-checkpoint/v1",
+        "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+        "bytes": 509805,
+        "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
+        "report_schema": "aaos.storage-footprint/v2",
+        "recorded_by": "Codex explicit governance checkpoint after Owner latest-only cleanup; not a new Owner statement or per-package rolling baseline",
+        "measurement_scope": "After Owner renewed deep cleanup including confirmed-disposable test profile state and old preimages: normal UAC read-only 28352993453B, 351032 files, zero read errors, 243 private exclusions, 581 layout entries; PARTIAL. Actual/wrapper1, e1052d3f + document dirty patch663bd53d, source consistent. Previous snapshots preserved; no per-package rolling, full-budget or product PASS."
+      },
+      "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
+      "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "remote_writes": "DENIED_UNCHANGED",
+      "monitor": "NO_MONITOR_OPERATION",
+      "r6_followup": {
+        "owner_instruction": "这也加入进去统一归档到仓库 这是刚才压缩包的边界修补包",
+        "source_and_review": "workspace/intake/20261030-r6-external-practice-boundary-review/README.md",
+        "role": "R5_BOUNDARY_REPAIR_INPUT_STATICALLY_REVIEWED_ENGINEERING_PARTIAL; attachment instructions do not grant execution",
+        "absorption": "AAOS learning plans/tutorials/manual records/feedback; professional production and execution external; start/self-report/mastery distinct; optional user-selected return without raw-context capture. Preserve 186/22 and existing required/long-term capability identities.",
+        "retained_findings": "R5-F01/F03-F06 not closed;R5-F02 WORK-LAB dependency residue remains.186 runtime bindings not qualified;static source snapshot linked.R6 E01-E10 NOT_EXECUTED;R5 25 cases not requalified;F05 PARTIAL.",
+        "boundary": "WORK-LAB optional, AAOS standalone. UI pause/local-only/no upload/no arbitrary execution/no cross-project write/no Green replacement or real-data overwrite unchanged.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "backend_binding_snapshot": "workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md",
+        "binding_scope": "186 original rows statically mapped at fixed 6d556c48:65 bounded/84 partial/18 design-or-gap/19 named-future-or-external;not runtime qualification or new deferral authority"
+      },
+      "cloud_v3_followup": {
+        "owner_instruction": "审计这份文档，统一归档到仓库里",
+        "source_and_review": "workspace/intake/20261031-cloud-integration-v3-review/README.md",
+        "role": "AUDIT_AND_ARCHIVE_ONLY; package instructions do not authorize patch application, reproduction or UI resumption",
+        "evidence": "1874 members and 1873 declared hashes verified; historical Python/Rust/jsdom counts supported with limits; not current-candidate qualification",
+        "current_source_binding": "At 70dfc397, cloud final 5129-file comparison: 4690 same, 437 different, 2 new files not tracked; patch check fails for 13 paths",
+        "remaining": "Local rebase and implementation remain; v3.1 supports detector/full-suite candidates but does not apply them. Two historical stdout remain MISSING with errata; original 22/37 templates now verified. Old reproduce.sh environment and runtime generator/test/source binding remain; prior timezone misread retracted.",
+        "log_binding_addendum": "workspace/intake/20261101-log-binding-addendum-review/README.md",
+        "supplement_followup": {
+          "owner_input": "这是DOT补充的",
+          "source_and_review": "workspace/intake/20261101-cloud-integration-v3-1-review/README.md",
+          "role": "SUPPLEMENT_AUDIT_AND_ARCHIVE_ONLY; no patch application, package-code execution, download/upload or UI resumption",
+          "evidence": "1245 members/1244 declared hashes verified; templates match prior v3 hashes; detector two-file candidates reconstructed in memory, 42 tests/47 subtests historical logs; full-suite eight control-flow cases supported",
+          "qualification": "ACCEPT_AS_SCOPED_SUPPLEMENT_EVIDENCE; current implementation/Core-native-Owner acceptance NOT_ESTABLISHED",
+          "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        },
+        "scope": "No new implementation queue; retain original CL/J IDs, UI and monitor pause, local-only/no upload and existing product PARTIAL",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
+      "latest_only_cleanup_20261031": {
+        "owner_instruction": "加速清理，除了最新构建和产物，其余全部删除；复用已审结果。",
+        "scope": "Obsolete project-owned generated builds/products/caches/copies; preserve current usable dependencies, master source, original inputs, real/unclassified data and private state. Exact actual scopes are recorded, not blanket permission for unrelated files.",
+        "record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/LATEST-ONLY-RETIREMENT.md",
+        "old_payload_retention": "V12/C453/runtime-before and old clone standalone replay contracts superseded by this latest-only retirement; immutable historical receipts unchanged",
+        "deep_followup_record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "remaining_admin_execution": {
+          "owner_instruction": "给你授权，如果还不行给我命令行",
+          "state": "USER_ADMIN_APPLIED_EXACT_PLAN_FILES_INDEPENDENTLY_VERIFIED_ABSENT",
+          "execution_shell": "PowerShell 7 (pwsh.exe); actual 7.6.5 Review exit 0; full verified executable path in record",
+          "record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/ADMIN-REMAINING-CLEANUP.md",
+          "bundle": ".project-local/runs/be268a2d33/adminrem-09ea3c41",
+          "reviewed_files": 18756,
+          "reviewed_logical_bytes": 3921430366,
+          "plan_sha256": "4c388943fc10127fd4b4f43c3b93a45d21fb1d22d760d8fcdc44b8519edede35",
+          "acl_changes": 0,
+          "actual_deletion_this_followup": 18756,
+          "deleted_logical_bytes": 3921430366,
+          "receipt": ".project-local/runs/be268a2d33/adminrem-09ea3c41/artifacts/apply-20261031T142747022874Z-result.json",
+          "receipt_sha256": "6e5487c8014e8b222e24a070b81c93f9d8e636b98cac1114354d0ad7f94c6833",
+          "post_verification": ".project-local/runs/be268a2d33/adminrem-09ea3c41/artifacts/postverify-20261031.json",
+          "post_verification_sha256": "e02118f8d2396db4891378957d93b2d8786ae62a72ac307ad10d48b62e308f2e",
+          "remaining_scope_roots": 5,
+          "scope_limit": "Exact reviewed public files complete; 247 reviewed directories remain with out-of-plan entries. No private-entry inspection or additional deletion. Manual process exit not independently observed; physical release and fresh whole-repository size not measured. Existing operator checkpoint unchanged."
+        }
+      }
+    },
+    "owner_handoff_20261029": {
+      "id": "OWNER-STITCH-ZCODE-LOCAL-HANDOFF-20261029",
+      "instruction": "整理全部可见对话与材料，交付完整STITCH前端设计提示词和ZCODE后端闭环执行提示词；新本地分支优化合并迁移，复杂能力具名延期且保留；ZCODE全部本地，禁止云仓库和数据上传；其报告后由Codex独立审计",
+      "handoff_ref": "workspace/intake/20261029-stitch-zcode-handoff/README.md",
+      "backend_prompt": "workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/01-ZCODE完整后端闭环提示词.md",
+      "frontend_prompt": "workspace/intake/20261029-stitch-zcode-handoff/STITCH/01-STITCH完整提示词.md",
+      "target_local_branch": "codex/local-backend-closure-20261029",
+      "backend_scope": "EXISTING_CLOSED_LOOP_DEFINITION_AND_FINITE_SELECTED_CORE; protect all capability identities and original intent; no new execution queue",
+      "ui_implementation": "PAUSED_BY_OWNER; STITCH_DESIGN_HANDOFF_ONLY",
+      "remote_writes": "DENIED: push, PR/MR, remote merge, cloud CI, repository synchronization, publication and project-material uploads",
+      "local_git": "New local branch and necessary reviewed local commits/merges allowed; preserve dirty/untracked work, no force/reset/bulk deletion",
+      "data_egress": "DENIED: source, private materials, conversations, databases, logs, backups and credentials; strict local coding-model mode must be verified, prompt is not OS isolation",
+      "public_reads": "Official public documentation/dependency downloads and public API tests using only non-sensitive public/synthetic queries; no private document upload; real-time queries remain network operations",
+      "cloud_model_inference": "DEFERRED_UNEXECUTED; professional interface boundaries tested locally only",
+      "supersession": "Current local-only boundary overrides earlier push/cloud-CI/delivery and allowance-threshold upload instructions for this handoff and ZCODE phase; no automatic restoration after audit",
+      "acceptance": "ZCODE local report then independent Codex audit; no self-certified product acceptance, release or Green replacement",
+      "monitor": "NO_MONITOR_OPERATION; existing pause unchanged",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "owner_priority_20261029": {
+      "instruction": "并行所有任务，优先确保后端可以达成闭环；UI界面构建先暂停，可以并行研究融合、成熟组件与开源复用；前端交付完整STITCH提示词、完整架构布局及可落地方案",
+      "backend": "CONTINUE_FINITE_CLOSED_LOOP_QUALIFICATION",
+      "ui_implementation": "PAUSED_BY_OWNER",
+      "ui_research": "ALLOWED_WITHOUT_BUILD_OR_PRODUCT_UI_MUTATION",
+      "window_policy": "native_window_policy.latest_owner_clarification",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "monitor": "NO_MONITOR_OPERATION_BY_THIS_PRIORITY_CHANGE",
+      "delivery_boundary": "Existing push rejection is not bypassed; no automatic merge, release, Green replacement or real-data overwrite"
+    },
+    "owner_resume_20261028": {
+      "instruction": "接手后续任务；加速并行",
+      "allowance_readback": "Official get_usage_limits: codex primary used4 remaining96; secondary unknown",
+      "scope": "Resume existing finite successor work; independent agents with separate write sets; monitor remains PAUSED; cancelled screenshot package and MiniMax batch remain cancelled",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "permission_recovery_current": {
+      "observed_at": "2026-10-30T16:00:33.850573+00:00",
+      "state": "EXACT_PLANNED_OBJECTS_READ_VERIFIED_INVENTORY_GAP_PARTIAL",
+      "record": "docs/history/storage-cleanup/2026-10-30-read-access-verification/README.md",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "previous_recovery_record": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
+      "supersedes": "The previous recovery and permission_blocker_previous are historical checkpoints, not proof that all current project artifact paths are readable.",
+      "whole_scope": "PARTIAL;102591 planned objects independently verified with unelevated read handles and expected ACL/metadata. Nine directory enumeration failures are also labeled preserved in the original inventory;760 entries have no recorded operation. Not all descendants or private/excluded objects verified; no product qualification.",
+      "monitor": "PAUSED_UNCHANGED",
+      "observation_ref": ".project-local/runs/be268a2d33/spr-aclverify2/artifacts/unelevated-verification.json",
+      "verification_pending": "Superseding deep-cleanup administrator metadata snapshot has zero read errors, 243 private exclusions and581 layout entries; PARTIAL. Ordinary-token limitations and original frozen ACL Apply/rollback remain unchanged; no permission widening. See latest_administrator_read_only_verification. Unclassified/private data, normalization and producer governance remain open.",
+      "latest_administrator_read_only_verification": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md",
+      "storage_followup": "docs/history/storage-cleanup/2026-10-31-staging-normalization/DEPLOYMENT.md",
+      "storage_measurement": "docs/history/storage-cleanup/2026-10-31-post-access-measurement/README.md",
+      "normalization_followup": "docs/history/storage-cleanup/2026-10-31-directory-review/README.md"
+    },
+    "permission_blocker_previous": {
+      "observed_date": "2026-10-23",
+      "record": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+      "python": "canonical -V denied: uv child os error5",
+      "git": "current .git read-only",
+      "whole_goal": "PARTIAL_NOT_COMPLETE",
+      "owner_authorization": "RETAINED; not an Owner pause",
+      "monitor": "PAUSED_UNCHANGED"
+    },
+    "instruction": "Owner 2026-10-30 prioritizes project-local report/audit archival, reviewed storage cleanup, directory normalization and continued growth governance before existing finite backend qualification. Read owner_priority_20261030 and the sole progress record. UI implementation remains paused while Owner refines frontend layouts in cloud GPT; no agent upload or monitor operation. Preserve the <=10 percent allowance guard, local-only handoff, original evidence, frozen scope and distinct acceptance layers.",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
     "automatic_continuation": false,
-    "continuation_scope": "Owner 2026-10-21 supersedes frontend-first order: prioritize backend full-chain execution and the complete CL-01..07/J1..J6 business loop; remaining UI polish is deferred. Preserve current UI commits and qualification boundaries. Handoff preparation does not start background work.",
+    "continuation_scope": "Human ingestion/research/knowledge/learning/recovery plus AI candidate governance/authorized use/correction/retest/revision/recovery and their permissioned connection, under existing CL-01..07/J1..6. Preserve finite first-release scope, Stitch-only UI and existing freeze/data/deployment boundaries; no automatic monitoring resumption.",
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
@@ -101,50 +313,121 @@
       "automatic_continuation": false
     },
     "parallel_lanes": [
-      "BACKEND_CORE_FORMATS_AND_RECOVERY_READ_REVIEW",
-      "FREE_RETRIEVAL_AND_MODEL_RUNTIME_READ_REVIEW",
-      "BACKEND_IMPLEMENTATION_SINGLE_WRITER_OR_AUTHORIZED_ISOLATED_WRITERS"
+      "STITCH_SHARED_SHELL_AND_ALL_22_UI_ROLES",
+      "RESEARCH_EVIDENCE_AND_EXISTING_CORE_CONSUMERS",
+      "BACKEND_CONTRACT_AND_ISOLATED_REAL_CORE_QUALIFICATION"
     ],
     "allowance_guard": {
-      "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
-      "threshold_remaining_percent": 15,
-      "metric": "Minimum remaining percentage across applicable non-null Codex account usage windows; not context length. Unknown is not zero.",
-      "automation_id": "archeaxis",
-      "automation_state_at_observation": "ACTIVE",
-      "interval_minutes": 5,
-      "on_threshold": "Stop new development and heavy validation; checkpoint owned agents; summarize completed work, incomplete work, failures and evidence; explicitly stage and commit/push this round public task-owned files; verify local/remote branch SHA; pause goal and monitor after handoff.",
-      "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
+      "owner_confirmed": "Owner 2026-10-28: at subscription remaining <=10 percent stop new tasks, safely seal in-flight work, summarize dialogue/issues/blockers and prepare handoff; upload authorized progress/branches, merge qualifying necessary changes, and verify matching local/remote branch SHAs. This replaces previous 20 and 15 percent thresholds.",
+      "threshold_remaining_percent": 10,
+      "metric": "Prefer rateLimitsByLimitId; minimum remaining 100-usedPercent across applicable non-null subscription windows. Unknown is not zero; credit balance is not subscription allowance.",
+      "automation_id": "automation",
+      "automation_kind": "heartbeat",
+      "automation_state_at_observation": "PAUSED",
+      "interval_minutes": 30,
+      "on_threshold": "Stop starting new development/build/test tasks. Safely seal in-flight evidence and clean up owned processes without discarding unsaved work. Update the sole execution record, current pointer and handoff with dialogue decisions, completed work, original failures, remaining issues, blockers and exact source/evidence. Commit/push authorized public task files; merge only necessary qualifying branches after checks/review/conflict resolution. Read back local/remote corresponding branch SHAs; preserve and report any blocker instead of asserting consistency. Then stop execution and pause the monitor pending explicit Owner resume.",
+      "current_override": {
+        "date": "2026-10-28",
+        "state": "TRIGGERED_PAUSED_BY_OWNER",
+        "supersedes": "Earlier 20/15 percent thresholds and dated paused monitor states below",
+        "monitor_readback": "At threshold official automation_update returned id automation status PAUSED; exact automation.toml readback confirms PAUSED, unchanged heartbeat prompt, 30-minute interval and target thread. Earlier ACTIVE observations are historical.",
+        "behavior": "Threshold triggered; agents stopped new phases and safely sealed in-flight units. Public handoff/upload/readback are the only permitted closing actions, then remain paused. Explicit Owner resume required; quota reset alone is insufficient.",
+        "latest_observation": {
+          "observed_after_utc": "2026-10-27T21:42:44Z",
+          "used_percent": 90,
+          "remaining_percent": 10,
+          "secondary_window": "UNKNOWN",
+          "state": "TRIGGERED_STOP_NEW_WORK",
+          "time_precision": "Clock read after official usage query; not a provider measurement timestamp"
+        }
+      },
+      "publication_boundary": "Never upload credentials, private session or agent memory, ignored runtime/database/cache/archive payloads or unrelated dirty files; no forced history, automatic merge/release/Green replacement. If Git or network permissions block delivery, retain local files and report the blocker without bypass.",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
       "threshold_observation": {
-        "observed_at": "2026-10-19T12:48:05Z",
-        "used_percent": 86,
-        "remaining_percent": 14,
-        "state": "TRIGGERED_AFTER_EXPLICIT_RESUME",
-        "monitor_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED"
+        "observed_at": "2026-10-22T13:07:36.715Z",
+        "used_percent": 45,
+        "remaining_percent": 55,
+        "secondary_window": "UNKNOWN",
+        "state": "NOT_TRIGGERED",
+        "time_precision": "Recorded after this turn official get_usage_limits; not a provider-supplied measurement timestamp"
       },
-      "today_override": {
-        "date": "2026-10-19",
-        "state": "DISABLED_BY_OWNER",
-        "instruction": "额度监控今天停止监控 赶紧完成任务",
-        "chat_polling": "STOPPED",
-        "automation_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED; not a blocker for product work",
-        "automation_delete": "Requested; archeaxis delete returned not_found; unnamed screenshot card identity UNVERIFIED"
+      "previous_guard": {
+        "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
+        "threshold_remaining_percent": 15,
+        "metric": "Minimum remaining percentage across applicable non-null Codex account usage windows; not context length. Unknown is not zero.",
+        "automation_id": "archeaxis",
+        "automation_state_at_observation": "ACTIVE",
+        "interval_minutes": 5,
+        "on_threshold": "Stop new development and heavy validation; checkpoint owned agents; summarize completed work, incomplete work, failures and evidence; explicitly stage and commit/push this round public task-owned files; verify local/remote branch SHA; pause goal and monitor after handoff.",
+        "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
+        "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
+        "threshold_observation": {
+          "observed_at": "2026-10-19T12:48:05Z",
+          "used_percent": 86,
+          "remaining_percent": 14,
+          "state": "TRIGGERED_AFTER_EXPLICIT_RESUME",
+          "monitor_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED"
+        },
+        "today_override": {
+          "date": "2026-10-19",
+          "state": "DISABLED_BY_OWNER",
+          "instruction": "额度监控今天停止监控 赶紧完成任务",
+          "chat_polling": "STOPPED",
+          "automation_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED; not a blocker for product work",
+          "automation_delete": "Requested; archeaxis delete returned not_found; unnamed screenshot card identity UNVERIFIED"
+        }
+      },
+      "previous_threshold_observation_20261021": {
+        "observed_at": "2026-10-21T23:32:35Z",
+        "used_percent": 36,
+        "remaining_percent": 64,
+        "state": "NOT_TRIGGERED",
+        "time_precision": "Clock after official tool measurement; measured between 23:30:25Z and 23:32:35Z"
+      },
+      "owner_pause": {
+        "instruction": "完成本次后暂停",
+        "observed_at": "2026-10-22T14:11:33.95Z",
+        "state": "PAUSED_BY_OWNER",
+        "threshold_triggered": false
       }
     },
     "last_pause": {
       "state": "PAUSED_BY_OWNER",
-      "reason": "New allowance observation after explicit resume: used86%, remaining14%; Owner threshold applies again",
-      "observed_at": "2026-10-19T12:48:05Z",
-      "receipt": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-      "goal": "ALREADY_PAUSED_FROM_PRIOR_CHECKPOINT",
-      "monitor": "UNVERIFIED; no unknown automation configuration overwritten",
-      "resumption": "Explicit Owner instruction; quota reset alone does not resume."
+      "observed_at": "2026-10-22T14:11:33.95Z",
+      "reason": "完成本次后暂停",
+      "whole_scope": "PARTIAL",
+      "checkpoint_ref": "docs/history/project-drift-audit-20261021/stitch-visual-pause-20261022.json",
+      "monitor": "aaos PAUSED; tool and file readback verified",
+      "resumption": "Explicit Owner instruction required"
     },
     "last_resume": {
       "date": "2026-10-19",
       "owner_instruction": "额度监控今天停止监控 赶紧完成任务；不是停止额度监控了吗？；赶紧完成任务啊",
       "scope": "Resume current density/glass and native navigation fixes, verification and authorized delivery",
       "allowance_guard": "DISABLED_BY_OWNER_FOR_2026_10_19; no allowance polling or threshold stopping today"
+    },
+    "permission_recovery": {
+      "observed_at": "2026-10-22T13:07:36.715Z",
+      "state": "APPROVED_CHANNEL_VERIFIED_DEFAULT_SANDBOX_UNCHANGED",
+      "record": "docs/history/project-drift-audit-20261021/stitch-permission-recovery-20261022.json",
+      "python": "3.13.14; canonical frontend build PASS",
+      "git": "Unique metadata probe PASS; index untouched; normal approved delivery path available",
+      "boundary": "Owner-approved platform approval channel only; no ACL/global/provider/settings changes"
+    },
+    "previous_before_visual_pause": {
+      "state": "RUNNING_BY_OWNER",
+      "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标"
+    },
+    "current_model_delivery": {
+      "id": "OWNER-LOCAL-FIRST-USABLE-RELEASE-20261024",
+      "date": "2026-10-24",
+      "owner_statement": "你先把产品能落地，用户使用上产品再说模型的事，本地模型不是都测试了吗，先用本地模型，云端做好专业接口",
+      "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十三先落地可用产品本地模型优先云端专业接口2026-10-24",
+      "first_release_gate": "LOCAL_REAL_MODEL_AND_PROFESSIONAL_CLOUD_INTERFACE",
+      "real_cloud_inference": "DEFERRED_UNEXECUTED_NOT_FIRST_RELEASE_BLOCKER",
+      "existing_local_configuration": "PRESERVE_EXISTING_TESTED_ROUTE_NO_GLOBAL_CHANGE",
+      "product_scope": "Human+AI+permissioned shared knowledge and same-candidate reliability remain required; optional expansions/monitor unchanged",
+      "credential_cost_material_boundary": "No borrowed credentials, external material or paid calls by this decision"
     }
   },
   "delivery_authorization": {
@@ -377,6 +660,8 @@
     "history": "Inherited F16 and frozen evidence retained; current decision supersedes professional native-format scope"
   },
   "continuation_context": {
+    "latest_owner_discussion_archive": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+    "latest_design_correction_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
     "purpose": "换 Agent / 换会话先沿固定入口读回，不从旧摘要、私人记忆或默认安装位置推导当前事实",
     "read_order": [
       "AUTHORITY.md",
@@ -389,6 +674,8 @@
       "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     ],
     "resource_navigation": {
+      "owner_dialogue_20261022_launcher": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+      "owner_dialogue_20261022_manifest": "docs/history/owner-dialogue-20261022-desktop-launcher/MANIFEST.json",
       "source_archive": "AAOS-资料索引.md",
       "path_identity": "docs/current/AAOS-AUTHORITY-ROUTES.json",
       "shared_roots_and_developer_tools": "docs/SHARED_RESOURCE_PATH_INDEX.md",
@@ -403,7 +690,9 @@
       "execution_priority_overlay": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
       "stitch_readonly_intake": "docs/history/product-loop-20261019/session-20261021-stitch/README.md",
       "stitch_source_manifest": "docs/history/product-loop-20261019/session-20261021-stitch/MANIFEST.json",
-      "stitch_design_comparison": "docs/history/product-loop-20261019/session-20261021-stitch/STITCH-COMPARISON.md"
+      "stitch_design_comparison": "docs/history/product-loop-20261019/session-20261021-stitch/STITCH-COMPARISON.md",
+      "stitch_implementation": "docs/current/AAOS-STITCH-UI-INTEGRATION-20261021.md",
+      "knowledge_compatibility_matrix": "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json"
     },
     "verification": "索引仅导航；现场核对文件/manifest 哈希、版本、进程和源码资格，UNKNOWN 不升级为可用；新决定注明替代关系，实际进度只回写 active_progress",
     "evidence_navigation": {
@@ -445,12 +734,16 @@
   "green_update_authorization": {
     "date": "2026-10-19",
     "owner_instruction": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64 安装版定义的路径是这里吗？可以覆盖的",
+    "owner_instruction_current": "绿色库的旧版本 完全可以替换覆盖掉，不要再沿用了",
+    "owner_instruction_current_date": "2026-10-25",
+    "current_scope": "Replace the Green program files with the qualified exact-SHA candidate after CI is green; preserve user data and a hash-identified rollback copy; do not overwrite real user databases or unknown directories",
+    "pending_execution": "EXECUTED_20261025_PROGRAM_REPLACED_REAL_DATA_LAUNCH_PASS_UI_CONNECTED",
     "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
     "target_role": "Owner daily Green/portable deployment directory; distinct from CI isolated NSIS test installation",
     "operation": "Replace project-owned application program files with the qualified current candidate; preserve user data and a rollback copy",
-    "status": "GRANTED_NOT_EXECUTED",
-    "observed_identity_label": "release-identity.json reports v0.6.14; metadata is not proof of current complete executable/member consistency",
-    "observed_executable_sha256": "132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538",
+    "status": "PROGRAM_REPLACED_REAL_DATA_LAUNCH_PASS_UI_CONNECTED_OWNER_ACCEPTANCE_NOT_EXECUTED",
+    "observed_identity_label": "release-identity.json now reports candidate-1.0.0 v0.6.14, channel stable, public false, source commit 15036bc3, CI run 40186198987",
+    "observed_executable_sha256": "5ef93664f7ab8da67f906cabb2100622597fac2e1fdac1f4adf4e38f9963a770",
     "conditions": [
       "Identify exact source/candidate and member manifest; complete relevant isolated installed journey before daily replacement",
       "Verify target application is stopped; do not terminate unknown or shared processes",
@@ -458,13 +751,180 @@
       "Read back candidate/target hashes and deployment identity; use isolated data for validation",
       "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
     ],
-    "qualification": "UNVERIFIED; prior installed journey failure remains open; this grant does not turn failed CI into PASS",
+    "qualification": "2026-10-25 exact run 40186198987 candidate program deployment with isolated smoke PASS and Green real-data launch PASS (new Core workspace, UI connected, local model real inference PASS); the pre-existing legacy Green database was archived after inspection showed synthetic fixtures only; cloud inference, cross-version upgrade/rollback, representative quality, hosted release and Owner acceptance remain separate and NOT_EXECUTED.",
     "not_granted": [
       "Public release",
       "Real user data overwrite",
       "Unknown shared process termination",
       "Other deployment paths"
-    ]
+    ],
+    "latest_execution_20261025": {
+      "candidate_source_commit": "15036bc3",
+      "candidate_source_tree": "06a6935c",
+      "ci_run_id": 40186198987,
+      "installer_sha256": "3da25d0acb919983c0b04fb12b0fc24320e7d133226bd2c03bfc606936237b3b",
+      "host_sha256": "5ef93664f7ab8da67f906cabb2100622597fac2e1fdac1f4adf4e38f9963a770",
+      "core_sha256": "11fa25449fae61d437caea8f4b6f5cbf79c9d0505d4c7589c6aad8872a8d2baa",
+      "installer_lifecycle": "SUCCESS_IN_40186198987",
+      "smoke": "PASS; system_version 200; workspace_info 200; isolated data root; real data not launched at that checkpoint",
+      "rollback_program": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\pre-39b627c4-20261025",
+      "database_sha256_preserved": "34f8cce5cb704ae1a4d8aa5fe18df4037786b62a572b3cc0db031aa8d1670489",
+      "receipt": ".project-local/runs/green-39b627c4/deploy-receipt.json",
+      "real_data_launch": "PASS_20261025_UI_CONNECTED",
+      "real_data_launch_evidence": {
+        "host_pid_observed": 11728,
+        "core_pid_observed": 38724,
+        "window_title": "星环知识系统（ArcheAxis Knowledge）",
+        "ui_snapshot": ".project-local/tmp/green-window-20261025.png",
+        "ui_observation": "工作台渲染、本地连接可用、运行诊断入口、空工作区空态；无恢复/错误提示",
+        "database": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\data\\archeaxis.sqlite",
+        "database_schema_version": 14,
+        "database_identity": "workspace_meta ui_workspace_identity_v1 present; new Core-created workspace",
+        "root_cause_of_prior_failure": "Green data held a legacy Python-era archeaxis.sqlite without workspace_meta; Rust Core init_workspace refuses a non-empty database without it, so the host reported failed to initialize execution workspace",
+        "legacy_database_disposition": "Archived, not deleted, at D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\legacy-data-20261025; inspected row counts showed only synthetic fixtures (1 conversion run, 1 derived block, 2 evidence anchors, 0 knowledge documents)",
+        "launch_note": "Verified through a detached WMI launch; earlier launches were reaped with the invoking shell job, which is an automation artifact rather than a product failure"
+      },
+      "local_model_inference_20261025": {
+        "status": "REAL_INFERENCE_PASS",
+        "engine": "python-worker-machine-answer",
+        "model": "qwen3.5-4b",
+        "endpoint": "http://127.0.0.1:1234/v1",
+        "elapsed_s": 25.91,
+        "usage": "138 input / 1922 output / 2060 total tokens",
+        "runtime": "Green bundled runtime/python.exe and Green workers/machine/worker_machine_answer.py",
+        "boundary": "local loopback inference only; not cloud and not independent answer-quality evaluation"
+      },
+      "cloud_inference_20261025": {
+        "status": "NOT_EXECUTED_NO_CREDENTIAL",
+        "implementation": "Owned journal-bound path exists: material_cloud_worker.py reads Windows Credential Manager target ArcheAxis.Knowledge/product-model/<credential_ref>; Executor::material_cloud_answer is reachable from the async material question route",
+        "blocker": "No cloud provider endpoint, model id or API key is present on this machine; environment holds only STITCH_API_KEY and Credential Manager has no product-model entry",
+        "required_inputs": "Owner selects provider/host, model id and stores the key through the product model configuration (native model_credential_create); then cloud material question can be executed for real"
+      },
+      "owner_acceptance": "NOT_EXECUTED",
+      "ui_material_preview_20261025": {
+        "status": "LOCAL_PREVIEW_REFERENCE_HOME_IMPLEMENTED_NOT_CI_QUALIFIED",
+        "trigger": "Owner: 玻璃面板还是不好看；一比一复刻 STITCH 的界面设计还没完成吗；随后选择完整 1:1 重排",
+        "finding": "The new stitch-workbench surfaces used opaque var(--ax-panel)/var(--ax-raised); the app body was a column so a left rail could not stretch; and Tauri embeds the frontend into ArcheAxis.exe, so replacing the Green frontend folder could not change the UI",
+        "changes": [
+          "glass material on workbench summary/cards/search/status/local panel; shell 24px radius, blur 28px saturate 140%, brighter edge, sheen and outer glow; opaque app-center and dock tab strip removed; body overlay lightened",
+          "reference shell geometry: 90.7% width by 89.7% height with 5.95% top margin",
+          "left navigation rail restored inside the shell with 工作台/知识/学习/AI/资源 and bottom 全部能力/设置",
+          "header rebuilt as brand + command search + local status + tools; breadcrumbs hidden",
+          "top workspace menu and bottom floating dock hidden; companion defaults closed",
+          "empty home rebuilt as the reference 今日工作台 two-card hero with import/note actions and local-storage note"
+        ],
+        "frontend_rebuilt": true,
+        "host_rebuilt": true,
+        "host_sha256": "766e89314b1c8731693891923ce383c5b067d0c66f3364246f57d8d5962c9e77",
+        "host_bytes": 47356928,
+        "host_backup": [
+          "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\host-before-glass-20261025\\ArcheAxis-5ef93664.exe",
+          "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\host-material-20261025\\ArcheAxis-c8054de4.exe",
+          "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\backups\\host-material-20261025\\ArcheAxis-f279c850.exe"
+        ],
+        "evidence": ".project-local/tmp/green-home-1to1-final.png",
+        "measured_layout": "1280x800 viewport; shell 1161x718 at (60,47); rail 193x601; app-center 942x601; hero cards 426/340 x 276 fully visible",
+        "tests": "frontend 2112/2113 pass; the sole failure is SemanticReadingLayout under full-suite load and passes alone; ConsoleWindow and App tests updated for the reference shell and closed-by-default companion",
+        "one_to_one_status": "REFERENCE_HOME_PREVIEW_IMPLEMENTED_OWNER_VISUAL_ACCEPTANCE_NOT_EXECUTED",
+        "remaining_gaps": "Collapsed 搜索本地文档 row remains for the existing search contract; tools label and window controls are not the reference gear; seven-reference comparison for other pages, spacing and brightness is not finished; this host is a local preview, not exact-SHA CI",
+        "ci_qualification": "NOT_EXECUTED for this local preview; the exact-SHA candidate host remains 5ef93664"
+      },
+      "ui_onboarding_and_quick_model_20261025": {
+        "status": "LOCAL_PREVIEW_NOT_CI_QUALIFIED",
+        "trigger": "Owner: 本地模型显示的有点复杂，是否需要这么多配置环节、是否有引导，整个前端是否有全套流程引导",
+        "model_quick_connect": {
+          "ui": "Settings → 模型与连接 now starts with a one-click '一键连接本机 LM Studio' card; protocol, endpoint, credential and the twelve purpose/lane bindings sit inside a collapsed 高级配置 block",
+          "execution": "REAL_EXECUTED on the Green workspace: read LM Studio inventory, created lmstudio and lmstudio-deep profiles, bound answer/retest/material/companion FAST+DEEP, saved through model_configuration_put",
+          "observed_models": "qwen3.5-4b (fast), qwen3.8-27b (deep)",
+          "status_text": "已连接本机 LM Studio：qwen3.5-4b（快速），qwen3.8-27b（深入）；四个用途的快速/深入绑定已保存。",
+          "evidence": ".project-local/tmp/green-settings-quick.png"
+        },
+        "onboarding": {
+          "home_strip": "dismissible five-step strip on the empty workbench: 导入资料 → 阅读资料 → 学习复习 → AI 提问 → 沉淀知识; buttons reuse guarded space routes",
+          "header": "使用引导 dialog available from the shell header on every page, with the same five steps and the model note",
+          "persistence": "home strip dismissal stored in localStorage aaos.usage-guide.dismissed.v1",
+          "evidence": ".project-local/tmp/green-home-guide-final.png"
+        },
+        "host_sha256": "2ff9d4770406417e540115c27f070835f4a854c4083c99e555a947864d095a79",
+        "host_bytes": 47358464,
+        "tests": "frontend 2112/2113 pass; only SemanticReadingLayout fails under full-suite load and passes alone",
+        "ci_qualification": "NOT_EXECUTED for this local preview"
+      },
+      "ui_codex_restore_stitch_motion_20261025": {
+        "status": "LOCAL_PREVIEW_NOT_CI_QUALIFIED",
+        "restore": "Owner reported the CODEX interface had been reverted; git restore -- frontend/src removed the 13 uncommitted frontend edits and 3 untracked files, restoring the committed CODEX UI at HEAD 41e1848d",
+        "logo": "brand now uses a light cropped AAOS emblem from AAOS-1 (viewBox 0 40 296.11 125, fill #E8F6FF), file frontend/src/assets/brand/aaos-mark-light.svg SHA-256 0400e7d653983922f5a83f5b1141e6ff1b524205542b5c8224a4e10c36d21391; Tauri app icon not replaced",
+        "stitch_parity": "top menu 36px rgba(2,6,23,.8) blur12; shell 12px radius panel 88% blur24 saturate180 cyan 1px edge; toolbar 40px rgba(15,23,42,.9); dock pill 28px buttons; companion/reference width 380px; stitch UI text 12px",
+        "motion": "motion@14.6.0 with MotionConfig reducedMotion=user; @tsparticles/react 4.4.0 + slim + engine particle layer; canvas #aaos-particle-field verified; particles only in cosmic and disabled for reduced motion/transparency",
+        "quick_model": "one-click LM Studio connect restored in Settings; real execution on Green saved lmstudio(qwen3.5-4b) and lmstudio-deep(qwen3.8-27b) and bound answer/retest/material/companion FAST+DEEP",
+        "usage_guide": "Settings has a 使用引导 tab with the five-step loop, no home-page strip",
+        "evidence": [
+          ".project-local/tmp/codex-ui-restored.png",
+          ".project-local/tmp/stitch-parity-motion.png",
+          ".project-local/tmp/settings-quick-final.png"
+        ],
+        "host_sha256": "da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06",
+        "host_bytes": 47461376,
+        "tests": "frontend 2113/2113 pass after the StyleRuleCoverage fix",
+        "ci_qualification": "NOT_EXECUTED for this local preview"
+      },
+      "obsidian_compatibility_20261025": {
+        "status": "PASS_WITH_RECORDED_GAPS",
+        "scope": "E:\\BaiduSyncdisk\\Obsidian知识库 read-only; sample copied to .project-local/obsidian-compat and deleted after the run",
+        "files": "13 copied and hash-verified; 11 imported (8 md, 1 csv, 2 canvas); 2 png registered as attachments; 0 failures",
+        "obsidian_features": "4 frontmatter parsed, 3 unclosed frontmatter treated as body; 79 links (74 wiki, 5 embed); callouts and dataview blocks retained; 2 canvases persisted",
+        "gaps": "scan_vault enumerates md only, so default import_vault selects 0; per-file import_file required; canvas file nodes point to retired 02_课程库 and resolve 0; ASR 66,390→10,000 and CSV 6,841,058→10,000 truncated; get_canvas reports unknown order column: created_at",
+        "source_integrity": "source hashes unchanged before/after/cleanup",
+        "cleanup": "copies, test database and temp scripts deleted; receipt .project-local/obsidian-compat/receipt.json retained"
+      },
+      "obsidian_assistance_matrix_20261025": {
+        "status": "ANALYZED_READ_ONLY",
+        "source": "D:\\All projects\\Obsidian-Assistance",
+        "finding": "repo contains no third-party plugin source; only a self-built mock talos-frontend-ui package and a 19-name plugin index; no LICENSE",
+        "compatible_now": [
+          "Dataview via shared/dataview.py",
+          "Canvas via shared/json_canvas.py",
+          "templates/frontmatter",
+          "daily notes",
+          "board views"
+        ],
+        "portable_adapter": [
+          "callout snippets",
+          "task ledger",
+          "graph/mermaid generation",
+          "HTML prototypes",
+          "OCR/ASR pipelines"
+        ],
+        "obsidian_only": [
+          "Templater runtime",
+          "workspace/MetadataCache plugins",
+          "Excalidraw native files",
+          "sync/full-text QuickAdd MetaBind CMDR"
+        ],
+        "next": "port templates frontmatter contract and safe writer first; do not vendor AGPL plugin code"
+      },
+      "status": "PROGRAM_REPLACED_REAL_DATA_LAUNCH_PASS_UI_CONNECTED_OWNER_ACCEPTANCE_NOT_EXECUTED"
+    },
+    "latest_execution": {
+      "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
+      "key": "verification.green_deployment_current5822",
+      "deployment": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json",
+        "bytes": 887,
+        "sha256": "3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1"
+      },
+      "startup": {
+        "path": ".project-local/runs/be268a2d33/green-current5822-isolated-startup-20261024-02/artifacts/parent-startup.json",
+        "bytes": 1769,
+        "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
+      }
+    },
+    "candidate_20261026": {
+      "state": "NOT_DEPLOYED_DELIVERY_TOOL_REJECTED",
+      "target_program_sha256_before": "da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06",
+      "qualification_ref": "#/current_execution/latest_ui_product_repair_20261026",
+      "next": "Normal authorized delivery; require exact CI artifact, isolated installation, hash rollback and data preservation before program update"
+    }
   },
   "conversation_closeout": {
     "date": "2026-10-19",
@@ -491,19 +951,84 @@
     "supersession": "SUP-025"
   },
   "execution_priority_overlay": {
-    "id": "OWNER-BACKEND-CLOSED-LOOP-FIRST-20261021",
+    "current_order_ref": "#/execution_control/owner_priority_20261030/order",
+    "historical_order_note": "The dated order below is superseded for current execution by owner_priority_20261030; UI implementation remains paused",
+    "id": "OWNER-STITCH-FULL-UI-PARALLEL-INTEGRATION-20261021",
     "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
     "owner_decided_at": "2026-10-21",
-    "owner_instruction": "前端界面可以缓缓，优先确保后端全链路的打通跑通，优先闭环；实时并行智能体，按任务难度适配模型等级与推理强度",
+    "owner_instruction": "结合审计修复更新漂移、任务和交接；前端已有Stitch UI，根据新界面前后端同步并行执行打通；全部按照新的UI进行打通",
     "order": [
-      "LIVE_BASELINE_AND_EXISTING_FAILURE_EVIDENCE",
-      "BE-P01..BE-P15",
-      "SAME_CANDIDATE_CL-01..CL-07_AND_J1..J6_AND_QUALIFIED_DELIVERY",
-      "REMAINING_UI-P01..UI-P24_AND_FRONTEND_QUALIFICATION"
+      "LIVE_BASELINE_AND_AUDIT_DRIFT_REPAIR",
+      "PARALLEL_STITCH_UI-P01..UI-P24_AND_BE-P01..BE-P15",
+      "SAME_CANDIDATE_CL-01..CL-07_AND_J1..J6_AND_QUALIFIED_DELIVERY"
     ],
     "role": "Current execution order and acceptance slices; original task IDs retained; no second progress ledger",
     "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "boundary": "Backend implementation and real integration are now prioritized by Owner. Preserve Rust sole SQLite/CAS writer, ordinary-save policy, LM Studio route and all freeze/data/paid-call/release boundaries. No fake success or scope reduction; prior UI-first order is historical."
+    "boundary": "All existing business pages and shared UI follow received Stitch design and connect real consumers in parallel. Preserve Rust sole SQLite/CAS writer, existing renderers, ordinary-save policy, five themes and valid preferences, LM Studio route, freeze/data/paid-call/release boundaries. Historical frontend-only and backend-first orders are superseded; no completion claim.",
+    "design_ref": "docs/current/AAOS-STITCH-UI-INTEGRATION-20261021.md",
+    "scope_control": {
+      "subsequent_decision_ref": "#/usable_release_and_launcher_decision",
+      "subsequent_scope": "Owner restated finite first-usable knowledge transformation, selected existing personal knowledge features and common formats; launcher/design research does not activate new product development or inventory-wide compatibility work",
+      "id": "OWNER-FUTURE-MARKET-BOUNDED-SCOPE-20261022",
+      "owner_decided_at": "2026-10-22",
+      "source": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "source_section": "十八、后期内置市场与本期范围收敛（2026-10-22）",
+      "owner_instruction": "开源池/API/兼容性等可选扩展归后期内置市场；做好专业标准接口，不要无限增加、无限扩展",
+      "current_scope": "Received Stitch UI plus existing core business integration, necessary repairs and acceptance; bounded interface conventions through existing contracts and capability center",
+      "future_scope": "Optional open-source integrations, third-party API adapters, per-software feature packs and built-in marketplace implementation",
+      "automatic_backlog_expansion": false,
+      "inventory_clearance_required_for_current_delivery": false,
+      "boundary": "Do not build a new marketplace, package registry or general plugin/agent runtime; preserve existing work and long-term gaps, never mark unimplemented extensions supported. This supersedes broader historical execution ordering, not core data and safety contracts.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "stitch_only_ui_decision": {
+      "owner_decided_at": "2026-10-22",
+      "owner_instruction": "不要再维护旧版界面了，全面接入STITCH界面啊（这才是新版界面）",
+      "presentation_authority": "Received Stitch is the only new UI; replace legacy page-center layouts, do not maintain a parallel old layout preference",
+      "scope": "22 existing semantic pages in 12 existing consumer families; reuse business state and Core contracts without adding features",
+      "state": "NEW_PRESENTATION_IMPLEMENTED_LOCAL_CHECKS_PASS_PRODUCT_QUALIFICATION_PARTIAL",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "shared_shell_checkpoint": {
+      "observed_at": "2026-10-22",
+      "owner_instruction": "加快速度，并行；只落实已接收Stitch UI与已有核心业务，不派生扩展开发",
+      "state": "PARTIAL_LOCAL_SHARED_SHELL_VERIFIED",
+      "change": "Separate Stitch main/companion/inspector windows; responsive reader width, expand/restore and auxiliary focus preservation. Existing DockWorkspace and Core contracts retained.",
+      "component_tests": "PASS 57/57 across ConsoleWindow, StitchWorkspaceChrome, Inspector, AppDockNavigation and App; Node direct existing test entry",
+      "typescript": "PASS tsc --noEmit, exit 0",
+      "browser": "PASS 15 bounded automatic geometry/focus cases; SYNTHETIC host/Core, not real data integration or installed runtime",
+      "browser_receipt": ".project-local/runs/stitch-shell-node-20261022/artifacts/receipt.json",
+      "browser_receipt_sha256": "0936283cbc4129d9e9dcd09b8b8f35d2a695882df479ba1bc7266493ab90c4b7",
+      "formal_build": "BLOCKED: project uv trampoline cannot spawn Python child, permission denied os error 5; no alternate interpreter, elevation or ACL bypass",
+      "delivery": "NOT_COMMITTED_NOT_PUSHED; existing Git metadata write denial retained, current local/remote equivalence UNVERIFIED",
+      "next": "Continue received Stitch per-page implementation and real existing consumers; no optional feature/market backlog expansion. Formal host qualification awaits permitted project runtime.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "stitch_ui_checkpoint": {
+      "observed_at": "2026-10-22T12:33:05.038Z",
+      "state": "PARTIAL",
+      "pages": 22,
+      "consumer_families": 12,
+      "component_tests": "54 files / 660 PASS; local synthetic contracts",
+      "typescript": "PASS",
+      "browser": "67 PASS; SYNTHETIC; actual Dock layout, not real Core/native acceptance",
+      "receipt_ref": "docs/history/project-drift-audit-20261021/stitch-ui-local-checkpoint-20261022.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "formal_build": "FRONTEND_PRODUCTION_PASS; NATIVE_HOST_NOT_EXECUTED",
+      "real_core_native_installed": "NOT_EXECUTED_FOR_NEW_UI",
+      "scope": "Existing workflows only; no optional extension queue",
+      "next": "Canonical qualification and actual existing consumers under the new Stitch UI; no old UI maintenance",
+      "latest_validation_ref": "docs/history/project-drift-audit-20261021/stitch-permission-recovery-20261022.json",
+      "resource_source_gate": "PASS_AFTER_EXACT_HISTORICAL_SOURCE_RELOCATION; NO_RUNTIME_PROMOTION"
+    },
+    "stitch_visual_pause_checkpoint": {
+      "state": "PAUSED_BY_OWNER",
+      "receipt_ref": "docs/history/project-drift-audit-20261021/stitch-visual-pause-20261022.json",
+      "whole_scope": "PARTIAL",
+      "native": "FAIL",
+      "visual": "PARTIAL",
+      "green": "NOT_UPDATED"
+    }
   },
   "repository_convergence": {
     "owner_decided_at": "2026-10-19",
@@ -515,7 +1040,1999 @@
     "source_section": "5. 补充交付任务：分支合并、体积和双端目录规范",
     "slices": "RC-P01..RC-P08; inherited G01/UF13/delivery, not a separate product queue",
     "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "execution_order": "Reviewed qualified merges and exact-object cleanup in bounded batches alongside backend closure; repository organization must not replace product repairs. Never merge failing PRs.",
+    "execution_order": "Reviewed qualified merges and exact-object cleanup in bounded batches alongside parallel full Stitch UI/backend integration; repository organization must not replace product repairs. Never merge failing PRs.",
     "boundary": "Preserve unknown dirty work, unique evidence, rollback and shared resources; no history rewrite, force push, real-data overwrite or release"
+  },
+  "current_delivery_request": {
+    "date": "2026-10-22",
+    "owner_request": "全部上传 保持双端仓库一致",
+    "scope": "This task public implementation, drift repair, conversation derivative and handoff; local and remote branch exact-SHA readback required",
+    "commit": "GRANTED",
+    "push": "GRANTED",
+    "merge_release": "NOT_IMPLIED_BY_THIS_REQUEST"
+  },
+  "current_delivery_readback": {
+    "observed_at": "2026-10-22T13:11:38Z",
+    "local_branch": "codex/sync-20261019",
+    "local_head": "d388801b96f851a20e68d796db276c49f4aae586",
+    "remote_branch_head": "d388801b96f851a20e68d796db276c49f4aae586",
+    "remote_main_head": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "remote_readback": "Approved Git ls-remote and independent native GitHub git/ref both match published code checkpoint",
+    "public_task_paths": 161,
+    "staging": "PASS; explicit161-path allowlist",
+    "commit": "PASS",
+    "push": "PASS",
+    "consistency": "PUBLISHED_CODE_CHECKPOINT_EXACT_SHA_VERIFIED; this readback precedes the follow-up handoff documentation commit",
+    "exact_sha_ci": "NOT_EXECUTED; zero workflow runs returned for published code SHA at readback",
+    "local_recovery_manifest": ".project-local/artifacts/stitch-ui-recovery-20261022-final/MANIFEST.json",
+    "local_recovery_zip": ".project-local/artifacts/stitch-ui-recovery-20261022-final/public-task-files.zip",
+    "required_resolution": "Use Owner-approved platform approval channel for task-scoped canonical commands and normal Git delivery; default sandbox remains restricted. No ACL/global configuration change.",
+    "local_snapshot_observed_at": "2026-10-22T20:43:53.848341+08:00",
+    "remote_observation_note": "Remote SHA fields remain historical 2026-10-21T17:03:19Z values. Latest normal git ls-remote failed with exit 128; native branch search confirmed names only, returned no SHA. No current remote equivalence claimed.",
+    "latest_remote_read_attempt": {
+      "observed_at": "2026-10-22T02:32:31.435237+08:00",
+      "operation": "git ls-remote origin (read only)",
+      "exit_code": 128,
+      "state": "UNVERIFIED",
+      "branch_name_only_readback": "2026-10-21T18:33:26Z native search: codex/sync-20261019 and main exist; no SHA returned"
+    },
+    "latest_workspace_observation": {
+      "observed_at": "2026-10-22T13:11:38Z",
+      "branch": "codex/sync-20261019",
+      "head": "d388801b96f851a20e68d796db276c49f4aae586",
+      "dirty_paths": 0,
+      "git_write": "APPROVED_CHANNEL_VERIFIED",
+      "commit": "PASS",
+      "push": "PASS",
+      "checkpoint_ref": "docs/history/project-drift-audit-20261021/stitch-permission-recovery-20261022.json"
+    },
+    "previous_local_recovery": {
+      "manifest": ".project-local/artifacts/drift-audit-20261021/delivery/MANIFEST.json",
+      "zip": ".project-local/artifacts/drift-audit-20261021/delivery/public-task-files.zip",
+      "scope": "Historical 113-file snapshot, preserved unchanged",
+      "snapshot_observed_at": "2026-10-22T07:34:37.312957+08:00",
+      "public_task_paths": 113
+    },
+    "local_recovery_verification": ".project-local/artifacts/stitch-ui-recovery-20261022-final/verification.json",
+    "local_recovery_scope": "Fixed 155 public task-owned files (prior 113 plus 42 reviewed UI/scope changes); only verification.json PASS with matching hashes proves snapshot verification. Local recovery is not commit/push.",
+    "local_recovery_state": "HISTORICAL_VERIFIED_155_FILE_SNAPSHOT_BEFORE_PERMISSION_RECOVERY; retained unchanged",
+    "previous_permission_blocker": {
+      "staging": "BLOCKED: unable to create .git/index.lock: Permission denied",
+      "required_resolution": "Use an environment granting normal write access to this repository Git metadata; user public commit/push authorization already exists. Do not elevate, change ACL or bypass the restriction.",
+      "scope": "Historical default-sandbox blocker; preserved after Owner-approved execution path verification"
+    },
+    "delivery_snapshot_boundary": "The published code checkpoint above was independently verified. This metadata is saved in a follow-up documentation commit, whose current SHA is read from Git/native GitHub and the final local delivery receipt; no self-referential SHA is invented.",
+    "delivered_code_checkpoint": {
+      "observed_at": "2026-10-22T13:11:38Z",
+      "phase": "PUBLISHED_CODE_CHECKPOINT_BEFORE_THIS_HANDOFF_COMMIT",
+      "branch": "codex/sync-20261019",
+      "code_checkpoint_sha": "d388801b96f851a20e68d796db276c49f4aae586",
+      "local_head_observed": "d388801b96f851a20e68d796db276c49f4aae586",
+      "remote_branch_head_observed": "d388801b96f851a20e68d796db276c49f4aae586",
+      "git_ls_remote": "PASS",
+      "native_github_ref_readback": "PASS",
+      "working_tree_at_readback": "CLEAN",
+      "public_task_files": 161,
+      "commit": "PASS",
+      "push": "PASS",
+      "exact_sha_consistency": "PASS_FOR_CODE_CHECKPOINT",
+      "ci": "NOT_EXECUTED; native actions/runs head_sha query returned zero runs at observation",
+      "final_handoff_commit": "This delivery readback is now saved in a follow-up documentation commit; read current Git/native branch ref for that final SHA",
+      "merge_release_install": "NOT_EXECUTED"
+    },
+    "latest_branch_observation_20261024": {
+      "operation": "READ_ONLY",
+      "refs": {
+        "codex/sync-20261019": "95b463c12dbd40744b43039add69c48ceaeba94e",
+        "main": "8d367bac4a85bebfbb523503678ade0838faa73e",
+        "codex/ui-polish-20261013": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e"
+      },
+      "git_and_api_agree": [
+        "codex/sync-20261019",
+        "main"
+      ],
+      "remote_receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/branch-remote-readback-20261024.json",
+        "sha256": "bad083a1e1c56a4154dd7daa2d3ea2a2d13484a2031e26898c14c87e9e74e529",
+        "bytes": 1175
+      },
+      "semantic_review_receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/branch-local-delta-check-20261024.json",
+        "sha256": "2ff8e2a138c103df7e0098ff68e32156dd0367d3d581826a7b648f21d90c91b3",
+        "bytes": 7784
+      },
+      "merge_authorization": "GRANTED_CURRENT_DELIVERY_SCOPE",
+      "merge_decision": "NO_NECESSARY_MERGE_IDENTIFIED_AFTER_SEMANTIC_REVIEW",
+      "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
+      "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
+    }
+  },
+  "visual_pause_delivery_readback": {
+    "observed_at": "2026-10-22T14:16:16.5306446Z",
+    "branch": "codex/sync-20261019",
+    "code_checkpoint_sha": "381d952d86f7f79c59cd4a5f49d9129da4c7d958",
+    "remote_branch_head_observed": "381d952d86f7f79c59cd4a5f49d9129da4c7d958",
+    "git_readback": "PASS",
+    "native_github_readback": "PASS",
+    "working_tree": "CLEAN_AT_CODE_READBACK",
+    "commit": "PASS",
+    "push": "PASS",
+    "monitor": "aaos PAUSED",
+    "state": "PAUSED_BY_OWNER",
+    "whole_scope": "PARTIAL",
+    "ci": "NOT_EXECUTED_FOR_THIS_SHA",
+    "merge_release_green": "NOT_EXECUTED",
+    "boundary": "This readback is saved in a follow-up documentation commit. Resolve its final SHA from Git/native ref; no self-referential SHA is invented."
+  },
+  "owner_scope_current": {
+    "date": "2026-10-23",
+    "id": "OWNER-HUMAN-AI-DUAL-LOOP-20261023",
+    "owner_statements": [
+      "人类侧不冻结，还是按照闭环执行",
+      "最新讨论的都是人类侧 闭环应该还要包括AI侧啊"
+    ],
+    "state": "RUNNING_BY_OWNER",
+    "overall": "PARTIAL",
+    "human_learning": "CONTINUE_EXISTING_CLOSED_LOOP",
+    "ai_learning": "CONTINUE_EXISTING_CANDIDATE_GOVERNANCE_KNOWLEDGE_USE_CORRECTION_RETEST_LOOP",
+    "bidirectional_connection": "PERMISSIONED_SHARED_KNOWLEDGE_EVIDENCE_VERSION_AND_RECOVERY",
+    "external_raw_context": "EXTERNAL_CONTEXT_PROVIDER_NOT_CONNECTED",
+    "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十二人类与ai双侧闭环继续交接时的最新范围2026-10-23",
+    "loop_definition": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+    "supersession": "SUP-028",
+    "monitor": "PAUSED_UNCHANGED",
+    "future_extensions": "DEFERRED_UNCHANGED",
+    "this_turn": "ACTIVE_SUCCESSOR_EXECUTION_RESUMED_BY_OWNER",
+    "model_delivery_override": {
+      "id": "OWNER-LOCAL-FIRST-USABLE-RELEASE-20261024",
+      "date": "2026-10-24",
+      "owner_statement": "你先把产品能落地，用户使用上产品再说模型的事，本地模型不是都测试了吗，先用本地模型，云端做好专业接口",
+      "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十三先落地可用产品本地模型优先云端专业接口2026-10-24",
+      "first_release_gate": "LOCAL_REAL_MODEL_AND_PROFESSIONAL_CLOUD_INTERFACE",
+      "real_cloud_inference": "DEFERRED_UNEXECUTED_NOT_FIRST_RELEASE_BLOCKER",
+      "existing_local_configuration": "PRESERVE_EXISTING_TESTED_ROUTE_NO_GLOBAL_CHANGE",
+      "product_scope": "Human+AI+permissioned shared knowledge and same-candidate reliability remain required; optional expansions/monitor unchanged",
+      "credential_cost_material_boundary": "No borrowed credentials, external material or paid calls by this decision"
+    },
+    "content_policy_clarification": {
+      "id": "OWNER-MULTISOURCE-CORRECTION-REUSE-20261026",
+      "date": "2026-10-26",
+      "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26",
+      "supersession": "SUP-029",
+      "canonical_rule": "PROJECT_CONTRACT.yaml#content_policy",
+      "product_position": "docs/truth/PRODUCT_IDENTITY_V2.md",
+      "role": "SOURCE_TRACEBACK_MULTISOURCE_COMPARISON_CONTINUOUS_CORRECTION; NOT_UNIQUE_FACT_AUTHORITY",
+      "implementation_preference": "RESEARCH_EXISTING_MATURE_OSS_AND_OFFICIAL_APIS_FIRST_THEN_INTEGRATE_OR_ADAPT",
+      "preserved_scope": "HUMAN_AI_DUAL_LOOP_AND_EXISTING_DATA_EGRESS_CORE_WRITER_BOUNDARIES",
+      "qualification": "NORMATIVE_DIRECTION_NOT_INTEGRATION_OR_PRODUCT_PASS"
+    }
+  },
+  "thread_handoff": {
+    "date": "2026-10-23",
+    "snapshot": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+    "manifest": "docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json",
+    "coverage": "Visible owner dialogue, effective decisions, implementation units, original evidence/failures and remaining human/AI/bidirectional qualifications; not a raw native-session export",
+    "sole_execution_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "this_turn": "DOCUMENTATION_ONLY",
+    "commit_push": "NOT_EXECUTED",
+    "remote_exact_sha": "UNVERIFIED",
+    "role": "FROZEN_PREDECESSOR_SNAPSHOT_NOT_CURRENT_EXECUTION_STATE"
+  },
+  "current_execution": {
+    "date": "2026-10-28",
+    "state": "RUNNING_BY_OWNER",
+    "overall": "PARTIAL",
+    "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
+    "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "scope": "Finite human + AI + permissioned connection; preserve latest closed-loop definition, Stitch-only UI and existing frozen/deferred boundaries",
+    "execution": "Parallel bounded write sets; task/model/reasoning matched; avoid repeated full audits and unnecessary branch merges",
+    "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
+    "monitor": "Read execution_control and the official automation readback; this dated progress entry does not independently resume monitoring",
+    "commit_push": "Current delivery and exact local/remote SHA readback are recorded only in the latest 2026-10-28 section of the sole execution record; dated policy-blocked observations below are historical",
+    "latest_ui_delivery_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-owner取消全量截图交付并清理副本",
+    "latest_ui_followup_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-28-新会话交接已整理",
+    "latest_ui_retention_20261024": {
+      "host_sha256": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
+      "host_bytes": 47375872,
+      "frontend_full_suite": "2090_PASS_18_FAIL_MATCHED_SAME_FAILURES_AT_PRE_CHANGE_b4588d76_BASELINE",
+      "native_walk": ".project-local/runs/be268a2d33/ui-final-walk-20261024-02/artifacts/flow-receipt.json",
+      "novice_journey": ".project-local/runs/be268a2d33/ui-novice-journey-20261024-12/artifacts/journey-receipt.json",
+      "closeout": ".project-local/runs/be268a2d33/ui-closeout-20261024-04/artifacts/closeout-receipt.json",
+      "visual": ".project-local/runs/be268a2d33/native-visual-glass-20261024-10/artifacts/visual-receipt.json",
+      "retention_total_gb": 31.26,
+      "retention_receipt": ".project-local/runs/be268a2d33/evidence-retention-20261024-02/retention-applied.json",
+      "reference_resolution": "reports/full-audit-20261024/reference-resolution.json",
+      "reference_current_break": 0,
+      "archive_verification": "52 ZIP / 1,907 members / 745 archive files / 20 manifests; 3 restores hash-verified",
+      "archive_recovery_receipt": ".project-local/runs/be268a2d33/reference-recovery-20261024/receipt.json",
+      "archive_manifest": ".project-local/archives/audit-evidence-20261024/MANIFEST.json",
+      "supersession": ".project-local/archives/audit-evidence-20261024/SUPERSESSION.json",
+      "retention_incident": "whitelist prefix mismatch and prefix-less citations removed live run receipts and drivers; receipts regenerated, drivers restored to .project-local/tools/native-drivers, mapping recorded",
+      "sandbox": "wsb list reports 0 active environments; vmwp 13912 and vmmemWindowsSandbox 37160 remain protected; installation, Green and CI not executed",
+      "boundary": "Behavior receipts remain on Host 97baf29c; the terminology-only rebuild is recorded in latest_ui_terminology_20261024; no push, merge, release, Green or Owner acceptance inferred"
+    },
+    "latest_ui_terminology_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "host_bytes": 47376384,
+      "scope": "VISIBLE_COPY_AND_DISABLED_REASONS_INCREMENTAL_HOST_NOT_INSTALLED_NOT_GREEN",
+      "native_receipt": ".project-local/runs/be268a2d33/ui-token-scan-20261024-07/receipt.json",
+      "native_pages": "22/22 PASS incl. page 16 qualification tab; engineering tokens 0; unexplained disabled 0; page errors 0",
+      "full_frontend_suite": "2108 tests: 2090 PASS / 18 FAIL, identical to pre-change b4588d76 baseline",
+      "behavior_receipts_host": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf"
+    },
+    "latest_cache_cleanup_20261024": {
+      "scope": "REGENERABLE_PACKAGE_CACHES_ONLY",
+      "before_bytes": 1745435496,
+      "remaining_bytes": 38141,
+      "deleted_bytes": 1745397355,
+      "project_local_gb_after": 30.75,
+      "project_local_files_after": 159516,
+      "receipt": ".project-local/runs/be268a2d33/cache-cleanup-20261024-01/cache-cleanup.json",
+      "residue": "17 ACL-protected uv editable cache files; no elevation bypass",
+      "offline_rebuild_cost": "Rust/uv dependency sync requires re-download"
+    },
+    "latest_human_journey_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "status": "PASS_NOVICE_JOURNEY_14_OF_14",
+      "receipt": ".project-local/runs/be268a2d33/ui-novice-journey-20261024-17/artifacts/journey-receipt.json",
+      "receipt_sha256": "3d2fb4975950c173dcda89aa043950b2974b1afe72ad2180469d0951e52d6f83",
+      "steps": 14,
+      "screenshots": 11,
+      "first_exit_code": 0,
+      "second_exit_code": 0,
+      "model_calls": 0,
+      "scope": "HUMAN_J1_CURRENT_HOST_NOT_INSTALLED_NOT_OWNER_ACCEPTANCE"
+    },
+    "latest_ai_engineering_loop_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "engineering_status": "PASS",
+      "status": "PARTIAL",
+      "model": "qwen3.5-4b",
+      "endpoint": "http://127.0.0.1:1234/v1",
+      "stages": "answer 176/1893 tokens 22.79s; authored correction; independent retest; restart/restored learning; restored grant refusal",
+      "owner_acceptance": "NOT_EXECUTED",
+      "quality_evaluation": "CANDIDATE_NOT_EVALUATED",
+      "compiled_source_binding": "UNVERIFIED_NO_CANDIDATE_BUILD_RECEIPT",
+      "receipt": ".project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json",
+      "receipt_sha256": "5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd"
+    },
+    "latest_format_matrix_20261024": {
+      "host_sha256": "ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9",
+      "host_bytes": 47376384,
+      "status": "PASS_18_OF_18",
+      "execution": "REAL_TAURI_HOST_REAL_FILE_INPUT_RENDERED_CONTROLS_ISOLATED_PORTABLE_ROOT",
+      "data_root": ".project-local/runs/be268a2d33/format-matrix-final-20261024/import/data",
+      "categories": [
+        "txt",
+        "md",
+        "csv",
+        "json",
+        "html",
+        "pdf-text",
+        "pdf-scanned",
+        "png",
+        "jpeg",
+        "docx",
+        "xlsx",
+        "pptx",
+        "srt",
+        "vtt",
+        "wav",
+        "mp3",
+        "mp4",
+        "canvas"
+      ],
+      "import": {
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/import/receipt.json",
+        "receipt_sha256": "1a63b035fc0c18eabab3616958e3566e12e177b32c8238b17a055b92370ee696",
+        "bytes": 47305,
+        "result": "18/18 real file input; import-time UI receipt text 原件已保留；转换尚未执行 (conversion recorded below); source_original byte identity"
+      },
+      "conversion": {
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/convert/receipt.json",
+        "receipt_sha256": "818211cd0d042c399efa24b7ca80f378bbec72cd7338e2f1816c9e42fe79d75b",
+        "bytes": 40882,
+        "result": "18/18 succeeded jobs, output SHA/byte-length recomputed, loss+quality engine identity, structure positions, preview equality, 12 structure citations CURRENT, restart readback equal",
+        "ocr_pages": "scanned PDF 2/2; png/jpeg OCR 26/29 chars",
+        "media": "wav/mp3/mp4 identical text sha c7836433... 135 chars 4 located cues; mp4 3 frames + 3 visual descriptions"
+      },
+      "long_path_gap": {
+        "scope": "VIDEO_ARTIFACT_EXISTENCE_CHECK_NOT_LONG_PATH_AWARE",
+        "evidence": "deep root produced 261/263-char artifact paths with LongPathsEnabled=0; ffmpeg wrote WAV/3 frames but Python Path.is_file() returned False, so stages.asr=failed and empty text",
+        "control": "same route through staged transport at 187 chars succeeded; same Host at ~237 chars passed 18/18",
+        "fixed": true,
+        "fix": "worker_video extended-length path checks plus short ASR copy; unit tests 8 PASS; deep-root MP4 rerun 135 chars, 4 positions, 3 frames, 3 visual descriptions, decode/frame errors empty",
+        "worker_sha256": "9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d",
+        "worker_previous_sha256": "cbcb49fad707cf0ea0ceabe57b8b6afc5e9c55a9027af7c2fbbe810783ad3d03",
+        "fix_receipt": ".project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json",
+        "fix_receipt_sha256": "fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb",
+        "host_rebuilt": true,
+        "component_update": "Host rebuilt from current source with worker 9af8977 bundled; candidate Host ca5fbfda used for the deep-root 18/18 matrix"
+      },
+      "not_covered": [
+        "conversion failure auto-retry and cancel",
+        "OCR/ASR accuracy"
+      ],
+      "boundary": "Authored synthetic materials; OCR/ASR engine readback not accuracy; no installed UI, Green, exact-SHA CI or Owner acceptance"
+    },
+    "latest_cl02_residuals_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "status": "PASS_SUBGAPS",
+      "batch": {
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/batch/run/receipt.json",
+        "receipt_sha256": "d8b25b1211651af13be235f94433a0406913f6dabae244a24dddc7fdcdf6470c",
+        "result": "5 members selected; 2 excluded; gamma.csv read-deny forced IMPORT_FAILED then retry succeeded; 3 conversions succeeded"
+      },
+      "resume": {
+        "result": "2 unuploaded members registered, Host restarted, UI restored batch and continued upload; 2/2 succeeded; restore_epoch unchanged"
+      },
+      "search_export": {
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/batch/search-export/receipt.json",
+        "receipt_sha256": "099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be",
+        "result": "search hit on source transform; text-range anchor CURRENT; markdown export persisted byte-identical; package imported into fresh workspace with identical document content hash and source bytes"
+      },
+      "not_claimed": [
+        "conversion failure auto-retry/cancel",
+        "OCR/ASR accuracy",
+        "installed-state UI"
+      ]
+    },
+    "latest_public_research_20261024": {
+      "source_commit": "ec30b2246bc4fbfd0e56046bd8c3b1c3a5349305",
+      "status": "PARTIAL_CHANNELS_PASS",
+      "query": "quantum computing",
+      "channels": [
+        "wikipedia",
+        "stackexchange",
+        "openalex"
+      ],
+      "all_channels_complete": true,
+      "raw_and_selected_sources": 6,
+      "anchors": 3,
+      "draft": "support_draft and opposition_draft reference all six sources; conclusions/experiments empty; not verified conclusions",
+      "restart_readback": "sources, anchors, document, package and export equal",
+      "backup_verified": true,
+      "restore_preview": 200,
+      "knowledge_admission": "NOT_EXECUTED_HUMAN_SELECTION",
+      "receipt": ".project-local/runs/be268a2d33/public-research-current-20261024-07/artifacts/public-research-receipt.json",
+      "receipt_sha256": "0c95ce3689f0c6d6808cef891e2bdf760ef7eba7334e96f09ce0b32ea82e0adb",
+      "network_adapter": "local per-host routing proxy: system proxy for wikipedia only; direct for stackexchange/openalex; no product change"
+    },
+    "latest_current_integrated_research_learning_20261024": {
+      "status": "PASS_DECLARED_INTEGRATED_SUBSET",
+      "candidate": ".project-local/runs/be268a2d33/j2-current-portable-20261024-01/artifacts/星环便携候选",
+      "candidate_host_sha256": "ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9",
+      "candidate_core_sha256": "fd620735e1931741b79e88c5cae7e6d63708e687c473047ce1f41bdb7d874f9a",
+      "candidate_manifest_sha256": "13d11c6506ffd612f7b37cbb20017798995e6a07fbb6b63a963104a6f66550cd",
+      "public_research": {
+        "query": "quantum computing",
+        "evidence_level": "REAL_CORE_PUBLIC_NETWORK",
+        "channels": "encyclopedia/community/research all complete",
+        "raw_and_selected_sources": 6,
+        "knowledge_admission": "NOT_EXECUTED",
+        "receipt": ".project-local/runs/be268a2d33/j2-current-public-20261024-01/artifacts/public-research-receipt.json",
+        "receipt_sha256": "a3cfdfc503e1890ae527d27d6fbaac5a9b3fdd325e19d50b75b8253518d8e388",
+        "bytes": 2029031
+      },
+      "integrated": {
+        "receipt": ".project-local/runs/be268a2d33/j2-current-learning-20261024-04/artifacts/research-learning-runtime.json",
+        "receipt_sha256": "58d50fa2b75683331079c133b1b294265356a1db2e1ac5e374e7f650a1294446",
+        "bytes": 26006,
+        "requests": 109,
+        "public_knowledge_id": "k_cb46c64a4021b424e06b1efb",
+        "public_knowledge_status": "candidate",
+        "public_knowledge_acceptance": "NOT_EXECUTED_HUMAN_SELECTION",
+        "personal_knowledge_id": "k_36a06d7a162bb7b9019c59ab",
+        "personal_knowledge_status": "accepted",
+        "personal_review": "SIMULATED_AUTHORED_FIXTURE_ONLY",
+        "learning": "FSRS assessment and review; duplicate retry and conflict paths; restart equal",
+        "originals": 10,
+        "restart_equal": true,
+        "independent_restore_equal": true,
+        "backup_verified": true,
+        "candidate_files_unchanged": true
+      },
+      "format_input": {
+        "receipt": ".project-local/runs/be268a2d33/029d7b39aaf9/artifacts/common-formats.json",
+        "receipt_sha256": "899452b0a29bf78cce8fe829faf77616f4aacad50fe6c0ca778ca266ed80debd",
+        "bytes": 89416,
+        "status": "PASS"
+      },
+      "boundary": "Core/worker integration on the staged current candidate; no native UI, installed, CI or Owner acceptance; the public excerpt is retained unverified as a candidate per J2; human admission and content truth stay NOT_EXECUTED"
+    },
+    "latest_current_candidate_human_journey_20261024": {
+      "status": "PASS_NOVICE_JOURNEY",
+      "host_sha256": "ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9",
+      "host_bytes": 47376384,
+      "candidate": ".project-local/runs/be268a2d33/j2-current-portable-20261024-01/artifacts/星环便携候选",
+      "steps": 14,
+      "screenshots": 11,
+      "model_calls": 0,
+      "first_exit_code": 0,
+      "second_exit_code": 0,
+      "receipt": ".project-local/runs/be268a2d33/ui-novice-journey-current-20261024-02/artifacts/journey-receipt.json",
+      "receipt_sha256": "3dffdc01eb4357613f2cf3edaadd8c0fc166396dfe42c0e1780512188c5aa75f",
+      "bytes": 4308,
+      "first_attempt_failed": ".project-local/runs/be268a2d33/ui-novice-journey-current-20261024-01/artifacts/journey-receipt.json: relative driver path refused; preserved",
+      "scope": "HUMAN_J1_SAME_REBUILT_CANDIDATE_ISOLATED_ROOT_NOT_OWNER_ACCEPTANCE",
+      "boundary": "Real native clicks in a visible window on an isolated portable root; no Owner acceptance, no installed state and no CI claim"
+    },
+    "latest_current_candidate_ai_loop_20261024": {
+      "status": "ENGINEERING_PASS_PARTIAL",
+      "host_sha256": "ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9",
+      "host_bytes": 47376384,
+      "candidate": ".project-local/runs/be268a2d33/j2-current-portable-20261024-01/artifacts/星环便携候选",
+      "model": "qwen3.5-4b",
+      "endpoint": "http://127.0.0.1:1234/v1",
+      "answer": "real answer, 156 input / 1646 output tokens, 22.52s, grounded; candidate not accepted knowledge",
+      "stages": "import, read, anchor, claim, learn, practice, review, distill, recover",
+      "actual_ai": "EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR; retest EXECUTED_CANDIDATE_NOT_EVALUATED",
+      "restored_learning": "PASS",
+      "restored_grant_refusal": "PASS; exact Core reason RESTORED_GRANT_FENCED; execution NOT_EXECUTED",
+      "capability_toggle": "PASS; disabled execution refusal PASS",
+      "host_shutdowns": "5 confirmed product exits, all exit 0",
+      "owner_acceptance": "NOT_EXECUTED",
+      "closed_loop_verified": false,
+      "receipt": ".project-local/runs/be268a2d33/webdriver-14c04460806a/tmp/journey/receipt.json",
+      "receipt_sha256": "e04bef7b6afd9028b83999d64e4166b6b767c1aaf565119f12959e7627325d8a",
+      "bytes": 329741,
+      "scope": "CURRENT_GROUPED_NATIVE_UI_SAME_REBUILT_CANDIDATE_NO_HUMAN_SIGNOFF",
+      "boundary": "Engineering chain on authored fixtures; no independent semantic quality, Owner acceptance, installed state or CI claim"
+    },
+    "installed_candidate_current5822_20261024": {
+      "status": "INSTALLED_PASS_NOT_CURRENT_REBUILD",
+      "guest_result": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/guest-output/guest-business-result.json",
+      "guest_result_sha256": "d9a3d7adbba583285f2246b9436551c0586311bedc74c9e932aac26ab182f774",
+      "installer_exit": 0,
+      "native_exit": 0,
+      "uninstaller_exit": 0,
+      "scope": "install, native document conflict/restore/restart, uninstall with synthetic data",
+      "current_rebuild": "current installer 3b0bccd6 built; installed host eb268f29; minimal install/launch/db/uninstall PASS and installed conflict/restore/restart PASS",
+      "not_authorized": [
+        "public release",
+        "real user data overwrite"
+      ]
+    },
+    "latest_current_installer_20261024": {
+      "status": "PASS_INSTALLED_BUSINESS",
+      "installer": ".project-local/build/tauri/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+      "installer_sha256": "3b0bccd65cc9742cd270d1aeb0b0b8dc5bc10e43dbb84dcee65fabf53c681ada",
+      "installer_bytes": 567215430,
+      "installed_host_sha256": "eb268f2900c139f8e325f31cb818d1b3da031903d238310c13a850225779d484",
+      "installed_core_sha256": "fd620735e1931741b79e88c5cae7e6d63708e687c473047ce1f41bdb7d874f9a",
+      "installed_manifest_sha256": "13d11c6506ffd612f7b37cbb20017798995e6a07fbb6b63a963104a6f66550cd",
+      "worker_sha256": "9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d",
+      "minimal_result": ".project-local/runs/be268a2d33/j6-current-installer-20261024/evidence/minimal-result.json",
+      "minimal_result_sha256": "03d912936325683b6875ad799100605457824ea5db0780e2fbd9a6a549af1cb4",
+      "installed_business_result": ".project-local/runs/be268a2d33/j6-current-installed-business-20261024/guest-output/guest-business-result.json",
+      "installed_business_result_sha256": "266de2bf1ea0934eb16cd4b0d2abb5d8fe7240d50587d79ecd0d1ece8d96eba8",
+      "installed_business_parent": ".project-local/runs/be268a2d33/j6-current-installed-business-20261024/guest-output/business01/installed-business-parent.json",
+      "installed_business_parent_sha256": "bf592b84ee86843b507cc2c6666c8678ad8869437092d0ee51b75dda2b47ed1d",
+      "installed_conflict_receipt_sha256": "7265b96a909d2c9f9891bbe790df93375a158d1ec1be707bede3946eab8fe2f1",
+      "installed_conflict_screenshots": {
+        "saved": "7f9139c5a1593c1042daf6592daaca1849a153471aed39490e88533e7b45598b",
+        "restored_after_restart": "d14203c855783515f0837cf689143b6c6581ee524d28b5e6c0db20a6f54316d7",
+        "three_way_conflict": "4c2c338726f540d65c3bbcd7f39e9f1c71a928f9b1a15e1b4e70b439cd77f834"
+      },
+      "scope": "no-network Windows Sandbox; install, launch, canonical database, documented conflict/save/restore/host restart, uninstall; installer/native/uninstaller exit 0",
+      "limits": [
+        "cross-version upgrade/rollback not executed",
+        "exact-SHA CI and Owner acceptance not executed",
+        "public release and real user data not authorized",
+        "full multi-round lifecycle attempt timed out at 20 minutes; first installed-business attempt failed on a wrong installed-host binding and is preserved"
+      ],
+      "first_failed_binding": "guest-output-fail-01: release exe ca5fbfda was assumed; actual installed host eb268f29"
+    },
+    "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
+    "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
+    "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "post_build_delta": "POST5822_COMPONENTS: correction7d953 native-detail-DOM PASS; reader7525 native03 successful-material binding and actual folder-picker/batch-restart PASS; folder failure summary0410865 Host/native PASS; video-longpath-9af897 worker long-path fix PASS with deep-root MP4 135 chars/4 positions/3 frames/3 visual and deep-root 18/18 matrix PASS on rebuilt candidate Host ca5fbfda; current-installer-3b0bccd6 installed host eb268f29 minimal lifecycle and installed conflict/restore/restart PASS. Exact component identities retained; full candidate/installer/Green remain5822, no new whole-package/Owner qualification.",
+    "native_additional": "CURRENT5822_NATIVE_HUMAN_AND_AI_ENGINEERING_CHAIN_PASS; ONE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETE; REPRESENTATIVE_SEMANTIC_QUALITY_AND_OWNER_UNPROVEN; GROUPED_PRODUCT_PARTIAL",
+    "cloud": "PROFESSIONAL_INTERFACE_IMPLEMENTED_LOCAL_MOCK_PASS; REAL_PROVIDER_DEFERRED_BY_OWNER_NOT_FIRST_RELEASE_BLOCKER",
+    "installer": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
+    "local_model_latest": "CURRENT5822_NATIVE_AI_PARENT_PASS; existing fast-local alias explicitly loaded and effective configuration read back; see actual answer/retest stages",
+    "public_research": "HISTORICAL_REAL_THREE_SOURCE_ACQUISITION; CURRENT5822_ACTUAL_RESTORE_AND_COLD_READBACK_PASS; research draft remains unverified/not admitted",
+    "native_ai_latest": "CURRENT5822_PARENT_PASS; exact native evidence in native_ai_current5822; authored engineering fixture, not Owner acceptance",
+    "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
+    "common_formats_latest": "CURRENT5822_FOUR_FORMAT_CORE_EXPORT_RESTORE_AND_NATIVE_READER_COMPONENTS_PASS; SAME_DB_HUMAN_KNOWLEDGE_LEARNING_RESTART_ACTUAL_RESTORE_API_SUBCHAIN_PASS_SEPARATELY; FULL_NATIVE_J1_AND_WIDER_FIDELITY_PARTIAL; DIRECTORY_BATCH_FOLLOWUPS_AS_RECORDED_IN_CURRENT_CHECKPOINT; NO_AUTO_PROJECTION_REQUIREMENT_INFERRED",
+    "installed_business_latest": "CURRENT5822_INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; ORIGINAL_RUN01_FAIL_AND_OLD3407_VM_DISAPPEARANCE_PRESERVED",
+    "historical_code_delivery_observation_at": "2026-10-23T20:21:20.557382+00:00",
+    "delivery_receipt": ".project-local/artifacts/dual-loop-resume-20261023/delivery-latest-20261024.json",
+    "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT",
+    "final_public_preflight_20261024": {
+      "status": "LOCAL_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/dual-loop-delivery-preflight-20261024-04/artifacts/local-ci.json",
+        "bytes": 1009726,
+        "sha256": "711600dbaa52d30af89836738480a3326f96807e99c4e021c57e7963c818ffb9"
+      },
+      "archive_custody": "12_EXACT_RAW_INDEX_CHECKOUT_HASHES_PASS; 89_REGRESSION_TESTS_PASS",
+      "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT; EFFECTIVE_MAIN_RULESET20849492_REQUIRES_A0_GATES"
+    },
+    "delivery_readback_20261024": {
+      "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
+      "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/delivery-code-checkpoint-20261024.json",
+        "bytes": 2369,
+        "sha256": "588afcfbc3eec8c86ffce7499871abc78866c7d9248712a5b8b69e5e34165e9e"
+      },
+      "ci": "NOT_EXECUTED_FOR_CODE_CHECKPOINT",
+      "metadata_followup": "Read current Git HEAD and ignored delivery receipt for later documentation commit; no self-referential SHA invented."
+    },
+    "latest_engineering_slice_20261025": {
+      "date": "2026-10-25",
+      "scope": "FTS_INCREMENTAL_OCR_FALLBACK_INSTALLER_LZMA_PYMUPDF_DISCLOSURE",
+      "status": "CI_PASS",
+      "audit_report": "workspace/intake/20261025-full-technology-audit.md",
+      "frontend_suite": "201 files / 2113 tests PASS",
+      "fts": "TRIGGER_AND_ONE_TIME_BACKFILL_ADDED; incremental test PASS",
+      "ocr": "AUTO_KEEPS_TESSERACT_AND_FALLS_BACK_TO_RAPIDOCR; main dependency marker python<3.13; fallback and packaging tests PASS; bundled runtime verified by desktop-build",
+      "installer": "NSIS compression lzma; installer-lifecycle PASS",
+      "license": "PyMuPDF AGPL disclosed in THIRD_PARTY_NOTICES; SUPPLY_CHAIN_LEDGER A055 deferred because that ledger is byte-pinned by the tracked OSS-reuse manifest; replacement pilot not executed",
+      "first_ci_observation": "run 40178001517 FAILURE retained: resource-catalog qualification drift, requirements/external-index/OSS-manifest drift, incremental test FK, FolderIngest race; fixes committed separately and not yet green",
+      "final_ci_observation": "run 40186198987 SUCCESS: lint, test (3.12), browser-smoke, desktop-build, desktop-fast, rust-vnext, installer-lifecycle, a0-gates and the required set passed; this is the current green checkpoint",
+      "owner_acceptance": "NOT_EXECUTED",
+      "cloud_inference": "DEFERRED",
+      "cross_version_upgrade": "NOT_EXECUTED",
+      "code_checkpoint_until_ci": "39b627c4aecd442477c58405a8d82ee4a95bc889 / run 40186198987"
+    },
+    "pending_absorption_cleanup_20261025": {
+      "status": "CI_PASS",
+      "audit_report": "workspace/intake/20261025-full-technology-audit.md",
+      "landed_now": "RapidOCR fallback and runtime dependency cleanup landed",
+      "removed_from_runtime": "MarkItDown, NetworkX, APScheduler (legacy-only; retained in CI groups); pandas/pdfminer leave with MarkItDown; openpyxl/python-pptx/xlrd restored as explicit Office engines",
+      "preflight": "scripts/ci/preflight_contracts.py PASS locally",
+      "next_useful_unlanded": "Trafilatura main extraction; Crossref/DataCite/Wikidata metadata; sqlite-vec persistent vector index",
+      "code_checkpoint_still": "39b627c4aecd442477c58405a8d82ee4a95bc889 / run 40186198987",
+      "ci": "SUCCESS"
+    },
+    "delivery_pr_203_20261024": {
+      "status": "CI_PASS",
+      "branch": "trae/20261024",
+      "head_sha": "39b627c4aecd442477c58405a8d82ee4a95bc889",
+      "remote_branch_sha_readback": "39b627c4aecd442477c58405a8d82ee4a95bc889",
+      "pr_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/203",
+      "pr_state": "OPEN",
+      "ci_run_id": 40186198987,
+      "ci_workflow": "CI",
+      "ci_event": "pull_request",
+      "ci_head_sha_observed": "39b627c4aecd442477c58405a8d82ee4a95bc889",
+      "ci_state_at_observation": "completed",
+      "ci_conclusion": "SUCCESS",
+      "installer_lifecycle": "SUCCESS",
+      "a0_gates": "SUCCESS",
+      "ci_observed_jobs": "lint, test (3.12), browser-smoke, desktop-build, desktop-fast, rust-vnext, installer-lifecycle, a0-gates and the GatePlan-required set passed; skipped non-required jobs stay skipped",
+      "preceding_failures": [
+        {
+          "run_id": 40131599415,
+          "head_sha": "4853a3f73d4155852913cfc11d6308f68c0ed79e",
+          "conclusion": "FAILURE",
+          "gate": "installer-lifecycle",
+          "cause": "GroupedUI.keys clicked the review select through a native element click that landed under the fixed Stitch task strip; plain and conflict journeys already passed"
+        },
+        {
+          "run_id": 40136511918,
+          "head_sha": "222bad6b0d47357b324b3c0023d36af24ee5e59d",
+          "conclusion": "FAILURE",
+          "gate": "test (3.12)",
+          "cause": "AXR060 current-surface audit read a build stamp inside an artifact name as a repository commit; fixed by not citing that stamp"
+        },
+        {
+          "run_id": 40137602012,
+          "head_sha": "8c18ba73f5841e71e042f5c4ae6a50d805dc5476",
+          "conclusion": "FAILURE",
+          "gate": "installer-lifecycle",
+          "cause": "conflict journey save click used a coordinate computed before a late layout shift; the pointer landed beside the control and the conflict panel never opened"
+        },
+        {
+          "run_id": 40156452084,
+          "head_sha": "47f6394b8a06f0c58efcf9912c9db51631afb7d1",
+          "conclusion": "FAILURE",
+          "gate": "test (3.12)",
+          "cause": "desktop-fast lacked the ASR model fetch and --asr-model arguments desktop-build already used, and ASR worker tests still patched _model_dir after the worker moved to _resolve_model"
+        },
+        {
+          "run_id": 40158193119,
+          "head_sha": "d26500c1d46a3821342760a7243aa35d0ff8250d",
+          "conclusion": "FAILURE",
+          "gate": "test (3.12)",
+          "cause": "three follow-ups: AXR060 treated the 40-hex HuggingFace revision as a repository object, the minimal test environment lacks faster-whisper so the probe omitted its formats, and a declared ffmpeg reports kind=ffmpeg rather than decoder=pyav"
+        },
+        {
+          "run_id": 40161520819,
+          "head_sha": "2dbee8e160dde0e0b00b8a59749cc341e05740d3",
+          "conclusion": "FAILURE",
+          "gate": "installer-lifecycle",
+          "cause": "grouped installed journey asserted the learning queue before the post-restart learning surface mounted; reproduced twice on a documentation-only checkpoint, then fixed by a bounded wait that keeps the original assertions"
+        },
+        {
+          "run_id": 40165652378,
+          "head_sha": "1c0cf83bee33fbf4c6ff4c5199ddb276f02acb93",
+          "conclusion": "FAILURE",
+          "gate": "browser-smoke",
+          "cause": "the command trigger at the status-bar edge did not match :focus-visible after a one-direction tab fallback; the gate now retries both directions without relaxing the ring or contrast assertions"
+        },
+        {
+          "run_id": 40167437800,
+          "head_sha": "fdf3b27004d8d853737c99aa44e603124abf267b",
+          "conclusion": "FAILURE",
+          "gate": "rust-vnext",
+          "cause": "the public-research fixture read research.pid as soon as it existed and parsed an empty file; three tests now wait for a complete parseable PID"
+        }
+      ],
+      "code_checkpoints": [
+        {
+          "sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634",
+          "run_id": 40134459916,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86",
+          "run_id": 40139923313,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764",
+          "run_id": 40147136804,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9",
+          "run_id": 40159430588,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e",
+          "run_id": 40163883126,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "04b3aa2f47c51aa5d88907758ebe658621167a9f",
+          "run_id": 40168290341,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "dd38cef2e6b933e77080dd119722c7cc953d82b7",
+          "run_id": 40181953892,
+          "conclusion": "SUCCESS"
+        },
+        {
+          "sha": "39b627c4aecd442477c58405a8d82ee4a95bc889",
+          "run_id": 40186198987,
+          "conclusion": "SUCCESS"
+        }
+      ],
+      "local_evidence": "Browser gate PASS (13 viewports, 5 themes). The exact CI-built candidate Host 0a074727684ee418c6192c419574feaac5127a94c8ec42d979261fa628db5025 ran the grouped real qwen3.5-4b chain with authored correction/retest in an isolated portable root: engineering PASS, 290 actions, 5 normal exits, source_consistent=true; distill answered but quality NOT evaluated. A separate-agent single-sample review found the original refusal faithful and the retest lightly extrapolated; it is not independent quality or Owner acceptance. The 9fd55897 candidate bundles the pinned MIT faster-whisper-base model in runtime/models/asr and both desktop jobs fetch and verify the same donor; local isolated runs decoded and transcribed 8/8 media formats with PyAV, the pre-registered 8-item quality suite answered 8/8 with qwen3.5-4b and usage reported, the reader exposes fixed-version backlinks, and its transcript proof accepts only the engine-declared VAD pad while marking the overflow. J5 is closed for the forms the product actually claims: the green rust-vnext template lifecycle test installs, enables, disables, updates, rolls back, uninstalls and reinstalls a template through real Core HTTP/store while old documents, knowledge and learning events remain readable, and the real Office/PDF/OCR/speech/video jobs are the engine consumers; the capability center states that plugin, skill and MCP installation or execution is not implemented and therefore not claimed. The same green candidate's installer payload carries the pinned base model (model.bin d01c3014...0a6a9, 145,217,532 bytes) and its installed runtime transcribed WAV and MP4 with four located cues; its native WebView2 UI imported the audio, rendered the media player, executed the transcription, cited a time segment, and read the transcript back after a cold host restart. The payload was extracted rather than reinstalled over the existing user installation; the exact candidate NSIS install/uninstall lifecycle is proven by the same CI run. Recognition fidelity, Owner acceptance, cloud inference and cross-version upgrade remain separate and NOT_EXECUTED.",
+      "documentation_followup": "This pointer update accompanies a metadata-only documentation commit pushed after the green code checkpoint; read that commit's own CI separately and do not transfer the code checkpoint conclusion to it silently.",
+      "documentation_followup_ci_20261025": {
+        "latest": {
+          "run_id": 40173001622,
+          "head_sha": "5690915461813020313c629c11daf84795e67430",
+          "conclusion": "SUCCESS"
+        },
+        "previous": {
+          "run_id": 40171715474,
+          "head_sha": "87f863cac90405ca855d1038292af5f950d983d5",
+          "conclusion": "SUCCESS"
+        },
+        "jobs": "gateplan, lint, test (3.12), browser-smoke, desktop-build, desktop-fast, rust-vnext, installer-lifecycle, a0-gates and the other required jobs passed; skipped non-required jobs stay skipped",
+        "scope": "DOCUMENTATION_ONLY handoff checkpoints of the 04b3aa2f code qualification; this pointer-update commit itself is read separately by the next session"
+      },
+      "owner_acceptance_handoff_20261025": {
+        "status": "PREPARED_NOT_EXECUTED",
+        "installer": {
+          "path": ".project-local/candidates/ci-04b3aa2f/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "bytes": 433078836,
+          "sha256": "8aeac7a81f32afd600099d5278119764fb6f84dc39766525cbcf0af130e146bf",
+          "release_candidate_commit": "4d1303be"
+        },
+        "extracted_payload": {
+          "path": ".project-local/candidates/installed-04b3aa2f",
+          "host_sha256": "1ca21c044bba94cf33d2bf0ed4eeb9427213003f1b147baaadb5f496fccf97f3",
+          "difference_from_standalone_host": "three bytes of the Tauri __TAURI_BUNDLE_TYPE_VAR_ marker (UNK vs NSS); not a different build"
+        },
+        "existing_install_boundary": "The online 0.6.11 is the old Python backend; installing 0.6.14 replaces it and is a cross-version upgrade that remains NOT_EXECUTED. Use the in-product consistent backup or the extracted payload with ARCHEAXIS_PORTABLE_ROOT first.",
+        "evidence": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md section 2026-10-25 Owner acceptance handoff; media UI receipt .project-local/runs/installed-av-04b3aa2f/ui-receipt.json c7f6668f...512b7b",
+        "owner_acceptance": "NOT_EXECUTED",
+        "cloud_inference": "DEFERRED",
+        "cross_version_upgrade": "NOT_EXECUTED"
+      },
+      "merge": "NOT_GRANTED_BY_THIS_POINTER",
+      "release": "NOT_GRANTED",
+      "scope": "Exact-SHA cloud qualification for the current public task delivery; no merge, release or Green replacement follows from this PR"
+    },
+    "historical_d8_focused_source_qualification": {
+      "source_commit": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
+      "backend_tests": 24,
+      "frontend_tests": 79,
+      "frontend_production_build": "PASS",
+      "source_consistent": true,
+      "backend_receipt": {
+        "path": ".project-local/runs/be268a2d33/backend-d8b49aa0-focused-20261024-01/artifacts/execution.json",
+        "bytes": 1597,
+        "sha256": "ddeed01bcf7eb9bbbafe9490681fb79ae8eda390646751c3861624afcca3ad56"
+      },
+      "frontend_execution": {
+        "path": ".project-local/runs/be268a2d33/committed-frontend-targeted-d8b49aa0-20261024-01/artifacts/execution.json",
+        "bytes": 1420,
+        "sha256": "08be85c860158739312bf379d86e547daae5dab1f228ad07c3a3b40424961370"
+      },
+      "frontend_qualification": {
+        "path": ".project-local/runs/be268a2d33/committed-frontend-targeted-d8b49aa0-20261024-01/artifacts/frontend-targeted-qualification.json",
+        "bytes": 15979,
+        "sha256": "7413c60681fec056329ce59a8f29c5b548706c901d79ed8b9dcfe6bc80601eb6"
+      },
+      "boundary": "Current source compiled in focused backend tests and frontend build. No new full Host/Core installer was assembled or installed; frozen3407 candidate identity unchanged."
+    },
+    "qualified_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+    "current_candidate_build": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
+      "source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_tree": "f57ed952c734eb096057270dc1b3d81593a4091a",
+      "source_consistent": true,
+      "host_sha256": "4f56908b1b19b883dd537963c1f1a518baf5d61420d58f1c213560ce0f8b4269",
+      "core_sha256": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a",
+      "runtime_manifest_sha256": "f6759ff41e1210fd4e02ae1c4bf6d4cbabfa199a3300060e6e583e2ca3b56789",
+      "candidate_manifest_sha256": "a066eb2e747266cebc24ddcf5eb4038650a995f9e745b143ae1229de5e83fddd",
+      "members": 19745,
+      "logical_bytes": 1402028542,
+      "build_qualification": "LOCAL_CORE_FRONTEND_HOST_STAGE_PORTABLE_PASS",
+      "native_ai_qualification": "ENGINEERING_CHAIN_PASS",
+      "grouped_product_status": "PARTIAL",
+      "public_research_restore": "LOCAL_CURRENT_CORE_ACTUAL_RESTORE_AND_COLD_READBACK_PASS",
+      "installer_build": "BUNDLE_ONLY_PASS",
+      "installer_receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/bundle-receipt.json",
+        "bytes": 3963113,
+        "sha256": "39a0b6390a2bb0d793edc282d62eb6ad1ba2f436ac625eb011968850ddb0291a"
+      },
+      "installer_outputs": [
+        {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current582267f3-installer-20261024-01\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+          "bytes": 567252574
+        }
+      ],
+      "installed_qualification": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
+      "ci_qualification": "NOT_EXECUTED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "binding_receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+        "bytes": 5303,
+        "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+      }
+    },
+    "public_research_restore_latest": {
+      "status": "PASS_ACTUAL_RESTORE_WITH_POST_BACKUP_DELTA",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/restore-execution.json",
+        "bytes": 2879,
+        "sha256": "45f28ab14a730ccc11166e4f3bd0f4c87c096b491f6515184ff54648d49f4fb0"
+      },
+      "correction": {
+        "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/evidence-correction.json",
+        "bytes": 2100,
+        "sha256": "61b8525085507ec5b0fe7888f45736fe57221f1fafefd3fad1ab5dc2ddad4b88"
+      },
+      "scope": "Cloned real three-source workspace, positive post-backup marker then actual maintenance restore and cold readback; six CAS objects, three anchors, draft/package/Markdown/backup integrity; zero new external/model calls; terminate/reap exit1, not graceful exit."
+    },
+    "native_ai_current5822": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-04/artifacts/parent-native-ai.json",
+        "bytes": 31075,
+        "sha256": "daa59aca81dc3c4393751945fbb27dd22a34e47243640d6efb8753b32d90082b"
+      },
+      "owner_acceptance": "NOT_EXECUTED",
+      "boundary": "Actual inner binding and whole journey only as recorded; historical failures and suffix-only evidence unchanged. Authored review is engineering fixture, not independent semantic adjudication.",
+      "actual_inner_binding": {
+        "status": "PASS",
+        "build_receipt": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\93493815166c\\artifacts\\frontend-build.json",
+          "sha256": "ed3aca7cdb87b2daa22722124f672f22f3a8af92b0b3c1d500ac6f6d2c7527e7",
+          "bytes": 2306
+        },
+        "core_sha256": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a"
+      },
+      "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+      "grouped_product_status": "PARTIAL",
+      "whole_product_closed_loop_verified": false,
+      "normal_host_shutdowns": [
+        {
+          "pid": 23964,
+          "created": 134372626437140105,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 42020,
+          "created": 134372627870528702,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 39128,
+          "created": 134372628054773264,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 17520,
+          "created": 134372628156507459,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 42792,
+          "created": 134372628246559690,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 23264,
+          "created": 134372628379574718,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        }
+      ]
+    },
+    "native_ai_historical3407": "RUN03_REAL_ANSWER_RETEST_CONFIG_COMPONENTS_PASS_PARENT_FAIL; CLONED_SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER",
+    "local_model_historical3407": "PASS_ACTUAL_CURRENT_FIXED_ASSET_CONSUMPTION_CACHE_REVOKE_COLD; HISTORICAL_TIMEOUT_ROOT_CAUSE_UNDETERMINED",
+    "current5822_model_load": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/native-ai-run04-prep/run04-load-readback-20261024.json",
+      "bytes": 4919,
+      "sha256": "94cfbaa6883586c6f99dc146b3419535f6e07e7c46d0dce01df8c6270b71e2f2"
+    },
+    "installer_current5822": {
+      "status": "BUNDLE_ONLY_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/bundle-receipt.json",
+        "bytes": 3963113,
+        "sha256": "39a0b6390a2bb0d793edc282d62eb6ad1ba2f436ac625eb011968850ddb0291a"
+      },
+      "outputs": [
+        {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current582267f3-installer-20261024-01\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+          "bytes": 567252574
+        }
+      ],
+      "installed": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
+      "scope": "Original receipt remains BUNDLE_ONLY_NO_COMPILE_NO_INSTALL_NO_SIGN; later installed qualification is carried by separate business/lifecycle receipts",
+      "followup_status": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/installer-followup-status.json",
+        "bytes": 4077,
+        "sha256": "5bbe02810ef74734c40acda1c81cab78b90ea195062d2977b784076bb9b0c4c3"
+      },
+      "source_map": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/source-map-check.json",
+        "bytes": 229,
+        "sha256": "0dfd22982cba4e2734837f9e40a1abe04f95a18b42775897e76844628701d774"
+      },
+      "outer_execution": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-envelope-20261024-01/artifacts/execution.json",
+        "bytes": 2091,
+        "sha256": "9d76473da9c555fa899db91f6e949780a1b7e6b468c19bf6a27a1c6ef6269ed8"
+      },
+      "business_qualification": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/installed-business-execution.json",
+        "bytes": 9264,
+        "sha256": "17f33a3b5f5b35fc270199864d3ab2f22c39677ff0a32277bd299f0cdb330db6"
+      }
+    },
+    "schema13_maintenance_current5822": {
+      "status": "PASS_COMPONENT_ONLY",
+      "task_ids": [
+        "J6",
+        "CL-07",
+        "CB04",
+        "UF11"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/schema13-maintenance-journey.json",
+        "bytes": 63273,
+        "sha256": "3e0991527624239d20fb81054569526b5df3cb830e3955f947920e2ac374997d"
+      },
+      "readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/readback-summary.json",
+        "bytes": 2309,
+        "sha256": "0f39d97eba72f39adb5fb8d43b80d82d0aaf5e771c711c728169f79db55c1a86"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/execution.json",
+        "bytes": 1409,
+        "sha256": "320c0399a73eac05aee9ca0ce8eb052fa27c5a30876ef1c8238a97d5d85d0181"
+      },
+      "compiled_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_origin_commit": "52c308cf2f9f4994bc1cb9bd82cf10e88c33b7e1",
+      "execution_patch_sha256": "22739e88407290cbba8e209fccfc426b8f69205752934e015d7dcb2ed51f2fcd",
+      "fixture": "Existing supported authored schema13 shape, reproduced in disposable synthetic workspace; not an old shipped runtime database",
+      "migration": "REAL_CURRENT5822_CORE_SCHEMA13_TO14; 34 old tables checked; document history/unknown nodes/CAS/capability decision preserved",
+      "business": "Save v3, conflict409 and cold readback PASS; restore schema13 backup returns business v3 to v2 with new authorization fence; resulting schema stays14",
+      "backup_restore": "Formal maintenance backup, schema13 restore/migration and independent schema14 backup recovery PASS",
+      "cleanup": "5 owned Core processes terminated and reaped with exit1; no remaining listeners; not graceful product shutdown",
+      "not_proven": [
+        "Cross-version installer rollback",
+        "Old Core opening new schema",
+        "Real user old-library migration",
+        "Hosted CI",
+        "Owner acceptance"
+      ],
+      "model_calls": 0,
+      "external_calls": 0
+    },
+    "schema_migration_latest": "PASS_CURRENT5822_REAL_CORE_SYNTHETIC_SCHEMA13_TO14_AND_BUSINESS_DATA_RESTORE; NOT_OLD_INSTALLER_QUALIFICATION",
+    "installed_business_current5822": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/installed-business-execution.json",
+        "bytes": 9264,
+        "sha256": "17f33a3b5f5b35fc270199864d3ab2f22c39677ff0a32277bd299f0cdb330db6"
+      },
+      "native_receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/guest-output/business01/.project-local/runs/webdriver-67ca8906d707/tmp/journey/receipt.json",
+        "bytes": 55617,
+        "sha256": "f603267537ac80b66628f303e2cc137f04f45460596965d298b1014b92ede372"
+      },
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "compiled_product_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_source_commit": "2b3f138794c0cb208c668524698f7d621d1957af",
+      "source_snapshot_sha256": "c0ba14b42dd286f4c8405135123cf3f3d439d11ea010499427589cdcfe75a8de",
+      "inner_compiled_source_binding": {
+        "status": "UNVERIFIED",
+        "reason": "Candidate build binding not supplied; installation is qualified only by its parent verifier"
+      },
+      "parent_exact_candidate_pins": {
+        "ArcheAxis.exe": "4f56908b1b19b883dd537963c1f1a518baf5d61420d58f1c213560ce0f8b4269",
+        "core/archeaxis-api.exe": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a",
+        "backend-runtime-manifest.json": "f6759ff41e1210fd4e02ae1c4bf6d4cbabfa199a3300060e6e583e2ca3b56789"
+      },
+      "parent_candidate_binding": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+        "bytes": 5303,
+        "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+      },
+      "business": "REAL_INSTALLED_UI_SYNTHETIC_OWNED_FIXTURE; restore consent, version conflict, exact three-way comparison, A_v3, independent_B_draft, normal_host_restart_readback PASS",
+      "installation": "SILENT_INSTALL0_SINGLE_REGISTRY_AND_UNINSTALL0",
+      "cleanup": "TWO_NORMAL_HOST_EXIT0; OWNED_PROCESS_AND_PORT_CLEAN; OFFICIAL_EXACT_VM_STOP0; VM0_CLIENT0",
+      "input_verification_at_execution_end": {
+        "status": "PASS",
+        "files": 672,
+        "logical_bytes": 849908300,
+        "unknown_files": 0,
+        "changed_files": 0,
+        "roots": {
+          "install-input": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current5822-installed-business-20261024-01\\install-input",
+          "guest-input": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current5822-installed-business-20261024-02\\guest-input"
+        },
+        "shared_immutable_install_members": 658
+      },
+      "historical_run01_failure": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+        "bytes": 6805,
+        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
+      },
+      "model_calls": 0,
+      "network": "WSB_DISABLED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "boundary": "Same b999 installer real installed document-conflict/restore/restart business component PASS; not complete install lifecycle repetition, physical IME, Owner nine-step or Owner acceptance"
+    },
+    "green_current5822_preflight": {
+      "status": "HISTORICAL_NOT_DEPLOYED_PREFLIGHT_SUPERSEDED",
+      "preflight": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-green-preflight.json",
+        "bytes": 3912,
+        "sha256": "c7e78435f1b114dcd8345f4afbe3df40905f5228826f4b184c6176db5c6dfbd0"
+      },
+      "entry_review": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/green-deployment-entry-review-20261024.json",
+        "bytes": 7332,
+        "sha256": "dc600f8dd4a48d71f41767c8f44c67a404cf8ba1dc37387423a3b7cb84d1b883"
+      },
+      "reason": "Historical read-only preflight and entry review retained; current result is green_deployment_current5822. Their original receipt bytes and failure states are unchanged."
+    },
+    "installed_page_probe_regression_current5822": {
+      "status": "LOCAL_PASS_51_TESTS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-page-regression-20261024-01/artifacts/execution.json",
+        "bytes": 1484,
+        "sha256": "a446f966be606c3ed5aaeb31bc7c89c63b765514109ee9c38e980a87b619ad14"
+      },
+      "dom_readiness": "Actual captured wait JS evaluated with current App.tsx identity marker: page03+editor true; wrong page false; missing editor false",
+      "scope": "HISTORICAL_SIMULATED_DOM_AND_GUARD_ONLY; actual installed selector correction is separately qualified by current5822 business run02 PASS",
+      "preparation_import_failure": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-page-dom-regression-check-20261024-01/artifacts/execution.json",
+        "bytes": 1568,
+        "sha256": "760cf48a8ea5f55674e86f5c34707fba613138a1a86d24d6f8d7e3eb4dced703"
+      }
+    },
+    "current5822_vm_input_cleanup_blocked": {
+      "status": "POLICY_REJECTED_BEFORE_EXECUTION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/input-current-state/blocked-cleanup-receipt.json",
+        "bytes": 5252,
+        "sha256": "9c3484637d2590db6f9d9e80cf1f06e4b1eb6b309a8304c3cca502220a7f0439"
+      },
+      "deleted_duplicate_regular_files": 0,
+      "logical_bytes_removed": 0,
+      "target": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/install-input/candidate-setup.exe",
+      "target_retained": true,
+      "input_files_retained": 672,
+      "scope": "One verified duplicate installer unlink rejected before execution; no retry/bypass. Frozen probe sources and all input/failure receipts retained."
+    },
+    "installed_business_current5822_run01_historical": {
+      "status": "FAIL",
+      "cause": "PROBE_PAGE_IDENTITY_SELECTOR_MISMATCH",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+        "bytes": 6805,
+        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
+      },
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "installed_preflight": "PASS_EXACT_HOST_CORE_RUNTIME_MANIFEST",
+      "installed_postflight": "PASS_EXACT_HOST_CORE_RUNTIME_MANIFEST",
+      "installation": "SILENT_INSTALL0_SINGLE_REGISTRY_AND_UNINSTALL0",
+      "business": "FAIL_BEFORE_SAVE_CONFLICT_COMPARISON",
+      "completed_prefix": "Real UI backup preflight/restore/retain-recovery-candidates and opening owned A observed; not complete conflict journey",
+      "cause_evidence": {
+        "failing_probe": "scripts/probes/aaos01_installed_draft_conflict_loop.py:195",
+        "compiled_app": "582267f3:frontend/src/app/App.tsx:838",
+        "requested": "[aria-label=\"当前页面\"][data-current-page-id=\"03\"]",
+        "actual": ".stitch-page-identity[data-current-page-id=\"03\"]",
+        "screenshot": "Reading/editing page shows correct owned A and version2; document loaded"
+      },
+      "editor_dom_runtime": "NOT_INDEPENDENTLY_OBSERVED; screenshot alone does not prove textbox mounted",
+      "cleanup": "OFFICIAL_EXACT_OWNED_VM_STOP0; VM0_CLIENT0; one normal Host exit0; no owned process or port residue",
+      "input_verification_at_execution_end": {
+        "status": "PASS",
+        "files": 672,
+        "logical_bytes": 849907756,
+        "unknown_files": 0,
+        "changed_files": 0
+      },
+      "model_calls": 0,
+      "network": "WSB_DISABLED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "probe_source_fix": "PAGE_SELECTOR_ONLY_CORRECTED; 51_LOCAL_GUARD_AND_DOM_TESTS_PASS; strict EDITOR/conflict/version assertions retained; installed runtime effect NOT_EXECUTED",
+      "runtime_retry": "NOT_EXECUTED",
+      "historical_scope": "CURRENT5822_RUN01_FAIL_PRESERVED; selector correction qualified separately by run02"
+    },
+    "installed_lifecycle_current5822": {
+      "status": "PASS_LOCAL_INSTALLER_LIFECYCLE",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-local-install-lifecycle-20261024-02/lifecycle-terminal-receipt-corrected.json",
+        "bytes": 14380,
+        "sha256": "613369f51d9fc46cbb6f549d5c10034f720efcf1b5ba29192f110a30d1a53ecc"
+      },
+      "scope": "Current5822 b999 same-installer initial install, same-version in-place upgrade, forced-tree recovery, uninstall retaining data and reinstall readback PASS. Backend runtime manifest initial/upgrade/reinstall each19742/19742 PASS; four Fixed WebView consumption phases PASS. Exact VM stop0 and VM/client0. Before-cleanup snapshot unavailable after final uninstall; no cross-build, Owner or CI inference. Corrected receipt preserves original terminal936640 and fixes evidence path; root independently verified16 file refs.",
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "owner_acceptance": "NOT_EXECUTED",
+      "ci_qualification": "NOT_INFERRED"
+    },
+    "installed_lifecycle_current5822_run01_preparation_failure_historical": {
+      "status": "FAIL_BEFORE_INSTALL",
+      "cause": "PRE_INSTALL_RUNNER_MANIFEST_FIELD_PATH",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-local-install-lifecycle-20261024-01/lifecycle-terminal-receipt.json",
+        "bytes": 2779,
+        "sha256": "73a7002618a592aa7a083330ba56db5f79442be13fc516e024d125a7ecfe5541"
+      },
+      "historical": true,
+      "product_verdict": "NOT_EXECUTED_NOT_PRODUCT_FAILURE",
+      "installer_started": false,
+      "installer_bytes": 567252574,
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "installer_unchanged": true,
+      "boundary": "Runner read wrong manifest field path; no verifier/install/product execution. Original failure and historical clock preserved."
+    },
+    "first_release_platform_scope": {
+      "first_release": "windows-11-x64",
+      "windows10": "COMPATIBILITY_NOT_QUALIFIED_NOT_FIRST_RELEASE_HARD_GATE",
+      "boundary": "No Windows10 execution or ACL/global change is implied; current actual native/Sandbox evidence keeps its observed OS boundary"
+    },
+    "program_rollback_current5822": {
+      "status": "PASS_SAME_VERSION_CROSS_BUILD_PROGRAM_ROLLBACK_COMPONENT",
+      "task_ids": [
+        "J6",
+        "CL-07",
+        "M01"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-02/cross-build-terminal-receipt.json",
+        "bytes": 19021,
+        "sha256": "bb9c7303e3448710b0ded3f9759129e684db8fba8657313eacaaf7762841fbd7"
+      },
+      "scope": "DISPOSABLE_GUEST_ONLY_SAME_VERSION_0.6.14_SCHEMA14_CROSS_BUILD_PROGRAM_ROLLBACK",
+      "execution_source": {
+        "before_commit": "2b3f138794c0cb208c668524698f7d621d1957af",
+        "before_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_commit": "2b3f138794c0cb208c668524698f7d621d1957af",
+        "after_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true
+      },
+      "old_installer_sha256": "4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3",
+      "current_installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "phases": [
+        "old-seed",
+        "new-upgrade",
+        "old-rollback",
+        "new-recover"
+      ],
+      "same_document_id": "doc_f6630324011013eeef069d3fb7eb0e9e",
+      "same_source_sha256": "c969a9cb0f4290e68bd3c30872c8b97b40545e6a540b4ae777ac388329610c89",
+      "versions": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "installed_members_checked_each_phase": 19744,
+      "http_requests": 44,
+      "installation_and_business_exit_codes": "FOUR_INSTALL0_FOUR_BUSINESS0",
+      "host_shutdown": "FOUR_NORMAL_WM_CLOSE_EXIT0",
+      "business_core_cleanup": "FOUR_OWNED_TERMINATE_REAP_EXIT1_AND_PORT_CLOSED; NOT_GRACEFUL_CORE_EXIT",
+      "data_and_backups": "EXACT_DATA_BYTES_ACROSS_INSTALLER_SWITCHES_AND_PRIOR_BACKUPS_PRESERVED",
+      "uninstall": "PASS_RETAIN_SYNTHETIC_DATA_AND_BACKUPS",
+      "sandbox_cleanup": "EXACT_OWNED_STOP0_VM0_CLIENT0",
+      "model_calls": 0,
+      "external_calls": 0,
+      "owner_acceptance": "NOT_EXECUTED",
+      "hosted_ci": "NOT_EXECUTED",
+      "closed_loop_verified": false,
+      "boundary": "Only exact old3407/current5822 builds, both0.6.14/schema14; installed Core HTTP business plus actual Host window/normal closure. No schema downgrade, arbitrary release compatibility or native UI document-edit claim."
+    },
+    "program_rollback_run01_historical": {
+      "status": "FAIL_PROBE_REGISTRY_LOCATION_COMPARISON_BEFORE_BUSINESS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-01/cross-build-terminal-receipt.json",
+        "bytes": 6282,
+        "sha256": "19267eda8ab5a9ded933a47304cb47f68b80aefeddde4566a444a8e25a9ed9de"
+      },
+      "cause": "Official NSIS quoted InstallLocation was compared to an unquoted path; package identity/member checks had passed; original actual registry payload was not captured. Separate run02 records raw quoted fields and exact normalized path.",
+      "product_failure": "NOT_ESTABLISHED",
+      "originals": "PRESERVED_UNCHANGED"
+    },
+    "independent_answer_review_current5822": {
+      "status": "SINGLE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-existing-answer-review/independent-agent-review-20261024/review.json",
+        "bytes": 17253,
+        "sha256": "d9e4ba99c2ab5420e6256fb5213f80b74a8884464d0f4cc5d4e1f532e0c3c540"
+      },
+      "samples": 1,
+      "model_calls": 0,
+      "conclusion": "Original answer faithful to limited source; no proven factual error found. Retest uses added engineering clarification; changed context and unsourced clarification do not prove model improvement or external factual validity.",
+      "boundary": "Independent of original answer and intervention authorship; not blinded, Owner, representative quality, or semantic duplicate/conflict/applicability acceptance."
+    },
+    "correction_presentation_fix": {
+      "status": "SOURCE_FIXED_LOCAL_UI_TESTS_AND_NEW_HOST_BUILD_PASS_GREEN5822_UNCHANGED",
+      "task_ids": [
+        "UF09",
+        "BE-P08",
+        "BE-P10"
+      ],
+      "change": "Attribute runtime.evaluation.failed history to recorded user correction, expose submitter and submitted basis, remove automatic failed-sample labels; genuine non-correction failed outcomes remain visible. Core persisted scopes, outcomes and retest compatibility unchanged.",
+      "checks": {
+        "red": {
+          "path": ".project-local/runs/be268a2d33/correction-history-label-red-20261024-01/artifacts/execution.json",
+          "bytes": 1402,
+          "sha256": "e041eab637163e4808cbc2c68e68cbf5de7a616d1c3d924bdeda5a619dcab890"
+        },
+        "green46": {
+          "path": ".project-local/runs/be268a2d33/correction-history-label-green-20261024-01/artifacts/execution.json",
+          "bytes": 1474,
+          "sha256": "b82e64cd205a7d5a973b9b1e1b5cb36410f336fe84db1d58981a0e6783ca0254"
+        },
+        "final10": {
+          "path": ".project-local/runs/be268a2d33/correction-history-label-final-20261024-01/artifacts/execution.json",
+          "bytes": 1362,
+          "sha256": "27d75bb25dec4c0a05d5dd640210c8456e02c5388450354150e72f8c62d836fa"
+        },
+        "types": {
+          "path": ".project-local/runs/be268a2d33/correction-history-types-20261024-01/artifacts/execution.json",
+          "bytes": 1323,
+          "sha256": "c462ab1103b2bd05b08f664c9b0ebbf48a6a11c43c1b93a8b738f9e82ce62fcb"
+        }
+      },
+      "verification": "RED reproduced incorrect failure label; GREEN46 panel tests and typecheck PASS; final10 tests additionally preserve genuine answer-failure presentation.",
+      "boundary": "Original bridge-fixture tests retain their scope; later 7d953 frontend/Host component build is separately qualified by correction_ui_host_build_7d953. Existing Green/candidate compiled5822 retain original label; no current-HEAD Core, portable/installed or Owner qualification inferred.",
+      "historical_source_only_status": "SOURCE_FIXED_LOCAL_SIMULATED_UI_TESTS_PASS_NOT_REBUILT"
+    },
+    "common_formats_current5822": {
+      "status": "PASS_CURRENT5822_COMPONENT_INTEGRATION_ONLY",
+      "task_ids": [
+        "BE-P02",
+        "BE-P03",
+        "BE-P12",
+        "CL-02",
+        "J1"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-20261024-02/artifacts/final-readback.json",
+        "bytes": 8940,
+        "sha256": "6ef60995930a8a98b8be6ce850b37363aa685e6d6a9a4b8ae884fcac21a0e144"
+      },
+      "inner": {
+        "path": ".project-local/runs/be268a2d33/325b3badd07a/artifacts/common-formats.json",
+        "bytes": 90122,
+        "sha256": "2deee4c0e14f09f5a9253acc6731cbb1462edab433f1a34ebb1849b014ad1b1c"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-20261024-02/artifacts/execution.json",
+        "bytes": 1519,
+        "sha256": "5cb57e7ed895a5428ae781e6f2df90814d1c4e8d4319420d6fb28da3313950e2"
+      },
+      "formats": [
+        "DOCX",
+        "XLSX",
+        "PPTX",
+        "text PDF"
+      ],
+      "checks": [
+        "Chinese content and structure",
+        "explicit conversion loss",
+        "source location",
+        "original CAS bytes",
+        "independent reparse",
+        "cold restart equality"
+      ],
+      "compiled_candidate": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_source": "a58627e941dd754fd98c0c87d197bd627804e02e",
+      "execution_dirty_patch": "8cfd88d2aaeb68f4978dff610e7f719549b806a1c6f3fd16b901e4e5d69579b5",
+      "source_consistent": true,
+      "historical_run01": "INVALIDATED_SOURCE_CHANGED_DURING_RUN; business assertions passed, but no qualified PASS; original retained.",
+      "limits": "RawAsset/job-output/anchor integration only; original workspace has no Document rows. Does not prove same-object product document export/restore or native format UI. OCR, media and light-format receipts still bind earlier Core builds; unchanged worker bytes support component reuse only.",
+      "model_calls": 0,
+      "external_calls": 0
+    },
+    "common_formats_export_restore_current5822": {
+      "status": "PASS_COMPONENT_EXPORT_RESTART_ACTUAL_RESTORE",
+      "task_ids": [
+        "BE-P02",
+        "BE-P03",
+        "BE-P12",
+        "CL-02",
+        "J1"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-export-restore-20261024-01/artifacts/suffix-receipt.json",
+        "bytes": 12570,
+        "sha256": "ba07c49711ed21e03ffc3224d0302245e1bdd0c0a62a5efe01f11b6c2bc0b9b0"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-format-suffix-exec-20261024-01/artifacts/execution.json",
+        "bytes": 1413,
+        "sha256": "0c8563124d8716aaf245c250929e8875306ea9a01bbe2c746c448aeb23528f77"
+      },
+      "evidence_index": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-export-restore-20261024-01/artifacts/final-evidence-index.json",
+        "bytes": 4945,
+        "sha256": "a5f9f6469cee440e7d9275d827445f214158fa981f92eed9d81902bac7fef13d"
+      },
+      "compiled_candidate": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_source": {
+        "commit": "a58627e941dd754fd98c0c87d197bd627804e02e",
+        "dirty": true,
+        "patch_sha256": "c2d1a465848ba14a79bf471f69881ab9467d71cc65e1060da4c6c402136273fa"
+      },
+      "actual_scope": "Clone of prior four-format workspace; 4 actual RawAssets, 8 conversion jobs with loss/structure and 16 anchors retained. Explicit synthetic editing creates 4 Documents with real immutable source binding, then Markdown/manifest/package export, cold restart, backup, positive postbackup marker, actual restore and cold equality.",
+      "checks": {
+        "four_originals_eight_jobs_loss_structure_anchors_equal": true,
+        "four_new_source_bound_documents_exports_equal": true,
+        "cold_restart_equal": true,
+        "actual_restore": true,
+        "postbackup_marker_http": 404,
+        "same_clone_workspace_id": true,
+        "restore_epoch_changed": true
+      },
+      "source_workspace_unchanged": true,
+      "root_verification": "Root read and verified exact main receipt plus10 SHA/byte file references and four reaped processes with closed ports.",
+      "cleanup": "4 owned Core processes terminate/wait exit1, reaped and ports closed; not normal UI graceful shutdown.",
+      "model_calls": 0,
+      "external_calls": 0,
+      "boundary": "API component chain, explicitly saved projection Documents. No automatic binary job-to-Document filling, native four-format UI, source-format reconstruction, full fidelity, Owner or complete J1 qualification.",
+      "preparation_failure": "First outer dev invocation reused allocated run directory and failed WinError183 before product launch. Separate fresh execution run succeeded; evidence index preserves original preparation failure."
+    },
+    "green_deployment_current5822": {
+      "status": "DEPLOYED_PROGRAM_FILES_AND_ISOLATED_NATIVE_STARTUP_PASS",
+      "compiled_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "checkpoint_key": "verification.green_deployment_current5822",
+      "deployment": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json",
+        "bytes": 887,
+        "sha256": "3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1"
+      },
+      "startup": {
+        "path": ".project-local/runs/be268a2d33/green-current5822-isolated-startup-20261024-02/artifacts/parent-startup.json",
+        "bytes": 1769,
+        "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
+      },
+      "real_user_data": "NOT_OPENED_OR_OVERWRITTEN"
+    },
+    "native_four_format_reader_current5822": {
+      "status": "PASS_REAL_NATIVE_IMPORT_CONVERSION_SOURCE_READER_REOPEN",
+      "checkpoint_key": "verification.native_four_format_reader_current5822",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-native-four-reader-prep-20261024-02/artifacts/root-independent-readback.json",
+        "bytes": 2973,
+        "sha256": "0a0bf33faea168a5c570b78896a911e3a18060007bfafb16889852ae690b657a"
+      },
+      "source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595"
+    },
+    "correction_ui_host_build_7d953": {
+      "status": "PASS_LOCAL_FRONTEND_HOST_BUILD_REUSED_CORE",
+      "checkpoint_key": "verification.correction_ui_host_build_7d953",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/ui-host-component-binding.json",
+        "bytes": 13202,
+        "sha256": "7a95719302b70595c135dd58122142bfb336e159e168e095130c1af89b71b5b4"
+      },
+      "source_commit": "7d953cc98a0bce31baab12dd985aebfbb2aebb94"
+    },
+    "correction_history_native_followup": {
+      "status": "FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-03/artifacts/parent-display.json",
+        "bytes": 2406,
+        "sha256": "68f97107dcc4f88c0c8438156d64330a290ed4b1b10de2289721e6b44cf5f801"
+      },
+      "checkpoint_key": "verification.correction_history_native_followup",
+      "current_cause_followup": "verification.correction_history_pending_diagnosis; old FAIL unchanged, old UNDETERMINED/geometry next-step are historical",
+      "current_detail_followup": "verification.correction_history_native_detail_backup06"
+    },
+    "reader_material_success_pin_fix": {
+      "status": "PASS_LOCAL_COMPONENTS_TYPECHECK_FRONTEND_BUILD_STATIC_REVIEW",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/reader-material-job-pin-qualification-20261024.json",
+        "bytes": 9451,
+        "sha256": "8fa86bec600a5410f36498597e42fb54289a285f40228e37a437cefb7a990605"
+      },
+      "checkpoint_key": "verification.reader_material_success_pin_fix"
+    },
+    "correction_history_pending_diagnosis": {
+      "status": "CORRECT_PENDING_REQUEST_GUARD_CONFIRMED_DETAILS_STILL_NOT_VERIFIED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-05/artifacts/pending-identity-diagnosis.json",
+        "bytes": 2891,
+        "sha256": "71ab4e744c876041f2a5d25e4a3f90a61225ff582fa9902da3075e8bbd73580b"
+      },
+      "checkpoint_key": "verification.correction_history_pending_diagnosis",
+      "current_detail_followup": "verification.correction_history_native_detail_backup06"
+    },
+    "ai_conflict_consumer_source_controls": {
+      "status": "PASS_REPORTED_ISOLATED_5822_SOURCE_ROUTER_STORE_POSITIVE_NEGATIVE_CONTROLS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-02/execution-receipt.json",
+        "bytes": 2835,
+        "sha256": "4c14ec911431ca6785fb8b96866aba79e84305f03a5d06ff622dbfd25d120b4b"
+      },
+      "positive_control": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-03/execution-receipt.json",
+        "bytes": 2797,
+        "sha256": "03cfb9dcbd72a374e653ebd7aabd6ee0969de0df2eecd0ac9b2f20218ce534ec"
+      },
+      "checkpoint_key": "verification.ai_conflict_consumer_source_controls",
+      "tool_output_supplement": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-03/execution-tool-output-supplement.json",
+        "bytes": 8567,
+        "sha256": "fa9884870f364d6030692ebb2feea9e0c6148cf66f8d6d9220aa7027dc409315"
+      },
+      "cleanup": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-03/artifacts/preserved-test-binaries/cleanup-receipt.json",
+        "bytes": 2045,
+        "sha256": "fee6cc70f32c5da88da63672408ea3c4dea0ae2e6662b6d06955735daae1ab97"
+      }
+    },
+    "reader_material_pin_host_7525": {
+      "status": "PASS_LOCAL_HOST_BUILD_EXACT_REUSED_FRONTEND_AND_OLD_CORE_PINS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-host-7525-20261024-04/artifacts/host-component-binding.json",
+        "bytes": 10936,
+        "sha256": "fc882e97c722e5ffb12161c158300d3cbd97b2e6c5c8f8d437c03fd428042eec"
+      },
+      "checkpoint_key": "verification.reader_material_pin_host_7525"
+    },
+    "correction_history_native_detail_backup06": {
+      "status": "PASS_REAL_NATIVE_CORRECTION_HISTORY_DETAILS_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-06/artifacts/terminal-readback.json",
+        "bytes": 5231,
+        "sha256": "fe85728c3cd85172c4736201cea95d6e13618d6e28d5d2ea2b058d06c7d75377"
+      },
+      "checkpoint_key": "verification.correction_history_native_detail_backup06"
+    },
+    "same_workspace_human_api_subchain_5822": {
+      "status": "PASS_SAME_DB_RESTART_AND_ACTUAL_RESTORE_API_SUBCHAIN",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-same-db-continuation-20261024-07/artifacts/j1-same-db-continuation.json",
+        "bytes": 14584,
+        "sha256": "1ec36ce200392151c0f7479fc4e472c30336cb342a2ba0e6f94d024e37441926"
+      },
+      "checkpoint_key": "verification.same_workspace_human_api_subchain_5822"
+    },
+    "reader_material_pin_native_7525": {
+      "status": "PARTIAL_NATIVE_PREVIEW_BINDING_READBACK_PASS_ORIGINAL_RUN_FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 4149,
+        "sha256": "9aef603ffa809cc639a692c8cc312ec9b4ce29af16b52751d0f90953c7b4d169"
+      },
+      "checkpoint_key": "verification.reader_material_pin_native_7525",
+      "current_followup": "verification.reader_material_pin_native_7525_run03; original PARTIAL/FAIL preserved"
+    },
+    "reader_material_pin_native_7525_run03": {
+      "status": "PASS_REAL_NATIVE_READER_SUCCESSFUL_MATERIAL_BINDING_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 5856,
+        "sha256": "034402221f23f49ee16ca5135ecda62b3eab881071fbed58bc5886c778a0d897"
+      },
+      "checkpoint_key": "verification.reader_material_pin_native_7525_run03"
+    },
+    "native_folder_picker_batch_restart_7525": {
+      "status": "PASS_REAL_NATIVE_FOLDER_PICKER_DURABLE_BATCH_RESTART_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/folder-picker-native-7525-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 10765,
+        "sha256": "c9f74619e5c9fa6c18afbc5e0acd174e11bf76c94a466147e9ae4b2c013af6a1"
+      },
+      "checkpoint_key": "verification.native_folder_picker_batch_restart_7525"
+    },
+    "folder_existing_batch_api_continuation_5822": {
+      "status": "PASS_EXISTING_BATCH_REOPEN_CONTINUATION_FAILURE_LOCATION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-folder-resume-existing-batch-20261024-04/artifacts/existing-batch-resume-receipt.json",
+        "bytes": 21125,
+        "sha256": "7a76c227c266738c3b9144e89ff58f099d174383a92b9e6a714453c5a1f5198f"
+      },
+      "checkpoint_key": "verification.folder_existing_batch_api_continuation_5822"
+    },
+    "folder_failure_summary_source_fix": {
+      "status": "LOCAL_COMPONENT_TESTS_AND_TYPECHECK_PASS",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/folder-failure-summary-repair-20261024.json",
+        "bytes": 3813,
+        "sha256": "aa8cef7c74f7d0b3a54d276ebd80d7d1b2f4aaed7b67204441cb3af208649cc9"
+      },
+      "checkpoint_key": "verification.folder_failure_summary_source_fix",
+      "current_followup": "verification.folder_failure_summary_native_0410865"
+    },
+    "folder_failure_summary_native_0410865": {
+      "status": "PASS_REAL_NATIVE_FOLDER_READABLE_FAILURE_AND_EXACT_DIAGNOSTIC_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/folder-error-summary-native-0410865-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 6326,
+        "sha256": "39a2e5c02594d01115450cb7bcb43122200452dfa4b7023a6b3bb4bfea33ec32"
+      },
+      "checkpoint_key": "verification.folder_failure_summary_native_0410865"
+    },
+    "exact_0410_host_5822_core_component_binding": {
+      "status": "PASS_EXACT_COMPOSITE_COMPONENT_BINDING_NOT_INSTALLER",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current0410-component-candidate-20261024-01/artifacts/exact-component-candidate-binding.json",
+        "bytes": 3666158,
+        "sha256": "6941773c36c6ef117e0c8c3ab6dd3665d95b22ef8b9aaec00aa120ed1cc40b93"
+      },
+      "checkpoint_key": "verification.exact_0410_host_5822_core_component_binding"
+    },
+    "scanned_pdf_ocr_current5822": {
+      "status": "PASS_CURRENT5822_SCANNED_PDF_OCR_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-scanned-pdf-ocr-20261024-01/artifacts/final-readback.json",
+        "bytes": 4277,
+        "sha256": "b29371f35a4f9381d4467e7f279e7f045d1024f982370510537e946b1fdd467a"
+      },
+      "checkpoint_key": "verification.scanned_pdf_ocr_current5822"
+    },
+    "mixed_native_j1_prefix_0410": {
+      "status": "FAIL_NATIVE_REVIEW_SAVE_NO_DISPATCH_OBSERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-native-0410-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 14516,
+        "sha256": "f5e5aa00aee93afddd9df651ffd7abc5271cb0d8196fce18bfdd2934a6d90428"
+      },
+      "checkpoint_key": "verification.mixed_native_j1_prefix_0410"
+    },
+    "mixed_native_review_single_click_diagnostic03": {
+      "status": "PASS_SINGLE_REVIEW_DIAGNOSTIC_NOT_FULL_JOURNEY",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-review-diagnostic-0410-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 5294,
+        "sha256": "ec60e7e3e8f2e1f567d05b7f53f0b2b54521e988497376e40ab0527c9abfb0a5"
+      },
+      "checkpoint_key": "verification.mixed_native_review_single_click_diagnostic03"
+    },
+    "mixed_native_j1_export_restore_suffix02": {
+      "status": "PASS_NATIVE_MIXED_J1_SUFFIX_SEGMENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-suffix-0410-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 8986,
+        "sha256": "d4821711f2dc256b73607a2544b7c66f984ed8871303048354b6641140b56598"
+      },
+      "checkpoint_key": "verification.mixed_native_j1_export_restore_suffix02"
+    },
+    "independent_answer_inventory_current5822": {
+      "status": "ONE_EXISTING_UNIQUE_ANSWER_NO_ADDITIONAL_INDEPENDENT_SAMPLES",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-independent-answer-inventory-review-20261024.json",
+        "bytes": 6542,
+        "sha256": "e612feb9e65f79583f1027a6084afd0c2bb3086250c86984c613931e11f1a809"
+      },
+      "checkpoint_key": "verification.independent_answer_inventory_current5822"
+    },
+    "installed_overlay_preparation_0410": {
+      "status": "NO_SURVIVING_INSTALLED_ROOT_PREPARATION_ONLY",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/installed-host-overlay-preparation-20261024.json",
+        "bytes": 4194,
+        "sha256": "599971a932b81e55ad67d3341ae72c8ee917337cd4ca2e59bdf5fc0aaddea884"
+      },
+      "checkpoint_key": "verification.installed_overlay_preparation_0410"
+    },
+    "document_cloud_product_credential_reference_source": {
+      "status": "SOURCE_COMMITTED_PYTHON49_API8_DISPATCH6_LOCAL_PASS_HOST_UNIT_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/document-check-credential-ref-qualification-20261024-corrected.json",
+        "bytes": 8356,
+        "sha256": "bdc483e2635ab2886a4a59b5cc0235ce64591eb8557475fdc17d577ed084351f"
+      },
+      "checkpoint_key": "verification.document_cloud_product_credential_reference_source"
+    },
+    "credential_reference_core_build_2e705": {
+      "status": "PASS_CANONICAL_CORE_RELEASE_BUILD_LOCAL_MSVC",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-core-20261024-01/artifacts/execution.json",
+        "bytes": 1750,
+        "sha256": "778da0bcc6320dd70ca6fac898dde67d204286e6045e15931b80c20ff3319396"
+      },
+      "checkpoint_key": "verification.credential_reference_core_build_2e705"
+    },
+    "credential_reference_runtime_host_component_2e705": {
+      "status": "PASS_INCREMENTAL_RUNTIME_CLOSURE_AND_HOST_COMPONENT_BUILD",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-host-20261024-01/artifacts/host-component-binding.json",
+        "bytes": 8292,
+        "sha256": "eb38ca27ff3293ff1d05b74acb8fd364ae0127f2e2231a42badd1fed2b826649"
+      },
+      "checkpoint_key": "verification.credential_reference_runtime_host_component_2e705"
+    },
+    "document_check_missing_credential_native_2e705": {
+      "status": "PASS_SEGMENTED_NATIVE_MISSING_CREDENTIAL_SAVE_AND_REOPEN",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 16458,
+        "sha256": "e77cb873e9bffc58e3f13b8d71a3ab0007464017fca385290e6031a2195b9c63"
+      },
+      "checkpoint_key": "verification.document_check_missing_credential_native_2e705",
+      "scope": "原生分段负路径组件资格；整体仍 PARTIAL。不是真实云供应商、安装态、Green、CI或Owner验收。",
+      "original_failures_preserved": true,
+      "inner_compiled_binding": "UNVERIFIED"
+    },
+    "installed_component_delta_2e705": {
+      "status": "PARTIAL_INSTALLED_OVERLAY_PASS_HOST_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-component-delta-20261024-03/artifacts/installed-component-delta-terminal.json",
+        "bytes": 2416,
+        "sha256": "d5c756f5060f95085bb43835b3e43fa7b1dbfe5bd2a3a9751df960709f1c8769"
+      },
+      "checkpoint_key": "verification.installed_component_delta_2e705"
+    },
+    "green_five_member_preparation_2e705": {
+      "status": "PREPARED_NOT_APPLIED_INSTALLED_BUSINESS_BLOCKED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/credential-ref-build-prep-20261024-01/green-real-entry-final-preparation.json",
+        "bytes": 3656,
+        "sha256": "f392935cba2a257e44160ad5840d1642c2842533977526ade21a244a3375e3b9"
+      },
+      "checkpoint_key": "verification.green_five_member_preparation_2e705"
+    },
+    "ai_asset_manual_review_persistence_b2": {
+      "status": "PASS_COMPONENT20_TYPECHECK_AND_COMMITTED_SOURCE",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-patch-20261024/artifacts/final-verification.json",
+        "bytes": 2199,
+        "sha256": "1b362189ff645c94a247a70ff9bb87459e95f78e0d68a473d1ae0b9583df353a"
+      },
+      "checkpoint_key": "verification.ai_asset_manual_review_persistence_b2"
+    },
+    "ai_review_frontend_host_build_b2": {
+      "status": "PASS_ACTUAL_FRONTEND_AND_HOST_INCREMENTAL_COMPONENT_BUILD",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-host-20261024-01/artifacts/host-component-binding.json",
+        "bytes": 14051,
+        "sha256": "efef24e5462d572032a7d7147f37ce63cdd939c4b0d5caa817a39fb125f6aa70"
+      },
+      "checkpoint_key": "verification.ai_review_frontend_host_build_b2"
+    },
+    "ai_review_native_three_outcomes_b2": {
+      "status": "PASS_REAL_NATIVE_THREE_OUTCOMES_COLD_REOPEN_AND_EXPLICIT_ADOPTION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-native-20261024-04/artifacts/parent-review.json",
+        "bytes": 957,
+        "sha256": "a64e19b992e6e21265adba650753517351b232c257bf706e68b19bc1edf1eaf5"
+      },
+      "checkpoint_key": "verification.ai_review_native_three_outcomes_b2"
+    },
+    "installed_component_recovery04_tooling": {
+      "status": "PARTIAL_TOOLING_STALLED_NOT_INSTALLED_BUSINESS_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-component-recovery-20261024-04/recovery-terminal.json",
+        "bytes": 3878,
+        "sha256": "fd5850e864b88df7994a981b611cfed5a376a2f502267ffa7a35ea56d364ee84"
+      },
+      "checkpoint_key": "verification.installed_component_recovery04_tooling",
+      "cleanup_observation": {
+        "status": "STOP_REQUESTED_NOT_CONFIRMED",
+        "sandbox_id": "25d4901b-a537-4907-b32b-69ece22e8d85",
+        "remaining_count": 1,
+        "stop_client_pid": 25004,
+        "sqlite_snapshot": "UNVERIFIED_LOCKED",
+        "host_normal_exit": "UNKNOWN_NOT_OBSERVED",
+        "uninstall": "NOT_EXECUTED",
+        "no_automatic_retry_or_new_vm": true
+      }
+    },
+    "green_five_member_preparation_b2": {
+      "status": "PREPARED_NOT_APPLIED_INSTALLED_QUALIFICATION_PENDING",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/ai-review-green-prep-20261024-01/preparation.json",
+        "bytes": 6849,
+        "sha256": "461f4e138283b89a177b4a16eb3a7232251b13572caaefebc0f81e8f8b5e0f8e"
+      },
+      "checkpoint_key": "verification.green_five_member_preparation_b2"
+    },
+    "actual_text_worker_interrupt_core2e": {
+      "status": "PASS_REAL_WORKER_FAILED_RESTART_EXPLICIT_NEW_ATTEMPT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reliability-worker-data-20261024-01/receipt.json",
+        "bytes": 2642412,
+        "sha256": "10060c55d703aaf8eb4f89792d3dff03ee4b2c64da7ce119b654c568d9eb63f9"
+      },
+      "checkpoint_key": "verification.actual_text_worker_interrupt_core2e"
+    },
+    "incomplete_import_http_boundary_core2e": {
+      "status": "PASS_REAL_BACKEND_INCOMPLETE_HTTP_BODY_REJECT_FULL_RETRY_CONTENT_DEDUP",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reliability-partial-import-20261024-01/artifacts/receipt.json",
+        "bytes": 20278,
+        "sha256": "092b3e8eb3ff3103b765fbe0d88b77c7ba30f3df1f357baef726a6a466bf1705"
+      },
+      "checkpoint_key": "verification.incomplete_import_http_boundary_core2e"
+    },
+    "installed_stop_same_handle_followup01": {
+      "status": "VERIFIED_WAIT_STOP_REQUESTED_NOT_CONFIRMED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-stop-followup-20261024-01/verified-wait-receipt.json",
+        "bytes": 2698,
+        "sha256": "bb425b645e13caf240f548c25cd037fd23645fab5e392cf297f4fac3d8c70d39"
+      },
+      "checkpoint_key": "verification.installed_stop_same_handle_followup01"
+    },
+    "latest_ui_product_repair_20261026": {
+      "role": "DATED_SNAPSHOT_NOT_CURRENT_UI_DELIVERY; follow latest_ui_delivery_ref for current source, screenshots and limitations",
+      "state": "V8_LOCAL_NATIVE_RENDER_GROUPED_AND_INSTRUMENTED_UI18_PASSED_CI_BROWSER_SETUP_TIMEOUT_FOLLOWUP",
+      "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-27-菜单材质根因与普通操作后继",
+      "implementation": "workspace/intake/20261026-product-loop-implementation.md",
+      "build_receipt": ".project-local/runs/be268a2d33/2a62df550c9f/artifacts/frontend-build.json",
+      "source_patch_sha256": "54d4c73f21e624418b1cc00844aeaeb20ff20b346be06c96b6b3318d35723db8",
+      "host_sha256": "02d2204f067243a8d2725804eeac59af19a26ee5e6e04f3d8cca8ade2b5b3b1a",
+      "whole_scope": "PARTIAL; v6 ngroup5 engineering and ovp10 render passed; answer quality and Owner acceptance unmeasured. UI18 v7 only16/18 UI conversions completed; MP4 Core succeeded but UI UNKNOWN, Canvas/reparse/later citations not executed. Original failures and exact-owned normal cleanup retained; no Green replacement.",
+      "monitor": "PAUSED_UNCHANGED",
+      "local_product_commit": "4fc2bf4212c731e0abd45dee84840fa6564541da",
+      "delivery": "Published source2fdf180c to trae/20261024 and PR203; matching v6 grouped/native render passed. Full exact-source CI40386975846 has original Python6094P2F108skip438subtests; successor local fixes require a new qualification.",
+      "preview_launcher": ".project-local/AAOS-UI-Preview-20261026.cmd",
+      "build_source_commit": "4fc2bf4212c731e0abd45dee84840fa6564541da",
+      "core_sha256": "8d7ab1e7bde9ceec2cee19587b0d6a6232dc69934bf8cc3a7882e52b5d483c26",
+      "backend_manifest_sha256": "456adb0014c0d609cd3fb3334d68497ad8884ec816a5149b69708d8bc6daf3c0",
+      "local_probe_commit": "8cc31e4916bc2e0e1f8303f93399cdc4cbde9bd8",
+      "native_overview": ".project-local/runs/be268a2d33/ovp12/artifacts/native-overview/receipt.json",
+      "grouped_native_loop": ".project-local/runs/be268a2d33/webdriver-117abb6f1502/tmp/journey/receipt.json",
+      "installed_lifecycle": ".project-local/runs/be268a2d33/closure-20261026-installed-lifecycle-b12/output/47da79a1843548faa0f32018ecfb40e8/lifecycle-receipt.json",
+      "component_evidence": ".project-local/runs/be268a2d33/closure-b12-component-evidence-rebind-20261026-b2/artifacts/backend-component-evidence-rebind-b12.json",
+      "preview_host_sha256": "02d2204f067243a8d2725804eeac59af19a26ee5e6e04f3d8cca8ade2b5b3b1a",
+      "preview_launch_receipt": ".project-local/AAOS-UI-Preview-20261026-launch.json",
+      "preview_launch": "HISTORICAL_B12_VISIBLE_OBSERVATION_NOT_CURRENT_AFTER_COMPUTER_CRASH",
+      "installed_conflict": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/installed-conflict-journey.json",
+      "installed_qualification": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/guest-result.json",
+      "installed_core_reinstall_readback": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/output/reinstalled-business-core-readback.json",
+      "installed_manifest_members": {
+        "per_phase": 19743,
+        "phases": [
+          "initial",
+          "post-ui",
+          "upgrade",
+          "reinstall"
+        ],
+        "observed_per_phase": 19746
+      },
+      "installed_owned_workspace_retention": "PASS_EXACT_BYTES_AFTER_UPGRADE_UNINSTALL_REINSTALL",
+      "installed_sandbox_cleanup": ".project-local/runs/be268a2d33/closure-20261026-installed-ui-conflict-b12-b4/sandbox-cleanup.json",
+      "published_source_checkpoint_commit": "2fdf180cb01fe446c1af02152522b9edd062dcb8",
+      "publication_readback": {
+        "observed_at": "2026-10-25T23:58:26Z",
+        "branch": "trae/20261024",
+        "pr": 203,
+        "head_sha": "b5e3d6386ab7f6912106fac0a5ae788ed6e0947f",
+        "initial_ci_run": 40247028446,
+        "ci_status_at_readback": "IN_PROGRESS_NOT_PASSED",
+        "transport": "EXISTING_SSH_NORMAL_APPROVED_CHANNEL",
+        "uncommitted_files_uploaded": false
+      },
+      "audit_followup_20261026": {
+        "baseline_commit": "af1ac68b79f718e573684e2d51465c90a093f5e5",
+        "latest_published_source_commit": "09d5694e8ad353fe549b8e5062e626ad4f1dd65e",
+        "latest_ci_run": 40326077298,
+        "latest_ci_conclusion": "FAILURE_OCR_FIXTURE_BROWSER_HOST_FORMAT_INSTALLER",
+        "latest_full_python_receipt": ".project-local/runs/be268a2d33/dpy1/artifacts/execution.json",
+        "ci_run": 40247196565,
+        "ci_conclusion": "FAILURE",
+        "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-af1-dot审计与stitch协同复审",
+        "design_review": "workspace/intake/20261026-stitch-ui-audit.md",
+        "state": "09D_PUBLISHED_FULL_CI_FAILED_FOLLOWUP_FIXES_NEW_QUALIFICATION_PENDING",
+        "original_results_preserved": true,
+        "green_update": "NOT_EXECUTED",
+        "native_overview_09d": ".project-local/runs/be268a2d33/nov3/artifacts/native-overview/receipt.json",
+        "native_draft_close_09d": ".project-local/runs/be268a2d33/ndg4/artifacts/native-draft-guard/receipt.json",
+        "native_core_loss_negative_09d": ".project-local/runs/be268a2d33/crun5/artifacts/native-core-loss-drafts/receipt.json"
+      },
+      "preview_launch_current": {
+        "state": "VISIBLE_OWNER_PREVIEW_INTENTIONALLY_LEFT_OPEN",
+        "source_commit": "4fc2bf4212c731e0abd45dee84840fa6564541da",
+        "receipt": ".project-local/runs/be268a2d33/prelaunch-v8/artifacts/window-readback.json",
+        "workspace": "Existing isolated review workspace preserved",
+        "green": "UNCHANGED"
+      },
+      "qualification_f650": {
+        "source_commit": "f650cfe059c33407a2a2c65f8a296bcfd90d2400",
+        "build_receipt": ".project-local/runs/be268a2d33/bf99998fa358/artifacts/frontend-build.json",
+        "ci_run": 40337416390,
+        "ci_conclusion": "FAILURE",
+        "native_sequence": ".project-local/runs/be268a2d33/nseqrun1/artifacts/native-sequence.json",
+        "native_render": ".project-local/runs/be268a2d33/nov4/artifacts/native-overview/receipt.json",
+        "native_close_guard": ".project-local/runs/be268a2d33/ngv2/artifacts/native-draft-guard/receipt.json",
+        "actual_grouped_negative": ".project-local/runs/be268a2d33/webdriver-55dcce644f10/tmp/journey/receipt.json",
+        "cleanup": "COMPLETED_EXACT_DUPLICATES_ONLY; 153831 files / 10623006822 logical bytes removed; latest v2 19746 members and retained seals verified; ccr1 summary source_consistent=true; cde2 child0/outer INVALIDATED preserved; cache/build/data/evidence retained",
+        "mature_reuse": "RESEARCHED_NOT_IMPLEMENTED; reuse1 official-source decisions; current public APIs prn1/prn2 separately tested"
+      },
+      "owner_direction_ref": "OWNER-MULTISOURCE-CORRECTION-REUSE-20261026 / SUP-029",
+      "mature_reuse_successor": {
+        "state": "IMPLEMENTED_LOCAL_NOT_NATIVE_QUALIFIED",
+        "scope": "Driver.js1.10.2 actual-control hints; existing public query Core/CAS with stats choice, limit3 and independent Crossref fallback; studio-v3 static 2D art",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "targeted_receipts": [
+          "ft31",
+          "ftx32",
+          "cpy32",
+          "crs32",
+          "ts32",
+          "cap32"
+        ],
+        "latest_ci": "b645/40354999012 FAILURE: Python6063passed/1failed/108skipped/424subtests stale positioning assertion; cid34 raw log preserved. All other component jobs including installer-lifecycle121697970149 SUCCESS; aggregate failed. Successor positioning and fresh-guide probe fixes pending new exact-SHA CI",
+        "cleanup_followup": "FROZEN_COMPLETED: ccr3 post-screenshot3093files/18703557152B/17.419045GiB;17737emptydirs separate0logicalB; earlier ccr1 counted separately, paths disjoint; fresh v2 19746memberSHA verified; latest build/cache/data/evidence preserved",
+        "native_followup": "b645 portable-v3/5834e03ba7c6 build PASS, ngroup2 source-consistent FAIL before business/model: late first-use modal blocks stale one-shot readiness; owned Host0/ports released. Probe fixed: ngrfix1 131passed/170subtests; final ngrfix2 navigation63passed/shared30s budget, source-consistent. One successor SHA build/grouped native/UI18/overview pending",
+        "browser_receipts": [
+          "tvc1",
+          "avb6",
+          "avb7"
+        ]
+      },
+      "menu_layout_polish_20261027": {
+        "state": "PUBLISHED_41b_BUILD_PASSED_NATIVE_AND_CI_FAILED_SUCCESSOR_LOCAL_CHECKS_PASSED",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "design_ref": "workspace/intake/20261025-ui-design/DESIGN.md",
+        "focus": "Owner prioritizes menu navigation, layout refinement, interaction motion and user-facing engineering terminology convergence. All22 page entries and saved preferences retained; no protocol/schema or restore/draft protection weakening.",
+        "old_verification_screenshots": "OWNER_PURGED: 1701 ignored +9 tracked files; 1334837921 logical bytes; ssbs1/ssa1 manifests. 35 exact old test directories remain unreadable WinError5; no all-repository zero claim. Needed new screenshots after fixed cutoff retained.",
+        "date_adversarial_review": "exa1 original DST fold counterexample retained; exa2 four-timezone post-fix review passed. Saved exact epochs retained, ambiguous new local time rejected; aifm5 40passed and aifm6 34passed. Chinese offset separated in display; schema unchanged.",
+        "whole_scope": "PARTIAL; browser/units/installed/exact-SHA CI/Owner acceptance remain separate",
+        "residual_polish": "Scoped menu/layout/motion and user-language repairs checked; all22 routes preserved. No all-product zero-engineering-words, future-feature execution or Owner aesthetic acceptance claim.",
+        "local_checks": {
+          "frontend": "uifinal8:213 suites/2304 passed, LOCAL_PASS/source_consistent=true; previous failed/invalidated runs retained",
+          "types": "uityfinal6 PASS/source_consistent=true; includes confirmed document-title reuse and assessment-criteria labels",
+          "positioning_contract": "truthfinal1:8passed; source_consistent=true",
+          "menu_browser": "umcb3: current-page marker real Chromium cosmic/white1920 and cosmic960; not native",
+          "navigation_entry": "ngmfix1:75passed; actual rendered menu wait shares original30s; exact native focus and no unknown modal preserved",
+          "backup_probe_copy": "bkword1:63passed",
+          "fast_tab_regression": "umtab1 real Chromium and nfoc1 native reproduced hidden menu skipping Tab; CSS removes discrete content-visibility transition. umtab2 normal6/reduced3 immediate PASS; umtg1 formal regression PASS and rejects injected old CSS. Browser synthetic empty API, not native business PASS",
+          "probe_fixture_integration": "uipyp3 original151passed/3failed/170subtests and uipyp4 original67passed/2failed/170subtests retained; uipyp5 affected3passed after exact fixture adaptation. Navigation75 and focus10 passed in uipyp3, not whole Python PASS",
+          "public_research_health": "prh67 existing Rust4passed with original2000ms timeout; does not replace cloud67 timeout failure or establish provider reachability",
+          "menu_backdrop_ablation": "mbx5 source-consistent real Chromium: nested blur24-vs-none0 changed pixels; split header37286/67510 changed pixels, edge3.473248 to0.525537. Five-theme geometry/14px and formal immediate Tab normal/reduced passed; not native candidate qualification.",
+          "final_probe_integration": "uipyp9:359 passed/199 subtests passed across navigation/focus/grouped/identity/teaching probe tests, LOCAL_PASS/source_consistent=true; original CI6094P2F retained, production guard not relaxed",
+          "static_preflight": "uiprefinal7 full preflight LOCAL_PASS/source_consistent=true; subsequent edits only record results",
+          "dock_and_review_labels": "dlabel1:Dock28/AppDock11/Evaluation9 =48 passed, source_consistent=true; exact identity/title updates, preserved draft owner, explicit full-ID details and rubric selection covered"
+        },
+        "qualified_previous_candidate": {
+          "source_commit": "4fc2bf4212c731e0abd45dee84840fa6564541da",
+          "build_receipt": ".project-local/runs/be268a2d33/2a62df550c9f/artifacts/frontend-build.json",
+          "portable": ".project-local/runs/be268a2d33/dot-20261027-portable-v8/artifacts/星环便携候选",
+          "grouped_engineering": ".project-local/runs/be268a2d33/webdriver-117abb6f1502/tmp/journey/receipt.json",
+          "trusted_pointer_deliveries": 84,
+          "native_render": ".project-local/runs/be268a2d33/ovp12/artifacts/native-overview/receipt.json",
+          "native_visual_review": ".project-local/runs/be268a2d33/ovvr13/artifacts/visual-review.json",
+          "ui18_instrumented_successor": ".project-local/runs/be268a2d33/webdriver-793f0ad9b504/tmp/journey/receipt.json",
+          "ui18_state": "18 first conversions +18 independent reparses/citations/two cold readbacks PASS; old UNKNOWN not reproduced, cause unconfirmed; accuracy not evaluated",
+          "preview_readback": ".project-local/runs/be268a2d33/prelaunch-v8/artifacts/window-readback.json",
+          "ci": "40401963945 terminal CANCELLED: browser-smoke15m setup timeout, dependent a0 failure; all other selected jobs including actual NSIS installer-lifecycle passed; three policy-skipped gates not executed",
+          "boundary": "All local product evidence bound to4fc. Subsequent CI/docs-only commits do not rebind these binaries or native receipts.",
+          "installed_lifecycle": "PASS_FOR_4fc_EXACT_SOURCE; separate from Owner acceptance and whole workflow conclusion"
+        },
+        "terminology_actionability_followup_20261027": {
+          "state": "PUBLISHED_4fc2bf42_LOCAL_NATIVE_ENGINEERING_PASSED; exact CI has browser setup timeout",
+          "focus": [
+            "plain batch-processing state and recovery copy",
+            "user-actionable capability next steps",
+            "editable draft actions and accessible editor name",
+            "manual assessment status copy",
+            "export list status copy",
+            "stable unique enabled pointer target and trusted event delivery evidence"
+          ],
+          "protocol_boundaries": "Display copy only; preserve request IDs, enumerated states, explicit criteria/version selection, unknown-write protection, original save/readback assertions. Pointer input is not automatically replayed once dispatched.",
+          "old_ci_evidence": ".project-local/runs/be268a2d33/ci983art1/artifacts/artifact-readback.json",
+          "root_cause": "UNCONFIRMED; changed final screenshot does not prove the pointer event target at dispatch",
+          "whole_scope": "PARTIAL; no Owner visual acceptance or model-quality verdict; no Green replacement, merge or release",
+          "local_checks": {
+            "frontend": {
+              "run": "uifinal9",
+              "suites": 213,
+              "passed": 2304,
+              "source_consistent": true
+            },
+            "types": {
+              "run": "uityfinal7",
+              "status": "LOCAL_PASS",
+              "source_consistent": true
+            },
+            "preflight": {
+              "run": "uiprefinal11",
+              "checks": 19,
+              "status": "LOCAL_PASS",
+              "source_consistent": true,
+              "conventions_source": "index"
+            },
+            "python_original": {
+              "run": "uipyp10",
+              "passed": 396,
+              "failed": 2,
+              "subtests_passed": 242,
+              "source_consistent": true,
+              "cause": "Two synthetic fixtures omit stable/armed/unique/event observations"
+            },
+            "python_targeted_successor": {
+              "run": "uipyp11",
+              "passed": 21,
+              "subtests_passed": 23,
+              "source_consistent": true,
+              "scope": "Only two affected files; not a replacement whole-suite verdict"
+            },
+            "actionability_regression": {
+              "run": "gpa3",
+              "passed": 20,
+              "subtests_passed": 31,
+              "source_consistent": true
+            },
+            "boundary": "Source edits after the frontend/type run synchronize only Python synthetic fixtures and these evidence records; original failures retained. New build and native/CI are independent.",
+            "python_final": {
+              "run": "uipyp12",
+              "passed": 473,
+              "subtests_passed": 242,
+              "source_consistent": true
+            },
+            "preflight_final": {
+              "run": "uiprefinal12",
+              "checks": 19,
+              "source_consistent": true,
+              "conventions_source": "index"
+            }
+          }
+        },
+        "ci_browser_preinstalled_followup_20261027": {
+          "state": "VERIFIED_DA2_EXACT_CI_SUCCESS_NEW_PRODUCT_SUCCESSOR_CI_PENDING",
+          "cause": "GitHub job annotation15m exceeded; apt download18.5MB/9m29; Chromium install9m51, tests canceled after4m51, no terminal report",
+          "evidence": ".project-local/runs/be268a2d33/ci4b2/artifacts/browser-cancellation-diagnosis.json",
+          "image": "mcr.microsoft.com/playwright/python:v1.61.0-noble@sha256:a9731514f24121d1dcd25d58d0a38146646d290a5998fd80d3e533e7b5e21c69",
+          "mature_reference": "https://playwright.dev/python/docs/docker",
+          "change": "Only browser-smoke container, preinstalled-browser preparation and exact job-workspace Git process trust; preserve locked package, project cache,15m budget and all test commands/assertions",
+          "local_boundary": "MCR manifest and official Dockerfile read; no local Docker/WSL/VM; product preview4fc remains open",
+          "pending": "Actual browser preparation/regression and new exact-source CI; no merge/release/Green replacement/Owner visual acceptance",
+          "static_review": "Original container static review passed but missed checkout/shell HOME separation; raw CI failure retained; scoped followup still needs actual CI",
+          "bootstrap_failure_93395dad": "CI40407556899 browser job121869764399: official pinned image pulled in38s; initialize dev paths failed on dubious ownership before browser work. Checkout writes safe.directory under its temporary HOME, later shell uses /github/home. Evidence: .project-local/runs/be268a2d33/ci933b1/artifacts/browser-followup-summary.json",
+          "git_trust_fix": "GIT_CONFIG_COUNT=1 / safe.directory=${{ github.workspace }} only in browser-smoke job; no wildcard, local/global config write, HOME override or product change; official Git process configuration reference https://git-scm.com/docs/git-config",
+          "verified_successor": {
+            "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+            "run": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/40408417649",
+            "result": "SUCCESS17selectedPASS/3policySKIPPED;actualNSISand617s/13viewports synthetic-browser passed;not new product successor CI"
+          }
+        },
+        "menu_interactions_terms_successor": {
+          "implementation": "workspace/intake/20261027-menu-layout-polish.md",
+          "state": "PUBLISHED_41b_BUILD_PASSED_NATIVE_AND_CI_FAILED",
+          "checks": {
+            "uifin18": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "19e3c4f9dd82cfc574552c70788aa8d06ef4d918c64fbf0b0d8d77e7feccb7cd",
+              "source_consistent": true
+            },
+            "uity16": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "c09d9bb3c89fde7c723f2508bcdd435c84e2a9cb97c6784ba42b8c6a206de9d0",
+              "source_consistent": true
+            },
+            "upyfin16": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "c09d9bb3c89fde7c723f2508bcdd435c84e2a9cb97c6784ba42b8c6a206de9d0",
+              "source_consistent": true
+            },
+            "umpost5": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "c09d9bb3c89fde7c723f2508bcdd435c84e2a9cb97c6784ba42b8c6a206de9d0",
+              "source_consistent": true
+            },
+            "bkr2": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "9dff08e74969ef8fb460f534df04a7ce633aea3ccfb8a5bd7ecdea00b7989d1f",
+              "source_consistent": true
+            },
+            "bkm2": {
+              "status": "LOCAL_PASS",
+              "source_commit": "da2fe5ac5fbe2ac65bd3a0765599be7bea9a386e",
+              "source_patch_sha256": "9dff08e74969ef8fb460f534df04a7ce633aea3ccfb8a5bd7ecdea00b7989d1f",
+              "source_consistent": true
+            }
+          },
+          "frontend_total": "213 files /2343 passed",
+          "python_total": "5 files /123 passed /196 subtests passed",
+          "browser": "umpost5:REAL_CHROMIUM_SYNTHETIC_CORE;4viewports*7menus;motion/focus/hover/scroll/bounds/font;not native",
+          "backup": "bkr2:2passed;bkm2:1passed;48MiB;Rust extra peaks4195460/4196390B;not process RSS/SQLite C/physical power loss",
+          "raw_failures_preserved": [
+            "uifin14:2325P12F",
+            "uifin16:2340P3F",
+            "uifin17:2342P1F",
+            "umpost2:short-window task occlusion",
+            "umpost3:explicit compact auxiliary overlay",
+            "uiterm4:child83P outerINVALIDATED",
+            "bkm1:child1P outerINVALIDATED"
+          ],
+          "boundary": "Original6 unrelated dirty preserved. New two consumer-test wording edits only after type/Python/browser checks. No Green replacement/merge/release/Owner acceptance.",
+          "published_commit": "41b68d7bb9da5391e2a8710df990ec6e03575b4d",
+          "candidate_build": ".project-local/runs/be268a2d33/ui-polish-20261027-host/artifacts/frontend-build.json",
+          "native_failures": "menu-polish-native1 and menu-polish-native2 FAIL: actual horizontal wheel hover race; independent mwh1 reproduced. 640 companion also partially covers refresh top edge; center hit was insufficient.",
+          "ci": "40421206901 terminal FAILURE:15 success, browser-smoke/a0 failures,3 policy skips; actual NSIS installer lifecycle passed independently",
+          "wheel_layout_catalog_successor": {
+            "state": "LOCAL_CHECKS_PASSED_NEW_COMMIT_BUILD_NATIVE_CI_PENDING",
+            "source_commit": "41b68d7bb9da5391e2a8710df990ec6e03575b4d",
+            "source_patch_sha256": "f38c5c9cf1bc23d67ee6eceecfdf5013566ce01d6e19d7e562c6d35ef3d2eb41",
+            "implementation": "Overflow-strip horizontal wheel capture closes popup and restores original opener before hover race; native scroll preserved and popup scroll exempt. Short-window bottom reserve128px. Launchpad explains partial10 frequent entries and existing16-family/186-design-item route.",
+            "focused_frontend": "lpcv1:21 passed;lpct1:typecheck passed;LOCAL_PASS/source_consistent=true",
+            "actual_browser": ".project-local/runs/be268a2d33/mwh3/artifacts/menu-wheel/receipt.json",
+            "browser_result": "LOCAL_PASS/source_consistent=true;actual horizontal wheel retains File focus;640x480 full refresh bounds inside viewport/companion intersection0;five trusted edge-midpoint/center clicks and actual rounded-corner painted-region hits passed",
+            "raw_failure": "mwh2 original FAIL retained:2px rectangular-corner probes hit own parent beyond9px round shape;not companion coverage and not rewritten PASS",
+            "evidence_boundary": "REAL_CHROMIUM_SYNTHETIC_CORE;not new native product or Owner acceptance"
+          },
+          "independent_capability_inventory": "capcount1:16 families/186 design children match authority and full routes;117 nonfuture children not independently qualified;no all-implemented claim",
+          "real_mixed_ocr": "ocmix1:production worker/actual Tesseract chi_sim+eng local authored sample passed;41b+original54d patch/source_consistent=true;not accuracy or portable qualification",
+          "external_avatar_intake": "OWNER_DECLINED_MINIMAX_ASSET: Owner cancelled this MiniMax character batch on 2026-10-27 after rejecting its appearance. The prior exact-session viewing/download grant is withdrawn; no further conversation access, download, integration or URL request. Actual downloads and foreground inputs were both zero; the existing studio-v3/raster-2d-still product asset is unchanged. Other UI remediation and screenshot tasks continue. Historical recovery receipts remain unchanged.",
+          "adversarial_ui_remediation": "24 received findings; parallel implementation in progress. Design intake workspace/intake/20261027-ui-audit-remediation/DESIGN.md; all unified checks, new candidate/native/screenshots/exact-SHA CI and Owner acceptance remain separately qualified in active_progress."
+        }
+      }
+    }
   }
 }

@@ -118,7 +118,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     if(entries.length===0&&restoredPending&&!withheldAudit){
       pendingAnswer.current=null;pendingRetest.current=null;frozenAnswer.current=null;frozenRetest.current=null;
       setRestoredPending(false);setUncertain(false);setWithheld(false);
-      setMessage("Core 已确认当前知识没有待核对机器请求；问题与纠正草稿保留。");
+      setMessage("本地知识库已确认当前知识没有待核对的机器请求；问题与纠正草稿保留。");
     }
   },[working?.status,working?.state.pending_machine,knowledgeId,busy,restoredPending,selectedJournal,withheldAudit]);
   useEffect(()=>{
@@ -127,7 +127,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     if(pendingRetest.current?.journal_id===withheldAudit.entry.journal_id){pendingRetest.current=null;frozenRetest.current=null;}
     setWithheldAudit(null);setWithheld(false);setUncertain(false);
     setRestoredPending(Object.values(working.state.pending_machine??{}).some(entry=>entry.owner_knowledge_id===knowledgeId));
-    setMessage("Core 工作状态已确认待核对记录结束；历史终态与执行屏障仍保留。");
+    setMessage("本地知识库已确认待核对记录结束；历史终态与执行屏障仍保留。");
   },[withheldAudit,working?.status,working?.state.pending_machine,knowledgeId]);
   async function readInventory() {
     if (inventoryPending.current || busy || uncertain || frozenRetest.current) return;
@@ -206,7 +206,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if (!Array.isArray(page.items) || (page.next_cursor !== null && typeof page.next_cursor !== "string")
         || (more && page.next_cursor !== null && page.next_cursor === cursor)) throw new Error("invalid history page");
       if (requestLive(generation)) { setHistory(previous => more ? [...previous, ...page.items.filter(row => !previous.some(p => p.task_id === row.task_id))] : page.items); setCursor(page.next_cursor); setMessage("仅读取既有任务；不会自动再次调用模型。"); }
-    } catch { if (requestLive(generation)) setMessage("历史读取失败；当前内容保留，执行状态 UNKNOWN。"); }
+    } catch { if (requestLive(generation)) setMessage("历史读取失败；当前内容保留，执行状态尚未确认。"); }
     finally { if (requestLive(generation)) setBusy(false); }
   }
 
@@ -277,8 +277,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       setCorrected(correctionValue ? String(correctionValue.corrected_answer) : ""); setNote(correctionValue ? String(correctionValue.error_note) : "");
       setRetest(row.scope === "runtime.retest" ? doc : null); setRetestTask(row.scope === "runtime.retest" ? proof : null);
       const remaining=hasPendingOwner();setRestoredPending(remaining);setUncertain(remaining);if(!remaining)frozenAnswer.current=null;
-      onTask?.(row.scope === "runtime.retest" ? String(row.task_id) : String(original.answer_id)); setMessage("已从 Core 恢复固定回答与既有回执；历史记录不代表当前可消费资格或复测通过。"+(remaining?"仍有其他未确认请求，请逐条核对。":""));
-    } catch { if (requestLive(generation)) {setUncertain(true); setMessage("历史身份或读回未确认，状态 UNKNOWN；不会自动重跑推理。");} }
+      onTask?.(row.scope === "runtime.retest" ? String(row.task_id) : String(original.answer_id)); setMessage("已从本地知识库恢复固定回答与既有回执；历史记录不代表当前可消费资格或复测通过。"+(remaining?"仍有其他未确认请求，请逐条核对。":""));
+    } catch { if (requestLive(generation)) {setUncertain(true); setMessage("历史身份或读回未确认，状态尚未确认；不会自动重跑推理。");} }
     finally { if (requestLive(generation)) setBusy(false); }
   }
 
@@ -312,7 +312,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         const failed=record(await coreCommand("machine_task_get",{task_id:entry.body.retest_of}));const prior=record(JSON.parse(String(failed.conditions)));
         if(failed.task_id!==entry.body.retest_of||failed.scope!=="runtime.evaluation.failed"||prior.knowledge_id!==knowledgeId||prior.question!==entry.body.question)throw new Error("audit journey mismatch");
       }
-      if(requestLive(generation)){setWithheld(true);setUncertain(true);setWithheldAudit({taskId:row.task_id,entry:structuredClone(entry)});setMessage("Core 脱敏终态已与冻结请求核对；可以明确结束待核对记录。历史审计与禁止重复执行的屏障继续保留。");}
+      if(requestLive(generation)){setWithheld(true);setUncertain(true);setWithheldAudit({taskId:row.task_id,entry:structuredClone(entry)});setMessage("本地知识库脱敏终态已与冻结请求核对；可以明确结束待核对记录。历史审计与禁止重复执行的屏障继续保留。");}
     }catch{if(requestLive(generation))setMessage("扣留审计与冻结请求未确认；保留请求屏障，不结束或重跑。");}
     finally{if(requestLive(generation))setBusy(false);}
   }
@@ -325,8 +325,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if(pendingAnswer.current?.journal_id===audit.entry.journal_id){pendingAnswer.current=null;frozenAnswer.current=null;}
       if(pendingRetest.current?.journal_id===audit.entry.journal_id){pendingRetest.current=null;frozenRetest.current=null;}
       const remaining=hasPendingOwner();setWithheldAudit(null);setWithheld(false);setUncertain(remaining);setRestoredPending(remaining);
-      setMessage("已确认结束待核对记录，问题与纠正草稿保留。历史终态及执行屏障仍由 Core 保留；新的明确操作仍须满足当前授权。");
-    }catch{if(requestLive(generation))setMessage("结束回执未确认；保留冻结记录，读取 Core 工作状态核对，不重新推理。");}
+      setMessage("已确认结束待核对记录，问题与纠正草稿保留。历史终态及执行屏障仍由本地知识库保留；新的明确操作仍须满足当前授权。");
+    }catch{if(requestLive(generation))setMessage("结束回执未确认；保留冻结记录，读取本地知识库工作状态核对，不重新推理。");}
     finally{if(requestLive(generation))setBusy(false);}
   }
   async function inspectFailure() {
@@ -340,10 +340,10 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if(!requestLive(generation))return;
       if(value.journal_id!==entry.journal_id)throw new Error("status identity mismatch");
       if(!["FAILED","CANCELLED_LOCAL_WORKER"].includes(value.status)||!value.can_clear||typeof value.task_id!=="string"||!value.task_id||typeof value.attempt!=="number"||value.attempt<1||value.attempt>3){
-        setUncertain(true);setMessage("Core 未确认当前请求的失败终态；保留冻结身份，不结束或重跑。");return;
+        setUncertain(true);setMessage("本地知识库未确认当前请求的失败终态；保留冻结身份，不结束或重跑。");return;
       }
       setWithheld(false);setUncertain(true);setWithheldAudit({taskId:value.task_id,entry,failed:true});
-      setMessage(`Core 已确认第 ${value.attempt} 次尝试的${value.status==="CANCELLED_LOCAL_WORKER"?"本地 worker 取消":"失败"}审计；可结束请求并保留草稿。服务端停止状态、用量与费用仍未知。`);
+      setMessage(`本地知识库已确认第 ${value.attempt} 次尝试的${value.status==="CANCELLED_LOCAL_WORKER"?"本地处理进程取消":"失败"}审计；可结束请求并保留草稿。服务端停止状态、用量与费用仍未知。`);
     }catch{if(requestLive(generation)){setUncertain(true);setMessage("失败状态读取未确认；保留冻结请求，不再次推理。");}}
     finally{if(requestLive(generation))setBusy(false);}
   }
@@ -409,11 +409,11 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
           const refusal=await readMachineAdmissionRefusal(reason.machineAdmission,"answer",request);
           if(!requestLive(generation))return;
           setUncertain(true);setAdmissionRefusal(refusal??null);
-          setMessage(refusal?"Core 明确拒绝此回答请求：恢复后的旧授权已隔离。本次调用未执行；同一请求的历史执行仍未验证。冻结身份与原输入保留，请核对历史并新建明确授权，不自动替换或重跑。":"授权拒绝身份未确认，状态 UNKNOWN；保留冻结请求并核对历史。");
+          setMessage(refusal?"本地知识库明确拒绝此回答请求：恢复后的旧授权已隔离。本次调用未执行；同一请求的历史执行仍未验证。冻结身份与原输入保留，请核对历史并新建明确授权，不自动替换或重跑。":"授权拒绝身份未确认，状态尚未确认；保留冻结请求并核对历史。");
         }
-        else if (reason instanceof ApiError && reason.execution) {frozenAnswer.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存。请核对授权与审计，不自动重跑。` : "推理已执行，答案未发布；持久化审计未确认。请保留草稿并检查 Core，不自动重跑。");}
-        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setUncertain(true);setMessage("Core 明确拒绝此回答请求；仅说明本次拒绝，历史执行仍未确认。原冻结身份与输入保留，请读取历史核对，不自动换授权或重跑。");}
-        else {setUncertain(true); setMessage("回答未完成或持久化读回未确认，状态 UNKNOWN。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "请读取历史核对；不会自动再次推理。");}
+        else if (reason instanceof ApiError && reason.execution) {frozenAnswer.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存。请核对授权与审计，不自动重跑。` : "推理已执行，答案未发布；持久化审计未确认。请保留草稿并检查本地知识库，不自动重跑。");}
+        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setUncertain(true);setMessage("本地知识库明确拒绝此回答请求；仅说明本次拒绝，历史执行仍未确认。原冻结身份与输入保留，请读取历史核对，不自动换授权或重跑。");}
+        else {setUncertain(true); setMessage("回答未完成或持久化读回未确认，状态尚未确认。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "请读取历史核对；不会自动再次推理。");}
       }
     } finally { if (requestLive(generation)) setBusy(false); }
   }
@@ -439,7 +439,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if (value.body !== receipt.corrected_answer || value.status !== "candidate") throw new Error("candidate readback does not match correction receipt");
       if (requestLive(generation)) { setCandidate(value); onCandidate?.(String(value.knowledge_id)); setReviewer(correctionAuthor.trim()); setMessage("纠正已保存为候选；审核尚未发生，候选正文、来源范围和机器回答可供对照。"); }
     } catch {
-      if (requestLive(generation)) setMessage("纠正已提交或候选读回未确认。请保留填写内容并读取 Core 回执核对状态。");
+      if (requestLive(generation)) setMessage("纠正已提交或候选读回未确认。请保留填写内容并读取本地回执核对状态。");
     } finally { if (requestLive(generation)) setBusy(false); }
   }
 
@@ -459,9 +459,9 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         savedReview.current=canonical([reviewer.trim(),reviewNote.trim()]);
         setCandidate(latest);
         onCandidate?.(String(latest.knowledge_id));
-        setMessage(action === "accepted" ? "Core 已接受此纠正知识。独立复测尚未执行，不能据此宣称机器改进。"
-          : action === "rejected" ? "Core 已拒绝此纠正候选；机器回答和审核记录仍保留。"
-          : "Core 已将此纠正标记为弃用；候选、来源和复测证据仍保留。" );
+        setMessage(action === "accepted" ? "本地知识库已接受此纠正知识。独立复测尚未执行，不能据此宣称机器改进。"
+          : action === "rejected" ? "本地知识库已拒绝此纠正候选；机器回答和审核记录仍保留。"
+          : "本地知识库已将此纠正标记为弃用；候选、来源和复测证据仍保留。" );
       }
     } catch {
       if (requestLive(generation)) setMessage("纠正审核未完成，可能版本已变化。保留审核备注并重新读取候选后再决定。");
@@ -476,7 +476,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     try {
       const value = await readCandidate(id);
       if (correction && value.body !== correction.corrected_answer) throw new Error("candidate receipt mismatch");
-      if (requestLive(generation)) { setCandidate(value); onCandidate?.(String(value.knowledge_id)); setMessage("已重新读取 Core 当前候选与版本。"); }
+      if (requestLive(generation)) { setCandidate(value); onCandidate?.(String(value.knowledge_id)); setMessage("已重新读取本地知识库中的当前候选与版本。"); }
     }
     catch { if (requestLive(generation)) setMessage("候选重新读取失败；当前对照仍保留，审核操作已暂停。"); }
     finally { if (requestLive(generation)) setBusy(false); }
@@ -496,7 +496,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     setRetestFailure(null);
     setAnswerFailure(null);
     let phase = "invoke";
-    setAdmissionRefusal(null); setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
+    setAdmissionRefusal(null); setBusy(true); setMessage("正在以已审核纠正知识重答原问题；本地回执与任务读回确认前不显示为完成…");
     try {
       if(working){
         const entry=pendingRetest.current??{journal_id:`retest_${crypto.randomUUID()}`,owner_knowledge_id:knowledgeId,operation:"retest" as const,origin_restore_epoch:working.server?.restore_epoch??"",body:request as PendingMachine["body"]};
@@ -522,7 +522,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         setRetest(response); setRetestTask(proof);
         frozenRetest.current=null;
         onTask?.(String(response.retest_task_id));
-        setMessage("Core 独立复测回执与持久化任务读回一致；复测结果仍是未测评候选，请真人对照两次回答。没有自动判定改进。");
+        setMessage("本地独立复测回执与持久化任务读回一致；复测结果仍是未测评候选，请真人对照两次回答。没有自动判定改进。");
       }
     } catch (reason) {
       if (requestLive(generation)) {
@@ -530,10 +530,10 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
           const refusal=await readMachineAdmissionRefusal(reason.machineAdmission,"retest",request);
           if(!requestLive(generation))return;
           setUncertain(true);setAdmissionRefusal(refusal??null);
-          setMessage(refusal?"Core 明确拒绝复测请求：恢复后的旧授权已隔离。本次调用未执行；历史执行仍未验证。原冻结复测与纠正保留，不自动换授权或重跑。":"复测授权拒绝身份未确认，状态 UNKNOWN；保留冻结请求。");
+          setMessage(refusal?"本地知识库明确拒绝复测请求：恢复后的旧授权已隔离。本次调用未执行；历史执行仍未验证。原冻结复测与纠正保留，不自动换授权或重跑。":"复测授权拒绝身份未确认，状态尚未确认；保留冻结请求。");
         }
         else if (reason instanceof ApiError && reason.execution) {frozenRetest.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `复测推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存，不自动重跑。` : "复测推理已执行，答案未发布；审计持久化未确认，不自动重跑。");}
-        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setMessage("Core 明确拒绝复测请求；仅说明本次拒绝，历史执行仍未确认。原冻结复测、回答与纠正保留，请读取历史核对，不自动换授权或重跑。");}
+        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setMessage("本地知识库明确拒绝复测请求；仅说明本次拒绝，历史执行仍未确认。原冻结复测、回答与纠正保留，请读取历史核对，不自动换授权或重跑。");}
         else {setUncertain(true);setMessage("复测未完成或持久化读回未确认。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "保留纠正与原失败回执；先核对终态，不再次推理。");}
         setRetestFailure({phase,status:reason instanceof ApiError ? reason.status : null,code:reason instanceof ApiError ? reason.code : "unverified",...(reason instanceof ApiError && reason.machineFailure ? {reason_code:reason.machineFailure.reason_code,...(reason.machineFailure.diagnostics?{diagnostics:reason.machineFailure.diagnostics}:{})}: {})});
         setUncertain(true);
@@ -544,9 +544,9 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   return <section aria-label="知识到机器回答" className="ui-machine-answer" data-retest-failure={retestFailure?JSON.stringify(retestFailure):undefined}>
     {answerFailure?<RawReceiptButton label="回答失败脱敏诊断" payload={answerFailure}/>:null}
     {retestFailure?<RawReceiptButton label="复测失败脱敏诊断" payload={retestFailure}/>:null}
-    {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行 UNVERIFIED。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
+    {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行尚未核实。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
     {withheld ? <><p>先读取并核对已保存的扣留审计；审计未确认时保留执行屏障。</p><button disabled={busy||!withheldAudit||!working} onClick={()=>void finishWithheld()}>结束已执行但未发布的请求，保留草稿</button></> : null}
-    {working&&hasPendingOwner()?<><button disabled={working.status!=="ready"} onClick={()=>void cancelMachine()}>请求取消当前本地 worker</button><button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>核对冻结机器请求的失败状态</button></>:null}
+    {working&&hasPendingOwner()?<><button disabled={working.status!=="ready"} onClick={()=>void cancelMachine()}>请求取消本次本地生成</button><button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>检查上次调用结果</button></>:null}
     {withheldAudit?.failed?<button disabled={busy||!working} onClick={()=>void finishWithheld()}>结束失败请求，保留草稿</button>:null}
     <h4>已保存的 AI 回答记录</h4>
     {working&&Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).length>1?
@@ -558,7 +558,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         setQuestion(entry.body.question);setSelectedModel(entry.body.model??"");setMaxTokens(entry.body.max_tokens===4096?4096:2048);setRestoredPending(true);setUncertain(true);
       }}><option value="">选择一条请求核对</option>{Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).map(entry=><option key={entry.journal_id} value={entry.journal_id}>{entry.operation==="answer"?"回答":"复测"} · {entry.body.question.slice(0,80)}</option>)}</select></label>:null}
     <button disabled={busy} onClick={() => void readHistory()}>读取机器学习历史</button>
-    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id} data-task-id={row.task_id}><span>{row.scope === "runtime.execution.withheld" ? "已执行但未发布" : row.scope === "runtime.evaluation.failed" ? "评测失败" : row.scope === "runtime.retest" ? "复测" : "回答"} · {row.outcome === "succeeded" ? "已完成" : row.outcome === "failed" ? "失败" : "未测评"} · {row.recorded_at}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>查看这次任务</button></li>)}</ul>
+    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id} data-task-id={row.task_id}><span>{row.scope === "runtime.execution.withheld" ? "已执行但未发布" : row.scope === "runtime.evaluation.failed" ? "使用者纠正" : row.scope === "runtime.retest" ? "复测" : "回答"} · {row.scope === "runtime.evaluation.failed" ? "已记录" : row.outcome === "succeeded" ? "已完成" : row.outcome === "failed" ? "失败" : "未测评"} · {row.recorded_at}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>查看这次任务</button></li>)}</ul>
     {cursor ? <button disabled={busy} onClick={() => void readHistory(true)}>读取更多任务</button> : null}
     {uncertain ? <p>{withheldAudit?.failed ? "本地调用失败已核对；服务停止状态仍未知。结束请求前保留冻结输入。" : "运行结果尚未确认；请先检查已保存记录，避免重复运行。"}</p> : null}
     <h4>基于当前知识的本地回答</h4>
@@ -596,13 +596,15 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       <button disabled={busy || !corrected.trim() || !note.trim() || !correctionAuthor.trim()} onClick={() => void correct()}>记录使用者纠正候选</button>
       {correction ? <>
         <h4>纠正对照与范围</h4>
+        <p>纠正记录本身不证明原回答错误，请结合提交者与依据核验。</p>
         <dl><div><dt>纠正候选</dt><dd>已保存并关联原知识</dd></div>
           <div><dt>纠正候选修订</dt><dd>{candidate ? String(candidate.version) : "纠正候选尚未核实"}</dd></div>
           <div><dt>本题</dt><dd>{String(correction.question)}</dd></div>
           <div><dt>原机器回答</dt><dd>{String(correction.machine_answer)}</dd></div>
           <div><dt>使用者纠正</dt><dd>{String(correction.corrected_answer)}</dd></div>
           <div><dt>已保存的纠正正文</dt><dd>{candidate ? String(candidate.body) : "未确认；审核操作不可用"}</dd></div>
-          <div><dt>错误依据</dt><dd>{String(correction.error_note)}</dd></div>
+          <div><dt>纠正记录提交者</dt><dd>{String(correction.reviewer)}</dd></div>
+          <div><dt>提交的纠正依据</dt><dd>{String(correction.error_note)}</dd></div>
           <div><dt>状态</dt><dd>{candidate ? candidate.status === "accepted" ? "已接受" : candidate.status === "rejected" ? "已拒绝" : candidate.status === "deprecated" ? "已撤回" : "待审核" : "纠正候选尚未核实"}</dd></div>
         </dl>
         <RawReceiptButton label="机器纠正候选回执" payload={correction} />
@@ -617,16 +619,16 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         <button disabled={busy} onClick={() => void reloadCandidate()}>重新读取审核版本</button>
         <button disabled={busy || candidate.status !== "accepted" || !reviewer.trim() || !reviewNote.trim()} onClick={() => void reviewCorrection("deprecated")}>撤回已接受纠正（标记为弃用）</button>
         {candidate.status === "accepted" ? <>
-          <p>已审核知识可用于重答原问题。复测会再次核对先前失败任务和知识版本；接受纠正知识本身不代表复测通过。</p>
+          <p>已审核知识可用于重答原问题。复测会再次核对原纠正记录和知识版本；接受纠正知识本身不代表复测通过。</p>
           {scoped && !retestContextGrant ? <p>请先为已接受的纠正知识保存并选择独立复测授权。</p> : null}
-          <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试同一冻结复测请求" : "以已接受纠正知识运行独立复测"}</button>
+          <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试上次复测" : "以已接受纠正知识运行独立复测"}</button>
         </> : null}
           {retest ? <section aria-label="独立复测结果对照">
             <h4>独立复测结果对照</h4>
-            <p>这次复测关联先前失败的任务，使用已审核知识第 {String(candidate.version)} 版。结果尚未由真人比较。</p>
-            <h5>原机器回答（失败样本）</h5><pre>{String(record(answer.answer).answer)}</pre>
+            <p>这次复测关联原纠正记录，使用已审核知识第 {String(candidate.version)} 版。结果尚未由真人比较。</p>
+            <h5>原机器回答（纠正前）</h5><pre>{String(record(answer.answer).answer)}</pre>
             <h5>纠正后复测回答（候选）</h5><pre aria-label="独立复测机器回答">{String(record(retest.answer).answer)}</pre>
-            <p>系统仅记录独立复测及其与失败任务的关联，不自动推断纠正有效；真人比较结果尚未记录。</p>
+            <p>系统仅记录独立复测及其与纠正记录的关联，不自动推断纠正有效；真人比较结果尚未记录。</p>
             <RawReceiptButton label="复测任务持久化回执" payload={retestTask} />
             <RawReceiptButton label="机器复测回执" payload={retest} />
           </section> : null}

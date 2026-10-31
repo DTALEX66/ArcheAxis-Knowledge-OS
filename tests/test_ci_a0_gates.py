@@ -192,7 +192,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert 'tauri --receipt' in desktop_job
     assert '-- build --config src-tauri\\tauri.conf.json --bundles nsis' in desktop_job
     assert 'Compress-Archive -LiteralPath $frontendReceipt.frontend_dist' in desktop_job
-    assert "timeout-minutes: 30" in desktop_job
+    assert "timeout-minutes: 45" in desktop_job
     lifecycle_job = _job_section(workflow, "installer-lifecycle", "a0-gates")
     assert "./desktop/scripts/verify_nsis_install.ps1" in lifecycle_job
     assert "lifecycle-receipt.json" in lifecycle_job
@@ -222,7 +222,8 @@ def test_desktop_jobs_prepare_the_same_authoritative_candidate() -> None:
              "-p", "archeaxis-api", "--bin", "archeaxis-api", "--release", "--locked"],
             ["python", "-m", "desktop.scripts.prepare_bundle", "--backend-candidate",
              "--repository", ".", "--destination", ".project-local/rt", "--core",
-             "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"],
+             "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe",
+             "--asr-model", ".project-local/asr-models/faster-whisper-base"],
         ]
         parsed = [shlex.split(line) for line in commands]
         assert parsed == expected, parsed

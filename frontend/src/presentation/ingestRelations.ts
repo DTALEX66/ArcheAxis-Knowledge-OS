@@ -55,6 +55,6 @@ export function freezeRelations(selection:FolderMemberSelection,batch:IngestBatc
 export function verifyRelationReceipt(attempt:RelationAttempt,receipt:IngestRelationsDto,readback:DocumentDto) {
  const s=attempt.selection,b=attempt.body,d=receipt.document;
  if(receipt.batch_id!==s.batch_id||receipt.ordinal!==s.ordinal||receipt.workspace_id!==s.workspace_id||receipt.restore_epoch!==s.restore_epoch||receipt.source_id!==s.source_id||receipt.source_revision!==s.source_revision
-  ||d.document_id!==b.document_id||d.source_id!==b.source_id||d.source_revision!==b.source_revision||d.version!==b.expected_version+(receipt.added_relations?1:0)||!sameValue(d,readback))throw new Error("关系回执与固定版本读回不符；原请求仍待核对");
+   ||d.document_id!==b.document_id||d.source_id!==b.source_id||d.source_revision!==b.source_revision||d.version!==b.expected_version+(receipt.added_relations || receipt.updated_relations ?1:0)||!sameValue(d,readback))throw new Error("关系回执与固定版本读回不符；原请求仍待核对");
  return d;
 }

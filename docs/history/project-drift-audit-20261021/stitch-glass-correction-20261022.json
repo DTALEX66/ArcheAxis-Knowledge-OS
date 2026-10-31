@@ -1,0 +1,75 @@
+{
+  "schema": "aaos.stitch-glass-correction/v1",
+  "observed_at": "2026-10-22T23:44:59.0751430+08:00",
+  "state": "PARTIAL",
+  "base_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "source_binding": "DIRTY_WORKTREE_FILE_SHA256_NOT_BUILT_CANDIDATE",
+  "source_files": {
+    "frontend/src/components/StitchWorkspaceChrome.css": "a2e8b800f138eca050de39e4e36279c2d736a49061ac2f880a2b384999042e40",
+    "frontend/src/components/StitchLaunchpad.css": "78fc51eac2a7932be49d520809858317e5a7463f5facbbd095ecd56d432eda3a"
+  },
+  "local_artifacts": {
+    ".project-local/artifacts/stitch-glass-correction-20261022/workbench-wide.png": "5b9b4a2d6f5fbd6e320d4b0bd3de7007f5576fd26ab5d3d83cfa9391e4cd1173",
+    ".project-local/artifacts/stitch-glass-correction-20261022/launchpad-wide.png": "59b2d045c0e795ef668a4a08002b28e751685aa36eb43e6f5d5e59a6e1d79946",
+    ".project-local/artifacts/stitch-glass-correction-20261022/browser-readback.json": "bba0ac8e276571e6cfe5ef14ff6c0e1ad25dd963467324da1546c2175962612a"
+  },
+  "scope": "Existing Stitch glass, standard icon presentation and visible layout only; no added capabilities",
+  "previous_checkpoint": "docs/history/project-drift-audit-20261021/stitch-launchpad-checkpoint-20261022.json",
+  "prior_observation": {
+    "cause": "inline-size containment plus auto inline margins prevent intrinsic sizing in flex column",
+    "viewport": [
+      1280,
+      720
+    ],
+    "status": "FAIL",
+    "space_view_width": 0,
+    "workbench_width": 0
+  },
+  "fix": {
+    "space_view": "Explicit width100 percent and border-box within Stitch scope",
+    "standard_icons": "Existing pinned Lucide React 1.61.0; 28px and stroke1.7",
+    "new_dependencies_this_turn": 0,
+    "cosmic_opacity": {
+      "header": 0.2,
+      "launcher_overlay": 0.12,
+      "card": 0.28,
+      "window": 0.62
+    }
+  },
+  "checks": {
+    "stitch": "REAL_READ_ONLY_GET_SCREEN project10243059433218383839 screen206611daf7a948edb97ea60c7a7d8654; no edit or generation",
+    "native": "NOT_EXECUTED_FOR_CURRENT_SOURCE; previous source-tool reachability FAIL retained",
+    "models": "NOT_EXECUTED; previous local no-final-answer and cloud NOT_EXECUTED retained",
+    "canonical_build": "NOT_RETRIED: previous Python child process permission denial os error5 persists without evidence of environment change; no bypass",
+    "git_delivery": "NOT_COMMITTED_NOT_PUSHED; Git read-only boundary retained",
+    "browser": {
+      "limitations": [
+        "Other themes and reduced transparency not exercised this turn",
+        "No native host, installer, Green or Owner visual approval"
+      ],
+      "font": "Segoe UI",
+      "actual_screenshots_viewed": true,
+      "viewport": [
+        1280,
+        720
+      ],
+      "theme": "cosmic",
+      "core_handshake": "ECONNREFUSED 127.0.0.1:8000; no Core started",
+      "space_view_width": 781.6000366210938,
+      "horizontal_overflow": false,
+      "dpr": 1.25,
+      "status": "PARTIAL",
+      "evidence_level": "INTEGRATED_FRONTEND_ONLY_NO_CORE"
+    },
+    "component": {
+      "exit_code": 0,
+      "files": 2,
+      "status": "PASS",
+      "evidence_level": "SYNTHETIC",
+      "tests": 10,
+      "command": "node node_modules/vitest/vitest.mjs run src/__tests__/StitchLaunchpad.test.tsx src/__tests__/StitchWorkspaceChrome.test.tsx --reporter=dot"
+    }
+  },
+  "cleanup": "PASS: owned IAB tab closed; own Vite session92924 stopped through stdin and terminal exit read back; no shared process termination",
+  "monitor": "PAUSED_UNCHANGED"
+}

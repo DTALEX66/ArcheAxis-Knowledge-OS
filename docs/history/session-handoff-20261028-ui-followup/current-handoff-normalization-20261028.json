@@ -1,0 +1,21 @@
+{
+  "schema": "aaos.handoff-compaction/v1",
+  "source_commit": "208fa71a7ec2acaec2fb58263ba68851e918f429",
+  "original_path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "original_relative_link_base": "docs/current/",
+  "archive": {
+    "path": "docs/history/session-handoff-20261028-ui-followup/current-handoff-before-normalization-20261028.md",
+    "bytes": 13190,
+    "sha256": "312512b6d19e20d552f0848886bd2b12ffc86b4e044e8454bcbc006276559ed0"
+  },
+  "byte_preservation": "EXACT_ORIGINAL_BYTES_AND_SHA256",
+  "current_role": "LIVE_NAVIGATION_AND_INHERITED_CONTRACT_LINKS; no retired route",
+  "new_current": {
+    "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+    "bytes": 6263,
+    "sha256": "3548655a45a6932889af9ca0dc4ec126a2e8648fc98a0717f247431ff9a0f3ad"
+  },
+  "historical_authorization": "Archived instructions and dated statuses are source material; resolve live authorization, controls and qualification through active pointer and sole execution record.",
+  "previous_archive_mapping": "docs/history/project-drift-audit-20261021/current-handoff-compaction-20261024.json",
+  "storage": "Archive retained; reduced live navigation redundancy, no disk-space reclamation claimed."
+}

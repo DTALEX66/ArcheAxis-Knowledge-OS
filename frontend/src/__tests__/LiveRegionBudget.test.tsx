@@ -14,7 +14,7 @@ import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 //   * the pre-existing rule that a classified `state-reason` is never a live region
 //     (CoreFailureStates) is preserved, not re-litigated.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, renderHook, screen, waitFor } from "@testing-library/react";
+import { render, renderHook, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { webcrypto } from "node:crypto";
 import { ApiError } from "../api/client";
@@ -322,7 +322,7 @@ describe("Conversion surface announce budget", () => {
   it("states split progress as text but announces it once, from the round message", async () => {
     render(<TranscriptionCues proof={{
       sourceId: "s", revision: hash, jobId: "successful-job", attempt: 2, resultSha256: "b".repeat(64),
-      durationMs: 2000, cues: [{ start_ms: 100, end_ms: 1000, text: "数值37" }],
+      durationMs: 2000, cueToleranceMs: 0, cues: [{ start_ms: 100, end_ms: 1000, text: "数值37" }],
       pipeline: { windows: { status: "partial", windows_expected: 4, windows_present: 2, windows_missing: [2, 3] } },
     }} />);
 
@@ -335,7 +335,7 @@ describe("Conversion surface announce budget", () => {
   it("quotes a citation result once, from the panel's own region, without re-announcing partial coverage", async () => {
     const partialSplitProof = {
       sourceId: "s", revision: hash, jobId: "successful-job", attempt: 2, resultSha256: "b".repeat(64),
-      durationMs: 2000, cues: [{ start_ms: 100, end_ms: 1000, text: "数值37" }],
+      durationMs: 2000, cueToleranceMs: 0, cues: [{ start_ms: 100, end_ms: 1000, text: "数值37" }],
       pipeline: { windows: { status: "partial", windows_expected: 4, windows_present: 2, windows_missing: [2, 3] } },
     };
     bridge.call.mockResolvedValue({
@@ -430,10 +430,13 @@ describe("raw payloads stay off the reading surface", () => {
     // ...and the raw dump that used to sit under it is gone.
     const details = screen.getByRole("article", { name: "能力详情" });
     expect(details.querySelectorAll("pre")).toHaveLength(0);
-    expect(details.querySelectorAll("details")).toHaveLength(0);
+    const implementationDetails = within(details).getByText("实现与来源详情",{selector:"summary"}).closest("details")!;
+    expect(implementationDetails.open).toBe(false);
+    expect(implementationDetails.querySelector("summary")?.textContent).toBe("实现与来源详情");
 
     const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    await userEvent.setup().click(screen.getByText("查看连接、权限与运行情况",{selector:"summary"}));
     await userEvent.setup().click(screen.getByRole("button", { name: /能力运行详细信息 · AI回答/ }));
     expect(entries.result.current[0]).toMatchObject({label:"能力运行详细信息 · AI回答",payload:{...observation,enabled:false,health:"UNKNOWN"}});
     expect(debug).not.toHaveBeenCalled();

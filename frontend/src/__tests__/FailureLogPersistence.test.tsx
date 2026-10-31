@@ -1,0 +1,95 @@
+import {afterEach,beforeEach,expect,it,vi} from "vitest";
+import {act,render,screen,waitFor} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {DiagnosticConsole} from "../components/DiagnosticConsole";
+import {coreCommand} from "../api/core";
+import {createApiClient} from "../api/client";
+import type {FailureLogSnapshot} from "../api/generated/core-contract";
+import {beginDiagnosticObservation,recordDiagnosticFailure,connectDiagnosticPersistence,resetDiagnostics,publishDiagnostic,suspendDiagnostics} from "../presentation/diagnostics";
+const scope={workspace_id:"a".repeat(32),restore_epoch:"initial"};
+const snapshot=(extra:Partial<FailureLogSnapshot>={}):FailureLogSnapshot=>({schema:"archeaxis.operation-failure-log/v1",...scope,log_generation:"c".repeat(32),entries:[],corrupt:false,limit:50,...extra});
+const entry=(extra:Partial<FailureLogSnapshot["entries"][number]>={})=>({entry_id:"d".repeat(32),operation:"document_get" as const,status:404,code:"unavailable" as const,reason:"missing" as const,restore_epoch:"initial",first_at:"2026-10-28T01:00:00.000Z",at:"2026-10-28T01:00:00.000Z",count:1,...extra});
+beforeEach(resetDiagnostics);
+afterEach(()=>{delete window.__TAURI__;vi.restoreAllMocks();vi.unstubAllGlobals();});
+it("hydrates saved safe metadata after a new session and never persists a manually opened raw receipt",async()=>{
+  const append=vi.fn(async()=>snapshot());const transport={read:vi.fn(async()=>snapshot({entries:[entry({restore_epoch:"b".repeat(32)})]})),append,clear:vi.fn(async()=>snapshot())};
+  render(<DiagnosticConsole/>);
+  act(()=>connectDiagnosticPersistence(scope,transport));await screen.findByText(/备份也会保留/);
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("恢复前记录");
+  act(()=>publishDiagnostic("手动原回执",{body:"PRIVATE_RAW_PAYLOAD",stack:"PRIVATE_STACK"}));
+  expect(append).not.toHaveBeenCalled();
+  act(()=>resetDiagnostics());act(()=>connectDiagnosticPersistence(scope,transport));await screen.findByText(/备份也会保留/);
+  expect(screen.getByLabelText("诊断控制台")).not.toHaveTextContent(/PRIVATE_RAW_PAYLOAD|PRIVATE_STACK/);
+});
+it("records in memory first and sends only finite metadata, keeping the original business failure and logger failures nonrecursive",async()=>{
+  const calls:unknown[]=[];
+  const invoke=vi.fn(async(_command:string,args?:Record<string,unknown>)=>{const request=args?.request as {operation:string;payload:unknown};calls.push(request);if(request.operation==="operation_failure_log_read")return {status:200,body:snapshot()};if(request.operation==="operation_failure_log_append")return {status:503,body:{}};return {status:404,body:{private:"PRIVATE_RESPONSE"}};});
+  window.__TAURI__={core:{invoke}};
+  const transport={read:(body:typeof scope)=>coreCommand<FailureLogSnapshot>("operation_failure_log_read",{body}),append:(body:Record<string,unknown>)=>coreCommand<FailureLogSnapshot>("operation_failure_log_append",{body}),clear:async()=>snapshot()};
+  render(<DiagnosticConsole/>);act(()=>connectDiagnosticPersistence(scope,transport));await screen.findByText(/备份也会保留/);
+  await act(async()=>{await expect(coreCommand("document_get",{document_id:"PRIVATE_ID",body:{text:"PRIVATE_BODY"}})).rejects.toMatchObject({status:404});});
+  await screen.findByText(/问题摘要暂未确认保存/);expect(invoke).toHaveBeenCalledTimes(3);
+  const sent=(calls[2] as {payload:{body:Record<string,unknown>}}).payload.body;
+  expect(sent).toEqual({...scope,log_generation:"c".repeat(32),operation:"document_get",status:404,code:"unavailable",reason:"missing"});
+  expect(JSON.stringify(sent)).not.toMatch(/PRIVATE_|summary|stack|message|token|endpoint/);
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("打开文档");
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
+});
+it("excludes exact HTTP log routes from both transport and JSON failure logging",async()=>{
+  render(<DiagnosticConsole/>);vi.stubGlobal("fetch",vi.fn().mockResolvedValueOnce({ok:false,status:503}).mockResolvedValueOnce({ok:true,json:async()=>{throw new Error("PRIVATE_JSON");}}));
+  const client=createApiClient("http://example.invalid","");
+  await expect(client.request("/api/v1/workspace/operation-failures/read")).rejects.toMatchObject({status:503});
+  await expect(client.request("/api/v1/workspace/operation-failures/read")).rejects.toThrow("PRIVATE_JSON");
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无诊断记录");
+});
+it("drops an old workspace append completion after recovery and does not resend it into the new workspace",async()=>{
+  let finish!:(v:FailureLogSnapshot)=>void;
+  const append=vi.fn(()=>new Promise<FailureLogSnapshot>(resolve=>{finish=resolve;}));
+  render(<DiagnosticConsole/>);act(()=>connectDiagnosticPersistence(scope,{read:async()=>snapshot(),append,clear:async()=>snapshot()}));await screen.findByText(/备份也会保留/);
+  act(()=>recordDiagnosticFailure("document_get",{status:404},beginDiagnosticObservation()));
+  const next={workspace_id:"b".repeat(32),restore_epoch:"e".repeat(32)};
+  act(()=>{suspendDiagnostics();resetDiagnostics();connectDiagnosticPersistence(next,{read:async()=>snapshot(next),append:vi.fn(),clear:async()=>snapshot(next)});});
+  await screen.findByText(/备份也会保留/);await act(async()=>finish(snapshot({entries:[entry()]})));
+  expect(append).toHaveBeenCalledTimes(1);expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无诊断记录");
+});
+it("waits for explicit clear ACK and ignores an old append ACK delivered after clear changed generation",async()=>{
+  let finishAppend!:(v:FailureLogSnapshot)=>void,finishClear!:(v:FailureLogSnapshot)=>void;
+  const transport={read:async()=>snapshot(),append:vi.fn(()=>new Promise<FailureLogSnapshot>(resolve=>{finishAppend=resolve;})),clear:vi.fn(()=>new Promise<FailureLogSnapshot>(resolve=>{finishClear=resolve;}))};
+  render(<DiagnosticConsole/>);act(()=>connectDiagnosticPersistence(scope,transport));await screen.findByText(/备份也会保留/);
+  act(()=>recordDiagnosticFailure("document_get",{status:404},beginDiagnosticObservation()));
+  await userEvent.setup().click(screen.getByRole("button",{name:"清空诊断"}));
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("打开文档");expect(screen.getByRole("button",{name:"清空诊断"})).toBeDisabled();
+  await act(async()=>finishClear(snapshot({log_generation:"f".repeat(32)})));
+  await act(async()=>finishAppend(snapshot({entries:[entry()]})));
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无诊断记录");
+  expect(transport.clear).toHaveBeenCalledWith({...scope,log_generation:"c".repeat(32)});
+});
+it("isolates corrupt history and repairs it only on the user's explicit clear",async()=>{
+  const clear=vi.fn(async()=>snapshot({log_generation:"f".repeat(32)}));
+  render(<DiagnosticConsole/>);act(()=>connectDiagnosticPersistence(scope,{read:async()=>snapshot({corrupt:true,log_generation:null}),append:vi.fn(),clear}));
+  await screen.findByText(/文档和草稿不受影响/);expect(clear).not.toHaveBeenCalled();
+  await userEvent.setup().click(screen.getByRole("button",{name:"清空诊断"}));
+  await waitFor(()=>expect(clear).toHaveBeenCalledWith({...scope,log_generation:null}));await screen.findByText(/备份也会保留/);
+});
+it.each([false,true])("preserves failures observed during clear and ignores the old append's late result (reject=%s)",async rejectOld=>{
+  let finishOld!:()=>void,finishClear!:(v:FailureLogSnapshot)=>void;
+  const afterClear=snapshot({log_generation:"f".repeat(32),entries:[entry({operation:"document_draft",status:409,reason:"conflict"})]});
+  const append=vi.fn().mockImplementationOnce(()=>new Promise<FailureLogSnapshot>((resolve,reject)=>{finishOld=()=>rejectOld?reject(new Error("old generation rejected")):resolve(snapshot({entries:[entry()]}));})).mockResolvedValue(afterClear);
+  const transport={read:async()=>snapshot(),append,clear:vi.fn(()=>new Promise<FailureLogSnapshot>(resolve=>{finishClear=resolve;}))};
+  render(<DiagnosticConsole/>);act(()=>connectDiagnosticPersistence(scope,transport));await screen.findByText(/备份也会保留/);
+  act(()=>recordDiagnosticFailure("document_get",{status:404},beginDiagnosticObservation()));
+  await userEvent.setup().click(screen.getByRole("button",{name:"清空诊断"}));
+  act(()=>recordDiagnosticFailure("document_draft",{status:409},beginDiagnosticObservation()));
+  await act(async()=>finishClear(snapshot({log_generation:"f".repeat(32)})));
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("保存文档");
+  await act(async()=>finishOld());await waitFor(()=>expect(append).toHaveBeenCalledTimes(2));
+  expect(append.mock.calls[1][0]).toEqual({...scope,log_generation:"f".repeat(32),operation:"document_draft",status:409,code:"unknown",reason:"conflict"});
+  expect(screen.getByLabelText("诊断控制台")).not.toHaveTextContent("打开文档");
+  expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("备份也会保留");
+});
+it("maps an arbitrary operation string to the finite unknown value before persistence",async()=>{
+  const append=vi.fn(async()=>snapshot());render(<DiagnosticConsole/>);
+  act(()=>connectDiagnosticPersistence(scope,{read:async()=>snapshot(),append,clear:async()=>snapshot()}));await screen.findByText(/备份也会保留/);
+  act(()=>recordDiagnosticFailure("private_document_title",{message:"PRIVATE_ERROR",stack:"PRIVATE_STACK"},beginDiagnosticObservation()));
+  await waitFor(()=>expect(append).toHaveBeenCalledWith({...scope,log_generation:"c".repeat(32),operation:"unknown_operation",status:null,code:"unknown",reason:"unknown_result"}));
+});

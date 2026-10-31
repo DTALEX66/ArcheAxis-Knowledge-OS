@@ -7,6 +7,37 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_native_modal_scroll_lock_only_allows_its_qualified_fixed_stylesheet() -> None:
+    """The native zero-gap react-remove-scroll-bar sheet was blocked by style-src.
+
+    This exact hash permits only the observed CSS, not arbitrary inline styles.
+    Dependency, stylesheet or scrollbar-gap changes require a new real native
+    qualification; do not replace this allowlist with unsafe-inline or a wildcard.
+    """
+    config = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    security = config["app"]["security"]
+    directives = {part.split()[0]: part.split()[1:]
+                  for part in security["csp"].split(";") if part.strip()}
+    assert set(directives["style-src"]) == {
+        "'self'", "'sha256-nzTgYzXYDNe6BAHiiI7NNlfK8n/auuOAhh2t92YvuXo='",
+    }
+    assert "style-src-elem" not in directives and "style-src-attr" not in directives
+    assert directives["script-src"] == ["'self'"]
+    assert directives["default-src"] == ["'self'"]
+    assert directives["object-src"] == ["'none'"]
+    assert not security.get("dangerousDisableAssetCspModification", False)
+
+
+def test_native_ipc_csp_keeps_an_exact_local_transport_allowlist() -> None:
+    config = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    directives = {part.split()[0]: part.split()[1:]
+                  for part in config["app"]["security"]["csp"].split(";") if part.strip()}
+    # Official Tauri IPC origins; no arbitrary HTTP(S), remote host or proxy route.
+    assert set(directives["connect-src"]) == {
+        "'self'", "ipc:", "http://ipc.localhost", "http://127.0.0.1:*",
+    }
+
+
 def test_root_tauri_config_has_restrictive_csp_and_no_legacy_product_name() -> None:
     config = json.loads((ROOT / "src-tauri" / "tauri.conf.json").read_text(encoding="utf-8"))
     assert config["productName"] == "ArcheAxis Knowledge"
@@ -90,11 +121,29 @@ def test_root_desktop_registers_the_complete_narrow_recovery_command_surface() -
         "retry_backend",
         "restore_backup",
         "exit_application",
+        "application_close_request",
+        "application_close_response",
     }
     assert required <= registered, (
         "the webview must receive recovery data and operations only through "
         "the narrow Tauri command surface"
     )
+
+
+def test_close_protocol_is_window_scoped_one_shot_and_uses_existing_event_permission() -> None:
+    source = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    for name in ("application_close_request", "application_close_response", "exit_application"):
+        body = source.split(f"fn {name}(", 1)[1].split("\n}\n", 1)[0]
+        assert "window: tauri::Window" in body
+        assert "close_window_allowed(window.label())?" in body
+    assert 'if label == "main"' in source
+    assert "locked.pending.as_deref() != Some(&request_id)" in source
+    assert "if locked.confirmation_started" in source
+    assert "locked.finish(&request_id, false)" in source
+    config = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    capability = config["app"]["security"]["capabilities"][0]
+    assert capability["windows"] == ["main"]
+    assert "core:event:default" in capability["permissions"]
 
 
 def test_desktop_keeps_launch_credentials_in_host_and_projects_only_ready() -> None:

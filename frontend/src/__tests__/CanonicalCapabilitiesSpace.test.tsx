@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -19,6 +19,7 @@ describe("single-source capability exploration",()=>{
   const details=screen.getByRole("article",{name:"能力详情"});
   expect(details).not.toHaveTextContent(/CAP-0080|binding_long_term|not_implemented|UNKNOWN|Atlas\/implementation|config\/capability-map/);
   expect(details).toHaveTextContent("完整能力尚未接入");expect(screen.getByRole("button",{name:"当前执行入口尚未提供"})).toBeDisabled();
+  await userEvent.setup().click(within(details).getByText("实现与来源详情"));
   await userEvent.setup().click(screen.getByRole("button",{name:/能力登记与运行声明/}));
   expect(JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!)).toEqual({atlas:entry.atlas,implementation:entry.implementation});
   expect(bridge.call).not.toHaveBeenCalled();
@@ -48,5 +49,29 @@ describe("single-source capability exploration",()=>{
  it("preserves the formal directory when current health is unavailable",async()=>{
   bridge.call.mockImplementation(async()=>{throw new Error("unavailable");});await act(async()=>{render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0050"/>);});
   expect(screen.getByRole("status")).toHaveTextContent("显示未知");await userEvent.setup().click(screen.getByRole("tab",{name:"目录与搜索"}));expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(CAPABILITY_CATALOG.entries.length);
+ });
+ it("prioritizes purpose, truthful status and next action while retaining implementation evidence behind disclosure",async()=>{
+  render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0080"/>);
+  const details=screen.getByRole("article",{name:"能力详情"});
+  const summary=within(details).getByText("实现与来源详情"),disclosure=summary.closest("details")!;
+  expect(disclosure).not.toHaveAttribute("open");
+  expect(within(details).getByText(/^执行前提：/)).not.toBeVisible();
+  expect(within(details).getByText(/^所需验收证据：/)).not.toBeVisible();
+  expect(within(details).getByText(/供体映射未建立/)).not.toBeVisible();
+  const next=within(details).getByText(/^下一步：/);
+  expect(next).toBeVisible();
+    expect(next).toHaveTextContent(/尚未|暂未|不能使用/);
+    expect(next).not.toHaveTextContent(/合同|契约|入口映射|实施包|资格|回执/);
+  expect(next.compareDocumentPosition(disclosure)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(within(details).getByText("完整能力尚未接入",{exact:false})).toBeVisible();
+  expect(within(details).getByRole("button",{name:"当前执行入口尚未提供"})).toBeVisible();
+  expect(within(details).getByRole("button",{name:"当前执行入口尚未提供"})).toBeDisabled();
+  expect(within(details).getByRole("region",{name:"设计细项与独立证据"})).toBeVisible();
+  await userEvent.setup().click(summary);
+  expect(disclosure).toHaveAttribute("open");
+  expect(within(details).getByText(/^执行前提：/)).toBeVisible();
+  expect(within(details).getByText(/^所需验收证据：/)).toBeVisible();
+  expect(within(details).getByText(/供体映射未建立/)).toBeVisible();
+  expect(bridge.call).not.toHaveBeenCalled();
  });
 });

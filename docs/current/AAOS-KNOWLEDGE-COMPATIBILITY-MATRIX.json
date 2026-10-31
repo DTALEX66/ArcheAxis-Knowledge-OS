@@ -1,0 +1,3063 @@
+{
+  "schema": "archeaxis.knowledge-compatibility-matrix/v1",
+  "role": "Current CL-04/J3 acceptance inventory derived from the frozen seed; no business registry or second execution queue",
+  "authority": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+  "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "source_seed": {
+    "path": "docs/history/aaos-appendix-sources-20261007/AAOS_完整落地任务包_20261004/registries/knowledge_compatibility.seed.json",
+    "sha256": "18504ddf39feb8e2edd5448b63ff5ca9ac774f181fb0b5a49228c5385b93fed5"
+  },
+  "observed_on": "2026-10-22",
+  "inventory_complete": false,
+  "all_personal_features_compatible": false,
+  "enterprise_boundary": "Only the enterprise capabilities excluded by CLOSED_LOOP_DEFINITION; a platform name never excludes its personal features",
+  "axes": {
+    "content": "内容/编辑/大纲",
+    "files": "文件/目录/附件",
+    "tags": "标签/属性",
+    "links": "双链/反链/块引用/嵌入",
+    "collections": "数据库/集合/视图",
+    "canvas": "画布/图谱",
+    "search": "全文/语义检索",
+    "capture": "网页剪藏",
+    "templates": "模板/自动整理",
+    "learning": "学习/复习",
+    "history": "历史版本",
+    "exchange": "导入/导出/备份/恢复",
+    "sync": "一次迁移/只读连接/增量同步/双向往返分别验收",
+    "ai": "AI知识能力/权限/材料/失败"
+  },
+  "directions": [
+    "import",
+    "export",
+    "external_aaos_external",
+    "aaos_external_aaos",
+    "incremental_sync"
+  ],
+  "official_sources": {
+    "commonmark_0312": {
+      "url": "https://spec.commonmark.org/0.31.2/",
+      "boundary": "CommonMark 0.31.2; not Obsidian/GFM dialect parity",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "obsidian_tags": {
+      "url": "https://obsidian.md/help/Editing+and+formatting/Tags",
+      "boundary": "Unversioned official documentation snapshot; installed application version UNKNOWN",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "obsidian_properties": {
+      "url": "https://obsidian.md/help/properties",
+      "boundary": "Documents legacy aliases deprecated in 1.4 and dropped as defaults in 1.9; not an installed-version observation",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "obsidian_tag_view": {
+      "url": "https://obsidian.md/help/plugins/tags",
+      "boundary": "Unversioned official documentation snapshot; not plugin runtime qualification",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "notion_export": {
+      "url": "https://www.notion.com/help/export-your-content",
+      "boundary": "Dated service documentation; actual exporter build UNKNOWN",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "notion_api": {
+      "url": "https://developers.notion.com/reference/versioning",
+      "boundary": "Required Notion-Version; page example uses 2026-03-11; no latest-version claim or authenticated request",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "joplin_exchange": {
+      "url": "https://joplinapp.org/help/apps/import_export/",
+      "boundary": "Unversioned JEX/raw documentation; application/export format revision UNKNOWN",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "anki_export": {
+      "url": "https://docs.ankiweb.net/manual/exporting",
+      "boundary": "Modern/legacy package options distinguished; exact exporting client/package revision UNKNOWN",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "zotero_exchange": {
+      "url": "https://www.zotero.org/support/kb/importing_standardized_formats",
+      "boundary": "Documented exchange formats, not an entire-library fidelity guarantee",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "zotero_api3": {
+      "url": "https://www.zotero.org/support/dev/web_api/v3/basics",
+      "boundary": "API v3; application version and actual local/server endpoint UNKNOWN",
+      "observed_on": "2026-10-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    }
+  },
+  "aaos_observations": [
+    {
+      "id": "saved_collection_discovery",
+      "kind": "LOCAL_AUTHORED_INTEGRATION",
+      "receipt": ".project-local/runs/be268a2d33/collection-discovery-runtime-01/artifacts/collection-discovery-runtime.json",
+      "qualification": "AAOS synthetic-authored collection only; no external software export/import/parity claim",
+      "sha256": "488d25b8fb11460140f79364d923a18a46caa64f2db2ba4217fc6f06bdb3f333"
+    },
+    {
+      "id": "saved_collection_ui",
+      "kind": "REAL_CORE_SIMULATED_HOST",
+      "receipt": ".project-local/runs/be268a2d33/collection-discovery-ui-real-01/artifacts/real-collection-reader-browser/receipt.json",
+      "qualification": "Normal 02/03 consumer; native host/installed/Owner not qualified",
+      "sha256": "cc9b63fd19bb14869e0fd694fe2aa407ec9398b61b1c802017def8e403c5582d"
+    },
+    {
+      "id": "saved_document_tags_properties",
+      "kind": "REAL_CORE_SIMULATED_HOST",
+      "receipt": ".project-local/runs/be268a2d33/document-tags-runtime-04/artifacts/document-tags-runtime.json",
+      "qualification": "AAOS authored Markdown/tag/property consumer and independent restore only; no external software/version parity, native or installed acceptance",
+      "sha256": "7dc613c63ebb35c0adb6389f9bbe6a6340dc003aacba03fb3114f92b93a45aaa"
+    }
+  ],
+  "promotion_rule": "An AAOS authored/synthetic/local result or official documentation cannot promote an external platform direction or feature to PASS; require exact source/target versions, authorized material, mapping/losses, same-candidate consumer/restart/export evidence. NOT_APPLICABLE or deferral needs a referenced approved decision. UNKNOWN is not zero or supported.",
+  "platforms": [
+    {
+      "platform_key": "markdown",
+      "name": "Markdown Folder",
+      "inherited_stage": "K1",
+      "inherited_route": "本地文件/结构和附件",
+      "inherited_source_refs": [
+        "S19"
+      ],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": "CommonMark 0.31.2",
+        "version_basis": "OFFICIAL_DOCUMENTATION_ONLY; actual parser conformance NOT_EXECUTED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "commonmark_syntax",
+          "axis": "content",
+          "official_sources": [
+            "commonmark_0312"
+          ],
+          "requirement": "按0.31.2逐项核标题、列表、引用、代码、链接、图片等语法；原字节保全不能代替语义往返。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "dialect_boundary",
+          "axis": "exchange",
+          "official_sources": [
+            "commonmark_0312"
+          ],
+          "requirement": "明确CommonMark与扩展方言边界；不能以Markdown文件导入推导所有笔记软件兼容。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "obsidian",
+      "name": "Obsidian",
+      "inherited_stage": "K1",
+      "inherited_route": "Vault/Markdown；链接/Canvas/插件结构单测",
+      "inherited_source_refs": [
+        "S19"
+      ],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "Official properties documentation distinguishes pre-1.9 deprecated defaults from >=1.9; actual imported/exported client UNKNOWN"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "inline_and_property_tags",
+          "axis": "tags",
+          "official_sources": [
+            "obsidian_tags"
+          ],
+          "requirement": "行内标签与tags属性均需接入并能找到对应文档。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "nested_case_insensitive_tags",
+          "axis": "tags",
+          "official_sources": [
+            "obsidian_tags"
+          ],
+          "requirement": "父标签匹配后代、大小写不敏感；保留原显示形式，不把纯数字当有效标签。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "tags_panel",
+          "axis": "tags",
+          "official_sources": [
+            "obsidian_tag_view"
+          ],
+          "requirement": "按名称/文档频次组织与树/平面切换需有消费者；不能用普通全文命中代替标签语义。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "typed_properties",
+          "axis": "tags",
+          "official_sources": [
+            "obsidian_properties"
+          ],
+          "requirement": "文本、列表、数字、复选、日期/时间和tags类型分别核；文本属性中的井号不是标签。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "legacy_property_aliases",
+          "axis": "tags",
+          "official_sources": [
+            "obsidian_properties"
+          ],
+          "requirement": "旧tag/alias/cssclass与新tags/aliases/cssclasses分版本处理；不能静默合并。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "notion",
+      "name": "Notion",
+      "inherited_stage": "K2",
+      "inherited_route": "官方导出/授权 API 分 profile",
+      "inherited_source_refs": [
+        "S18"
+      ],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": "API example 2026-03-11; exporter format revision UNKNOWN",
+        "version_basis": "OFFICIAL_DOCUMENTATION_ONLY; no authenticated API request"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "exported_pages_assets",
+          "axis": "files",
+          "official_sources": [
+            "notion_export"
+          ],
+          "requirement": "按实际导出样本核Markdown/HTML页面、CSV数据库、子页与资源映射。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "exported_view_loss",
+          "axis": "collections",
+          "official_sources": [
+            "notion_export"
+          ],
+          "requirement": "导出可选当前或默认视图，不能一次导出全部视图；Form视图当前不可导出，缺失语义保留缺口。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "workspace_reconstruction",
+          "axis": "exchange",
+          "official_sources": [
+            "notion_export"
+          ],
+          "requirement": "官方导出不能直接重上传复建整个workspace；AAOS往返另验。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "api_version_binding",
+          "axis": "exchange",
+          "official_sources": [
+            "notion_api"
+          ],
+          "requirement": "API路径与文件导出分profile，使用明确Notion-Version及授权对象；文档示例版本不当已接通。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "siyuan",
+      "name": "SiYuan 思源",
+      "inherited_stage": "K3",
+      "inherited_route": "官方导出/数据格式/API 待版本核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "joplin",
+      "name": "Joplin",
+      "inherited_stage": "K3",
+      "inherited_route": "JEX/raw 等交换路径逐字段核验",
+      "inherited_source_refs": [
+        "S20"
+      ],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "jex_raw_metadata",
+          "axis": "exchange",
+          "official_sources": [
+            "joplin_exchange"
+          ],
+          "requirement": "JEX tar与raw目录分别验证笔记、笔记本、附件和元数据；格式保全与AAOS功能使用分别验。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "jex_tags",
+          "axis": "tags",
+          "official_sources": [
+            "joplin_exchange"
+          ],
+          "requirement": "标签、更新时间及其他元数据在入库、检索和回写后逐项核对，不以原件保存冒充吸收。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "logseq",
+      "name": "Logseq",
+      "inherited_stage": "K3",
+      "inherited_route": "文件型与数据库型版本分别探测",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "zotero",
+      "name": "Zotero",
+      "inherited_stage": "K3",
+      "inherited_route": "本地/Web API 与文献交换格式分开",
+      "inherited_source_refs": [
+        "S22"
+      ],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": "Web API v3; exchange revisions UNKNOWN",
+        "version_basis": "OFFICIAL_DOCUMENTATION_ONLY; no library connection"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "bibliography_formats",
+          "axis": "exchange",
+          "official_sources": [
+            "zotero_exchange"
+          ],
+          "requirement": "RIS、Bib(La)TeX、CSL JSON等逐格式核字段、身份和损失；不从格式清单推导整库/注释/附件兼容。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "api3_objects",
+          "axis": "files",
+          "official_sources": [
+            "zotero_api3"
+          ],
+          "requirement": "API v3对象、集合、版本、分页与标签需实际映射；本地与Web分开，不以公开读推导私人写权限。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "anki",
+      "name": "Anki",
+      "inherited_stage": "K3",
+      "inherited_route": "apkg/colpkg/文本与媒体/调度分开",
+      "inherited_source_refs": [
+        "S21"
+      ],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "text_identity",
+          "axis": "exchange",
+          "official_sources": [
+            "anki_export"
+          ],
+          "requirement": "文本往返须保留字段/HTML、note type与首字段身份规则，修改首字段的后果须明确。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "apkg_deck_merge",
+          "axis": "learning",
+          "official_sources": [
+            "anki_export"
+          ],
+          "requirement": "普通apkg为牌组包；调度历史、预设、媒体及新旧格式选项分别验。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "colpkg_collection_replace",
+          "axis": "exchange",
+          "official_sources": [
+            "anki_export"
+          ],
+          "requirement": "colpkg及历史collection.apkg是整集合替换语义，不能按普通牌组合并；仅隔离自造库试验。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "affine",
+      "name": "AFFiNE",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API 与文档画布 profile 待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "appflowy",
+      "name": "AppFlowy",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API 与数据库 profile 待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "outline",
+      "name": "Outline",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API/团队空间权限待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "docmost",
+      "name": "Docmost",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API/版本范围待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "wikijs",
+      "name": "Wiki.js",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API/存储适配待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "bookstack",
+      "name": "BookStack",
+      "inherited_stage": "K4",
+      "inherited_route": "书/章节/页与导出/API 待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "anytype",
+      "name": "Anytype",
+      "inherited_stage": "K4",
+      "inherited_route": "对象类型/关系/许可/导出待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "trilium",
+      "name": "Trilium",
+      "inherited_stage": "K4",
+      "inherited_route": "笔记/属性/关系/脚本保全待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "evernote",
+      "name": "Evernote",
+      "inherited_stage": "K4",
+      "inherited_route": "正式导出格式与账户权限待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "onenote",
+      "name": "OneNote",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API 的账号和平台差异待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "yuque",
+      "name": "语雀",
+      "inherited_stage": "K4",
+      "inherited_route": "官方导出/API 与资源权限待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "feishu",
+      "name": "飞书文档/知识库",
+      "inherited_stage": "K4",
+      "inherited_route": "官方 API、租户/文档权限待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "confluence",
+      "name": "Confluence",
+      "inherited_stage": "K4",
+      "inherited_route": "Cloud/Data Center 与导出/API 版本分别核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "ragflow",
+      "name": "RAGFlow",
+      "inherited_stage": "K4",
+      "inherited_route": "语料/切块/检索/引用/评测 profile 待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "fastgpt",
+      "name": "FastGPT",
+      "inherited_stage": "K4",
+      "inherited_route": "知识库资料/配置/API 待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "maxkb",
+      "name": "MaxKB",
+      "inherited_stage": "K4",
+      "inherited_route": "资料/引用/检索配置待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "dify",
+      "name": "Dify",
+      "inherited_stage": "K4",
+      "inherited_route": "知识数据集/管线/应用配置分开待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "weknora",
+      "name": "WeKnora",
+      "inherited_stage": "K4",
+      "inherited_route": "资料/对象/版本/检索待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "git",
+      "name": "Git Repository",
+      "inherited_stage": "K2",
+      "inherited_route": "指定提交下文件与链接/代码文档；不运行脚本",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "apple_notes",
+      "name": "Apple Notes",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "授权导出与附件保全待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "bear",
+      "name": "Bear",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "正式备份/导出和标签结构待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "craft",
+      "name": "Craft",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "官方导出/API/对象关系待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "heptabase",
+      "name": "Heptabase",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "卡片/白板/导出结构待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "tana",
+      "name": "Tana",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "对象/标签/导出接口待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "capacities",
+      "name": "Capacities",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "类型化对象/导出接口待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "remnote",
+      "name": "RemNote",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "笔记与学习调度导出待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "roam",
+      "name": "Roam Research",
+      "inherited_stage": "DISCOVERY",
+      "inherited_route": "块/引用/导出接口待核验",
+      "inherited_source_refs": [],
+      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "inherited_feature_families": [
+        "内容编辑",
+        "组织链接",
+        "数据库属性视图",
+        "画布图谱",
+        "文献原件",
+        "学习调度",
+        "评论权限协作",
+        "导入导出自动化",
+        "离线同步安全",
+        "AI知识能力"
+      ],
+      "documented_features": [],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    }
+  ]
+}

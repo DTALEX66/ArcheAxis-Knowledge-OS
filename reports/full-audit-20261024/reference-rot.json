@@ -1,0 +1,208 @@
+{
+  "schema": "aaos.reference-rot/v1",
+  "real_refs": 4958,
+  "existing": 2986,
+  "missing": 1972,
+  "malformed_prose": 2391,
+  "missing_by_era": {
+    "other": 159,
+    "current": 24,
+    "history": 1789
+  },
+  "missing_by_component": {
+    "runs": 1086,
+    "worktrees": 141,
+    "candidates": 129,
+    "build": 128,
+    "task-runtime": 113,
+    "archives": 111,
+    "mig": 63,
+    "legacy-scratch-20261008": 44,
+    "acceptance": 32,
+    "audits": 22,
+    "staging": 21,
+    "tmp": 15,
+    "restored": 14,
+    "artifacts": 8,
+    "rt": 5
+  },
+  "sample_missing": [
+    {
+      "ref": ".project-local/build/green-candidates/ArcheAxis.Knowledge.Green-va64788c4-x64",
+      "exists": false,
+      "era": "other",
+      "component": "build",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "ref": ".project-local/build/green-candidates/ArcheAxis.Knowledge.Green-va5de4b13-x64",
+      "exists": false,
+      "era": "other",
+      "component": "build",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "ref": ".project-local/build/green-candidates/ArcheAxis.Knowledge.Green-va5de4b13-x64.zip",
+      "exists": false,
+      "era": "other",
+      "component": "build",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "ref": ".project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vcurrent6-20260925/ArcheAxis.Knowledge.Green-vcurrent6-20260925-x64",
+      "exists": false,
+      "era": "other",
+      "component": "build",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "ref": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/install-input/candidate-setup.exe",
+      "exists": false,
+      "era": "current",
+      "component": "runs",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "ref": ".project-local/runs/f714401b40/ui-learning-stage-20261009/governance-assessment/H01-ASSESSMENT.md",
+      "exists": false,
+      "era": "current",
+      "component": "runs",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-H01-SOURCE-TRACE-20261009.json"
+    },
+    {
+      "ref": ".project-local/runs/f714401b40/ui-learning-stage-20261009/governance-assessment/assessment.json",
+      "exists": false,
+      "era": "current",
+      "component": "runs",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-H01-SOURCE-TRACE-20261009.json"
+    },
+    {
+      "ref": ".project-local/runs/f714401b40/ui-learning-stage-20261009/governance-assessment/file-evidence.json",
+      "exists": false,
+      "era": "current",
+      "component": "runs",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-H01-SOURCE-TRACE-20261009.json"
+    },
+    {
+      "ref": ".project-local/artifacts/drift-audit-20261021/local-fast-current-candidate-chain.json导航",
+      "exists": false,
+      "era": "current",
+      "component": "artifacts",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-LOCAL-LLM-20261018.md"
+    },
+    {
+      "ref": ".project-local/runs/2611ed9ca1/c754e3f67b64/artifacts/m0loop/169af82a95be4093b655bc6873611a71/m0-loop-receipt.json",
+      "exists": false,
+      "era": "current",
+      "component": "runs",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md"
+    },
+    {
+      "ref": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
+      "exists": false,
+      "era": "current",
+      "component": "runs",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json"
+    },
+    {
+      "ref": ".project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/extract_logo_assets.py",
+      "exists": false,
+      "era": "current",
+      "component": "legacy-scratch-20261008",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-UI-ASSET-MANIFEST-20261007.json"
+    },
+    {
+      "ref": ".project-local/artifacts/drift-audit-20261021/three-public-current-candidate-chain.json导航",
+      "exists": false,
+      "era": "current",
+      "component": "artifacts",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    },
+    {
+      "ref": ".project-local/worktrees/gov-ui-20261008/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "era": "other",
+      "component": "worktrees",
+      "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+    }
+  ],
+  "superseded_by": "reference-resolution.json",
+  "interpretation": "Raw unclassified scan. The missing count includes paths that are archived, recipe-restorable or removed by authorized retention, so it must not be read as an evidence-chain break. Use reference-resolution.json for the classified result."
+}

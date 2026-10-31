@@ -843,3 +843,315 @@ fn corrupt_withdrawal_target_cannot_return_a_false_duplicate_receipt() {
     assert!(get(&conn, "other").is_err());
     assert_eq!(conn.total_changes(), before);
 }
+
+#[test]
+fn plan_observations_preserve_course_lineage_and_exchange_without_scores() {
+    let mut conn = open(":memory:");
+    let kid = knowledge_fixture(&mut conn, "manual-text");
+    let cid = course_fixture(&mut conn, &kid, "manual-course");
+    let other_cid = course_fixture(&mut conn, &kid, "other-manual-course");
+    let mut records = vec![
+        row(RecordKind::Requirement, "manual-req", None, &kid),
+        row(
+            RecordKind::Proposal,
+            "manual-plan",
+            Some("manual-req"),
+            &kid,
+        ),
+        row(
+            RecordKind::Revision,
+            "manual-revision",
+            Some("manual-plan"),
+            &kid,
+        ),
+        row(
+            RecordKind::Observation,
+            "manual-note",
+            Some("manual-revision"),
+            &kid,
+        ),
+    ];
+    for record in &mut records {
+        record.course_id = Some(cid.clone());
+    }
+    records[3].content =
+        "Self-report only: tutorial skipped; text difficulty saved, no file or mastery evidence."
+            .into();
+    let exchange = bundle(records.clone());
+    assert!(preview_import(&conn, &exchange).unwrap().valid);
+    assert_eq!(count(&conn), 0);
+    let imported = import_bundle(&mut conn, &exchange).unwrap();
+    assert_eq!(imported.items.len(), 4);
+    assert!(
+        imported
+            .items
+            .iter()
+            .all(|v| v.scoring_status == "not_scored")
+    );
+    let exported = export_bundle(&conn, "manual-note").unwrap();
+    assert_eq!(exported.records, records);
+    assert_eq!(exported.package_sha256, exchange.package_sha256);
+    assert_eq!(
+        import_bundle(&mut conn, &exported).unwrap().duplicate_count,
+        4
+    );
+    for (id, course) in [
+        ("missing-course", None),
+        ("changed-course", Some(other_cid)),
+    ] {
+        let mut bad = records[3].clone();
+        bad.record_id = id.into();
+        bad.course_id = course;
+        assert!(matches!(
+            put(&mut conn, &bad),
+            Err(TeachingError::Invalid(_))
+        ));
+    }
+    let other_kid = knowledge_fixture(&mut conn, "different-manual-text");
+    let mut bad = records[3].clone();
+    bad.record_id = "changed-knowledge".into();
+    bad.knowledge_id = other_kid.clone();
+    bad.knowledge_version = other_kid;
+    assert!(matches!(
+        put(&mut conn, &bad),
+        Err(TeachingError::Invalid(_))
+    ));
+    for kind in [RecordKind::TeachBack, RecordKind::Feedback] {
+        bad = records[3].clone();
+        bad.record_id = "not-a-delivery".into();
+        bad.kind = kind;
+        assert!(matches!(
+            put(&mut conn, &bad),
+            Err(TeachingError::Invalid(_))
+        ));
+    }
+    let before = get(&conn, "manual-note").unwrap().unwrap();
+    withdraw(
+        &mut conn,
+        &Withdrawal {
+            schema: WITHDRAWAL_SCHEMA.into(),
+            withdrawal_id: "manual-withdraw".into(),
+            record_id: "manual-plan".into(),
+            reason: "withdraw plan".into(),
+        },
+    )
+    .unwrap();
+    let after = get(&conn, "manual-note").unwrap().unwrap();
+    assert!(after.withdrawn);
+    assert_eq!(after.record, before.record);
+    assert_eq!(after.content_sha256, before.content_sha256);
+    assert!(matches!(
+        export_bundle(&conn, "manual-note"),
+        Err(TeachingError::Withdrawn(_))
+    ));
+    let mut late = records[3].clone();
+    late.record_id = "late-manual-note".into();
+    assert!(matches!(
+        put(&mut conn, &late),
+        Err(TeachingError::Withdrawn(_))
+    ));
+    assert_eq!(count(&conn), 4);
+    for table in ["learning_events", "learning_assessments"] {
+        assert_eq!(
+            conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+    }
+}
+
+#[test]
+fn candidate_text_observation_accepts_manual_feedback_without_delivery_or_scores() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("observation-feedback.sqlite");
+    let mut conn = open(path.to_str().unwrap());
+    let kid = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "Synthetic unaccepted practice context",
+        "candidate",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    let mut records = vec![
+        row(RecordKind::Requirement, "of-req", None, &kid),
+        row(RecordKind::Proposal, "of-plan", Some("of-req"), &kid),
+        row(RecordKind::Observation, "of-note", Some("of-plan"), &kid),
+    ];
+    records[2].content = "  人工记录\n教程不适用，跳过；只有文字，无产物或工具执行证据。  ".into();
+    for record in &records {
+        put(&mut conn, record).unwrap();
+    }
+    let delivery = row(
+        RecordKind::Delivery,
+        "of-no-delivery",
+        Some("of-plan"),
+        &kid,
+    );
+    assert!(matches!(
+        put(&mut conn, &delivery),
+        Err(TeachingError::Conflict(_))
+    ));
+    let mut feedback = row(RecordKind::Feedback, "of-feedback", Some("of-note"), &kid);
+    feedback.feedback_class = Some(FeedbackClass::Mastery);
+    feedback.content = "  人工反馈\n请再解释理由；只是反馈分类，不是独立掌握判定。  ".into();
+    let first = put(&mut conn, &feedback)
+        .expect("manual observation must accept unscored feedback without a delivery");
+    assert!(!first.duplicate);
+    assert_eq!(first.item.record, feedback);
+    assert_eq!(first.item.scoring_status, "not_scored");
+    assert!(first.item.record.assessment_id.is_none());
+    assert!(first.item.record.rubric_version.is_none());
+    records.push(feedback.clone());
+    let revision = row(
+        RecordKind::Revision,
+        "of-plan-v2",
+        Some("of-feedback"),
+        &kid,
+    );
+    put(&mut conn, &revision).unwrap();
+    records.push(revision);
+    let replay = put(&mut conn, &feedback).unwrap();
+    assert!(replay.duplicate);
+    assert_eq!(replay.item, first.item);
+    let mut bad = feedback.clone();
+    bad.content.push('!');
+    assert!(matches!(
+        put(&mut conn, &bad),
+        Err(TeachingError::Conflict(_))
+    ));
+    bad = feedback.clone();
+    bad.record_id = "of-course-injection".into();
+    bad.course_id = Some("not-parent-course".into());
+    assert!(matches!(
+        put(&mut conn, &bad),
+        Err(TeachingError::Invalid(_))
+    ));
+    let other = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "Other candidate",
+        "candidate",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    bad = feedback.clone();
+    bad.record_id = "of-mixed-knowledge".into();
+    bad.knowledge_id = other.clone();
+    bad.knowledge_version = other;
+    assert!(matches!(
+        put(&mut conn, &bad),
+        Err(TeachingError::Invalid(_))
+    ));
+    bad = feedback.clone();
+    bad.record_id = "of-not-teachback".into();
+    bad.kind = RecordKind::TeachBack;
+    bad.feedback_class = None;
+    assert!(matches!(
+        put(&mut conn, &bad),
+        Err(TeachingError::Invalid(_))
+    ));
+    bad = feedback.clone();
+    bad.record_id = "of-missing-assessment".into();
+    bad.assessment_id = Some("missing-assessment".into());
+    assert!(matches!(
+        put(&mut conn, &bad),
+        Err(TeachingError::NotFound(_))
+    ));
+    let exported = export_bundle(&conn, "of-plan-v2").unwrap();
+    assert_eq!(exported.records, records);
+    assert_eq!(exported.package_sha256, package_hash(&records).unwrap());
+    let original_views: Vec<_> = records
+        .iter()
+        .map(|r| get(&conn, &r.record_id).unwrap().unwrap())
+        .collect();
+    drop(conn);
+    let mut conn = open(path.to_str().unwrap());
+    for original in &original_views {
+        assert_eq!(
+            get(&conn, &original.record.record_id).unwrap().as_ref(),
+            Some(original)
+        );
+    }
+    assert!(preview_import(&conn, &exported).unwrap().valid);
+    assert_eq!(
+        import_bundle(&mut conn, &exported).unwrap().duplicate_count,
+        records.len()
+    );
+    // A separate canonical workspace consumes the actual exported lineage, not renamed copies.
+    let imported_path = dir.path().join("imported-feedback.sqlite");
+    let mut imported = open(imported_path.to_str().unwrap());
+    let imported_kid = knowledge::create_knowledge(
+        &mut imported,
+        "FACTUAL_CLAIM",
+        "Synthetic unaccepted practice context",
+        "candidate",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    assert_eq!(imported_kid, kid);
+    assert!(preview_import(&imported, &exported).unwrap().valid);
+    assert_eq!(count(&imported), 0);
+    assert_eq!(
+        import_bundle(&mut imported, &exported)
+            .unwrap()
+            .duplicate_count,
+        0
+    );
+    for original in &original_views {
+        assert_eq!(
+            get(&imported, &original.record.record_id).unwrap().as_ref(),
+            Some(original)
+        );
+    }
+    drop(imported);
+    let imported = open(imported_path.to_str().unwrap());
+    assert_eq!(get(&imported, "of-feedback").unwrap().unwrap(), first.item);
+    let withdrawal = Withdrawal {
+        schema: WITHDRAWAL_SCHEMA.into(),
+        withdrawal_id: "of-withdraw".into(),
+        record_id: "of-note".into(),
+        reason: "withdraw manual observation".into(),
+    };
+    let receipt = withdraw(&mut conn, &withdrawal).unwrap();
+    assert_eq!(receipt.affected_record_ids.len(), 3);
+    for original in &original_views {
+        let current = get(&conn, &original.record.record_id).unwrap().unwrap();
+        assert_eq!(current.record, original.record);
+        assert_eq!(current.content_sha256, original.content_sha256);
+        assert_eq!(current.scoring_status, "not_scored");
+        assert_eq!(
+            current.withdrawn,
+            ["of-note", "of-feedback", "of-plan-v2"].contains(&current.record.record_id.as_str())
+        );
+    }
+    let mut late = feedback;
+    late.record_id = "of-late".into();
+    assert!(matches!(
+        put(&mut conn, &late),
+        Err(TeachingError::Withdrawn(_))
+    ));
+    assert!(matches!(
+        export_bundle(&conn, "of-plan-v2"),
+        Err(TeachingError::Withdrawn(_))
+    ));
+    drop(conn);
+    let conn = open(path.to_str().unwrap());
+    assert!(get(&conn, "of-feedback").unwrap().unwrap().withdrawn);
+    assert_eq!(count(&conn), 5);
+    for table in ["learning_events", "learning_assessments", "jobs"] {
+        assert_eq!(
+            conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+    }
+}

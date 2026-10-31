@@ -1,0 +1,70 @@
+{
+  "schema": "aaos.parallel-maintenance-addendum/v1",
+  "prior_seal": ".project-local/runs/be268a2d33/pm-seal1/artifacts/MANIFEST.json",
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/spr-matrix1/artifacts/successor-routing-matrix.json",
+      "bytes": 24895,
+      "sha256": "4d5f1fe938b35416aa1fd13628220c7d167087b49768644a93cae38b8675c23f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-gap1/artifacts/sealed-recovery-gap.json",
+      "bytes": 4448,
+      "sha256": "4097b74c1148ac85aad240a2a863829ad4193ec512ebd222ac493d710e61a9c8"
+    },
+    {
+      "path": ".project-local/task-runtime/spillover-readback-20261007.md",
+      "bytes": 6307,
+      "sha256": "6c798b7d90e3b6537e40862632abb5a75f1c3e9b7591aa98514f8f6031a68dbe"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-observe2/artifacts/apply-prefix-observation.json",
+      "bytes": 879,
+      "sha256": "b74422dc05877d9704a91b8df9886c3c35e8a864c1b3c9a051bc2867a92f69d9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/acl-observe2/artifacts/execution.json",
+      "bytes": 1295,
+      "sha256": "fe07ae83c6fb6417d349ac356f26de202d5d37436c4f8841a7c15f18b9d02493"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-acl-perf/artifacts/benchmark.json",
+      "bytes": 1136,
+      "sha256": "084bff07b1100368749dbb7974d457d62a640780a930ee8bd3509bfe8c5af45b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-acl-perf/artifacts/audit-conclusion.json",
+      "bytes": 3140,
+      "sha256": "6a30c0b3d2ac2dd3152f9949fd568f9fa499d3fa7c0cfdcd3782c9bee69c9d6b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-acl-fixture/artifacts/fixture.json",
+      "bytes": 3255,
+      "sha256": "a5970c3ec4f866433a0c32e698e637f292dada565f1b2d6a0b74406bf29ac506"
+    }
+  ],
+  "permission_observation": {
+    "schema": "aaos.permission-apply-prefix-observation/v1",
+    "observed_at_utc": "2026-10-30T15:35:18.683008+00:00",
+    "status": "BACKUP_HASH_VERIFIED_APPLY_PREFIX_OBSERVED_NOT_TERMINAL",
+    "plan_sha256": "d658f4b7ca54f319b669825ba7c39bb50f2753bac0dc0a29bd206baaa5f52f24",
+    "plan_bytes": 156988637,
+    "journal": "apply-20261030T1441201050914Z-f7a83d50.jsonl",
+    "snapshot_length": 63445718,
+    "complete_prefix_bytes": 63445718,
+    "complete_prefix_sha256": "28e0542a95d95623f88a709f4589e536b4a2450fbb3b2ad1b4b1ec70ca16af54",
+    "journal_status_counts": {
+      "INTENT_DURABLE": 95558,
+      "VERIFIED": 95558
+    },
+    "journal_length_after": 63460077,
+    "terminal_results_seen": [],
+    "reader_acl_writes": 0,
+    "ordinary_token_whole_batch_access": "NOT_YET_VERIFIED",
+    "process_handle": "NOT_AVAILABLE_NO_PROCESS_TERMINAL_CLAIM",
+    "monitor": "PAUSED_UNCHANGED"
+  },
+  "recovery_gap": "Formal after Oct07 readback; Green Sep29 copy claim to Oct07 absent readback. No verified successor payload or deletion receipt; not a permanent-loss verdict.",
+  "acl_performance_scope": "Synthetic membership benchmark and seven preserved-scope fixtures only; frozen running repair module unchanged; no ACL apply/rollback qualification.",
+  "qualification": "EVIDENCE_IDENTITIES_AND_BOUNDED_OBSERVATION_ONLY"
+}

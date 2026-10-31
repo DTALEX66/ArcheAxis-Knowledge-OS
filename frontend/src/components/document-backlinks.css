@@ -1,0 +1,7 @@
+.document-backlinks { min-width: 0; }
+.document-backlinks p, .document-backlinks button, .document-backlinks li { overflow-wrap: anywhere; }
+.document-backlinks ul { list-style: none; padding-inline-start: 0; display: grid; gap: 8px; margin-block: 8px; }
+.document-backlinks li { border-block-start: 1px solid var(--aaos-border); padding-block: 8px; }
+.document-backlinks button { max-width: 100%; white-space: normal; }
+.document-backlinks button:focus-visible { outline: 2px solid var(--aaos-focus); outline-offset: 2px; }
+.document-backlinks [role="alert"] { color: var(--aaos-danger, var(--aaos-text)); }

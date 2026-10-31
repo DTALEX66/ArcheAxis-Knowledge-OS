@@ -39,6 +39,69 @@ def axe_report(page, source: str) -> dict:
     }""")
 
 
+def quick_menu_tab(page) -> dict:
+    """Keep native Tab order usable while the menu's opacity is still opening."""
+    menu = page.locator(".stitch-menus > details").filter(
+        has=page.locator("summary").get_by_text("文件", exact=True))
+    trigger = menu.locator("summary")
+    target = menu.locator('button[data-page-id="16"]')
+    original_page = page.locator(".cabin-shell").get_attribute("data-cabin-page")
+    original_motion = page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches")
+    observations = []
+    # Recording event identities must not force style/layout between click and Tab.
+    page.evaluate("""() => {
+      const trace = {events: []};
+      trace.record = event => {
+        if (event.type === 'keydown' && event.key !== 'Tab') return;
+        trace.events.push({type:event.type,key:event.key??null,time:performance.now(),trusted:event.isTrusted});
+      };
+      window.__aaosQuickMenuTab = trace;
+      document.addEventListener('click', trace.record, true);
+      document.addEventListener('keydown', trace.record, true);
+    }""")
+    try:
+        for motion in ("no-preference", "reduce"):
+            page.emulate_media(reduced_motion=motion)
+            page.keyboard.press("Escape")
+            expect(menu).not_to_have_attribute("open", "")
+            trigger.scroll_into_view_if_needed()
+            trigger.focus()
+            bounds = trigger.bounding_box()
+            assert bounds, "File menu trigger is not rendered"
+            page.evaluate("window.__aaosQuickMenuTab.events = []")
+            page.mouse.click(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] / 2)
+            # No visibility polling, computed style, layout read or delay here:
+            # the old content-visibility transition skipped all four menu buttons.
+            for _ in range(3):
+                page.keyboard.press("Tab")
+            observed = page.evaluate("""() => ({events:window.__aaosQuickMenuTab.events,
+              active:{tag:document.activeElement?.tagName,page:document.activeElement?.dataset.pageId??null,
+                text:document.activeElement?.textContent?.trim()},
+              page:document.querySelector('.cabin-shell')?.dataset.cabinPage})""")
+            clicks = [event for event in observed["events"] if event["type"] == "click"]
+            tabs = [event for event in observed["events"] if event["type"] == "keydown"]
+            assert len(clicks) == 1 and len(tabs) == 3 and all(event["trusted"] for event in clicks + tabs), observed
+            observed.update(motion=motion, click_to_first_tab_ms=tabs[0]["time"] - clicks[0]["time"],
+                            click_to_last_tab_ms=tabs[-1]["time"] - clicks[0]["time"])
+            observations.append(observed)
+            assert target.evaluate("node => node === document.activeElement"), observed
+            assert observed["page"] == original_page, ("Tab activated a page", observed)
+            page.keyboard.press("Escape")
+            assert trigger.evaluate("node => node === document.activeElement"), "menu Escape lost its trigger"
+            assert not menu.evaluate("node => node.open"), "menu Escape did not close File"
+        return {"status": "PASS", "page_unchanged": original_page,
+                "escape_restores_focus": True, "observations": observations}
+    finally:
+        page.keyboard.press("Escape")
+        page.emulate_media(reduced_motion="reduce" if original_motion else "no-preference")
+        page.evaluate("""() => {
+          const trace=window.__aaosQuickMenuTab;
+          document.removeEventListener('click',trace.record,true);
+          document.removeEventListener('keydown',trace.record,true);
+          delete window.__aaosQuickMenuTab;
+        }""")
+
+
 def console_gestures(page, output: Path, theme: str) -> list[dict]:
     """Actual pointer/keyboard input against each internal edge; no native DPI claim."""
     console = page.locator(".console-window")
@@ -177,7 +240,7 @@ def template_requirements(page, output: Path, case_id: str) -> dict:
     assert control["reachable"] and abs(control["height"] - control["rawHeight"]) <= 1, control
     screenshot = output / f"template-requirements-{case_id}.png"
     page.screenshot(path=str(screenshot))
-    trigger = panel.get_by_role("button", name="查看诊断详情：模板能力登记与运行状态", exact=True)
+    trigger = panel.get_by_role("button", name="状态与诊断：模板能力登记与运行状态", exact=True)
     trigger.scroll_into_view_if_needed()
     trigger.click()
     dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
@@ -287,14 +350,14 @@ def research_citations(page, output: Path, case_id: str, fixture: dict, axe_sour
     quote.wait_for()
     assert quote.locator("blockquote").text_content() == fixture["citation"]["quote"]
     assert not re.search(r"ui_research_source|ui_research_anchor|[a-f0-9]{64}|expected_version|GraphRAG", region.inner_text())
-    trigger = quote.get_by_role("button", name="查看诊断详情：研究引文原始记录", exact=True)
+    trigger = quote.get_by_role("button", name="状态与诊断：研究引文原始记录", exact=True)
     trigger.click()
     dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
     assert json.loads(dialog.locator("pre").inner_text()) == {"reference": fixture["reference"], "citation": fixture["citation"]}
     dismiss_diagnostic(dialog, trigger)
     quote.get_by_role("button", name="重新核验引文定位", exact=True).click()
     page.get_by_text("引文定位仍有效；仅核对定位，不表示内容已证实。", exact=True).wait_for()
-    replay_trigger = quote.get_by_role("button", name="查看诊断详情：引文定位核验记录", exact=True)
+    replay_trigger = quote.get_by_role("button", name="状态与诊断：引文定位核验记录", exact=True)
     replay_trigger.click()
     resolution = json.loads(dialog.locator("pre").first.inner_text())
     assert resolution["result"] == fixture["resolution"] and resolution["outcome"] == "read", resolution
@@ -303,7 +366,7 @@ def research_citations(page, output: Path, case_id: str, fixture: dict, axe_sour
     region.get_by_role("button", name="摘录材料 1原文", exact=True).click()
     original = region.get_by_role("region", name="已读取并核对指纹的原件", exact=True)
     original.wait_for()
-    source_trigger = original.get_by_role("button", name="查看诊断详情：研究原件读取记录", exact=True)
+    source_trigger = original.get_by_role("button", name="状态与诊断：研究原件读取记录", exact=True)
     source_trigger.click()
     record = json.loads(dialog.locator("pre").first.inner_text())
     assert record == {"reference": fixture["reference"], "name": fixture["original"]["name"],
@@ -317,7 +380,7 @@ def research_citations(page, output: Path, case_id: str, fixture: dict, axe_sour
     search.click()
     picker.get_by_text("本地检索完成：2 项结果。", exact=True).wait_for()
     assert "ui_knowledge_" not in picker.inner_text()
-    result_trigger = picker.get_by_role("button", name="查看诊断详情：本地知识结果 2", exact=True)
+    result_trigger = picker.get_by_role("button", name="状态与诊断：本地知识结果 2", exact=True)
     result_trigger.click()
     assert json.loads(dialog.locator("pre").first.inner_text()) == fixture["knowledge_items"][1]
     dismiss_diagnostic(dialog, result_trigger)
@@ -461,7 +524,10 @@ def main() -> int:
                     page.route("**/*", route)
                     try:
                         page.goto(a0.URL, wait_until="networkidle")
+                        a0.pause_first_use_guide(page)
                         page.locator(".space-view:visible").wait_for()
+                        report.setdefault("menu_quick_tab", []).append({"theme": theme, "viewport": [width, height],
+                            **quick_menu_tab(page)})
                         a0.select_ui_theme(page, theme)
                         if args.dock_interactions:
                             report.setdefault("dock_interactions", []).append(dock_interactions(page, output, theme))

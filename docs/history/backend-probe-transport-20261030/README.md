@@ -1,0 +1,9 @@
+# F05探针传输超时与真实main有限验证
+
+Core模型请求声明120秒，shared client默认HTTP等待30秒。用同一C1 Core和同一32秒合成worker，旧probe正式client返回status0，实际main exit3；新候选以Core预算加10秒admission及5秒客户端余量等待，实际main exit0。余量不是Core总时长硬上界。
+
+仅部署既有probe与合同测试两文件：模型请求显式传timeout；status0及transport异常写UNKNOWN、请求digest与错误类型，不保留错误正文/token、不自动重试；普通HTTP拒绝仍按业务结果处理。原初候选漏掉shared client会吞异常返回0，root复核后修正，旧候选和失败假设保留。
+
+真实Core+合成worker完整main覆盖旧截断3、新相同延迟0、有限纠正链0、独立题错误1、status0脱敏3；wrapper退出0分别证明预期反例被执行。66合同测试和Ruff通过，候选源码hash与部署后两文件一致。[MANIFEST](MANIFEST.json)绑定每个原始收据；所有Core/已记录worker退出和端口关闭是owned-process核验，Core以terminate/reap退出，不称优雅停止。
+
+真实模型调用仍0；本批未证明一般学习改善、asset/scoped真实效果或安装态，F05总体PARTIAL。后继真实本地合成问题可沿现有qwen3.5-4b生产worker正常调用（既有JIT允许），不使用load/unload API、不下载/切换模型或改配置；实际执行和结论只查唯一执行记录，不能由计划或本历史页推断已执行。

@@ -1,5 +1,16 @@
 import {expect,it} from "vitest";
-import {readMachineFailureDiagnostics} from "../api/machineFailure";
+import {materialModelFailureMessage,readMachineFailureDiagnostics} from "../api/machineFailure";
+
+it("explains only a known material final-answer failure and never copies arbitrary diagnostics",()=>{
+ const length=materialModelFailureMessage("material_no_final_answer",{finish_reason:"length",reasoning_content:"PRIVATE",max_tokens:2048});
+ expect(length).toContain("输出上限");expect(length).not.toContain("PRIVATE");
+ for(const diagnostics of [null,[],"PRIVATE",{finish_reason:"stop"},{finish_reason:"PRIVATE"}]) {
+  const message=materialModelFailureMessage("material_no_final_answer",diagnostics);
+  expect(message).toContain("模型未返回最终回答");expect(message).not.toContain("输出上限");expect(message).not.toContain("PRIVATE");
+ }
+ expect(materialModelFailureMessage("material_model_timeout")).toContain("模型调用超时");
+ expect(materialModelFailureMessage("UNKNOWN",{finish_reason:"length"})).toBeUndefined();
+});
 
 it("rejects invalid or private measurement values without fabricating unknown fields",()=>{
   expect(readMachineFailureDiagnostics({requested_model:"bad\\model",observed_model:null,finish_reason:"PRIVATE",max_tokens:true,timeout_s:-1,elapsed_s:Infinity,http_status:600,usage:{input_tokens:0,output_tokens:-1,total_tokens:Number.MAX_SAFE_INTEGER+1,raw:"PRIVATE"},stderr:"PRIVATE"})).toEqual({observed_model:null,usage:{input_tokens:0}});

@@ -2,6 +2,7 @@ import {createHash,webcrypto} from "node:crypto";
 import {existsSync,readFileSync} from "node:fs";
 import {resolve} from "node:path";
 import {useState} from "react";
+import userEvent from "@testing-library/user-event";
 import {beforeEach,expect,it,vi} from "vitest";
 import {act,fireEvent,render,renderHook,screen,waitFor,within} from "@testing-library/react";
 import type {Editor} from "@tiptap/core";
@@ -46,7 +47,7 @@ function mockCore(mismatch=false,candidateStatus="CURRENT"){let accepted=false,k
 function expectSourceDiagnostic(region:HTMLElement, expectedId:string){
  expect(region).not.toHaveTextContent(expectedId);
  const diagnostics=renderHook(useDiagnosticState);
- fireEvent.click(within(region).getByRole("button",{name:"查看诊断详情：原件编号与版本详细信息"}));
+ fireEvent.click(within(region).getByRole("button",{name:"状态与诊断：原件编号与版本详细信息"}));
  expect(diagnostics.result.current.entries[0].payload).toEqual({source_id:expectedId,source_revision:hash});
  diagnostics.unmount();
 }
@@ -54,6 +55,29 @@ function Journey(){const[page,setPage]=useState("16");return <SpaceView spaceId=
 function DockJourney({initialPage="16",refuse=false,documentId}:{initialPage?:string;refuse?:boolean;documentId?:string}){const[page,setPage]=useState(initialPage);return <><nav><button onClick={()=>setPage("16")}>手动进入导入页</button><button onClick={()=>setPage("03")}>手动进入阅读页</button></nav><DockWorkspace spaceId={page==="16"?"exchange":"library"} uiPageId={page} initialDocumentId={documentId} onInspect={()=>{}} onNavigate={()=>{throw new Error("legacy navigation forbidden");}} onOpenPage={id=>{if(!refuse)setPage(id);}}/></>;}
 class ResizeObserverStub{observe(){}unobserve(){}disconnect(){}}
 beforeEach(()=>{resetDiagnostics();bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);vi.stubGlobal("ResizeObserver",ResizeObserverStub);});
+it("SIMULATED actual native probe observes and opens the current Stitch reader disclosure before candidate editing",async()=>{
+ mockCore();render(<DockJourney initialPage="03" documentId="doc-exact"/>);
+ const reader=await screen.findByRole("region",{name:"阅读与编辑文档视图"});
+ const summary=await within(reader).findByText("整理关联来源",{selector:"summary"});
+ const details=summary.parentElement as HTMLDetailsElement;
+ const source=readFileSync(resolve(repoRoot,"scripts/probes/aaos01_grouped_owner_loop.py"),"utf8");
+ const script=source.match(/READER_SOURCE_TOOLS_OBSERVATION = r"""([\s\S]*?)"""/)![1];
+ const observe=new Function("document",script);
+ const rectangles=vi.spyOn(HTMLElement.prototype,"getClientRects").mockImplementation(function(this:HTMLElement){
+   const rows=this.closest("[hidden]")?[]:[new DOMRect(0,0,100,30)];
+   return Object.assign(rows,{item:(index:number)=>rows[index]??null});
+ });
+ try{
+   expect(details.open).toBe(false);
+   // The production observer used to query .ui-reader-page and returned [],
+   // skipping this disclosure and trying to click its collapsed descendant.
+   expect(observe(document)).toEqual([{open:false,summary:true}]);
+   await userEvent.click(summary);
+   expect(details.open).toBe(true);expect(observe(document)).toEqual([{open:true,summary:true}]);
+   await userEvent.click(within(details).getByRole("button",{name:"整理此来源为知识候选"}));
+   expect(await within(reader).findByRole("region",{name:"真实转换产物"})).toBeVisible();
+ }finally{rectangles.mockRestore();}
+});
 it.each(["16","03"])("SIMULATED real Dockview transfers the exact source/job into a distinct reader host (initial page %s)",async initialPage=>{
  mockCore();render(<DockJourney initialPage={initialPage}/>);
  fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));

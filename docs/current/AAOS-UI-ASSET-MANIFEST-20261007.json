@@ -64,29 +64,86 @@
     },
     {
       "path": "src-tauri/icons/icon.png",
-      "sha256": "8bebca3ffae4768f3d84751437d89235e48946fcfba3012ad5551139c0f19803",
-      "bytes": 16875,
-      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
-      "role": "window/taskbar/installer icon (256 px)",
+      "sha256": "dcd23124ebf840e87373124707ff7c4aa93570fa613920bc214bbb17cef6f233",
+      "bytes": 76537,
+      "source": "Current repository native icon, introduced in d4f72bf193b0b653bfc167a21818ae93af4afa5f; vector companion src-tauri/icons/icon.svg. This is distinct from the older 256px owner-master cutout.",
+      "role": "native window/taskbar/installer source icon (1024 px)",
       "referenced_by": [
         "src-tauri/tauri.conf.json"
       ],
-      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM",
+      "status": "FILE_HASH_DIMENSIONS_AND_ICON_FRAMES_VERIFIED; PACKAGED_RUNTIME_REQUIRES_CURRENT_BUILD",
       "canvas": [
-        256,
-        256
-      ]
+        1024,
+        1024
+      ],
+      "previous_declaration": {
+        "bytes": 16875,
+        "sha256": "8bebca3ffae4768f3d84751437d89235e48946fcfba3012ad5551139c0f19803",
+        "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+        "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM"
+      }
     },
     {
       "path": "src-tauri/icons/icon.ico",
-      "sha256": "238c0f89223cad5229d51c32b93212a129664aaf9b244e4648fc56cb1f9897aa",
-      "bytes": 37187,
-      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+      "sha256": "3f0c7f033fee15bcd70f6332bc688f1c9e54df53e2641e468f991de5ba4291e6",
+      "bytes": 34809,
+      "source": "Seven RGBA frames verified pixel-for-pixel against LANCZOS resampling of src-tauri/icons/icon.png; no new artwork or owner-master claim.",
       "role": "shell icon, sizes 16-256",
       "referenced_by": [
         "src-tauri/tauri.conf.json"
       ],
-      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM"
+      "status": "FILE_HASH_DIMENSIONS_AND_ICON_FRAMES_VERIFIED; PACKAGED_RUNTIME_REQUIRES_CURRENT_BUILD",
+      "previous_declaration": {
+        "bytes": 37187,
+        "sha256": "238c0f89223cad5229d51c32b93212a129664aaf9b244e4648fc56cb1f9897aa",
+        "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+        "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM"
+      },
+      "frames": [
+        [
+          16,
+          16
+        ],
+        [
+          24,
+          24
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ],
+        [
+          128,
+          128
+        ],
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "path": "src-tauri/icons/icon.svg",
+      "sha256": "e0051a55c3f1bf479a36a1cb460170813d67c809b980217b6f964af0b552e234",
+      "bytes": 18139,
+      "source": "Repository vector companion for the current native icon; geometry preserved, final LF repaired in this audit fix.",
+      "role": "native icon vector source",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "referenced_by": [
+        "src-tauri/icons/icon.png"
+      ],
+      "status": "XML_DIMENSIONS_AND_HASH_VERIFIED; RASTER_EQUIVALENCE_NOT_CLAIMED"
     }
   ],
   "excluded": [
@@ -132,8 +189,8 @@
       "last_present_at": "29c3cb98"
     }
   ],
-  "revision_date": "2026-10-08",
-  "revision_note": "品牌图从自绘近似 SVG 换为业主 2026-10-08 提供的黑白标志母版抠图；抠图配方与尺寸见 .project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/extract_logo_assets.py，母版 SHA-256 与逐文件哈希由该脚本按磁盘字节计算。",
+  "revision_date": "2026-10-26",
+  "revision_note": "品牌图从自绘近似 SVG 换为业主 2026-10-08 提供的黑白标志母版抠图；抠图配方与尺寸见 .project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/extract_logo_assets.py，母版 SHA-256 与逐文件哈希由该脚本按磁盘字节计算。2026-10-24 引用核验：该脚本所在历史暂存区已清理，脚本字节不再可读；资产哈希以本清单记录为准，不依赖脚本或暂存区。 2026-10-26 DOT审计复核：旧PNG/ICO声明未随d4f72bf1图标更新；逐文件重新核哈希/尺寸，并实测ICO七帧与当前PNG的LANCZOS像素完全相等。旧声明保留previous_declaration，不把旧母版来源/浏览器验收沿用到新图标；新安装包资源仍待本次构建后核验。",
   "logo_master": {
     "file": "Three_Project_Logos_BW_4K_0001_图层 3.jpg",
     "sha256": "670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617",

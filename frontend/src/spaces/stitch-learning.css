@@ -1,0 +1,80 @@
+/* Received Stitch topic / navigation / glass-card composition; existing learning data only. */
+.stitch-learning-family,.stitch-learning-review { min-width:0; min-height:0; color:var(--ax-fg); font-size:var(--ax-text-ui); line-height:1.6; }
+.stitch-learning-family { display:flex; flex-direction:column; gap:12px; }
+.stitch-learning-family [hidden] { display:none !important; }
+.stitch-learning-family :is(h2,h3,h4,h5,h6,p),.stitch-learning-review :is(h2,h3,h4,p) { margin:0; overflow-wrap:anywhere; }
+.stitch-learning-family :is(button,input,select,textarea,summary),.stitch-learning-review :is(button,input,select,textarea,summary) { font:inherit; }
+.stitch-learning-family :is(button,summary),.stitch-learning-review :is(button,summary) { min-height:36px; touch-action:manipulation; cursor:pointer; }
+.stitch-learning-family button,.stitch-learning-review button { padding:5px 10px; border:1px solid var(--ax-border-strong); border-radius:6px; color:var(--ax-fg-secondary); background:var(--ax-raised); white-space:normal; overflow-wrap:anywhere; }
+.stitch-learning-family button:not(:disabled):hover,.stitch-learning-review button:not(:disabled):hover { border-color:var(--ax-accent); color:var(--ax-accent); background:var(--ax-accent-soft); }
+.stitch-learning-family button:disabled,.stitch-learning-review button:disabled { cursor:default; opacity:.6; }
+.stitch-learning-family :is(button,summary,input,select,textarea):focus-visible,.stitch-learning-review :is(button,summary,input,select,textarea):focus-visible { outline:2px solid var(--ax-focus-ring); outline-offset:2px; }
+.stitch-learning-topic,.stitch-learning-glass,.stitch-learning-course-detail > section,.stitch-learning-review-heading { min-width:0; padding:12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-panel); }
+.stitch-learning-topic,.stitch-learning-review-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+.stitch-learning-topic > div:first-child,.stitch-learning-review-heading > div { flex:1 1 16rem; min-width:0; }
+.stitch-learning-topic h2,.stitch-learning-review-heading h2 { font-size:1.05rem; font-weight:650; line-height:1.5; }
+.stitch-learning-topic p:not(.stitch-learning-eyebrow) { margin-top:4px; color:var(--ax-fg-secondary); }
+.stitch-learning-family .stitch-learning-eyebrow,.stitch-learning-review .stitch-learning-eyebrow { color:var(--ax-accent); font-size:var(--ax-text-caption); margin-bottom:4px; }
+.stitch-learning-topic-state { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.stitch-learning-topic-state span { padding:2px 7px; border:1px solid var(--ax-border-strong); border-radius:4px; color:var(--ax-fg-secondary); font-size:var(--ax-text-caption); }
+.stitch-learning-navigation { display:flex; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--ax-border-strong); flex:none; }
+.stitch-learning-navigation button { padding:6px 0 8px; border:0; border-radius:0; border-bottom:2px solid transparent; background:transparent; }
+.stitch-learning-navigation button[aria-pressed="true"] { color:var(--ax-accent); border-bottom-color:var(--ax-accent); background:transparent; }
+.stitch-learning-stage-content { flex:none; min-width:0; padding:2px 4px 6px 2px; }
+.stitch-learning-stage,.stitch-learning-review { display:grid; gap:12px; align-content:start; }
+.stitch-learning-glass,.stitch-learning-course-detail > section { display:grid; gap:10px; align-content:start; }
+.stitch-learning-card-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:8px; border-bottom:1px solid var(--ax-border); }
+.stitch-learning-card-heading h3,.stitch-learning-stage h3,.stitch-learning-assessment h3 { font-size:var(--ax-text-ui); font-weight:600; }
+.stitch-learning-card-heading span,.stitch-learning-caption,.stitch-learning-course-list small { color:var(--ax-fg-tertiary); font-size:var(--ax-text-caption); overflow-wrap:anywhere; }
+.stitch-learning-course-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr)); gap:8px; list-style:none; padding:0; margin:0; }
+.stitch-learning-course-list li { display:grid; align-content:start; gap:5px; min-width:0; padding:10px; background:var(--ax-raised); border:1px solid var(--ax-border); border-radius:6px; }
+.stitch-learning-course-list li[data-selected="true"] { border-color:var(--ax-accent); background:var(--ax-accent-soft); }
+.stitch-learning-course-list button { width:100%; text-align:start; }
+.stitch-learning-source-search { display:flex; flex-wrap:wrap; align-items:end; gap:8px; }
+.stitch-learning-source-search label { flex:1 1 16rem; }
+.stitch-learning-family label,.stitch-learning-review label { min-width:0; display:grid; gap:6px; }
+.stitch-learning-family :is(input,select,textarea),.stitch-learning-review :is(input,select,textarea) { max-width:100%; box-sizing:border-box; background:var(--ax-bg-inset); color:var(--ax-fg); border:1px solid var(--ax-border-strong); border-radius:5px; padding:7px 9px; }
+.stitch-learning-family textarea,.stitch-learning-review textarea { width:100%; min-height:7rem; resize:vertical; }
+.stitch-learning-course-detail { display:grid; gap:8px; min-width:0; }
+.stitch-learning-course-detail .library-document { display:grid; gap:8px; min-width:0; margin:0; padding:12px; border:1px solid var(--ax-border); border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-learning-course-detail :is(h4,h5,h6) { font-size:var(--ax-text-ui); font-weight:600; }
+.stitch-learning-course-detail :is(p,li),.stitch-learning-family details { overflow-wrap:anywhere; }
+.stitch-learning-item-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.stitch-learning-item-actions button { flex:1 1 12rem; }
+.stitch-learning-notice { display:grid; gap:4px; padding:8px 12px; border-inline-start:2px solid var(--ax-accent); background:var(--ax-bg-inset); flex:none; }
+.stitch-learning-empty { color:var(--ax-fg-secondary); }
+.stitch-learning-steps { display:grid; gap:6px; padding-inline-start:22px; margin:0; }
+.stitch-learning-queue { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap:8px; padding:0; margin:0; list-style:none; }
+.stitch-learning-queue li { min-width:0; display:grid; gap:4px; color:var(--ax-fg-tertiary); font-size:var(--ax-text-caption); overflow-wrap:anywhere; }
+.stitch-learning-queue button { color:var(--ax-fg); text-align:start; font-size:var(--ax-text-ui); }
+.stitch-learning-review button[aria-pressed="true"] { color:var(--ax-accent); border-color:var(--ax-accent); background:var(--ax-accent-soft); }
+.stitch-learning-locator,.stitch-learning-drafts details,.stitch-learning-history { min-width:0; padding:8px 12px; border:1px solid var(--ax-border); border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-learning-review summary { display:list-item; color:var(--ax-fg-secondary); }
+.stitch-learning-review details[open] > summary { color:var(--ax-accent); margin-bottom:8px; }
+.stitch-learning-locator form { display:flex; flex-wrap:wrap; align-items:end; gap:8px; }
+.stitch-learning-locator label { flex:1 1 15rem; }
+.stitch-learning-assessment { display:grid; gap:12px; }
+.stitch-learning-assessment > p[aria-label="当前学习项目"] { color:var(--ax-accent); font-weight:600; }
+.stitch-learning-assessment h4 { font-size:var(--ax-text-ui); font-weight:600; }
+.stitch-learning-answer { display:grid; gap:8px; }
+.stitch-learning-answer > button { justify-self:start; }
+.stitch-learning-revealed { display:grid; gap:8px; padding:12px; border:1px solid var(--ax-border-strong); border-inline-start:2px solid var(--ax-accent); border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-learning-revealed p { white-space:pre-wrap; }
+.stitch-learning-review-controls { display:grid; grid-template-columns:minmax(0,1fr) minmax(10rem,.6fr); align-items:start; gap:10px 16px; padding-top:10px; border-top:1px solid var(--ax-border); }
+.stitch-learning-review-controls fieldset { margin:0; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding:0; border:0; }
+.stitch-learning-review-controls legend { margin-bottom:6px; }
+.stitch-learning-review-controls fieldset label { display:inline-flex; flex-direction:row; align-items:center; min-height:36px; }
+.stitch-learning-review-controls input[type="radio"] { width:1rem; min-height:0; margin:0; padding:0; accent-color:var(--ax-accent); }
+.stitch-learning-review-controls > p { grid-column:1/-1; color:var(--ax-fg-secondary); font-size:var(--ax-text-caption); }
+.stitch-learning-review-controls > button { grid-column:1/-1; justify-self:start; color:var(--ax-accent); border-color:var(--ax-accent); background:var(--ax-accent-soft); }
+.stitch-learning-machine { display:grid; gap:6px; padding:10px; border:1px solid var(--ax-border); border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-learning-machine p { color:var(--ax-fg-secondary); }
+@container content (max-width:680px) { .stitch-learning-review-controls { grid-template-columns:minmax(0,1fr); } .stitch-learning-topic { align-items:start; } }
+@media (max-width:640px) { .stitch-learning-navigation { gap:10px; } .stitch-learning-topic { align-items:start; } .stitch-learning-review-controls { grid-template-columns:minmax(0,1fr); } .stitch-learning-topic,.stitch-learning-glass,.stitch-learning-review-heading { padding:10px; } }
+@media (prefers-reduced-transparency:reduce) { .stitch-learning-topic,.stitch-learning-glass,.stitch-learning-course-detail > section,.stitch-learning-review-heading { background:var(--ax-raised); } }
+@media (forced-colors:active) { .stitch-learning-family :is(section,header,details,button,input,select,textarea),.stitch-learning-review :is(section,header,details,button,input,select,textarea) { background:Canvas; color:CanvasText; border-color:CanvasText; } .stitch-learning-navigation button[aria-pressed="true"] { border-bottom-color:Highlight; } }
+.stitch-learning-next { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; border:1px solid var(--ax-border-strong); border-radius:14px; background:var(--ax-panel); margin-bottom:16px; }
+.stitch-learning-next h3 { margin:0 0 8px; font-size:var(--ax-text-body); }
+.stitch-learning-next p { margin:0; color:var(--ax-fg-secondary); max-width:56em; }
+.stitch-learning-next .stitch-learning-item-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.stitch-learning-next button { min-height:40px; padding:8px 14px; }

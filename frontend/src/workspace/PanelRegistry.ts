@@ -2,6 +2,7 @@ import { findUiPage } from "../presentation/uiPages";
 import type { CoreWorkingStateSession } from "../presentation/coreWorkingState";
 export function businessPanelId(page:string):string{
  if(["02","03","20"].includes(page))return "03";
+ if(["06","07"].includes(page))return "06";
  if(["13","14","22"].includes(page))return "13";
  if(["17","18"].includes(page))return "17";
  return findUiPage(page)?page:"01";

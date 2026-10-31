@@ -1,0 +1,41 @@
+{
+  "schema": "aaos.asset-normalization-verification/v1",
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/assets-root1/artifacts/root-readback.json",
+      "bytes": 490,
+      "sha256": "449ab66b7620f62ec59b0f9f2258e41541b413dec501f7dff6734edb7375ce16"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/assets-root1/artifacts/execution.json",
+      "bytes": 1298,
+      "sha256": "2ef198d230dcd5dc6f10a9b3341db21644c331c7b1f2e4a93a2c8e2bfca4869a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsstatic1/artifacts/static-gates.json",
+      "bytes": 18391,
+      "sha256": "3dea73ed3917e75f73dc9ada5a1d2666296adb7bca28e1e9a0be10c11d803fc5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsstatic1/artifacts/targeted-tests.stdout.txt",
+      "bytes": 184,
+      "sha256": "ab15a38f744efff3f1351bdf5ed29f2d63fe179f6b48660dee5114335c29ef13"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsbrowser1/artifacts/browser-smoke/canonical-browser-smoke.json",
+      "bytes": 1712402,
+      "sha256": "1b8eef8a3e403f637d32105cdaf4860c0447f9697dd62b11fc5b30d7127aee1a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spr-assetsbrowser1/artifacts/execution.json",
+      "bytes": 1258,
+      "sha256": "5bbcc87ca312258a96ef4fa92576d43e2ff9237f8abfc7042cdd737c9628d77d"
+    }
+  ],
+  "root_readback": "126 absent;126 retained SHA;75 archive CRC/SHA;runtime/license bytes unchanged",
+  "browser": "PASS_EXISTING_13_VIEWPORT_5_THEME_SIMULATED_HOST_CORE_FIXTURE",
+  "targeted_tests": "115 passed",
+  "worktree_conventions": "FAIL:126 not-yet-staged removals and47 CRLF; prospective removed-path index leaves47 CRLF. No frozen originals normalized.",
+  "final_git_candidate_gate": "Use canonical --source index receipt in the sole progress record; no gate downgrade",
+  "qualification": "CONTENT_NORMALIZATION_AND_FINITE_BROWSER_SMOKE_ONLY"
+}

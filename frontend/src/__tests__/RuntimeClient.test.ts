@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as runtime from "../api/workspace";
-import { normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
+import { isOpaqueBackupName, normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
 import { ApiError, createApiClient, runtimeProjectionMessage } from "../api/client";
 interface RecoveryRuntimeApi {
   getRecoveryStatus: () => Promise<{
@@ -20,8 +20,8 @@ describe("runtime handshake client", () => {
   afterEach(() => { runtime.resetRuntimeClient(); delete window.__TAURI__; vi.unstubAllGlobals(); });
   const handshake = { product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.14", source_commit: "abc", schema_version: 7, runtime_mode: "compatibility", workspace_id: "workspace", capabilities: [], migration_state: "ready" };
   it("projects handshake failures as safe Chinese diagnostics", () => {
-    expect(runtimeProjectionMessage(new ApiError(0, "runtime identity is incomplete", "incompatible"))).toBe("本地核心身份字段不完整。");
-    expect(runtimeProjectionMessage(new Error("network detail"))).toBe("已认证的本地核心握手失败。");
+    expect(runtimeProjectionMessage(new ApiError(0, "runtime identity is incomplete", "incompatible"))).toBe("暂时无法确认本地服务是否适用于这个应用，请查看详细记录。");
+    expect(runtimeProjectionMessage(new Error("network detail"))).toBe("暂时无法建立本地连接，请重试或查看详细记录。");
   });
   it("never requests native credentials or legacy HTTP after the Core bridge cutover", async () => {
     const invoke = vi.fn().mockResolvedValue({ ready: true });
@@ -143,6 +143,47 @@ describe("runtime handshake client", () => {
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
     expect(invoke).toHaveBeenNthCalledWith(2, "recovery_status");
     expect(invoke).toHaveBeenCalledTimes(2);
+  });
+
+  it("retains canonical Core backup names alongside legacy names and restores only a freshly enumerated selection", async () => {
+    // Name observed in the isolated real Core-created v1 manifest (crun5).
+    const canonical = "42a20b47655d3bdb01e426447cd7f93d.sqlite";
+    const legacy = "cognitive_os_20260823T010203_000000Z.sqlite";
+    const invoke = vi.fn(async (command: string) => {
+      if (command === "recovery_status") return { state: "stopped", backups: [canonical, legacy, `../${canonical}`] };
+      if (command === "restore_backup") return { status: "restored" };
+      throw new Error(`unexpected command: ${command}`);
+    });
+    window.__TAURI__ = { core: { invoke } };
+    expect(isOpaqueBackupName(canonical)).toBe(true);
+    await expect(runtime.getRecoveryStatus()).resolves.toMatchObject({ backups: [canonical, legacy] });
+    await expect(runtime.restoreRecoveryBackup(canonical)).resolves.toEqual({ status: "restored" });
+    expect(invoke.mock.calls).toEqual([["recovery_status"], ["recovery_status"], ["restore_backup", { name: canonical }]]);
+    await expect(runtime.restoreRecoveryBackup("0".repeat(32) + ".sqlite")).rejects.toThrow(/fresh recovery status/i);
+    expect(invoke.mock.calls.filter(([command]) => command === "restore_backup")).toHaveLength(1);
+  });
+
+  it.each([
+    "../42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "..\\42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "C:\\42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "/42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite:payload",
+    "42A20B47655D3BDB01E426447CD7F93D.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93dd.sqlite",
+    "g2a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite.manifest.json",
+    ".42a20b47655d3bdb01e426447cd7f93d.sqlite",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite\n",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite\r\n",
+    "42a20b47655d3bdb01e426447cd7f93d.sqlite\0",
+  ])("rejects malformed or path-bearing recovery backup selection %j before invoking the Host", async name => {
+    const invoke = vi.fn(); window.__TAURI__ = { core: { invoke } };
+    expect(isOpaqueBackupName(name)).toBe(false);
+    expect(normalizeRecoveryStatus({ backups: [name] }).backups).toEqual([]);
+    await expect(runtime.restoreRecoveryBackup(name)).rejects.toThrow(/enumerated opaque backup/i);
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it("withholds explicit sensitive diagnostic shapes at the recovery DTO boundary", () => {

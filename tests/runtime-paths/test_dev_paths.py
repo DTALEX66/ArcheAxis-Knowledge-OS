@@ -107,6 +107,10 @@ class DevelopmentPaths(unittest.TestCase):
         receipt = json.loads(receipts[0].read_text(encoding='utf-8'))
         self.assertEqual(receipt['exit_code'], 7)
         self.assertEqual(len(receipt['source_commit']), 40)
+        metadata = json.loads((receipts[0].parent.parent / 'run-metadata.json').read_text(encoding='utf-8'))
+        self.assertEqual(metadata['source_commit'], receipt['source_commit'])
+        self.assertEqual(metadata['retention'], 'UNCLASSIFIED_PRESERVE')
+        self.assertFalse(metadata['automatic_deletion'])
         after = {p.relative_to(self.repo) for p in self.repo.rglob('*') if '.git' not in p.parts}
         self.assertTrue(all(p.parts[0] == '.project-local' for p in after - before))
         self.assertFalse((self.repo / '.hermes').exists())

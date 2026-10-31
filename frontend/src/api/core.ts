@@ -4,13 +4,14 @@ import { ApiError } from "./client";
 import { readMachineFailureDiagnostics } from "./machineFailure";
 import { jobAdmissionRefusal } from "./jobAdmission";
 import { readMachineAdmissionRefusal } from "./machineAdmission";
-import { assertCoreDto, type CoreOperation } from "./generated/core-contract";
+import { assertCoreDto, type CoreOperation, type SemanticSearchDto } from "./generated/core-contract";
 import { assertAiAssetDto } from "./generated/ai-asset-contract";
 import { assertTeachingDto } from "./generated/teaching-contract";
 import { assertCollectionDto } from "./generated/collection-contract";
 import { assertUiWorkingState } from "./generated/ui-working-state-contract";
 import { assertLayoutDto } from "./generated/layout-contract";
 import { assertHandoffDto } from "./generated/project-handoff";
+import { beginDiagnosticObservation, recordDiagnosticFailure } from "../presentation/diagnostics";
 export type { CoreOperation } from "./generated/core-contract";
 const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
@@ -18,6 +19,8 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  workspace_backups: "BackupsListDto",
+  operation_failure_log_read:"FailureLogSnapshot",operation_failure_log_append:"FailureLogSnapshot",operation_failure_log_clear:"FailureLogSnapshot",
   ingest_batch_register:"IngestBatchDto",ingest_batch_get:"IngestBatchDto",ingest_batches_list:"IngestBatchesDto",
   ingest_member_import:"IngestMemberImportDto",ingest_member_enqueue:"IngestMemberJobDto",
   ingest_member_relations_apply:"IngestRelationsDto",
@@ -38,6 +41,7 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",
   document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto", document_check_execute: "DocumentCheckDto",
   document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto", anchor_resolve: "AnchorResolutionDto",
+  semantic_search: "SemanticSearchDto",
   search: "SearchDto", knowledge_get: "KnowledgeDto", learning_items: "LearningItemsDto",
   learning_state: "LearningStateDto", document_export: "DocumentExportDto", document_package_export: "DocumentPackageDto", document_package_import: "DocumentPackageImportDto",
   machine_retest: "MachineRetestDto",
@@ -48,7 +52,53 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   machine_evaluation_create: "DocumentDto", machine_answer_snapshot: "MachineAnswerSnapshotDto",
 };
 
+// This is a transport readback boundary, not a new ranking implementation.
+function checkSemanticReadback(value: unknown, query: unknown): void {
+  const result = assertCoreDto<SemanticSearchDto>("SemanticSearchDto", value);
+  const fail = () => { throw new Error("CORE_SEMANTIC_BINDING_INVALID"); };
+  if (result.q !== query || result.candidate_count !== result.candidates.length) fail();
+  const candidates = new Map(result.candidates.map(row => [row.knowledge_id, row]));
+  if (candidates.size !== result.candidates.length || result.candidates.some(row =>
+    row.knowledge_version !== row.knowledge_id || (row.anchor_id !== null && row.source_revision !== row.current_source_revision))) fail();
+  for (const leg of [result.embedding, result.reranker]) {
+    const seen = new Set<string>();
+    for (const row of leg.rank) {
+      const candidate = candidates.get(row.knowledge_id);
+      if (!candidate || seen.has(row.knowledge_id) || row.knowledge_version !== candidate.knowledge_version
+        || row.anchor_id !== candidate.anchor_id || row.source_id !== candidate.source_id || row.source_revision !== candidate.source_revision) fail();
+      seen.add(row.knowledge_id);
+    }
+    if (leg.complete && leg.rank.length !== result.candidate_count) fail();
+  }
+  const complete = result.embedding.complete && result.reranker.complete;
+  const hasRank = result.embedding.rank.length > 0 || result.reranker.rank.length > 0;
+  if (result.status === "EMPTY") {
+    if (result.candidate_count !== 0 || result.complete || complete || result.embedding.complete || result.reranker.complete || hasRank || result.batches?.length) fail();
+  } else {
+    if (!result.candidate_count || result.complete !== complete
+      || result.status !== (complete ? "AVAILABLE" : hasRank ? "PARTIAL" : "UNAVAILABLE")
+      || !result.batches?.length || typeof result.ranking_basis !== "string") fail();
+    const ids = result.batches!.flatMap(batch => batch.candidate_ids);
+    if (ids.length !== candidates.size || new Set(ids).size !== ids.length || ids.some(id => !candidates.has(id))) fail();
+  }
+}
+
 export async function coreCommand<T>(operation: CoreOperation, payload: Record<string, unknown> = {}): Promise<T> {
+  const observation = beginDiagnosticObservation();
+  try { return await executeCoreCommand<T>(operation, payload); }
+  catch (error) {
+    if (!["operation_failure_log_read","operation_failure_log_append","operation_failure_log_clear"].includes(operation)) recordDiagnosticFailure(operation, error, observation);
+    throw error;
+  }
+}
+
+async function executeCoreCommand<T>(operation: CoreOperation, payload: Record<string, unknown>): Promise<T> {
+  if (operation === "semantic_search") {
+    try {
+      if (Object.keys(payload).length !== 1 || !("body" in payload)) throw new Error("invalid payload");
+      assertCoreDto("SemanticSearchInput", payload.body);
+    } catch { throw new ApiError(422, "语义查询输入无效；未发送请求。", "incompatible"); }
+  }
   const invoke = window.__TAURI__?.core?.invoke;
   if (!invoke) throw new ApiError(0, "请在本地桌面应用打开此内容。", "offline");
   let result: unknown;
@@ -114,11 +164,11 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
     // One sentence for every failure sends someone looking in the wrong place: a missing object,
     // a refused argument and a core-side fault need different next actions.
     const reason = response.status === 409 ? "版本已变化，请保留当前草稿并重新读取。"
-      : response.status === 401 || response.status === 403 ? "本地核心拒绝了此操作的身份。"
-      : response.status === 404 ? `本地核心找不到 ${operation} 所需的对象。`
-      : response.status === 429 ? "本地核心繁忙，请稍后重试。"
-      : response.status >= 500 ? `本地核心未能完成 ${operation}（${response.status}）。`
-      : `本地核心拒绝了 ${operation}（${response.status}）。`;
+      : response.status === 401 || response.status === 403 ? "你暂时不能进行这项操作，请检查是否已获得授权。"
+      : response.status === 404 ? "暂时找不到这项内容，请刷新列表后重试。"
+      : response.status === 429 ? "正在处理其他任务，请稍后重试。"
+      : response.status >= 500 ? "这项操作暂时未能完成，请查看问题记录后重试。"
+      : "这项操作未获允许，请检查填写的内容后重试。";
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   if (["layout_read", "layout_write", "layout_recover"].includes(operation)) {
@@ -132,6 +182,10 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   if (operation === "material_question_submit" && response.status === 202) {
     try { return assertMaterialQuestionDto<T>("MaterialQuestionAdmissionDto", response.body); }
     catch { throw new ApiError(502, "材料异步受理回执结构不兼容；保留原请求并查询。", "incompatible"); }
+  }
+  if (operation === "semantic_search") {
+    try { checkSemanticReadback(response.body, (payload.body as {q:string}).q); }
+    catch { throw new ApiError(502, "语义查询回读不完整或身份不一致。", "incompatible"); }
   }
   const schema = responseSchemas[operation];
   if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {

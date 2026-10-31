@@ -182,3 +182,42 @@ async fn a_real_vault_shape_is_classified_as_expected() {
     assert_eq!(value["counts"]["note"], 2, "{value}");
     assert_eq!(value["counts"]["app_config"], 5, "{value}");
 }
+
+#[tokio::test]
+async fn windows_and_mixed_separators_do_not_import_application_state_or_trash() {
+    let (_dir, router) = router().await;
+    let members = [
+        r".obsidian\workspace.json",
+        r"vault/.OBSIDIAN\plugins\state.json",
+        r"vault\.trash/deleted.md",
+        r"notes\atomic.md",
+        r"attachments\figure.pdf",
+        r".obsidian-data\guide.md",
+        r"vault\..\outside.md",
+    ];
+    let (status, value) = post(
+        &router,
+        &serde_json::json!({"members": members}).to_string(),
+    )
+    .await;
+    assert_eq!(status, 200, "{value}");
+    assert_eq!(value["count"], 7);
+    assert_eq!(value["excluded_as_application_state"], 3);
+    assert_eq!(value["importable"], 3);
+    assert_eq!(value["unsafe"].as_array().unwrap().len(), 1);
+    for (index, member) in members.iter().enumerate() {
+        let item = &value["members"][index];
+        assert_eq!(item["member"], *member);
+        if index < 3 {
+            assert_eq!(item["role"], "app_config", "{item}");
+            assert_eq!(item["disposition"], "exclude_application_state", "{item}");
+        } else if index == 6 {
+            assert_eq!(item["disposition"], "refuse", "{item}");
+        } else {
+            assert!(matches!(
+                item["disposition"].as_str(),
+                Some("import_as_knowledge" | "import_as_source")
+            ));
+        }
+    }
+}

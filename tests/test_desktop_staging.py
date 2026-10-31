@@ -5,6 +5,7 @@ import os
 import subprocess
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -110,6 +111,60 @@ def test_stage_runtime_refuses_to_overwrite_existing_destination(monkeypatch, tm
         stage_runtime(repository=repository, destination=destination)
 
 
+@pytest.mark.parametrize("minor", [13, 11])
+def test_bundle_runtime_requires_python312_before_any_preparation(monkeypatch, tmp_path, minor):
+    from unittest.mock import Mock
+    from desktop.scripts import prepare_bundle
+
+    repository = tmp_path / "repo"
+    repository.mkdir()
+    destination = repository / ".project-local/rt"
+    marker = tmp_path / "existing-runtime-ready.marker"
+    marker.write_bytes(b"preserve existing runtime marker")
+    monkeypatch.setattr(prepare_bundle, "sys", SimpleNamespace(version_info=(3, minor, 0)))
+    boundaries = {}
+    for name in ("stage_runtime", "runtime_build_environment", "_run"):
+        boundaries[name] = Mock(side_effect=AssertionError("preparation must not begin"))
+        monkeypatch.setattr(prepare_bundle, name, boundaries[name])
+    uv_lookup = Mock(side_effect=AssertionError("uv must not be looked up"))
+    monkeypatch.setattr(prepare_bundle.shutil, "which", uv_lookup)
+
+    with pytest.raises(RuntimeError, match=r"请使用 Python 3\.12.*Python 3\." + str(minor)):
+        prepare_bundle.prepare_bundle_runtime(repository=repository, destination=destination)
+
+    for boundary in boundaries.values():
+        boundary.assert_not_called()
+    uv_lookup.assert_not_called()
+    assert not destination.parent.exists()
+    assert marker.read_bytes() == b"preserve existing runtime marker"
+
+
+def test_bundle_runtime_python312_reaches_existing_stage_pipeline(monkeypatch, tmp_path):
+    from contextlib import nullcontext
+    from desktop.scripts import prepare_bundle
+
+    repository = tmp_path / "repo"
+    destination = repository / ".project-local/rt"
+    observed = []
+    monkeypatch.setattr(prepare_bundle, "sys", SimpleNamespace(version_info=(3, 12, 9)))
+    monkeypatch.setattr(prepare_bundle.shutil, "which", lambda name: "synthetic-uv" if name == "uv" else None)
+    monkeypatch.setattr(prepare_bundle, "runtime_build_environment", lambda root: {"ARCHEAXIS_RUN_ROOT": str(tmp_path / "run")})
+    monkeypatch.setattr(prepare_bundle, "BuildTimings", lambda *_: SimpleNamespace(stage=lambda name: nullcontext({})))
+
+    class ReachedOriginalStage(Exception):
+        pass
+
+    def original_stage_boundary(**kwargs):
+        observed.append(kwargs)
+        raise ReachedOriginalStage
+
+    monkeypatch.setattr(prepare_bundle, "stage_runtime", original_stage_boundary)
+    with pytest.raises(ReachedOriginalStage):
+        prepare_bundle.prepare_bundle_runtime(repository=repository, destination=destination)
+    assert observed == [{"repository": repository.resolve(), "destination": destination.resolve()}]
+    assert not destination.exists()
+
+
 def test_tauri_maps_the_staged_runtime_to_the_installed_runtime_root() -> None:
     repository = Path(__file__).resolve().parents[1]
     config = json.loads(
@@ -140,16 +195,15 @@ def test_root_tauri_shell_creates_its_webview_at_the_resolved_data_root() -> Non
     assert ".data_directory(webview_data_dir)" in source
 
 
-def test_root_tauri_shell_closes_immediately_and_cleans_up_off_event_loop() -> None:
-    """WM_CLOSE and explicit Exit must never wait on a long recovery operation."""
+def test_root_tauri_shell_checks_drafts_then_closes_without_blocking_event_loop() -> None:
+    """X/Alt+F4/Exit hold Core until one close decision, then use graceful shutdown."""
     repository = Path(__file__).resolve().parents[1]
     source = (repository / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
 
-    assert "matches!(event, WindowEvent::CloseRequested { .. })" in source
-    assert "api.prevent_close();" not in source
+    assert "if let WindowEvent::CloseRequested { api, .. } = event" in source
+    assert "api.prevent_close();" in source
     assert "window.destroy();" not in source
-    # Tauri's default WM_CLOSE path remains in control. Core cleanup is always
-    # offloaded; the Job Object reclaims the child if app exit wins the race.
+    # The process fallback still reclaims its owned Core off the event loop.
     cleanup_helper = source.split("fn cleanup_backend_on_exit", 1)[1].split(
         "#[tauri::command]", 1
     )[0]
@@ -162,14 +216,37 @@ def test_root_tauri_shell_closes_immediately_and_cleans_up_off_event_loop() -> N
     exit_command = source.split("fn exit_application", 1)[1].split(
         "#[cfg(windows)]\nfn main", 1
     )[0]
-    assert "app.exit(code)" in exit_command
+    assert "close_window_allowed(window.label())?" in exit_command
+    assert "window.close()" in exit_command
+    assert "begin_backend_exit" not in exit_command
     assert "operations" not in exit_command
     assert ".lock()" not in exit_command
 
-    close_handler = source.split(".on_window_event(|window, event| {", 1)[1].split(
-        "        })\n        .build", 1
+    finish = source.split("fn finish_application_exit", 1)[1].split(
+        "fn close_window_allowed", 1
     )[0]
-    assert "cleanup_backend_on_exit(state);" in close_handler
+    assert "begin_backend_exit(state" in finish
+    assert "app.exit(code)" in finish
+    assert 'Some("GRACEFUL" | "NO_OWNED_CORE")' in finish
+    assert "cancel_main_window_menu(&app)" in finish
+
+    close_handler = source.split(".on_window_event(|window, event| {", 1)[1].split(
+        "// Select the application-local runtime", 1
+    )[0]
+    assert "request_application_close(window);" in close_handler
+    assert "cleanup_backend_on_exit" not in close_handler
+    assert "app_handle().exit(" not in close_handler
+    assert "thread::sleep" not in close_handler
+
+    confirmation = source.split("fn confirm_owned_application_close", 1)[1].split(
+        "fn request_application_close", 1
+    )[0]
+    assert "GetWindowThreadProcessId" in confirmation
+    assert "owner != std::process::id()" in confirmation
+    assert "MessageBoxW" in confirmation and "0x134" in confirmation  # YES/NO, default NO
+    assert "decision == Some(6)" in confirmation
+    assert "state.finish(&id, true)" in confirmation
+    assert '"cancelled"' in confirmation and '"failed"' in confirmation
 
 
 def test_vite_root_is_stable_when_tauri_builds_through_a_windows_junction() -> None:
@@ -230,59 +307,82 @@ def test_distribution_default_output_is_anchored_to_repository_root() -> None:
     assert _assembly_output(None) == expected
 
 
-def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypatch, tmp_path):
-    """Stub dependency installation, but execute the authority's actual layout code."""
+def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypatch, tmp_path, runtime_repository):
+    """No installers: actual stager validation/layout, exact synthetic VC identities."""
+    import hashlib
     import importlib.util
-    import io
-    import sys
 
     from desktop.scripts import prepare_bundle
-
-    repository = Path(__file__).resolve().parents[1]
-    script = repository / "scripts/release/stage_backend_runtime.py"
+    source_root = Path(__file__).resolve().parents[1]
+    script = source_root / "scripts/release/stage_backend_runtime.py"
     spec = importlib.util.spec_from_file_location("candidate_stager_test", script)
     authority = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(authority)
-    destination = tmp_path / "candidate"
+    repository = runtime_repository
+    for name in ("services/python-workers/transport/text_ndjson.py", "shared/learning_scheduler.py"):
+        path = repository / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"# synthetic public donor\n")
+    (repository / "frontend").mkdir()
+    (repository / "frontend/package.json").write_text('{"version":"fixture"}', encoding="utf-8")
+    environment = prepare_bundle.runtime_build_environment(repository)
+    for key, value in environment.items():
+        if key.startswith("ARCHEAXIS_"):
+            monkeypatch.setenv(key, value)
+    destination = Path(environment["ARCHEAXIS_RUN_ROOT"]) / "artifacts/candidate"
     core = tmp_path / "archeaxis-api.exe"
     core.write_bytes(b"synthetic Core fixture")
+    vc = tmp_path / "vc-donor"
+    vc.mkdir()
+    cohort = {}
+    for name in ("vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll"):
+        payload = b"synthetic " + name.encode()
+        (vc / name).write_bytes(payload)
+        cohort[name] = {"version":"fixture", "bytes":len(payload), "sha256":hashlib.sha256(payload).hexdigest()}
+    monkeypatch.setattr(authority, "APP_LOCAL_VC_RUNTIME", {name:(cohort[name],) for name in authority.APP_LOCAL_VC_RUNTIME})
+    monkeypatch.setattr(authority, "APP_LOCAL_CPP_COHORTS", (cohort,))
+    monkeypatch.setattr(authority, "packager_identity", lambda:"synthetic-tooling")
+    monkeypatch.setattr(prepare_bundle, "resolve_vc_runtime", lambda explicit=None:vc)
+    monkeypatch.setattr(prepare_bundle, "_backend_stager", lambda _:authority)
     observed = []
-    monkeypatch.delenv("CARGO_TARGET_DIR", raising=False)
-
-    def prepare_runtime(*, repository, destination):
-        python = destination / "runtime/python/python.exe"
-        python.parent.mkdir(parents=True)
+    original_main = authority.main
+    def delegate(argv, **kwargs):
+        observed.append(argv)
+        assert callable(kwargs["_runtime_preparer"])
+        assert kwargs["_runtime_environment"]["ARCHEAXIS_RUN_ROOT"] == str(destination.parents[1])
+        return original_main(argv, **kwargs)
+    monkeypatch.setattr(authority, "main", delegate)
+    def prepare_runtime(*, repository, destination, _backend_in_place=False, _environment=None):
+        assert _backend_in_place is True
+        python = destination / "runtime/python.exe"
+        python.parent.mkdir()
         python.write_bytes(b"synthetic interpreter fixture")
+        for name in cohort:
+            (python.parent / name).write_bytes((vc / name).read_bytes())
         packages = python.parent / "Lib/site-packages"
         (packages / "fastapi/.agents").mkdir(parents=True)
-        (packages / "fastapi/.agents/upstream.md").write_text("upstream")
-        info = packages / "fastapi-1.0.dist-info"
-        info.mkdir()
-        (info / "RECORD").write_text("fastapi/.agents/upstream.md,,\n")
+        (packages / "fastapi/.agents/upstream.md").write_text("upstream", encoding="utf-8")
+        (packages / "fastapi-1.0.dist-info").mkdir()
+        (packages / "fastapi-1.0.dist-info/RECORD").write_text("fastapi/.agents/upstream.md,,\n", encoding="utf-8")
         return python
-
-    def stage(command, *, cwd, check):
-        observed.append(command)
-        assert command[:3] == [sys.executable, "-B", str(script)]
-        assert cwd == repository and check is True
-        with monkeypatch.context() as context:
-            context.setattr(sys, "argv", command[2:])
-            context.setattr(authority, "packager_identity", lambda: "synthetic-tooling")
-            context.setattr(authority.os, "popen", lambda *_: io.StringIO("synthetic-version"))
-            assert authority.main() == 0
-
     monkeypatch.setattr(prepare_bundle, "prepare_bundle_runtime", prepare_runtime)
-    monkeypatch.setattr(prepare_bundle.subprocess, "check_output", lambda command, **_: "synthetic-tree\n" if "HEAD^{tree}" in command else "synthetic-commit\n")
-    monkeypatch.setattr(prepare_bundle.subprocess, "run", stage)
+    real_run = subprocess.run
+    def no_execution(command, **kwargs):
+        if command[0] == "git":
+            return real_run(command, **kwargs)
+        assert command[1:4] == ["-I", "-B", "-c"]
+        return subprocess.CompletedProcess(command, 0, "3.12.9\n", "")
+    monkeypatch.setattr(subprocess, "run", no_execution)
+    monkeypatch.delenv("CARGO_TARGET_DIR", raising=False)
     python = prepare_bundle.prepare_backend_candidate(repository=repository, destination=destination, core=core)
-
     assert len(observed) == 1
+    assert observed[0][observed[0].index("--vc-runtime")+1] == str(vc)
     assert python == destination / "runtime/python.exe"
     assert python.read_bytes() == b"synthetic interpreter fixture"
-    config = json.loads((repository / "src-tauri/tauri.conf.json").read_text())
+    config = json.loads((source_root / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
     for resource in config["bundle"]["resources"].values():
         assert (destination / resource).exists(), resource
-    profile = json.loads((destination / "worker-profile.json").read_text())
+    profile = json.loads((destination / "worker-profile.json").read_text(encoding="utf-8"))
     assert profile["python"] == "runtime/python.exe"
     assert profile["script"] == "workers/transport/text_ndjson.py"
     assert (destination / "runtime/Lib/site-packages/fastapi/.agents/upstream.md").is_file()

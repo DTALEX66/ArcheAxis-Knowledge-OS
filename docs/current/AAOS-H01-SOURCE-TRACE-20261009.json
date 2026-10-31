@@ -13,6 +13,11 @@
     "product_implementation": "UNKNOWN",
     "scope": "Source preservation/unique locators/destinations are structural evidence, never product completion or all-history completeness."
   },
+  "evidence_retention_20261024": {
+    "authority": "reports/full-audit-20261024/reference-resolution.json",
+    "finding": "The three governance-assessment entries under .project-local/runs/f714401b40/ are historical 2026-10-09 outputs whose run root is no longer retained. The recorded SHA-256 values remain as trace metadata; no current execution, receipt or acceptance path depends on their bytes.",
+    "status": "HISTORICAL_NOT_RETAINED_NO_CURRENT_DEPENDENCY"
+  },
   "input_bindings": {
     "old_disposition": {
       "path": "docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json",

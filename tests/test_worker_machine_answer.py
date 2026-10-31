@@ -20,7 +20,8 @@ WORKER = REPO / "services" / "python-workers" / "machine" / "worker_machine_answ
 @pytest.mark.parametrize("url", ["http://example.invalid/v1", "https://127.0.0.1/v1", "http://user:pass@127.0.0.1/v1", "http://0.0.0.0/v1", "http://[::]/v1", "http://127.0.0.1/v1#fragment"])
 def test_local_transport_rejects_nonlocal_or_ambiguous_targets_before_open(monkeypatch,url):
     monkeypatch.setattr(machine.urllib.request,"build_opener",lambda *args:pytest.fail("Blocked endpoint opened"))
-    with pytest.raises(ValueError):machine.local_urlopen(url,timeout=1)
+    with pytest.raises(ValueError):
+        machine.local_urlopen(url,timeout=1)
 
 
 def test_local_transport_disables_proxy_normalizes_localhost_and_refuses_redirect(monkeypatch):
@@ -32,7 +33,8 @@ def test_local_transport_disables_proxy_normalizes_localhost_and_refuses_redirec
     def build(*handlers):
         assert isinstance(handlers[0],machine.urllib.request.ProxyHandler) and handlers[0].proxies=={}
         assert isinstance(handlers[1],machine.NoLocalRedirect)
-        with pytest.raises(ValueError):handlers[1].redirect_request(None,None,307,"",{},"http://example.invalid/")
+        with pytest.raises(ValueError):
+            handlers[1].redirect_request(None,None,307,"",{},"http://example.invalid/")
         return Opener()
     monkeypatch.setattr(machine.urllib.request,"build_opener",build)
     req=machine.urllib.request.Request("http://localhost:1234/v1/chat/completions",data=b"synthetic")
@@ -91,13 +93,16 @@ def test_oversized_inventory_is_failed_not_empty_or_available(monkeypatch):
 
 @pytest.mark.parametrize("status", [301,302,303,307,308])
 def test_integrated_loopback_redirect_never_reaches_second_server(monkeypatch,status):
-    from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     from threading import Thread
     hits={"source":0,"target":0}
     class Target(BaseHTTPRequestHandler):
         def do_GET(self):
-            hits["target"]+=1;self.send_response(200);self.end_headers()
-        do_POST=do_GET
+            hits["target"]+=1
+            self.send_response(200)
+            self.end_headers()
+        def do_POST(self):
+            self.do_GET()
         def log_message(self,*args):pass
     target=ThreadingHTTPServer(("127.0.0.1",0),Target)
     class Source(BaseHTTPRequestHandler):
@@ -110,7 +115,8 @@ def test_integrated_loopback_redirect_never_reaches_second_server(monkeypatch,st
         def log_message(self,*args):pass
     source=ThreadingHTTPServer(("127.0.0.1",0),Source)
     threads=[Thread(target=s.serve_forever,daemon=True) for s in [target,source]]
-    for thread in threads:thread.start()
+    for thread in threads:
+        thread.start()
     monkeypatch.setenv("HTTP_PROXY","http://127.0.0.1:1")
     try:
         request=machine.urllib.request.Request(f"http://localhost:{source.server_port}/generate",data=b"synthetic-context")
@@ -118,8 +124,12 @@ def test_integrated_loopback_redirect_never_reaches_second_server(monkeypatch,st
             machine.local_urlopen(request,timeout=2)
         assert hits=={"source":1,"target":0}
     finally:
-        for server in [source,target]:server.shutdown();server.server_close()
-        for thread in threads:thread.join(timeout=2);assert not thread.is_alive()
+        for server in [source,target]:
+            server.shutdown()
+            server.server_close()
+        for thread in threads:
+            thread.join(timeout=2)
+            assert not thread.is_alive()
 
 
 @pytest.mark.parametrize("payload", [{"data": []}, {"data": [{"id": "different-model"}]}])
@@ -776,3 +786,126 @@ def test_default_grounded_prompt_is_byte_identical_to_legacy(monkeypatch):
     assert observed == [legacy]
     assert result["answer_policy"] == "grounded"
     assert result["prompt_version"] == "archeaxis.vnext/v1 2026-10-02"
+
+
+# Request-level output contracts: no model/network; execute the real serializer and parser.
+def _output_format(properties=None):
+    properties = properties or {"writer": "string", "frozen": "boolean"}
+    return {"type": "json_schema", "json_schema": {"name": "archeaxis_response", "strict": True,
+        "schema": {"type": "object", "properties": {k: {"type": v} for k, v in properties.items()},
+                   "required": list(properties), "additionalProperties": False}}}
+
+
+def test_output_format_common_vectors_have_exact_canonical_hash():
+    vectors = json.loads((REPO / "tests/fixtures/machine-response-format.json").read_text(encoding="utf-8"))
+    for vector in vectors["formats"]:
+        normalized = machine.normalize_response_format(vector["input"])
+        assert normalized == vector["normalized"]
+        assert machine.response_format_sha256(normalized) == vector["sha256"]
+        for case in vector["outputs"]:
+            if case["valid"]:
+                machine.validate_structured_output(normalized, case["text"])
+            else:
+                with pytest.raises((ValueError, UnicodeError)):
+                    machine.validate_structured_output(normalized, case["text"])
+
+
+@pytest.mark.parametrize("key", ["const", "enum", "default", "expected", "description", "examples", "$ref"])
+def test_output_format_rejects_answer_hints_before_discovery(monkeypatch, key):
+    fmt = _output_format()
+    fmt["json_schema"]["schema"]["properties"]["writer"][key] = "a known answer"
+    monkeypatch.setattr(machine, "_endpoint", lambda: pytest.fail("invalid schema discovered endpoint"))
+    with pytest.raises(ValueError):
+        machine.answer("synthetic", "question", response_format=fmt)
+
+
+@pytest.mark.parametrize("mutation", ["strict_int", "additional_int", "required_duplicate", "unknown_type", "nonascii_key", "oversize", "extra_root"])
+def test_output_format_invalid_schema_failclosed(monkeypatch, mutation):
+    fmt = _output_format()
+    spec, schema = fmt["json_schema"], fmt["json_schema"]["schema"]
+    if mutation == "strict_int":
+        spec["strict"] = 1
+    elif mutation == "additional_int":
+        schema["additionalProperties"] = 0
+    elif mutation == "required_duplicate":
+        schema["required"] = ["writer", "writer"]
+    elif mutation == "unknown_type":
+        schema["properties"]["writer"]["type"] = "array"
+    elif mutation == "nonascii_key":
+        schema["properties"]["中文字"] = {"type": "string"}
+    elif mutation == "oversize":
+        spec["name"] = "a" * 8193
+    else:
+        fmt["description"] = "answer"
+    monkeypatch.setattr(machine, "_endpoint", lambda: pytest.fail("invalid schema reached endpoint"))
+    with pytest.raises(ValueError):
+        machine.answer("synthetic", "question", response_format=fmt)
+
+
+def test_output_format_real_http_body_default_and_raw_final_content(monkeypatch):
+    import io
+    sent = []
+    raw = '  {"writer":"Python worker","frozen":false}\n'
+    endpoint = {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "fixture"}
+    monkeypatch.setattr(machine, "_endpoint", lambda: endpoint)
+    def open_response(request, timeout):
+        sent.append(json.loads(request.data))
+        return io.BytesIO(json.dumps({"model": "fixture", "choices": [{"finish_reason": "stop",
+            "message": {"content": raw}}]}).encode())
+    monkeypatch.setattr(machine, "local_urlopen", open_response)
+    fmt = _output_format()
+    result = machine.answer("synthetic", "original fixed question", response_format=fmt, timeout_s=120)
+    assert result["answer"] == raw  # No whitespace normalization in structured mode either.
+    assert sent[0] == {"model": "fixture", "max_tokens": 2048,
+        "messages": [{"role": "user", "content": machine.answer_prompt("synthetic", "original fixed question", "grounded", None)[0]}],
+        "response_format": machine.normalize_response_format(fmt)}
+    assert result["format_validation"] == "VALID"
+    assert result["response_format_sha256"] == machine.response_format_sha256(sent[0]["response_format"])
+    legacy = _load("structured_output_legacy_scorer", REPO / "scripts/probes/colearning_real_model_smoke.py")
+    assert legacy.score(raw, "original") == "INCORRECT"  # Valid structure never supplies truth.
+    plain = machine.answer("synthetic", "original fixed question", timeout_s=120)
+    assert "response_format" not in sent[1] and "response_format" not in plain
+    assert plain["answer"] == raw.strip()  # Omitted field retains legacy behavior.
+
+
+@pytest.mark.parametrize("text,source,finish,code", [
+    ('```json\n{"writer":"Rust Core","frozen":true}\n```', "content", "stop", "INVALID_OUTPUT"),
+    ('{"writer":"Rust Core","frozen":"true"}', "content", "stop", "INVALID_OUTPUT"),
+    ('{"writer":"Rust Core","frozen":true}', "content", "length", "INVALID_OUTPUT"),
+    ('thinking without final answer', "reasoning_content", "length", "NO_FINAL_ANSWER"),
+])
+def test_output_format_invalid_final_retains_failure_and_never_retries(monkeypatch, text, source, finish, code):
+    calls = []
+    monkeypatch.setattr(machine, "_endpoint", lambda: {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "fixture"})
+    def call(*args):
+        calls.append(args)
+        return text, finish, "fixture", source
+    monkeypatch.setattr(machine, "_call", call)
+    with pytest.raises(machine.FinalAnswerFailure) as raised:
+        machine.answer("synthetic", "question", response_format=_output_format())
+    receipt = machine.failure_receipt(raised.value)
+    assert receipt["reason_code"] == code and len(calls) == 1
+    assert "answer" not in receipt and text not in json.dumps(receipt)
+
+
+def test_output_format_unsupported_protocol_does_not_send(monkeypatch):
+    monkeypatch.setattr(machine, "local_urlopen", lambda *a, **k: pytest.fail("unsupported format sent"))
+    with pytest.raises(ValueError):
+        machine._call({"protocol": "ollama", "base": "http://127.0.0.1:1"}, "fixture", "synthetic", 1, 2048, _output_format())
+
+
+def test_output_format_cli_reads_exact_staged_format_and_preserves_receipt(monkeypatch, tmp_path, capsys):
+    source = tmp_path / "context.txt"
+    source.write_text("synthetic", encoding="utf-8")
+    fmt_path = tmp_path / "response-format.json"
+    fmt_path.write_text(json.dumps(_output_format()), encoding="utf-8")
+    observed = []
+    monkeypatch.setattr(machine, "_endpoint", lambda: {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "fixture"})
+    def call(*args):
+        observed.append(args[-1])
+        return '{"writer":"arbitrary fact","frozen":false}', "stop", "fixture", "content"
+    monkeypatch.setattr(machine, "_call", call)
+    monkeypatch.setattr(machine.sys, "argv", ["worker", str(source), "--question", "fixed question", "--response-format-file", str(fmt_path)])
+    assert machine.main() == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["response_format"] == observed[0] and receipt["format_validation"] == "VALID"

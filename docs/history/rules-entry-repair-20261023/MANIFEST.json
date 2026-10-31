@@ -1,0 +1,253 @@
+{
+  "schema": "archeaxis.rules-entry-archive/v1",
+  "observed_at": "2026-10-23T15:07:55.022113+00:00",
+  "source_head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "files": [
+    {
+      "original_path": "AGENTS.md",
+      "archive_path": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "sha256": "2c7a6dcc48e311b341b211a89622aafe84781601045b9a52316c55d53f59561c",
+      "bytes": 22671,
+      "role": "FROZEN_ENTRY_BEFORE_REPAIR_NOT_CURRENT"
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "archive_path": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "sha256": "b699320b799befed10a271a67d10cc0a2c68f7c396e345eb8936f9d1cc578d24",
+      "bytes": 12871,
+      "role": "FROZEN_ENTRY_BEFORE_REPAIR_NOT_CURRENT"
+    },
+    {
+      "original_path": "CLAUDE.md",
+      "archive_path": "docs/history/rules-entry-repair-20261023/before/CLAUDE.md",
+      "sha256": "1c3d976d6c650a81a610ecd7dff1d93fe2bab39b183f530a1a6f608814217fd3",
+      "bytes": 1442,
+      "role": "FROZEN_ENTRY_BEFORE_REPAIR_NOT_CURRENT"
+    },
+    {
+      "original_path": "GEMINI.md",
+      "archive_path": "docs/history/rules-entry-repair-20261023/before/GEMINI.md",
+      "sha256": "7f3471aa7de94eda27e7dd6293ef32b2b292dbc881b7854a914b5213087a5f7f",
+      "bytes": 1448,
+      "role": "FROZEN_ENTRY_BEFORE_REPAIR_NOT_CURRENT"
+    },
+    {
+      "original_path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "archive_path": "docs/history/rules-entry-repair-20261023/before/docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "sha256": "0daa0139a28257ce9758baa6263ad66f23ce352b81e9555f85ca33d9b9ef59e0",
+      "bytes": 6867,
+      "role": "FROZEN_ENTRY_BEFORE_REPAIR_NOT_CURRENT"
+    }
+  ],
+  "removed_entry_paragraphs": [
+    {
+      "original_path": "AGENTS.md",
+      "line": 1,
+      "text": "> **2026-10-23 最新范围纠正：人类与AI双侧闭环继续／PARTIAL**：Owner最新明确“人类侧不冻结，还是按照闭环执行”，并进一步确认“闭环应该还要包括AI侧”。当前范围为人类知识／学习链＋AI知识／学习链＋两侧按权限共享知识与证据的双向连接。AI专项未改人类侧是历史实施事实，不是后续冻结禁令；原始跨项目会话仍归外部系统，未来扩展与暂停监控不因此恢复。 以[决定二十二](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十二人类与ai双侧闭环继续交接时的最新范围2026-10-23)、[唯一闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)及[完整换会话交接](docs/history/owner-dialogue-20261023-thread-handoff/README.md)为接续入口。下方AI专项“只改AI”和旧暂停／权限阻塞段按其历史时点理解，不能再次限定整个项目只做人类侧或只做AI适配接口。本次仅完成交接归档，未启动后继产品执行。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 3,
+      "text": "> **2026-10-23 AI 侧定向职责纠偏**：本轮仅执行外部上下文／知识候选边界；跨项目与跨 Agent 原始上下文归独立外部系统，AAOS 保留受治理 AI 知识与有限问答上下文，人类学习侧不变。候选接收与隔离测试已落地，真实外部状态 NOT_CONNECTED；不启动其他开发／安装／付费调用。规范：[AI 边界](docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md)，实际进度仍读原唯一执行记录。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 5,
+      "text": "> **2026-10-23 当前权限已恢复／目标仍未完成**：Owner将本会话切换为完全访问并要求解决阻塞后，项目canonical Python 3.13.14及Python子进程启动PASS；正式Git临时引用创建、读回、删除PASS，原分支、HEAD和暂存区不变。此前直接操作.git临时文件的探针命令在执行前被策略拒绝，该拒绝保留，但不能据此继续断言Git只读。当前为PERMISSIONS_RECOVERED／PARTIAL；下方权限阻塞段为历史。正式构建、同候选闭环、真实云端、原生安装与交付尚未由本次权限检查验证；监控仍暂停，未新增功能、改ACL、提交或上传。证据见[恢复检查点](docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json)。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 7,
+      "text": "> **2026-10-23 当前权限阻塞**：目标未完成，状态BLOCKED_EXECUTION_PERMISSIONS／PARTIAL；Owner执行授权保留，非Owner暂停。canonical Python -V仍被uv子进程os error5拒绝，当前.git只读；前三个连续目标回合均受相同限制。当前云模型生产执行亦未激活，不能把Vault／协议模拟当真实云闭环。当前恢复入口与未完成清单见[完整交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，证据见[检查点](docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json)。监控保持暂停，不绕过权限或借用Codex凭据。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 11,
+      "text": "> **2026-10-22 后继恢复**：Owner明确“根据新的规划和闭环开始执行”。当前恢复首版所选闭环和Stitch材质／标准图标／能力启动台实施，状态 `RUNNING_BY_OWNER / PARTIAL`；覆盖下文暂停时点，不恢复可选扩展、六项冻结增量或额度监控。正式构建、真实业务、原生／安装与视觉资格分别记录，不能由恢复或源码改动推断完成。实际进度仍只写原唯一执行记录。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 13,
+      "text": "> **2026-10-22 首版与能力启动台决定**：Owner确认在现有Stitch界面增加能力启动台菜单窗，复用业务界面，收敛Dock及重复导航；首版围绕常用多格式资料→识别定位→对比分析→知识形成→特色展示与学习→重启导出恢复交付。共享数据与可信语义留核心，专用能力逐步模块化，不为菜单先重构后端或建通用插件运行时。Owner后继要求修正玻璃质感与图标方向：不能用纯色卡片冒充毛玻璃，能力图标从标准库择优，生成图的大号彩色发光图标已被否定；必要时Stitch辅助设计。规范见[决定十九／二十节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#十九首个可用版本核心收敛与能力启动台2026-10-22)，[统一归档](docs/history/owner-dialogue-20261022-desktop-launcher/README.md)保存出处。当前授权为归档、权威更新和定向设计核查，不恢复产品开发／模型调用／长链验收；监控仍暂停，效果图不是实现或视觉验收。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 15,
+      "text": "> **2026-10-22 最新暂停决定**：Owner明确“完成本次后暂停”。本次界面修正完成必要构建、验证与公开交接同步后，状态为 `PAUSED_BY_OWNER / PARTIAL`，额度监控 `aaos` 已暂停；后续不得自动启动开发、模型调用或长链验收，须Owner明确恢复。最新能力分层、真实失败及恢复入口见唯一执行记录末段与活动指针。暂停不等于闭环完成，历史RUNNING说明不覆盖此决定。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 17,
+      "text": "> **2026-10-22 最新UI决定**：Owner明确“不要再维护旧版界面了，全面接入STITCH界面啊（这才是新版界面）”。Stitch为唯一新版，22页中心布局沿已接收设计语言接入，复用原业务合同和状态；不保留并行旧布局偏好，不以新壳代替中心页面迁移。当前本地验证与未完成资格见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)最新段，不能把源码覆盖当实际Core/原生/安装验收。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 19,
+      "text": "> **2026-10-22 最新范围收敛**：Owner明确开源池、第三方API和软件特色兼容等可选扩展“这些都是后期内置市场里的了”，要求“不要无限增加，无限扩展”。本期优先已接收Stitch UI与已有核心业务接通、必要修复和验收；仅沿现有合同保留专业扩展接口约定，不启动市场、扩展包、通用运行时或逐软件特色开发。库存与兼容矩阵不是自动执行队列，也不是本期必须清零的门槛。详细决定见[第十八节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#十八后期内置市场与本期范围收敛2026-10-22)；它覆盖下文旧分片中扩大本期扩展范围的解释，历史证据与未完成状态保留。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 21,
+      "text": "> **2026-10-19 历史路由与决定**：Owner 明确恢复当前产品任务，并要求今天停止额度监控；状态 RUNNING_BY_OWNER / PARTIAL。今天不查询额度、不因额度阈值停工。活动指针及唯一 UI 执行记录保存范围与实测；旧暂停仅为历史时点。六项增量仍冻结，V01 暂停、FT01–04 冻结。Owner 后继明确允许覆盖 `D:\\All projects\\ArcheAxis.Knowledge.Green-x64` 的程序安装，具体范围、备份与资格条件见活动指针 `green_update_authorization`；公开发布和真实用户数据覆盖仍未授权。文件身份及旧路径按 [路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json) 核对。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 23,
+      "text": "> **2026-10-21 最新执行优先级**：Owner后继明确“全部按照新的UI进行打通”，要求结合审计修复漂移、更新任务与交接，按已接收Stitch界面前后端同步并行接通全部现有业务页面和共用壳。先前前端暂缓／后端优先及更早前端先行均为历史顺序；当前按UI-P01—24与BE-P01—15并行、同候选CL-01—07/J1—J6统一验收。分片仍由[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_priority_overlay`选择，配合[完整接手提示词](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)读取；原任务ID及唯一执行记录不变，不据交接整理宣称产品完成。共享checkout单writer，独立writer隔离worktree，冻结/数据/发布边界不变。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 25,
+      "text": "> **2026-10-22 最新额度与交付规则**：Owner明确新增Codex订阅监控；剩余≤20%时完成已启动的当前任务/可验证单元，随后停止新任务，整理会话、后续任务和完整交接，上传本轮公开任务文件并核实本地/远端SHA一致。实际heartbeat为`aaos`，ACTIVE、每30分钟；额度读数及触发状态以活动指针中的最新观测为准。此决定覆盖旧15%及10/19停监控说明；未知额度不当0，私人原文/凭据/运行库不上传，Git/网络拒绝不得绕过。监控本身不授权新增产品开发、合并、发布或替换Green。详细规则见[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.allowance_guard`。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 27,
+      "text": "> 全局执行标准（跨软件跨项目）：见 WORK-LAB `00-governance/global-execution-standard.md`（执行生命周期：理解→扫技能→分片→执行→验证→落地；全局边界：E盘禁访/数据不外溢/官方优先/全功率）。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AGENTS.md",
+      "line": 28,
+      "text": "> 经验教训铁律（核实优先/治理最小化/官方优先）：见本项目 `LESSONS_LEARNED.md`。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AGENTS.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 1,
+      "text": "> **2026-10-23 最新范围纠正：人类与AI双侧闭环继续／PARTIAL**：Owner最新明确“人类侧不冻结，还是按照闭环执行”，并进一步确认“闭环应该还要包括AI侧”。当前范围为人类知识／学习链＋AI知识／学习链＋两侧按权限共享知识与证据的双向连接。AI专项未改人类侧是历史实施事实，不是后续冻结禁令；原始跨项目会话仍归外部系统，未来扩展与暂停监控不因此恢复。 以[决定二十二](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十二人类与ai双侧闭环继续交接时的最新范围2026-10-23)、[唯一闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)及[完整换会话交接](docs/history/owner-dialogue-20261023-thread-handoff/README.md)为接续入口。下方AI专项“只改AI”和旧暂停／权限阻塞段按其历史时点理解，不能再次限定整个项目只做人类侧或只做AI适配接口。本次仅完成交接归档，未启动后继产品执行。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 3,
+      "text": "> **2026-10-23 AI 侧定向职责纠偏**：本轮仅执行外部上下文／知识候选边界；跨项目与跨 Agent 原始上下文归独立外部系统，AAOS 保留受治理 AI 知识与有限问答上下文，人类学习侧不变。候选接收与隔离测试已落地，真实外部状态 NOT_CONNECTED；不启动其他开发／安装／付费调用。规范：[AI 边界](docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md)，实际进度仍读原唯一执行记录。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 5,
+      "text": "> **2026-10-23 当前权限已恢复／目标仍未完成**：Owner将本会话切换为完全访问并要求解决阻塞后，项目canonical Python 3.13.14及Python子进程启动PASS；正式Git临时引用创建、读回、删除PASS，原分支、HEAD和暂存区不变。此前直接操作.git临时文件的探针命令在执行前被策略拒绝，该拒绝保留，但不能据此继续断言Git只读。当前为PERMISSIONS_RECOVERED／PARTIAL；下方权限阻塞段为历史。正式构建、同候选闭环、真实云端、原生安装与交付尚未由本次权限检查验证；监控仍暂停，未新增功能、改ACL、提交或上传。证据见[恢复检查点](docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json)。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 7,
+      "text": "> **2026-10-23 当前权限阻塞**：目标未完成，状态BLOCKED_EXECUTION_PERMISSIONS／PARTIAL；Owner执行授权保留，非Owner暂停。canonical Python -V仍被uv子进程os error5拒绝，当前.git只读；前三个连续目标回合均受相同限制。当前云模型生产执行亦未激活，不能把Vault／协议模拟当真实云闭环。当前恢复入口与未完成清单见[完整交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，证据见[检查点](docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json)。监控保持暂停，不绕过权限或借用Codex凭据。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 11,
+      "text": "> **2026-10-22 最新恢复**：Owner后继要求“根据新的规划和闭环开始执行”。当前 `RUNNING_BY_OWNER / PARTIAL`，按决定十九／二十节继续首版闭环与Stitch实施；下文暂停和只读核查为之前时点，最新进度见原唯一执行记录。监控仍暂停，可选扩展不激活。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 13,
+      "text": "> **2026-10-22 当前接续**：[决定十九／二十节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#十九首个可用版本核心收敛与能力启动台2026-10-22)记录首版收敛、现有Stitch内能力启动台及玻璃／标准图标纠偏，[统一归档](docs/history/owner-dialogue-20261022-desktop-launcher/README.md)保存来源、概念图与设计核查。当前仅归档及定向设计核查，产品仍 `PAUSED_BY_OWNER / PARTIAL`，监控暂停；下方10/11的RUNNING是历史时点。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 15,
+      "text": "> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "AUTHORITY.md",
+      "line": 17,
+      "text": "> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；公开发布和真实用户数据覆盖未授权；Green程序精确目录更新已由Owner后继授权，范围读活动指针green_update_authorization。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "CLAUDE.md",
+      "line": 9,
+      "text": "当前产品执行 RUNNING_BY_OWNER / PARTIAL：Owner 2026-10-11 已恢复完整框架、常见常用格式与最短闭环。准确范围读活动指针及其 owner_resume_record，不能从历史暂停、selected_tasks 或旧grant推断。六项对话增量仍冻结，V01暂停、FT01–04冻结。正式Tauri/React + Rust Core单写者；本入口不授予发布、Green替换、真实用户数据覆盖或私人配置/会话访问。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/CLAUDE.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "GEMINI.md",
+      "line": 9,
+      "text": "当前产品执行 RUNNING_BY_OWNER / PARTIAL：Owner 2026-10-11 已恢复完整框架、常见常用格式与最短闭环。准确范围读活动指针及其 owner_resume_record，不能从历史暂停、selected_tasks 或旧grant推断。六项对话增量仍冻结，V01暂停、FT01–04冻结。正式Tauri/React + Rust Core单写者；本入口不授予发布、Green替换、真实用户数据覆盖或私人配置/会话访问。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/GEMINI.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "line": 1,
+      "text": "> 2026-10-23 最新导航：[人类与AI双侧闭环决定二十二](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十二人类与ai双侧闭环继续交接时的最新范围2026-10-23)、[本线程完整换会话交接](history/owner-dialogue-20261023-thread-handoff/README.md)。人类侧不冻结，AI侧不止候选接收；完整目标继续沿唯一闭环定义与原唯一执行记录。旧“只改AI／不改人类侧”描述AI专项单元，不是后续全项目禁令；未来扩展与监控仍不激活。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    },
+    {
+      "original_path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "line": 3,
+      "text": "> 2026-10-23 新增 AI 侧规范导航：[外部上下文与知识候选边界](current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md)。不调整人类侧规范；进度仍由活动指针指向原唯一执行记录。",
+      "classification": "DATED_SOURCE_NOT_LIVE_STATE",
+      "preserved_at": "docs/history/rules-entry-repair-20261023/before/docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "resolution": "Use active pointer owner_scope_current, execution_control and sole progress; SUP-025..028 and decision sections 18..22 resolve dated scope."
+    }
+  ],
+  "boundary": "Frozen project-rule navigation copies only; not a new state ledger or authorization."
+}

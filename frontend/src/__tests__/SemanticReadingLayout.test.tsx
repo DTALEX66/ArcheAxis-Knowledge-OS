@@ -26,6 +26,35 @@ beforeEach(()=>{
   });
 });
 afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllGlobals();window.history.replaceState(null,"","#page=01");delete window.__TAURI__;});
+it.each(["activation","page"] as const)("SYNTHETIC %s reactivation of the same clean document reads its newly saved version",async mode=>{
+  const previous=bridge.call.getMockImplementation()!;
+  let current=doc;
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>op==="document_get"?current:previous(op,payload));
+  const view=render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id} activationRevision={1}/>);
+  await screen.findByRole("textbox",{name:"文档草稿"});
+  if(screen.getByRole("button",{name:"属性与引用"}).getAttribute("aria-expanded")==="false")fireEvent.click(screen.getByRole("button",{name:"属性与引用"}));
+  expect(screen.getByRole("heading",{name:"标签与属性 · v2"})).toBeVisible();
+  if(mode==="page")view.rerender(<CanonicalLibrarySpace purpose="library" initialDocumentId={doc.document_id} activationRevision={1}/>);
+  current={...doc,version:3,text_projection:"另一处保存的新正文",editor_json:{type:"doc",content:[{type:"paragraph",attrs:{block_id:"p1"},content:[{type:"text",text:"另一处保存的新正文"}]}]}};
+  view.rerender(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id} activationRevision={mode==="activation"?2:1}/>);
+  await waitFor(()=>expect(screen.getByRole("heading",{name:"标签与属性 · v3"})).toBeVisible());
+  expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("另一处保存的新正文");
+  expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
+});
+it("SYNTHETIC reactivation preserves the same document's unsaved draft and base version",async()=>{
+  const view=render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id} activationRevision={1}/>);
+  const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+  act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.insertContent(" 未保存的本地修改");});
+  await waitFor(()=>expect(textbox).toHaveTextContent("未保存的本地修改"));
+  const reads=bridge.call.mock.calls.filter(([op])=>op==="document_get").length;
+  view.rerender(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id} activationRevision={2}/>);
+  await waitFor(()=>expect(screen.getByRole("button",{name:"刷新资料列表"})).not.toBeDisabled());
+  expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("未保存的本地修改");
+  if(screen.getByRole("button",{name:"属性与引用"}).getAttribute("aria-expanded")==="false")fireEvent.click(screen.getByRole("button",{name:"属性与引用"}));
+  expect(screen.getByRole("heading",{name:"标签与属性 · v2"})).toBeVisible();
+  expect(bridge.call.mock.calls.filter(([op])=>op==="document_get")).toHaveLength(reads);
+  expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
+});
 describe("semantic 02 and 03 layouts",()=>{
   it("SIMULATED: new workspace shortcut opens semantic 02 while the old hash retains its compatibility surface",async()=>{
     window.history.replaceState(null,"","#page=01");
@@ -46,9 +75,13 @@ describe("semantic 02 and 03 layouts",()=>{
     const reader=screen.getByRole("region",{name:"阅读与编辑文档视图"});
     expect(await within(reader).findByRole("textbox",{name:"文档草稿"})).toHaveTextContent("真实返回正文");
     expect(bridge.call).toHaveBeenCalledWith("document_get",{document_id:"doc_real_identity"});
-    expect(within(reader).getByRole("complementary",{name:"内容详情"})).toBeInTheDocument();
+    expect(within(reader).queryByRole("complementary",{name:"内容详情"})).not.toBeInTheDocument();
+    await user.click(within(reader).getByRole("button",{name:"属性与引用"}));
+    expect(within(reader).getByRole("complementary",{name:"内容详情"})).toBeVisible();
     expect(within(reader).queryByLabelText("导入原件")).toBeNull();
-    expect(within(reader).queryByLabelText("目录批量导入")).toBeNull();
+    const batchTools=within(reader).getByText("批次链接与附件").closest("details")!;
+    expect(batchTools).not.toHaveAttribute("open");
+    expect(within(batchTools).getByRole("button",{name:"读取历史批次",hidden:true})).toBeInTheDocument();
     expect(within(reader).queryByRole("button",{name:/创建备份/})).toBeNull();
     expect(bridge.call.mock.calls.some(([op])=>op==="source_import"||op==="document_draft")).toBe(false);
   });
@@ -59,13 +92,13 @@ describe("semantic 02 and 03 layouts",()=>{
     const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
     fireEvent.compositionStart(textbox);
     act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.insertContent(" 未保存中文");});
-    await user.click(screen.getByRole("button",{name:"知识"}));
+    await user.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
     expect(confirm).not.toHaveBeenCalled();
     expect(screen.getByRole("region",{name:"阅读与编辑文档视图"})).toBeInTheDocument();
     expect(textbox).toHaveTextContent("未保存中文");
     expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
     fireEvent.compositionEnd(textbox);
-    await user.click(screen.getByRole("button",{name:"知识"}));
+    await user.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining("草稿尚未保存"));
     expect(textbox).toHaveTextContent("未保存中文");
     await user.click(screen.getByRole("button",{name:"保存草稿"}));
@@ -78,6 +111,7 @@ describe("semantic 02 and 03 layouts",()=>{
     const previous=bridge.call.getMockImplementation()!;
     render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id}/>);
     const editor=await screen.findByRole("textbox",{name:"文档草稿"});
+    fireEvent.click(screen.getByRole("button",{name:"属性与引用"}));
     const tools=screen.getByText("围绕此文档提问").closest("details")!;
     expect(tools).not.toHaveAttribute("open");
     const input=within(tools).getByLabelText("材料问题");
@@ -87,6 +121,8 @@ describe("semantic 02 and 03 layouts",()=>{
     await user.click(within(tools).getByText("围绕此文档提问"));
     await user.click(screen.getByRole("button",{name:"原件"}));
     await user.click(screen.getByRole("button",{name:"正文"}));
+    expect(screen.getByRole("button",{name:"属性与引用"})).toHaveAttribute("aria-expanded","false");
+    await user.click(screen.getByRole("button",{name:"属性与引用"}));
     await user.click(within(tools).getByText("围绕此文档提问"));
     expect(within(tools).getByLabelText("材料问题")).toBe(input);
     expect(input).toHaveValue("保留尚未提交的问题");
@@ -103,12 +139,12 @@ describe("semantic 02 and 03 layouts",()=>{
     await user.click(await screen.findByRole("button",{name:"打开文档 中文普通笔记"}));
     const editor=await screen.findByRole("textbox",{name:"文档草稿"});
     const before=bridge.call.mock.calls.filter(([op])=>op==="document_get").length;
-    await user.click(screen.getByRole("button",{name:"阅读与编辑"}));
+    await openReader(user);
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toBe(editor);
     expect(bridge.call.mock.calls.filter(([op])=>op==="document_get")).toHaveLength(before);
-    await user.click(screen.getByRole("button",{name:"工作台"}));
-    await user.click(screen.getByRole("button",{name:"知识"}));
-    await user.click(screen.getByRole("button",{name:"阅读与编辑"}));
+    await user.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"工作台"}));
+    await user.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
+    await openReader(user);
     expect(await screen.findByRole("textbox",{name:"文档草稿"})).toHaveTextContent("真实返回正文");
     expect(bridge.call.mock.calls.filter(([op])=>op==="document_get").every(([,body])=>body.document_id===doc.document_id)).toBe(true);
     expect(window.location.hash).toBe("#page=03");
@@ -127,9 +163,9 @@ describe("semantic 02 and 03 layouts",()=>{
     bridge.call.mockImplementation((op:string,payload:Record<string,unknown>={})=>op==="documents_list" ? payload.cursor ? Promise.reject(new Error("page offline")) : Promise.resolve(assertCoreDto("DocumentsListDto",{documents:[summary],next_cursor:"actual-snapshot-cursor",snapshot_count:2})) : previous(op,payload));
     const open=vi.fn();render(<CanonicalLibrarySpace purpose="library" onOpenDocument={open}/>);
     const user=userEvent.setup();await screen.findByRole("button",{name:"打开文档 中文普通笔记"});
-    await user.type(screen.getByRole("searchbox"),"无匹配标题");
+    await user.type(screen.getByRole("searchbox",{name:"筛选已加载文档标题与来源"}),"无匹配标题");
     expect(screen.queryByRole("button",{name:"打开文档 中文普通笔记"})).toBeNull();
-    await user.clear(screen.getByRole("searchbox"));
+    await user.clear(screen.getByRole("searchbox",{name:"筛选已加载文档标题与来源"}));
     await user.click(screen.getByRole("button",{name:"加载更多文档"}));
     expect(await screen.findByRole("alert")).toHaveTextContent("更多文档读取失败");
     await user.click(screen.getByRole("button",{name:"打开文档 中文普通笔记"}));
@@ -185,6 +221,7 @@ describe("semantic 02 and 03 layouts",()=>{
     const editor=await screen.findByRole("textbox",{name:"文档草稿"});
     await userEvent.setup().click(screen.getByRole("button",{name:"原件"}));
     expect(await screen.findByLabelText("并排原件正文")).toHaveTextContent("中文来源原件");
+    fireEvent.click(screen.getByRole("button",{name:"属性与引用"}));
     expect(screen.getByRole("complementary",{name:"内容详情"})).toHaveTextContent("原件身份、版本与字节已核对");
     fireEvent.compositionStart(editor);
     act(()=>{(editor as HTMLElement & {editor:Editor}).editor.commands.insertContent("仍保留未保存中文");});
@@ -210,14 +247,23 @@ it("SIMULATED: narrow document navigation keeps reading clear and the explicit I
   await user.click(await screen.findByRole("button",{name:"打开文档 中文普通笔记"}));
   const editor=await screen.findByRole("textbox",{name:"文档草稿"});
   expect(editor).toHaveTextContent("真实返回正文");
-  expect(screen.queryByRole("complementary",{name:"检查器"})).toBeNull();
-  await user.click(screen.getByRole("button",{name:"展开检查器"}));
-  const inspector=screen.getByRole("complementary",{name:"检查器"});
+  expect(screen.queryByRole("complementary",{name:"相关资料"})).toBeNull();
+  await user.click(screen.getByRole("button",{name:"显示相关资料"}));
+  const inspector=screen.getByRole("complementary",{name:"相关资料"});
   expect(inspector).toHaveTextContent("中文普通笔记");
-  await user.click(within(inspector).getByRole("button",{name:"关闭检查器"}));
-  expect(screen.queryByRole("complementary",{name:"检查器"})).toBeNull();
-  await user.click(screen.getByRole("button",{name:"展开检查器"}));
-  expect(screen.getByRole("complementary",{name:"检查器"})).toHaveTextContent("中文普通笔记");
+  await user.click(within(inspector).getByRole("button",{name:"关闭相关资料"}));
+  expect(screen.queryByRole("complementary",{name:"相关资料"})).toBeNull();
+  await user.click(screen.getByRole("button",{name:"显示相关资料"}));
+  expect(screen.getByRole("complementary",{name:"相关资料"})).toHaveTextContent("中文普通笔记");
   expect(editor).toHaveTextContent("真实返回正文");
   expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
 });
+
+async function openReader(user: ReturnType<typeof userEvent.setup>) {
+ const menu=screen.getByRole("navigation",{name:"应用菜单"});
+ const summary=within(menu).getByText("知识",{selector:"summary"});
+ await user.click(summary); await user.click(within(summary.parentElement!).getByRole("button",{name:"阅读与编辑"}));
+}
+
+// These shell/guard tests isolate onboarding; FirstUseGuideApp and FirstUseGuide test it directly.
+vi.mock("../components/FirstUseGuide", async importOriginal => ({ ...await importOriginal<object>(), FirstUseGuide: () => null, requestFirstUseGuide: vi.fn() }));

@@ -64,13 +64,18 @@ pub(crate) async fn export(
     Path(id): Path<String>,
     Query(query): Query<ExportQuery>,
 ) -> Response {
-    if !matches!(query.format.as_str(), "markdown" | "obsidian") {
+    if !matches!(query.format.as_str(), "markdown" | "obsidian" | "canvas") {
         return failure(document::Error::Invalid(
-            "format must be markdown or obsidian",
+            "format must be markdown, obsidian or canvas",
         ));
     }
     crate::with_store(state, move |conn| {
         let snapshot = match document::read(conn,&id,None) {Ok(value)=>value,Err(error)=>return failure(error)};
+        if query.format=="canvas" {
+            return match archeaxis_domain::canvas_export::export(conn,&snapshot) {
+                Ok(value)=>Json(value).into_response(),Err(error)=>failure(error),
+            };
+        }
         let anchors = (|| -> rusqlite::Result<Vec<Value>> {
             let mut stmt=conn.prepare("SELECT anchor_id,source_revision,position FROM anchors WHERE source_id=?1 ORDER BY anchor_id")?;
             stmt.query_map([snapshot["source_id"].as_str()],|r|Ok(json!({"anchor_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,"position":r.get::<_,String>(2)?})))?.collect()
@@ -79,12 +84,17 @@ pub(crate) async fn export(
         let projection=snapshot["text_projection"].as_str().unwrap();
         use sha2::{Digest,Sha256};
         let projection_sha256=format!("{:x}",Sha256::digest(projection.as_bytes()));
-        let mut markdown=if query.format=="obsidian" {format!("---\narcheaxis_document: {}\narcheaxis_version: {}\narcheaxis_source_revision: {}\n---\n\n",serde_json::to_string(&id).unwrap(),snapshot["version"],snapshot["source_revision"])} else {String::new()};
+        // A second YAML header would turn the original tags/properties into body text.
+        // Existing source identity is also retained below and in the manifest.
+        let has_frontmatter = projection.trim_start_matches('\u{feff}').starts_with("---\n")
+            || projection.trim_start_matches('\u{feff}').starts_with("---\r\n");
+        let mut markdown=if query.format=="obsidian" && !has_frontmatter {format!("---\narcheaxis_document: {}\narcheaxis_version: {}\narcheaxis_source_revision: {}\n---\n\n",serde_json::to_string(&id).unwrap(),snapshot["version"],snapshot["source_revision"])} else {String::new()};
         markdown.push_str(projection);
         let source_record=json!({"source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"]});
         markdown.push_str(&format!("\n\n## Source identity\n\n    {}\n\n## Evidence records\n",serde_json::to_string(&source_record).unwrap()));
         for anchor in &anchors { markdown.push_str(&format!("\n    {}\n",serde_json::to_string(anchor).unwrap())); }
         let mut loss=json!([{"code":"markdown_projection","message":"Markdown contains a text projection; structured and unknown nodes are preserved in manifest.json"},{"code":"external_navigation_unavailable","message":"Source identity, revision and anchor positions are preserved as metadata; no external navigation handler is registered, so these records do not provide clickable navigation to original sources"}]);
+        loss.as_array_mut().unwrap().push(json!({"code":"metadata_projection_limits","message":"Original leading Markdown frontmatter remains first. Rich-text code/links and unsupported nodes may lose tag context in the text projection; exact editor JSON and derived metadata remain in manifest.json. This is not an external application roundtrip qualification.","status":snapshot["metadata_status"],"issues":snapshot["metadata_issues"]}));
         let expression = snapshot["editor_json"]["attrs"].get("archeaxis_expression");
         if expression.is_some() {
             loss.as_array_mut().unwrap().push(json!({"code":"expression_media_reference_only","message":"The expression layout and immutable media references are preserved in the snapshot; referenced CAS media bytes are not packaged. Use a verified workspace archive for full recovery."}));

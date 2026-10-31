@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalLearningJourneySpace } from "../spaces/CanonicalLearningJourneySpace";
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
@@ -18,6 +18,21 @@ beforeEach(() => {
     throw new Error(operation);
   });
 });
+it("offers an actionable first step without disabled practice controls before an item is selected",async()=>{
+ const onOpenPage=vi.fn();render(<CanonicalLearningJourneySpace pageId="06" onOpenPage={onOpenPage}/>);
+ await waitFor(()=>expect(screen.getByRole("button",{name:"选择已有课程"})).toBeEnabled());
+ expect(screen.queryByRole("button",{name:"练习此学习项目"})).toBeNull();
+ expect(screen.queryByRole("button",{name:"复习此学习项目"})).toBeNull();
+ await userEvent.click(screen.getByRole("button",{name:"选择已有课程"}));
+ expect(screen.getByRole("button",{name:"课程c1"})).toBeVisible();
+});
+it("routes an empty library to real source selection instead of inventing a course or mastery",async()=>{
+ bridge.call.mockResolvedValue({items:[],next_cursor:null});
+ render(<CanonicalLearningJourneySpace pageId="06"/>);
+ await userEvent.click(screen.getByRole("button",{name:"从已有知识开始"}));
+ expect(screen.getByRole("region",{name:"课程来源选择"})).toBeVisible();
+ expect(bridge.call.mock.calls.some(([op])=>op==="course_from_knowledge"||op==="learning_review")).toBe(false);
+});
 it("recovers the persisted pending review on the restored feedback scene without submitting", async () => {
   journal.value={state:{pending_reviews:{e1:{item_key:"persisted-item"}}}};
   render(<CanonicalLearningJourneySpace pageId="12" />);
@@ -27,6 +42,7 @@ it("recovers the persisted pending review on the restored feedback scene without
 it("does not choose between multiple pending learning identities", async () => {
   journal.value={state:{pending_reviews:{e1:{item_key:"first"},e2:{item_key:"second"}}}};
   render(<CanonicalLearningJourneySpace pageId="12" />);
+  await userEvent.click(within(screen.getByRole("navigation",{name:"学习内容导航"})).getByRole("button",{name:"课程与课时"}));
   await screen.findByRole("button",{name:"课程c1"});
   expect(screen.queryByText(/真实练习入口/)).not.toBeInTheDocument();
 });
@@ -65,6 +81,7 @@ it("shows an unavailable Core as a read failure instead of empty or demo courses
 });
 it("rechecks source knowledge before offering candidate creation", async () => {
   render(<CanonicalLearningJourneySpace pageId="06" />);
+  await userEvent.click(screen.getByRole("button",{name:"课程来源"}));
   await userEvent.click(screen.getByRole("button", { name: "搜索知识" }));
   await userEvent.click(await screen.findByRole("button", { name: "真实知识" }));
   await waitFor(() => expect(bridge.call).toHaveBeenCalledWith("knowledge_get", { id: "k1" }));
@@ -74,8 +91,25 @@ it("does not treat rejected knowledge as a usable course source", async () => {
   const original = bridge.call.getMockImplementation()!;
   bridge.call.mockImplementation((op: string, payload: unknown) => op === "knowledge_get" ? Promise.resolve({ knowledge_id: "k1", status: "rejected" }) : original(op, payload));
   render(<CanonicalLearningJourneySpace />);
+  await userEvent.click(screen.getByRole("button",{name:"课程来源"}));
   await userEvent.click(screen.getByRole("button", { name: "搜索知识" }));
   await userEvent.click(await screen.findByRole("button", { name: "真实知识" }));
   expect(await screen.findByText(/此知识暂不能用于生成课程/)).toBeInTheDocument();
   expect(screen.queryByText(/课程读回 k1/)).not.toBeInTheDocument();
+});
+
+it("keeps one Stitch learning content slot visible and retains the actual course and practice nodes",async()=>{
+ render(<CanonicalLearningJourneySpace pageId="07"/>);const nav=screen.getByRole("navigation",{name:"学习内容导航"});
+ await userEvent.click(await screen.findByRole("button",{name:"课程c1"}));const course=screen.getByText(/课程读回 c1/);const courseSlot=screen.getByRole("region",{name:"课程内容槽"});
+ await userEvent.click(screen.getByRole("button",{name:"练习当前课时"}));const practice=screen.getByText(/真实练习入口 real-course-item/);
+ expect(practice).toBeVisible();expect(screen.getByRole("region",{name:"练习内容槽"})).toHaveFocus();expect(course).toBeInTheDocument();expect(course).not.toBeVisible();expect(screen.queryByRole("region",{name:"课程内容槽"})).not.toBeInTheDocument();
+ await userEvent.click(within(nav).getByRole("button",{name:"课程与课时"}));expect(screen.getByRole("region",{name:"课程内容槽"})).toBe(courseSlot);expect(course).toBeVisible();expect(practice).not.toBeVisible();
+ await userEvent.click(within(nav).getByRole("button",{name:"学习路径"}));expect(screen.getByText(/真实练习入口 real-course-item/)).toBe(practice);expect(practice).toBeVisible();
+ expect(bridge.call.mock.calls.some(([op])=>op==="learning_review"||op==="course_from_knowledge")).toBe(false);
+});
+it("keeps source search input across content navigation and never invents a course selection",async()=>{
+ render(<CanonicalLearningJourneySpace pageId="06"/>);const nav=screen.getByRole("navigation",{name:"学习内容导航"});
+ await userEvent.click(within(nav).getByRole("button",{name:"课程来源"}));expect(within(nav).getByRole("button",{name:"课程来源"})).toHaveFocus();const input=screen.getByRole("textbox",{name:"查找课程来源知识"});await userEvent.type(input,"真实来源问题");
+ await userEvent.click(within(nav).getByRole("button",{name:"课程与课时"}));expect(input).toBeInTheDocument();expect(input).not.toBeVisible();
+ await userEvent.click(within(nav).getByRole("button",{name:"课程来源"}));expect(screen.getByRole("textbox",{name:"查找课程来源知识"})).toBe(input);expect(input).toHaveValue("真实来源问题");expect(screen.queryByText(/课程读回/)).not.toBeInTheDocument();
 });

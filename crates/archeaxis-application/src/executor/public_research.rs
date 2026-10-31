@@ -585,6 +585,22 @@ mod tests {
         }
     }
 
+    /// Wait for the fixture's PID file to be complete, not merely created: the worker
+    /// opens the path before writing the number, so an existence check can read "" and
+    /// turn a real product result into a spurious ParseIntError.
+    async fn wait_for_pid(path: &Path) -> u32 {
+        let end = Instant::now() + Duration::from_secs(4);
+        loop {
+            if let Ok(text) = std::fs::read_to_string(path) {
+                if let Ok(pid) = text.trim().parse::<u32>() {
+                    return pid;
+                }
+            }
+            assert!(Instant::now() < end, "fixture did not publish a pid");
+            tokio::time::sleep(Duration::from_millis(5)).await;
+        }
+    }
+
     async fn set_enabled(ex: &Executor, enabled: bool) {
         ex.store
             .submit_wait(move |conn| {
@@ -692,11 +708,7 @@ mod tests {
         let cancel = Cancellation::new();
         let cancellation = cancel.clone();
         let task = tokio::spawn(async move { ex.public_research(json!({}), cancellation).await });
-        wait_for(&dir.path().join("research.pid")).await;
-        let pid: u32 = std::fs::read_to_string(dir.path().join("research.pid"))
-            .unwrap()
-            .parse()
-            .unwrap();
+        let pid = wait_for_pid(&dir.path().join("research.pid")).await;
         let process = observe_process(pid).expect("UNKNOWN opening owned process");
         cancel.cancel();
         assert_eq!(
@@ -720,11 +732,7 @@ mod tests {
             ex.public_research_until(json!({}), Cancellation::new(), deadline)
                 .await
         });
-        wait_for(&dir.path().join("research.pid")).await;
-        let pid: u32 = std::fs::read_to_string(dir.path().join("research.pid"))
-            .unwrap()
-            .parse()
-            .unwrap();
+        let pid = wait_for_pid(&dir.path().join("research.pid")).await;
         let process = observe_process(pid).expect("UNKNOWN opening owned process before deadline");
         let result = task.await.unwrap();
         assert_eq!(result.unwrap_err(), "public_research_timeout");
@@ -837,11 +845,7 @@ mod tests {
         let (dir, ex) = fixture(HANG).await;
         let task =
             tokio::spawn(async move { ex.public_research(json!({}), Cancellation::new()).await });
-        wait_for(&dir.path().join("research.pid")).await;
-        let pid: u32 = std::fs::read_to_string(dir.path().join("research.pid"))
-            .unwrap()
-            .parse()
-            .unwrap();
+        let pid = wait_for_pid(&dir.path().join("research.pid")).await;
         let process = observe_process(pid).expect("UNKNOWN opening owned process");
         task.abort();
         assert!(task.await.unwrap_err().is_cancelled());

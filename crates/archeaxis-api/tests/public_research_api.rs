@@ -92,6 +92,80 @@ async fn wait_for(path: &Path) {
 }
 
 #[tokio::test]
+async fn selected_forum_site_reaches_owned_worker_and_remains_bound_to_cached_receipt() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = script(false)
+        .replace("assert set(r)=={'schema','query','families','limit'}",
+            "assert set(r)=={'schema','query','families','limit','community_site'}\nassert r['community_site']=='stats'")
+        .replace("academia", "stats");
+    let ex = open(dir.path(), &source).await;
+    let mut req = request(&ex, "public_stats").await;
+    req["community_site"] = json!("stats");
+    let router = archeaxis_api::runtime::router(ex.clone());
+    let (status, receipt) = call(
+        &router,
+        "/api/v1/research/public/search",
+        req.clone(),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 200, "{receipt}");
+    assert_eq!(receipt["state"], "complete", "{receipt}");
+    assert_eq!(receipt["community_site"], "stats");
+    assert_eq!(
+        receipt["channels"][0]["hits"][0]["id"],
+        "stackexchange:stats:question:69100"
+    );
+    let mut selection = target(&req);
+    selection["family"] = json!("community");
+    selection["hit_id"] = json!("stackexchange:stats:question:69100");
+    let (status, selected) = call(
+        &router,
+        "/api/v1/research/public/materialize",
+        selection,
+        "human",
+    )
+    .await;
+    assert_eq!(status, 200, "{selected}");
+    assert_eq!(selected["knowledge_admission"], "not_executed");
+    let mut changed = req.clone();
+    changed["community_site"] = json!("academia");
+    assert_eq!(
+        call(&router, "/api/v1/research/public/search", changed, "human")
+            .await
+            .0,
+        409
+    );
+    let mut invalid = req.clone();
+    invalid["request_id"] = json!("public_unknown_site");
+    invalid["community_site"] = json!("stackoverflow");
+    assert_eq!(
+        call(&router, "/api/v1/research/public/search", invalid, "human")
+            .await
+            .0,
+        422
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("public.calls")).unwrap(),
+        "1"
+    );
+    drop(router);
+    drop(ex);
+    let ex = open(dir.path(), &source).await;
+    let router = archeaxis_api::runtime::router(ex);
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/research/public/read",
+            target(&req),
+            "human"
+        )
+        .await,
+        (200, receipt)
+    );
+}
+
+#[tokio::test]
 async fn explicit_public_terms_receipt_and_pinned_selection_survive_reopen_without_network_replay()
 {
     let dir = tempfile::tempdir().unwrap();

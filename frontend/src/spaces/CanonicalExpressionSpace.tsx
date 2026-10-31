@@ -1,9 +1,12 @@
 import { useDocumentWriteLease } from "../workspace/documentSessions";
+import { useDraftOwner } from "../workspace/draftProtection";
+import { useDraftRecoverySource } from "../workspace/draftRecovery";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentDto, DocumentsListDto, DocumentSummaryDto, DocumentExportDto, SourcesListDto, SourceDto, OriginalDto, SearchDto, KnowledgeDto } from "../api/generated/core-contract";
 import type { RecordView, RecordPage } from "../api/generated/teaching-contract";
 import { CanonicalExpressionBoard } from "../components/CanonicalExpressionBoard";
+import "./stitch-expression.css";
 import { parseExpressionDocument, validExpressionMedia } from "../presentation/expression";
 import type { ExpressionDocument, ExpressionMedia, ExpressionNode } from "../presentation/expression";
 import { AaosDialog } from "../design-system/AaosPrimitives";
@@ -77,7 +80,7 @@ function CasMedia({ media }: {
                 URL.revokeObjectURL(owned);
         };
     }, [media.source_id, media.sha256, media.media_type]);
-    return failure ? <span role="status">{failure}</span> : url ? <img src={url} alt="CAS 原件" style={{ maxWidth: "100%", maxHeight: "100%" }}/> : bytes ? <MediaReader bytes={bytes} mediaType={media.media_type}/> : <span>读取本地原件…</span>;
+    return failure ? <span role="status">{failure}</span> : url ? <img src={url} alt="本地保存的原件" style={{ maxWidth: "100%", maxHeight: "100%" }}/> : bytes ? <MediaReader bytes={bytes} mediaType={media.media_type}/> : <span>读取本地原件…</span>;
 }
 /** Canonical Document persistence; editing a board never grants an engine capability. */
 export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
@@ -97,7 +100,11 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
     }[]>([]), [proposals, setProposals] = useState<RecordView[]>([]);
     const b = buffers.current.get(active.current)!;
     const documentLease=useDocumentWriteLease(b.base?.document_id);
-    function publish() { const dirty = [...buffers.current.values()].some(x => x.dirty || x.attempt) || lock.current || pendingBoard.current; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: dirty })); redraw(x => x + 1); }
+    const dirtyOwner=useDraftOwner("expression");
+    useDraftRecoverySource(dirtyOwner, "表达草稿", () => [...new Set(buffers.current.values())].filter(value => value.dirty || value.attempt).map(value => ({
+        label: `表达 · ${value.base?.title ?? "未命名草稿"}`, text: JSON.stringify({ editor_json: encode(value), ...(value.attempt ? { pending_save: value.attempt.editor } : {}) }, null, 2),
+    })));
+    function publish() { const dirty = [...buffers.current.values()].some(x => x.dirty || x.attempt) || lock.current || pendingBoard.current; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty} })); redraw(x => x + 1); }
     const pendingChanged = useCallback((value: boolean) => {
         if (!mounted.current)
             return;
@@ -111,7 +118,7 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
             setFailed(error);
         }
     }
-    useEffect(() => { mounted.current = true; void list(false); return () => { mounted.current = false; epoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); }; }, []);
+    useEffect(() => { mounted.current = true; void list(false); return () => { mounted.current = false; epoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty:false} })); }; }, []);
     useEffect(() => { onTrail?.([{ id: "page:21", label: "表达工作区", region: "expression" }, ...(b.base ? [{ id: b.base.document_id, label: b.base.title, region: "expression" }] : [])]); }, [b.base?.document_id, onTrail]);
     async function list(more: boolean) {
         if (listLock.current)
@@ -148,7 +155,7 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
             return;
         }
         change(next);
-        note("能力说明已修改，尚未保存；引擎仍为 NOT_EXECUTED。");
+        note("能力说明已修改，尚未保存；生成引擎尚未接入。");
     }
     async function open(key: string) {
         const request = ++epoch.current, priorKey = active.current, priorSerial = buffers.current.get(priorKey)!.serial;
@@ -292,15 +299,15 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
                     current.value = decode(d);
                 if (mounted.current) {
                     setRows(old => [d, ...old.filter(r => r.document_id !== id)]);
-                    note("最新 Core 读回与上次冻结保存匹配；未另写版本，随后编辑仍保留。");
+                    note("已从本地知识库读回，与上次保存一致；未另写版本，随后编辑仍保留。");
                 }
             }
             else if (d.version === current.base!.version) {
-                note("当前 Core 版本未变化；原冻结请求与草稿保留，可重试。");
+                note("当前保存版本未变化；原冻结请求与草稿保留，可重试。");
             }
             else if (mounted.current) {
                 setUnsupported(d);
-                note("最新版本不同，已提供只读原文；当前草稿与原 expected_version 保留，未自动覆盖或合并。", true);
+                note("最新版本不同，已提供只读原文；当前草稿与原保存版本保留，未自动覆盖或合并。", true);
             }
         }
         catch {
@@ -358,7 +365,7 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
             a.download = `expression-${base.document_id}-v${base.version}-references.json`;
             a.click();
             setTimeout(() => URL.revokeObjectURL(url), 0);
-            note("已导出 Core 保存版本快照与媒体引用；不是全媒体包，未发送任何 peer。");
+            note("已导出已保存版本快照与媒体引用；不是全媒体包，未发送给其他客户端。");
         }
         catch {
             note("导出失败或版本变化；未报告成功。", true);
@@ -401,7 +408,7 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
             return key === active.current && serial === buffers.current.get(key)?.serial && mounted.current ? m : null;
         }
         catch {
-            note("媒体不支持、来源或 SHA 核对失败；未添加。", true);
+            note("媒体不支持、来源或文件指纹核对失败；未添加。", true);
             return null;
         }
     }
@@ -453,16 +460,28 @@ export function CanonicalExpressionSpace({ onTrail, onOpenCapability }: {
         }
     }
     const shown = history ? decode(history) : b.value;
-    return <section ref={section} tabIndex={-1} className="ui-expression-page" aria-label="表达工作区">{!documentLease.canWrite?<p role="status">此文档已有写入视图；画布只读，草稿保留。</p>:null}<h2>表达工作区</h2><p role={failed ? "alert" : "status"}>{message}</p><p>文字、媒体与关系保存在版本化 Document。外部引擎资格：NOT_EXECUTED；媒体仅引用已保全的 Source CAS。</p><div><button disabled={busy} onClick={() => requestOpen("__new")}>新表达草稿</button><button disabled={busy || loading} onClick={() => void list(false)}>刷新文档</button>{cursor ? <button disabled={loading} onClick={() => void list(true)}>更多文档</button> : null}<button disabled={busy || !documentLease.canWrite || (!b.dirty && !b.attempt)} onClick={() => void save()}>{b.attempt ? "重试冻结保存" : "保存表达草稿"}</button><button disabled={busy || !b.base || boardPending} onClick={() => void reconcileSave()}>核对最新保存版本（不覆盖草稿）</button><button disabled={busy || !b.base || !!history} onClick={() => void exportSnapshot()}>导出已保存快照 / 引用</button>{onOpenCapability ? <button onClick={() => onOpenCapability("CAP-0160")}>能力与资格</button> : null}</div><ul aria-label="已保存文档">{rows.map(row => <li key={row.document_id}><button disabled={busy} onClick={() => requestOpen(row.document_id)}>{row.title} · v{row.version}</button></li>)}</ul><p>{boardPending ? "位置／连线输入尚未提交；先完成或取消位置／连线编辑。" : null}</p><p>{b.base ? `${b.base.document_id} · v${b.base.version}` : "本地未登记草稿"} · {b.dirty ? "未保存" : "无未保存编辑"}</p>
-    <details><summary>上下文与来源</summary><label>知识搜索<input value={query} onChange={e => setQuery(e.target.value)}/></label><button onClick={() => void search()}>查找实际知识</button><label>知识版本<select value={b.value.context?.knowledge_id ?? ""} onChange={e => void selectContext("knowledge_id", e.target.value)}><option value="">无知识绑定</option>{b.value.context?.knowledge_id && !knowledgeRows.some(k => k.knowledge_id === b.value.context?.knowledge_id) ? <option>{b.value.context.knowledge_id}</option> : null}{knowledgeRows.map(k => <option key={k.knowledge_id} value={k.knowledge_id}>{k.head} · {k.status}</option>)}</select></label><button onClick={() => void contextChoices()}>读取实际课程与方案</button><label>课程<select value={b.value.context?.course_id ?? ""} onChange={e => void selectContext("course_id", e.target.value)}><option value="">无课程绑定</option>{courses.map(c => <option key={c.manifest_id} value={c.manifest_id}>{c.title} {c.stale ? "陈旧" : ""}</option>)}</select></label><label>方案 / 修订 / 交付<select value={b.value.context?.teaching_record_id ?? ""} onChange={e => void selectContext("teaching_record_id", e.target.value)}><option value="">无教学绑定</option>{proposals.map(p => <option key={p.record.record_id} value={p.record.record_id}>{p.record.purpose}</option>)}</select></label><button onClick={() => void readSources()}>读取媒体来源</button><label>Source CAS<select value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">选择来源</option>{sources.map(s => <option key={s.source_id} value={s.source_id}>{s.original_name}</option>)}</select></label></details>
-    <>{unsupported ? <details aria-label="原始文档／核对版本（只读）"><summary>只读原文 {unsupported.document_id} · v{unsupported.version}</summary><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{JSON.stringify(unsupported.editor_json, null, 2)}</pre></details> : null}</><CanonicalExpressionBoard key={active.current + (history ? `:history:${history.version}` : "")} onPendingEditChange={pendingChanged} value={shown} onChange={change} onAddMedia={addMedia} renderMedia={(media: ExpressionMedia, _node: ExpressionNode) => <CasMedia media={media}/>} readOnly={!!history||!documentLease.canWrite}/>
-    <details><summary>后续表达能力说明</summary><p>动画、参数仿真、空间 / XR 引擎：NOT_EXECUTED。以下仅为文本说明，保存不执行脚本或场景；其他已有能力说明保留。</p>{([["animation_note", "动画产物说明", "CAP-0070"], ["simulation_note", "仿真参数说明", "CAP-0070"], ["spatial_note", "空间 XR 场景说明", "CAP-0080"]] as const).map(([field, label, cap]) => <div key={field}><label>{label}<textarea disabled={!!history} value={typeof shown.capability_metadata?.[field] === "string" ? shown.capability_metadata[field] as string : ""} onChange={e => capabilityNote(field, e.target.value)}/></label>{shown.capability_metadata?.[field] != null && typeof shown.capability_metadata[field] !== "string" ? <p>原说明采用其他结构，保持原值；输入文本时只替换此项。</p> : null}{onOpenCapability ? <button onClick={() => onOpenCapability(cap)}>查看{label}能力状态</button> : null}</div>)}</details><p>仅导出当前已保存版本；历史视图不导出。未保存编辑不进入导出快照。</p><label>历史版本<input inputMode="numeric" value={version} onChange={e => setVersion(e.target.value)}/></label><button disabled={!b.base} onClick={() => void readHistory()}>读取历史（只读）</button>{history ? <button onClick={() => setHistory(null)}>回到保留草稿</button> : null}
-    <AaosDialog trigger={<button disabled={pending === null}>审阅对象切换</button>} onCloseAutoFocus={event => { event.preventDefault(); section.current?.focus(); }} open={pending !== null} onOpenChange={v => {
+    return <section ref={section} tabIndex={-1} className="stitch-expression-page" aria-label="表达工作区">
+      <header className="stitch-expression-heading"><div><span>画布与表达</span><h2>表达工作区</h2></div><div className="stitch-expression-primary-actions"><button disabled={busy} onClick={() => requestOpen("__new")}>新表达草稿</button><button disabled={busy || !documentLease.canWrite || (!b.dirty && !b.attempt)} onClick={() => void save()}>{b.attempt ? "重试冻结保存" : "保存表达草稿"}</button></div></header>
+      {!documentLease.canWrite?<p role="status">此文档已有写入视图；画布只读，草稿保留。</p>:null}
+      <p role={failed ? "alert" : "status"} className="stitch-expression-feedback">{message}</p>
+      <div className="stitch-expression-state"><p>{boardPending ? "位置／连线输入尚未提交；先完成或取消位置／连线编辑。" : null}</p><p>{b.base ? `${b.base.title} · 第 ${b.base.version} 版` : "本地未登记草稿"} · {history?`正在查看第 ${history.version} 版历史，原草稿保留`:b.dirty ? "未保存" : "无未保存编辑"}</p>{b.base?<details><summary>对象编号与保存版本</summary><p>{b.base.document_id} · 第 {b.base.version} 版</p></details>:null}</div>
+      <>{unsupported ? <details aria-label="原始文档／核对版本（只读）"><summary>只读原文 {unsupported.document_id} · v{unsupported.version}</summary><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{JSON.stringify(unsupported.editor_json, null, 2)}</pre></details> : null}</>
+      <div className="stitch-expression-workspace"><section className="stitch-expression-stage" aria-label="表达画布与节点工具"><CanonicalExpressionBoard key={active.current + (history ? `:history:${history.version}` : "")} onPendingEditChange={pendingChanged} value={shown} onChange={change} onAddMedia={addMedia} renderMedia={(media: ExpressionMedia, _node: ExpressionNode) => <CasMedia media={media}/>} readOnly={!!history||!documentLease.canWrite}/></section>
+      <div className="stitch-expression-toolkit">
+        <section className="stitch-expression-card"><header><h3>已保存对象</h3><div className="stitch-expression-document-actions"><button disabled={busy || loading} onClick={() => void list(false)}>刷新文档</button>{cursor ? <button disabled={loading} onClick={() => void list(true)}>更多文档</button> : null}</div></header><ul aria-label="已保存文档">{rows.map(row => <li key={row.document_id}><button disabled={busy} onClick={() => requestOpen(row.document_id)}>{row.title} · v{row.version}</button></li>)}</ul></section>
+        <section className="stitch-expression-card stitch-expression-history"><header><h3>保存核对与历史</h3></header><div className="stitch-expression-secondary-actions"><button disabled={busy || !b.base || boardPending} title={!b.base?"需要先打开或保存一份表达文档":boardPending?"需要先完成当前节点或连线输入":undefined} onClick={() => void reconcileSave()}>核对最新保存版本（不覆盖草稿）</button><button disabled={busy || !b.base || !!history} title={!b.base?"需要先打开或保存一份表达文档":history?"历史视图不导出，请先回到保留草稿":undefined} onClick={() => void exportSnapshot()}>导出已保存快照 / 引用</button></div><p>仅导出当前已保存版本；历史视图不导出。未保存编辑不进入导出快照。</p><label>历史版本<input inputMode="numeric" value={version} onChange={e => setVersion(e.target.value)}/></label><button disabled={!b.base} title={!b.base?"需要先打开或保存一份表达文档":undefined} onClick={() => void readHistory()}>读取历史（只读）</button>{history ? <button onClick={() => setHistory(null)}>回到保留草稿</button> : null}</section>
+        <div className="stitch-expression-support">
+          <section className="stitch-expression-card"><details><summary>上下文与来源</summary><label>知识搜索<input value={query} onChange={e => setQuery(e.target.value)}/></label><button onClick={() => void search()}>查找实际知识</button><label>知识版本<select value={b.value.context?.knowledge_id ?? ""} onChange={e => void selectContext("knowledge_id", e.target.value)}><option value="">无知识绑定</option>{b.value.context?.knowledge_id && !knowledgeRows.some(k => k.knowledge_id === b.value.context?.knowledge_id) ? <option>{b.value.context.knowledge_id}</option> : null}{knowledgeRows.map(k => <option key={k.knowledge_id} value={k.knowledge_id}>{k.head} · {k.status}</option>)}</select></label><button onClick={() => void contextChoices()}>读取实际课程与方案</button><label>课程<select value={b.value.context?.course_id ?? ""} onChange={e => void selectContext("course_id", e.target.value)}><option value="">无课程绑定</option>{courses.map(c => <option key={c.manifest_id} value={c.manifest_id}>{c.title} {c.stale ? "陈旧" : ""}</option>)}</select></label><label>方案 / 修订 / 交付<select value={b.value.context?.teaching_record_id ?? ""} onChange={e => void selectContext("teaching_record_id", e.target.value)}><option value="">无教学绑定</option>{proposals.map(p => <option key={p.record.record_id} value={p.record.record_id}>{p.record.purpose}</option>)}</select></label><button onClick={() => void readSources()}>读取媒体来源</button><label>来源原件<select value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">选择来源</option>{sources.map(s => <option key={s.source_id} value={s.source_id}>{s.original_name}</option>)}</select></label></details></section>
+          <section className="stitch-expression-card"><details><summary>后续表达能力说明</summary><p>动画、参数仿真、空间 / XR 引擎尚未接入。以下仅为文本说明，保存不执行脚本或场景；其他已有能力说明保留。</p>{([["animation_note", "动画产物说明", "CAP-0070"], ["simulation_note", "仿真参数说明", "CAP-0070"], ["spatial_note", "空间 XR 场景说明", "CAP-0080"]] as const).map(([field, label, cap]) => <div key={field}><label>{label}<textarea disabled={!!history} value={typeof shown.capability_metadata?.[field] === "string" ? shown.capability_metadata[field] as string : ""} onChange={e => capabilityNote(field, e.target.value)}/></label>{shown.capability_metadata?.[field] != null && typeof shown.capability_metadata[field] !== "string" ? <p>原说明采用其他结构，保持原值；输入文本时只替换此项。</p> : null}{onOpenCapability ? <button onClick={() => onOpenCapability(cap)}>查看{label}能力状态</button> : null}</div>)}</details><div className="stitch-expression-secondary-actions">{onOpenCapability ? <button onClick={() => onOpenCapability("CAP-0160")}>能力与资格</button> : null}</div><p>文字、媒体与关系都保存在可版本化的文档中。动画、仿真与空间引擎尚未验证；媒体只引用已保存的原件。</p></section>
+        </div>
+      </div>
+      </div>
+      <AaosDialog trigger={<button disabled={pending === null}>审阅对象切换</button>} onCloseAutoFocus={event => { event.preventDefault(); section.current?.focus(); }} open={pending !== null} onOpenChange={v => {
             if (!v)
                 setPending(null);
         }} title="切换表达对象？" description="未保存草稿保留在当前页面内存；离开整个工作区需先保存。取消保持当前编辑。"><button onClick={() => setPending(null)}>取消切换</button><button disabled={boardPending} onClick={() => {
             if (pending && !pendingBoard.current)
                 void open(pending);
         }}>保留草稿并切换</button></AaosDialog>
-  </section>;
+    </section>;
 }

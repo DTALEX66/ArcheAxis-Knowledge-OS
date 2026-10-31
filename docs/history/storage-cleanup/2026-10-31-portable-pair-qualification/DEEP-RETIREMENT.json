@@ -1,0 +1,181 @@
+{
+  "schema": "aaos.deep-latest-only-cleanup/v1",
+  "date": "2026-10-31",
+  "scope": "Owner requested all unfinished cleanup and spillover; keep usable current candidates, source/originals, real or unclassified data and private state.",
+  "old_repo_deleted_files_this_batch": 280288,
+  "old_repo_deleted_logical_bytes_this_batch": 30099129602,
+  "old_repo_deleted_files_cumulative": 857456,
+  "old_repo_deleted_logical_bytes_cumulative": 106384249964,
+  "external_green_deleted_files": 580,
+  "external_green_deleted_logical_bytes": 50258213,
+  "empty_directories_removed_this_batch": 56647,
+  "new_raw_evidence_copies_retired_separately": {
+    "files": 105,
+    "bytes": 221793098,
+    "not_counted_as_old_cleanup": true,
+    "gzip_original_members_verified": 105
+  },
+  "final_admin_readable_bytes": 28352993453,
+  "final_admin_readable_files": 351032,
+  "final_admin_measurement_errors": 0,
+  "excluded_private": 243,
+  "out_of_layout": 581,
+  "measurement_status": "PARTIAL",
+  "source_head": "e1052d3f3485ee1e4105452dcfb30a4bbd97882f",
+  "source_consistent": true,
+  "physical_drive_release": "NOT_MEASURED",
+  "acl_changes": 0,
+  "process_kills": 0,
+  "manual_process_exit_codes": "NOT_INDEPENDENTLY_OBSERVED",
+  "overall": "PARTIAL_UNCLASSIFIED_STORAGE_DIRECTORY_NORMALIZATION_AND_PRODUCER_GOVERNANCE_REMAIN",
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/remaining-runs-review-20261031/FINAL-POST.json",
+      "bytes": 1414,
+      "sha256": "07218be183c6f0c09d7f47cf763090bd40e14e55c56682885033fe2e7b3a1059",
+      "old_deleted_files": 44053,
+      "old_deleted_logical_bytes": 10282432288,
+      "kind": "OLD_RUN_PAYLOADS"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/public-leaf-20261031T1448563328326Z-result.json",
+      "bytes": 646,
+      "sha256": "d93c336c8071c87e42647a96418ca05779221a732ffa3d72f8240e7b1669ed52",
+      "old_deleted_files": 19307,
+      "old_deleted_logical_bytes": 3122359225,
+      "kind": "OLD_CANDIDATES_DOWNLOADS_COMPONENT_CONTAINERS"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/remaining-runs-review-20261031/LATEST-TOOL-INPUT-POST.json",
+      "bytes": 967,
+      "sha256": "258091a207f811c09120ddf5cc6f9965a5605a16cbf44a25894965170463fad1",
+      "old_deleted_files": 9532,
+      "old_deleted_logical_bytes": 467275294,
+      "kind": "DUPLICATE_OLD_TOOL_INPUTS"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/remaining-pytest-review-20261031/FINAL-POST.json",
+      "bytes": 879,
+      "sha256": "40a2c15387605b35236a67d5cf1335484d6829bcd0682cbc402596d689305126",
+      "old_deleted_files": 8078,
+      "old_deleted_logical_bytes": 94715561,
+      "kind": "PUBLIC_PYTEST_FIXTURES"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/remaining-runs-review-20261031/SNAPSHOT-GITPACK-POST.json",
+      "bytes": 4408,
+      "sha256": "b1df8ede187fac2d442e835a005ab62680d29713b50e7517ad0ec5e3f90a1804",
+      "old_deleted_files": 18,
+      "old_deleted_logical_bytes": 984331136,
+      "kind": "DUPLICATE_SNAPSHOT_PACK_NAMES"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/manual-apply-20261031T1504398620408Z-result.json",
+      "bytes": 350,
+      "sha256": "4c67b52a03992a2281b1bd38fcf4a410dee50db337c41f2b654d48bd20d4dcfc",
+      "old_deleted_files": 109445,
+      "old_deleted_logical_bytes": 11565563937,
+      "kind": "OWNER_ADMIN_EXACT_PUBLIC_SCOPE"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/cache-manual-apply-20261031T1514497556787Z-result.json",
+      "bytes": 354,
+      "sha256": "61c7c5195e17bd3b1ed5a124c543746cbb7222f50bc00d868adc07eed0807a8a",
+      "old_deleted_files": 35162,
+      "old_deleted_logical_bytes": 1982677073,
+      "kind": "OWNER_ADMIN_OLD_DERIVED_CACHE_ONLY"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spillover-finish-review-20261031/artifacts/green-retirement-20261031T1510350567910Z-result.json",
+      "bytes": 225855,
+      "sha256": "b2e8383b355f4d62b6748a14d1b0e2b008f4db8a529792875dba6b422ab3a3cb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/finaladmin-53f6ab19/artifacts/storage-after.json",
+      "bytes": 509805,
+      "sha256": "a4e4245406b31b6a0be6e9cc56f7099513c5874a5f1751298b58992ddec42e7c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/finaladmin-53f6ab19/artifacts/execution.json",
+      "bytes": 1569,
+      "sha256": "589fc8abb9c85a8eecee82fe09bd7c9c97e655e7ed6915fd1eb694c87cb16afe"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/manual-independent-post.json",
+      "bytes": 544,
+      "sha256": "411749e40712715a3aad0e19401e74184bc1466456e73c38c32caf441d919798"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/cache-independent-post.json",
+      "bytes": 467,
+      "sha256": "d8943e3d15a78feda5d1b6d7f5498ab95fc045d0cb53e66266fb401dcce5cb81"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/evidence-compression.json",
+      "bytes": 66373,
+      "sha256": "25f45a0644e4a7b7119e2ffef3cf1fa51cb47258a6d51038b8d888ef1a7ba12f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/remaining-runs-review-20261031/RESIDUAL-WEBVIEW-CACHE-READONLY.json",
+      "bytes": 1121696,
+      "sha256": "b71a98a9b5cac57720784765ad3729503c4f35d363194585e7f7ecbdc87c696e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/spillover-finish-review-20261031/preservation-verification.json",
+      "bytes": 9642,
+      "sha256": "a20a5ccedbd6364c926a3e2526345460b08001f4d5118357f2620b2e319ec8d2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/remaining-test-profile-retirement-20261031/FINAL-POST.json",
+      "bytes": 3710,
+      "sha256": "d06b6665484a6f9a2ca36cdd76260ebb426ea7a0a3df59fb402abf1c6c307c52"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/preimage-manual-20261031T1536534082662Z-result.json",
+      "bytes": 314,
+      "sha256": "5b300a144404d9a0f56690c715bacbff41d02d4104cf6c9b005db260313f5259"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/preimage-independent-post.json",
+      "bytes": 187,
+      "sha256": "2ae40c8cc85f5859de360fe13c20295b793f2007048f5b1e5c9f97242d215e41"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/manual-old-preimages-plan.json",
+      "bytes": 6774,
+      "sha256": "556c77c0afc82b4c391680c5f9dbc50e2382f47fd63f2ecd8828f9d2f5e4f99b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/empty-directory-unelevated-result.json",
+      "bytes": 1963692,
+      "sha256": "cf4ed33731df6c5e35cd4f6f97839e0363961e69ea7ca1e0a91cc9aaa4551a6a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/empty-directory-20261031T1522471011577Z-result.json",
+      "bytes": 394,
+      "sha256": "8f058ee1f8cb7514aed81e05e401f2c59d83002fae87fe5f1ecf0a40b202daad"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/deepclean-9f134a70/artifacts/empty-directory-20261031T1538506210684Z-result.json",
+      "bytes": 388,
+      "sha256": "9f8732994a59e69511030b1b034cc98cbdc6a7a523b260834649aaae562dda43"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+      "bytes": 509805,
+      "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/execution.json",
+      "bytes": 1562,
+      "sha256": "3ee3acc216edb5484fcfa5f076085fb5e30137b1c1ff1a874518d6cfb8541a84"
+    }
+  ],
+  "final_source_dirty": true,
+  "final_source_patch_sha256": "663bd53d8bd4acdbff5b3468cec851f719980d7e0ed950d570c943460f8eb165",
+  "owner_test_profile_declaration": "都是测试，没有需要保留的资料或状态",
+  "test_profile_files_deleted": 54683,
+  "test_profile_deleted_bytes": 1460157114,
+  "old_generated_preimages_deleted_files": 10,
+  "old_generated_preimages_deleted_bytes": 139617974
+}

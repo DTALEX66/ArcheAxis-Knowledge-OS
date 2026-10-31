@@ -165,12 +165,7 @@ async fn run_maintenance(
             let snapshot = canonical_artifact.to_string_lossy().into_owned();
             let restored = store
                 .submit(move |connection| {
-                    archeaxis_domain::backup::restore(&snapshot, connection)?;
-                    let snapshot = rusqlite::Connection::open_with_flags(
-                        &snapshot,
-                        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
-                    )?;
-                    archeaxis_domain::backup::finalize_restore_authorization(&snapshot, connection)
+                    archeaxis_domain::backup::restore_authorized(&snapshot, connection)
                 })
                 .await
                 .map_err(|error| error.to_string())?;

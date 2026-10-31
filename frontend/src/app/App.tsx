@@ -2,28 +2,38 @@ import { CoreWorkingStateSession, type WorkingRead } from "../presentation/coreW
 import { CoreWorkingStateProvider, useCoreWorkingState } from "../presentation/useCoreWorkingState";
 import {CompanionSessionProvider} from "../companion/CompanionSessionProvider";
 import {ConversationPanel} from "../components/ConversationPanel";
+import {FrontendFailureNotice} from "../components/FrontendFailureNotice";
 import {DiagnosticCenter, DiagnosticCenterTrigger, RawReceiptButton} from "../components/DiagnosticConsole";
 import {userErrorMessage} from "../presentation/labels";
+import { updateDraftOwners } from "../workspace/draftProtection";
+import { DraftRecoveryScope, useDraftRecoveryRegistry, type RecoveryDraft } from "../workspace/draftRecovery";
+import { installNativeCloseProtection } from "../workspace/nativeCloseProtection";
 import {DocumentSnapshot} from "../components/DocumentSnapshot";
 import type {JSONContent} from "@tiptap/core";
 import { coreCommand } from "../api/core";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import type { ObjectReference } from "../api/generated/research-contract";
-import { findUiPage } from "../presentation/uiPages";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { findUiPage, uiEntryForPage } from "../presentation/uiPages";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { StatusBar } from "../components/StatusBar";
 import { SpaceRail } from "../components/SpaceRail";
+import { ParticleField } from "../components/ParticleField";
+import { MotionConfig } from "motion/react";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
 import { DockWorkspace, type DockNavigationTarget } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ConsoleWindow } from "../components/ConsoleWindow";
+import { WorkspaceContextMenu } from "../components/WorkspaceContextMenu";
+import { FirstUseGuide, requestFirstUseGuide } from "../components/FirstUseGuide";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
 import { TopNavBar } from "../components/TopNavBar";
+import { StitchWorkspaceMenu, StitchWorkspaceDock, StitchCompanionWindow, StitchResearchOutlet, type WorkspaceLayoutMode } from "../components/StitchWorkspaceChrome";
+import { StitchLaunchpad } from "../components/StitchLaunchpad";
 import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
@@ -46,6 +56,11 @@ import {
 const DESKTOP_LIVENESS_INTERVAL_MS = 10_000;
 const RECOVERY_BOOT_POLL_MS = 250;
 const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
+const WORKSPACE_LAYOUT_KEY = "aaos:workspace-presentation:v1";
+function readWorkspaceLayout(): WorkspaceLayoutMode {
+  try { const saved = localStorage.getItem(WORKSPACE_LAYOUT_KEY); if (saved === "focus" || saved === "compare" || saved === "companion") return saved; } catch { /* Display preferences may be unavailable. */ }
+  return "companion";
+}
 
 // AXW-UI-802: composite left navigation, central task area, on-demand inspector,
 // and activity dock. Capability entries share one generated navigation projection.
@@ -68,25 +83,39 @@ export function App() {
     window.addEventListener("workspace-invalidated",reset);
     return()=>window.removeEventListener("workspace-invalidated",reset);
   },[]);
-  return <CoreWorkingStateProvider session={session}><CompanionSessionProvider><AppBody /><DiagnosticCenter /></CompanionSessionProvider></CoreWorkingStateProvider>;
+  return <CoreWorkingStateProvider session={session}><DraftRecoveryScope><CompanionSessionProvider><AppBody /><FrontendFailureNotice /><DiagnosticCenter /></CompanionSessionProvider></DraftRecoveryScope></CoreWorkingStateProvider>;
 }
 function AppBody() {
   const working=useCoreWorkingState();
+  const recoverySources = useDraftRecoveryRegistry();
+  const [recoveryDrafts, setRecoveryDrafts] = useState<RecoveryDraft[] | null>(null);
+  const recoveryText = useRef<HTMLTextAreaElement>(null);
   const hydratedSession=useRef<CoreWorkingStateSession|null>(null);
   const adoptingWorkingScene=useRef(false);
   const [workingEntered,setWorkingEntered]=useState(false);
+  // A ready work area owns live editors. A lost Core connection or a fresh
+  // handshake must not unmount those editors and publish their cleanup as saved.
+  const workspaceMounted = useRef(false);
+  useLayoutEffect(() => { if (workingEntered) workspaceMounted.current = true; }, [workingEntered]);
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
-  const drawerSection = useRef<SpaceSectionDef | null>(null);
-  const [navigationAppearance,setNavigationAppearance] = useState<"sidebar" | "top">(() => {
-    try { return localStorage.getItem("aaos.navigation-appearance.v1") === "top" ? "top" : "sidebar"; } catch { return "sidebar"; }
-  });
-  const changeNavigationAppearance = (value: "sidebar" | "top") => {
-    setNavigationAppearance(value);
-    try { localStorage.setItem("aaos.navigation-appearance.v1", value); } catch { /* Session preference remains usable when storage is unavailable. */ }
-  };
+  const [launchpadOpen,setLaunchpadOpen] = useState(false);
+  const [wideWorkspace, setWideWorkspace] = useState(() => window.innerWidth >= 1440 && window.innerHeight >= 800);
+  const companionOwnsFocus = useRef(false);
+  useEffect(() => {
+    const resize = () => setWideWorkspace(window.innerWidth >= 1440 && window.innerHeight >= 800);
+    const focus = (event: FocusEvent) => { companionOwnsFocus.current = event.target instanceof Element && Boolean(event.target.closest("#stitch-companion-window")); };
+    window.addEventListener("resize", resize);
+    document.addEventListener("focusin", focus);
+    return () => { window.removeEventListener("resize", resize); document.removeEventListener("focusin", focus); };
+  }, []);
+  const [workspaceLayout, setWorkspaceLayout] = useState<WorkspaceLayoutMode>(readWorkspaceLayout);
+  const [workspaceLayoutRevision, setWorkspaceLayoutRevision] = useState(0);
+  const [companionOpen,setCompanionOpen] = useState(() => readWorkspaceLayout() === "companion" && window.innerWidth >= 1440 && window.innerHeight >= 800);
+  const companionFocusRequested = useRef(false);
+  useEffect(() => { companionFocusRequested.current = false; }, [companionOpen]);
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
   const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
   const [activeDockPanelId,setActiveDockPanelId] = useState<string>();
@@ -94,30 +123,83 @@ function AppBody() {
   const requestDockNavigation = useCallback(() => {setActiveDockPanelId(undefined);setDockNavigationRevision(value=>value+1);},[]);
   const [initialLearningItemKey, setInitialLearningItemKey] = useState<string|undefined>();
   const composing = useRef(false);
+  // A section chosen inside the drawer runs after the modal has released focus. Radix's
+  // close callback is the fast path; the timer is the fallback when it does not fire, so
+  // the section either opens and receives focus or the drawer's return-to-trigger wins.
+  const pendingSection = useRef<SpaceSectionDef | null>(null);
   const [selectedCapabilityId, setSelectedCapabilityId] = useState<string | null>(initialNavigation?.capabilityId ?? null);
   const [sectionNavigation, setSectionNavigation] = useState<{ spaceId: SpaceId; section: string; sequence: number }>({ spaceId: "library", section: "sources", sequence: 0 });
   const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
   const [sectionNotice, setSectionNotice] = useState<string | null>(null);
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(false);
+  // Empty inspection never claims a desktop column until explicitly requested.
+  const [inspectorOpen, setInspectorOpen] = useState(() => readWorkspaceLayout() === "compare");
   const [learningFocus, setLearningFocus] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatusDto | null>(
     desktop ? checkingRecoveryStatus() : null,
   );
+  const recoveryOverWorkspace = desktop && !desktopReady && Boolean(recoveryStatus) && workspaceMounted.current;
+  useEffect(() => { if (!recoveryOverWorkspace) setRecoveryDrafts(null); }, [recoveryOverWorkspace]);
+  const recoveryBarrier = useRef(false);
+  recoveryBarrier.current = recoveryOverWorkspace;
+  const contentEntered = !desktop || workingEntered || workspaceMounted.current;
   const operation = useRef({ epoch: 0, mounted: true });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [commandPaletteRequest, setCommandPaletteRequest] = useState(0);
   const [searchedObject,setSearchedObject]=useState<ObjectReference|null>(null);
   const [searchedContentSha,setSearchedContentSha]=useState<string>();
   const draftDirty = useRef(false);
   const draftOwners = useRef(new Set<string>());
   const [unsavedDrafts, setUnsavedDrafts] = useState(false);
+  const [nativeClosePending, setNativeClosePending] = useState(false);
+  const [nativeCloseError, setNativeCloseError] = useState("");
+  useEffect(() => {
+    if (!window.__TAURI__?.core?.invoke || !("__TAURI_INTERNALS__" in window)) return;
+    return installNativeCloseProtection({
+      isDirty: () => draftDirty.current,
+      pending: value => { setNativeClosePending(value); if (value) setNativeCloseError(""); },
+      error: setNativeCloseError,
+    });
+  }, []);
   const [workspaceRestoring, setWorkspaceRestoring] = useState(false);
   const restoringRef = useRef(false);
   const [restoreNotice, setRestoreNotice] = useState<{confirmed:boolean;message:string}|null>(null);
   const [workspaceEpoch, setWorkspaceEpoch] = useState(0);
+  const referenceVisible = inspectorOpen && !selectedCapabilityId && !learningFocus && !workspaceRestoring;
+  const [researchMaterialsHost, setResearchMaterialsHost] = useState<HTMLDivElement | null>(null);
+  const researchReference = uiPageId === "05" && contentEntered;
+  const chooseWorkspaceLayout = useCallback((mode: WorkspaceLayoutMode) => {
+    if (restoringRef.current || recoveryBarrier.current) return;
+    setWorkspaceLayout(mode);
+    setWorkspaceLayoutRevision(value => value + 1);
+    setCompanionOpen(mode === "companion"); setInspectorOpen(mode === "compare");
+    try { localStorage.setItem(WORKSPACE_LAYOUT_KEY, mode); } catch { /* Session presentation still works. */ }
+    if (mode === "companion") window.dispatchEvent(new CustomEvent("aaos:companion-presentation", { detail: { presentation: "portrait" } }));
+  }, []);
+  const closeResearchReference = useCallback(() => {
+    const ownsFocus = Boolean(document.activeElement?.closest(".stitch-reference-window"));
+    chooseWorkspaceLayout("focus");
+    if (ownsFocus) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
+  }, [chooseWorkspaceLayout]);
+  useEffect(() => {
+    if (!referenceVisible || !researchReference) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || event.isComposing || !document.activeElement?.closest(".stitch-reference-window") || document.querySelector('[role="dialog"][data-state="open"]')) return;
+      event.preventDefault(); closeResearchReference();
+    };
+    window.addEventListener("keydown", dismiss);
+    return () => window.removeEventListener("keydown", dismiss);
+  }, [referenceVisible, researchReference, closeResearchReference]);
+  const companionHiddenByReference = referenceVisible && !wideWorkspace;
+  useLayoutEffect(() => {
+    if (!referenceVisible || (companionOpen && !companionHiddenByReference)) return;
+    companionFocusRequested.current = false;
+    // Only transfer focus when the auxiliary slot would hide its current owner.
+    if (companionOwnsFocus.current || document.activeElement?.closest("#stitch-companion-window")) {
+      document.querySelector<HTMLElement>('.stitch-reference-window button[aria-label="关闭相关资料"]')?.focus();
+    }
+  }, [companionHiddenByReference, companionOpen, referenceVisible]);
   const navigationHash = useRef(window.location.hash);
   const liveness = useRef<{
     generation: number;
@@ -147,10 +229,8 @@ function AppBody() {
   useEffect(() => {
     const listener = (event: Event) => {
       const value = (event as CustomEvent<unknown>).detail;
-      const item = value && typeof value === "object" ? value as { owner?: unknown; dirty?: unknown } : null;
-      const owner = item && typeof item.owner === "string" ? item.owner : "legacy";
-      if (item ? item.dirty === true : value === true) draftOwners.current.add(owner); else draftOwners.current.delete(owner);
-      draftDirty.current = draftOwners.current.size > 0; setUnsavedDrafts(draftDirty.current);
+      draftDirty.current = updateDraftOwners(draftOwners.current, value);
+      setUnsavedDrafts(draftDirty.current);
     };
     window.addEventListener("archeaxis-draft-dirty", listener);
     return () => window.removeEventListener("archeaxis-draft-dirty", listener);
@@ -177,6 +257,7 @@ function AppBody() {
       resetRuntimeClient();
       // Every mounted data view and editor belongs to the replaced workspace.
       draftOwners.current.clear(); draftDirty.current = false; setUnsavedDrafts(false);
+      workspaceMounted.current = false; setWorkingEntered(false);
       setWorkspaceEpoch(value => value + 1);
       requestDockNavigation();
       setUiPageId("01"); setActiveSpace("workspace"); setOpenedDocumentId(undefined); setInitialLearningItemKey(undefined);
@@ -189,8 +270,19 @@ function AppBody() {
     };
     // Capture before portal/CommandPalette/window listeners, even in the same
     // dispatch turn before React has applied the restoring state render.
-    const blockInteraction=(event:Event)=>{if(!restoringRef.current)return;event.preventDefault();event.stopImmediatePropagation();};
-    const blockedEvents=["keydown","pointerdown","click","beforeinput","input","submit"];
+    const blockInteraction=(event:Event)=>{
+      if (!restoringRef.current) {
+        if (!recoveryBarrier.current) return;
+        const insideRecovery = event.target instanceof Element && Boolean(event.target.closest(".runtime-recovery-dialog"));
+        // The recovery controls remain live. Global palettes/Inspector shortcuts
+        // cannot escape the modal and activate an unavailable business view.
+        const shortcut = event instanceof KeyboardEvent && (event.ctrlKey || event.metaKey || event.altKey)
+          && ["k", "i"].includes(event.key.toLowerCase());
+        if (insideRecovery && !shortcut) return;
+      }
+      event.preventDefault();event.stopImmediatePropagation();
+    };
+    const blockedEvents=["keydown","pointerdown","click","beforeinput","input","change","submit"];
     for(const name of blockedEvents)window.addEventListener(name,blockInteraction,true);
     window.addEventListener("workspace-restore-start", lock);
     window.addEventListener("workspace-restore-finish", unlock);
@@ -225,7 +317,7 @@ function AppBody() {
   }, []);
 
   const navigate = useCallback((id: SpaceId) => {
-    if (restoringRef.current || composing.current) return false;
+    if (restoringRef.current || recoveryBarrier.current || composing.current) return false;
     if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
     requestDockNavigation();
     setNavigationOpen(false);
@@ -244,14 +336,14 @@ function AppBody() {
 
   const openPage = useCallback((id:string) => {
     const page=findUiPage(id);
-    if (!page || restoringRef.current || composing.current) return;
+    if (!page || restoringRef.current || recoveryBarrier.current || composing.current) return false;
     if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) {
       requestDockNavigation();
       setNavigationOpen(false);
       const hash=`#page=${encodeURIComponent(id)}`;
       if(window.location.hash!==hash) window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
       navigationHash.current=hash;
-      return;
+      return true;
     }
     // These pages share one mounted journey; changing its visible panel retains
     // frozen requests and dirty owners. Leaving the family still uses navigate.
@@ -259,14 +351,15 @@ function AppBody() {
       ["13", "14", "22"].includes(uiPageId) && ["13", "14", "22"].includes(id) &&
       activeSpace === "ai-assets" && page.space === "ai-assets" && !selectedCapabilityId;
     if (retainedAiJourney) {setNavigationOpen(false);requestDockNavigation();}
-    else if (!navigate(page.space)) return;
+    else if (!navigate(page.space)) return false;
     setUiPageId(id);
     const hash=`#page=${encodeURIComponent(id)}`;
     window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
     navigationHash.current=hash;
+    return true;
   },[navigate, uiPageId, activeSpace, selectedCapabilityId]);
   const activateDockView = useCallback((target:DockNavigationTarget) => {
-    if(restoringRef.current||composing.current)return false;
+    if(restoringRef.current||recoveryBarrier.current||composing.current)return false;
     const page=findUiPage(target.uiPageId??"");if(!page)return false;
     const capability=target.selectedCapabilityId??null;
     const reader=["02","03","20"].includes(page.id);
@@ -298,10 +391,10 @@ function AppBody() {
     navigationHash.current = hash;
   }, [navigate]);
   const openCapability = useCallback((id: string) => {
-    if(restoringRef.current || composing.current)return;
+    if(restoringRef.current || recoveryBarrier.current || composing.current)return false;
     const entry = EFFECTIVE_NAVIGATION_ENTRIES.find((item) => item.entry_id === id && item.capability);
-    if (!entry?.capability) return;
-    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
+    if (!entry?.capability) return false;
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
     requestDockNavigation();
     setNavigationOpen(false);
     setUiPageId("18");
@@ -314,11 +407,12 @@ function AppBody() {
     const nextHash = `#capability/${encodeURIComponent(id)}`;
     if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
     navigationHash.current = nextHash;
+    return true;
   }, [learningFocus]);
 
   useEffect(() => {
     const onHashChange = () => {
-      if(restoringRef.current || composing.current){window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${navigationHash.current}`);return;}
+      if(restoringRef.current || recoveryBarrier.current || composing.current){window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${navigationHash.current}`);return;}
       const target = resolveNavigationHash(window.location.hash);
       if (!target) return;
       const retainedAiJourney = uiPageId !== undefined && ["13", "14", "22"].includes(uiPageId) &&
@@ -343,11 +437,13 @@ function AppBody() {
   }, [learningFocus, uiPageId, activeSpace, selectedCapabilityId]);
 
   const inspect = useCallback((target: InspectionTarget, options?: { reveal?: boolean }) => {
-    if(restoringRef.current)return;
+    if(restoringRef.current||recoveryBarrier.current)return;
     setInspectionTarget(target);
-    // 窄窗口自动同步条目不抢占阅读区；显式检查仍可打开，已打开的检查器继续更新。
-    if (options?.reveal !== false || (document.querySelector(".console-window")?.getBoundingClientRect().width || window.innerWidth) > 900) setInspectorOpen(true);
-  }, []);
+    // Synchronising the current object never takes the reading area; an explicit
+    // inspection reveals the auxiliary window at any size, and an open one keeps updating.
+    if (options?.reveal === false) return;
+    chooseWorkspaceLayout("compare");
+  }, [chooseWorkspaceLayout]);
 
   const surface = canonicalSurface(activeSpace, desktop);
   const sections = spaceSectionsFor(activeSpace, surface);
@@ -365,7 +461,7 @@ function AppBody() {
   }, []);
 
   const activateSection = useCallback((section: SpaceSectionDef) => {
-    if(restoringRef.current)return;
+    if(restoringRef.current||recoveryBarrier.current)return;
     if (section.state !== "ready") return;
     if (section.goto) {
       const target = section.goto;
@@ -380,10 +476,14 @@ function AppBody() {
     if (section.region) focusRegion(section.region);
   }, [activeSpace, desktop, focusRegion, navigate]);
 
-  const toggleInspector = useCallback(() => {if(!restoringRef.current)setInspectorOpen((value) => !value);}, []);
+  const toggleInspector = useCallback(() => {
+    if (restoringRef.current || recoveryBarrier.current) return;
+    if (document.activeElement?.closest(".stitch-reference-window")) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
+    chooseWorkspaceLayout(inspectorOpen ? "focus" : "compare");
+  }, [inspectorOpen, chooseWorkspaceLayout]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
-      if (restoringRef.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
+      if (restoringRef.current || recoveryBarrier.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
       if (event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey && event.key.toLowerCase() === "i") {
         event.preventDefault(); toggleInspector();
       }
@@ -393,6 +493,7 @@ function AppBody() {
   }, [commandPaletteOpen, toggleInspector]);
 
   const beginOperation = useCallback(() => {
+    recoveryBarrier.current = workspaceMounted.current;
     liveness.current.generation += 1;
     if (liveness.current.timeout !== null) {
       globalThis.clearTimeout(liveness.current.timeout);
@@ -495,6 +596,7 @@ function AppBody() {
     );
     const claimRecovery = (fallback: RecoveryStatusDto, pending: boolean) => {
       if (!loopIsCurrent()) return null;
+      recoveryBarrier.current = workspaceMounted.current;
       const recoveryEpoch = ++operation.current.epoch;
       const recoveryGeneration = ++liveness.current.generation;
       if (liveness.current.timeout !== null) {
@@ -502,6 +604,7 @@ function AppBody() {
         liveness.current.timeout = null;
       }
       setDesktopReady(false);
+      setNavigationOpen(false); setLaunchpadOpen(false);
       setVerificationPending(pending);
       setRecoveryStatus(fallback);
       return { epoch: recoveryEpoch, generation: recoveryGeneration };
@@ -628,6 +731,7 @@ function AppBody() {
     name: string,
     onReceipt: () => void,
   ): Promise<"refreshed" | "refresh-unavailable"> => {
+    if (draftDirty.current) throw new Error("草稿尚未保存，请先保存或保留文字后恢复备份。");
     const epoch = beginOperation();
     setDesktopReady(false);
     try {
@@ -718,7 +822,13 @@ function AppBody() {
     }catch{/* Explicit choice may still be refused; no candidate replaces local input. */}
     finally{adoptingWorkingScene.current=false;}
   }
-  const workingNotice=desktop?<section aria-label="工作草稿状态" data-working-state={working.status} role={working.error?"alert":"status"}>
+  // First-run scene bookkeeping may report "unsaved" without any real content
+  // draft; keep that engineering state out of the main surface. Show the notice
+  // only when a user-owned draft, a blocked/recovery state or an error exists.
+  const workingNoticeVisible = Boolean(
+    unsavedDrafts || working.error || working.server?.recovery_requires_confirmation
+    || working.status === "blocked" || working.status === "saving");
+  const workingNotice=desktop&&workingNoticeVisible?<section aria-label="工作草稿状态" data-working-state={working.status} role={working.error?"alert":"status"}>
     <p>{working.status==="ready"?"工作进度已保存；正文保存状态请查看文档版本。":working.status==="saving"?"正在保存工作草稿…":working.status==="loading"?"正在读取工作草稿，请稍候…":"草稿仍在当前页面中，尚未确认全部保存。"}</p>
     {working.error?<><p>{userErrorMessage(working.error)}</p><RawReceiptButton label="工作草稿保存错误" payload={{status:working.status,error:working.error}} category="runtime"/></>:null}
     {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>重试保存工作草稿</button></>:null}
@@ -731,50 +841,52 @@ function AppBody() {
       <button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button disabled={!!(Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length||Object.values(working.server.recovery_candidates?.teaching_drafts??{}).some(draft=>draft.pending_record||draft.preparation_attempt))} onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button>{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length||Object.values(working.server.recovery_candidates?.teaching_drafts??{}).some(draft=>draft.pending_record||draft.preparation_attempt)?<p>有 AI、复习或教学任务结果尚未确认。请先保留恢复内容，再核对任务结果；不能用丢弃草稿代替取消任务。</p>:null}</>:null}
   </section>:null;
 
-  if (!desktopReady && recoveryStatus) {
-    return (
+  const recoveryContent = !desktopReady && recoveryStatus ? (
       <>
+      {nativeClosePending ? <p role="status">正在确认退出，页面编辑已暂停；取消退出后可继续。</p> : null}
+      {nativeCloseError ? <p role="alert">{nativeCloseError}</p> : null}
       {restoreNotice ? <p role={restoreNotice.confirmed ? "status" : "alert"} className="workspace-restore-notice">{restoreNotice.message}</p> : null}
       <RecoveryShell
         status={recoveryStatus}
+        hasUnsavedDrafts={unsavedDrafts}
         verificationPending={verificationPending}
         onEnterSafeMode={enterSafeMode}
         onRetry={retry}
         onRestoreBackup={restoreBackup}
         onReloadCurrentCore={reloadCurrentCore}
       />
-      <DiagnosticCenterTrigger />
+      {!workspaceMounted.current ? <DiagnosticCenterTrigger /> : null}
       </>
-    );
-  }
+    ) : null;
+  if (recoveryContent && !workspaceMounted.current) return recoveryContent;
 
-  const currentSpaceLabel = SPACES.find((space) => space.id === activeSpace)?.label ?? "";
+  const currentSpaceLabel = uiEntryForPage(uiPageId ?? "")?.label ?? SPACES.find((space) => space.id === activeSpace)?.label ?? "";
   const firstReadyRegion = sections.find((section) => section.state === "ready" && section.region)?.region;
   const trailLevels: readonly ObjectTrailLevel[] = objectTrail.length === 0 ? [] : [
     { id: `space:${activeSpace}`, label: currentSpaceLabel, ...(firstReadyRegion ? { region: firstReadyRegion } : {}) },
     ...objectTrail,
   ];
+  const toggleCompanion = () => {
+    companionFocusRequested.current = !companionOpen || companionHiddenByReference;
+    chooseWorkspaceLayout(companionHiddenByReference || !companionOpen ? "companion" : "focus");
+  };
 
   return (
-    <ConsoleWindow><div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
+    <MotionConfig reducedMotion="user">
+    <StitchResearchOutlet.Provider value={researchReference ? { host: referenceVisible ? researchMaterialsHost : null, onLocate: () => { if (!wideWorkspace) { setInspectorOpen(false); companionFocusRequested.current = false; setCompanionOpen(false); } } } : null}>
+    <div style={{display:"contents"}} data-retained-workspace data-workspace-layout={workspaceLayout} aria-hidden={recoveryOverWorkspace || undefined}
+      ref={element => { if (element) element.inert = recoveryOverWorkspace; }}>
+    <ParticleField/>
+    {!learningFocus && <StitchWorkspaceMenu pageId={uiPageId ?? undefined} onPage={openPage} onNavigation={() => setNavigationOpen(true)} onGuide={requestFirstUseGuide} layoutMode={workspaceLayout} onLayoutMode={chooseWorkspaceLayout} onCompanion={toggleCompanion} onInspector={toggleInspector} />}
+    <ConsoleWindow presentation="stitch" workspaceLayout={workspaceLayout} workspaceLayoutRevision={workspaceLayoutRevision}><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
       <TopNavBar
         breadcrumbs={[
           { label: currentSpaceLabel },
           ...(uiPageId ? [{ label: findUiPage(uiPageId)?.label ?? '' }] : [])
         ]}
-        notificationCount={0}
-        onSettings={() => openPage("19")}
-        onSearch={() => { if (!restoringRef.current) setCommandPaletteRequest(value => value + 1); }}
-        userName="User"
-      />
-      {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
-      {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
-      {workingNotice}
+      >
       <StatusBar
-        navigationAppearance={navigationAppearance}
-        onNavigationAppearance={changeNavigationAppearance}
-        pageId={uiPageId}
-        learningFocus={learningFocus}
+        key={desktopReady ? "connected-tools" : "unavailable-tools"}
         activeSpace={activeSpace}
         backendState={!desktop
           ? "web"
@@ -784,28 +896,46 @@ function AppBody() {
         onOpenCapability={openCapability}
         selectedCapabilityId={selectedCapabilityId}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
-        commandPaletteOpenRequest={commandPaletteRequest}
-        onOpenObject={(reference,sha)=>{if(!restoringRef.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
+        onOpenObject={(reference,sha)=>{if(!restoringRef.current&&!recoveryBarrier.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
       />
-      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const section=drawerSection.current;drawerSection.current=null;if(section){event.preventDefault();activateSection(section);}}} trigger={<button className="ui-navigation-trigger" aria-label="打开产品导航">☰ 导航</button>} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;drawerSection.current=section;setNavigationOpen(false);}} />}</AaosDialog>}
+      </TopNavBar>
+      {nativeClosePending ? <p role="status">正在确认退出，页面编辑已暂停；取消退出后可继续。</p> : null}
+      {nativeCloseError ? <p role="alert">{nativeCloseError}</p> : null}
+      {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
+      {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
+      {workingNotice}
+
+      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const pending=pendingSection.current;pendingSection.current=null;event.preventDefault();if(pending){activateSection(pending);return;}document.querySelector<HTMLButtonElement>('button[aria-label="全部页面，打开产品导航"]')?.focus();}} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><NavTrail levels={trailLevels} onJump={region=>{setNavigationOpen(false);globalThis.setTimeout(()=>focusRegion(region),120);}} /><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;pendingSection.current=section;setNavigationOpen(false);globalThis.setTimeout(()=>{if(pendingSection.current!==section)return;pendingSection.current=null;activateSection(section);},120);}} />}</AaosDialog>}
       <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
-        {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
-          <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage} />
-          {(!desktop||workingEntered)?<details className="companion-sidebar"><summary>小栖陪伴</summary><ConversationPanel slot="sidebar"/></details>:null}
-          {!navigationOpen && !selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
-        </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
           {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}
-          <NavTrail levels={trailLevels} onJump={focusRegion} />
+
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
-          <div className="ui-page-heading" role="group" aria-label="当前页面" data-current-page-id={uiPageId ?? ""}><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>{findUiPage(uiPageId ?? "")?.group ?? "个人工作区"}</small></div>
-          {(!desktop||workingEntered)?(desktop?<DockWorkspace activePanelId={activeDockPanelId} navigationRevision={dockNavigationRevision} onActivateView={activateDockView} initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">尚未确认草稿状态；请先重新读取或选择恢复方式。</p>}
+          <div className="stitch-page-identity" data-current-page-id={uiPageId ?? ""}><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1></div>
+          {contentEntered?(desktop?<DockWorkspace activePanelId={activeDockPanelId} navigationRevision={dockNavigationRevision} onActivateView={activateDockView} initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">尚未确认草稿状态；请先重新读取或选择恢复方式。</p>}
         </main>
-        {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
-    </div></ConsoleWindow>
+    </div><WorkspaceContextMenu onPage={openPage} onCompanion={toggleCompanion} onInspector={toggleInspector} companionOpen={companionOpen && !companionHiddenByReference} inspectorOpen={inspectorOpen} disabled={workspaceRestoring} workspaceActions={!learningFocus}/></ConsoleWindow>
+    {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : !inspectionTarget ? " stitch-reference-empty" : ""}`}>
+      {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭相关资料" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => chooseWorkspaceLayout("focus")} />}
+    </div> : null}
+    {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} launchpadOpen={launchpadOpen} onLaunchpad={() => setLaunchpadOpen(value => !value)} />}
+    {!learningFocus && <StitchLaunchpad open={launchpadOpen} onOpenChange={setLaunchpadOpen} onPage={openPage} onCapability={openCapability}/>}
+    {contentEntered ? <StitchCompanionWindow hidden={learningFocus || !companionOpen || companionHiddenByReference} focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; chooseWorkspaceLayout("focus"); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
+    <FirstUseGuide onPage={openPage} enabled={!workspaceRestoring && !recoveryOverWorkspace && contentEntered} autoOpen={uiPageId === "01" && !learningFocus}/>
+    </div>
+    {recoveryOverWorkspace ? <AaosDialog open title="本地核心暂不可用" description="打开的页面与未保存文字仍保留。可先查看并手动复制原稿，或重试启动；未保存草稿仍会阻止恢复备份。" onOpenChange={() => {}} contentClassName="runtime-recovery-dialog">
+      <section aria-label="保留未保存原稿">
+        <button type="button" onClick={() => setRecoveryDrafts(recoverySources?.read() ?? [])}>查看已登记编辑区的未保存原稿</button>
+        {recoveryDrafts !== null ? <><p>下方只包含已登记编辑区的原稿，供手动复制；查看和复制不等于保存，不解除草稿保护，也不会自动恢复。请把原稿粘贴到你选择的安全位置。</p>
+          {recoveryDrafts.length ? <><label>未保存原稿（只读）<textarea ref={recoveryText} readOnly rows={12} value={recoveryDrafts.map(draft => `【${draft.label}】\n${draft.text}`).join("\n\n")} /></label><button type="button" onClick={() => { recoveryText.current?.focus(); recoveryText.current?.select(); }}>全选原稿，按 Ctrl+C 复制</button></> : <p role="status">当前没有可读取的未保存内容原稿；不会读取设置或诊断信息。</p>}</> : null}
+      </section>
+      {recoveryContent}
+    </AaosDialog> : null}
+    </StitchResearchOutlet.Provider>
+    </MotionConfig>
   );
 }

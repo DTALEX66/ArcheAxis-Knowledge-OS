@@ -1,0 +1,49 @@
+/* Frozen Stitch settings: topic, compact pills, inset hint and glass form cards. */
+.stitch-settings { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 12px; color: var(--ax-fg); font-size: var(--ax-text-ui); line-height: 1.5; }
+.stitch-settings :is(h2,h3,p) { margin: 0; }
+.stitch-settings-topic { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-width: 0; }
+.stitch-settings-topic h2 { font-size: 1.05rem; font-weight: 650; line-height: 1.5; }
+.stitch-settings-topic > p { color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); text-align: right; }
+.stitch-settings .stitch-settings-eyebrow { color: var(--ax-accent); font-size: var(--ax-text-caption); margin-bottom: 2px; }
+.stitch-settings-subnav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--ax-border-strong); }
+.stitch-settings-subnav > [role="tablist"] { display: flex; flex-wrap: wrap; gap: 8px; }
+.stitch-settings-subnav > span { color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-settings :is(button,input,select) { font: inherit; min-width: 0; max-width: 100%; box-sizing: border-box; }
+.stitch-settings button { min-height: 34px; padding: 5px 10px; border: 1px solid var(--ax-border); border-radius: 5px; color: var(--ax-fg-secondary); background: var(--ax-raised); cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
+.stitch-settings button:disabled { cursor: default; opacity: .6; }
+.stitch-settings button:not(:disabled):hover { color: var(--ax-accent); border-color: var(--ax-accent); background: var(--ax-accent-soft); }
+.stitch-settings button[role="tab"] { border-radius: 999px; padding-inline: 12px; }
+.stitch-settings button[role="tab"][aria-selected="true"] { color: var(--ax-accent); border-color: var(--ax-accent); background: var(--ax-accent-soft); }
+.stitch-settings button { transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease; }
+.stitch-settings-plans details { margin-block: 10px; padding: 10px 12px; border: 1px solid var(--ax-border); border-radius: 6px; }
+.stitch-settings-plans summary { cursor: pointer; color: var(--ax-fg-secondary); min-height: 24px; }
+.stitch-settings-plans summary:focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .stitch-settings button { transition: none; } }
+.stitch-settings :is(button,input,select,[role="tabpanel"]):focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.stitch-settings-intro { padding: 10px 12px; border: 1px solid var(--ax-border-strong); border-radius: 6px; background: var(--ax-raised); color: var(--ax-fg-secondary); }
+.stitch-settings-content { min-width: 0; min-height: 0; }
+.stitch-settings-pane { min-width: 0; padding: 16px; border: 1px solid var(--ax-border-strong); border-radius: 8px; background: var(--ax-panel); backdrop-filter: blur(16px); overflow-wrap: anywhere; }
+.stitch-settings [hidden] { display: none !important; }
+.stitch-settings-pane > .card { padding: 0 !important; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.stitch-settings-pane :is(h2,h3) { font-size: var(--ax-text-ui); font-weight: 600; color: var(--ax-fg); padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--ax-border); }
+.stitch-settings-pane p { margin-block: 8px; color: var(--ax-fg-secondary); }
+.stitch-settings-pane input, .stitch-settings-pane select { min-height: 36px; width: 100%; border: 1px solid var(--ax-border); border-radius: 5px; padding: 6px 8px; color: var(--ax-fg); background: var(--ax-raised); }
+.stitch-settings-models fieldset { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; min-width: 0; padding: 14px 0 0; margin: 12px 0 0; border: 0; border-top: 1px solid var(--ax-border); }
+.stitch-settings-models legend { padding-inline: 0; color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-settings-models fieldset > label { display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-width: 0; color: var(--ax-fg-secondary); }
+.stitch-settings-models fieldset > :is(button,p,div) { grid-column: 1 / -1; justify-self: start; }
+.stitch-settings-models fieldset > p { margin: 0; }
+.stitch-settings-models fieldset > button:last-child { margin-top: 4px; color: var(--ax-accent); border-color: var(--ax-accent); background: var(--ax-accent-soft); }
+.stitch-settings-notice { padding: 10px 12px; margin-bottom: 16px; border: 1px solid var(--ax-border); border-radius: 6px; background: var(--ax-raised); }
+.stitch-settings-notice p { margin: 0; }
+.stitch-settings-notice p + p { margin-top: 6px; }
+.stitch-settings-workspace > section > button + button { margin-left: 6px; }
+.stitch-settings-workspace [role="group"] { border: 1px solid var(--ax-border-strong); border-radius: 6px; padding: 12px; margin-top: 12px; background: var(--ax-raised); }
+.stitch-settings-pane ul { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
+.stitch-settings-pane li, .stitch-settings-plans article { min-width: 0; padding: 12px; border: 1px solid var(--ax-border); border-radius: 6px; background: var(--ax-raised); }
+.stitch-settings-workspace li > strong { display: block; margin-bottom: 8px; }
+.stitch-settings-workspace li p { font-size: var(--ax-text-caption); }
+.stitch-settings-plans article { margin-top: 10px; }
+@container content (max-width: 640px) { .stitch-settings-topic { align-items: flex-start; flex-direction: column; gap: 4px; } .stitch-settings-topic > p { text-align: left; } .stitch-settings-models fieldset { grid-template-columns: minmax(0,1fr); } .stitch-settings-pane { padding: 12px; } }
+@media (max-width: 640px) { .stitch-settings-topic { align-items: flex-start; flex-direction: column; gap: 4px; } .stitch-settings-topic > p { text-align: left; } .stitch-settings-models fieldset { grid-template-columns: minmax(0,1fr); } .stitch-settings-pane { padding: 12px; } }
+@media (forced-colors: active) { .stitch-settings :is(section,div,button,input,select) { border-color: CanvasText; } .stitch-settings-pane, .stitch-settings-intro { color: CanvasText; background: Canvas; } .stitch-settings button[aria-selected="true"] { border-color: Highlight; color: Highlight; } }

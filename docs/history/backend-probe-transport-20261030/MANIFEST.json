@@ -1,0 +1,236 @@
+{
+  "schema": "aaos.colearning-probe-transport-history/v1",
+  "base_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+  "deployed_code": [
+    {
+      "path": "scripts/probes/colearning_real_model_smoke.py",
+      "bytes": 33252,
+      "sha256": "019136e4fcb05285ca7c55a3b08b61af2448efc54031f2db1489c9cdacb9e757"
+    },
+    {
+      "path": "tests/test_colearning_probe_contract.py",
+      "bytes": 23008,
+      "sha256": "c5bad3df05b33a4049bb79465c672c01c8b47e395c929a6c95cd6e49836662dc"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-mseal1/artifacts/summary.json",
+      "bytes": 9286,
+      "sha256": "f4a922fc3013d676c69e70a6c678b0b858b370d3e0b172b056cac7b2cecc4ebf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-mseal1/artifacts/execution.json",
+      "bytes": 7584,
+      "sha256": "93fcb789860c3178b625bfa88910376522563682eeb3e5970bf4c206d9dd2665"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/bkr-mprep3/artifacts/deadline-two-files.diff",
+      "bytes": 7983,
+      "sha256": "5d8b44391019ffcc22a9a0bd35610c3a277ba1c8f21b78cbdb9bc7170201296b"
+    }
+  ],
+  "candidate_checks": [
+    {
+      "run": "bkr-mprep3",
+      "execution_sha256": "1b4013571953b73aa6be226646d545a03539ab88b103157dfed7a64329ec60b2",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "bkr-mainred",
+      "execution_sha256": "adac95197ebd63caea1e2b31c1b4bb0e28ade616b6869c71e8849b025e0e666e",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS",
+      "result_sha256": "98bc9c1ee6cfe9d921dee1b9bb6520cd6dfcc3aaa85cd4884f520e74aa7f20fc",
+      "main_exit": 3,
+      "quality_status": "REVIEW_REQUIRED",
+      "elapsed_s": 34.575,
+      "worker_sha256": "6752a5ef19a74c8e6811afa21ed7db3693bba4f64459f6c466210b4b03eb0a8c",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bkr-mainred\\artifacts\\colearning-real-model\\9eac36eb9b6e4d0bb185c2d98205f221\\receipt.json",
+      "cleanup": [
+        {
+          "pid": 39612,
+          "exit_code": 1,
+          "port": 55028,
+          "port_closed": true,
+          "emergency_cleanup": false
+        }
+      ],
+      "worker_cleanup": [
+        {
+          "pid": 14356,
+          "state": "PID_ALREADY_ABSENT"
+        }
+      ]
+    },
+    {
+      "run": "bkr-maingreen",
+      "execution_sha256": "ee38abfcdd00148ddd418520a61c87d732b64fc9164191f1943da47bd8c522c9",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS",
+      "result_sha256": "bd29e82371abddd39536d97c392e3f282a9e7328faaeb811683186b46ba11c7e",
+      "main_exit": 0,
+      "quality_status": "NO_FAILURE_OBSERVED",
+      "elapsed_s": 34.896,
+      "worker_sha256": "6752a5ef19a74c8e6811afa21ed7db3693bba4f64459f6c466210b4b03eb0a8c",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bkr-maingreen\\artifacts\\colearning-real-model\\ccf9eac6be83437799dd9564341cad96\\receipt.json",
+      "cleanup": [
+        {
+          "pid": 3804,
+          "exit_code": 1,
+          "port": 55034,
+          "port_closed": true,
+          "emergency_cleanup": false
+        }
+      ],
+      "worker_cleanup": [
+        {
+          "pid": 43016,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 18992,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 35140,
+          "state": "PID_ALREADY_ABSENT"
+        }
+      ]
+    },
+    {
+      "run": "bkr-munit1",
+      "execution_sha256": "0d24409bd80b1413230c792bf5324e15a7415a1752ef8f20e6cbf038fd507ef6",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run": "bkr-maincorr",
+      "execution_sha256": "cdf2ecd3cfb74f16b4dc897d685d39a6f6e87febfccd23078eb862e99faa8d4c",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS",
+      "result_sha256": "3998c040b61e7d939f4c2f7380b3c0e2cb5104ad35c4dcb2e3a20c04d70c46db",
+      "main_exit": 0,
+      "quality_status": "FINITE_CORRECTION_VERIFIED",
+      "elapsed_s": 3.338,
+      "worker_sha256": "929e342f3f4d23f0867d0f999c6c5cb82e01c7f3d29a18387f700ce3c486c5d3",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bkr-maincorr\\artifacts\\colearning-real-model\\e49c57600458444c8e184efdb6bfa4e2\\receipt.json",
+      "cleanup": [
+        {
+          "pid": 13284,
+          "exit_code": 1,
+          "port": 56641,
+          "port_closed": true,
+          "emergency_cleanup": false
+        }
+      ],
+      "worker_cleanup": [
+        {
+          "pid": 34472,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 30512,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 7040,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 43748,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 43476,
+          "state": "PID_ALREADY_ABSENT"
+        }
+      ]
+    },
+    {
+      "run": "bkr-mainbad",
+      "execution_sha256": "53ed9cce94ec369f39608b5b65d01c6bee87daa3b46250beb12b72539a3da15a",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS",
+      "result_sha256": "daac5366c7724186dc891c7b2ed0afab095582b4cb1c6c158c58e2bab905f2d7",
+      "main_exit": 1,
+      "quality_status": "TRANSFER_FAILURE_REVIEW",
+      "elapsed_s": 3.073,
+      "worker_sha256": "cbf1e8f070cfb90e6e37f468bebc3bf2a8caab3b17ce658853e960e661b4cf88",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bkr-mainbad\\artifacts\\colearning-real-model\\fa7e4801449b4c1683d391a10de64138\\receipt.json",
+      "cleanup": [
+        {
+          "pid": 37592,
+          "exit_code": 1,
+          "port": 56212,
+          "port_closed": true,
+          "emergency_cleanup": false
+        }
+      ],
+      "worker_cleanup": [
+        {
+          "pid": 38836,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 13280,
+          "state": "PID_ALREADY_ABSENT"
+        },
+        {
+          "pid": 12860,
+          "state": "PID_ALREADY_ABSENT"
+        }
+      ]
+    },
+    {
+      "run": "bkr-mainzero",
+      "execution_sha256": "b55f8df052f6668271a7b4483925422a8adf7382b937a8494e56df1fc1001121",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS",
+      "result_sha256": "dc8d4c3f90ae83d9a3cf4b146f3ba0d482f71ea626033e4b7f841302acb0a3dd",
+      "main_exit": 3,
+      "quality_status": "REVIEW_REQUIRED",
+      "elapsed_s": 2.489,
+      "worker_sha256": "9e9762756239a1c062b2dd7e49e62137b99220d2b366bae8af50ade4aaeb3a1b",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bkr-mainzero\\artifacts\\colearning-real-model\\8dc690539c5344a6b04887663f305202\\receipt.json",
+      "cleanup": [
+        {
+          "pid": 24200,
+          "exit_code": 1,
+          "port": 56639,
+          "port_closed": true,
+          "emergency_cleanup": false
+        }
+      ],
+      "worker_cleanup": []
+    },
+    {
+      "run": "bkr-mlint",
+      "execution_sha256": "281f55aa12517efc652abbcaca714527fc90df6cbcf02c126f13bdf33baef6e7",
+      "source_commit": "6cedb778071389b182bf27995bcba49caafbc61a",
+      "source_patch_sha256": "df23aba49f3f06db7d8596b51958877fc2c503ce9636398107cc0bf861593e52",
+      "wrapper_exit": 0,
+      "status": "LOCAL_PASS"
+    }
+  ],
+  "qualification": "REAL_CORE_SYNTHETIC_WORKER_NO_MODEL_AND_66_CONTRACT_TESTS",
+  "real_model_calls": 0,
+  "F05": "PARTIAL",
+  "learning_improvement": "NOT_ESTABLISHED",
+  "asset_scoped_effect": "NOT_QUALIFIED"
+}

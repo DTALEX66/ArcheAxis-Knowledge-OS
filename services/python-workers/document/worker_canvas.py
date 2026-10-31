@@ -17,13 +17,14 @@ Output: {"engine","engine_version","text","structure","edges","references","loss
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import sys
 from pathlib import Path
 
 ENGINE = "python-worker-canvas"
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.1.1"
 # R15/F12: the identity advertised in the sidecar handshake for this route.
 WORKER_IDENTITY = "python-worker-canvas-ndjson"
 
@@ -37,9 +38,9 @@ class CanvasError(ValueError):
 def _validate(payload: dict) -> None:
     if not isinstance(payload, dict):
         raise CanvasError("canvas root must be an object")
-    if "nodes" not in payload:
-        raise CanvasError("canvas requires a nodes array")
-    nodes = payload["nodes"]
+    # JSON Canvas 1.0 makes both arrays optional: {} is a valid empty canvas.
+    # An explicitly supplied value must still have the declared array shape.
+    nodes = payload.get("nodes", [])
     if not isinstance(nodes, list):
         raise CanvasError("canvas nodes must be an array")
     seen: set[str] = set()
@@ -66,8 +67,9 @@ def _validate(payload: dict) -> None:
 
 
 def extract(path: str) -> dict:
+    raw = Path(path).read_bytes()
     try:
-        payload = json.loads(Path(path).read_bytes().decode("utf-8-sig"))
+        payload = json.loads(raw.decode("utf-8-sig"))
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise CanvasError(f"invalid JSON Canvas file: {exc}") from exc
     _validate(payload)
@@ -100,9 +102,27 @@ def extract(path: str) -> dict:
             "id": str(node.get("id", "")),
             "label": node.get("label") or node.get("text") or node.get("url") or "",
             "url": node.get("url") or node.get("file") or "",
+            # Keep the old url display field for consumers while preserving the
+            # file path and in-file target separately. Neither is followed or
+            # rewritten, including absolute paths and plugin-owned URI schemes.
+            **({"file": node["file"]} if "file" in node else {}),
+            **({"subpath": node["subpath"]} if "subpath" in node else {}),
+            "resolution": "NOT_EXECUTED",
         }
         for node in nodes
         if node.get("type") in {"file", "link"}
+    ]
+
+    # Preserve declarations rather than reducing a canvas to geometry + text.
+    # This includes group labels/backgrounds, unknown extension attributes and
+    # the source array order (the format's declared stacking order). String text
+    # is already losslessly present in projection + char anchors; not duplicating
+    # it keeps a large text node from doubling the loss-report artifact size.
+    node_attributes = [
+        {key: value for key, value in node.items()
+         if not (key == "text" and isinstance(value, str)
+                 and node.get("type", "text") == "text")}
+        for node in nodes
     ]
 
     # Geometry is a source fact, separate from text-anchor coordinates.
@@ -134,15 +154,33 @@ def extract(path: str) -> dict:
         "edges": edges,
         "references": references,
         "node_geometry": node_geometry,
+        "node_attributes": node_attributes,
+        "canvas_attributes": {key: value for key, value in payload.items()
+                              if key not in {"nodes", "edges"}},
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"projection": "text-node order, per-node anchors"},
+            "params": {
+                "projection": "text-node order, per-node anchors",
+                "source": {"format": "json-canvas", "spec_reference": "1.0",
+                           "sha256": hashlib.sha256(raw).hexdigest(), "byte_length": len(raw)},
+                "validation": "node identity/type and edge endpoints; not a complete JSON Canvas schema validation",
+                "node_attributes": "source order; string text is kept in projected text at worker_structure char anchors",
+                "reference_resolution": "NOT_EXECUTED",
+                "attachment_ingestion": "NOT_EXECUTED",
+            },
+            "losses": [
+                "file, link and group background references are declarations only; targets are not opened, "
+                "resolved, copied or rewritten",
+                "source node order and attributes are preserved; rendered z-order, tabs and group containment "
+                "are not evaluated",
+            ],
             "loss_note": (
                 "node geometry, colour and style are preserved as the numeric and string facts the "
                 "file declares; a declared colour is not resolved to a rendered swatch, and "
-                "z-order, tabs and group containment are not read; edges are preserved "
-                "verbatim, so their sides and endpoint ports travel with the edge"
+                "rendered z-order, tabs and group containment are not evaluated; edges and non-text "
+                "node attributes are preserved verbatim, including file subpaths and group backgrounds. "
+                "Reference targets are not opened, resolved, copied or rewritten; source bytes remain authoritative"
             ),
         },
     }

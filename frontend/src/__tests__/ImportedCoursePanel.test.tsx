@@ -6,12 +6,15 @@ const storage = vi.hoisted(() => ({ prepare: vi.fn(), save: vi.fn(), reopen: vi.
 vi.mock("../presentation/importedCourseStorage", () => ({ prepareCourseImport: storage.prepare, saveCourseImport: storage.save, reopenCourseImport: storage.reopen }));
 vi.mock("../api/core", () => ({ coreCommand: storage.call }));
 import { ImportedCoursePanel } from "../components/ImportedCoursePanel";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { parseOpenMaicCourse } from "../adapters/openmaicCourse";
 import { fixtureBytes } from "../test/fixtures/openmaic";
 
 const draft = () => parseOpenMaicCourse(fixtureBytes());
 const saved = () => ({ document: { document_id: "doc1", version: 1 }, course: { ...draft(), status: "candidate", grounding: "external_unverified", human_review_required: true } });
 beforeEach(() => {
+  resetDiagnostics();
   vi.stubGlobal("crypto", webcrypto); Object.values(storage).forEach(fn => fn.mockReset());
   storage.prepare.mockResolvedValue({ draft: draft(), requestId: "frozen1" });
   storage.save.mockResolvedValue(saved()); storage.reopen.mockResolvedValue(saved());
@@ -36,13 +39,16 @@ describe("optional external course import and reference practice", () => {
     expect(screen.getByText(/与课件参考答案一致/)).toHaveTextContent("不代表掌握");
     expect(storage.call).not.toHaveBeenCalled();
   });
-  it("invalid files show parser reason and never offer a write", async () => {
+  it("invalid files keep the parser reason in explicit diagnostics and never offer a write", async () => {
     storage.prepare.mockRejectedValue(new Error("$.scenes[0].type：不支持 slide"));
-    render(<ImportedCoursePanel />);
+    render(<><ImportedCoursePanel /><DiagnosticConsole /></>);
     const file = new File(["{}"], "manifest.json", { type: "application/json" });
     Object.defineProperty(file, "arrayBuffer", { value: async () => new TextEncoder().encode("{}").buffer });
     await userEvent.setup().upload(screen.getByLabelText("选择课程 manifest.json"), file);
-    expect(await screen.findByRole("alert")).toHaveTextContent("不支持 slide");
+    expect(await screen.findByRole("alert")).toHaveTextContent("请核对文件格式");
+    expect(document.body.textContent).not.toContain("$.scenes[0].type");
+    fireEvent.click(screen.getByRole("button", { name: "状态与诊断：课程导入错误详细信息" }));
+    expect(screen.getByRole("region", { name: "诊断控制台" })).toHaveTextContent("$.scenes[0].type：不支持 slide");
     expect(screen.queryByRole("button", { name: "保全原件并保存课程候选" })).not.toBeInTheDocument();
     expect(storage.save).not.toHaveBeenCalled();
   });

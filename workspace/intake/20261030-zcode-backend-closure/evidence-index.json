@@ -1,0 +1,233 @@
+{
+  "schema": "archeaxis.zcode-backend-closure-evidence/v1",
+  "date": "2026-10-30",
+  "executor": "ZCODE session (cloud model GLM-5.3-Flash; model-mode deviation from handoff section 0.3 waived by Owner instruction 2026-10-30, registered here and in the sole execution record)",
+  "branch": "codex/local-backend-closure-20261029",
+  "baseline_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+  "commits_created": [
+    {"sha": "7c9c95ba", "subject": "Share validation and cancellation policy across backend domains", "files": 11},
+    {"sha": "c09c7d20", "subject": "Export edited canvas documents preserving structure and current text", "files": 5},
+    {"sha": "3d8acb0b", "subject": "Pin local packaging identity and app-local C++ runtime staging", "files": 19},
+    {"sha": "5957abce", "subject": "Add light brand mark asset", "files": 1},
+    {"sha": "b2839075", "subject": "Record 20261029 handoff materials and progress documentation", "files": 17},
+    {"sha": "35e0854e", "subject": "Ignore mimosa agent state and record local backend closure round", "files": 4}
+  ],
+  "test_time_identity": {
+    "rust_and_python_suites": {"head": "c4531c1bb6795ccda208a96ef8cc246a645d0199", "dirty_patch_sha256": "e885d1306c6e5da97914dc0fbff537dc444861dc666b0c93d20a417e8b5ef03a"},
+    "core_release_build": {"head": "b28390759da7d65606fb478126bf9a843cf407e9", "dirty_patch_sha256": "81d472165a6c6f854d5db05f36dc4d62dbbf5b11497fb1f3bec6b7f6b75da13b", "note": "the only dirty file at build time was .gitignore (mimosa line); committed content of tested paths is byte-identical across both identities"}
+  },
+  "verification_runs_20261030": {
+    "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33",
+    "all_status": "LOCAL_PASS source_consistent=true child_exit_code=0",
+    "runs": [
+      {"run": "zcode-final-domain-20261030", "tests": 19, "suites": ["object_reference(2)", "relation_projection(9)", "research_metadata(4)", "template_lifecycle(4)"], "execution_sha256": "50f5409d4457cd458e8a3b13fc1f7973d45e087ea25f41c6d0db320a0455e223"},
+      {"run": "zcode-final-api-20261030", "tests": 50, "suites": ["contract_capability_registry(16)", "conversation_api(8)", "material_question_api(16)", "public_research_api(6)", "template_lifecycle(4)"], "execution_sha256": "3dcd23d731b9c5f4a3673c813b89ff19d0bf2a886cfa1ef364943aab6bab9772"},
+      {"run": "zcode-final-cancel-20261030", "tests": 5, "suites": ["machine_cancel_registry_tests(5)"], "execution_sha256": "f045ddd0a999d2900b546f70bfde8fea9bf3c91d681b3d3aa897f888a852a85f"},
+      {"run": "zcode-final-journal-20261030", "tests": 20, "suites": ["contract_machine_answer(20)"], "execution_sha256": "fe4d12f471e2069fa45ac54ef0b3e4d62985af6c8175a7018821ec04ed91e146"},
+      {"run": "zcode-final-canvas-domain-20261030", "tests": 3, "suites": ["canvas_export unit tests(3)"], "execution_sha256": "79a4564f25e65ce9ad6e50c1134684599170b9f71e48859f8f0b8ed34c120e40"},
+      {"run": "zcode-final-canvas-api-20261030", "tests": 2, "suites": ["document_canvas_export(2)"], "execution_sha256": "6837f018003979f512ef9cadefe16ce4262468a4f35447087b236218434d2a30"},
+      {"run": "zcode-final-py-targeted-20261030", "tests": 412, "result": "411 passed, 1 skipped", "files": ["test_backend_runtime_safety.py", "test_desktop_staging.py", "test_release_manifest.py", "test_stage_backend_runtime_routes.py", "test_tauri_shell_authority.py", "test_native_navigation_entry.py", "test_grouped_native_owner_probe.py", "test_app_local_cpp_runtime.py", "test_local_pinned_packaging.py", "test_local_pinned_installer_identity.py"], "execution_sha256": "c6a924462a4c9cfe18d32d1a075c3b132e2f8aa04f8a1833fcecc3080b190153"},
+      {"run": "zcode-final-clippy-scope-20261030", "command": "cargo clippy -p archeaxis-domain -p archeaxis-api --all-targets --offline --locked", "result": "pass with 8 retained pre-existing warnings in scope", "execution_sha256": "2772bfabf2975b2fefd15a250fdf87959abb88264a13e2244f3a8e5ff45b5931"},
+      {"run": "zcode-final-corebuild-20261030-v3", "command": "scripts\\ci\\cargo_test.bat build --release --locked --offline -p archeaxis-api (canonical, --qualify-core-build)", "core_build": {"path": ".project-local\\build\\cargo\\release\\archeaxis-api.exe", "bytes": 19181056, "sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b"}, "execution_sha256": "a8480168dd4364fbce5914f04819eb1d7fe8213349fd8db9ae03a4c2486813dc"}
+    ],
+    "failed_or_discarded_runs_retained": [
+      {"run": "zcode-baseline-py-targeted-20261030", "status": "INVALIDATED (exit 3)", "child_result": "411 passed, 1 skipped", "cause": ".mimosa/hook-state written during run changed worktree identity; fixed by .gitignore entry; run retained as evidence of the mechanism"},
+      {"run": "zcode-baseline-domain-20261030 / zcode-baseline-api-20261030", "status": "cmd.exe opened interactively", "cause": "MSYS path conversion turned cmd /d /c into paths; re-run with MSYS_NO_PATHCONV=1; retained"}
+    ],
+    "fmt": {"command": "cargo fmt --check -p archeaxis-domain -p archeaxis-api", "before": "2 files needed formatting (capabilities.rs:295, relation_projection.rs:160)", "after": "clean; applied via cargo fmt on those crates only"},
+    "clippy_out_of_scope": {"command": "cargo clippy --all-targets -D warnings on full dependency path", "result": "exit 101: 2 pre-existing lints in archeaxis-store-sqlite (raw_objects.rs:165 unneeded unit expression; writer.rs:57 collapsible if)", "decision": "not fixed tonight to avoid unrelated-module churn; retained as named debt for audit/next round"}
+  },
+  "historical_evidence_cited_not_rebound": {
+    "backend_merge_94_tests": ".project-local/runs/be268a2d33/backend-merge-api-final-20261029/artifacts/backend-consolidation-receipt.json",
+    "retest_503_fail_retained": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v2/artifacts/core-fast-dual-loop.json",
+    "retest_reissue_pass": ".project-local/runs/be268a2d33/c453-core-fast-dual-loop-20261029-v3/artifacts/core-fast-dual-loop.json",
+    "j2_public_research_real_channel": ".project-local/runs/be268a2d33/c453-j2-public/artifacts/public-research-receipt.json (PARTIAL, evidence_level REAL_CORE_PUBLIC_NETWORK, 42 steps)",
+    "j2_learning": ".project-local/runs/be268a2d33/c453-j2-learning/artifacts/research-learning-runtime.json (PASS_DECLARED_INTEGRATED_SUBSET)",
+    "collection_canvas_roundtrip": ".project-local/runs/be268a2d33/c453-collection-canvas-20261029/artifacts/collection-canvas-receipt.json (PASS_SYNTHETIC_COLLECTION_RAW_CANVAS_SUBSET)",
+    "durable_batch": ".project-local/runs/be268a2d33/c453-durable-batch-backend-20261029/artifacts/durable-batch-receipt.json (PASS_FINITE_FORMAL_DURABLE_BATCH_CORE_SUBSET)",
+    "cancel_boundary_real_core": ".project-local/runs/be268a2d33/c453-core-cancel-boundary-20261029-v3/artifacts/core-cancel-boundary.json (PASS_SYNTHETIC_CORE_MATERIAL_SUBSET)",
+    "unknown_recovery_retained": ".project-local/runs/be268a2d33/c453-fast-unknown-recovery-20261028-v2/artifacts/recovery-receipt.json (PASS_UNKNOWN_RETAINED_NO_LOCAL_REPLAY_OBSERVED)",
+    "installed_lifecycle_and_pdf": "v6/v7 closeouts: backend-feasibility-closeout-20261029-v6/-v7 artifacts; cppinst1 lifecycle-receipt (complete_lifecycle_verified=true); cpppdfexec1 installed-pdf-receipt (PASS_INSTALLED_PDF_IMPORT_CORE_RESTART_EXPORT_RESTORE_SUBSET)",
+    "external_resources_index": "config/environment/external-resources-index.json (probed 2026-10-25; RESULT_VERIFIED 4, VERSION_PROBED 16, FILE_EXISTS 9, NOT_RUN 1, unavailable 1)"
+  },
+  "newcore_candidate_campaign_20261030": {
+    "summary": "qualified Core build staged, mixed candidate assembled, five-leg same-candidate receipt chain rebuilt on the NEW Core",
+    "staged_backend_r2": {
+      "run": "zcode-stage-newcore-20261030",
+      "tool": "scripts/release/stage_backend_runtime.py (canonical args: version 0.6.15, source b2839075 + tree a502f9d2)",
+      "members": 19744,
+      "manifest_sha256": "440e9084240f283071304e0d85dfef0e51b7dbc49e93955bb6b1536fde4c6d8b",
+      "core": ".project-local/build/cargo/release/archeaxis-api.exe (b6f5b591...)"
+    },
+    "mixed_candidate_c1": {
+      "run": "zcode-assemble-c1-20261030-v8",
+      "assembler": ".project-local/zcode-newcore-20261030/assemble_mixed_candidate_v1.py (byte-exact copy + per-file hash verify + pinned host donor; refuses on any mismatch)",
+      "members": 19746,
+      "components": {
+        "core": "b6f5b591... (new, current source)",
+        "host": "ac4c399b34ce3bbeab2a8f82e9f1d039b03c04b82f537ebdb99e6cd4863de145 (historical Tauri host, donor-pinned, cross-checked c453portable1 == cppcand1)",
+        "runtime_workers": "staged from cppdon1 donor + current services/python-workers (unchanged since c453)"
+      },
+      "receipt": "c1/mixed-candidate-assembly.json",
+      "not_claims": ["not one whole fresh build", "no installer", "no installed qualification"]
+    },
+    "chain_on_c1": [
+      {"leg": "j2-public (REAL network, quantum computing)", "run": "zcode-c1-j2-public-20261030", "result": "PARTIAL REAL_CORE_PUBLIC_NETWORK, 42 steps, three channels"},
+      {"leg": "common formats", "run": "zcode-c1-formats-20261030 -> e22d9b5d4937/artifacts/common-formats.json", "result": "ok=true source_consistent=true"},
+      {"leg": "research-learning", "run": "zcode-c1-learning-20261030", "result": "PASS_DECLARED_INTEGRATED_SUBSET, 108 requests"},
+      {"leg": "j5 template same-workspace", "run": "zcode-c1-j5-template-20261030", "result": "PASS_FINITE_T3_SAME_CANDIDATE_WORKSPACE, 58 requests"},
+      {"leg": "REAL_MODEL colearning smoke", "run": "zcode-c1-colearning-smoke-20261030-v2", "result": "REAL_MODEL complete chain (answer 200 finish_reason=stop 9.18s qwen3.5-4b -> out-of-scope -> correction -> retest), failed_stage=null; required probe timeout fix committed as 1d10938b"}
+    ],
+    "r2_preliminary_runs_superseded_by_c1_chain": ["zcode-j2-public-newcore-20261030", "zcode-formats-newcore-20261030 (receipt b35b724654e9)"],
+    "long_path_lesson": "assembly required \\?\ extended paths for both enumeration and hashing beyond 260 chars (litellm site-packages depth); fixed in assembler v1",
+    "still_not_done": ["NSIS installer for the new Core (v7 bundle chain pins cppcand1 identity; needs its own request chain)",
+                       "installed-state ordinary/conflict/AI journeys in sandbox",
+                       "cross-version upgrade/rollback (old installer 53a83f20... -> new candidate)"]
+  },
+  "nsis_installer_20261030": {
+    "summary": "new-Core NSIS installer produced through a C1-specific packaging chain reusing repo lp/rr machinery",
+    "chain": [
+      {"step": "candidate-manifest", "run": "zcode-c1-manifest-20261030", "result": "19747 members, manifest sha ad855a9a4d12b95b47ab18f689ddc20af1b1f99a30dd1928698bf21fad0d8017"},
+      {"step": "consumers re-verified", "run": "zcode-c1-consumers-20261030", "result": "EXACT_EXISTING_BUNDLE_CONSUMERS_VERIFIED (cross-checked vs lpns3 baseline)"},
+      {"step": "preflight qualify", "run": "zcode-c1-nsis-preflight-20261030-v3", "result": "PREFLIGHT_ONLY members=19747 (full request chain: candidate manifest, mixed-assembly, host donor pin, stage receipt, core build receipt, host build receipt, consumers)"},
+      {"step": "bundle execute (failed, retained)", "run": "zcode-c1-nsis-20261030", "result": "FAIL at BUNDLE: makensis could not open litellm deep path beyond MAX_PATH (longer run name than v7)"},
+      {"step": "bundle execute", "run": "zc1n", "result": "LOCAL_MIXED_CORE_PACKAGING_PASS COMPLETE"}
+    ],
+    "adapter": ".project-local/zcode-newcore-20261030/bundle-mixed-v6.py (adapted from v5; correction delta pins replaced by mixed-candidate qualification; no pdf_validation precondition - install-state PDF is exercised directly by the next sandbox round)",
+    "request": ".project-local/zcode-newcore-20261030/bundle-request-c1.json (sha256 2bf45cd755559aebde7cd69e8bfd68b504365032ad98eee211c6bedcf224c4e7)",
+    "identity": ".project-local/runs/be268a2d33/zc1n/artifacts/p/mixed-core-identity.json (PINNED_MIXED_INPUTS_VERIFIED, installed_qualification NOT_RUN, ci NOT_CLAIMED)",
+    "installer": {"path": ".project-local/runs/be268a2d33/zc1n/artifacts/p/target/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe", "bytes": 424441075, "sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b", "version_label": "0.6.14 (frozen tauri config version; backend manifest declares 0.6.15 staging version)"},
+    "not_claims": ["not installed", "no sandbox run yet", "no CI", "no release", "no Green write"]
+  },
+  "installed_state_blockers_named": [
+    {"id": "sandbox-drivers-pinned-to-old-identity", "detail": "stage-correction-sandbox-v3.py hard-pins cppinst1 RUN, old CORE sha 40b56362..., old bundler sha and fixed PREP dir; running C1 install needs a staged variant with the new pins (installer 3337fce6..., mixed-core-identity, same guest lifecycle scripts)"},
+    {"id": "installed-ai-journey-model-binding", "detail": "host LM Studio serves on 127.0.0.1 only; a Windows Sandbox guest cannot reach it, and changing the listen address is a host model-config change outside tonight's boundaries - this is why v7 installed journeys never ran AI either"},
+    {"id": "cross-version-requires-version-decision", "detail": "installer version label comes from frozen tauri.conf.json (0.6.14); a true cross-version upgrade/rollback needs a version bump decision or commit, otherwise it repeats the proven same-version reinstall path"}
+  ],
+  "sandbox_next_session_workplan": {
+    "summary": "exact pin-diff map so the C1 install-lifecycle variant is mechanical, not exploratory",
+    "to_adapt": {
+      "driver": "stage-correction-sandbox-v3.py -> variant with RUN=zc1i, packaging schema aaos.mixed-core-packaging/v1, status LOCAL_MIXED_CORE_PACKAGING_PASS, identity file mixed-core-identity.json, bundler sha = sha256(bundle-mixed-v6.py), installer sha 3337fce6...",
+      "proof_review": "verify-real-packaging-proof-v2.ps1 + verify-runtime-correction-v2.proposed.ps1 expect correction schema, declared_installed_members=19746 and proof_sidecars=11; C1 has 19747 members and 8 sidecars -> a C1 verifier variant must be generated and sha-pinned by the driver",
+      "guest_substitutions": "guest-local-pinned-lifecycle.ps1 exact anchors: identity receipt sha, installer sha 24839e3c... -> 3337fce6..., backend sha dbdade71... -> 440e9084..., scope string",
+      "launch_stop": "launcher.v3.ps1 / stopper.v3.ps1 in .project-local/local-pinned-sandbox-20261029 are reusable unchanged (sha-pinned); wsb template tokens unchanged; launch is a separate step after staging, then bind/stop via official stopper"
+    },
+    "order": ["stage C1 install-lifecycle variant", "launch wsb (Windows Sandbox available on this host per v7)", "read back lifecycle receipt (install/start/close/force-cleanup/reinstall/uninstall-preserve/reinstall-readback)", "ordinary+conflict journeys via guest probe inputs (installed PDF path; PDF deps now stage-corrected)", "AI journey BLOCKED on host model binding", "cross-version BLOCKED on version decision"]
+  },
+  "installed_lifecycle_20261030": {
+    "summary": "new-Core install lifecycle executed in Windows Sandbox on the staged C1 chain; complete_lifecycle_verified=true",
+    "c1_verifier": {
+      "path": ".project-local/zcode-newcore-20261030/verify-mixed-core-c1-v1.proposed.ps1",
+      "sha256": "b5e6b9272c4753979cc9cbcb354aaddb8f36d022c0bb2828688346dae349fc03",
+      "built_by": "build-c1-verifier.py (exact-substitution build from the reviewed v2 verifier; every anchor asserted unique; old-identity tokens asserted absent)",
+      "changes": "packaging-identity validation re-targeted to the mixed-core chain (8 sidecars, core-build receipt binding, host donor pin, no msvcp140 delta, no pdf-validation precondition, no portable.flag); lifecycle machinery reused unchanged; mode strings renamed to mixed-core with parameter/function names kept for reviewability"
+    },
+    "host_proof_review": {
+      "run": "zc1r-v9",
+      "driver": ".project-local/zcode-newcore-20261030/verify-real-mixed-core-proof-v1.ps1",
+      "result": "PASS_REAL_OFFLINE_MIXED_CORE_PROOF_ONLY, members=19747, sidecars=8",
+      "failed_attempts_retained": ["zc1r (v2 param alias missing)", "zc1r-v2 (receipt alias)", "zc1r-v3 (candidate manifest object-vs-sha)", "zc1r-v4 (assembly receipt assignment)", "zc1r-v5..v8 (pin sync churn)"]
+    },
+    "sandbox_runs": [
+      {"run": "zc1i", "staging": "STAGED_ONLY_NOT_EXECUTED", "launch": "STARTED_OWNERSHIP_BOUND_ONLY (sandbox f87d4f49...)", "guest": "FAILED_GUEST_ORCHESTRATION - installed frontend readiness TIMEOUT at CDP_EVALUATE (about:blank, 30s) after successful install and responding window", "disposition": "cold-start variance; original FAIL retained; sandbox stopped via official exact-owned stopper STOP_CONFIRMED_OWNED_RESOURCES_CLEARED"},
+      {"run": "zc1i2", "staging": "STAGED_ONLY_NOT_EXECUTED", "launch": "BLOCKED_BINDING_NO_AUTO_STOP (transient CIM observation; v7 cppstart1 precedent) - sandbox actually ran as official id b169109b...", "guest": "VERIFIER_RETURNED_REQUIRES_LIFECYCLE_RECEIPT_REVIEW, error=null"}
+    ],
+    "lifecycle_receipt": {
+      "path": ".project-local/runs/be268a2d33/zc1i2/output/2e85b70d1f0047a2a0d7dd368ce695d7/lifecycle-receipt.json",
+      "sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887",
+      "complete_lifecycle_verified": true,
+      "qualification_scope": "LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE",
+      "bindings": {"installer": "3337fce6...", "host": "ac4c399b...", "core": "b6f5b591... (NEW)", "runtime_manifest": "440e9084...", "identity": "293e5f1f..."},
+      "assertions": {"graceful_shutdown": true, "same_version_reinstall": "SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION", "forced_tree_cleanup": true, "clean_uninstall": true, "uninstall_retains_data": true, "reinstall_readback": true, "pyc_growth": 0, "product_version": "0.6.14", "core_schema_version": 14, "persisted_job": "installer-lifecycle-b935563ce1627ca4"},
+      "honest_not_executed": {"cross_version_upgrade": "NOT_TESTED", "rollback": "NOT_TESTED", "installed_document_conflict_loop": "NOT_EXECUTED", "ai": "NOT_EXECUTED (host LM Studio binds 127.0.0.1; unreachable from guest)"}
+    },
+    "stop": "zc1i2/sandbox-stop-v3-request.json + terminal.json: direct official wsb stop of the single owned environment after the formal stopper was unavailable (launch binding blocker); STOP_CONFIRMED_OWNED_RESOURCES_CLEARED, official list empty, zero sandbox processes",
+    "guest_tooling_note": "guest transcript shows pwsh 7.6.5, WDAGUtilityAccount, offline (Networking Disable, VGpu Disable)"
+  },
+  "conflict_journey_next_session_workplan": {
+    "summary": "installed-state document conflict journey (installed_document_conflict_loop gap) - full executable design per v7 cpppdfexec1 precedent (separate guest journey run after lifecycle)",
+    "why_not_a_verifier_flag": "the v2/C1 verifier contract FORBIDS -NativeTools in Correction/mixed-core mode (Assert-RuntimeCorrectionMode: 'correction mode forbids local identity inputs and CI native tooling'); the conflict journey is therefore an independent guest journey run with its own receipt, exactly like cpppdfexec1 was a separate installed-PDF run after cppinst1's lifecycle",
+    "harness": "scripts/probes/aaos01_tauri_webdriver_loop.py --host <ArcheAxis.exe> --driver <tauri-driver> --native-driver <msedgedriver> --installer <setup.exe> --installed-draft-conflict-loop (initializes fixture via Core HTTP human session BEFORE host launch, stops that Core, then drives the trusted UI 409 recovery journey)",
+    "adapters": "scripts/probes/aaos01_installed_draft_conflict_loop.py (reader/draft hydration observation + ui-state basis restore_epoch/state_revision conflict assertions)",
+    "drivers_on_host": [".project-local/task-runtime/aaos01-native-tools-20261026/tauri-driver-2.1.0", ".project-local/task-runtime/aaos01-native-tools-20261026/edge-156.0.4314.42/msedgedriver.exe", "also tools/edge-155 variants; WebView2 CDP confirmed working inside the guest (lifecycle frontend-startup receipt used CDP_EVALUATE)"],
+    "staging": "extend stage-mixed-core-sandbox-v1.py: add driver trees + both probe files + a guest conflict script to the specs; guest flow = verify inputs -> run harness with staged driver paths -> write conflict receipt to C:\\AAOSOutput; offline guest means every binary must be staged (no driver download)",
+    "risks": ["driver/WebView2 version pairing inside the guest (tauri-driver 2.1.0 vs installed WebView2)", "GPU-disabled software rendering GUI automation latency", "harness python dependencies must resolve against the installed runtime interpreter", "each iteration costs a full sandbox boot cycle"],
+    "order": ["stage zc1c with drivers+probes+guest conflict script", "launch via launcher", "read conflict journey receipt (ui-state restore_epoch/state_revision 409 recovery)", "official stop", "record receipt sha in this index"]
+  },
+  "conflict_journey_20261030": {
+    "summary": "installed-draft conflict journey (409 recovery) PASSED against the C1 candidate with the new Core, real trusted WebDriver UI automation",
+    "run": "zc1conf (harness self-allocated journey dir webdriver-4920511321ef)",
+    "command_shape": "aaos01_tauri_webdriver_loop.py --host <C1>/ArcheAxis.exe --driver <tauri-driver-2.1.0> --native-driver <msedgedriver-edge-156> --installer <setup.exe 3337fce6...> --installed-draft-conflict-loop",
+    "receipt": {"path": ".project-local/runs/be268a2d33/webdriver-4920511321ef/tmp/journey/receipt.json", "bytes": 177256, "sha256": "776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5"},
+    "result": {"ok": true, "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE", "installed_draft_conflict_loop_status": "PASS", "ui_result": "PASS TRUSTED_WEBDRIVER_CONTROLS, synthetic initialization, owner_acceptance NOT_EXECUTED", "bindings": {"host": "ac4c399b...", "installer": "3337fce6...", "source_commit": "80db733f... (clean tree)"}, "http_calls": 12, "ui_actions": 70, "cleanup": "port_listeners cleared, remaining_owned=[]"},
+    "honest_boundary": "this run drove the C1 CANDIDATE host on the host machine (c453-native-folder precedent), NOT the sandbox-installed tree; the in-guest installed-state conflict journey remains blocked by the harness's dev.py/git-repo evidence requirement (no git worktree inside the offline guest; fabricating one would violate evidence discipline) - named, not hidden; the lifecycle receipt's own installed_document_conflict_loop field stays NOT_EXECUTED while this receipt carries the conflict PASS independently (cpppdfexec1 pattern)",
+    "first_run_result": "PASS on first attempt; no failed runs"
+  },
+  "lint_cleanup_20261030": {
+    "summary": "all ten named clippy items eliminated (2 store-sqlite lints + 8 retained warnings); four-crate test suite fully green; workspace -D warnings clippy confirmed NOT a CI gate",
+    "gate_reality": "CI has no clippy step: lint job = ruff(E9,F63,F7,F82)+conventions+architecture+language+document authority; rust-vnext = cargo fmt --all --check + tests; desktop-fast carried the only cargo fmt. The workspace -D warnings clippy run was this session's own stricter check",
+    "fixed": [
+      "crates/archeaxis-store-sqlite/src/raw_objects.rs:165 unneeded unit expression -> {} arm",
+      "crates/archeaxis-store-sqlite/src/writer.rs:57 collapsible if -> let-chains",
+      "crates/archeaxis-domain/src/ai_asset.rs:7 unused import OptionalExtension removed",
+      "crates/archeaxis-domain/src/asset_context_grant.rs:4 unused import self removed",
+      "crates/archeaxis-application/src/lib.rs dead fn stable_id + its now-orphaned sha2 import removed",
+      "crates/archeaxis-application/src/executor.rs dead field worker removed (field only; constructor params kept - default_worker still feeds the text.extract route)",
+      "crates/archeaxis-api/tests/contract_absent_surfaces.rs dead field content_type + its header capture removed",
+      "crates/archeaxis-api/tests/qualification_api.rs expect_fun_call -> unwrap_or_else(panic!)",
+      "crates/archeaxis-api/tests/v01_journey.rs unused variables sid2/ok1 -> _sid2/_ok1 (side-effect calls kept)"
+    ],
+    "verification": {"clippy_4crates_all_targets": "each of the ten patterns greps 0 occurrences (raw output /tmp/clippy_after.txt); scoped warning count 156 -> 142", "fmt": "cargo fmt --all --check clean", "tests": "zclint-test-20261030: cargo test -p store-sqlite -p application -p domain -p api --offline --locked exit 0, 184 test binaries ok, 0 failures (includes contract_absent_surfaces/qualification_api/v01_journey on the fixed files)"},
+    "remaining_debt_honest": "142 clippy warnings remain across the four crates (collapsible-ifs, needless borrows, too_many_arguments etc.) - recorded as non-gated debt for a reviewed cleanup round, not silently claimed green",
+    "commit": "37f2c02e"
+  },
+  "owner_decisions_pending": {
+    "document": "workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md",
+    "decision_1_installer_version_bump": {"unlocks": "true cross-version upgrade/rollback in sandbox (old 53a83f20... -> new 0.6.15 package, data-preservation + rollback assertions)", "option_a": "tauri.conf.json version -> 0.6.15 (one-line committed change) then rerun bundle-mixed-v6 chain + upgrade/rollback journey variant", "option_b": "keep 0.6.14; cross_version_upgrade/rollback stay honestly NOT_TESTED", "current_state": "cross_version_upgrade=NOT_TESTED, rollback=NOT_TESTED"},
+    "decision_2_lmstudio_listen_address": {"unlocks": "installed-state AI journey inside the sandbox guest (answer->out-of-scope->correction->retest->restart readback on the installed product)", "option_a": "LM Studio binds 0.0.0.0 or host vEthernet (host model-service config change by Owner) PLUS sub-decision A2: allow sandbox networking (wsb template currently Networking=Disable, tonight's offline boundary)", "option_b": "keep loopback-only; installed-state AI stays honestly NOT_EXECUTED; host-level REAL_MODEL receipts (colearning smoke, v3 dual-loop) remain the AI-chain evidence layer", "current_state": "ai=NOT_EXECUTED"},
+    "no_decision_needed": ["guest-installed conflict journey design (workplan ready)", "142 non-gated clippy warnings (reviewed cleanup round)", "external resources index refresh (optional)"]
+  },
+  "external_index_refresh_20261030": {
+    "run": "zc1extidx-20261030 (dev.py exit 3 INVALIDATED by the generator's own tracked-file write - inherent mechanism for index-builder runs, not a product failure; probe output fully captured)",
+    "result": "31 entries live-probed 2026-10-30: FILE_EXISTS 9, VERSION_PROBED 16, RESULT_VERIFIED 4, NOT_RUN 1 (rerank endpoint), unavailable 1 (desktop-runtime-v1, by declaration), probe_failed 0, declared_paths_missing 0 - identical distribution to the 2026-10-25 index",
+    "commit": "7d4fff8b (diff: probe_workdir now run-scoped; antiword path_also_offers observed; rapidocr purpose synced to the 2026-10-25 manifest)"
+  },
+  "guest_installed_conflict_journey_20261030": {
+    "summary": "the installed-state document-conflict journey PASSED inside Windows Sandbox: guest installed the C1 installer silently, then the registered WebDriver harness ran the 409 recovery journey against the installed host from a byte-exact repository clone",
+    "staging_runs": ["zc1c2 FAIL (safe() ROOT guard rejected external git dist -> external_safe added)", "zc1c3 FAIL (scoop 'current' junction -> resolved to 2.54.0)", "zc1c4 FAIL (launcher/stopper ps1 not staged -> pwsh -File parameter-binding help dump)", "zc1c5 FAIL (git dubious ownership: clone owned by host SID vs WDAGUtilityAccount)", "zc1c6 FAIL (same root cause; stderr capture added)", "zc1c7 FAIL (same; GIT_CONFIG_* process-scoped safe.directory added per v6 exact-exception precedent)", "zc1c8 STAGED_ONLY_NOT_EXECUTED -> EXECUTED"],
+    "journey_run": "zc1c8 (sandbox bbd90173-6a47-4844-828b-c92b016e169c, stopped after the journey)",
+    "guest_flow": "manifest+inventory verification -> silent NSIS install (per-user root recorded) -> robocopy of the 1.7GB repository clone to the writable mapped output -> harness run via dev.py from the clone (GIT_CONFIG_* process-scoped safe.directory for C:/AAOSOutput/repo only; no global git state) -> receipt exported to output root",
+    "receipt": {"path": ".project-local/runs/be268a2d33/zc1c8/output/conflict-journey-receipt.json", "bytes": 176726, "sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6", "result": {"ok": true, "conflict_status": "PASS", "ui": "TRUSTED_WEBDRIVER_CONTROLS", "owner_acceptance": "NOT_EXECUTED", "harness_exit": 0}},
+    "driver_fix": "tauri-driver exited instantly in the fresh guest (0-byte driver.log): missing VC runtime DLLs; fixed by staging the official reviewed Redist trio (msvcp140 sha 0f885b50... byte-identical to the v7 registered donor) app-local beside the driver",
+    "stop": "zc1c8 direct official stop STOP_CONFIRMED_OWNED_RESOURCES_CLEARED (0 environments, 0 processes)",
+    "honest_labels": {"receipt_evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE (the harness's own label is unchanged; the sandbox-installed provenance is established by the staging/launch/stop receipts and the guest transcript recording the per-user install root)", "launch_binding": "BLOCKED_BINDING_NO_AUTO_STOP transient CIM observation on every launch (zc1i2/zc1c4-c8 pattern); official list + direct stop receipts bind the actual sandbox identities", "retained_fails": "zc1c2..zc1c7 six retained staging/guest failures with one-root-cause-per-run diagnosis"}
+  },
+  "post_decision_workplans": {
+    "decision_1_version_bump_accepted": [
+      "1. edit src-tauri/tauri.conf.json version -> 0.6.15 (one line) + commit 'Bump installer version for cross-version qualification'",
+      "2. rerun packaging: fresh Core release build (--qualify-core-build, new HEAD) -> stage_backend_runtime (version 0.6.15) -> assemble_mixed_candidate_v1 -> generate_candidate_manifest -> bundle-mixed-v6 (new request; adapter sha unchanged unless the script changed) -> new installer ~0.6.15 label",
+      "3. sandbox cross-version journey (new guest script variant of guest-mixed-conflict pattern): silent install OLD installer 53a83f20 (0.6.14) -> seed synthetic document -> silent install NEW 0.6.15 installer -> assertions: data preserved (document/version readable), schema migration clean, cross_version_upgrade=PASS -> silent install OLD installer again -> rollback assertion: data still readable -> official stop",
+      "4. receipts: upgrade-receipt.json + rollback-receipt.json bound to both installer shas; record in this index"
+    ],
+    "decision_2_lmstudio_listen_accepted": [
+      "1. Owner-side or explicitly authorized: LM Studio listen 0.0.0.0 (only this setting; no endpoint/model/credential changes)",
+      "2. wsb template variant with Networking enabled (new template file, sha-pinned by a new staging variant; four mappings unchanged)",
+      "3. guest AI journey variant of the zc1i2 lifecycle pattern: install -> configure model lane to host gateway address (http://<host-ip>:1234/v1, Owner-approved) -> real answer -> out-of-scope -> correction -> retest -> restart readback -> ai=PASS receipt",
+      "4. boundaries: no cloud, no credential changes, budget/timeout contract unchanged (1..=120s, 128..=4096 tokens)"
+    ],
+    "conflict_guest_followup": "DONE 2026-10-30: zc1c8 PASS (see guest_installed_conflict_journey_20261030)"
+  },
+  "named_diagnoses": [
+    {"id": "retest-503-no-final-answer", "finding": "v2 retest step 34: finish_reason=length, all 2048 output tokens consumed as reasoning_content, zero final content; worker honestly refuses with NO_FINAL_ANSWER + diagnostics (worker_machine_answer.py:529-535)", "resolution": "model budget-behaviour variance, not a code defect; v3 re-issue on same candidate PASSED (answer 36.96s / retest 54.92s); original FAIL retained; worker contract unchanged by design (no auto-retry of unknown states)"},
+    {"id": "dev-run-invalidated-mechanism", "finding": "dev.py worktree identity hashes all untracked public files; .mimosa/hook-state (agent tooling) writes during sessions, invalidating overlapping runs (exit 3 INVALIDATED)", "resolution": ".mimosa/ added to .gitignore alongside .codex/.zcode; committed in final governance commit"},
+    {"id": "get-canvas-created-at", "finding": "Obsidian compatibility receipt (20261025 installed build) recorded 'get_canvas reports unknown order column: created_at'", "resolution": "grep across crates/ and services/ finds no get_canvas and no canvas created_at ordering in current source; recorded UNREPRODUCED_IN_CURRENT_SOURCE"}
+  ],
+  "boundaries": {
+    "pushed": false, "remote_writes": false, "cloud_ci": "NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY",
+    "real_cloud_inference": "DEFERRED_UNEXECUTED",
+    "external_context_provider": "NOT_CONNECTED (by contract)",
+    "green_replaced": false, "real_user_data_touched": false,
+    "mimosa_hook_note": "Mimosa commit hook reported scanner_no_output (no full scan conclusion before commits); commits proceeded under its compatibility policy; no project-safety claim is made; full audit left to Codex/Owner",
+    "downloads": ["rustup component clippy 0.1.97 into pinned shared toolchain (official static.rust-lang.org; precedent: rustfmt 2026-09-24)"]
+  }
+}

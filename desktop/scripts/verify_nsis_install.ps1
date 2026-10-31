@@ -3,7 +3,15 @@ param(
     [string]$Installer,
     [switch]$RequireReleaseIdentity,
     [switch]$RequireCandidateIdentity,
+    [switch]$RequireLocalPinnedIdentity,
+    [string]$LocalPinnedIdentityReceipt,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedLocalPinnedIdentitySha256,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedInstallerSha256,
     [string]$NativeToolsReceipt,
+    [string]$EvidenceRoot,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedHostSha256,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedCoreSha256,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedRuntimeManifestSha256,
     [switch]$GroupedOwnerLoop,
     [switch]$GroupedRunAi,
     [switch]$GroupedAuthoredIntervention,
@@ -25,8 +33,231 @@ $appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
 $appDataExisted = Test-Path $appData
 $ownsInstall = $false
+$ownsAppData = $false
+$dataOwnerId = [Guid]::NewGuid().ToString('N')
+$dataOwnerMarker = Join-Path $appData '.aaos-lifecycle-owner'
 $activeShell = $null
 $evidenceDirectory = $null
+
+function New-LifecycleEvidenceDirectory {
+    param([string]$Root)
+    if (-not [IO.Path]::IsPathFullyQualified($Root)) {
+        throw 'lifecycle evidence root must be an absolute directory'
+    }
+    $directory = [IO.Path]::GetFullPath($Root)
+    $ancestor = $directory
+    while ($ancestor) {
+        if (Test-Path -LiteralPath $ancestor) {
+            $item = Get-Item -LiteralPath $ancestor -Force
+            if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                throw 'lifecycle evidence root must not traverse a file or reparse point'
+            }
+        }
+        $ancestor = [IO.Path]::GetDirectoryName($ancestor)
+    }
+    # Never overwrite prior evidence. The supplied root may be a mapped output
+    # folder in a disposable Windows Sandbox; it does not imply host isolation.
+    $owned = Join-Path $directory ([Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $owned -ErrorAction Stop | Out-Null
+    return $owned
+}
+
+function Assert-LifecycleOwnedData {
+    $expected = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'))
+    $resolved = (Resolve-Path -LiteralPath $appData -ErrorAction Stop).ProviderPath
+    if ($appDataExisted -or -not $ownsAppData -or
+        -not [string]::Equals($resolved, $expected, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $dataOwnerMarker -PathType Leaf) -or
+        (Get-Content -LiteralPath $dataOwnerMarker -Raw) -ne $dataOwnerId) {
+        throw 'refusing to remove data not created by this lifecycle run'
+    }
+    foreach ($item in @((Get-Item -LiteralPath $appData -Force)) + @(Get-ChildItem -LiteralPath $appData -Force -Recurse)) {
+        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw 'refusing lifecycle cleanup through a reparse point'
+        }
+    }
+}
+
+# Proposed insertion only. No installation occurs when defining these functions.
+function Assert-LocalIdentityMode {
+    param([switch]$Release, [switch]$Candidate, [switch]$Local,
+          [string]$Receipt, [string]$ReceiptSha, [string]$InstallerSha)
+    if ((@($Release, $Candidate, $Local) | Where-Object { $_ }).Count -gt 1) {
+        throw 'release, CI candidate and local pinned identity requirements are mutually exclusive'
+    }
+    if (-not $Local -and ($Receipt -or $ReceiptSha -or $InstallerSha)) {
+        throw 'local pinned identity inputs require RequireLocalPinnedIdentity'
+    }
+}
+function Assert-LocalPinnedFile {
+    param([string]$Path, [string]$Sha256, [Nullable[long]]$Bytes)
+    if (-not [IO.Path]::IsPathFullyQualified($Path) -or $Sha256 -notmatch '^[a-fA-F0-9]{64}$') {
+        throw 'local pinned file requires an absolute path and sha256'
+    }
+    $full = [IO.Path]::GetFullPath($Path)
+    $ancestor = $full
+    while ($ancestor) {
+        $attributes = [IO.File]::GetAttributes($ancestor)
+        if ($attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'local identity path traverses a reparse point' }
+        $ancestor = [IO.Path]::GetDirectoryName($ancestor)
+    }
+    $file = Get-Item -LiteralPath $full -Force -ErrorAction Stop
+    if ($file.PSIsContainer -or $file.LinkType -eq 'HardLink') { throw 'local identity requires an independent regular file' }
+    if ($null -ne $Bytes -and $file.Length -ne $Bytes) { throw 'local pinned file byte count differs' }
+    if ((Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash -ine $Sha256) { throw 'local pinned file sha256 differs' }
+    return $full
+}
+
+function Read-LocalPinnedJson {
+    param([string]$Path, [string]$Sha256, [Nullable[long]]$Bytes)
+    function Assert-UniqueLocalJson {
+        param([System.Text.Json.JsonElement]$Element)
+        if ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Object) {
+            $names = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+            foreach ($property in $Element.EnumerateObject()) {
+                if (-not $names.Add($property.Name)) { throw 'duplicate or case-aliased local identity JSON key' }
+                Assert-UniqueLocalJson -Element $property.Value
+            }
+        } elseif ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Array) {
+            foreach ($child in $Element.EnumerateArray()) { Assert-UniqueLocalJson -Element $child }
+        }
+    }
+    $full = Assert-LocalPinnedFile -Path $Path -Sha256 $Sha256 -Bytes $Bytes
+    $raw = [IO.File]::ReadAllText($full)
+    $document = [System.Text.Json.JsonDocument]::Parse($raw)
+    try { Assert-UniqueLocalJson -Element $document.RootElement } finally { $document.Dispose() }
+    return ($raw | ConvertFrom-Json -AsHashtable -Depth 100)
+}
+
+function Assert-LocalPinnedMemberName {
+    param([string]$Name)
+    if (-not $Name -or $Name.Contains('\') -or $Name.Contains(':') -or $Name.StartsWith('/') -or
+        $Name -match '[\p{Cc}]') { throw 'unsafe local pinned member name' }
+    foreach ($part in $Name.Split('/')) {
+        if (-not $part -or $part -in @('.', '..') -or $part.EndsWith(' ') -or $part.EndsWith('.')) {
+            throw 'noncanonical local pinned member name'
+        }
+    }
+}
+
+function Read-LocalPinnedPackaging {
+    foreach ($value in @($ExpectedLocalPinnedIdentitySha256, $ExpectedInstallerSha256,
+                         $ExpectedHostSha256, $ExpectedCoreSha256, $ExpectedRuntimeManifestSha256)) {
+        if ($value -notmatch '^[a-fA-F0-9]{64}$') { throw 'all local identity/installer/Host/Core/manifest digests are mandatory' }
+    }
+    $receipt = Read-LocalPinnedJson -Path $LocalPinnedIdentityReceipt -Sha256 $ExpectedLocalPinnedIdentitySha256
+    if ($receipt.schema -ne 'local-pinned-packaging/v1' -or $receipt.status -ne 'LOCAL_PACKAGING_PASS' -or
+        $receipt.stage -ne 'COMPLETE' -or $receipt.exit_code -ne 0 -or
+        $receipt.installed_qualification -ne 'NOT_RUN' -or $receipt.installer.sha256 -ine $ExpectedInstallerSha256) {
+        throw 'local packaging receipt is incomplete or differs from the installer binding'
+    }
+    $identityPath = Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($LocalPinnedIdentityReceipt))) 'local-pinned-identity.json'
+    $identity = Read-LocalPinnedJson -Path $identityPath -Sha256 $receipt.identity.sha256 -Bytes $receipt.identity.bytes
+    if ($identity.schema -ne 'local-pinned-packaging/v1' -or $identity.status -ne 'PINNED_INPUTS_VERIFIED' -or
+        $identity.public -isnot [bool] -or $identity.public -ne $false -or $identity.release_status -ne 'unreleased' -or
+        $identity.ci_qualification -ne 'NOT_CLAIMED' -or $identity.installed_qualification -ne 'NOT_RUN' -or
+        $identity.data_restore -ne 'NOT_RUN' -or $identity.rollback -ne 'NOT_RUN' -or
+        $identity.build_source.source_commit -notmatch '^[a-f0-9]{40}$' -or
+        $identity.build_source.source_tree -notmatch '^[a-f0-9]{40}$' -or
+        $identity.build_source.source_patch_sha256 -notmatch '^[a-f0-9]{64}$' -or
+        $identity.payload.schema -ne 'archeaxis.tauri-portable-candidate/v1' -or $identity.payload.status -ne 'ASSEMBLED' -or
+        $identity.payload.installed -ne $false -or $identity.payload.published -ne $false -or
+        $identity.payload.source_patch_sha256 -ne $identity.build_source.source_patch_sha256) {
+        throw 'invalid non-public local pinned identity/source'
+    }
+    foreach ($field in @('verification_ci_run_id', 'verification_ci_url', 'release_run_id', 'release_run_url')) {
+        if ($identity.Contains($field) -or $identity.build_source.Contains($field) -or $identity.packaging_source.Contains($field)) {
+            throw 'CI identity fields are forbidden in the local identity branch'
+        }
+    }
+    if ($identity.inputs.snapshot.sha256 -notmatch '^[a-f0-9]{64}$' -or
+        $identity.inputs.host_receipt.sha256 -notmatch '^[a-f0-9]{64}$' -or
+        $identity.inputs.candidate_manifest -notmatch '^[a-f0-9]{64}$') { throw 'missing original qualification evidence pins' }
+    $members = [Collections.Generic.Dictionary[string,object]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in $identity.payload.files.GetEnumerator()) {
+        $name, $row = $entry.Key, $entry.Value
+        Assert-LocalPinnedMemberName -Name $name
+        if ($row.Count -ne 2 -or -not $row.Contains('bytes') -or -not $row.Contains('sha256') -or
+            ($row.bytes -isnot [int] -and $row.bytes -isnot [long]) -or $row.bytes -lt 0 -or
+            $row.sha256 -notmatch '^[a-f0-9]{64}$' -or $name -match '(^|/)release-identity\.json$') {
+            throw 'invalid payload row or artifact identity forbidden in a local candidate'
+        }
+        if (-not $members.TryAdd($name, $row)) { throw 'case-aliased payload target' }
+    }
+    foreach ($binding in @(@('ArcheAxis.exe', $ExpectedHostSha256), @('core/archeaxis-api.exe', $ExpectedCoreSha256),
+                            @('backend-runtime-manifest.json', $ExpectedRuntimeManifestSha256))) {
+        if (-not $members.ContainsKey($binding[0]) -or $members[$binding[0]].sha256 -ine $binding[1]) {
+            throw 'local expected Host/Core/manifest differs from the pinned payload'
+        }
+    }
+    if ($identity.payload.host_sha256 -ine $ExpectedHostSha256 -or $identity.payload.core_sha256 -ine $ExpectedCoreSha256 -or
+        -not $members.ContainsKey('runtime/Lib/site-packages/app/release-manifest.json') -or
+        -not $members.ContainsKey('portable.flag') -or $members['portable.flag'].bytes -ne 0 -or
+        $members['portable.flag'].sha256 -ne 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') {
+        throw 'missing release-manifest or invalid portable-only exclusion'
+    }
+    $null = $members.Remove('portable.flag')
+    return @{ receipt = $receipt; identity = $identity; identity_path = $identityPath; members = $members }
+}
+
+function Assert-LocalInstallerBinding {
+    if ($RequireLocalPinnedIdentity) {
+        $null = Assert-LocalPinnedFile -Path $Installer -Sha256 $ExpectedInstallerSha256 -Bytes $localPinned.receipt.installer.bytes
+        $null = Assert-LocalPinnedFile -Path $LocalPinnedIdentityReceipt -Sha256 $ExpectedLocalPinnedIdentitySha256
+        $null = Assert-LocalPinnedFile -Path $localPinned.identity_path -Sha256 $localPinned.receipt.identity.sha256 -Bytes $localPinned.receipt.identity.bytes
+    }
+}
+
+function Read-InstalledLocalPinnedPayload {
+    Assert-LocalInstallerBinding
+    $root = [IO.Path]::GetFullPath($installRoot).TrimEnd('\')
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($item in @((Get-Item -LiteralPath $root -Force)) + @(Get-ChildItem -LiteralPath $root -Force -Recurse -ErrorAction Stop)) {
+        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'installed tree contains a reparse point' }
+        if ($item.PSIsContainer) { continue }
+        if ($item.LinkType -eq 'HardLink') { throw 'installed tree contains a hardlinked file' }
+        $name = [IO.Path]::GetRelativePath($root, $item.FullName).Replace('\', '/')
+        Assert-LocalPinnedMemberName -Name $name
+        if (-not $seen.Add($name)) { throw 'installed target alias' }
+        if ($localPinned.members.ContainsKey($name)) {
+            $row = $localPinned.members[$name]
+            $null = Assert-LocalPinnedFile -Path $item.FullName -Sha256 $row.sha256 -Bytes $row.bytes
+        } elseif ($name -cne 'uninstall.exe') {
+            throw "unmanifested installed member: $name"
+        }
+    }
+    foreach ($name in $localPinned.members.Keys) {
+        if (-not $seen.Contains($name)) { throw "missing installed member: $name" }
+    }
+    if (-not $seen.Contains('uninstall.exe')) { throw 'missing NSIS-generated uninstaller' }
+    return @{ manifest_sha256 = $localPinned.receipt.identity.sha256; member_count = $localPinned.members.Count;
+              excluded = @('portable.flag'); generated = @('uninstall.exe') }
+}
+
+function Read-InstalledCandidateIdentity {
+    $identity = [ordered]@{}
+    foreach ($binding in @(
+        @('host_sha256', 'ArcheAxis.exe', $ExpectedHostSha256),
+        @('core_sha256', 'core\archeaxis-api.exe', $ExpectedCoreSha256),
+        @('runtime_manifest_sha256', 'backend-runtime-manifest.json', $ExpectedRuntimeManifestSha256)
+    )) {
+        $actual = (Get-FileHash -LiteralPath (Join-Path $installRoot $binding[1]) -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($binding[2] -and $actual -ne $binding[2].ToLowerInvariant()) {
+            throw "installed candidate identity mismatch: $($binding[0])"
+        }
+        $identity[$binding[0]] = $actual
+    }
+    if ($RequireLocalPinnedIdentity) {
+        $payload = Read-InstalledLocalPinnedPayload
+        $identity['local_pinned_identity_sha256'] = $payload.manifest_sha256
+        $identity['local_pinned_member_count'] = $payload.member_count
+    }
+    return [pscustomobject]$identity
+}
+
+if ($EvidenceRoot) {
+    $evidenceDirectory = New-LifecycleEvidenceDirectory -Root $EvidenceRoot
+}
 
 if ($GroupedOwnerLoop -and -not $NativeToolsReceipt) {
     throw 'grouped native qualification requires a verified NativeToolsReceipt'
@@ -142,7 +373,10 @@ function Get-ArcheAxisRegistryEntries {
 function Wait-ArcheAxisBackend {
     param([System.Diagnostics.Process]$Shell)
 
-    for ($attempt = 0; $attempt -lt 160; $attempt++) {
+    # A cold first launch on a loaded CI runner (WebView2 start plus a large bundled
+    # Python runtime) can exceed 40 s; the ceiling is raised so a slow start is not
+    # reported as a broken install, while a backend that never listens still fails.
+    for ($attempt = 0; $attempt -lt 320; $attempt++) {
         Start-Sleep -Milliseconds 250
         if ($Shell.HasExited) {
             throw "desktop shell exited before readiness with $($Shell.ExitCode)"
@@ -168,7 +402,81 @@ function Wait-ArcheAxisBackend {
             return [pscustomobject]@{ Child = $child; Listener = $listener }
         }
     }
-    throw 'installed desktop backend did not become ready'
+    throw "installed desktop backend did not become ready; shell children: [$(@(Get-CimInstance Win32_Process -Filter "ParentProcessId=$($Shell.Id)" -ErrorAction SilentlyContinue | ForEach-Object { "$($_.Name)=$($_.ExecutablePath)" }) -join '; ')]; app data: [$(@(Get-ChildItem -LiteralPath $appData -ErrorAction SilentlyContinue | Select-Object -First 12 -ExpandProperty Name) -join ', ')]"
+}
+
+function New-ArcheAxisStartupPort {
+    $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
+    try {
+        $listener.Start()
+        return ([Net.IPEndPoint]$listener.LocalEndpoint).Port
+    } finally { $listener.Stop() }
+}
+
+function Start-ArcheAxisObservedShell {
+    param([string]$Executable, [int]$Port, [string[]]$Arguments = @())
+    if ($Port -lt 1024 -or $Port -gt 65535) { throw 'invalid owned startup port' }
+    $start = [Diagnostics.ProcessStartInfo]::new()
+    $start.FileName = $Executable
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    # Child environment only; the existing Host opt-in binds CDP to loopback.
+    $start.Environment['ARCHEAXIS_WEBDRIVER_CDP_PORT'] = [string]$Port
+    foreach ($argument in $Arguments) { $start.ArgumentList.Add($argument) }
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    if (-not $process.Start()) { throw 'installed desktop did not start' }
+    return $process
+}
+
+function Wait-ArcheAxisFrontend {
+    param([Diagnostics.Process]$Shell, [int]$Port, [string]$Executable, [string]$Receipt)
+    $observerPython = if ($env:ARCHEAXIS_PYTHON) { $env:ARCHEAXIS_PYTHON } else { (Get-Command python -ErrorAction Stop).Source }
+    $created = $Shell.StartTime.ToUniversalTime().ToFileTimeUtc().ToString()
+    & $observerPython -B scripts/probes/installed_frontend_ready.py --host-pid $Shell.Id --host-created $created --host-path $Executable --port $Port --receipt $Receipt
+    if ($LASTEXITCODE -ne 0) {
+        $Shell.Refresh()
+        throw "installed frontend readiness was not confirmed; pid=$($Shell.Id) responding=$($Shell.Responding) window=$($Shell.MainWindowHandle) receipt=$Receipt"
+    }
+}
+
+function Invoke-LifecyclePythonProbe {
+    param([string]$Executable, [string]$Code, [string[]]$Arguments,
+          [ValidateSet('seed', 'readback')][string]$Mode)
+    $start = [Diagnostics.ProcessStartInfo]::new()
+    $start.FileName = $Executable
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $start.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+    $start.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+    foreach ($argument in (@('-B', '-I', '-X', 'utf8', '-c', $Code) + $Arguments)) {
+        $start.ArgumentList.Add($argument)
+    }
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    try {
+        if (-not $process.Start()) { throw 'installed Python probe did not start' }
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        $result = [ordered]@{ exit_code=$process.ExitCode; stdout=$stdout; stderr=$stderr }
+        if ($evidenceDirectory) {
+            $prefix = Join-Path $evidenceDirectory ("core-$Mode-" + [Guid]::NewGuid().ToString('N'))
+            $result.stdout_path = "$prefix.stdout.txt"
+            $result.stderr_path = "$prefix.stderr.txt"
+            [IO.File]::WriteAllText($result.stdout_path, $stdout, [Text.UTF8Encoding]::new($false))
+            [IO.File]::WriteAllText($result.stderr_path, $stderr, [Text.UTF8Encoding]::new($false))
+            @{ mode=$Mode; exit_code=$result.exit_code; stdout_path=$result.stdout_path; stderr_path=$result.stderr_path } |
+                ConvertTo-Json | Set-Content -LiteralPath "$prefix.exit.json" -Encoding utf8
+        }
+        return [pscustomobject]$result
+    } finally {
+        $process.Dispose()
+    }
 }
 
 function Read-CoreCandidateProof {
@@ -192,7 +500,24 @@ modules = [{"name": m.__name__, "path": m.__file__, "version": m.__version__} fo
 assert all(Path(m["path"]).resolve().is_relative_to(root.resolve()) for m in modules), "engines came from outside installation"
 summary, capabilities = release.safe_release_summary(), release.effective_capabilities()
 assert summary["version"] == "0.6.14", "installed product version mismatch"
-if requirement == "candidate":
+if requirement == "local-pinned":
+    identity_path, expected_identity_sha = Path(sys.argv[5]), sys.argv[6]
+    raw = identity_path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == expected_identity_sha, "local identity changed"
+    identity = json.loads(raw)
+    assert release.load_artifact_release_identity() is None, "local payload has an artifact CI/release identity"
+    release_path = Path(release.__file__).with_name("release-manifest.json")
+    relative = release_path.resolve().relative_to(root.resolve()).as_posix()
+    row = identity["payload"]["files"][relative]
+    original = release_path.read_bytes()
+    assert len(original) == row["bytes"] and hashlib.sha256(original).hexdigest() == row["sha256"]
+    frozen = json.loads(original)
+    expected_summary = {"status": frozen["release"]["status"], "version": frozen["product"]["version"],
+                        "channel": frozen["release"]["channel"], "public": frozen["release"]["public"],
+                        "source_commit": frozen["source"]["commit"]}
+    assert summary == expected_summary and summary["public"] is False, "local runtime summary changed"
+    assert capabilities == frozen["capabilities"] and capabilities["public_installer"] != "available"
+elif requirement == "candidate":
     assert summary["status"] == "qualified" and summary["tag"] == "v0.6.14" and summary["public"] is False
     assert capabilities["public_installer"] != "available"
     if os.environ.get("GITHUB_SHA"):
@@ -250,10 +575,14 @@ finally:
         launcher.stop(child)
 print(json.dumps(result, ensure_ascii=False))
 '@
-    $requirement = if ($RequireCandidateIdentity) { 'candidate' } elseif ($RequireReleaseIdentity) { 'release' } else { 'none' }
-    $proof = & $python -B -I -c $probe $installRoot $appData $Mode $requirement
-    if ($LASTEXITCODE -ne 0) { throw "installed canonical Core $Mode probe failed" }
-    return ($proof | ConvertFrom-Json)
+    $requirement = if ($RequireLocalPinnedIdentity) { 'local-pinned' } elseif ($RequireCandidateIdentity) { 'candidate' } elseif ($RequireReleaseIdentity) { 'release' } else { 'none' }
+    $proofArguments = @($installRoot, $appData, $Mode, $requirement)
+    if ($RequireLocalPinnedIdentity) { $proofArguments += @($localPinned.identity_path, $localPinned.receipt.identity.sha256) }
+    $proof = Invoke-LifecyclePythonProbe -Executable $python -Code $probe -Arguments $proofArguments -Mode $Mode
+    if ($proof.exit_code -ne 0) {
+        throw "installed canonical Core $Mode probe failed; exit=$($proof.exit_code); stderr=$($proof.stderr_path)"
+    }
+    return ($proof.stdout | ConvertFrom-Json)
 }
 
 function Wait-ArcheAxisWindow {
@@ -307,11 +636,21 @@ if (-not (Test-Path -LiteralPath $Installer -PathType Leaf)) {
 if ((Test-Path $installRoot) -or (Get-ArcheAxisRegistryEntries).Count -ne 0) {
     throw 'refusing to overwrite an existing ArcheAxis Knowledge installation'
 }
-if ($RequireReleaseIdentity -and $RequireCandidateIdentity) {
-    throw 'release and candidate identity requirements are mutually exclusive'
+if ($appDataExisted) {
+    throw 'refusing to use existing ArcheAxis workspace data; run in a fresh isolated Windows profile'
+}
+Assert-LocalIdentityMode -Release:$RequireReleaseIdentity -Candidate:$RequireCandidateIdentity -Local:$RequireLocalPinnedIdentity `
+    -Receipt $LocalPinnedIdentityReceipt -ReceiptSha $ExpectedLocalPinnedIdentitySha256 -InstallerSha $ExpectedInstallerSha256
+$localPinned = $null
+if ($RequireLocalPinnedIdentity) {
+    $localPinned = Read-LocalPinnedPackaging
+    Assert-LocalInstallerBinding
+} elseif ($LocalPinnedIdentityReceipt -or $ExpectedLocalPinnedIdentitySha256 -or $ExpectedInstallerSha256) {
+    throw 'local pinned identity inputs require RequireLocalPinnedIdentity'
 }
 
 try {
+    Assert-LocalInstallerBinding
     $installerProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
     if ($installerProcess.ExitCode -ne 0) {
         throw "NSIS installer exited with $($installerProcess.ExitCode)"
@@ -342,11 +681,17 @@ try {
     if (Test-Path $doubleNestedPython) {
         throw 'installed Runtime contains an invalid double runtime directory'
     }
+    $initialIdentity = Read-InstalledCandidateIdentity
 
     $pycBefore = @(Get-ChildItem (Join-Path $installRoot 'runtime') -Filter '*.pyc' -File -Recurse).Count
-    $activeShell = Start-Process -FilePath $executable -PassThru
+    if (-not $evidenceDirectory) {
+        $evidenceDirectory = New-LifecycleEvidenceDirectory -Root ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver'))
+    }
+    $startupPort = New-ArcheAxisStartupPort
+    $activeShell = Start-ArcheAxisObservedShell -Executable $executable -Port $startupPort
     $normal = Wait-ArcheAxisBackend -Shell $activeShell
     $windowHandle = Wait-ArcheAxisWindow -Shell $activeShell
+    Wait-ArcheAxisFrontend -Shell $activeShell -Port $startupPort -Executable $executable -Receipt (Join-Path $evidenceDirectory 'frontend-startup/receipt.json')
     Close-ArcheAxisShell -Shell $activeShell -WindowHandle $windowHandle -Context 'initial readback'
     Start-Sleep -Seconds 1
     if (Get-Process -Id $normal.Child.ProcessId -ErrorAction SilentlyContinue) {
@@ -355,12 +700,14 @@ try {
     if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf)) {
         throw 'installed host did not create its canonical user database'
     }
+    Set-Content -LiteralPath $dataOwnerMarker -Value $dataOwnerId -Encoding utf8 -NoNewline
+    $ownsAppData = $true
     if ($NativeToolsReceipt) {
         $nativeTools = Get-Content -LiteralPath $NativeToolsReceipt -Raw | ConvertFrom-Json
         if ($nativeTools.ok -ne $true) { throw 'native driver preparation did not succeed' }
         # Persist completed preflight facts before the independent WebDriver session.
         # A failed session must not erase which installed lifecycle assertions ran.
-        $preflightDirectory = Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver')) ([Guid]::NewGuid().ToString('N'))
+        $preflightDirectory = if ($evidenceDirectory) { $evidenceDirectory } else { Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver')) ([Guid]::NewGuid().ToString('N')) }
         New-Item -ItemType Directory -Path $preflightDirectory -Force | Out-Null
         $evidenceDirectory = $preflightDirectory
         [ordered]@{
@@ -417,6 +764,7 @@ try {
     $persistenceSentinel = Join-Path $appData 'release-lifecycle-sentinel.txt'
     Set-Content -LiteralPath $persistenceSentinel -Value 'retain-this-user-state' -Encoding utf8 -NoNewline
 
+    Assert-LocalInstallerBinding
     $upgradeProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
     if ($upgradeProcess.ExitCode -ne 0) {
         throw "NSIS in-place upgrade exited with $($upgradeProcess.ExitCode)"
@@ -426,6 +774,10 @@ try {
     }
     if (-not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
         throw 'NSIS in-place upgrade removed user state'
+    }
+    $upgradeIdentity = Read-InstalledCandidateIdentity
+    if (($upgradeIdentity | ConvertTo-Json -Compress) -ne ($initialIdentity | ConvertTo-Json -Compress)) {
+        throw 'in-place upgrade changed the qualified candidate identity'
     }
     $activeShell = Start-Process -FilePath $executable -PassThru
     $upgraded = Wait-ArcheAxisBackend -Shell $activeShell
@@ -470,9 +822,14 @@ try {
         throw 'NSIS uninstall removed user data instead of retaining it'
     }
 
+    Assert-LocalInstallerBinding
     $reinstallProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
     if ($reinstallProcess.ExitCode -ne 0) {
         throw "NSIS reinstall exited with $($reinstallProcess.ExitCode)"
+    }
+    $reinstallIdentity = Read-InstalledCandidateIdentity
+    if (($reinstallIdentity | ConvertTo-Json -Compress) -ne ($initialIdentity | ConvertTo-Json -Compress)) {
+        throw 'reinstall changed the qualified candidate identity'
     }
     $activeShell = Start-Process -FilePath $executable -PassThru
     $reinstalled = Wait-ArcheAxisBackend -Shell $activeShell
@@ -511,15 +868,25 @@ try {
     [ordered]@{
         schema = 'archeaxis/installed-lifecycle-receipt/v1'
         complete_lifecycle_verified = $true
-        head_sha = $env:GITHUB_SHA
-        run_id = $env:GITHUB_RUN_ID
-        run_attempt = $env:GITHUB_RUN_ATTEMPT
+        same_installer_scope = if ($RequireLocalPinnedIdentity) { 'SAME_INSTALLER_SAME_VERSION_REINSTALL_DATA_PRESERVATION' } else { $null }
+        cross_version_upgrade = if ($RequireLocalPinnedIdentity) { 'NOT_TESTED' } else { $null }
+        rollback = if ($RequireLocalPinnedIdentity) { 'NOT_TESTED' } else { $null }
+        qualification_scope = if ($RequireLocalPinnedIdentity) { 'LOCAL_PINNED_INSTALLED_LIFECYCLE' } else { 'EXISTING_CI_OR_RELEASE_LIFECYCLE' }
+        local_packaging_receipt_sha256 = if ($RequireLocalPinnedIdentity) { $ExpectedLocalPinnedIdentitySha256 } else { $null }
+        local_build_source = if ($RequireLocalPinnedIdentity) { $localPinned.identity.build_source } else { $null }
+        local_packaging_source = if ($RequireLocalPinnedIdentity) { $localPinned.identity.packaging_source } else { $null }
+        head_sha = if ($RequireLocalPinnedIdentity) { $null } else { $env:GITHUB_SHA }
+        run_id = if ($RequireLocalPinnedIdentity) { $null } else { $env:GITHUB_RUN_ID }
+        run_attempt = if ($RequireLocalPinnedIdentity) { $null } else { $env:GITHUB_RUN_ATTEMPT }
         installer_sha256 = (Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant()
+        host_sha256 = $initialIdentity.host_sha256
+        core_sha256 = $initialIdentity.core_sha256
+        runtime_manifest_sha256 = $initialIdentity.runtime_manifest_sha256
         product_version = $initialProof.product_version
         core_schema_version = $initialProof.schema_version
         persisted_job = $initialProof.job_id
         graceful_shutdown = $true
-        in_place_upgrade = $true
+        in_place_upgrade = if ($RequireLocalPinnedIdentity) { 'SAME_VERSION_REINSTALL' } else { $true }
         forced_tree_cleanup = $true
         clean_uninstall = $true
         uninstall_retains_data = $true
@@ -541,7 +908,7 @@ try {
         GracefulShutdown = $true
         ForcedTreeCleanup = $true
         CleanUninstall = $true
-        InPlaceUpgrade = $true
+        InPlaceUpgrade = if ($RequireLocalPinnedIdentity) { 'SAME_VERSION_REINSTALL' } else { $true }
         UninstallRetainsData = $true
         ReinstallReadback = $true
     } | ConvertTo-Json -Depth 8 -Compress
@@ -553,7 +920,8 @@ finally {
     if ($ownsInstall) {
         Stop-ArcheAxisInstallation
     }
-    if (-not $appDataExisted -and (Test-Path $appData)) {
+    if ($ownsAppData -and (Test-Path -LiteralPath $appData)) {
+        Assert-LifecycleOwnedData
         Remove-Item -LiteralPath $appData -Recurse -Force
     }
 }

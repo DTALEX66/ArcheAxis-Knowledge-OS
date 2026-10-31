@@ -15,6 +15,8 @@ pub struct Request {
     pub query: String,
     pub families: Vec<String>,
     pub limit: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub community_site: Option<String>,
 }
 #[derive(Debug)]
 pub enum Begin {
@@ -39,6 +41,7 @@ impl Request {
             || self.query.chars().count() > 1000
             || self.query.chars().any(char::is_control)
             || !(1..=3).contains(&self.limit)
+            || !["academia", "stats"].contains(&self.community_site())
             || self.families.is_empty()
             || self.families.len() > 3
             || self.families.iter().enumerate().any(|(i, family)| {
@@ -51,7 +54,14 @@ impl Request {
         Ok(())
     }
     pub fn worker_request(&self) -> Value {
-        json!({"schema":"public-research-worker/v1","query":self.query,"families":self.families,"limit":self.limit})
+        let mut value = json!({"schema":"public-research-worker/v1","query":self.query,"families":self.families,"limit":self.limit});
+        if let Some(site) = &self.community_site {
+            value["community_site"] = json!(site);
+        }
+        value
+    }
+    fn community_site(&self) -> &str {
+        self.community_site.as_deref().unwrap_or("academia")
     }
 }
 pub fn assert_current(conn: &mut Connection, request: &Request) -> Result<(), String> {
@@ -72,11 +82,15 @@ pub fn assert_workspace(
     Ok(())
 }
 fn envelope(request: &Request, state: &str) -> Value {
-    json!({"schema":"archeaxis.public-research-receipt/v1","request_id":request.request_id,
+    let mut value = json!({"schema":"archeaxis.public-research-receipt/v1","request_id":request.request_id,
         "workspace_id":request.workspace_id,"restore_epoch":request.restore_epoch,
         "query":request.query,"families":request.families,"limit":request.limit,"state":state,
         "channels":null,"reason_code":null,"provider_stop_state":"unknown",
-        "knowledge_admission":"not_executed"})
+        "knowledge_admission":"not_executed"});
+    if let Some(site) = &request.community_site {
+        value["community_site"] = json!(site);
+    }
+    value
 }
 pub fn begin(conn: &mut Connection, request: &Request) -> Result<Begin, String> {
     request.validate()?;
@@ -228,23 +242,14 @@ where
 {
     Option::<T>::deserialize(deserializer)
 }
-fn provider(family: &str) -> Option<(&'static str, &'static str, &'static str)> {
-    match family {
-        "encyclopedia" => Some((
-            "wikipedia",
-            "https://en.wikipedia.org/w/api.php?",
-            "https://en.wikipedia.org/wiki/",
-        )),
-        "community" => Some((
-            "stackexchange",
-            "https://api.stackexchange.com/2.3/search/advanced?",
-            "https://academia.stackexchange.com/questions/",
-        )),
-        "research" => Some((
-            "openalex",
-            "https://api.openalex.org/works?",
-            "https://openalex.org/",
-        )),
+fn provider(family: &str, name: &str) -> Option<&'static str> {
+    match (family, name) {
+        ("encyclopedia", "wikipedia") => Some("https://en.wikipedia.org/w/api.php?"),
+        ("community", "stackexchange") => {
+            Some("https://api.stackexchange.com/2.3/search/advanced?")
+        }
+        ("research", "openalex") => Some("https://api.openalex.org/works?"),
+        ("research", "crossref") => Some("https://api.crossref.org/works?"),
         _ => None,
     }
 }
@@ -322,11 +327,16 @@ fn request_url_matches(channel: &Channel, request: &Request, prefix: &str) -> bo
             ("formatversion", "2"),
         ],
         "community" => vec![
-            ("site", "academia"),
+            ("site", request.community_site()),
             ("q", &request.query),
             ("pagesize", &limit),
             ("sort", "relevance"),
             ("filter", "withbody"),
+        ],
+        "research" if channel.provider == "crossref" => vec![
+            ("query.bibliographic", request.query.as_str()),
+            ("rows", limit.as_str()),
+            ("select", "DOI,title,URL,published"),
         ],
         "research" => vec![
             ("search", request.query.as_str()),
@@ -396,7 +406,7 @@ fn utc_time(value: &str) -> bool {
                 .all(|c| c.is_ascii_digit()))
 }
 
-fn hit_identity(hit: &Hit) -> bool {
+fn hit_identity(hit: &Hit, request: &Request) -> bool {
     match hit.family.as_str() {
         "encyclopedia" => {
             let Some((page, revision)) = hit
@@ -415,10 +425,14 @@ fn hit_identity(hit: &Hit) -> bool {
                         == Some(format!("pageid={page};revid={revision};section=0").as_str()))
         }
         "community" => {
-            let Some(id) = hit.id.strip_prefix("stackexchange:academia:question:") else {
+            let site = request.community_site();
+            let Some(id) = hit
+                .id
+                .strip_prefix(&format!("stackexchange:{site}:question:"))
+            else {
                 return false;
             };
-            let prefix = format!("https://academia.stackexchange.com/questions/{id}");
+            let prefix = format!("https://{site}.stackexchange.com/questions/{id}");
             let Some(suffix) = hit.url.strip_prefix(&prefix) else {
                 return false;
             };
@@ -439,6 +453,29 @@ fn hit_identity(hit: &Hit) -> bool {
                 })
                 && (hit.excerpt.is_empty()
                     || hit.locator.as_deref() == Some(format!("question_id={id};body").as_str()))
+        }
+        "research" if hit.provider == "crossref" => {
+            let Some(doi) = hit
+                .id
+                .strip_prefix("https://doi.org/")
+                .and_then(form_decode)
+            else {
+                return false;
+            };
+            let Some((registrant, suffix)) =
+                doi.strip_prefix("10.").and_then(|v| v.split_once('/'))
+            else {
+                return false;
+            };
+            (4..=9).contains(&registrant.len())
+                && registrant.bytes().all(|v| v.is_ascii_digit())
+                && !suffix.is_empty()
+                && !hit.id.contains(['?', '#'])
+                && !doi.chars().any(|c| c.is_whitespace() || c.is_control())
+                && hit.id == hit.url
+                && hit.upstream_revision.is_none()
+                && hit.license.is_none()
+                && hit.content == "metadata"
         }
         "research" => {
             hit.id
@@ -476,9 +513,9 @@ fn hit_representation(hit: &Hit) -> bool {
 }
 
 fn validate_channel(channel: &Channel, request: &Request) -> Result<Option<Vec<u8>>, String> {
-    let (name, request_prefix, _) = provider(&channel.family).ok_or("public_provider_invalid")?;
-    if channel.provider != name
-        || !request_url_matches(channel, request, request_prefix)
+    let request_prefix =
+        provider(&channel.family, &channel.provider).ok_or("public_provider_invalid")?;
+    if !request_url_matches(channel, request, request_prefix)
         || !utc_time(&channel.retrieved_at)
         || !["complete", "limited", "failed", "offline", "unknown"]
             .contains(&channel.status.as_str())
@@ -499,8 +536,8 @@ fn validate_channel(channel: &Channel, request: &Request) -> Result<Option<Vec<u
             || !bounded(&hit.id, 256, false)
             || !identities.insert(&hit.id)
             || hit.family != channel.family
-            || hit.provider != name
-            || !hit_identity(hit)
+            || hit.provider != channel.provider
+            || !hit_identity(hit, request)
             || !bounded(&hit.url, 8192, false)
             || hit.title.trim().is_empty()
             || !bounded(&hit.title, 4096, true)
@@ -567,6 +604,17 @@ fn source_reference(outcome: crate::source::ImportOutcome) -> Value {
     };
     json!({"kind":"source","source_id":source_id,"sha256":sha256})
 }
+fn fallback_allowed(channel: &Channel) -> bool {
+    let code = channel.error_code.as_deref().unwrap_or("");
+    (channel.status == "offline" && ["network_unavailable", "proxy_timeout"].contains(&code))
+        || (channel.status == "limited" && code == "http_429")
+        || (channel.status == "failed"
+            && code.strip_prefix("http_").is_some_and(|v| {
+                v.len() == 3
+                    && v.parse::<u16>()
+                        .is_ok_and(|status| (500..=599).contains(&status))
+            }))
+}
 /// Validate a bounded worker response before a single writer transaction. Raw
 /// HTTP entity bytes remain separate from every normalized content snapshot.
 pub fn publish(conn: &mut Connection, request: &Request, value: Value) -> Result<Value, String> {
@@ -576,17 +624,52 @@ pub fn publish(conn: &mut Connection, request: &Request, value: Value) -> Result
     if response.schema != "public-research-worker/v1"
         || response.query != request.query
         || response.families != request.families
-        || response.channels.len() != request.families.len()
+        || response.channels.len() < request.families.len()
+        || response.channels.len()
+            > request.families.len() + usize::from(request.families.iter().any(|f| f == "research"))
     {
         return Err(failure("public_response_identity_mismatch"));
     }
     let mut seen = std::collections::BTreeSet::new();
     let mut raw = Vec::new();
     for channel in &response.channels {
-        if !request.families.contains(&channel.family) || !seen.insert(&channel.family) {
+        if !request.families.contains(&channel.family)
+            || !seen.insert((&channel.family, &channel.provider))
+        {
             return Err(failure("public_channel_identity_mismatch"));
         }
         raw.push(validate_channel(channel, request)?);
+    }
+    for family in &request.families {
+        let expected = match family.as_str() {
+            "encyclopedia" => "wikipedia",
+            "community" => "stackexchange",
+            "research" => "openalex",
+            _ => unreachable!(),
+        };
+        if !response
+            .channels
+            .iter()
+            .any(|c| &c.family == family && c.provider == expected)
+        {
+            return Err(failure("public_channel_identity_mismatch"));
+        }
+    }
+    if let Some(fallback) = response
+        .channels
+        .iter()
+        .position(|c| c.provider == "crossref")
+    {
+        let Some(primary) = response
+            .channels
+            .iter()
+            .position(|c| c.provider == "openalex")
+        else {
+            return Err(failure("public_fallback_identity_invalid"));
+        };
+        if fallback <= primary || !fallback_allowed(&response.channels[primary]) {
+            return Err(failure("public_fallback_identity_invalid"));
+        }
     }
     assert_current(conn, request)?;
     let frozen = serde_json::to_string(request).map_err(|_| failure("request_encoding_failed"))?;
@@ -620,8 +703,8 @@ pub fn publish(conn: &mut Connection, request: &Request, value: Value) -> Result
                 "json"
             };
             let name = format!(
-                "public-research-{}-{}.{}",
-                request.request_id, channel.family, suffix
+                "public-research-{}-{}-{}.{}",
+                request.request_id, channel.family, channel.provider, suffix
             );
             source_reference(
                 crate::source::import_source_tx(
@@ -673,7 +756,14 @@ pub fn materialize(
     }
     let channel = receipt["channels"]
         .as_array()
-        .and_then(|rows| rows.iter().find(|c| c["family"] == family))
+        .and_then(|rows| {
+            rows.iter().find(|c| {
+                c["family"] == family
+                    && c["hits"]
+                        .as_array()
+                        .is_some_and(|hits| hits.iter().any(|hit| hit["id"] == hit_id))
+            })
+        })
         .ok_or("public_channel_not_found")?;
     let hit = channel["hits"]
         .as_array()

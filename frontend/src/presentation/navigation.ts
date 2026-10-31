@@ -59,7 +59,7 @@ const PAGE_PURPOSES: Readonly<Record<string, string>> = {
 };
 
 export const EFFECTIVE_NAVIGATION_ENTRIES: readonly EffectiveNavigationEntry[] = [
-  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:page.implemented ? PAGE_PURPOSES[page.id] ?? `打开${page.label}` : "页面尚未接通，查看相关能力与替代入口",group_id:page.group,aliases:[`page=${page.id}`],keywords:[page.task, uiEntryForPage(page.id)?.label ?? ""],page})),
+  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:page.implemented ? PAGE_PURPOSES[page.id] ?? `打开${page.label}` : "页面尚未接通，查看相关能力与替代入口",group_id:uiEntryForPage(page.id)?.label ?? page.group,aliases:[`page=${page.id}`],keywords:[page.task, page.group],page})),
   ...SPACES.map((space) => ({
     entry_id: `space:${space.id}`,
     label: space.label,
@@ -110,16 +110,16 @@ export function canNavigateToCapability(capability: CapabilityCatalogEntry): boo
 
 export function getCapabilityNextStep(capability: CapabilityCatalogEntry, hasPageNavigation = false): string {
   if (canNavigateToCapability(capability) && (getCapabilityDestination(capability) || (hasPageNavigation && CAPABILITY_PAGES[capability.atlas.capability_id]))) {
-    return "通过当前 AAOS 产品入口继续；运行资格和产物质量仍需独立回执。";
+    return "点击“打开当前产品入口”继续，再核对本次操作的结果；打开页面不代表处理已经成功。";
   }
-  if (canNavigateToCapability(capability)) return "当前有实现声明，但尚未关联可打开的产品动作入口；先补齐领域契约与入口映射，勿推断可执行。";
+  if (canNavigateToCapability(capability)) return "当前尚未提供可打开的操作入口。可先使用已提供的功能；实现与来源说明见下方详情。";
   if (capability.atlas.authority_status === "binding_long_term") {
-    return "保留长期能力发现；先满足列明的合同、依赖与验收证据，再由后续实施包启用。";
+    return "这是长期规划能力，目前尚不能使用。你可以查看用途与来源说明，日常工作请先使用已提供的功能。";
   }
   if (["parked", "deferred_retained"].includes(capability.atlas.roadmap_state)) {
-    return "当前路线延后；查看前置合同与降级方式，前置未满足时继续用已实现的 AAOS 入口。";
+    return "此能力暂未提供；你可以查看详情中的现有替代方式，或返回已提供的功能继续。";
   }
-  return "当前未实现；按前置、依赖和证据要求安排实施，已接入替代入口保持可用。";
+  return "此能力尚未实现，当前不能执行。你可以先查看用途和限制，或返回已提供的功能继续。";
 }
 
 const LEGACY_SPACE_ALIASES: Readonly<Record<string, SpaceId>> = {

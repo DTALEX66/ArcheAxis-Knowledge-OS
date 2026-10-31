@@ -1,0 +1,91 @@
+{
+  "schema": "aaos.storage-maintenance-summary/v1",
+  "date": "2026-10-30",
+  "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+  "overall": "SCOPED_CLEANUP_VERIFIED_NORMALIZATION_AND_RETENTION_DEBT_REMAIN",
+  "archive": "workspace/intake/20261030-cloud-review-and-backend-priority/README.md",
+  "before": {
+    "readable_bytes": 188743983950,
+    "files": 1342889,
+    "status": "PARTIAL"
+  },
+  "after": {
+    "readable_bytes": 138440464030,
+    "files": 1244676,
+    "status": "PARTIAL"
+  },
+  "deleted_files": 98417,
+  "deleted_logical_bytes": 50379897904,
+  "removed_empty_directories": 10820,
+  "cleanup_errors": [],
+  "verification": {
+    "schema": "aaos.cleanup-verification/v1",
+    "status": "PASS_EXACT_SCOPED_POSTCONDITIONS",
+    "deleted_files_absent": 98417,
+    "replacement_files_hash_verified": 21841,
+    "protected_inputs_hash_verified": 47,
+    "archive_members_hash_verified": 12,
+    "c1_payload_members_hash_verified": 19747,
+    "c1_sidecars_hash_verified": 8,
+    "restore_test_outputs_removed": true,
+    "scope": "No claim about unreviewed/unreadable/private resources or whole-product acceptance"
+  },
+  "finite_restore_checks": 7,
+  "normalization": {
+    "classified_entries": 637,
+    "counts": {
+      "SOURCE_CONTRACT_OR_HISTORY": 66,
+      "GIT_ENVIRONMENT_OR_LOCAL_DATA": 6,
+      "LEGACY_LAYOUT_UNRESOLVED": 551,
+      "DECLARED_IGNORED_DEVELOPMENT": 14
+    },
+    "layout_review_entries": 582,
+    "dev_root_strays": 550,
+    "wrong_depth_runs": 31,
+    "retired_worktree_ids": 19
+  },
+  "measurement_errors": 1390,
+  "excluded_private_paths": 92,
+  "growth_review": {
+    "status": "REVIEW_REQUIRED",
+    "delta_readable_bytes": null,
+    "growth_review_bytes": 2147483648,
+    "over_budget_classes": [
+      "candidates/",
+      "runs/"
+    ],
+    "measurement_status": "PARTIAL",
+    "deletion_authorized": false
+  },
+  "baseline": {
+    "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/footprint-after.json",
+    "bytes": 1282784,
+    "sha256": "738a60e044e8f8464bf8d3a350714ff5531f50d5d4878c53376401c2c774fa33"
+  },
+  "offline_windows_dependency_resolution": {
+    "scope": "DEPENDENCY_RESOLUTION_ONLY_NO_REBUILD",
+    "exit_code": 0,
+    "offline_metadata": "PASS",
+    "full_rebuild": "NOT_EXECUTED",
+    "cache_recreation_cost": "Next debug build recompiles dependencies and tests",
+    "packages": 99,
+    "missing_package_manifests": []
+  },
+  "remaining": [
+    "Runs still about 99.36 GiB: review duplicate historical candidate expansions with exact identities and restore maps; preserve current and required rollback candidates.",
+    "550 scattered development-root entries and 31 wrong-depth run entries remain preserved pending consumers/hashes and safe relocation; no mass move or allowlist expansion.",
+    "1390 access/long-path measurement failures remain; no ACL bypass or private-agent measurement.",
+    "Refactor retry staging to reuse pinned read-only inputs and isolated outputs; rules/alerts alone do not prevent every producer from making copies.",
+    "F01-F05 and R2 backend acceptance continue in the existing finite queue; implementation not claimed by intake or cleanup."
+  ],
+  "boundaries": {
+    "ui_implementation": "PAUSED_BY_OWNER",
+    "monitor": "UNCHANGED_NO_OPERATION",
+    "cloud_ci": "NOT_EXECUTED",
+    "remote_writes": "NOT_EXECUTED",
+    "green": "UNTOUCHED",
+    "real_user_data": "UNTOUCHED"
+  },
+  "byte_semantics": "Readable logical footprint, excluding private/unreadable/link targets; deletion total differs from net change because tests/manifests/verification create new files. Not a physical allocation claim.",
+  "validation": "docs/history/storage-cleanup/2026-10-30/verification.json"
+}

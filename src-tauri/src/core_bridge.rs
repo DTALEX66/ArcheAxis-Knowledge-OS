@@ -70,6 +70,7 @@ pub enum Operation {
     DocumentPackageImport,
     DocumentExportSave,
     Search,
+    SemanticSearch,
     KnowledgeGet,
     KnowledgeQualification,
     KnowledgeReview,
@@ -147,6 +148,9 @@ pub enum Operation {
     LayoutWrite,
     LayoutRecover,
     UiStateRead,
+    OperationFailureLogRead,
+    OperationFailureLogAppend,
+    OperationFailureLogClear,
     UiStateWrite,
     UiStateClearSaved,
     UiStateClearJob,
@@ -263,6 +267,31 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
     };
     Ok(match request.operation {
         SystemVersion => ("GET", "/api/v1/system/version".into(), None),
+        SemanticSearch => {
+            let fields = p
+                .as_object()
+                .ok_or("CORE_COMMAND_SEMANTIC_PAYLOAD_INVALID")?;
+            let body = fields
+                .get("body")
+                .and_then(Value::as_object)
+                .ok_or("CORE_COMMAND_SEMANTIC_PAYLOAD_INVALID")?;
+            let q = body
+                .get("q")
+                .and_then(Value::as_str)
+                .ok_or("CORE_COMMAND_SEMANTIC_PAYLOAD_INVALID")?;
+            if fields.len() != 1
+                || body.len() != 1
+                || q.trim().is_empty()
+                || q.chars().count() > 2048
+            {
+                return Err("CORE_COMMAND_SEMANTIC_PAYLOAD_INVALID".into());
+            }
+            (
+                "POST",
+                "/api/v1/search/semantic".into(),
+                Some(serde_json::json!({"q":q})),
+            )
+        }
         ProjectHandoffPreview | ProjectHandoffSnapshot => {
             // 仅已有human会话的本地metadata预览；无URL、凭据或任意命令入口。
             if p.as_object().is_none_or(|fields| fields.len() != 1)
@@ -932,6 +961,28 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
                 )
             }
         }
+        OperationFailureLogRead | OperationFailureLogAppend | OperationFailureLogClear => {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
+            {
+                return Err("CORE_FAILURE_LOG_PAYLOAD_INVALID".into());
+            }
+            let value = body()?;
+            if !value.is_object() {
+                return Err("CORE_FAILURE_LOG_PAYLOAD_INVALID".into());
+            }
+            let action = match request.operation {
+                OperationFailureLogRead => "read",
+                OperationFailureLogAppend => "append",
+                _ => "clear",
+            };
+            (
+                "POST",
+                format!("/api/v1/workspace/operation-failures/{action}"),
+                Some(value),
+            )
+        }
         UiStateRead => {
             if !p.as_object().is_some_and(|object| object.is_empty()) {
                 return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
@@ -1252,6 +1303,8 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         | Operation::ConversationRequest
         | Operation::PublicResearchSearch => 135,
         Operation::MachineRetest => 135,
+        // Core semantic ranking has a 90 second overall bound; retain transport margin.
+        Operation::SemanticSearch => 135,
         Operation::WorkspaceBackup => 120,
         Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot => 3,
         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
@@ -1571,6 +1624,57 @@ mod tests {
     fn v1_client_cannot_select_internal_v2_recovery_transport() {
         assert!(serde_json::from_value::<Request>(serde_json::json!({"operation":"workspace_restore_preview","payload":{"body":{"backup_id":"a".repeat(32),"expected_sha256":"b".repeat(64)}}})).is_err());
     }
+    #[test]
+    fn semantic_search_is_exact_query_only_post_with_finite_budget() {
+        let request: Request = serde_json::from_value(serde_json::json!({
+            "operation":"semantic_search","payload":{"body":{"q":"SYNTHETIC query"}}
+        }))
+        .unwrap();
+        assert_eq!(
+            route(&request).unwrap(),
+            (
+                "POST",
+                "/api/v1/search/semantic".into(),
+                Some(serde_json::json!({"q":"SYNTHETIC query"}))
+            )
+        );
+        assert_eq!(
+            transport_timeout(&request.operation),
+            std::time::Duration::from_secs(135)
+        );
+        let unicode: Request = serde_json::from_value(serde_json::json!({"operation":"semantic_search","payload":{"body":{"q":"🛰".repeat(2048)}}})).unwrap();
+        assert!(route(&unicode).is_ok());
+    }
+
+    #[test]
+    fn semantic_search_refuses_extra_authority_and_invalid_queries() {
+        for payload in [
+            serde_json::json!({}),
+            serde_json::json!({"body":null}),
+            serde_json::json!({"body":[]}),
+            serde_json::json!({"body":{"q":true}}),
+            serde_json::json!({"body":{"q":" "}}),
+            serde_json::json!({"body":{"q":"x".repeat(2049)}}),
+            serde_json::json!({"body":{"q":"q","model":"other"}}),
+            serde_json::json!({"body":{"q":"q","candidates":[]}}),
+            serde_json::json!({"body":{"q":"q"},"endpoint":"https://example.invalid"}),
+            serde_json::json!({"body":{"q":"q"},"token":"SYNTHETIC"}),
+            serde_json::json!({"body":{"q":"q"},"method":"DELETE"}),
+        ] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"semantic_search","payload":payload}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+        for operation in ["vault_links", "vault_members", "vault_links_record"] {
+            assert!(
+                serde_json::from_value::<Request>(serde_json::json!({"operation":operation}))
+                    .is_err()
+            );
+        }
+    }
+
     #[test]
     fn every_schema_command_is_accepted_by_the_host_contract() {
         let schema: Value = serde_json::from_str(include_str!(

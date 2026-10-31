@@ -194,6 +194,49 @@ fn online_backup_restores_original_bytes_and_rejects_tampering_without_changing_
 }
 
 #[test]
+fn late_corrupt_object_leaves_existing_database_exact_even_after_other_objects_are_copied() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut source_db = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();
+    for bytes in [
+        b"new original one".as_slice(),
+        b"new original two",
+        b"new original three",
+    ] {
+        source::import_source(&mut source_db, bytes, "synthetic.bin", None).unwrap();
+    }
+    let snapshot = dir.path().join("snapshot.sqlite");
+    backup::backup(&source_db, snapshot.to_str().unwrap()).unwrap();
+    let last: String = source_db
+        .query_row(
+            "SELECT sha256 FROM sources ORDER BY sha256 DESC LIMIT 1",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    std::fs::write(
+        dir.path().join("snapshot.sqlite.objects").join(last),
+        b"corrupt last object",
+    )
+    .unwrap();
+    let mut target = init_workspace(dir.path().join("target.sqlite").to_str().unwrap()).unwrap();
+    source::import_source(&mut target, b"preserve live original", "live.txt", None).unwrap();
+    let before = dir.path().join("before.sqlite");
+    backup::backup(&target, before.to_str().unwrap()).unwrap();
+    assert!(backup::restore(snapshot.to_str().unwrap(), &mut target).is_err());
+    drop(target);
+    let reopened = init_workspace(dir.path().join("target.sqlite").to_str().unwrap()).unwrap();
+    let previous =
+        Connection::open_with_flags(before, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    assert!(backup::verify_counts(&previous, &reopened).unwrap());
+    assert_eq!(
+        reopened
+            .query_row("SELECT count(*) FROM sources", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        1
+    );
+}
+
+#[test]
 fn verify_counts_rejects_a_tampered_persisted_source_object() {
     let dir = tempfile::tempdir().unwrap();
     let mut source_db = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();

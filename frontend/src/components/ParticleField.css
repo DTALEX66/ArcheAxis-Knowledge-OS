@@ -1,0 +1,7 @@
+.aaos-particle-field {
+  position: fixed; inset: 0; z-index: 65; pointer-events: none;
+  opacity: .55; mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: reduce), (prefers-reduced-transparency: reduce) {
+  .aaos-particle-field { display: none; }
+}

@@ -1,0 +1,248 @@
+{
+  "schema": "aaos.machine-response-format-test-vectors/v1",
+  "integer_policy": "integer JSON lexemes within +/- (2^53-1); fraction/exponent lexemes refuse, including 1.0; negative-zero lexemes refuse for integer (serde_json represents -0 as float), number accepts -0",
+  "formats": [
+    {
+      "input": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "archeaxis_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "writer": {
+                "type": "string"
+              },
+              "frozen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "writer",
+              "frozen"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "normalized": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "archeaxis_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "writer": {
+                "type": "string"
+              },
+              "frozen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "frozen",
+              "writer"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "sha256": "5d4094afeafad8a23dab2b4c545f8a67dfcc6bb6c9c780714ea25c2265fc83ba",
+      "outputs": [
+        {
+          "text": "{\"writer\":\"wrong writer\",\"frozen\":false}",
+          "valid": true
+        },
+        {
+          "text": " {\"frozen\":true,\"writer\":\"arbitrary\"}\n",
+          "valid": true
+        },
+        {
+          "text": "```json\n{\"writer\":\"Rust Core\",\"frozen\":true}\n```",
+          "valid": false
+        },
+        {
+          "text": "{\"writer\":\"x\",\"frozen\":1}",
+          "valid": false
+        },
+        {
+          "text": "{\"writer\":\"x\",\"frozen\":false,\"extra\":\"no\"}",
+          "valid": false
+        },
+        {
+          "text": "{\"writer\":\"x\",\"writer\":\"y\",\"frozen\":false}",
+          "valid": false
+        },
+        {
+          "text": "{\"writer\":\"\\ud800\",\"frozen\":false}",
+          "valid": false
+        }
+      ]
+    },
+    {
+      "input": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "archeaxis_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "normalized": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "archeaxis_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "sha256": "3ea760a519ef2562004f5fc299a5f1bf0ee8070c3de853cd725b8e3fb364816d",
+      "outputs": [
+        {
+          "text": "{\"value\":true}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":1}",
+          "valid": true
+        },
+        {
+          "text": "{\"value\":1.0}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":-9007199254740991}",
+          "valid": true
+        },
+        {
+          "text": "{\"value\":9007199254740992}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":9007199254740991.1}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":NaN}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":1e400}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":-0}",
+          "valid": false
+        }
+      ]
+    },
+    {
+      "input": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "archeaxis_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "normalized": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "archeaxis_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "sha256": "19d92b0d5a40e77ba023e35c0955eb84aeb2973e1139ca29408d57a805551859",
+      "outputs": [
+        {
+          "text": "{\"value\":1.25}",
+          "valid": true
+        },
+        {
+          "text": "{\"value\":false}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":Infinity}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":1e400}",
+          "valid": false
+        },
+        {
+          "text": "{\"value\":-0}",
+          "valid": true
+        }
+      ]
+    }
+  ],
+  "legacy": {
+    "body": {
+      "knowledge_id": "k",
+      "question": "question",
+      "client_request_id": "client"
+    },
+    "projection": {
+      "operation": "answer",
+      "request": {
+        "knowledge_id": "k",
+        "question": "question",
+        "client_request_id": "client",
+        "max_tokens": 2048,
+        "timeout_s": 120,
+        "context_grant": null,
+        "asset_context_grant": null,
+        "retest_of": null
+      }
+    },
+    "sha256": "fbc53d950deaa61110ad8dc3b73e2cd4bf383b43a5b18d2b205c90d10ec7fe16"
+  }
+}

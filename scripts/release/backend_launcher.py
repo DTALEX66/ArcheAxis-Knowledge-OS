@@ -241,7 +241,7 @@ def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
             return result
 
         config = json.loads(raw, object_pairs_hook=unique_config)
-        required = {"provider", "model", "max_tokens", "timeout_seconds", "search_limit"}
+        required = {"provider", "model", "credential_ref", "max_tokens", "timeout_seconds", "search_limit"}
         if (
             not isinstance(config, dict)
             or not required <= config.keys()
@@ -249,6 +249,9 @@ def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
         ):
             return None, "invalid_config"
         provider, model = config["provider"], config["model"]
+        credential_ref = config["credential_ref"]
+        if not isinstance(credential_ref, str) or re.fullmatch(r"aak_cred_[a-f0-9]{32}", credential_ref) is None:
+            return None, "invalid_config"
         if (
             not isinstance(provider, str)
             or not provider

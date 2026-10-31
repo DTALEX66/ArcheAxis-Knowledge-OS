@@ -1,0 +1,502 @@
+{
+  "head": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+  "original_index_sha256": "80a37096f2f054e0d3d486b2f914c3c18e4588dccb8d5b36dbda3d1f3585a74b",
+  "strict_json": {
+    "status": "FAIL",
+    "line": 82,
+    "column": 47,
+    "message": "Invalid \\escape"
+  },
+  "checks": [
+    {
+      "label": "original_test:zcode-final-domain-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-domain-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1505,
+      "sha256": "50f5409d4457cd458e8a3b13fc1f7973d45e087ea25f41c6d0db320a0455e223",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-api-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-api-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1553,
+      "sha256": "3dcd23d731b9c5f4a3673c813b89ff19d0bf2a886cfa1ef364943aab6bab9772",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-cancel-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-cancel-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1388,
+      "sha256": "f045ddd0a999d2900b546f70bfde8fea9bf3c91d681b3d3aa897f888a852a85f",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-journal-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-journal-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1385,
+      "sha256": "fe4d12f471e2069fa45ac54ef0b3e4d62985af6c8175a7018821ec04ed91e146",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-canvas-domain-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-canvas-domain-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1389,
+      "sha256": "79a4564f25e65ce9ad6e50c1134684599170b9f71e48859f8f0b8ed34c120e40",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-canvas-api-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-canvas-api-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1390,
+      "sha256": "6837f018003979f512ef9cadefe16ce4262468a4f35447087b236218434d2a30",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-py-targeted-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-py-targeted-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 2104,
+      "sha256": "c6a924462a4c9cfe18d32d1a075c3b132e2f8aa04f8a1833fcecc3080b190153",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-clippy-scope-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-clippy-scope-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1409,
+      "sha256": "2772bfabf2975b2fefd15a250fdf87959abb88264a13e2244f3a8e5ff45b5931",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "b28390759da7d65606fb478126bf9a843cf407e9",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "original_test:zcode-final-corebuild-20261030-v3",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-final-corebuild-20261030-v3\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1752,
+      "sha256": "a8480168dd4364fbce5914f04819eb1d7fe8213349fd8db9ae03a4c2486813dc",
+      "hash_match": true,
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "b28390759da7d65606fb478126bf9a843cf407e9",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "index.verification_runs_20261030.runs[8].core_build",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\release\\archeaxis-api.exe",
+      "exists": true,
+      "bytes": 19181056,
+      "sha256": "b6f5b591c2663bc03ee986a8b5aef25e1d414219373523c8b404f3a6512e103b",
+      "hash_match": true
+    },
+    {
+      "label": "index.nsis_installer_20261030.installer",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1n\\artifacts\\p\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+      "exists": true,
+      "bytes": 424441075,
+      "sha256": "3337fce6f1365d6eb8011348533b82065570cc093289771f1353a7a14268572b",
+      "hash_match": true
+    },
+    {
+      "label": "index.installed_lifecycle_20261030.c1_verifier",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\zcode-newcore-20261030\\verify-mixed-core-c1-v1.proposed.ps1",
+      "exists": true,
+      "bytes": 63119,
+      "sha256": "b5e6b9272c4753979cc9cbcb354aaddb8f36d022c0bb2828688346dae349fc03",
+      "hash_match": true
+    },
+    {
+      "label": "index.installed_lifecycle_20261030.lifecycle_receipt",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1i2\\output\\2e85b70d1f0047a2a0d7dd368ce695d7\\lifecycle-receipt.json",
+      "exists": true,
+      "bytes": 2059,
+      "sha256": "37684512ec0df3138fde03853cbe6fd7fbe928b7bd0504ae170138f8468e3887",
+      "hash_match": true,
+      "receipt_summary": {
+        "qualification_scope": "LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE",
+        "complete_lifecycle_verified": true
+      }
+    },
+    {
+      "label": "index.conflict_journey_20261030.receipt",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-4920511321ef\\tmp\\journey\\receipt.json",
+      "exists": true,
+      "bytes": 177256,
+      "sha256": "776e879f4ef00794acc17402b2a6c28f2487582fa9fa68a635c17a112cb99cb5",
+      "hash_match": true,
+      "receipt_summary": {
+        "ok": true,
+        "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+        "source_consistent": true
+      }
+    },
+    {
+      "label": "index.guest_installed_conflict_journey_20261030.receipt",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1c8\\output\\conflict-journey-receipt.json",
+      "exists": true,
+      "bytes": 176726,
+      "sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6",
+      "hash_match": true,
+      "receipt_summary": {
+        "ok": true,
+        "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+        "source_consistent": true
+      }
+    },
+    {
+      "label": "historical:backend_merge_94_tests",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\backend-merge-api-final-20261029\\artifacts\\backend-consolidation-receipt.json",
+      "exists": true,
+      "bytes": 10267,
+      "sha256": "937b7aaeb2a29b4515a8d4575ab46ecf5a034d27cf74e8da40aa5eaeed7c7ac9",
+      "receipt_summary": {
+        "status": "PASS_LOCAL_TARGETED_REFACTOR_ONLY",
+        "source_commit": "c4531c1bb6795ccda208a96ef8cc246a645d0199"
+      }
+    },
+    {
+      "label": "historical:retest_503_fail_retained",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-core-fast-dual-loop-20261029-v2\\artifacts\\core-fast-dual-loop.json",
+      "exists": true,
+      "bytes": 216198,
+      "sha256": "3a6ae01199d09306a9937c3a9dc35b04b029a74d45b80b3eab3dfce19e0c8906",
+      "receipt_summary": {
+        "status": "FAIL"
+      }
+    },
+    {
+      "label": "historical:retest_reissue_pass",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-core-fast-dual-loop-20261029-v3\\artifacts\\core-fast-dual-loop.json",
+      "exists": true,
+      "bytes": 925230,
+      "sha256": "b7e2dc6345d3aced1734b34bce0747053db5d8e72d3caeffb533386f0c4a38f8",
+      "receipt_summary": {
+        "status": "PASS_SYNTHETIC_LOCAL_FAST_DUAL_LOOP_SUBSET"
+      }
+    },
+    {
+      "label": "historical:j2_public_research_real_channel",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-j2-public\\artifacts\\public-research-receipt.json",
+      "exists": true,
+      "bytes": 2031716,
+      "sha256": "d6175941efd7a8dd064999da543ae6316bcaa627c8a5f7f20e2a02fc6c06f8f6",
+      "receipt_summary": {
+        "status": "PARTIAL",
+        "ok": true,
+        "evidence_level": "REAL_CORE_PUBLIC_NETWORK",
+        "source_consistent": true
+      }
+    },
+    {
+      "label": "historical:j2_learning",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-j2-learning\\artifacts\\research-learning-runtime.json",
+      "exists": true,
+      "bytes": 26292,
+      "sha256": "8c926c3e9d423207c92a16ff0a0542f544dfffa6c2540f18c78743a44c65a362",
+      "receipt_summary": {
+        "status": "PASS_DECLARED_INTEGRATED_SUBSET",
+        "evidence_level": "INTEGRATED_CORE_PUBLIC_AND_AUTHORED_MATERIAL"
+      }
+    },
+    {
+      "label": "historical:collection_canvas_roundtrip",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-collection-canvas-20261029\\artifacts\\collection-canvas-receipt.json",
+      "exists": true,
+      "bytes": 206581,
+      "sha256": "4305ec0367de8c5bc2f59b4156a6cc0a0d4ed86934c8496c9c18a7cc107ecaa4",
+      "receipt_summary": {
+        "status": "PASS_SYNTHETIC_COLLECTION_RAW_CANVAS_SUBSET"
+      }
+    },
+    {
+      "label": "historical:durable_batch",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-durable-batch-backend-20261029\\artifacts\\durable-batch-receipt.json",
+      "exists": true,
+      "bytes": 15651082,
+      "sha256": "04f19a0ce0394af7d4f81623cf1ce5ab830c560ea52af1f522089bcd00a072e8"
+    },
+    {
+      "label": "historical:cancel_boundary_real_core",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-core-cancel-boundary-20261029-v3\\artifacts\\core-cancel-boundary.json",
+      "exists": true,
+      "bytes": 97905,
+      "sha256": "f33f15564cec67914cac2e3650cbffdc818b4bfed1978a9f0ef0c70cf62b690b",
+      "receipt_summary": {
+        "status": "PASS_SYNTHETIC_CORE_MATERIAL_SUBSET",
+        "evidence_level": "SYNTHETIC_LOOPBACK_ACTUAL_CORE_WORKER"
+      }
+    },
+    {
+      "label": "historical:unknown_recovery_retained",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\c453-fast-unknown-recovery-20261028-v2\\artifacts\\recovery-receipt.json",
+      "exists": true,
+      "bytes": 27142,
+      "sha256": "6f6e6601d2a876a6c2bfbde9959d1c663e7655d873cec66fd52b4c03e5c1d5cb",
+      "receipt_summary": {
+        "status": "PASS_UNKNOWN_RETAINED_NO_LOCAL_REPLAY_OBSERVED"
+      }
+    },
+    {
+      "label": "campaign:zcode-stage-newcore-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-stage-newcore-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 2666,
+      "sha256": "c46297fd4e24217afdd811a38a9f06cf6a62c03d6fb4882de01030bf59c5edb0",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "35105ec46d35aeb60d107c9d91241d5a52b3450b",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-j2-public-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-j2-public-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1520,
+      "sha256": "407e2e9852e0fe6c02950bd55eaded1506bd566e76ae9d2f46d41e39ed8e7d4f",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "35105ec46d35aeb60d107c9d91241d5a52b3450b",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-j2-public-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-j2-public-20261030\\artifacts\\public-research-receipt.json",
+      "exists": true,
+      "bytes": 2028071,
+      "sha256": "41b7803c4292e58f201282fab8edd39bfc848d4d13d0e4218849bc49a3d5cae5",
+      "receipt_summary": {
+        "status": "PARTIAL",
+        "ok": true,
+        "evidence_level": "REAL_CORE_PUBLIC_NETWORK",
+        "source_consistent": true
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-learning-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-learning-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1662,
+      "sha256": "bfd7e185c895baf9e9192db1d9ed884da458b0f4e81e553b1dca9cdc5ee85a23",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "35105ec46d35aeb60d107c9d91241d5a52b3450b",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-learning-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-learning-20261030\\artifacts\\research-learning-runtime.json",
+      "exists": true,
+      "bytes": 25728,
+      "sha256": "f0643a70733969ab16920fa79ae5ebacfd682936961820862fd37c974a0fca71",
+      "receipt_summary": {
+        "status": "PASS_DECLARED_INTEGRATED_SUBSET",
+        "evidence_level": "INTEGRATED_CORE_PUBLIC_AND_AUTHORED_MATERIAL"
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-j5-template-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-j5-template-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1692,
+      "sha256": "2f494922809c6761f1a556cd5baff9a4ff526be327c38982b9af57d82f8cd69a",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "35105ec46d35aeb60d107c9d91241d5a52b3450b",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-j5-template-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-j5-template-20261030\\artifacts\\j5-template-receipt.json",
+      "exists": true,
+      "bytes": 43529,
+      "sha256": "e099ffec74ad4409773bb50ee21249c2607a02545e86df4f1fd84092b6d4ab2b",
+      "receipt_summary": {
+        "status": "PASS_FINITE_T3_SAME_CANDIDATE_WORKSPACE"
+      }
+    },
+    {
+      "label": "campaign:zcode-c1-colearning-smoke-20261030-v2",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zcode-c1-colearning-smoke-20261030-v2\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1483,
+      "sha256": "6562d78156fb3df9aaa8faeb73b07400e2402ed8859f59544a2069bad78a72f2",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "35105ec46d35aeb60d107c9d91241d5a52b3450b",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zclint-test-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zclint-test-20261030\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 1442,
+      "sha256": "933758201bb0c89da4e80e5836693d674bb4b7ffbecbaf2b5e5817b7a732144f",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "9f308f704d2315f1b3839371948c5d88a44d5245",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zclint-test-20261030",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zclint-test-20261030\\artifacts\\vnext-journey.json",
+      "exists": true,
+      "bytes": 1782,
+      "sha256": "0eeff117973eabb0ac0bcf4935b6703e6cc38be9b460213662feafae4a32d6e7",
+      "receipt_summary": {
+        "source_commit": "9f308f704d2315f1b3839371948c5d88a44d5245"
+      }
+    },
+    {
+      "label": "campaign:zc1r-v9",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1r-v9\\artifacts\\execution.json",
+      "exists": true,
+      "bytes": 2138,
+      "sha256": "8fb46f5d24b11b74454a1bf54fd35ba2af77419eb27854eeb0b6ea483c5505a7",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "11f96a2810bb0268ac88ed971930f3b06ecba669",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "campaign:zc1r-v9",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1r-v9\\artifacts\\proof-review.json",
+      "exists": true,
+      "bytes": 1234,
+      "sha256": "634159c596ec1f560f903cf66123f6ef32bfcb43400b781fed3c03510aa6e024",
+      "receipt_summary": {
+        "status": "PASS_REAL_OFFLINE_MIXED_CORE_PROOF_ONLY"
+      }
+    },
+    {
+      "label": "sandbox_aux",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1i2\\sandbox-stop-v3-terminal.json",
+      "exists": true,
+      "bytes": 453,
+      "sha256": "d8c221e5d0f1f9388347ae98d5e073a48faf7faabb3e505e295f13e48b9ad9b2",
+      "receipt_summary": {
+        "status": "STOP_CONFIRMED_OWNED_RESOURCES_CLEARED"
+      }
+    },
+    {
+      "label": "sandbox_aux",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1c8\\sandbox-stop-v3-terminal.json",
+      "exists": true,
+      "bytes": 215,
+      "sha256": "3010eb85ca51c39eb693d88b67bc141a2659dd9c78fb0a74a1b3062a1597621a",
+      "receipt_summary": {
+        "status": "STOP_CONFIRMED_OWNED_RESOURCES_CLEARED"
+      }
+    },
+    {
+      "label": "sandbox_aux",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1c8\\output\\conflict-journey-receipt.json",
+      "exists": true,
+      "bytes": 176726,
+      "sha256": "f2fd0bb3a6014234c21ab9ffdcf5617298e07f049f725818a904818dc40751e6",
+      "receipt_summary": {
+        "ok": true,
+        "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+        "source_consistent": true
+      }
+    },
+    {
+      "label": "sandbox_aux",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1c8\\output\\conflict-run-execution.json",
+      "exists": true,
+      "bytes": 1749,
+      "sha256": "10397b73a036f8ac33435e91e9dc97b73a36bd6c1dc2a05807b348782dd22684",
+      "receipt_summary": {
+        "status": "LOCAL_PASS",
+        "source_commit": "c1c4cfd0419312b6e3050e47c4606588a2958027",
+        "source_consistent": true,
+        "child_exit_code": 0
+      }
+    },
+    {
+      "label": "sandbox_aux",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1c8\\output\\guest-terminal.json",
+      "exists": true,
+      "bytes": 330,
+      "sha256": "a786d70f415392244bb792c917ece969e90db144c9d10e18a3bb40837e6143fd",
+      "receipt_summary": {
+        "status": "CONFLICT_JOURNEY_RECEIPT_COLLECTED"
+      }
+    }
+  ],
+  "diagnostic_recovery": {
+    "invalid_escape_count": 1,
+    "source_unchanged": true
+  },
+  "counts": {
+    "files_checked": 41,
+    "missing": 0,
+    "hash_mismatch": 0
+  }
+}

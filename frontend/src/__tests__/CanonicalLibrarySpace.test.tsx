@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { createHash, webcrypto } from "node:crypto";
 import { assertCoreDto } from "../api/generated/core-contract";
 import { CanonicalLibrarySpace } from "../spaces/CanonicalLibrarySpace";
+import { SpaceView } from "../spaces/SpaceView";
 import { ApiError } from "../api/client";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
@@ -27,6 +28,36 @@ let doc = { document_id: "doc_test", source_id: source.source_id, source_revisio
 
 beforeEach(resetDiagnostics);
 describe("canonical content sample", () => {
+  it("SIMULATED: a verified first original explains conversion, ordinary notes and where they are saved", async () => {
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="documents_list"?{documents:[]}:previous(op,payload));
+    render(<CanonicalLibrarySpace purpose="reader" initialSourceTarget={{source_id:source.source_id,source_revision:hash,sha256:hash}}/>);
+    await screen.findByRole("button",{name:"创建可编辑草稿"});
+    expect(screen.getByText(/需要提取文字时，点“整理此来源为知识候选”/)).toHaveTextContent("草稿保存在本地知识库");
+    expect(screen.getByRole("button",{name:"整理此来源为知识候选"})).toBeEnabled();
+    expect(bridge.call.mock.calls.some(([op])=>op==="document_create"||op==="job_enqueue")).toBe(false);
+    expect(screen.getByRole("region",{name:"阅读与编辑文档视图"})).not.toHaveAttribute("data-reader-layout");
+  });
+  it("SIMULATED: an empty reader opens the actual import action without changing the URL directly", async () => {
+    const previous=bridge.call.getMockImplementation()!,onImport=vi.fn();
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="documents_list"?{documents:[]}:op==="sources_list"?{sources:[]}:previous(op,payload));
+    const hashBefore=window.location.hash;
+    render(<CanonicalLibrarySpace purpose="reader" onOpenImport={onImport}/>);
+    const button=await screen.findByRole("button",{name:"导入第一份资料"}); fireEvent.click(button);
+    expect(onImport).toHaveBeenCalledOnce(); expect(window.location.hash).toBe(hashBefore);
+    expect(bridge.call.mock.calls.some(([op])=>op==="document_create")).toBe(false);
+  });
+
+  it("SIMULATED: a failed initial reader list offers retry and never reports an empty library", async () => {
+    bridge.call.mockRejectedValue(new Error("not connected"));
+    render(<CanonicalLibrarySpace purpose="reader" onOpenImport={vi.fn()}/>);
+    expect(await screen.findByRole("heading",{name:"资料列表暂时无法读取"})).toBeInTheDocument();
+    expect(screen.getByText(/读取失败时无法判断资料是否为空/)).toBeInTheDocument();
+    expect(screen.queryByRole("button",{name:"导入第一份资料"})).not.toBeInTheDocument();
+    expect(screen.queryByRole("button",{name:"新建原创笔记"})).not.toBeInTheDocument();
+    const calls=bridge.call.mock.calls.length; fireEvent.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    await waitFor(()=>expect(bridge.call.mock.calls.length).toBeGreaterThan(calls));
+  });
   it.each(["CURRENT","STALE","UNSUPPORTED","MISSING"])("SIMULATED: %s locator must be independently revalidated before navigation", async(status)=>{
     const position=JSON.stringify({type:"text",start:0,end:12,checksum:hash});
     const previous=bridge.call.getMockImplementation()!;
@@ -65,6 +96,36 @@ describe("canonical content sample", () => {
       }
     });
   });
+  it("SIMULATED: an opened reader exposes separate keyboard focus regions without changing the saved document",async()=>{
+    render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id}/>);
+    const editor=await screen.findByRole("textbox",{name:"文档草稿"});
+    expect(editor).toHaveTextContent("已保存笔记");
+    const reader=screen.getByRole("region",{name:"阅读与编辑文档视图"});
+    expect(reader).toHaveAttribute("data-reader-layout","split");
+    fireEvent.click(screen.getByRole("button",{name:"属性与引用"}));
+    const body=screen.getByRole("region",{name:"正文与原件滚动区"}),details=screen.getByRole("complementary",{name:"内容详情"});
+    expect(body).toHaveAttribute("tabindex","0");expect(details).toHaveAttribute("tabindex","0");
+    body.focus();expect(body).toHaveFocus();details.focus();expect(details).toHaveFocus();
+    expect(within(body).getByRole("textbox",{name:"文档草稿"})).toBe(editor);
+    expect(bridge.call.mock.calls.some(([op])=>["document_draft","document_create","model_configuration_put"].includes(op))).toBe(false);
+  });
+  it("SIMULATED: page20 keeps the history reader and runtime footer reachable while reading an immutable version",async()=>{
+    render(<SpaceView spaceId="settings" uiPageId="20" initialDocumentId={doc.document_id} onInspect={vi.fn()} onNavigate={vi.fn()}/>);
+    const current=await screen.findByRole("heading",{name:"当前保存正文"});
+    const wrapper=screen.getByRole("region",{name:"历史与来源"}),reader=screen.getByRole("region",{name:"文档版本视图"});
+    expect(reader.parentElement).toBe(wrapper);
+    expect(wrapper.matches('.stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])')).toBe(true);
+    const body=screen.getByRole("region",{name:"正文与原件滚动区"}),details=screen.getByRole("complementary",{name:"内容详情"});
+    expect(body).toContainElement(current);expect(body).toHaveTextContent(doc.text_projection);
+    expect(screen.queryByRole("textbox",{name:"文档草稿"})).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button",{name:"只读查看历史版本"}));
+    expect(await screen.findByRole("region",{name:"历史版本详情"})).toHaveTextContent("历史版本 1");
+    expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:doc.document_id,version:1});
+    body.focus();expect(body).toHaveFocus();details.focus();expect(details).toHaveFocus();
+    const runtime=within(wrapper).getByText("当前运行身份与来源",{selector:"summary"});
+    runtime.focus();expect(runtime).toHaveFocus();expect(runtime.closest("details")?.parentElement).toBe(wrapper);
+    expect(bridge.call.mock.calls.some(([op])=>["document_draft","document_restore","document_create","model_configuration_put","material_question"].includes(op))).toBe(false);
+  });
   it("SIMULATED: a source hash stays in diagnostics instead of the inspector version", async () => {
     const previous = bridge.call.getMockImplementation()!;
     bridge.call.mockImplementation((operation:string, payload:Record<string,unknown>) => operation === "documents_list"
@@ -101,7 +162,7 @@ describe("canonical content sample", () => {
     render(<CanonicalLibrarySpace/>);
     const user=userEvent.setup();
     await user.click(await screen.findByRole("button",{name:"样板.txt"}));
-    await user.click(await screen.findByRole("button",{name:"建立版本化草稿"}));
+    await user.click(await screen.findByRole("button",{name:"创建可编辑草稿"}));
     await screen.findByLabelText("待确认的笔记创建");
     await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
     await waitFor(()=>expect(screen.getByRole("button",{name:"刷新资料列表"})).toBeEnabled());
@@ -218,12 +279,12 @@ describe("canonical content sample", () => {
     expect(await reader.findByRole("article", {name:"不可变原件"})).toBeInTheDocument();
     expect(await reader.findByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
     expect(await reader.findByText(/来源：样板.txt · 文档第 1 版/)).toBeInTheDocument();
-    expect(await reader.findByRole("button",{name:"查看诊断详情：关联原件身份"})).toBeInTheDocument();
+    expect(await reader.findByRole("button",{name:"状态与诊断：关联原件身份"})).toBeInTheDocument();
     const diagnostics = renderHook(useDiagnostics);
-    await userEvent.setup().click(reader.getByRole("button",{name:"查看诊断详情：关联原件身份"}));
+    await userEvent.setup().click(reader.getByRole("button",{name:"状态与诊断：关联原件身份"}));
     expect(diagnostics.result.current[0].payload).toEqual({source_id:doc.source_id,source_revision:hash,sha256:hash});
     expect(await within(reader.getByRole("article",{name:"派生文档与版本核验"})).findByText(`文档第 ${doc.version} 版`)).toBeInTheDocument();
-    await userEvent.setup().click(reader.getByRole("button",{name:"查看诊断详情：文档内容详细信息"}));
+    await userEvent.setup().click(reader.getByRole("button",{name:"状态与诊断：文档内容详细信息"}));
     expect(diagnostics.result.current[0].payload).toEqual({document_id:doc.document_id,version:doc.version,content_sha256:doc.content_sha256});
     expect(reader.queryByText(doc.content_sha256)).not.toBeInTheDocument();
     expect(await reader.findByLabelText("并排原件正文")).toHaveTextContent("原文样板");
@@ -475,7 +536,7 @@ describe("canonical content sample", () => {
     });
     render(<CanonicalLibrarySpace/>);
     await userEvent.setup().click(screen.getByRole("button",{name:"新建原创笔记"}));
-    expect(await screen.findByLabelText("版本化草稿编辑器")).toBeInTheDocument();
+    expect(await screen.findByLabelText("文档草稿编辑器")).toBeInTheDocument();
     expect(screen.queryByRole("button",{name:"引用当前页"})).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button",{name:"保存草稿"}));
     await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.anything()));
@@ -492,7 +553,7 @@ describe("canonical content sample", () => {
     expect(evidence).toHaveTextContent("原件内容与保存记录一致");
     expect(evidence).not.toHaveTextContent(hash);
     const diagnostics=renderHook(useDiagnostics);
-    await userEvent.setup().click(within(evidence).getByRole("button",{name:"查看诊断详情：原件与来源详细信息"}));
+    await userEvent.setup().click(within(evidence).getByRole("button",{name:"状态与诊断：原件与来源详细信息"}));
     expect(diagnostics.result.current[0].payload).toEqual({source_id:source.source_id,source_revision:source.source_revision,sha256:hash});
     expect(screen.getByRole("button",{name:"来源引用 · 定位未核实"})).toBeEnabled();
   });
@@ -510,6 +571,7 @@ describe("canonical content sample", () => {
     expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
   },15000);
   it.each(["wrong hash","missing duplicate","blank source"])("SIMULATED rejects an unverified import receipt: %s",async(reason)=>{
+    const diagnostics=renderHook(useDiagnostics);
     const previous=bridge.call.getMockImplementation()!;
     bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="source_import"
       ? {source_id:reason==="blank source"?"   ":"fixture-import",sha256:reason==="wrong hash"?"0".repeat(64):hash,...(reason==="missing duplicate"?{}:{duplicate:false})}
@@ -520,6 +582,24 @@ describe("canonical content sample", () => {
     await waitFor(()=>expect(screen.getByLabelText("导入结果")).toHaveTextContent(/未确认，请保留原件/));
     expect(screen.getByLabelText("导入结果")).not.toHaveTextContent("原件已保留");
     expect(bridge.call.mock.calls.filter(([op])=>op==="sources_list")).toHaveLength(1);
+    expect(screen.getByRole("alert")).not.toHaveTextContent(/source_id|sha256|duplicate|SHA-256/);
+    fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件导入错误详细信息"}));
+    expect(diagnostics.result.current[0].payload).toMatchObject({name:"Error",message:expect.stringContaining("导入回执")});
+    expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
+    expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
+  });
+  it.each([409,504])("SIMULATED: import failures retain original status, bytes and an uncertain outcome (%s)",async status=>{
+    const previous=bridge.call.getMockImplementation()!,error=new ApiError(status,"IMPORT_FAILURE /workspace/source");
+    // Deliberately inject an unknown external code at the error boundary, retaining the actual Error instance.
+    Object.assign(error,{code:"unexpected"});
+    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>)=>op==="source_import"?Promise.reject(error):previous(op,payload));
+    const diagnostics=renderHook(useDiagnostics);render(<CanonicalLibrarySpace/>);
+    const file=new File(["原文样板"],"fixture.txt");Object.defineProperty(file,"arrayBuffer",{value:async()=>new TextEncoder().encode("原文样板").buffer});
+    await userEvent.setup().upload(screen.getByLabelText("导入原件"),file);
+    const alert=await screen.findByRole("alert");expect(alert).toHaveTextContent("导入成功仍待确认");expect(alert).not.toHaveTextContent(error.message);if(status===409)expect(alert).toHaveTextContent("冲突");
+    const imports=bridge.call.mock.calls.filter(([op])=>op==="source_import");expect(imports).toHaveLength(1);expect(imports[0][1]).toEqual({body:{name:"fixture.txt",content_base64:Buffer.from("原文样板").toString("base64")}});
+    expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
+    fireEvent.click(screen.getByRole("button",{name:"状态与诊断：原件导入错误详细信息"}));expect(diagnostics.result.current[0].payload).toMatchObject({status,code:"unexpected",message:error.message});expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
   });
   it("SIMULATED preserves confirmed custody when the following list refresh fails",async()=>{
     const previous=bridge.call.getMockImplementation()!;let imported=false;

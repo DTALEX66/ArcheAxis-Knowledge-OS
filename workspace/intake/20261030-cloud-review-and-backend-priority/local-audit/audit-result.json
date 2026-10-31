@@ -1,0 +1,223 @@
+{
+  "schema": "aaos.codex-independent-zcode-audit/v1",
+  "date": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "source_commit": "1e78ab9332164bcf1248ff33216d62e5f8b250a0",
+  "overall": "PARTIAL_NOT_UNCONDITIONAL_AUDIT_PASS",
+  "engineering_slice": "VERIFIED_WITHIN_REVIEWED_SCOPE",
+  "findings": [
+    {
+      "id": "F01",
+      "priority": "P1",
+      "state": "UNVERIFIED_OWNER_WAIVER"
+    },
+    {
+      "id": "F02",
+      "priority": "P2",
+      "state": "FAIL_STRICT_JSON"
+    },
+    {
+      "id": "F03",
+      "priority": "P2",
+      "state": "PARTIAL_STALE_FINAL_STATUS"
+    },
+    {
+      "id": "F04",
+      "priority": "P2",
+      "state": "PARTIAL_STOP_STATUS_COUNT_CONFLICT"
+    },
+    {
+      "id": "F05",
+      "priority": "P2",
+      "state": "PARTIAL_SEMANTIC_VALIDATION_GAP"
+    }
+  ],
+  "independent_verification": {
+    "rust_passed": 99,
+    "python_passed": 141,
+    "python_skipped": 1,
+    "public_j2": {
+      "status": "PARTIAL",
+      "ok": true,
+      "steps": 42,
+      "evidence_level": "REAL_CORE_PUBLIC_NETWORK"
+    },
+    "real_model": {
+      "evidence_class": "REAL_MODEL",
+      "failed_stage": null,
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-realmodel-20261030\\artifacts\\colearning-real-model\\d951a28e0d194207a2cc6fdde425ba3d\\receipt.json"
+    },
+    "candidate_members": {
+      "count": 19747,
+      "mismatches": []
+    },
+    "sidecars": [
+      {
+        "name": "candidate-manifest",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "mixed-assembly",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "host-donor-pin",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "stage-receipt",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "core-build-receipt",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "host-build-receipt",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "consumers",
+        "exists": true,
+        "hash_match": true
+      },
+      {
+        "name": "packaging-request",
+        "exists": true,
+        "hash_match": true
+      }
+    ],
+    "baseline_preservation": {
+      "files": 41,
+      "snapshot_mismatches": [],
+      "current_missing": []
+    },
+    "explicit_reference_hash_checks": 15,
+    "explicit_reference_hash_mismatches": 0
+  },
+  "runs": [
+    {
+      "run": "codex-audit-domain-20261030-v2",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-domain-20261030-v2\\artifacts\\execution.json",
+      "sha256": "063fa8b71c56e260be8278a17860c38bdc1b2b34bb576a5b01d2ee9fdd592b40",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-api-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-api-20261030\\artifacts\\execution.json",
+      "sha256": "4f0d63d72247d2bc949b18ab0430d44bf72af6579d08edd66dbf4e674ffdf2a3",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-cancel-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-cancel-20261030\\artifacts\\execution.json",
+      "sha256": "3b77822b62414f1250178b991482cffbe2b128a09e0d81bff1aed87df2f24e67",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-canvas-unit-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-canvas-unit-20261030\\artifacts\\execution.json",
+      "sha256": "b90c5d0d2124dfcef9fc4d66ef814bc1be09c9cd02928064ca083d2be99621c2",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-python-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-python-20261030\\artifacts\\execution.json",
+      "sha256": "0df60d93bebc6787d1d8d6d94139fca6b5dde71d7ef9288188e6fec9e01946f0",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-j2-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-j2-20261030\\artifacts\\execution.json",
+      "sha256": "f8c74193c6568e48701c25ba005745cdaee04c05536cec3b0d2b8cffc39ce544",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-proof-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-proof-20261030\\artifacts\\execution.json",
+      "sha256": "5218ff3a9919885a08925e3c2c8623aea599aa6b75f3bcc6e5293ea6977f90f9",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-realmodel-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-realmodel-20261030\\artifacts\\execution.json",
+      "sha256": "339227c999a308eafec0a634defdad9ef8411d1a808b876578bbda1ed70e5039",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-evidence-20261030-v3",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-evidence-20261030-v3\\artifacts\\execution.json",
+      "sha256": "f9e4254232b56c48da606552e7ad6c1343b395612e6b4199c3da93e4b6e4c592",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-integrity-20261030-v2",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-integrity-20261030-v2\\artifacts\\execution.json",
+      "sha256": "6e8f1d39f837da50f7282804b66d1f77e139f1aefaa58b55a44b7aea73b0c898",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    },
+    {
+      "run": "codex-audit-smoke-negative-20261030",
+      "receipt": ".project-local\\runs\\be268a2d33\\codex-audit-smoke-negative-20261030\\artifacts\\execution.json",
+      "sha256": "4106c19a1ae3bb81b104825156523a4e28365452e5202be6710c45f127ac734e",
+      "status": "LOCAL_PASS",
+      "source_consistent": true
+    }
+  ],
+  "cloud_ci": "NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY",
+  "fresh_installation": "NOT_EXECUTED_RECEIPTS_REVIEWED_ONLY",
+  "real_cloud_inference": "DEFERRED_UNEXECUTED",
+  "owner_acceptance": "NOT_EXECUTED",
+  "product_code_changed": false,
+  "git_status": "",
+  "artifacts": [
+    {
+      "path": "审计报告.md",
+      "sha256": "515ba63785d4c16754c6b67ae702b0584d6dadad0364d524a0fbc9d244b4b5d3"
+    },
+    {
+      "path": "audit_evidence.py",
+      "sha256": "075468295871c1de6f7f7d19e486cf13940ca65feb94a9cace1787efe6ad6f3b"
+    },
+    {
+      "path": "integrity.py",
+      "sha256": "91e8e686971b1b5080db008b411abade28a9b8d92426b2c2d588b69dc87f8172"
+    },
+    {
+      "path": "smoke_negative_control.py",
+      "sha256": "77e3b69ad3a3263ca898557a9f265e307c6bb678f4bc79a8d19daa2fec970562"
+    },
+    {
+      "path": "finalize.py",
+      "sha256": "efa3397bfc05dd7f79726d82ea12e88fe2d7834f326f66db6b807cb18b005efb"
+    },
+    {
+      "path": "evidence-validation.json",
+      "sha256": "a39fed4f5f81fcbec9ce39d27adc89695d85f82c4c18f2e404bef317166f9b3e"
+    },
+    {
+      "path": "integrity-result.json",
+      "sha256": "8a0504fb10c028b86dd79481b651bce506b88c9b00542d3b2745993972be6e8a"
+    },
+    {
+      "path": "smoke-negative-control.json",
+      "sha256": "4633aac05758a16e238b2f0047749d9599d069ae27175fe7f01ac821d72190de"
+    }
+  ]
+}

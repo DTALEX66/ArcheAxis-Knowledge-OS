@@ -1136,3 +1136,143 @@ sys.exit(1)
     assert!(terminal["usage"].is_null());
     assert!(!conditions.contains("Synthetic bounded failure"));
 }
+
+fn structured_format() -> serde_json::Value {
+    serde_json::json!({"type":"json_schema","json_schema":{"name":"archeaxis_response","strict":true,
+        "schema":{"type":"object","properties":{"writer":{"type":"string"},"frozen":{"type":"boolean"}},
+        "required":["writer","frozen"],"additionalProperties":false}}})
+}
+
+#[tokio::test]
+async fn structured_answer_binds_real_worker_file_cache_correction_and_retest() {
+    use archeaxis_domain::response_format;
+    let (dir, router, id) = fixture().await;
+    // The actual child process receives the staged schema. Its answer is intentionally factually wrong.
+    std::fs::write(dir.path().join("answer.py"), r#"import hashlib,json,sys
+from pathlib import Path
+p=Path(__file__).with_suffix('.count')
+p.write_text(str(int(p.read_text())+1) if p.exists() else '1')
+f=json.loads(Path(sys.argv[sys.argv.index('--response-format-file')+1]).read_text())
+Path(__file__).with_suffix('.format.json').write_text(json.dumps(f))
+h=hashlib.sha256(json.dumps(f,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+print(json.dumps({'answer':'{"writer":"Python worker","frozen":false}', 'model':'synthetic',
+ 'response_format':f,'response_format_sha256':h,'format_validation':'VALID','answer_source':'content',
+ 'finish_reason':'stop','truncated':False,'loss_receipt':{'params':{'authority':'candidate'}}}))
+"#).unwrap();
+    let mut request = serde_json::json!({"knowledge_id":id,"question":"what writes the store?",
+        "client_request_id":"structured-shape","response_format":structured_format()});
+    let mut bad = request.clone();
+    bad["response_format"]["json_schema"]["schema"]["properties"]["writer"]["const"] =
+        "Rust Core".into();
+    assert_eq!(
+        post(&router, "/api/v1/machine/answers", &bad.to_string())
+            .await
+            .0,
+        422
+    );
+    assert!(!dir.path().join("answer.count").exists());
+    let (status, raw) = post(&router, "/api/v1/machine/answers", &request.to_string()).await;
+    assert_eq!(status, 200, "{raw}");
+    let first: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let normalized = response_format::normalize(&structured_format()).unwrap();
+    assert_eq!(first["request"]["response_format"], normalized);
+    assert_eq!(
+        first["request"]["response_format_sha256"],
+        response_format::fingerprint(&normalized)
+    );
+    assert_eq!(first["answer"]["response_format"], normalized);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(
+            &std::fs::read(dir.path().join("answer.format.json")).unwrap()
+        )
+        .unwrap(),
+        normalized
+    );
+    request["response_format"] = normalized.clone();
+    let (status, raw) = post(&router, "/api/v1/machine/answers", &request.to_string()).await;
+    assert_eq!(status, 200, "{raw}");
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&raw).unwrap(),
+        first
+    );
+    let mut changed = request.clone();
+    changed["response_format"]["json_schema"]["schema"]["properties"]["frozen"]["type"] =
+        "string".into();
+    assert_eq!(
+        post(&router, "/api/v1/machine/answers", &changed.to_string())
+            .await
+            .0,
+        409
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+    let correction = serde_json::json!({"answer_id":first["answer_id"],"knowledge_id":id,
+        "question":request["question"],"machine_answer":first["answer"]["answer"],
+        "corrected_answer":"Rust Core writes the store; the release is frozen.","error_note":"synthetic incorrect facts"});
+    let (status, raw) = post(
+        &router,
+        "/api/v1/machine/corrections",
+        &correction.to_string(),
+    )
+    .await;
+    assert_eq!(status, 200, "{raw}");
+    let correction: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let mut retest = serde_json::json!({"knowledge_id":id,"question":request["question"],"retest_of":correction["failed_task_id"]});
+    assert_eq!(
+        post(&router, "/api/v1/machine/retests", &retest.to_string())
+            .await
+            .0,
+        409
+    );
+    retest["response_format"] = changed["response_format"].clone();
+    assert_eq!(
+        post(&router, "/api/v1/machine/retests", &retest.to_string())
+            .await
+            .0,
+        409
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+    retest["response_format"] = normalized;
+    let (status, raw) = post(&router, "/api/v1/machine/retests", &retest.to_string()).await;
+    assert_eq!(status, 200, "{raw}");
+    let retested: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(
+        retested["request"]["response_format"],
+        first["request"]["response_format"]
+    );
+    assert_eq!(
+        retested["execution_request"]["request"]["response_format"],
+        first["request"]["response_format"]
+    );
+    assert_eq!(retested["prior"]["conditions"]["request"], first["request"]);
+    let (status, raw) = post(&router, "/api/v1/machine/retests", &retest.to_string()).await;
+    assert_eq!(status, 200, "{raw}");
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&raw).unwrap(),
+        retested
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+}
+
+#[tokio::test]
+async fn structured_answer_rejects_worker_that_drops_format_without_success_publication() {
+    let (dir, router, id) = fixture().await;
+    let request = serde_json::json!({"knowledge_id":id,"question":"what writes?","client_request_id":"dropped-format","response_format":structured_format()});
+    let (status, raw) = post(&router, "/api/v1/machine/answers", &request.to_string()).await;
+    assert_eq!(status, 503, "{raw}");
+    let receipt: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(receipt["reason_code"], "INVALID_OUTPUT");
+    assert_eq!(receipt["answer_published"], false);
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+}

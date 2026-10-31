@@ -1,0 +1,148 @@
+{
+  "schema": "aaos.storage-maintenance-manifest/v1",
+  "date": "2026-10-30",
+  "role": "LIGHTWEIGHT_INDEX_RAW_EVIDENCE_REMAINS_IGNORED",
+  "artifacts": [
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/build-and-staging-breakdown.json",
+      "bytes": 3423,
+      "sha256": "70cc151e11859aa93b30f3b50f4a72a345fcaec666890d23ff73b8656d07132e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/build-detail.json",
+      "bytes": 6665,
+      "sha256": "5f6fe50687c6364946dd1718fff8ebe88b40eafb7a268a1fed701907fc8639f6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/cleanup-files.jsonl",
+      "bytes": 50311940,
+      "sha256": "a386df268aae8232780b19f44f17ed99cb735b9096ca92f4b748ebf3923a5476"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/cleanup-result.json",
+      "bytes": 13684,
+      "sha256": "bea07f88002f378ecb15d735cec3f2f10cac4fc722bfbbec7f7001f3ae418add"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/cleanup-scope.json",
+      "bytes": 37560,
+      "sha256": "d830ebf8caa2140c95bd7395b1dee715a9088a56808f45c0397a00ef5752a42d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/cleanup-verification.json",
+      "bytes": 2924,
+      "sha256": "85a182ebc029ed37d2422d5fabc0c4372c5a06a9ccec5cbd230c184e1cd6eb8b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/deleted-paths.jsonl",
+      "bytes": 23625309,
+      "sha256": "6f2617e1e24bef16fd85796f6cee40a725d488937dc7cd7f865c553015e1b94a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/execution.json",
+      "bytes": 1407,
+      "sha256": "c4ea95ed917c150d5333ef6433fe87d3acc9acd04d46abd9f8e3af6a1619da49"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/footprint-after.json",
+      "bytes": 1282784,
+      "sha256": "738a60e044e8f8464bf8d3a350714ff5531f50d5d4878c53376401c2c774fa33"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/footprint-before.json",
+      "bytes": 1242769,
+      "sha256": "55e1499cc27907c776d0161eeba9d989fb9484ee48712de7f38418ff9bd8eb3e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/git-index-archive-validation.json",
+      "bytes": 1446,
+      "sha256": "8185fa1b6aaf2364858483084dffa22375996565a301bb9982032332b04da79e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/new-path-and-link-validation.json",
+      "bytes": 3440,
+      "sha256": "7272d7cafa121943134ac7b394a87c43900b458d1d84f9459c26d47cccce1bff"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/normalization-inventory.json",
+      "bytes": 399507,
+      "sha256": "f5049db88baa9fc030451d6d7b7c1d20b34ca2c37dca76174ed423e4809a8dbc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/artifacts/runs-before.json",
+      "bytes": 3157796,
+      "sha256": "6f7f520b9a6599cef56c2c202bcc49bd0bef436bace0a8c9d188f49f75d10688"
+    }
+  ],
+  "scripts": [
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/apply_cleanup.ps1",
+      "bytes": 6563,
+      "sha256": "bbeb5736912543680d76a8d31f41c900329d6c3c0f8c854aa73a27b3961d51fd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/archive_intake.py",
+      "bytes": 2822,
+      "sha256": "a843ff90f820313c0c28ca46f95b3bd94a29985d97bc409ccb6adab67ffbeea8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/check_offline_rebuild_inputs.py",
+      "bytes": 1426,
+      "sha256": "7e9a3437b1dbd3998d12cc5b019d2802e05f42d2ed9af6c2474590bad1f333bc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/finalize_records.py",
+      "bytes": 11981,
+      "sha256": "6826e039babaa3f5817a5d410fa47e8c3f0a4d7eb864e7340c07c4e4e4f367c4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/prepare_cleanup.py",
+      "bytes": 6774,
+      "sha256": "a2fe987753edfe5453f41a7ea190755675e44a884e4144e7b499ae20739bc5a6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/tauri-build.json",
+      "bytes": 117,
+      "sha256": "bf1eb8b526494f9b80b577b12783d243acc35e821777a2dc901aff5b257b07c1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-governance-20261030/tmp/verify_cleanup.py",
+      "bytes": 3875,
+      "sha256": "0606f3830257364fa5a70a385bb19e0d3348f840f8e60dde151d5a710d9aa806"
+    }
+  ],
+  "additional": [
+    {
+      "path": ".project-local/runs/be268a2d33/storage-offline-windows-20261030-v2/artifacts/offline-rebuild-inputs.json",
+      "bytes": 280,
+      "sha256": "96fab5195b0d0a1a9bb4507ec83a3cbd38dab3691915e3dd94df60564e45d3f6"
+    }
+  ],
+  "validation_receipts": [
+    {
+      "path": ".project-local/runs/be268a2d33/8099128c3dc0/artifacts/execution.json",
+      "bytes": 1727,
+      "sha256": "ff7097a9867158327fbeb860b7a77f1e5876954b9431decc2294647c4fc5ae1d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/b65d4c2f1083/artifacts/execution.json",
+      "bytes": 1632,
+      "sha256": "f45d2abcb9e188dc9aebf7baebad4361306802c91ff57fe6f07d28d741d58103"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-doc-authority-20261030/artifacts/execution.json",
+      "bytes": 1294,
+      "sha256": "a6588c7423d1aa1d316e2ef53cbeccfd9b7fa3f61d9413eec3a88c9d997e3ac8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-path-conventions-20261030/artifacts/execution.json",
+      "bytes": 1295,
+      "sha256": "cffd7584164d58d72fc28de1772011442c04718199facd0ed025980f41e0e4ee"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/storage-offline-windows-20261030-v2/artifacts/execution.json",
+      "bytes": 1360,
+      "sha256": "4aef7b34a54a0279cd2c0aa3b7be0f5552e81e483a29474453d8365b78081afb"
+    }
+  ]
+}

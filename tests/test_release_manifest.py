@@ -567,7 +567,7 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     assert "release-lifecycle-sentinel.txt" in lifecycle
     assert "NSIS uninstall removed user data instead of retaining it" in lifecycle
     assert "installed Core persistent readback changed" in lifecycle
-    assert "InPlaceUpgrade = $true" in lifecycle
+    assert "InPlaceUpgrade = if ($RequireLocalPinnedIdentity) { 'SAME_VERSION_REINSTALL' } else { $true }" in lifecycle
     assert "UninstallRetainsData = $true" in lifecycle
     assert "ReinstallReadback = $true" in lifecycle
 

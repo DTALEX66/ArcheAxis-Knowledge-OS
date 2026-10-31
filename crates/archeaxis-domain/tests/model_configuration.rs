@@ -177,3 +177,78 @@ fn companion_and_material_bindings_are_independent_and_frozen() {
     put(&mut conn, 1, changed).unwrap();
     assert!(assert_current(&conn, &frozen).is_err());
 }
+
+#[test]
+fn buffered_cloud_is_material_only_and_requires_opaque_credential() {
+    let mut c = configuration();
+    c.bindings = vec![Binding {
+        purpose: Purpose::Material,
+        lane: Lane::Fast,
+        profile_id: "local".into(),
+    }];
+    let p = c.profiles.get_mut("local").unwrap();
+    p.endpoint = "https://api.openai.com/v1".into();
+    p.protocol = "openai-buffered".into();
+    p.timeout_s = 60;
+    p.credential_ref = Some(format!("aak_cred_{}", "a".repeat(32)));
+    validate(&c).unwrap();
+    for purpose in [
+        Purpose::Answer,
+        Purpose::Retest,
+        Purpose::Companion,
+        Purpose::Embedding,
+        Purpose::DocumentCheck,
+    ] {
+        c.bindings[0].purpose = purpose;
+        assert!(validate(&c).is_err());
+    }
+    c.bindings[0].purpose = Purpose::Material;
+    c.bindings[0].lane = Lane::Deep;
+    validate(&c).unwrap();
+    for credential in [
+        None,
+        Some("secret".into()),
+        Some(format!("aak_cred_{}", "A".repeat(32))),
+    ] {
+        c.profiles.get_mut("local").unwrap().credential_ref = credential;
+        assert!(validate(&c).is_err());
+    }
+}
+#[test]
+fn cloud_endpoint_rejects_private_and_ambiguous_authorities_without_loosening_local() {
+    let mut c = configuration();
+    c.bindings.clear();
+    let p = c.profiles.get_mut("local").unwrap();
+    p.protocol = "openai-buffered".into();
+    p.timeout_s = 60;
+    p.credential_ref = Some(format!("aak_cred_{}", "1".repeat(32)));
+    for endpoint in [
+        "http://api.openai.com/v1",
+        "https://127.0.0.1/v1",
+        "https://10.0.0.1/v1",
+        "https://[::1]/v1",
+        "https://localhost/v1",
+        "https://host.local/v1",
+        "https://host.internal/v1",
+        "https://host.home.arpa/v1",
+        "https://user@api.openai.com/v1",
+        "https://api.openai.com/v1?q=a",
+        "https://api.openai.com/v1#fragment",
+        "https://api.openai.com./v1",
+        "https://api.openai.com:0/v1",
+        "https://api.openai.com:8443/v1",
+        "https://api.openai.com/v1.0",
+        "https://api.openai.com/a//b",
+        "https://api.openai.com/%2e",
+        "https://api.openai.com\\@localhost/v1",
+    ] {
+        c.profiles.get_mut("local").unwrap().endpoint = endpoint.into();
+        assert!(validate(&c).is_err(), "{endpoint}");
+    }
+    for protocol in ["openai", "ollama"] {
+        let p = c.profiles.get_mut("local").unwrap();
+        p.endpoint = "https://api.openai.com/v1".into();
+        p.protocol = protocol.into();
+        assert!(validate(&c).is_err());
+    }
+}

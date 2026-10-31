@@ -1,0 +1,399 @@
+{
+  "schema": "aaos.fixed-six-source-cleanup-deployment/v1",
+  "status": "EXACT_PUBLIC_MAP_REMOVAL_AND_RETAINED_CHAIN_VERIFIED",
+  "source_commit": "96e4300870938506aea55b8a7bb1162ffc371fae",
+  "authorization": "Existing explicit conditional Owner project cleanup scope; attachment instructions and old-version age do not grant broader operations. Root and independent scope review plus fresh actual gates and independent POST.",
+  "source_roots": [
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v4-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v6-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v7-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v8-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-audit-remediation-v9-portable/artifacts/星环便携候选",
+    ".project-local/runs/be268a2d33/ui-polish-20261027-portable/artifacts/星环便携候选"
+  ],
+  "retained_root": ".project-local/runs/be268a2d33/ui-audit-remediation-v12-portable/artifacts/星环便携候选",
+  "leaves_per_source": 19709,
+  "source_leaf_files_removed": 118254,
+  "source_logical_path_bytes_removed": 8101280628,
+  "restore_map_sha256": "17ca4402536768ab23ec844926408a05ca321b5d6a672142a6866e6de9617f8b",
+  "directories_deleted": 0,
+  "payload_copies": 0,
+  "acl_changes": 0,
+  "other_processes_stopped": 0,
+  "qualification": {
+    "run": "batchelig-96752792",
+    "actual_exit": 0,
+    "wrapper_exit": 0,
+    "source_consistent": true,
+    "metadata_per_phase": 137970,
+    "delete_access_probes": 236508,
+    "alias_queries": 452,
+    "full_resource_rm_sessions": 6,
+    "errors": 0
+  },
+  "actual": {
+    "run": "batchdel-40e21d2a",
+    "actual_exit": 0,
+    "wrapper_exit": 0,
+    "source_consistent": true,
+    "source_clean": true,
+    "durable_commits": 118254,
+    "native_dispositions": 118254,
+    "native_close_count": 500963,
+    "all_close_returns": 1,
+    "fresh_full_rm_sessions": 6,
+    "resources_per_group": 19710,
+    "groups_per_pair": 2,
+    "rm_calls": 30,
+    "all_rm_codes": 0,
+    "lockers": 0,
+    "errors": []
+  },
+  "post": {
+    "run": "batchpost-b71be9b1",
+    "actual_exit": 0,
+    "wrapper_exit": 0,
+    "source_consistent": true,
+    "source_clean": true,
+    "source_missing_winerror2": 118254,
+    "retained_complete_sha_original_identity_matches": 19709,
+    "retained_bytes": 1350213438,
+    "protected_complete_sha_original_identity_matches": 35,
+    "errors": [],
+    "pairs": [
+      {
+        "source_run": "ui-audit-remediation-v4-portable",
+        "durable_commits": 19709,
+        "native_dispositions": 19709,
+        "close_count": 83495,
+        "rm_end_code": 0,
+        "journal_sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+      },
+      {
+        "source_run": "ui-audit-remediation-v6-portable",
+        "durable_commits": 19709,
+        "native_dispositions": 19709,
+        "close_count": 83495,
+        "rm_end_code": 0,
+        "journal_sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+      },
+      {
+        "source_run": "ui-audit-remediation-v7-portable",
+        "durable_commits": 19709,
+        "native_dispositions": 19709,
+        "close_count": 83495,
+        "rm_end_code": 0,
+        "journal_sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+      },
+      {
+        "source_run": "ui-audit-remediation-v8-portable",
+        "durable_commits": 19709,
+        "native_dispositions": 19709,
+        "close_count": 83495,
+        "rm_end_code": 0,
+        "journal_sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+      },
+      {
+        "source_run": "ui-audit-remediation-v9-portable",
+        "durable_commits": 19709,
+        "native_dispositions": 19709,
+        "close_count": 83495,
+        "rm_end_code": 0,
+        "journal_sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+      },
+      {
+        "source_run": "ui-polish-20261027-portable",
+        "durable_commits": 19709,
+        "native_dispositions": 19709,
+        "close_count": 83488,
+        "rm_end_code": 0,
+        "journal_sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+      }
+    ]
+  },
+  "storage_snapshot": {
+    "run": "batchsize-12792afb",
+    "actual_exit": 1,
+    "wrapper_exit": 1,
+    "source_consistent": true,
+    "source_clean": true,
+    "readable_bytes_before": 142280381205,
+    "readable_bytes_after": 134357299417,
+    "delta_readable_bytes": -7923081788,
+    "measurement_status": "PARTIAL",
+    "measurement_errors": 674,
+    "excluded_private": 243,
+    "excluded_checkouts": 0,
+    "out_of_layout": 581,
+    "old_error_private_layout_rows_equal": true,
+    "growth_review": {
+      "status": "NO_NEW_GROWTH_TRIGGER",
+      "delta_readable_bytes": -7923081788,
+      "growth_review_bytes": 2147483648,
+      "over_budget_classes": [
+        "candidates/",
+        "runs/"
+      ],
+      "new_over_budget_classes": [],
+      "over_budget_class_delta_bytes": {
+        "candidates/": 0,
+        "runs/": -7915479713
+      },
+      "growing_over_budget_classes": [],
+      "new_out_of_layout": [],
+      "measurement_status": "PARTIAL",
+      "deletion_authorized": false
+    }
+  },
+  "four_named_proof_runs": {
+    "batchhash-6c4aae2b": 22524689,
+    "batchelig-96752792": 93714777,
+    "batchdel-40e21d2a": 60411854,
+    "batchpost-b71be9b1": 7762921,
+    "total_logical_bytes": 184414241,
+    "scope": "Named run metadata, logs and artifacts only; excludes preparation and other runs. Not whole-repository net or physical allocation."
+  },
+  "protected33_per_endpoint": "NOT_TARGETED_NOT_PROBED; no existence/content checks, no identity qualification",
+  "full_restore_rehearsal": "NOT_EXECUTED",
+  "historical_replay": "Full retained hash then exclusive-create only missing original relative paths; never overwrite existing different content; new file identities/permissions/resource state must be requalified. No automatic restore/retry. Historical FAIL/PARTIAL and old cleanup_qualified=false receipts unchanged.",
+  "remaining": [
+    "49 normalization ownership/retention entries remain unqualified for cleanup",
+    "Existing out-of-layout paths and unreadable/private scope remain PARTIAL",
+    "Large portable producer growth enforcement candidates not yet applied or tested at this checkpoint",
+    "F05 fixed second model response unfinished; root cause UNVERIFIED and quality FAIL",
+    "Complete J1/CL/R6, installation, UI and Owner acceptance not qualified"
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/batch-plan-v2.json",
+      "bytes": 44139,
+      "sha256": "2123614e8fc7d2687675d8506bc617df748aa6d3c90b2c42dc2ee5f303bac7c1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-CONSUMER-ADOPTION.json",
+      "bytes": 1858,
+      "sha256": "499e108d41b0c2dcca018ee1cd0fde8292cf0a1cf1ec8054d9692035f54a1a2c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/CONSUMER-ROLLBACK-REVIEW.json",
+      "bytes": 28860,
+      "sha256": "b73423f4d596bfdea5315802ba6472934251302428013ea491306ae5e9c763ce"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/verify_batch_eligibility.py",
+      "bytes": 23927,
+      "sha256": "8f89c9b23b4da7a9de76f501de05cef7ffbb59464a01a1ff5fef063743e816cb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-ELIGIBILITY-VERIFIED.json",
+      "bytes": 1561,
+      "sha256": "b0a9d053c85c00442ce3711a6abf2b8bafb30e6f53592b0e28a57a7e0326f77a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/exact_delete_batch_candidate.py",
+      "bytes": 32724,
+      "sha256": "bccd1e029e34925311d50b82fa7ffa31c1f7ceef0f8e41d9558eaa3f9c9ea9db"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/root_batch_delete_entry.py",
+      "bytes": 6409,
+      "sha256": "e96ae1f2c4fb68633619c16470a77c6a4ae2819ee4ad5f1503156ce470dde7b8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-DRIVER-REVIEW.json",
+      "bytes": 5371,
+      "sha256": "c2f70cab2404b6b684f4da6ea694b34f5a5ab6b499a9a601ba0761aae85e640d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/INDEPENDENT-DELETE-BATCH-REVIEW.json",
+      "bytes": 1666,
+      "sha256": "ad60c2ecbb7e73e8f0c730f3f5b02c5baf23bd258625643ed50e8d321c21b3c8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-DRIVER-SYNTHETIC.json",
+      "bytes": 3114,
+      "sha256": "cb24e1b5807c5e57a7317124b5e67a07be8224a9186e432569fbae0cce20d6de"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-ENTRY-AND-POST-REVIEW.json",
+      "bytes": 1762,
+      "sha256": "4b16d92dfd725c589458d3a9ca21c8a90814d68552eb9fa513c1a64cca62f922"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-ACTUAL-ALLOCATION.json",
+      "bytes": 1770,
+      "sha256": "99e967982c4012fca29f7a4e89204c3cb5b147188000f1930c5143a3cc861377"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/post_exact_delete_batch.py",
+      "bytes": 27976,
+      "sha256": "b74fbbe00ec409d44a3338c47a2ebfd6ab26706264f801d62e8191fdcc54c5a8"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-POST-INPUTS.json",
+      "bytes": 5372,
+      "sha256": "9b4122335c3ddd36ed8fb9725ce7d56c59c869fef4dce633239296c4059740a6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-POST-ALLOCATION.json",
+      "bytes": 678,
+      "sha256": "c43c22403246687077ad01969440027273d42cdd280974561e4ae8047bb1b704"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-SIZE-ALLOCATION.json",
+      "bytes": 544,
+      "sha256": "44302ce6af5a47b505494216ef23ad373a757c2c8c49bf5ea538dbedcd846f7e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/artifacts/restore-map.jsonl",
+      "bytes": 22499572,
+      "sha256": "17ca4402536768ab23ec844926408a05ca321b5d6a672142a6866e6de9617f8b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/artifacts/restore-plan.json",
+      "bytes": 21813,
+      "sha256": "5be4e9dfe5a88271e38bc391cb0be0374c5555cb60bebcff5228f660ee5f3070"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchhash-6c4aae2b/artifacts/execution.json",
+      "bytes": 1458,
+      "sha256": "d82bea5d1cb3745b6e9d67ce0b0ddc0f1e17cfa01cac7d7b8e0a35f7ae7edf71"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchelig-96752792/artifacts/eligibility-summary.json",
+      "bytes": 14081,
+      "sha256": "bdcce8259692af336e8ae0ee1628425c1b2777274ef5c9b638b8566eec9ba1fe"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchelig-96752792/artifacts/eligibility-rows.jsonl",
+      "bytes": 93693062,
+      "sha256": "3603caf0d05465e08307b765d7fc71a57b780509ab7cfa952f328a9de95b52ba"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchelig-96752792/artifacts/execution.json",
+      "bytes": 1461,
+      "sha256": "a2773984ad6002d8db7ba36bf1c32d6d50fd58524154dd6e3d9507004b7611bd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ROOT-DELETE-CONTRACT.json",
+      "bytes": 2468,
+      "sha256": "05c8efc08ccce3163be4ff4f34ca99879ea26ce488c8b81ec6b0a326bef1011e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/restore-ALL-INTENT.json",
+      "bytes": 3190,
+      "sha256": "75dedd94c1342c6fcce0b1909753581f4cf029b31ecb5f07299680955570df9a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/batch-delete-summary.json",
+      "bytes": 3705,
+      "sha256": "8e7d26259ef02cc5be93db46bd7846bbef4aa8d4dd7c3ac5f1dba175d8b3663a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/execution.json",
+      "bytes": 1457,
+      "sha256": "447197302aa0ee62ca3125023efe336ce830527d8f4e2384cb1d4aa70296a684"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchpost-b71be9b1/artifacts/post-batch-summary.json",
+      "bytes": 24624,
+      "sha256": "05dd803a7ef4d7132094047c7a2f64be58761e352b11079deaf100d40e72a347"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchpost-b71be9b1/artifacts/post-batch-rows.jsonl",
+      "bytes": 7735592,
+      "sha256": "a1cd4b33c460a3d8120c21e9687e2c7a7d5c86b913a7e4c9f63d067294bf124f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchpost-b71be9b1/artifacts/execution.json",
+      "bytes": 1738,
+      "sha256": "3803871c4e16d3e36beca950cae18be28a1418a34a56d726630fa55308003d67"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchsize-12792afb/artifacts/storage-after.json",
+      "bytes": 838252,
+      "sha256": "a7df0255b316c104ff34118b41744e24db84a5ec33bc3b173fef2fb3c7dd1f06"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchsize-12792afb/artifacts/execution.json",
+      "bytes": 1521,
+      "sha256": "15eb4a7b0bc6f382e3c2e55b181f588b91f5279b4243dc189b43e63b2bc19bbb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/r6fb-sizepost-375ec651/artifacts/storage-after.json",
+      "bytes": 838245,
+      "sha256": "6f369394c60693ba3c17aacd4949ccc2d84d66c3764ff244b1cf519818c0121f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v4-portable.summary.json",
+      "bytes": 6473604,
+      "sha256": "2ab3effd04122f77144e4c3abef92e94105f557ea020e92b47826ff74da9b593"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v4-portable.commit-journal.jsonl",
+      "bytes": 3597772,
+      "sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v6-portable.summary.json",
+      "bytes": 6473122,
+      "sha256": "a3f0ed69cb5ed2ff493f39eb249c421bd26dfdf755e00e3fb69e3aa0ce079eed"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v6-portable.commit-journal.jsonl",
+      "bytes": 3597772,
+      "sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v7-portable.summary.json",
+      "bytes": 6472502,
+      "sha256": "a4ada7983f56457ca6393974e57cd32fefe7d86554786a30e82118830e9dfcd4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v7-portable.commit-journal.jsonl",
+      "bytes": 3597772,
+      "sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v8-portable.summary.json",
+      "bytes": 6472050,
+      "sha256": "739846192aeb4d39c979aaddde4dcdd89b7c5d655807ea47a278df60785d3c29"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v8-portable.commit-journal.jsonl",
+      "bytes": 3597772,
+      "sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v9-portable.summary.json",
+      "bytes": 6472149,
+      "sha256": "95390b46f4d79abbe943dc999f41c4008762742bbfe26549bb07614d6257aeda"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-audit-remediation-v9-portable.commit-journal.jsonl",
+      "bytes": 3597772,
+      "sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-polish-20261027-portable.summary.json",
+      "bytes": 6449383,
+      "sha256": "20dc957f09bfc7839749458c178739bbafdfef8ace0f1153d59de58cc32f2c12"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/batchdel-40e21d2a/artifacts/ui-polish-20261027-portable.commit-journal.jsonl",
+      "bytes": 3597772,
+      "sha256": "a57c60aab254e14b78870f811cf71d4f40f98e2f8afd3fa69605d455b20fc15c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/POST-PEER-RECONCILIATION.json",
+      "bytes": 21790,
+      "sha256": "37a04dcf43c9b7ed1dd31de0b8352e9e7d59a7568a8c78e9dc3f848c0bdc298a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/POST-PEER-RECONCILIATION.md",
+      "bytes": 4815,
+      "sha256": "127a27eb905a6db7a46205c4adb8492dfcd247b5797912ebd3389b29ec5e5337"
+    }
+  ],
+  "independent_receipt_reconciliation": "PASS_FIXED_SIX_SOURCE_RECEIPT_MAP_COMMIT_POST_RECONCILIATION; no additional payload read or new qualification"
+}

@@ -65,6 +65,7 @@ def test_fidelity_public_background_never_replaces_original(monkeypatch, mode, r
 
     monkeypatch.setattr(http, "fetch", fetch)
     monkeypatch.setattr(worker, "donor", lambda name: http if name == "safe_http" else adapter)
+    monkeypatch.setattr(worker, "read_product_credential", lambda reference: bytearray(b"synthetic-key"))
     calls = []
 
     def completion(**kwargs):
@@ -102,6 +103,7 @@ def test_fidelity_public_background_never_replaces_original(monkeypatch, mode, r
         "config": {
             "provider": "openai",
             "model": "openai/explicit",
+            "credential_ref": "aak_cred_" + "a" * 32,
             "endpoint": None,
             "max_tokens": 512,
             "timeout_seconds": 10,

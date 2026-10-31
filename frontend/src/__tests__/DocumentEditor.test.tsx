@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { Editor, JSONContent } from "@tiptap/core";
 import { DocumentEditor, decodeEditorContent, encodeEditorContent } from "../components/DocumentEditor";
 
 describe("versioned content editor", () => {
@@ -7,6 +8,58 @@ describe("versioned content editor", () => {
   it("preserves unknown nodes through the editor codec", () => {
     const original = { type: "doc", content: [{ type: "futureSpatialNode", attrs: { block_id: "future", private_property: 42 }, content: [{ type: "text", text: "未来节点正文" }] }] };
     expect(encodeEditorContent(decodeEditorContent(original))).toEqual(original);
+  });
+  it("gives a split paragraph a new ID and saves both paragraphs with the original identity intact", async () => {
+    const save=vi.fn(async (body:JSONContent,version:number)=>({content:body,version:version+1}));
+    render(<DocumentEditor content={content} version={1} onSave={save}/>);
+    const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+    const editor=(textbox as HTMLElement&{editor:Editor}).editor;
+    act(()=>{editor.commands.setTextSelection(2);editor.commands.splitBlock();});
+    fireEvent.click(screen.getByRole("button",{name:"保存草稿"}));
+    await waitFor(()=>expect(save).toHaveBeenCalledTimes(1));
+    const paragraphs=save.mock.calls[0][0].content!;
+    expect(paragraphs.map(node=>node.content?.[0]?.text)).toEqual(["原","文"]);
+    expect(paragraphs[0].attrs?.block_id).toBe("p1");
+    expect(paragraphs[1].attrs?.block_id).toBeTruthy();
+    expect(paragraphs[1].attrs?.block_id).not.toBe("p1");
+    expect(await screen.findByRole("status")).toHaveTextContent("已保存版本 2");
+  });
+  it("repairs IDs copied by a multi-paragraph paste without dropping the pasted text", async () => {
+    const save=vi.fn(async (body:JSONContent,version:number)=>({content:body,version:version+1}));
+    render(<DocumentEditor content={content} version={1} onSave={save}/>);
+    const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+    const editor=(textbox as HTMLElement&{editor:Editor}).editor;
+    act(()=>editor.commands.insertContentAt({from:0,to:editor.state.doc.content.size},[
+      {type:"paragraph",attrs:{block_id:"p1"},content:[{type:"text",text:"第一段"}]},
+      {type:"paragraph",attrs:{block_id:"p1"},content:[{type:"text",text:"第二段"}]},
+      {type:"paragraph",content:[{type:"text",text:"第三段"}]},
+    ]));
+    fireEvent.click(screen.getByRole("button",{name:"保存草稿"}));
+    await waitFor(()=>expect(save).toHaveBeenCalledTimes(1));
+    const paragraphs=save.mock.calls[0][0].content!;
+    expect(paragraphs.map(node=>node.content?.[0]?.text)).toEqual(["第一段","第二段","第三段"]);
+    const ids=paragraphs.map(node=>node.attrs?.block_id);
+    expect(ids.every(Boolean)).toBe(true);
+    expect(new Set(ids).size).toBe(3);
+  });
+  it("keeps an existing block ID when a copy is pasted before it and preserves unknown content", async () => {
+    const unknown={type:"futureSpatialNode",attrs:{block_id:"future",private_property:42},content:[{type:"text",text:"未来节点正文"}]};
+    const original={...content,content:[...content.content,unknown]};
+    const save=vi.fn(async (body:JSONContent,version:number)=>({content:body,version:version+1}));
+    render(<DocumentEditor content={original} version={1} onSave={save}/>);
+    const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+    const editor=(textbox as HTMLElement&{editor:Editor}).editor;
+    act(()=>editor.commands.insertContentAt(0,[
+      {type:"paragraph",attrs:{block_id:"p1"},content:[{type:"text",text:"复制到前面"}]},
+      {type:"paragraph",attrs:{block_id:"future"},content:[{type:"text",text:"不能占用未知节点身份"}]},
+    ]));
+    fireEvent.click(screen.getByRole("button",{name:"保存草稿"}));
+    await waitFor(()=>expect(save).toHaveBeenCalledTimes(1));
+    const nodes=save.mock.calls[0][0].content!;
+    expect(nodes.find(node=>node.content?.[0]?.text==="原文")?.attrs?.block_id).toBe("p1");
+    expect(nodes.find(node=>node.content?.[0]?.text==="复制到前面")?.attrs?.block_id).not.toBe("p1");
+    expect(nodes.find(node=>node.content?.[0]?.text==="不能占用未知节点身份")?.attrs?.block_id).not.toBe("future");
+    expect(nodes.find(node=>node.type==="futureSpatialNode")).toEqual(unknown);
   });
   it("does not save during Chinese composition, then saves committed text and reports failures without clearing it", async () => {
     const save = vi.fn().mockRejectedValue(new Error("conflict"));
