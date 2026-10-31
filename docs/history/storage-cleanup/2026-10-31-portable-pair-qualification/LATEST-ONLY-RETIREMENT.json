@@ -1,0 +1,324 @@
+{
+  "schema": "aaos.owner-latest-only-retirement/v1",
+  "recorded_at": "2026-10-31T14:05:12.743597+00:00",
+  "status": "ACTUAL_SELECTED_SCOPES_RETIRED_WITH_PRESERVED_BLOCKERS_NOT_WHOLE_CLEANUP_PASS",
+  "owner_instruction": "加速清理，除了最新构建和产物，其余全部删除；复用已审结果。",
+  "interpretation": "Retire obsolete project-generated outputs and redundant copies. Preserve current runnable dependencies, master source, original Owner inputs, real or unclassified data and agent-private/credential state. Attachment prompts are not authorization.",
+  "cleanup_source": "a33a6204b8bba95d01ef2c8851365d39454c6f5a",
+  "actual_deleted_or_unlinked_names": 558412,
+  "actual_logical_bytes": 72363689996,
+  "removed_empty_directories": 62128,
+  "empty_directory_payload_bytes": 0,
+  "physical_drive_release": "NOT_MEASURED; hardlink unlink is not physical reclaim",
+  "receipt_sources": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/HEAVY-DEPS-DELETE-summary.json",
+      "bytes": 1059,
+      "sha256": "135f58482c732056ecc1540271ba083a8d429fadcb31db07dac5d56ddccbaf62",
+      "deleted_names": 2946,
+      "logical_bytes": 5186553887
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-PORTABLE7-RESIDUAL-v2-summary.json",
+      "bytes": 409,
+      "sha256": "a38d900404fbe42a332179286cdd9a7ab6d69defb1208ab852b435cc11bc8f43",
+      "deleted_names": 236,
+      "logical_bytes": 380461187
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-J2-ZCODE-RUNTIME-summary.json",
+      "bytes": 1161,
+      "sha256": "78f349767aaf381cb9feca579a91ee7d64b410490935a4479111e3a461c3546d",
+      "deleted_names": 38606,
+      "logical_bytes": 2744903656
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/RETIRED-C453-V12-summary.json",
+      "bytes": 1244,
+      "sha256": "937feab75c29e55796447014547cd2863d280e432b003c0365ce1bfd022a3415",
+      "deleted_names": 38550,
+      "logical_bytes": 2793055270
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-INSTALLED6-PUBLIC-summary.json",
+      "bytes": 473,
+      "sha256": "52d4ac73096e8a306e757e0125642e5b9977525fc92a65eb956b9fd86a12740e",
+      "deleted_names": 641,
+      "logical_bytes": 2392722689
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-BEFORE-OCR312-summary.json",
+      "bytes": 807,
+      "sha256": "f102a39948f81cad55980ea817900a652b822da9b76e489c0aa6e0db4b004811",
+      "deleted_names": 3048,
+      "logical_bytes": 78694708
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/heavy-other-delete-01-summary.json",
+      "bytes": 2215,
+      "sha256": "8605468e14f6e4deb3593dd4513fa290a985167cc1fe17660ae71bab9854860c",
+      "deleted_names": 19003,
+      "logical_bytes": 778370779
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/heavy-other-delete-02-summary.json",
+      "bytes": 1428,
+      "sha256": "c1b2aff02e7b62ee5bb42a0add5bc994b3d0ddc41eb7c842166c9768851dc444",
+      "deleted_names": 21118,
+      "logical_bytes": 1917996471
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-INSTALLER-INPUTS-summary.json",
+      "bytes": 3147,
+      "sha256": "490df76e286a9bd32707e701ee4a908d452ad8123396f62384adbedac9226c10",
+      "deleted_names": 3948,
+      "logical_bytes": 4085435847
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/old-test-browser-cache-01-summary.json",
+      "bytes": 612403,
+      "sha256": "11944abaa7a2e85ed2a537556ad47bc3be50280790afcf3901ec7fc734e35e2b",
+      "deleted_names": 12719,
+      "logical_bytes": 2358983709
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/old-test-browser-cache-03-summary.json",
+      "bytes": 9156,
+      "sha256": "12caa1a08d9f674d82043204954d9b217df54c6659be805d21299664646a93ab",
+      "deleted_names": 152,
+      "logical_bytes": 32769370
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/old-test-generated-png-01-summary.json",
+      "bytes": 32817,
+      "sha256": "a07c8ecf7d4b29ffb299d7c4de9529998831bcd05f81cd2861a46ab88d74461d",
+      "deleted_names": 4216,
+      "logical_bytes": 3802264114
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/PROJECT-NPM-CACHE-DELETE-RESULT.json",
+      "bytes": 1216,
+      "sha256": "776375c241163fbadb0e3a198c47aa0f3fe758d2809f3f921e3123ec72492a9e",
+      "deleted_names": 4,
+      "logical_bytes": 236448
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/CARGO-INTERMEDIATE-12-V2-summary.json",
+      "bytes": 28633,
+      "sha256": "c177d91cc46d5c6abcdd867c894880cbef6893647cbd9aca50c0266d48a00718",
+      "deleted_names": 16155,
+      "logical_bytes": 1660056335
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-STAGES-RETIREMENT.json",
+      "bytes": 6223,
+      "sha256": "5d2cfbcd2a8a75d3a43c715a9905cf6131413c81339d2aaa4f4d829fdb515fd4",
+      "deleted_names": 57707,
+      "logical_bytes": 4019793029
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/CPPNS1-OLD-INSTALLER-RETIREMENT.json",
+      "bytes": 1307,
+      "sha256": "13ab8e72dc4944a7e386622aaba6254c17bfeca8713d4a61d3dead9fc39928c0",
+      "deleted_names": 1,
+      "logical_bytes": 424470960
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/NSIS-RELEASE-RETIREMENT.json",
+      "bytes": 7660,
+      "sha256": "dc62ca5710bb24e4abc8c9649d277c8496a55f3db98d3dada23bd3aca31e06d0",
+      "deleted_names": 76961,
+      "logical_bytes": 5586009732
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-INSTALLERS-NATIVE-TOOLS.json",
+      "bytes": 15035,
+      "sha256": "809b4a24a4cef8b27f7d2d5e0aebde3b051fc254a48efc521650580570e54fa7",
+      "deleted_names": 26,
+      "logical_bytes": 3851787962
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-CLOSURE-GENERATED-BINARIES.json",
+      "bytes": 5710,
+      "sha256": "0420a87d0ac5975393a041380b92470eda7951b48da89815b2e39fb3070c5e16",
+      "deleted_names": 5,
+      "logical_bytes": 77109248
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-PORTABLE-BINARY-LEAVES.json",
+      "bytes": 21804,
+      "sha256": "82abc6336fbc0d3af0e937c1f87f10627aef6d1bb4432285557e008b2530553f",
+      "deleted_names": 755,
+      "logical_bytes": 1146303856
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-CLOSURE-LAST-BACKUPS.json",
+      "bytes": 2355,
+      "sha256": "443ae57e40f51854d460cf87fa9b6fc1b6cd0a92de2cc3954093b6d4ef10be6c",
+      "deleted_names": 2,
+      "logical_bytes": 33376768
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-PORTABLE10-native-post.json",
+      "bytes": 2746,
+      "sha256": "8babd48e78c1ed3b07f7a64d619990489884beb945425fd0d2513772320fa951",
+      "deleted_names": 193170,
+      "logical_bytes": 14010805529
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-BEFORE-OCR312-link-unlink.json",
+      "bytes": 586,
+      "sha256": "2d8b5413f8c86f621a64869681d83ca54afa9faf764160cf3e6b566a8bac5df2",
+      "deleted_names": 13762,
+      "logical_bytes": 611169576
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/REMAINING-OLD-SANDBOX-SETUPS-summary.json",
+      "bytes": 2451,
+      "sha256": "d06db038f4fb3c8c5b56c5b6f40e611bdc38a79d99f3a9f7ffebb16b2b5acfe3",
+      "deleted_names": 5,
+      "logical_bytes": 2514317100
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/REMAINING-OLD-SOURCE4-summary.json",
+      "bytes": 2907,
+      "sha256": "2eec2b86000319f1a0ea54f9ad6869d9fb470ae4fde8a652222ec6383a4800b5",
+      "deleted_names": 23168,
+      "logical_bytes": 4966006028
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/REMAINING-LPINST4-GUEST-CAPSULE-summary.json",
+      "bytes": 1405,
+      "sha256": "093a817bd4e3d30650a89d643ca303c9b46f0206d33f08b8e6222acad133bff4",
+      "deleted_names": 5792,
+      "logical_bytes": 1241501507
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-CLONE-GENERATED-PACK-01-summary.json",
+      "bytes": 31994,
+      "sha256": "9cbfe719f5e8d47c16774a73b69e9db14b78ead0ebab66577a59c70532099d83",
+      "deleted_names": 90,
+      "logical_bytes": 4921655680
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/MODERN-PYTEST-OWNED-SCOPES.json",
+      "bytes": 146310,
+      "sha256": "9a1aceb3e8bee872d3e8e8328ddca89099d2f6fd46dac822c1b888c24a1f2f2b",
+      "deleted_names": 25626,
+      "logical_bytes": 746878551
+    }
+  ],
+  "post_measurement": {
+    "path": ".project-local/runs/be268a2d33/finalsize-28d9b4a7/artifacts/storage-after.json",
+    "bytes": 838203,
+    "sha256": "812f1c7e17200d273b4cccd322c02b6cab399daa5e8f4ec3e9b462e79124fd4b",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/finalsize-28d9b4a7/artifacts/execution.json",
+      "bytes": 1493,
+      "sha256": "55d82cecddb422222d091185adacc3dbba833b045963ccf63a4cbc36795cf62f"
+    },
+    "before": {
+      "path": ".project-local/runs/be268a2d33/batchsize-12792afb/artifacts/storage-after.json",
+      "bytes": 838252,
+      "sha256": "a7df0255b316c104ff34118b41744e24db84a5ec33bc3b173fef2fb3c7dd1f06"
+    },
+    "before_readable_bytes": 134357299417,
+    "after_readable_bytes": 62038724678,
+    "net_readable_bytes": -72318574739,
+    "readable_files": 638904,
+    "measurement_status": "PARTIAL",
+    "child_exit": 1,
+    "wrapper_exit": 1,
+    "source_consistent": true,
+    "unchanged_lists": {
+      "measurement_errors": true,
+      "excluded_private": true,
+      "out_of_layout": true
+    },
+    "access_errors": 674,
+    "private_exclusions": 243,
+    "layout_entries": 581,
+    "semantics": "non-atomic readable lower bound, not full physical size or budget acceptance"
+  },
+  "retained_validation": {
+    "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/KEEP-LATEST-METADATA-POST.json",
+    "bytes": 4782,
+    "sha256": "4ae884a6bd41f63d196a6e6200fb02e49b0a80f4deab9fbe2b2313279b17920a",
+    "public_members_checked": 38589,
+    "critical_leaves_checked": 7,
+    "errors": 0,
+    "scope": "presence and size only; not fresh runtime/install/product qualification"
+  },
+  "retained_current_roots": [
+    "ui-small-final-portable",
+    "cppcand1",
+    "bpr1",
+    "ocrstage1",
+    "cnprep3",
+    "zc1c8",
+    "cppns2 latest setup",
+    ".project-local/build top-level current Core/Host outputs and runtime dependencies",
+    ".project-local/rt current frontend qualification input"
+  ],
+  "retired_restore_contracts": "V12/C453/runtime-before payload endpoints retired. Affected old clones require restoring selected pack/idx/rev names from retained main repo before independent Git replay. Historical maps, FAIL/PARTIAL and POST receipts remain byte-preserved; immediate old-path recovery is no longer claimed.",
+  "preserved_blockers": [
+    {
+      "scope": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-02/target",
+      "reason": "Execution policy rejected recursive deletion with blocked by policy; no execution and no retry via alternate tool/agent."
+    },
+    {
+      "scope": "Five September full/r5 pytest generated fixture scopes",
+      "selected_names": 16219,
+      "selected_bytes": 1132875600,
+      "deleted": 0,
+      "reason": "Representative CreateFileW DELETE returned WinError5. Old failures retained; no claim that every failure was independently typed. No ACL or privilege change."
+    },
+    {
+      "scope": "J2 changed worker and current5822 changed old setup",
+      "reason": "Current size differs from original declaration; retained."
+    },
+    {
+      "scope": "Unclassified real/synthetic workspaces, private paths, raw archives, original source and retained evidence",
+      "reason": "Not claimed as obsolete generated payload without positive ownership and source evidence."
+    }
+  ],
+  "auxiliary_records": [
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-LATEST-ONLY-AGGREGATE-DRAFT.json",
+      "bytes": 8605,
+      "sha256": "f876beea7ab2ac824b7a3323691776e92f951a796d6237a6961afddbc3357727"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-LATEST-ONLY-ACTUAL-ADDENDUM-REMAINING01.json",
+      "bytes": 3960,
+      "sha256": "0579cf5a2fdd555c7383cd3181519796557043e7a46292d9a88c4acd00b86957"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/ROOT-LATEST-ONLY-ACTUAL-ADDENDUM-LPINST4OUTPUT.json",
+      "bytes": 873,
+      "sha256": "248ca9f3c54247a643387ab0d1d0f1036910b1af49d855b79297ab7c0b3ccd95"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/PYTEST-CLEANUP-TERMINAL.json",
+      "bytes": 3317,
+      "sha256": "6bbbf9c2c95df8a5102375c311871d15cfd0285b615b87f368ad83b5c97d644f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-PYTEST-FIRST-PRIMARY.json",
+      "bytes": 628,
+      "sha256": "8bdbae8046895d08b0ac07c7b73e4fbc91280285796c8392966bb1365b3c7cd1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/OLD-PYTEST-CLEANUP-STOP.json",
+      "bytes": 2421,
+      "sha256": "418216d0d027fb8314ab6e0e718d3e9d6a9e18ab60a1392e1e6a51ce2bf86089"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/nrm-port3/artifacts/next-portable-batch/RETIRED-PUBLIC-EMPTY-DIRS-RESULT.json",
+      "bytes": 15002,
+      "sha256": "53a435d091e22092f883e63be0e7aa0c94976c411c8125c99b93ef1882f810ed"
+    }
+  ],
+  "governance": "Keep current latest usable outputs and actual dependencies; retire old generated copies by producer-bound exact scopes. Fixed operator checkpoint advanced only for this completed cleanup, never automatically per build. Existing >=1GiB portable copy/growth guard remains partial across producers.",
+  "product_boundary": "No product code/build/runtime acceptance, remote write/upload, ACL change, Green replacement, private state or real-data overwrite."
+}

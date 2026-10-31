@@ -2990,3 +2990,12 @@ Core→执行器→生产worker增加请求级有限类型schema，绑定持久�
 本次仅微小合成复制/fake measure及读取已存真实报告，没有新大包/全仓扫描/UI或Host构建。linked common-owner路由未适配，缺本仓基线的CI/其他机器大包拒绝；不是跨producer原子容量保证。local_pinned_packaging、其他stager/build增长约束与存量49项归属/规范化仍待接续，F05/完整J1/CL/R6仍PARTIAL；无上传/Green/真实库/全局模型配置操作。
 
 Owner随后质询“一晚上你就清理了这么点体积吗？什么项目能有100多个G，云端仓库源码才多大”。root承认逐叶核验/留证占用过多时间，按原体积优先顺序转向剩余最大产物，暂缓新增后端功能。当前本地HEAD d7f17757的5835个Git blob合计785127379B（含文档/素材；非云端当前分支核验）；最新有限snapshot中runs100262216903B/build14078469637B是主因。三路只读并行查runs/build/其他大类的精确归属、再生、消费者及保全边界，复用既有索引、不再先铺大量逐叶报告；本段不直接把未核目录授权为可删，实际结果后继追加。
+
+
+### 2026-10-31 Owner仅留最新：实际退役与最终计量
+
+按Owner“加速清理，除了最新构建和产物，其余全部删除”复用已审producer/清单并行执行，28份终态actual去重合计删除/unlink 558,412旧文件名/72,363,689,996逻辑B，另空目录62,128；已缺项/no-op/首轮HOLD/旧六源收益不混计。旧便携/安装器/工具和仓库输入/guest source、copy pack、编译中间物/测试缓存截图/现代pytest temp已退役。V12/C453/runtime-before及旧clone独立重放保证已覆盖，原map/FAIL/POST仍保历史原字节。不同副本用再生/保留端声明+metadata门，非全部当前payload SHA资格；物理释放未测。
+
+finalsize-28d9b4a7可读下界134357299417→62038724678B、净差−72318574739B，638904文件；PARTIAL、actual/wrapper1、clean a33a6204源码一致，674错误/243私有/581布局原列表逐项不变。固定operator checkpoint仅本次治理后登记原POST，不逐包滚动。最新两候选38,589公共成员存在/size匹配、7关键叶匹配、58顶层主输出metadata保持；非新运行/安装/Owner接受。五旧9月pytest DELETE拒绝保留（16219叶/1132875600B，代表WinError5），另conflict target整目录删除被policy拒绝且不换入口重试；未知/真实数据/私有/原件及必要依赖保持，不宣称只剩最新版或全仓预算通过。
+
+[实际28份身份、增量与恢复覆盖](../history/storage-cleanup/2026-10-31-portable-pair-qualification/LATEST-ONLY-RETIREMENT.md)；目录权威索引已收敛latest-only生命周期与紧凑留证，其他producer自动增长/保留约束仍未全面实现。F05、完整J1/CL/R6与其余后端仍PARTIAL，UI/监控暂停、本地-only边界不变；无产品代码/新构建/上传/ACL/Green/真实库操作。

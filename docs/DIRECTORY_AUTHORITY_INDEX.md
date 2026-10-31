@@ -125,3 +125,11 @@ Owner 2026-10-30 追加外溢数据追踪、迁移和清理，沿活动指针的
 ### Frozen donor archive — 2026-09-26
 
 `docs/history/branch-donors/execution-reliability-20260926/` is HISTORICAL_RECORD, not execution authority. ARCHIVE.json identifies three exact-tip, byte-preserved repository documents and source hashes. This bounded archive is repository documentation; it does not classify other mixed history paths. The source branch was retired on 2026-09-27 after review and a verified full-history local bundle; the six bounded imported documents and duplicate/move dispositions are recorded in [the consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json). Other mixed history paths retain their protected classification.
+
+### 2026-10-31 Owner 最新产物保留覆盖
+
+本次“除了最新构建和产物，其余全部删除”沿活动指针 `latest_only_cleanup_20261031` 及[实际记录](history/storage-cleanup/2026-10-31-portable-pair-qualification/LATEST-ONLY-RETIREMENT.md)。只保留现用最新可用候选和其真实运行/构建依赖；不按每个历史改版、phase或失败另造永久保留大包。旧生成的安装器、运行库、展开仓库副本、测试fixture/合成DB和编译缓存均可按生产者与精确scope退役，真实数据/原始输入/主源码/未知来源及私有状态除外。历史保留字样与14天提醒不覆盖此次已审退役；未知对象仍待核。
+
+保留紧凑原失败、manifest、来源和实际结果，大副本不作为留证默认方式。优先复用已审归属与现有清单，用当前metadata、占用/删除句柄及缺失后验完成必要验证；普通再生缓存不强制重复全载荷hash、全RM或整包恢复演练。硬链接只unlink选中旧名字，不能宣称相同逻辑大小的物理释放。真实ACL/锁/执行策略拒绝仅阻塞对应范围，不绕过；读取权限不等于删除权限。
+
+新产物先复用共享输入/原地准备并沿canonical run落点；替代者可用后退役旧生成副本，测试终态复核其temp/cache，当前仍需调试的最新版保留。固定增长基线只在已授权实际治理批次后更新，禁止逐包自动上调掩盖累计增长。现有>=1GiB便携producer门禁继续执行；其他producer的自动保留/增长门禁未全面覆盖，不能把本规则或NO_NEW_GROWTH_TRIGGER当作自动清理已经实现。

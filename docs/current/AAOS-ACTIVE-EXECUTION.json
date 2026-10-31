@@ -159,14 +159,14 @@
       "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
       "operator_storage_checkpoint": {
         "schema": "aaos.operator-storage-checkpoint/v1",
-        "path": ".project-local/runs/be268a2d33/batchsize-12792afb/artifacts/storage-after.json",
-        "bytes": 838252,
-        "sha256": "a7df0255b316c104ff34118b41744e24db84a5ec33bc3b173fef2fb3c7dd1f06",
+        "path": ".project-local/runs/be268a2d33/finalsize-28d9b4a7/artifacts/storage-after.json",
+        "bytes": 838203,
+        "sha256": "812f1c7e17200d273b4cccd322c02b6cab399daa5e8f4ec3e9b462e79124fd4b",
         "report_schema": "aaos.storage-footprint/v2",
-        "recorded_by": "Codex governance checkpoint under existing OWNER-ARCHIVE-STORAGE-NORMALIZE-BACKEND-PRIORITY-20261030; not a new Owner statement",
-        "measurement_scope": "Post exact six-source cleanup; readable-owned lower bound, PARTIAL with 674 access errors, 243 private exclusions and 581 existing layout entries; non-atomic. Fixed cumulative baseline, never advanced automatically per package."
+        "recorded_by": "Codex explicit governance checkpoint after Owner latest-only cleanup; not a new Owner statement or per-package rolling baseline",
+        "measurement_scope": "Post selected latest-only retirement; 62038724678B readable lower bound, PARTIAL. Original674 access errors/243 private exclusions/581 layout entries unchanged. Non-atomic, not budget/product PASS."
       },
-      "preservation": "Unique originals/failures, user data, valid candidate/rollback evidence and private agent state remain protected; uncertainty retained and reported",
+      "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
       "remote_writes": "DENIED_UNCHANGED",
@@ -181,6 +181,13 @@
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
         "backend_binding_snapshot": "workspace/intake/20261030-r6-external-practice-boundary-review/BACKEND-BINDING-6d556c48.md",
         "binding_scope": "186 original rows statically mapped at fixed 6d556c48:65 bounded/84 partial/18 design-or-gap/19 named-future-or-external;not runtime qualification or new deferral authority"
+      },
+      "latest_only_cleanup_20261031": {
+        "owner_instruction": "加速清理，除了最新构建和产物，其余全部删除；复用已审结果。",
+        "scope": "Obsolete project-owned generated builds/products/caches/copies; preserve current usable dependencies, master source, original inputs, real/unclassified data and private state. Exact actual scopes are recorded, not blanket permission for unrelated files.",
+        "record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/LATEST-ONLY-RETIREMENT.md",
+        "old_payload_retention": "V12/C453/runtime-before and old clone standalone replay contracts superseded by this latest-only retirement; immutable historical receipts unchanged",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       }
     },
     "owner_handoff_20261029": {

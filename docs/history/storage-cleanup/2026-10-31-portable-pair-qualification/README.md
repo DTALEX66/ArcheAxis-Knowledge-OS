@@ -13,3 +13,5 @@
 六源后继精确操作、独立POST及整仓有限计量见[六源部署与恢复边界](BATCH-DEPLOYMENT.md)。本页保留原观察时点，不另维护当前进度。
 
 后继producer有限改动及原RED/GREEN收据见[复制前增长约束](GROWTH-ENFORCEMENT.md)；它仅覆盖该producer，不替代全仓或产品验收。
+
+Owner 后继“仅留现用最新”的实际退役及恢复链覆盖见[最新清理记录](LATEST-ONLY-RETIREMENT.md)；本页与旧恢复/POST描述保留历史时点，不再据此承诺V12等旧payload仍在。
