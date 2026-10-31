@@ -8,7 +8,9 @@ was recorded - search is not reported as working, because it did not answer.
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +19,57 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 PROBE = REPO / "scripts" / "probes" / "capability_and_search_probe.py"
+
+
+def test_failed_migration_preserves_the_legacy_shared_workspace(tmp_path, monkeypatch):
+    """A new attempt must never delete another attempt's existing evidence."""
+    spec = importlib.util.spec_from_file_location("capability_probe_routing", PROBE)
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    legacy = tmp_path / ".project-local/runs/capability-search-probe-run"
+    legacy.mkdir(parents=True)
+    sentinel = legacy / "original-failure.json"
+    sentinel.write_bytes(b'{"original_failure":true}\n')
+    owned = tmp_path / "owned-attempt"
+    owned.mkdir()
+    monkeypatch.setattr(probe, "REPO", tmp_path)
+    monkeypatch.setattr(probe, "_work_directory", lambda: owned, raising=False)
+    monkeypatch.setattr(probe.subprocess, "run", lambda *a, **kw: subprocess.CompletedProcess(a, 1))
+    result = probe.run()
+    assert result["failed_step"] == "migrate"
+    assert sentinel.read_bytes() == b'{"original_failure":true}\n'
+    assert not (legacy / "archeaxis.sqlite").exists()
+
+
+def test_attempts_have_distinct_roots_in_the_current_owned_run():
+    spec = importlib.util.spec_from_file_location("capability_probe_roots", PROBE)
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    first = probe._work_directory()
+    second = probe._work_directory()
+    try:
+        assert first != second
+        assert first.parent == second.parent
+        assert first.parent.name == "capability-search-probe"
+        assert first.is_relative_to(Path(os.environ["ARCHEAXIS_RUN_ROOT"]) / "artifacts")
+    finally:
+        first.rmdir()
+        second.rmdir()
+
+
+def test_foreign_run_is_rejected_without_writing_there(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location("capability_probe_foreign", PROBE)
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    marker = foreign / "keep.txt"
+    marker.write_text("preserve", encoding="utf-8")
+    monkeypatch.setenv("ARCHEAXIS_RUN_ROOT", str(foreign))
+    with pytest.raises(ValueError, match="different worktree"):
+        probe._work_directory()
+    assert list(foreign.iterdir()) == [marker]
+    assert marker.read_text(encoding="utf-8") == "preserve"
 
 
 @pytest.fixture(scope="module")
@@ -33,6 +86,13 @@ def receipt():
 def test_the_sanctioned_migration_ran_first(receipt):
     steps = {step["step"]: step for step in receipt["steps"]}
     assert steps["migrate"]["exit"] == 0
+
+
+def test_completed_probe_cleans_only_its_owned_workspace(receipt):
+    work = Path(receipt["work_root"])
+    assert work.is_relative_to(Path(os.environ["ARCHEAXIS_RUN_ROOT"]) / "artifacts")
+    assert Path(receipt["vault_root"]).parent == work
+    assert not work.exists()
 
 
 def test_the_handshake_answers(receipt):

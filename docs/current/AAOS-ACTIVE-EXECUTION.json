@@ -235,6 +235,14 @@
           "remaining_scope_roots": 5,
           "scope_limit": "Exact reviewed public files complete; 247 reviewed directories remain with out-of-plan entries. No private-entry inspection or additional deletion. Manual process exit not independently observed; physical release and fresh whole-repository size not measured. Existing operator checkpoint unchanged."
         }
+      },
+      "governance_followup_20261101": {
+        "instruction": "优先执行各类治理和规范任务，静默执行不要在问我了",
+        "priority": "Continue existing S01/G01 governance before finite backend qualification; no new product queue",
+        "authorization": "Continue exact project-owned normalization and producer fixes under existing grants without repeated confirmation",
+        "boundary": "No new remote-write grant inferred; UI/monitor pause, private/real-data and exact external-path boundaries remain",
+        "record": "docs/history/storage-cleanup/2026-11-01-governance-normalization/README.md",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       }
     },
     "owner_handoff_20261029": {

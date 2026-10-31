@@ -133,3 +133,7 @@ Owner 2026-10-30 追加外溢数据追踪、迁移和清理，沿活动指针的
 保留紧凑原失败、manifest、来源和实际结果，大副本不作为留证默认方式。优先复用已审归属与现有清单，用当前metadata、占用/删除句柄及缺失后验完成必要验证；普通再生缓存不强制重复全载荷hash、全RM或整包恢复演练。硬链接只unlink选中旧名字，不能宣称相同逻辑大小的物理释放。真实ACL/锁/执行策略拒绝仅阻塞对应范围，不绕过；读取权限不等于删除权限。
 
 新产物先复用共享输入/原地准备并沿canonical run落点；替代者可用后退役旧生成副本，测试终态复核其temp/cache，当前仍需调试的最新版保留。固定增长基线只在已授权实际治理批次后更新，禁止逐包自动上调掩盖累计增长。现有>=1GiB便携producer门禁继续执行；其他producer的自动保留/增长门禁未全面覆盖，不能把本规则或NO_NEW_GROWTH_TRIGGER当作自动清理已经实现。
+
+### 2026-11-01 生产者治理后继
+
+[本批实际记录与恢复入口](history/storage-cleanup/2026-11-01-governance-normalization/README.md)承接原S01/G01：local_pinned_packaging复用便携producer的固定增长基线和pre/投影/post，按payload+NSIS合计并有界复制；其他stager/build与linked-owner仍未全面覆盖。capability/search及资源builder/registry CLI沿dev分配独立工作目录，显式override不共享可写子目录，OCR不覆盖旧固定样本。目录历史原件按批次SHA/恢复映射归位，不扩大allowlist、不滚动checkpoint、不按旧mtime退役未知数据；历史消费者恢复完整原组后另核资格。

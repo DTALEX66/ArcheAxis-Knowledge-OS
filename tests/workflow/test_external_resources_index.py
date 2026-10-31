@@ -154,7 +154,7 @@ def test_declared_paths_resolve_on_this_host(tmp_path):
     not any(os.environ.get(name, "").strip() for name in ROOT_ENV),
     reason="no external root in the environment; the probes cannot be re-run here",
 )
-def test_a_green_index_cannot_certify_a_row_that_does_not_answer_again():
+def test_a_green_index_cannot_certify_a_row_that_does_not_answer_again(tmp_path):
     """Re-run every RESULT_VERIFIED row through the same entry the index used.
 
     This is the gate the old suite did not have: nine tests passed in under two seconds while
@@ -173,7 +173,7 @@ def test_a_green_index_cannot_certify_a_row_that_does_not_answer_again():
     from scripts.workflow import environment_registry
 
     report = environment_registry.resolve(
-        MANIFEST, workdir=Path(os.environ.get("TEMP", ".")) / "archeaxis-resource-recheck")
+        MANIFEST, workdir=tmp_path / "resource-recheck")
     rows = {row["id"]: row for row in report["capabilities"]}
     claimed = [item for item in index_document()["entries"]
                if item["verification_level"] == "RESULT_VERIFIED"]
@@ -396,3 +396,69 @@ def test_an_unavailable_row_states_why_and_never_a_version(tmp_path, monkeypatch
     assert row["version_observed"] is None
     assert "127.0.0.1:59999" in row["probe_evidence"]["url"]
     assert row["unavailable_reason"], "an unavailable row must say why"
+
+
+def test_probe_builder_routes_fake_manifest_without_system_temp(tmp_path, monkeypatch):
+    from scripts.environment import build_external_resources_index as builder
+    monkeypatch.delenv('ARCHEAXIS_RESOURCE_PROBE_WORKDIR', raising=False)
+    outside = tmp_path / 'outside-temp'
+    outside.mkdir()
+    sentinel = outside / 'sentinel'
+    sentinel.write_bytes(b'untouched')
+    monkeypatch.setenv('TEMP', str(outside))
+    monkeypatch.setattr(builder, 'external_root', lambda: None)
+    monkeypatch.setattr(builder, 'load_manifest', lambda: {'capabilities': {}})
+    calls = []
+    def fake_resolve(manifest, *, probe, workdir):
+        calls.append(workdir)
+        assert not probe
+        (workdir / 'fake-probe.txt').write_text('fixture', encoding='utf-8')
+        return {'capabilities': [], 'verification_summary': {}, 'unbound_path_fallback': []}
+    monkeypatch.setattr(builder.environment_registry, 'resolve', fake_resolve)
+    output = tmp_path / 'fake-index.json'
+    monkeypatch.setenv('ARCHEAXIS_INDEX_OUTPUT', str(output))
+    assert builder.main() == 0
+    assert builder.main() == 0
+    assert calls[0] != calls[1]
+    run = Path(os.environ['ARCHEAXIS_RUN_ROOT'])
+    assert all(p.is_relative_to(run / 'artifacts' / 'resource-probe') for p in calls)
+    assert json.loads(output.read_text(encoding='utf-8'))['probe_workdir'] == str(calls[-1])
+    assert list(outside.iterdir()) == [sentinel]
+    assert sentinel.read_bytes() == b'untouched'
+
+
+def test_probe_workdir_override_stays_in_current_run(tmp_path, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from scripts.environment import build_external_resources_index as builder
+    inside = tmp_path / 'explicit-probe'
+    monkeypatch.setenv('ARCHEAXIS_RESOURCE_PROBE_WORKDIR', str(inside))
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first, second = list(pool.map(lambda _: builder.probe_workdir(), range(2)))
+    assert first.parent == inside and second.parent == inside
+    assert first != second and first.is_dir() and second.is_dir()
+    outside = Path(os.environ['ARCHEAXIS_RUN_ROOT']).parent / 'unrelated-run-probe'
+    monkeypatch.setenv('ARCHEAXIS_RESOURCE_PROBE_WORKDIR', str(outside))
+    with pytest.raises(ValueError, match='current development run'):
+        builder.probe_workdir()
+    assert not outside.exists()
+
+
+def test_probe_workdir_rejects_redirected_parent(tmp_path, monkeypatch):
+    import stat
+    from types import SimpleNamespace
+    from scripts.environment import build_external_resources_index as builder
+    parent = tmp_path / 'redirected-parent'
+    parent.mkdir()
+    sentinel = parent / 'sentinel'
+    sentinel.write_bytes(b'untouched')
+    original = Path.lstat
+    def redirected(path, *args, **kwargs):
+        if path == parent:
+            return SimpleNamespace(st_mode=stat.S_IFDIR, st_file_attributes=0x400)
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'lstat', redirected)
+    monkeypatch.setenv('ARCHEAXIS_RESOURCE_PROBE_WORKDIR', str(parent / 'probe'))
+    with pytest.raises(ValueError, match='linked development path'):
+        builder.probe_workdir()
+    assert sentinel.read_bytes() == b'untouched'
+    assert not (parent / 'probe').exists()

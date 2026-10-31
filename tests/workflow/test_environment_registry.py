@@ -220,7 +220,7 @@ capabilities:
     assert item["binding"] is None
 
 
-def test_the_real_manifest_reports_no_probe_failure_and_no_silent_substitution() -> None:
+def test_the_real_manifest_reports_no_probe_failure_and_no_silent_substitution(tmp_path) -> None:
     """The shipped declaration, on a host with the root present, must be self-consistent.
 
     A row claiming RESULT_VERIFIED has to be re-run for real: this is what stops a green suite
@@ -233,7 +233,7 @@ def test_the_real_manifest_reports_no_probe_failure_and_no_silent_substitution()
     if not any(os.environ.get(name, "").strip() for name in root_env):
         pytest.skip("no external root in the environment; nothing can be re-run here")
     report = resolve(Path(__file__).resolve().parents[2] / "config" / "environment"
-                     / "capability-requirements.yaml")
+                     / "capability-requirements.yaml", workdir=tmp_path / "probe")
     rows = report["capabilities"]
     assert len(rows) == report["summary"]["total"]
     assert [row["id"] for row in rows if row["verification_level"] == "probe_failed"] == []
@@ -247,3 +247,131 @@ def test_the_real_manifest_reports_no_probe_failure_and_no_silent_substitution()
                 if {"ci", "tests"} & set(row["required_by"])
                 and row["verification_level"] not in ("FILE_EXISTS", "VERSION_PROBED", "RESULT_VERIFIED")]
     assert required == [], f"rows the CI/tests depend on are not certified: {required}"
+
+
+def test_cmd_chain_uses_explicit_workdir_only(tmp_path, monkeypatch):
+    import subprocess
+    from types import SimpleNamespace
+    from scripts.workflow import environment_registry as registry
+    monkeypatch.setattr(registry, 'os', SimpleNamespace(
+        **{**vars(registry.os), 'name': 'nt'}))
+    outside = tmp_path / 'outside-temp'
+    outside.mkdir()
+    sentinel = outside / 'sentinel'
+    sentinel.write_bytes(b'untouched')
+    monkeypatch.setattr(registry.tempfile, 'tempdir', str(outside))
+    work = tmp_path / 'probe-work'
+    work.mkdir()
+    observed = []
+    def run(command, **kwargs):
+        script = Path(command[2])
+        observed.append(script)
+        assert script.parent == work
+        assert 'echo test' in script.read_text(encoding='utf-8')
+        return subprocess.CompletedProcess(command, 0, 'test', '')
+    monkeypatch.setattr(registry, '_run', run)
+    level, text, evidence = registry._probe_cmd_chain(
+        {'probe': {'lines': ['echo test']}}, {'base': str(tmp_path), 'workdir': str(work)})
+    assert level == 'VERSION_PROBED'
+    assert observed and not observed[0].exists()
+    assert list(outside.iterdir()) == [sentinel]
+    assert sentinel.read_bytes() == b'untouched'
+
+
+@pytest.mark.parametrize('kind', ['cmd_chain', 'ocr_roundtrip'])
+def test_writing_probes_without_workdir_fail_closed(tmp_path, monkeypatch, kind):
+    from scripts.workflow import environment_registry as registry
+    outside = tmp_path / 'outside-temp'
+    outside.mkdir()
+    monkeypatch.setattr(registry.tempfile, 'tempdir', str(outside))
+    def unexpected(*args, **kwargs):
+        pytest.fail('probe must not execute without an explicit workdir')
+    monkeypatch.setattr(registry, '_run', unexpected)
+    operation = getattr(registry, '_probe_' + kind)
+    level, text, evidence = operation({}, {'base': str(tmp_path)})
+    assert level == registry.NOT_RUN
+    assert 'workdir' in evidence['reason']
+    assert list(outside.iterdir()) == []
+
+
+def test_ocr_sample_stays_in_explicit_workdir(tmp_path, monkeypatch):
+    import os
+    import subprocess
+    from scripts.workflow import environment_registry as registry
+    pytest.importorskip('PIL')
+    if not os.environ.get('WINDIR'):
+        pytest.skip('Windows font fixture requires WINDIR')
+    outside = tmp_path / 'outside-temp'
+    outside.mkdir()
+    sentinel = outside / 'sentinel'
+    sentinel.write_bytes(b'untouched')
+    monkeypatch.setattr(registry.tempfile, 'tempdir', str(outside))
+    work = tmp_path / 'probe-work'
+    work.mkdir()
+    existing = work / 'archeaxis-ocr-probe.png'
+    existing.write_bytes(b'previous sample')
+    tessdata = tmp_path / 'tessdata'
+    tessdata.mkdir()
+    observed = []
+    def run(command, **kwargs):
+        sample = Path(command[1])
+        assert sample.parent == work
+        assert sample.read_bytes().startswith(b'\x89PNG')
+        observed.append(sample)
+        return subprocess.CompletedProcess(command, 0, 'ARCHEAXIS OCR PROBE 42', '')
+    monkeypatch.setattr(registry, '_run', run)
+    for _ in range(2):
+        level, text, evidence = registry._probe_ocr_roundtrip(
+            {}, {'workdir': str(work), 'interpreters': {'tesseract': 'fixture-tesseract'},
+                 'env': {'TESSDATA_PREFIX': str(tessdata)}})
+        assert level == 'RESULT_VERIFIED'
+    assert len(set(observed)) == 2
+    assert existing.read_bytes() == b'previous sample'
+    assert list(outside.iterdir()) == [sentinel]
+    assert sentinel.read_bytes() == b'untouched'
+
+
+def test_registry_cli_allocates_workdir(tmp_path, monkeypatch, capsys):
+    import sys
+    from scripts.workflow import environment_registry as registry
+    calls = []
+    def fixture_resolve(manifest, *, probe, workdir=None):
+        assert workdir is not None
+        assert workdir.is_dir()
+        assert workdir.is_relative_to(Path(__import__('os').environ['ARCHEAXIS_RUN_ROOT']))
+        calls.append(workdir)
+        return {'fixture': True}
+    monkeypatch.setattr(registry, 'resolve', fixture_resolve)
+    monkeypatch.setattr(sys, 'argv', ['environment_registry', str(tmp_path / 'fake.yaml')])
+    assert registry.main() == 0
+    assert registry.main() == 0
+    assert calls[0] != calls[1]
+
+
+def test_ocr_preserves_old_sample_link(tmp_path, monkeypatch):
+    import os
+    import subprocess
+    from scripts.workflow import environment_registry as registry
+    pytest.importorskip('PIL')
+    if not os.environ.get('WINDIR'):
+        pytest.skip('Windows font fixture requires WINDIR')
+    work = tmp_path / 'probe'
+    work.mkdir()
+    target = tmp_path / 'sentinel'
+    target.write_bytes(b'untouched')
+    old = work / 'archeaxis-ocr-probe.png'
+    # A hardlink provides a real same-target overwrite counterexample on Windows without
+    # requiring the host privilege used for symbolic links. Unique creation must ignore it.
+    os.link(target, old)
+    tessdata = tmp_path / 'tessdata'
+    tessdata.mkdir()
+    def fixture(command, **kwargs):
+        sample = Path(command[1])
+        assert sample != old and sample.read_bytes().startswith(b'\x89PNG')
+        return subprocess.CompletedProcess(command, 0, 'ARCHEAXIS OCR PROBE 42', '')
+    monkeypatch.setattr(registry, '_run', fixture)
+    level, _, _ = registry._probe_ocr_roundtrip({}, {
+        'workdir': str(work), 'interpreters': {'tesseract': 'fixture'},
+        'env': {'TESSDATA_PREFIX': str(tessdata)}})
+    assert level == 'RESULT_VERIFIED'
+    assert target.read_bytes() == old.read_bytes() == b'untouched'

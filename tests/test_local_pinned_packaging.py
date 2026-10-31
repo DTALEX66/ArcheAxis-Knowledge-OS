@@ -1,5 +1,7 @@
 """Synthetic contract tests. No Tauri, Core, installer or model is executed."""
+import builtins
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,6 +17,40 @@ def put(path, content=b"synthetic"):
     with open(local.portable.native(path), "wb") as stream:
         stream.write(content)
     return local.file_row(path)
+
+
+def pinned_growth_fixture(tmp_path, monkeypatch):
+    """Tiny copied inputs with the actual shared checkpoint/review code."""
+    portable = local.portable
+    monkeypatch.setattr(portable, "REPO", tmp_path)
+    run = tmp_path / ".project-local/runs/0123456789/pinned"
+    artifacts = run / "artifacts"
+    artifacts.mkdir(parents=True)
+    paths = {"root": tmp_path, "run": run, "artifacts": artifacts}
+    monkeypatch.setattr(portable.dev, "layout", lambda *args: paths)
+    report = {"schema": "aaos.storage-footprint/v2", "repository": str(tmp_path),
+              "measured_at": "2026-11-01T00:00:00+00:00", "readable_bytes": 3 * 1024 ** 3,
+              "measurement_status": "PARTIAL", "measurement_errors": [{"error": "synthetic denial"}],
+              "excluded_private": ["private-preserved"], "excluded_checkouts": [], "out_of_layout": [],
+              "dev_root": [{"name": "runs/", "bytes": 3 * 1024 ** 3, "budget_gb": 2.0,
+                            "over_budget": True}]}
+    baseline = tmp_path / ".project-local/runs/0123456789/checkpoint/artifacts/storage.json"
+    raw = json.dumps(report).encode()
+    put(baseline, raw)
+    descriptor = {"schema": portable.CHECKPOINT_SCHEMA, "path": baseline.relative_to(tmp_path).as_posix(),
+                  "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(), "report_schema": report["schema"],
+                  "recorded_by": "authorized synthetic governance test", "measurement_scope": "partial test coverage"}
+    pointer = tmp_path / "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    put(pointer, json.dumps({"execution_control": {"owner_priority_20261030": {
+        "operator_storage_checkpoint": descriptor}}}).encode())
+    calls = []
+    def measure(root):
+        calls.append(root)
+        return copy.deepcopy(report)
+    monkeypatch.setattr(portable.storage_report, "measure", measure)
+    context = {"paths": paths, "purpose": "finite synthetic pinned bundle", "sharing": "reuse existing inputs",
+               "retention_reason": "boundary regression evidence"}
+    return artifacts / "new-run", context, report, calls, pointer, baseline
 
 
 @pytest.mark.parametrize("path,existed", [
@@ -351,7 +387,7 @@ def test_overlay_removes_old_mutable_resource_keys(tmp_path):
 
 
 @pytest.mark.parametrize("failure", [None, "exit", "patch", "inputs", "resource", "overlay", "consumer", "precopy"])
-def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkeypatch, failure):
+def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkeypatch, failure, storage_case=None):
     source = tmp_path / "candidate"
     row = put(source / "ArcheAxis.exe")
     put(source / "portable.flag", b"")
@@ -382,6 +418,31 @@ def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkey
     monkeypatch.setattr(local, "bundle_consumer_inventory", lambda *args:
                         {} if failure == "consumer" and calls else copy.deepcopy(consumers))
     output = tmp_path / "new-run"
+    context = None
+    if storage_case:
+        output, context, report, measures, pointer, baseline = pinned_growth_fixture(tmp_path, monkeypatch)
+        checkpoint_before = (pointer.read_bytes(), baseline.read_bytes())
+        total = sum(row["bytes"] for row in identity["payload"]["files"].values()) + nsis_row["bytes"]
+        # Only the combined payload+tools crosses this synthetic threshold.
+        monkeypatch.setattr(local.portable, "LARGE_COPY_BYTES", total)
+        if storage_case == "pre":
+            report["readable_bytes"] += 2 * 1024 ** 3 + 1
+            report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+        elif storage_case == "projected":
+            report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 - total + 1
+        elif storage_case in {"post", "copy_posterror"}:
+            measure = local.portable.storage_report.measure
+            def changed_measure(root):
+                if measures:
+                    if storage_case == "copy_posterror":
+                        raise OSError("synthetic post measurement refusal")
+                    report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+                return measure(root)
+            monkeypatch.setattr(local.portable.storage_report, "measure", changed_measure)
+        elif storage_case == "checkpoint":
+            baseline.write_bytes(b"{}")
+    else:
+        monkeypatch.setattr(local.portable.storage_report, "measure", lambda *args: pytest.fail("small bundle scanned"))
     def run(command, **kwargs):
         calls.append(command)
         overlay = json.loads((output / "bundle-config.json").read_text())
@@ -399,29 +460,140 @@ def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkey
             put(output / "bundle-config.json", b"{}")
         return SimpleNamespace(returncode=7 if failure == "exit" else 0)
     monkeypatch.setattr(local.subprocess, "run", run)
+    if failure in {"growth", "short"}:
+        original_open = builtins.open
+        changed = False
+        def changing_source(path, mode="r", *args, **kwargs):
+            nonlocal changed
+            if mode == "rb" and local.candidate._plain_path(str(path)) == source / "ArcheAxis.exe" and not changed:
+                changed = True
+                put(source / "ArcheAxis.exe", b"x" * (row["bytes"] + 64) if failure == "growth" else b"x")
+            return original_open(path, mode, *args, **kwargs)
+        monkeypatch.setattr(builtins, "open", changing_source)
+    if failure == "large_missing":
+        monkeypatch.setattr(local.portable, "LARGE_COPY_BYTES", 1)
     if failure == "precopy":
-        real_copy = local.shutil.copyfileobj
+        real_copy = local.copy_member
         def fail_copy(incoming, outgoing, *args, **kwargs):
-            if str(incoming.name).endswith("worker.py"):
+            if str(incoming).endswith("worker.py"):
                 raise ValueError("synthetic payload copy refusal")
             return real_copy(incoming, outgoing, *args, **kwargs)
-        monkeypatch.setattr(local.shutil, "copyfileobj", fail_copy)
-    if failure:
-        with pytest.raises(ValueError):
-            local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers)
+        monkeypatch.setattr(local, "copy_member", fail_copy)
+    if storage_case == "copy_receipt_error":
+        original_open = builtins.open
+        def refuse_receipt(path, mode="r", *args, **kwargs):
+            if mode == "x" and str(path).endswith("packaging-receipt.json"):
+                raise OSError("synthetic packaging receipt refusal")
+            return original_open(path, mode, *args, **kwargs)
+        monkeypatch.setattr(local, "open", refuse_receipt, raising=False)
+    if failure or storage_case in {"pre", "projected", "post", "checkpoint"}:
+        with pytest.raises(ValueError) as caught:
+            local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers, storage_context=context)
     else:
-        assert local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers)["status"] == "LOCAL_PACKAGING_PASS"
+        assert local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers,
+                            storage_context=context)["status"] == "LOCAL_PACKAGING_PASS"
+    if storage_case:
+        if storage_case == "checkpoint":
+            assert not measures and not output.exists()
+            return
+        storage = json.loads((output.parent / "portable-storage-receipt.json").read_bytes())
+        assert storage["planned_payload_bytes"] == total
+        assert storage["copy_plan"]["nsis_bytes"] == nsis_row["bytes"]
+        assert storage["copy_plan"]["payload_bytes"] == total - nsis_row["bytes"]
+        assert storage["measurement_status"] == "PARTIAL"
+        assert (pointer.read_bytes(), baseline.read_bytes()) == checkpoint_before
+        if storage_case in {"pre", "projected"}:
+            assert not output.exists() and not calls and len(measures) == 2
+            key = "pre_review" if storage_case == "pre" else "projected_review"
+            assert storage[key]["status"] == "REVIEW_REQUIRED"
+            assert storage["copy_outcome"] == "NOT_STARTED"
+            return
+        if storage_case == "copy_receipt_error":
+            assert str(caught.value) == "synthetic payload copy refusal"
+            assert storage["original_error"]["message"] == str(caught.value)
+            assert any("packaging receipt could not be sealed" in note for note in caught.value.__notes__)
+            assert not (output / "packaging-receipt.json").exists()
+            return
+        packaged = json.loads((output / "packaging-receipt.json").read_bytes())
+        assert packaged["copy_plan"] == storage["copy_plan"]
+        if storage_case == "copy_posterror":
+            assert str(caught.value) == "synthetic payload copy refusal"
+            assert storage["post_error"]["message"] == "synthetic post measurement refusal"
+            assert packaged["status"] == "FAIL" and packaged["stage"] == "PAYLOAD_COPY"
+            assert any("post measurement" in note for note in caught.value.__notes__)
+        elif storage_case == "post":
+            assert packaged["status"] == "FAIL" and packaged["stage"] == "STORAGE_POST"
+            assert packaged["exit_code"] == 0 and storage["post_review"]["status"] == "REVIEW_REQUIRED"
+        else:
+            assert len(measures) == 2 and packaged["status"] == "LOCAL_PACKAGING_PASS"
+            assert storage["pre_review"]["status"] == "NO_NEW_GROWTH_TRIGGER"
+            assert storage["projected_review"]["status"] == "NO_NEW_GROWTH_TRIGGER"
+        return
+    if failure == "large_missing":
+        assert calls == [] and not output.exists()
+        return
     receipt = json.loads((output / "packaging-receipt.json").read_text())
     assert receipt["installed_qualification"] == "NOT_RUN"
     assert receipt["status"] == ("FAIL" if failure else "LOCAL_PACKAGING_PASS")
-    if failure == "precopy":
+    if failure in {"precopy", "growth", "short"}:
         assert calls == [] and receipt["cli_started"] is False and receipt["exit_code"] is None
         assert receipt["stage"] == "PAYLOAD_COPY" and receipt["error_type"] == "ValueError"
     else:
         assert len(calls) == 1 and calls[0][2] == "bundle"
-    assert local.file_row(source / "ArcheAxis.exe") == row
-    if failure != "precopy":
+    if failure == "growth":
+        assert (output / "target/release/ArcheAxis.exe").stat().st_size <= row["bytes"]
+    if failure not in {"growth", "short"}:
+        assert local.file_row(source / "ArcheAxis.exe") == row
+    if failure not in {"precopy", "growth", "short"}:
         assert local.file_row(output / "target/release" / long_member) == long_row
+
+
+@pytest.mark.parametrize("failure", ["growth", "short", "large_missing"])
+def test_storage_boundary_regression(tmp_path, monkeypatch, failure):
+    test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkeypatch, failure)
+
+
+@pytest.mark.parametrize("case", ["success", "pre", "projected", "post", "copy_posterror", "copy_receipt_error", "checkpoint"])
+def test_pinned_bundle_shared_storage_contract(tmp_path, monkeypatch, case):
+    failure = "precopy" if case in {"copy_posterror", "copy_receipt_error"} else None
+    test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkeypatch, failure, case)
+
+
+@pytest.mark.parametrize("label,mutation", [("payload", "bytes"), ("nsis", "bytes"), ("payload", "bool")])
+def test_copy_plan_rejects_false_threshold_inputs(tmp_path, label, mutation):
+    source = tmp_path / "source"
+    row = put(source / "member")
+    members = {"member": copy.deepcopy(row)}
+    nsis = {"path": str(source), "files": {"member": copy.deepcopy(row)}}
+    invalid = members["member"] if label == "payload" else nsis["files"]["member"]
+    invalid["bytes"] = False if mutation == "bool" else row["bytes"] - 1
+    with pytest.raises(ValueError):
+        local.copy_plan(source, members, nsis)
+
+
+@pytest.mark.parametrize("review", [False, True])
+def test_cli_routes_existing_storage_declarations_and_review_exit(tmp_path, monkeypatch, review):
+    request_path, consumer_path = tmp_path / "request.json", tmp_path / "consumers.json"
+    request, consumers = {"candidate": "pinned"}, {"tools": "pinned"}
+    paths = {"run": tmp_path / "run"}
+    monkeypatch.setattr(local, "owned_path", lambda root, path, **kwargs: path)
+    monkeypatch.setattr(local, "read_pinned", lambda path, digest: request if path == request_path else consumers)
+    monkeypatch.setattr(local.portable.dev, "layout", lambda root, run_id: paths if run_id == "finite" else None)
+    called = []
+    def bundle(root, requested, output, node, consumed, *, storage_context):
+        called.append(True)
+        assert requested is request and consumed is consumers
+        assert storage_context == {"paths": paths, "purpose": "qualification", "sharing": "reuse", "retention_reason": "evidence"}
+        if review:
+            raise local.portable.GrowthReviewRequiredError("review required")
+    monkeypatch.setattr(local, "bundle", bundle)
+    monkeypatch.setattr(local.sys, "argv", ["local_pinned_packaging", "--request", str(request_path),
+        "--request-sha256", "a" * 64, "--output", str(tmp_path / "output"), "--execute-bundle",
+        "--node", str(tmp_path / "node.exe"), "--consumers", str(consumer_path), "--consumers-sha256", "b" * 64,
+        "--run-id", "finite", "--storage-purpose", "qualification", "--storage-sharing", "reuse",
+        "--storage-retention-reason", "evidence"])
+    assert local.main() == (2 if review else 0)
+    assert called == [True]
 
 
 @pytest.mark.skipif(os.name != "nt", reason="actual Windows long-path filesystem regression")

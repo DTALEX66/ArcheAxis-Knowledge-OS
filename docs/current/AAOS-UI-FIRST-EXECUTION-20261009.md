@@ -3096,3 +3096,15 @@ b799e418的[CI41231631564](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/ac
 root与独立复核核对锁定Tauri2.11.5/runtime-wry2.11.4/Tao0.35.3源码：app.exit异步投递，当前APP_EXIT_REQUESTED记在调用前，尚不能证明调用返回或RunEvent已被消费；Tao USER_EVENT回调使用阻塞recv，排除“PostMessage先于payload造成丢唤醒”这一初步假设。无菜单/确认框证据，不把WM_CANCELMODE入队或新运行成功追认为根因修复；run_on_main_thread仍走同proxy，缺乏直接改调度路径的依据。后继只增加调用返回、ExitRequested进入/返回及Exit进入的有界阶段记录，继续区分投递、事件消费与最终清理；不发额外close/exit，不放宽15秒，不改首次失败判断。R6安装可靠性和公开合并资格继续未闭合。
 
 阶段诊断补充的本地cargo fmt检查通过；Rust定向测试因当前本地工具环境缺link.exe失败，没有取得Rust编译/测试通过结论，不安装或修改全局工具链。此前51/52项退出合同检查是Python测试，不能写成Rust通过。新阶段的退出码统一仅记录0/1/null并在读取侧过滤，其他诊断字段仍有原边界；原生编译和行为以新提交自身CI另验。
+
+### 2026-11-01 治理优先：生产者增长约束与48项历史文件归位
+
+Owner要求“优先执行各类治理和规范任务，静默执行不要在问我了”。按原S01/G01优先连续执行，不建立第二任务队列；本批独立本地分支承接已合并PR204的da9fca0d，不自动把前轮公开交付豁免扩成新一轮云端执行，不恢复UI/监控或修改模型/全局设置。
+
+已将local_pinned_packaging接入既有≥1GiB声明、固定checkpoint、pre/投影/finally-post，payload+NSIS合计并有界复制，拒绝增长/短读/hash差异，post失败不掩盖原异常与NSIS退出码。capability/search探针改每次独立canonical工作目录，vault同属本run，取消启动删除旧共享run。资源builder与registry CLI分配规范唯一目录；显式override每次独立子目录，BAT限显式workdir，OCR独占随机PNG句柄，保留旧样本与硬链接目标。独立P2复核发现的复用覆盖与CLI缺workdir已修，原功能断言保持。
+
+精确48个散落公开历史结果/草稿/一次性脚本共164241B无损保全为3ZIP/62949B；原SHA、CRC、恢复演练及原路径缺失均由root独立复核。没有执行旧修码脚本或发布草稿，旧失败状态保留。正式后计量布局581→533、无新增；旧49仍36非空/13空。普通令牌前28460851496B/343900文件→后28464394459B/350905文件，均674读取错误/243私有排除/PARTIAL、actual/wrapper1，源码一致；不能替代旧admin0错误快照或宣称净回收。固定checkpoint未滚动，NO_NEW_GROWTH_TRIGGER不等于完整预算PASS。
+
+冻结后gov-code-final3为196P/1既有skip/3真实资源用例deselected，actual/wrapper0/source_consistent；CI Ruff、架构/路径/文档权威通过。仓库规范原FAIL发现两测试文件CRLF，统一LF后gov-conv-final2通过；后计量早于这次重测与文档封存，不滚动基线。早期gov-probe-red/green的并行变更INVALIDATED原件保留，不计资格；root从原Git blob在隔离合成目录、失败迁移stub下另复现旧证据删除与新保全。未做真实≥1GiB装包、NSIS/安装、MSVC/Tesseract或Ubuntu实机，不将本地fixturePASS移绑全产品。其他producer/linked-owner治理、533项布局和三Green mig后继来源绑定仍待接续；F05/CL/J/R6及整体产品PARTIAL不变。
+
+完整hash、原失败、恢复入口与本地资格范围见[本批治理记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)及MANIFEST。只读资料/历史任务是导航，不产生新外发或真实库覆盖权限。

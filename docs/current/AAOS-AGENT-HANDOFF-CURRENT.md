@@ -8,6 +8,8 @@
 
 ## 接续顺序
 
+Owner 2026-11-01后继要求优先治理与规范、静默连续执行；沿活动指针`owner_priority_20261030.governance_followup_20261101`、[生产者治理与无损归位记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)和唯一执行记录末段接续。已吸收批次不重复清理，未确认归属保持；本批未授予新云端发布、UI或监控恢复。
+
 Owner 后继追加外溢数据追踪、迁移和清理，以及 [R5 未来能力承接包独立审计与归档](../../workspace/intake/20261030-r5-future-capability-review/README.md)。外溢先追生产者、配置、所有者、消费者与精确路径，按哈希/恢复核验迁移；不扫描整盘或清理共享库/真实库/私有状态。R5 五场景吸收到现有 R2/CL/J 工作，原始提示词不自动执行，不恢复 UI、不解冻重型扩展；WORK-LAB 仍为可选协调方。实际修复、验证、剩余权限及外溢结果沿唯一执行记录末段，不从本导航复制状态。
 
 本轮收尾先看[深度清理及外溢实际结果](../history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md)、[增长治理范围](../history/storage-cleanup/2026-10-31-portable-pair-qualification/GROWTH-ENFORCEMENT.md)和[v3.1补件审计](../../workspace/intake/20261101-cloud-integration-v3-1-review/README.md)。历史权限错误、候选PASS及原审计不移绑当前状态；剩余项只沿唯一执行记录末段接续。

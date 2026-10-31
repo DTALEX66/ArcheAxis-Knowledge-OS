@@ -25,9 +25,11 @@ external root is reached through a named `sibling_root`, never through a `..` de
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -117,15 +119,31 @@ def _ascii_reason(text: object) -> str:
     return value[:300]
 
 
+def probe_workdir() -> Path:
+    """Allocate through the canonical launcher; overrides stay in its validated run."""
+    spec = importlib.util.spec_from_file_location(
+        "aaos_resource_probe_dev", ROOT / "scripts/runtime/dev.py")
+    dev = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(dev)
+    override = os.environ.get("ARCHEAXIS_RESOURCE_PROBE_WORKDIR", "").strip()
+    if not override:
+        return dev.artifact_directory(ROOT, "resource-probe")
+    run = dev.pytest_environment(ROOT)
+    directory = dev.safe_path(Path(override))
+    if not directory.is_relative_to(run):
+        raise ValueError("resource probe workdir must be inside the current development run")
+    directory.mkdir(parents=True, exist_ok=True)
+    child = dev.safe_path(directory / uuid.uuid4().hex)
+    child.mkdir(exist_ok=False)
+    return child
+
+
 def main() -> int:
     root = external_root()
     document = load_manifest()
     siblings = sibling_roots(root, document) if root is not None else {}
-    # A probing interpreter needs somewhere to write its sample; the development launcher
-    # points this at the run-scoped tmp directory so nothing lands outside the task path.
-    workdir = Path(os.environ.get("ARCHEAXIS_RESOURCE_PROBE_WORKDIR", "").strip()
-                   or os.path.join(os.environ.get("TEMP", "."), "archeaxis-resource-probe"))
-    workdir.mkdir(parents=True, exist_ok=True)
+    # Probe samples use a unique launcher artifact directory, or a validated run override.
+    workdir = probe_workdir()
 
     # With no declared root nothing can be resolved, so nothing is probed: the index then states
     # the declaration and no availability, exactly as before. CI is unaffected either way, and no
