@@ -38,7 +38,7 @@ detector 增量 patch SHA 为 `49d86411104b3beb885a925b491d5cb7d37201fbc34163ad9
 
 ## 保留的证据限制
 
-**S31-E01：日志生成器版本未绑定。** `detector/run_logged.py:3,6` 当前代码用 UTC `isoformat()`，应直接输出 `+00:00`；历史 `final-scope.command.json`、`patch-readback.command.json` 却为 `+08:00`。可能是历史 wrapper 修订或显示转换，目前缺版本/转换说明，不能断定原因。XML 的 `-07:00` 与 JSON 的 `+08:00` 换算为同一 UTC 时刻，没有已证实的执行时刻矛盾，也没有据此认定伪造。候选源码/patch 的 SHA 与计数仍成立；不能声称全部 command 记录由当前随包 wrapper 原样生成。补说明即可，不因此要求无差别重跑全套。
+**S31-E01后继勘误（2026-11-01）：撤回时区误读，保留实际运行时绑定限制。** 本页前版称原command为`+08:00`是事实错误。root及独立复核者直接读取原v3.1 ZIP，`final-scope.command.json`和`patch-readback.command.json`起止均为`+00:00`，与UTC wrapper一致；XML时刻换算亦一致。旧错误版本留在Git历史。新补件明确：generator/test/source-binding的现时hash是事后快照，最终source-binding晚于42项测试结束，不能由当前封包推导历史执行时版本完整绑定。42tests/47subtests、候选与patch的内存重建hash关系仍成立；正式执行版本资格保持UNVERIFIED。详见[日志绑定补件独立复核](../20261101-log-binding-addendum-review/README.md)，不因此无差别重跑业务或伪造历史。
 
 新 receipt 字段的 Core 端到端、正式 worker 安装、Windows/ORT、真实模型质量、H5P、完整 J1/CL/R6 及 Owner 接受不在本次新增资格内。最终测试与代码的运行时绑定依赖近邻 source-binding/patch-readback，不是防篡改 attestation。本次没有运行补件脚本、安装依赖、联网或上传；产品源码不变。
 

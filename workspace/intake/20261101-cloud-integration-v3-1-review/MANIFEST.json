@@ -85,13 +85,13 @@
   "public_review_files": [
     {
       "path": "workspace/intake/20261101-cloud-integration-v3-1-review/README.md",
-      "bytes": 2623,
-      "sha256": "fa9bf85835abb77d57c9a76cf840fef685107c86ef40494db519bab4540b3490"
+      "bytes": 2869,
+      "sha256": "01f2ebd718b634bbc6f9623695c24f8bfbc59eda3648f41dfe47514286577177"
     },
     {
       "path": "workspace/intake/20261101-cloud-integration-v3-1-review/AUDIT.md",
-      "bytes": 7101,
-      "sha256": "e960349c013af1fc919b50c04e14fabc96326660aedbf8437522443661a9649f"
+      "bytes": 7271,
+      "sha256": "1dd9c92b32444ad4514e2abdcb2d2acb125e37492687a527cbdcb60dcd800469"
     }
   ],
   "review": {
@@ -103,7 +103,7 @@
     "V3-F04": "PARTIAL_NEW_FULL_SUITE_ONLY; OLD_REPRODUCE_SYSTEM_SITE_AND_FIXED_OUTPUT_REMAIN",
     "V3-F05": "ERRATA_ACCEPTED; HISTORICAL_STDOUT_MISSING; GENERATION_UNVERIFIED",
     "V3-F06": "CLOSED_ORIGINAL_TEMPLATE_IDENTITY; NOT_RUNTIME_QUALIFICATION",
-    "S31-E01": "LOG_WRAPPER_VERSION_NOT_BOUND; UTC_FORMAT_VS_HISTORICAL_PLUS08; ACTUAL_INSTANTS_AGREE; CAUSE_UNCONFIRMED",
+    "S31-E01": "TIMEZONE_MISREAD_RETRACTED; ORIGINAL_COMMAND_JSON_IS_UTC_PLUS00; RUNTIME_GENERATOR_TEST_SOURCE_BINDING_UNVERIFIED; SEE_LOG_BINDING_ADDENDUM",
     "detector_historical_tests": 42,
     "detector_historical_subtests": 47,
     "detector_group_counts": [

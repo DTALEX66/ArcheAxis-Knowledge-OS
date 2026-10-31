@@ -4,6 +4,8 @@ Owner 补交 `D:/All projects/Record/v3.1-supplement.zip`，承接此前审计�
 
 **结论：补件可作为原 v3 的定向补充接收。两份原模板的缺件问题已关闭；两份历史 stdout 仍缺失，勘误有效。检测器与 full-suite 脚本修复有云端定向证据，尚未移植到当前产品。**
 
+后继[日志绑定补件复核与本地审计勘误](../20261101-log-binding-addendum-review/README.md)撤回本页AUDIT前版的时区误读；执行时generator/test/source完整绑定仍未建立，事后快照不升级历史测试资格。
+
 - [独立复核、原问题关闭程度与限制](AUDIT.md)
 - [原包绑定、原文副本与证据 SHA-256](MANIFEST.json)
 - [原 v3 审计](../20261031-cloud-integration-v3-review/README.md)及[原补件请求](../20261031-cloud-integration-v3-review/DOT-补件请求.md)

@@ -2,11 +2,15 @@
 
 本入口只保存接续顺序、合同和历史导航。当前授权、执行／监控控制、源码、候选、CI、实际失败与下一步，读取[活动指针](AAOS-ACTIVE-EXECUTION.json)和[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)，不复制第二份可变进度。日期快照中的“当前／最新／暂停”只说明当时，不能覆盖活动指针选中的后继Owner决定。
 
-**2026-10-29最新交接覆盖：** Owner将前端设计交STITCH、后端有限闭环优化交ZCODE，要求新本地分支、全部能力保留归并迁移、复杂项延期，并禁止ZCODE云仓库与数据上传。先读活动指针`execution_control.owner_handoff_20261029`及[完整交接入口](../../workspace/intake/20261029-stitch-zcode-handoff/README.md)。本阶段禁止push/PR/远端merge/云CI/同步/发布，覆盖下文和旧记录中的历史上传授权；本地合格合并可执行。STITCH只提交设计文字和选定参考图，ZCODE资料留本地。ZCODE报告后由Codex独立审计；提示词不等于网络隔离，严格本地须核编码模型模式，公开检索仅用非敏感公开/合成查询。UI实施与监控仍按原暂停，不自动恢复远端权限。
+**2026-11-01 Git交付覆盖：** Owner要求总结对话与未完成任务、合并可合并分支、删除过时分支、双端一致。先读活动指针`execution_control.owner_delivery_20261101`及唯一执行记录末段；本次允许公开源码/任务记录的推送、必要PR/检查/合格合并、已吸收旧分支删除和双端SHA读回，精确覆盖此前本地阶段的远端写禁止。ignored原件、运行数据、数据库、缓存及Agent私有材料不上传；不追认历史云编码外发，不恢复UI实施、监控、发布、Green替换或真实库覆盖。
+
+2026-10-29前后端交接仍为产品范围来源：活动指针`execution_control.owner_handoff_20261029`及[完整交接入口](../../workspace/intake/20261029-stitch-zcode-handoff/README.md)。STITCH前端设计、有限后端及独立审计边界保留；提示词不等于网络隔离，严格本地编码模型模式须独立核实。
 
 ## 接续顺序
 
 Owner 后继追加外溢数据追踪、迁移和清理，以及 [R5 未来能力承接包独立审计与归档](../../workspace/intake/20261030-r5-future-capability-review/README.md)。外溢先追生产者、配置、所有者、消费者与精确路径，按哈希/恢复核验迁移；不扫描整盘或清理共享库/真实库/私有状态。R5 五场景吸收到现有 R2/CL/J 工作，原始提示词不自动执行，不恢复 UI、不解冻重型扩展；WORK-LAB 仍为可选协调方。实际修复、验证、剩余权限及外溢结果沿唯一执行记录末段，不从本导航复制状态。
+
+本轮收尾先看[深度清理及外溢实际结果](../history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md)、[增长治理范围](../history/storage-cleanup/2026-10-31-portable-pair-qualification/GROWTH-ENFORCEMENT.md)和[v3.1补件审计](../../workspace/intake/20261101-cloud-integration-v3-1-review/README.md)。历史权限错误、候选PASS及原审计不移绑当前状态；剩余项只沿唯一执行记录末段接续。
 
 后继 [R6 外部实践边界修补包](../../workspace/intake/20261030-r6-external-practice-boundary-review/README.md)沿同一承接入口归档；附件提示词只作审阅材料，不另产生执行或外发授权。R6 原件身份、186/22 静态映射与后继运行历史分层读取，不能以归档完成替代产品验收。
 
@@ -24,7 +28,7 @@ Owner 后继追加外溢数据追踪、迁移和清理，以及 [R5 未来能力
 
 ZCODE在`codex/local-backend-closure-20261029`完成五轮并逐轮回写唯一执行记录（续轮一至五小节）：归并/Canvas导出/打包身份转正并本地提交；合格Core构建`b6f5b591…`→staging→混合候选C1→五段同候选链（真实公开检索/格式/学习/j5/REAL_MODEL）→NSIS安装器`3337fce6…`→**沙盒安装生命周期`complete_lifecycle_verified=true`（LOCAL_MIXED_CORE_INSTALLED_LIFECYCLE）**→文档冲突旅程PASS（候选层）；具名2+8条clippy项清零、四crate 184测试二进制全绿。整体如实`LOCAL_BACKEND_SCOPE_PARTIAL_PENDING_CODEX_AUDIT`。
 
-**Owner醒来先读[决策清单](../../workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md)**：两项待决——①安装器版本号提升（解锁真跨版本升级/回滚）；②LM Studio监听地址+沙盒网络子决策（解锁安装态AI旅程）。两项均附选项、执行工单与不做时的如实状态。无需决策即可继续的工单（guest内冲突旅程设计、142条非门禁clippy债务、外置索引刷新）已就绪。Codex审计入口在[ZCODE完成报告](../../workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md)。
+这段仅为通宵报告时点。后继zc1c8安装态冲突子集已执行，F02/F03审计补件及后继清理也已推进；不得沿旧“guest冲突待设计”重新派单。实际范围与剩余问题读取唯一执行记录末段。两项Owner待决仍见[决策清单](../../workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md)：①安装器版本号提升，解锁真跨版本升级/回滚；②LM Studio监听地址及沙盒网络子决策，解锁安装态AI旅程。Codex原审计入口在[ZCODE完成报告](../../workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md)。
 
 ## 范围与保护边界
 

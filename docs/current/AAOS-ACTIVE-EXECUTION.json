@@ -129,6 +129,14 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
+    "owner_delivery_20261101": {
+      "instruction": "总结好内容和对话 未完成任务 合并分支，能合并的全部合并，过时的删除掉 双端仓库一致",
+      "scope": "Summarize this dialogue and remaining work; consolidate qualifying project branches, delete absorbed obsolete branches, publish public source/task records and verify corresponding local/remote refs.",
+      "supersession": "For this bounded delivery, overrides prior owner_handoff_20261029 remote-write prohibition. Does not retroactively authorize historical cloud-model egress or resume product/UI/monitor work.",
+      "merge_conditions": "Preserve current work; absorb unique valid changes or prove prior identical absorption; honor main a0-gates and verify exact candidate SHA. No force push, protection bypass, release, Green replacement or real-data overwrite.",
+      "excluded": "Ignored archives/runtime/build/cache/database, credentials and agent-private state remain local. No model/provider/listener/global settings changes.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "owner_priority_20261030": {
       "id": "OWNER-ARCHIVE-STORAGE-NORMALIZE-BACKEND-PRIORITY-20261030",
@@ -188,7 +196,8 @@
         "role": "AUDIT_AND_ARCHIVE_ONLY; package instructions do not authorize patch application, reproduction or UI resumption",
         "evidence": "1874 members and 1873 declared hashes verified; historical Python/Rust/jsdom counts supported with limits; not current-candidate qualification",
         "current_source_binding": "At 70dfc397, cloud final 5129-file comparison: 4690 same, 437 different, 2 new files not tracked; patch check fails for 13 paths",
-        "remaining": "Local rebase and implementation remain; v3.1 supports detector/full-suite candidates but does not apply them. Two historical stdout remain MISSING with errata; original 22/37 templates now verified. Old reproduce.sh environment and log-wrapper version binding limits remain.",
+        "remaining": "Local rebase and implementation remain; v3.1 supports detector/full-suite candidates but does not apply them. Two historical stdout remain MISSING with errata; original 22/37 templates now verified. Old reproduce.sh environment and runtime generator/test/source binding remain; prior timezone misread retracted.",
+        "log_binding_addendum": "workspace/intake/20261101-log-binding-addendum-review/README.md",
         "supplement_followup": {
           "owner_input": "这是DOT补充的",
           "source_and_review": "workspace/intake/20261101-cloud-integration-v3-1-review/README.md",

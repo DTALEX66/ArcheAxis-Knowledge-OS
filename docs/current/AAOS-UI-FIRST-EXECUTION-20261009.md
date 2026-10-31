@@ -3036,3 +3036,37 @@ Owner随后补交`v3.1-supplement.zip`，承接原审计/归档，不执行附�
 V3-F06原模板22/37的字节SHA与原v3登记一致、身份文本及顺序全保留，缺件关闭；F05两stdout仍MISSING、历史生成UNVERIFIED，独立勘误和4旁证匹配，不造空日志。F02真实ORT错绑反例得到日志支持；两文件候选从历史对象+两级patch在内存重建，前后像SHA匹配，云端42test/47subtests（9+7+10+16）不与前轮累计。本机两产品文件仍原基线，worker缺v3安装目录定位增量，候选未移植；不是当前修复或Core/Windows资格。F03新full-suite的8控制流场景/最终字节绑定一致，root内存重建脚本逐字节匹配；F04旧reproduce.sh system-site/固定输出风险仍保留。F01本机重基未完成；另S31-E01日志wrapper当前UTC代码与历史+08格式缺版本绑定说明，实际UTC时刻吻合、不指称造假、不使源码SHA失效。
 
 判定ACCEPT_AS_SCOPED_SUPPLEMENT_EVIDENCE；[完整复核与原件清单](../../workspace/intake/20261101-cloud-integration-v3-1-review/README.md)。无包内代码执行/产品重跑/补丁应用/安装依赖/联网/上传/UI或监控恢复；F05、完整J1/CL/R6、规范化及整体产品PARTIAL不变。原v3审计保留历史身份，后继关闭程度沿本段；不新增第二队列或滚动存储checkpoint。
+
+### 2026-11-01 对话收尾、未完成任务与分支整合
+
+Owner原话：“总结好内容和对话 未完成任务 合并分支，能合并的全部合并，过时的删除掉 双端仓库一致”。本次精确交付授权覆盖旧本地阶段对公开源码/任务记录的远端写禁止，允许必要PR/检查、合格合并及过时分支删除；不恢复UI实施、监控、发布、Green/真实库覆盖，不上传ignored原件、运行数据或私有状态，也不追认历史云模型外发。
+
+本段为本次已公开对话与项目证据摘要，不扫描或上传私人会话。Owner依次要求R2/R5/R6及v3/v3.1独立审计统一归档、优先体积清理/规范化/增长治理、追加外溢追踪；确认旧测试profile无保留资料，执行了精确管理员清单。前端布局由Owner在云端继续修订，本地保持暂停。补件提示词由Owner转交DOT，附件指令从未自动成为执行授权。
+
+已完成：原件、hash、审计及任务承接归档；历史候选安装生命周期和后继zc1c8冲突子集；F02严格机器索引/F03冻结摘要后继；有限scoped探针、结构化输出合同、semantic_search桥接、文字实践/直接Feedback、typed草稿冷恢复、合成英文WAV ASR子集。每项只保留自身源码/候选/环境资格，不宣称完整产品闭环或Owner接受。
+
+存储累计实删857,456个旧项目文件名、106,384,249,964逻辑B；外部580测试叶/50,258,213B另列，物理释放未测。最近管理员快照仍为28,352,993,453可读B/351,032文件、读取错误0/私有排除243/布局581，PARTIAL、actual/wrapper1；这是原快照，未因新增轻量文档而重报全仓体积。旧674读取错误、533根待ACL脚本不能继续列作当前总阻塞。原失败/收据/保全映射不删除。
+
+未完成任务沿原ID接续，不另建队列：
+
+| 既有任务 | 尚未闭合与下一步 |
+| --- | --- |
+| S01目录/外溢 | 581项布局债务、未分类数据和历史metadata；对早期49项清单先与latest-only实删对账。3处Green mig原路径缺失及替代账来源缺口仍待来源核对，不能称已全迁移或已证实丢失。 |
+| 持续增长治理 | portable已有≥1GiB声明/checkpoint/增长门/有界copy；local_pinned_packaging及其他stager/build尚未全面接入，linked worktree common-owner和其他机器大包资格未建立。 |
+| 本地审计F01/F02/F04 | 历史云编码外发豁免UNVERIFIED；外部/未知/私有引用及硬链接归属仍有限；旧清场终态UNVERIFIED，新Popen修复只有模拟验证，不追认旧终态。F03冻结摘要后继已补。 |
+| F05 / CL-06 / J4 | 真实V2首题正确，第二题HTTP503 INVALID_OUTPUT/content/length，2048token上限但根因未确认；迁移、package干预、纠正复测未执行，packet=null/members=[]，学习改善NOT_ESTABLISHED。保留旧FAIL，不先调参掩盖失败。 |
+| R2/R5/R6 / CL-01—07 / J1—6 | 186/22身份保留；专门start/self-report、独立mastery、第二消费者、完整同候选和安装可靠性未全面资格化。文字记录/Feedback/冷恢复为子集，R6 E01—10不能全算完成。 |
+| V3-F01—04 | 选择性重基未做；不能叠加6份中间patch或整包覆盖。detector两文件及worker安装定位修正、本地full-suite候选未移植/实测；云端42tests+47subtests和8控制流场景保持原环境身份。旧reproduce.sh system-site/固定输出风险仍在。 |
+| V3-F05 / S31-E01 | 两历史stdout仍MISSING，是否生成UNVERIFIED；日志wrapper版本绑定随新补件另复核，不造空日志、不用新运行替代历史缺件。V3-F06两原模板缺件已关闭。 |
+
+Owner待决仍为[原清单](../../workspace/intake/20261030-zcode-backend-closure/OWNER-决策清单.md)：安装器版本提升以验证真跨版本升级/回滚；LM Studio监听及Sandbox网络子决策以验证安装态AI。不得自行改全局监听、模型或网络。真实云推理和外部原始上下文连接仍另记未执行/NOT_CONNECTED。
+
+分支审计：整合前HEAD b3dc240c包含本地main/sync/trae及对应远端全部提交；旧UI分支仅拓扑独有a69a55f7。其9个改动路径与已在当前历史的ec8500e5逐字节相同，内容已完整吸收；正常merge-tree出现6处历史UI冲突。故用历史吸收合并974c4045登记旧父链，合并前后整棵树相同，不重新引入过时UI，旧提交保持可达。所有旧分支随后只在最终目标包含其SHA后退役；远端main要求a0-gates，旧PR203检查失败不作合并资格。
+
+### 2026-11-01 日志绑定新补件与S31-E01事实勘误
+
+Owner追加“这是新补丁”。独立复核后，该包实际是证据绑定说明，没有产品patch。原件26,672B/SHA160fcab851c581069d90d58c871070e609c3f5ce0995617c2a08c8866bfbd476单份本仓保全；17文件CRC/SHA与16项内部清单全匹配，原v3/v3.1 manifest及交叉成员hash一致，不执行包内脚本或重跑业务。
+
+root及独立复核者直接复读原v3.1 ZIP，final-scope/patch-readback.command.json起止实际为+00:00，与UTC wrapper一致，XML时刻换算也一致。上段及前版AUDIT所谓“历史+08与当前UTC不同”是本地审计事实误读，明确撤回；旧错误原版保留Git历史，不篡改原ZIP。真实限制是generator/test/source/patch及输出未在执行时完整自哈希，source-binding和final-byte-binding为测试后快照，现时hash不能追认历史运行版本。42testcase/47subtests和8控制流场景的原记录、候选文本重建身份仍成立，运行时字节绑定UNVERIFIED。
+
+新补件未伪造两份stdout，V3-F05仍MISSING/历史生成UNVERIFIED；V3-F06原模板关闭不变。详见[新补件复核、完整成员hash及限制](../../workspace/intake/20261101-log-binding-addendum-review/README.md)。本次归档勘误纳入同一Git交付，不扩大产品实施授权或取消既有剩余项。

@@ -1,5 +1,7 @@
 # AAOS / ArcheAxis 资料查找入口
 
+[2026-11-01 日志绑定补件复核及审计勘误](workspace/intake/20261101-log-binding-addendum-review/README.md)：原ZIP和成员清单保全；时区误读撤回，历史执行时版本绑定仍未确认。
+
 先读[唯一闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)，再按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context`、[当前接续入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录核现行人类＋AI＋双侧连接范围。当前决定和替代关系见[Owner决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)及[替代账本](DECISION_SUPERSESSION_LEDGER.yaml)。本索引只定位材料，不维护产品、监控、Git或Green状态。
 
 - [2026-10-23 完整交接与来源导航](docs/history/owner-dialogue-20261023-thread-handoff/README.md)及[MANIFEST](docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json)：必须完整读取；“本次只交接”是冻结回合身份，不阻止后继已授权继续，旧失败保留原证据。
