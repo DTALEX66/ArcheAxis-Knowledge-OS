@@ -191,6 +191,7 @@
         "remaining_admin_execution": {
           "owner_instruction": "给你授权，如果还不行给我命令行",
           "state": "PREPARED_NOT_EXECUTED_REQUIRES_USER_ADMINISTRATOR_TOKEN",
+          "execution_shell": "PowerShell 7 (pwsh.exe); actual 7.6.5 Review exit 0; full verified executable path in record",
           "record": "docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/ADMIN-REMAINING-CLEANUP.md",
           "bundle": ".project-local/runs/be268a2d33/adminrem-09ea3c41",
           "reviewed_files": 18756,

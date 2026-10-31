@@ -3004,3 +3004,5 @@ finalsize-28d9b4a7可读下界134357299417→62038724678B、净差−72318574739
 ### 2026-10-31 剩余清理再授权与管理员命令
 
 Owner追加“给你授权，如果还不行给我命令行”。当前token未提升，五pytest与target已有AdministratorsFull，无需先修ACL；原target同精确递归动作再次被工具policy拒绝且未执行，不换工具绕过。已冻结18,756公共叶/3,921,430,366B并准备管理员手动入口；原130保护名/5reparse/10reviewHold不纳，原62.04GB checkpoint不改，本轮实际删除0/ACL0。PowerShell5.1实际Review、Python语法/原清单集合一致/18,756路径及4边界负例通过；empty-dir close失败封存修正后脚本与plan SHA固化。只准备，未管理员Apply、不等于3.92GB收益；等用户终端实际收据再核。命令、绑定与失败边界见[管理员执行入口](../history/storage-cleanup/2026-10-31-portable-pair-qualification/ADMIN-REMAINING-CLEANUP.md)。产品/后端整体仍PARTIAL，UI/监控暂停、本地only不变。
+
+Owner纠正默认shell为PowerShell 7；已实测当前pwsh为7.6.5，实际Review退出0且18,756文件/3,921,430,366B/plan SHA与冻结清单一致。手动入口改为已验证pwsh.exe完整路径，避免依赖管理员终端PATH；5.1仅保留此前兼容性检查记录。本次没有Apply或ACL变更。
