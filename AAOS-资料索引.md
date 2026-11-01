@@ -4,6 +4,8 @@
 
 日常检索先查当前源码、truth与活动记录；十月以前过程记录从[集中历史恢复入口](docs/history/2026-11-01-preoct-archive/README.md)按需读取，不默认展开扫描。十月及之后的记录保留；原始输入、现行合同及程序依赖按身份核对。
 
+后继14份donor过程记录及历史索引见[第二批恢复入口](docs/history/2026-11-01-preoct-archive-batch2/README.md)，其旧清单SHA继续核验；前批档案与旧冻结清单不滚动覆盖。
+
 [2026-11-01 日志绑定补件复核及审计勘误](workspace/intake/20261101-log-binding-addendum-review/README.md)：原ZIP和成员清单保全；时区误读撤回，历史执行时版本绑定仍未确认。
 
 先读[唯一闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)，再按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context`、[当前接续入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录核现行人类＋AI＋双侧连接范围。当前决定和替代关系见[Owner决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)及[替代账本](DECISION_SUPERSESSION_LEDGER.yaml)。本索引只定位材料，不维护产品、监控、Git或Green状态。

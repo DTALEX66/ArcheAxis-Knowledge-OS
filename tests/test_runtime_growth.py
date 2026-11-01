@@ -69,23 +69,37 @@ def test_unknown_generation_cannot_use_zero_projection(tmp_path):
         pytest.fail("generation started")
 
 
-def test_live_workflow_runtime_consumers_require_reviewed_forecasts():
+def test_live_workflow_runtime_consumers_initialize_fixed_job_forecasts():
     import yaml
     root = Path(__file__).resolve().parents[1]
     found = 0
     for name in ("ci.yml", "release.yml"):
         workflow = yaml.safe_load((root / ".github/workflows" / name).read_text(encoding="utf-8"))
-        assert workflow["env"]["ARCHEAXIS_RUNTIME_GENERATED_BYTES"] == "${{ vars.ARCHEAXIS_RUNTIME_GENERATED_BYTES }}"
+        assert "ARCHEAXIS_RUNTIME_GENERATED_BYTES" not in workflow.get("env", {})
         for job in workflow["jobs"].values():
+            initialization = 0
+            synced = False
             for step in job.get("steps", []):
                 script = step.get("run", "")
+                if "uv sync --frozen" in script:
+                    synced = True
+                if "-m scripts.release.ci_runtime_checkpoint" in script:
+                    assert synced
+                    initialization += 1
+                    assert 'scripts.release.ci_runtime_checkpoint --repository . --run-id "$runtimeRunId"' in script
+                    lines = script.splitlines()
+                    for command in (line for line in lines if "-m scripts.release.ci_runtime_checkpoint" in line):
+                        assert lines[lines.index(command) + 1].strip() == "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"
+                    if "--reserve" in script:
+                        assert script.index("--reserve") < script.index("cargo build") < script.index("--seal")
                 if "-m desktop.scripts.prepare_bundle --" not in script:
                     continue
                 found += 1
-                assert "[long]::TryParse($env:ARCHEAXIS_RUNTIME_GENERATED_BYTES" in script
-                assert "$runtimeForecast -le 0) { throw" in script
+                assert initialization == 1
+                assert script.index("-m scripts.release.ci_runtime_checkpoint") < script.index("-m desktop.scripts.prepare_bundle")
                 assert '--run-id "$runtimeRunId"' in script
-                assert '--storage-generated-bytes "$runtimeForecast"' in script
+                assert '--ci-runtime-checkpoint "$runtimeCheckpoint"' in script
+                assert "--storage-generated-bytes" not in script
                 for option in ("purpose", "sharing", "retention-reason"):
                     assert "--storage-" + option in script
     assert found == 4

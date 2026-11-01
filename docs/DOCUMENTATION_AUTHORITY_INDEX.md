@@ -21,6 +21,7 @@
 | 产品原则与任务合同 | [项目合同](../PROJECT_CONTRACT.yaml)、[当前任务包](taskpacks/aaos-ui-first-20261009/TASKPACK.md)；继承／覆盖合同：[后端合同](authority/taskpack-20261013-backend-host/TASKS.json)、[前端合同](authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASKS.json) | 具体激活范围读活动指针；不可变任务包是合同来源，不是第二份实时进度。 |
 | 协议、生成物与源码验证入口 | [协议 Schema](../packages/contracts/)、[生成器](../scripts/contracts/)、[契约测试](../tests/)、[Rust Core](../crates/)、[正式前端](../frontend/)、[正式宿主](../src-tauri/) | Schema、实现与行为回归分别核对；仅有声明或生成 DTO 不代表真实消费者已接通。 |
 | 原始资料与来源 manifest | [资料索引](../AAOS-资料索引.md)、[输入来源登记](current/AAOS-INPUT-SOURCES-20261006.json)、[原始资料清单](history/record-archive-20261009/MANIFEST.json) | 按登记路径和 SHA 查原件；索引不是跨项目或私人资料访问授权。 |
+| 十月以前公开过程记录 | [首批恢复映射](history/2026-11-01-preoct-archive/MANIFEST.json)、[第二批恢复映射](history/2026-11-01-preoct-archive-batch2/MANIFEST.json) | 默认搜索不展开历史树；按需读取已验证的ZIP成员，同时保留原冻结清单的长度/SHA约束。现行合同、原始输入和程序依赖不按日期误删。 |
 | 共享库、工具、模型与本机资源 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md)、[依赖声明](../config/environment/capability-requirements.yaml)、[资源观察](../config/environment/external-resources-index.json) | 登记不等于安装、可执行或可用；版本、权限及运行状态须现场核实，不猜外置根。 |
 | 验证规则与交付边界 | [验证策略](VERIFICATION_POLICY.md)、[Gate 登记](../.worklab/gate-registry.v1.yaml)、[路径风险映射](../.worklab/project-validation.v1.yaml)、[运行与交付导航](RUNTIME_DELIVERY_AUTHORITY_INDEX.md) | 区分结构检查、本地测试、exact-SHA CI、原生运行和 Owner 验收；PASS 不自动授予发布或 Green 替换权限。 |
 | 配置与语言边界 | [配置权威](CONFIGURATION_AUTHORITY_INDEX.md)、[语言边界](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) | 配置各归其唯一源；不把历史实现语言或供体位置当正式宿主。 |

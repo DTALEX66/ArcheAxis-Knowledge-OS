@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from scripts.maintenance.authority_routes import (
-    CONSOLIDATION, PUBLIC_RECORDS, REGISTRY, PreservedRecords,
+    CONSOLIDATION, PUBLIC_RECORDS, PUBLIC_RECORD_BATCHES, RECORD_CONTRACTS, RECORD_CONTRACT_ROWS,
+    REGISTRY, PreservedRecords,
     check_consolidation, public_path, resolve,
 )
 
@@ -152,6 +153,134 @@ def test_compression_does_not_replace_original_manifest_hash_requirement(tmp_pat
     assert manifest["files"][0]["sha256"] != row["sha256"]
     assert any("consolidated archive identity mismatch" in issue
                for issue in check_consolidation(tmp_path))
+
+
+def second_batch(root, members):
+    import zipfile
+
+    descriptor_name = PUBLIC_RECORD_BATCHES[1]
+    archive_path = str(Path(descriptor_name).parent / "preoct-public-records.zip").replace("\\", "/")
+    archive = root / archive_path
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as output:
+        for name, payload in members.items():
+            output.writestr(name, payload)
+    source_contracts = []
+    for source, rows_key, path_key in RECORD_CONTRACTS:
+        path = root / source
+        if not path.is_file():
+            name, payload = next(iter(members.items()))
+            record = {path_key: name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+            write(root, source, json.dumps({rows_key: [record] * (1 + max(RECORD_CONTRACT_ROWS[source]))}))
+        else:
+            # Build full synthetic frozen row slots before binding their original bytes.
+            contract = json.loads(path.read_text(encoding="utf-8"))
+            while len(contract[rows_key]) <= max(RECORD_CONTRACT_ROWS[source]):
+                contract[rows_key].append(contract[rows_key][0].copy())
+            write(root, source, json.dumps(contract))
+        raw = path.read_bytes()
+        source_contracts.append({"path": source, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()})
+    raw = archive.read_bytes()
+    descriptor = {"schema": "aaos.preoct-public-records/v1",
+                  "archive": {"path": archive_path, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()},
+                  "source_contracts": source_contracts,
+                  "files": [{"path": name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+                            for name, payload in members.items()]}
+    write(root, descriptor_name, json.dumps(descriptor))
+    return descriptor
+
+
+def test_two_registered_batches_keep_distinct_locations_and_earlier_bytes(tmp_path):
+    first, routes, _ = compressed_scenario(tmp_path)
+    before = (tmp_path / PUBLIC_RECORDS).read_bytes()
+    name = "docs/history/donors/older-record.md"
+    descriptor = second_batch(tmp_path, {name: b"second\r\n"})
+    records = PreservedRecords(tmp_path)
+    assert records.read(first["files"][0]["archive_path"]) == b"historical bytes\r\n"
+    assert records.read(name) == b"second\r\n"
+    result = resolve(name, routes, tmp_path)
+    assert result["canonical_path"] == PUBLIC_RECORD_BATCHES[1]
+    assert result["archive_path"] == descriptor["archive"]["path"]
+    assert result["archive_member"] == name
+    assert (tmp_path / PUBLIC_RECORDS).read_bytes() == before
+    assert check_consolidation(tmp_path) == []
+
+
+def test_duplicate_source_between_batches_is_rejected_even_when_identical(tmp_path):
+    first, _, _ = compressed_scenario(tmp_path)
+    second_batch(tmp_path, {first["files"][0]["archive_path"]: b"historical bytes\r\n"})
+    assert any("duplicate preserved record" in issue for issue in check_consolidation(tmp_path))
+
+
+@pytest.mark.parametrize("damage", ["zip", "owner", "missing_contract", "duplicate_contract", "contract_hash"])
+def test_second_batch_damage_cannot_be_hidden_by_good_first_batch(tmp_path, damage):
+    compressed_scenario(tmp_path)
+    descriptor = second_batch(tmp_path, {"docs/history/older.md": b"second"})
+    if damage == "zip":
+        archive = tmp_path / descriptor["archive"]["path"]
+        archive.write_bytes(archive.read_bytes() + b"changed")
+    elif damage == "owner":
+        descriptor["archive"]["path"] = str(Path(PUBLIC_RECORDS).parent / "preoct-public-records.zip").replace("\\", "/")
+    elif damage == "missing_contract":
+        descriptor["source_contracts"].pop()
+    elif damage == "duplicate_contract":
+        descriptor["source_contracts"].append(descriptor["source_contracts"][0].copy())
+    else:
+        descriptor["source_contracts"][0]["sha256"] = "0" * 64
+    write(tmp_path, PUBLIC_RECORD_BATCHES[1], json.dumps(descriptor))
+    assert check_consolidation(tmp_path)
+
+
+@pytest.mark.parametrize("name", PUBLIC_RECORD_BATCHES)
+def test_one_batch_cannot_archive_another_batch_metadata(tmp_path, name):
+    compressed_scenario(tmp_path)
+    second_batch(tmp_path, {name: b"do not substitute descriptors"})
+    assert any("invalid public record source" in issue for issue in check_consolidation(tmp_path))
+
+
+@pytest.mark.parametrize("source,rows_key,path_key", RECORD_CONTRACTS)
+@pytest.mark.parametrize("damage", ["consistent_new_zip", "changed_physical", "directory_physical"])
+def test_second_batch_retains_each_original_consumer_hash(tmp_path, source, rows_key, path_key, damage):
+    import zipfile
+
+    compressed_scenario(tmp_path)
+    name, payload = "docs/history/donor/record.md", b"original donor\r\n"
+    write(tmp_path, source, json.dumps({rows_key: [{path_key: name, "bytes": len(payload),
+                                                 "sha256": hashlib.sha256(payload).hexdigest()}]}))
+    descriptor = second_batch(tmp_path, {name: payload})
+    assert check_consolidation(tmp_path) == []
+    if damage == "consistent_new_zip":
+        payload = b"changed donor bytes"
+        archive = tmp_path / descriptor["archive"]["path"]
+        with zipfile.ZipFile(archive, "w") as output:
+            output.writestr(name, payload)
+        raw = archive.read_bytes()
+        descriptor["archive"].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+        descriptor["files"][0].update(bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest())
+        write(tmp_path, PUBLIC_RECORD_BATCHES[1], json.dumps(descriptor))
+    else:
+        original = tmp_path / name
+        original.parent.mkdir(parents=True, exist_ok=True)
+        if damage == "directory_physical":
+            original.mkdir()
+        else:
+            original.write_bytes(b"changed donor bytes")
+    assert check_consolidation(tmp_path), "new batch cannot supersede original consumer identity"
+
+
+def test_deleted_member_cannot_disappear_from_old_consumer_check_scope(tmp_path):
+    import zipfile
+
+    compressed_scenario(tmp_path)
+    descriptor = second_batch(tmp_path, {"docs/history/donor/record.md": b"original donor"})
+    archive = tmp_path / descriptor["archive"]["path"]
+    with zipfile.ZipFile(archive, "w"):
+        pass
+    raw = archive.read_bytes()
+    descriptor["archive"].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+    descriptor["files"] = []
+    write(tmp_path, PUBLIC_RECORD_BATCHES[1], json.dumps(descriptor))
+    assert any("missing preserved public record" in issue for issue in check_consolidation(tmp_path))
 
 
 @pytest.mark.parametrize("mutation", ["archive", "size", "hash", "replacement", "original", "baseline", "duplicate"])

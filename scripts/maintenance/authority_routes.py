@@ -20,6 +20,16 @@ ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = "docs/current/AAOS-AUTHORITY-ROUTES.json"
 CONSOLIDATION = "docs/history/repository-consolidation-20261019/MANIFEST.json"
 PUBLIC_RECORDS = "docs/history/2026-11-01-preoct-archive/MANIFEST.json"
+PUBLIC_RECORD_BATCHES = (PUBLIC_RECORDS, "docs/history/2026-11-01-preoct-archive-batch2/MANIFEST.json")
+RECORD_CONTRACTS = (
+    ("docs/history/branch-donors/execution-reliability-20260926/ARCHIVE.json", "files", "archive_path"),
+    ("docs/history/DOCUMENT-CONSOLIDATION-20260927.json", "rows", "target_path"),
+)
+# Exact frozen rows identified before retiring batch 2, independent of new ZIP membership.
+RECORD_CONTRACT_ROWS = {
+    RECORD_CONTRACTS[0][0]: (0, 1, 2),
+    RECORD_CONTRACTS[1][0]: (1, 3, 4, 8, 13, 14, 15, 16),
+}
 PRIVATE = {".git", ".codex", ".claude", ".hermes", ".ssh", "memory", "memories",
            "session", "sessions", "credentials", "cookies", "browser-data",
            ".project-local", ".hilo", ".dsh", ".zcode", ".npmrc", ".pypirc",
@@ -56,8 +66,13 @@ class PreservedRecords:
         self.root = root
         self.rows: dict[str, dict] = {}
         self.payloads: dict[str, bytes] = {}
-        self.archive_path: str | None = None
-        descriptor = public_path(root, PUBLIC_RECORDS)
+        self.locations: dict[str, dict] = {}
+        for name in PUBLIC_RECORD_BATCHES:
+            self._load(name)
+
+    def _load(self, descriptor_name: str) -> None:
+        root = self.root
+        descriptor = public_path(root, descriptor_name)
         if not descriptor.is_file():
             return
         data = json.loads(descriptor.read_text(encoding="utf-8"))
@@ -65,29 +80,37 @@ class PreservedRecords:
             raise ValueError("invalid public record archive schema")
         archive = data["archive"]
         location = archive["path"]
-        if location != str(PurePosixPath(PUBLIC_RECORDS).parent / "preoct-public-records.zip"):
+        if location != str(PurePosixPath(descriptor_name).parent / "preoct-public-records.zip"):
             raise ValueError("public record archive outside its registered owner")
         raw = public_path(root, location).read_bytes()
         self._identity(raw, archive, "public record ZIP")
-        self.archive_path = location
+        if descriptor_name == PUBLIC_RECORD_BATCHES[1]:
+            contracts = data["source_contracts"]
+            if (not isinstance(contracts, list)
+                    or sorted(row["path"] for row in contracts) != sorted(row[0] for row in RECORD_CONTRACTS)):
+                raise ValueError("missing or duplicate public record source contracts")
+            for contract in contracts:
+                self._identity(public_path(root, contract["path"]).read_bytes(), contract, "public record source contract")
+        batch_rows = {}
         for row in data["files"]:
             name = row["path"]
             public_path(root, name)
-            if not name.startswith("docs/history/") or name.startswith(str(PurePosixPath(PUBLIC_RECORDS).parent) + "/"):
+            if not name.startswith("docs/history/") or any(
+                    name.startswith(str(PurePosixPath(batch).parent) + "/") for batch in PUBLIC_RECORD_BATCHES):
                 raise ValueError("invalid public record source")
-            if name in self.rows:
+            if name in self.rows or name in batch_rows:
                 raise ValueError("duplicate preserved record")
-            self.rows[name] = row
+            batch_rows[name] = row
         with zipfile.ZipFile(io.BytesIO(raw)) as source:
             members = source.infolist()
             names = [member.filename for member in members]
-            if len(names) != len(set(names)) or set(names) != set(self.rows):
+            if len(names) != len(set(names)) or set(names) != set(batch_rows):
                 raise ValueError("public record ZIP membership mismatch")
             for member in members:
                 mode = member.external_attr >> 16
                 if member.is_dir() or stat.S_IFMT(mode) not in (0, stat.S_IFREG) or member.flag_bits & 1:
                     raise ValueError("linked, encrypted or non-file public record")
-                row = self.rows[member.filename]
+                row = batch_rows[member.filename]
                 size = row["bytes"]
                 if type(size) is not int or size < 0 or member.file_size != size:
                     raise ValueError("public record member size mismatch")
@@ -95,6 +118,9 @@ class PreservedRecords:
                     payload = stream.read(size + 1)
                 self._identity(payload, row, "public record member")
                 self.payloads[member.filename] = payload
+                self.locations[member.filename] = {"canonical_path": descriptor_name, "archive_path": location,
+                                                   "archive_member": member.filename, "sha256": row["sha256"]}
+        self.rows.update(batch_rows)
 
     @staticmethod
     def _identity(raw: bytes, record: dict, label: str) -> None:
@@ -108,6 +134,8 @@ class PreservedRecords:
         path = public_path(self.root, name)
         if path.is_file():
             return path.read_bytes()
+        if path.exists():
+            raise ValueError("preserved record path is not a regular file")
         if name in self.payloads:
             return self.payloads[name]
         raise FileNotFoundError("missing preserved public record: " + name)
@@ -115,8 +143,29 @@ class PreservedRecords:
     def location(self, name: str) -> dict:
         if name not in self.rows:
             return {}
-        return {"canonical_path": PUBLIC_RECORDS, "archive_path": self.archive_path,
-                "archive_member": name, "sha256": self.rows[name]["sha256"]}
+        return self.locations[name].copy()
+
+
+def check_record_contracts(root: Path, records: PreservedRecords) -> list[str]:
+    """Check only the two registered old consumers, retaining their original hashes."""
+    problems = []
+    for source, rows_key, path_key in RECORD_CONTRACTS:
+        path = public_path(root, source)
+        if not path.is_file():
+            continue  # Exact live route checks require them in the real repository.
+        contract = json.loads(path.read_text(encoding="utf-8"))
+        indices = RECORD_CONTRACT_ROWS[source]
+        rows = contract[rows_key]
+        if not isinstance(rows, list) or len(rows) <= max(indices):
+            raise ValueError("missing registered historical consumer rows: " + source)
+        for index in indices:
+            row = rows[index]
+            name = row[path_key]
+            try:
+                records._identity(records.read(name), row, "historical consumer member")
+            except (ValueError, OSError) as error:
+                problems.append(f"{source}: {name}: {error}")
+    return problems
 
 
 def resolve(name: str, data: dict, root: Path = ROOT) -> dict:
@@ -155,6 +204,7 @@ def check_consolidation(root: Path = ROOT) -> list[str]:
     problems: list[str] = []
     try:
         records = PreservedRecords(root)
+        problems.extend(check_record_contracts(root, records))
         manifest = json.loads(public_path(root, CONSOLIDATION).read_text(encoding="utf-8"))
         if manifest["schema"] != "archeaxis.repository-consolidation/v1":
             raise ValueError("invalid schema")

@@ -188,8 +188,18 @@ def test_only_exact_formal_runtime_root_uses_existing_rt_storage_class(prepared,
     assert receipt["measurement_status"] == "PARTIAL"
 
 
-def test_producer_prepares_one_final_runtime_and_real_stager_keeps_formal_contract(prepared):
+@pytest.mark.parametrize("ci_context", [False, True])
+def test_producer_prepares_one_final_runtime_and_real_stager_keeps_formal_contract(prepared, monkeypatch, ci_context):
     c = prepared
+    if ci_context:
+        from scripts.release import ci_runtime_checkpoint
+        c["output"] = c["repo"] / ".project-local/rt"
+        c["context"]["ci_checkpoint"] = c["context"]["paths"]["artifacts"] / ci_runtime_checkpoint.NAME
+        def sealed(repo, paths, path):
+            assert repo == c["repo"] and paths == c["context"]["paths"]
+            assert path == c["context"]["ci_checkpoint"]
+            return c["storage_report"], {"contract_fixture": "CI loader independently verified"}, {"generated_bytes": 256}
+        monkeypatch.setattr(ci_runtime_checkpoint, "load", sealed)
     python = producer.prepare_backend_candidate(repository=c["repo"], destination=c["output"], core=c["core"],
         storage_context=c["context"], storage_generated_bytes=256)
     assert python == c["output"] / "runtime/python.exe"

@@ -186,7 +186,9 @@ def _measure(artifacts, phase):
 
 
 def _storage_pre(destination, total, context, *, formal_runtime=False):
-    if not isinstance(context, dict) or set(context) != {"paths", "purpose", "sharing", "retention_reason"}:
+    _uint(total)
+    fields = {"paths", "purpose", "sharing", "retention_reason"}
+    if not isinstance(context, dict) or set(context) not in (fields, fields | {"ci_checkpoint"}):
         raise ValueError("large copy requires run paths, purpose, sharing and retention_reason")
     if any(not isinstance(context[k], str) or not context[k].strip()
            for k in ("purpose", "sharing", "retention_reason")):
@@ -207,7 +209,15 @@ def _storage_pre(destination, total, context, *, formal_runtime=False):
     for name in ("pre", "post", "receipt"):
         if (artifacts / ("portable-storage-" + name + ".json")).exists():
             raise ValueError("portable storage evidence already exists; use a fresh run")
-    baseline, checkpoint = _checkpoint()
+    if "ci_checkpoint" in context:
+        if not runtime_root:
+            raise ValueError("CI checkpoint is restricted to the exact formal runtime producer")
+        from scripts.release import ci_runtime_checkpoint
+        baseline, checkpoint, forecast = ci_runtime_checkpoint.load(REPO, paths, context["ci_checkpoint"])
+        if total < forecast["generated_bytes"]:
+            raise ValueError("CI projection omits the sealed generated forecast")
+    else:
+        baseline, checkpoint = _checkpoint()
     current, identity = _measure(artifacts, "pre")
     projected = copy.deepcopy(current)
     projected["readable_bytes"] += total

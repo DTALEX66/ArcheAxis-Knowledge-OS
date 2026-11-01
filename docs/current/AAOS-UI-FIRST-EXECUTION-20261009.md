@@ -3120,3 +3120,17 @@ ignored散落规范化本轮另退役33叶/1,607,157原B，保全为2ZIP/194,431
 六probe改每次独立canonical输出，失败证据保留，ASR/格式矩阵不再复用固定收据。运行时stager/backend/bundle/Core安装接入既有pre/projected/finally-post审查，已知成员有界复制并核hash；未知生成需正数预计及声明，正式同仓rt沿原预算，当前隐式解释器根与显式链接边界分开。四workflow仅参数合同已接入，真实CI固定checkpoint及Python3.12/current-lock预计未初始化，缺件明确失败；旧3.13足迹不可代入，因此本批仍是本地候选，不宣称可推送合并或云端兼容资格。独立复核的resolve先抹链接、ASR分配过晚问题由各writer具名修正，实际后继命令与hash以续批MANIFEST登记为准。
 
 原RED/INVALIDATED和后继有效检查分层保留，没有真实大构建/依赖下载/ASR/云CI/NSIS/安装/模型或真实库验收。最终源码、原退出码和范围见[治理续批](../history/storage-cleanup/2026-11-01-governance-followup/README.md)及MANIFEST。500布局、后继历史消费者、CI初始化/其他producer、Green mig来源与F05/完整CL/J/R6继续具名接续，整体PARTIAL；没有ACL、全局配置、私有状态或新远端写入。
+
+### 2026-11-01 治理连续执行：第二批旧正文、完整脚本组与CI基线
+
+前轮本地提交4a8ad0bc已独立读回57文件原字节、24实现文件和508P/1skip及最终门禁，工作区清洁；它是当时本地资格，不是本轮或云端PASS。本轮沿“全部执行”和治理优先继续，原MANIFEST及原失败不覆盖。
+
+另14份十月以前donor过程记录/交接/索引已无损移出日常正文，96,158原B→41,458B ZIP；两批共155份/7,184,019B→981,100B。原14路径全缺失、原Git blob/成员SHA/CRC/独立恢复已核；新reader固定支持两批，各有自身descriptor/archive/member身份且跨批拒重。2份旧清单原字节绑定不改，对其中原固定11行逐原bytes/SHA核，不由新成员表选择验证范围；丢弃新ZIP及映射中的成员仍FAIL，物理原件重现或变成目录不能被archive遮盖。LEGACY的Git blob和当前HEAD库存语义保持。实际移出后的文档权威检查通过，最终资格另沿封存检查读回。
+
+ignored规范化接续退役8个旧producer/log完整组及189份历史项目Python脚本，原1,526,737B单份保全为615,609B ZIP；成员SHA/CRC、独立恢复、缺失后验及105份保留Python源原SHA通过，旧脚本未执行。累计278散落叶/3,298,135原B/7ZIP共872,989B；浅层581→533→500→492→303，本轮无新增。303中181散落叶、91目录、30旧具名run及根stray1仍待当前消费者与归属治理。旧恢复bundle、控制脚本、原输入、未知绑定与私有状态不凭年龄/体积删除。上述是原件与压缩差，不是全仓净字节或物理释放；固定operator checkpoint不滚动。
+
+CI原确定失败点继续修复：显式reserve→前置Core/模型准备→一次seal，再由runtime producer读取当前job固定checkpoint；本地operator基线、2GiB增长门与原类预算不改。seal拒绝不完整覆盖、越预算、换job/source/旧run、重复封存与失败后重滚；load重核原reservation/descriptor/baseline/forecast和实际安装/源码。当前Python3.12、锁、依赖选择、无网络导出和requirements绑定，并按实际setuptools打包声明估计项目载荷；全仓文档不作为三份wheel输入。未知metadata/cache/build差异仍由finally-post记实际增长，不把forecast或GitHub环境声明当硬配额或host attestation。真实云CI/构建/安装资格只有实际运行后才可登记。
+
+此前Owner“双端仓库一致”的公开源码交付授权继续适用于合格治理改动，治理优先没有撤销它；活动指针已澄清引用既有owner_delivery_20261101，不伪造新Owner原话。只读fetch与原生GitHub身份读回确认目标DTALEX66/ArcheAxis-Knowledge-OS、有效SSH，观察时origin/main仍da9fca0de9c617a0e8c100c32d9fcecf00f45ee7。后继push/检查/合格merge仍逐状态验收，不从local PASS自动越过a0-gates；无私有或ignored原包外发，不恢复UI/监控/产品发布或Green/真实库覆盖。
+
+原退出码、源码SHA、恢复工具和本轮最终检查见[续批登记CONTINUATION](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION.json)。其他producer/linked worktree、六主包硬钉输入的归一与重新资格、303布局、Green mig来源缺口及F05/完整CL/J/R6仍未闭合，整体PARTIAL。六主包合7.319GB与sci-build1约0.439GB是旧记录时点，不能作为新测量或永久保留判定。

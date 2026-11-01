@@ -10,7 +10,7 @@
 
 现行定位/闭环已按Owner 2026-11-01选择的新任务包更新（SUP-030），见[目标选择与来源](../../workspace/intake/20261101-positioning-loop-update/README.md)、[产品身份V2.2](../truth/PRODUCT_IDENTITY_V2.md)及[唯一闭环V3](../truth/CLOSED_LOOP_DEFINITION.md)。旧任务包的规划、历史运行和本次实现分别读取，不以旧首段替代新目标。
 
-Owner 2026-11-01后继要求优先治理与规范、静默连续执行；沿活动指针`owner_priority_20261030.governance_followup_20261101`、[生产者治理与无损归位记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)和唯一执行记录末段接续。已吸收批次不重复清理，未确认归属保持；本批未授予新云端发布、UI或监控恢复。
+Owner 2026-11-01后继要求优先治理与规范、静默连续执行；沿活动指针`owner_priority_20261030.governance_followup_20261101`、[生产者治理与无损归位记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)和唯一执行记录末段接续。已吸收批次不重复清理，未确认归属保持；此前`owner_delivery_20261101`的公开源码同步授权继续适用，治理优先不新增私有材料外发、产品发布、UI或监控恢复授权。
 
 后继的新目标覆盖、历史记录保留和默认检索规则见[治理续批](../history/storage-cleanup/2026-11-01-governance-followup/README.md)及[集中历史恢复入口](../history/2026-11-01-preoct-archive/README.md)。从当前源码和规范开始；显式历史问题再经索引读取旧材料，实际退役及未完项只沿唯一执行记录末段核实。
 

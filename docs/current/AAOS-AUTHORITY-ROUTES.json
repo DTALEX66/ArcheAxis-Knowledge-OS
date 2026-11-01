@@ -19,6 +19,22 @@
   ],
   "entries": [
     {
+      "path": "docs/history/2026-11-01-preoct-archive-batch2/MANIFEST.json",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch2/README.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/ARCHIVE.json",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "path": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
       "path": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
       "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
