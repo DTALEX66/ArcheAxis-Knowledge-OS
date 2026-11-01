@@ -3160,3 +3160,13 @@ CI原确定失败点继续修复：显式reserve→前置Core/模型准备→一
 39cb3249的[CI41263648803](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41263648803)中Linux全量任务已success；green/desktop-fast/desktop-build在runtime准备时实际FAIL。green五份公开JSON已成功上传，原review为ACCEPTED、测量PASS且private/checkout/error/layout/budget均空；其失败点是官方Python3.12.10根`python3.exe`文件链接，backend链同样被原reparse守卫拒绝。后继最小兼容仅对当前implicit binding下该顶层alias校验同根`python.exe`、raw目标和源SHA，实体化为独立文件且完整计量，copy前后重核；显式donor、其他名称、目录/外部链接与换目标仍拒绝。去掉当前固定upload Action不支持且已证无效的4处输入，5个精确JSON路径/版本不变。
 
 本地原RED、最终组合回执、独立审查和源码绑定沿[CONTINUATION-3](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-3.json)接续。该修复不是新SHA云端PASS或合并结论；不滚动operator基线、不扩预算或增长门，不替代安装态及CL/J/R6业务验收，整体PARTIAL。
+
+### 2026-11-01 Core构建输入与历史散落记录后继
+
+c324b4ee的[CI41265388203](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41265388203)已完整结束：Linux全量和Green候选检查success；desktop-fast/build在`runtime_copy_plan → add(args.core) → growth.row`拒绝输入，a0 FAIL。fast原seal仍ACCEPTED/PASS且排除、错误、布局、预算项为空。原日志没有type/nlink，不把推断写成云端根因；本机独立离线tiny Cargo126,464B已实证release连字符命名与deps下划线命名同inode/nlink2，未编译项目或运行该产物。
+
+有限Core role只接受当前规范Cargo路径下、原生API精确枚举的两个同文件身份名称，绑定元数据/长度/SHA，copy前后复核并实体化独立输出；通用`safe/row`与旧Host规则保持原AST。原始名字排序、关闭失败、重解析/外部/额外名字、换inode/内容/目标等反例分别验证；只是观察到的来源资格，不等于`read_core_build`固定命令资格。已上传的五JSON范围、operator基线、2GiB及类预算不改。
+
+五项精确散落叶已无损归位：4,844原B→3,511B ZIP，五原路径缺失，CRC/SHA及两次恢复演练通过，另53保留对象原hash不变；7次dev各自child/wrapper0且source一致，prep绑定39cb、后继绑定c324，不拼成一个源码资格。未重扫整体布局、未计量物理释放，303仍只作为旧快照。cppcand1三份公开输入完整hash复核通过、缺已验证归档；只锁定Host角色，未复制或退役完整旧包。
+
+最新本地组合、独立六文件复核、原RED/失败、恢复入口与精确身份读取[CONTINUATION-4](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-4.json)。新源码云端资格和合格main合并仍逐阶段验收；其余生产者、六主包归一、Green mig缺口与F05/CL/J/R6任务继续未闭合。

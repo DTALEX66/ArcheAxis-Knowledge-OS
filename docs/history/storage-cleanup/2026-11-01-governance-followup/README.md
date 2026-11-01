@@ -49,3 +49,13 @@ PR205旧提交322a82bc的真实CI反例继续保留：三Windows runtime检查�
 39cb3249的[真实CI](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41263648803)中Linux全量任务成功；三Windows任务随后在Python链接成员校验失败。green原始诊断已确认seal为ACCEPTED、完整测量PASS，排除/错误/布局/超预算项均空，不能继续把这次失败归因于基线。修复仅绑定当前隐式解释器根的顶层`python3.exe`文件符号链接，要求直接指向同根已绑定`python.exe`，按目标字节计量并复制成独立常规文件，复制前后复核链接目标和内容。通用、显式及其他链接仍沿原检查拒绝。现有upload Action忽略不支持的hidden输入，但日志证实5份精确JSON已上传；仅去掉无效输入，不升级Action或扩大上传范围。
 
 本后继的源码身份、独立审查、实际本地检查及原失败见[CONTINUATION-3](CONTINUATION-3.json)；新提交的云端资格和main合并分别验收。固定operator checkpoint、2GiB门槛、类预算及原始档案不改；303布局快照、生产者治理、六主包后继资格与业务验收继续未闭合。
+
+## 后继：Core 输入兼容与五项散落记录归位
+
+c324b4ee的[完整CI](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41265388203)中Linux全量与Green候选检查成功，desktop-fast/build均在Core输入的独立常规文件检查失败，a0仍FAIL。原日志未给文件类型和链接数，不能直接确诊云端硬链接。本机无依赖、离线且未运行产物的Cargo小样实际生成126,464B二进制，`release/archeaxis-api.exe`和`release/deps/archeaxis_api.exe`是同一文件的两个硬链接名称。
+
+后继Core专用输入规则沿当前规范Cargo根，要求恰好两个文件名、直接deps成员和同一文件身份；用Windows原生API只枚举该文件的名字，排序后绑定原始元数据与SHA，复制前后复核并输出独立文件。名称超界、重解析、第三名、变更、已有目标及关闭错误均拒绝；通用文件和既有Host规则不改。该角色只说明观察到的输入身份，不冒充固定命令Core构建资格；原预算、基线与上传范围不变。
+
+另五项已确认散落历史记录无损归位，4,844原B保全为3,511B ZIP，五原路径全缺失；CRC/SHA及两次恢复演练通过，另外53项保留对象原SHA不变。没有执行旧脚本或修改模型配置，也没有重扫整体布局或计量物理释放。已独立核验的cppcand1 Host、manifest和pin仍为后继输入来源，完整旧包继续保留，不能据此称整包可删。
+
+精确源码、本地组合资格、阶段原失败与恢复证据见[CONTINUATION-4](CONTINUATION-4.json)。本机小样、Linux/Green局部通过和新提交云端资格分开验收；默认检索范围与186份公开档案身份不改，整体PARTIAL。

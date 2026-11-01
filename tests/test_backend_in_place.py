@@ -113,6 +113,26 @@ def run_stager(case, callback=None, environment=None, extra=()):
                            _environment=case["env"])))
 
 
+def test_in_place_core_pair_is_bounded_materialized_and_observed_not_build_qualified(prepared, monkeypatch):
+    from scripts.runtime import runtime_resources
+    c = prepared
+    source = c["repo"] / ".project-local/build/cargo/release/archeaxis-api.exe"
+    pair = source.parent / "deps/archeaxis_api.exe"
+    pair.parent.mkdir(parents=True)
+    source.write_bytes(b"tiny current build output; never executed")
+    os.link(source, pair)
+    if os.name != "nt":
+        monkeypatch.setattr(runtime_resources, "_core_link_paths", lambda path: {
+            "paths": [source, pair], "raw_names": [str(source), str(pair)], "method": "SYNTHETIC_NAMES_REAL_POSIX_INODES"})
+    c["argv"][c["argv"].index("--core") + 1] = str(source)
+    assert run_stager(c) == 0
+    staged = c["output"] / "core/archeaxis-api.exe"
+    assert staged.read_bytes() == source.read_bytes()
+    assert staged.stat().st_nlink == 1 and source.stat().st_nlink == pair.stat().st_nlink == 2
+    manifest = json.loads((c["output"] / "backend-runtime-manifest.json").read_bytes())
+    assert manifest["core_input"]["cargo_core"]["qualification"] == "OBSERVED_CARGO_OUTPUT_NOT_QUALIFIED_BUILD"
+
+
 @pytest.mark.parametrize("mode", ["tiny_estimate", "pre", "projected", "post", "original_and_post"])
 def test_in_place_shared_growth_review_and_original_errors(prepared, monkeypatch, mode):
     c = prepared

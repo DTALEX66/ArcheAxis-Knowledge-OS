@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 import os
 import shutil
 import stat
@@ -69,6 +70,38 @@ def row(path):
     with native(path).open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     return {"bytes": info.st_size, "sha256": digest}
+
+
+def core_row(path, *, repository=None):
+    """Core-only admission; ordinary explicit independent donors keep their contract."""
+    resources = portable.runtime_resources
+    path = plain(path)
+    observed = {"path": str(path)}
+    try:
+        safe(path)
+        info = native(path).lstat()
+        observed.update(resources.file_metadata(info))
+        if stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+            return row(path)
+        repository = safe(repository if repository is not None else portable.REPO)
+        cargo = portable.dev.layout(repository)["cargo_build"]
+        identity = resources.core_identity(path, cargo)
+        identity["cargo_core"]["repository"] = str(repository)
+        print("[core-input] " + json.dumps(identity, sort_keys=True))
+        return identity
+    except Exception as error:
+        error.add_note("Core input public lstat: " + json.dumps(observed, sort_keys=True))
+        raise
+
+
+def _check_core(path, identity):
+    core = identity["cargo_core"]
+    repository = safe(Path(core["repository"]))
+    cargo = portable.dev.layout(repository)["cargo_build"]
+    current = portable.runtime_resources.core_identity(path, cargo)
+    current["cargo_core"]["repository"] = str(repository)
+    if current != identity:
+        raise ValueError("Cargo Core input changed after planning")
 
 
 def interpreter_source():
@@ -160,6 +193,11 @@ def copy2(source, destination, *, identity=None):
     if identity is None and state is not None:
         identity = state["inputs"].get(source)
     alias = identity.get("interpreter_alias") if identity is not None else None
+    core = identity.get("cargo_core") if identity is not None else None
+    if core is not None:
+        if alias is not None or state is None:
+            raise ValueError("Cargo Core requires one exclusive source role and an active plan")
+        _check_core(source, identity)
     if alias is not None:
         if state is None or state["interpreter_binding"] is None:
             raise ValueError("runtime executable alias requires its active interpreter plan")
@@ -180,7 +218,10 @@ def copy2(source, destination, *, identity=None):
         raise ValueError("runtime source size changed before copy")
     if native(destination).exists() and native(destination).stat().st_nlink != 1:
         raise ValueError("linked runtime destination")
-    with open(portable.native(incoming_source), "rb") as incoming, open(portable.native(destination), "wb") as outgoing:
+    with open(portable.native(incoming_source), "rb") as incoming, open(
+            portable.native(destination), "xb" if core is not None else "wb") as outgoing:
+        if core is not None and not portable.runtime_resources.opened_file_matches(incoming, core["source_metadata"]):
+            raise ValueError("Cargo Core changed while opening for copy")
         remaining = identity["bytes"]
         while remaining:
             chunk = incoming.read(min(remaining, 1024 * 1024))
@@ -194,6 +235,8 @@ def copy2(source, destination, *, identity=None):
         raise ValueError("runtime copied bytes differ")
     if alias is not None and _interpreter_alias(source, state["interpreter_binding"]) != identity:
         raise ValueError("runtime executable alias changed during copy")
+    if core is not None:
+        _check_core(source, identity)
     shutil.copystat(native(incoming_source), native(destination))
     return str(destination)
 
@@ -252,6 +295,7 @@ def batch(destination, inputs, total, context=None, *, unknown_output=False, int
             state = portable._storage_pre(Path(destination), total, context, formal_runtime=True)
             state["producer"] = "runtime-staging"
             state["interpreter_binding"] = interpreter_binding
+            state["core_inputs"] = {str(path): identity for path, identity in inputs.items() if "cargo_core" in identity}
             state["projection_scope"] = "known copy bytes plus caller-declared generated-byte estimate; not a hard quota"
             if any(state[key]["status"] == "REVIEW_REQUIRED" for key in ("pre_review", "projected_review")):
                 raise portable.GrowthReviewRequiredError("runtime storage growth requires review")

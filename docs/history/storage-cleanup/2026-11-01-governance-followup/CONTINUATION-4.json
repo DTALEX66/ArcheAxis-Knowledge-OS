@@ -1,0 +1,201 @@
+{
+  "schema": "aaos.governance-continuation/v1",
+  "recorded_at": "2026-11-01T03:00:39.635909+00:00",
+  "status": "LOCAL_IMPLEMENTATION_VERIFIED_REMOTE_PENDING",
+  "overall": "PARTIAL",
+  "base_commit": "c324b4ee4a89b23346e888956eed29ad9002f41a",
+  "changed_existing_file_identities": [
+    {
+      "path": "desktop/scripts/prepare_bundle.py",
+      "bytes": 24211,
+      "sha256": "2601731236ab2ded4ed622ebcb5a1f6bae61ffa3c14b6962628f5822611bf76c"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "bytes": 848350,
+      "sha256": "8a4725bd7be841b1a80051991bf96e35cef1a744a964b440f3c8fe8069629dcb"
+    },
+    {
+      "path": "docs/history/storage-cleanup/2026-11-01-governance-followup/README.md",
+      "bytes": 10237,
+      "sha256": "7da3852c6d0a7b7717029037240e57f7002509c5ee3dca753964943ee11f63a2"
+    },
+    {
+      "path": "scripts/release/runtime_growth.py",
+      "bytes": 14976,
+      "sha256": "32817c8558e62fe7011814d27fb87604a62c57555571dbbef2b836019092e87d"
+    },
+    {
+      "path": "scripts/release/stage_backend_runtime.py",
+      "bytes": 68478,
+      "sha256": "0e9279e1292e4c11e84dc3560961b34a1ebab41a3bfe36c2922b1dbea47b0dd5"
+    },
+    {
+      "path": "scripts/runtime/runtime_resources.py",
+      "bytes": 15793,
+      "sha256": "7655e1917737aa0c53d775cc3a4a3519078878100ffbe2176cdc59ea46b76786"
+    },
+    {
+      "path": "tests/test_backend_in_place.py",
+      "bytes": 31354,
+      "sha256": "043fc19dab5598709a837b81a10dee74eccfcaab20338c6eb19b5b6e6a82fdfe"
+    },
+    {
+      "path": "tests/test_runtime_growth.py",
+      "bytes": 21243,
+      "sha256": "362709cad6efd21a02e9dd1cf3dc4351ae9c40e66c7987ad4264193fae731e58"
+    }
+  ],
+  "local_checks": [
+    {
+      "path": ".project-local/runs/be268a2d33/gct-t1/artifacts/execution.json",
+      "bytes": 2218,
+      "sha256": "69a712b00546ac33b942c36706eceecc0804a32fff635d2196c29edd61ea25ee",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "source_commit": "c324b4ee4a89b23346e888956eed29ad9002f41a",
+      "source_patch_sha256": "0edf22a540bc57e29fefa3eaae60b490184e3ffb400a6d94b07fa0aecbfcba69"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gct-l1/artifacts/execution.json",
+      "bytes": 1620,
+      "sha256": "17c4ea57a9b415d431ce20ad17de11c72afa4af778c52b111bdcf2efbfe01a87",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "source_commit": "c324b4ee4a89b23346e888956eed29ad9002f41a",
+      "source_patch_sha256": "0edf22a540bc57e29fefa3eaae60b490184e3ffb400a6d94b07fa0aecbfcba69"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gct-p1/artifacts/local-ci.json",
+      "bytes": 1040455,
+      "sha256": "e213ee1b7f2076256bc21a9c1c5690ec1d394a84b3795f67d0dfb289c9e03105",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "checks_passed": 19
+    }
+  ],
+  "local_pytest_summary": {
+    "passed": 376,
+    "skipped": 2
+  },
+  "post_seal_checks": [
+    "gct-d1",
+    "gct-c1"
+  ],
+  "prior_ci": {
+    "head": "c324b4ee4a89b23346e888956eed29ad9002f41a",
+    "run": 41265388203,
+    "conclusion": "failure",
+    "linux_full_test": "success",
+    "green_candidate": "success",
+    "windows_backend_runtime_failed": 2,
+    "failure": "Core donor rejected by strict regular-file/nlink predicate; original logs do not reveal its actual type/nlink"
+  },
+  "core_scope": "Observed canonical Core source only: exact two Win32 names, direct deps pair, same device/inode, metadata and bounded hash; sorted names and checked handle close. Materialize independent destination under original growth plan. Generic safe/row and prior Host regular AST unchanged. Not a fixed-command qualified Core build receipt.",
+  "mechanism_evidence": {
+    "local_tiny_cargo": "126464 byte offline binary; release/archeaxis-api.exe and release/deps/archeaxis_api.exe are two names for the same file",
+    "original_ci_hardlink_cause_proven": false,
+    "new_exact_sha_ci": "PENDING"
+  },
+  "ignored_normalization_increment": {
+    "members": 5,
+    "original_bytes": 4844,
+    "archive": {
+      "path": ".project-local/runs/be268a2d33/gov-layout-five-20261101/artifacts/historical-five.zip",
+      "bytes": 3511,
+      "sha256": "aa39f77743ca37f57d7d45bb7896de1198e68e7bc0a2ee9d00ddc2e51a914cc4"
+    },
+    "crc_sha_and_original_absence_root_readback": true,
+    "protected_other_members_verified_in_retirement_receipts": 53,
+    "physical_release": "NOT_MEASURED",
+    "whole_layout": "NOT_RESCANNED"
+  },
+  "inherited_search_and_public_archives": {
+    "pre_october_named_default_paths": 0,
+    "history_default_paths": 0,
+    "public_archived_members": 186,
+    "ignore_identity_unchanged": true,
+    "qualification": "Inherited unchanged scope; no new whole-corpus restore test"
+  },
+  "independent_review": {
+    "path": ".project-local/runs/be268a2d33/gov-core-review1/artifacts/CORE-PAIR-INDEPENDENT-REVIEW.json",
+    "bytes": 5543,
+    "sha256": "1bd6a2672aed5142181fe40920f11f372ea8bb3da701f3018f7b5d61f5d3d75a",
+    "verdict": "ACCEPTABLE_STATIC_BOUNDARY_NO_REMAINING_BLOCKING_FINDINGS",
+    "source_identities_verified": 6
+  },
+  "supporting_local_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/gov-core-review1/artifacts/CORE-PAIR-INDEPENDENT-REVIEW.json",
+      "bytes": 5543,
+      "sha256": "1bd6a2672aed5142181fe40920f11f372ea8bb3da701f3018f7b5d61f5d3d75a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-continuation-seal/artifacts/ci41265388203-final4.json",
+      "bytes": 50237,
+      "sha256": "002b169a0b6915e7b9e32a60f0b2be584bd6eff82f5281cc8d6236427138ebd5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-five-20261101/artifacts/MANIFEST.json",
+      "bytes": 13007,
+      "sha256": "bb6924791068f8436aa7aba109b758d57957c33cf11c5f1b5f050256385e65a2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-five-20261101/artifacts/FINAL.json",
+      "bytes": 12331,
+      "sha256": "b11fb9c88452570881c19857b5200f9ce383b60a9fc8de3902f3674ddced7b06"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/core-freeze/artifacts/CORE-PAIR-FREEZE.json",
+      "bytes": 11776,
+      "sha256": "76ec2cd751e2a3a7fd2037519b53c6795f2917b7e7b9873a79f1fc2370be540e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/corepair-tiny3/artifacts/CORE-PAIR-MECHANISM.json",
+      "bytes": 5601,
+      "sha256": "3e5f15ebce1ecbeccab72c822c4be5e3c3bae19ca04325c977fe77501031fc5d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/corepair-meta1/artifacts/NATIVE-CORE-LINK-METADATA.json",
+      "bytes": 1359,
+      "sha256": "616ad7bf5a33210a06c95612cad07b3a72dd7c08b7079e28a022c09a57b82c24"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/core-lint-base/artifacts/RUFF-BASELINE-COMPARISON.json",
+      "bytes": 3678,
+      "sha256": "36b9d04922cd647e4d2f47ab9ca7a92da4472a74e6a685916fe674cae5c94f5f"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-five-20261101/artifacts/INDEPENDENT-POST.json",
+      "bytes": 12060,
+      "sha256": "a7f2e42b95123be223d2496da437e1489b41ae88a4b82bb1fb0b9587584d056c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cpphost-final1/artifacts/CPPCAND1-HOST-DONOR-CHECK.json",
+      "bytes": 7947,
+      "sha256": "d5f2d74fc604ea6a62d038577e9b4e16f5d97f2c96e17aa7628a79e6248205de"
+    }
+  ],
+  "fixed_operator_checkpoint": {
+    "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+    "bytes": 509805,
+    "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
+    "changed": false,
+    "current_measurement": false
+  },
+  "limits": [
+    "Local Cargo/WinAPI evidence is not original GitHub metadata or new CI qualification",
+    "Existing Host SIM105 remains in both HEAD and current full-Ruff output; required fatal checks are separate",
+    "No budget, threshold, checkpoint, uploader scope, global or private-state changes",
+    "No project compile, product execution, actual model, release, Green replacement or real-data acceptance"
+  ],
+  "remaining": [
+    "303 shallow layout snapshot entries and other producers/linked-worktree ownership",
+    "Six pinned candidate inputs normalization and successor qualification",
+    "Green migration source gaps",
+    "F05 and complete CL/J/R6 business acceptance",
+    "Exact-SHA CI, qualifying merge and local/remote readback"
+  ]
+}

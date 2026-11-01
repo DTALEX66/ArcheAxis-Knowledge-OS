@@ -370,7 +370,8 @@ def install_core(
     staged tree the shell's discovery finds nothing and keeps the legacy entrypoint,
     silently - so putting one here is what actually changes which backend ships.
     """
-    inputs = {growth.plain(core): growth.row(core)}
+    repository = storage_context["paths"]["root"] if storage_context is not None else None
+    inputs = {growth.plain(core): growth.core_row(core, repository=repository)}
     if workers is not None:
         inputs.update(growth.snapshot(workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")))
     if candidate_root is not None:

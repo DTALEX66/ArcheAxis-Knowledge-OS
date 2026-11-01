@@ -837,7 +837,7 @@ def expected_model_members(model: Path, name: str | None) -> dict:
     return rows
 
 
-def runtime_copy_plan(args, in_place=False):
+def runtime_copy_plan(args, in_place=False, *, repository=None):
     """Enumerate only actual selected donors, never an entire dependency source."""
     inputs = {}
     total = 0
@@ -865,7 +865,10 @@ def runtime_copy_plan(args, in_place=False):
     tree(source, validate=reject_reparse if in_place else None,
          interpreter_binding=args._interpreter_binding if in_place else None)
     tree(args.workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
-    add(args.core)
+    core = growth.plain(args.core)
+    args._core_input = growth.core_row(core, repository=repository)
+    inputs[core] = args._core_input
+    total += args._core_input["bytes"]
     add(args.shared or args.workers.parent.parent / "shared/learning_scheduler.py")
     repository = Path(__file__).resolve().parents[2]
     for path in (repository / "shared/safe_http.py", repository / "shared-contracts/adapters/llm/litellm_adapter.py",
@@ -954,15 +957,15 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
     args = parser.parse_args(argv)
     if args.out.exists():
         raise ValueError("refusing to overwrite an existing runtime root")
-    inputs, total = runtime_copy_plan(args, _runtime_preparer is not None)
+    repository = (Path(_runtime_environment["ARCHEAXIS_WORKTREE_ROOT"]) if _runtime_environment is not None
+                  else growth.portable.REPO)
+    inputs, total = runtime_copy_plan(args, _runtime_preparer is not None, repository=repository)
     if args.archive:
         if args.archive.absolute().parent != args.out.absolute().parent:
             raise ValueError("runtime archive must be beside its reviewed output root")
         total *= 2  # Conservative uncompressed archive estimate; post records actual allocation.
     context = None
     if args.run_id:
-        repository = (Path(_runtime_environment["ARCHEAXIS_WORKTREE_ROOT"]) if _runtime_environment is not None
-                      else growth.portable.REPO)
         context = {"paths": growth.portable.dev.layout(repository, args.run_id), "purpose": args.storage_purpose,
                    "sharing": args.storage_sharing, "retention_reason": args.storage_retention_reason}
     if args.ci_runtime_checkpoint is not None:
@@ -1229,6 +1232,8 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         "manual_environment_required": False,
         "files": files,
     }
+    if "cargo_core" in args._core_input:
+        manifest["core_input"] = args._core_input
     if prepared_files is not None:
         manifest["runtime_preparation"] = {"mechanism": "FRESH_OWNED_IN_PLACE_CALLBACK",
             "interpreter_binding": args._interpreter_binding,

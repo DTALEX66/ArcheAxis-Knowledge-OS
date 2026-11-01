@@ -3,6 +3,7 @@ import builtins
 import copy
 import hashlib
 import json
+import os
 import stat
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,6 +11,181 @@ from types import SimpleNamespace
 import pytest
 
 from scripts.release import runtime_growth as growth
+from scripts.runtime import runtime_resources as resources
+
+
+def core_pair(tmp_path, monkeypatch, name="archeaxis_api.exe"):
+    """Real tiny hardlinks; the name enumerator alone is synthetic on POSIX."""
+    root = tmp_path / ".project-local/build/cargo"
+    source = root / "release/archeaxis-api.exe"
+    pair = root / "release/deps" / name
+    pair.parent.mkdir(parents=True)
+    source.write_bytes(b"tiny Core; never executed")
+    os.link(source, pair)
+    monkeypatch.setattr(growth.portable, "REPO", tmp_path)
+    monkeypatch.setattr(growth.portable.dev, "layout", lambda *a, **k: {"cargo_build": root})
+    if os.name != "nt":
+        monkeypatch.setattr(resources, "_core_link_paths", lambda path: {
+            "paths": [source, pair], "raw_names": [str(source), str(pair)], "method": "SYNTHETIC_NAMES_REAL_POSIX_INODES"})
+    return source, pair
+
+
+@pytest.mark.parametrize("name", ["archeaxis_api.exe", "archeaxis_api-1234567890abcdef.exe"])
+def test_core_only_materializes_exact_cargo_pair(tmp_path, monkeypatch, name):
+    from desktop.scripts.prepare_bundle import install_core
+    source, pair = core_pair(tmp_path, monkeypatch, name)
+    with pytest.raises(ValueError, match="independent"):
+        growth.row(source)
+    target = tmp_path / "output"
+    staged = install_core(destination=target, core=source)
+    assert staged.read_bytes() == source.read_bytes()
+    assert staged.stat().st_nlink == 1
+    assert source.stat().st_nlink == pair.stat().st_nlink == 2
+    assert not os.path.samestat(staged.stat(), source.stat())
+
+
+@pytest.mark.parametrize("change", ["third", "missing", "different-inode", "foreign-pair", "foreign-root",
+                                    "wrong-name", "directory", "symbolic", "enumeration-error"])
+def test_core_pair_role_rejects_unqualified_links(tmp_path, monkeypatch, change):
+    source, pair = core_pair(tmp_path, monkeypatch)
+    names = [source, pair]
+    if change == "third":
+        os.link(source, pair.with_name("extra.exe"))
+    elif change in {"missing", "different-inode"}:
+        pair.unlink()
+        # Keep nlink == 2 while the claimed deps path is absent or another inode.
+        os.link(source, pair.with_name("unclaimed.exe"))
+        if change == "different-inode":
+            pair.write_bytes(source.read_bytes())
+    elif change == "foreign-pair":
+        pair.unlink()
+        pair = tmp_path / "outside.exe"
+        os.link(source, pair)
+        names = [source, pair]
+    elif change == "foreign-root":
+        source = source.rename(source.with_name("foreign.exe"))
+        names = [source, pair]
+    elif change == "wrong-name":
+        pair = pair.rename(pair.with_name("different.exe"))
+        names = [source, pair]
+    elif change == "directory":
+        source.unlink()
+        source.mkdir()
+    elif change == "symbolic":
+        # The portable safe-path rejection is also exercised by native symlink fixtures elsewhere.
+        original = resources.checked
+        def linked(path):
+            if path == source:
+                raise ValueError("Linked candidate path rejected")
+            return original(path)
+        monkeypatch.setattr(resources, "checked", linked)
+    def enumerate_names(path):
+        if change == "enumeration-error":
+            raise OSError("fixture cannot enumerate hardlink names")
+        return {"paths": names, "raw_names": [str(p) for p in names], "method": "SYNTHETIC_NAMES_REAL_INODES"}
+    monkeypatch.setattr(resources, "_core_link_paths", enumerate_names, raising=False)
+    with pytest.raises((ValueError, OSError)) as caught:
+        growth.core_row(source)
+    assert any("Core input public lstat" in note for note in caught.value.__notes__)
+
+
+@pytest.mark.parametrize("change", ["inode", "same-size", "grow", "short", "destination-hardlink", "destination-exists"])
+def test_core_pair_copy_rechecks_planned_identity_and_independent_destination(tmp_path, monkeypatch, change):
+    source, pair = core_pair(tmp_path, monkeypatch)
+    identity = growth.core_row(source)
+    destination = tmp_path / "copied.exe"
+    if change == "destination-hardlink":
+        os.link(source, destination)
+    elif change == "destination-exists":
+        destination.write_bytes(b"preserve existing")
+    original = builtins.open
+    reads = 0
+    def mutate(path, mode="r", *args, **kwargs):
+        nonlocal reads
+        if growth.plain(path) == source and mode == "rb":
+            reads += 1
+            if change == "inode":
+                raw = source.read_bytes()
+                source.unlink()
+                pair.unlink()
+                source.write_bytes(raw)
+                os.link(source, pair)
+        stream = original(path, mode, *args, **kwargs)
+        if growth.plain(path) != source or mode != "rb" or reads != 2 or change not in {"same-size", "grow", "short"}:
+            return stream
+        class ChangingReader:
+            changed = False
+            def __getattr__(self, name):
+                return getattr(stream, name)
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return stream.__exit__(*args)
+            def read(self, count):
+                if not self.changed:
+                    self.changed = True
+                    size = {"same-size": identity["bytes"], "grow": identity["bytes"] + 40, "short": 1}[change]
+                    source.write_bytes(b"X" * size)
+                return stream.read(count)
+        return ChangingReader()
+    monkeypatch.setattr(builtins, "open", mutate)
+    with growth.batch(tmp_path, {source: identity}, identity["bytes"]), pytest.raises((ValueError, FileExistsError)):
+        growth.copy2(source, destination)
+    if change.startswith("destination"):
+        assert destination.read_bytes() == (source.read_bytes() if change == "destination-hardlink" else b"preserve existing")
+    elif destination.exists():
+        assert destination.stat().st_size <= identity["bytes"]
+
+
+def test_core_pair_enumeration_order_is_not_identity(tmp_path, monkeypatch):
+    source, pair = core_pair(tmp_path, monkeypatch)
+    initial = growth.core_row(source)
+    enumerate_names = resources._core_link_paths
+    def reverse(path):
+        observed = enumerate_names(path)
+        return {**observed, "paths": list(reversed(observed["paths"])),
+                "raw_names": list(reversed(observed["raw_names"]))}
+    monkeypatch.setattr(resources, "_core_link_paths", reverse)
+    assert growth.core_row(source) == initial
+    with growth.batch(tmp_path, {source: initial}, initial["bytes"]):
+        growth.copy2(source, tmp_path / "independent.exe")
+    assert (tmp_path / "independent.exe").stat().st_nlink == 1
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Native Windows handle-close evidence")
+@pytest.mark.parametrize("third", [False, True])
+def test_core_native_name_handle_close_failure_preserves_primary(tmp_path, monkeypatch, third):
+    import ctypes
+    from ctypes import wintypes
+    source, pair = core_pair(tmp_path, monkeypatch)
+    if third:
+        os.link(source, pair.with_name("third.exe"))
+    real = ctypes.WinDLL("kernel32", use_last_error=True)
+    real.FindClose.argtypes, real.FindClose.restype = [wintypes.HANDLE], wintypes.BOOL
+    closed = []
+    def close(handle):
+        assert real.FindClose(handle)
+        closed.append(handle)
+        ctypes.set_last_error(6)
+        return False  # Actual handle already closed; no native leak in the fixture.
+    kernel = SimpleNamespace(FindFirstFileNameW=real.FindFirstFileNameW,
+                             FindNextFileNameW=real.FindNextFileNameW, FindClose=close)
+    monkeypatch.setattr(ctypes, "WinDLL", lambda *a, **k: kernel)
+    with pytest.raises(ValueError if third else OSError) as caught:
+        resources._core_link_paths(source)
+    assert len(closed) == 1
+    if third:
+        assert "more than two" in str(caught.value)
+        assert any("FindClose" in note for note in caught.value.__notes__)
+
+
+def test_core_copy_rejects_dual_role_without_reading_source(tmp_path, monkeypatch):
+    source, _ = core_pair(tmp_path, monkeypatch)
+    identity = growth.core_row(source)
+    identity["interpreter_alias"] = {"target": str(source)}
+    with growth.batch(tmp_path, {source: identity}, identity["bytes"]), pytest.raises(ValueError, match="exclusive"):
+        growth.copy2(source, tmp_path / "never-created.exe")
+    assert not (tmp_path / "never-created.exe").exists()
 
 
 def mock_file_alias(monkeypatch, alias, target, *, mode=stat.S_IFLNK, reparse_tag=0xA000000C):
