@@ -265,6 +265,10 @@
     {
       "path": "docs/history/README.md",
       "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "workspace/intake/20261101-positioning-loop-update/README.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     }
   ],
   "rules": [

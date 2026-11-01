@@ -4,6 +4,9 @@ on:
   push:
     tags: ["v*"]
 
+env:
+  ARCHEAXIS_RUNTIME_GENERATED_BYTES: ${{ vars.ARCHEAXIS_RUNTIME_GENERATED_BYTES }}
+
 permissions:
   contents: read
 
@@ -119,7 +122,10 @@ jobs:
       - name: Prepare bundled runtime and inject exact release identity
         shell: pwsh
         run: |
-          python -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt
+          $runtimeForecast = 0L
+          if (-not [long]::TryParse($env:ARCHEAXIS_RUNTIME_GENERATED_BYTES, [ref]$runtimeForecast) -or $runtimeForecast -le 0) { throw 'Set ARCHEAXIS_RUNTIME_GENERATED_BYTES from a reviewed same-environment installed-runtime manifest; no default forecast or checkpoint bypass is available' }
+          $runtimeRunId = Split-Path -Leaf $env:ARCHEAXIS_RUN_ROOT
+          python -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt --run-id "$runtimeRunId" --storage-generated-bytes "$runtimeForecast" --storage-purpose "Locked runtime qualification" --storage-sharing "Shared cache and isolated runtime" --storage-retention-reason "Current job qualification evidence"
           $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
           $uvLockHash = (Get-FileHash uv.lock -Algorithm SHA256).Hash.ToLowerInvariant()
           $npmLockHash = (Get-FileHash frontend/package-lock.json -Algorithm SHA256).Hash.ToLowerInvariant()

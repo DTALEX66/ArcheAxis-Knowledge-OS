@@ -16,7 +16,7 @@
 
 | 轮次 / 证据入口 | 实际覆盖与验证要点 | 结论与边界 |
 | --- | --- | --- |
-| 9/23 商业 UI 审计，[原报告](../history/repository-consolidation-20261019/current/AAOS-UI-COMMERCIAL-AUDIT-20260923.md) | 当时 Avalonia 宿主及 UI 参考包；状态、焦点、响应、动效、空状态和真实 Core 入口；构建、142 项定向合同与 headless 学习 smoke | 局部实现及工程验证；原生 GUI/辅助技术 NOT_EXECUTED，完整学习及冷启未验。该旧宿主现为供体，不能作为当前 Tauri 的商业验收 |
+| 9/23 商业 UI 审计，[原报告压缩映射](../history/2026-11-01-preoct-archive/README.md)（`AAOS-UI-COMMERCIAL-AUDIT-20260923.md`） | 当时 Avalonia 宿主及 UI 参考包；状态、焦点、响应、动效、空状态和真实 Core 入口；构建、142 项定向合同与 headless 学习 smoke | 局部实现及工程验证；原生 GUI/辅助技术 NOT_EXECUTED，完整学习及冷启未验。该旧宿主现为供体，不能作为当前 Tauri 的商业验收 |
 | 10/03 独立审计，[进展](../history/repository-consolidation-20261019/current/AAOS-INDEPENDENT-AUDIT-20261003.md)、[缺口](../history/repository-consolidation-20261019/current/AAOS-CLOSURE-GAP-AUDIT-20261003.md) | 候选成员、Rust workspace 400/后继集成419、隔离迁移/回滚、课程与检索及其持久化；各自源码和运行条件独立 | NOT_READY。来源仍含 fixture；同一真实资料完整旅程缺失；Python full 收集4 errors/3 skipped，不能算通过；不把早期400/419覆盖后续新增代码 |
 | 10/05 审计纠错，[更正总表](../history/repository-consolidation-20261019/current/AAOS01-AUDIT-CORRECTIONS-20261005.md) | 复核 CI run/attempt、引擎断言实际执行、格式处理能力与完成声明是否相符 | 撤回 Q04 完成、音视频内容完整闭环等过度结论；CI 有取消/skipped及 desktop failure，Q14 NOT_RUN。该轮产出主要是纠正证据口径，不能计为新增功能 PASS |
 | 10/10 AI 阶段，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-AI-STAGE-20261010.json) | 资产/版本/恢复 fence、模拟 UI，240 视觉场景聚合；两次真实4B路由推理 | 最后布局修改前的836项前端不是最后源码全套；后继仅定向/构建/视觉。实际模型身份 UNKNOWN、语义质量未测、安装交互未验 |

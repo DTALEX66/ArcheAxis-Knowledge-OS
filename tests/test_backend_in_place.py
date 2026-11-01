@@ -4,11 +4,13 @@ import json
 import os
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from desktop.scripts import prepare_bundle as producer
 from scripts.release import stage_backend_runtime as stager
+from tests.test_runtime_growth import storage_fixture
 
 ORIGINAL_PREPARER = producer.prepare_bundle_runtime
 
@@ -21,7 +23,7 @@ def prepared(tmp_path, monkeypatch):
     repo = tmp_path / "repository"
     repo.mkdir()
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
-    (repo / ".gitignore").write_text(".project-local/\n", encoding="utf-8")
+    (repo / ".gitignore").write_text(".project-local/\ndocs/\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(repo), "add", ".gitignore"], check=True)
     subprocess.run(["git", "-C", str(repo), "-c", "user.name=Fixture",
                     "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture"], check=True)
@@ -33,6 +35,7 @@ def prepared(tmp_path, monkeypatch):
     (repo / "frontend").mkdir()
     (repo / "frontend/package.json").write_text('{"version":"fixture"}', encoding="utf-8")
     env = producer.runtime_build_environment(repo)
+    context, storage_report, storage_calls = storage_fixture(repo, Path(env["ARCHEAXIS_RUN_ROOT"]), monkeypatch)
     for key, value in env.items():
         if key.startswith("ARCHEAXIS_"):
             monkeypatch.setenv(key, value)
@@ -95,8 +98,12 @@ def prepared(tmp_path, monkeypatch):
             "--workers", str(workers), "--shared", str(repo / "shared/learning_scheduler.py"),
             "--out", str(output), "--version", "fixture", "--source-commit", env["ARCHEAXIS_SOURCE_COMMIT"],
             "--source-tree", env["ARCHEAXIS_SOURCE_TREE"], "--vc-runtime", str(vc)]
+    argv += ["--run-id", context["paths"]["run"].name, "--storage-purpose", context["purpose"],
+             "--storage-sharing", context["sharing"], "--storage-retention-reason", context["retention_reason"],
+             "--storage-generated-bytes", "256"]  # Explicit bound for this tiny synthetic callback only.
     return dict(repo=repo, env=env, core=core, output=output, base=base, vc=vc,
-                observed=observed, argv=argv, prepare=prepare, copies=copies)
+                observed=observed, argv=argv, prepare=prepare, copies=copies, context=context,
+                storage_report=storage_report, storage_calls=storage_calls)
 
 
 def run_stager(case, callback=None, environment=None, extra=()):
@@ -106,9 +113,85 @@ def run_stager(case, callback=None, environment=None, extra=()):
                            _environment=case["env"])))
 
 
+@pytest.mark.parametrize("mode", ["tiny_estimate", "pre", "projected", "post", "original_and_post"])
+def test_in_place_shared_growth_review_and_original_errors(prepared, monkeypatch, mode):
+    c = prepared
+    report, calls = c["storage_report"], c["storage_calls"]
+    if mode == "tiny_estimate":
+        c["argv"][c["argv"].index("--storage-generated-bytes") + 1] = "1"
+        assert run_stager(c) == 0
+        assert len(calls) == 2  # A small declared estimate never bypasses unknown-output review.
+    else:
+        if mode == "pre":
+            report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+        elif mode == "projected":
+            args = SimpleNamespace(runtime=c["output"] / "runtime", workers=c["repo"] / "services/python-workers",
+                core=c["core"], shared=c["repo"] / "shared/learning_scheduler.py", vc_runtime=c["vc"],
+                asr_model=None, webview2_runtime=None, dep=[])
+            _, total = stager.runtime_copy_plan(args, True)
+            report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 - total - 256 + 1
+        else:
+            measure = stager.growth.portable.storage_report.measure
+            def changed(root):
+                if calls:
+                    if mode == "original_and_post":
+                        raise OSError("synthetic post storage failure")
+                    report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+                return measure(root)
+            monkeypatch.setattr(stager.growth.portable.storage_report, "measure", changed)
+        original = RuntimeError("original runtime preparation failure")
+        def callback(root):
+            (root / "partial").write_bytes(b"preserve original bytes")
+            raise original
+        if mode == "original_and_post":
+            with pytest.raises(RuntimeError) as caught:
+                run_stager(c, callback=callback)
+            assert caught.value is original
+            assert (c["output"] / "partial").read_bytes() == b"preserve original bytes"
+        else:
+            with pytest.raises(stager.growth.portable.GrowthReviewRequiredError):
+                run_stager(c)
+        if mode in {"pre", "projected"}:
+            assert not c["output"].exists() and len(calls) == 2
+    receipt = json.loads((c["output"].parent / "portable-storage-receipt.json").read_bytes())
+    assert receipt["measurement_status"] == "PARTIAL"
+    if mode == "original_and_post":
+        assert receipt["original_error"]["message"] == str(original)
+        assert receipt["post_error"]["message"] == "synthetic post storage failure"
+
+
+def test_unknown_callback_requires_positive_estimate_before_root_creation(prepared):
+    c = prepared
+    c["argv"][c["argv"].index("--storage-generated-bytes") + 1] = "0"
+    with pytest.raises(ValueError, match="positive"):
+        run_stager(c)
+    assert not c["output"].exists() and not c["storage_calls"]
+
+
+@pytest.mark.parametrize("target", ["rt", "rt-other"])
+def test_only_exact_formal_runtime_root_uses_existing_rt_storage_class(prepared, target):
+    c = prepared
+    output = c["repo"] / ".project-local" / target
+    c["argv"][c["argv"].index("--out") + 1] = str(output)
+    c["argv"][c["argv"].index("--runtime") + 1] = str(output / "runtime")
+    if target != "rt":
+        with pytest.raises(ValueError, match="canonical allocated run artifacts"):
+            run_stager(c)
+        assert not output.exists()
+        return
+    assert run_stager(c) == 0
+    receipt = json.loads((c["context"]["paths"]["artifacts"] / "portable-storage-receipt.json").read_bytes())
+    assert receipt["projected_storage_class"] == "rt/"
+    assert receipt["projected_class_bytes_before"] == 0
+    assert receipt["projected_class_bytes_after"] == receipt["planned_payload_bytes"]
+    assert receipt["projected_review"]["status"] == "NO_NEW_GROWTH_TRIGGER"
+    assert receipt["measurement_status"] == "PARTIAL"
+
+
 def test_producer_prepares_one_final_runtime_and_real_stager_keeps_formal_contract(prepared):
     c = prepared
-    python = producer.prepare_backend_candidate(repository=c["repo"], destination=c["output"], core=c["core"])
+    python = producer.prepare_backend_candidate(repository=c["repo"], destination=c["output"], core=c["core"],
+        storage_context=c["context"], storage_generated_bytes=256)
     assert python == c["output"] / "runtime/python.exe"
     assert c["observed"] == [c["output"]]
     assert c["copies"].count((c["base"], c["output"] / "runtime")) == 1
@@ -248,7 +331,8 @@ def test_preparation_exception_retains_partial_bytes_and_real_failure_timing(pre
         raise RuntimeError("synthetic dependency failure")
     monkeypatch.setattr(producer, "prepare_bundle_runtime", fail)
     with pytest.raises(RuntimeError, match="synthetic dependency"):
-        producer.prepare_backend_candidate(repository=c["repo"], destination=c["output"], core=c["core"])
+        producer.prepare_backend_candidate(repository=c["repo"], destination=c["output"], core=c["core"],
+            storage_context=c["context"], storage_generated_bytes=256)
     assert (c["output"] / "runtime/python.exe").exists()
     reports = [json.loads(p.read_text(encoding="utf-8")) for p in
                (Path(c["env"]["ARCHEAXIS_RUN_ROOT"]) / "artifacts").glob("bt-*.json")]
@@ -301,7 +385,8 @@ def test_actual_runtime_preparer_uses_copy_link_mode_and_separate_metadata(prepa
             (wheels / "archeaxis_workspace-fixture.whl").write_bytes(b"synthetic wheel; never installed")
     monkeypatch.setattr(producer, "_run", execute)
     before = os.environ.get("UV_LINK_MODE")
-    python = original_preparer(repository=c["repo"], destination=destination, _backend_in_place=True, _environment=c["env"])
+    python = original_preparer(repository=c["repo"], destination=destination, _backend_in_place=True,
+        _environment=c["env"], storage_context=c["context"], storage_generated_bytes=256)
     assert python == destination / "runtime/python.exe"
     assert not (destination / "runtime/python").exists()
     assert not (destination / "requirements.locked.txt").exists()
@@ -324,18 +409,94 @@ def owned_junction(link, target):
         link.symlink_to(target, target_is_directory=True)
 
 
-def test_internal_preparer_rejects_junction_before_any_copy_or_dependency_lookup(prepared, monkeypatch):
+def test_cli_rejects_explicit_repository_alias_before_donor_lookup(prepared, monkeypatch):
+    c = prepared
+    alias = c["repo"] / ".project-local/repository-alias"
+    owned_junction(alias, c["repo"])
+    monkeypatch.setattr(producer.sys, "argv", ["prepare_bundle", "--backend-candidate",
+        "--repository", str(alias), "--destination", str(c["output"]), "--core", str(c["core"])])
+    monkeypatch.setattr(producer, "declared_asr_model", lambda _: pytest.fail("Reject repository link before donor lookup"))
+    with pytest.raises(ValueError, match="linked"):
+        producer.main()
+
+
+def test_cli_forwards_same_storage_context_to_following_core_copy(prepared, monkeypatch):
+    c = prepared
+    run_id = Path(c["env"]["ARCHEAXIS_RUN_ROOT"]).name
+    monkeypatch.setattr(producer.sys, "argv", ["prepare_bundle", "--repository", str(c["repo"]),
+        "--destination", str(c["output"]), "--core", str(c["core"]), "--run-id", run_id,
+        "--storage-purpose", "fixture", "--storage-sharing", "shared", "--storage-retention-reason", "evidence",
+        "--storage-generated-bytes", "256"])
+    observed = []
+    monkeypatch.setattr(producer, "prepare_bundle_runtime", lambda **kwargs: observed.append(kwargs))
+    monkeypatch.setattr(producer, "install_core", lambda **kwargs: observed.append(kwargs))
+    assert producer.main() == 0
+    assert observed[0]["storage_context"] is observed[1]["storage_context"]
+    assert observed[1]["storage_context"]["purpose"] == "fixture"
+
+
+def test_implicit_interpreter_alias_is_bound_once_and_recorded(prepared, monkeypatch):
+    c = prepared
+    alias = c["repo"] / ".project-local/implicit-python"
+    owned_junction(alias, c["base"])
+    monkeypatch.setattr(stager.growth.sys, "base_prefix", str(alias))
+    original = Path.resolve
+    resolved = []
+    def resolve(path, *args, **kwargs):
+        if path == alias:
+            resolved.append(path)
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "resolve", resolve)
+    binding = stager.growth.interpreter_source()
+    assert binding["logical_root"] == str(alias)
+    assert binding["physical_root"] == str(c["base"].resolve())
+    assert binding["source_python"]["sha256"] == stager.sha256(c["base"] / "python.exe")
+    inputs = stager.growth.snapshot(c["base"])
+    with stager.growth.batch(c["output"], inputs, sum(r["bytes"] for r in inputs.values()),
+                             interpreter_binding=binding):
+        python = producer.stage_runtime(repository=c["repo"], destination=c["output"])
+    assert python.read_bytes() == (c["base"] / "python.exe").read_bytes()
+    assert len(resolved) == 1
+    assert json.loads((c["output"] / "python-source-binding.json").read_bytes()) == binding
+    with pytest.raises(ValueError, match="linked"):
+        stager.growth.snapshot(alias)  # The same path supplied explicitly remains forbidden.
+
+
+def test_implicit_alias_does_not_approve_a_redirected_child(prepared, monkeypatch):
+    c = prepared
+    alias = c["repo"] / ".project-local/implicit-python"
+    owned_junction(alias, c["base"])
+    child_target = c["repo"] / ".project-local/child-target"
+    child_target.mkdir()
+    (child_target / "preserve").write_bytes(b"preserve")
+    owned_junction(c["base"] / "Lib/redirect", child_target)
+    monkeypatch.setattr(stager.growth.sys, "base_prefix", str(alias))
+    with pytest.raises(ValueError, match="linked"):
+        producer.stage_runtime(repository=c["repo"], destination=c["output"])
+    assert not c["output"].exists()
+    assert (child_target / "preserve").read_bytes() == b"preserve"
+
+
+@pytest.mark.parametrize("in_place", [False, True])
+@pytest.mark.parametrize("field", ["repository", "destination", "destination-parent", "dangling-destination"])
+def test_internal_preparer_rejects_junction_before_any_copy_or_dependency_lookup(prepared, monkeypatch, in_place, field):
     c = prepared
     target = c["repo"] / ".project-local/empty-target"
     target.mkdir()
     link = Path(c["env"]["ARCHEAXIS_RUN_ROOT"]) / "artifacts/redirect"
+    if field == "dangling-destination":
+        target.rmdir()
     owned_junction(link, target)
+    repository = link if field == "repository" else c["repo"]
+    destination = link / "child" if field == "destination-parent" else link
+    if field == "repository":
+        destination = c["output"]
     monkeypatch.setattr(producer.sys, "version_info", (3, 12, 9))
     monkeypatch.setattr(producer.shutil, "which", lambda _: pytest.fail("Reject link before dependency lookup"))
     with pytest.raises(ValueError, match="linked"):
-        ORIGINAL_PREPARER(repository=c["repo"], destination=link,
-                          _backend_in_place=True, _environment=c["env"])
-    assert list(target.iterdir()) == []
+        ORIGINAL_PREPARER(repository=repository, destination=destination,
+                          _backend_in_place=in_place, _environment=c["env"])
+    assert not target.exists() if field == "dangling-destination" else list(target.iterdir()) == []
 
 
 @pytest.mark.parametrize("field", ["output", "core", "asr"])

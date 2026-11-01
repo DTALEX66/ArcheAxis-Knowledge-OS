@@ -185,7 +185,7 @@ def _measure(artifacts, phase):
     return report, {**identity, "measurement_started_at": started, "measurement_ended_at": ended}
 
 
-def _storage_pre(destination, total, context):
+def _storage_pre(destination, total, context, *, formal_runtime=False):
     if not isinstance(context, dict) or set(context) != {"paths", "purpose", "sharing", "retention_reason"}:
         raise ValueError("large copy requires run paths, purpose, sharing and retention_reason")
     if any(not isinstance(context[k], str) or not context[k].strip()
@@ -196,9 +196,12 @@ def _storage_pre(destination, total, context):
     if any(paths[k] != canonical[k] for k in ("root", "run", "artifacts")):
         raise ValueError("foreign portable storage run context")
     artifacts = dev.safe_path(paths["artifacts"])
+    destination = dev.safe_path(destination)
     if not artifacts.is_relative_to(REPO):
         raise ValueError("large portable copy requires this checkout's in-root canonical artifacts; linked checkout evidence cannot silently inherit the main checkpoint")
-    if not artifacts.is_dir() or destination.parent != artifacts:
+    runtime_root = (formal_runtime and destination == dev.safe_path(REPO / ".project-local/rt")
+                    and storage_report.dev_allowed("rt"))
+    if not artifacts.is_dir() or (destination.parent != artifacts and not runtime_root):
         raise ValueError("large copy must use its canonical allocated run artifacts")
     # Check exclusive evidence names before measuring or copying; never overwrite.
     for name in ("pre", "post", "receipt"):
@@ -208,16 +211,28 @@ def _storage_pre(destination, total, context):
     current, identity = _measure(artifacts, "pre")
     projected = copy.deepcopy(current)
     projected["readable_bytes"] += total
-    runs = next(row for row in projected["dev_root"] if row["name"] == "runs/")
-    runs["bytes"] += total
-    runs["budgeted_bytes"] = runs["bytes"]
-    runs["over_budget"] = runs["total_over_budget"] = runs["bytes"] > runs["budget_gb"] * 1024 ** 3
-    runs["gb"] = round(runs["bytes"] / 1024 ** 3, 2)
+    storage_class = "rt/" if runtime_root else "runs/"
+    rows = [row for row in projected["dev_root"] if row["name"] == storage_class]
+    if len(rows) > 1:
+        raise ValueError("duplicate projected storage class")
+    if not rows:
+        projected["dev_root"].append({"name": storage_class, "bytes": 0,
+            "budget_gb": storage_report.DEV_BUDGET_GB.get(storage_class.rstrip("/")), "over_budget": False})
+        rows = [projected["dev_root"][-1]]
+    target_class = rows[0]
+    before = target_class["bytes"]
+    target_class["bytes"] += total
+    target_class["budgeted_bytes"] = target_class["bytes"]
+    budget = target_class.get("budget_gb")
+    target_class["over_budget"] = target_class["total_over_budget"] = bool(budget and target_class["bytes"] > budget * 1024 ** 3)
+    target_class["gb"] = round(target_class["bytes"] / 1024 ** 3, 2)
     return {"schema": "aaos.portable-storage-review/v1", "artifacts": artifacts,
             "baseline_report": baseline, "checkpoint": checkpoint, "pre": identity,
             "pre_review": storage_report.growth_review(current, baseline),
             "projected_review": storage_report.growth_review(projected, baseline),
             "measurement_status": current["measurement_status"], "planned_payload_bytes": total,
+            "projected_storage_class": storage_class, "projected_class_bytes_before": before,
+            "projected_class_bytes_after": target_class["bytes"],
             "projection_scope": "payload lower bound; excludes new evidence/manifest bytes; non-atomic measurement windows",
             "declarations": {k: context[k] for k in ("purpose", "sharing", "retention_reason")},
             "copy_outcome": "NOT_STARTED", "deletion_authorized": False}

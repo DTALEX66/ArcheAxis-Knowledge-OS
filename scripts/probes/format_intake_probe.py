@@ -1,6 +1,7 @@
 """Take real files through the running product and record what it says about each, unedited."""
 
 import hashlib, json, os, shutil, socket, subprocess, sys, time, urllib.error, urllib.request, uuid
+import importlib.util
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -105,19 +106,23 @@ def multipart(name, blob):
     return head + blob + f"\r\n--{boundary}--\r\n".encode(), boundary
 
 
+def _work_directory() -> Path:
+    """Allocate a unique owned artifact without resetting an earlier attempt."""
+    spec = importlib.util.spec_from_file_location(
+        "runtime_format_intake_probe", REPO / "scripts/runtime/dev.py")
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
+    return runtime.artifact_directory(REPO, "format-intake-probe")
+
+
 def run() -> dict:
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    work = Path(__file__).resolve().parents[2] / ".project-local" / "runs" / "format-intake-probe-run"
-    if work.exists():
-        shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True)
+    work = _work_directory()
     database = work / "archeaxis.sqlite"
     env = dict(os.environ)
     env["PYTHONPATH"] = str(REPO); env["PYTHONIOENCODING"] = "utf-8"
     env["ARCHEAXIS_DB_PATH"] = str(database); env["ARCHEAXIS_DATA_DIR"] = str(work)
 
-    receipt = {"scope": "format_intake_probe", "items": [], "steps": []}
+    receipt = {"scope": "format_intake_probe", "work_root": str(work), "items": [], "steps": []}
     migration = subprocess.run([sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
                                cwd=str(REPO), env=env, capture_output=True, text=True,
                                encoding="utf-8", errors="replace", timeout=600)
@@ -174,8 +179,9 @@ def run() -> dict:
         app.kill()
         try: app.communicate(timeout=20)
         except Exception: pass
-        shutil.rmtree(work, ignore_errors=True)
     receipt["ok"] = len(receipt["items"]) == len(SAMPLES)
+    if receipt["ok"]:
+        shutil.rmtree(work, ignore_errors=True)
     return receipt
 
 

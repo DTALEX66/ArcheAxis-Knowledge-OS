@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from scripts.maintenance.authority_routes import (
-    CONSOLIDATION, REGISTRY, check_consolidation, public_path, resolve,
+    CONSOLIDATION, PUBLIC_RECORDS, REGISTRY, PreservedRecords,
+    check_consolidation, public_path, resolve,
 )
 
 
@@ -55,6 +56,102 @@ def test_exact_archive_passes_and_old_locator_resolves_without_stub(tmp_path):
                       "canonical_path": item["archive_path"],
                       "replacement": item["replacement"]}
     assert not (tmp_path / item["original_path"]).exists()
+
+
+def compressed_scenario(root):
+    import zipfile
+
+    manifest, routes = scenario(root)
+    item = manifest["files"][0]
+    original = root / item["archive_path"]
+    raw = original.read_bytes()
+    archive_path = str(Path(PUBLIC_RECORDS).parent / "preoct-public-records.zip").replace("\\", "/")
+    archive = root / archive_path
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as output:
+        output.writestr(item["archive_path"], raw)
+    body = archive.read_bytes()
+    descriptor = {"schema": "aaos.preoct-public-records/v1",
+                  "archive": {"path": archive_path, "bytes": len(body),
+                              "sha256": hashlib.sha256(body).hexdigest()},
+                  "files": [{"path": item["archive_path"], "bytes": len(raw),
+                             "sha256": hashlib.sha256(raw).hexdigest()}]}
+    write(root, PUBLIC_RECORDS, json.dumps(descriptor))
+    original.unlink()
+    return manifest, routes, descriptor
+
+
+def test_compression_preserves_original_contract_and_resolves_without_text_stub(tmp_path):
+    manifest, routes, descriptor = compressed_scenario(tmp_path)
+    item = manifest["files"][0]
+    assert check_consolidation(tmp_path) == []
+    assert PreservedRecords(tmp_path).read(item["archive_path"]) == b"historical bytes\r\n"
+    assert not (tmp_path / item["archive_path"]).exists()
+    result = resolve(item["original_path"], routes, tmp_path)
+    assert result["role"] == "RETIRED_LOCATOR"
+    assert result["canonical_path"] == PUBLIC_RECORDS
+    assert result["archive_member"] == item["archive_path"]
+    assert result["archive_path"] == descriptor["archive"]["path"]
+    assert resolve(item["archive_path"], routes, tmp_path)["role"] == "ARCHIVED_PUBLIC_RECORD"
+
+
+@pytest.mark.parametrize("damage", ["zip", "metadata", "member_hash", "missing_zip", "duplicate_record"])
+def test_record_archive_damage_never_becomes_a_missing_path_exception(tmp_path, damage):
+    _, _, descriptor = compressed_scenario(tmp_path)
+    archive = tmp_path / descriptor["archive"]["path"]
+    if damage == "zip":
+        archive.write_bytes(archive.read_bytes() + b"changed")
+    elif damage == "metadata":
+        descriptor["archive"]["bytes"] = True
+    elif damage == "member_hash":
+        descriptor["files"][0]["sha256"] = "0" * 64
+    elif damage == "missing_zip":
+        archive.unlink()
+    else:
+        descriptor["files"].append(descriptor["files"][0].copy())
+    write(tmp_path, PUBLIC_RECORDS, json.dumps(descriptor))
+    assert check_consolidation(tmp_path), "corrupt archive was accepted"
+
+
+@pytest.mark.parametrize("extra", ["unlisted.md", "../escape.md"])
+def test_unlisted_or_traversing_zip_members_are_rejected_without_extraction(tmp_path, extra):
+    import zipfile
+
+    _, _, descriptor = compressed_scenario(tmp_path)
+    archive = tmp_path / descriptor["archive"]["path"]
+    with zipfile.ZipFile(archive, "a") as output:
+        output.writestr(extra, "unexpected")
+    raw = archive.read_bytes()
+    descriptor["archive"].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+    write(tmp_path, PUBLIC_RECORDS, json.dumps(descriptor))
+    assert any("membership mismatch" in issue for issue in check_consolidation(tmp_path))
+    assert not (tmp_path / "escape.md").exists()
+
+
+def test_archive_cannot_mask_changed_physical_original(tmp_path):
+    manifest, _, _ = compressed_scenario(tmp_path)
+    item = manifest["files"][0]
+    (tmp_path / item["archive_path"]).write_bytes(b"changed")
+    assert any("identity mismatch" in issue for issue in check_consolidation(tmp_path))
+
+
+def test_compression_does_not_replace_original_manifest_hash_requirement(tmp_path):
+    manifest, _, descriptor = compressed_scenario(tmp_path)
+    # Even consistent new ZIP/index bytes cannot rewrite the immutable contract.
+    import zipfile
+
+    row = descriptor["files"][0]
+    archive = tmp_path / descriptor["archive"]["path"]
+    payload = b"different record\r\n"
+    with zipfile.ZipFile(archive, "w") as output:
+        output.writestr(row["path"], payload)
+    raw = archive.read_bytes()
+    row.update(bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest())
+    descriptor["archive"].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+    write(tmp_path, PUBLIC_RECORDS, json.dumps(descriptor))
+    assert manifest["files"][0]["sha256"] != row["sha256"]
+    assert any("consolidated archive identity mismatch" in issue
+               for issue in check_consolidation(tmp_path))
 
 
 @pytest.mark.parametrize("mutation", ["archive", "size", "hash", "replacement", "original", "baseline", "duplicate"])

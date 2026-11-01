@@ -1,0 +1,6 @@
+# Default content search focuses on current source and rules. These records are
+# retained/archived, not deleted by this file. Use an explicit historical path
+# and --no-ignore when the task needs that evidence.
+/docs/history/
+/docs/architecture/imported-designs/
+/workspace/intake/**/source/

@@ -43,7 +43,7 @@ with the [AX-DIR-010 inventory schema](history/repository-consolidation-20261019
 source and target path, owner, data class, hashes, consumer scan, rollback,
 verification and an exact deletion-authorization state.
 
-The [directory-migration adoption map](history/repository-consolidation-20261019/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md)
+The [archived directory-migration adoption map](history/2026-11-01-preoct-archive/README.md)
 is a historical proposal, partially superseded by R6/M0 and its dated freeze
 banner. Use this index and the current project authority for present path roles.
 A dirty tree, unresolved consumer, missing rollback receipt or `NOT_REQUESTED`

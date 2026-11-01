@@ -417,6 +417,7 @@
         ".editorconfig",
         ".gitattributes",
         ".gitignore",
+        ".ignore",
         ".gitleaks.toml",
         ".pre-commit-config.yaml"
       ],

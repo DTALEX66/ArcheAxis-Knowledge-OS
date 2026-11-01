@@ -1,6 +1,8 @@
 # 文档职责与权威导航
 
-来源用途与产品定位的最新澄清为[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
+现行定位及闭环目标按[Owner选择新任务包](../workspace/intake/20261101-positioning-loop-update/README.md)和`SUP-030`：产品身份V2.2、同路径唯一闭环V3；X1—X8映射原CL/J。以下SUP-029继续规定来源用途，不再作为最新定位版本。
+
+来源用途继续按[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`，定位目标按第二十五节和 `SUP-030`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
 
 本页只回答“该读哪个规范源”，不复制进度、运行观察或完成结论。换会话先读[根入口](../AUTHORITY.md)、[执行规则](../AGENTS.md)，再按[活动指针的 continuation_context](current/AAOS-ACTIVE-EXECUTION.json)接续。用户当前明确决定与已登记替代关系优先；历史任务包、交接和回执保留各自适用时点与证据身份。
 
@@ -8,7 +10,7 @@
 | --- | --- | --- |
 | 活跃范围、任务来源与接续顺序 | [活动指针](current/AAOS-ACTIVE-EXECUTION.json) | 由指针选择当前任务包及覆盖合同；不从文件日期或旧 COMPLETE 推断当前队列。 |
 | 闭环／最快最短完整闭环的含义 | [唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md) | 人类链、AI链与两侧授权知识连接，以及有限首版、兼容、免费检索、模型双通道和同候选验收的Owner规范；原始跨软件会话外置，不另设进度。 |
-| 软件／版本／特色／方向验收矩阵 | [CL-04/J3现行矩阵](current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json) | 沿冻结35平台种子继续发现；官方文档、AAOS自造材料、本地消费者、外部往返分别记账，UNKNOWN不升级为支持；实际进度仍归唯一执行记录。 |
+| 软件／版本／特色／方向验收矩阵 | [CL-04/J3现行矩阵](current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)、[新包来源绑定](../workspace/intake/20261101-positioning-loop-update/SOURCE-BINDING.json) | 既有35平台种子与新包37平台覆盖表按原身份对照，不互相冒充。官方文档、AAOS自造材料、本地消费者、外部往返分别记账，UNKNOWN不升级为支持；实际进度仍归唯一执行记录。 |
 | 当前Stitch全量界面与前后端并行接通 | [执行分片覆盖](current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md) | Owner后继明确全部按新UI接通，UI-P/BE-P并行映射原任务，实际进度仍只有下一行入口。 |
 | 实际实施进度与验收证据 | [唯一 UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md) | 回执只证明其绑定源码、对象和环境；规划包中的 NOT_EXECUTED 不回填为运行结果。 |
 | 当前交接与未完成事项 | [接手入口](current/AAOS-AGENT-HANDOFF-CURRENT.md)、[来源待办索引](current/AAOS-EXECUTION-BACKLOG-20261018.json) | 交接与待办用于续接，实际进度仍归唯一执行记录。 |

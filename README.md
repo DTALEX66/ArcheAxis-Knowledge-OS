@@ -1,8 +1,10 @@
 # 星环知识系统（ArcheAxis Knowledge）
 
-本地优先、支持多格式资料整理、多源联网检索比对与持续纠错的人机双向知识与学习工作台。
+本地优先的个人 Human–AI 双向知识与学习工作台：以资料与知识对象为中心，贯通多格式整理、多源比较、学习与表达和 AI 资产复用。
 
-保留原件便于回查识别、转换和整理中的错误；通过百科、社区、论坛及学术等公开来源搜索比较，呈现一致、差异和待核实内容，支持持续修订。来源记录用于回查与纠错，单份原件、网络结果或模型回答均不自动具有唯一事实权威。普通保存、展示和学习不等待联网核验或人工事实审批；实际来源覆盖、限流与失败状态按运行结果说明。定位与规则见[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)、[内容规范](PROJECT_CONTRACT.yaml)和[Owner 最新澄清](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)。
+保留原件便于回查识别、转换和整理中的错误；通过百科、社区、论坛及学术等公开来源搜索比较，呈现一致、差异和待核实内容，支持持续修订。来源记录用于回查与纠错，单份原件、网络结果或模型回答均不自动具有唯一事实权威。普通保存、展示和学习不等待联网核验或人工事实审批；实际来源覆盖、限流与失败状态按运行结果说明。新任务包定位、目标及来源见[Owner选择记录](workspace/intake/20261101-positioning-loop-update/README.md)；定位与规则见[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)、[内容规范](PROJECT_CONTRACT.yaml)和[Owner 最新决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十五新任务包定位描述与闭环目标覆盖2026-11-01)。
+
+资料正文和学习活动为主内容，上下文助手与任务面板辅助操作；内容校验、人类掌握和AI采用分别呈现。专业制作/科研执行在外部完成，AAOS承接目标、计划、可选成果、反馈和复习。五稳定入口为工作台、资料与知识、研究与比较、学习与表达、AI助手；这是现行产品目标，实际界面资格另验。
 
 **当前状态：PARTIAL。** Owner 于2026-10-18恢复项目内实施；当前范围读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读[执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)与[会话整合](docs/current/AAOS-SESSION-RECONCILIATION-20261018.md)记录本轮证据和未完成项。测试、构建、CI、安装运行和Owner验收分别判断，当前没有可靠的整体完成率。
 

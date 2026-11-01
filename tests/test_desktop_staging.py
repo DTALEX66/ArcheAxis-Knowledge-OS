@@ -14,8 +14,8 @@ from desktop.scripts.assemble_distributions import (
     assemble_green,
     assemble_portable,
 )
-from desktop.scripts.stage_runtime import stage_runtime
 from desktop.scripts.prepare_bundle import runtime_build_environment
+from desktop.scripts.stage_runtime import stage_runtime
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def runtime_repository(tmp_path, monkeypatch):
     root = tmp_path / "repo"
     root.mkdir()
     subprocess.run(["git", "init", "-q", str(root)], check=True)
-    (root / ".gitignore").write_text(".project-local/\n", encoding="utf-8")
+    (root / ".gitignore").write_text(".project-local/\ndocs/\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(root), "add", ".gitignore"], check=True)
     subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture"], check=True)
     return root
@@ -111,9 +111,37 @@ def test_stage_runtime_refuses_to_overwrite_existing_destination(monkeypatch, tm
         stage_runtime(repository=repository, destination=destination)
 
 
+@pytest.mark.parametrize("change", ["growth", "missing_declaration"])
+def test_base_runtime_copy_storage_boundary(tmp_path, monkeypatch, change):
+    import builtins
+
+    from scripts.release import tauri_portable_candidate as portable
+    repository = tmp_path / "repo"
+    source = tmp_path / "base"
+    _fake_python(monkeypatch, source)
+    destination = repository / ".project-local/rt"
+    planned = (source / "python.exe").stat().st_size
+    if change == "missing_declaration":
+        monkeypatch.setattr(portable, "LARGE_COPY_BYTES", 1)
+    else:
+        original = builtins.open
+        def changed(path, mode="r", *args, **kwargs):
+            if Path(str(path).removeprefix("\\\\?\\")) == source / "python.exe" and mode == "rb":
+                (source / "python.exe").write_bytes(b"x" * (planned + 64))
+            return original(path, mode, *args, **kwargs)
+        monkeypatch.setattr(builtins, "open", changed)
+    with pytest.raises(ValueError):
+        stage_runtime(repository=repository, destination=destination)
+    if change == "growth":
+        assert (destination / "runtime/python/python.exe").stat().st_size <= planned
+    else:
+        assert not destination.exists()
+
+
 @pytest.mark.parametrize("minor", [13, 11])
 def test_bundle_runtime_requires_python312_before_any_preparation(monkeypatch, tmp_path, minor):
     from unittest.mock import Mock
+
     from desktop.scripts import prepare_bundle
 
     repository = tmp_path / "repo"
@@ -141,26 +169,30 @@ def test_bundle_runtime_requires_python312_before_any_preparation(monkeypatch, t
 
 def test_bundle_runtime_python312_reaches_existing_stage_pipeline(monkeypatch, tmp_path):
     from contextlib import nullcontext
+
     from desktop.scripts import prepare_bundle
 
     repository = tmp_path / "repo"
     destination = repository / ".project-local/rt"
     observed = []
-    monkeypatch.setattr(prepare_bundle, "sys", SimpleNamespace(version_info=(3, 12, 9)))
+    monkeypatch.setattr(prepare_bundle, "sys", SimpleNamespace(version_info=(3, 12, 9), base_prefix=str(tmp_path)))
+    monkeypatch.setattr(prepare_bundle.growth.sys, "base_prefix", str(tmp_path))
+    monkeypatch.setattr(prepare_bundle.growth, "snapshot", lambda *args, **kwargs: {})
+    monkeypatch.setattr(prepare_bundle.growth, "batch", lambda *args, **kwargs: nullcontext())
     monkeypatch.setattr(prepare_bundle.shutil, "which", lambda name: "synthetic-uv" if name == "uv" else None)
     monkeypatch.setattr(prepare_bundle, "runtime_build_environment", lambda root: {"ARCHEAXIS_RUN_ROOT": str(tmp_path / "run")})
     monkeypatch.setattr(prepare_bundle, "BuildTimings", lambda *_: SimpleNamespace(stage=lambda name: nullcontext({})))
 
-    class ReachedOriginalStage(Exception):
+    class ReachedOriginalStageError(Exception):
         pass
 
     def original_stage_boundary(**kwargs):
         observed.append(kwargs)
-        raise ReachedOriginalStage
+        raise ReachedOriginalStageError
 
     monkeypatch.setattr(prepare_bundle, "stage_runtime", original_stage_boundary)
-    with pytest.raises(ReachedOriginalStage):
-        prepare_bundle.prepare_bundle_runtime(repository=repository, destination=destination)
+    with pytest.raises(ReachedOriginalStageError):
+        prepare_bundle.prepare_bundle_runtime(repository=repository, destination=destination, storage_generated_bytes=1)
     assert observed == [{"repository": repository.resolve(), "destination": destination.resolve()}]
     assert not destination.exists()
 
@@ -326,6 +358,10 @@ def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypa
     (repository / "frontend").mkdir()
     (repository / "frontend/package.json").write_text('{"version":"fixture"}', encoding="utf-8")
     environment = prepare_bundle.runtime_build_environment(repository)
+    from tests.test_runtime_growth import storage_fixture
+    context, _, _ = storage_fixture(repository, Path(environment["ARCHEAXIS_RUN_ROOT"]), monkeypatch)
+    base = tmp_path / "base-python"
+    _fake_python(monkeypatch, base)
     for key, value in environment.items():
         if key.startswith("ARCHEAXIS_"):
             monkeypatch.setenv(key, value)
@@ -374,7 +410,8 @@ def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypa
         return subprocess.CompletedProcess(command, 0, "3.12.9\n", "")
     monkeypatch.setattr(subprocess, "run", no_execution)
     monkeypatch.delenv("CARGO_TARGET_DIR", raising=False)
-    python = prepare_bundle.prepare_backend_candidate(repository=repository, destination=destination, core=core)
+    python = prepare_bundle.prepare_backend_candidate(repository=repository, destination=destination, core=core,
+        storage_context=context, storage_generated_bytes=256)
     assert len(observed) == 1
     assert observed[0][observed[0].index("--vc-runtime")+1] == str(vc)
     assert python == destination / "runtime/python.exe"

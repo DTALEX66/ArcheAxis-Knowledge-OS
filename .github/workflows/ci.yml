@@ -20,6 +20,9 @@ concurrency:
   # must not occupy the queue after its successor is pushed.
   cancel-in-progress: true
 
+env:
+  ARCHEAXIS_RUNTIME_GENERATED_BYTES: ${{ vars.ARCHEAXIS_RUNTIME_GENERATED_BYTES }}
+
 permissions:
   contents: read
 
@@ -946,7 +949,10 @@ jobs:
         shell: pwsh
         run: |
           uv sync --frozen
-          python -B -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt
+          $runtimeForecast = 0L
+          if (-not [long]::TryParse($env:ARCHEAXIS_RUNTIME_GENERATED_BYTES, [ref]$runtimeForecast) -or $runtimeForecast -le 0) { throw 'Set ARCHEAXIS_RUNTIME_GENERATED_BYTES from a reviewed same-environment installed-runtime manifest; no default forecast or checkpoint bypass is available' }
+          $runtimeRunId = Split-Path -Leaf $env:ARCHEAXIS_RUN_ROOT
+          python -B -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt --run-id "$runtimeRunId" --storage-generated-bytes "$runtimeForecast" --storage-purpose "Locked runtime qualification" --storage-sharing "Shared cache and isolated runtime" --storage-retention-reason "Current job qualification evidence"
       - name: Assemble and verify Green candidate
         shell: pwsh
         run: |
@@ -1127,7 +1133,10 @@ jobs:
           if (-not (Test-Path -LiteralPath $previewCore -PathType Leaf)) { throw 'Owned preview Core build output missing' }
           $previewCore = (Resolve-Path -LiteralPath $previewCore).Path
           "BE10_PREVIEW_CORE=$previewCore" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe" --asr-model .project-local/asr-models/faster-whisper-base
+          $runtimeForecast = 0L
+          if (-not [long]::TryParse($env:ARCHEAXIS_RUNTIME_GENERATED_BYTES, [ref]$runtimeForecast) -or $runtimeForecast -le 0) { throw 'Set ARCHEAXIS_RUNTIME_GENERATED_BYTES from a reviewed same-environment installed-runtime manifest; no default forecast or checkpoint bypass is available' }
+          $runtimeRunId = Split-Path -Leaf $env:ARCHEAXIS_RUN_ROOT
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe" --asr-model .project-local/asr-models/faster-whisper-base --run-id "$runtimeRunId" --storage-generated-bytes "$runtimeForecast" --storage-purpose "Locked runtime qualification" --storage-sharing "Shared cache and isolated runtime" --storage-retention-reason "Current job qualification evidence"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test the canonical Windows desktop shell
         id: desktop_shell
@@ -1420,7 +1429,10 @@ jobs:
         run: |
           python -B scripts/runtime/dev.py -- cargo build -p archeaxis-api --bin archeaxis-api --release --locked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe" --asr-model .project-local/asr-models/faster-whisper-base
+          $runtimeForecast = 0L
+          if (-not [long]::TryParse($env:ARCHEAXIS_RUNTIME_GENERATED_BYTES, [ref]$runtimeForecast) -or $runtimeForecast -le 0) { throw 'Set ARCHEAXIS_RUNTIME_GENERATED_BYTES from a reviewed same-environment installed-runtime manifest; no default forecast or checkpoint bypass is available' }
+          $runtimeRunId = Split-Path -Leaf $env:ARCHEAXIS_RUN_ROOT
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe" --asr-model .project-local/asr-models/faster-whisper-base --run-id "$runtimeRunId" --storage-generated-bytes "$runtimeForecast" --storage-purpose "Locked runtime qualification" --storage-sharing "Shared cache and isolated runtime" --storage-retention-reason "Current job qualification evidence"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Assert the bundle carries the Core, workers and transcript model
         shell: pwsh

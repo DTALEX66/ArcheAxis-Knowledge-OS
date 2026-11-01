@@ -244,11 +244,11 @@ def test_app_local_copy_identity_and_corruption_refusal(tmp_path, monkeypatch):
         stager.stage_app_local_vc_runtime(runtime, root)
     broken = tmp_path / "broken"
     (broken / "core").mkdir(parents=True)
-    copy = stager.shutil.copy2
+    copy = stager.growth.copy2
     def corrupt(source, target):
         copy(source, target)
         Path(target).write_bytes(b"tampered copy")
-    monkeypatch.setattr(stager.shutil, "copy2", corrupt)
+    monkeypatch.setattr(stager.growth, "copy2", corrupt)
     with pytest.raises(ValueError, match="copy mismatch"):
         stager.stage_app_local_vc_runtime(runtime, broken)
 

@@ -822,6 +822,10 @@ authorities:
   - path: .gitignore
     owner: repository-governance
     execution_lane: owner
+  - path: .ignore
+    owner: repository-governance
+    execution_lane: owner
+    note: Default current-source search scope; archived records remain explicitly addressable.
   - path: app/**
     owner: legacy-python-product
     execution_lane: migration

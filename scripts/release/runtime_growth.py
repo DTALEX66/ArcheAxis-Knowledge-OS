@@ -1,0 +1,178 @@
+"""Runtime copy adapters; storage policy remains in the formal portable producer."""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import os
+import shutil
+import stat
+import sys
+from contextlib import contextmanager
+from contextvars import ContextVar
+from pathlib import Path
+
+if __package__:
+    from scripts.release import tauri_portable_candidate as portable
+else:
+    spec = importlib.util.spec_from_file_location("portable_runtime_growth", Path(__file__).with_name("tauri_portable_candidate.py"))
+    portable = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(portable)
+
+_batch = ContextVar("runtime_storage_batch", default=None)
+
+
+def plain(path):
+    text = os.fspath(path)
+    return Path(text[4:] if text.startswith("\\\\?\\") else text).absolute()
+
+
+def native(path):
+    return Path(portable.native(path))
+
+
+def safe(path):
+    path = portable.dev.safe_path(plain(path))
+    for part in (*reversed(path.parents), path):
+        try:
+            info = native(part).lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ValueError("linked runtime path rejected")
+    return path
+
+
+def row(path):
+    path = safe(path)
+    info = native(path).stat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise ValueError("runtime donor must be an independent regular file")
+    with native(path).open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    return {"bytes": info.st_size, "sha256": digest}
+
+
+def interpreter_source():
+    """Resolve only the running interpreter's implicit root, once per outer batch."""
+    logical = Path(sys.base_prefix).absolute()
+    identity = {"executable": sys.executable, "base_executable": getattr(sys, "_base_executable", None),
+                "python": sys.version}
+    active = _batch.get()
+    bound = active.get("interpreter_binding") if active is not None else None
+    if bound is not None:
+        if bound["logical_root"] != str(logical) or bound["interpreter"] != identity:
+            raise ValueError("implicit interpreter identity changed during runtime preparation")
+        safe(Path(bound["physical_root"]))
+        return bound
+    physical = safe(logical.resolve(strict=True))
+    executable = physical / "python.exe"
+    return {"logical_root": str(logical), "physical_root": str(physical), "interpreter": identity,
+            "source_python": row(executable) if native(executable).is_file() else None,
+            "resolution": "CURRENT_INTERPRETER_IMPLICIT_ROOT_ONLY"}
+
+
+def snapshot(source, ignore=None, *, validate=None):
+    source = safe(source)
+    if validate is not None:
+        validate(source)
+    result = {}
+    def fail(error):
+        raise error
+    for directory, dirs, files in os.walk(native(source), followlinks=False, onerror=fail):
+        parent = plain(directory)
+        excluded = ignore(str(parent), dirs + files) if ignore else set()
+        dirs[:] = [name for name in dirs if name not in excluded]
+        for name in dirs:
+            safe(parent / name)
+            if validate is not None:
+                validate(parent / name)
+        for name in files:
+            if name not in excluded:
+                path = parent / name
+                if validate is not None:
+                    validate(path)
+                result[path] = row(path)
+    return result
+
+
+def copy2(source, destination, *, identity=None):
+    source, destination = safe(source), safe(destination)
+    state = _batch.get()
+    if state is not None and (source not in state["inputs"] or
+            (identity is not None and identity != state["inputs"][source])):
+        raise ValueError("runtime donor differs from outer plan")
+    if identity is None:
+        if state is not None and source not in state["inputs"]:
+            raise ValueError("unplanned runtime donor; preserve partial output")
+        identity = state["inputs"][source] if state is not None else row(source)
+    if native(source).stat().st_size != identity["bytes"]:
+        raise ValueError("runtime source size changed before copy")
+    if native(destination).exists() and native(destination).stat().st_nlink != 1:
+        raise ValueError("linked runtime destination")
+    with open(portable.native(source), "rb") as incoming, open(portable.native(destination), "wb") as outgoing:
+        remaining = identity["bytes"]
+        while remaining:
+            chunk = incoming.read(min(remaining, 1024 * 1024))
+            if not chunk:
+                raise ValueError("runtime source shorter than planned")
+            outgoing.write(chunk)
+            remaining -= len(chunk)
+        if incoming.read(1):
+            raise ValueError("runtime source grew beyond planned size")
+    if row(destination) != identity:
+        raise ValueError("runtime copied bytes differ")
+    shutil.copystat(native(source), native(destination))
+    return str(destination)
+
+
+def copytree(source, destination, *, ignore=None, dirs_exist_ok=False, inputs=None):
+    source, destination = plain(source), plain(destination)
+    if inputs is None:
+        state = _batch.get()
+        inputs = ({path: value for path, value in state["inputs"].items() if path.is_relative_to(source)}
+                  if state is not None else snapshot(source, ignore))
+    copied = set()
+    def copy(member, target):
+        member = plain(member)
+        if member not in inputs:
+            raise ValueError("new runtime member after planning")
+        copied.add(member)
+        return copy2(member, target, identity=inputs[member])
+    result = shutil.copytree(native(source), native(destination), ignore=ignore, copy_function=copy, dirs_exist_ok=dirs_exist_ok)
+    if copied != set(inputs):
+        raise ValueError("runtime member disappeared after planning")
+    return result
+
+
+@contextmanager
+def batch(destination, inputs, total, context=None, *, unknown_output=False, interpreter_binding=None):
+    """Nested preparation shares the outer review; no rolling checkpoint or bypass."""
+    outer = _batch.get()
+    if outer is not None:
+        if total > outer["total"]:
+            raise ValueError("nested runtime plan exceeds reviewed projection")
+        yield
+        return
+    if type(total) is not int or total < 0 or (unknown_output and total == 0):
+        raise ValueError("runtime planned bytes must be explicit and positive for unknown generation")
+    state = None
+    token = _batch.set({"inputs": inputs, "total": total, "interpreter_binding": interpreter_binding})
+    try:
+        if total >= portable.LARGE_COPY_BYTES or unknown_output:
+            state = portable._storage_pre(Path(destination), total, context, formal_runtime=True)
+            state["producer"] = "runtime-staging"
+            state["interpreter_binding"] = interpreter_binding
+            state["projection_scope"] = "known copy bytes plus caller-declared generated-byte estimate; not a hard quota"
+            if any(state[key]["status"] == "REVIEW_REQUIRED" for key in ("pre_review", "projected_review")):
+                raise portable.GrowthReviewRequiredError("runtime storage growth requires review")
+            state["copy_outcome"] = "STARTED"
+        yield
+        if state is not None:
+            state["copy_outcome"] = "PRODUCER_COMPLETED"
+    finally:
+        error = sys.exc_info()[1]
+        try:
+            if state is not None:
+                portable._storage_post(state, error)
+        finally:
+            _batch.reset(token)

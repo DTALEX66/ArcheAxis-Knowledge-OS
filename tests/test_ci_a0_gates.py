@@ -223,7 +223,10 @@ def test_desktop_jobs_prepare_the_same_authoritative_candidate() -> None:
             ["python", "-m", "desktop.scripts.prepare_bundle", "--backend-candidate",
              "--repository", ".", "--destination", ".project-local/rt", "--core",
              "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe",
-             "--asr-model", ".project-local/asr-models/faster-whisper-base"],
+             "--asr-model", ".project-local/asr-models/faster-whisper-base",
+             "--run-id", "$runtimeRunId", "--storage-generated-bytes", "$runtimeForecast",
+             "--storage-purpose", "Locked runtime qualification", "--storage-sharing", "Shared cache and isolated runtime",
+             "--storage-retention-reason", "Current job qualification evidence"],
         ]
         parsed = [shlex.split(line) for line in commands]
         assert parsed == expected, parsed

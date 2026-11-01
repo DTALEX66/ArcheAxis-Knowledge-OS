@@ -113,12 +113,12 @@ def test_copy_corruption_refused(tmp_path, monkeypatch, donors):
     python, vc, cohort = donors
     output = tmp_path / 'out'
     (output / 'core').mkdir(parents=True)
-    original = stager.shutil.copy2
+    original = stager.growth.copy2
     def corrupt(source, target):
         original(source, target)
         if Path(target).name == 'msvcp140.dll':
             stager.filesystem_path(Path(target)).write_bytes(b'corrupt')
-    monkeypatch.setattr(stager.shutil, 'copy2', corrupt)
+    monkeypatch.setattr(stager.growth, 'copy2', corrupt)
     with pytest.raises(ValueError, match='copy mismatch'):
         stager.stage_app_local_vc_runtime(python, output, vc)
 

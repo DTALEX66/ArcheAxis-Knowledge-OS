@@ -263,6 +263,11 @@ def run_job(base: str, token: str, kind: str, staged_input: Path, labelled: str)
     return record
 
 
+def _work_directory() -> Path:
+    return _load("runtime_staged_matrix", REPO / "scripts/runtime/dev.py").artifact_directory(
+        REPO, "staged-format-matrix")
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -284,9 +289,7 @@ def main() -> int:
                           "material_root": os.environ.get(MATERIAL_ROOT_ENV, "")}))
         return 2
 
-    root = REPO / ".project-local" / "runs" / "staged-matrix"
-    if root.exists():
-        shutil.rmtree(root, ignore_errors=True)
+    root = _work_directory()
     profile_path = build_staged_tree(root, core_binary, runtime_python, matrix)
     inputs = root / "data" / "inputs"
 
@@ -298,6 +301,7 @@ def main() -> int:
     receipt: dict = {
         "ok": False,
         "staged_root": str(root),
+        "legacy_staged_root": str(REPO / ".project-local/runs/staged-matrix"),
         "core_binary": str(core_binary),
         "runtime_python": str(runtime_python),
         "evidence_level": "REAL_STAGED_RUNTIME",

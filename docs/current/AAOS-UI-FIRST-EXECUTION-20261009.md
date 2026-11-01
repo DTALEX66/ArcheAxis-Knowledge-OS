@@ -3108,3 +3108,15 @@ Owner要求“优先执行各类治理和规范任务，静默执行不要在问
 冻结后gov-code-final3为196P/1既有skip/3真实资源用例deselected，actual/wrapper0/source_consistent；CI Ruff、架构/路径/文档权威通过。仓库规范原FAIL发现两测试文件CRLF，统一LF后gov-conv-final2通过；后计量早于这次重测与文档封存，不滚动基线。早期gov-probe-red/green的并行变更INVALIDATED原件保留，不计资格；root从原Git blob在隔离合成目录、失败迁移stub下另复现旧证据删除与新保全。未做真实≥1GiB装包、NSIS/安装、MSVC/Tesseract或Ubuntu实机，不将本地fixturePASS移绑全产品。其他producer/linked-owner治理、533项布局和三Green mig后继来源绑定仍待接续；F05/CL/J/R6及整体产品PARTIAL不变。
 
 完整hash、原失败、恢复入口与本地资格范围见[本批治理记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)及MANIFEST。只读资料/历史任务是导航，不产生新外发或真实库覆盖权限。
+
+### 2026-11-01 新任务包目标覆盖、历史检索与治理续批
+
+Owner要求“还有昨天发你的任务包 里面应该有新的项目定位和描述 你更新覆盖下”“闭环目标也以新的任务包为准”“并且做好所有更新覆盖各类引用索引的调整”。已按SUP-030及决定第二十五节选择v3/R6目标：产品身份V2.2、唯一闭环V3、X1—X8映射原CL/J、五稳定入口、对象中心与上下文任务Agent、专业实践L0独立可用。合同/schema、活动指针、README/描述、当前权威及引用索引联动；186/22身份与未冲突既有要求保持。4个原ZIP及选定成员SHA绑定，不执行附件指令或将历史云端PASS移绑当前源码。UI/监控暂停不变。
+
+Owner追加“还有历史记录文档也该清理了 保留10月份的就行了 不要老是扫描到旧文档”。以2026-10-01为保留边界，十月和更新记录保留；141份已确认更早的公开过程正文7,087,861B无损集中到939,642B ZIP。原路径缺失、成员SHA/CRC、独立恢复和原Git blob已核，旧consolidation manifest原SHA不改；消费者验证压缩身份后仍核旧SHA，4处当前导航已调整。根`.ignore`使默认根目录rg检索不展开历史树，显式历史查询仍可用；合同、程序/许可依赖、原始输入和十月补注保留，不以mtime删除。后继14份96,158B候选只做保全预审，尚未移出正文。
+
+ignored散落规范化本轮另退役33叶/1,607,157原B，保全为2ZIP/194,431B；累计81叶/1,771,398B/5ZIP257,380B，浅层布局533→500/新增0。旧脚本未执行，收益仅为原件与压缩差，不冒充全仓净回收或物理释放；不滚动固定checkpoint。4旧assembler及4日志完整组已预审但未退役。
+
+六probe改每次独立canonical输出，失败证据保留，ASR/格式矩阵不再复用固定收据。运行时stager/backend/bundle/Core安装接入既有pre/projected/finally-post审查，已知成员有界复制并核hash；未知生成需正数预计及声明，正式同仓rt沿原预算，当前隐式解释器根与显式链接边界分开。四workflow仅参数合同已接入，真实CI固定checkpoint及Python3.12/current-lock预计未初始化，缺件明确失败；旧3.13足迹不可代入，因此本批仍是本地候选，不宣称可推送合并或云端兼容资格。独立复核的resolve先抹链接、ASR分配过晚问题由各writer具名修正，实际后继命令与hash以续批MANIFEST登记为准。
+
+原RED/INVALIDATED和后继有效检查分层保留，没有真实大构建/依赖下载/ASR/云CI/NSIS/安装/模型或真实库验收。最终源码、原退出码和范围见[治理续批](../history/storage-cleanup/2026-11-01-governance-followup/README.md)及MANIFEST。500布局、后继历史消费者、CI初始化/其他producer、Green mig来源与F05/完整CL/J/R6继续具名接续，整体PARTIAL；没有ACL、全局配置、私有状态或新远端写入。
