@@ -3170,3 +3170,11 @@ c324b4ee的[CI41265388203](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/ac
 五项精确散落叶已无损归位：4,844原B→3,511B ZIP，五原路径缺失，CRC/SHA及两次恢复演练通过，另53保留对象原hash不变；7次dev各自child/wrapper0且source一致，prep绑定39cb、后继绑定c324，不拼成一个源码资格。未重扫整体布局、未计量物理释放，303仍只作为旧快照。cppcand1三份公开输入完整hash复核通过、缺已验证归档；只锁定Host角色，未复制或退役完整旧包。
 
 最新本地组合、独立六文件复核、原RED/失败、恢复入口与精确身份读取[CONTINUATION-4](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-4.json)。新源码云端资格和合格main合并仍逐阶段验收；其余生产者、六主包归一、Green mig缺口与F05/CL/J/R6任务继续未闭合。
+
+### 2026-11-01 旧候选Host角色输入归一
+
+固定三对象准备工具已经独立审查并执行：49,999,360B Host、3,669,060B原manifest和553B原pin，共53,668,973B保全到独占规范运行目录；三份原件不动。有界复制、独立文件身份、完整SHA和前后元数据核验通过，INCOMPLETE在映射及载荷完成后才移除。原donor_path只保留来源信息；后继消费者argv中的`--donor-manifest`正确指553B pin副本。工具不接受其他源路径/SHA/输出覆盖，不执行旧assembler或Host。
+
+87项组合测试、14项subtests通过；独立真实复验确认三组原件/副本、源冻结元数据、映射及精确四个成员，无INCOMPLETE/FAILURE。dev本来覆盖公开untracked文件的完整字节，早先相反表述已由冻结收据显式纠正，原收据保留。此次增加保全副本，不计空间释放；只完成Host输入角色准备，完整旧包仍HOLD，六包归一和后继资格仍未闭合。
+
+精确源码、实际退出码及复验入口见[CONTINUATION-5](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-5.json)。历史记录186份及默认检索排除保持原身份；PR205的35f696云端资格、合并与本后继公开交付分别核验，不能互借PASS。其他生产者、Green mig及F05/CL/J/R6继续PARTIAL。

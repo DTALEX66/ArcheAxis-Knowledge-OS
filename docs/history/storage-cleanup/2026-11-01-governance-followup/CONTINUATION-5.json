@@ -1,0 +1,122 @@
+{
+  "schema": "aaos.governance-continuation/v1",
+  "recorded_at": "2026-11-01T03:21:56.089020+00:00",
+  "status": "HOST_INPUT_PREPARED_WHOLE_PACKAGE_HOLD",
+  "overall": "PARTIAL",
+  "base_commit": "35f6960010b7e94d123019bbcbc6b4cfd071dd3e",
+  "source_files": [
+    {
+      "path": "scripts/runtime/candidate_inputs.py",
+      "bytes": 10525,
+      "sha256": "5b6fd5ce88a9128ed9a91fef8678d654f8345bff6d6588ecc3ee5baaa59c0bc9"
+    },
+    {
+      "path": "tests/runtime-paths/test_candidate_inputs.py",
+      "bytes": 12395,
+      "sha256": "c28737bf3d87a75d06a22320e8d854398360eb97769ae34e0f102dd7edcef49d"
+    }
+  ],
+  "local_checks": [
+    {
+      "path": ".project-local/runs/be268a2d33/cin-t1/artifacts/execution.json",
+      "bytes": 1761,
+      "sha256": "29e33d191341d3a8d278e4069843944bd6651ab48f18d25a09bd41bdfe93cdd1",
+      "source_commit": "35f6960010b7e94d123019bbcbc6b4cfd071dd3e",
+      "source_patch_sha256": "153ab1e667f03456ee17e36a0c3b9aa3303a8d1ef053ce520b185c08c60d2b48",
+      "source_consistent": true,
+      "child_exit_code": 0,
+      "exit_code": 0
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/cpphost-input1/artifacts/execution.json",
+      "bytes": 1385,
+      "sha256": "1c54d1444700920a47c1b09388de7d1ce8390f3b3d9dfd978f986d6c92416f42",
+      "source_commit": "35f6960010b7e94d123019bbcbc6b4cfd071dd3e",
+      "source_patch_sha256": "153ab1e667f03456ee17e36a0c3b9aa3303a8d1ef053ce520b185c08c60d2b48",
+      "source_consistent": true,
+      "child_exit_code": 0,
+      "exit_code": 0
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-cin-readback1/artifacts/execution.json",
+      "bytes": 6439,
+      "sha256": "bfcca307dc85638124d81e3b0879284a82db238c4bba8d2d13e8d8313e04d15b",
+      "source_commit": "35f6960010b7e94d123019bbcbc6b4cfd071dd3e",
+      "source_patch_sha256": "153ab1e667f03456ee17e36a0c3b9aa3303a8d1ef053ce520b185c08c60d2b48",
+      "source_consistent": true,
+      "child_exit_code": 0,
+      "exit_code": 0
+    }
+  ],
+  "pytest": {
+    "passed": 87,
+    "subtests_passed": 14,
+    "scope": "candidate, sandbox, native and conflict inputs"
+  },
+  "prior_tiny_test_lint_help": {
+    "path": ".project-local/runs/be268a2d33/ci-final/artifacts/CANDIDATE-INPUTS-FREEZE.json",
+    "bytes": 10786,
+    "sha256": "c63b41a5b7388c714ddbe8504a1491c18d5f1afe14f351414e5e62527dbd9dd8"
+  },
+  "independent_source_review": {
+    "path": ".project-local/runs/be268a2d33/gov-cin-review1/artifacts/CANDIDATE-INPUTS-INDEPENDENT-REVIEW.json",
+    "bytes": 5581,
+    "sha256": "6d9808e993cac6c6e559d8efc417c976f18b63067f533df32955b1e1d51352b6"
+  },
+  "actual_input_preparation": {
+    "map": {
+      "path": ".project-local/runs/be268a2d33/cpphost-input1/artifacts/cpphost-input/SOURCE-MAP.json",
+      "bytes": 3801,
+      "sha256": "481702c9bfb909a587a6f6da2c93c9be8ff4181ba8ac277a0d12dfc619e2bee3"
+    },
+    "independent_readback": {
+      "path": ".project-local/runs/be268a2d33/gov-cin-readback1/artifacts/CPP-HOST-COPY-INDEPENDENT-READBACK.json",
+      "bytes": 7466,
+      "sha256": "97accc5be4c4889940bb3b63f74281acde5c7d6ce72772421ce324f9b445a80b"
+    },
+    "payload_bytes": 53668973,
+    "payload_files": 3,
+    "exact_output_members": 4,
+    "sources_unchanged": true,
+    "program_executed": false,
+    "space_recovered_bytes": 0,
+    "whole_package": "HOLD_NOT_RETIRED",
+    "consumer": "--host-exe new Host; --donor-manifest original 553B pin copy; argv array in local map",
+    "required_before_use": "Complete map, no INCOMPLETE/FAILURE, reverify all three independent payload hashes"
+  },
+  "source_scope_correction": "dev.py already binds public untracked names, sizes and full bytes; earlier contrary statement is superseded in the preserved freeze receipt.",
+  "fixed_operator_checkpoint": {
+    "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+    "bytes": 509805,
+    "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
+    "changed": false,
+    "new_whole_project_measurement": false
+  },
+  "history_retention": {
+    "public_archived_members": 186,
+    "default_preoct_named_paths": 0,
+    "original_sources_and_current_contracts": "PRESERVED_EXPLICIT_ROUTE",
+    "qualification": "Prior fixed archive/search evidence inherited unchanged; no repeat whole-history scan"
+  },
+  "remote": {
+    "parent_pr": 205,
+    "parent_head": "35f6960010b7e94d123019bbcbc6b4cfd071dd3e",
+    "parent_ci": 41267526637,
+    "parent_final_status": "PENDING_AT_THIS_RECORD",
+    "successor_branch": "codex/candidate-input-normalization-20261101",
+    "successor_ci": "NOT_EXECUTED"
+  },
+  "limits": [
+    "Fixed Host role only; no whole candidate retirement or current-build qualification",
+    "Original Host/manifest/pin and private or unclassified data untouched",
+    "No baseline/budget/threshold change; no new archive-tree or physical-size measurement",
+    "No assembler/Host/model execution, release, Green replacement or real-data acceptance"
+  ],
+  "remaining": [
+    "303 shallow layout snapshot entries and other producers/linked-worktree ownership",
+    "Six pinned candidate inputs normalization and successor qualification",
+    "Green migration source gaps",
+    "F05 and complete CL/J/R6 business acceptance",
+    "Exact-SHA CI, qualifying merge and local/remote readback"
+  ]
+}
