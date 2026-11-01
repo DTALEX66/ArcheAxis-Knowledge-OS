@@ -25,12 +25,12 @@ def _ignored(_: str, names: list[str]) -> set[str]:
     }
 
 
-def runtime_inputs(source):
+def runtime_inputs(source, *, interpreter_binding=None):
     source = growth.safe(source)
     def validate(path):
         if any(growth.portable.storage_report.protected_name(part) for part in path.relative_to(source).parts):
             raise ValueError("protected base Python donor member")
-    return growth.snapshot(source, _ignored, validate=validate)
+    return growth.snapshot(source, _ignored, validate=validate, interpreter_binding=interpreter_binding)
 
 
 def stage_runtime(*, repository: Path, destination: Path, _backend_in_place: bool = False,
@@ -54,7 +54,7 @@ def stage_runtime(*, repository: Path, destination: Path, _backend_in_place: boo
         raise RuntimeError(f"base Python executable is missing: {python_source}")
 
     python_destination = destination / "runtime" if _backend_in_place else destination / "runtime/python"
-    inputs = runtime_inputs(source)
+    inputs = runtime_inputs(source, interpreter_binding=binding)
     with growth.batch(destination, inputs, sum(item["bytes"] for item in inputs.values()), storage_context,
                       interpreter_binding=binding):
         python_destination.parent.mkdir(parents=True, exist_ok=_backend_in_place)

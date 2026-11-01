@@ -3152,3 +3152,11 @@ CI原确定失败点继续修复：显式reserve→前置Core/模型准备→一
 本地后继修复：`.ignore`补入既有repo-meta风险分类；native预览负对照精确删除Core构建后的错误守卫，避免误改新增reserve守卫；OSS清单由真实生成器重建，55组件/705记录及CSV完全不变，JSON仅ledger输入指纹变化。四处初始uv sync与离线check一致跳过安装项目本身，后继五条uv run显式no-sync；setuptools83本地小样已证editable根egg-info生成机制，但实际CI拒绝原因仍待新测量，不将推断当确诊。seal先保存完整pre-seal及具名review，原布局/覆盖/预算拒绝优先，诊断写错只附note；证据失败仍拒绝，不生成可用baseline/descriptor。always上传仅五份精准公开JSON，原类预算、2GiB门槛、单次claim/seal及本地operator checkpoint不变。
 
 最终检查、源码和原退出码沿[CONTINUATION-2](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-2.json)登记；原失败/RED/INVALIDATED不覆盖。303布局快照、其他producer、六主包输入归一与重新资格、Green mig来源及F05/完整CL/J/R6继续未闭合，不把这次规范化称产品完成。公开PR合并仍待新SHA真实门禁，整体PARTIAL。
+
+### 2026-11-01 默认检索收敛与云端Python链接反例
+
+默认检索进一步排除preOct intake、冻结原任务包和旧参考报告，原件及显式路由保留；可见路径3,633→3,284，旧日期命名路径74→0、history仍0，当前定位/闭环/10月队列/活动指针均可见。349条是检索排除，不算删除或新增归档，三批186份档案原身份不改。
+
+39cb3249的[CI41263648803](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41263648803)中Linux全量任务已success；green/desktop-fast/desktop-build在runtime准备时实际FAIL。green五份公开JSON已成功上传，原review为ACCEPTED、测量PASS且private/checkout/error/layout/budget均空；其失败点是官方Python3.12.10根`python3.exe`文件链接，backend链同样被原reparse守卫拒绝。后继最小兼容仅对当前implicit binding下该顶层alias校验同根`python.exe`、raw目标和源SHA，实体化为独立文件且完整计量，copy前后重核；显式donor、其他名称、目录/外部链接与换目标仍拒绝。去掉当前固定upload Action不支持且已证无效的4处输入，5个精确JSON路径/版本不变。
+
+本地原RED、最终组合回执、独立审查和源码绑定沿[CONTINUATION-3](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-3.json)接续。该修复不是新SHA云端PASS或合并结论；不滚动operator基线、不扩预算或增长门，不替代安装态及CL/J/R6业务验收，整体PARTIAL。

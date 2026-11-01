@@ -10,7 +10,7 @@ import pytest
 
 from desktop.scripts import prepare_bundle as producer
 from scripts.release import stage_backend_runtime as stager
-from tests.test_runtime_growth import storage_fixture
+from tests.test_runtime_growth import mock_file_alias, storage_fixture
 
 ORIGINAL_PREPARER = producer.prepare_bundle_runtime
 
@@ -449,6 +449,7 @@ def test_implicit_interpreter_alias_is_bound_once_and_recorded(prepared, monkeyp
     c = prepared
     alias = c["repo"] / ".project-local/implicit-python"
     owned_junction(alias, c["base"])
+    mock_file_alias(monkeypatch, c["base"] / "python3.exe", "python.exe")
     monkeypatch.setattr(stager.growth.sys, "base_prefix", str(alias))
     original = Path.resolve
     resolved = []
@@ -461,7 +462,7 @@ def test_implicit_interpreter_alias_is_bound_once_and_recorded(prepared, monkeyp
     assert binding["logical_root"] == str(alias)
     assert binding["physical_root"] == str(c["base"].resolve())
     assert binding["source_python"]["sha256"] == stager.sha256(c["base"] / "python.exe")
-    inputs = stager.growth.snapshot(c["base"])
+    inputs = producer.runtime_inputs(c["base"], interpreter_binding=binding)
     with stager.growth.batch(c["output"], inputs, sum(r["bytes"] for r in inputs.values()),
                              interpreter_binding=binding):
         python = producer.stage_runtime(repository=c["repo"], destination=c["output"])
@@ -470,6 +471,24 @@ def test_implicit_interpreter_alias_is_bound_once_and_recorded(prepared, monkeyp
     assert json.loads((c["output"] / "python-source-binding.json").read_bytes()) == binding
     with pytest.raises(ValueError, match="linked"):
         stager.growth.snapshot(alias)  # The same path supplied explicitly remains forbidden.
+
+
+def test_in_place_python3_alias_uses_same_outer_plan_binding_and_real_copy(prepared, monkeypatch):
+    c = prepared
+    alias = c["base"] / "python3.exe"
+    mock_file_alias(monkeypatch, alias, "python.exe")
+    args = SimpleNamespace(runtime=c["output"] / "runtime", workers=c["repo"] / "services/python-workers",
+        core=c["core"], shared=c["repo"] / "shared/learning_scheduler.py", vc_runtime=c["vc"],
+        asr_model=None, webview2_runtime=None, dep=[])
+    inputs, total = stager.runtime_copy_plan(args, True)
+    assert inputs[alias]["bytes"] == (c["base"] / "python.exe").stat().st_size
+    assert total >= 2 * inputs[alias]["bytes"]
+    assert run_stager(c) == 0
+    copied = c["output"] / "runtime/python3.exe"
+    assert copied.read_bytes() == (c["base"] / "python.exe").read_bytes()
+    assert not copied.is_symlink() and copied.stat().st_nlink == 1
+    manifest = json.loads((c["output"] / "backend-runtime-manifest.json").read_bytes())
+    assert manifest["runtime_preparation"]["interpreter_binding"]["executable_aliases"][str(alias)]["target"] == str(c["base"] / "python.exe")
 
 
 def test_implicit_alias_does_not_approve_a_redirected_child(prepared, monkeypatch):

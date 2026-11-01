@@ -852,9 +852,9 @@ def runtime_copy_plan(args, in_place=False):
         identity = growth.row(path)
         inputs[path] = identity
         total += copies * identity["bytes"]
-    def tree(path, ignore=ignored, *, validate=None):
+    def tree(path, ignore=ignored, *, validate=None, interpreter_binding=None):
         nonlocal total
-        rows = growth.snapshot(path, ignore, validate=validate)
+        rows = growth.snapshot(path, ignore, validate=validate, interpreter_binding=interpreter_binding)
         inputs.update(rows)
         total += sum(value["bytes"] for value in rows.values())
     if in_place:
@@ -862,7 +862,8 @@ def runtime_copy_plan(args, in_place=False):
         source = Path(args._interpreter_binding["physical_root"])
     else:
         source = args.runtime
-    tree(source, validate=reject_reparse if in_place else None)
+    tree(source, validate=reject_reparse if in_place else None,
+         interpreter_binding=args._interpreter_binding if in_place else None)
     tree(args.workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
     add(args.core)
     add(args.shared or args.workers.parent.parent / "shared/learning_scheduler.py")

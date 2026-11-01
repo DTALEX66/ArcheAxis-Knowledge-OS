@@ -3,11 +3,146 @@ import builtins
 import copy
 import hashlib
 import json
+import stat
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from scripts.release import runtime_growth as growth
+
+
+def mock_file_alias(monkeypatch, alias, target, *, mode=stat.S_IFLNK, reparse_tag=0xA000000C):
+    """Model native file-symlink metadata without requiring Windows link privileges."""
+    alias.write_bytes(b"native-link-fixture")
+    links = {alias: str(target)}
+    original_stat, original_readlink = Path.lstat, growth.os.readlink
+    def lstat(path, *args, **kwargs):
+        if growth.plain(path) in links:
+            return SimpleNamespace(st_mode=mode | 0o777, st_file_attributes=0x400,
+                                   st_reparse_tag=reparse_tag)
+        return original_stat(path, *args, **kwargs)
+    def readlink(path, *args, **kwargs):
+        if growth.plain(path) in links:
+            return links[growth.plain(path)]
+        return original_readlink(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "lstat", lstat)
+    monkeypatch.setattr(growth.os, "readlink", readlink)
+    return links
+
+
+def test_implicit_python3_alias_materializes_bounded_independent_file(tmp_path, monkeypatch):
+    from desktop.scripts.stage_runtime import stage_runtime
+    source = tmp_path / "base"
+    source.mkdir()
+    python = source / "python.exe"
+    python.write_bytes(b"tiny interpreter; never run")
+    alias = source / "python3.exe"
+    mock_file_alias(monkeypatch, alias, "python.exe")
+    monkeypatch.setattr(growth.sys, "base_prefix", str(source))
+    destination = tmp_path / "repo/.project-local/runtime"
+    staged = stage_runtime(repository=tmp_path / "repo", destination=destination)
+    copied = staged.with_name("python3.exe")
+    assert copied.read_bytes() == python.read_bytes()
+    assert not copied.is_symlink() and copied.stat().st_nlink == 1
+    binding = json.loads((destination / "python-source-binding.json").read_bytes())
+    assert binding["executable_aliases"][str(alias)]["raw_target"] == "python.exe"
+    assert binding["executable_aliases"][str(alias)]["target"] == str(python)
+    with pytest.raises(ValueError, match="linked"):
+        growth.snapshot(source)  # Explicit/generic donors never inherit this exception.
+
+
+@pytest.mark.parametrize("linked", [False, True])
+def test_runtime_inputs_explicit_regular_donor_keeps_generic_contract(tmp_path, monkeypatch, linked):
+    from desktop.scripts.stage_runtime import runtime_inputs
+    source = tmp_path / "explicit-donor"
+    source.mkdir()
+    python = source / "python.exe"
+    python.write_bytes(b"explicit donor")
+    monkeypatch.setattr(growth.sys, "base_prefix", str(tmp_path / "different-implicit-root"))
+    if linked:
+        mock_file_alias(monkeypatch, source / "python3.exe", "python.exe")
+        with pytest.raises(ValueError, match="linked"):
+            runtime_inputs(source)
+    else:
+        assert runtime_inputs(source) == {python: growth.row(python)}
+
+
+@pytest.mark.parametrize("change", ["outside", "other-file", "directory", "directory-entry", "nested",
+                                    "unknown-name", "unknown-reparse", "wrong-tag", "primary-link"])
+def test_python3_alias_exception_rejects_other_redirects(tmp_path, monkeypatch, change):
+    from desktop.scripts.stage_runtime import stage_runtime
+    source = tmp_path / "base"
+    source.mkdir()
+    (source / "python.exe").write_bytes(b"expected")
+    other = tmp_path / "other.exe"
+    other.write_bytes(b"expected")
+    alias, target = source / "python3.exe", "python.exe"
+    if change == "outside":
+        target = str(other)
+    elif change == "other-file":
+        (source / "other.exe").write_bytes(b"expected")
+        target = "other.exe"
+    elif change == "directory":
+        target = str(source)
+    elif change == "nested":
+        (source / "Lib").mkdir()
+        alias, target = source / "Lib/python3.exe", str(source / "python.exe")
+    elif change == "unknown-name":
+        alias = source / "python3.12.exe"
+    if change == "primary-link":
+        alias, target = source / "python.exe", str(other)
+    mock_file_alias(monkeypatch, alias, target,
+                    mode=stat.S_IFREG if change == "unknown-reparse" else stat.S_IFLNK,
+                    reparse_tag=0xA0000003 if change in {"unknown-reparse", "wrong-tag"} else 0xA000000C)
+    if change == "wrong-tag":
+        native_os = growth.os
+        class WindowsMetadataOS:
+            name = "nt"
+            def __getattr__(self, name):
+                return getattr(native_os, name)
+        monkeypatch.setattr(growth, "os", WindowsMetadataOS())
+    if change == "directory-entry":
+        alias.unlink()
+        alias.mkdir()
+    monkeypatch.setattr(growth.sys, "base_prefix", str(source))
+    destination = tmp_path / "repo/.project-local/runtime"
+    with pytest.raises(ValueError):
+        stage_runtime(repository=tmp_path / "repo", destination=destination)
+    assert not destination.exists()
+
+
+@pytest.mark.parametrize("change", ["retarget", "same-size-target", "replaced-link"])
+def test_python3_alias_plan_is_rechecked_before_and_after_copy(tmp_path, monkeypatch, change):
+    from desktop.scripts.stage_runtime import runtime_inputs
+    source = tmp_path / "base"
+    source.mkdir()
+    python = source / "python.exe"
+    python.write_bytes(b"expected")
+    alias = source / "python3.exe"
+    links = mock_file_alias(monkeypatch, alias, "python.exe")
+    monkeypatch.setattr(growth.sys, "base_prefix", str(source))
+    binding = growth.interpreter_source()
+    inputs = runtime_inputs(source, interpreter_binding=binding)
+    assert inputs[alias]["bytes"] == python.stat().st_size
+    target = tmp_path / "output"
+    target.mkdir()
+    original_open = builtins.open
+    def mutate(path, mode="r", *args, **kwargs):
+        stream = original_open(path, mode, *args, **kwargs)
+        if growth.plain(path) == python and mode == "rb":
+            if change == "retarget":
+                links[alias] = str(tmp_path / "foreign.exe")
+            elif change == "same-size-target":
+                python.write_bytes(b"tampered")
+            else:
+                links.pop(alias)
+        return stream
+    monkeypatch.setattr(builtins, "open", mutate)
+    with (growth.batch(target, inputs, sum(row["bytes"] for row in inputs.values()), interpreter_binding=binding),
+          pytest.raises(ValueError)):
+        growth.copy2(alias, target / "python3.exe", identity=inputs[alias])
+    assert (target / "python3.exe").stat().st_size <= inputs[alias]["bytes"]
 
 
 def storage_fixture(repository, run, monkeypatch):
@@ -115,7 +250,8 @@ def test_live_workflow_runtime_consumers_initialize_fixed_job_forecasts():
                 assert len(uploads) == 1
                 assert "always()" in uploads[0]["if"]
                 assert "ci-runtime-seal-review.json" in uploads[0]["with"]["path"]
-                assert uploads[0]["with"]["include-hidden-files"] is True
+                assert uploads[0]["uses"] == "actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a"
+                assert "include-hidden-files" not in uploads[0]["with"]
                 assert len(uploads[0]["with"]["path"].splitlines()) == 5
                 assert "*" not in uploads[0]["with"]["path"]
     assert found == 4

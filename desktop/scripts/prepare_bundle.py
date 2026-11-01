@@ -241,7 +241,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path,
     if storage_generated_bytes is None and growth._batch.get() is None:
         raise ValueError("runtime generation requires explicit storage_generated_bytes and storage declarations")
     binding = growth.interpreter_source()
-    inputs = runtime_inputs(Path(binding["physical_root"]))
+    inputs = runtime_inputs(Path(binding["physical_root"]), interpreter_binding=binding)
     total = sum(value["bytes"] for value in inputs.values())
     if storage_generated_bytes is not None:
         if type(storage_generated_bytes) is not int or storage_generated_bytes <= 0:
