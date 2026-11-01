@@ -3134,3 +3134,9 @@ CI原确定失败点继续修复：显式reserve→前置Core/模型准备→一
 此前Owner“双端仓库一致”的公开源码交付授权继续适用于合格治理改动，治理优先没有撤销它；活动指针已澄清引用既有owner_delivery_20261101，不伪造新Owner原话。只读fetch与原生GitHub身份读回确认目标DTALEX66/ArcheAxis-Knowledge-OS、有效SSH，观察时origin/main仍da9fca0de9c617a0e8c100c32d9fcecf00f45ee7。后继push/检查/合格merge仍逐状态验收，不从local PASS自动越过a0-gates；无私有或ignored原包外发，不恢复UI/监控/产品发布或Green/真实库覆盖。
 
 原退出码、源码SHA、恢复工具和本轮最终检查见[续批登记CONTINUATION](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION.json)。其他producer/linked worktree、六主包硬钉输入的归一与重新资格、303布局、Green mig来源缺口及F05/完整CL/J/R6仍未闭合，整体PARTIAL。六主包合7.319GB与sci-build1约0.439GB是旧记录时点，不能作为新测量或永久保留判定。
+
+### 2026-11-01 公开治理交付与资源投影源绑定修复
+
+61277066已正常push并建立[PR205](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/205)。提交前510P/1skip及8项最终回执已核，24个公开文件与提交Git blob逐字节一致；197个本轮历史脚本成员独立CRC/SHA/原路径缺失复核通过。首次云端[41260536432](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41260536432)的lint真实FAIL，a0-gates失败、其余依赖项跳过，不能作为云端资格或据此合并。
+
+该FAIL定位于资源资格清单3处pyproject源SHA仍旧。对main da9fca0d与当前TOML逐字段比较，唯一语义差异为Owner新定位的project.description，依赖、版本、构建声明及uv.lock未变；仅更新这3个源绑定并从规范输入重生成资源目录，68条资源/115项冲突和原资格、许可、权限、运行及activation状态不变。gc-res-test1为16P/child0/wrapper0/source_consistent=true；完整构建前门禁gc-cipf1的19检查均LOCAL_PASS，包含38项路由测试。生成命令gc-resgen1因预期的tracked输出变化被wrapper记INVALIDATED（child0/wrapper3），保留且不计为资格。失败原日志、TOML复核与后继本地回执保存在本轮ignored治理run，修复后云端资格仍待新SHA真实运行。

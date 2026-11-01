@@ -1,6 +1,13 @@
 {
   "schema": "archeaxis.resource-qualification-overlay/v1",
   "observed_at": "2026-10-10T06:02:38.098939+08:00",
+  "source_binding_refresh_20261101": {
+    "path": "pyproject.toml",
+    "previous_sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7",
+    "current_sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df",
+    "basis": "Compared parsed TOML with main da9fca0d: only project.description changed to the Owner-selected positioning; dependencies, versions and build declarations are identical.",
+    "scope": "Refresh the three version source references only. Preserve all qualification, permission, runtime, license and activation states; no new installation or live qualification."
+  },
   "selected_scope": [
     "archeaxiscoreknowledge",
     "capcoreknowledge",
@@ -2018,7 +2025,7 @@
             },
             {
               "path": "pyproject.toml",
-              "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
+              "sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df"
             }
           ]
         },
@@ -5393,7 +5400,7 @@
             },
             {
               "path": "pyproject.toml",
-              "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
+              "sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df"
             }
           ]
         },
@@ -7130,7 +7137,7 @@
             },
             {
               "path": "pyproject.toml",
-              "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
+              "sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df"
             }
           ]
         },
