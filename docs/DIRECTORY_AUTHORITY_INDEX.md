@@ -57,7 +57,7 @@ deletion state still stops any exact-path move or deletion.
   governs the Windows executable chain.
 - [Language boundary authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
   governs implementation ownership; a directory name cannot change it.
-- [Repository normalization state](history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md)
+- [Repository normalization state](history/2026-11-01-preoct-archive-batch3/README.md)
   is a frozen 2026-09-03 snapshot; its React/Tauri and G0 sequencing are
   superseded by R6/M0. Its dated hygiene evidence remains historical and does
   not authorize a move or deletion.

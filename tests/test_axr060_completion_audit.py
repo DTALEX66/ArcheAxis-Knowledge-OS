@@ -6,6 +6,8 @@ import re
 import subprocess
 from pathlib import Path
 
+from scripts.maintenance.authority_routes import read_public_text
+
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -236,7 +238,7 @@ TASK_IDS = tuple(
 
 
 def test_axr060_audit_covers_every_task_and_release_blocker_once() -> None:
-    text = AUDIT.read_text(encoding="utf-8")
+    text = read_public_text(AUDIT)
 
     found_tasks = re.findall(r"AXR-060-\d{3}", text)
     assert sorted(found_tasks) == sorted(TASK_IDS)
@@ -245,7 +247,7 @@ def test_axr060_audit_covers_every_task_and_release_blocker_once() -> None:
 
 
 def test_axr060_audit_keeps_release_and_product_completion_separate() -> None:
-    text = AUDIT.read_text(encoding="utf-8")
+    text = read_public_text(AUDIT)
 
     assert "整体结论：PARTIAL" in text
     assert "RELEASE_PUBLISHED：PASS" in text
@@ -327,26 +329,20 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
         )
         if isinstance(value, str)
     }
-    delta = (ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md').read_text(
-        encoding="utf-8"
-    )
+    delta = read_public_text(ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md')
     delta_release = releases[-2]["source"]
     assert delta_release["commit_sha"] in delta
     assert delta_release["tree_sha"] in delta
     declared_delta_shas = set(re.findall(r"`main@([0-9a-f]{40})`", delta))
     assert declared_delta_shas
     allowed_shas.update(declared_delta_shas)
-    r2_reality = (
-        ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_CURRENT_REALITY_2026-08-27.md'
-    ).read_text(encoding="utf-8")
+    r2_reality = read_public_text(ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_CURRENT_REALITY_2026-08-27.md')
     declared_qualification_shas = set(
         re.findall(r"(?:Qualification|Release) baseline[^\n]*`([0-9a-f]{40})`", r2_reality)
     )
     assert declared_qualification_shas
     allowed_shas.update(declared_qualification_shas)
-    current_reality = (
-        ROOT / 'docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md'
-    ).read_text(encoding="utf-8")
+    current_reality = read_public_text(ROOT / 'docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md')
     declared_current_shas = set(
         re.findall(r"`(?:main|origin/main)@([0-9a-f]{40})`", current_reality)
     )

@@ -15,6 +15,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from scripts.maintenance.authority_routes import read_public_text
+
 REPO = Path(__file__).resolve().parents[2]
 PROBE = REPO / "scripts/probes/m0_full_loop_smoke.py"
 CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
@@ -52,7 +54,7 @@ def test_the_gap_maps_older_count_is_not_the_current_one():
         "if the probe's stage count changes, the contract's claim and this note both need updating")
     assert "pre_restart_learning_state" in names, (
         "the extra stage relative to the gap map is the pre-restart baseline")
-    gap = GAP_MAP.read_text(encoding="utf-8")
+    gap = read_public_text(GAP_MAP)
     assert "M0 26 阶段" in gap or "26 阶段" in gap, (
         "the gap map's stage count changed; the note above is now wrong")
 

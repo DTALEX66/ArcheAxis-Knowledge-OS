@@ -163,7 +163,8 @@ def _installed(repo, paths):
     if uv is None:
         raise ValueError("uv is required to verify the installed forecast")
     # No resolver mutation, installation, Python download or network fallback.
-    check = [uv, "sync", "--frozen", "--check", "--offline", "--no-python-downloads", "--python", sys.executable]
+    check = [uv, "sync", "--frozen", "--check", "--offline", "--no-python-downloads",
+             "--no-install-project", "--python", sys.executable]
     subprocess.run(check, cwd=repo, check=True, capture_output=True)
     done = subprocess.run([str(python), "-I", "-B", "-c", PYTHON_INFO], cwd=repo,
                           check=True, capture_output=True, text=True, encoding="utf-8")
@@ -304,6 +305,69 @@ def reserve(repo, paths):
                           "reserved_at": datetime.now(timezone.utc).isoformat()})
 
 
+def _seal_baseline(repo, paths, portable):
+    # Preserve the full observation before validation; rejected evidence is never
+    # an adoptable baseline and never opens another initialization attempt.
+    report = portable.storage_report.measure(repo)
+    measured = None
+    measurement_error = None
+    try:
+        measured = _write(paths["artifacts"] / "ci-runtime-pre-seal.json", report)
+    except Exception as error:
+        measurement_error = error
+    details = {"schema": "aaos.ci-runtime-seal-review/v1", "status": "REJECTED",
+               "measurement": measured,
+               **{key: report.get(key) for key in ("measurement_status", "measurement_errors",
+                  "excluded_private", "excluded_checkouts", "out_of_layout")}}
+    review_path = paths["artifacts"] / "ci-runtime-seal-review.json"
+    if measurement_error is not None:
+        details["measurement_evidence_error"] = {"type": type(measurement_error).__name__,
+                                                 "message": str(measurement_error)}
+        details["unsealed_measurement"] = report
+    try:
+        baseline = portable._footprint(report)
+    except Exception as error:
+        if measurement_error is not None:
+            error.add_note("CI seal raw measurement could not be written: " + str(measurement_error))
+        details["validation_error"] = {"type": type(error).__name__, "message": str(error)}
+        try:
+            _write(review_path, details)
+        except Exception as evidence_error:
+            error.add_note("CI seal diagnostic could not be written: " + str(evidence_error))
+        raise
+    review = portable.storage_report.growth_review(baseline)
+    details["growth_review"] = review
+    details["over_budget_classes"] = [row for row in baseline["dev_root"] if row["over_budget"]]
+    rejected = (baseline["measurement_status"] != "PASS" or baseline["out_of_layout"]
+                or review["status"] == "REVIEW_REQUIRED")
+    details["status"] = "REJECTED" if rejected or measurement_error is not None else "ACCEPTED"
+    problem = None
+    if rejected:
+        summary = {"measurement_status": baseline["measurement_status"],
+                   "measurement_errors": len(baseline["measurement_errors"]),
+                   "excluded_private": len(baseline["excluded_private"]),
+                   "excluded_checkouts": len(baseline["excluded_checkouts"]),
+                   "out_of_layout": baseline["out_of_layout"],
+                   "over_budget_classes": details["over_budget_classes"]}
+        problem = ValueError("CI baseline must have complete clean coverage and remain within existing class budgets; "
+                             + json.dumps(summary, ensure_ascii=False) + "; full evidence: " + str(review_path))
+    if measurement_error is not None:
+        if problem is None:
+            problem = measurement_error
+        else:
+            problem.add_note("CI seal raw measurement could not be written: " + str(measurement_error))
+    try:
+        _write(review_path, details)
+    except Exception as evidence_error:
+        if problem is not None:
+            problem.add_note("CI seal diagnostic could not be written: " + str(evidence_error))
+            raise problem from evidence_error
+        raise
+    if problem is not None:
+        raise problem
+    return baseline
+
+
 def seal(repo, paths):
     from scripts.release import tauri_portable_candidate as portable
     identity = _context(repo, paths)
@@ -345,10 +409,7 @@ def seal(repo, paths):
                        cwd=repo, check=True, capture_output=True)
         forecast = _forecast(repo, paths, requirements)
         forecast_id = _write(paths["artifacts"] / "ci-runtime-forecast.json", forecast)
-        baseline = portable._footprint(portable.storage_report.measure(repo))
-        if (baseline["measurement_status"] != "PASS" or baseline["out_of_layout"]
-                or portable.storage_report.growth_review(baseline)["status"] == "REVIEW_REQUIRED"):
-            raise ValueError("CI baseline must have complete clean coverage and remain within existing class budgets")
+        baseline = _seal_baseline(repo, paths, portable)
         baseline_id = _write(paths["artifacts"] / "ci-runtime-baseline.json", baseline)
         if _context(repo, paths) != identity:
             raise ValueError("CI source changed during initialization")

@@ -7,6 +7,8 @@ import pytest
 
 from scripts.maintenance.authority_routes import (
     CONSOLIDATION, PUBLIC_RECORDS, PUBLIC_RECORD_BATCHES, RECORD_CONTRACTS, RECORD_CONTRACT_ROWS,
+    BATCH_SOURCE_CONTRACTS, PLANNING_RECORD_CONTRACT,
+    PLANNING_TRANSPORT, check_record_contracts, planning_consumer_bytes,
     REGISTRY, PreservedRecords,
     check_consolidation, public_path, resolve,
 )
@@ -281,6 +283,203 @@ def test_deleted_member_cannot_disappear_from_old_consumer_check_scope(tmp_path)
     descriptor["files"] = []
     write(tmp_path, PUBLIC_RECORD_BATCHES[1], json.dumps(descriptor))
     assert any("missing preserved public record" in issue for issue in check_consolidation(tmp_path))
+
+
+def third_batch(root):
+    """Prepare immutable old consumers before writing either later descriptor."""
+    import zipfile
+
+    manifest, routes = scenario(root)
+    older, older_raw = "docs/history/donor/batch2.md", b"second batch\r\n"
+    names = ["docs/history/r5-handoffs/R5-HANDOFF-2026-09-17.md"]
+    names += [str(Path(PLANNING_RECORD_CONTRACT[0]).parent / name).replace("\\", "/")
+              for name in ("AUDIT_CROSSWALK.md", "OBSOLETE_DOCS_CLEANUP_AUDIT.md", "OBSOLETE_DOCS_REFERENCES.json")]
+    members = {name: ("third original " + str(i) + "\r\n").encode() for i, name in enumerate(names)}
+    # The three narrowly registered transports use their real, public Git bytes
+    # and immutable historical identities, rather than a synthetic hash waiver.
+    repository = Path(__file__).resolve().parents[2]
+    public = json.loads((repository / PUBLIC_RECORD_BATCHES[2]).read_text(encoding="utf-8"))
+    with zipfile.ZipFile(repository / public["archive"]["path"]) as archive:
+        for name in names[1:]:
+            members[name] = archive.read(name)
+    for source, rows_key, path_key in RECORD_CONTRACTS:
+        row = {path_key: older, "bytes": len(older_raw), "sha256": hashlib.sha256(older_raw).hexdigest()}
+        rows = [row.copy() for _ in range(1 + max(RECORD_CONTRACT_ROWS[source]))]
+        if source == RECORD_CONTRACTS[1][0]:
+            rows[9] = {path_key: names[0], "bytes": len(members[names[0]]),
+                       "sha256": hashlib.sha256(members[names[0]]).hexdigest()}
+        write(root, source, json.dumps({rows_key: rows}))
+    second_batch(root, {older: older_raw})
+    supporting = json.loads((repository / PLANNING_RECORD_CONTRACT[0]).read_text(
+        encoding="utf-8"))["supporting_documents"]
+    write(root, PLANNING_RECORD_CONTRACT[0], json.dumps({"supporting_documents": supporting}))
+    descriptor_name = PUBLIC_RECORD_BATCHES[2]
+    archive_path = str(Path(descriptor_name).parent / "preoct-public-records.zip").replace("\\", "/")
+    archive = root / archive_path
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as output:
+        for name, payload in members.items():
+            output.writestr(name, payload)
+    raw = archive.read_bytes()
+    contracts = []
+    for source in BATCH_SOURCE_CONTRACTS[descriptor_name]:
+        body = (root / source).read_bytes()
+        contracts.append({"path": source, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()})
+    descriptor = {"schema": "aaos.preoct-public-records/v1",
+                  "archive": {"path": archive_path, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()},
+                  "source_contracts": contracts,
+                  "files": [{"path": name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+                            for name, payload in members.items()]}
+    write(root, descriptor_name, json.dumps(descriptor))
+    return manifest, routes, descriptor, members
+
+
+def test_third_batch_reads_original_text_without_weakening_earlier_consumers(tmp_path):
+    _, routes, descriptor, members = third_batch(tmp_path)
+    preserved = {name: (tmp_path / name).read_bytes() for name in (
+        PUBLIC_RECORD_BATCHES[1], *BATCH_SOURCE_CONTRACTS[PUBLIC_RECORD_BATCHES[2]])}
+    records = PreservedRecords(tmp_path)
+    assert check_consolidation(tmp_path) == []
+    for name, payload in members.items():
+        assert records.read(name) == payload
+        assert records.read_text(name) == payload.decode("utf-8").replace("\r\n", "\n")
+        result = resolve(name, routes, tmp_path)
+        assert result["canonical_path"] == PUBLIC_RECORD_BATCHES[2]
+        assert result["archive_member"] == name
+        assert result["archive_path"] == descriptor["archive"]["path"]
+        assert not (tmp_path / name).exists()
+    assert all((tmp_path / name).read_bytes() == raw for name, raw in preserved.items())
+
+
+@pytest.mark.parametrize("slot", range(4))
+@pytest.mark.parametrize("damage", ["consistent_new_zip", "omitted_member"])
+def test_third_batch_fixed_old_rows_cannot_be_selected_by_new_member_table(tmp_path, slot, damage):
+    import zipfile
+
+    _, _, descriptor, members = third_batch(tmp_path)
+    name = list(members)[slot]
+    if damage == "omitted_member":
+        del members[name]
+        descriptor["files"] = [row for row in descriptor["files"] if row["path"] != name]
+    else:
+        members[name] = b"new mutually consistent bytes"
+        row = next(row for row in descriptor["files"] if row["path"] == name)
+        row.update(bytes=len(members[name]), sha256=hashlib.sha256(members[name]).hexdigest())
+    archive = tmp_path / descriptor["archive"]["path"]
+    with zipfile.ZipFile(archive, "w") as output:
+        for member, payload in members.items():
+            output.writestr(member, payload)
+    raw = archive.read_bytes()
+    descriptor["archive"].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+    write(tmp_path, PUBLIC_RECORD_BATCHES[2], json.dumps(descriptor))
+    expected = "missing preserved public record" if damage == "omitted_member" else "identity mismatch"
+    assert any(expected in issue for issue in check_consolidation(tmp_path))
+
+
+@pytest.mark.parametrize("damage", ["missing_contract", "duplicate_contract", "contract_hash", "cross_batch_duplicate"])
+def test_third_batch_rejects_contract_or_cross_batch_identity_damage(tmp_path, damage):
+    import zipfile
+
+    _, _, descriptor, _ = third_batch(tmp_path)
+    if damage == "missing_contract":
+        descriptor["source_contracts"].pop()
+    elif damage == "duplicate_contract":
+        descriptor["source_contracts"].append(descriptor["source_contracts"][0].copy())
+    elif damage == "contract_hash":
+        descriptor["source_contracts"][0]["sha256"] = "0" * 64
+    else:
+        name, payload = "docs/history/donor/batch2.md", b"second batch\r\n"
+        archive = tmp_path / descriptor["archive"]["path"]
+        with zipfile.ZipFile(archive, "a") as output:
+            output.writestr(name, payload)
+        raw = archive.read_bytes()
+        descriptor["archive"].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+        descriptor["files"].append({"path": name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()})
+    write(tmp_path, PUBLIC_RECORD_BATCHES[2], json.dumps(descriptor))
+    assert check_consolidation(tmp_path)
+
+
+def test_physical_record_drift_is_rejected_by_text_reader(tmp_path):
+    _, _, _, members = third_batch(tmp_path)
+    name = next(iter(members))
+    path = tmp_path / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b"changed physical record")
+    with pytest.raises(ValueError, match="physical preserved record identity mismatch"):
+        PreservedRecords(tmp_path).read_text(name)
+
+
+def test_inherited_journey_keeps_its_original_r5_evidence_after_archival():
+    import yaml
+
+    root = Path(__file__).resolve().parents[2]
+    journey = yaml.safe_load((root / "tests/journey/v01-owner-loop.yaml").read_text(encoding="utf-8"))
+    name = "docs/history/repository-consolidation-20261019/current/R5-HANDOFF-20260918.md"
+    assert journey["acceptance_status"] == "BLOCKED"
+    assert name in journey["evidence_index"]
+    assert sum(name in step["evidence"] for step in journey["steps"]) == 2
+    records = PreservedRecords(root)
+    assert records.location(name)["canonical_path"] == PUBLIC_RECORD_BATCHES[2]
+    assert records.read_text(name).startswith("# ArcheAxis R5")
+
+
+def test_real_repository_record_contracts_retain_every_original_identity():
+    root = Path(__file__).resolve().parents[2]
+    assert check_record_contracts(root, PreservedRecords(root)) == []
+
+
+@pytest.mark.parametrize("slot", (1, 2, 3))
+def test_planning_transport_is_exact_old_identity_and_keeps_canonical_bytes(slot):
+    root = Path(__file__).resolve().parents[2]
+    row = json.loads((root / PLANNING_RECORD_CONTRACT[0]).read_text(
+        encoding="utf-8"))["supporting_documents"][slot]
+    records = PreservedRecords(root)
+    name = str(Path(PLANNING_RECORD_CONTRACT[0]).parent / row["path"]).replace("\\", "/")
+    canonical = records.read(name)
+    old = planning_consumer_bytes(records, slot, row)
+    assert len(old) == row["bytes"]
+    assert hashlib.sha256(old).hexdigest() == row["sha256"].lower()
+    assert old != canonical
+    assert old.replace(b"\r\n", b"\n") == canonical[:-1]
+    assert records.read(name) == canonical
+    assert records.read_text(name) == canonical.decode("utf-8")
+
+
+@pytest.mark.parametrize("field,value", [("bytes", 0), ("sha256", "0" * 64)])
+def test_planning_transport_never_accepts_a_changed_old_row_identity(tmp_path, field, value):
+    _, _, descriptor, _ = third_batch(tmp_path)
+    path = tmp_path / PLANNING_RECORD_CONTRACT[0]
+    old = json.loads(path.read_text(encoding="utf-8"))
+    old["supporting_documents"][1][field] = value
+    write(tmp_path, PLANNING_RECORD_CONTRACT[0], json.dumps(old))
+    # Make the new descriptor internally consistent: the old row must still fail.
+    contract = next(row for row in descriptor["source_contracts"] if row["path"] == PLANNING_RECORD_CONTRACT[0])
+    raw = path.read_bytes()
+    contract.update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+    write(tmp_path, PUBLIC_RECORD_BATCHES[2], json.dumps(descriptor))
+    assert any("historical consumer member identity mismatch" in issue
+               for issue in check_consolidation(tmp_path))
+
+
+@pytest.mark.parametrize("field,value", [
+    ("crlf_lines", (0,)), ("crlf_lines", (40,)), ("crlf_lines", (True,)),
+    ("crlf_lines", (12, 12)), ("eof", b"\n"),
+])
+def test_planning_illegal_line_or_eof_recipe_cannot_become_hash_tolerance(monkeypatch, field, value):
+    root = Path(__file__).resolve().parents[2]
+    row = json.loads((root / PLANNING_RECORD_CONTRACT[0]).read_text(
+        encoding="utf-8"))["supporting_documents"][1]
+    changed = {**PLANNING_TRANSPORT[1], field: value}
+    monkeypatch.setitem(PLANNING_TRANSPORT, 1, changed)
+    with pytest.raises(ValueError):
+        planning_consumer_bytes(PreservedRecords(root), 1, row)
+
+
+@pytest.mark.parametrize("slot", (0, 4, True))
+def test_planning_transport_does_not_apply_to_unregistered_rows(slot):
+    root = Path(__file__).resolve().parents[2]
+    with pytest.raises(ValueError, match="unregistered planning consumer row"):
+        planning_consumer_bytes(PreservedRecords(root), slot, {})
 
 
 @pytest.mark.parametrize("mutation", ["archive", "size", "hash", "replacement", "original", "baseline", "duplicate"])

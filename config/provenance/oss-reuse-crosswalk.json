@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.generated-artifact-manifest/v1",
   "artifact_name": "oss-reuse-crosswalk-20261008",
-  "recorded_at": "2026-10-24",
+  "recorded_at": "2026-11-01",
   "decision": {
     "what": "The generator is tracked; the full tables it produces are not.",
     "why": "A 20,584-line / 992,500-byte machine-generated table is a build output, not a source of truth: every byte of it is derivable from the tracked generator plus the tracked inputs named below. Committing it makes every future edit to any input either a stale table in Git or a 20k-line diff, and it hides the fact that the table's own embedded provenance can be out of date.",
@@ -30,9 +30,9 @@
   "artifact_root": {
     "layout_rule": ".project-local/runs/<identity>/<run-id>/artifacts/ (scripts/runtime/dev.py layout())",
     "identity_rule": "sha256(absolute worktree root, casefolded).hexdigest()[:10]",
-    "run_id": "oss-manifest-refresh-20261024",
-    "recording_scope": "re-recorded from current public inputs after SUPPLY_CHAIN_LEDGER changed to 55 rows; includes only current_crosswalk navigation replacement",
-    "relative_path_at_recording": ".project-local/runs/be268a2d33/oss-manifest-refresh-20261024/artifacts"
+    "run_id": "gov-oss-refresh1",
+    "recording_scope": "Regenerated from current public inputs after SUP-030 changed ledger updated/product_boundary metadata only; all 55 ledger components and all 705 generated records unchanged.",
+    "relative_path_at_recording": ".project-local/runs/be268a2d33/gov-oss-refresh1/artifacts"
   },
   "inputs": {
     "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv": {
@@ -54,8 +54,8 @@
       "matches_current_file": true
     },
     "docs/truth/SUPPLY_CHAIN_LEDGER.json": {
-      "sha256_of_bytes_read_by_generator": "93bf22ca9861775c849bcb7c1fd54a606f351f52cd4243976a6af7335246e528",
-      "sha256_of_current_file": "93bf22ca9861775c849bcb7c1fd54a606f351f52cd4243976a6af7335246e528",
+      "sha256_of_bytes_read_by_generator": "edf5add651d5d54288e0b4f757f2a294ad4c849c8d57b3fccbeb5d98e2f97eb0",
+      "sha256_of_current_file": "edf5add651d5d54288e0b4f757f2a294ad4c849c8d57b3fccbeb5d98e2f97eb0",
       "recorded_rows": 55,
       "matches_current_file": true
     },
@@ -76,8 +76,8 @@
     "json": {
       "file": "OSS-REUSE-CROSSWALK-20261008.json",
       "bytes": 1022079,
-      "sha256": "8770dcf27852f18fd073c3ca8ed05af2f8a44f11b1363eca5c69caac1af11f04",
-      "sha256_portable": "c8e878841d4244fe6ba74e9d3d83f259d2babebb818d2bf50e9842058c459262",
+      "sha256": "376095d7c77d87e113fc5240c5e1d41c38172b61a9a5e9adeead89d30ade292c",
+      "sha256_portable": "a466f4bbf16ca6683e412baeb295397c614addd358683be95d05d2040a4b1918",
       "line_terminator": "CRLF",
       "line_count": 21080,
       "record_count": 705,
@@ -135,7 +135,7 @@
     "That any row's verdict is correct. The manifest proves the payload is reproducible, nothing more.",
     "That the tables were verified in the incoming commit. The committed payload hashes two of its six inputs at values that match no committed revision of those files; see the integration report.",
     "Any installation, packaged-desktop or release qualification.",
-    "This current-source fingerprint is not an exact-HEAD/CI qualification; the candidate source snapshot includes an explicitly proposed navigation-only pointer edit."
+    "This current-input regeneration fingerprint is not exact-HEAD/CI, installed-runtime or Owner qualification."
   ],
   "tracked_pointer_replacements": {
     "docs/truth/SUPPLY_CHAIN_LEDGER.json": "current_crosswalk names this current provenance manifest; archived disposition overlay retains its original locator and resolves to the archived manifest through authority_routes"
@@ -155,5 +155,5 @@
     "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
   },
   "previous_manifest": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json",
-  "refresh_reason": "SUPPLY_CHAIN_LEDGER changed from 51 to 55 rows after the repository consolidation; regenerated both tables from current public inputs and re-recorded the exact digests. Decisions, verification and capability qualification are unchanged."
+  "refresh_reason": "SUP-030 updated SUPPLY_CHAIN_LEDGER updated/product_boundary metadata (55 components unchanged). Regenerated both tables from all six current public sources plus unchanged decisions/verification. All 705 records and portable CSV bytes are unchanged; JSON changes only its sources ledger fingerprint. No capability verdict or historical qualification is upgraded."
 }

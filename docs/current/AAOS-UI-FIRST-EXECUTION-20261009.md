@@ -3140,3 +3140,15 @@ CI原确定失败点继续修复：显式reserve→前置Core/模型准备→一
 61277066已正常push并建立[PR205](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/205)。提交前510P/1skip及8项最终回执已核，24个公开文件与提交Git blob逐字节一致；197个本轮历史脚本成员独立CRC/SHA/原路径缺失复核通过。首次云端[41260536432](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41260536432)的lint真实FAIL，a0-gates失败、其余依赖项跳过，不能作为云端资格或据此合并。
 
 该FAIL定位于资源资格清单3处pyproject源SHA仍旧。对main da9fca0d与当前TOML逐字段比较，唯一语义差异为Owner新定位的project.description，依赖、版本、构建声明及uv.lock未变；仅更新这3个源绑定并从规范输入重生成资源目录，68条资源/115项冲突和原资格、许可、权限、运行及activation状态不变。gc-res-test1为16P/child0/wrapper0/source_consistent=true；完整构建前门禁gc-cipf1的19检查均LOCAL_PASS，包含38项路由测试。生成命令gc-resgen1因预期的tracked输出变化被wrapper记INVALIDATED（child0/wrapper3），保留且不计为资格。失败原日志、TOML复核与后继本地回执保存在本轮ignored治理run，修复后云端资格仍待新SHA真实运行。
+
+### 2026-11-01 第三批旧记录与实际云端反例接续
+
+第三批31份旧过程记录已无损移出常规目录，532,759原B→145,973B ZIP；三批累计186份/7,716,778原B→1,127,073压缩B。31原路径全缺失，原SHA/Git blob/CRC/独立恢复已核；四份旧元数据及前两批档案保持原字节。reader仅显式增加第三批及其固定旧消费者行，原字节校验不由新ZIP选择；文本读取保留Path.read_text的通用换行语义。真实读取测试与目录/语言/文档导航一起迁移，原始任务包、当前合同、10月补注继续保护。
+
+最终门禁另识别3份planning supporting记录的Git规范字节与旧清单运输字节不同。逐一证明只是固定LF/CRLF及EOF表示差异，已在内存重建出完全匹配旧size/SHA的表示；canonical原Git字节与ZIP不改，仅对3固定消费者行显式重建并严格核旧指纹，不提供通用容错。gcf-p1保留首次真实拒绝；其中31缺工作区文件另因删除尚未stage，后继先暂存精准集合再复验，不降低仓库规范检查。
+
+322a82bc的云端[41260945124](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41260945124)整体FAIL：Linux 5FAIL/6772PASS/123skip及528subtests；三个Windows runtime job在seal拒绝，a0-gates失败。wheel/Rust/合同/worker/browser/旧桌面smoke各自成功仍仅属于该旧SHA，不能拼成全PASS或新源码资格。
+
+本地后继修复：`.ignore`补入既有repo-meta风险分类；native预览负对照精确删除Core构建后的错误守卫，避免误改新增reserve守卫；OSS清单由真实生成器重建，55组件/705记录及CSV完全不变，JSON仅ledger输入指纹变化。四处初始uv sync与离线check一致跳过安装项目本身，后继五条uv run显式no-sync；setuptools83本地小样已证editable根egg-info生成机制，但实际CI拒绝原因仍待新测量，不将推断当确诊。seal先保存完整pre-seal及具名review，原布局/覆盖/预算拒绝优先，诊断写错只附note；证据失败仍拒绝，不生成可用baseline/descriptor。always上传仅五份精准公开JSON，原类预算、2GiB门槛、单次claim/seal及本地operator checkpoint不变。
+
+最终检查、源码和原退出码沿[CONTINUATION-2](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-2.json)登记；原失败/RED/INVALIDATED不覆盖。303布局快照、其他producer、六主包输入归一与重新资格、Green mig来源及F05/完整CL/J/R6继续未闭合，不把这次规范化称产品完成。公开PR合并仍待新SHA真实门禁，整体PARTIAL。

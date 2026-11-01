@@ -316,6 +316,7 @@ risk_classes:
       - .editorconfig
       - .gitattributes
       - .gitignore
+      - .ignore
       - .pre-commit-config.yaml
       - LICENSE
       - LEGACY_MANIFEST.example.yaml

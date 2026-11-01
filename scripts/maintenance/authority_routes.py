@@ -20,15 +20,54 @@ ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = "docs/current/AAOS-AUTHORITY-ROUTES.json"
 CONSOLIDATION = "docs/history/repository-consolidation-20261019/MANIFEST.json"
 PUBLIC_RECORDS = "docs/history/2026-11-01-preoct-archive/MANIFEST.json"
-PUBLIC_RECORD_BATCHES = (PUBLIC_RECORDS, "docs/history/2026-11-01-preoct-archive-batch2/MANIFEST.json")
+PUBLIC_RECORD_BATCHES = (
+    PUBLIC_RECORDS,
+    "docs/history/2026-11-01-preoct-archive-batch2/MANIFEST.json",
+    "docs/history/2026-11-01-preoct-archive-batch3/MANIFEST.json",
+)
 RECORD_CONTRACTS = (
     ("docs/history/branch-donors/execution-reliability-20260926/ARCHIVE.json", "files", "archive_path"),
     ("docs/history/DOCUMENT-CONSOLIDATION-20260927.json", "rows", "target_path"),
 )
-# Exact frozen rows identified before retiring batch 2, independent of new ZIP membership.
+PLANNING_RECORD_CONTRACT = (
+    "docs/history/planning-blueprint-absorption/2026-09-29/ARCHIVE_MANIFEST.json",
+    "supporting_documents", "path",
+)
+BATCH_SOURCE_CONTRACTS = {
+    PUBLIC_RECORD_BATCHES[1]: tuple(row[0] for row in RECORD_CONTRACTS),
+    PUBLIC_RECORD_BATCHES[2]: (
+        *(row[0] for row in RECORD_CONTRACTS), CONSOLIDATION, PLANNING_RECORD_CONTRACT[0],
+    ),
+}
+# Exact frozen rows identified before retirement, independent of new ZIP membership.
+# Batch 3 adds only September consolidation row 9 and planning support rows 1-3.
 RECORD_CONTRACT_ROWS = {
     RECORD_CONTRACTS[0][0]: (0, 1, 2),
-    RECORD_CONTRACTS[1][0]: (1, 3, 4, 8, 13, 14, 15, 16),
+    RECORD_CONTRACTS[1][0]: (1, 3, 4, 8, 9, 13, 14, 15, 16),
+    PLANNING_RECORD_CONTRACT[0]: (1, 2, 3),
+}
+# These three September receipts record mixed line endings without a final newline;
+# their canonical Git bytes use LF with a final newline. Canonical reads stay unchanged.
+# Only this old consumer has the following proven transport representations.
+PLANNING_TRANSPORT = {
+    1: {
+        "path": "docs/history/planning-blueprint-absorption/2026-09-29/AUDIT_CROSSWALK.md",
+        "bytes": 4761, "sha256": "6a9f9812bc9e916d5be2dd0d0c60c3e76a26614e49346b867fe4882b03329071",
+        "git_blob": "4acff4bf2091c099a5e496f8919c35567a8633f5",
+        "lines": 40, "crlf_lines": (12,), "eof": b"",
+    },
+    2: {
+        "path": "docs/history/planning-blueprint-absorption/2026-09-29/OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "bytes": 5750, "sha256": "daa39bb1cfea621a1bf0a19e0d5884ff55798b8f3d837b32b1809c70201a51c4",
+        "git_blob": "12aaef34f13998b9338a74e3e5b399b598c1615b",
+        "lines": 33, "crlf_lines": (31, 32), "eof": b"",
+    },
+    3: {
+        "path": "docs/history/planning-blueprint-absorption/2026-09-29/OBSOLETE_DOCS_REFERENCES.json",
+        "bytes": 18519, "sha256": "27ea7df61af9f43eacc9624a6d2ce79f9b101e3687bb9657b051ed48aef9f850",
+        "git_blob": "acf5964dfbab57dd22cca92c5bf1a6b5dec4b83c",
+        "lines": 366, "crlf_lines": tuple(range(1, 366)), "eof": b"",
+    },
 }
 PRIVATE = {".git", ".codex", ".claude", ".hermes", ".ssh", "memory", "memories",
            "session", "sessions", "credentials", "cookies", "browser-data",
@@ -84,10 +123,10 @@ class PreservedRecords:
             raise ValueError("public record archive outside its registered owner")
         raw = public_path(root, location).read_bytes()
         self._identity(raw, archive, "public record ZIP")
-        if descriptor_name == PUBLIC_RECORD_BATCHES[1]:
+        if descriptor_name in BATCH_SOURCE_CONTRACTS:
             contracts = data["source_contracts"]
             if (not isinstance(contracts, list)
-                    or sorted(row["path"] for row in contracts) != sorted(row[0] for row in RECORD_CONTRACTS)):
+                    or sorted(row["path"] for row in contracts) != sorted(BATCH_SOURCE_CONTRACTS[descriptor_name])):
                 raise ValueError("missing or duplicate public record source contracts")
             for contract in contracts:
                 self._identity(public_path(root, contract["path"]).read_bytes(), contract, "public record source contract")
@@ -133,12 +172,20 @@ class PreservedRecords:
     def read(self, name: str) -> bytes:
         path = public_path(self.root, name)
         if path.is_file():
-            return path.read_bytes()
+            raw = path.read_bytes()
+            if name in self.rows:
+                self._identity(raw, self.rows[name], "physical preserved record")
+            return raw
         if path.exists():
             raise ValueError("preserved record path is not a regular file")
         if name in self.payloads:
             return self.payloads[name]
         raise FileNotFoundError("missing preserved public record: " + name)
+
+    def read_text(self, name: str) -> str:
+        # Match Path.read_text(encoding="utf-8"), including universal newlines.
+        with io.TextIOWrapper(io.BytesIO(self.read(name)), encoding="utf-8") as source:
+            return source.read()
 
     def location(self, name: str) -> dict:
         if name not in self.rows:
@@ -146,10 +193,40 @@ class PreservedRecords:
         return self.locations[name].copy()
 
 
+def read_public_text(path: Path, root: Path = ROOT) -> str:
+    """Read a physical or verified archived public file with the same text semantics."""
+    return PreservedRecords(root).read_text(path.relative_to(root).as_posix())
+
+
+def planning_consumer_bytes(records: PreservedRecords, index: int, row: dict) -> bytes:
+    """Reproduce only one fixed old planning row, then require its exact old hash."""
+    if type(index) is not int or index not in PLANNING_TRANSPORT:
+        raise ValueError("unregistered planning consumer row")
+    version = PLANNING_TRANSPORT[index]
+    if row["path"] != PurePosixPath(version["path"]).name:
+        raise ValueError("planning consumer path identity mismatch")
+    canonical = records.read(version["path"])
+    records._identity(canonical, version, "planning canonical source")
+    git_object = b"blob " + str(len(canonical)).encode("ascii") + b"\0" + canonical
+    if hashlib.sha1(git_object).hexdigest() != version["git_blob"]:
+        raise ValueError("planning canonical Git blob identity mismatch")
+    if b"\r" in canonical or not canonical.endswith(b"\n"):
+        raise ValueError("invalid planning canonical line transport")
+    lines = canonical[:-1].split(b"\n")
+    crlf = version["crlf_lines"]
+    if (len(lines) != version["lines"] or len(set(crlf)) != len(crlf)
+            or any(type(line) is not int or not 1 <= line < len(lines) for line in crlf)):
+        raise ValueError("invalid planning consumer line transport")
+    payload = b"".join(line + (b"\r\n" if number in crlf else b"\n")
+                       for number, line in enumerate(lines[:-1], 1)) + lines[-1] + version["eof"]
+    records._identity(payload, {**row, "sha256": row["sha256"].lower()}, "historical consumer member")
+    return payload
+
+
 def check_record_contracts(root: Path, records: PreservedRecords) -> list[str]:
-    """Check only the two registered old consumers, retaining their original hashes."""
+    """Check fixed old consumer rows, retaining their original byte identities."""
     problems = []
-    for source, rows_key, path_key in RECORD_CONTRACTS:
+    for source, rows_key, path_key in (*RECORD_CONTRACTS, PLANNING_RECORD_CONTRACT):
         path = public_path(root, source)
         if not path.is_file():
             continue  # Exact live route checks require them in the real repository.
@@ -162,7 +239,10 @@ def check_record_contracts(root: Path, records: PreservedRecords) -> list[str]:
             row = rows[index]
             name = row[path_key]
             try:
-                records._identity(records.read(name), row, "historical consumer member")
+                if source == PLANNING_RECORD_CONTRACT[0]:
+                    planning_consumer_bytes(records, index, row)
+                else:
+                    records._identity(records.read(name), row, "historical consumer member")
             except (ValueError, OSError) as error:
                 problems.append(f"{source}: {name}: {error}")
     return problems

@@ -5,6 +5,8 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from scripts.maintenance.authority_routes import read_public_text
+
 import pytest
 
 try:
@@ -377,7 +379,7 @@ def test_truth_docs_do_not_overstate_startup_migration_or_delivery() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
     migration = (root / "docs/MIGRATION_OPERATOR.md").read_text(encoding="utf-8")
-    handoff = (root / "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-07-21.md").read_text(encoding="utf-8")
+    handoff = read_public_text(root / "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-07-21.md")
 
     # The live product entry is the formal host; legacy Python startup remains
     # a compatibility surface and must not be promoted by the public README.

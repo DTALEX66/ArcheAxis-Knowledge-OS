@@ -204,6 +204,17 @@ def test_failed_initialization_is_reserved_and_cannot_roll(job, monkeypatch, fai
         initialize(job)
     claim = job["paths"]["dev"] / "task-runtime" / ci.CLAIM
     assert claim.exists()
+    if failure != "unsynced":
+        artifacts = job["paths"]["artifacts"]
+        assert json.loads((artifacts / "ci-runtime-pre-seal.json").read_bytes()) == job["report"]
+        review = json.loads((artifacts / "ci-runtime-seal-review.json").read_bytes())
+        assert review["status"] == "REJECTED"
+        assert review["measurement_status"] == job["report"]["measurement_status"]
+        assert review["out_of_layout"] == job["report"]["out_of_layout"]
+        assert review["measurement_errors"] == job["report"]["measurement_errors"]
+        assert review["over_budget_classes"] == [row for row in job["report"]["dev_root"] if row["over_budget"]]
+        assert not (artifacts / "ci-runtime-baseline.json").exists()
+        assert not (artifacts / ci.NAME).exists()
     with pytest.raises(FileExistsError):
         initialize(job)
     fresh = dev.layout(job["repo"], "second")
@@ -211,6 +222,59 @@ def test_failed_initialization_is_reserved_and_cannot_roll(job, monkeypatch, fai
     monkeypatch.setenv("ARCHEAXIS_RUN_ROOT", str(fresh["run"]))
     with pytest.raises(ValueError, match="fresh run"):
         ci.initialize(job["repo"], fresh)
+
+
+def test_sync_check_uses_dependencies_without_editable_project(job):
+    initialize(job)
+    sync = [command for command in job["calls"] if command[1:2] == ["sync"]]
+    assert sync and all("--no-install-project" in command for command in sync)
+
+
+def test_invalid_coverage_keeps_raw_measurement_and_validation_reason(job):
+    job["report"]["measurement_errors"] = [{"path": "unreadable", "error": "fixture denied"}]
+    with pytest.raises(ValueError, match="contradicts PASS"):
+        initialize(job)
+    artifacts = job["paths"]["artifacts"]
+    assert json.loads((artifacts / "ci-runtime-pre-seal.json").read_bytes()) == job["report"]
+    review = json.loads((artifacts / "ci-runtime-seal-review.json").read_bytes())
+    assert review["status"] == "REJECTED"
+    assert "contradicts PASS" in review["validation_error"]["message"]
+    assert not (artifacts / ci.NAME).exists()
+
+
+@pytest.mark.parametrize("evidence", ["pre-seal", "seal-review"])
+@pytest.mark.parametrize("rejection", ["layout", "coverage", "budget", "none"])
+def test_rejected_measurement_keeps_first_error_when_diagnostic_write_fails(job, monkeypatch, evidence, rejection):
+    if rejection == "layout":
+        job["report"]["out_of_layout"] = ["fixture.egg-info"]
+    elif rejection == "coverage":
+        job["report"]["measurement_errors"] = [{"path": "fixture denied"}]
+    elif rejection == "budget":
+        job["report"]["dev_root"][0]["over_budget"] = True
+    original = ci._write
+    def denied(path, value):
+        if path.name == "ci-runtime-" + evidence + ".json":
+            raise PermissionError("synthetic evidence denial")
+        return original(path, value)
+    monkeypatch.setattr(ci, "_write", denied)
+    with pytest.raises(PermissionError if rejection == "none" else ValueError) as caught:
+        initialize(job)
+    if rejection != "none":
+        assert "could not be written" in " ".join(caught.value.__notes__)
+        if rejection == "coverage":
+            assert "contradicts PASS" in str(caught.value)
+        elif rejection == "layout":
+            assert "fixture.egg-info" in str(caught.value)
+        else:
+            assert '"over_budget": true' in str(caught.value)
+    if evidence == "seal-review":
+        assert (job["paths"]["artifacts"] / "ci-runtime-pre-seal.json").exists()
+    else:
+        review = json.loads((job["paths"]["artifacts"] / "ci-runtime-seal-review.json").read_bytes())
+        assert review["status"] == "REJECTED"
+        assert review["unsealed_measurement"] == job["report"]
+    assert not (job["paths"]["artifacts"] / "ci-runtime-baseline.json").exists()
+    assert not (job["paths"]["artifacts"] / ci.NAME).exists()
 
 
 def test_checkpoint_is_not_a_portable_or_local_baseline_override(job, monkeypatch):

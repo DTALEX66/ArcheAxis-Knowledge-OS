@@ -8,6 +8,8 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+CORE_BUILD = "python -B scripts/runtime/dev.py -- cargo build -p archeaxis-api --bin archeaxis-api --release --locked"
+CHILD_ERROR_GUARD = "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"
 
 
 def assert_owned_core_wiring(workflow):
@@ -17,14 +19,14 @@ def assert_owned_core_wiring(workflow):
         if step.get("id") == "desktop_runtime"
     )
     script = prepare["run"]
-    build = "python -B scripts/runtime/dev.py -- cargo build -p archeaxis-api --bin archeaxis-api --release --locked"
+    build = CORE_BUILD
     bind = "$previewCore = Join-Path $env:CARGO_TARGET_DIR 'release/archeaxis-api.exe'"
     verify = "if (-not (Test-Path -LiteralPath $previewCore -PathType Leaf)) { throw 'Owned preview Core build output missing' }"
     resolve = "$previewCore = (Resolve-Path -LiteralPath $previewCore).Path"
     export = '"BE10_PREVIEW_CORE=$previewCore" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append'
     positions = [script.index(line) for line in [build, bind, verify, resolve, export]]
     assert positions == sorted(positions)
-    assert "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }" in script[positions[0]:positions[1]]
+    assert CHILD_ERROR_GUARD in script[positions[0]:positions[1]]
     assert prepare.get("working-directory") == "${{ github.workspace }}"
     assert "if" not in prepare
     consumers = [
@@ -59,10 +61,11 @@ def test_ci_wiring_negative_controls_reject_regressions(tamper):
         replacements = {
             "export": ('"BE10_PREVIEW_CORE=$previewCore"', '"OTHER_CORE=$previewCore"'),
             "guard": ("if (-not (Test-Path -LiteralPath $previewCore -PathType Leaf))", "if ($false)"),
-            "build_failure": ("if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }", "Write-Host ignored"),
+            "build_failure": (f"{CORE_BUILD}\n{CHILD_ERROR_GUARD}", f"{CORE_BUILD}\nWrite-Host ignored"),
             "path": ("'release/archeaxis-api.exe'", "'debug/other-api.exe'"),
         }
         before, after = replacements[tamper]
+        assert step["run"].count(before) == 1, "Negative control must mutate the intended command"
         step["run"] = step["run"].replace(before, after, 1)
     with pytest.raises((AssertionError, ValueError)):
         assert_owned_core_wiring(workflow)

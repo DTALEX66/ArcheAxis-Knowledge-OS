@@ -79,12 +79,15 @@ def test_live_workflow_runtime_consumers_initialize_fixed_job_forecasts():
         for job in workflow["jobs"].values():
             initialization = 0
             synced = False
+            runtime_syncs = []
             for step in job.get("steps", []):
                 script = step.get("run", "")
                 if "uv sync --frozen" in script:
                     synced = True
+                    runtime_syncs += [line.strip() for line in script.splitlines() if "uv sync --frozen" in line]
                 if "-m scripts.release.ci_runtime_checkpoint" in script:
                     assert synced
+                    assert all("--no-install-project" in line for line in runtime_syncs)
                     initialization += 1
                     assert 'scripts.release.ci_runtime_checkpoint --repository . --run-id "$runtimeRunId"' in script
                     lines = script.splitlines()
@@ -102,4 +105,17 @@ def test_live_workflow_runtime_consumers_initialize_fixed_job_forecasts():
                 assert "--storage-generated-bytes" not in script
                 for option in ("purpose", "sharing", "retention-reason"):
                     assert "--storage-" + option in script
+            if initialization:
+                for step in job["steps"]:
+                    assert all("--no-sync" in line for line in step.get("run", "").splitlines()
+                               if "uv run " in line)
+                uploads = [step for step in job["steps"]
+                           if "actions/upload-artifact@" in step.get("uses", "")
+                           and "ci-runtime-pre-seal.json" in step.get("with", {}).get("path", "")]
+                assert len(uploads) == 1
+                assert "always()" in uploads[0]["if"]
+                assert "ci-runtime-seal-review.json" in uploads[0]["with"]["path"]
+                assert uploads[0]["with"]["include-hidden-files"] is True
+                assert len(uploads[0]["with"]["path"].splitlines()) == 5
+                assert "*" not in uploads[0]["with"]["path"]
     assert found == 4
