@@ -3619,3 +3619,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合并与读回：[PR #206](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/206)于`2026-11-02T13:26:12Z`合并为`b10fba47419947d5f4b00add48fb84e88b9b4666`；`git ls-remote origin refs/heads/main`与`git fetch origin`读回同一SHA，`git merge-base --is-ancestor 4bed2d09 origin/main`成功；本地main快进到同一SHA；远端无强推。
 - 边界：这次只证明公开源码分支发布、精确SHA必需门禁和合并；不证明Owner机器安装态、真实用户数据、托管发布、安装态AI、正式宿主对practice-grade的前向命令、打包声明、DISPATCHED残留对账、真实课程/模型链或Owner视觉接受。首次安装态旅程失败与上述未证项继续保留。
 - 后继事实记录：仅记录上述合并与门禁判定的PR #207以merge commit `fcecb6b4db541698a1cb8f8b11b051fd0fb4cdfa`合并；最终远端main与本地main同为该SHA，远端`refs/heads/main`为唯一分支。四个已完全并入main的远端分支（`codex/aaos-provider-ci-20261102`@7cb00ddc、`codex/delivery-20261102`@4bed2d09、`codex/delivery-record-20261102`@d210f08d、`codex/governance-normalization-20261101`@35f69600）在逐一以`git merge-base --is-ancestor`确认后删除；未删标签、未改写历史、未强推。被删分支的提交仍可从main历史按其SHA访问。
+
+#### 2026-11-02 正式宿主暴露practice-grade、安装包携带评分worker
+
+- PR #209（`2013c27b`）合并为`0da0e59dbbf5ad29eb91080211f613f64a0cddcf`，前后`git ls-remote`与本地main一致。内容：`core_bridge`新增固定操作`learning_deeptutor_practice_grade`→`POST /api/v1/learning/deeptutor/practice-grade`（payload仅一个对象body、请求上限32,768字节、传输预算95秒覆盖Core 60秒评分预算、畸形响应用既有私密策略不回显worker文本）；`core-command` schema枚举加入该值并重生成桌面前端契约；`stage_backend_runtime`的practice固定闭包加入`grade_worker.py`（12186B/`30d0a8e3…`）与`upstream/answers.py`（1538B/`fdfbaee6…`），缺这两个文件的安装包会让评分路由按设计503 fail-closed。
+- 精确SHA门禁：run 41459130141中gateplan、lint、contracts-vnext、desktop-vnext、green-candidate-vnext、workers-vnext、browser-smoke、desktop-fast通过；`rust-vnext`首轮失败于`document_cloud_loop`两个用例的合成worker 5秒超时，**同一SHA重跑失败任务**后`rust-vnext` 16m51s通过、`a0-gates`通过、run结论success。该超时是非本PR源码的负载敏感flaky，保留记录、未隐藏。gateplan对该路径集跳过了`desktop-build`、`test`、`security-targeted`与`installer-lifecycle`；生成契约一致性由contracts-vnext及本地生成器--check覆盖。
+- 本地验证：宿主bridge`rustfmt --check`通过；契约生成器与各自`--check`通过；77项契约/权威测试、staging与bridge套件通过（staging中1项为本机>260字符临时路径既有环境问题，短basetemp下通过）。本机无宿主target缓存，未做本地Tauri编译；安装态真实评分旅程未运行。
+- 边界：这只证明"正式宿主可调用该固定路由且安装闭包含评分worker"的源码与云端门禁，不证明安装态真实评分、真实用户数据、模型质量、多场景课程或Owner接受。
