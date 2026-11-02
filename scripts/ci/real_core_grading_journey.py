@@ -59,6 +59,9 @@ class Core:
         self.proc: subprocess.Popen[str] | None = None
         self.port = 0
         self.token = secrets.token_hex(32)
+        self.machine_token = secrets.token_hex(32)
+        while self.machine_token == self.token:
+            self.machine_token = secrets.token_hex(32)
         self.logs: list[str] = []
 
     def _launch_document(self) -> dict:
@@ -68,6 +71,9 @@ class Core:
         return {
             "launch_token": self.token,
             "session_id": secrets.token_hex(16),
+            "actor": "human",
+            "protocol": "archeaxis.desktop-launch/v2",
+            "machine_token": self.machine_token,
             "text_worker": {
                 "python": str(self.python),
                 "script": str(root / TEXT_WORKER),
@@ -133,7 +139,13 @@ class Core:
     def url(self) -> str:
         return f"127.0.0.1:{self.port}"
 
-    def request(self, method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
+    def request(
+        self,
+        method: str,
+        path: str,
+        body: dict | None = None,
+        token: str | None = None,
+    ) -> tuple[int, dict]:
         connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=60)
         payload = None if body is None else json.dumps(body, separators=(",", ":"))
         connection.request(
@@ -142,7 +154,7 @@ class Core:
             body=payload,
             headers={
                 "content-type": "application/json",
-                "x-archeaxis-launch-token": self.token,
+                "x-archeaxis-launch-token": token or self.token,
             },
         )
         response = connection.getresponse()
@@ -236,6 +248,43 @@ def run_journey(core: Core) -> dict:
     status, version = core.request("GET", "/api/v1/system/version")
     expect("version", status, 200, version)
     steps.append({"step": "version", "status": status, "runtime": version.get("runtime")})
+
+    # The formal route guards must hold in the real process, where the actor is
+    # derived from the launch credentials instead of an injected test header.
+    probe = {
+        "activity_id": "missing_activity",
+        "attempt_id": "missing_attempt",
+        "request": {
+            "client_event_id": "missing_event",
+            "question_document": {
+                "document_id": "missing_question",
+                "version": 1,
+                "content_sha256": "a" * 64,
+            },
+            "question_grant": {
+                "document_id": "missing_grant",
+                "version": 1,
+                "content_sha256": "b" * 64,
+            },
+            "answer": "A",
+        },
+    }
+    grade_path = "/api/v1/learning/deeptutor/practice-grade"
+    status, _ = core.request("POST", grade_path, probe, token=core.machine_token)
+    if status != 403:
+        raise CoreFailure(f"machine credential was not refused on the grading route: {status}")
+    steps.append({"step": "machine credential refused on grading route", "status": status})
+    status, unknown = core.request("POST", grade_path, probe)
+    if status != 404:
+        raise CoreFailure(f"missing activity was not reported not-found: {status} {unknown}")
+    steps.append({"step": "unknown activity refused", "status": status})
+    oversized = json.loads(json.dumps(probe))
+    oversized["request"]["answer"] = "x" * 40_000
+    status, _ = core.request("POST", grade_path, oversized)
+    if status != 413:
+        raise CoreFailure(f"oversize grade body was not rejected at the route limit: {status}")
+    steps.append({"step": "oversize grade body refused", "status": status})
+
 
     status, material = core.request(
         "POST",

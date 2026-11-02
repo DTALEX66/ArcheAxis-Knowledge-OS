@@ -129,6 +129,19 @@ fn tracked_real_core_journey_command_passes_against_this_build() {
         .find(|step| step["step"] == "disposition after restart")
         .expect("post-restart disposition step");
     assert_eq!(disposition["state"], "COMPLETED");
+    // The guards must hold in the real process, where the actor comes from the
+    // launch credentials rather than an injected test header.
+    for (name, expected) in [
+        ("machine credential refused on grading route", 403),
+        ("unknown activity refused", 404),
+        ("oversize grade body refused", 413),
+    ] {
+        let step = steps
+            .iter()
+            .find(|step| step["step"] == name)
+            .unwrap_or_else(|| panic!("missing guard step: {name}"));
+        assert_eq!(step["status"], expected, "{name}");
+    }
     let replay = steps
         .iter()
         .find(|step| step["step"] == "same-event replay after restart")
