@@ -3774,3 +3774,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 决策表标的`UNREADABLE`条目`.project-local/runs/fulltest-final-20260913`已核实：目录本身可列出，但**26个嵌套`documents/.git`目录拒绝读取**（python os.walk报26个WinError 5，其余3295文件可读）；对单个`.git`执行`Get-Acl`报"unauthorized operation"，`icacls /grant`当前用户报Access denied——**无法读取或修改其DACL**，需授权的高权限修复后才能测量/分类。本轮**未删除、未移动**该条目，并把它作为S01的具名待办；这也是存储报告`measurement_status=PARTIAL`的具体原因之一。
 - 清理本会话**已取代的失败尝试**目录3个（`real-core-journey-finalization-20261103`、`-b`、`-c`，共1,117,386 B）；失败本身与修正教训已写入执行记录，成功运行`-d`与全部被引用回执保留。回执`cleanup-receipt-round12.json`（位于real-core-journey-restore-20261103/artifacts）。
 - 整项目本地观测（非基线滚动）：**27.44 GiB / 317,834文件**，另有根目录38个文件（1.73 MB）；`.project-local`约24.52 GiB。固定checkpoint未滚动、门禁未放宽。
+
+#### 2026-11-03 release构建二进制上的完整旅程
+
+- 从当前源码HEAD `cfd97613`构建**release**版`archeaxis-api`（20,529,664 B），并用跟踪的`scripts/ci/real_core_grading_journey.py --core-exe <release二进制>`运行全部22步：version、生产actor守卫（machine 403/缺失404/超限413）、材料、真实私有出题、双grant、activity/attempt、正式评分（固定upstream摘要）、只读处置COMPLETED、重启持久、duplicate重放、遗留DISPATCHED启动终结为UNKNOWN、live backup、跨重启备份列表、restore preview、维护模式恢复到独立数据库、恢复后新Core读回材料。
+- 命令**exit 0**、无残留进程；回执`.project-local/runs/be268a2d33/real-core-journey-release-20261103/artifacts/journey-receipt.json`；release二进制保留以便复跑。
+- 边界：release-profile开发二进制+合成材料，仍不是安装包、不是Tauri宿主、无模型/网络、不是真实用户数据或Owner接受；但这比debug二进制更接近生产运行时。构建产生的release依赖（0.33 GiB）保留为当前活动release缓存。
