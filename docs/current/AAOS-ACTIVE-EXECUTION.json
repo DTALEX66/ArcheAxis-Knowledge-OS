@@ -273,6 +273,17 @@
         "receipts": [".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-vs-pinned.json", ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-scratch.json"],
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "real_core_process_journey_20261103": {
+        "state": "LOCAL_REAL_PROCESS_JOURNEY_PASSED_NOT_INSTALLED",
+        "source_head": "ebad4a1dfa5752891579169d0c45de61fd58a1d4",
+        "binary": ".project-local/build/cargo/debug/archeaxis-api.exe (29,813,248 B debug build from that source head; kept after the run)",
+        "transport": "Real archeaxis-api process on 127.0.0.1, stdin launch JSON (one finite document), x-archeaxis-launch-token authentication, real HTTP; text_ndjson.py default route plus the deeptutor.practice.import route from the real .venv Python",
+        "journey": "version 200 -> material document 201 -> source import 202 -> real private practice import 200 (question doc doc_req_0913..., question_version sha256:fa7180..., answer key absent from the view) -> two version-bound grant documents 201,201 -> activity and attempt 201,201 -> formal practice-grade 201 with provider_correct=true, provider_result_verification=local_upstream_worker_observation, upstream_member_sha256=fdfbaee6... -> activity read 200 with grade_disposition={state:COMPLETED, dispatched_at_unix:1793643047} -> Core process restarted on the same workspace -> disposition still COMPLETED with the same dispatch second -> same-event replay 200 duplicate=true provider_correct=true, no second grader run.",
+        "receipt": ".project-local/runs/be268a2d33/real-core-journey-20261103/artifacts/journey-receipt.json",
+        "local_cache_note": "The Cargo debug deps/incremental rebuilt for this binary were retired again after the journey (1.17 GiB + 0.90 GiB); the binary itself and the receipt stay so the evidence stays runnable.",
+        "boundary": "Real Core process, real HTTP, real Core SQLite writer and real fixed workers, but a debug development binary on synthetic material with no model or network: this is NOT an installed-package journey, not the Tauri host, not real user data and not Owner acceptance. The journey is currently a recorded manual run, not yet an automated regression test.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
