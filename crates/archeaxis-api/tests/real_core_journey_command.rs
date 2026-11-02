@@ -135,6 +135,18 @@ fn tracked_real_core_journey_command_passes_against_this_build() {
         .expect("replay step");
     assert_eq!(replay["duplicate"], true);
     assert_eq!(replay["provider_correct"], true);
+    // A stale dispatch left by the previous process must be finalized by the
+    // restarted Core, and only as UNKNOWN.
+    let patched = steps
+        .iter()
+        .find(|step| step["step"] == "simulate stale dispatch from a previous process")
+        .expect("stale dispatch patch step");
+    assert_eq!(patched["status"], "PATCHED");
+    let finalized = steps
+        .iter()
+        .find(|step| step["step"] == "startup finalization of stale dispatch")
+        .expect("startup finalization step");
+    assert_eq!(finalized["state"], "UNKNOWN");
     // The workspace database is a real Core SQLite file, not an in-memory stub.
     assert!(workspace.join("workspace.sqlite").is_file());
 }
