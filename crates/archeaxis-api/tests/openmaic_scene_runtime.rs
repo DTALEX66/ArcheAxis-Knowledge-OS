@@ -109,6 +109,26 @@ async fn human_can_retrieve_prior_candidate_without_node_and_machine_cannot() {
     assert_eq!(existing["source_snapshot_status"], "current");
     assert_eq!(existing["rendering_authorized"], false);
     assert_eq!(existing["answer_secrecy"], "not_established");
+    // The candidate carries the reports Core derived, not an empty promise. The
+    // outline description and key points are reported as projection losses, and the
+    // synthetic question cannot be scored, so nothing here claims a playable course.
+    assert_eq!(
+        existing["contract_version"],
+        "archeaxis.openmaic-scene-document/v2"
+    );
+    assert_eq!(existing["projection"]["status"], "RECORDED");
+    assert_eq!(existing["projection"]["derived_by"], "core");
+    assert_eq!(existing["projection"]["report"]["lossless"], false);
+    assert_eq!(
+        existing["projection"]["report"]["omitted"],
+        json!(["outline.description", "outline.keyPoints"])
+    );
+    assert_eq!(existing["render"]["status"], "RECORDED");
+    assert_eq!(existing["render"]["report"]["playable"], false);
+    assert_eq!(
+        existing["render"]["report"]["unsupported"][0]["reason"],
+        "only single/multiple/short_answer questions are scored"
+    );
 
     let mut fresh = body.clone();
     fresh["create_request_id"] = json!("client_2");
@@ -126,6 +146,82 @@ async fn human_can_retrieve_prior_candidate_without_node_and_machine_cannot() {
         .unwrap()
         .unwrap();
     assert_eq!(count, 2); // the source and previously seeded candidate only
+}
+
+/// A scene kind or content version this slice cannot build is named in the answer
+/// instead of surfacing as a generic conflict, and no candidate is written.
+#[tokio::test]
+async fn unsupported_scene_kind_or_version_is_named_without_running_a_worker() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("workspace.sqlite");
+    let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
+    let source = document::create_optional(
+        &mut conn,
+        None,
+        None,
+        "synthetic material",
+        json!({"type":"doc","content":[]}),
+    )
+    .unwrap();
+    drop(conn);
+    let ex = Executor::open(
+        &path,
+        &dir.path().join("staging"),
+        &dir.path().join("unused-python"),
+        &dir.path().join("unused-worker"),
+    )
+    .await
+    .unwrap();
+    let router = archeaxis_api::runtime::router(ex.clone());
+
+    let mut interactive = request(&source);
+    interactive["outline"]["type"] = json!("interactive");
+    let body = json!({"create_request_id":"refuse_scene","request":interactive});
+    let (status, refusal) = call(&router, "human", &body).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{refusal}");
+    assert_eq!(refusal["code"], "AAK-VAL-001");
+    assert_eq!(refusal["retryable"], false);
+    assert_eq!(refusal["refusal"]["reason"], "UNSUPPORTED_SCENE");
+    assert_eq!(refusal["refusal"]["scene_type"], "interactive");
+    assert_eq!(
+        refusal["refusal"]["supported_scene_types"],
+        json!(["slide", "quiz"])
+    );
+
+    // An unknown scene content version is its own refusal, not an unsupported kind.
+    let mut versioned = request(&source);
+    versioned["content"]["schemaVersion"] = json!(2);
+    let body = json!({"create_request_id":"refuse_version","request":versioned});
+    let (status, refusal) = call(&router, "human", &body).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{refusal}");
+    assert_eq!(refusal["refusal"]["reason"], "UNSUPPORTED_SCENE_VERSION");
+    assert_eq!(refusal["refusal"]["declared"], 2);
+    assert_eq!(refusal["refusal"]["supported_scene_versions"], json!([1]));
+
+    // The human boundary still comes first: a machine actor learns nothing new.
+    let mut machine = request(&source);
+    machine["outline"]["type"] = json!("interactive");
+    let body = json!({"create_request_id":"refuse_machine","request":machine});
+    let (status, denied) = call(&router, "machine", &body).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert!(denied["refusal"].is_null());
+
+    // A supported scene reaches provider admission instead: with no Node
+    // registration this is unavailability, not a refusal of the contract.
+    let body = json!({"create_request_id":"refuse_supported","request":request(&source)});
+    let (status, unavailable) = call(&router, "human", &body).await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{unavailable}");
+    let count = ex
+        .store()
+        .submit_wait(|conn| {
+            conn.query_row("SELECT count(*) FROM documents", [], |row| {
+                row.get::<_, i64>(0)
+            })
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(count, 1); // the synthetic material only
 }
 
 #[tokio::test]

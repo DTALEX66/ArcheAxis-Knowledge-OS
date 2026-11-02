@@ -154,6 +154,36 @@ pub(super) struct OpenMaicSceneBody {
     request: Value,
 }
 
+/// The persisted candidate as a client reads it. `contract_version`, `projection`
+/// and `render` are Core-derived: a legacy v1 candidate says the reports were never
+/// recorded, so a caller cannot read an empty field as "lossless" or "playable".
+fn openmaic_receipt_response(receipt: &Value, worker_invoked: bool) -> Response {
+    Json(json!({"schema":"archeaxis.openmaic-scene-persistence/v1",
+        "worker_invoked":worker_invoked,"document":receipt["document"],
+        "candidate_document_status":receipt["candidate_document_status"],
+        "source_snapshot_status":receipt["source_snapshot_status"],
+        "source_derivation":"client_declared_unverified","human_review_required":true,
+        "rendering_authorized":false,"answer_secrecy":"not_established",
+        "contract_version":receipt["contract_version"],
+        "projection":receipt["projection"],"render":receipt["render"]}))
+    .into_response()
+}
+
+/// A refusal this slice can name precisely: an unknown request version, a scene
+/// kind it cannot build, or an unknown scene content version. Anything else stays
+/// a normal validation conflict.
+fn openmaic_refusal_response(refusal: &Value) -> Response {
+    (
+        StatusCode::UNPROCESSABLE_ENTITY,
+        Json(json!({"code":"AAK-VAL-001",
+        "message":"this offline slide/quiz slice cannot build the declared OpenMAIC scene",
+        "retryable":false,"refusal":refusal,
+        "supported_scene_types":["slide","quiz"],
+        "supported_scene_versions":[1]})),
+    )
+        .into_response()
+}
+
 pub(super) async fn create_openmaic_scene(
     State(runtime): State<Runtime>,
     headers: HeaderMap,
@@ -167,6 +197,9 @@ pub(super) async fn create_openmaic_scene(
     }
     let create_request_id = body.create_request_id;
     let request = body.request;
+    if let Some(refusal) = course::openmaic_refusal(&request) {
+        return openmaic_refusal_response(&refusal);
+    }
     // Capture the admission generation before the potentially queued Core
     // preparation. A disable/re-enable while preparation is waiting must not
     // let that older request dispatch under the newer generation. An existing
@@ -203,13 +236,7 @@ pub(super) async fn create_openmaic_scene(
     };
     let pending = match prepared {
         course::OpenMaicPreparation::Existing(receipt) => {
-            return Json(json!({"schema":"archeaxis.openmaic-scene-persistence/v1",
-                "worker_invoked":false,"document":receipt["document"],
-                "candidate_document_status":receipt["candidate_document_status"],
-                "source_snapshot_status":receipt["source_snapshot_status"],
-                "source_derivation":"client_declared_unverified","human_review_required":true,
-                "rendering_authorized":false,"answer_secrecy":"not_established"}))
-            .into_response();
+            return openmaic_receipt_response(&receipt, false);
         }
         course::OpenMaicPreparation::Pending(pending) => pending,
     };
@@ -255,13 +282,7 @@ pub(super) async fn create_openmaic_scene(
         })
         .await;
     match committed {
-        Ok(Ok(receipt)) => Json(json!({"schema":"archeaxis.openmaic-scene-persistence/v1",
-            "worker_invoked":true,"document":receipt["document"],
-            "candidate_document_status":receipt["candidate_document_status"],
-            "source_snapshot_status":receipt["source_snapshot_status"],
-            "source_derivation":"client_declared_unverified","human_review_required":true,
-            "rendering_authorized":false,"answer_secrecy":"not_established"}))
-        .into_response(),
+        Ok(Ok(receipt)) => openmaic_receipt_response(&receipt, true),
         Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
         | Ok(Err(archeaxis_domain::document::Error::Conflict(_))) => error(
             StatusCode::CONFLICT,

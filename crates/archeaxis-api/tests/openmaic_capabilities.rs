@@ -128,6 +128,27 @@ async fn fake_node_is_typed_but_not_healthy_and_changes_fail_closed() {
         record["provider"]["version_qualification"],
         "not_established"
     );
+    // The declared scene contract tells a consumer which candidates exist; it does
+    // not claim a job ran, and the render contract is not declared execution-ready.
+    assert_eq!(
+        record["provider"]["scene_contract"]["request_schema"],
+        "archeaxis.openmaic-scene-build/v1"
+    );
+    assert_eq!(
+        record["provider"]["scene_contract"]["scene_types"],
+        json!(["slide", "quiz"])
+    );
+    assert_eq!(
+        record["provider"]["scene_contract"]["candidate_contract_versions"],
+        json!([
+            "archeaxis.openmaic-scene-document/v1",
+            "archeaxis.openmaic-scene-document/v2"
+        ])
+    );
+    assert_eq!(
+        record["provider"]["scene_contract"]["execution_verified"],
+        false
+    );
     assert_eq!(record["health"], "handshake_failed");
     assert_eq!(record["health_details"]["task_executed"], false);
     assert_eq!(record["health_details"]["hello_timeout_ms"], 2000);

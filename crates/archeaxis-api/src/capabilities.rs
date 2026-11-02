@@ -210,6 +210,20 @@ fn openmaic_record(
     record["provider"]["kind"] = "node-worker".into();
     record["provider"]["executable_sha256"] = executable_sha256.into();
     record["provider"]["version_qualification"] = "not_established".into();
+    // What the provider's persisted candidates actually declare, so a consumer can
+    // tell a supported scene from a promise. Nothing here says a job was executed.
+    record["provider"]["scene_contract"] = json!({
+        "request_schema": "archeaxis.openmaic-scene-build/v1",
+        "candidate_contract_versions": [
+            "archeaxis.openmaic-scene-document/v1",
+            "archeaxis.openmaic-scene-document/v2",
+        ],
+        "scene_types": ["slide", "quiz"],
+        "scene_content_versions": [1],
+        "projection_report": "derived_by_core_for_v2_candidates",
+        "render_contract": "declared_only",
+        "execution_verified": false,
+    });
     Some(record)
 }
 

@@ -23,7 +23,10 @@ SCHEMA = "archeaxis.openmaic-interactive-html-rewrite/v1"
 NODE_SHA256 = "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
 NODE_BYTES = 93_580_104
 WORKER = Path(__file__).absolute().with_name("interactive-html-rewrite-worker.mjs")
-WORKER_SHA256 = "036a4355d9615a59e606d5cee6a2445aa0077ffec5cc9d8c33a8340feb89c927"
+# Bytes of the committed worker. The previous pin (036a4355…) named the pre-lint
+# bytes, whose only difference is trailing whitespace on two comment lines removed
+# by the repository-conventions fix; no code, template or dependency changed.
+WORKER_SHA256 = "662f7767e9ec42337f7545937b21c410bf8c5835b28a2f603f97a7e2f814c31d"
 SOURCE_SHA256 = "fe4637cc0e32cd557dcdc285017008cfe741e7799478a9c9ec102cc97194b1fe"
 MAX_HTML = 8_192
 MAX_STDIN = 16_384

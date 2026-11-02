@@ -344,6 +344,273 @@ fn retry_reports_both_current_historical_and_unavailable_without_replacing_v1() 
     assert_eq!(unavailable["document"], first["document"]);
 }
 
+/// Frame bytes exactly as the domain function serializes them.
+fn frame(request: &Value) -> String {
+    let mut bytes = serde_json::to_vec(request).unwrap();
+    bytes.push(b'\n');
+    String::from_utf8(bytes).unwrap()
+}
+
+fn frame_sha(request: &Value) -> String {
+    hex::encode(Sha256::digest(frame(request).as_bytes()))
+}
+
+fn commit(conn: &mut Connection, client: &str, request: &Value, canvas: &str) -> Value {
+    let ticket = pending(conn, client, request);
+    course::commit_openmaic_scene(conn, client, request, &ticket, &result(request, canvas)).unwrap()
+}
+
+#[test]
+fn slide_candidate_reports_the_projection_loss_core_derived() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let source = material(&mut conn);
+    let request = request(&source, "slide");
+    let stored = commit(&mut conn, "client_loss", &request, "canvas_loss");
+    let saved = &stored["document"]["editor_json"]["attrs"][NAMESPACE];
+    assert_eq!(saved["schema"], "archeaxis.openmaic-scene-document/v2");
+    let contract = &saved["contract"];
+    assert_eq!(
+        contract["contract"],
+        "archeaxis.openmaic-scene-projection/v2"
+    );
+    // The outline description and key points are never carried into a scene, and a
+    // text slide also drops its lecture note. They are listed, not silently removed.
+    assert_eq!(contract["lossless"], false);
+    assert_eq!(
+        contract["omitted"],
+        json!([
+            "content.extra",
+            "content.remark",
+            "outline.description",
+            "outline.keyPoints"
+        ])
+    );
+    assert_eq!(stored["projection"]["status"], "RECORDED");
+    assert_eq!(stored["projection"]["derived_by"], "core");
+    assert_eq!(stored["projection"]["report"], *contract);
+    assert_eq!(
+        stored["contract_version"],
+        "archeaxis.openmaic-scene-document/v2"
+    );
+    // The complete request is still stored byte-for-byte, so the loss is a
+    // projection loss in the scene, not deletion from the candidate Document.
+    let saved_frame = saved["request_frame"].as_str().unwrap();
+    assert_eq!(saved_frame, frame(&request));
+    assert!(saved_frame.contains("SYNTHETIC original lecture note"));
+    assert!(saved_frame.contains("retained input"));
+    // A retry reads the same report rather than recomputing a different one.
+    match course::prepare_openmaic_scene(&mut conn, "client_loss", &request).unwrap() {
+        OpenMaicPreparation::Existing(value) => assert_eq!(value, stored),
+        _ => panic!("the committed candidate must be found"),
+    }
+}
+
+#[test]
+fn playable_slide_and_quiz_are_distinguished_from_unplayable_content() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let source = material(&mut conn);
+
+    let mut playable = request(&source, "slide");
+    playable["content"]["elements"] = json!([
+        {"id":"t1","type":"text","content":"可播放文本","left":40,"top":40,
+         "width":320,"height":80,"rotate":0}
+    ]);
+    let stored = commit(&mut conn, "client_playable", &playable, "canvas_playable");
+    let render = &stored["document"]["editor_json"]["attrs"][NAMESPACE]["render"];
+    assert_eq!(render["schema"], "archeaxis.openmaic-scene-render/v1");
+    assert_eq!(render["playable"], true);
+    assert_eq!(render["renderer"], "openmaic-canvas-text");
+    assert_eq!(render["counts"]["elements"], 1);
+    assert_eq!(render["unsupported"], json!([]));
+    assert_eq!(stored["render"]["report"], *render);
+    assert_eq!(
+        stored["document"]["editor_json"]["attrs"][NAMESPACE]["rendering_authorized"],
+        false
+    );
+
+    // A media element is not drawn by the text renderer. The scene is still stored,
+    // but the candidate says which element cannot be played instead of dropping it.
+    let mut media = request(&source, "slide");
+    media["outline"]["id"] = json!("outline_media");
+    media["scene_id"] = json!("scene_media");
+    media["content"]["elements"] = json!([
+        {"id":"t1","type":"text","content":"文本","left":0,"top":0,"width":100,"height":50,"rotate":0},
+        {"id":"m1","type":"image","src":"https://example.invalid/a.png"}
+    ]);
+    let stored = commit(&mut conn, "client_media", &media, "canvas_media");
+    let render = &stored["document"]["editor_json"]["attrs"][NAMESPACE]["render"];
+    assert_eq!(render["playable"], false);
+    assert_eq!(render["counts"]["elements"], 2);
+    assert_eq!(render["counts"]["unsupported"], 1);
+    assert_eq!(
+        render["unsupported"][0]["path"],
+        "content.canvas.elements[1]"
+    );
+    assert_eq!(
+        render["unsupported"][0]["reason"],
+        "only text elements are rendered"
+    );
+
+    // The slide element list is only the ids it can key: absent geometry cannot be
+    // drawn, so it is reported rather than defaulted silently.
+    let mut unpositioned = request(&source, "slide");
+    unpositioned["outline"]["id"] = json!("outline_blank");
+    unpositioned["scene_id"] = json!("scene_blank");
+    let stored = commit(&mut conn, "client_blank", &unpositioned, "canvas_blank");
+    let render = &stored["document"]["editor_json"]["attrs"][NAMESPACE]["render"];
+    assert_eq!(render["playable"], false);
+    assert_eq!(
+        render["unsupported"][0]["reason"],
+        "element needs bounded canvas geometry"
+    );
+
+    // A quiz without a question type or with a non-list answer cannot be scored.
+    let mut quiz = request(&source, "quiz");
+    quiz["outline"]["id"] = json!("outline_quiz");
+    quiz["scene_id"] = json!("scene_quiz");
+    let stored = commit(&mut conn, "client_quiz", &quiz, "unused");
+    let render = &stored["document"]["editor_json"]["attrs"][NAMESPACE]["render"];
+    assert_eq!(render["playable"], false);
+    assert_eq!(render["counts"]["questions"], 1);
+    assert_eq!(
+        render["unsupported"][0]["reason"],
+        "only single/multiple/short_answer questions are scored"
+    );
+}
+
+#[test]
+fn legacy_v1_candidate_reads_with_an_explicit_not_recorded_report() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let source = material(&mut conn);
+    let request = request(&source, "slide");
+    let worker = result(&request, "legacy_canvas");
+    let attrs = json!({
+        "schema":"archeaxis.openmaic-scene-document/v1",
+        "create_request_id":"client_legacy",
+        "input_sha256":frame_sha(&request),
+        "request_frame":frame(&request),
+        "worker_document":worker,
+        "source_snapshot_status_at_commit":"current",
+        "source_derivation":"client_declared_unverified",
+        "rendering_authorized":false,
+        "human_review_required":true,
+    });
+    let editor = json!({"type":"doc","attrs":{NAMESPACE:attrs},
+        "content":[{"type":"paragraph","attrs":{"block_id":"openmaic_scene_candidate"},
+            "content":[{"type":"text","text":"legacy candidate"}]}]});
+    let internal = course::openmaic_internal_request_id("client_legacy");
+    let seeded = document::create_optional_with_request(
+        &mut conn,
+        None,
+        None,
+        "legacy candidate",
+        editor,
+        Some(&internal),
+    )
+    .unwrap();
+    assert_eq!(
+        seeded["document_id"],
+        course::openmaic_scene_document_id("client_legacy")
+    );
+    let read = match course::prepare_openmaic_scene(&mut conn, "client_legacy", &request).unwrap() {
+        OpenMaicPreparation::Existing(value) => value,
+        _ => panic!("a seeded v1 candidate must be readable"),
+    };
+    assert_eq!(
+        read["contract_version"],
+        "archeaxis.openmaic-scene-document/v1"
+    );
+    assert_eq!(read["projection"]["status"], "NOT_RECORDED");
+    assert_eq!(read["render"]["status"], "NOT_RECORDED");
+    assert!(read["projection"].get("report").is_none());
+    assert_eq!(read["document"]["document_id"], seeded["document_id"]);
+    // A v1 candidate is never rewritten in place, and a request that differs from
+    // its stored frame still conflicts rather than silently upgrading the version.
+    let mut changed = request.clone();
+    changed["outline"]["title"] = json!("different title");
+    assert!(course::prepare_openmaic_scene(&mut conn, "client_legacy", &changed).is_err());
+    assert_eq!(
+        document::read(&conn, seeded["document_id"].as_str().unwrap(), Some(1)).unwrap()["editor_json"],
+        seeded["editor_json"]
+    );
+}
+
+#[test]
+fn tampered_projection_or_render_report_is_refused_on_readback() {
+    for change in ["contract", "render"] {
+        let dir = tempfile::tempdir().unwrap();
+        let mut conn =
+            init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+        let source = material(&mut conn);
+        let request = request(&source, "slide");
+        let stored = commit(&mut conn, "client_tamper", &request, "canvas_tamper");
+        let id = stored["document"]["document_id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let editor = document::read(&conn, &id, Some(1)).unwrap()["editor_json"].clone();
+        let mut tampered = editor.clone();
+        let saved = &mut tampered["attrs"][NAMESPACE];
+        if change == "contract" {
+            saved["contract"]["omitted"] = json!([]);
+            saved["contract"]["lossless"] = json!(true);
+        } else {
+            // Flip the stored verdict instead of writing a fixed `true`: a text slide is
+            // already playable, so a fixed value would not actually tamper with the report.
+            let playable = saved["render"]["playable"].as_bool().unwrap();
+            saved["render"]["playable"] = json!(!playable);
+        }
+        document::save(&mut conn, &id, 1, tampered).unwrap();
+        assert!(
+            course::prepare_openmaic_scene(&mut conn, "client_tamper", &request).is_err(),
+            "{change}"
+        );
+    }
+}
+
+#[test]
+fn unsupported_scene_version_or_kind_is_named_before_any_worker() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let source = material(&mut conn);
+    let slide = request(&source, "slide");
+    assert_eq!(course::openmaic_refusal(&slide), None);
+    assert_eq!(course::openmaic_refusal(&request(&source, "quiz")), None);
+
+    let mut interactive = slide.clone();
+    interactive["outline"]["type"] = json!("interactive");
+    let refusal = course::openmaic_refusal(&interactive).unwrap();
+    assert_eq!(refusal["reason"], "UNSUPPORTED_SCENE");
+    assert_eq!(refusal["scene_type"], "interactive");
+    assert_eq!(refusal["supported_scene_types"], json!(["slide", "quiz"]));
+
+    let mut future = slide.clone();
+    future["schema"] = json!("archeaxis.openmaic-scene-build/v2");
+    let refusal = course::openmaic_refusal(&future).unwrap();
+    assert_eq!(refusal["reason"], "UNSUPPORTED_REQUEST_VERSION");
+    assert_eq!(refusal["declared"], "archeaxis.openmaic-scene-build/v2");
+
+    let mut versioned = slide.clone();
+    versioned["content"]["schemaVersion"] = json!(2);
+    let refusal = course::openmaic_refusal(&versioned).unwrap();
+    assert_eq!(refusal["reason"], "UNSUPPORTED_SCENE_VERSION");
+    assert_eq!(refusal["declared"], 2);
+    assert_eq!(refusal["supported_scene_versions"], json!([1]));
+
+    // The same declarations are refused at the write boundary even when a caller
+    // skips the naming pre-check, and none of them creates a worker ticket.
+    for request in [interactive, future, versioned] {
+        assert!(course::prepare_openmaic_scene(&mut conn, "client_refuse", &request).is_err());
+    }
+    let count: i64 = conn
+        .query_row("SELECT count(*) FROM documents", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, 1);
+}
+
 #[test]
 fn pending_ticket_cannot_cross_workspaces_with_identical_material_and_epoch() {
     let dir = tempfile::tempdir().unwrap();
