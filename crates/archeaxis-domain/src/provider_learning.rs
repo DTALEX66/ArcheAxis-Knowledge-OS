@@ -25,6 +25,21 @@ impl From<rusqlite::Error> for Error {
 }
 type Result<T> = std::result::Result<T, Error>;
 
+/// The Core-owned grading transaction façade for the provider bridge.
+///
+/// The implementation stays in the crate-private `provider_grade` module; these
+/// are the only entry points a host may reach. `prepare` reserves the exact
+/// client event and attempt together, `begin_dispatch` records the durable
+/// dispatch intent after rechecking both grants, the attempt and the restore
+/// epoch, `complete_observed` persists the fixed worker's exact receipt, and
+/// `abandon_unknown` records an unclear outcome without inventing a result.
+pub mod grade {
+    pub use crate::provider_grade::{
+        Admission, GradeRequest, Prepared, abandon_unknown, begin_dispatch, complete_observed,
+        prepare,
+    };
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Provider {

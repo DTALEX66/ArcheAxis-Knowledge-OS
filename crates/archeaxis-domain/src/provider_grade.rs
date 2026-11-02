@@ -1,6 +1,9 @@
-//! Staged DeepTutor grading transactions. No process or external route is
-//! connected here. A successful completion requires an owned-process proof;
-//! the only proof constructor in this file is compiled for synthetic tests.
+//! Staged DeepTutor grading transactions. The domain owns the durable
+//! reservation, dispatch intent and final result; the Core-owned bridge owns
+//! the fixed worker process. `complete_observed` accepts the worker's exact
+//! receipt bytes and validates their identity against the reservation, but it
+//! cannot itself prove which process produced them, so the bridge must be the
+//! only caller. The synthetic `OwnedObservation` constructor remains test-only.
 //!
 //! The durable metadata stores identities and hashes, never answer or answer
 //! key plaintext. Hashes of low-entropy answers are not secrecy mechanisms.
@@ -15,21 +18,24 @@ use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const SCHEMA: &str = "archeaxis.deeptutor-practice-grade/v1";
 const UPSTREAM_SHA256: &str = "fdfbaee6cd0fa2c0f31de9a792e220e6989434fc1f44359db3e6afc62cd2472f";
 const CLAIM_SCHEMA: &str = "archeaxis.provider-grade-claim/v1";
 const INDEX_SCHEMA: &str = "archeaxis.provider-grade-event-index/v1";
+/// The fixed worker prints one bounded JSON line. Anything else is not a receipt.
+const MAX_RECEIPT_BYTES: usize = 16_384;
 type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct GradeRequest {
-    pub(crate) client_event_id: String,
-    pub(crate) question_document: Snapshot,
-    pub(crate) question_grant: Snapshot,
-    pub(crate) answer: String,
+pub struct GradeRequest {
+    pub client_event_id: String,
+    pub question_document: Snapshot,
+    pub question_grant: Snapshot,
+    pub answer: String,
 }
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -58,14 +64,15 @@ struct EventIndex {
 }
 
 /// Never serializable or printable: it contains the worker stdin and answer.
-pub(crate) struct Prepared {
+/// It crosses the Core-owned bridge exactly once per reservation.
+pub struct Prepared {
     request: GradeRequest,
     claim: Claim,
     stdin: Vec<u8>,
-    finalization_started: std::cell::Cell<bool>,
+    finalization_started: AtomicBool,
 }
 
-pub(crate) enum Admission {
+pub enum Admission {
     Ready(Prepared),
     /// A prior owner may have started a worker. Never launch again automatically.
     Unknown,
@@ -74,6 +81,14 @@ pub(crate) enum Admission {
 }
 
 impl Prepared {
+    /// The exact bytes a dispatched worker must receive.
+    ///
+    /// The caller owns their protection: they contain the learner answer and
+    /// the question's answer key material. This is not a generic job frame.
+    pub fn worker_input(&self) -> &[u8] {
+        &self.stdin
+    }
+
     #[cfg(test)]
     fn worker_stdin(&self) -> &[u8] {
         &self.stdin
@@ -423,9 +438,9 @@ fn terminal(
     )))
 }
 
-/// Reserve the exact event and attempt atomically. No public route calls this;
-/// no process may be started until an owned executor is added and reviewed.
-pub(crate) fn prepare(
+/// Reserve the exact event and attempt atomically. No worker may be started
+/// until a Core-owned bridge calls `begin_dispatch` and then `complete_observed`.
+pub fn prepare(
     conn: &mut Connection,
     activity_id: &str,
     attempt_id: &str,
@@ -481,7 +496,7 @@ pub(crate) fn prepare(
         request: request.clone(),
         claim,
         stdin,
-        finalization_started: std::cell::Cell::new(false),
+        finalization_started: AtomicBool::new(false),
     }))
 }
 
@@ -656,7 +671,7 @@ fn dispatch_with_clock<S: BoundedDispatch, C: DispatchClock>(
     })
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct WorkerResponse {
     schema: String,
@@ -672,8 +687,9 @@ struct WorkerResponse {
     independent_mastery: String,
 }
 
-// There is deliberately no production constructor: only a future reviewed,
-// owned child-process bridge may create this proof after checking exit/cleanup.
+// There is deliberately no test-independent constructor: only the Core-owned
+// bridge passes the fixed worker's exact receipt bytes through
+// `complete_observed`, which validates their identity against the reservation.
 struct OwnedObservation {
     response: Value,
 }
@@ -684,6 +700,97 @@ fn complete(
     observed: OwnedObservation,
 ) -> Result<Value> {
     complete_with_clock(conn, prepared, observed, &mut SystemDispatchClock)
+}
+
+/// Record the durable dispatch intent before the Core-owned bridge writes the
+/// reservation's stdin to the fixed worker.
+///
+/// This rechecks both grants, the attempt, the restore epoch and the remaining
+/// grant window inside one write transaction, then commits `DISPATCHED`. No
+/// SQLite transaction is held across process I/O, so a withdrawal committed in
+/// the short window between this commit and the first byte is detected only by
+/// `complete_observed`, after the bytes may already have been sent. The bridge
+/// must not retry a reservation whose dispatch is not certain.
+pub fn begin_dispatch(conn: &mut Connection, prepared: &Prepared, budget: Duration) -> Result<()> {
+    if budget.is_zero() || budget > Duration::from_secs(120) {
+        return Err(Error::Invalid("invalid grading budget"));
+    }
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let (_, expiry) = revalidate_with(&tx, prepared, "RESERVED", learning::now)?;
+    if let Some(end) = expiry {
+        // A grant that cannot cover the whole budget would authorize bytes that
+        // the completion check must then reject; refuse before writing instead.
+        let now = learning::now()?;
+        if end <= now.saturating_add(budget.as_secs()) {
+            return Err(Error::Invalid(
+                "provider grant expires before the grading budget",
+            ));
+        }
+    }
+    let mut claim = prepared.claim.clone();
+    claim.state = "DISPATCHED".into();
+    store_claim(&tx, &claim, false)?;
+    tx.commit()?;
+    Ok(())
+}
+
+/// Persist one observed result from the exact single-line receipt printed by the
+/// fixed worker, or refuse.
+///
+/// A receipt with `provider_correct: null` is a legitimate observed outcome:
+/// the upstream grader declined to decide, so the attempt is still submitted and
+/// the result is stored as unscored, never as a failure to retry. The function
+/// revalidates the claim, both grants, the attempt state and the restore epoch,
+/// and binds the receipt to the reservation's input digest before writing.
+pub fn complete_observed(
+    conn: &mut Connection,
+    prepared: &Prepared,
+    receipt: &[u8],
+) -> Result<Value> {
+    if receipt.is_empty()
+        || receipt.len() > MAX_RECEIPT_BYTES
+        || receipt.last() != Some(&b'\n')
+        || receipt[..receipt.len() - 1].contains(&b'\n')
+    {
+        return Err(Error::Invalid("invalid worker receipt"));
+    }
+    // Decode the struct directly so a duplicate member or an unknown field is
+    // refused rather than collapsed by a generic Value round trip.
+    let worker: WorkerResponse =
+        serde_json::from_slice(receipt).map_err(|_| Error::Invalid("invalid worker receipt"))?;
+    let response =
+        serde_json::to_value(worker).map_err(|_| Error::Invalid("invalid worker receipt"))?;
+    complete(conn, prepared, OwnedObservation { response })
+}
+
+/// Record that a reserved or dispatched worker's outcome cannot be established.
+///
+/// The attempt stays pending and no result is invented. Re-admission of the same
+/// event is a read-only `Admission::Unknown`, so an unclear outcome can never be
+/// turned into a second launch by retrying the same request.
+pub fn abandon_unknown(conn: &mut Connection, prepared: &Prepared) -> Result<()> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let current = read_claim(
+        &tx,
+        &prepared.claim.activity_id,
+        &prepared.claim.attempt_id,
+        &prepared.claim.client_event_id,
+    )?
+    .ok_or(Error::Conflict("grade claim unavailable"))?;
+    match current.state.as_str() {
+        "RESERVED" | "DISPATCHED" => (),
+        _ => return Err(Error::Conflict("grade claim already terminal")),
+    }
+    let mut expected = prepared.claim.clone();
+    expected.state = current.state.clone();
+    if current != expected {
+        return Err(Error::Conflict("grade claim changed"));
+    }
+    let mut unknown = prepared.claim.clone();
+    unknown.state = "UNKNOWN".into();
+    store_claim(&tx, &unknown, false)?;
+    tx.commit()?;
+    Ok(())
 }
 
 /// Commit checks the earlier grant expiry immediately before SQLite COMMIT.
@@ -708,7 +815,7 @@ fn complete_with_clock<C: DispatchClock>(
     }
     // A failed finalization must never retry an old observation after clock
     // rollback. Historical duplicate receipts above remain read-only.
-    if prepared.finalization_started.replace(true) {
+    if prepared.finalization_started.swap(true, Ordering::SeqCst) {
         return Err(Error::Conflict("grade finalization already attempted"));
     }
     let mut last_wall = None;
@@ -1026,7 +1133,7 @@ mod tests {
             request: prepared.request.clone(),
             claim: prepared.claim.clone(),
             stdin: prepared.stdin.clone(),
-            finalization_started: std::cell::Cell::new(false),
+            finalization_started: AtomicBool::new(false),
         }
     }
     fn manual(event: &str) -> Submission {
@@ -2353,5 +2460,244 @@ mod tests {
         assert_eq!(receipt["question_binding"], "client_declared_unverified");
         assert!(receipt.get("grade_evidence").is_none());
         assert_eq!(receipt["independent_mastery"], "not_established");
+    }
+
+    // The fixed worker prints exactly one JSON line. These bytes model its shape
+    // for the transaction tests below; only the ignored integration-worker test
+    // runs the retained upstream grader.
+    fn receipt_bytes(prepared: &Prepared, correct: Option<bool>) -> Vec<u8> {
+        let mut bytes = serde_json::to_vec(&json!({
+            "schema":SCHEMA,"request_id":prepared.claim.client_event_id,"status":"OBSERVED",
+            "provider":"deeptutor","adapter_version":"1.7.1",
+            "upstream_member_sha256":UPSTREAM_SHA256,
+            "input_sha256":hash_bytes(prepared.worker_input()),
+            "provider_correct":correct,
+            "question_binding":"caller_declared_unverified",
+            "independent_mastery":"not_established"
+        }))
+        .unwrap();
+        bytes.push(b'\n');
+        bytes
+    }
+
+    #[test]
+    fn completion_requires_a_dispatch_intent_and_rejects_malformed_receipts() {
+        let mut f = fixture();
+        let early = ready(&mut f);
+        assert!(matches!(
+            complete_observed(&mut f.conn, &early, &receipt_bytes(&early, Some(true))),
+            Err(Error::Conflict(_))
+        ));
+        // A burned token can never finalize the same reservation afterwards.
+        assert!(matches!(
+            complete_observed(&mut f.conn, &early, &receipt_bytes(&early, Some(true))),
+            Err(Error::Conflict(_))
+        ));
+
+        let mut f = fixture();
+        let prepared = ready(&mut f);
+        assert!(matches!(
+            begin_dispatch(&mut f.conn, &prepared, Duration::ZERO),
+            Err(Error::Invalid(_))
+        ));
+        assert!(matches!(
+            begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(121)),
+            Err(Error::Invalid(_))
+        ));
+        begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(30)).unwrap();
+        // A second dispatch of the same reservation is refused.
+        assert!(begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(30)).is_err());
+
+        let good = receipt_bytes(&prepared, Some(true));
+        let body = String::from_utf8(good.clone()).unwrap();
+        let body = body.trim_end();
+        // Framing and shape failures are refused before any finalization attempt,
+        // so the reservation can still accept the one exact receipt afterwards.
+        for bad in [
+            String::new(),
+            body.to_owned(),
+            format!("{body}\n{body}\n"),
+            format!("{}\n", "x".repeat(MAX_RECEIPT_BYTES)),
+        ] {
+            assert!(
+                complete_observed(&mut f.conn, &prepared, bad.as_bytes()).is_err(),
+                "accepted malformed framing: {} bytes",
+                bad.len()
+            );
+        }
+        let duplicated = body.replacen(
+            "\"status\":\"OBSERVED\"",
+            "\"status\":\"OBSERVED\",\"status\":\"OBSERVED\"",
+            1,
+        );
+        let mut extra: Value = serde_json::from_str(body).unwrap();
+        extra["answer"] = json!("private");
+        let mut wrong_shape: Value = serde_json::from_str(body).unwrap();
+        wrong_shape["provider_correct"] = json!("true");
+        for bad in [duplicated, extra.to_string(), wrong_shape.to_string()] {
+            assert!(
+                complete_observed(&mut f.conn, &prepared, format!("{bad}\n").as_bytes()).is_err(),
+                "accepted an unbound receipt"
+            );
+        }
+        let receipt = complete_observed(&mut f.conn, &prepared, &good).unwrap();
+        assert_eq!(receipt["provider_correct"], json!(true));
+        assert_eq!(
+            receipt["question_binding"],
+            "question_document_content_bound_origin_unverified"
+        );
+        assert_eq!(
+            receipt["provider_result_verification"],
+            "local_upstream_worker_observation"
+        );
+        assert_eq!(receipt["independent_mastery"], "not_established");
+        assert_eq!(receipt["duplicate"], false);
+        assert_eq!(
+            complete_observed(&mut f.conn, &prepared, &good).unwrap()["duplicate"],
+            true
+        );
+        assert_no_plaintext(&f.conn);
+
+        // A structurally valid receipt that is not bound to this reservation is
+        // refused inside the finalization, and that attempt burns the token:
+        // a mismatched observation is never retried after a clock or grant change.
+        for mutate in ["input_sha256", "upstream_member_sha256", "request_id"] {
+            let mut f = fixture();
+            let prepared = ready(&mut f);
+            begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(30)).unwrap();
+            let mut wrong: Value = serde_json::from_str(body).unwrap();
+            wrong[mutate] = json!("0".repeat(64));
+            assert!(
+                complete_observed(&mut f.conn, &prepared, format!("{}\n", wrong).as_bytes())
+                    .is_err(),
+                "{mutate}"
+            );
+            assert!(
+                matches!(
+                    complete_observed(&mut f.conn, &prepared, &good),
+                    Err(Error::Conflict(_))
+                ),
+                "{mutate}: a rejected observation must not free the reservation"
+            );
+        }
+    }
+
+    #[test]
+    fn unscored_receipt_is_persisted_as_an_observed_null_not_a_failure() {
+        let mut f = fixture();
+        let prepared = ready(&mut f);
+        begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(30)).unwrap();
+        let receipt =
+            complete_observed(&mut f.conn, &prepared, &receipt_bytes(&prepared, None)).unwrap();
+        assert!(receipt["provider_correct"].is_null());
+        assert_eq!(receipt["self_report"], false);
+        let history = provider_learning::read(&f.conn, "activity", None).unwrap();
+        assert_eq!(history["attempts"][0]["state"], "submitted");
+        assert!(history["attempts"][0]["result"]["provider_correct"].is_null());
+        assert_eq!(history["provider_result_verification"], "per_attempt");
+        let stored = provider_learning::submit(
+            &mut f.conn,
+            "activity",
+            "attempt",
+            &Submission {
+                client_event_id: "event".into(),
+                answer: "SYNTHETIC_ANSWER".into(),
+                provider_correct: None,
+                self_report: false,
+                rating: None,
+            },
+        )
+        .unwrap();
+        assert_eq!(stored["duplicate"], true);
+        assert!(stored.get("grade_evidence").is_some());
+        assert!(stored["provider_correct"].is_null());
+    }
+
+    #[test]
+    fn unclear_dispatch_is_unknown_and_never_automatically_relaunched() {
+        let mut f = fixture();
+        let prepared = ready(&mut f);
+        abandon_unknown(&mut f.conn, &prepared).unwrap();
+        match prepare(&mut f.conn, "activity", "attempt", &f.request).unwrap() {
+            Admission::Unknown => (),
+            _ => panic!("an unclear reservation was offered for a second launch"),
+        }
+        assert!(
+            complete_observed(
+                &mut f.conn,
+                &prepared,
+                &receipt_bytes(&prepared, Some(true))
+            )
+            .is_err()
+        );
+        assert!(abandon_unknown(&mut f.conn, &prepared).is_err());
+        provider_learning::cancel(
+            &mut f.conn,
+            "activity",
+            "attempt",
+            &Cancel {
+                client_cancel_id: "cancel".into(),
+            },
+        )
+        .unwrap();
+        assert!(matches!(
+            prepare(&mut f.conn, "activity", "attempt", &f.request),
+            Err(Error::Conflict(_))
+        ));
+        assert!(
+            provider_learning::read(&f.conn, "activity", None).unwrap()["attempts"][0]["result"]
+                .is_null()
+        );
+    }
+
+    #[test]
+    fn dispatch_requires_the_authorization_window_to_cover_the_whole_budget() {
+        let now = learning::now().unwrap();
+        let mut f = fixture_with_expiry(Some(now + 5), None);
+        let prepared = ready(&mut f);
+        assert!(matches!(
+            begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(30)),
+            Err(Error::Invalid(_))
+        ));
+        begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(2)).unwrap();
+        let receipt = complete_observed(
+            &mut f.conn,
+            &prepared,
+            &receipt_bytes(&prepared, Some(false)),
+        )
+        .unwrap();
+        assert_eq!(receipt["provider_correct"], json!(false));
+    }
+
+    #[test]
+    fn withdrawal_after_dispatch_prevents_publication_of_the_observed_result() {
+        let mut f = fixture();
+        let prepared = ready(&mut f);
+        begin_dispatch(&mut f.conn, &prepared, Duration::from_secs(30)).unwrap();
+        let mut revoked = f.source_grant["editor_json"].clone();
+        revoked["attrs"]["archeaxis_provider_material_grant"]["state"] = json!("revoked");
+        document::save(
+            &mut f.conn,
+            f.source_grant["document_id"].as_str().unwrap(),
+            1,
+            revoked,
+        )
+        .unwrap();
+        assert!(
+            complete_observed(
+                &mut f.conn,
+                &prepared,
+                &receipt_bytes(&prepared, Some(true))
+            )
+            .is_err()
+        );
+        assert_eq!(
+            provider_learning::read(&f.conn, "activity", None).unwrap()["attempts"][0]["state"],
+            "pending"
+        );
+        assert!(matches!(
+            prepare(&mut f.conn, "activity", "attempt", &f.request),
+            Err(Error::Invalid(_))
+        ));
     }
 }

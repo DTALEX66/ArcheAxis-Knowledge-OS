@@ -5,7 +5,9 @@ use crate::attempts;
 mod deeptutor_grade;
 mod deeptutor_practice_import;
 mod derived;
-pub use deeptutor_practice_import::{PracticeImportCancellation, PracticeImportWorkerError};
+pub use deeptutor_practice_import::{
+    PracticeGradeWorkerError, PracticeImportCancellation, PracticeImportWorkerError,
+};
 mod dispatch;
 mod health;
 mod inventory;

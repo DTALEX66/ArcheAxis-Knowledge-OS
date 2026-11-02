@@ -1,5 +1,6 @@
-//! Private DeepTutor practice import process. This is not a generic job route.
-//! Input and output can contain answers and must never enter job logs.
+//! Private DeepTutor practice import and grading processes. This is not a
+//! generic job route. Input and output can contain answers and must never enter
+//! job logs.
 use super::*;
 use sha2::{Digest, Sha256};
 use std::sync::atomic::AtomicU8;
@@ -10,6 +11,20 @@ const WORKER_SHA: &str = "af186a32b2a98c248f28b447edbf9fb27399c1873fa93bd29bcda5
 const MAX_FRAME: usize = 7_056_044;
 const MAX_REPLY: u64 = 1_114_112;
 const MAX_STDERR: u64 = 8_192;
+/// The fixed DeepTutor 1.7.1 grader is adjacent to the launch-declared practice
+/// import worker in the same provider directory. Selecting it by convention is
+/// not an identity claim: the adjacent file is then pinned by name, size and
+/// SHA, and a missing or changed file fails closed.
+const GRADE_WORKER_NAME: &str = "grade_worker.py";
+const GRADE_WORKER_SIZE: u64 = 12_186;
+const GRADE_WORKER_SHA: &str = "30d0a8e3f88a00186af0162f20953f14070cdc51ef42be4dca0e9948cb787b0e";
+const GRADE_UPSTREAM_SIZE: u64 = 1_538;
+const GRADE_UPSTREAM_SHA: &str = "fdfbaee6cd0fa2c0f31de9a792e220e6989434fc1f44359db3e6afc62cd2472f";
+/// The retained grader source sits beside the worker in `upstream/answers.py`.
+const GRADE_UPSTREAM_NAME: &str = "answers.py";
+/// One bounded JSON line from the worker; the Core re-validates its identity.
+const MAX_GRADE_INPUT: usize = 240_000;
+const MAX_GRADE_RECEIPT: u64 = 16_384;
 const PREPARED: u8 = 0;
 const DISPATCHED: u8 = 1;
 const CANCELLED: u8 = 2;
@@ -53,8 +68,67 @@ pub enum PracticeImportWorkerError {
     CleanupUnknown,
 }
 
-fn fixed_worker_matches(path: &Path) -> bool {
-    if path.file_name().and_then(|value| value.to_str()) != Some(WORKER_NAME)
+/// Outcome categories of the fixed grading worker. They are categories only:
+/// a refused or unclear grade is never reported as an observed result.
+#[derive(Debug, PartialEq, Eq)]
+pub enum PracticeGradeWorkerError {
+    InvalidInput,
+    Unavailable,
+    IdentityMismatch,
+    Rejected,
+    Cancelled,
+    TimedOut,
+    CleanupUnknown,
+}
+
+impl From<PracticeImportWorkerError> for PracticeGradeWorkerError {
+    fn from(value: PracticeImportWorkerError) -> Self {
+        match value {
+            PracticeImportWorkerError::InvalidInput => Self::InvalidInput,
+            PracticeImportWorkerError::Unavailable => Self::Unavailable,
+            PracticeImportWorkerError::IdentityMismatch => Self::IdentityMismatch,
+            PracticeImportWorkerError::Rejected => Self::Rejected,
+            PracticeImportWorkerError::Cancelled => Self::Cancelled,
+            PracticeImportWorkerError::TimedOut => Self::TimedOut,
+            PracticeImportWorkerError::CleanupUnknown => Self::CleanupUnknown,
+        }
+    }
+}
+
+/// The cancellation vocabulary the owned runner needs. The import route uses
+/// its request-local state machine; the grading bridge uses the executor token,
+/// because the Core transaction, not this process, owns grade admission.
+trait Stop {
+    fn stop_requested(&self) -> bool;
+    fn request_stop(&self);
+    fn begin_dispatch(&self) -> bool;
+}
+impl Stop for PracticeImportCancellation {
+    fn stop_requested(&self) -> bool {
+        self.is_cancelled()
+    }
+    fn request_stop(&self) {
+        self.cancel();
+    }
+    fn begin_dispatch(&self) -> bool {
+        PracticeImportCancellation::begin_dispatch(self)
+    }
+}
+impl Stop for Cancellation {
+    fn stop_requested(&self) -> bool {
+        self.is_cancelled()
+    }
+    fn request_stop(&self) {
+        self.cancel();
+    }
+    fn begin_dispatch(&self) -> bool {
+        !self.is_cancelled()
+    }
+}
+
+/// Read one fixed local file once and require its exact size and SHA.
+fn fixed_file_matches(path: &Path, name: &str, size: u64, sha: &str) -> bool {
+    if path.file_name().and_then(|value| value.to_str()) != Some(name)
         || !derived::safe_local_file(path)
     {
         return false;
@@ -65,31 +139,43 @@ fn fixed_worker_matches(path: &Path) -> bool {
     let Ok(before) = file.metadata() else {
         return false;
     };
-    if !before.is_file() || before.len() != WORKER_SIZE {
+    if !before.is_file() || before.len() != size {
         return false;
     }
-    let mut bytes = Vec::with_capacity((WORKER_SIZE + 1) as usize);
-    if (&mut file)
-        .take(WORKER_SIZE + 1)
-        .read_to_end(&mut bytes)
-        .is_err()
-    {
+    let mut bytes = Vec::with_capacity((size + 1) as usize);
+    if (&mut file).take(size + 1).read_to_end(&mut bytes).is_err() {
         return false;
     }
     let Ok(after) = file.metadata() else {
         return false;
     };
-    bytes.len() as u64 == WORKER_SIZE
+    bytes.len() as u64 == size
         && after.len() == before.len()
         && after.modified().ok() == before.modified().ok()
-        && hex::encode(Sha256::digest(&bytes)) == WORKER_SHA
+        && hex::encode(Sha256::digest(&bytes)) == sha
 }
 
-struct CancelOnDrop(Option<PracticeImportCancellation>);
-impl Drop for CancelOnDrop {
+fn fixed_worker_matches(path: &Path) -> bool {
+    fixed_file_matches(path, WORKER_NAME, WORKER_SIZE, WORKER_SHA)
+}
+
+fn grade_worker_matches(path: &Path) -> bool {
+    fixed_file_matches(path, GRADE_WORKER_NAME, GRADE_WORKER_SIZE, GRADE_WORKER_SHA)
+        && path.parent().is_some_and(|dir| {
+            fixed_file_matches(
+                &dir.join("upstream").join(GRADE_UPSTREAM_NAME),
+                GRADE_UPSTREAM_NAME,
+                GRADE_UPSTREAM_SIZE,
+                GRADE_UPSTREAM_SHA,
+            )
+        })
+}
+
+struct CancelOnDrop<T: Stop>(Option<T>);
+impl<T: Stop> Drop for CancelOnDrop<T> {
     fn drop(&mut self) {
-        if let Some(cancel) = &self.0 {
-            cancel.cancel();
+        if let Some(stop) = &self.0 {
+            stop.request_stop();
         }
     }
 }
@@ -165,7 +251,15 @@ impl Executor {
                 return Err(PracticeImportWorkerError::IdentityMismatch);
             }
             let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                run_owned(&staging, &python, &worker, frame, deadline, &task_cancel)
+                run_owned(
+                    &staging,
+                    &python,
+                    &worker,
+                    frame,
+                    deadline,
+                    MAX_REPLY,
+                    &task_cancel,
+                )
             })) {
                 Ok(result) => result,
                 Err(_) => Err(PracticeImportWorkerError::CleanupUnknown),
@@ -186,20 +280,135 @@ impl Executor {
         cancel_on_drop.0 = None;
         result
     }
+
+    /// The fixed DeepTutor 1.7.1 grader, resolved beside the launch-declared
+    /// practice import worker and then pinned by name, size and SHA.
+    fn practice_grade_worker(&self) -> Option<PathBuf> {
+        self.deeptutor_practice_worker
+            .as_ref()
+            .and_then(|path| path.parent())
+            .map(|dir| dir.join(GRADE_WORKER_NAME))
+    }
+
+    /// Run the fixed private grader over one Core-reserved worker input and
+    /// return its exact single-line receipt bytes.
+    ///
+    /// This method owns the process only. It neither writes the database nor
+    /// decides that a receipt is a persisted result: the Core bridge must have
+    /// recorded the dispatch intent first and must re-validate both grants, the
+    /// attempt and the restore epoch inside the completion transaction. An
+    /// unclear outcome is reported as an error category, never as a grade.
+    pub async fn run_deeptutor_practice_grade(
+        &self,
+        input: Vec<u8>,
+        timeout: Duration,
+        cancel: Cancellation,
+    ) -> Result<Vec<u8>, PracticeGradeWorkerError> {
+        use PracticeGradeWorkerError as G;
+        if input.is_empty()
+            || input.len() > MAX_GRADE_INPUT
+            || input.last() != Some(&b'\n')
+            || input[..input.len() - 1].contains(&b'\n')
+            || timeout.is_zero()
+            || timeout > Duration::from_secs(120)
+        {
+            return Err(G::InvalidInput);
+        }
+        if self.deeptutor_practice_unknown.load(Ordering::SeqCst) {
+            return Err(G::CleanupUnknown);
+        }
+        if cancel.is_cancelled() {
+            return Err(G::Cancelled);
+        }
+        let worker = self.practice_grade_worker().ok_or(G::Unavailable)?;
+        let python = self.python.clone();
+        if !derived::safe_local_file(&python) || !grade_worker_matches(&worker) {
+            return Err(G::IdentityMismatch);
+        }
+        let deadline = Instant::now() + timeout;
+        let permit = loop {
+            if cancel.is_cancelled() {
+                return Err(G::Cancelled);
+            }
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            if remaining.is_zero() {
+                return Err(G::TimedOut);
+            }
+            match tokio::time::timeout(
+                remaining.min(Duration::from_millis(25)),
+                self.derived_slots.clone().acquire_owned(),
+            )
+            .await
+            {
+                Ok(Ok(permit)) => break permit,
+                Ok(Err(_)) => return Err(G::Unavailable),
+                Err(_) => continue,
+            }
+        };
+        let staging = self.staging.clone();
+        let task_cancel = cancel.clone();
+        let unknown = self.deeptutor_practice_unknown.clone();
+        let mut cancel_on_drop = CancelOnDrop(Some(cancel));
+        let task = tokio::task::spawn_blocking(move || {
+            let _permit = permit;
+            if unknown.load(Ordering::SeqCst) {
+                return Err(G::CleanupUnknown);
+            }
+            if task_cancel.is_cancelled() {
+                return Err(G::Cancelled);
+            }
+            if Instant::now() >= deadline {
+                return Err(G::TimedOut);
+            }
+            if !derived::safe_local_file(&python) || !grade_worker_matches(&worker) {
+                return Err(G::IdentityMismatch);
+            }
+            let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                run_owned(
+                    &staging,
+                    &python,
+                    &worker,
+                    input,
+                    deadline,
+                    MAX_GRADE_RECEIPT,
+                    &task_cancel,
+                )
+                .map_err(G::from)
+            })) {
+                Ok(result) => result,
+                Err(_) => Err(G::CleanupUnknown),
+            };
+            if matches!(&result, Err(G::CleanupUnknown)) {
+                unknown.store(true, Ordering::SeqCst);
+            }
+            result
+        });
+        let result = match task.await {
+            Ok(result) => result,
+            Err(_) => {
+                self.deeptutor_practice_unknown
+                    .store(true, Ordering::SeqCst);
+                return Err(G::CleanupUnknown);
+            }
+        };
+        cancel_on_drop.0 = None;
+        result
+    }
 }
 
 /// Own the direct child and bounded private pipes. A forced stop is UNKNOWN;
 /// successful direct-child cleanup does not certify the state of descendants.
-fn run_owned(
+fn run_owned<S: Stop>(
     staging: &Path,
     python: &Path,
     worker: &Path,
     frame: Vec<u8>,
     deadline: Instant,
-    cancel: &PracticeImportCancellation,
+    max_reply: u64,
+    stop: &S,
 ) -> Result<Vec<u8>, PracticeImportWorkerError> {
     use PracticeImportWorkerError as E;
-    if cancel.is_cancelled() {
+    if stop.stop_requested() {
         return Err(E::Cancelled);
     }
     if Instant::now() >= deadline {
@@ -241,7 +450,7 @@ fn run_owned(
     if Instant::now() >= deadline {
         return Err(E::TimedOut);
     }
-    if !cancel.begin_dispatch() {
+    if !stop.begin_dispatch() {
         return Err(E::Cancelled);
     }
     let mut child = OwnedChild(command.spawn().map_err(|_| E::Unavailable)?);
@@ -253,7 +462,7 @@ fn run_owned(
         let mut value = Vec::new();
         output
             .by_ref()
-            .take(MAX_REPLY + 1)
+            .take(max_reply + 1)
             .read_to_end(&mut value)
             .map(|_| value)
             .map_err(|_| ())
@@ -266,7 +475,7 @@ fn run_owned(
         .map_err(|_| ())
     });
     let result = loop {
-        if cancel.is_cancelled() {
+        if stop.stop_requested() {
             break Err(E::Cancelled);
         }
         if Instant::now() >= deadline {
@@ -368,13 +577,19 @@ fn run_owned(
     }
     let stdout = stdout.map_err(|_| E::Unavailable)?;
     let stderr_len = stderr.map_err(|_| E::Unavailable)?;
-    if wrote.is_err() || stderr_len != 0 || stdout.len() > MAX_REPLY as usize {
+    if wrote.is_err() || stderr_len != 0 || stdout.len() > max_reply as usize {
         return Err(E::Unavailable);
     }
     if !status.success() {
-        return Err(E::Rejected);
+        // Both fixed workers use exit 2 for a refused request and exit 1 for an
+        // unavailable dependency; neither is a persisted observed result.
+        return Err(if status.code() == Some(2) {
+            E::Rejected
+        } else {
+            E::Unavailable
+        });
     }
-    if cancel.is_cancelled() {
+    if stop.stop_requested() {
         return Err(E::Cancelled);
     }
     Ok(stdout)

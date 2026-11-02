@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (148 pairs in a `text_worker` launch)
+## 3. Route inventory (149 pairs in a `text_worker` launch)
 
 `PROD` identifies a route mounted in the current source for the specified production launch shape.
 Whether the UI can rely on it also depends on the applicable capability/provider availability,
@@ -341,6 +341,7 @@ a token-authentication boundary.
 | 238 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts/{attempt_id}/submit` | **human only** | Records a caller-declared answer, `provider_correct`, self-report and optional rating. The ordinary submit does not invoke the provider grader or establish independent mastery; it is not an FSRS review. |
 | 239 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts/{attempt_id}/cancel` | **human only** | Records cancellation by `client_cancel_id`; the returned provider stop state is `unknown`, not proof that a provider process stopped. |
 | 240 | `POST /api/v1/learning/deeptutor/practice-import` | **human only** | Text-worker launch only; request body at most 65,536 bytes. Core prepares from an existing source and material snapshot, invokes the private practice worker, and rechecks the bound request and cancellation at commit before returning a limited view. Ordinary local import does not require a provider grant; this route is not automatic grading or a model call. |
+| 242 | `POST /api/v1/learning/deeptutor/practice-grade` | **human only** | Text-worker launch only; request body at most 32,768 bytes. Core reserves the exact client event and attempt together, rechecks both material grants, attempt state and restore epoch, runs the fixed private DeepTutor 1.7.1 grader, and persists an observed result — including `provider_correct = null` as an unscored terminal observation — or refuses. Interrupted or indeterminate worker outcomes are recorded `UNKNOWN` and are never retried automatically. A duplicate event replays its stored receipt. This is an observed provider result, not an independent mastery or learning-improvement claim. |
 | 15 | `POST /api/v1/learning/items/{item_key}/references` | any token | Links an accepted knowledge id. **No actor guard** — a machine principal may call it. |
 | 17 | `POST /api/v1/learning/items/{item_key}/assessment` | any token | Body `{knowledge_id}`. **No actor guard.** Returns `assessment_id` + `knowledge_version`. |
 | 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Latest assessment. |
@@ -627,9 +628,9 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 94 addresses: 93 projection method/path pairs (81 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 148 addresses (92 base projection method/path pairs + 55 runtime method/path pairs on 52 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **with** `text_worker` | 149 addresses (92 base projection method/path pairs + 56 runtime method/path pairs on 53 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **52** route mounts, mounted there rather than with the projections because
+The runtime builder carries **53** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -833,7 +834,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 92 base projection pairs plus 55 runtime pairs plus one native session-control pair total 148. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 92 base projection pairs plus 56 runtime pairs plus one native session-control pair total 149. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
