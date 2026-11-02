@@ -75,6 +75,7 @@ jobs:
         shell: pwsh
         run: cargo test --locked -p archeaxis-api --test deeptutor_practice_import -- --ignored
       - name: OpenMAIC synthetic scene through Node and Core
+        if: ${{ success() || failure() }}
         shell: pwsh
         run: |
           $env:ARCHEAXIS_TEST_NODE = (Get-Command node.exe -ErrorAction Stop).Source

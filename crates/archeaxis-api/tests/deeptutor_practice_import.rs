@@ -1,5 +1,5 @@
 //! Synthetic practice input through the actual Core writer and private worker.
-use archeaxis_application::executor::Executor;
+use archeaxis_application::executor::{Executor, PracticeImportCancellation};
 use archeaxis_domain::{document, source::{self, ImportOutcome}};
 use axum::{body::Body, http::{Request, StatusCode}, Router};
 use http_body_util::BodyExt;
@@ -66,6 +66,16 @@ async fn explicit_worker_import_persists_once_and_returns_only_the_question_view
     let executor = Executor::open_routes(&db, &dir.path().join("staging"), &python,
         &dir.path().join("unused-worker"), &[("deeptutor.practice.import", worker.clone())])
         .await.unwrap();
+    // Exercise the same private worker before the HTTP call. Only the finite
+    // error category is reported; the answer-bearing response is never printed.
+    let probe_request = serde_json::from_value(request.clone()).unwrap();
+    let probe = executor.store().submit_wait(move |conn|
+        archeaxis_domain::provider_question::prepare_practice_import(conn, &probe_request))
+        .await.unwrap().unwrap();
+    let probe_result = executor.run_deeptutor_practice_import(
+        probe.worker_frame().to_vec(), std::time::Duration::from_secs(60),
+        PracticeImportCancellation::new()).await;
+    assert!(probe_result.is_ok(), "private worker category: {:?}", probe_result.err());
     assert!(executor.registered_routes().iter().all(|(name, _, _)| *name != "deeptutor.practice.import"),
         "private answer-bearing protocol must not be exposed as a generic job");
     let router = archeaxis_api::runtime::router(executor.clone());
