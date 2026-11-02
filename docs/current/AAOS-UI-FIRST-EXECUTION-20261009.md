@@ -3722,3 +3722,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41516424040 `lint` 57s pass、**`rust-vnext`（windows-latest）17m04s pass**、`a0-gates` pass；rust-vnext实际执行该测试，OpenMAIC读回由此从本地检查变为CI回归。
 - 本地验证：`cargo test -p archeaxis-api --test openmaic_scene_process` 1/1（0.19s），无残留进程；rustfmt clean。
 - 边界：真实进程/HTTP/SQLite写者，但仍是debug二进制+合成候选、无Node/模型/网络；不是安装包、不是真实OpenMAIC多场景课程或模型生成、不是Owner接受。
+
+#### 2026-11-03 真实Core进程验证启动时DISPATCHED终结
+
+- PR #230（`26b2d74b` + `603ee669`）以merge commit `19c424a83ba53813d459c893c5f3aae8d839566f`合并：旅程命令在duplicate重放后新增最后阶段，把已完成claim改写成"上个进程dispatch后死亡"的确切形状——`state=DISPATCHED`且保留`result_sha256:null`（自定义deserializer要求该成员存在）、event index按重写字节重算sha一致、dispatch秒老化1000s、attempt行回到pre-result `pending`（满足schema CHECK）——再重启Core，要求`grade_disposition`变为`UNKNOWN`；回归测试同时断言`simulate stale dispatch from a previous process`(PATCHED)与`startup finalization of stale dispatch`(UNKNOWN)两步。
+- 调试中发现并修正两个夹具问题（不写成产品缺陷）：移除`result_sha256`成员会导致claim不可解析（409 `grade claim unavailable`）；只改claim而保留已完成attempt会触发`stored grade claim mismatch`（422）——真实dispatch未回收时attempt应保持pre-result状态。
+- 本地验证：对保留二进制运行命令**exit 0**，新增两步均通过；ruff、py_compile、rustfmt通过。
+- 精确SHA门禁：run 41521495707 `lint` 49s pass、**`rust-vnext`（windows-latest）17m32s pass**、`a0-gates` pass；CI实际执行扩展后的旅程与断言。
+- 边界：仍是debug二进制+合成材料+SQLite改写夹具；改写只发生在测试workspace内，不证明安装态、真实崩溃时序或Owner接受。
