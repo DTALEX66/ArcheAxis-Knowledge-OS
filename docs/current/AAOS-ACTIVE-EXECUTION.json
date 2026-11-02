@@ -155,7 +155,7 @@
     },
     "owner_ui_research_and_delivery_20261102": {
       "ui_instructions": ["同时思考下界面到底怎么做？怎么展现？可以全部重构，也可以在现有基础上进行", "重新设计，在思考分析下，优先去调研全网搜索", "也可以参考那两个合并的项目可以看下 它们的界面是怎么样的"],
-      "ui_scope": "Research and redesign exploration with public references and synthetic concept images; no product implementation, installation, acceptance or resolution of the ambiguous merged-project reference is implied.",
+      "ui_scope": "Research and redesign exploration with public references and synthetic concept images. Owner later clarified that the reference concerns repository branches; a historically linked pair is examined in the research, without claiming it is the only possible pair. No product implementation, installation or acceptance is implied.",
       "research_ref": "docs/design/20261102-ui-research/界面调研与重设计方案.md",
       "delivery_instruction": "先全部上传  双端仓库保持一致   该合并的合并",
       "delivery_scope": "Publish reviewed project source, public task records and selected design deliverables; merge qualifying branches and verify corresponding local and remote refs. Preserve raw conversations, private credentials, archives, runtime data and caches locally; honor required checks and do not force push or bypass protections.",
