@@ -3730,3 +3730,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本地验证：对保留二进制运行命令**exit 0**，新增两步均通过；ruff、py_compile、rustfmt通过。
 - 精确SHA门禁：run 41521495707 `lint` 49s pass、**`rust-vnext`（windows-latest）17m32s pass**、`a0-gates` pass；CI实际执行扩展后的旅程与断言。
 - 边界：仍是debug二进制+合成材料+SQLite改写夹具；改写只发生在测试workspace内，不证明安装态、真实崩溃时序或Owner接受。
+
+#### 2026-11-03 真实Core进程验证正式评分路由守卫
+
+- PR #232（`71cbb13e`）以merge commit `99c97db7e143500ab188ac388f2dcb2b4499f4b8`合并：旅程命令的launch文档改为versioned profile（`archeaxis.desktop-launch/v2` + human actor + 独立machine token），并在真实旅程开始前要求正式评分路由：**machine凭证→403**、**缺失activity→404**、**body超过32,768字节→413**，均先于reservation/worker；回归测试断言这三步。
+- 为什么重要：此前的负向契约测试走进程内router并注入`x-archeaxis-actor`头；本步骤验证的是**生产middleware的actor推导**（由launch token类型产生human/machine），以及真实进程下的路由体限与错误映射。
+- 本地验证：对保留二进制运行命令**exit 0**，三项守卫与此前finalization步骤均通过；ruff、py_compile、rustfmt通过。
+- 精确SHA门禁：run 41526428368 `lint` 56s pass、**`rust-vnext`（windows-latest）16m56s pass**、`a0-gates` pass。
+- 边界：debug二进制+合成材料；probe使用不存在的activity，不产生评分写入；不证明安装态、真实用户数据或Owner接受。
