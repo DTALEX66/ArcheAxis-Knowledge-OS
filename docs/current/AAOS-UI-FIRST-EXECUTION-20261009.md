@@ -3707,3 +3707,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41501409618 `lint` pass、**`rust-vnext`（windows-latest）12m49s pass**；日志显示该job实际执行`tests\real_core_journey_command.rs`并以0.62s通过——真实Core旅程由此从本地人工证据变为**CI内执行的回归**，而非skip。
 - 本地验证：`cargo test -p archeaxis-api --test real_core_journey_command` 1/1；rustfmt clean。
 - 边界：CI执行的是Windows runner上的debug二进制+合成材料+固定worker（无模型/网络）；仍不是安装包、不是Tauri宿主、不是真实用户数据、不是Owner接受，安装态旅程仍待单独验收。
+
+#### 2026-11-03 遗留越界布局条目的移动归档（只移动、不删除）
+
+- 依据固定v2 checkpoint的`OUT-OF-LAYOUT`清单，用一次性工具（记录在`.project-local/runs/be268a2d33/legacy-layout-20261103-tool.py`）把**59个未被任何跟踪文件引用**的越界条目（24,942,934 B）从`.project-local`根目录**重命名移动**到允许的`.project-local/archives/legacy-layout-20261103/`，并写`MANIFEST.json`（schema `aaos.legacy-layout-archive/v1`）：原路径、归档路径、文件数、字节数，以及69个"待决定"条目及理由。同卷重命名不改变字节，全程无删除；移动后逐个复核目标存在（59/59）。
+- 选择规则：名称≥10字符且含日期/多词slug（避免`dist`、`c`、`appdata`等泛名），在全部跟踪文件中按精确名称与`.project-local/<name>`均无引用，且不在受保护清单内；被引用条目（如`closure-27b-matched-20261013`、`build-stage-learning.py`）留在原址。
+- 复测（同一固定checkpoint）：`OUT-OF-LAYOUT` **158 → 99**（68个`.project-local`条目 + 30个runs布局条目 + 1个仓库根条目）；`new_out_of_layout_count=0`；增长状态`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,558,391,507`（约1.45 GiB，低于2 GiB复核线）；`measurement_status=PARTIAL`；`runs/`仍以15.53 GB超出2.0 GB预算并含30个形状不符条目与20个checkout已消失的identity run root；`deletion_authorized=false`。
+- 回执：`.project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-layout-archive.json`。边界：只移动不删除、固定checkpoint只读未滚动、未放宽门禁；剩余99项属受保护/泛名/被引用或runs布局taxonomy，需既有S01决定。

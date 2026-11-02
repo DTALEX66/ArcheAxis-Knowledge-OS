@@ -300,6 +300,16 @@
         "boundary": "Real Core process, real HTTP, real Core SQLite writer and real fixed workers, but a debug development binary on synthetic material with no model or network: this is NOT an installed-package journey, not the Tauri host, not real user data and not Owner acceptance. The journey is a repeatable tracked command and now a CI-executed regression test, but still needs an installed-package run.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "legacy_layout_archive_20261103": {
+        "state": "MOVE_ONLY_NORMALIZATION_NO_DELETION",
+        "scope": "59 unreferenced out-of-layout entries (24,942,934 B) were renamed from the .project-local root into the allowed .project-local/archives/legacy-layout-20261103/ directory. Nothing was deleted; a same-volume rename leaves bytes unchanged, and every destination was re-checked to exist.",
+        "selection_rule": "Only names of at least 10 characters containing a digit or multi-word slug, absent from every tracked file by exact name and by .project-local/<name>, and not on a protected list of generic/private/historical names. Referenced entries stay in place.",
+        "manifest": ".project-local/archives/legacy-layout-20261103/MANIFEST.json (schema aaos.legacy-layout-archive/v1) records each original path, archived path, file count and byte count, plus the 69 entries deliberately left for a decision with the reason.",
+        "measurement_after": "storage_report against the same pinned v2 checkpoint: OUT-OF-LAYOUT 158 -> 99 entries (68 in .project-local, 30 runs-layout entries, 1 repository root); new_out_of_layout_count=0; growth status NO_NEW_GROWTH_TRIGGER with delta_readable_bytes=1,558,391,507 (~1.45 GiB, below the 2 GiB review line); measurement_status=PARTIAL; runs/ remains over its 2.0 GB budget at 15.53 GB with 30 wrongly shaped entries and 20 stale identity run roots; deletion_authorized=false.",
+        "left_for_decision": "The remaining entries are protected/generic (appdata, account-preferences, .screenshots, acceptance, backups, tools, inputs, staging, dist and similar), explicitly referenced (for example closure-27b-matched and build-stage-learning.py), or runs-layout taxonomy issues that need the existing S01 decisions.",
+        "baseline_status": "OBSERVATION_ONLY: the pinned checkpoint is read for review and neither rolled nor replaced; no gate was loosened.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
