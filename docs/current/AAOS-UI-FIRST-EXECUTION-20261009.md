@@ -3714,3 +3714,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 选择规则：名称≥10字符且含日期/多词slug（避免`dist`、`c`、`appdata`等泛名），在全部跟踪文件中按精确名称与`.project-local/<name>`均无引用，且不在受保护清单内；被引用条目（如`closure-27b-matched-20261013`、`build-stage-learning.py`）留在原址。
 - 复测（同一固定checkpoint）：`OUT-OF-LAYOUT` **158 → 99**（68个`.project-local`条目 + 30个runs布局条目 + 1个仓库根条目）；`new_out_of_layout_count=0`；增长状态`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,558,391,507`（约1.45 GiB，低于2 GiB复核线）；`measurement_status=PARTIAL`；`runs/`仍以15.53 GB超出2.0 GB预算并含30个形状不符条目与20个checkout已消失的identity run root；`deletion_authorized=false`。
 - 回执：`.project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-layout-archive.json`。边界：只移动不删除、固定checkpoint只读未滚动、未放宽门禁；剩余99项属受保护/泛名/被引用或runs布局taxonomy，需既有S01决定。
+
+#### 2026-11-03 真实Core进程读回持久化OpenMAIC场景v2
+
+- PR #228（`230c85b7`）以merge commit `bafd7471dbaa27b6a63902303fa32020da503f54`合并，新增`crates/archeaxis-api/tests/openmaic_scene_process.rs`：用域写入器植入一个已提交的OpenMAIC场景v2候选，再启动同次测试构建的`archeaxis-api`真实进程（versioned launch profile + machine token），验证 machine凭证被403拒绝且拒绝响应不含私有答案；human经HTTP读回候选后**终止并重启进程**，仍返回同一候选`document`且`worker_invoked=false`。断言包含v2合同、Core派生投影损失（`outline.description`/`outline.keyPoints`）、记录但不可播放的render report、`answer_secrecy=not_established`。
+- 进程清理教训：首版在断言panic时遗留Core子进程并持有继承句柄，使cargo运行表面“卡住”；已加`Drop`守卫在**任何退出路径**kill+wait子进程。
+- 精确SHA门禁：run 41516424040 `lint` 57s pass、**`rust-vnext`（windows-latest）17m04s pass**、`a0-gates` pass；rust-vnext实际执行该测试，OpenMAIC读回由此从本地检查变为CI回归。
+- 本地验证：`cargo test -p archeaxis-api --test openmaic_scene_process` 1/1（0.19s），无残留进程；rustfmt clean。
+- 边界：真实进程/HTTP/SQLite写者，但仍是debug二进制+合成候选、无Node/模型/网络；不是安装包、不是真实OpenMAIC多场景课程或模型生成、不是Owner接受。

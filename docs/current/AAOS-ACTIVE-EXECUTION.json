@@ -310,6 +310,17 @@
         "baseline_status": "OBSERVATION_ONLY: the pinned checkpoint is read for review and neither rolled nor replaced; no gate was loosened.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "openmaic_scene_process_20261103": {
+        "state": "LOCAL_REAL_PROCESS_SCENE_READBACK_AND_CI_REGRESSION",
+        "pull_request": 228,
+        "merge_commit": "bafd7471dbaa27b6a63902303fa32020da503f54",
+        "scope": "crates/archeaxis-api/tests/openmaic_scene_process.rs seeds one committed OpenMAIC scene v2 candidate with the domain writers, launches the archeaxis-api binary built for the same test run with a versioned launch profile, refuses a machine credential, reads the human candidate over HTTP, restarts the process on the same workspace and requires the identical candidate document with worker_invoked=false. It asserts the v2 contract, Core-derived projection losses, the recorded non-playable render report, answer_secrecy=not_established and that the machine denial stays free of the private answer. Purely synthetic; no Node, model or network.",
+        "process_lesson": "The first version panicked an assertion and left the Core child alive holding inherited handles, which made the cargo run appear to hang; a Drop guard now kills and reaps the child on every exit path.",
+        "gate_verdict": "Run 41516424040: lint pass (57s), rust-vnext (windows-latest) 17m04s pass, a0-gates pass; rust-vnext executed the new test, so the OpenMAIC read-back is now a CI regression rather than a local-only check.",
+        "local_verification_only": "cargo test -p archeaxis-api --test openmaic_scene_process 1/1 in 0.19s with no leftover process; rustfmt clean.",
+        "boundary": "Real Core process, HTTP and SQLite writer, but a debug binary and a synthetic candidate: this is not an installed package, not a real OpenMAIC multi-scene course, not local model generation and not Owner acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
