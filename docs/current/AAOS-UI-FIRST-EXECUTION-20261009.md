@@ -3685,3 +3685,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 复测：`NO_NEW_GROWTH_TRIGGER`、`new_out_of_layout_count=0`；`delta_readable_bytes=1,116,391,733`（约1.04 GiB，低于2,147,483,648复核线）；`measurement_status=PARTIAL`；`over_budget_classes=["runs/"]`但`growing_over_budget_classes=[]`、该类超预算增量仅13,081,816 B；`deletion_authorized=false`；exit 1是因为仍有**158个既有OUT-OF-LAYOUT条目待决定**（根目录`.screenshots/`、UI预览文件/bundle、acceptance/appdata/audit目录、30个形状不符的runs条目、20个checkout已消失的identity run root等），按工具要求只报告不静默删除。
 - 回执：`.project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-vs-pinned.json`与`storage-growth-after-scratch.json`。边界：固定checkpoint被读取用于复核、**未滚动或替换**；`deletion_authorized=false`，未放宽门禁。
 - 另核实：OpenMAIC imported-course 的 v1/v2 分派目前在客户端按**已存文档的schema**选择reader（`frontend/src/presentation/importedCourseStorage.ts`）；Core只存文档、不解析课程载荷，未发现需要新增的服务端分派点。若要求服务端强制校验/拒绝旧版课程载荷，属产品定义，不能由本轮自行补造。
+
+#### 2026-11-03 真实Core进程的评分旅程（本地，非安装态）
+
+- 从源码HEAD `ebad4a1d`构建真实`archeaxis-api`二进制（debug，29,813,248 B），用**stdin launch JSON**与`x-archeaxis-launch-token`启动一个真实Core进程于127.0.0.1；launch声明`text_ndjson.py`默认route与`deeptutor.practice.import`route，使用真实`.venv` Python。
+- 真实HTTP旅程全部通过：version 200 → 创建材料Document 201 → source import 202 → **真实私有practice-import 200**（题目Document `doc_req_0913…`、question_version `sha256:fa7180…`、受限视图不含答案）→ 两份version-bound grant 201,201 → activity与attempt 201,201 → **正式practice-grade 201**（`provider_correct=true`、`local_upstream_worker_observation`、`upstream_member_sha256=fdfbaee6…`）→ activity读回200且`grade_disposition={state:COMPLETED, dispatched_at_unix:1793643047}`。
+- **重启真实Core进程**（同一workspace、新session_hex）后：处置仍为COMPLETED且dispatch秒相同；同一事件重放返回200 `duplicate=true`、`provider_correct=true`（不二次运行grader）。
+- 回执：`.project-local/runs/be268a2d33/real-core-journey-20261103/artifacts/journey-receipt.json`；二进制保留以便复跑。验证后再次退役本次重建的Cargo debug deps/incremental（1.17 GiB + 0.90 GiB），回执`cleanup-receipt-round9.json`；`.project-local`约24.51 GiB。
+- 边界（不写成安装态）：真实Core进程/HTTP/SQLite写者/固定worker都用真，但这是**debug开发二进制 + 合成材料、无模型/网络**，不是安装包、不是Tauri宿主、不是真实用户数据、也不是Owner接受；该旅程目前是已记录的人工运行，**尚未编码为自动回归测试**。两个Core进程均已停止，端口已释放。
