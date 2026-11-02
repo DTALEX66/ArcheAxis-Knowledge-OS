@@ -185,6 +185,17 @@
         "local_verification_only": "rustfmt on the bridge, contract generators and --check variants, 77 contract/authority tests, staging and bridge suites (the single Windows >260-char temp-path staging failure passes with a short basetemp). The Tauri host compiles in CI, not locally; no installed grading journey was run.",
         "retained_flake": "document_cloud_loop synthetic worker timeouts remain a load-sensitive flake; not hidden or fixed by this record."
       },
+      "local_tmp_cleanup_20261102": {
+        "authorization": "Owner goal: 所有旧的过时的该归档归档该退役退役 该清理的清理掉 保持仓库干净规范",
+        "scope": "Deleted only per-run pytest scratch (pytest-tmp) directories and Python/pytest bytecode caches under .project-local. Preserved every tmp/ tree (including the 266 cited tmp/journey receipts, verified byte-identical), artifacts/, logs/, run-metadata.json, archives/, rt/, build caches, ignored originals and every candidate leaf that an existing registry or consumer protects.",
+        "measured_delta": "Whole .project-local: 35,406,332,336 B / 636,630 files -> 34,583,567,392 B / 497,226 files; 822,764,944 B (784.6 MiB) freed. Per-target sums over-count nested pytest scratch, so the measured delta is the reported figure.",
+        "retained_refusals": "171 pytest-tmp directories / 1,173,843,179 B remain because access was denied inside trees created by earlier project permission/ACL tests. No ACL bypass, no retry through another channel.",
+        "deferred_not_deleted": "Large candidate leaves under .project-local/runs/be268a2d33 (cnprep3, ui-small-final-portable, cppcand1, zc1c8, bpr1, cppns2, sci-build1 and the rest of the 76-leaf remaining-runs-review registry) still fall under their recorded consumers/preservation decisions and were not removed by this pass.",
+        "session_scratch": "Deleted 15 session-created scratch paths (CI log copies, gitleaks tool copy, temp helper scripts, PR body drafts, local worker run root, C:\\aaos-tmp) totalling 32,205,007 B; none was cited evidence.",
+        "receipt": ".project-local/runs/be268a2d33/cleanup-20261102/artifacts/cleanup-receipt.json",
+        "boundary": "This is regenerable test-scratch cleanup only. It is not a product, evidence, qualification or Owner-acceptance change, and it does not roll any growth baseline or loosen any gate.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
