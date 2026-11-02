@@ -3768,3 +3768,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41538309490 首轮`rust-vnext`在**无关的**`context_grant_api::frozen_answer_identity_serializes_concurrent_retries_survives_restart_and_refuses_conflict`上并发429失败（6 passed/1 failed）；**同SHA重跑**`rust-vnext` 17m23s pass、`a0-gates` pass，`lint`此前59s pass。按既定规则记为**flake，不是一次通过**。
 - 本地验证：对保留二进制运行命令**exit 0**（maintenance restore into an independent database / restored Core serves the material document通过）；ruff、py_compile、rustfmt通过。
 - 边界：debug二进制+合成材料；恢复路径真实执行但不证明安装态、真实用户数据或Owner接受。
+
+#### 2026-11-03 不可读布局条目的ACL核实、会话失败attempt清理与整项目测量
+
+- 决策表标的`UNREADABLE`条目`.project-local/runs/fulltest-final-20260913`已核实：目录本身可列出，但**26个嵌套`documents/.git`目录拒绝读取**（python os.walk报26个WinError 5，其余3295文件可读）；对单个`.git`执行`Get-Acl`报"unauthorized operation"，`icacls /grant`当前用户报Access denied——**无法读取或修改其DACL**，需授权的高权限修复后才能测量/分类。本轮**未删除、未移动**该条目，并把它作为S01的具名待办；这也是存储报告`measurement_status=PARTIAL`的具体原因之一。
+- 清理本会话**已取代的失败尝试**目录3个（`real-core-journey-finalization-20261103`、`-b`、`-c`，共1,117,386 B）；失败本身与修正教训已写入执行记录，成功运行`-d`与全部被引用回执保留。回执`cleanup-receipt-round12.json`（位于real-core-journey-restore-20261103/artifacts）。
+- 整项目本地观测（非基线滚动）：**27.44 GiB / 317,834文件**，另有根目录38个文件（1.73 MB）；`.project-local`约24.52 GiB。固定checkpoint未滚动、门禁未放宽。
