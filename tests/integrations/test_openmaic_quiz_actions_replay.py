@@ -51,6 +51,9 @@ def frame(reply: dict | None = None) -> dict:
 
 
 def test_all_loaded_openmaic_members_match_exact_owner_zip_bytes():
+    if not ARCHIVE.is_file():
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     assert sha(ARCHIVE.read_bytes()) == "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40"
     groups = [("generation-0.3.28-outline", 18), ("generation-0.3.28-quiz", 6),
               ("generation-0.3.28-quiz-actions", 7), ("dsl-0.12.0-actions", 3)]
@@ -84,6 +87,9 @@ def test_quiz_branch_and_complete_helpers_are_exact_original_excerpts():
 
 
 def test_locked_partial_json_archive_and_runtime_members_are_exact():
+    if not (NPM_AUDIT / "partial-json-0.1.7.tgz").is_file():
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     archive_bytes = (NPM_AUDIT / "partial-json-0.1.7.tgz").read_bytes()
     sri = "sha512-" + base64.b64encode(hashlib.sha512(archive_bytes).digest()).decode("ascii")
     assert sri == "sha512-Njv/59hHaokb/hRUjce3Hdv12wd60MtM9Z5Olmn+nehe0QDAsRtRbJPvJ0Z91TusF0SuZRIvnM+S4l6EIP8leA=="

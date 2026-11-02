@@ -152,7 +152,8 @@ def test_optional_audited_archive_matches_every_member(stem):
     expected = PACKAGES[stem]
     archive_path = CACHE / expected["fetch"] / f"{stem}.tgz"
     if not os.path.isfile(native(archive_path)):
-        pytest.skip("ignored verified npm archive is unavailable in this checkout")
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     manifest = check_package(stem)
     compressed = read_bytes(archive_path)
     assert (len(compressed), digest(compressed)) == (expected["archive_bytes"], expected["archive_sha256"])

@@ -60,6 +60,9 @@ def capture_prompt() -> tuple[dict, dict]:
 
 
 def test_every_vendored_file_is_the_exact_mit_licensed_archive_member():
+    if not ARCHIVE.is_file():
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40"
     manifest = json.loads((DONOR / "ORIGINALS.json").read_text(encoding="utf-8"))
     assert manifest["license"] == "MIT"

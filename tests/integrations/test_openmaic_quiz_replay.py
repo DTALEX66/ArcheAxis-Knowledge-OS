@@ -80,6 +80,9 @@ def capture_prompt() -> tuple[dict, dict]:
 
 
 def test_vendored_quiz_and_loaded_donor_files_match_exact_owner_archive_paths():
+    if not ARCHIVE.is_file():
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     assert sha(ARCHIVE.read_bytes()) == "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40"
     with zipfile.ZipFile(ARCHIVE) as archive:
         for root, expected_count in [(QUIZ, 6), (OUTLINE, 18)]:

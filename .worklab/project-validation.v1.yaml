@@ -155,6 +155,7 @@ risk_classes:
       - services/learning-providers/openmaic/quiz-actions-replay-worker.mjs
       - services/learning-providers/openmaic/quiz-replay-worker.mjs
       - services/learning-providers/openmaic/scene-build-worker.mjs
+      - services/learning-providers/openmaic/scene-contract-report.mjs
       - services/learning-providers/openmaic/slide-normalize-worker.mjs
       - services/learning-providers/openmaic/slide-prompt-worker.mjs
       - services/learning-providers/openmaic/slide-reply-worker.mjs

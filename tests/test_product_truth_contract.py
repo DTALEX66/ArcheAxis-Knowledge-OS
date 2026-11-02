@@ -22,8 +22,14 @@ def test_public_product_truth_uses_learning_workspace_positioning() -> None:
     assert manifest["product"]["english_name"] == "ArcheAxis Knowledge"
     assert manifest["product"]["name"] == "星环知识系统"
     assert manifest["product"]["workspace_english_name"] == EXPECTED_WORKSPACE
-    introduction = next(line for line in readme_head.splitlines()
-                        if line.strip() and not line.startswith("#"))
+    # Skip the authenticated-baseline navigation banner (a blockquote) that the
+    # public README carries above the positioning line; the canonical positioning
+    # sentence itself must still appear verbatim in the README head.
+    introduction = next(
+        line.removeprefix("> ")
+        for line in readme_head.splitlines()
+        if line.strip() and not line.startswith("#") and line.removeprefix("> ").startswith("本地优先")
+    )
     for term in EXPECTED_POSITIONING_TERMS:
         assert term in introduction, (term, introduction)
     identity = (ROOT / "docs/truth/PRODUCT_IDENTITY_V2.md").read_text(encoding="utf-8")

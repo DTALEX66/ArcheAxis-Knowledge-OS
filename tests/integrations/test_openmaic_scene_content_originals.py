@@ -128,7 +128,8 @@ def test_selected_content_assets_cover_declared_direct_template_references():
 
 def test_local_owner_zip_members_match_original_bytes_when_archive_is_available():
     if not ARCHIVE.is_file():
-        pytest.skip("ignored Owner ZIP is unavailable in this checkout")
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     assert sha(ARCHIVE.read_bytes()) == ARCHIVE_SHA, "registered Owner ZIP identity differs"
     members = manifest("SOURCE.json")["members"]
     with zipfile.ZipFile(ARCHIVE) as archive:

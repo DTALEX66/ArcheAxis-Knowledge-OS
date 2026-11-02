@@ -112,7 +112,8 @@ def test_manifest_and_all_original_members_are_self_contained(stem):
 def test_local_locked_archive_members_match_when_available(stem):
     archive_path = CACHE / f"{stem}.tgz"
     if not archive_path.is_file():
-        pytest.skip("ignored verified npm archive is unavailable in this checkout")
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     expected = PACKAGES[stem]
     manifest = check_manifest_and_members(stem)
     compressed = archive_path.read_bytes()

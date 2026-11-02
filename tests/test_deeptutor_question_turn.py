@@ -367,7 +367,10 @@ def test_missing_yaml_reader_is_unavailable_without_fallback(monkeypatch):
 
 def test_new_retained_sources_match_exact_owner_zip_members():
     if not ARCHIVE.is_file():
-        pytest.skip("Owner ZIP is a separately retained local input")
+        pytest.skip(
+            "local-only owner original is absent in a Git clone/CI; "
+            "this skip is NOT evidence of byte identity"
+        )
     assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == (
         "9614f50cfe2cef476c25ad378631f5a5d15a7c0f3f54ef1fa3180c8f41286262")
     paths = {

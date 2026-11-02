@@ -75,7 +75,8 @@ def test_originals_are_self_contained():
 
 def test_optional_audited_archive_matches_every_member():
     if not CACHE.is_file():
-        pytest.skip("ignored verified npm archive is unavailable in this checkout")
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     manifest = check_originals()
     compressed = CACHE.read_bytes()
     assert (len(compressed), digest(compressed)) == (39361, ARCHIVE_SHA256)

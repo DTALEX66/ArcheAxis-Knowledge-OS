@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import zipfile
 
 import pytest
@@ -109,7 +110,24 @@ def test_missing_zip_member_is_rejected(closure):
         verify_fixture(closure)
 
 
-@pytest.mark.parametrize("bad", ["../outside.txt", "/outside.txt", "C:/outside.txt"])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "../outside.txt",
+        "/outside.txt",
+        pytest.param(
+            "C:/outside.txt",
+            marks=pytest.mark.skipif(
+                sys.platform != "win32",
+                reason=(
+                    "a drive-qualified path is absolute only on Windows; on POSIX "
+                    "'C:' is a legal relative component, so there is nothing unsafe "
+                    "to reject and opening it legitimately misses the file"
+                ),
+            ),
+        ),
+    ],
+)
 def test_unsafe_local_file_path_is_rejected_before_open(closure, monkeypatch, bad):
     root, document = closure
     document["objects"][0]["local"]["path"] = bad

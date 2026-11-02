@@ -50,6 +50,14 @@ def prepare(raw, kind="choice", **overrides):
 
 
 def test_owner_archive_source_is_preserved_byte_for_byte():
+    # The Owner ZIP is a separately retained local-only input, so a Git clone
+    # and CI do not carry it. Skipping says nothing about byte identity; with the
+    # original present the comparisons below still run for real.
+    if not ARCHIVE.is_file():
+        pytest.skip(
+            "local-only owner original is absent in a Git clone/CI; "
+            "this skip is NOT evidence of byte identity"
+        )
     archive_digest = hashlib.sha256()
     with ARCHIVE.open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):

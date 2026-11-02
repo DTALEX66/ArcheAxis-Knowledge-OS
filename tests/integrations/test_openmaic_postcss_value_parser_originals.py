@@ -75,7 +75,8 @@ def test_manifest_and_all_original_members_are_self_contained():
 
 def test_local_locked_archive_members_match_when_available():
     if not ARCHIVE.is_file():
-        pytest.skip("ignored verified npm archive is unavailable in this checkout")
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     compressed = ARCHIVE.read_bytes()
     assert (len(compressed), digest(compressed)) == (7997, ARCHIVE_SHA256)
     assert "sha512-" + base64.b64encode(hashlib.sha512(compressed).digest()).decode("ascii") == ARCHIVE_SRI

@@ -115,7 +115,8 @@ def test_originals_are_self_contained(stem):
 def test_optional_audited_archive_matches_every_member(stem):
     archive_path = CACHE / f"{stem}.tgz"
     if not archive_path.is_file():
-        pytest.skip("ignored verified npm archive is unavailable in this checkout")
+        pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "
+                    "this skip is NOT evidence of byte identity")
     expected = PACKAGES[stem]
     manifest = check_package(stem)
     compressed = read_bytes(archive_path)
