@@ -396,3 +396,127 @@ fn retained_worker_undecidable_question_is_committed_as_unscored() {
     );
     assert_eq!(value["independent_mastery"], "not_established");
 }
+
+#[test]
+fn dispatch_second_and_disposition_survive_restart() {
+    let mut chain = fixture("B");
+    let prepared = reserved(&mut chain);
+    let reserved_state = grade::disposition(&chain.conn, "activity", "attempt")
+        .unwrap()
+        .unwrap();
+    assert_eq!(reserved_state["state"], "RESERVED");
+    assert!(reserved_state["dispatched_at_unix"].is_null());
+    grade::begin_dispatch(&mut chain.conn, &prepared, Duration::from_secs(60)).unwrap();
+    let dispatched = grade::disposition(&chain.conn, "activity", "attempt")
+        .unwrap()
+        .unwrap();
+    assert_eq!(dispatched["state"], "DISPATCHED");
+    assert!(dispatched["dispatched_at_unix"].as_u64().unwrap() > 0);
+    drop(chain.conn);
+    let conn = archeaxis_store_sqlite::init_workspace(chain.db.to_str().unwrap()).unwrap();
+    let reopened = grade::disposition(&conn, "activity", "attempt")
+        .unwrap()
+        .unwrap();
+    assert_eq!(reopened, dispatched);
+}
+
+#[test]
+fn reconcile_only_finalizes_a_dispatch_whose_window_closed() {
+    let mut chain = fixture("A");
+    let prepared = reserved(&mut chain);
+    grade::begin_dispatch(&mut chain.conn, &prepared, Duration::from_secs(60)).unwrap();
+    assert_eq!(
+        grade::reconcile_stale_dispatch(
+            &mut chain.conn,
+            "activity",
+            "attempt",
+            "event",
+            Duration::from_secs(3600),
+        )
+        .unwrap(),
+        grade::Reconciled::NotStale
+    );
+    assert_eq!(
+        grade::reconcile_stale_dispatch(
+            &mut chain.conn,
+            "activity",
+            "attempt",
+            "event",
+            Duration::from_secs(0),
+        )
+        .unwrap(),
+        grade::Reconciled::Abandoned
+    );
+    let unknown = grade::disposition(&chain.conn, "activity", "attempt")
+        .unwrap()
+        .unwrap();
+    assert_eq!(unknown["state"], "UNKNOWN");
+    // Terminal: repeating the reconciliation neither relaunches nor changes the claim.
+    assert_eq!(
+        grade::reconcile_stale_dispatch(
+            &mut chain.conn,
+            "activity",
+            "attempt",
+            "event",
+            Duration::from_secs(0),
+        )
+        .unwrap(),
+        grade::Reconciled::NotDispatched
+    );
+    // The same event is only re-admitted as a read-only UNKNOWN, never a second launch.
+    assert!(matches!(
+        grade::prepare(&mut chain.conn, "activity", "attempt", &chain.request).unwrap(),
+        grade::Admission::Unknown
+    ));
+}
+
+#[test]
+fn reconcile_refuses_a_dispatch_without_a_recorded_second() {
+    let mut chain = fixture("A");
+    let prepared = reserved(&mut chain);
+    grade::begin_dispatch(&mut chain.conn, &prepared, Duration::from_secs(60)).unwrap();
+    // A claim written without the dispatch second cannot be proven stale.
+    let key: String = chain
+        .conn
+        .query_row(
+            "SELECT key FROM workspace_meta WHERE key LIKE 'provider_grade_dispatch_%'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    chain
+        .conn
+        .execute("DELETE FROM workspace_meta WHERE key=?1", [&key])
+        .unwrap();
+    assert_eq!(
+        grade::reconcile_stale_dispatch(
+            &mut chain.conn,
+            "activity",
+            "attempt",
+            "event",
+            Duration::from_secs(0),
+        )
+        .unwrap(),
+        grade::Reconciled::NoDispatchTime
+    );
+    assert_eq!(
+        grade::disposition(&chain.conn, "activity", "attempt")
+            .unwrap()
+            .unwrap()["state"],
+        "DISPATCHED"
+    );
+    // A reservation that was never dispatched has nothing to reconcile.
+    let mut reserved_only = fixture("A");
+    let _prepared = reserved(&mut reserved_only);
+    assert_eq!(
+        grade::reconcile_stale_dispatch(
+            &mut reserved_only.conn,
+            "activity",
+            "attempt",
+            "event",
+            Duration::from_secs(0),
+        )
+        .unwrap(),
+        grade::Reconciled::NotDispatched
+    );
+}

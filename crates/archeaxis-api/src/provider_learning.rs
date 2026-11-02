@@ -154,9 +154,39 @@ pub(crate) async fn read(
     }
     with_store(state, move |conn| {
         match learning::read(conn, &id, query.after_attempt_id.as_deref()) {
-            Ok(body) => Json(body).into_response(),
+            Ok(mut body) => {
+                attach_grade_dispositions(conn, &id, &mut body);
+                Json(body).into_response()
+            }
             Err(error) => result(Err(error)),
         }
     })
     .await
+}
+
+/// Attach the durable grading disposition to each attempt that has one.
+///
+/// This is a read-only projection of Core-owned metadata: the attempt and its
+/// ordinary result stay untouched, and an attempt without a grading claim gets no
+/// field. It never launches, retries or changes a claim.
+fn attach_grade_dispositions(conn: &rusqlite::Connection, activity_id: &str, body: &mut Value) {
+    let Some(attempts) = body.get_mut("attempts").and_then(Value::as_array_mut) else {
+        return;
+    };
+    for attempt in attempts.iter_mut() {
+        let Some(attempt_id) = attempt
+            .get("attempt_id")
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+        else {
+            continue;
+        };
+        if let Ok(Some(grade_disposition)) =
+            learning::grade::disposition(conn, activity_id, &attempt_id)
+        {
+            if let Some(object) = attempt.as_object_mut() {
+                object.insert("grade_disposition".into(), grade_disposition);
+            }
+        }
+    }
 }

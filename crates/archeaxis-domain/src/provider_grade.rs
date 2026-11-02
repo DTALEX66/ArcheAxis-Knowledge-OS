@@ -320,6 +320,33 @@ fn request_hash(activity: &Activity, attempt: &str, request: &GradeRequest) -> S
     )
 }
 
+/// Wall-clock second of the committed dispatch intent, keyed by the exact client
+/// event rather than the attempt so a later event on the same attempt cannot
+/// inherit an earlier dispatch time. This is not part of the claim identity: an
+/// old claim without this key still reads, and its dispatch time is "not proven".
+fn dispatch_time_key(event: &str) -> String {
+    format!("provider_grade_dispatch_{}", learning::digest(event))
+}
+
+fn read_dispatch_time(conn: &Connection, event: &str) -> Result<Option<u64>> {
+    let Some(raw) = bounded_value(conn, &dispatch_time_key(event))? else {
+        return Ok(None);
+    };
+    raw.parse::<u64>()
+        .ok()
+        .filter(|seconds| *seconds > 0)
+        .map(Some)
+        .ok_or(Error::Conflict("grade dispatch time unavailable"))
+}
+
+fn store_dispatch_time(conn: &Connection, event: &str, seconds: u64) -> Result<()> {
+    conn.execute(
+        "INSERT OR REPLACE INTO workspace_meta(key,value) VALUES(?1,?2)",
+        params![dispatch_time_key(event), seconds.to_string()],
+    )?;
+    Ok(())
+}
+
 fn validate_attempt_with<F: FnMut() -> Result<u64>>(
     conn: &Connection,
     activity: &Activity,
@@ -730,6 +757,9 @@ pub fn begin_dispatch(conn: &mut Connection, prepared: &Prepared, budget: Durati
     let mut claim = prepared.claim.clone();
     claim.state = "DISPATCHED".into();
     store_claim(&tx, &claim, false)?;
+    // Record the dispatch second inside the same write transaction so a reader can
+    // later tell a live dispatch from one whose bounded window has already closed.
+    store_dispatch_time(&tx, &claim.client_event_id, learning::now()?)?;
     tx.commit()?;
     Ok(())
 }
@@ -791,6 +821,100 @@ pub fn abandon_unknown(conn: &mut Connection, prepared: &Prepared) -> Result<()>
     store_claim(&tx, &unknown, false)?;
     tx.commit()?;
     Ok(())
+}
+
+/// Outcome of one bounded stale-dispatch reconciliation attempt.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Reconciled {
+    /// No claim, or the claim is already past dispatch: nothing to reconcile.
+    NotDispatched,
+    /// A dispatch is recorded but its start second is not, so staleness is not proven.
+    NoDispatchTime,
+    /// The recorded window has not closed yet.
+    NotStale,
+    /// The dispatch window closed without a receipt; the claim is now terminal UNKNOWN.
+    Abandoned,
+}
+
+impl Reconciled {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::NotDispatched => "NOT_DISPATCHED",
+            Self::NoDispatchTime => "NO_DISPATCH_TIME",
+            Self::NotStale => "NOT_STALE",
+            Self::Abandoned => "ABANDONED",
+        }
+    }
+}
+
+/// Read-only grading disposition for one attempt: the durable claim state and the
+/// dispatch second when one was recorded. It never launches, retries or writes.
+pub fn disposition(conn: &Connection, activity: &str, attempt: &str) -> Result<Option<Value>> {
+    if !learning::token(activity, 128) || !learning::token(attempt, 128) {
+        return Err(Error::Invalid("invalid grade identity"));
+    }
+    let key = attempt_key(activity, attempt);
+    let Some(raw) = bounded_value(conn, &key)? else {
+        return Ok(None);
+    };
+    let claim: Claim =
+        serde_json::from_str(&raw).map_err(|_| Error::Conflict("grade claim unavailable"))?;
+    if !valid_claim(&key, &claim) || claim.activity_id != activity || claim.attempt_id != attempt {
+        return Err(Error::Conflict("grade claim identity mismatch"));
+    }
+    let event_index = event_key(&claim.client_event_id);
+    let index =
+        bounded_value(conn, &event_index)?.ok_or(Error::Conflict("grade index unavailable"))?;
+    let index: EventIndex =
+        serde_json::from_str(&index).map_err(|_| Error::Conflict("grade index unavailable"))?;
+    if !valid_pair(&event_index, &index, &key, &claim, &raw) {
+        return Err(Error::Conflict("grade claim identity mismatch"));
+    }
+    let dispatched_at = read_dispatch_time(conn, &claim.client_event_id)?;
+    Ok(Some(json!({
+        "state": claim.state,
+        "dispatched_at_unix": dispatched_at,
+    })))
+}
+
+/// Finalize a dispatch whose bounded worker window closed without a receipt.
+///
+/// The caller supplies the window, so this function cannot widen or shorten the
+/// grading budget on its own. It only marks a dispatched claim UNKNOWN; it never
+/// starts, re-sends or retries a worker, and a claim without a recorded dispatch
+/// second is left untouched because staleness is not proven. Repeating it is a
+/// no-op once the claim is terminal.
+pub fn reconcile_stale_dispatch(
+    conn: &mut Connection,
+    activity: &str,
+    attempt: &str,
+    event: &str,
+    stale_after: Duration,
+) -> Result<Reconciled> {
+    if !learning::token(activity, 128)
+        || !learning::token(attempt, 128)
+        || !learning::token(event, 128)
+    {
+        return Err(Error::Invalid("invalid grade identity"));
+    }
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let Some(mut claim) = read_claim(&tx, activity, attempt, event)? else {
+        return Ok(Reconciled::NotDispatched);
+    };
+    if claim.state != "DISPATCHED" {
+        return Ok(Reconciled::NotDispatched);
+    }
+    let Some(dispatched_at) = read_dispatch_time(&tx, event)? else {
+        return Ok(Reconciled::NoDispatchTime);
+    };
+    let now = learning::now()?;
+    if now < dispatched_at.saturating_add(stale_after.as_secs()) {
+        return Ok(Reconciled::NotStale);
+    }
+    claim.state = "UNKNOWN".into();
+    store_claim(&tx, &claim, false)?;
+    tx.commit()?;
+    Ok(Reconciled::Abandoned)
 }
 
 /// Commit checks the earlier grant expiry immediately before SQLite COMMIT.

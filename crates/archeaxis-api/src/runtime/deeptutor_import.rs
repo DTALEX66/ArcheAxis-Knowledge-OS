@@ -185,6 +185,24 @@ pub(super) async fn grade_practice(
         request,
     } = body;
     let store = runtime.executor.store().clone();
+    // A retry after the bounded grading window closed finalizes a stale DISPATCHED
+    // claim as UNKNOWN before admission, so it cannot look like a live worker
+    // forever. This never relaunches: the same event stays a read-only UNKNOWN and
+    // a new attempt starts its own claim. A missing dispatch second is not proven
+    // stale and is left untouched.
+    let stale_after = PRACTICE_GRADE_TIMEOUT + std::time::Duration::from_secs(30);
+    {
+        let (activity, attempt, event) = (
+            activity_id.clone(),
+            attempt_id.clone(),
+            request.client_event_id.clone(),
+        );
+        let _ = store
+            .submit_wait(move |conn| {
+                grade::reconcile_stale_dispatch(conn, &activity, &attempt, &event, stale_after)
+            })
+            .await;
+    }
     let prepared = {
         let activity = activity_id.clone();
         let attempt = attempt_id.clone();

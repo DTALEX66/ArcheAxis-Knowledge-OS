@@ -466,6 +466,17 @@ async fn grading_persists_an_observed_result_once_and_reads_it_back_after_restar
     .await;
     assert_eq!(status, StatusCode::OK, "{history}");
     assert_eq!(history["attempts"][0]["state"], "submitted");
+    // The durable grading claim is projected read-only alongside the attempt.
+    assert_eq!(
+        history["attempts"][0]["grade_disposition"]["state"],
+        "COMPLETED"
+    );
+    assert!(
+        history["attempts"][0]["grade_disposition"]["dispatched_at_unix"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
     assert_eq!(history["provider_result_verification"], "per_attempt");
     assert_eq!(history["independent_mastery"], "not_established");
     // Restart: a fresh Core process state over the same database replays it.
