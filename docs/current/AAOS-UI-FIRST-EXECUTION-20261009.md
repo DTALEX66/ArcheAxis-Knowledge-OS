@@ -3752,3 +3752,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 将5个**无引用候选**同卷重命名归档到`.project-local/archives/legacy-layout-20261103/`：`logo-candidates`、2026-10-27云端审计截图树（1565文件/242,714,540 B）及三份UI审计交付回执JSON；目标逐个复核存在，**未删除任何字节**；清单`MANIFEST-decision-20261103.json`。
 - 复测（同一固定checkpoint）：`OUT-OF-LAYOUT` **92 → 87**（57个`.project-local`条目 + 30个runs条目，根条目为0）；`new_out_of_layout_count=0`；`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,563,804,691`（约1.46 GiB，低于2 GiB复核线）；`measurement_status=PARTIAL`；`runs/`仍超2.0 GB预算；`deletion_authorized=false`。
 - 边界：只移动无引用历史UI审计证据、不删除；固定checkpoint只读未滚动；剩余87项属被引用/受保护/泛名/runs taxonomy/一个不可读目录，需既有S01决定。
+
+#### 2026-11-03 真实Core进程验证备份发布与恢复预览
+
+- PR #236（`00e80bf4`）以merge commit `96e66574240d85ac4cbbb1619367052ac674bbac`合并：真实进程旅程在启动时终结步骤之后新增——运行中的Core发布**live workspace backup**（要求`verified=true`且出现在列表）→**重启进程后备份列表id不变**→用记录的sha调用`/api/v2/workspace/restore/preview`并验证`verified=true`；回归测试断言三步。
+- 为什么重要：此前备份发布/预览只有进程内router测试；本步骤验证真实Core进程下live writer发布、跨重启列表持久与预览摘要校验，且不执行真实恢复（恢复仍由维护模式与安装态验收覆盖）。
+- 本地验证：对保留二进制运行命令**exit 0**（三项备份步骤通过）；ruff、py_compile、rustfmt通过。
+- 精确SHA门禁：run 41533648529 `lint` 59s pass、**`rust-vnext`（windows-latest）18m0s pass**、`a0-gates` pass。
+- 边界：debug二进制+合成材料；仅验证发布与预览，不做真实restore；不证明安装态、真实用户数据或Owner接受。
