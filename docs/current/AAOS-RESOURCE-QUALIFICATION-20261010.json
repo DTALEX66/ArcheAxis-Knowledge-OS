@@ -7809,7 +7809,7 @@
       "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
     },
     {
-      "path": "scripts/release_sbom.py",
+      "path": "docs/history/oss-absorption-evidence/20261102-resource-source-binding/source/scripts/release_sbom.py",
       "sha256": "528ba4d3bdd95496101060211cc374fecfcd2f2ba3debd947b948b1aeda6f041"
     },
     {

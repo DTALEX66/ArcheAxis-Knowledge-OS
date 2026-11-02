@@ -68,6 +68,46 @@ def test_backend_runtime_packaging_requires_vnext_gates() -> None:
             plan["required_gates"])
 
 
+def test_learning_provider_sources_require_primary_rust_and_worker_gates() -> None:
+    # Rust invokes the provider workers; Python integration and staging tests
+    # exercise them and the pinned OpenMAIC dependencies.
+    for path in (
+        "services/learning-providers/deeptutor/grade_worker.py",
+        "services/learning-providers/deeptutor/upstream/question_pipeline.en.yaml",
+        "services/learning-providers/deeptutor/LICENSE",
+        "services/learning-providers/openmaic/scene-build-worker.mjs",
+        "services/learning-providers/openmaic/slide_prompt_runner.py",
+        "services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/dsl/src/action.ts",
+        "services/learning-providers/openmaic/vendor/npm/entities-6.0.1/package.json",
+        "services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode.js",
+        "services/learning-providers/openmaic/vendor/npm/postcss-8.5.23/lib/postcss.js",
+    ):
+        plan = _classify([path])
+        assert plan["matched_classes"] == ["learning-provider-runtime"], path
+        assert {"static", "lint", "py-primary", "rust-vnext", "workers-vnext"} <= set(
+            plan["required_gates"]
+        ), path
+        assert plan["unknown_paths"] == [], path
+        assert plan["full_qualification"] is False, path
+        assert "desktop-vnext" not in plan["required_gates"], path
+
+
+def test_unreviewed_learning_provider_entries_and_vendor_versions_fail_closed() -> None:
+    # Do not let a known provider name implicitly classify new entry points,
+    # unrelated providers, or packages/versions outside the pinned slices.
+    for path in (
+        "services/learning-providers/deeptutor/unreviewed_worker.py",
+        "services/learning-providers/openmaic/unreviewed-worker.mjs",
+        "services/learning-providers/openmaic/vendor/npm/entities-9.0.0/dist/index.js",
+        "services/learning-providers/openmaic/vendor/unreviewed-package/index.js",
+        "services/learning-providers/unreviewed-provider/worker.py",
+    ):
+        plan = _classify([path])
+        assert plan["unknown_paths"] == [path], path
+        assert {"static", "lint", "py-primary"} <= set(plan["required_gates"]), path
+        assert plan["full_qualification"] is False, path
+
+
 def test_contract_bearing_docs_require_the_primary_suite() -> None:
     """Authority/status docs are asserted on by contract tests.
 
@@ -138,6 +178,36 @@ def test_ui_requires_browser_smoke() -> None:
         assert plan["unknown_paths"] == [], path
         assert "desktop-build" not in plan["required_gates"], path
         assert "installer-lifecycle" not in plan["required_gates"], path
+
+
+def test_formal_frontend_entry_requires_browser_smoke() -> None:
+    plan = _classify(["frontend/index.html"])
+    assert plan["matched_classes"] == ["formal-frontend-entry"]
+    assert {"static", "lint", "browser-smoke"} <= set(plan["required_gates"])
+    assert plan["unknown_paths"] == []
+    assert "desktop-vnext" not in plan["required_gates"]
+
+
+def test_formal_frontend_build_inputs_require_browser_and_installer_checks() -> None:
+    for path in ("frontend/package.json", "frontend/package-lock.json", "frontend/tsconfig.json"):
+        plan = _classify([path])
+        assert plan["matched_classes"] == ["formal-frontend-build-inputs"], path
+        assert {"static", "lint", "browser-smoke", "desktop-fast", "desktop-build",
+                "installer-lifecycle"} <= set(plan["required_gates"]), path
+        assert plan["unknown_paths"] == [], path
+        assert plan["full_qualification"] is False, path
+        assert "desktop-vnext" not in plan["required_gates"], path
+
+
+def test_formal_frontend_known_docs_stay_light_and_unknown_inputs_fail_closed() -> None:
+    for path in ("frontend/README.md", "frontend/UI-POLISH-PLAN.md"):
+        plan = _classify([path])
+        assert plan["matched_classes"] == ["formal-frontend-metadata"], path
+        assert plan["required_gates"] == ["ci-verdict", "lint", "static"], path
+        assert plan["unknown_paths"] == [], path
+    unknown = _classify(["frontend/unreviewed-runtime.config"])
+    assert unknown["unknown_paths"] == ["frontend/unreviewed-runtime.config"]
+    assert {"static", "lint", "py-primary"} <= set(unknown["required_gates"])
 
 
 def test_windows_runtime_requires_windows_smoke() -> None:

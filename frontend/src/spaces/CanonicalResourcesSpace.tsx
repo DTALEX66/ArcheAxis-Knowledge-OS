@@ -16,7 +16,7 @@ export { readResourceHandshake, readCapabilityDecision } from "../api/capability
 type Read = { state: "not_read" } | { state: "reading" } | { state: "failed"; reason: string } | { state: "read"; rows: Handshake[] };
 
 const evidenceStateLabel: Record<string,string> = { FORMAT_REFERENCE:"格式说明", HISTORICAL_SOURCE_NOT_CURRENT:"仅有历史记录", LOCK_PINNED:"版本已记录", SOURCE_CONTRACT:"来源要求已记录", UNVERIFIED:"尚未核实", DECLARED_NOT_REQUALIFIED:"已有声明，尚未重新核实", LOCAL_DECLARATION_WITH_OFFICIAL_READBACK:"本机声明已核对", OFFICIAL_READBACK_NOT_EXACT_SNAPSHOT:"已查到公开资料，版本仍待核对", DECLARED_INHERITED:"沿用已有声明", NOT_RUN:"尚未运行核对", INHERITED_ONLY:"仅有历史依据" };
-const dispositionLabel: Record<string,string> = { CURRENT_PAGE_SELECTED:"当前选用", FROZEN_NOT_SELECTED:"暂未选用", "REJECT-CORE":"不适用", "REVIEW-BLOCK":"等待审核" };
+const dispositionLabel: Record<string,string> = { CURRENT_PAGE_SELECTED:"当时选用", FROZEN_NOT_SELECTED:"当时未选用", "REJECT-CORE":"当时不适用", "REVIEW-BLOCK":"当时等待审核" };
 const absorptionLabel: Record<string,string> = { ALGORITHM_DONOR:"参考处理方法", CONTRACT_ADAPTER:"通过适配器接入", DIRECT_DEPENDENCY:"作为基础组件", PYTHON_WORKER:"通过文件处理服务接入", REFERENCE_ONLY:"仅供参考", SELF_BUILD_GAP:"功能仍待实现", SIDECAR:"通过独立服务接入", UX_DONOR:"参考交互设计" };
 const capabilityName = (capability: string) => capability === "text.extract" ? jobKindLabel(capability) : capabilityOperationName(capability);
 
@@ -136,10 +136,10 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
         <h3>{selected.display_names[0]}</h3>
         <p>来源类别：{SURFACE_CLASS_LABEL[selected.surface_class]}；接入方式：{absorptionLabel[selected.absorption_mode] ?? "待确认"}</p>
         <RawReceiptButton label="资源分类与选择依据详细信息" category="data" payload={{stable_key:selected.stable_key,absorption_mode:selected.absorption_mode,classification_reason:selected.classification_reason,qualification:selected.qualification}}/>
-        <p>当前选择：{dispositionLabel[selected.qualification.disposition] ?? "尚未核实"}。具体原因可查看详细信息。</p>
-        <section aria-label="启用条件"><h4>启用条件 · {selected.qualification.activation.state === "FROZEN" ? "暂不可启用" : "仅供参考"}</h4>
-          <p>启用前需核对范围和条件。</p><RawReceiptButton label="资源启用条件详细信息" category="data" payload={selected.qualification.activation}/>
-          <p>这是可复核条件登记，不是执行授权。</p>
+        <p>登记时选择：{dispositionLabel[selected.qualification.disposition] ?? "当时尚未核实"}。当前能否使用请查看下方运行状态及现行决定。</p>
+        <section aria-label="启用条件"><h4>登记时启用条件 · {selected.qualification.activation.state === "FROZEN" ? "当时冻结" : "仅供参考"}</h4>
+          <p>这是历史条件登记，后续决定可能已调整；当前连接状态请看下方。</p><RawReceiptButton label="资源启用条件详细信息" category="data" payload={selected.qualification.activation}/>
+          <p>登记本身不是执行授权或运行资格。</p>
         </section>
         <Evidence title="版本证据" evidence={selected.qualification.evidence.version}/>
         <Evidence title="许可证证据" evidence={selected.qualification.evidence.license}/>

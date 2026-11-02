@@ -162,6 +162,7 @@ docs/history/repository-consolidation-20261019/** -text
 docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json -text whitespace=cr-at-eol,-blank-at-eol
 
 # Exact archived sources and receipts retain their manifest-pinned bytes across checkout.
+docs/history/oss-absorption-evidence/20261102-resource-source-binding/source/scripts/release_sbom.py -text
 docs/history/rules-entry-repair-20261023/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/rules-entry-repair-20261023/before/AGENTS.md -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/rules-entry-repair-20261023/before/AUTHORITY.md -text whitespace=cr-at-eol,-blank-at-eol
