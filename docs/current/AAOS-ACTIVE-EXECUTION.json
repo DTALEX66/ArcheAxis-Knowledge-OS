@@ -232,6 +232,17 @@
         "boundary": "Synthetic material only; no model or network provider; this is route/Core/worker integration evidence, not installed-runtime, real-user-data or model-quality acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "restart_dispatch_finalization_20261103": {
+        "pull_request": 217,
+        "merge_commit": "9f308b9265373972ad328eb3605f795dd19f1e3d",
+        "merged_at": "2026-11-02T17:35:00Z",
+        "remote_main_after_merge": "9f308b9265373972ad328eb3605f795dd19f1e3d",
+        "scope": "abandon_dispatched_after_restart finalizes DISPATCHED grading claims whose recorded dispatch second is older than 150s (maximum 120s grading budget + margin) once at Core startup, because a restarted process has no live bridge from the previous one. Younger dispatches are counted recent and left untouched so a second grading process is not cancelled; damaged or trust-unproven pairs are skipped and never rewritten; RESERVED claims are untouched; repeating is a no-op; no worker is ever started, re-sent or retried. Executor::open_routes runs it after the existing startup recovery and only reports scheduling failure to stderr.",
+        "required_gate_verdict": "Run 41488548252 succeeded first time: lint passed, rust-vnext 14m12s passed, a0-gates passed; gateplan skipped the other gates for this path set.",
+        "local_verification_only": "cargo check --all-targets for api/application/domain; provider_grade_chain 12/12 with three new restart tests (fresh untouched, aged abandoned once then read-only UNKNOWN with no second launch, damaged pair skipped with fail-closed readback); application_flow 2/2 and job_atomicity 16/16 with startup reconciliation enabled; deeptutor_learning_journey 1/1; deeptutor_practice_import 4 passed + 1 pre-existing ignored; provider_learning_api 2/2; contract route/number 15 passed; rustfmt clean.",
+        "boundary": "One-shot startup reconciliation only: no recurring background sweep, and UNKNOWN still never becomes a retryable confirmed failure. Installed runtime, real user data and model quality remain unverified.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",

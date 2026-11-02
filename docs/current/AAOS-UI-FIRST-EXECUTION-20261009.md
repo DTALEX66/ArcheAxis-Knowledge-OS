@@ -3661,4 +3661,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41484351911 **一次通过**——`lint` pass、`rust-vnext` 14m07s pass、`a0-gates` 14s pass，其余门禁由gateplan跳过（无负载敏感重跑）。
 - 本地验证（ARCHEAXIS_PYTHON显式设置）：新journey 1/1；`document_cloud_loop` 8/8（21.94s）；`material_question_api` 16/16；三文件rustfmt clean。本地验证重建了较小的Cargo debug缓存（deps 1.77 GiB、incremental 1.01 GiB），作为当前活动开发缓存保留，本轮不再二次退役。
 - 边界：只用合成材料，无模型/网络；这是路由+Core+worker集成证据，不是安装态、真实用户数据或模型质量验收。
-- 回执：`.project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt.json`。边界：可再生测试/构建载荷清理，不是产品/证据/资格/Owner接受变化；未滚动增长基线、未放宽门禁。
+
+#### 2026-11-03 Core启动时一次性终结遗留的DISPATCHED评分claim
+
+- PR #217（`9bac1463`）以merge commit `9f308b9265373972ad328eb3605f795dd19f1e3d`合并。新增`abandon_dispatched_after_restart(conn, grace)`：Core重启后上一进程dispatch的claim不可能再有回执（owned bridge已消失），因此把**记录秒早于150s（最大120s评分预算+余量）**的DISPATCHED claim置为终态UNKNOWN；更年轻的dispatch计为recent并保持原样（避免取消仍在评分的第二个进程）；身份/索引损坏或无法证明时间的claim计为skipped且绝不重写；只有RESERVED、从未dispatch的claim不受影响；重复执行no-op；**永不启动/重发/重试worker**。
+- 接线：`Executor::open_routes`在既有startup recovery之后执行一次；调度失败只写stderr，不阻塞普通文档使用。HTTP合同第242行补充startup finalization语义（仍无后台巡检任务）。
+- 精确SHA门禁：run 41488548252 **一次通过**——`lint` pass、`rust-vnext` 14m12s pass、`a0-gates` pass，其余门禁由gateplan跳过。
+- 本地验证：`cargo check -p archeaxis-api -p archeaxis-application -p archeaxis-domain --all-targets` exit 0；`provider_grade_chain` **12/12**（新增3项：fresh dispatch不动；aged dispatch只置UNKNOWN一次、同事件只读UNKNOWN且不二次启动；损坏对skipped且读回fail-closed）；`application_flow` 2/2、`job_atomicity` 16/16 在启用startup reconciliation后仍通过；`deeptutor_learning_journey` 1/1、`deeptutor_practice_import` 4 passed/1既有ignored、`provider_learning_api` 2/2；合同route/number 15 passed；rustfmt clean。
+- 边界：只覆盖"上个进程dispatch且超预算"的claim，不做后台巡检，也不把UNKNOWN变成可重试的已确认失败；安装态、真实用户数据、模型质量仍未验证。
