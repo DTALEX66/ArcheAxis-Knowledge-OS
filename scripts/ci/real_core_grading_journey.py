@@ -20,10 +20,12 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import http.client
 import json
 import queue
 import secrets
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -165,6 +167,65 @@ def expect(step: str, actual: int, expected: int, body: dict) -> dict:
     if actual != expected:
         raise CoreFailure(f"{step}: expected {expected}, got {actual}: {json.dumps(body)[:600]}")
     return body
+
+
+def _digest(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def patch_stale_dispatch(database: Path, activity: str, attempt: str, event: str) -> None:
+    """Rewrite the completed claim as a dispatch from a previous process.
+
+    The Core must be stopped. The claim stays internally consistent (the event index
+    points at the rewritten bytes, the dispatch second predates the grace window), so
+    a restarted Core can only finalize it - never trust it as a completed grade.
+    """
+    attempt_key = "provider_grade_attempt_" + _digest(activity + "\0" + attempt)
+    event_key = "provider_grade_event_" + _digest(event)
+    dispatch_key = "provider_grade_dispatch_" + _digest(event)
+    connection = sqlite3.connect(database)
+    try:
+        row = connection.execute(
+            "SELECT value FROM workspace_meta WHERE key=?", (attempt_key,)
+        ).fetchone()
+        if row is None:
+            raise CoreFailure("grade claim disappeared before the stale-dispatch phase")
+        claim = json.loads(row[0])
+        claim["state"] = "DISPATCHED"
+        # The stored member stays present with a null value: the custom deserializer
+        # requires it, exactly like a live dispatch whose result has not arrived.
+        claim["result_sha256"] = None
+        raw = json.dumps(claim, separators=(",", ":"), ensure_ascii=False)
+        connection.execute(
+            "UPDATE workspace_meta SET value=? WHERE key=?", (raw, attempt_key)
+        )
+        index_row = connection.execute(
+            "SELECT value FROM workspace_meta WHERE key=?", (event_key,)
+        ).fetchone()
+        if index_row is None:
+            raise CoreFailure("grade event index disappeared before the stale-dispatch phase")
+        index = json.loads(index_row[0])
+        index["claim_sha256"] = hashlib.sha256(raw.encode()).hexdigest()
+        connection.execute(
+            "UPDATE workspace_meta SET value=? WHERE key=?",
+            (json.dumps(index, separators=(",", ":")), event_key),
+        )
+        connection.execute(
+            "UPDATE workspace_meta SET value=? WHERE key=?",
+            (str(int(time.time()) - 1_000), dispatch_key),
+        )
+        # A real dispatch that never received a result leaves its attempt in the
+        # pre-result state; the schema check requires exactly this shape.
+        connection.execute(
+            "UPDATE learning_provider_attempts SET state='pending', client_event_id=NULL, "
+            "result_json=NULL, result_sha256=NULL, client_cancel_id=NULL, completed_at=NULL "
+            "WHERE activity_id=? AND attempt_id=?",
+            (activity, attempt),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
 
 
 def run_journey(core: Core) -> dict:
@@ -349,6 +410,30 @@ def run_journey(core: Core) -> dict:
             "status": status,
             "duplicate": True,
             "provider_correct": True,
+        }
+    )
+    core.stop()
+
+    # A dispatch left over from a previous process and older than the maximum budget
+    # cannot complete: a restarted Core finalizes it once as UNKNOWN, and the event
+    # never gets a second grader run.
+    patch_stale_dispatch(
+        core.workspace / "workspace.sqlite", "auto_activity", "auto_attempt", "auto_grade"
+    )
+    steps.append(
+        {"step": "simulate stale dispatch from a previous process", "status": "PATCHED"}
+    )
+    core.start()
+    status, finalized = core.request("GET", "/api/v1/learning/provider-activities/auto_activity")
+    expect("activity read after stale dispatch", status, 200, finalized)
+    final = finalized["attempts"][0]["grade_disposition"]
+    if final["state"] != "UNKNOWN":
+        raise CoreFailure(f"startup finalization did not abandon the stale dispatch: {final}")
+    steps.append(
+        {
+            "step": "startup finalization of stale dispatch",
+            "status": status,
+            "state": final["state"],
         }
     )
     core.stop()
