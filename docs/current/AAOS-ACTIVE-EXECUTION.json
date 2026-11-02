@@ -162,29 +162,35 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "remote_delivery_20261102": {
-      "state": "BRANCH_PUBLISHED_REQUIRED_GATES_IN_PROGRESS",
-      "observed_at": "2026-11-02T20:20:00+08:00",
+      "state": "MERGED_MAIN_EXACT_SHA_REQUIRED_GATES_PASS",
+      "observed_at": "2026-11-02T21:32:00+08:00",
       "local_branch": "codex/delivery-20261102",
       "published_first_sha": "3346c72aca1b5bb24762b6aee8a24de4cc1e960e",
-      "current_local_and_remote_head": "5dc1828d0fbd123d2cf2f93388e270a7f1f16445",
+      "merged_head": "4bed2d0983fdade6df8ed0211ff9e1dee06c3be5",
       "pull_request": 206,
       "base": "main",
-      "remote_main_at_observation": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
-      "merge_state": "BLOCKED_PENDING_REQUIRED_GATES; mergeable true; not merged in this entry",
+      "merge_commit": "b10fba47419947d5f4b00add48fb84e88b9b4666",
+      "merged_at": "2026-11-02T13:26:12Z",
+      "remote_main_after_merge": "b10fba47419947d5f4b00add48fb84e88b9b4666",
+      "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
+      "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
+      "first_attempt_failure": "installer-lifecycle failed once on 'Native confirmation exceeded the original exit budget' (installed WebDriver journey timing, not a source gate). The same run's failed jobs were rerun without any code change (same SHA); the rerun passed in 10m06s and a0-gates passed. This is retained as a flaky installed-journey observation, not as a clean first-pass.",
       "channel": "Normal non-force push succeeded in the current execution environment. The earlier pre-start auto-approval rejection was a platform-policy condition, not an Owner authorization change and not a GitHub authentication failure.",
       "authorization": "execution_control.owner_delivery_20261101 and owner_ui_research_and_delivery_20261102; public reviewed source and task records only, no ignored originals, runtime data, credentials or real-data overwrite",
       "required_gate_failures_fixed": [
         "lint: repository conventions on byte-preserved donor files (exact-SHA pins added, no directory exemption)",
         "test (3.12): gitleaks generic-api-key on two synthetic SYN_SECRET_PROMPT_* sentinels (exact values allowlisted)",
         "workers-vnext: SRT end<start contract conflict between the injected validation and the older clamp test",
-        "desktop-build: frontend StyleRuleCoverage missing .imported-course-attempts rule"
+        "desktop-build: frontend StyleRuleCoverage missing .imported-course-attempts rule",
+        "test (3.12)/rust-vnext: local-only owner-original tests now skip explicitly instead of failing in a clone; the v1 fixture now drops the v15 tables; a drive-qualified path case is Windows-only; the README banner no longer hides the canonical positioning sentence; the new deriver is classified",
+        "desktop-fast: junction rejection test states an explicit SKIP when the sandbox refuses junction creation"
       ],
       "backend_slices_local_verification_only": {
         "deeptutor_formal_grading": "472c7f0f; route 149; domain chain 6/6 and api 4 passed with 1 pre-existing ignored",
         "openmaic_v2_scene_contract": "5dc1828d; scene persistence 12/12, api 2+2, provider integration 16 passed"
       },
       "frontend_current": "Owner: 前端只保留最新的. This round only repaired the missing style rule of the latest component; no new layout, no old UI maintenance and no deletion of the consumer-blocked historical Avalonia donor.",
-      "qualification": "Exact-SHA required CI, a0-gates, merge, post-merge main readback, installation and Owner acceptance are NOT established by this entry; read the live GitHub/CI state.",
+      "qualification": "This entry records publication, exact-SHA required gates and merge. It does NOT establish installation acceptance on the Owner machine, real user data, hosted release, remaining backend gaps (Tauri forwarding of practice-grade, packaged grade worker declaration, DISPATCHED reconciliation, real course/model chain) or Owner visual acceptance. The installer-lifecycle first-attempt failure is retained.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "owner_priority_20261030": {

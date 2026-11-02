@@ -31,6 +31,6 @@
 
 ## 最近核验的版本边界
 
-日期：**2026-11-02（Asia/Shanghai）**。依托HEAD：`5dc1828d0fbd123d2cf2f93388e270a7f1f16445`，分支：`codex/delivery-20261102`，已非强推发布到远端同名分支并建立PR #206（base `main`）；远端main当时仍为`fa10cfa9d768047ad8e9c6c5d389469eee7d20d8`。精确SHA云端必需门禁（a0-gates）、合并结果与合并后main读回须现场读GitHub/CI，不以本页代替。本轮实际推送的是已审核公开源码与任务记录，ignored原件、运行数据与数据库仍只在本机`.project-local/`。核验日期/HEAD是时点快照，后继Agent须现场读Git与活动指针。
+日期：**2026-11-02（Asia/Shanghai）**。合并候选精确SHA：`4bed2d0983fdade6df8ed0211ff9e1dee06c3be5`（分支`codex/delivery-20261102`，非强推发布）；其精确SHA必需门禁与`a0-gates`通过后，PR #206以merge commit`b10fba47419947d5f4b00add48fb84e88b9b4666`进入远端main，本地main已快进到同一SHA。安装态旅程曾有一次`Native confirmation exceeded the original exit budget`失败，随后同SHA重跑通过并保留记为时间敏感观察，不是一次通过。安装态AI、真实用户数据、托管发布、正式宿主对practice-grade的前向命令与打包声明、真实课程/模型链及Owner接受仍分别未证，不以本页或CI合并代替。本轮实际推送的是已审核公开源码与任务记录，ignored原件、运行数据与数据库仍只在本机`.project-local/`。核验日期/HEAD是时点快照，后继Agent须现场读Git与活动指针。
 
 本轮历史及补充资料的来源定位见[归档对账记录](workspace/intake/20261101-project-archiving-reconciliation/README.md)。完整导出JSON只作仓库内local-only压缩保全，不导入业务知识库或聊天管理系统，不自动上传。
