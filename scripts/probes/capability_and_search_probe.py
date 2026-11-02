@@ -1,5 +1,6 @@
 """Ask the product what it can do, and ask it to search, and record both answers."""
 
+import importlib.util
 import json, os, shutil, socket, subprocess, sys, time, urllib.error, urllib.request
 from pathlib import Path
 
@@ -16,19 +17,23 @@ def free_port():
         sock.bind(("127.0.0.1", 0)); return int(sock.getsockname()[1])
 
 
+def _work_directory() -> Path:
+    """Keep each attempt inside one freshly allocated, owned dev artifact."""
+    spec = importlib.util.spec_from_file_location(
+        "runtime_capability_probe", REPO / "scripts/runtime/dev.py")
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
+    return runtime.artifact_directory(REPO, "capability-search-probe")
+
+
 def run() -> dict:
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    work = runs / "capability-search-probe-run"
-    if work.exists():
-        shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True)
+    work = _work_directory()
     database = work / "archeaxis.sqlite"
     env = dict(os.environ)
     env["PYTHONPATH"] = str(REPO); env["PYTHONIOENCODING"] = "utf-8"
     env["ARCHEAXIS_DB_PATH"] = str(database); env["ARCHEAXIS_DATA_DIR"] = str(work)
 
-    receipt = {"scope": "capability_and_search_probe", "steps": []}
+    receipt = {"scope": "capability_and_search_probe", "work_root": str(work), "steps": []}
     migration = subprocess.run([sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
                                cwd=str(REPO), env=env, capture_output=True, text=True,
                                encoding="utf-8", errors="replace", timeout=600)
@@ -62,8 +67,9 @@ def run() -> dict:
         # Search: the route takes {root, query} and the root must be an existing directory. An earlier
         # version pointed it at the working directory, which is full of the database and its sidecars,
         # and got a server error; a purpose-built vault avoids confusing the route with a store.
-        import tempfile
-        vault = Path(tempfile.mkdtemp(prefix="vault-"))
+        vault = work / "vault"
+        vault.mkdir()
+        receipt["vault_root"] = str(vault)
         (vault / "note.md").write_text(
             "# Index\n\nWhy this matters: a phrase to find.\n", encoding="utf-8")
         receipt["vault_root_has_space"] = " " in str(vault)

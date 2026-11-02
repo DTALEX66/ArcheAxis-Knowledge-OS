@@ -106,7 +106,7 @@ authorize Green replacement.
   governs documentation lookup and migration classification.
 - [`LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md`](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
   governs the current vNext shell and writer. The frozen
-  [`current/AXM_G0_MIGRATION_FREEZE_RULES_2026-09-02.md`](history/repository-consolidation-20261019/current/AXM_G0_MIGRATION_FREEZE_RULES_2026-09-02.md)
+  [已压缩的 `AXM_G0_MIGRATION_FREEZE_RULES_2026-09-02.md`](history/2026-11-01-preoct-archive/README.md)
   records legacy-database no-dual-write boundaries only; its old React/Tauri
   target and G0 shadow-cutover route are superseded.
 - [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml) is CI

@@ -1,0 +1,114 @@
+{
+  "schema": "aaos.preoct-public-records/v1",
+  "archive": {
+    "path": "docs/history/2026-11-01-preoct-archive-batch2/preoct-public-records.zip",
+    "bytes": 41458,
+    "sha256": "5fd5afaf01f3f7114705bf31156680ff470d271aeb022452159f5f5952cae923"
+  },
+  "files": [
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/README.md",
+      "bytes": 457,
+      "sha256": "9f62104305b0a6d0b7541eb8182c98d1bf594bd4ae0f54a88aa4da2034b1607c",
+      "git_blob": "c7cf084f4df1ca2a713d3c6e5f8add0e030d5d43"
+    },
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/docs/CODEX_EXECUTION_RELIABILITY.md",
+      "bytes": 7865,
+      "sha256": "0447babf46ad9ca33cbea44876150fb3772d837e4400199ba3ae904bee54517e",
+      "git_blob": "286e2f5b790e3493b5f1e4584783aa515caf3115"
+    },
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/docs/taskpacks/DEEPSEEK_POST_AUDIT_FULL_EXECUTION_TASKPACK_v1_2026-08-11.md",
+      "bytes": 14025,
+      "sha256": "8683197f4f276fe7e4b66acbd3f298eb2deb1c2094584f6c99f0b7c69b15abdc",
+      "git_blob": "5806edf8fe94d43220d42b35db9d5c45f81b1f91"
+    },
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/workspace/intake/2026-08-10-codex-execution-reliability-policy.md",
+      "bytes": 1663,
+      "sha256": "a1c83636c0c75f47e4850c26eb08f8b8b90e4ce58a4d0f4d5ec5f8fe723cc70b",
+      "git_blob": "9167fcf828e663ff822db3e6050be89caab919c6"
+    },
+    {
+      "path": "docs/history/donor-branch-assets/feat/archeaxis-desktop-a1-violet-core/workspace/intake/2026-07-28-archeaxis-pack-analysis.md",
+      "bytes": 8595,
+      "sha256": "dc98024bf5bd038b0f708e64dc25797c8368b3cf871d6184cd1f742107da2319",
+      "git_blob": "3c61d3f1d0138e5908ede8360c537571d4f07f08"
+    },
+    {
+      "path": "docs/history/donor-branch-assets/feat/p1-compat-kernel-hardening/workspace/intake/2026-08-09-multiformat-capability-boundary.md",
+      "bytes": 2432,
+      "sha256": "7d960bfb75ddc4a307aed3020a65b91c9cbe84d5f4cd598fa9310158be6bbe2b",
+      "git_blob": "804bffcf461272b93c24f92dd1a6f86184b824c8"
+    },
+    {
+      "path": "docs/history/donor-branch-assets/feat/p1-compat-kernel-hardening/workspace/intake/2026-08-09-online-learning-corpus.md",
+      "bytes": 1947,
+      "sha256": "0b59ae3a4d615e864715dd809297064e60e5b6c91e9007da691e2803204749b7",
+      "git_blob": "301e1e30c74fcb1df7d5c84e24db0386a4b56ad4"
+    },
+    {
+      "path": "docs/history/donor-branch-assets/fix/desktop-close-request-destroy/docs/workflow/HANDOFF_DESKTOP_CLOSE_LIFECYCLE_2026-08-06.md",
+      "bytes": 3705,
+      "sha256": "b1c5252df93eb181a575424a7d14c08927a1c7d723f38c4ef374d92a55a0747b",
+      "git_blob": "1daf044925dc37a85e6a5b4be036a31051c7036b"
+    },
+    {
+      "path": "docs/history/branch-donors/README.md",
+      "bytes": 15213,
+      "sha256": "4280e006f086c10ec554dd8c8ccd53e2fdf6e8fccaface7e7bda664b84ebef5f",
+      "git_blob": "c3917f134c53b106d92a34f2f885262ac1a3b475"
+    },
+    {
+      "path": "docs/history/donor-branch-assets/README.md",
+      "bytes": 3672,
+      "sha256": "9591f36c91685b600f108589b21d46341f6cb93d3576a312f26e9710f153a85e",
+      "git_blob": "b5c3d635a393f1ad8ffdc95b7c442bbce523d2fb"
+    },
+    {
+      "path": "docs/history/donor-branch-assets/agent/phase5-research-knowledge-governance/workspace/intake/011_phase5_p01_governed_candidate_checkpoint.md",
+      "bytes": 3579,
+      "sha256": "c20e997c03ff35e87dda92fe90017836306e4a6954437753b2b9d1f8e67f889f",
+      "git_blob": "1785596edc3c853f0034209337e85abfb6e7b13d"
+    },
+    {
+      "path": "docs/history/legacy-design-assets/README.md",
+      "bytes": 1839,
+      "sha256": "92ffd6585311e94a39368cae0acc24e246f4e4b6b6f10f8d35344c4362be4661",
+      "git_blob": "16ca805bc0defae8c89004c5c3643755ba29bb05"
+    },
+    {
+      "path": "docs/history/pre-v0.6.7-current-snapshots/README.md",
+      "bytes": 423,
+      "sha256": "99b07fb5cc65bb6460de81e914be4e499b937dd5161db7085c9d94114fe8e60a",
+      "git_blob": "d117bc576d575796a7e4244271e30698108b422f"
+    },
+    {
+      "path": "docs/history/remote-branch-assets/README.md",
+      "bytes": 30743,
+      "sha256": "a6cfbcbca93fbf1bc17422ce7368b810006a49dcc1c6594062b118b86ce12946",
+      "git_blob": "c0bfd1276c98baeec8f6aa8f882213ff030ec5a2"
+    }
+  ],
+  "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+  "owner_request": "Keep October 2026 and newer records in the daily history tree; preserve older public historical record bytes compactly.",
+  "date": "2026-11-01",
+  "status": "ARCHIVED_14_PREOCT_RECORDS_ORIGINAL_PATHS_REMOVED",
+  "scope": "Historical donor intake/handoff and dated reference indexes only. Original code/assets/licenses remain. Old ARCHIVE.json and DOCUMENT-CONSOLIDATION manifests are not rewritten.",
+  "recovery": "ZIP member name equals files[].path. Verify bytes/SHA-256 before restoration to exact path, refuse overwrite. Git source_commit:path is original-byte fallback. Historical instructions are not execution authority.",
+  "source_contracts": [
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/ARCHIVE.json",
+      "bytes": 2030,
+      "sha256": "40fb412d5f8b761d8b628730cf5a7b8cac7b53ab6bf29d1680723775b7ac44a0"
+    },
+    {
+      "path": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json",
+      "bytes": 150221,
+      "sha256": "96294daeccd6cf5b969553948d75f49d0d752dd64e9858b15c4e01c62f569d6e"
+    }
+  ],
+  "original_record_files_removed": 14,
+  "original_record_logical_bytes": 96158
+}

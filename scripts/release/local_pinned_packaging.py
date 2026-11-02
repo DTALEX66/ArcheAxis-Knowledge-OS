@@ -10,12 +10,13 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import subprocess
+import sys
 import unicodedata
 from pathlib import Path
 
-from scripts.release import candidate, tauri_portable_candidate as portable
+from scripts.release import candidate
+from scripts.release import tauri_portable_candidate as portable
 
 SCHEMA = "local-pinned-packaging/v1"
 TOOLS = {"scripts/release/local_pinned_packaging.py", "tests/test_local_pinned_packaging.py",
@@ -314,7 +315,37 @@ def bundle_overlay(root: Path, resources: dict, frontend_dist: str) -> dict:
             "bundle": {"resources": {**cleared, **resources}, "targets": ["nsis"], "useLocalToolsDir": True}}
 
 
-def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict) -> dict:
+def copy_member(source: Path, destination: Path, row: dict) -> None:
+    """Copy only pinned bytes, rejecting concurrent growth and short reads."""
+    source = portable.regular(source)
+    os.makedirs(portable.native(destination.parent), exist_ok=True)
+    with open(portable.native(source), "rb") as incoming, open(portable.native(destination), "xb") as outgoing:
+        remaining = row["bytes"]
+        while remaining:
+            chunk = incoming.read(min(remaining, 1024 * 1024))
+            require(bool(chunk), "source shorter than planned; partial output retained")
+            outgoing.write(chunk)
+            remaining -= len(chunk)
+        require(not incoming.read(1), "source grew beyond planned size; partial output retained")
+    require(file_row(destination) == row, "copy mismatch")
+
+
+def copy_plan(source: Path, members: dict, nsis: dict) -> dict:
+    """All copied inputs, including the bundler tools, use the same threshold."""
+    totals = {}
+    for label, directory, files in (("payload", source, members), ("nsis", Path(nsis["path"]), nsis["files"])):
+        total = 0
+        for name, row in files.items():
+            path = portable.regular(payload_path(directory, name))
+            portable._plan_bytes({"files": {name: row}, "logical_bytes": row.get("bytes")})
+            require(os.stat(portable.native(path)).st_size == row["bytes"], "member size differs before copying")
+            total += row["bytes"]
+        totals[label + "_bytes"] = total
+    return {**totals, "total_bytes": sum(totals.values()),
+            "projection_scope": "copied payload and NSIS tools lower bound; generated installer, log and metadata excluded"}
+
+
+def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict, *, storage_context=None) -> dict:
     """Bundle an exact copy; every post-mkdir failure leaves a failed receipt."""
     root = Path(root).resolve()
     require(node.is_absolute() and node == Path(os.path.abspath(node))
@@ -322,34 +353,41 @@ def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict)
     identity = qualify(root, request)
     require(bundle_consumer_inventory(root, node) == consumers, "bundle consumer inputs differ")
     output = owned_path(root, output, fresh=True)
+    source = Path(request["candidate"])
+    members = identity["payload"]["files"]
+    nsis = consumers["tool_trees"]["nsis"]
+    plan = copy_plan(source, members, nsis)
+    state = (portable._storage_pre(output, plan["total_bytes"], storage_context)
+             if plan["total_bytes"] >= portable.LARGE_COPY_BYTES else None)
+    if state is not None:
+        state["producer"] = SCHEMA
+        state["copy_plan"] = plan
+        state["projection_scope"] = plan["projection_scope"]
     cli = root / "frontend/node_modules/@tauri-apps/cli/tauri.js"
-    os.makedirs(portable.native(output))
+    created = False
     receipt = {"schema": SCHEMA, "status": "FAIL", "stage": "PREPARING",
                "exit_code": None, "cli_started": False,
-               "installed_qualification": "NOT_RUN", "consumers": consumers}
+               "installed_qualification": "NOT_RUN", "consumers": consumers, "copy_plan": plan}
     try:
+        if state is not None:
+            if any(state[key]["status"] == "REVIEW_REQUIRED" for key in ("pre_review", "projected_review")):
+                raise portable.GrowthReviewRequiredError("pinned packaging growth requires review before copying")
+            state["copy_outcome"] = "STARTED"
+        os.makedirs(portable.native(output))
+        created = True
         target = output / "target"
         release = target / "release"
         os.makedirs(portable.native(release))
-        nsis = consumers["tool_trees"]["nsis"]
         receipt["stage"] = "NSIS_COPY"
         for name, row in nsis["files"].items():
-            source_tool = portable.regular(payload_path(Path(nsis["path"]), name))
+            source_tool = payload_path(Path(nsis["path"]), name)
             target_tool = payload_path(target / ".tauri/NSIS", name)
-            os.makedirs(portable.native(target_tool.parent), exist_ok=True)
-            with open(portable.native(source_tool), "rb") as incoming, open(portable.native(target_tool), "xb") as outgoing:
-                shutil.copyfileobj(incoming, outgoing)
-            require(file_row(target_tool) == row, "NSIS tool copy mismatch")
-        source = Path(request["candidate"])
-        members = identity["payload"]["files"]
+            copy_member(source_tool, target_tool, row)
         receipt["stage"] = "PAYLOAD_COPY"
         for name, row in members.items():
-            incoming_path = portable.regular(payload_path(source, name))
+            incoming_path = payload_path(source, name)
             destination = payload_path(release, name)
-            os.makedirs(portable.native(destination.parent), exist_ok=True)
-            with open(portable.native(incoming_path), "rb") as incoming, open(portable.native(destination), "xb") as outgoing:
-                shutil.copyfileobj(incoming, outgoing)
-            require(file_row(destination) == row, "copy mismatch")
+            copy_member(incoming_path, destination, row)
         receipt["stage"] = "CONFIG"
         identity_path = output / "local-pinned-identity.json"
         Path(portable.native(identity_path)).write_text(json.dumps(identity, indent=2) + "\n", encoding="utf-8")
@@ -385,14 +423,31 @@ def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict)
         require(len(installers) == 1, "expected one new NSIS installer")
         receipt.update(status="LOCAL_PACKAGING_PASS", stage="COMPLETE",
                        installer={"path": str(installers[0]), **file_row(installers[0])})
+        if state is not None:
+            state["copy_outcome"] = "LOCAL_PACKAGING_PASS"
         return receipt
     except Exception as error:
         receipt["error_type"] = type(error).__name__
         receipt["error"] = str(error)
         raise
     finally:
-        with open(portable.native(output / "packaging-receipt.json"), "x", encoding="utf-8") as stream:
-            stream.write(json.dumps(receipt, indent=2) + "\n")
+        original_error = sys.exc_info()[1]
+        try:
+            if state is not None:
+                portable._storage_post(state, original_error)
+        except Exception as error:
+            receipt.update(status="FAIL", stage="STORAGE_POST", error_type=type(error).__name__, error=str(error))
+            raise
+        finally:
+            if created:
+                active_error = sys.exc_info()[1] or original_error
+                try:
+                    with open(portable.native(output / "packaging-receipt.json"), "x", encoding="utf-8") as stream:
+                        stream.write(json.dumps(receipt, indent=2) + "\n")
+                except Exception as error:
+                    if active_error is None:
+                        raise
+                    active_error.add_note("packaging receipt could not be sealed: " + str(error))
 
 def build_frontend_dist(root: Path, request: dict) -> str:
     """CONFIG_PATH_ONLY_NOT_REBUILT: bundle-only does not read these assets."""
@@ -410,6 +465,10 @@ def main() -> int:
     parser.add_argument("--execute-bundle", action="store_true")
     parser.add_argument("--consumers", type=Path)
     parser.add_argument("--consumers-sha256")
+    parser.add_argument("--run-id")
+    parser.add_argument("--storage-purpose")
+    parser.add_argument("--storage-sharing")
+    parser.add_argument("--storage-retention-reason")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     request = read_pinned(owned_path(root, args.request), args.request_sha256)
@@ -417,7 +476,15 @@ def main() -> int:
         require(args.node is not None, "explicit existing node executable required")
         require(args.consumers is not None and args.consumers_sha256 is not None, "pinned bundle consumers required")
         consumers = read_pinned(owned_path(root, args.consumers), args.consumers_sha256)
-        bundle(root, request, args.output, args.node, consumers)
+        context = None
+        if args.run_id:
+            context = {"paths": portable.dev.layout(root, args.run_id), "purpose": args.storage_purpose,
+                       "sharing": args.storage_sharing, "retention_reason": args.storage_retention_reason}
+        try:
+            bundle(root, request, args.output, args.node, consumers, storage_context=context)
+        except portable.GrowthReviewRequiredError as error:
+            print(str(error), file=sys.stderr)
+            return 2
     else:
         identity = qualify(root, request)
         output = owned_path(root, args.output, fresh=True)

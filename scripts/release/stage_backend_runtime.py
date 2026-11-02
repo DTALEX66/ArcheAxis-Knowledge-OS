@@ -35,8 +35,16 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import zipfile
 from pathlib import Path, PurePosixPath
+
+if "scripts.release.runtime_growth" in sys.modules:
+    growth = sys.modules["scripts.release.runtime_growth"]
+else:
+    _growth_spec = importlib.util.spec_from_file_location("backend_runtime_growth", Path(__file__).with_name("runtime_growth.py"))
+    growth = importlib.util.module_from_spec(_growth_spec)
+    _growth_spec.loader.exec_module(growth)
 
 _worker_routes_spec = importlib.util.spec_from_file_location(
     "stage_worker_routes", Path(__file__).with_name("worker_routes.py")
@@ -180,10 +188,10 @@ def stage_fixed_webview2(source: Path, manifest: Path, root: Path) -> dict:
     for name, row in files.items():
         destination = target / name
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(filesystem_path(source / name), filesystem_path(destination))
+        growth.copy2(filesystem_path(source / name), filesystem_path(destination))
         if destination.stat().st_size != row["bytes"] or sha256(destination) != row["sha256"]:
             raise ValueError("fixed WebView2 copy identity mismatch")
-    shutil.copy2(manifest, target / "aaos-fixed-runtime-manifest.json")
+    growth.copy2(manifest, target / "aaos-fixed-runtime-manifest.json")
     if sha256(target / "aaos-fixed-runtime-manifest.json") != FIXED_WEBVIEW2["manifest_sha256"]:
         raise ValueError("fixed WebView2 copied manifest identity mismatch")
     return {**FIXED_WEBVIEW2, "path": "runtime/webview2", "files": len(files),
@@ -267,7 +275,7 @@ def stage_app_local_vc_runtime(runtime: Path, root: Path, vc_runtime: Path | Non
             if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
                     or info.st_size != expected["bytes"] or sha256(target) != expected["sha256"]):
                 raise ValueError(f"app-local C++ runtime replacement identity mismatch: {name}")
-        shutil.copy2(filesystem_path(source / name), filesystem_path(target))
+        growth.copy2(filesystem_path(source / name), filesystem_path(target))
         if filesystem_path(target).stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
             raise ValueError(f"app-local VC runtime copy mismatch: {name}")
     for name in APP_LOCAL_VC_RUNTIME:
@@ -277,7 +285,7 @@ def stage_app_local_vc_runtime(runtime: Path, root: Path, vc_runtime: Path | Non
             reject_reparse(target)
             if target.exists():
                 raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
-            shutil.copy2(filesystem_path(source / name), filesystem_path(target))
+            growth.copy2(filesystem_path(source / name), filesystem_path(target))
             if filesystem_path(target).stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
                 raise ValueError(f"app-local VC runtime copy mismatch: {name}")
     versions = sorted({str(row["version"]) for row in observed.values()})
@@ -348,7 +356,7 @@ def stage_asr_model(model: Path, root: Path, name: str | None = None,
             continue
         reject_links_along(source)
         destination = target / source.name
-        shutil.copy2(filesystem_path(source), filesystem_path(destination))
+        growth.copy2(filesystem_path(source), filesystem_path(destination))
         files[source.name] = {"bytes": destination.stat().st_size, "sha256": sha256(destination)}
     licence = asr_model_licence(declared_name)
     if license_override:
@@ -506,14 +514,14 @@ def copy_distribution_tree(source: Path, target: Path) -> None:
     would only re-reject upstream modules that happen to share a protected name.
     """
     reject_nested_links(source)
-    shutil.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
+    growth.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
 
 
 def copy_tree(source: Path, target: Path) -> None:
     validate_tree(source)
     validate_tree(target)
-    shutil.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
+    growth.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
 
 
@@ -609,7 +617,7 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
             destination = target_site_packages / relative
             reject_links_along(destination)
             destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, destination)
+            growth.copy2(source, destination)
             staged_files.append(relative.as_posix())
         return {"name": name, "members": sorted(staged_files)}
     members = [entry for entry in sorted(site_packages.iterdir()) if key(entry.name) == wanted]
@@ -635,7 +643,7 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
         if member.is_dir():
             copy_distribution_tree(member, destination)
         else:
-            shutil.copy2(member, destination)
+            growth.copy2(member, destination)
         copied.append(member.name)
     # The RECORD the installer wrote is the authoritative statement of what belongs to a
     # distribution, and matching by name is only a guess at it. Cross-check the two, so a
@@ -829,6 +837,78 @@ def expected_model_members(model: Path, name: str | None) -> dict:
     return rows
 
 
+def runtime_copy_plan(args, in_place=False, *, repository=None):
+    """Enumerate only actual selected donors, never an entire dependency source."""
+    inputs = {}
+    total = 0
+    validate_tree(args.workers)
+    if not in_place:
+        validate_runtime_tree(args.runtime)
+    ignored = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", *(["site-packages"] if in_place else []))
+    def add(path, copies=1, *, upstream=False):
+        nonlocal total
+        path = growth.plain(path)
+        (reject_links_along if upstream else reject_reparse)(path)
+        identity = growth.row(path)
+        inputs[path] = identity
+        total += copies * identity["bytes"]
+    def tree(path, ignore=ignored, *, validate=None, interpreter_binding=None):
+        nonlocal total
+        rows = growth.snapshot(path, ignore, validate=validate, interpreter_binding=interpreter_binding)
+        inputs.update(rows)
+        total += sum(value["bytes"] for value in rows.values())
+    if in_place:
+        args._interpreter_binding = growth.interpreter_source()
+        source = Path(args._interpreter_binding["physical_root"])
+    else:
+        source = args.runtime
+    tree(source, validate=reject_reparse if in_place else None,
+         interpreter_binding=args._interpreter_binding if in_place else None)
+    tree(args.workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    core = growth.plain(args.core)
+    args._core_input = growth.core_row(core, repository=repository)
+    inputs[core] = args._core_input
+    total += args._core_input["bytes"]
+    add(args.shared or args.workers.parent.parent / "shared/learning_scheduler.py")
+    repository = Path(__file__).resolve().parents[2]
+    for path in (repository / "shared/safe_http.py", repository / "shared-contracts/adapters/llm/litellm_adapter.py",
+                 Path(__file__).with_name("backend_launcher.py")):
+        add(path)
+    vc = args.vc_runtime or args.runtime
+    for name in APP_LOCAL_CPP_COHORTS[0]:
+        add(vc / name, 3 if name in APP_LOCAL_VC_RUNTIME else 1)
+    if args.asr_model:
+        reject_reparse(args.asr_model)
+        for member in args.asr_model.iterdir():
+            if member.is_file():
+                add(member, upstream=True)
+    if args.webview2_runtime:
+        validate_fixed_webview2(args.webview2_runtime.absolute(), args.webview2_manifest.absolute())
+        tree(args.webview2_runtime, None)
+        add(args.webview2_manifest)
+    for name in args.dep:
+        if args.dep_source is None:
+            raise ValueError("--dep requires --dep-source")
+        reject_reparse(args.dep_source)
+        recorded = distribution_files(name, args.dep_source)
+        if recorded is not None:
+            for path in recorded:
+                resolved = path.resolve()
+                if resolved.is_relative_to(args.dep_source.resolve()) and resolved.is_file():
+                    add(resolved, upstream=True)
+        else:
+            wanted = name.replace("-", "_").replace("_", "").lower()
+            for member in args.dep_source.iterdir():
+                stem = member.name.split("-")[0]
+                if stem.endswith((".py", ".pyi")):
+                    stem = stem.rsplit(".", 1)[0]
+                if stem.replace("_", "").lower() == wanted:
+                    reject_reparse(member)
+                    reject_nested_links(member)
+                    tree(member, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")) if member.is_dir() else add(member)
+    return inputs, total
+
+
 def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_environment: dict | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", required=True, type=Path)
@@ -866,7 +946,45 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
                         help="directory name under the ASR model root; defaults to the donor's own name")
     parser.add_argument("--asr-model-license",
                         help="licence text asserted for a donor whose upstream terms are not recognised by name")
+    parser.add_argument("--run-id")
+    parser.add_argument("--storage-purpose")
+    parser.add_argument("--storage-sharing")
+    parser.add_argument("--storage-retention-reason")
+    parser.add_argument("--storage-generated-bytes", type=int,
+                        help="positive estimate of generated final-runtime bytes; always reviewed, not a hard quota; shared uv cache measured post")
+    parser.add_argument("--ci-runtime-checkpoint", type=Path,
+                        help="explicit fixed checkpoint for the exact isolated CI job and formal runtime")
     args = parser.parse_args(argv)
+    if args.out.exists():
+        raise ValueError("refusing to overwrite an existing runtime root")
+    repository = (Path(_runtime_environment["ARCHEAXIS_WORKTREE_ROOT"]) if _runtime_environment is not None
+                  else growth.portable.REPO)
+    inputs, total = runtime_copy_plan(args, _runtime_preparer is not None, repository=repository)
+    if args.archive:
+        if args.archive.absolute().parent != args.out.absolute().parent:
+            raise ValueError("runtime archive must be beside its reviewed output root")
+        total *= 2  # Conservative uncompressed archive estimate; post records actual allocation.
+    context = None
+    if args.run_id:
+        context = {"paths": growth.portable.dev.layout(repository, args.run_id), "purpose": args.storage_purpose,
+                   "sharing": args.storage_sharing, "retention_reason": args.storage_retention_reason}
+    if args.ci_runtime_checkpoint is not None:
+        if context is None or _runtime_preparer is None:
+            raise ValueError("CI checkpoint requires a run and the canonical generation callback")
+        context["ci_checkpoint"] = args.ci_runtime_checkpoint
+    generated = growth.generated_bytes(context, args.storage_generated_bytes)
+    if _runtime_preparer is not None and (type(generated) is not int or generated <= 0):
+        raise ValueError("in-place generation requires explicit positive --storage-generated-bytes")
+    if generated is not None:
+        if generated <= 0:
+            raise ValueError("storage generated bytes must be positive")
+        total += generated
+    with growth.batch(args.out.absolute(), inputs, total, context, unknown_output=_runtime_preparer is not None,
+                      interpreter_binding=getattr(args, "_interpreter_binding", None)):
+        return _stage(args, _runtime_preparer=_runtime_preparer, _runtime_environment=_runtime_environment)
+
+
+def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     if bool(args.webview2_runtime) != bool(args.webview2_manifest):
         raise ValueError("fixed WebView2 requires both runtime and manifest")
     if args.webview2_runtime:
@@ -937,9 +1055,9 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
         raise ValueError(f"workers has no transport/text_ndjson.py: {args.workers}")
 
     (root / "core").mkdir(parents=True)
-    shutil.copy2(args.core, root / "core" / "archeaxis-api.exe")
+    growth.copy2(args.core, root / "core" / "archeaxis-api.exe")
     if prepared_files is None:
-        shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
+        growth.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
         app_local_vc = stage_app_local_vc_runtime(args.runtime, root, args.vc_runtime)
     else:
@@ -982,7 +1100,7 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
     # Without it the worker starts and then reports FileNotFoundError, which reads like
     # a broken worker instead of a missing component.
     (root / "shared").mkdir()
-    shutil.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
+    growth.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
     # Stateless document-check donors, staged from the same authority source tree.
     source_root = Path(__file__).resolve().parents[2]
     for relative, name in (("shared/safe_http.py", "safe_http.py"),
@@ -990,7 +1108,7 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
         donor = source_root / relative
         if not donor.is_file():
             raise ValueError(f"document-check donor is missing: {relative}")
-        shutil.copy2(donor, root / "shared" / name)
+        growth.copy2(donor, root / "shared" / name)
 
 
     site_packages = root / "runtime" / "Lib" / "site-packages"
@@ -1015,7 +1133,7 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
     launcher = write_launcher(root)
     # The formal launcher is part of the artifact, so a candidate cannot be rebuilt
     # with different startup logic and still look identical.
-    shutil.copy2(Path(__file__).resolve().parent / "backend_launcher.py",
+    growth.copy2(Path(__file__).resolve().parent / "backend_launcher.py",
                  root / "start-backend.py")
 
     # Inspect before inventory, without writing startup bytecode into the runtime.
@@ -1114,8 +1232,11 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
         "manual_environment_required": False,
         "files": files,
     }
+    if "cargo_core" in args._core_input:
+        manifest["core_input"] = args._core_input
     if prepared_files is not None:
         manifest["runtime_preparation"] = {"mechanism": "FRESH_OWNED_IN_PLACE_CALLBACK",
+            "interpreter_binding": args._interpreter_binding,
             "run_root": _runtime_environment["ARCHEAXIS_RUN_ROOT"],
             "host_runtime_tree_copies": 1, "intermediate_runtime_tree_copies": 0}
     manifest_path = root / "backend-runtime-manifest.json"
@@ -1127,7 +1248,23 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
         archive_path = args.archive.absolute()
         with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(p for p in filesystem_path(root).rglob("*") if p.is_file()):
-                archive.write(path, (root.name / ordinary_path(path).relative_to(root)).as_posix())
+                member = ordinary_path(path)
+                relative = member.relative_to(root).as_posix()
+                identity = files.get(relative) if relative != "backend-runtime-manifest.json" else growth.row(member)
+                if identity is None:
+                    raise ValueError("unplanned runtime archive member")
+                with path.open("rb") as incoming, archive.open((Path(root.name) / relative).as_posix(), "w") as outgoing:
+                    remaining = identity["bytes"]
+                    digest = hashlib.sha256()
+                    while remaining:
+                        chunk = incoming.read(min(remaining, 1024 * 1024))
+                        if not chunk:
+                            raise ValueError("runtime archive source shorter than planned")
+                        digest.update(chunk)
+                        outgoing.write(chunk)
+                        remaining -= len(chunk)
+                    if incoming.read(1) or digest.hexdigest() != identity["sha256"]:
+                        raise ValueError("runtime archive source changed; partial archive retained")
 
     print(json.dumps({
         "root": str(root), "manifest": str(manifest_path), "launcher": str(launcher),
@@ -1139,4 +1276,8 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except growth.portable.GrowthReviewRequiredError as error:
+        print(str(error), file=sys.stderr)
+        raise SystemExit(2) from error

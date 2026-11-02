@@ -3096,3 +3096,77 @@ b799e418的[CI41231631564](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/ac
 root与独立复核核对锁定Tauri2.11.5/runtime-wry2.11.4/Tao0.35.3源码：app.exit异步投递，当前APP_EXIT_REQUESTED记在调用前，尚不能证明调用返回或RunEvent已被消费；Tao USER_EVENT回调使用阻塞recv，排除“PostMessage先于payload造成丢唤醒”这一初步假设。无菜单/确认框证据，不把WM_CANCELMODE入队或新运行成功追认为根因修复；run_on_main_thread仍走同proxy，缺乏直接改调度路径的依据。后继只增加调用返回、ExitRequested进入/返回及Exit进入的有界阶段记录，继续区分投递、事件消费与最终清理；不发额外close/exit，不放宽15秒，不改首次失败判断。R6安装可靠性和公开合并资格继续未闭合。
 
 阶段诊断补充的本地cargo fmt检查通过；Rust定向测试因当前本地工具环境缺link.exe失败，没有取得Rust编译/测试通过结论，不安装或修改全局工具链。此前51/52项退出合同检查是Python测试，不能写成Rust通过。新阶段的退出码统一仅记录0/1/null并在读取侧过滤，其他诊断字段仍有原边界；原生编译和行为以新提交自身CI另验。
+
+### 2026-11-01 治理优先：生产者增长约束与48项历史文件归位
+
+Owner要求“优先执行各类治理和规范任务，静默执行不要在问我了”。按原S01/G01优先连续执行，不建立第二任务队列；本批独立本地分支承接已合并PR204的da9fca0d，不自动把前轮公开交付豁免扩成新一轮云端执行，不恢复UI/监控或修改模型/全局设置。
+
+已将local_pinned_packaging接入既有≥1GiB声明、固定checkpoint、pre/投影/finally-post，payload+NSIS合计并有界复制，拒绝增长/短读/hash差异，post失败不掩盖原异常与NSIS退出码。capability/search探针改每次独立canonical工作目录，vault同属本run，取消启动删除旧共享run。资源builder与registry CLI分配规范唯一目录；显式override每次独立子目录，BAT限显式workdir，OCR独占随机PNG句柄，保留旧样本与硬链接目标。独立P2复核发现的复用覆盖与CLI缺workdir已修，原功能断言保持。
+
+精确48个散落公开历史结果/草稿/一次性脚本共164241B无损保全为3ZIP/62949B；原SHA、CRC、恢复演练及原路径缺失均由root独立复核。没有执行旧修码脚本或发布草稿，旧失败状态保留。正式后计量布局581→533、无新增；旧49仍36非空/13空。普通令牌前28460851496B/343900文件→后28464394459B/350905文件，均674读取错误/243私有排除/PARTIAL、actual/wrapper1，源码一致；不能替代旧admin0错误快照或宣称净回收。固定checkpoint未滚动，NO_NEW_GROWTH_TRIGGER不等于完整预算PASS。
+
+冻结后gov-code-final3为196P/1既有skip/3真实资源用例deselected，actual/wrapper0/source_consistent；CI Ruff、架构/路径/文档权威通过。仓库规范原FAIL发现两测试文件CRLF，统一LF后gov-conv-final2通过；后计量早于这次重测与文档封存，不滚动基线。早期gov-probe-red/green的并行变更INVALIDATED原件保留，不计资格；root从原Git blob在隔离合成目录、失败迁移stub下另复现旧证据删除与新保全。未做真实≥1GiB装包、NSIS/安装、MSVC/Tesseract或Ubuntu实机，不将本地fixturePASS移绑全产品。其他producer/linked-owner治理、533项布局和三Green mig后继来源绑定仍待接续；F05/CL/J/R6及整体产品PARTIAL不变。
+
+完整hash、原失败、恢复入口与本地资格范围见[本批治理记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)及MANIFEST。只读资料/历史任务是导航，不产生新外发或真实库覆盖权限。
+
+### 2026-11-01 新任务包目标覆盖、历史检索与治理续批
+
+Owner要求“还有昨天发你的任务包 里面应该有新的项目定位和描述 你更新覆盖下”“闭环目标也以新的任务包为准”“并且做好所有更新覆盖各类引用索引的调整”。已按SUP-030及决定第二十五节选择v3/R6目标：产品身份V2.2、唯一闭环V3、X1—X8映射原CL/J、五稳定入口、对象中心与上下文任务Agent、专业实践L0独立可用。合同/schema、活动指针、README/描述、当前权威及引用索引联动；186/22身份与未冲突既有要求保持。4个原ZIP及选定成员SHA绑定，不执行附件指令或将历史云端PASS移绑当前源码。UI/监控暂停不变。
+
+Owner追加“还有历史记录文档也该清理了 保留10月份的就行了 不要老是扫描到旧文档”。以2026-10-01为保留边界，十月和更新记录保留；141份已确认更早的公开过程正文7,087,861B无损集中到939,642B ZIP。原路径缺失、成员SHA/CRC、独立恢复和原Git blob已核，旧consolidation manifest原SHA不改；消费者验证压缩身份后仍核旧SHA，4处当前导航已调整。根`.ignore`使默认根目录rg检索不展开历史树，显式历史查询仍可用；合同、程序/许可依赖、原始输入和十月补注保留，不以mtime删除。后继14份96,158B候选只做保全预审，尚未移出正文。
+
+ignored散落规范化本轮另退役33叶/1,607,157原B，保全为2ZIP/194,431B；累计81叶/1,771,398B/5ZIP257,380B，浅层布局533→500/新增0。旧脚本未执行，收益仅为原件与压缩差，不冒充全仓净回收或物理释放；不滚动固定checkpoint。4旧assembler及4日志完整组已预审但未退役。
+
+六probe改每次独立canonical输出，失败证据保留，ASR/格式矩阵不再复用固定收据。运行时stager/backend/bundle/Core安装接入既有pre/projected/finally-post审查，已知成员有界复制并核hash；未知生成需正数预计及声明，正式同仓rt沿原预算，当前隐式解释器根与显式链接边界分开。四workflow仅参数合同已接入，真实CI固定checkpoint及Python3.12/current-lock预计未初始化，缺件明确失败；旧3.13足迹不可代入，因此本批仍是本地候选，不宣称可推送合并或云端兼容资格。独立复核的resolve先抹链接、ASR分配过晚问题由各writer具名修正，实际后继命令与hash以续批MANIFEST登记为准。
+
+原RED/INVALIDATED和后继有效检查分层保留，没有真实大构建/依赖下载/ASR/云CI/NSIS/安装/模型或真实库验收。最终源码、原退出码和范围见[治理续批](../history/storage-cleanup/2026-11-01-governance-followup/README.md)及MANIFEST。500布局、后继历史消费者、CI初始化/其他producer、Green mig来源与F05/完整CL/J/R6继续具名接续，整体PARTIAL；没有ACL、全局配置、私有状态或新远端写入。
+
+### 2026-11-01 治理连续执行：第二批旧正文、完整脚本组与CI基线
+
+前轮本地提交4a8ad0bc已独立读回57文件原字节、24实现文件和508P/1skip及最终门禁，工作区清洁；它是当时本地资格，不是本轮或云端PASS。本轮沿“全部执行”和治理优先继续，原MANIFEST及原失败不覆盖。
+
+另14份十月以前donor过程记录/交接/索引已无损移出日常正文，96,158原B→41,458B ZIP；两批共155份/7,184,019B→981,100B。原14路径全缺失、原Git blob/成员SHA/CRC/独立恢复已核；新reader固定支持两批，各有自身descriptor/archive/member身份且跨批拒重。2份旧清单原字节绑定不改，对其中原固定11行逐原bytes/SHA核，不由新成员表选择验证范围；丢弃新ZIP及映射中的成员仍FAIL，物理原件重现或变成目录不能被archive遮盖。LEGACY的Git blob和当前HEAD库存语义保持。实际移出后的文档权威检查通过，最终资格另沿封存检查读回。
+
+ignored规范化接续退役8个旧producer/log完整组及189份历史项目Python脚本，原1,526,737B单份保全为615,609B ZIP；成员SHA/CRC、独立恢复、缺失后验及105份保留Python源原SHA通过，旧脚本未执行。累计278散落叶/3,298,135原B/7ZIP共872,989B；浅层581→533→500→492→303，本轮无新增。303中181散落叶、91目录、30旧具名run及根stray1仍待当前消费者与归属治理。旧恢复bundle、控制脚本、原输入、未知绑定与私有状态不凭年龄/体积删除。上述是原件与压缩差，不是全仓净字节或物理释放；固定operator checkpoint不滚动。
+
+CI原确定失败点继续修复：显式reserve→前置Core/模型准备→一次seal，再由runtime producer读取当前job固定checkpoint；本地operator基线、2GiB增长门与原类预算不改。seal拒绝不完整覆盖、越预算、换job/source/旧run、重复封存与失败后重滚；load重核原reservation/descriptor/baseline/forecast和实际安装/源码。当前Python3.12、锁、依赖选择、无网络导出和requirements绑定，并按实际setuptools打包声明估计项目载荷；全仓文档不作为三份wheel输入。未知metadata/cache/build差异仍由finally-post记实际增长，不把forecast或GitHub环境声明当硬配额或host attestation。真实云CI/构建/安装资格只有实际运行后才可登记。
+
+此前Owner“双端仓库一致”的公开源码交付授权继续适用于合格治理改动，治理优先没有撤销它；活动指针已澄清引用既有owner_delivery_20261101，不伪造新Owner原话。只读fetch与原生GitHub身份读回确认目标DTALEX66/ArcheAxis-Knowledge-OS、有效SSH，观察时origin/main仍da9fca0de9c617a0e8c100c32d9fcecf00f45ee7。后继push/检查/合格merge仍逐状态验收，不从local PASS自动越过a0-gates；无私有或ignored原包外发，不恢复UI/监控/产品发布或Green/真实库覆盖。
+
+原退出码、源码SHA、恢复工具和本轮最终检查见[续批登记CONTINUATION](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION.json)。其他producer/linked worktree、六主包硬钉输入的归一与重新资格、303布局、Green mig来源缺口及F05/完整CL/J/R6仍未闭合，整体PARTIAL。六主包合7.319GB与sci-build1约0.439GB是旧记录时点，不能作为新测量或永久保留判定。
+
+### 2026-11-01 公开治理交付与资源投影源绑定修复
+
+61277066已正常push并建立[PR205](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/205)。提交前510P/1skip及8项最终回执已核，24个公开文件与提交Git blob逐字节一致；197个本轮历史脚本成员独立CRC/SHA/原路径缺失复核通过。首次云端[41260536432](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41260536432)的lint真实FAIL，a0-gates失败、其余依赖项跳过，不能作为云端资格或据此合并。
+
+该FAIL定位于资源资格清单3处pyproject源SHA仍旧。对main da9fca0d与当前TOML逐字段比较，唯一语义差异为Owner新定位的project.description，依赖、版本、构建声明及uv.lock未变；仅更新这3个源绑定并从规范输入重生成资源目录，68条资源/115项冲突和原资格、许可、权限、运行及activation状态不变。gc-res-test1为16P/child0/wrapper0/source_consistent=true；完整构建前门禁gc-cipf1的19检查均LOCAL_PASS，包含38项路由测试。生成命令gc-resgen1因预期的tracked输出变化被wrapper记INVALIDATED（child0/wrapper3），保留且不计为资格。失败原日志、TOML复核与后继本地回执保存在本轮ignored治理run，修复后云端资格仍待新SHA真实运行。
+
+### 2026-11-01 第三批旧记录与实际云端反例接续
+
+第三批31份旧过程记录已无损移出常规目录，532,759原B→145,973B ZIP；三批累计186份/7,716,778原B→1,127,073压缩B。31原路径全缺失，原SHA/Git blob/CRC/独立恢复已核；四份旧元数据及前两批档案保持原字节。reader仅显式增加第三批及其固定旧消费者行，原字节校验不由新ZIP选择；文本读取保留Path.read_text的通用换行语义。真实读取测试与目录/语言/文档导航一起迁移，原始任务包、当前合同、10月补注继续保护。
+
+最终门禁另识别3份planning supporting记录的Git规范字节与旧清单运输字节不同。逐一证明只是固定LF/CRLF及EOF表示差异，已在内存重建出完全匹配旧size/SHA的表示；canonical原Git字节与ZIP不改，仅对3固定消费者行显式重建并严格核旧指纹，不提供通用容错。gcf-p1保留首次真实拒绝；其中31缺工作区文件另因删除尚未stage，后继先暂存精准集合再复验，不降低仓库规范检查。
+
+322a82bc的云端[41260945124](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41260945124)整体FAIL：Linux 5FAIL/6772PASS/123skip及528subtests；三个Windows runtime job在seal拒绝，a0-gates失败。wheel/Rust/合同/worker/browser/旧桌面smoke各自成功仍仅属于该旧SHA，不能拼成全PASS或新源码资格。
+
+本地后继修复：`.ignore`补入既有repo-meta风险分类；native预览负对照精确删除Core构建后的错误守卫，避免误改新增reserve守卫；OSS清单由真实生成器重建，55组件/705记录及CSV完全不变，JSON仅ledger输入指纹变化。四处初始uv sync与离线check一致跳过安装项目本身，后继五条uv run显式no-sync；setuptools83本地小样已证editable根egg-info生成机制，但实际CI拒绝原因仍待新测量，不将推断当确诊。seal先保存完整pre-seal及具名review，原布局/覆盖/预算拒绝优先，诊断写错只附note；证据失败仍拒绝，不生成可用baseline/descriptor。always上传仅五份精准公开JSON，原类预算、2GiB门槛、单次claim/seal及本地operator checkpoint不变。
+
+最终检查、源码和原退出码沿[CONTINUATION-2](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-2.json)登记；原失败/RED/INVALIDATED不覆盖。303布局快照、其他producer、六主包输入归一与重新资格、Green mig来源及F05/完整CL/J/R6继续未闭合，不把这次规范化称产品完成。公开PR合并仍待新SHA真实门禁，整体PARTIAL。
+
+### 2026-11-01 默认检索收敛与云端Python链接反例
+
+默认检索进一步排除preOct intake、冻结原任务包和旧参考报告，原件及显式路由保留；可见路径3,633→3,284，旧日期命名路径74→0、history仍0，当前定位/闭环/10月队列/活动指针均可见。349条是检索排除，不算删除或新增归档，三批186份档案原身份不改。
+
+39cb3249的[CI41263648803](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41263648803)中Linux全量任务已success；green/desktop-fast/desktop-build在runtime准备时实际FAIL。green五份公开JSON已成功上传，原review为ACCEPTED、测量PASS且private/checkout/error/layout/budget均空；其失败点是官方Python3.12.10根`python3.exe`文件链接，backend链同样被原reparse守卫拒绝。后继最小兼容仅对当前implicit binding下该顶层alias校验同根`python.exe`、raw目标和源SHA，实体化为独立文件且完整计量，copy前后重核；显式donor、其他名称、目录/外部链接与换目标仍拒绝。去掉当前固定upload Action不支持且已证无效的4处输入，5个精确JSON路径/版本不变。
+
+本地原RED、最终组合回执、独立审查和源码绑定沿[CONTINUATION-3](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-3.json)接续。该修复不是新SHA云端PASS或合并结论；不滚动operator基线、不扩预算或增长门，不替代安装态及CL/J/R6业务验收，整体PARTIAL。
+
+### 2026-11-01 Core构建输入与历史散落记录后继
+
+c324b4ee的[CI41265388203](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41265388203)已完整结束：Linux全量和Green候选检查success；desktop-fast/build在`runtime_copy_plan → add(args.core) → growth.row`拒绝输入，a0 FAIL。fast原seal仍ACCEPTED/PASS且排除、错误、布局、预算项为空。原日志没有type/nlink，不把推断写成云端根因；本机独立离线tiny Cargo126,464B已实证release连字符命名与deps下划线命名同inode/nlink2，未编译项目或运行该产物。
+
+有限Core role只接受当前规范Cargo路径下、原生API精确枚举的两个同文件身份名称，绑定元数据/长度/SHA，copy前后复核并实体化独立输出；通用`safe/row`与旧Host规则保持原AST。原始名字排序、关闭失败、重解析/外部/额外名字、换inode/内容/目标等反例分别验证；只是观察到的来源资格，不等于`read_core_build`固定命令资格。已上传的五JSON范围、operator基线、2GiB及类预算不改。
+
+五项精确散落叶已无损归位：4,844原B→3,511B ZIP，五原路径缺失，CRC/SHA及两次恢复演练通过，另53保留对象原hash不变；7次dev各自child/wrapper0且source一致，prep绑定39cb、后继绑定c324，不拼成一个源码资格。未重扫整体布局、未计量物理释放，303仍只作为旧快照。cppcand1三份公开输入完整hash复核通过、缺已验证归档；只锁定Host角色，未复制或退役完整旧包。
+
+最新本地组合、独立六文件复核、原RED/失败、恢复入口与精确身份读取[CONTINUATION-4](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-4.json)。新源码云端资格和合格main合并仍逐阶段验收；其余生产者、六主包归一、Green mig缺口与F05/CL/J/R6任务继续未闭合。

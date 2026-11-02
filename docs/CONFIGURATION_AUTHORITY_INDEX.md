@@ -1,5 +1,7 @@
 # Configuration Authority Index (AXC-010)
 
+Owner 2026-11-01选择新包定位与闭环目标（SUP-030）；规范单源为[产品身份V2.2](truth/PRODUCT_IDENTITY_V2.md)、[唯一闭环V3](truth/CLOSED_LOOP_DEFINITION.md)，合同与schema同步，来源见[选择记录](../workspace/intake/20261101-positioning-loop-update/README.md)。原content_policy仍生效，不从包内命令推导额外执行授权。
+
 本页按 concern 指向唯一配置源，不维护第二份执行状态。当前范围与双侧闭环先读[唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md)、[活动指针](current/AAOS-ACTIVE-EXECUTION.json)的 `owner_scope_current`、`execution_control` 和 `continuation_context`；实施证据只读指针的 `active_progress`。任务包是不可变规划来源，旧状态、分支、暂停、权限和主题观察不能覆盖现行选择。
 
 提交、推送、合并、CI、监控、冻结项与数据边界分别沿活动指针及当前 Owner 决定解析；Green 的精确路径、操作范围、候选资格、备份和数据保全条件只读 `green_update_authorization`，索引不另授予覆盖权限。路径身份按[路由登记](current/AAOS-AUTHORITY-ROUTES.json)核对；共享资源登记不是跨项目访问或修改全局配置授权。旧仓库身份与分支观察保留于[历史接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)，不得当作当前远端事实。

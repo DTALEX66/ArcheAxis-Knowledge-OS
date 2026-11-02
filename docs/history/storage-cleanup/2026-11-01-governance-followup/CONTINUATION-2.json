@@ -1,0 +1,374 @@
+{
+  "schema": "aaos.governance-continuation/v1",
+  "recorded_at": "2026-11-01T02:02:52.374235+00:00",
+  "status": "LOCAL_IMPLEMENTATION_AND_ARCHIVE_VERIFIED_REMOTE_PENDING",
+  "overall": "PARTIAL",
+  "base_commit": "322a82bc1f93ac4374d4194595bb130514303645",
+  "changed_existing_file_identities": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 96478,
+      "sha256": "7eb5af6d3594527d167ca49564f21b60199f605a626a9e0fd226ec22c3568eca"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "bytes": 23474,
+      "sha256": "5c4fd658c9a2fd2febc3486122858fafebf6967fffcb8916817b725593486080"
+    },
+    {
+      "path": ".worklab/project-validation.v1.yaml",
+      "bytes": 13887,
+      "sha256": "59fc74123ee55a3346157d6211fa4fd0f120961cd553730a012fe4a91b1e7bd9"
+    },
+    {
+      "path": "AAOS-资料索引.md",
+      "bytes": 9506,
+      "sha256": "80d5bfffd170f65c09309e0d5de8cfcf523cf6d5bca791c08cc30c7c5476eba2"
+    },
+    {
+      "path": "config/provenance/oss-reuse-crosswalk.json",
+      "bytes": 9022,
+      "sha256": "5ed910b8306a2515bb1030c2297ff8c27930b71c10a27ac98215d1a45d2ecd1e"
+    },
+    {
+      "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "bytes": 22469,
+      "sha256": "1314c27d720b28e7fe9b6dbd8be6c2b9333bd6d2f3b34bbe16b98bd77e32da1d"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "bytes": 8264,
+      "sha256": "513f8b89099ab5d49a0d23e82ef08c33af8a42785cf943144f0617e7011aafea"
+    },
+    {
+      "path": "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md",
+      "bytes": 5589,
+      "sha256": "260bfbb6bde36537bcf655b7f48df5780e9aeaebdbba19c73ffc39ad5623c922"
+    },
+    {
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "bytes": 13097,
+      "sha256": "46f597bb31a1f95932544afb7d3c64c4730e3db67243316ca1cbaae627c26191"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "bytes": 844933,
+      "sha256": "7664ca17edb6ec56c9b4bc9e006854102fc31a2cb9e2bbe62ad9e9de85d44c8a"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch3/MANIFEST.json",
+      "bytes": 10532,
+      "sha256": "b9af21ce541ddb64d5b2685f10c18f9880b0d682dd851996509d7f30ce9263f0"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch3/README.md",
+      "bytes": 1690,
+      "sha256": "16d282d81f35307aea69405ee0a9e70a58ddf8d0c2228883a52c7888030a6a85"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch3/preoct-public-records.zip",
+      "bytes": 145973,
+      "sha256": "681e8f97337086ff6597a84367c1c277dee3fb463c7d24edb2e9d13a8177b914"
+    },
+    {
+      "path": "docs/history/storage-cleanup/2026-11-01-governance-followup/README.md",
+      "bytes": 6948,
+      "sha256": "0c2e2f5faca52a0b0640bc84da6f099f36028107f09251e448f21ab04d1ce9a7"
+    },
+    {
+      "path": "scripts/maintenance/authority_routes.py",
+      "bytes": 26153,
+      "sha256": "b36abd4d0a6a49625ca22287b45ff9d5018b928b228e9ca88df097560b3a59dc"
+    },
+    {
+      "path": "scripts/release/ci_runtime_checkpoint.py",
+      "bytes": 26079,
+      "sha256": "678e9b76cbc745155a41e30a595e5dc890a5eedbfd9bea06c86f758d410d31ff"
+    },
+    {
+      "path": "tests/maintenance/test_m0_chain_claims.py",
+      "bytes": 3774,
+      "sha256": "67101951732168994f332adbdacffae05b1104b98c285c40a5224f9f2f21ffe7"
+    },
+    {
+      "path": "tests/test_axr060_completion_audit.py",
+      "bytes": 37140,
+      "sha256": "953e26f9f537f7becf7a8151cc5efc734f434d04a31c7b5a04afc299ebc3d0a2"
+    },
+    {
+      "path": "tests/test_ci_runtime_checkpoint.py",
+      "bytes": 19270,
+      "sha256": "a2326a6fdcee8df48e8c8e0504eff321cd1c493729bb7618b6d8ce836bd2fdbb"
+    },
+    {
+      "path": "tests/test_documentation_authority_index.py",
+      "bytes": 14693,
+      "sha256": "1ad323cf679fb205e8417a22e6bf15c421960173f11eabeb5bf6501b78da0fc7"
+    },
+    {
+      "path": "tests/test_native_preview_ci.py",
+      "bytes": 3365,
+      "sha256": "5bdbccb0f21046840b5840d4034aae01572579a15e958c0935b4b637eb103271"
+    },
+    {
+      "path": "tests/test_release_manifest.py",
+      "bytes": 40876,
+      "sha256": "6ec1f965c091d73a3c7d3e8783103e71b8b6bd452bd8b456f9095adae8b11902"
+    },
+    {
+      "path": "tests/test_runtime_growth.py",
+      "bytes": 6340,
+      "sha256": "fc411572420f0f9b266101708181e88ccad1e67b41ef8e2da70cb5fc99f073cc"
+    },
+    {
+      "path": "tests/workflow/test_repository_consolidation.py",
+      "bytes": 28064,
+      "sha256": "c94fb90cc541028b2f7bf652f669fd31b4cc0a69352844602b2afe26e0df1b40"
+    }
+  ],
+  "local_checks": [
+    {
+      "path": ".project-local/runs/be268a2d33/gcf-t2/artifacts/execution.json",
+      "bytes": 2808,
+      "sha256": "73ac2d1548d4056d2611d8f3e1d87b6a57948663699c6e4895e7137380eb2dbb",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "322a82bc1f93ac4374d4194595bb130514303645",
+      "source_patch_sha256": "5d5b2a8b318b44efe98e51fd9b2ba8cf4a6e79f4e2310061a4b00004733fad58"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gcf-l2/artifacts/execution.json",
+      "bytes": 1846,
+      "sha256": "4c2cd3d48772ec19273bd9c2b5d9f841538a2bbbaec3a97eb5a33a891a4fe65d",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "322a82bc1f93ac4374d4194595bb130514303645",
+      "source_patch_sha256": "5d5b2a8b318b44efe98e51fd9b2ba8cf4a6e79f4e2310061a4b00004733fad58"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gcf-p2/artifacts/local-ci.json",
+      "bytes": 1047539,
+      "sha256": "60c7c0ceeb2d5bd9d5495d3d15ef9f401c17b4eadbc378c0d95e69e549fcd7dc",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "checks": [
+        {
+          "name": "conventions",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "architecture",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "language-boundaries",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "format-matrix",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "path-conventions",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "document-authority",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ui-design-increment",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "route-inventory",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "contracts",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "vocabulary",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "teaching-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "expression-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "research-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ai-asset-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "resource-catalog-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ui-working-state-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "layout-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ui-host-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "media-policy",
+          "status": "LOCAL_PASS"
+        }
+      ]
+    }
+  ],
+  "local_pytest_summary": {
+    "passed": 706,
+    "skipped": 1
+  },
+  "post_seal_checks": [
+    "gcf-d3",
+    "gcf-c3"
+  ],
+  "public_records": {
+    "members_and_absent_originals": 186,
+    "original_bytes": 7716778,
+    "archive_bytes": 1127073,
+    "archives": [
+      {
+        "manifest": {
+          "path": "docs/history/2026-11-01-preoct-archive/MANIFEST.json",
+          "bytes": 42438,
+          "sha256": "b43cb56c0ca182ddc47f255f9cba1df27e73977567bdcfa2bb540b4a91398488"
+        },
+        "archive": {
+          "path": "docs/history/2026-11-01-preoct-archive/preoct-public-records.zip",
+          "bytes": 939642,
+          "sha256": "1c9155e9ca7c7f8bd96e2269b1a3feb68e6d0e7b0c6e0e74b65a4fadf98d807a"
+        },
+        "members": 141,
+        "original_bytes": 7087861
+      },
+      {
+        "manifest": {
+          "path": "docs/history/2026-11-01-preoct-archive-batch2/MANIFEST.json",
+          "bytes": 5514,
+          "sha256": "eff8ced394ee88a1383284fa6d8ac1abd69da4862ab5825ce31ef0254abdd2ec"
+        },
+        "archive": {
+          "path": "docs/history/2026-11-01-preoct-archive-batch2/preoct-public-records.zip",
+          "bytes": 41458,
+          "sha256": "5fd5afaf01f3f7114705bf31156680ff470d271aeb022452159f5f5952cae923"
+        },
+        "members": 14,
+        "original_bytes": 96158
+      },
+      {
+        "manifest": {
+          "path": "docs/history/2026-11-01-preoct-archive-batch3/MANIFEST.json",
+          "bytes": 10532,
+          "sha256": "b9af21ce541ddb64d5b2685f10c18f9880b0d682dd851996509d7f30ce9263f0"
+        },
+        "archive": {
+          "path": "docs/history/2026-11-01-preoct-archive-batch3/preoct-public-records.zip",
+          "bytes": 145973,
+          "sha256": "681e8f97337086ff6597a84367c1c277dee3fb463c7d24edb2e9d13a8177b914"
+        },
+        "members": 31,
+        "original_bytes": 532759
+      }
+    ],
+    "fixed_old_consumer_rows_verified": 15,
+    "transport_scope": "Only three fixed planning rows reconstruct proven LF/CRLF/EOF representations after exact canonical bytes/SHA/Git blob checks; old bytes/SHA still required. Canonical read/read_text and old metadata unchanged."
+  },
+  "supporting_local_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/gov-history-batch3-20261101/artifacts/POST.json",
+      "bytes": 2832,
+      "sha256": "6d6636e4f92190eda0fdf049067ea8698be4bc5e8fb1ca7e6eb130b5684a5f9a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-history-batch3-20261101/artifacts/PLANNING-TRANSPORT-PROOF.json",
+      "bytes": 11259,
+      "sha256": "eeb828e4aa44df64e78bd83c8c2f5e8d8c632aa87c0d3f892f4d67acce46da41"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/seal-freeze-01/artifacts/CI-RUNTIME-SEAL-FREEZE.json",
+      "bytes": 8790,
+      "sha256": "770940892235843c1b895f02275adf021909622e2602b27589f1c1646f0103c7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-oss-refresh1/artifacts/REFRESH-REVIEW.json",
+      "bytes": 2360,
+      "sha256": "bbbae41cb75778b1fc6768e08644afef34a84b9481cc51427ad663f783883493"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-continuation-seal/artifacts/default-search-readback2.json",
+      "bytes": 130,
+      "sha256": "0cc2b92206b5c8aebfab1a1eb137f424a053af425c6cec5294ddf9c762192578"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gcf-p1/artifacts/local-ci.json",
+      "bytes": 1047221,
+      "sha256": "2bfc4f3177bc6a0176d74d09f7fac1eee03cbafb3b32f5ca7e3c442f6bd94367"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gcf-t1/artifacts/execution.json",
+      "bytes": 2807,
+      "sha256": "261d6fd79cd2fc1a1d7e0bf963ec097dc818419238f196612ed459cb607083be"
+    }
+  ],
+  "fixed_operator_checkpoint": {
+    "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+    "bytes": 509805,
+    "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
+    "changed": false,
+    "current_measurement": false
+  },
+  "ci_history": [
+    {
+      "head": "61277066ccc47a22b63c7b3d7e75ac150443a212",
+      "run": 41260536432,
+      "status": "FAIL"
+    },
+    {
+      "head": "322a82bc1f93ac4374d4194595bb130514303645",
+      "run": 41260945124,
+      "status": "FAIL",
+      "linux": {
+        "failed": 5,
+        "passed": 6772,
+        "skipped": 123,
+        "subtests_passed": 528
+      },
+      "windows_runtime_failures": 3
+    }
+  ],
+  "ci_limit": "PEP660 root egg-info creation proven with local setuptools83/Python3.13 fixture; actual CI cause remains unconfirmed pending successor raw pre-seal/review. New source not yet cloud qualified.",
+  "scope_limits": [
+    "No ACL/global/private-state changes",
+    "No physical release measurement",
+    "No rolling operator baseline or budget/2GiB threshold changes",
+    "No installed-runtime, release, Green replacement or real-data acceptance"
+  ],
+  "remaining": [
+    "303 shallow layout snapshot entries and other producers/linked-worktree ownership",
+    "Six pinned candidate inputs normalization and successor qualification",
+    "Green migration source gaps",
+    "F05 and complete CL/J/R6 business acceptance",
+    "Exact-SHA CI, qualifying merge and local/remote readback"
+  ]
+}

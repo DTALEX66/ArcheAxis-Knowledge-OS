@@ -1,6 +1,8 @@
 # 文档职责与权威导航
 
-来源用途与产品定位的最新澄清为[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
+现行定位及闭环目标按[Owner选择新任务包](../workspace/intake/20261101-positioning-loop-update/README.md)和`SUP-030`：产品身份V2.2、同路径唯一闭环V3；X1—X8映射原CL/J。以下SUP-029继续规定来源用途，不再作为最新定位版本。
+
+来源用途继续按[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`，定位目标按第二十五节和 `SUP-030`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
 
 本页只回答“该读哪个规范源”，不复制进度、运行观察或完成结论。换会话先读[根入口](../AUTHORITY.md)、[执行规则](../AGENTS.md)，再按[活动指针的 continuation_context](current/AAOS-ACTIVE-EXECUTION.json)接续。用户当前明确决定与已登记替代关系优先；历史任务包、交接和回执保留各自适用时点与证据身份。
 
@@ -8,7 +10,7 @@
 | --- | --- | --- |
 | 活跃范围、任务来源与接续顺序 | [活动指针](current/AAOS-ACTIVE-EXECUTION.json) | 由指针选择当前任务包及覆盖合同；不从文件日期或旧 COMPLETE 推断当前队列。 |
 | 闭环／最快最短完整闭环的含义 | [唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md) | 人类链、AI链与两侧授权知识连接，以及有限首版、兼容、免费检索、模型双通道和同候选验收的Owner规范；原始跨软件会话外置，不另设进度。 |
-| 软件／版本／特色／方向验收矩阵 | [CL-04/J3现行矩阵](current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json) | 沿冻结35平台种子继续发现；官方文档、AAOS自造材料、本地消费者、外部往返分别记账，UNKNOWN不升级为支持；实际进度仍归唯一执行记录。 |
+| 软件／版本／特色／方向验收矩阵 | [CL-04/J3现行矩阵](current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)、[新包来源绑定](../workspace/intake/20261101-positioning-loop-update/SOURCE-BINDING.json) | 既有35平台种子与新包37平台覆盖表按原身份对照，不互相冒充。官方文档、AAOS自造材料、本地消费者、外部往返分别记账，UNKNOWN不升级为支持；实际进度仍归唯一执行记录。 |
 | 当前Stitch全量界面与前后端并行接通 | [执行分片覆盖](current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md) | Owner后继明确全部按新UI接通，UI-P/BE-P并行映射原任务，实际进度仍只有下一行入口。 |
 | 实际实施进度与验收证据 | [唯一 UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md) | 回执只证明其绑定源码、对象和环境；规划包中的 NOT_EXECUTED 不回填为运行结果。 |
 | 当前交接与未完成事项 | [接手入口](current/AAOS-AGENT-HANDOFF-CURRENT.md)、[来源待办索引](current/AAOS-EXECUTION-BACKLOG-20261018.json) | 交接与待办用于续接，实际进度仍归唯一执行记录。 |
@@ -19,6 +21,7 @@
 | 产品原则与任务合同 | [项目合同](../PROJECT_CONTRACT.yaml)、[当前任务包](taskpacks/aaos-ui-first-20261009/TASKPACK.md)；继承／覆盖合同：[后端合同](authority/taskpack-20261013-backend-host/TASKS.json)、[前端合同](authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASKS.json) | 具体激活范围读活动指针；不可变任务包是合同来源，不是第二份实时进度。 |
 | 协议、生成物与源码验证入口 | [协议 Schema](../packages/contracts/)、[生成器](../scripts/contracts/)、[契约测试](../tests/)、[Rust Core](../crates/)、[正式前端](../frontend/)、[正式宿主](../src-tauri/) | Schema、实现与行为回归分别核对；仅有声明或生成 DTO 不代表真实消费者已接通。 |
 | 原始资料与来源 manifest | [资料索引](../AAOS-资料索引.md)、[输入来源登记](current/AAOS-INPUT-SOURCES-20261006.json)、[原始资料清单](history/record-archive-20261009/MANIFEST.json) | 按登记路径和 SHA 查原件；索引不是跨项目或私人资料访问授权。 |
+| 十月以前公开过程记录 | [首批恢复映射](history/2026-11-01-preoct-archive/MANIFEST.json)、[第二批恢复映射](history/2026-11-01-preoct-archive-batch2/MANIFEST.json)、[第三批恢复映射](history/2026-11-01-preoct-archive-batch3/MANIFEST.json) | 默认搜索不展开历史树；按需读取已验证的ZIP成员，同时保留原冻结清单的长度/SHA约束。现行合同、原始输入和程序依赖不按日期误删。 |
 | 共享库、工具、模型与本机资源 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md)、[依赖声明](../config/environment/capability-requirements.yaml)、[资源观察](../config/environment/external-resources-index.json) | 登记不等于安装、可执行或可用；版本、权限及运行状态须现场核实，不猜外置根。 |
 | 验证规则与交付边界 | [验证策略](VERIFICATION_POLICY.md)、[Gate 登记](../.worklab/gate-registry.v1.yaml)、[路径风险映射](../.worklab/project-validation.v1.yaml)、[运行与交付导航](RUNTIME_DELIVERY_AUTHORITY_INDEX.md) | 区分结构检查、本地测试、exact-SHA CI、原生运行和 Owner 验收；PASS 不自动授予发布或 Green 替换权限。 |
 | 配置与语言边界 | [配置权威](CONFIGURATION_AUTHORITY_INDEX.md)、[语言边界](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) | 配置各归其唯一源；不把历史实现语言或供体位置当正式宿主。 |

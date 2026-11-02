@@ -235,6 +235,22 @@
           "remaining_scope_roots": 5,
           "scope_limit": "Exact reviewed public files complete; 247 reviewed directories remain with out-of-plan entries. No private-entry inspection or additional deletion. Manual process exit not independently observed; physical release and fresh whole-repository size not measured. Existing operator checkpoint unchanged."
         }
+      },
+      "governance_followup_20261101": {
+        "instruction": "优先执行各类治理和规范任务，静默执行不要在问我了",
+        "priority": "Continue existing S01/G01 governance before finite backend qualification; no new product queue",
+        "authorization": "Continue exact project-owned normalization and producer fixes under existing grants without repeated confirmation",
+        "boundary": "Existing owner_delivery_20261101 public-source synchronization authorization remains applicable after required checks; governance priority creates no additional private/runtime/data-egress grant. UI/monitor pause and exact external-path boundaries remain",
+        "record": "docs/history/storage-cleanup/2026-11-01-governance-followup/README.md",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
+      "history_retention_20261101": {
+        "owner_instruction": "还有历史记录文档也该清理了 保留10月份的就行了 不要老是扫描到旧文档",
+        "cutoff": "2026-10-01",
+        "scope": "Retain October 2026 and newer records; compact positively identified earlier public historical process records with byte-preserved ZIP, exact member identity and restoration mapping. Current contracts, program dependencies, original inputs and unclassified records are not retired solely by age.",
+        "archive_navigation": "docs/history/2026-11-01-preoct-archive/README.md",
+        "default_search": "Current source and selected normative inputs first; .ignore excludes historical text trees by default. Explicit historical lookup remains available.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       }
     },
     "owner_handoff_20261029": {
@@ -273,7 +289,7 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "permission_recovery_current": {
-      "observed_at": "2026-10-30T16:00:33.850573+00:00",
+      "observed_at": "2026-10-31T00:00:33.850573+08:00",
       "state": "EXACT_PLANNED_OBJECTS_READ_VERIFIED_INVENTORY_GAP_PARTIAL",
       "record": "docs/history/storage-cleanup/2026-10-30-read-access-verification/README.md",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
@@ -692,7 +708,8 @@
       "stitch_source_manifest": "docs/history/product-loop-20261019/session-20261021-stitch/MANIFEST.json",
       "stitch_design_comparison": "docs/history/product-loop-20261019/session-20261021-stitch/STITCH-COMPARISON.md",
       "stitch_implementation": "docs/current/AAOS-STITCH-UI-INTEGRATION-20261021.md",
-      "knowledge_compatibility_matrix": "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json"
+      "knowledge_compatibility_matrix": "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json",
+      "new_task_package_goal_selection": "workspace/intake/20261101-positioning-loop-update/README.md"
     },
     "verification": "索引仅导航；现场核对文件/manifest 哈希、版本、进程和源码资格，UNKNOWN 不升级为可用；新决定注明替代关系，实际进度只回写 active_progress",
     "evidence_navigation": {
@@ -936,9 +953,9 @@
     "scope": "Close this conversation and synchronize public task-owned branch; no new feature work in this closeout"
   },
   "closed_loop_definition": {
-    "id": "AAOS-SHORTEST-COMPLETE-LOOP-V2",
+    "id": "AAOS-SHORTEST-COMPLETE-LOOP-V3",
     "source": "docs/truth/CLOSED_LOOP_DEFINITION.md",
-    "owner_decided_at": "2026-10-19",
+    "owner_decided_at": "2026-11-01",
     "role": "Normative scope and acceptance; no implementation or completion claim",
     "aliases": [
       "闭环",
@@ -948,7 +965,8 @@
       "全链路跑通"
     ],
     "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "supersession": "SUP-025"
+    "supersession": "SUP-030",
+    "selected_source": "workspace/intake/20261101-positioning-loop-update/SOURCE-BINDING.json"
   },
   "execution_priority_overlay": {
     "current_order_ref": "#/execution_control/owner_priority_20261030/order",
@@ -1205,6 +1223,16 @@
       "implementation_preference": "RESEARCH_EXISTING_MATURE_OSS_AND_OFFICIAL_APIS_FIRST_THEN_INTEGRATE_OR_ADAPT",
       "preserved_scope": "HUMAN_AI_DUAL_LOOP_AND_EXISTING_DATA_EGRESS_CORE_WRITER_BOUNDARIES",
       "qualification": "NORMATIVE_DIRECTION_NOT_INTEGRATION_OR_PRODUCT_PASS"
+    },
+    "goal_revision_20261101": {
+      "id": "OWNER-NEW-PACK-POSITIONING-LOOP-20261101",
+      "supersession": "SUP-030",
+      "source_and_selection": "workspace/intake/20261101-positioning-loop-update/README.md",
+      "identity": "docs/truth/PRODUCT_IDENTITY_V2.md",
+      "loop": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+      "scope": "Owner-selected v3/R6 goals override conflicting old positioning/loop interpretations; CL/J and 186/22 identities preserved",
+      "status": "NORMATIVE_REQUIREMENTS_NOT_IMPLEMENTATION_PASS",
+      "boundary": "governance priority and UI/monitor pause unchanged; no new remote/data-egress/release grant"
     }
   },
   "thread_handoff": {
@@ -1536,7 +1564,7 @@
     "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
     "common_formats_latest": "CURRENT5822_FOUR_FORMAT_CORE_EXPORT_RESTORE_AND_NATIVE_READER_COMPONENTS_PASS; SAME_DB_HUMAN_KNOWLEDGE_LEARNING_RESTART_ACTUAL_RESTORE_API_SUBCHAIN_PASS_SEPARATELY; FULL_NATIVE_J1_AND_WIDER_FIDELITY_PARTIAL; DIRECTORY_BATCH_FOLLOWUPS_AS_RECORDED_IN_CURRENT_CHECKPOINT; NO_AUTO_PROJECTION_REQUIREMENT_INFERRED",
     "installed_business_latest": "CURRENT5822_INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; ORIGINAL_RUN01_FAIL_AND_OLD3407_VM_DISAPPEARANCE_PRESERVED",
-    "historical_code_delivery_observation_at": "2026-10-23T20:21:20.557382+00:00",
+    "historical_code_delivery_observation_at": "2026-10-24T04:21:20.557382+08:00",
     "delivery_receipt": ".project-local/artifacts/dual-loop-resume-20261023/delivery-latest-20261024.json",
     "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT",
     "final_public_preflight_20261024": {

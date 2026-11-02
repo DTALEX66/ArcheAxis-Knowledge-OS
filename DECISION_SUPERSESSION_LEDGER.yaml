@@ -1,6 +1,6 @@
 schema: archeaxis.decision-supersession-ledger/v1
 schema_version: 1
-effective_at: "2026-10-26T00:00:00Z"
+effective_at: "2026-11-01T00:00:00Z"
 rules:
   - later rows do not silently erase earlier evidence
   - a superseding row must name the old claim and the replacement
@@ -169,3 +169,9 @@ decisions:
     old_claim: 'Original material is the mandatory factual judgment basis; source evidence must be uniquely authoritative before content may be saved, shown, learned from or compared'
     replacement: 'Sources are traceable and revisable clues for identifying extraction errors and comparing content. Compare recognition fidelity with original input; compare factual claims and doubts across independent encyclopedia, community/forum and research sources through existing mature APIs/adapters. Preserve disagreement and revisions. A source timeout, rate limit or empty result is per-source status; keep other available retrieval and ordinary local save/display/learning usable. Prefer researched mature integrations over duplicate generic frameworks. PROJECT_CONTRACT.yaml content_policy is the normative rule; software configuration authority and the single Rust writer do not establish factual authority.'
     reason: 'Owner 2026-10-26 explicitly clarified the purpose of source evidence and requested updates to positioning, description and authority, while requiring mature open-source integration first. See section twenty-four of docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md. Existing material-egress/credential/data boundaries, user knowledge-admission choice, finite scope and frozen capabilities remain; no integration or product qualification is inferred from this rule update.'
+  - id: SUP-030
+    status: effective
+    supersedes: 'V2.1 positioning, old fixed-six-space navigation and V2 loop interpretations only where inconsistent with Owner-selected v3/R6 goals; inherited requirements and historical evidence remain'
+    old_claim: 'Product positioning and loop goals remain the 2026-10-26/V2 interpretation; v3/R6 inputs are audit-only material and cannot select current normative goals.'
+    replacement: 'Owner 2026-11-01 explicitly selects the new task package for positioning, description and closed-loop goals, with all references/indexes updated. PRODUCT_IDENTITY_V2.md V2.2 and CLOSED_LOOP_DEFINITION.md V3 absorb the v3 object-centered workspace/contextual task Agent, five stable entries, R6 external professional practice and X1-X8 acceptance mapped to original CL/J. Preserve two cores, capability IDs, unconflicted required formats/research/recovery/model goals, ordinary-save and data boundaries. Source selection is not current implementation/installed/Owner acceptance or new remote/UI/monitor authorization.'
+    reason: 'Owner statements and exact archived ZIP/member hashes are bound in workspace/intake/20261101-positioning-loop-update/SOURCE-BINDING.json; current decision section 25 records scope and precedence.'

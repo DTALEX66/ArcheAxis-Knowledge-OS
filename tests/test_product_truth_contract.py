@@ -5,10 +5,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_WORKSPACE = "Human–AI Learning Workspace"
-# SUP-029 updates the positioning; preservation and traceability remain in the
-# explanation, rather than forcing the superseded introduction back into use.
+# SUP-030 selects the new package goals; original names and ordinary-save
+# protection remain, while positioning and the canonical loop advance together.
 EXPECTED_POSITIONING_TERMS = (
-    "本地优先", "多格式资料整理", "多源联网检索比对", "持续纠错", "人机双向知识与学习工作台",
+    "本地优先", "资料与知识对象", "多源比较", "学习与表达", "Human–AI 双向知识与学习工作台",
 )
 
 
@@ -40,7 +40,7 @@ def test_public_product_truth_uses_learning_workspace_positioning() -> None:
         assert rule in readme_head, rule
     assert "星环知识系统（ArcheAxis Knowledge）" in readme_head
     assert "认知闭环" not in readme_head
-    assert 'description = "Local-first, evidence-driven Human–AI learning and knowledge workspace' in pyproject
+    assert 'description = "Local-first personal knowledge, research and Human–AI learning workspace' in pyproject
     assert '"learning-workspace"' in pyproject
 
 

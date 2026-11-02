@@ -12,7 +12,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from desktop.scripts.stage_runtime import stage_runtime
+from desktop.scripts.stage_runtime import runtime_inputs, stage_runtime
+from scripts.release import runtime_growth as growth
+from scripts.release.ci_runtime_checkpoint import EXPORT
 from scripts.runtime import dev as runtime_paths
 from scripts.runtime.build_timing import BuildTimings
 
@@ -67,9 +69,11 @@ def asr_model_name(donor: Path) -> str:
 
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
-                              asr_model: Path | None = None, vc_runtime: Path | None = None) -> Path:
+                              asr_model: Path | None = None, vc_runtime: Path | None = None,
+                              storage_context=None, storage_generated_bytes=None) -> Path:
     """Prepare locked Python directly in the authoritative fresh backend root."""
     repository = runtime_paths.safe_path(repository)
+    storage_generated_bytes = growth.generated_bytes(storage_context, storage_generated_bytes)
     destination = runtime_paths.safe_path(destination)
     core = runtime_paths.safe_path(core)
     if asr_model is not None:
@@ -93,6 +97,14 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
     if asr_model is not None:
         command += ["--asr-model", str(Path(asr_model).resolve()),
                     "--asr-model-name", asr_model_name(Path(asr_model))]
+    if storage_generated_bytes is not None:
+        command += ["--storage-generated-bytes", str(storage_generated_bytes)]
+    if storage_context is not None:
+        command += ["--run-id", storage_context["paths"]["run"].name,
+                    "--storage-purpose", storage_context["purpose"], "--storage-sharing", storage_context["sharing"],
+                    "--storage-retention-reason", storage_context["retention_reason"]]
+        if "ci_checkpoint" in storage_context:
+            command += ["--ci-runtime-checkpoint", str(storage_context["ci_checkpoint"])]
     authority = _backend_stager(repository)
     timings = BuildTimings(Path(environment["ARCHEAXIS_RUN_ROOT"]) / "artifacts", environment)
     with timings.stage("backend-runtime-in-place") as measured:
@@ -128,7 +140,7 @@ def resolve_vc_runtime(explicit: Path | None = None) -> Path:
     selected = explicit or os.environ.get("ARCHEAXIS_VC_RUNTIME_DIR")
     if selected:
         return validated(selected)
-    program_files = os.environ.get("ProgramFiles(x86)")
+    program_files = os.environ.get("ProgramFiles(x86)")  # noqa: SIM112 - preserve the published Windows key
     if not program_files:
         raise RuntimeError("VC runtime donor unavailable; pass --vc-runtime or ARCHEAXIS_VC_RUNTIME_DIR")
     vswhere = Path(program_files) / "Microsoft Visual Studio/Installer/vswhere.exe"
@@ -211,28 +223,41 @@ def runtime_build_environment(repository: Path) -> dict[str, str]:
 
 
 def prepare_bundle_runtime(*, repository: Path, destination: Path,
-                           _backend_in_place: bool = False, _environment: dict | None = None) -> Path:
+                           _backend_in_place: bool = False, _environment: dict | None = None,
+                           storage_context=None, storage_generated_bytes=None) -> Path:
     if sys.version_info[:2] != (3, 12):
         raise RuntimeError(
             "请使用 Python 3.12 制备桌面运行时；当前执行解释器为 "
             f"Python {sys.version_info[0]}.{sys.version_info[1]}。"
         )
-    if _backend_in_place:
-        repository = runtime_paths.safe_path(repository)
-        destination = runtime_paths.safe_path(destination)
-    else:
-        repository = repository.resolve()
-        destination = destination.resolve()
+    repository = runtime_paths.safe_path(repository)
+    destination = runtime_paths.safe_path(destination)
+    storage_generated_bytes = growth.generated_bytes(storage_context, storage_generated_bytes)
     uv = shutil.which("uv")
     if uv is None:
         raise RuntimeError("uv is required to prepare the desktop runtime")
 
     env = dict(_environment) if _backend_in_place and _environment is not None else runtime_build_environment(repository)
+    if storage_generated_bytes is None and growth._batch.get() is None:
+        raise ValueError("runtime generation requires explicit storage_generated_bytes and storage declarations")
+    binding = growth.interpreter_source()
+    inputs = runtime_inputs(Path(binding["physical_root"]), interpreter_binding=binding)
+    total = sum(value["bytes"] for value in inputs.values())
+    if storage_generated_bytes is not None:
+        if type(storage_generated_bytes) is not int or storage_generated_bytes <= 0:
+            raise ValueError("runtime generation requires a positive byte estimate")
+        total += storage_generated_bytes
+    with growth.batch(destination, inputs, total, storage_context, unknown_output=True, interpreter_binding=binding):
+        return _prepare_runtime(repository, destination, _backend_in_place, env, uv, binding)
+
+
+def _prepare_runtime(repository, destination, _backend_in_place, env, uv, binding):
     if _backend_in_place:
         # This build process only: uv's shared cache must not hardlink the final runtime.
         env["UV_LINK_MODE"] = "copy"
     timings = BuildTimings(Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts", env)
     with timings.stage("python-copy") as copy:
+        copy["source_binding"] = binding
         staged_python = (stage_runtime(repository=repository, destination=destination, _backend_in_place=True)
                          if _backend_in_place else stage_runtime(repository=repository, destination=destination))
         copy["bytes"] = sum(path.stat().st_size for path in staged_python.parent.rglob("*") if path.is_file())
@@ -258,14 +283,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path,
     _run(
         [
             uv,
-            "export",
-            "--quiet",
-            "--frozen",
-            "--no-dev",
-            "--no-emit-project",
-            "--no-editable",
-            "--format",
-            "requirements-txt",
+            *EXPORT,
             "--output-file",
             str(requirements),
         ],
@@ -273,6 +291,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path,
         env=env,
         stage="dependency-export", timings=timings,
     )
+    growth.verify_requirements(requirements)
     _run(
         [
             uv,
@@ -342,6 +361,7 @@ def install_core(
     core: Path,
     workers: Path | None = None,
     candidate_root: Path | None = None,
+    storage_context=None,
 ) -> Path:
     """Place a built canonical Core, and optionally its workers, beside the runtime.
 
@@ -350,15 +370,27 @@ def install_core(
     staged tree the shell's discovery finds nothing and keeps the legacy entrypoint,
     silently - so putting one here is what actually changes which backend ships.
     """
+    repository = storage_context["paths"]["root"] if storage_context is not None else None
+    inputs = {growth.plain(core): growth.core_row(core, repository=repository)}
+    if workers is not None:
+        inputs.update(growth.snapshot(workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")))
+    if candidate_root is not None:
+        for name in CANDIDATE_ROOT_FILES:
+            inputs[growth.plain(candidate_root / name)] = growth.row(candidate_root / name)
+    with growth.batch(destination, inputs, sum(value["bytes"] for value in inputs.values()), storage_context):
+        return _install_core(destination=destination, core=core, workers=workers, candidate_root=candidate_root)
+
+
+def _install_core(*, destination, core, workers=None, candidate_root=None):
     if not core.is_file():
         raise RuntimeError(f"core executable is missing: {core}")
     staged = destination / "core"
     staged.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(core, staged / core.name)
+    growth.copy2(core, staged / core.name)
     if workers is not None:
         if not workers.is_dir():
             raise RuntimeError(f"workers directory is missing: {workers}")
-        shutil.copytree(
+        growth.copytree(
             workers,
             destination / "workers",
             dirs_exist_ok=True,
@@ -373,7 +405,7 @@ def install_core(
             source = candidate_root / name
             if not source.is_file():
                 raise RuntimeError(f"candidate root is missing {name}: {source}")
-            shutil.copy2(source, destination / name)
+            growth.copy2(source, destination / name)
     return staged / core.name
 
 
@@ -398,6 +430,14 @@ def main() -> int:
                              "defaults to the model the capability declaration names")
     parser.add_argument("--vc-runtime", type=Path,
                         help="explicit reviewed x64 VC donor; defaults to build-local environment or official VS registration")
+    parser.add_argument("--run-id")
+    parser.add_argument("--storage-purpose")
+    parser.add_argument("--storage-sharing")
+    parser.add_argument("--storage-retention-reason")
+    parser.add_argument("--storage-generated-bytes", type=int,
+                        help="positive projected generated bytes for uv/build; always checked against fixed checkpoint")
+    parser.add_argument("--ci-runtime-checkpoint", type=Path,
+                        help="explicit singleton checkpoint initialized for this isolated CI job; not a local override")
     args = parser.parse_args()
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
@@ -405,14 +445,25 @@ def main() -> int:
         parser.error("--core-only requires --core")
     if not args.core_only and args.repository is None:
         parser.error("--repository is required unless --core-only is given")
-    destination = args.destination.resolve()
+    if args.repository is not None:
+        args.repository = runtime_paths.safe_path(args.repository)
+    destination = runtime_paths.safe_path(args.destination)
+    context = None
+    if args.run_id:
+        context = {"paths": runtime_paths.layout(args.repository or Path(__file__).resolve().parents[2], args.run_id), "purpose": args.storage_purpose,
+                   "sharing": args.storage_sharing, "retention_reason": args.storage_retention_reason}
+    if args.ci_runtime_checkpoint is not None:
+        if context is None or args.core_only:
+            parser.error("--ci-runtime-checkpoint requires --run-id and a runtime generation path")
+        context["ci_checkpoint"] = args.ci_runtime_checkpoint
     if args.backend_candidate:
         if args.core is None or args.repository is None or args.core_only:
             parser.error("--backend-candidate requires --repository and --core, without --core-only")
         print(prepare_backend_candidate(
             repository=args.repository, destination=destination, core=args.core,
             vc_runtime=args.vc_runtime,
-            asr_model=args.asr_model or declared_asr_model(args.repository.resolve())))
+            storage_context=context, storage_generated_bytes=args.storage_generated_bytes,
+            asr_model=args.asr_model or declared_asr_model(args.repository)))
         return 0
     # Placing the Core beside an already-prepared runtime must not reinstall the runtime:
     # the install resolves and builds the whole locked dependency set, and a packaging step
@@ -423,14 +474,20 @@ def main() -> int:
             core=args.core,
             workers=args.workers,
             candidate_root=args.candidate_root,
+            storage_context=context,
         ))
         return 0
-    staged_python = prepare_bundle_runtime(repository=args.repository, destination=destination)
+    staged_python = prepare_bundle_runtime(repository=args.repository, destination=destination,
+        storage_context=context, storage_generated_bytes=args.storage_generated_bytes)
     if args.core is not None:
-        install_core(destination=destination, core=args.core, workers=args.workers)
+        install_core(destination=destination, core=args.core, workers=args.workers, storage_context=context)
     print(staged_python)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except growth.portable.GrowthReviewRequiredError as error:
+        print(str(error), file=sys.stderr)
+        raise SystemExit(2) from error

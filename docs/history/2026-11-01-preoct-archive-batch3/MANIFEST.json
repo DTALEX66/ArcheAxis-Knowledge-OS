@@ -1,0 +1,223 @@
+{
+  "schema": "aaos.preoct-public-records/v1",
+  "archive": {
+    "path": "docs/history/2026-11-01-preoct-archive-batch3/preoct-public-records.zip",
+    "bytes": 145973,
+    "sha256": "681e8f97337086ff6597a84367c1c277dee3fb463c7d24edb2e9d13a8177b914"
+  },
+  "files": [
+    {
+      "path": "docs/history/DOCUMENT-CONSOLIDATION-20260927.md",
+      "bytes": 2268,
+      "sha256": "d043e8b1e9b87160be6e232f78be1c209c897a5c121ef49f558a141a12273633",
+      "git_blob": "0a9b9e465905f804ab756f9b05ed31b00717755a"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+      "bytes": 324896,
+      "sha256": "3acc114e07596f79450e9a4f3d8872495e9a3c336fbc80c6e37829ddf1968a94",
+      "git_blob": "c71a4e9fb4802c42d3bcbae36d625aefcee666ab"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md",
+      "bytes": 22403,
+      "sha256": "51566a749e4138151a3256fe3eb7b60d677598313183322676f65545af9f1a6f",
+      "git_blob": "753f092a24dc49f63e793d7729e5640a5e240342"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md",
+      "bytes": 24838,
+      "sha256": "27e6bd0001a59b95dc7fd778762b338517730f0579a67b645ca8f3e8a2beb4c0",
+      "git_blob": "8a27783d50aeced64ab73617be66d60424afc5e2"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md",
+      "bytes": 4870,
+      "sha256": "75984930143bfe1427e2d4836ff02fe5dfc6b55cad4ab5e666bf689e9f9b2047",
+      "git_blob": "f38ddd49ad6fd52d7d6ade45b21a7198962077a1"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_103_FIRST_RUN_SETUP_HANDOFF_2026-08-24.md",
+      "bytes": 1794,
+      "sha256": "d6dfdbbde8714a7a19359ca306212fabaa53c3471a0e2dde0b8eab524b376ec0",
+      "git_blob": "26bf8f406faa2888d344bbf070f5a4619f9c1c2e"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_202_TIER_A_FIXTURE_MATRIX_HANDOFF_2026-08-24.md",
+      "bytes": 1446,
+      "sha256": "054b38e8a19a1c28d67cad5e255634618d23570b8ca587432e6c365f1005a789",
+      "git_blob": "343c5ad1e89df1390500d202543d3ced66063afd"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_203_WEB_RAW_FIRST_HANDOFF_2026-08-24.md",
+      "bytes": 1970,
+      "sha256": "9c3b1b2e2216acdbbaf5c0a5f5453053de6b68899713f551332fe1f5ba5a3d79",
+      "git_blob": "e7f1c8461a5b6d3baebb3521b765abb58bae2b52"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_302_APPEND_ONLY_AUDIT_HANDOFF_2026-08-24.md",
+      "bytes": 2346,
+      "sha256": "7d4b861ec6bc74828e2696106f489162c841fa8e5dc793eb5892c3ff82afb108",
+      "git_blob": "6e202c6291d04238064a1dec4cb6605b489ffa8c"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_303_EVIDENCE_BUNDLE_KNOWLEDGE_VERSION_HANDOFF_2026-08-24.md",
+      "bytes": 4268,
+      "sha256": "2946e7c66b2e4963c31251be538faf910f32f8a8687de6c5efdac6bd47d23709",
+      "git_blob": "8de864c6a0203477462bd5f1bcdc6bd77e4d9de3"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_401_UNIFIED_CLIENT_HANDOFF_2026-08-24.md",
+      "bytes": 3747,
+      "sha256": "250b885309d98f2b9463b48d090ad0b484c1492131fea513897a6a3312dd6c68",
+      "git_blob": "887973fcd6b73bb4962458c09a8e488d5481bf1c"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_404_EVIDENCE_ANCHOR_PAGINATION_HANDOFF_2026-08-24.md",
+      "bytes": 1018,
+      "sha256": "182af4a0a2301535c8910bdf9aa5f907a5bd781886786097a7f5ee5d8a5c6e6a",
+      "git_blob": "bd956e389bfe9f6444053dd8e462f7d8066ff43e"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md",
+      "bytes": 10617,
+      "sha256": "b98438008ce429652eb2b6508728a61a22d8a020180ad493d4e11b2711824fbe",
+      "git_blob": "8f3cb856e49cec6622ea3d41f5af00cf714724bc"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md",
+      "bytes": 3842,
+      "sha256": "2cb090482c7ab9320b7698ca390f82d7918dbfcb96d71cdc386cadefa24dad61",
+      "git_blob": "011f2e7b2f2dda5fe97f720c8bdaff12c3d469dc"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/AXR_CURRENT_REALITY_2026-08-27.md",
+      "bytes": 6655,
+      "sha256": "08870abfee538c0f69df71377f8c98e244977a9fdd3bae9ca0620492116411e9",
+      "git_blob": "6bbad02e4041ea2c97914cfb063837e12b2b28e3"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md",
+      "bytes": 8707,
+      "sha256": "bed04848423f54faf6db11632cd943aaa107cb552e1164db566221ce4b045e2c",
+      "git_blob": "0821edb7558297b90893f2c0b4157f3840373a51"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/DSH-BACKEND-GAP-MAP-20260927.md",
+      "bytes": 17547,
+      "sha256": "e642e8097a6466cecde5a6d0e12dfbc97da0381a1d98675cc09dd5836c2806f7",
+      "git_blob": "ffb8653b2ded7ffd9d567a5a185f44336b81f973"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md",
+      "bytes": 8994,
+      "sha256": "e50e26e7dd4bb0524969b1896cf9dfa5e732bf94a0078886300f9b818040f934",
+      "git_blob": "72d3b791efa893f8aaaab8e4a2496df0549c6321"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/R5-HANDOFF-20260918.md",
+      "bytes": 6776,
+      "sha256": "4c09cde8618b41314b9d2e65918bd06508c1deda5dbb8fcbea19315aa5840b2f",
+      "git_blob": "f92aeeb75c6cb8dad348eda7ad5584d904e30396"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/R5-MASTER-TASKPACK-AUDIT-20260914.md",
+      "bytes": 4471,
+      "sha256": "5120273e7de670d104d29dfd4bda0d5fe917a799815bfd00594077dc5160a58c",
+      "git_blob": "8f19e19dd064e151b39da17a275bd966cb38d9ae"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md",
+      "bytes": 5324,
+      "sha256": "59caddedcdef3df1acfc805557ac2dc7f95a2740839848a552b71c3b692ddc18",
+      "git_blob": "c4d701c213bbd4c7510003617b1ad0a3d4478bf0"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md",
+      "bytes": 6640,
+      "sha256": "2f402dfe978262d0422dcfd4b5cc5e95d6080042500b3a734bb5794a1468da27",
+      "git_blob": "1d30c44e3869647d5f81c64228b96dcad0a265af"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-09-23-aaos-cloud-authority-hardening.md",
+      "bytes": 8368,
+      "sha256": "95c12c11aed341ee7e6042839caeeaada858fcebf72a176b20cd3ac38ace1b99",
+      "git_blob": "5d7a07d17d4ae6963c3e8e274817008c067512d1"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/README.md",
+      "bytes": 1773,
+      "sha256": "c66cb96a490e21df3a2bc7d2cd7e723f96d3c8f45986061a968356ca5ea3aef3",
+      "git_blob": "35c4839227b92e988546ad9f074abc881c359bf5"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-07-21.md",
+      "bytes": 4040,
+      "sha256": "11cc41b6cb1166d03ca70d6a81a4f246793d42a85c58e1c3e3f5b4dd1943da94",
+      "git_blob": "f8e89793ae860efb4d050c484487871dc96d212a"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-07_stage-summary.md",
+      "bytes": 5903,
+      "sha256": "4f673a753e866479975532a5e35d8bca4da7758f93be7a4f121cd699eb07b018",
+      "git_blob": "2ef268d11e2d1b256f18427645747750474157c2"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-12_naming-migration.md",
+      "bytes": 4763,
+      "sha256": "03f85697c508d2aaa61f4f74f4ceeab6c38b4ea29c5f1d8f7cd60ee569824795",
+      "git_blob": "a6a20783975bbf811645ed164f32c8f8aca99006"
+    },
+    {
+      "path": "docs/history/planning-blueprint-absorption/2026-09-29/AUDIT_CROSSWALK.md",
+      "bytes": 4761,
+      "sha256": "6a9f9812bc9e916d5be2dd0d0c60c3e76a26614e49346b867fe4882b03329071",
+      "git_blob": "4acff4bf2091c099a5e496f8919c35567a8633f5"
+    },
+    {
+      "path": "docs/history/planning-blueprint-absorption/2026-09-29/OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+      "bytes": 5750,
+      "sha256": "daa39bb1cfea621a1bf0a19e0d5884ff55798b8f3d837b32b1809c70201a51c4",
+      "git_blob": "12aaef34f13998b9338a74e3e5b399b598c1615b"
+    },
+    {
+      "path": "docs/history/planning-blueprint-absorption/2026-09-29/OBSOLETE_DOCS_REFERENCES.json",
+      "bytes": 18519,
+      "sha256": "27ea7df61af9f43eacc9624a6d2ce79f9b101e3687bb9657b051ed48aef9f850",
+      "git_blob": "acf5964dfbab57dd22cca92c5bf1a6b5dec4b83c"
+    },
+    {
+      "path": "docs/history/r5-handoffs/R5-HANDOFF-2026-09-17.md",
+      "bytes": 3445,
+      "sha256": "58c44258c1a4e81ec65b755482cc5d9f08ad12ca3eea2a3acc5f14afc83b7361",
+      "git_blob": "764f2d039fed830b8b0cf30a162be4cb89cee8d2"
+    }
+  ],
+  "source_contracts": [
+    {
+      "path": "docs/history/branch-donors/execution-reliability-20260926/ARCHIVE.json",
+      "bytes": 2030,
+      "sha256": "40fb412d5f8b761d8b628730cf5a7b8cac7b53ab6bf29d1680723775b7ac44a0"
+    },
+    {
+      "path": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json",
+      "bytes": 150221,
+      "sha256": "96294daeccd6cf5b969553948d75f49d0d752dd64e9858b15c4e01c62f569d6e"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/MANIFEST.json",
+      "bytes": 412691,
+      "sha256": "1f185a578687ad1bca75e86d4eb97887a52693000defc3c87bd1d7d1788340cd"
+    },
+    {
+      "path": "docs/history/planning-blueprint-absorption/2026-09-29/ARCHIVE_MANIFEST.json",
+      "bytes": 4563,
+      "sha256": "8ad7be7fa40c81e8a137dfe657b8e2d48f2d1bfa1f7a09200301fdc640d82aa7"
+    }
+  ],
+  "source_commit": "322a82bc1f93ac4374d4194595bb130514303645",
+  "owner_request": "Keep October and later records; preserve recoverable original bytes of earlier process records outside daily text trees",
+  "date": "2026-11-01",
+  "status": "ARCHIVED_31_ORIGINAL_PATHS_ABSENT",
+  "scope": "31 exact reviewed public tracked process records; no original inputs, current contracts or October supplements"
+}

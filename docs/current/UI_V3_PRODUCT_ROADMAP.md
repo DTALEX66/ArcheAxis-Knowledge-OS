@@ -101,7 +101,7 @@
 - [x] 离线黑白深色 token：不加载网络字体、不保留紫色主强调色；命令面板仅在显式打开时成为模态遮罩，含 reduced-motion 降级。
 - [ ] 当前分支 Windows Rust/原生 WebView/NSIS/exact-SHA/人工视觉复审。
 
-实施与对标来源：[`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](../history/repository-consolidation-20261019/current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。
+历史实施与对标来源：已压缩的 `FRONTEND_CONSOLIDATION_V1_2026-08-28.md`，按[原路径恢复映射](../history/2026-11-01-preoct-archive/README.md)回查。当前定位与闭环按[Owner新包选择](../../workspace/intake/20261101-positioning-loop-update/README.md)，不以本页旧路线覆盖。
 
 ### P1 — 原件与证据工作台
 

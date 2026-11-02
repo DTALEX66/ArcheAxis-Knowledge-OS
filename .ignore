@@ -1,0 +1,21 @@
+# Default content search focuses on current source and rules. These records are
+# retained/archived, not deleted by this file. Use an explicit historical path
+# and --no-ignore when the task needs that evidence.
+/docs/history/
+/docs/architecture/imported-designs/
+/workspace/intake/**/source/
+# Pre-October intake notes and frozen source packages remain available through
+# their explicit authority routes. They are not the current execution queue.
+/workspace/intake/2026-0[1-9]-*
+/docs/authority/vnext-reference/
+/docs/authority/legacy/
+/docs/authority/taskpack-0905/
+/docs/authority/taskpack-0906/
+/docs/authority/taskpack-0907/
+/docs/authority/taskpack-0908-r3/
+/docs/authority/taskpack-0910-r3/
+/docs/authority/taskpack-0912-r5/
+/docs/cross-project/TP-20260819-TASKPACK-ARCHEAXIS.md
+/docs/three-project-analysis/09_双向学习知识OS调研报告_V1_2026-08-18.md
+/docs/verification/VERIFICATION_SUMMARY_2026-08-09.md
+/reports/vnext/legacy-dryrun-2026-09-04.json

@@ -9,6 +9,7 @@ import json
 import os
 import re
 import stat
+import sys
 from pathlib import Path, PurePosixPath
 
 if __package__:
@@ -77,6 +78,124 @@ def regular(path: Path, *, cargo_host: bool = False) -> Path:
     if not stat.S_ISREG(info.st_mode) or (info.st_nlink != 1 and not cargo_pair):
         raise ValueError(f"Expected an independent regular file: {path}")
     return path
+
+
+def file_metadata(info) -> dict:
+    """Public, bounded lstat evidence; no following a redirect or content dump."""
+    return {name: getattr(info, name, None) for name in (
+        "st_mode", "st_nlink", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns",
+        "st_file_attributes", "st_reparse_tag")}
+
+
+def opened_file_matches(stream, planned: dict) -> bool:
+    info = os.fstat(stream.fileno())
+    # On Windows fstat and path-lstat expose different permission bits/ctime
+    # semantics. Compare the actual file ID/type and bytes here; compare full
+    # path-lstat metadata with itself before/after the operation as well.
+    return stat.S_IFMT(info.st_mode) == stat.S_IFMT(planned["st_mode"]) and all(
+        getattr(info, key, None) == planned[key] for key in (
+            "st_dev", "st_ino", "st_nlink", "st_size", "st_mtime_ns", "st_file_attributes", "st_reparse_tag"))
+
+
+def _core_link_paths(path: Path) -> dict:
+    """Ask Windows for this file's exact names, never scan a Cargo deps tree."""
+    if os.name != "nt":
+        raise ValueError("Core hardlink name enumeration is only supported on Windows")
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    first, next_name, close = kernel.FindFirstFileNameW, kernel.FindNextFileNameW, kernel.FindClose
+    first.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, ctypes.POINTER(wintypes.DWORD), wintypes.LPWSTR]
+    first.restype = wintypes.HANDLE
+    next_name.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD), wintypes.LPWSTR]
+    next_name.restype = wintypes.BOOL
+    close.argtypes, close.restype = [wintypes.HANDLE], wintypes.BOOL
+    # A bounded maximum Windows path buffer; MORE_DATA fails closed, never retries without a bound.
+    buffer = ctypes.create_unicode_buffer(32768)
+    length = wintypes.DWORD(len(buffer))
+    handle = first(native(path), 0, ctypes.byref(length), buffer)
+    if handle == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    names = []
+    try:
+        names.append(buffer.value)
+        while True:
+            length.value = len(buffer)
+            if not next_name(handle, ctypes.byref(length), buffer):
+                error = ctypes.get_last_error()
+                if error != 38:  # ERROR_HANDLE_EOF, including after the second name.
+                    raise ctypes.WinError(error)
+                break
+            if len(names) == 2:
+                raise ValueError("Core file has more than two hardlink names")
+            names.append(buffer.value)
+    finally:
+        error = sys.exc_info()[1]
+        if not close(handle):
+            failure = ctypes.WinError(ctypes.get_last_error())
+            if error is not None:
+                error.add_note("Core hardlink FindClose also failed: " + str(failure))
+            else:
+                raise failure
+    paths = []
+    for name in names:
+        if (not re.fullmatch(r"[A-Za-z]:\\", path.anchor) or not name.startswith("\\")
+                or name.startswith("\\\\") or ":" in name or "/" in name
+                or any(part in {".", "..", ""} for part in name[1:].split("\\"))):
+            raise ValueError("Unexpected volume-relative Core hardlink name")
+        paths.append(Path(path.anchor + name[1:]))
+    return {"paths": paths, "raw_names": names, "method": "WIN32_EXACT_FILE_NAMES"}
+
+
+def core_identity(path: Path, cargo_root: Path) -> dict:
+    """Admit only the canonical Windows Core's exact two-name Cargo output pair.
+
+    This is observed source admission, not a qualified Core build receipt. Host's
+    existing same-name rule and generic independent-file rules remain separate.
+    """
+    path, cargo_root = checked(path), checked(cargo_root)
+    if path != cargo_root / "release/archeaxis-api.exe":
+        raise ValueError("Core hardlink is outside the canonical Cargo release path")
+    info = os.lstat(native(path))
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 2:
+        raise ValueError("Cargo Core requires exactly two regular hardlink names")
+    observed = _core_link_paths(path)
+    names, raw_names = observed["paths"], observed["raw_names"]
+    if (len(names) != 2 or len(raw_names) != 2 or len(set(names)) != 2 or path not in names
+            or len({name.casefold() for name in raw_names}) != 2):
+        raise ValueError("Cargo Core hardlink enumeration differs from the declared source")
+    # FindFirst/NextFileName make no ordering promise. Preserve original string
+    # contents in a stable order so a repeated observation has the same identity.
+    raw_names = sorted(raw_names, key=str.casefold)
+    pair = checked(next(name for name in names if name != path))
+    if (pair.parent != path.parent / "deps"
+            or not re.fullmatch(r"archeaxis_api(?:-[0-9a-f]{16})?\.exe", pair.name)):
+        raise ValueError("Cargo Core pair must be its direct deps binary")
+    other = os.lstat(native(pair))
+    if (not stat.S_ISREG(other.st_mode) or other.st_nlink != 2
+            or not os.path.samestat(info, other)):
+        raise ValueError("Cargo Core pair must have the exact same file identity")
+    sha = hashlib.sha256()
+    with open(native(path), "rb") as stream:
+        if not opened_file_matches(stream, file_metadata(info)):
+            raise ValueError("Cargo Core changed while opening its source")
+        remaining = info.st_size
+        while remaining:
+            chunk = stream.read(min(remaining, 1024 * 1024))
+            if not chunk:
+                raise ValueError("Cargo Core shorter than observed")
+            sha.update(chunk)
+            remaining -= len(chunk)
+        if stream.read(1):
+            raise ValueError("Cargo Core grew beyond observed size")
+    if (file_metadata(os.lstat(native(path))) != file_metadata(info)
+            or file_metadata(os.lstat(native(pair))) != file_metadata(other)):
+        raise ValueError("Cargo Core source pair changed while reading")
+    return {"bytes": info.st_size, "sha256": sha.hexdigest(), "cargo_core": {
+        "source": str(path), "cargo_root": str(cargo_root), "pair": str(pair),
+        "source_metadata": file_metadata(info), "pair_metadata": file_metadata(other),
+        "link_names": raw_names, "enumeration": observed["method"],
+        "qualification": "OBSERVED_CARGO_OUTPUT_NOT_QUALIFIED_BUILD"}}
 
 
 def inventory(root: Path) -> set[str]:

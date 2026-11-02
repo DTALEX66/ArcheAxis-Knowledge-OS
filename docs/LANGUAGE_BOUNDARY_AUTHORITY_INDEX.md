@@ -18,7 +18,7 @@ Avalonia shell priority; Rust Core and isolated Python boundaries are retained).
 Execution: [active execution pointer](current/AAOS-ACTIVE-EXECUTION.json) resolves the selected UI task source and scoped progress. [R6 task package](authority/taskpack-0919-r6/EXECUTOR-START.md) and [M0](history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md) retain inherited constraints; their old whole-package sequence is frozen.
 R5 and earlier packs are historical evidence only.
 The 0906/0908/0910 ledgers retain their original historical evidence.
-Historical baseline: [2026-09-03 normalization record](history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md).
+Historical baseline: [2026-09-03 normalization record](history/2026-11-01-preoct-archive-batch3/README.md).
 Its old G0 cutover instructions are superseded; its recorded evidence is retained.
 
 | Responsibility | Current implementation target | Boundary |

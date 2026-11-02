@@ -6,6 +6,8 @@
 
 历史恢复、暂停和权限事件只说明对应时点，不自行产生当前授权或完成结论；权限恢复不等于产品完成，监控暂停不等于产品暂停，归档完成不等于后继开发已执行。冲突按既有替代账本解析，证据不足标为未确认。Markdown链接只是导航，Agent须按任务实际读取目标；客户端全文加载由其原生导入机制负责。
 
+日常状态、定位和任务检索先限于活动指针、现行规范、当前源码及选定来源，不把全量历史文档作为默认搜索范围。Owner要求保留2026-10及之后历史、清理更早记录；归档前需分辨现行合同/程序消费者并保全原字节。默认文本搜索的`.ignore`隔离历史树和原文副本，明确需要旧日期/证据时才指定精确路径并覆盖ignore；`git grep`须显式限制当前目录，历史索引不当现行事实。
+
 旧文件身份先查[项目路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)；Owner历史来源查[冻结对话摘录与映射](docs/history/owner-dialogue-20261019/README.md)。登记与摘录用于核实来源，不另授权执行。
 
 This file is the public, sanitized operating configuration for agent work inside
@@ -16,10 +18,13 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 ## 1. Project Mission
 
-用户提到“闭环／最短闭环／最快闭环／完整闭环／全链路跑通”时，必须先读唯一规范 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`），再读活动指针与实际进度。不得缩成单文件导入加一次模型回答；全面非企业知识库特色、免费外部检索、本地与云端模型均按该定义验收。该定义是目标，不是已完成声明。
+用户提到“闭环／最短闭环／最快闭环／完整闭环／全链路跑通”时，必须先读唯一规范 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V3`），再读活动指针与实际进度。不得缩成单文件导入加一次模型回答；全面非企业知识库特色、免费外部检索、本地与云端模型均按该定义验收。现行V3按Owner 2026-11-01选择的新任务包覆盖旧目标解释（SUP-030），CL/J原ID保留；该定义是目标，不是已完成声明。
 
-ArcheAxis Knowledge is a local-first, bidirectional Human–AI knowledge and learning
-workspace for multi-format content, multi-source comparison and continuous correction. Scope and acceptance follow the unique
+ArcheAxis Knowledge is a local-first personal knowledge, research and Human–AI learning
+workspace centered on content objects, source versions, learning activities and governed AI assets.
+Contextual task agents assist the existing workspace; professional production runs externally.
+Owner-selected v3/R6 goals and X1–X8 acceptance are absorbed under SUP-030; read
+`workspace/intake/20261101-positioning-loop-update/README.md` and the sole loop definition. Scope and acceptance follow the unique
 closed-loop definition and the Owner decisions selected by the active pointer.
 The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
 routed by `docs/current/AAOS-ACTIVE-EXECUTION.json`. The inherited AAOS-01 2026-10-04

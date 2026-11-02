@@ -2,6 +2,7 @@
 
 import hashlib, json, os, shutil, socket, subprocess, sys, time, urllib.error, urllib.parse
 import urllib.request, uuid
+import importlib.util
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -57,19 +58,23 @@ def get_json(base, route):
         return error.code, error.read().decode("utf-8", "replace")[:300]
 
 
+def _work_directory() -> Path:
+    """Allocate a unique owned artifact without resetting an earlier attempt."""
+    spec = importlib.util.spec_from_file_location(
+        "runtime_cold_start_probe", REPO / "scripts/runtime/dev.py")
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
+    return runtime.artifact_directory(REPO, "cold-start-probe")
+
+
 def run() -> dict:
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    work = runs / "cold-start-probe-run"
-    if work.exists():
-        shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True)
+    work = _work_directory()
     database = work / "archeaxis.sqlite"
     env = dict(os.environ)
     env["PYTHONPATH"] = str(REPO); env["PYTHONIOENCODING"] = "utf-8"
     env["ARCHEAXIS_DB_PATH"] = str(database); env["ARCHEAXIS_DATA_DIR"] = str(work)
 
-    receipt = {"scope": "cold_start_probe", "steps": []}
+    receipt = {"scope": "cold_start_probe", "work_root": str(work), "steps": []}
     migration = subprocess.run([sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
                                cwd=str(REPO), env=env, capture_output=True, text=True,
                                encoding="utf-8", errors="replace", timeout=600)

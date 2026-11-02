@@ -1,0 +1,381 @@
+{
+  "schema": "aaos.governance-continuation/v1",
+  "recorded_at": "2026-11-01T01:12:37.464919+00:00",
+  "status": "PARTIAL_LOCAL_IMPLEMENTATION_AND_ARCHIVE_VERIFIED_REMOTE_PENDING",
+  "base_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+  "implementation_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 94016,
+      "sha256": "eb647b6feb1729abecd3b621ae77178ae7ad0560991f8ea92b4675f3fd1bfeeb"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "bytes": 22670,
+      "sha256": "0ded893c4c6220ad7a966e85009549e8372e11d1612ed510c6f173e9c3332826"
+    },
+    {
+      "path": "desktop/scripts/prepare_bundle.py",
+      "bytes": 24063,
+      "sha256": "5a58690dc4f35380bff5a02c3f34c23345d6f935d52a597f5ad1d279cd45dd75"
+    },
+    {
+      "path": "scripts/maintenance/authority_routes.py",
+      "bytes": 21945,
+      "sha256": "aa039401c8056daa5c7027779adc790a7f4e7a1c89e823d7f5d5d0e87f259cf3"
+    },
+    {
+      "path": "scripts/release/ci_runtime_checkpoint.py",
+      "bytes": 23036,
+      "sha256": "3904f01496465170b07311e589b355b4ad235139a47a62e2b26729de58efe135"
+    },
+    {
+      "path": "scripts/release/runtime_growth.py",
+      "bytes": 9012,
+      "sha256": "67f9e90a055e47b20ae07dae8e9ac908a0a13bac42698d64e197809af0c4031a"
+    },
+    {
+      "path": "scripts/release/stage_backend_runtime.py",
+      "bytes": 68048,
+      "sha256": "d239181d5aff03a1229e5414714beeedc66301deb5f8637fd3d3eeea0a109a5f"
+    },
+    {
+      "path": "scripts/release/tauri_portable_candidate.py",
+      "bytes": 26949,
+      "sha256": "7ca201e2d0ed02e070383764253f6330c7cf2b9ddf5479b15e139afa3f89e77d"
+    },
+    {
+      "path": "tests/test_backend_in_place.py",
+      "bytes": 28971,
+      "sha256": "bdc163a9fa2cb1e2c10bbf769c375d3650616249e35e46c8ca87d8e816bd07ac"
+    },
+    {
+      "path": "tests/test_ci_a0_gates.py",
+      "bytes": 28428,
+      "sha256": "bdbf054195101324a2e1b2defc728fd22b331e46fde60618518f12bde0d676f2"
+    },
+    {
+      "path": "tests/test_ci_runtime_checkpoint.py",
+      "bytes": 15834,
+      "sha256": "a6573ec78d003488e0c83548d755f0ae84c245df90e9f695da41ecd8896ba931"
+    },
+    {
+      "path": "tests/test_runtime_growth.py",
+      "bytes": 5261,
+      "sha256": "05242d3c6c18ed26abca98bba0e8c23b4a50ef0617a2a9c64cfd0f72db8ecc9d"
+    },
+    {
+      "path": "tests/workflow/test_repository_consolidation.py",
+      "bytes": 17491,
+      "sha256": "e6a7e7c0a7a898c165e9182b66bd717de1c03c3ccb2b4bc73641e3c6750a500e"
+    }
+  ],
+  "current_documents": [
+    {
+      "path": "AAOS-资料索引.md",
+      "bytes": 9262,
+      "sha256": "44c00d09e6ec57f20f6c888f8c7bdb8cde72f269f4baa50df46b31d4722aee7f"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "bytes": 8182,
+      "sha256": "68c1bc2eb03afe99853c3188bf4c42dcb12e1954e9a94bd78d5944b97880aa9b"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 205696,
+      "sha256": "10a7f51dc0882aebe78f71b8c84982bae6f1b573c2d2d6ba5a073f195a0bff55"
+    },
+    {
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "bytes": 12484,
+      "sha256": "bf4b3fbd17ab35c4964730287d80e643b2d29b5a8544ad71221e9b48675ab9ba"
+    },
+    {
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "bytes": 12831,
+      "sha256": "077724eed98ad27a2417de868df2da71cb42474a35638a384345412def660877"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "bytes": 840978,
+      "sha256": "920c39ceed1c54dec5fd77713e8f06b4ccf51e656c81e1751037967e20a36eca"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch2/MANIFEST.json",
+      "bytes": 5514,
+      "sha256": "eff8ced394ee88a1383284fa6d8ac1abd69da4862ab5825ce31ef0254abdd2ec"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch2/README.md",
+      "bytes": 961,
+      "sha256": "8f9181f448f1ca2295a63c2c0e7869193eb27f29c01ec7187efdec69ef65439e"
+    },
+    {
+      "path": "docs/history/2026-11-01-preoct-archive-batch2/preoct-public-records.zip",
+      "bytes": 41458,
+      "sha256": "5fd5afaf01f3f7114705bf31156680ff470d271aeb022452159f5f5952cae923"
+    },
+    {
+      "path": "docs/history/storage-cleanup/2026-11-01-governance-followup/README.md",
+      "bytes": 5910,
+      "sha256": "dcff80aedd28db58ed005cf7d11a5f82a442e333e38c955cdf71b5b2dc0412d6"
+    }
+  ],
+  "execution_receipts": [
+    {
+      "path": ".project-local/runs/be268a2d33/gc-test1/artifacts/execution.json",
+      "bytes": 2487,
+      "sha256": "77c1890401f945bcb984f364b5a29358004a4c4b24a7335f7f587706cd31579a",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "a48032992fb9bed656ac4e3627e0caeb68d72cf97b8fa104720a4039810de47f",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\gc-test1\\tmp\\pytest",
+        "-o",
+        "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\gc-test1\\pytest-cache",
+        "tests/test_ci_runtime_checkpoint.py",
+        "tests/test_runtime_growth.py",
+        "tests/test_desktop_staging.py",
+        "tests/test_backend_in_place.py",
+        "tests/runtime-paths/test_build_timing.py",
+        "tests/test_backend_runtime_safety.py",
+        "tests/test_app_local_cpp_runtime.py",
+        "tests/test_stage_backend_runtime_routes.py",
+        "tests/test_tauri_portable_candidate.py",
+        "tests/test_local_pinned_packaging.py",
+        "tests/test_local_pinned_installer_identity.py",
+        "tests/test_ci_a0_gates.py",
+        "tests/workflow/test_repository_consolidation.py",
+        "tests/workflow/test_authority_routes.py",
+        "tests/test_product_truth_contract.py",
+        "tests/test_project_contract_references.py",
+        "tests/test_documentation_authority_index.py",
+        "tests/test_truth_authority_supersession.py",
+        "tests/test_path_conventions.py",
+        "tests/workflow/test_document_authority_gate.py",
+        "-q"
+      ]
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gc-lint1/artifacts/execution.json",
+      "bytes": 1881,
+      "sha256": "65d06ae316f3afe4f60f093b049ad5e3f0f93334ae11c6bf19d20de5e10e72d9",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "a48032992fb9bed656ac4e3627e0caeb68d72cf97b8fa104720a4039810de47f",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "E9,F63,F7,F82",
+        "--no-cache",
+        "desktop/scripts/prepare_bundle.py",
+        "scripts/maintenance/authority_routes.py",
+        "scripts/release/ci_runtime_checkpoint.py",
+        "scripts/release/runtime_growth.py",
+        "scripts/release/stage_backend_runtime.py",
+        "scripts/release/tauri_portable_candidate.py",
+        "tests/test_backend_in_place.py",
+        "tests/test_ci_a0_gates.py",
+        "tests/test_ci_runtime_checkpoint.py",
+        "tests/test_runtime_growth.py",
+        "tests/workflow/test_repository_consolidation.py"
+      ]
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gc-arch1/artifacts/execution.json",
+      "bytes": 1329,
+      "sha256": "6f4f36695064a1d9b9dc931f6d98f7821b909ca10b6ab6a4721ec185d6b54e88",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "a48032992fb9bed656ac4e3627e0caeb68d72cf97b8fa104720a4039810de47f",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/check_architecture.py"
+      ]
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gc-path1/artifacts/execution.json",
+      "bytes": 1334,
+      "sha256": "e59c9f06d851b60cd36fce6708262c7b4fe9d70815dcba5fdeda0780e14c4fa1",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "a48032992fb9bed656ac4e3627e0caeb68d72cf97b8fa104720a4039810de47f",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/check_path_conventions.py"
+      ]
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gc-conv1/artifacts/execution.json",
+      "bytes": 1339,
+      "sha256": "c3e55d3856cbcd5c662520fda562700639c3afdd06be71688095c55dec7a7be8",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "a48032992fb9bed656ac4e3627e0caeb68d72cf97b8fa104720a4039810de47f",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/check_repository_conventions.py"
+      ]
+    }
+  ],
+  "local_pytest_summary": {
+    "passed": 510,
+    "skipped": 1
+  },
+  "post_seal_checks": [
+    "gc-doc1",
+    "gc-conv3"
+  ],
+  "source_scope": "Receipts bind their exact pre-seal source snapshot; this evidence document/staging follows. Committed implementation bytes must match the identities above. No cloud or installed qualification follows from these checks.",
+  "archive_and_restore": [
+    {
+      "path": ".project-local/runs/be268a2d33/gov-continuation-seal/new-file-line-endings.json",
+      "bytes": 639,
+      "sha256": "de8ed917538350add8765254fba22adb830639b7d73500f5cc9ea75a05d87c2b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-batch2-20261101/FINAL.json",
+      "bytes": 36150,
+      "sha256": "d4ffa5644820f120f1501011ce6c504766b0dc0e6f3e17502d450ff8fb5ad6c1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-batch2-20261101/FINAL14-POST.json",
+      "bytes": 1725,
+      "sha256": "a4408aed6557d48dd42cc2a18cabe5d54be3f80f5e12c6cf14e03abdf5dc0aed"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-batch2-20261101/restore8.py",
+      "bytes": 1802,
+      "sha256": "b2da2b04fb4b60ecf8eef0f381b10f82e1eb49af76783b7bef3a20883be9bd3d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-large-20261101/FINAL.json",
+      "bytes": 34848,
+      "sha256": "1ab2073c0c65a45f0946344b6d28b163c080b2943b5f849d7c3d2809334ba7a3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-large-20261101/archive_sources.py",
+      "bytes": 5168,
+      "sha256": "4788139817e8ed1474be3a5ad0f304116da15579079f6461ce0fe688753d6a3b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-large-20261101/artifacts/historical-python-sources.zip",
+      "bytes": 610646,
+      "sha256": "f97f946cba7275aa7e79c2098b4406ff634cc03293066c573106379ba0884d33"
+    }
+  ],
+  "public_historical_records": {
+    "cumulative_files": 155,
+    "original_bytes": 7184019,
+    "zip_bytes": 981100,
+    "new_batch_files": 14,
+    "fixed_old_consumer_rows": 11,
+    "batch1_and_two_original_consumer_metadata_unchanged": true,
+    "wrapper_line_endings_only": "Batch2 descriptor/README normalized to LF before final checks; prior receipt hashes remain historical snapshots."
+  },
+  "layout": {
+    "cumulative_retired_leaves": 278,
+    "cumulative_original_bytes": 3298135,
+    "cumulative_archives": 7,
+    "cumulative_zip_bytes": 872989,
+    "initial_entries": 581,
+    "current_entries": 303,
+    "new_entries_this_slice": 0,
+    "coverage": "shallow layout only; not a full-tree byte measurement"
+  },
+  "physical_reclaim": "NOT_MEASURED",
+  "fixed_operator_checkpoint_changed": false,
+  "ci_mechanism": "Explicit fresh job reservation, prereq builds, one runtime baseline seal; recheck same interpreter/lock/dependency selection and actual packaged project footprint; original growth threshold and class budgets unchanged.",
+  "qualification_limits": [
+    "GitHub environment declarations are not host attestation",
+    "forecast is an observed estimate, not a hard bound",
+    "offline command checks and fixtures are not real hosted CI or installer acceptance"
+  ],
+  "preserved_regressions": [
+    {
+      "path": ".project-local/runs/be268a2d33/ci-total-red/artifacts/execution.json",
+      "bytes": 1690,
+      "sha256": "6d03b48779c210816de56f07a843a5b348986e81bb20e1345eabb0c93741e2a9",
+      "child": 1,
+      "wrapper": 1,
+      "source_consistent": true,
+      "status": "FAIL",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "7a36d92269e3ef91ac54dcd3da0bd3a8ac01a00aa6c15a713be38bd11389f276",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ci-total-red\\tmp\\pytest",
+        "-o",
+        "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ci-total-red\\pytest-cache",
+        "tests/test_ci_runtime_checkpoint.py",
+        "-k",
+        "total_cannot_omit",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ]
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/ci-docs-red/artifacts/execution.json",
+      "bytes": 1683,
+      "sha256": "1571d2b1aeb5503e2a6cb8471b9b8fc17543d8d9cf07e4d2cc74485a2e42d1f8",
+      "child": 1,
+      "wrapper": 1,
+      "source_consistent": true,
+      "status": "FAIL",
+      "source_commit": "4a8ad0bc349d7cb53ad88a5e1a0ba688989443ad",
+      "source_patch_sha256": "2c83d6b4994215992a76884877b34da4367bbe3a2524d0000ee6b42022df08d4",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ci-docs-red\\tmp\\pytest",
+        "-o",
+        "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ci-docs-red\\pytest-cache",
+        "tests/test_ci_runtime_checkpoint.py",
+        "-k",
+        "retained_giant",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ]
+    }
+  ],
+  "preserved_command_error": ".project-local/runs/be268a2d33/gc-conv2/artifacts/execution.json records exit 1 for a mistyped checker path; corrected invocation gc-conv3 passed without code changes.",
+  "delivery": "Existing Owner public-source synchronization authorization applies; publish/check/merge require their own actual readback. Ignored archives/runtime/cache/database/private data stay local.",
+  "remaining": [
+    "303 shallow layout entries and other producer/linked-worktree scope",
+    "six hard-pinned package input normalization and requalification",
+    "Green historical mig source binding",
+    "F05 and complete CL/J/R6 acceptance",
+    "exact-SHA hosted CI and eligible main synchronization"
+  ]
+}

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -120,6 +121,13 @@ def transcribe(audio: Path) -> dict:
     return result
 
 
+def _work_directory() -> Path:
+    spec = importlib.util.spec_from_file_location("runtime_real_asr", REPO / "scripts/runtime/dev.py")
+    dev = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(dev)
+    return dev.artifact_directory(REPO, "real-asr")
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -142,8 +150,12 @@ def main() -> int:
         }, ensure_ascii=False))
         return 2
 
+    # Validate inherited run identity before any engine process can start.
+    out = _work_directory() / "real-asr-receipt.json"
     receipt: dict = {
         "ok": False,
+        "receipt_path": str(out),
+        "legacy_receipt_path": str(REPO / ".project-local/runs/asr/real-asr-receipt.json"),
         "worker": str(WORKER.relative_to(REPO)),
         "declared_model_dir": str(MODEL_DIR),
         "model_dir_present": MODEL_DIR.is_dir(),
@@ -166,8 +178,6 @@ def main() -> int:
     receipt["transcription"] = transcribe(audio)
     receipt["ok"] = bool(receipt["transcription"].get("text_chars"))
     receipt["evidence_level"] = "REAL_MODEL_REAL_AUDIO"
-    out = REPO / ".project-local" / "runs" / "asr" / "real-asr-receipt.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, default=str) + "\n",
                    encoding="utf-8")
     print(json.dumps(receipt, ensure_ascii=False, indent=2, default=str))

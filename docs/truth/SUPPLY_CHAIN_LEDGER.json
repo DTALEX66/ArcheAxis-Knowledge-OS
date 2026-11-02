@@ -2,9 +2,9 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-10-22",
+  "updated": "2026-11-01",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
-  "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
+  "product_boundary": "Local-first personal knowledge, research and Human–AI learning workspace centered on content objects and learning activities; contextual task agents assist, professional production remains external (SUP-030).",
   "disposition_labels": {
     "CURRENT": "Already integrated — source/binary evidence exists. State qualified by tier below.",
     "ADOPT_PRODUCT_BASE": "Run as the downstream learning product shell; ArcheAxis keeps all authority objects and truth.",

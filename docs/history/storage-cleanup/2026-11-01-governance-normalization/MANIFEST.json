@@ -1,0 +1,871 @@
+{
+  "schema": "aaos.governance-normalization-batch/v1",
+  "date": "2026-11-01",
+  "status": "PARTIAL_GOVERNANCE_SLICE_VERIFIED",
+  "base_commit": "da9fca0de9c617a0e8c100c32d9fcecf00f45ee7",
+  "implementation_files": [
+    {
+      "path": "scripts/release/local_pinned_packaging.py",
+      "bytes": 28791,
+      "sha256": "8f824e88f29afb5b4c973a7ad92e27818708393142348bc9200529f6081d3eb2"
+    },
+    {
+      "path": "scripts/probes/capability_and_search_probe.py",
+      "bytes": 9551,
+      "sha256": "cde48f1dd221a16bf68aa8d480c7b08250ba6c8fc8ab7d61df1141004a2593fc"
+    },
+    {
+      "path": "scripts/workflow/environment_registry.py",
+      "bytes": 42165,
+      "sha256": "712f88e46753f3f8b72d8c7a0464ffedfc5486c4c889af8d24ea70422184ed95"
+    },
+    {
+      "path": "scripts/environment/build_external_resources_index.py",
+      "bytes": 13560,
+      "sha256": "a74bf7acaebeca562ba6c0c6088d488e2035ab96acc382dfff549b1e767e3661"
+    },
+    {
+      "path": "tests/test_local_pinned_packaging.py",
+      "bytes": 34949,
+      "sha256": "7ebcb15d1ffa544856dd5dd9c2369f66a1ffcb673e86bfc673074274f3f452b2"
+    },
+    {
+      "path": "tests/test_capability_and_search_probe.py",
+      "bytes": 7627,
+      "sha256": "b13755d2bf2a3baea67c0a6c5afbdee7cab1f3fa0b132bddf692d9c80d9d6e9f"
+    },
+    {
+      "path": "tests/workflow/test_environment_registry.py",
+      "bytes": 16696,
+      "sha256": "f3b3856200baba5b2958f15d6f7fe651e7a873c0d4ba5954c84fdd6f7479ee7a"
+    },
+    {
+      "path": "tests/workflow/test_external_resources_index.py",
+      "bytes": 23002,
+      "sha256": "d4dd8e4e0fbd79457347ffad880f5568dfa21a2cc069a014c096611b3067ed08"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/gov-pre-01/artifacts/storage.json",
+      "bytes": 838179,
+      "sha256": "99da5748402f8bb63986a1af40519a117605bfd732eb76656d00d4021ad04855"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-post-01/artifacts/storage.json",
+      "bytes": 814105,
+      "sha256": "a1d4ab121c89b569526d7fd38e0c6f40afaffa7582f903e75a575b65c466cf39"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-root-verify/artifacts/normalization-verification.json",
+      "bytes": 28232,
+      "sha256": "0a58e31884cdad3825a3745006c942334e07738fbab2737841f0464ee113e788"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-code-final2/artifacts/execution.json",
+      "bytes": 1654,
+      "sha256": "e46013ab2051a38581682c9df761e88d7d8c2c872efdbce4482f8e5625e09e98"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-lint-final/artifacts/execution.json",
+      "bytes": 1735,
+      "sha256": "8317554cb9b2befa08a0599a5cf05a7414c87f6585b27183148b45ff9cc0320b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-post-01/artifacts/execution.json",
+      "bytes": 1488,
+      "sha256": "30cdcb70e08ab1392341f02698e41d10c5776b9ac599d33ffb699b110abf3f7c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-20261101/FINAL.json",
+      "bytes": 65283,
+      "sha256": "e04e36c191cc18a66769783ba23810095f958f5e3575b3c54a74db824aa8e630"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-20261101/FINAL-SCRIPTS19.json",
+      "bytes": 56134,
+      "sha256": "dede0f92e473fd2b9084b8115893ed8b942bbaf420e3b8780ce91b39c9696c56"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-spill-p2-receipt/artifacts/p2-final-review.json",
+      "bytes": 1728,
+      "sha256": "9997acfd823dc426482385ce2e9fc39b8b6cec1148b6e42b36c1f3c107d6a737"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/pin-final-01/artifacts/execution.json",
+      "bytes": 1762,
+      "sha256": "275f3d2cbfc9b46a9cd34c8fb8a2f99b1cce71aa64b7a03b0ee542c7a4ce1a2c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/pin-red-02/artifacts/execution.json",
+      "bytes": 1694,
+      "sha256": "ca6d67efb560851b00424b3e09ddec15951106443b5e8be0d5b5fc2baf9bd793"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-probe-red/artifacts/execution.json",
+      "bytes": 1387,
+      "sha256": "eca44d759e11ce10c3d66b8ba55cfc04857285b31f027cdad35e98c678d2724d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-probe-green/artifacts/execution.json",
+      "bytes": 1330,
+      "sha256": "2895d847ee4e0d3e9a23d3f7a30a53faefee07295148ef297431c95cfdb6be95"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-code-final3/artifacts/execution.json",
+      "bytes": 1654,
+      "sha256": "6043ff235ba78ba3c2b220e6372147ccf713e3a451f36e2aeea9b9ffd376add7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-conv-final/artifacts/execution.json",
+      "bytes": 1281,
+      "sha256": "641344fcca546b6cb41f3a2c809f29317ee15d89c236e154529ebd87887ad90d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-conv-final2/artifacts/execution.json",
+      "bytes": 1288,
+      "sha256": "d5a7ac65f50ca0829fb6e1d3e1ea40843cacc92ae1b08b462ce51995b7f2d59c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-arch-final/artifacts/execution.json",
+      "bytes": 1277,
+      "sha256": "26930f869f2cdc69e1397394724a9a8d88e4371de802de891744d5ade60357a9"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-path-final/artifacts/execution.json",
+      "bytes": 1281,
+      "sha256": "647243262532f55be2d7b3162914e48e09fadbb72b312cc36a551192ea637a1c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-doc-final/artifacts/execution.json",
+      "bytes": 1284,
+      "sha256": "b81788a1d57c007c68e4f29aae680095e7f3f2a354b97dfe5eccd7641f372de6"
+    }
+  ],
+  "batches": [
+    {
+      "manifest": ".project-local/runs/be268a2d33/gov-layout-20261101/artifacts/closure-relocation.json",
+      "manifest_sha256": "a2c64682135d26cad533c586e4320e9620fec6287302aa7112d9089fd15578e2",
+      "archive": ".project-local/runs/be268a2d33/gov-layout-20261101/artifacts/closure-public-metadata.zip",
+      "archive_sha256": "dcc9bf1c86315fa7ee5a26ec3853bd454beea0c2e8170caf9212f192f6d4c4a5",
+      "archive_bytes": 18490,
+      "files": [
+        {
+          "source": ".project-local/aaos27b-closure-1883acee-cac8-40ae-b0b2-d2ef15760d86.json",
+          "bytes": 14953,
+          "sha256": "ead829d0eecf5ef48dc1c10da65608cad7e7ca051072be1d31f66c8d29809e31",
+          "schema": "archeaxis.authorized-local-model-application/v1",
+          "status": "PASS",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos27b-closure-1883acee-cac8-40ae-b0b2-d2ef15760d86.log",
+          "bytes": 170,
+          "sha256": "fb822caab7373bfe37020d0c49ba1363aa473d4f22ce38e4fba61064d1fa9963"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-2e2f2679-574a-494a-a613-10438cdc323c.json",
+          "bytes": 14676,
+          "sha256": "6cbd0d4a6ddb969753d576a0d6aa90b789101d19afd6db92003ab5d66bf5aaa9",
+          "schema": "archeaxis.authorized-27b-application/v1",
+          "status": "PARTIAL",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-2e2f2679-574a-494a-a613-10438cdc323c.log",
+          "bytes": 480,
+          "sha256": "4b801cf2d42ca0c9d4a4c91fd38b1a3ab40966a03ab5ac65e03efd3551b93344"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-40283e3b-702c-4b40-bdb1-1fb7acd7d118.json",
+          "bytes": 11308,
+          "sha256": "47941dbb60e0e4d9f45be5c0a38da9fb86f7226959d4ff39fb0b08997bb7240d",
+          "schema": "archeaxis.authorized-local-model-application/v1",
+          "status": "PARTIAL",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-40283e3b-702c-4b40-bdb1-1fb7acd7d118.log",
+          "bytes": 225,
+          "sha256": "7eef3f59657b171836ebb67dde9e2922e6d3479350e72e78d9180739f3d01af2"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-52a078a2-d2eb-4b33-805c-de87c54300bb.json",
+          "bytes": 14657,
+          "sha256": "8a9f63ac5b37fa2f18add18db76d3dffc37f2ffde2bc98e039070b5d7b88da40",
+          "schema": "archeaxis.authorized-27b-application/v1",
+          "status": "PARTIAL",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-52a078a2-d2eb-4b33-805c-de87c54300bb.log",
+          "bytes": 286,
+          "sha256": "3a5772e093d12a7df0bed188129c055e52caf9de0cb147186d2f803b6c2ccf3e"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-bb13f8fe-813a-4795-8b97-daf086a0bf2d.json",
+          "bytes": 2922,
+          "sha256": "bd23df66eca1b7c9ec89deb277f045e702dc109529302a59c8b2026efc5a5184",
+          "schema": "archeaxis.authorized-27b-application/v1",
+          "status": "PARTIAL",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-bb13f8fe-813a-4795-8b97-daf086a0bf2d.log",
+          "bytes": 270,
+          "sha256": "09dbb8e06c2f76ef06125e0b96d2f7c22e14b3d3490d9e265b00a6cf33161c4a"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-d164b601-48e1-4f7f-a5f8-c7281678330f.json",
+          "bytes": 10928,
+          "sha256": "33cde5e8e5f21bc698ce46451e21c092e249600f723b471f695bb2856ea06be4",
+          "schema": "archeaxis.authorized-local-model-application/v1",
+          "status": "PASS",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-d164b601-48e1-4f7f-a5f8-c7281678330f.log",
+          "bytes": 170,
+          "sha256": "e8c5d60e3e1cbb124a89e419d0059832ddc5688ae6c98faafffab9dafcce18c7"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-ef97a83f-7240-48ba-a807-9d7d3f630ed3.json",
+          "bytes": 17178,
+          "sha256": "ec450d380ac487518bb93498ec25af73c6929ffcb818ec3a772b92ce85a63f08",
+          "schema": "archeaxis.authorized-27b-application/v1",
+          "status": "PARTIAL",
+          "material": "SYNTHETIC_ISOLATED_APPLICATION_FIXTURES"
+        },
+        {
+          "source": ".project-local/aaos4b-closure-ef97a83f-7240-48ba-a807-9d7d3f630ed3.log",
+          "bytes": 482,
+          "sha256": "686b364b5a1c68ffa214b6180379bf67dc66665798325d29314d789b7288836f"
+        }
+      ]
+    },
+    {
+      "manifest": ".project-local/runs/be268a2d33/gov-layout-20261101/artifacts/drafts-relocation.json",
+      "manifest_sha256": "8744369c135475b6bf4c6aef7319ec01f6d15ec2a8baa9787200f66d2e06f31a",
+      "archive": ".project-local/runs/be268a2d33/gov-layout-20261101/artifacts/public-pr-drafts.zip",
+      "archive_sha256": "ab16fd061ea7732e3a19619b39078ced6230b6ac9a943eb713642aa1714f7ee2",
+      "archive_bytes": 29423,
+      "files": [
+        {
+          "source": ".project-local/authority-continuity-pr-body.md",
+          "bytes": 891,
+          "sha256": "e6af9acd31e78d418efbf131cd5d3984563e2f283a5cc1cbca38326a87a2a1a7",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/closure-pr-body.md",
+          "bytes": 853,
+          "sha256": "3ecbe5d423b3f6bd7944cb929a62c8f1e43e7f774c16c542d6d02d51a745f2bc",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/closure-probe-pr-body.md",
+          "bytes": 844,
+          "sha256": "98f45b263af4a16977ebca6deb9aad16b57bdc3f28cd920a877eceeb9a364e6d",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/consolidation-pr-body.txt",
+          "bytes": 811,
+          "sha256": "c56865ddf379a35591bbcb5a302e1ef1212404412642d969df8f8f3110d1e456",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr-184-body.md",
+          "bytes": 958,
+          "sha256": "0f99c370dce1f7644b9647b4625a5ef513dbd646b692f5136bcf8e2cc282f030",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-2fdf180c-body.md",
+          "bytes": 4077,
+          "sha256": "61ce392fc411a9678deada0a84c1b1746935fc73aed168ba56e9b428a23c16e3",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-4fc2bf42-body.md",
+          "bytes": 6037,
+          "sha256": "17d4f1a212f318d47b1f235dd91724bdb015d33a09e891d595c4cbdf0a8e7c8b",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-983da7d0-body.md",
+          "bytes": 5198,
+          "sha256": "97a4cdcb17dcc5bb5eb3b8ebc478d262ddb7a86761b1f8defe0f1f6e54c2c7ef",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-allowance-handoff-description.md",
+          "bytes": 3737,
+          "sha256": "25481faf928cf36751a940ec93e1c835f5c15862a53fee4adc3b8b79831bb4d3",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-b0eca762-body.md",
+          "bytes": 3499,
+          "sha256": "dbd9b4946670bb9173b8608edd3ee7551347226aadcabeb1e7b5eb1f421272a5",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-final-ui-body.md",
+          "bytes": 11165,
+          "sha256": "880ecbfeb71f8c2237f525811398697df9955be4c365cee1c84b6134d0b26161",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-menu-polish-body.md",
+          "bytes": 1910,
+          "sha256": "11819df88ea40dea2106a58479802555fff204bcacc8ab3c1245eea334655c55",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-v12-description.md",
+          "bytes": 3032,
+          "sha256": "5f734808a59593fd958dc0499b4c0588743ca4330e09cda6b35402f499a5707a",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-v13-ci-repair-description.md",
+          "bytes": 3957,
+          "sha256": "d2e61dd7466e03bbf7ce07587b71355a77fc926e8afe3232c675f8afb8012463",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        },
+        {
+          "source": ".project-local/pr203-v13-description.md",
+          "bytes": 2940,
+          "sha256": "03c72aeeebcefa45146814b549156597ac013bd627e3814da09f8923544dff50",
+          "classification": "PROJECT_PUBLIC_HISTORICAL_PR_DRAFT_BYTES_PRESERVED_NO_PUBLICATION"
+        }
+      ]
+    },
+    {
+      "manifest": ".project-local/runs/be268a2d33/gov-layout-20261101/artifacts/scripts19-relocation.json",
+      "manifest_sha256": "2c056ee2d2e471038fb59bf7603beb075e2ea41d235fe63ef3b8fda0f24b657a",
+      "archive": ".project-local/runs/be268a2d33/gov-layout-20261101/artifacts/historical-project-scripts19.zip",
+      "archive_sha256": "bfad3a86795b2c1de6a6f0a7e04b997097fa83031efd739a0b5e518bf2f9cf78",
+      "archive_bytes": 15036,
+      "files": [
+        {
+          "source": ".project-local/add-machine-journal-schema.py",
+          "bytes": 1259,
+          "sha256": "98e2bf14f6e2268c0bb9fd6642a2006342e510a4a2b471afdbcb15ad60260841",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "json",
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "write_text"
+          ],
+          "project_path_literals": [
+            "packages/contracts/v2/ui-working-state.schema.json"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/bound-machine-journal-schema.py",
+          "bytes": 1429,
+          "sha256": "3ab5fa214ab0a19f914c381ad0b0278496e0f0f1570cff9a6e1ecd8f1af09b79",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "copy",
+            "json",
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "packages/contracts/v2/ai-asset.schema.json",
+            "packages/contracts/v2/ui-working-state.schema.json"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/wire-machine-clear.py",
+          "bytes": 1995,
+          "sha256": "457916aa3c92198419a05cec862a79179ef0a8544a17c177bf217c49801921cf",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "json",
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "crates/archeaxis-api/src/runtime/job_journal.rs",
+            "crates/archeaxis-api/src/runtime/machine_journal.rs",
+            "crates/archeaxis-api/src/runtime/mod.rs",
+            "frontend/src/api/core.ts",
+            "packages/contracts/v1/core-command.schema.json",
+            "src-tauri/src/core_bridge.rs"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/wire-machine-clear-session.py",
+          "bytes": 1665,
+          "sha256": "7cf6ad8b6392208296c0b96e996b4814cd074b8ad24d47f9d2e605db73299de9",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "frontend/src/app/App.tsx",
+            "frontend/src/presentation/coreWorkingState.ts"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-claim-current.py",
+          "bytes": 440,
+          "sha256": "932064fa49485faa549c013d28d593343c9995fe429809d3c4451ff10c630b93",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-claim-targeted.py",
+          "bytes": 599,
+          "sha256": "8519972a901d751f0dac271d5f07598eccf8088859a3331b573584a32929040a",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-clear-route.py",
+          "bytes": 909,
+          "sha256": "4e66f5f1d0b9af14889d8146e923a01de59cc2fac6d86f8ab6c2eeffd3b84910",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "json",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call",
+            "replace"
+          ],
+          "project_path_literals": [
+            ".project-local/runs/be268a2d33/6e944ff79769/artifacts/frontend-dist",
+            "scripts/runtime",
+            "src-tauri/Cargo.toml"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-diagnostics.py",
+          "bytes": 588,
+          "sha256": "b9d41b42fb1643a494088ed9f8d0ce0d07c62aec0f2db867d82ce376d69538d8",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-journal-domain.py",
+          "bytes": 517,
+          "sha256": "62f2d5fe1754dc47d5189141b88ec7154339d84deb61c2ac381b4fd613ee0f83",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-status-and-context.py",
+          "bytes": 652,
+          "sha256": "bef599ccc7bdd57f4b60ab4fe4f635b948a3948f0cb2c1062a7244d9034f27e7",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-status-bridge.py",
+          "bytes": 764,
+          "sha256": "243e071e4a4c8978be54e9dda2af1d8865fef6a18692c3cc244dbaf06b729b69",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call",
+            "mkdir",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "scripts/runtime",
+            "src-tauri/Cargo.toml"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-status.py",
+          "bytes": 591,
+          "sha256": "8331bf9c5e30f4975291fe1fcd6cde43513ef0e945d6c707eadb8479532b24d1",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/verify-machine-terminal.py",
+          "bytes": 702,
+          "sha256": "1fe9d79c76979967c992de8a656f6a62126a5704874da32d541902671cc4964b",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "dev",
+            "frontend",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [
+            "dev",
+            "frontend"
+          ],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "call"
+          ],
+          "project_path_literals": [
+            "scripts/runtime"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/adjust-reader-details-tests.py",
+          "bytes": 1914,
+          "sha256": "52b8a9b9dbfc99b895a7766f1ad72edc9e46b2dd22a686ee9a01bc83f83dd4da",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx",
+            "frontend/src/__tests__/SemanticReadingLayout.test.tsx"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/adjust-ui-audit-tests.py",
+          "bytes": 1809,
+          "sha256": "d5d0c053cdaa5ab8c2d49a7459b63e0188967814a1e4866283c16f8266a0bf7f",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "frontend/src/__tests__/CanonicalResourcesSpace.test.tsx",
+            "frontend/src/__tests__/FirstUseGuide.test.tsx",
+            "frontend/src/__tests__/SemanticReadingLayout.test.tsx"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/adjust-ui-full-regressions.py",
+          "bytes": 3326,
+          "sha256": "5a74498ceaacf25fefb41edb8884691e4f1514af695d72db804d76838dc138b7",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            "frontend/src/__tests__"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/fix-clear-route-test-env.py",
+          "bytes": 475,
+          "sha256": "acf4e3a409a86f517b99b780bb72295978539b97aab489975af9c5f189638ed5",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "json",
+            "os",
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [
+            "verify-machine-clear-route.py"
+          ],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [
+            ".project-local/verify-machine-clear-route.py"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/fix-populated-capture-root.py",
+          "bytes": 1080,
+          "sha256": "dd560ed584c4a0ade958b258f026c846c3fbf1edfde06c31d339a92b254f395a",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "hashlib",
+            "json",
+            "pathlib"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "write_text"
+          ],
+          "project_path_literals": [],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        },
+        {
+          "source": ".project-local/fix-preview-check-output-v13-r3.py",
+          "bytes": 4913,
+          "sha256": "3d3d019c9c835b8f26fd09dfbf6340aae0ea3997700fd7c945134b17f3864429",
+          "status": "CANDIDATE_ONLY_NO_RETIREMENT_PERMISSION_OR_DEPENDENCY_PASS",
+          "imports": [
+            "hashlib",
+            "importlib",
+            "json",
+            "os",
+            "pathlib",
+            "subprocess",
+            "sys"
+          ],
+          "non_stdlib_imports": [],
+          "candidate_dependencies": [],
+          "write_call_methods": [
+            "replace",
+            "run",
+            "write_bytes"
+          ],
+          "project_path_literals": [
+            "scripts/runtime/dev.py"
+          ],
+          "non_stdlib_import_basis": "dev/frontend resolve tracked scripts/runtime via explicit sys.path; importlib loader targets tracked dev.py; no candidate-relative import"
+        }
+      ]
+    }
+  ],
+  "restore_tools": [
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-20261101/restore.py",
+      "bytes": 1625,
+      "sha256": "d0683d854920da560c577f8a93531d4e069af0d3341c368194cfdb6fd217dd0e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-20261101/restore-drafts.py",
+      "bytes": 1450,
+      "sha256": "6992f165101ed71286ca99146a12802850e3522b1c0f7be63fe9d0f1ff585940"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-20261101/restore-scripts19.py",
+      "bytes": 1464,
+      "sha256": "b3651f45af638e32074b35fd65c752049cc67853f56e3db927646c295a5b8da0"
+    }
+  ],
+  "validation": {
+    "pytest": "196 passed, 1 existing skip, 3 real-resource checks deselected",
+    "ruff": "PASS_CI_E9_F63_F7_F82",
+    "scope": "local fixtures and existing synthetic HTTP probe; not product/installed/Owner acceptance",
+    "final_test_receipt": ".project-local/runs/be268a2d33/gov-code-final3/artifacts/execution.json",
+    "final_tested_patch": "dbd1de4b56d92463e3675553da30d162a66e1019ecf8a37761754b2c5df1349d",
+    "repository_convention": "PASS_gov-conv-final2_AFTER_TWO_TEST_FILES_NORMALIZED_LF; original failure retained",
+    "static_gates": [
+      "architecture",
+      "path conventions",
+      "document authority",
+      "git diff --check"
+    ]
+  },
+  "storage": {
+    "pre_readable_bytes": 28460851496,
+    "post_readable_bytes": 28464394459,
+    "post_files": 350905,
+    "errors": 674,
+    "private_exclusions": 243,
+    "layout_before": 581,
+    "layout_after": 533,
+    "measurement_status": "PARTIAL",
+    "growth_review": "NO_NEW_GROWTH_TRIGGER",
+    "source_bytes_preserved": 164241,
+    "archive_bytes": 62949,
+    "physical_release": "NOT_MEASURED",
+    "operator_checkpoint_updated": false,
+    "observation_scope": "Snapshot before final LF recheck and public documentation sealing; not a new rolling baseline or final disk-free measurement"
+  },
+  "remaining": [
+    "533 layout entries and old49 36 nonempty/13 empty",
+    "other runtime stagers/build producers and linked-worktree owner mapping",
+    "three Green mig successor provenance gaps",
+    "full product and installed acceptance"
+  ],
+  "excluded_actions": [
+    "remote publication or new cloud CI",
+    "UI/monitor resume",
+    "ACL/owner changes",
+    "shared-process termination",
+    "Green replacement",
+    "real/private data changes"
+  ]
+}

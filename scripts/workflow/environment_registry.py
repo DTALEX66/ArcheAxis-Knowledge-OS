@@ -266,6 +266,16 @@ def _probe_command(entry: dict, resolved: str | None, context: dict) -> tuple[st
     return reaches, observed, evidence
 
 
+def _development_router():
+    """Reuse the canonical launcher for path checks and CLI allocation."""
+    import importlib.util
+    root = Path(__file__).resolve().parents[2]
+    spec = importlib.util.spec_from_file_location("aaos_registry_dev", root / "scripts/runtime/dev.py")
+    dev = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(dev)
+    return dev
+
+
 def _probe_cmd_chain(entry: dict, context: dict) -> tuple[str, str | None, dict]:
     """Run the declared cmd lines from the declared working directory.
 
@@ -275,6 +285,9 @@ def _probe_cmd_chain(entry: dict, context: dict) -> tuple[str, str | None, dict]
     the working form, so the probe stops inventing one — and stops recording the error text
     as a version.
     """
+    workdir = context.get("workdir")
+    if not workdir:
+        return NOT_RUN, None, {"kind": "cmd_chain", "reason": "explicit probe workdir is required"}
     probe = entry.get("probe") or {}
     reaches = probe.get("reaches", "VERSION_PROBED")
     base = context.get("base")
@@ -287,7 +300,9 @@ def _probe_cmd_chain(entry: dict, context: dict) -> tuple[str, str | None, dict]
         return NOT_RUN, None, {"kind": "cmd_chain",
                                "reason": "cmd_chain needs a Windows host; this platform has no declared equivalent"}
     lines = ["@echo off", f'cd /d "{cwd}"', *(probe.get("lines") or [])]
-    with tempfile.NamedTemporaryFile("w", suffix=".bat", delete=False, encoding="utf-8") as handle:
+    workdir = _development_router().safe_path(Path(workdir))
+    workdir.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", suffix=".bat", delete=False, encoding="utf-8", dir=workdir) as handle:
         handle.write("\r\n".join(lines) + "\r\n")
         script = handle.name
     try:
@@ -534,6 +549,9 @@ def _probe_ocr_roundtrip(entry: dict, context: dict) -> tuple[str, str | None, d
     probe string back. The declaration names the expectation; a pass here is a result, not a
     version banner.
     """
+    workdir = context.get("workdir")
+    if not workdir:
+        return NOT_RUN, None, {"kind": "ocr_roundtrip", "reason": "explicit probe workdir is required"}
     probe = entry.get("probe") or {}
     interpreter = context.get("interpreters", {}).get("tesseract")
     tessdata = (context.get("env") or {}).get("TESSDATA_PREFIX")
@@ -557,14 +575,17 @@ def _probe_ocr_roundtrip(entry: dict, context: dict) -> tuple[str, str | None, d
     if script is None:
         return NOT_RUN, None, {"kind": "ocr_roundtrip",
                                "reason": "no scalable font available to render the probe string"}
-    directory = Path(context.get("workdir") or tempfile.gettempdir())
+    directory = _development_router().safe_path(Path(workdir))
     directory.mkdir(parents=True, exist_ok=True)
-    image_path = directory / "archeaxis-ocr-probe.png"
     try:
         image = Image.new("RGB", (1100, 220), "white")
         draw = ImageDraw.Draw(image)
         draw.text((40, 80), sentinel, fill="black", font=ImageFont.truetype(script, 64))
-        image.save(image_path)
+        # Exclusive creation avoids overwriting or following a previous fixed sample.
+        with tempfile.NamedTemporaryFile("w+b", prefix="archeaxis-ocr-", suffix=".png",
+                                         dir=directory, delete=False) as sample:
+            image_path = Path(sample.name)
+            image.save(sample, format="PNG")
         result = _run([interpreter, str(image_path), "stdout", "--psm", "7", "-l", "eng"],
                       env=_child_env(context.get("env") or {}),
                       timeout=int(probe.get("timeout_seconds") or 120))
@@ -626,6 +647,7 @@ def _level_rank(level: str) -> int:
 
 
 def resolve(manifest: Path, *, probe: bool = True, workdir: Path | None = None) -> dict:
+    """Resolve bindings; writing probes return NOT_RUN without an explicit workdir."""
     if yaml is None:
         raise RuntimeError("PyYAML is required to resolve the environment registry")
     data = yaml.safe_load(manifest.read_text(encoding="utf-8")) or {}
@@ -776,7 +798,9 @@ def main() -> int:
     except (AttributeError, OSError):  # pragma: no cover - a redirected stdout may not support it
         pass
     try:
-        print(json.dumps(resolve(args.manifest.resolve(), probe=not args.no_probe),
+        workdir = (_development_router().artifact_directory(
+            Path(__file__).resolve().parents[2], "environment-registry") if not args.no_probe else None)
+        print(json.dumps(resolve(args.manifest.resolve(), probe=not args.no_probe, workdir=workdir),
                          ensure_ascii=False, indent=2))
     except (OSError, RuntimeError, ValueError) as error:
         print(json.dumps({"schema": "archeaxis.environment-registry/v2", "error": str(error)}))

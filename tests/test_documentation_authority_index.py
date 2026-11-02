@@ -7,6 +7,8 @@ import re
 import zipfile
 from pathlib import Path
 
+from scripts.maintenance.authority_routes import read_public_text
+
 import yaml
 from jsonschema import Draft202012Validator
 
@@ -57,7 +59,7 @@ def test_documentation_authority_index_classifies_g0_as_historical_and_routes_di
     assert "docs/current/AX_DIR_010_INVENTORY_SCHEMA.md" in originals
 
     gap_register = ROOT / 'docs/history/repository-consolidation-20261019/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md'
-    gap_register_text = gap_register.read_text(encoding="utf-8")
+    gap_register_text = read_public_text(gap_register)
     assert "Historical Snapshot" in gap_register_text.splitlines()[0]
     assert "not an" in gap_register_text
     assert "active blocker register" in gap_register_text
@@ -119,9 +121,7 @@ def test_language_and_directory_authority_indexes_have_resolvable_local_links() 
 
 
 def test_current_reality_routes_language_and_directory_changes_to_their_indexes() -> None:
-    current_reality = (ROOT / 'docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md').read_text(
-        encoding="utf-8"
-    )
+    current_reality = read_public_text(ROOT / 'docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md')
 
     assert "LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md" in current_reality
     assert "DIRECTORY_AUTHORITY_INDEX.md" in current_reality
@@ -130,8 +130,8 @@ def test_current_reality_routes_language_and_directory_changes_to_their_indexes(
 def test_authority_indexes_route_normalization_to_a_frozen_historical_record() -> None:
     """Old cleanup and migration snapshots must not appear to be current authority."""
     state = ROOT / 'docs/history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md'
-    assert state.is_file()
-    content = state.read_text(encoding="utf-8")
+    assert read_public_text(state)
+    content = read_public_text(state)
 
     assert "Historical normalization queue" in content
     assert "React/TypeScript as product surface" in content
@@ -153,8 +153,8 @@ def test_authority_indexes_route_normalization_to_a_frozen_historical_record() -
         encoding="utf-8"
     )
     assert "history/repository-consolidation-20261019/MANIFEST.json" in documentation
-    assert "REPOSITORY_NORMALIZATION_STATE_2026-09-03.md" in directory
-    assert "REPOSITORY_NORMALIZATION_STATE_2026-09-03.md" in language
+    assert "2026-11-01-preoct-archive-batch3/README.md" in directory
+    assert "2026-11-01-preoct-archive-batch3/README.md" in language
     historical_index = ROOT / "docs/history/repository-consolidation-20261019/navigation-before/docs/DOCUMENTATION_AUTHORITY_INDEX.md"
     assert "Historical cleanup/index/language snapshot" in historical_index.read_text(encoding="utf-8")
     assert "frozen 2026-09-03 snapshot" in directory
@@ -162,7 +162,7 @@ def test_authority_indexes_route_normalization_to_a_frozen_historical_record() -
 
 def test_superseded_g0_implementation_plan_is_explicitly_frozen() -> None:
     plan = ROOT / 'docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md'
-    text = plan.read_text(encoding="utf-8")
+    text = read_public_text(plan)
     assert "HISTORICAL / SUPERSEDED" in text.splitlines()[0]
     assert "R6/M0" in text.splitlines()[2]
 

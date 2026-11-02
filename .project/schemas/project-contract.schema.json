@@ -32,11 +32,11 @@
     "closed_loop_definition": {
       "description": "Owner-selected normative scope reference only; never an implementation receipt or an execution grant.",
       "const": {
-        "id": "AAOS-SHORTEST-COMPLETE-LOOP-V2",
+        "id": "AAOS-SHORTEST-COMPLETE-LOOP-V3",
         "source": "docs/truth/CLOSED_LOOP_DEFINITION.md",
-        "owner_decided_at": "2026-10-19",
+        "owner_decided_at": "2026-11-01",
         "role": "normative-scope-and-acceptance-not-implementation-receipt",
-        "precedence": "supersedes-narrower-historical-loop-scope-only-preserve-core-and-safety-contracts"
+        "precedence": "supersedes-prior-goal-interpretations-with-owner-selected-v3-r6-preserve-unconflicted-requirements-and-safety-contracts"
       }
     },
     "scope": { "$ref": "#/$defs/scope" },

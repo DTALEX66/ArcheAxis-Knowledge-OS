@@ -15,11 +15,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "cdd2201a54087716af615d615a43837953f522918ccc7167c030407bd1174d4b"
+      "sha256": "23149f8ea19a667ddb1f5e3d7ec6e201a6aa948a496054e513b57e57dd965b8b"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
-      "sha256": "93bf22ca9861775c849bcb7c1fd54a606f351f52cd4243976a6af7335246e528"
+      "sha256": "edf5add651d5d54288e0b4f757f2a294ad4c849c8d57b3fccbeb5d98e2f97eb0"
     },
     {
       "path": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json",
@@ -194,6 +194,13 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
   "qualification_metadata": {
     "schema": "archeaxis.resource-qualification-overlay/v1",
     "observed_at": "2026-10-10T06:02:38.098939+08:00",
+    "source_binding_refresh_20261101": {
+      "path": "pyproject.toml",
+      "previous_sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7",
+      "current_sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df",
+      "basis": "Compared parsed TOML with main da9fca0d: only project.description changed to the Owner-selected positioning; dependencies, versions and build declarations are identical.",
+      "scope": "Refresh the three version source references only. Preserve all qualification, permission, runtime, license and activation states; no new installation or live qualification."
+    },
     "selected_scope": [
       "archeaxiscoreknowledge",
       "capcoreknowledge",
@@ -5098,7 +5105,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "pyproject.toml",
-                "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
+                "sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df"
               }
             ]
           },
@@ -11954,7 +11961,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "pyproject.toml",
-                "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
+                "sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df"
               }
             ]
           },
@@ -15645,7 +15652,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "pyproject.toml",
-                "sha256": "747de7cdb488be3e24c7c0d8474ac4122e3a5be4b41a88d87121ad7b59727de7"
+                "sha256": "2696e881bdcd2f4c863045d0d0081f50ee5595e56e6746ec47e600cc89da17df"
               }
             ]
           },

@@ -92,7 +92,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - name: Install locked build tooling
-        run: uv sync --frozen
+        run: uv sync --frozen --no-install-project
       - name: Resolve and verify release version
         id: resolve_version
         shell: pwsh
@@ -119,7 +119,12 @@ jobs:
       - name: Prepare bundled runtime and inject exact release identity
         shell: pwsh
         run: |
-          python -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt
+          $runtimeRunId = Split-Path -Leaf $env:ARCHEAXIS_RUN_ROOT
+          python -B -m scripts.release.ci_runtime_checkpoint --repository . --run-id "$runtimeRunId"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $runtimeCheckpoint = Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/ci-runtime-checkpoint.json'
+          python -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt --run-id "$runtimeRunId" --ci-runtime-checkpoint "$runtimeCheckpoint" --storage-purpose "Locked runtime qualification" --storage-sharing "Shared cache and isolated runtime" --storage-retention-reason "Current job qualification evidence"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
           $uvLockHash = (Get-FileHash uv.lock -Algorithm SHA256).Hash.ToLowerInvariant()
           $npmLockHash = (Get-FileHash frontend/package-lock.json -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -136,6 +141,19 @@ jobs:
             --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt" `
             --dependency-locks "uv.lock=$uvLockHash,frontend/package-lock.json=$npmLockHash,src-tauri/Cargo.lock=$cargoLockHash" `
             --output .project-local/rt/runtime/release-identity.json
+      - name: Upload fixed runtime checkpoint diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: runtime-checkpoint-${{ github.job }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/ci-runtime-pre-seal.json
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/ci-runtime-seal-review.json
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/ci-runtime-baseline.json
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/ci-runtime-checkpoint.json
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/ci-runtime-forecast.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Verify installed NSIS lifecycle
         shell: pwsh
         run: |

@@ -1,21 +1,21 @@
 schema: archeaxis.project-contract/v1
 schema_version: 1
-contract_version: 1.0.1-draft
-effective_at: "2026-10-26T00:00:00Z"
+contract_version: 1.0.2-draft
+effective_at: "2026-11-01T00:00:00Z"
 project: ArcheAxis Knowledge
 stage: aaos-ui-first-2026-10-09
 closed_loop_definition:
-  id: AAOS-SHORTEST-COMPLETE-LOOP-V2
+  id: AAOS-SHORTEST-COMPLETE-LOOP-V3
   source: docs/truth/CLOSED_LOOP_DEFINITION.md
-  owner_decided_at: "2026-10-19"
+  owner_decided_at: "2026-11-01"
   role: normative-scope-and-acceptance-not-implementation-receipt
-  precedence: supersedes-narrower-historical-loop-scope-only-preserve-core-and-safety-contracts
+  precedence: supersedes-prior-goal-interpretations-with-owner-selected-v3-r6-preserve-unconflicted-requirements-and-safety-contracts
 # Owner-selected queue and acceptance routing: docs/current/AAOS-ACTIVE-EXECUTION.json.
 # The immutable 10/09 planning package and inherited AAOS-01 evidence remain dated sources.
 # V01 paused; this contract declares product requirements, never a remote/installation grant.
 scope:
   included:
-    - new UI-first five-domain semantic layout and 22 page projections, qualified slice by slice
+    - knowledge-learning object workspace with five stable entry projections and 22 historical page identities, qualified slice by slice
     - default cosmic palette for new or invalid preferences, preserved valid saved preferences and five switchable themes with consistent semantic colors
     - bounded recovery contract and capability discoverability without promoting intent to qualification
     - local Windows desktop knowledge workflow

@@ -1,5 +1,7 @@
 # 稳定产品规范
 
+现行定位/闭环目标为Owner选择的新任务包覆盖（SUP-030），见[来源绑定](../../workspace/intake/20261101-positioning-loop-update/README.md)。产品身份V2.2与唯一闭环V3沿原路径；旧版本只作继承/历史解释。
+
 当前范围与任务来源由[活动指针](../current/AAOS-ACTIVE-EXECUTION.json)选择；实际进度只读[唯一执行记录](../current/AAOS-UI-FIRST-EXECUTION-20261009.md)，接续读[当前交接](../current/AAOS-AGENT-HANDOFF-CURRENT.md)。文档身份按[路由登记](../current/AAOS-AUTHORITY-ROUTES.json)核对。
 
 本目录保留仍生效的产品规范与机器登记：

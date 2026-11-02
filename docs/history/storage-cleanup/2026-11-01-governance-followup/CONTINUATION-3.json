@@ -1,0 +1,277 @@
+{
+  "schema": "aaos.governance-continuation/v1",
+  "recorded_at": "2026-11-01T02:27:35.861120+00:00",
+  "status": "LOCAL_IMPLEMENTATION_VERIFIED_REMOTE_PENDING",
+  "overall": "PARTIAL",
+  "base_commit": "39cb3249b9c665d7a458c10822080562200f58d6",
+  "changed_existing_file_identities": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 96367,
+      "sha256": "3268b7e9e266442fd965d7e859cc25690ce1e18d7dc603199f7f03a0018fb962"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "bytes": 23437,
+      "sha256": "57f3dc110ee71a1470c2b0662408e79f169747dfb35886fb6a5c18a5baba6ba6"
+    },
+    {
+      "path": ".ignore",
+      "bytes": 968,
+      "sha256": "d727b166487c51a0882badddfcaee9478ba0c5d5d9c1dbdac511240292759d60"
+    },
+    {
+      "path": "desktop/scripts/prepare_bundle.py",
+      "bytes": 24092,
+      "sha256": "4468d39a9c1dec3ce8a336b2e08277989156707f4a7cfcf13d18fd76e7684d5f"
+    },
+    {
+      "path": "desktop/scripts/stage_runtime.py",
+      "bytes": 4156,
+      "sha256": "3795ffc480db50ab70f7188c4d82854bb3d7d8c2775bbb03e6e6e36d668ca30c"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "bytes": 846442,
+      "sha256": "1d234094f52baf8e40dc6c3ffb1b266dc920534255ca45370bb91d96a3206ed2"
+    },
+    {
+      "path": "docs/history/storage-cleanup/2026-11-01-governance-followup/README.md",
+      "bytes": 8505,
+      "sha256": "4cff9e6892acc13eabc6c08fd4aec47cf03544ecad102da6a47f124b3b046a13"
+    },
+    {
+      "path": "scripts/release/runtime_growth.py",
+      "bytes": 12929,
+      "sha256": "109d0805aea13b9a7d5b92384abdb3842dbdf44eb980a7d73189a6bf12db43da"
+    },
+    {
+      "path": "scripts/release/stage_backend_runtime.py",
+      "bytes": 68193,
+      "sha256": "2daa5385232562d6a68e1eaf207ce331608aff6aae9dc7de13ae3a69f461ecff"
+    },
+    {
+      "path": "tests/test_backend_in_place.py",
+      "bytes": 30193,
+      "sha256": "92d629ff0e4a575ac7ed082542200de97121c46e8417538bcde0917a7b938890"
+    },
+    {
+      "path": "tests/test_runtime_growth.py",
+      "bytes": 12817,
+      "sha256": "7a9a269166e08de906f65c48eb822bc2f8a668089a56a1e929e16639c4fd9f1e"
+    }
+  ],
+  "local_checks": [
+    {
+      "path": ".project-local/runs/be268a2d33/gcs-t1/artifacts/execution.json",
+      "bytes": 2081,
+      "sha256": "846b5540ed3782759008d6905354fd0b589938ef9d07a6c930d7ec41dfa97f98",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "39cb3249b9c665d7a458c10822080562200f58d6",
+      "source_patch_sha256": "c4dd3a8c35389c57819dbebb7c0b00137bc93ebdd272ac3344c1dae3363ca93d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gcs-l1/artifacts/execution.json",
+      "bytes": 1616,
+      "sha256": "1247294db428a5c4eaeb3031dc9a6c3351cd48987a76fe3590b894877eef4894",
+      "child": 0,
+      "wrapper": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "source_commit": "39cb3249b9c665d7a458c10822080562200f58d6",
+      "source_patch_sha256": "c4dd3a8c35389c57819dbebb7c0b00137bc93ebdd272ac3344c1dae3363ca93d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gcs-p1/artifacts/local-ci.json",
+      "bytes": 1040281,
+      "sha256": "050671fac98100a457a36db5ab55df48759ee2327fc83464895d091c997200f0",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "checks": [
+        {
+          "name": "conventions",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "architecture",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "language-boundaries",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "format-matrix",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "path-conventions",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "document-authority",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ui-design-increment",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "route-inventory",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "contracts",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "vocabulary",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "teaching-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "expression-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "research-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ai-asset-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "resource-catalog-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ui-working-state-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "layout-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "ui-host-drift",
+          "status": "LOCAL_PASS"
+        },
+        {
+          "name": "media-policy",
+          "status": "LOCAL_PASS"
+        }
+      ]
+    }
+  ],
+  "local_pytest_summary": {
+    "passed": 243,
+    "skipped": 0
+  },
+  "post_seal_checks": [
+    "gcs-d1",
+    "gcs-c1"
+  ],
+  "search_readback": {
+    "default_visible": 3284,
+    "previous_visible": 3633,
+    "pre_october_named_paths": 0,
+    "previous_pre_october_named_paths": 74,
+    "history_paths": 0,
+    "current_paths_visible": [
+      "docs/truth/PRODUCT_IDENTITY_V2.md",
+      "docs/truth/CLOSED_LOOP_DEFINITION.md",
+      "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md",
+      "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    ],
+    "original_source_packages_retained": true,
+    "archive_or_deletion_count_increment": 0
+  },
+  "public_records": {
+    "inherited_verified_members": 186,
+    "archive_identities_unchanged": true,
+    "current_original_bytes": 7716778,
+    "current_archive_bytes": 1127073,
+    "limit": "Archive identity readback, not a new restore test, physical release or whole-project measurement"
+  },
+  "ci_history": {
+    "run": 41263648803,
+    "head": "39cb3249b9c665d7a458c10822080562200f58d6",
+    "conclusion": "failure",
+    "linux_full_test": "success",
+    "windows_runtime_failed": 3,
+    "green_seal": {
+      "status": "ACCEPTED",
+      "measurement_status": "PASS",
+      "all_exclusions_errors_layout_budget_empty": true
+    },
+    "failure": "Observed base Python executable alias rejected by strict snapshot/reparse validation after successful seal",
+    "new_source_qualification": "PENDING_EXACT_SHA"
+  },
+  "alias_scope": "Only explicitly supplied current implicit-interpreter binding, top-level python3.exe file symlink directly to same-root bound python.exe; count and materialize independent bytes with pre/post link and content checks. Generic/explicit donor APIs remain strict.",
+  "independent_review": {
+    "path": ".project-local/runs/be268a2d33/gov-pyalias-review1/artifacts/ALIAS-INDEPENDENT-REVIEW.json",
+    "bytes": 6376,
+    "sha256": "1b34392f69a6d879625f045e52e8d304211a2ef6c4c8d3b970512055f01f91c5",
+    "verdict": "ACCEPTABLE_STATIC_BOUNDARY_NO_REMAINING_BLOCKING_FINDINGS",
+    "source_identities_verified": 6
+  },
+  "supporting_local_evidence": [
+    {
+      "path": ".project-local/runs/be268a2d33/gov-pyalias-review1/artifacts/ALIAS-INDEPENDENT-REVIEW.json",
+      "bytes": 6376,
+      "sha256": "1b34392f69a6d879625f045e52e8d304211a2ef6c4c8d3b970512055f01f91c5"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-continuation-seal/artifacts/ci-run41263648803-green/ci-runtime-seal-review.json",
+      "bytes": 898,
+      "sha256": "cdfbc76e010092654c66cda9112706fd3c7f4d3e353da7c587c5175e52f53116"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-continuation-seal/artifacts/default-search-readback3.json",
+      "bytes": 965,
+      "sha256": "2b00379eaaabb89034b627660afff51b0e726033268462b722b795e4d133de70"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-continuation-seal/artifacts/ci41263648803-observation3.json",
+      "bytes": 50237,
+      "sha256": "0464de0ce49bbdb6245952886e7351b7400c270b3ffd5153e50f2499c45da5d6"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/pyalias-freeze/artifacts/PYTHON3-ALIAS-FREEZE.json",
+      "bytes": 8623,
+      "sha256": "72a86fdcdf18e91b9648985f5900c8bd56c292e1978b0643b2b6dcf74c795eaa"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/gov-layout-followup-20261101/artifacts/FINAL-READONLY58.json",
+      "bytes": 154204,
+      "sha256": "243bfc98ddba83f30c48d235dbb04290a6c190599d5506c7745943136d036730"
+    }
+  ],
+  "fixed_operator_checkpoint": {
+    "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
+    "bytes": 509805,
+    "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
+    "changed": false,
+    "current_measurement": false
+  },
+  "limits": [
+    "Stage fixture GREEN with source_consistent=false remains INVALIDATED, not final qualification",
+    "No forecast, 2GiB trigger, class budget or operator checkpoint weakening",
+    "No ignored archives/runtime/cache/private-state upload",
+    "No new installed runtime, real-model, product closed-loop, release or Green qualification"
+  ],
+  "remaining": [
+    "303 shallow layout snapshot entries and other producers/linked-worktree ownership",
+    "Six pinned candidate inputs normalization and successor qualification",
+    "Green migration source gaps",
+    "F05 and complete CL/J/R6 business acceptance",
+    "Exact-SHA CI, qualifying merge and local/remote readback"
+  ]
+}

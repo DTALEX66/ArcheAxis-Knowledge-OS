@@ -1,0 +1,97 @@
+{
+  "schema": "aaos.owner-selected-goal-sources/v1",
+  "date": "2026-11-01",
+  "owner_instructions": [
+    "还有昨天发你的任务包 里面应该有新的项目定位和描述 你更新覆盖下",
+    "闭环目标也以新的任务包为准",
+    "并且做好所有更新覆盖各类引用索引的调整"
+  ],
+  "selection": "v3 REPORT, architecture and X1-X8; R6 professional-practice correction; v3.1/addendum evidence limitations",
+  "role": "OWNER_SELECTED_NORMATIVE_REQUIREMENTS_NOT_CURRENT_IMPLEMENTATION_PASS",
+  "sources": [
+    {
+      "registered_manifest": "workspace/intake/20261031-cloud-integration-v3-review/MANIFEST.json",
+      "archive": ".project-local/archives/owner-inputs/20261031-cloud-integration-v3/AAOS-Cloud-Integration-20261031-v3.zip",
+      "bytes": 10410545,
+      "sha256": "de984bf8917d24f4bc837221f76983dde20973f8285808e1fa6c351a5c68ac43",
+      "selected_members": [
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/REPORT.zh.md",
+          "bytes": 13616,
+          "sha256": "2e5d2a355e7c88776617bbad1b9d94ea4563ed222a6633c67080b6c046b1424e"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/HANDOFF-NO-REDUNDANT-AUDIT.zh.md",
+          "bytes": 3168,
+          "sha256": "fe807afaac5fff85adad614d61f511f27d2f4f662470bf85774f60f658e52e83"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/review/ui-architecture-audit.md",
+          "bytes": 12703,
+          "sha256": "4789a057776c2e5b0add92f772d0d5dbed52eb3fbfdbfeb9e0c82425d826447c"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/X-results.csv",
+          "bytes": 3492,
+          "sha256": "f12249918c8f965c4fe82f908bd478ad9243fc104474764e08f5976c74d0e6df"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/mappings/02-capability-186-disposition.csv",
+          "bytes": 291883,
+          "sha256": "402490a992fba7a2eb9e118fcc913b46aafefde9d457afe7a7f321576d1dc069"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/mappings/02b-duty-22-disposition.csv",
+          "bytes": 27463,
+          "sha256": "fcc6c96ad6a6bb6b70a2c6d24a8b799025aa55c7c9966911e36e0fbfe93a6a8c"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/mappings/05-format-disposition.csv",
+          "bytes": 23369,
+          "sha256": "6db3439c567bdc3086e447e3a949fd7ae387338077dfd94e10dd90c7d7762a82"
+        },
+        {
+          "member": "AAOS-Cloud-Integration-20261031/deliverable/mappings/06-interop-disposition.csv",
+          "bytes": 38742,
+          "sha256": "1a0b9a423927e57ac174c62bf73e42ba4d721387f939b6abcc74cb315be44e49"
+        }
+      ]
+    },
+    {
+      "registered_manifest": "workspace/intake/20261030-r6-external-practice-boundary-review/MANIFEST.json",
+      "archive": ".project-local/archives/owner-inputs/20261030-r6/AAOS_外部实践边界纠偏_前端与本地Codex_R6_20261030.zip",
+      "bytes": 1582968,
+      "sha256": "b08ed62cf2b24b241876d64fbf249778237d5ceeb957cbf38f853ca30b4f4474",
+      "selected_members": [
+        {
+          "member": "00-先读-R6范围纠偏.md",
+          "bytes": 3492,
+          "sha256": "ae9db0166d1476c6610d9798fadef1cded2a6fd3b08097768c13d4905d75993f"
+        },
+        {
+          "member": "后端_本地CODEX/01-外部实践范围纠偏与最小闭环.md",
+          "bytes": 5342,
+          "sha256": "1e36a25b63b7c174e96a70eaaa59937c22ae2dc10b6f3d44f03ed930b3a307f2"
+        }
+      ]
+    },
+    {
+      "registered_manifest": "workspace/intake/20261101-cloud-integration-v3-1-review/MANIFEST.json",
+      "archive": ".project-local/archives/owner-inputs/20261101-cloud-integration-v3-1/v3.1-supplement.zip",
+      "bytes": 728330,
+      "sha256": "0883f3e6e687bd5a9af8a00775bb59427cb22bb6bc7f664bc98ac2dc563fa2b6",
+      "selected_members": []
+    },
+    {
+      "registered_manifest": "workspace/intake/20261101-log-binding-addendum-review/MANIFEST.json",
+      "archive": ".project-local/archives/owner-inputs/20261101-log-binding-addendum/v3.1-log-binding-addendum.zip",
+      "bytes": 26672,
+      "sha256": "160fcab851c581069d90d58c871070e609c3f5ce0995617c2a08c8866bfbd476",
+      "selected_members": []
+    }
+  ],
+  "canonical_identity": "docs/truth/PRODUCT_IDENTITY_V2.md",
+  "canonical_loop": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+  "supersession": "SUP-030",
+  "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+}
