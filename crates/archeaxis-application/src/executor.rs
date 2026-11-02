@@ -178,6 +178,23 @@ impl Executor {
             .await
             .map_err(|_| "document check recovery scheduling failed")?
             .map_err(|_| "document check recovery failed")?;
+        // A Core restart cannot complete a grading claim that the previous process
+        // dispatched: its owned bridge is gone. Finalize only dispatches older than
+        // the maximum grading budget plus margin, so a second process that is still
+        // grading cannot be cancelled; this never relaunches a worker. Damaged
+        // metadata is counted and left untouched, and a failure here must not stop
+        // ordinary document use, so it is reported to stderr only.
+        if let Err(error) = store
+            .submit_wait(|conn| {
+                archeaxis_domain::provider_learning::grade::abandon_dispatched_after_restart(
+                    conn,
+                    std::time::Duration::from_secs(150),
+                )
+            })
+            .await
+        {
+            eprintln!("grade restart reconciliation unavailable: {error}");
+        }
         let mut routes: Vec<(String, PathBuf, bool)> =
             vec![("text.extract".to_string(), default_worker.to_owned(), true)];
         let mut deeptutor_practice_worker = None;
