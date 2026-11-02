@@ -683,31 +683,34 @@ fn text_worker_for(root: &Path, python: &Path, data_dir: &Path) -> Option<serde_
 impl CoreSpec {
     /// Find the canonical Core beside the runtime the resolver chose.
     ///
-    /// The resolver points at `<root>/runtime/python/python.exe`, so a candidate that
-    /// ships a Core carries it at `<root>/core/archeaxis-api.exe`. Returning `None`
-    /// when it is absent keeps the legacy entrypoint the default until a candidate
-    /// actually provides a Core.
+    /// The resolver accepts `<root>/runtime/python.exe` and
+    /// `<root>/runtime/python/python.exe`. Both use the one corresponding
+    /// `<root>/core/archeaxis-api.exe`; unrelated ancestors are never searched.
     pub fn beside_runtime(runtime: &RuntimeSpec) -> Option<Self> {
-        // The interpreter sits either at `<root>/runtime/python/python.exe` or at
-        // `<root>/runtime/python.exe`, so walk up until the Core appears rather than
-        // assuming a depth. The root is the directory the Core and workers sit in.
-        let root = (2..=3)
-            .filter_map(|levels| {
-                let mut path = runtime.python.clone();
-                for _ in 0..levels {
-                    path = path.parent()?.to_path_buf();
-                }
-                Some(path)
-            })
-            .find(|candidate| candidate.join("core").join("archeaxis-api.exe").is_file())?;
+        if runtime.python.file_name() != Some(std::ffi::OsStr::new("python.exe")) {
+            return None;
+        }
+        let parent = runtime.python.parent()?;
+        let runtime_dir = if parent.file_name() == Some(std::ffi::OsStr::new("python")) {
+            parent.parent()?
+        } else {
+            parent
+        };
+        if runtime_dir.file_name() != Some(std::ffi::OsStr::new("runtime")) {
+            return None;
+        }
+        let root = runtime_dir.parent()?;
         let executable = root.join("core").join("archeaxis-api.exe");
+        if !executable.is_file() {
+            return None;
+        }
         let workspace_db = runtime.data_dir.join("archeaxis.sqlite");
         Some(Self {
             executable,
             workspace_db,
             cwd: runtime.data_dir.clone(),
             data_dir: runtime.data_dir.clone(),
-            text_worker: text_worker_for(&root, &runtime.python, &runtime.data_dir),
+            text_worker: text_worker_for(root, &runtime.python, &runtime.data_dir),
         })
     }
 }
@@ -1121,10 +1124,28 @@ fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
 }
 
 pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(), String> {
+    let core = CoreSpec::beside_runtime(runtime);
+    run_selected_restore_backup(runtime, core.as_ref(), backup_path)
+}
+
+/// Restore with the already selected canonical Core, without rediscovery or
+/// falling back to the Python compatibility entrypoint if that Core disappears.
+pub fn run_canonical_restore_backup(
+    runtime: &RuntimeSpec,
+    core: &CoreSpec,
+    backup_path: &Path,
+) -> Result<(), String> {
+    run_selected_restore_backup(runtime, Some(core), backup_path)
+}
+
+fn run_selected_restore_backup(
+    runtime: &RuntimeSpec,
+    core: Option<&CoreSpec>,
+    backup_path: &Path,
+) -> Result<(), String> {
     let job = Job::new()?;
     let deadline = Instant::now() + RESTORE_TIMEOUT;
-    let core = CoreSpec::beside_runtime(runtime);
-    let mut command = restore_command(runtime, backup_path, core.as_ref());
+    let mut command = restore_command(runtime, backup_path, core);
     command
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -1163,7 +1184,7 @@ pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(
         ));
     }
     let receipt_valid = match core {
-        Some(ref core) => core_restore_receipt_valid(
+        Some(core) => core_restore_receipt_valid(
             &stdout.bytes,
             stdout.truncated,
             &core.workspace_db,
@@ -1717,6 +1738,116 @@ mod tests {
                 .unwrap_or_else(|| panic!("the Core beside a {interpreter} runtime was not found"));
             assert_eq!(spec.executable, core, "{interpreter}");
         }
+    }
+
+    fn discovery_runtime(python: PathBuf, data_dir: &TestPath, external_dev: bool) -> RuntimeSpec {
+        RuntimeSpec {
+            python,
+            cwd: data_dir.to_path_buf(),
+            data_dir: data_dir.to_path_buf(),
+            isolated: !external_dev,
+            external_dev,
+            profile: if external_dev {
+                "external-dev"
+            } else {
+                "installed-stable"
+            },
+        }
+    }
+
+    fn write_discovery_marker(path: &TestPath) {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, b"synthetic marker, never executed").unwrap();
+    }
+
+    #[test]
+    fn flat_core_discovery_never_uses_a_parent_directory_candidate() {
+        let temp = tempdir().unwrap();
+        let bundle = temp.path().join("bundle");
+        let python = bundle.join("runtime/python.exe");
+        let other_core = temp.path().join("core/archeaxis-api.exe");
+        let expected_core = bundle.join("core/archeaxis-api.exe");
+        write_discovery_marker(&python);
+        write_discovery_marker(&other_core);
+        let runtime = discovery_runtime(python, &bundle, false);
+
+        assert!(CoreSpec::beside_runtime(&runtime).is_none());
+        write_discovery_marker(&expected_core);
+        assert_eq!(
+            CoreSpec::beside_runtime(&runtime).unwrap().executable,
+            expected_core
+        );
+        fs::remove_file(&expected_core).unwrap();
+        assert!(CoreSpec::beside_runtime(&runtime).is_none());
+    }
+
+    #[test]
+    fn nested_core_discovery_never_uses_a_runtime_subdirectory_candidate() {
+        let temp = tempdir().unwrap();
+        let bundle = temp.path().join("bundle");
+        let python = bundle.join("runtime/python/python.exe");
+        let other_core = bundle.join("runtime/core/archeaxis-api.exe");
+        let expected_core = bundle.join("core/archeaxis-api.exe");
+        write_discovery_marker(&python);
+        write_discovery_marker(&other_core);
+        let runtime = discovery_runtime(python, &bundle, false);
+
+        assert!(CoreSpec::beside_runtime(&runtime).is_none());
+        write_discovery_marker(&expected_core);
+        assert_eq!(
+            CoreSpec::beside_runtime(&runtime).unwrap().executable,
+            expected_core
+        );
+        fs::remove_file(&expected_core).unwrap();
+        assert!(CoreSpec::beside_runtime(&runtime).is_none());
+    }
+
+    #[test]
+    fn unrelated_development_interpreter_does_not_select_an_ancestor_core() {
+        let temp = tempdir().unwrap();
+        let root = temp.path();
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
+        write_discovery_marker(&python);
+        write_discovery_marker(&root.join(".project-local/build/venv/core/archeaxis-api.exe"));
+        write_discovery_marker(&root.join(".project-local/build/core/archeaxis-api.exe"));
+        let runtime = discovery_runtime(python, root, true);
+
+        assert!(CoreSpec::beside_runtime(&runtime).is_none());
+    }
+
+    #[test]
+    fn canonical_restore_does_not_rediscover_or_fall_back_after_core_disappears() {
+        let temp = tempdir().unwrap();
+        let root = temp.path();
+        let python = root.join("runtime/python.exe");
+        let executable = root.join("core/archeaxis-api.exe");
+        let backup = root.join("synthetic-backup.sqlite");
+        write_discovery_marker(&python);
+        write_discovery_marker(&executable);
+        let mut runtime = discovery_runtime(python, root, false);
+        let selected = CoreSpec::beside_runtime(&runtime).unwrap();
+        fs::remove_file(&executable).unwrap();
+
+        // If this path incorrectly falls back, the test executable is a real
+        // program; the missing Core itself cannot be spawned.
+        runtime.python = std::env::current_exe().unwrap();
+        let command = super::restore_command(&runtime, &backup, Some(&selected));
+        assert_eq!(command.get_program(), selected.executable.as_os_str());
+        let args = command.get_args().collect::<Vec<_>>();
+        assert_eq!(
+            args,
+            [
+                OsStr::new("--maintenance-restore"),
+                selected.workspace_db.as_os_str(),
+                backup.as_os_str(),
+            ]
+        );
+        let error = super::run_canonical_restore_backup(&runtime, &selected, &backup).unwrap_err();
+        assert!(
+            error.starts_with("failed to start offline restore:"),
+            "{error}"
+        );
+        assert!(!selected.workspace_db.exists());
     }
 
     #[test]

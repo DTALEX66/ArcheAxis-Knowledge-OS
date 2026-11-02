@@ -66,10 +66,29 @@ def test_root_desktop_keeps_the_recovery_ui_alive_and_retries_core_locally() -> 
     ]
     assert "CoreSpec::beside_runtime(runtime)" in helper
     assert "BackendProcess::launch_core(&spec)" in helper
-    assert "None => BackendProcess::launch(runtime)" in helper
+    assert "RECOVERY_CANONICAL_CORE_UNAVAILABLE" in helper
+    assert "BackendProcess::launch(runtime)" not in helper
     retry = source[source.index("fn retry_backend_blocking(") : source.index("fn recovery_status(")]
     assert "launch_product_backend(&runtime)" in retry
     assert "Create the packaged Recovery WebView before migration/Core startup" in source
+
+
+def test_formal_restore_passes_one_selected_core_to_rust_only_restore() -> None:
+    source = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    restore = source[
+        source.index("fn restore_backup_checked(") : source.index("fn workspace_preview_blocking(")
+    ]
+    selection = "CoreSpec::beside_runtime(&runtime)"
+    canonical_restore = "run_canonical_restore_backup(&runtime, &core, staged.backup_path())"
+    assert restore.count(selection) == 1
+    assert restore.index(selection) < restore.index("workspace_preview_blocking(")
+    assert restore.index(selection) < restore.index("enumerate_backups(")
+    assert restore.index(selection) < restore.index(".enter_safe_mode()")
+    assert restore.index(selection) < restore.index("stage_backup_for_restore(")
+    assert canonical_restore in restore
+    assert "run_restore_backup(" not in restore
+    assert "expected.is_some() && runtime.external_dev" in restore
+    assert "WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE" in restore
 
 
 def test_recovery_reads_never_wait_for_the_long_backend_launch_operation() -> None:

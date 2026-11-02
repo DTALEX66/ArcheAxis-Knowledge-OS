@@ -730,12 +730,33 @@ function AppBody() {
   const restoreBackup = useCallback(async (
     name: string,
     onReceipt: () => void,
-  ): Promise<"refreshed" | "refresh-unavailable"> => {
+  ): Promise<"refreshed" | "refresh-unavailable" | "not-started-status-refreshed" | "failed-status-refreshed" | "failed-status-unavailable"> => {
     if (draftDirty.current) throw new Error("草稿尚未保存，请先保存或保留文字后恢复备份。");
     const epoch = beginOperation();
     setDesktopReady(false);
     try {
-      await restoreRecoveryBackup(name);
+      try {
+        await restoreRecoveryBackup(name);
+      } catch (error) {
+        // A refusal can precede shutdown, while another failure can follow
+        // it. Read the host observation, but do not automatically reopen the
+        // workspace or turn a ready report into a verified handshake.
+        if (!isCurrent(epoch)) return "failed-status-unavailable";
+        try {
+          const status = await getRecoveryStatus();
+          if (!isCurrent(epoch)) return "failed-status-unavailable";
+          setRecoveryStatus(status);
+          // Tauri rejects the command with this exact primitive only when the
+          // host refused before shutdown or staging. Similar text and Error
+          // objects are not evidence that a restore did not run.
+          return error === "CORE_UNAVAILABLE" ? "not-started-status-refreshed" : "failed-status-refreshed";
+        } catch {
+          if (isCurrent(epoch)) {
+            setRecoveryStatus(failedRecoveryStatus("备份恢复未完成；本地核心状态无法确认。", recoveryStatus ?? undefined));
+          }
+          return "failed-status-unavailable";
+        }
+      }
       if (!isCurrent(epoch)) return "refresh-unavailable";
       onReceipt();
       try {
@@ -746,20 +767,13 @@ function AppBody() {
         return "refreshed";
       } catch {
         if (!isCurrent(epoch)) return "refresh-unavailable";
-        setRecoveryStatus({
-          state: "stopped",
-          safe_mode: true,
-          backend_available: false,
-          message: "备份已恢复，但状态刷新不可用。",
-          backups: [],
-          external_dev: recoveryStatus?.external_dev === true,
-        });
+        setRecoveryStatus(failedRecoveryStatus("备份已恢复，但本地核心状态无法确认。", recoveryStatus ?? undefined));
         return "refresh-unavailable";
       }
     } finally {
       finishOperation(epoch);
     }
-  }, [beginOperation, finishOperation, isCurrent, recoveryStatus?.external_dev, verifyReadyStatus]);
+  }, [beginOperation, finishOperation, isCurrent, recoveryStatus, verifyReadyStatus]);
 
   useEffect(()=>{
     if(!desktop||!desktopReady||verificationPending||workspaceRestoring)return;
