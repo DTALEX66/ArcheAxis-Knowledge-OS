@@ -175,6 +175,16 @@
       "record_pull_request": 207,
       "record_merge_commit": "fcecb6b4db541698a1cb8f8b11b051fd0fb4cdfa",
       "final_main_after_record_merge": "fcecb6b4db541698a1cb8f8b11b051fd0fb4cdfa",
+      "host_forwarding": {
+        "pull_request": 209,
+        "merge_commit": "0da0e59dbbf5ad29eb91080211f613f64a0cddcf",
+        "merged_at": "2026-11-02T14:49:18Z",
+        "remote_main_after_host_forwarding": "0da0e59dbbf5ad29eb91080211f613f64a0cddcf",
+        "scope": "core_bridge operation learning_deeptutor_practice_grade -> POST /api/v1/learning/deeptutor/practice-grade (one-object body, 32,768-byte request limit, 95s transport budget, private-response policy); core-command schema enum + regenerated desktop contract; stage_backend_runtime ships grade_worker.py and upstream/answers.py pinned by bytes and SHA-256 so an install can run the grading route instead of failing closed at 503.",
+        "required_gate_verdict": "Run 41459130141: gateplan, lint, contracts-vnext, desktop-vnext, green-candidate-vnext, workers-vnext, browser-smoke and desktop-fast passed. rust-vnext failed once on document_cloud_loop synthetic-worker 5s timeouts; the failed jobs were rerun on the same SHA, rust-vnext then passed in 16m51s and a0-gates passed. gateplan skipped desktop-build, test, security-targeted and installer-lifecycle for this path set; contract consistency was still checked by contracts-vnext and locally by the generators.",
+        "local_verification_only": "rustfmt on the bridge, contract generators and --check variants, 77 contract/authority tests, staging and bridge suites (the single Windows >260-char temp-path staging failure passes with a short basetemp). The Tauri host compiles in CI, not locally; no installed grading journey was run.",
+        "retained_flake": "document_cloud_loop synthetic worker timeouts remain a load-sensitive flake; not hidden or fixed by this record."
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
