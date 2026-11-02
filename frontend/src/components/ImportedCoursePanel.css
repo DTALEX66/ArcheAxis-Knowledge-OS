@@ -3,3 +3,7 @@
 .imported-course-panel legend { max-width:100%; overflow-wrap:anywhere; }
 .imported-course-panel .imported-course-option { display:grid; grid-template-columns:20px minmax(0,1fr); align-items:center; gap:8px; min-height:44px; overflow-wrap:anywhere; cursor:pointer; }
 .imported-course-panel .imported-course-option input { width:auto; min-width:0; margin:0; justify-self:center; }
+.imported-course-panel nav[aria-label="课程场景"] { display:flex; align-items:center; gap:12px; margin:12px 0; }
+.imported-course-slide { position:relative; width:100%; max-width:1000px; overflow:hidden; border:1px solid currentColor; }
+.imported-course-slide-text { position:absolute; box-sizing:border-box; overflow:auto; overflow-wrap:anywhere;
+  white-space:pre-wrap; font-family:system-ui,"Microsoft YaHei",sans-serif; font-size:clamp(.7rem,1.4vw,1.15rem); }

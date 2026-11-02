@@ -204,6 +204,352 @@ fn document_check_config(data_dir: &Path) -> (Option<serde_json::Value>, Option<
         Err(()) => (None, Some("invalid_config")),
     }
 }
+
+// Backend manifests contain a complete runtime inventory and can be
+// several MiB. Bound the optional provider read without imposing a startup
+// requirement on older candidates, which do not carry the Node worker.
+const MAX_BACKEND_MANIFEST_BYTES: u64 = 16 * 1024 * 1024;
+const OPENMAIC_NODE: &str = "workers/openmaic/node.exe";
+const OPENMAIC_NODE_LICENSE: &str = "workers/openmaic/NODE-LICENSE";
+const OPENMAIC_SCRIPT: &str = "workers/openmaic/scene-build-worker.mjs";
+const OPENMAIC_FIXED_MEMBERS: [(&str, u64, &str); 5] = [
+    (OPENMAIC_SCRIPT, 7315, "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9"),
+    ("workers/openmaic/vendor/generation-0.3.28/scene-builder.ts", 3082, "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a"),
+    ("workers/openmaic/vendor/generation-0.3.28/nanoid.mjs", 389, "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e"),
+    ("workers/openmaic/vendor/generation-0.3.28/LICENSE", 1065, "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"),
+    ("workers/openmaic/vendor/generation-0.3.28/UPSTREAM.md", 1134, "83962cee94daba3596fba378867756981c87a8bd7839ced586510643c113d579"),
+];
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct OpenMaicBundleEntry {
+    status: String,
+    // Value makes this field required even when its value is JSON null.
+    node_sha256: serde_json::Value,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct OpenMaicFileEntry {
+    bytes: u64,
+    sha256: String,
+}
+
+struct OpenMaicFiles(std::collections::HashMap<String, OpenMaicFileEntry>);
+
+impl<'de> serde::Deserialize<'de> for OpenMaicFiles {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct FilesVisitor;
+        impl<'de> serde::de::Visitor<'de> for FilesVisitor {
+            type Value = OpenMaicFiles;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("a backend runtime files object")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut members = std::collections::HashMap::new();
+                while let Some(name) = map.next_key::<String>()? {
+                    if name == OPENMAIC_NODE || name == OPENMAIC_NODE_LICENSE
+                        || OPENMAIC_FIXED_MEMBERS.iter().any(|(path, _, _)| *path == name.as_str())
+                    {
+                        let entry = map.next_value::<OpenMaicFileEntry>()?;
+                        if members.insert(name, entry).is_some() {
+                            return Err(serde::de::Error::custom("duplicate OpenMAIC member"));
+                        }
+                    } else {
+                        map.next_value::<serde::de::IgnoredAny>()?;
+                    }
+                }
+                Ok(OpenMaicFiles(members))
+            }
+        }
+        deserializer.deserialize_map(FilesVisitor)
+    }
+}
+
+struct BackendManifestSelection {
+    schema: Option<String>,
+    openmaic_scene_build: Option<OpenMaicBundleEntry>,
+    files: Option<OpenMaicFiles>,
+}
+
+impl<'de> serde::Deserialize<'de> for BackendManifestSelection {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct ManifestVisitor;
+        impl<'de> serde::de::Visitor<'de> for ManifestVisitor {
+            type Value = BackendManifestSelection;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("a backend runtime manifest object")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut seen = std::collections::HashSet::new();
+                let mut schema = None;
+                let mut openmaic_scene_build = None;
+                let mut files = None;
+                while let Some(field) = map.next_key::<String>()? {
+                    if !seen.insert(field.clone()) {
+                        return Err(serde::de::Error::custom("duplicate backend manifest field"));
+                    }
+                    match field.as_str() {
+                        "schema" => schema = Some(map.next_value::<String>()?),
+                        "openmaic_scene_build" => {
+                            openmaic_scene_build = Some(map.next_value::<OpenMaicBundleEntry>()?);
+                        }
+                        "files" => files = Some(map.next_value::<OpenMaicFiles>()?),
+                        _ => { map.next_value::<serde::de::IgnoredAny>()?; }
+                    }
+                }
+                Ok(BackendManifestSelection { schema, openmaic_scene_build, files })
+            }
+        }
+        deserializer.deserialize_map(ManifestVisitor)
+    }
+}
+
+fn local_runtime_path_shape(path: &Path) -> bool {
+    #[cfg(windows)]
+    if !matches!(path.components().next(),
+        Some(std::path::Component::Prefix(prefix))
+            if matches!(prefix.kind(), std::path::Prefix::Disk(_) | std::path::Prefix::VerbatimDisk(_)))
+    {
+        return false;
+    }
+    let normalized = path.to_string_lossy().replace('\\', "/").to_ascii_lowercase();
+    let normalized = normalized.strip_prefix("//?/").unwrap_or(&normalized);
+    path.is_absolute()
+        && !normalized.starts_with("e:")
+        && !normalized.starts_with("f:")
+        && !normalized.starts_with("//")
+        && !normalized.starts_with("unc/")
+        && !path.components().any(|part| matches!(part, std::path::Component::ParentDir))
+}
+
+fn unlinked_runtime_file(path: &Path) -> bool {
+    if !local_runtime_path_shape(path) {
+        return false;
+    }
+    for ancestor in path.ancestors() {
+        let Ok(metadata) = std::fs::symlink_metadata(ancestor) else { return false };
+        if config_reparse(&metadata) {
+            return false;
+        }
+        if ancestor == path && !metadata.is_file() {
+            return false;
+        }
+    }
+    true
+}
+
+// Match the existing Win32 handle identity strategy in the Recovery module.
+// No file content is read before the handle reports a single regular file.
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Default)]
+struct RuntimeFileTime {
+    low: u32,
+    high: u32,
+}
+
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Default)]
+struct RuntimeFileInformation {
+    attributes: u32,
+    creation_time: RuntimeFileTime,
+    last_access_time: RuntimeFileTime,
+    last_write_time: RuntimeFileTime,
+    volume_serial: u32,
+    size_high: u32,
+    size_low: u32,
+    number_of_links: u32,
+    file_index_high: u32,
+    file_index_low: u32,
+}
+
+#[cfg(windows)]
+#[link(name = "Kernel32")]
+unsafe extern "system" {
+    fn GetFileInformationByHandle(
+        file: *mut std::ffi::c_void,
+        information: *mut RuntimeFileInformation,
+    ) -> i32;
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct RuntimeFileIdentity {
+    volume: u64,
+    file: u64,
+}
+
+#[cfg(windows)]
+fn runtime_file_identity(file: &std::fs::File) -> Option<RuntimeFileIdentity> {
+    use std::os::windows::io::AsRawHandle;
+    let mut info = RuntimeFileInformation::default();
+    // SAFETY: `file` owns a live handle and `info` has the Win32 ABI layout.
+    let success = unsafe { GetFileInformationByHandle(file.as_raw_handle().cast(), &mut info) };
+    if success == 0 || info.number_of_links != 1
+        || info.attributes & (0x10 | 0x400) != 0 // directory or reparse point
+        || !file.metadata().ok()?.is_file()
+    {
+        return None;
+    }
+    let index = ((info.file_index_high as u64) << 32) | info.file_index_low as u64;
+    if index == 0 {
+        return None;
+    }
+    Some(RuntimeFileIdentity { volume: info.volume_serial as u64, file: index })
+}
+
+#[cfg(unix)]
+fn runtime_file_identity(file: &std::fs::File) -> Option<RuntimeFileIdentity> {
+    use std::os::unix::fs::MetadataExt;
+    let metadata = file.metadata().ok()?;
+    if !metadata.is_file() || metadata.nlink() != 1 {
+        return None;
+    }
+    Some(RuntimeFileIdentity { volume: metadata.dev(), file: metadata.ino() })
+}
+
+#[cfg(not(any(windows, unix)))]
+fn runtime_file_identity(_file: &std::fs::File) -> Option<RuntimeFileIdentity> {
+    None
+}
+
+fn open_runtime_handle(path: &Path) -> Option<std::fs::File> {
+    let mut options = std::fs::OpenOptions::new();
+    options.read(true);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        // Reject a replaced final-component reparse point on the handle, and
+        // keep write/delete sharing closed while this identity is inspected.
+        options.custom_flags(0x0020_0000).share_mode(0x0000_0001);
+    }
+    options.open(path).ok()
+}
+
+fn runtime_file_is_current(path: &Path, file: &std::fs::File, identity: RuntimeFileIdentity) -> bool {
+    if !unlinked_runtime_file(path) || runtime_file_identity(file) != Some(identity) {
+        return false;
+    }
+    let Some(current) = open_runtime_handle(path) else { return false };
+    runtime_file_identity(&current) == Some(identity)
+}
+
+fn open_single_link_runtime_file(path: &Path) -> Option<(std::fs::File, RuntimeFileIdentity)> {
+    if !unlinked_runtime_file(path) {
+        return None;
+    }
+    let file = open_runtime_handle(path)?;
+    let identity = runtime_file_identity(&file)?;
+    if !runtime_file_is_current(path, &file, identity) {
+        return None;
+    }
+    Some((file, identity))
+}
+
+fn read_backend_manifest(path: &Path, limit: u64) -> Option<Vec<u8>> {
+    let (file, identity) = open_single_link_runtime_file(path)?;
+    let before = file.metadata().ok()?;
+    if before.len() > limit {
+        return None;
+    }
+    let mut bytes = Vec::new();
+    (&file).take(limit.checked_add(1)?).read_to_end(&mut bytes).ok()?;
+    let final_opened = file.metadata().ok()?;
+    if bytes.len() as u64 > limit
+        || !runtime_file_is_current(path, &file, identity)
+        || !config_same_file(&before, &final_opened)
+    {
+        return None;
+    }
+    Some(bytes)
+}
+
+/// Select only the staged fixed paths. The manifest digest binds bytes that
+/// Core checks again; it is not proof of the executable's origin or version.
+fn openmaic_node_worker_for(root: &Path) -> Option<serde_json::Value> {
+    let node = root.join(OPENMAIC_NODE);
+    let script = root.join(OPENMAIC_SCRIPT);
+    let (node_file, node_identity) = open_single_link_runtime_file(&node)?;
+    let (script_file, script_identity) = open_single_link_runtime_file(&script)?;
+    let manifest = read_backend_manifest(
+        &root.join("backend-runtime-manifest.json"), MAX_BACKEND_MANIFEST_BYTES,
+    )?;
+    let selection: BackendManifestSelection = serde_json::from_slice(&manifest).ok()?;
+    if selection.schema.as_deref() != Some("archeaxis.backend-runtime/v1") {
+        return None;
+    }
+    let entry = selection.openmaic_scene_build?;
+    let sha = entry.node_sha256.as_str()?;
+    if entry.status != "INCLUDED" || sha.len() != 64
+        || !sha.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+    {
+        return None;
+    }
+    let members = selection.files?.0;
+    for (path, size, expected_sha) in OPENMAIC_FIXED_MEMBERS {
+        let member = members.get(path)?;
+        if member.bytes != size || member.sha256.as_str() != expected_sha {
+            return None;
+        }
+    }
+    if members.get(OPENMAIC_NODE)?.sha256.as_str() != sha {
+        return None;
+    }
+    let mut targets = vec![(OPENMAIC_NODE, 512 * 1024 * 1024_u64),
+                           (OPENMAIC_NODE_LICENSE, 1_000_000_u64)];
+    targets.extend(OPENMAIC_FIXED_MEMBERS.iter().map(|(path, _, _)| (*path, 1_000_000_u64)));
+    let mut node_handle = Some((node_file, node_identity));
+    let mut script_handle = Some((script_file, script_identity));
+    let mut opened = Vec::with_capacity(targets.len());
+    for (relative, limit) in targets {
+        let member = members.get(relative)?;
+        if member.bytes == 0 || member.bytes > limit || member.sha256.len() != 64
+            || !member.sha256.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+        {
+            return None;
+        }
+        let path = root.join(relative);
+        let (file, identity) = if relative == OPENMAIC_NODE {
+            node_handle.take()?
+        } else if relative == OPENMAIC_SCRIPT {
+            script_handle.take()?
+        } else {
+            open_single_link_runtime_file(&path)?
+        };
+        if file.metadata().ok()?.len() != member.bytes {
+            return None;
+        }
+        opened.push((path, file, identity, member.bytes));
+    }
+    for (path, file, identity, size) in &opened {
+        if !runtime_file_is_current(path, file, *identity) || file.metadata().ok()?.len() != *size {
+            return None;
+        }
+    }
+    Some(serde_json::json!({
+        "executable": contract_path(&node),
+        "executable_sha256": sha,
+        "script": contract_path(&script),
+    }))
+}
+
 fn configured_core_launch_document(
     token: &str,
     machine_token: &str,
@@ -217,6 +563,17 @@ fn configured_core_launch_document(
         spec.text_worker.as_ref(),
     ))
     .expect("generated launch document");
+    if spec.text_worker.is_some() {
+        if let Some(core_dir) = spec.executable.parent() {
+            if core_dir.file_name() == Some(std::ffi::OsStr::new("core"))
+                && spec.executable.file_name() == Some(std::ffi::OsStr::new("archeaxis-api.exe"))
+            {
+                if let Some(provider) = core_dir.parent().and_then(openmaic_node_worker_for) {
+                    document["openmaic_node_worker"] = provider;
+                }
+            }
+        }
+    }
     let (config, error) = document_check_config(&spec.data_dir);
     if let Some(config) = config {
         document["document_check_config"] = config;
@@ -1381,6 +1738,275 @@ mod tests {
             parsed["text_worker"]["routes"][0]["capability"],
             "pdf.extract"
         );
+    }
+
+    fn synthetic_openmaic_manifest() -> serde_json::Value {
+        let mut files = serde_json::Map::new();
+        for (name, size, sha) in super::OPENMAIC_FIXED_MEMBERS {
+            files.insert(name.to_owned(), serde_json::json!({"bytes":size,"sha256":sha}));
+        }
+        files.insert(super::OPENMAIC_NODE.to_owned(),
+            serde_json::json!({"bytes":17,"sha256":"a".repeat(64)}));
+        files.insert(super::OPENMAIC_NODE_LICENSE.to_owned(),
+            serde_json::json!({"bytes":17,"sha256":"b".repeat(64)}));
+        serde_json::json!({"schema":"archeaxis.backend-runtime/v1", "files":files,
+            "openmaic_scene_build":{"status":"INCLUDED","node_sha256":"a".repeat(64)}})
+    }
+
+    fn write_synthetic_openmaic_members(root: &TestPath) {
+        let manifest = synthetic_openmaic_manifest();
+        for (name, row) in manifest["files"].as_object().unwrap() {
+            let path = root.join(name);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            // These bytes match the declared lengths, not the declared hashes.
+            // Core and release verification, not this host test, check hashes.
+            fs::write(path, vec![b'x'; row["bytes"].as_u64().unwrap() as usize]).unwrap();
+        }
+    }
+
+    fn synthetic_openmaic_runtime() -> (tempfile::TempDir, RuntimeSpec) {
+        let root = tempdir().unwrap();
+        for relative in [
+            "runtime/python.exe",
+            "core/archeaxis-api.exe",
+            "workers/transport/text_ndjson.py",
+        ] {
+            let path = root.path().join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, b"synthetic fixture").unwrap();
+        }
+        write_synthetic_openmaic_members(root.path());
+        let manifest = synthetic_openmaic_manifest();
+        fs::write(root.path().join("backend-runtime-manifest.json"),
+            serde_json::to_vec(&manifest).unwrap()).unwrap();
+        let runtime = RuntimeSpec {
+            python: root.path().join("runtime/python.exe"),
+            cwd: root.path().to_path_buf(),
+            data_dir: root.path().to_path_buf(),
+            isolated: true,
+            external_dev: false,
+            profile: "installed-stable",
+        };
+        (root, runtime)
+    }
+
+    fn synthetic_openmaic_document(runtime: &RuntimeSpec) -> serde_json::Value {
+        let spec = CoreSpec::beside_runtime(runtime).unwrap();
+        serde_json::from_str(&super::configured_core_launch_document(
+            &"a".repeat(64), &"b".repeat(64), &"c".repeat(32), &spec,
+        )).unwrap()
+    }
+
+    #[test]
+    fn openmaic_launch_uses_fixed_paths_and_preserves_the_text_worker() {
+        let (root, runtime) = synthetic_openmaic_runtime();
+        let document = synthetic_openmaic_document(&runtime);
+        assert!(document.get("text_worker").is_some());
+        assert_eq!(document["actor"], "human");
+        let provider = &document["openmaic_node_worker"];
+        assert_eq!(provider.as_object().unwrap().len(), 3);
+        assert_eq!(provider["executable"],
+            contract_path(&root.path().join("workers/openmaic/node.exe")));
+        assert_eq!(provider["script"],
+            contract_path(&root.path().join("workers/openmaic/scene-build-worker.mjs")));
+        assert_eq!(provider["executable_sha256"], "a".repeat(64));
+    }
+
+    #[test]
+    fn openmaic_manifest_is_optional_bounded_and_cannot_select_paths() {
+        let (root, runtime) = synthetic_openmaic_runtime();
+        let path = root.path().join("backend-runtime-manifest.json");
+        let sha = "a".repeat(64);
+        let files = serde_json::to_string(&synthetic_openmaic_manifest()["files"]).unwrap();
+        let invalid = [
+            "{}".to_string(),
+            format!(r#"{{"schema":"other","files":{files},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":"{sha}"}}}}"#),
+            format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{{"status":"NOT_INCLUDED","node_sha256":null}}}}"#),
+            format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":null}}}}"#),
+            format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":"{}"}}}}"#, "A".repeat(64)),
+            format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":"{sha}","script":"C:/untrusted.mjs"}}}}"#),
+            format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":"{sha}","\u006eode_sha256":"{sha}"}}}}"#),
+            format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":"{sha}"}},"openmaic_scene_build":{{"status":"INCLUDED","node_sha256":"{sha}"}}}}"#),
+            "{invalid JSON".to_string(),
+        ];
+        for manifest in invalid {
+            fs::write(&path, manifest).unwrap();
+            let document = synthetic_openmaic_document(&runtime);
+            assert!(document.get("openmaic_node_worker").is_none());
+            assert!(document.get("text_worker").is_some());
+        }
+        fs::write(&path, vec![b' '; 129]).unwrap();
+        assert!(super::read_backend_manifest(&path, 128).is_none());
+        fs::remove_file(&path).unwrap();
+        assert!(synthetic_openmaic_document(&runtime).get("openmaic_node_worker").is_none());
+
+        let valid = synthetic_openmaic_manifest();
+        fs::write(&path, serde_json::to_vec(&valid).unwrap()).unwrap();
+        for relative in ["workers/openmaic/node.exe", "workers/openmaic/scene-build-worker.mjs"] {
+            let file = root.path().join(relative);
+            let length = fs::metadata(&file).unwrap().len();
+            fs::remove_file(&file).unwrap();
+            assert!(synthetic_openmaic_document(&runtime).get("openmaic_node_worker").is_none());
+            fs::write(file, vec![b'x'; length as usize]).unwrap();
+        }
+        fs::remove_file(root.path().join("workers/transport/text_ndjson.py")).unwrap();
+        let without_text_worker = synthetic_openmaic_document(&runtime);
+        assert!(without_text_worker.get("text_worker").is_none());
+        assert!(without_text_worker.get("openmaic_node_worker").is_none());
+    }
+
+    #[test]
+    fn openmaic_requires_all_fixed_members_and_matching_declared_sizes() {
+        let (root, runtime) = synthetic_openmaic_runtime();
+        let path = root.path().join("backend-runtime-manifest.json");
+        let valid = synthetic_openmaic_manifest();
+        let check_disabled = |manifest: &serde_json::Value| {
+            fs::write(&path, serde_json::to_vec(manifest).unwrap()).unwrap();
+            let document = synthetic_openmaic_document(&runtime);
+            assert!(document.get("openmaic_node_worker").is_none());
+            assert!(document.get("text_worker").is_some());
+        };
+        let mut missing_files = valid.clone();
+        missing_files.as_object_mut().unwrap().remove("files");
+        check_disabled(&missing_files);
+        for name in valid["files"].as_object().unwrap().keys() {
+            let mut missing_member = valid.clone();
+            missing_member["files"].as_object_mut().unwrap().remove(name);
+            check_disabled(&missing_member);
+        }
+        let mut wrong_size = valid.clone();
+        wrong_size["files"][super::OPENMAIC_SCRIPT]["bytes"] = serde_json::json!(7316);
+        check_disabled(&wrong_size);
+        let mut wrong_fixed_sha = valid.clone();
+        wrong_fixed_sha["files"][super::OPENMAIC_SCRIPT]["sha256"] = serde_json::json!("f".repeat(64));
+        check_disabled(&wrong_fixed_sha);
+        let mut wrong_node_sha = valid.clone();
+        wrong_node_sha["files"][super::OPENMAIC_NODE]["sha256"] = serde_json::json!("c".repeat(64));
+        check_disabled(&wrong_node_sha);
+        let mut bad_node_size = valid.clone();
+        bad_node_size["files"][super::OPENMAIC_NODE]["bytes"] = serde_json::json!(512_u64 * 1024 * 1024 + 1);
+        check_disabled(&bad_node_size);
+        let mut bad_license_size = valid.clone();
+        bad_license_size["files"][super::OPENMAIC_NODE_LICENSE]["bytes"] = serde_json::json!(1_000_001);
+        check_disabled(&bad_license_size);
+        let mut bad_license_sha = valid.clone();
+        bad_license_sha["files"][super::OPENMAIC_NODE_LICENSE]["sha256"] = serde_json::json!("z".repeat(64));
+        check_disabled(&bad_license_sha);
+        let mut extra_field = valid.clone();
+        extra_field["files"][super::OPENMAIC_SCRIPT]["path"] = serde_json::json!("ignored-is-unsafe");
+        check_disabled(&extra_field);
+
+        fs::write(&path, serde_json::to_vec(&valid).unwrap()).unwrap();
+        let license = root.path().join(super::OPENMAIC_NODE_LICENSE);
+        fs::remove_file(&license).unwrap();
+        assert!(synthetic_openmaic_document(&runtime).get("openmaic_node_worker").is_none());
+        fs::write(&license, vec![b'x'; 17]).unwrap();
+        let script = root.path().join(super::OPENMAIC_SCRIPT);
+        fs::write(&script, b"same path, wrong actual length").unwrap();
+        assert!(synthetic_openmaic_document(&runtime).get("openmaic_node_worker").is_none());
+    }
+
+    #[test]
+    fn openmaic_rejects_duplicate_fixed_members_and_member_fields() {
+        let (root, runtime) = synthetic_openmaic_runtime();
+        let path = root.path().join("backend-runtime-manifest.json");
+        let valid = synthetic_openmaic_manifest();
+        let selected = serde_json::to_string(&valid["openmaic_scene_build"]).unwrap();
+        let fixed_name = serde_json::to_string(super::OPENMAIC_SCRIPT).unwrap();
+        let row = serde_json::to_string(&valid["files"][super::OPENMAIC_SCRIPT]).unwrap();
+        let mut duplicate_member = serde_json::to_string(&valid["files"]).unwrap();
+        duplicate_member.pop();
+        duplicate_member.push_str(&format!(",{fixed_name}:{row}"));
+        duplicate_member.push('}');
+
+        let mut remaining = valid["files"].as_object().unwrap().clone();
+        remaining.remove(super::OPENMAIC_SCRIPT);
+        let mut duplicate_field = serde_json::to_string(&remaining).unwrap();
+        duplicate_field.pop();
+        let mut duplicate_row = row;
+        duplicate_row.pop();
+        duplicate_row.push_str(",\"bytes\":7315}");
+        duplicate_field.push_str(&format!(",{fixed_name}:{duplicate_row}"));
+        duplicate_field.push('}');
+
+        for files in [duplicate_member, duplicate_field] {
+            let manifest = format!(r#"{{"schema":"archeaxis.backend-runtime/v1","files":{files},"openmaic_scene_build":{selected}}}"#);
+            fs::write(&path, manifest).unwrap();
+            let document = synthetic_openmaic_document(&runtime);
+            assert!(document.get("openmaic_node_worker").is_none());
+            assert!(document.get("text_worker").is_some());
+        }
+    }
+
+    #[test]
+    fn openmaic_launch_rejects_hard_linked_manifest_and_all_members() {
+        for relative in [
+            "backend-runtime-manifest.json",
+            "workers/openmaic/node.exe",
+            "workers/openmaic/NODE-LICENSE",
+            "workers/openmaic/scene-build-worker.mjs",
+            "workers/openmaic/vendor/generation-0.3.28/scene-builder.ts",
+            "workers/openmaic/vendor/generation-0.3.28/nanoid.mjs",
+            "workers/openmaic/vendor/generation-0.3.28/LICENSE",
+            "workers/openmaic/vendor/generation-0.3.28/UPSTREAM.md",
+        ] {
+            let (root, runtime) = synthetic_openmaic_runtime();
+            assert!(synthetic_openmaic_document(&runtime).get("openmaic_node_worker").is_some());
+            let input = root.path().join(relative);
+            let alias = root.path().join("synthetic-hard-link");
+            fs::hard_link(&input, &alias).unwrap();
+            assert!(super::open_single_link_runtime_file(&input).is_none(), "{relative}");
+            if relative == "backend-runtime-manifest.json" {
+                assert!(super::read_backend_manifest(&input, super::MAX_BACKEND_MANIFEST_BYTES).is_none());
+            }
+            let document = synthetic_openmaic_document(&runtime);
+            assert!(document.get("openmaic_node_worker").is_none(), "{relative}");
+            assert!(document.get("text_worker").is_some());
+            fs::remove_file(alias).unwrap();
+            assert!(synthetic_openmaic_document(&runtime).get("openmaic_node_worker").is_some());
+        }
+    }
+
+    #[test]
+    fn openmaic_handle_id_distinguishes_identical_file_contents() {
+        let (root, _runtime) = synthetic_openmaic_runtime();
+        let first = root.path().join("workers/openmaic/node.exe");
+        let second = root.path().join("workers/openmaic/NODE-LICENSE");
+        let (file, identity) = super::open_single_link_runtime_file(&first).unwrap();
+        assert!(super::runtime_file_is_current(&first, &file, identity));
+        assert!(!super::runtime_file_is_current(&second, &file, identity));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn openmaic_launch_rejects_nonlocal_or_escaping_paths() {
+        for path in [r"E:\bundle\worker", r"F:\bundle\worker", r"\\server\share\worker",
+            r"\\?\UNC\server\share\worker", r"C:\bundle\..\worker", r"C:relative\worker"]
+        {
+            assert!(!super::local_runtime_path_shape(TestPath::new(path)), "{path}");
+        }
+        assert!(super::local_runtime_path_shape(TestPath::new(r"C:\bundle\worker")));
+        assert!(super::local_runtime_path_shape(TestPath::new(r"\\?\C:\bundle\worker")));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn openmaic_launch_rejects_a_provider_directory_junction() {
+        let fixture = tempdir().unwrap();
+        let root = fixture.path().join("bundle");
+        let provider = root.join("workers/openmaic");
+        let donor_root = fixture.path().join("donor");
+        let donor = donor_root.join("workers/openmaic");
+        fs::create_dir_all(provider.parent().unwrap()).unwrap();
+        write_synthetic_openmaic_members(&donor_root);
+        fs::write(root.join("backend-runtime-manifest.json"),
+            serde_json::to_vec(&synthetic_openmaic_manifest()).unwrap()).unwrap();
+        let status = Command::new("cmd").args(["/C", "mklink", "/J"])
+            .arg(&provider).arg(&donor).stdout(Stdio::null()).stderr(Stdio::null())
+            .status().unwrap();
+        assert!(status.success());
+        assert!(super::openmaic_node_worker_for(&root).is_none());
+        fs::remove_dir(provider).unwrap();
     }
 
     #[test]

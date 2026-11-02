@@ -1,0 +1,93 @@
+{
+  "name": "source-map-js",
+  "version": "1.2.1",
+  "license": "BSD-3-Clause",
+  "archive_sri": "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==",
+  "archive_sha256": "f126a6f9fca487a43219d8cb8c3a955279187a966119d548eb5cd47e999d4853",
+  "archive_bytes": 35340,
+  "origin": "https://registry.npmjs.org/",
+  "fetch_run": "backend-verify-npm-postcss-sourcemap-af2f507fc0",
+  "audit_run": "backend-verify-npm-postcss-audit-0e275110cc",
+  "scripts_executed": false,
+  "additional_notices": [
+    {
+      "member": "lib/base64-vlq.js",
+      "sha256": "f3407e528f54ec0787bd0a71eeac0c99fffd98445916fcbe116dc69ca3be928b",
+      "notice": "Includes 2011 Mozilla Foundation and contributors and 2011 Closure Compiler Authors BSD notices and conditions in the original file header."
+    }
+  ],
+  "files": {
+    "lib/array-set.js": {
+      "bytes": 3197,
+      "sha256": "163bb3055aaea7140167740036a83161fd912c344b14f992754b80f21477d754"
+    },
+    "lib/base64-vlq.js": {
+      "bytes": 4714,
+      "sha256": "f3407e528f54ec0787bd0a71eeac0c99fffd98445916fcbe116dc69ca3be928b"
+    },
+    "lib/base64.js": {
+      "bytes": 1540,
+      "sha256": "651bf433cf05e9ec8cee0b94639483236a605d48279e83d3d5c5de81c21d6599"
+    },
+    "lib/binary-search.js": {
+      "bytes": 4249,
+      "sha256": "c7f4a47a125af0bd860443dfd71d2f412d1a97dcb53ab7038189d63b91dc32bd"
+    },
+    "lib/mapping-list.js": {
+      "bytes": 2339,
+      "sha256": "35ddb82861f11a70ab84cb47d620fcb28d7f884bb444644e06bde815b836ef9e"
+    },
+    "lib/quick-sort.js": {
+      "bytes": 4068,
+      "sha256": "72ed4911cdc72232cac53cac995e28e865cd4302186173bba74ff6436c089915"
+    },
+    "lib/source-map-consumer.d.ts": {
+      "bytes": 40,
+      "sha256": "2ca1c32e3bd72c64662adf034d97df8606ba1e1399cafc75567809ecff4bca95"
+    },
+    "lib/source-map-consumer.js": {
+      "bytes": 41580,
+      "sha256": "78f7a8f6d20f51a99a9cbd8d552321b1a72de9b9fb9c39dbeb27dc84eb2eade5"
+    },
+    "lib/source-map-generator.d.ts": {
+      "bytes": 41,
+      "sha256": "11f9b1e28747ca9cf5f4f7d41a7f261ac98ecde6be7dc146824fa275ac1f169d"
+    },
+    "lib/source-map-generator.js": {
+      "bytes": 14933,
+      "sha256": "645482e8d23fd49cd025a0ad07c2e2beb173995138370d6a73e596e18e889bd8"
+    },
+    "lib/source-node.d.ts": {
+      "bytes": 33,
+      "sha256": "e4a2e40e293158fb2ab29aadb9eaa6400c8d9be5851d45a95a76f9e2a4bb7c8b"
+    },
+    "lib/source-node.js": {
+      "bytes": 13808,
+      "sha256": "b45db8183550ca1e6259976f6ceee89f6764360c56cf206701bd2f7471144e31"
+    },
+    "lib/util.js": {
+      "bytes": 15403,
+      "sha256": "0629f3ae2f3049cda3a2e87ea651dcf0cc71108f4681795ab989a8ac1573fc03"
+    },
+    "LICENSE": {
+      "bytes": 1526,
+      "sha256": "6cb0631f71c7749763fd3dd1d5bee52dd1070ec17f2edc1710079ad070bd2fbd"
+    },
+    "package.json": {
+      "bytes": 2548,
+      "sha256": "58f8e94a461a5e461e0cb2bb2be681cbd89b9181989fd26fceb858e67711469a"
+    },
+    "README.md": {
+      "bytes": 26040,
+      "sha256": "8e1a57daf01cd2fc8969ecd0afeae51d1c05c7c79e9413ea82016a0f65e97646"
+    },
+    "source-map.d.ts": {
+      "bytes": 3408,
+      "sha256": "402e5c534fb2b85fa771170595db3ac0dd532112c8fa44fc23f233bc6967488b"
+    },
+    "source-map.js": {
+      "bytes": 405,
+      "sha256": "dc098456c2d9ab90a4c0a17cca9be16665b9813df20906553a98b0088a157be7"
+    }
+  }
+}

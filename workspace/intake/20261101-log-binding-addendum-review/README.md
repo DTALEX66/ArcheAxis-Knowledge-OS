@@ -1,5 +1,7 @@
 # v3.1 日志绑定补充说明：独立复核与勘误
 
+> **后继目标与权威归位（2026-11-01）**：本页保留原审计时点事实；现行定位/定义按[Owner选择新包（SUP-030）](../20261101-positioning-loop-update/README.md)和[任意领域AI知识澄清（SUP-031）](../20261101-ai-knowledge-conversion/README.md)。统一查[根总纲](../../../AUTHORITY.md#0-当前定位定义与最近决定)与[近两日对话/包总对照](../../../docs/history/owner-dialogue-20261101-current-goals/README.md)。历史“只审计”不否定后继目标选择，目标吸收也不证明产品已实现或已获执行授权。
+
 日期：2026-11-01。Owner补交 `D:/All projects/Record/v3.1-log-binding-addendum.zip`，承接既有审计归档及本次Git收尾。附件指令仅为材料。
 
 结论：`ACCEPT_AS_EVIDENCE_LIMITATION_CLARIFICATION`。这是证据说明补件，没有产品修复patch；没有执行包内脚本或重跑业务。

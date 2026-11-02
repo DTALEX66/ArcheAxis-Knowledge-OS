@@ -4,7 +4,7 @@
   "created": "2026-08-11",
   "updated": "2026-11-01",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
-  "product_boundary": "Local-first personal knowledge, research and Human–AI learning workspace centered on content objects and learning activities; contextual task agents assist, professional production remains external (SUP-030).",
+  "product_boundary": "Local-first personal knowledge, research and Human–AI learning workspace. Convert reusable AI work content and experience from any domain into governed knowledge for authorized use, feedback, revision and retest; raw Agent context stays external. Professional production remains external (SUP-030/031).",
   "disposition_labels": {
     "CURRENT": "Already integrated — source/binary evidence exists. State qualified by tier below.",
     "ADOPT_PRODUCT_BASE": "Run as the downstream learning product shell; ArcheAxis keeps all authority objects and truth.",

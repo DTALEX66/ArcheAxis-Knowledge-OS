@@ -10,14 +10,16 @@ which is what the Core reads.
 
 `--smoke` performs the first exchange, reports health, and shuts the Core down.
 
-Every failure names the component that failed. There is no fallback that reports
-success: a missing interpreter, worker or Core, a bad profile, a port conflict and an
-early exit are all distinguishable, and none of them is silently downgraded.
+Every failure names the component that failed. A missing interpreter, required
+worker or Core, a bad profile, a port conflict and an early exit are distinguishable.
+The optional private DeepTutor practice route may be absent without preventing
+ordinary Core startup.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -40,6 +42,16 @@ LAUNCH_PROTOCOL = "archeaxis.desktop-launch/v2"
 READY_MARKER = "127.0.0.1:"
 STARTUP_TIMEOUT_SECONDS = 30.0
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
+OPENMAIC_DIRECTORY = "workers/openmaic"
+OPENMAIC_FILES = {
+    "scene-build-worker.mjs": {"bytes": 7315, "sha256": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9"},
+    "vendor/generation-0.3.28/scene-builder.ts": {"bytes": 3082, "sha256": "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a"},
+    "vendor/generation-0.3.28/nanoid.mjs": {"bytes": 389, "sha256": "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e"},
+    "vendor/generation-0.3.28/LICENSE": {"bytes": 1065, "sha256": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"},
+    "vendor/generation-0.3.28/UPSTREAM.md": {"bytes": 1134, "sha256": "83962cee94daba3596fba378867756981c87a8bd7839ced586510643c113d579"},
+}
+OPENMAIC_NODE_MAX_BYTES = 512 * 1024 * 1024
+OPENMAIC_MANIFEST_MAX_BYTES = 16 * 1024 * 1024
 
 
 class LaunchFailure(Exception):  # noqa: N818 - retained public exception contract
@@ -136,6 +148,11 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
             raise LaunchFailure(f"duplicate worker profile route capability: {capability}")
         seen.add(capability)
         resolved_script = safe_path(path.parent, script)
+        # This one route is a private, optional Core-controlled import process.
+        # Its absence must not prevent the Core or ordinary document saving.
+        # Unsafe paths still fail above; other routes keep their existing rule.
+        if capability == "deeptutor.practice.import" and not resolved_script.is_file():
+            continue
         require_file(resolved_script, f"worker route script for {capability}")
         resolved.append({"capability": capability, "script": resolved_script})
     return resolved
@@ -292,6 +309,101 @@ def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
         return None, "invalid_config"
 
 
+def openmaic_node_worker(root: Path) -> dict | None:
+    """Read only the fixed staged members; an invalid optional provider is disabled.
+
+    A same-directory manifest binds the declared bytes, not their provenance or
+    installation qualification. Core independently checks the worker before use.
+    """
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate backend manifest field")
+            result[key] = value
+        return result
+
+    def reject_nonfinite(_value):
+        raise ValueError("non-finite backend manifest number")
+
+    def file_identity(value):
+        return value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_nlink
+
+    def matches(relative, identity, limit):
+        if (not isinstance(identity, dict) or set(identity) != {"bytes", "sha256"}
+                or type(identity["bytes"]) is not int or not 0 < identity["bytes"] <= limit
+                or not isinstance(identity["sha256"], str)
+                or not re.fullmatch(r"[a-f0-9]{64}", identity["sha256"])):
+            return False
+        path = safe_path(root, f"{OPENMAIC_DIRECTORY}/{relative}")
+        info = path.stat()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size != identity["bytes"]:
+            return False
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            before = os.fstat(stream.fileno())
+            if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                    or (before.st_dev, before.st_ino, before.st_size) != (info.st_dev, info.st_ino, info.st_size)):
+                return False
+            remaining = identity["bytes"]
+            while remaining:
+                chunk = stream.read(min(65536, remaining))
+                if not chunk:
+                    return False
+                remaining -= len(chunk)
+                digest.update(chunk)
+            if stream.read(1):
+                return False
+            after = os.fstat(stream.fileno())
+            if (not stat.S_ISREG(after.st_mode) or after.st_nlink != 1
+                    or (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
+                        after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)):
+                return False
+        return digest.hexdigest() == identity["sha256"]
+
+    try:
+        path = safe_path(root, "backend-runtime-manifest.json")
+        info = path.stat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                or not 0 < info.st_size <= OPENMAIC_MANIFEST_MAX_BYTES):
+            return None
+        with path.open("rb") as stream:
+            before = os.fstat(stream.fileno())
+            if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                    or file_identity(before) != file_identity(info)):
+                return None
+            raw = stream.read(info.st_size + 1)
+            after = os.fstat(stream.fileno())
+            current = path.stat()
+            if (len(raw) != info.st_size or not stat.S_ISREG(after.st_mode) or not stat.S_ISREG(current.st_mode)
+                    or file_identity(after) != file_identity(before) or file_identity(current) != file_identity(before)):
+                return None
+        if len(raw) > OPENMAIC_MANIFEST_MAX_BYTES:
+            return None
+        document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=reject_nonfinite)
+        if not isinstance(document, dict) or document.get("schema") != "archeaxis.backend-runtime/v1":
+            return None
+        config, files = document.get("openmaic_scene_build"), document.get("files")
+        if (not isinstance(config, dict) or set(config) != {"status", "node_sha256"}
+                or config["status"] != "INCLUDED" or not isinstance(config["node_sha256"], str)
+                or not re.fullmatch(r"[a-f0-9]{64}", config["node_sha256"]) or not isinstance(files, dict)):
+            return None
+        for relative, identity in OPENMAIC_FILES.items():
+            if files.get(f"{OPENMAIC_DIRECTORY}/{relative}") != identity or not matches(relative, identity, 1_000_000):
+                return None
+        node = files.get(f"{OPENMAIC_DIRECTORY}/node.exe")
+        license_row = files.get(f"{OPENMAIC_DIRECTORY}/NODE-LICENSE")
+        if (not isinstance(node, dict) or node.get("sha256") != config["node_sha256"]
+                or not matches("node.exe", node, OPENMAIC_NODE_MAX_BYTES)
+                or not matches("NODE-LICENSE", license_row, 1_000_000)):
+            return None
+        return {"executable": str(safe_path(root, f"{OPENMAIC_DIRECTORY}/node.exe")),
+                "executable_sha256": config["node_sha256"],
+                "script": str(safe_path(root, f"{OPENMAIC_DIRECTORY}/scene-build-worker.mjs"))}
+    except (OSError, ValueError, TypeError, UnicodeError, RecursionError, LaunchFailure):
+        return None
+
+
 def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
     """Launch a session, optionally reopening the product host's workspace file."""
     if not workspace_name.strip() or any(character in workspace_name for character in "\\/:") or workspace_name in {".", ".."}:
@@ -325,6 +437,9 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
             ]} if profile.get("routes") else {}),
         },
     }
+    openmaic = openmaic_node_worker(ROOT)
+    if openmaic is not None:
+        launch["openmaic_node_worker"] = openmaic
     check_config, check_error = document_check_config(data_root)
     if check_config is not None:
         launch["document_check_config"] = check_config

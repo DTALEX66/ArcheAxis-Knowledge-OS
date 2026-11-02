@@ -27,6 +27,8 @@ import contextlib
 import hashlib
 import importlib.util
 import json
+import os
+import stat
 import sys
 import tarfile
 import zipfile
@@ -70,6 +72,10 @@ def _safe_member_name(index: int, name: str) -> str:
     """
     base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
     safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-64:]
+    # Core rejects consecutive dots in an offered flat file name.  Keep the
+    # last dot so an original extension such as .csv remains available.
+    while ".." in safe:
+        safe = safe.replace("..", "_.")
     return f"{index:04d}-{safe or 'member'}"
 
 
@@ -87,6 +93,128 @@ def _long_path(path: Path) -> str:
     return text
 
 
+def _checked_directory_chain(path: Path) -> None:
+    """Reject links or reparse points observed along the output directory path.
+
+    These path checks are not an OS sandbox: a component can still be replaced
+    between a check and a subsequent operation.
+    """
+    absolute = path.absolute()
+    for component in reversed((absolute, *absolute.parents)):
+        try:
+            info = os.lstat(_long_path(component))
+        except FileNotFoundError:
+            continue
+        if (
+            stat.S_ISLNK(info.st_mode)
+            or getattr(info, "st_file_attributes", 0) & 0x400
+            or not stat.S_ISDIR(info.st_mode)
+        ):
+            raise OSError("archive member directory contains a link or non-directory")
+
+
+def _regular_member_identity(info) -> tuple[int, int, int, int, int]:
+    if (
+        not stat.S_ISREG(info.st_mode)
+        or getattr(info, "st_file_attributes", 0) & 0x400
+        or info.st_nlink != 1
+        or not info.st_ino
+    ):
+        raise OSError("archive member target identity is not a single regular file")
+    return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)
+
+
+def _compare_member_bytes(fd: int, payload: bytes) -> None:
+    """Read no more than one byte past the expected content, including on growth."""
+    total = 0
+    while total <= len(payload):
+        chunk = os.read(fd, min(65536, len(payload) + 1 - total))
+        if not chunk:
+            break
+        if chunk != payload[total : total + len(chunk)]:
+            raise FileExistsError("archive member target contains different bytes")
+        total += len(chunk)
+    if total != len(payload):
+        raise OSError("archive member target changed during verification")
+
+
+def _verify_existing_member(target: Path, payload: bytes) -> None:
+    """Reuse only the same bounded bytes on the observed single regular file."""
+    path = _long_path(target)
+    before = _regular_member_identity(os.lstat(path))
+    if before[2] != len(payload):
+        raise FileExistsError("archive member target already contains different bytes")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOINHERIT", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(path, flags)
+    try:
+        if _regular_member_identity(os.fstat(fd)) != before:
+            raise OSError("archive member target changed before verification")
+        _checked_directory_chain(target.parent)
+        _compare_member_bytes(fd, payload)
+        if _regular_member_identity(os.fstat(fd)) != before:
+            raise OSError("archive member target changed during verification")
+        if _regular_member_identity(os.lstat(path)) != before:
+            raise OSError("archive member target path changed during verification")
+        _checked_directory_chain(target.parent)
+    finally:
+        os.close(fd)
+
+
+def _offer_member(target: Path, payload: bytes) -> None:
+    """Create without overwrite, or verify an unchanged identical existing file."""
+    _checked_directory_chain(target.parent)
+    path = _long_path(target)
+    flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+    flags |= getattr(os, "O_NOINHERIT", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        fd = os.open(path, flags, 0o600)
+    except FileExistsError:
+        _verify_existing_member(target, payload)
+        return
+    try:
+        opened = _regular_member_identity(os.fstat(fd))
+        if _regular_member_identity(os.lstat(path)) != opened:
+            raise OSError("archive member target path changed before writing")
+        _checked_directory_chain(target.parent)
+        offset = 0
+        while offset < len(payload):
+            written = os.write(fd, payload[offset : offset + 65536])
+            if written <= 0:
+                raise OSError("archive member write made no progress")
+            offset += written
+        after = _regular_member_identity(os.fstat(fd))
+        if after[:2] != opened[:2] or after[2] != len(payload):
+            raise OSError("archive member target changed during writing")
+        os.lseek(fd, 0, os.SEEK_SET)
+        _compare_member_bytes(fd, payload)
+        if _regular_member_identity(os.fstat(fd)) != after:
+            raise OSError("archive member target changed during verification")
+        if _regular_member_identity(os.lstat(path)) != after:
+            raise OSError("archive member target path changed during writing")
+        _checked_directory_chain(target.parent)
+    finally:
+        os.close(fd)
+
+
+def _read_declared_member(container, info) -> bytes:
+    """Require EOF and exactly the declared size, with a one-byte excess probe."""
+    payload = bytearray()
+    declared = info.file_size
+    with container.open(info) as member:
+        while len(payload) <= declared:
+            maximum = min(65536, declared + 1 - len(payload))
+            chunk = member.read(maximum)
+            if not isinstance(chunk, (bytes, bytearray)) or len(chunk) > maximum:
+                raise OSError("archive member stream returned invalid bytes")
+            if not chunk:
+                break
+            payload.extend(chunk)
+    if len(payload) != declared:
+        raise OSError("archive member bytes do not match the declared size")
+    return bytes(payload)
+
+
 def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dict], list[str]]:
     """Write the members the Core may import, and declare each one by digest.
 
@@ -99,35 +227,38 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
     problems: list[str] = []
     if out_dir is None:
         return extracted, problems
+    _checked_directory_chain(out_dir)
     Path(_long_path(out_dir)).mkdir(parents=True, exist_ok=True)
-    total = 0
+    _checked_directory_chain(out_dir)
+    reserved_bytes = 0
+    attempts = 0
     files = [info for info in members if not info.is_dir()]
     for index, info in enumerate(files, start=1):
-        if len(extracted) >= MEMBER_JOB_CAP:
+        if attempts >= MEMBER_JOB_CAP:
             problems.append(
-                f"only the first {MEMBER_JOB_CAP} of {len(files)} members were extracted"
+                f"member attempt limit of {MEMBER_JOB_CAP} reached; later members were not attempted"
             )
             break
-        if total + info.file_size > MEMBER_BYTES_CAP:
+        if isinstance(info.file_size, bool) or not isinstance(info.file_size, int) or info.file_size < 0:
+            problems.append(f"member {info.filename!r} has an invalid declared size")
+            continue
+        if reserved_bytes + info.file_size > MEMBER_BYTES_CAP:
             problems.append(
-                f"member byte budget of {MEMBER_BYTES_CAP} reached; later members were not extracted"
+                f"member byte budget of {MEMBER_BYTES_CAP} reached; later members were not attempted"
             )
             break
         if info.flag_bits & 0x1:
             problems.append(f"member {info.filename!r} is encrypted and was not extracted")
             continue
         target = out_dir / _safe_member_name(index, info.filename)
+        # A failed or conflicting attempt may leave bytes on disk.  Reserve
+        # before opening the source or target and do not refund on failure;
+        # this is an accounting bound, not a filesystem quota.
+        attempts += 1
+        reserved_bytes += info.file_size
         try:
-            remaining = MEMBER_BYTES_CAP - total
-            with container.open(info) as member:
-                payload = member.read(remaining + 1)
-            if len(payload) > remaining:
-                problems.append(
-                    f"member byte budget of {MEMBER_BYTES_CAP} reached while reading; member was not extracted"
-                )
-                break
-            Path(_long_path(target)).write_bytes(payload)
-            total += len(payload)
+            payload = _read_declared_member(container, info)
+            _offer_member(target, payload)
             extracted.append(
                 {
                     "name": info.filename,
@@ -298,12 +429,19 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
             "projection_note": (
                 "this is an inventory of the container, NOT the members' contents: no member was extracted, "
                 "executed or decoded, and the container's own bytes remain the source of record"
+                if not extracted and not extraction_problems
+                else (
+                    "this is an inventory of the container, NOT the members' contents: "
+                    "no complete member was declared; failed attempts may leave partial or complete files; "
+                    "nothing was executed or decoded, and the container's own bytes remain the source of record"
+                )
                 if not extracted
                 else (
                     "this is an inventory of the container, NOT the members' contents: "
-                    f"{len(extracted)} of {len(files)} member(s) were also written out as candidate "
-                    "sources, bounded by count and total bytes and declared by digest; nothing was "
-                    "executed or decoded, and the container's own bytes remain the source of record"
+                    f"{len(extracted)} of {len(files)} member(s) were also written out or verified as candidate "
+                    "sources, bounded by count and total bytes and declared by digest; "
+                    + ("failed attempts may leave partial or complete files; " if extraction_problems else "")
+                    + "nothing was executed or decoded, and the container's own bytes remain the source of record"
                 )
             ),
             "coverage_unit": "line anchors over the inventory listing",

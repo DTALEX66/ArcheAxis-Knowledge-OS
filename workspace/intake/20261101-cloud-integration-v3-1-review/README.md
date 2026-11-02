@@ -1,5 +1,7 @@
 # DOT v3.1 补件：复核与关联归档
 
+> **后继目标与权威归位（2026-11-01）**：本页保留原审计时点事实；现行定位/定义按[Owner选择新包（SUP-030）](../20261101-positioning-loop-update/README.md)和[任意领域AI知识澄清（SUP-031）](../20261101-ai-knowledge-conversion/README.md)。统一查[根总纲](../../../AUTHORITY.md#0-当前定位定义与最近决定)与[近两日对话/包总对照](../../../docs/history/owner-dialogue-20261101-current-goals/README.md)。历史“只审计”不否定后继目标选择，目标吸收也不证明产品已实现或已获执行授权。
+
 Owner 补交 `D:/All projects/Record/v3.1-supplement.zip`，承接此前审计及统一归档请求；附件指令仍只是待审材料。
 
 **结论：补件可作为原 v3 的定向补充接收。两份原模板的缺件问题已关闭；两份历史 stdout 仍缺失，勘误有效。检测器与 full-suite 脚本修复有云端定向证据，尚未移植到当前产品。**

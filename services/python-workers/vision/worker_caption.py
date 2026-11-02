@@ -231,17 +231,26 @@ def _call(endpoint: dict, model: str, encoded: str, timeout_s: int, *, receipt: 
 def describe(image: Path, model: str | None = None, timeout_s: int = 300, *, require_identity: bool = False, endpoint_override: dict | None = None) -> dict:
     if not image.is_file():
         raise ValueError(f"input image not found: {image}")
-    supported = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"}
-    if image.suffix.lower() not in supported:
+    # This label follows the supplied suffix; it does not verify image bytes.
+    mime_by_suffix = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".bmp": "image/bmp",
+        ".tiff": "image/tiff",
+    }
+    mime = mime_by_suffix.get(image.suffix.lower())
+    if mime is None:
         raise ValueError(f"unsupported image extension: {image.suffix}")
 
     endpoint = endpoint_override if endpoint_override is not None else _endpoint()
     model = model or endpoint["model"]
     encoded = base64.b64encode(image.read_bytes()).decode("ascii")
     started = time.monotonic()
-    trace = {"mime": "image/jpeg" if image.suffix.lower() in {".jpg", ".jpeg"} else "image/png"}
+    trace = {"mime": mime}
     try:
-        description = _call(endpoint, model, encoded, timeout_s, receipt=trace) if require_identity else _call(endpoint, model, encoded, timeout_s)
+        description = _call(endpoint, model, encoded, timeout_s, receipt=trace)
     except urllib.error.URLError as exc:
         raise RuntimeError(
             f"vision model call failed at {endpoint['base']} ({endpoint['protocol']}): {exc}") from exc

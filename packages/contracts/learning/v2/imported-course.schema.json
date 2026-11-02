@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/learning/v2/imported-course.schema.json",
+  "title": "OpenMAIC 1.3.0 external unverified course candidate in a Core Document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "grounding", "human_review_required", "title", "scenes", "report", "provenance"],
+  "properties": {
+    "schema": {"const": "archeaxis.imported-course/v2"},
+    "status": {"const": "candidate"},
+    "grounding": {"const": "external_unverified"},
+    "human_review_required": {"const": true},
+    "title": {"type": "string", "minLength": 1, "maxLength": 240},
+    "report": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "string", "maxLength": 1000}},
+    "scenes": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/scene"}},
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter", "adapter_upstream_version", "file_name", "source_id", "sha256", "byte_length"],
+      "properties": {
+        "adapter": {"const": "openmaic-1.3.0-manifest/v2"},
+        "adapter_upstream_version": {"const": "1.3.0"},
+        "file_name": {"type": "string", "minLength": 1, "maxLength": 240, "pattern": "^[^\\u0000-\\u001f/\\\\]+$"},
+        "source_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "byte_length": {"type": "integer", "minimum": 1, "maximum": 262144}
+      }
+    }
+  },
+  "$defs": {
+    "scene": {
+      "type": "object", "additionalProperties": false,
+      "required": ["title", "order", "kind", "questions"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1, "maxLength": 240},
+        "order": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+        "kind": {"enum": ["slide", "quiz"]},
+        "questions": {"type": "array", "maxItems": 200, "items": {"$ref": "../v1/imported-course.schema.json#/$defs/question"}},
+        "slide": {"$ref": "#/$defs/slide"}
+      },
+      "oneOf": [
+        {"properties": {"kind": {"const": "slide"}, "questions": {"maxItems": 0}}, "required": ["slide"]},
+        {"properties": {"kind": {"const": "quiz"}, "questions": {"minItems": 1}}, "not": {"required": ["slide"]}}
+      ]
+    },
+    "slide": {
+      "type": "object",
+      "required": ["id", "viewportSize", "viewportRatio", "theme", "elements"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "viewportSize": {"type": "number", "minimum": 1, "maximum": 10000},
+        "viewportRatio": {"type": "number", "minimum": 0.1, "maximum": 10},
+        "theme": {"type": "object", "required": ["backgroundColor", "themeColors", "fontColor", "fontName"]},
+        "elements": {"type": "array", "maxItems": 200, "items": {"$ref": "#/$defs/textElement"}},
+        "background": {"type": "object", "required": ["type"], "properties": {"type": {"const": "solid"}, "color": {"type": "string"}}},
+        "animations": {"type": "array", "maxItems": 0}
+      }
+    },
+    "textElement": {
+      "type": "object",
+      "required": ["type", "id", "left", "top", "width", "height", "rotate", "content", "defaultFontName", "defaultColor"],
+      "properties": {
+        "type": {"const": "text"},
+        "id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "left": {"type": "number", "minimum": -10000, "maximum": 10000},
+        "top": {"type": "number", "minimum": -10000, "maximum": 10000},
+        "width": {"type": "number", "minimum": 0.01, "maximum": 10000},
+        "height": {"type": "number", "minimum": 0.01, "maximum": 10000},
+        "rotate": {"type": "number", "minimum": -3600, "maximum": 3600},
+        "content": {"type": "string", "minLength": 1, "maxLength": 16000},
+        "defaultFontName": {"type": "string", "minLength": 1, "maxLength": 240},
+        "defaultColor": {"type": "string", "minLength": 1, "maxLength": 64}
+      }
+    }
+  },
+  "$comment": "AAOS v2 is distinct from upstream formatVersion 1. Structural envelope only: the adapter also enforces strict source bytes, known scene and renderer types, version, question references, uniqueness, no active media or actions, and bounded geometry. The original and inert canvas fields are retained; text rendering does not execute HTML, URLs, or media. Provider output and mastery remain unverified."
+}

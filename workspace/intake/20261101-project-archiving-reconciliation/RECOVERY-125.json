@@ -1,0 +1,1137 @@
+{
+  "source": {
+    "archive_relative": "AAOS项目/恢复副本/AAOS_UI_前端更新任务包_20261009_恢复副本.zip",
+    "sha256": "2f02cc6c63530da0358140bbc64cdf382beeefb735b563970351a38638379290"
+  },
+  "processing_status": "REUSE_EXISTING_BYTE_EQUIVALENTS_NO_64MB_COPY",
+  "verification_status": "ARCHIVE_CRC_MEMBER_SHA_AND_LOCAL_EQUIVALENTS_ONLY_NOT_UI_OR_INSTALLATION",
+  "members": [
+    {
+      "member": "AAOS_UI_Frontend_20261009/00_开始阅读.md",
+      "sha256": "8cc3f6f371b3ea51706ae33545a8cf673e996fac07ff2229999de40a6e81cb24",
+      "bytes": 4722,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/00_开始阅读.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/01_AGENT_执行提示词.txt",
+      "sha256": "616d92902e934bf4f091e15275aaddb0fa2f6f997e0dbc0a04229c435394cb26",
+      "bytes": 4778,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/01_AGENT_执行提示词.txt"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/01_界面效果图索引.html",
+      "sha256": "f2cb04235bb7ac632194dd484ce288601b55c042f0f165a5edbe7ac7fd24a848",
+      "bytes": 9741,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/01_界面效果图索引.html"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/AAOS_UI_主要界面预览.png",
+      "sha256": "f1c580369e9710ac66eec3c208f102b2775b470fb88c83a004652f5a8c84d0c5",
+      "bytes": 1469011,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_04_全页响应式与总览_20261009.zip!AAOS_UI_Frontend_20261009/AAOS_UI_主要界面预览.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/AAOS_UI_全部界面索引.png",
+      "sha256": "a913cbe1d89c1164f67f77b692c33ae7cf53baa8de394dc0a4863d339d65e8b3",
+      "bytes": 2983774,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_04_全页响应式与总览_20261009.zip!AAOS_UI_Frontend_20261009/AAOS_UI_全部界面索引.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/fonts/NotoSansCJKsc-Regular.otf",
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+      "bytes": 16437364,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/fonts/NotoSansCJKsc-Regular.otf",
+        ".project-local/archives/record-20261009/originals/Record/三项目_VI_UI_UX_作品集完整交付包.zip!三项目_产品案例/assets/fonts/NotoSansCJKsc-Regular.otf"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/fonts/OFL.txt",
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "bytes": 4301,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/fonts/OFL.txt",
+        ".project-local/archives/record-20261009/originals/Record/三项目_VI_UI_UX_作品集完整交付包.zip!三项目_产品案例/assets/fonts/Noto-OFL.txt"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/images/deep-space-hero-original.png",
+      "sha256": "9595b1a8badc979b6d8f9b10c3afff2a9ac2eec249f400d79d33e7d1e793685c",
+      "bytes": 2006636,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/images/deep-space-hero-original.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/01-hero.png",
+      "sha256": "b677ff9199bf17fa09c6066c247cb2a9a0673e58d29da4fee1634c2c4b05d7f0",
+      "bytes": 2597367,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/01-hero.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/01-light-hero.png",
+      "sha256": "88338efb9b0e1488e60f31ceaf1ef61e49bbc26df52e0ed9777d3105cf638855",
+      "bytes": 2598449,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/01-light-hero.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/03-document.png",
+      "sha256": "375716d9c3f525c7bdae73c8b14699fb4e5ba2beedc94c8c888c7e2e3d46e02f",
+      "bytes": 195800,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/03-document.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/03-focus-document.png",
+      "sha256": "9ae3622e638083fc78ce007428d1e988eb31e6fe79df802401ff1712ff107eed",
+      "bytes": 188379,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/03-focus-document.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/03-light-document.png",
+      "sha256": "9e2e76665cbe5e3666ab7450c22c14ab86f203fd9caa5dd94b968f447de27710",
+      "bytes": 163390,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/03-light-document.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/07-lesson-diagram.png",
+      "sha256": "5a7bd02a3cb3ffa9f5b55b5cf9a74877e1865408d85cba63245f32a25b05f62b",
+      "bytes": 64422,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/07-lesson-diagram.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/09-proposal.png",
+      "sha256": "e810dfe80ee1c7a2e45f9cc6f2b8630b51d79d925b94e0d21f49b43f7126d146",
+      "bytes": 1406153,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/09-proposal.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/21-canvas.png",
+      "sha256": "574358de1a7fda185a9e88aaa83e4369090db4a26897ae83738471dc63bb7a6d",
+      "bytes": 185775,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/21-canvas.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/S1-document.png",
+      "sha256": "ecbc9bb8b3de71139ff8ebfa282ea7000d3567512f94600d245279f64ada25b0",
+      "bytes": 198484,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/S1-document.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/S2-lesson-diagram.png",
+      "sha256": "717ab7fa9c901c4d25e0b3ae8d9878d4dddf535f2b19f76b9609e4c427a92854",
+      "bytes": 64582,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/S2-lesson-diagram.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/S5-document.png",
+      "sha256": "06e2d52be29f9672e3b0c340c64c62028ea22c60bd39012b775c0201f6d82230",
+      "bytes": 271028,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/S5-document.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/slices/S6-lesson-diagram.png",
+      "sha256": "e18911999012d5d0567f00d66fd5f12eda6469dae5574576cdbb30f8a72a006f",
+      "bytes": 90943,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/slices/S6-lesson-diagram.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/four-layer-diagnosis.svg",
+      "sha256": "8b6eae1df27e96706256882edd12b7203e0bb087b03e6ce0be1f245031223cf4",
+      "bytes": 1726,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/four-layer-diagnosis.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-01.svg",
+      "sha256": "fe398f1cad6b483dc636a28c4c6b1eebe42aa53a320c0ec7fb1289c12bc1fa7f",
+      "bytes": 358,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-01.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-02.svg",
+      "sha256": "b1ed2785cebd3e7460c2781b16b2b5adbcf83bfc544d58359118f1e72cd5b1f9",
+      "bytes": 259,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-02.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-03.svg",
+      "sha256": "82e2c2b808f7caa9f8f76374606c5b615852c73255a17e98bf8a9b901ee71f3c",
+      "bytes": 217,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-03.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-04.svg",
+      "sha256": "25b38a30dbf68a6abe3ef9a90af2f1e45fd4f6bd7594212846d5e40fde2b862c",
+      "bytes": 292,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-04.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-05.svg",
+      "sha256": "d8bc9f5d22fe11459dd23eaf52dcb9b3536f93d187cf629e6360f7e36c35ee12",
+      "bytes": 230,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-05.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-06.svg",
+      "sha256": "80d9b43e19c8699f395274b44097779c422475ad29a76386e017a1d8b50097ff",
+      "bytes": 274,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-06.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-07.svg",
+      "sha256": "4688862139346e0a18cf2e160eed2fe1e83aee3aeb3dc9ab92f77ac8f13da6c3",
+      "bytes": 228,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-07.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-08.svg",
+      "sha256": "763651397d0c922a68ff24f2f89d3c64f4c552172f49334b1baae6fbdc9ea2cb",
+      "bytes": 220,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-08.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-09.svg",
+      "sha256": "fe0219987de73281b3727d74e8ea6ad7d768cf07436fb115ddd0bd4b181098e9",
+      "bytes": 217,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-09.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-10.svg",
+      "sha256": "9c993d6144f9443991bcb02733f3a5afe4ed03ff0d8a038d728a2ce96e317999",
+      "bytes": 233,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-10.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-11.svg",
+      "sha256": "42993fac5e6b4b971bcf6da879911030ab8d148401dc18522ffaabc1ac0942a6",
+      "bytes": 204,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-11.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-12.svg",
+      "sha256": "82a5679d74b1460806205fc076fe9d844f873b14e074aeac9ea50aa7ec11eb5c",
+      "bytes": 210,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-12.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-13.svg",
+      "sha256": "792b1bfe6700ec559d3593df8b2af07e82565eaad9384a944b2dd4d15c5a14ed",
+      "bytes": 298,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-13.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-14.svg",
+      "sha256": "d3dedb513eb0b497ec279183f0f6361bdedb687cda16699c5900fc23dc629696",
+      "bytes": 246,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-14.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-15.svg",
+      "sha256": "b5299f0c6c833f9c4ab0204020f3f0ca4af8b6abac733f361c1899b552091058",
+      "bytes": 224,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-15.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-16.svg",
+      "sha256": "b6666c4071c46312643a3f83d70b9ca893bfcc0924665a6b289d06b58068fd7a",
+      "bytes": 221,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-16.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-17.svg",
+      "sha256": "eb1cf63856a3530aa1af1840f9dae9dac3e718c2a2bfe485011a914e29426619",
+      "bytes": 330,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-17.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-18.svg",
+      "sha256": "8e93b719f3fd7a2a0b32a01fa4ddf043ab9421473e497c1d399a6187cbbeca3c",
+      "bytes": 228,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-18.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-19.svg",
+      "sha256": "6ec6f18c859d14f8162f5a72be47129c41aac7d4e1b8d37f2b5d99687fc0df06",
+      "bytes": 292,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-19.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-20.svg",
+      "sha256": "ce231ebbdbfbecabd12f875e2edcbc97eaade28241b1e238df5b77a6dc7ccac3",
+      "bytes": 215,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-20.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-21.svg",
+      "sha256": "e3d23e55f5d618c7b0d82089a3ce051294b4eeec00b72709042e7214ed5488cc",
+      "bytes": 297,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-21.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/icon-22.svg",
+      "sha256": "11352b3fa2ad32da1bec0a068a0fa5eb1df50764bdd4dba7d764af69abfd9880",
+      "bytes": 242,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/icon-22.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/assets/svg/knowledge-graph.svg",
+      "sha256": "2cf5fd2e182af820192b7bd3a46faa6c716bdd384a2ea30845a60b935d609e3c",
+      "bytes": 2220,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/assets/svg/knowledge-graph.svg"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/01_产品结构与页面职责.md",
+      "sha256": "b85d76c7df2367a2c030bba5e0c4090319cf33b54424b7554aad58a5b058330c",
+      "bytes": 4475,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/01_产品结构与页面职责.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/02_视觉系统与素材部署.md",
+      "sha256": "eb62261675f1337b40314782dc9771a1abbc23dffc77ead1d7e7ed928156c7f7",
+      "bytes": 3903,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/02_视觉系统与素材部署.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/03_业务接线与迁移任务.md",
+      "sha256": "971f4c1f13ed260308f07e7554af13b6027985e5ebf3963358424feb215ceab7",
+      "bytes": 4742,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/03_业务接线与迁移任务.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/04_验收清单.md",
+      "sha256": "5d7717e6f5521201a6b0e39a6de8a5e510c584e8eaf46853e901edb6f288ffbd",
+      "bytes": 3034,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/04_验收清单.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/05_素材再生成提示词.md",
+      "sha256": "0f64247ca551fb64bf35d7acbfe03544888038fcb36cdd01c0a720215b161bca",
+      "bytes": 2263,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/05_素材再生成提示词.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/06_重新渲染与交付文件说明.md",
+      "sha256": "5650252b33e71532dec5d5e59bfcfc62439214d7375ec68b7324ad54faf3beb8",
+      "bytes": 2117,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/06_重新渲染与交付文件说明.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/docs/07_本轮交付核验回执.md",
+      "sha256": "496bc2a740aa0c70187998eea163fa4016e67a6884b352eb5ba8cc0853b36190",
+      "bytes": 835,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/docs/07_本轮交付核验回执.md"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/asset-manifest.csv",
+      "sha256": "0105fc93146de3deb71a55c76e4f60870d38488563fbaaef307ba632d033db9a",
+      "bytes": 8085,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/asset-manifest.csv"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/delivery-validation.json",
+      "sha256": "d3b16ed23edeba704a26bcef1e9f91fc34481fcfbb45f31e273d2fbcaefeb90f",
+      "bytes": 853,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/delivery-validation.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/page-map.csv",
+      "sha256": "cd25617c20f240c328609931dfec2d112f9ede29fd056fda19190ee4b61f7ea5",
+      "bytes": 3527,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/page-map.csv"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/render-audit.json",
+      "sha256": "11a414a318a091e77c8c0ff5c1fa41fc608804111b1a9b309e53e0e96e26942c",
+      "bytes": 24129,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/render-audit.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/requirements-ui-trace.csv",
+      "sha256": "89cb6a5d7b81704556a71134000fed7974031932eb85b3f6150a442779ef2b76",
+      "bytes": 21293,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/requirements-ui-trace.csv"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/responsive-audit.json",
+      "sha256": "9508bcc746ce000c12565f961650c98d1c9419a959fd1aec8715aabf8a92dddd",
+      "bytes": 1294,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/responsive-audit.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/shot-map.json",
+      "sha256": "00bcbc05dd8fab4ed6d64bbab12207934e1fc978c8460aebab81870ea5c93ba3",
+      "bytes": 3361,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/shot-map.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/manifests/slice-map.json",
+      "sha256": "563cedfa01c74aa4ea13114d6572ec950a8b9aef42bf7a231cf21852cb33b059",
+      "bytes": 3469,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/manifests/slice-map.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/app.js",
+      "sha256": "9a5b5a60b3ff68d8dcbd3d38f9af1e039485eb7311082d8f5a4c8783bf06a17f",
+      "bytes": 12208,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/app.js"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/capability-details.json",
+      "sha256": "fc55ef3c996287f13bf6eb3711159ded1a228e2d27e928eb879d71dd24e4cf4f",
+      "bytes": 5467,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/capability-details.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/data.js",
+      "sha256": "df790ffa2bc91242c5a09f271efecae0ff0464d36aaea1bce968bf9562baf742",
+      "bytes": 69662,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/data.js"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/index.html",
+      "sha256": "140c91293a4f897fab0c9e6b8e746d9b56c2d5b36d3190d841ed683ce18ec8d1",
+      "bytes": 321,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/index.html"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/pages.json",
+      "sha256": "9919676e4e757b5e34676b00adb58e173f82c9bbbc0d5ff739166790b23330d5",
+      "bytes": 66729,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/pages.json"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/style.css",
+      "sha256": "516757fef368c24d5510c5f819b03e4f5c1fee9e1ee7f15c09e75c890e33ad57",
+      "bytes": 12959,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/style.css"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/reference/tokens.css",
+      "sha256": "8333c3037c7ec5e26150a4a1bf1816eeca5d21f4a41896ac69434b45c5198264",
+      "bytes": 826,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_01_核心文档原型与素材_20261009.zip!AAOS_UI_Frontend_20261009/reference/tokens.css"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/01-light.png",
+      "sha256": "3b2052632860030b2027d27eaed7b357a915c3b1cbff8fa66424c49f647898b9",
+      "bytes": 1388844,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/01-light.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/01.png",
+      "sha256": "1278ceca1ccb9c3faf00382aa2ad9dafe930d4bfa8f77224879d43baa625664e",
+      "bytes": 1806214,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/01.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/02.png",
+      "sha256": "c003eabcc34d693d388df36e66d6c4f62c4a13f7950bafe1cbad435a83e64559",
+      "bytes": 512410,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/02.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/03-focus.png",
+      "sha256": "82bf3c06ecdd41403d4acd9abd8525dfd3f7bd8e0bbbdbcac948b0fcc4b720e4",
+      "bytes": 424979,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/03-focus.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/03-light.png",
+      "sha256": "88855032dbfa4ac838b123e6d101fec6980c3026eb58692474afd2338d46a59d",
+      "bytes": 658052,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/03-light.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/03.png",
+      "sha256": "9cd1f43bcd53b955aabc0d46403523f5273fb7bdc989c724d8afaf9d2a739b99",
+      "bytes": 746864,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/03.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/04.png",
+      "sha256": "7deaea4501caba29bd8330dbd16d217dbc471cf43615fdbdf422b676b7141a39",
+      "bytes": 554098,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/04.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/05.png",
+      "sha256": "fd565d677244b9eb4416c0e61394324347203db0d9de38d1cfd56828435e4c60",
+      "bytes": 590488,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/05.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/06-light.png",
+      "sha256": "b50c7031e536a1045ecb550817dd5b12cf2e17475d7adf66fecad154591cc6fd",
+      "bytes": 699176,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/06-light.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/06.png",
+      "sha256": "26b96a54a305a9c1befce6242d4f30c5b5a9b970b94724a84dbcaeddc0b2d54e",
+      "bytes": 786752,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/06.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/07.png",
+      "sha256": "5b89f08993fb3a193c7bbef5b3ff94c87d40c6db8f47ba30c5afb446a5a2eab2",
+      "bytes": 629697,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/07.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/08.png",
+      "sha256": "b50b3e8b65fa53ebc8604ae7550a7bf746f751ea43d6e999d4431ddf345d043b",
+      "bytes": 563136,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/08.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/09.png",
+      "sha256": "4586bd6ec12dad99eaf9e273df65bfd32befe7a862d3a419dff93ff288b5f8c3",
+      "bytes": 1257130,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/09.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/10.png",
+      "sha256": "35b49cf54ccfd25b2ddddbe940c4ddc8f5e3a479f6eb4bdba2e4f058b4654912",
+      "bytes": 563825,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/10.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/11.png",
+      "sha256": "caafcd2d63ac6bfc1f94e8d34cfc8d4fb1353e4489e3bb3523c1df0b5bf70889",
+      "bytes": 544763,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/11.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/12.png",
+      "sha256": "20cf27a1ae51993dfce17532eb8d50ef0b57664cbadf26a895cbeb7736392fda",
+      "bytes": 549418,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/12.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/13.png",
+      "sha256": "55069a969ada7bd2de43e2ca3ace8f668e1f17d62e81d5cac37a8e61d1f35689",
+      "bytes": 554980,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/13.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/14.png",
+      "sha256": "efff79d6e76333d2a204a4ee8003aa515a427b6d5d60436952da5305c04a76fd",
+      "bytes": 543274,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/14.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/15.png",
+      "sha256": "3c0baeebc71a0183b415f27e6b451162fad49e50d9f3f990c808bc9aedf20635",
+      "bytes": 539168,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/15.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/16.png",
+      "sha256": "03ad3d76db3c48a590b9741f93ad83ce87d8ba3fd0bc799f01dc41d2d4816b4f",
+      "bytes": 551782,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/16.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/17-compact.png",
+      "sha256": "83a831c0593efc50b5ad85a30174621a5137de810d855b63c2b833fec9cd5b71",
+      "bytes": 581148,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/17-compact.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/17.png",
+      "sha256": "efd00c32ead61b0eb6c8aa73802ce6d7d5b59d1c4d217b4da8608db645e72f09",
+      "bytes": 731395,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/17.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/18.png",
+      "sha256": "a41290016547881777f8cb87ad63fa29d5a3a8ab3199f144788011a502ee95d0",
+      "bytes": 587303,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/18.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/19.png",
+      "sha256": "a0eaa2c056304563dfa814d855864b069f354049fa94c8b48eea487b6aa67161",
+      "bytes": 545500,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/19.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/20.png",
+      "sha256": "bd1bd53eabe25e8c46898d6495c3a1af123e37e87dc707f3492e01909bc4911e",
+      "bytes": 563182,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/20.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/21.png",
+      "sha256": "fbb3ee3b627d37ce8b11bea2321e2f4b57f70ca88d631b2f204bd663d6150ebf",
+      "bytes": 524384,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/21.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/22.png",
+      "sha256": "2d1a8fa281f6132a2361c7f8caf31da38e515d9f8ff1b4cff14290b0fba5fe07",
+      "bytes": 546228,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/22.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/S1.png",
+      "sha256": "d7a918be41047244c531838ea526512b7d6171588c9cb0e5bf4845f96e9e9898",
+      "bytes": 728084,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/S1.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/S2.png",
+      "sha256": "124b64820e8e7280fc3e00d6d3e8f8d8c5fea8ed6c98172d4750a2bbb62102ed",
+      "bytes": 641966,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/S2.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/S3.png",
+      "sha256": "2831c85f64b11077c1afa5a810e8cf46c840940a1e95230d05786772d941c170",
+      "bytes": 584456,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/S3.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/S4.png",
+      "sha256": "b33d9912014371bf8efd091f128ec7a33fa2d434b8bc670af7c56da7c931b41f",
+      "bytes": 348040,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/S4.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/S5.png",
+      "sha256": "7b812fd8d7c9d177564e251007d31467b3bb03610b1cbd1d189b5afa500728a1",
+      "bytes": 415199,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/S5.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/1440p/S6.png",
+      "sha256": "277aad221c8e39e78c5a736f4b516737e45f5c1ea57fdd4104e81808f72125c7",
+      "bytes": 392571,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_03_1440p界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/1440p/S6.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/01-light.png",
+      "sha256": "382f9f4f8f6dcf0101f5fc7df2014c4414eafdc466f41db061f755dd41de0925",
+      "bytes": 2265591,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/01-light.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/01.png",
+      "sha256": "d6229263cf9735d0be0798f7299f669e8e7c95c2c7a6f449bca90a50d6587497",
+      "bytes": 2265758,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/01.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/02.png",
+      "sha256": "6654735c94ffb84ab028c1fb39b687cfee8ddcc915243ed2980088361e77475d",
+      "bytes": 407382,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/02.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/03-focus.png",
+      "sha256": "dfd3ddd38f740b26115dc0ba834191334a484adf84388b158419896de5b2b94b",
+      "bytes": 290034,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/03-focus.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/03-light.png",
+      "sha256": "c10b32fc6ad480892bb80724ccdd538ea86edec82f70c5f50393cc6c4c92f8ca",
+      "bytes": 559020,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/03-light.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/03.png",
+      "sha256": "59b3e83a1781a95df82b2a7ae227c12ed78e1fb810a8152ee850b686a1f23261",
+      "bytes": 559928,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/03.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/04.png",
+      "sha256": "f5793eecfe0955a783b946d988f47a86f5adc61b2e2c7c8a3356a6c0fc310ce9",
+      "bytes": 462444,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/04.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/05.png",
+      "sha256": "67765236ee27750d546678f89f6b29860d637407aab2813c1696da41126dbf8d",
+      "bytes": 454889,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/05.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/06-light.png",
+      "sha256": "3a416a55f34797e952e2adbca5099c8292398a3adb3367097755d6b4f4f2ca23",
+      "bytes": 768832,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/06-light.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/06.png",
+      "sha256": "dc36a8262426f97ec85b074ee778df8451eed1f9cc154d0addf1a6cd71d03d9a",
+      "bytes": 728637,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/06.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/07.png",
+      "sha256": "256cf08c5695cc3b43f9652b179211e246dab33c49783600eb18b4acd3df92f2",
+      "bytes": 485648,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/07.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/08.png",
+      "sha256": "b7617d1c699f3f0a0a79fa89df7a3ba70dfa29a29c250f5b09d9c4315eff1b19",
+      "bytes": 451914,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/08.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/09.png",
+      "sha256": "faa89f85b6897d3c29f35cc209675245a0e1a03800881ab178f35fbdb0b1251e",
+      "bytes": 1530790,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/09.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/10.png",
+      "sha256": "f4535c759be47c65aa723025fe6d8c82a82ec6218ebbed68bc0793eca849f5fa",
+      "bytes": 449694,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/10.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/11.png",
+      "sha256": "f121af62c0b1aebb71e91ab4c85416ea42bf5a60e9640a6c6d5fdc84ac7a4d2a",
+      "bytes": 421535,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/11.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/12.png",
+      "sha256": "e414e5dead7a0218c9b3bcf8de6d0bd4f5b120ba36ae0d708f9f5bd7c6aa8dd9",
+      "bytes": 444127,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/12.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/13.png",
+      "sha256": "87ac9346129deeba3d1508b754061bfd6528e04f1a754233b0edf786016262a4",
+      "bytes": 436832,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/13.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/14.png",
+      "sha256": "d0d392c558fe9e5a4c688e3df0b687dcc9e7525b7b744d10d93db4264a4ab92e",
+      "bytes": 412018,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/14.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/15.png",
+      "sha256": "f4c3ae5c6ae8f1a498b813a6fd16206a41474a1855ff1169b256303d8e386cb7",
+      "bytes": 416316,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/15.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/16.png",
+      "sha256": "b4d2648e00980d2c8411d9c2bf43ebd5814de36d378c8d08cdb2650f22de3be0",
+      "bytes": 435075,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/16.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/17-compact.png",
+      "sha256": "6c0e6d5e85040855fd732d3e2c36655df08ca4633cdac4141907c2f0cc7ce525",
+      "bytes": 355393,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/17-compact.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/17.png",
+      "sha256": "3d82a0d54e4e0b177eccb3f2fffa6c28f33910ebe173d779145808989efe6daf",
+      "bytes": 484074,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/17.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/18.png",
+      "sha256": "7d6352cc95e27817201706513c4c49c3923ef0e9b3a04c7024d7bd03bc5290c2",
+      "bytes": 465119,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/18.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/19.png",
+      "sha256": "1b388e6a868d07e6d5d3389e02e978c66771e0cdd718c3d88f7d688dddf3d90b",
+      "bytes": 426008,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/19.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/20.png",
+      "sha256": "6a4b8e726940967c3225c6de503c0532ee849e85eb75e13598941553207c897f",
+      "bytes": 440031,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/20.png"
+      ]
+    },
+    {
+      "member": "AAOS_UI_Frontend_20261009/screens/4K/21.png",
+      "sha256": "0fcc720cbcdfcd55953340a614d81829821b404d02335e8201f02bb222e25ecd",
+      "bytes": 436000,
+      "matches_recovery_report": true,
+      "existing_equivalent_bytes": [
+        ".project-local/archives/record-20261009/originals/Record/AAOS_UI_补交_02_4K界面效果图_20261009.zip!AAOS_UI_Frontend_20261009/screens/4K/21.png"
+      ]
+    }
+  ]
+}

@@ -12,6 +12,14 @@
     "launch_token": {"type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[0-9a-fA-F]{64}$"},
     "machine_token": {"type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[0-9a-fA-F]{64}$"},
     "session_id": {"type": "string", "minLength": 32, "maxLength": 32, "pattern": "^[0-9a-fA-F]{32}$"},
+    "openmaic_node_worker": {
+      "$comment": "Optional trusted launch configuration only. The Core requires absolute local non-linked paths, rejects E/F and UNC paths, checks the executable name and its declared SHA-256, and pins the OpenMAIC 1.3.0 worker and generation 0.3.28 file hashes. A digest is an identity check, not Node version qualification. Missing files or mismatched bytes leave ordinary Core operations available. A malformed launch document remains invalid. HTTP requests cannot select these paths.",
+      "oneOf": [
+        {"type": "null"},
+        {"type": "object", "additionalProperties": false, "required": ["executable", "executable_sha256", "script"],
+          "properties": {"executable": {"type": "string", "minLength": 1}, "executable_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "script": {"type": "string", "minLength": 1}}}
+      ]
+    },
     "text_worker": {
       "oneOf": [
         {"type": "null"},

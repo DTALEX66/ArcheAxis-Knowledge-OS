@@ -1,0 +1,22 @@
+{
+  "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+  "source_prefix": "OpenMAIC-1.3.0/packages/@openmaic/generation/",
+  "generation_version": "0.3.28",
+  "license": "MIT",
+  "originals": {
+    "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+    "package.json": "5308b268d06dd27e592de00f02d57b046588df0d6e160f4179788388d5a806d1",
+    "src/scene-generator.ts": "4f9d0cb1fb387c41e172272f0d0a2963c2c0f9471982220283f986eed8db4e92",
+    "templates/quiz-content/system.md": "e0da7ba94ced7ece21ade228ec9e155baed40ce057f57aef2de9f1419f2e7c83",
+    "templates/quiz-content/user.md": "9a3656910548121d3933431424d72b328b2911eb89f837a5da91f26fe9c2d146",
+    "snippets/json-output-rules.md": "05ba04da6ef247a4b87bfcad989faf7b58aefcba1ec7a94f972890c2c5aed616"
+  },
+  "excerpt": {
+    "source": "src/scene-generator.ts",
+    "start_line": 914,
+    "end_line": 1108,
+    "sha256": "a0efe8acb84c22e66ae3911f45279e5a4875f00cf6a223621a6b5a4e279f98cd",
+    "adapted_file": "quiz-functions.ts",
+    "adapted_sha256": "4d051a9365509bcedfd10ac7a66e9e5ed4ba58e19d46909e7e8d2b8489a3dfa6"
+  }
+}

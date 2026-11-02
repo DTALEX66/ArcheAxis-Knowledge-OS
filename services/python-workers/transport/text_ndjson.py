@@ -447,18 +447,20 @@ _AUDIO_SUFFIX = {
 # media type implies and the transport materialises a route-local view for it.
 
 
-def _materialise_view(source: Path, suffix: str) -> Path:
-    """A route-local copy carrying the suffix the route's worker expects.
-
-    The original staged input is untouched and its hash is still verified separately by
-    the caller; this only gives a suffix-dispatching worker the name it needs.
-    """
+def _materialise_view(source: Path, suffix: str, verified_input: bytes, limit: int) -> tuple[Path, tuple]:
+    """Give a suffix-dispatching worker the same verified bytes as its input."""
     view = source.with_name(source.name + suffix)
     safe_path(view, missing=True)
-    if not filesystem_path(view).exists():
+    try:
         with filesystem_path(view).open("xb") as handle:
-            handle.write(filesystem_path(source).read_bytes())
-    return view
+            handle.write(verified_input)
+    except FileExistsError:
+        # Preserve an existing view; it may be reused only after the same checks.
+        pass
+    actual, identity = read_regular(view, limit=limit)
+    if actual != verified_input:
+        raise Rejected("route input view differs from verified input", "AAK-HASH-001")
+    return view, identity
 
 
 def _as_route_contract(result: dict, route_capability: str) -> dict:
@@ -587,8 +589,20 @@ def declared_split(capability: str, parameters) -> dict | None:
 
 
 def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None,
-               split: dict | None = None, remaining_ms: int | None = None, words: bool = False) -> dict:
+               split: dict | None = None, remaining_ms: int | None = None, words: bool = False, *,
+               verified_input: bytes | None = None, view_limit: int = MAX_INPUT_BYTES,
+               checked_views: list | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
+    declared_media_type = media_type
+    media_type = media_type.split(";", 1)[0].strip().lower()
+
+    def materialised(suffix: str) -> Path:
+        if verified_input is None or checked_views is None:
+            raise Rejected("suffix route requires verified input")
+        view, identity = _materialise_view(source, suffix, verified_input, view_limit)
+        checked_views.append((view, identity))
+        return view
+
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
         relative_worker = Path(*relative_worker.parts[2:])
@@ -605,7 +619,7 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         suffix = _IMAGE_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:
             raise Rejected("unsupported image media type", "AAK-VAL-002")
-        view = _materialise_view(source, suffix)
+        view = materialised(suffix)
         # OCR keeps its own explicit parameters: language plus the tessdata dir. The
         # language comes from the caller's configuration rather than being hardcoded, and
         # the directory is one that actually holds that language.
@@ -615,7 +629,7 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         if artifact_root is None:
             raise Rejected("Video decoding needs the Core-owned artifact root", "AAK-VAL-002")
         suffix = {"video/mp4": ".mp4", "video/quicktime": ".mov", "video/x-matroska": ".mkv", "video/webm": ".webm"}[media_type]
-        view = _materialise_view(source, suffix)
+        view = materialised(suffix)
         output_dir = safe_path(artifact_root / ("video-" + str(time.time_ns())), missing=True)
         result = module.extract_job(filesystem_path(view), filesystem_path(output_dir),
             os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip() or None,
@@ -632,9 +646,9 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # model and language detection - so the transport passes them only when an operator
         # has configured them, rather than inventing a default here.
         suffix = _AUDIO_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
-        view = source
-        if suffix is not None:
-            view = _materialise_view(source, suffix)
+        if suffix is None:
+            raise Rejected("unsupported audio media type", "AAK-VAL-002")
+        view = materialised(suffix)
         kwargs: dict = {}
         model_dir = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
         kwargs["model_path"] = model_dir or None
@@ -665,12 +679,12 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         if member is not None and artifact_root is not None:
             target = safe_path(artifact_root / member["dir"], missing=True)
             return _as_route_contract(
-                module.extract(str(filesystem_path(_materialise_view(source, suffix))),
+                module.extract(str(filesystem_path(materialised(suffix))),
                                **{member["kwarg"]: filesystem_path(target)}),
                 route.get("capability", "route"),
             )
         return _as_route_contract(
-            module.extract(str(filesystem_path(_materialise_view(source, suffix)))), route.get("capability", "route")
+            module.extract(str(filesystem_path(materialised(suffix)))), route.get("capability", "route")
         )
     if route.get("artifact_dir"):
         # R15/F06+F15: the attempt directory is temporary, so durable transfer files
@@ -685,6 +699,14 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         media_name = media_type.split(";", 1)[0].strip().lower()
         member = route.get("member_dir_by_media", {}).get(media_name)
         if member is None:
+            if media_name == "text/plain":
+                try:
+                    return module.extract(str(filesystem_path(source)), declared_media_type)
+                except Exception as exc:
+                    charset_error = getattr(module, "TextCharsetError", None)
+                    if isinstance(charset_error, type) and isinstance(exc, charset_error):
+                        raise Rejected(str(exc), "AAK-VAL-002") from exc
+                    raise
             return module.extract(str(filesystem_path(source)), media_name)
         if artifact_root is None:
             # No Core-owned transfer area means nothing is written and nothing is declared.
@@ -743,7 +765,8 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     if not re.fullmatch(r"[0-9a-f]{64}", digest) or asset["uri"] != f"job://input/{digest}":
         raise Rejected("input URI must match its sha256")
     allowed_media = route["media_types"]
-    if asset["media_type"].split(";", 1)[0].strip().lower() not in allowed_media:
+    media_type = asset["media_type"].split(";", 1)[0].strip().lower()
+    if media_type not in allowed_media:
         raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
     source = staging / "input" / digest
     input_limit = input_byte_limit(request["capability"])
@@ -754,10 +777,20 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     # The remaining wall clock is what a split invocation gets to work with; the worker subtracts
     # its own declared overhead, so the policy has one owner.
     remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))
-    result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
+    checked_views = []
+    result = (_run_route(route, source, asset["media_type"], artifact_root, deadline,
+                         verified_input=raw, view_limit=input_limit, checked_views=checked_views)
               if route["call"] == "video_transcribe"
               else _run_route(route, source, asset["media_type"], artifact_root, split=split, words=words,
-                              remaining_ms=remaining_ms))
+                              remaining_ms=remaining_ms, verified_input=raw, view_limit=input_limit,
+                              checked_views=checked_views))
+    # Checks on either side of parsing detect persistent changes, but cannot
+    # exclude a concurrent replacement that is restored between observations.
+    for view, view_identity in checked_views:
+        view_bytes, current_view_identity = read_regular(view, limit=input_limit)
+        if current_view_identity != view_identity or view_bytes != raw:
+            raise Rejected("route input view changed during extraction", "AAK-HASH-001")
+        del view_bytes
     reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")
@@ -768,6 +801,12 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
         ("document_structure", OUTPUT_SCHEMAS[1], "application/json", encode(result["structure"])),
         ("loss_report", OUTPUT_SCHEMAS[2], "application/json", encode(result["loss_receipt"])),
     ]
+    # The staging reader below applies this same per-file bound. Reject every
+    # deterministically oversized result before creating any new contract
+    # artifact under staging/output. Other route artifacts may already exist;
+    # this does not make later filesystem writes transactional.
+    if any(len(data) > MAX_INPUT_BYTES for _, _, _, data in artifacts):
+        raise Rejected("output artifact exceeds byte limit", "AAK-VAL-003")
     output_dir = safe_path(staging / "output", missing=True)
     filesystem_path(output_dir).mkdir(exist_ok=True)
     prepared = []

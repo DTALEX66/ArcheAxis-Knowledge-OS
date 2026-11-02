@@ -12,7 +12,10 @@ from __future__ import annotations
 import json
 import logging
 import os
+from functools import wraps
+from hashlib import sha256
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 import numpy as np
@@ -30,6 +33,18 @@ _config: dict[str, Any] | None = None
 _labels: list[str] = []
 _thresholds: dict[str, float] = {}
 _overwrites: dict[str, str] = {}
+_loaded_paths: tuple[Path, Path] | None = None
+_model_identity: dict[str, str] = {}
+_model_lock = RLock()
+
+
+def _with_model_lock(function):
+    @wraps(function)
+    def locked(*args, **kwargs):
+        with _model_lock:
+            return function(*args, **kwargs)
+
+    return locked
 
 
 def _model_paths() -> tuple[Path, Path]:
@@ -50,25 +65,38 @@ def _model_paths() -> tuple[Path, Path]:
     return _MODEL_PATH, _CONFIG_PATH
 
 
-def _load_model() -> None:
-    global _sess, _config, _labels, _thresholds, _overwrites
-    if _sess is not None:
+@_with_model_lock
+def _load_model(model_paths: tuple[Path, Path] | None = None) -> None:
+    global _sess, _config, _labels, _thresholds, _overwrites, _loaded_paths, _model_identity
+    paths = tuple(path.resolve() for path in (model_paths or _model_paths()))
+    if _sess is not None and _loaded_paths == paths:
         return
-    model_path, config_path = _model_paths()
-    _config = json.loads(config_path.read_text(encoding="utf-8"))
-    _sess = rt.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
-    _labels = [str(label) for label in _config["target_labels_space"]]
-    _thresholds = _config.get("thresholds", {})
-    _overwrites = _config.get("overwrite_map", {})
+    # Hash the same bytes that the parser and ONNX runtime actually consume.
+    # A cached session retains this identity even if its files later change.
+    model_bytes = paths[0].read_bytes()
+    config_bytes = paths[1].read_bytes()
+    config = json.loads(config_bytes)
+    labels = [str(label) for label in config["target_labels_space"]]
+    session = rt.InferenceSession(model_bytes, providers=["CPUExecutionProvider"])
+    _config, _labels, _sess = config, labels, session
+    _thresholds = config.get("thresholds", {})
+    _overwrites = config.get("overwrite_map", {})
+    _loaded_paths = paths
+    _model_identity = {
+        "model_sha256": sha256(model_bytes).hexdigest(),
+        "config_sha256": sha256(config_bytes).hexdigest(),
+    }
 
 
+@_with_model_lock
 def detect(
     content: bytes,
     *,
     path_hint: str | None = None,
+    model_paths: tuple[Path, Path] | None = None,
 ) -> dict[str, object]:
     """Return content type prediction dict with label, group, mime."""
-    _load_model()
+    _load_model(model_paths)
     features = _extract_features(content)
     ort_inputs = {_sess.get_inputs()[0].name: features}
     raw = _sess.run(None, ort_inputs)[0]
@@ -93,6 +121,7 @@ def detect(
         "group": _classify_group(label),
         "confidence": round(conf, 4),
         "path_hint": path_hint,
+        "model_identity": dict(_model_identity),
     }
 
 

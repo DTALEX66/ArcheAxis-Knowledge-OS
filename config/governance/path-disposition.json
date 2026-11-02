@@ -373,6 +373,7 @@
     {
       "paths": [
         "AUTHORITY.md",
+        "PROJECT_CURRENT.md",
         "AGENTS.md",
         "PROJECT_CONTRACT.yaml",
         "DIRECTORY_AUTHORITY.yaml",

@@ -12,6 +12,48 @@ const SESSION: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const MACHINE_TOKEN: &str = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
 
 #[test]
+fn production_provider_practice_routes_refuse_forged_machine_actor() {
+    use serde_json::{Value,json};
+    let dir=tempfile::tempdir().unwrap(); let db=dir.path().join("practice-launch.sqlite");
+    let mut child=spawn(&db);
+    writeln!(child.0.stdin.take().unwrap(),"{}",json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION})).unwrap();
+    let port=ready(&mut child);
+    let request=|method:&str,path:&str,token:&str,body:Value| -> (u16,Value) {
+        let headers=format!("x-archeaxis-launch-token: {token}\r\nx-archeaxis-actor: human\r\nContent-Type: application/json\r\n");
+        let (status,raw)=http_body(port,method,path,&headers,&if body.is_null(){String::new()}else{body.to_string()});
+        (status,serde_json::from_str(&raw).unwrap_or(Value::Null))
+    };
+    let (status,doc)=request("POST","/api/v1/documents",TOKEN,json!({"create_request_id":"practice_material","title":"SYNTHETIC","editor_json":{"type":"doc","content":[]}}));
+    assert_eq!(status,201);
+    let material=json!({"document_id":doc["document_id"],"version":doc["version"],"content_sha256":doc["content_sha256"]});
+    let (status,question)=request("POST","/api/v1/documents",TOKEN,json!({"create_request_id":"practice_question","title":"SYNTHETIC question",
+        "editor_json":{"type":"doc","content":[],"attrs":{"archeaxis_deeptutor_question":{
+            "schema":"archeaxis.deeptutor-question/v1","source_material":material,"origin":"user_import_unverified",
+            "question":{"question_id":"q1","question":"Which?","question_type":"choice","options":{"A":"first","B":"second"},
+                "correct_answer":"SENTINEL_KEY","explanation":"SENTINEL_EXPLANATION"}}}}}));
+    assert_eq!(status,201);
+    let view_body=json!({"question_document":{"document_id":question["document_id"],"version":question["version"],"content_sha256":question["content_sha256"]}});
+    let view_path="/api/v1/learning/deeptutor/question-view";
+    assert_eq!(request("POST",view_path,MACHINE_TOKEN,view_body.clone()).0,403);
+    let (status,view)=request("POST",view_path,TOKEN,view_body);
+    assert_eq!(status,200); assert_eq!(view["authorization_effect"],"none");
+    assert_eq!(view["source_reference"],"declared_unverified"); assert!(!view.to_string().contains("SENTINEL_"));
+    let activity=json!({"activity_id":"activity","material":{"document_id":doc["document_id"],"version":doc["version"],"content_sha256":doc["content_sha256"]},"provider":{"id":"openmaic","version":"1.3.0"},"question":{"question_id":"q1","question_version":"v1"},"grant":null});
+    let base="/api/v1/learning/provider-activities";
+    assert_eq!(request("POST",base,MACHINE_TOKEN,activity.clone()).0,403);
+    assert_eq!(request("POST",base,TOKEN,activity).0,201);
+    let attempts="/api/v1/learning/provider-activities/activity/attempts";
+    assert_eq!(request("POST",attempts,MACHINE_TOKEN,json!({"attempt_id":"attempt"})).0,403);
+    assert_eq!(request("POST",attempts,TOKEN,json!({"attempt_id":"attempt"})).0,201);
+    let submit="/api/v1/learning/provider-activities/activity/attempts/attempt/submit";
+    let body=json!({"client_event_id":"event","answer":"SYNTHETIC","provider_correct":null,"self_report":true,"rating":null});
+    assert_eq!(request("POST",submit,MACHINE_TOKEN,body.clone()).0,403);
+    assert_eq!(request("POST",submit,TOKEN,body).0,201);
+    assert_eq!(request("GET","/api/v1/learning/provider-activities/activity",MACHINE_TOKEN,Value::Null).0,403);
+    assert_eq!(request("GET","/api/v1/learning/provider-activities/activity",TOKEN,Value::Null).0,200);
+}
+
+#[test]
 fn production_v2_asset_packet_consumer_cannot_be_forged_by_machine_token_human_header() {
     use serde_json::{Value, json};
     let dir = tempfile::tempdir().unwrap();

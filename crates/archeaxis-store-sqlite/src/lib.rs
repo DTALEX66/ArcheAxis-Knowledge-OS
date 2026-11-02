@@ -10,7 +10,7 @@ pub mod writer;
 // 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
 // G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
 // anything.
-pub const SCHEMA_VERSION: i64 = 14;
+pub const SCHEMA_VERSION: i64 = 15;
 
 const INGEST_BATCH_SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS ingest_batches (
@@ -329,6 +329,33 @@ CREATE TRIGGER teaching_withdrawals_no_update BEFORE UPDATE ON teaching_withdraw
 CREATE TRIGGER teaching_withdrawals_no_delete BEFORE DELETE ON teaching_withdrawals BEGIN SELECT RAISE(ABORT,'teaching withdrawals are append-only'); END;
 "#;
 
+/// Human practice observations. Provider scores are not FSRS reviews, and
+/// neither provider results nor self-reports assert independent mastery.
+const PROVIDER_LEARNING_SCHEMA_SQL: &str = r#"
+CREATE TABLE learning_provider_activities (
+ activity_id TEXT PRIMARY KEY,
+ request_json TEXT NOT NULL,
+ request_sha256 TEXT NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE learning_provider_attempts (
+ activity_id TEXT NOT NULL REFERENCES learning_provider_activities(activity_id),
+ attempt_id TEXT NOT NULL,
+ origin_restore_epoch TEXT NOT NULL,
+ state TEXT NOT NULL CHECK(state IN ('pending','submitted','cancelled')),
+ client_event_id TEXT UNIQUE,
+ result_json TEXT,
+ result_sha256 TEXT,
+ client_cancel_id TEXT UNIQUE,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+ completed_at TEXT,
+ PRIMARY KEY(activity_id,attempt_id),
+ CHECK((state='pending' AND client_event_id IS NULL AND result_json IS NULL AND result_sha256 IS NULL AND client_cancel_id IS NULL AND completed_at IS NULL)
+    OR (state='submitted' AND client_event_id IS NOT NULL AND result_json IS NOT NULL AND result_sha256 IS NOT NULL AND client_cancel_id IS NULL AND completed_at IS NOT NULL)
+    OR (state='cancelled' AND client_event_id IS NULL AND result_json IS NULL AND result_sha256 IS NULL AND client_cancel_id IS NOT NULL AND completed_at IS NOT NULL))
+);
+"#;
+
 pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     raw_objects::reject_links(std::path::Path::new(db_path))?;
     let mut conn = Connection::open(db_path)?;
@@ -506,6 +533,9 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
         // remain bundled first-party data; historical Documents are never rewritten.
         upgrade_capability_settings_v14(&tx)?;
     }
+    if version < 15 {
+        upgrade_provider_learning_v15(&tx)?;
+    }
     let broken_fk: bool = tx.query_row(
         "SELECT EXISTS(SELECT 1 FROM pragma_foreign_key_check)",
         [],
@@ -521,6 +551,12 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     tx.commit()?;
     conn.execute_batch("PRAGMA foreign_keys=ON;")?;
     Ok(conn)
+}
+
+/// Add the v15 learning tables inside the caller-owned migration/restore
+/// transaction. Existing workspaces are never opened as writers by restore.
+pub fn upgrade_provider_learning_v15(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute_batch(PROVIDER_LEARNING_SCHEMA_SQL)
 }
 
 /// Same additive migration for initialization and verified schema-13 restore.

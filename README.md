@@ -1,10 +1,12 @@
 # 星环知识系统（ArcheAxis Knowledge）
 
+> **最新基准：[项目总纲与权威总入口](AUTHORITY.md#0-当前定位定义与最近决定) · [近两日13组对话与包](docs/history/owner-dialogue-20261101-current-goals/README.md) · 产品身份V2.3 · 唯一闭环V3。** [PROJECT_CURRENT.md](PROJECT_CURRENT.md)只作薄导航；[统一归档逐项对账](workspace/intake/20261101-project-archiving-reconciliation/README.md)及其他资料为历史和补充材料。AI侧覆盖任意领域知识转化。
+
 本地优先的个人 Human–AI 双向知识与学习工作台：以资料与知识对象为中心，贯通多格式整理、多源比较、学习与表达和 AI 资产复用。
 
-保留原件便于回查识别、转换和整理中的错误；通过百科、社区、论坛及学术等公开来源搜索比较，呈现一致、差异和待核实内容，支持持续修订。来源记录用于回查与纠错，单份原件、网络结果或模型回答均不自动具有唯一事实权威。普通保存、展示和学习不等待联网核验或人工事实审批；实际来源覆盖、限流与失败状态按运行结果说明。新任务包定位、目标及来源见[Owner选择记录](workspace/intake/20261101-positioning-loop-update/README.md)；定位与规则见[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)、[内容规范](PROJECT_CONTRACT.yaml)和[Owner 最新决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十五新任务包定位描述与闭环目标覆盖2026-11-01)。
+保留原件便于回查识别、转换和整理中的错误；通过百科、社区、论坛及学术等公开来源搜索比较，呈现一致、差异和待核实内容，支持持续修订。来源记录用于回查与纠错，单份原件、网络结果或模型回答均不自动具有唯一事实权威。普通保存、展示和学习不等待联网核验或人工事实审批；实际来源覆盖、限流与失败状态按运行结果说明。新任务包定位、目标及来源见[Owner选择记录](workspace/intake/20261101-positioning-loop-update/README.md)；定位与规则见[产品身份](docs/truth/PRODUCT_IDENTITY_V2.md)、[内容规范](PROJECT_CONTRACT.yaml)和[Owner 最新决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十六任意领域ai工作内容转化为知识2026-11-01)。
 
-资料正文和学习活动为主内容，上下文助手与任务面板辅助操作；内容校验、人类掌握和AI采用分别呈现。专业制作/科研执行在外部完成，AAOS承接目标、计划、可选成果、反馈和复习。五稳定入口为工作台、资料与知识、研究与比较、学习与表达、AI助手；这是现行产品目标，实际界面资格另验。
+人类侧贯通资料、研究、学习与表达；AI侧将任意领域AI工作中的可复用内容、成果、问题、错误、解决办法、工作流、规范及更新转化为知识候选，沿既有治理流程进入授权使用、反馈、纠正和复测。编程只是示例；原始会话与运行上下文仍留在来源系统。会话与任务面板是交互入口，内容校验、人类掌握和AI采用分别呈现。专业制作/科研执行在外部完成，AAOS承接目标、计划、可选成果、反馈和复习。五稳定入口为工作台、资料与知识、研究与比较、学习与表达、AI助手；现行澄清见[AI知识转化决定](workspace/intake/20261101-ai-knowledge-conversion/README.md)，这是产品目标，实际资格另验。
 
 **当前状态：PARTIAL。** Owner 于2026-10-18恢复项目内实施；当前范围读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读[执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)与[会话整合](docs/current/AAOS-SESSION-RECONCILIATION-20261018.md)记录本轮证据和未完成项。测试、构建、CI、安装运行和Owner验收分别判断，当前没有可靠的整体完成率。
 
@@ -31,6 +33,8 @@
 - **复习提醒**: 到期卡片智能推荐
 
 ### 🤖 AI助手 - 小栖
+AI侧还承担任意领域工作经验转知识、知识治理及实际采用/纠正复测；下面会话能力只是交互部分，完整目标沿现行闭环验收。
+
 - **智能对话**: AI驱动的知识助手
 - **上下文感知**: 基于当前文档的对话
 - **学习辅助**: 知识点提取和解释

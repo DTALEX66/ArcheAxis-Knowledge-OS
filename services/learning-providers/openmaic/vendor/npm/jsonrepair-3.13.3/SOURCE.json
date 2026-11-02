@@ -1,0 +1,35 @@
+{
+  "name": "jsonrepair",
+  "version": "3.13.3",
+  "license": "ISC",
+  "archive_sri": "sha512-BTznj0owIt2CBAH/LTo7+1I5pMvl1e1033LRl/HUowlZmJOIhzC0zbX5bxMngLkfT4WnzPP26QnW5wMr2g9tsQ==",
+  "origin": "https://registry.npmjs.org/",
+  "audit_run": "backend-verify-npm-audit-bf6dd02ad3",
+  "scripts_executed": false,
+  "files": {
+    "LICENSE.md": {
+      "bytes": 740,
+      "sha256": "fd50f5abb7eeb614c8d1293b9f239a5238d7536e3a9a9a8929a082c82d12b3fd"
+    },
+    "package.json": {
+      "bytes": 2978,
+      "sha256": "34af00e07186a9ca212bd1065572bbc8d961937728f1a32551ed9016e0e01f41"
+    },
+    "lib/esm/index.js": {
+      "bytes": 197,
+      "sha256": "523d175b61d8517fd3ba90cd2f065c6ecd45f4c95ea7ac706a9d87ccaceb7faf"
+    },
+    "lib/esm/regular/jsonrepair.js": {
+      "bytes": 23578,
+      "sha256": "9b7d7367a763931855d1c962e998529f06c6e80a4a056dccb8ebdb96e1d68a1d"
+    },
+    "lib/esm/utils/JSONRepairError.js": {
+      "bytes": 208,
+      "sha256": "760bbdf77243afe6da53aad48520423c2b3da2e15838ca89cb118e87067ef130"
+    },
+    "lib/esm/utils/stringUtils.js": {
+      "bytes": 5283,
+      "sha256": "d5e1065bc473e1c06c9ae2c70dae048175fe8b96c7749b00c267fe29f5c322c3"
+    }
+  }
+}

@@ -19,7 +19,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
-      "sha256": "edf5add651d5d54288e0b4f757f2a294ad4c849c8d57b3fccbeb5d98e2f97eb0"
+      "sha256": "0c0af2b7ef98a2f81fd15a95964d29bc56e9fd4e3694110f0ebb774b3d5d3d81"
     },
     {
       "path": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json",

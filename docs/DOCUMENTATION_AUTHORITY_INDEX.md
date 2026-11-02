@@ -1,8 +1,12 @@
 # 文档职责与权威导航
 
-现行定位及闭环目标按[Owner选择新任务包](../workspace/intake/20261101-positioning-loop-update/README.md)和`SUP-030`：产品身份V2.2、同路径唯一闭环V3；X1—X8映射原CL/J。以下SUP-029继续规定来源用途，不再作为最新定位版本。
+[PROJECT_CURRENT薄入口](../PROJECT_CURRENT.md)为根README/AGENTS的第一跳；[统一归档对账](../workspace/intake/20261101-project-archiving-reconciliation/README.md)记录SUP-032及后继仓库内独立保全，[LOCAL-SOURCES](../workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json)以本仓相对路径读取原件，外部目录仅溯源。产品定义/控制/进度仍沿下表现有唯一源，根入口不产生第二权威。
 
-来源用途继续按[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`，定位目标按第二十五节和 `SUP-030`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
+**首要总入口：[根项目总纲](../AUTHORITY.md#0-当前定位定义与最近决定)**；最近对话/任务包/原话与选定规范的集中映射见[2026-11-01来源总对照](history/owner-dialogue-20261101-current-goals/README.md)及其[清单](history/owner-dialogue-20261101-current-goals/MANIFEST.json)。本页与根入口路由同一产品身份、唯一闭环和活动指针，不再新增定义。
+
+现行定位及闭环目标按[Owner选择新任务包](../workspace/intake/20261101-positioning-loop-update/README.md)和`SUP-030`，AI侧按[任意领域工作内容转知识澄清](../workspace/intake/20261101-ai-knowledge-conversion/README.md)及`SUP-031`：产品身份V2.3、同路径唯一闭环V3；X1—X8映射原CL/J。以下SUP-029继续规定来源用途。
+
+来源用途继续按[Owner决定第二十四节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十四多源检索辅助纠错与成熟方案优先2026-10-26)及 `SUP-029`，定位目标按第二十五/二十六节及 `SUP-030/031`。定位读[产品身份](truth/PRODUCT_IDENTITY_V2.md)，内容规则读[项目合同 content_policy](../PROJECT_CONTRACT.yaml)及[配置索引](CONFIGURATION_AUTHORITY_INDEX.md)；这里的文档权威用于解决规则引用，不代表资料内容有唯一事实权威。
 
 本页只回答“该读哪个规范源”，不复制进度、运行观察或完成结论。换会话先读[根入口](../AUTHORITY.md)、[执行规则](../AGENTS.md)，再按[活动指针的 continuation_context](current/AAOS-ACTIVE-EXECUTION.json)接续。用户当前明确决定与已登记替代关系优先；历史任务包、交接和回执保留各自适用时点与证据身份。
 

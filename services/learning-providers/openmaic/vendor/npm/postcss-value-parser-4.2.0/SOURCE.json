@@ -1,0 +1,50 @@
+{
+  "name": "postcss-value-parser",
+  "version": "4.2.0",
+  "license": "MIT",
+  "archive_sri": "sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==",
+  "archive_sha256": "3de5372cf95b66a344b258a046b1b298b20ecaf187637f4d59f50017836a90a7",
+  "archive_bytes": 7997,
+  "origin": "https://registry.npmjs.org/",
+  "fetch_run": "backend-verify-npm-pvp-fetch-848f060242",
+  "audit_run": "backend-verify-npm-pvp-audit-9982b6fd58",
+  "scripts_executed": false,
+  "files": {
+    "LICENSE": {
+      "bytes": 1074,
+      "sha256": "3687447039151857a6ba378db062172c7f33d4aa70a615c87a43a9c50e990485"
+    },
+    "README.md": {
+      "bytes": 7683,
+      "sha256": "7b183e14c4853ed481ef03b5b4c924a7fbe70635ff2e2decd3cea5329eb9b2d6"
+    },
+    "lib/index.d.ts": {
+      "bytes": 4290,
+      "sha256": "4533b61de4b1594a736704184d03d4d8d5f3b072a6acfcfd41d76da975ac04fd"
+    },
+    "lib/index.js": {
+      "bytes": 607,
+      "sha256": "b72197f798b185efdd013e8d9b9b405e9a940dd9c5e9c53931684474f447af92"
+    },
+    "lib/parse.js": {
+      "bytes": 8344,
+      "sha256": "7f57d3c73010b7a5f11cd5fd1b49fc61043a0a2b430f090b6eb9220b0b27e4f2"
+    },
+    "lib/stringify.js": {
+      "bytes": 1185,
+      "sha256": "bea6103af615bb9d65a2fc6dff1b2ab8a32b5ca33e263b5a2c8d458c4eff19fc"
+    },
+    "lib/unit.js": {
+      "bytes": 2283,
+      "sha256": "728de375616da4672cd8a2d0b1713fd9b61ec5774075b4d1ad3ef1076cbbd740"
+    },
+    "lib/walk.js": {
+      "bytes": 425,
+      "sha256": "f954705a5401ddf0401d500088ed668a0307bd19259f2af104377704899cd09f"
+    },
+    "package.json": {
+      "bytes": 1302,
+      "sha256": "6cf9201a4d0d15253e7e7b78b4ef808b8cb3354c9809214423453b48bd012bc0"
+    }
+  }
+}

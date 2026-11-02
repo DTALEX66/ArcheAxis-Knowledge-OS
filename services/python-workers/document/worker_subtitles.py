@@ -24,14 +24,50 @@ ENGINE_VERSION = "0.1.0"
 # R15/F12: the identity advertised in the sidecar handshake for this route.
 WORKER_IDENTITY = "python-worker-subtitles-ndjson"
 
-_TIMECODE = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})")
+_TIMECODE = re.compile(r"(\d+):(\d{2}):(\d{2})[,.](\d{1,3})")
+_SRT_CLOCK = r"\d+:\d{2}:\d{2}[,.]\d{1,3}"
+_SRT_TIMING = re.compile(rf"({_SRT_CLOCK})\s*-->\s*({_SRT_CLOCK})(?:\s+(.*))?")
+_VTT_CLOCK = r"(?:[0-9]+:)?[0-9]{2}:[0-9]{2}[,.][0-9]{1,3}"
+_VTT_TIMING = re.compile(rf"({_VTT_CLOCK})[ \t]*-->[ \t]*({_VTT_CLOCK})(?:[ \t]+(.*))?")
+_MAX_TIMESTAMP_MS = (1 << 53) - 1
 
 
 def _to_ms(match: re.Match[str]) -> int:
-    hours, minutes, seconds = (int(g) for g in match.groups()[:3])
+    hours_text, minutes_text, seconds_text = match.groups()[:3]
+    hours_text = hours_text.lstrip("0") or "0"
+    if len(hours_text) > 10:
+        raise ValueError("SRT timestamp exceeds the supported range")
+    hours, minutes, seconds = int(hours_text), int(minutes_text), int(seconds_text)
+    if minutes >= 60 or seconds >= 60:
+        raise ValueError("SRT timestamp has out-of-range minutes or seconds")
     fraction_text = match.group(4)
     fraction = int(fraction_text) * (10 ** (3 - len(fraction_text)))
-    return ((hours * 60 + minutes) * 60 + seconds) * 1000 + fraction
+    milliseconds = ((hours * 60 + minutes) * 60 + seconds) * 1000 + fraction
+    if milliseconds > _MAX_TIMESTAMP_MS:
+        raise ValueError("SRT timestamp exceeds the supported range")
+    return milliseconds
+
+
+def _vtt_to_ms(timestamp: str) -> int:
+    clock, fraction_text = re.split(r"[,.]", timestamp, maxsplit=1)
+    parts = clock.split(":")
+    if len(parts) == 3:
+        hours_text, minutes_text, seconds_text = parts
+        hours_text = hours_text.lstrip("0") or "0"
+        if len(hours_text) > 10:
+            raise ValueError("VTT timestamp exceeds the supported range")
+        hours = int(hours_text)
+    else:
+        hours = 0
+        minutes_text, seconds_text = parts
+    minutes, seconds = int(minutes_text), int(seconds_text)
+    if minutes >= 60 or seconds >= 60:
+        raise ValueError("VTT timestamp has out-of-range minutes or seconds")
+    fraction = int(fraction_text) * (10 ** (3 - len(fraction_text)))
+    milliseconds = ((hours * 60 + minutes) * 60 + seconds) * 1000 + fraction
+    if milliseconds > _MAX_TIMESTAMP_MS:
+        raise ValueError("VTT timestamp exceeds the supported range")
+    return milliseconds
 
 
 def _parse_srt(text: str) -> list[dict]:
@@ -44,16 +80,21 @@ def _parse_srt(text: str) -> list[dict]:
         if not re.fullmatch(r"\d+", lines[0].strip()):
             raise ValueError("SRT block must start with a numeric index")
         timing = lines[1] if len(lines) > 1 else ""
-        time_match = re.search(r"(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})", timing)
-        if not time_match:
-            raise ValueError(f"SRT cue without valid timing: {lines[0].strip()}")
-        start = _to_ms(_TIMECODE.search(time_match.group(1)) or _TIMECODE.match("0:00:00,000"))
-        end = _to_ms(_TIMECODE.search(time_match.group(2)) or _TIMECODE.match("0:00:00,000"))
+        time_match = _SRT_TIMING.fullmatch(timing.strip())
+        if not time_match or (time_match.group(3) and "-->" in time_match.group(3)):
+            raise ValueError("SRT cue without valid timing")
+        start_match = _TIMECODE.fullmatch(time_match.group(1))
+        end_match = _TIMECODE.fullmatch(time_match.group(2))
+        if start_match is None or end_match is None:
+            raise ValueError("SRT cue without valid timing")
+        start, end = _to_ms(start_match), _to_ms(end_match)
+        if end < start:
+            raise ValueError("SRT cue ends before it starts")
         cues.append(
             {
                 "index": int(lines[0].strip()),
                 "offset_ms": start,
-                "duration_ms": max(0, end - start),
+                "duration_ms": end - start,
                 "text": "\n".join(lines[2:]),
             }
         )
@@ -62,52 +103,55 @@ def _parse_srt(text: str) -> list[dict]:
 
 def _parse_vtt(text: str) -> list[dict]:
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    if not lines or not lines[0].strip().startswith("WEBVTT"):
+    if not lines or not re.fullmatch(r"WEBVTT(?:[ \t].*)?", lines[0]):
         raise ValueError("VTT file must start with a WEBVTT header")
-    cues: list[dict] = []
-    current_time: tuple[int, int] | None = None
-    current_text: list[str] = []
-    index = 0
-
-    def flush() -> None:
-        nonlocal current_time, current_text, index
-        if current_time is not None and current_text:
-            index += 1
-            offset, duration = current_time
-            cues.append(
-                {
-                    "index": index,
-                    "offset_ms": offset,
-                    "duration_ms": duration,
-                    "text": "\n".join(current_text),
-                }
-            )
-        current_time = None
-        current_text = []
-
+    blocks: list[list[str]] = []
+    block: list[str] = []
     for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.startswith("NOTE"):
-            if stripped == "":
-                flush()
+        if line:
+            block.append(line)
+        elif block:
+            blocks.append(block)
+            block = []
+    if block:
+        blocks.append(block)
+
+    # The first block is the header and any legacy header metadata. A timing
+    # line there indicates a missing separator, so do not drop it as metadata.
+    if not blocks or any("-->" in line for line in blocks[0][1:]):
+        raise ValueError("VTT header must be separated from cues by a blank line")
+    cues: list[dict] = []
+    for block in blocks[1:]:
+        first_line = block[0]
+        first = first_line.strip()
+        is_note = first_line == "NOTE" or first_line.startswith(("NOTE ", "NOTE\t"))
+        if is_note and "-->" in first_line:
+            raise ValueError("VTT non-cue block contains an ambiguous timing line")
+        is_noncue_heading = is_note or re.fullmatch(r"(?:STYLE|REGION)[ \t]*", first_line) is not None
+        if is_noncue_heading and (len(block) == 1 or "-->" not in block[1]):
+            if any("-->" in line for line in block[1:]):
+                raise ValueError("VTT non-cue block contains an ambiguous timing line")
             continue
-        if "-->" in stripped:
-            flush()
-            match = re.search(
-                r"(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3})", stripped
-            )
-            if not match:
-                # optional leading cue index line before timing handled by caller loop
-                continue
-            start = _to_ms(_TIMECODE.search(match.group(1)) or _TIMECODE.match("0:00:00,000"))
-            end = _to_ms(_TIMECODE.search(match.group(2)) or _TIMECODE.match("0:00:00,000"))
-            current_time = (start, max(0, end - start))
-            continue
-        if current_time is not None:
-            # strip VTT inline settings tags like <00:00:01.000> or <c.color>
-            cleaned = re.sub(r"<[^>]+>", "", line)
-            current_text.append(cleaned.rstrip())
-    flush()
+        # NOTE/STYLE/REGION can also be cue identifiers when the next line is
+        # a timing line. Otherwise their blocks are omitted in the loss receipt.
+        timing_index = 0 if "-->" in first else 1
+        if timing_index >= len(block):
+            raise ValueError("VTT cue without valid timing")
+        timing = block[timing_index].strip()
+        match = _VTT_TIMING.fullmatch(timing)
+        if not match or (match.group(3) and "-->" in match.group(3)):
+            raise ValueError("VTT cue without valid timing")
+        start, end = _vtt_to_ms(match.group(1)), _vtt_to_ms(match.group(2))
+        if end < start:
+            raise ValueError("VTT cue ends before it starts")
+        payload = block[timing_index + 1:]
+        if any("-->" in line for line in payload):
+            raise ValueError("VTT cues must be separated by a blank line")
+        # Inline tags are intentionally omitted; an empty payload still has a
+        # meaningful timing anchor and must not disappear from the projection.
+        cleaned = [re.sub(r"<[^>]+>", "", line) for line in payload]
+        cues.append({"index": len(cues) + 1, "offset_ms": start, "duration_ms": end - start,
+                     "text": "\n".join(cleaned)})
     return cues
 
 
@@ -142,6 +186,14 @@ def extract(path: str) -> dict:
                 "duration_ms": cue["duration_ms"],
             }
         )
+    if suffix == ".srt":
+        loss_note = ("cue timings preserved as anchors; SRT timing suffixes and whitespace-only "
+                     "payload lines are not preserved")
+    else:
+        loss_note = "cue timings preserved as anchors; VTT inline tags stripped; NOTE blocks dropped"
+        loss_note += ("; VTT header metadata, cue identifiers, STYLE/REGION blocks and cue timing settings "
+                      "such as line, position and align are not preserved; "
+                      "VTT character references remain encoded")
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -151,7 +203,7 @@ def extract(path: str) -> dict:
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "params": {"cues": len(cues)},
-            "loss_note": "cue timings preserved as anchors; VTT inline tags stripped; NOTE blocks dropped",
+            "loss_note": loss_note,
         },
     }
 

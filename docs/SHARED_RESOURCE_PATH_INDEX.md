@@ -34,6 +34,7 @@ AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](history/rep
 | `green_application` | `D:\All projects\ArcheAxis.Knowledge.Green-x64` | 本地日常绿色版部署位置；不同于 CI 隔离安装目录 | Owner 2026-10-19已允许覆盖程序文件；按活动指针 green_update_authorization 核候选资格、先备份回退再更新；保留用户数据、数据库、备份与未知目录，不公开发布 |
 | `green_material_library` | `D:\All projects\资料库` | 用户说明的绿色版本已设置资料库，属于真实产品资料 | 不是测试临时目录、不是缓存、不是 ceshi；本轮仅登记/核实路径元数据，不读取内容、不写入、不清理、不迁移 |
 | `project_test_corpus` | `D:\All projects\ceshi` | ArcheAxis 专属测试学习资料库/学习资料副本 | 测试按已授权的精确样例范围只读消费；保留原件，输出进项目 `.project-local`；不上传资料正文或复制进 Git |
+| `unified_project_archive` | `D:\All projects\Project Archiving` | 统一归档原位置，仅作历史溯源；[本轮对账](../workspace/intake/20261101-project-archiving-reconciliation/README.md) | 外部只读；Owner后继要求的AAOS独立原件已由仓库内LOCAL-SOURCES定位，不以外部目录存在为前提。完整导出仅local-only压缩保全，不入业务库/聊天管理系统或Git上传 |
 
 项目源码根：`D:\All projects\ArcheAxis-Knowledge-OS`。
 开发产物：由 `scripts/runtime/dev.py` 管理 `<repo>/.project-local/` 中的 worktree/run 路径。

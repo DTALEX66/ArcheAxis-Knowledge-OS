@@ -13,6 +13,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / "scripts" / "ci" / "check_document_authority.py"
 
@@ -72,6 +74,20 @@ def build_repo(root: Path, *, ledger=PROGRESS, pack=PACK, authority_extra="") ->
     for name in ("README.md", "AUTHORITY.md", "AGENTS.md"):
         with (root / name).open("a", encoding="utf-8") as stream:
             stream.write("\nAAOS-AUTHORITY-ROUTES.json\n")
+    navigation = ["PROJECT_CURRENT.md", "AUTHORITY.md", "docs/truth/PRODUCT_IDENTITY_V2.md",
+                  "docs/truth/CLOSED_LOOP_DEFINITION.md", "docs/current/AAOS-ACTIVE-EXECUTION.json"]
+    for name in navigation[2:4]:
+        (root / name).write_text("canonical specification\n", encoding="utf-8")
+    (root / "PROJECT_CURRENT.md").write_text(
+        "# ArcheAxis-Knowledge-OS\n入口角色：navigation-only\n"
+        + "\n".join(f"[navigation]({name})" for name in navigation[1:] + [PROGRESS]), encoding="utf-8")
+    for name in ("README.md", "AGENTS.md"):
+        with (root / name).open("a", encoding="utf-8") as stream:
+            stream.write("\n[current entry](PROJECT_CURRENT.md)\n")
+    pointer_path = root / "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    pointer["continuation_context"] = {"read_order": navigation}
+    pointer_path.write_text(json.dumps(pointer), encoding="utf-8")
     inputs = {
         "inputs_read_this_round": [
             {"path_or_locator": "docs/current/input.md", "byte_sha256": "0" * 64}],
@@ -352,8 +368,11 @@ def compatibility_fixture(monkeypatch, tmp_path):
     name = "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json"
     matrix = json.loads((REPO / name).read_text(encoding="utf-8"))
     seed = matrix["source_seed"]["path"]
-    (tmp_path / seed).parent.mkdir(parents=True, exist_ok=True)
-    (tmp_path / seed).write_bytes((REPO / seed).read_bytes())
+    # Preserve the real frozen bytes/hash without reproducing its deeply nested
+    # archive locator beneath pytest's already long Windows temporary root.
+    fixture_seed = "seed.json"
+    (tmp_path / fixture_seed).write_bytes((REPO / seed).read_bytes())
+    matrix["source_seed"]["path"] = fixture_seed
     (tmp_path / name).write_text(json.dumps(matrix), encoding="utf-8")
     pointer_path = tmp_path / gate.ACTIVE_EXECUTION
     pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
@@ -388,3 +407,115 @@ def test_compatibility_detects_changed_frozen_seed(monkeypatch, tmp_path):
     path = tmp_path / matrix["source_seed"]["path"]
     path.write_bytes(path.read_bytes() + b"\n")
     assert any("seed hash mismatch" in p for p in gate.check_knowledge_compatibility())
+
+
+@pytest.mark.parametrize("root_entry", ["README.md", "AGENTS.md"])
+def test_root_entry_must_link_the_thin_entry(monkeypatch, tmp_path, root_entry):
+    gate = wire(monkeypatch, tmp_path)
+    path = tmp_path / root_entry
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        "[current entry](PROJECT_CURRENT.md)", "PROJECT_CURRENT.md"), encoding="utf-8")
+    assert any(root_entry in p and "direct Markdown" in p for p in gate.check_current_entry_navigation())
+
+
+@pytest.mark.parametrize("target", ["AUTHORITY.md", "docs/truth/PRODUCT_IDENTITY_V2.md",
+                                    "docs/truth/CLOSED_LOOP_DEFINITION.md",
+                                    "docs/current/AAOS-ACTIVE-EXECUTION.json", PROGRESS])
+def test_thin_entry_must_link_each_live_authority(monkeypatch, tmp_path, target):
+    gate = wire(monkeypatch, tmp_path)
+    path = tmp_path / "PROJECT_CURRENT.md"
+    path.write_text(path.read_text(encoding="utf-8").replace(f"[navigation]({target})", ""), encoding="utf-8")
+    assert any(target in p and "direct navigation" in p for p in gate.check_current_entry_navigation())
+
+
+@pytest.mark.parametrize("target", ["PROJECT_CURRENT.md", "AUTHORITY.md", "docs/truth/PRODUCT_IDENTITY_V2.md",
+                                    "docs/truth/CLOSED_LOOP_DEFINITION.md"])
+def test_read_order_cannot_drop_a_required_entry(monkeypatch, tmp_path, target):
+    gate = wire(monkeypatch, tmp_path)
+    path = tmp_path / gate.ACTIVE_EXECUTION
+    pointer = json.loads(path.read_text(encoding="utf-8"))
+    pointer["continuation_context"]["read_order"].remove(target)
+    path.write_text(json.dumps(pointer), encoding="utf-8")
+    assert any(target in p for p in gate.check_current_entry_navigation())
+
+
+def test_latest_archive_must_resolve_and_be_in_both_navigation_surfaces(monkeypatch, tmp_path):
+    gate = wire(monkeypatch, tmp_path)
+    path = tmp_path / gate.ACTIVE_EXECUTION
+    pointer = json.loads(path.read_text(encoding="utf-8"))
+    archive = "docs/history/owner-selected-source/README.md"
+    pointer["continuation_context"]["latest_owner_discussion_archive"] = archive
+    path.write_text(json.dumps(pointer), encoding="utf-8")
+    assert any("read_order: missing required" in p for p in gate.check_current_entry_navigation())
+    pointer["continuation_context"]["read_order"].append(archive)
+    path.write_text(json.dumps(pointer), encoding="utf-8")
+    assert any("missing file" in p for p in gate.check_current_entry_navigation())
+    (tmp_path / archive).parent.mkdir(parents=True)
+    (tmp_path / archive).write_text("frozen provenance", encoding="utf-8")
+    assert any("missing direct navigation" in p for p in gate.check_current_entry_navigation())
+    with (tmp_path / "PROJECT_CURRENT.md").open("a", encoding="utf-8") as stream:
+        stream.write(f"\n[source]({archive})\n")
+    assert gate.check_current_entry_navigation() == []
+
+
+@pytest.mark.parametrize("surface", ["read_order", "entry"])
+@pytest.mark.parametrize("bad", ["../outside.md", "D:/other-project/README.md", ".codex/sessions/private.md",
+                                 "%2e%63odex/private.md", "https://other-project.example/README.md"])
+def test_navigation_rejects_unsafe_paths_without_reading_targets(monkeypatch, tmp_path, surface, bad):
+    gate = wire(monkeypatch, tmp_path)
+    if surface == "entry":
+        with (tmp_path / "PROJECT_CURRENT.md").open("a", encoding="utf-8") as stream:
+            stream.write(f"\n[unsafe]({bad})\n")
+    else:
+        path = tmp_path / gate.ACTIVE_EXECUTION
+        pointer = json.loads(path.read_text(encoding="utf-8"))
+        pointer["continuation_context"]["read_order"].append(bad)
+        path.write_text(json.dumps(pointer), encoding="utf-8")
+    original = Path.read_text
+    def guarded(path, *args, **kwargs):
+        assert "private.md" not in str(path) and "outside.md" not in str(path)
+        assert "other-project" not in str(path)
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "read_text", guarded)
+    assert gate.check_current_entry_navigation()
+
+
+@pytest.mark.parametrize("mutation", ["role", "identity", "self-authority", "competing-authority", "missing-file"])
+def test_thin_entry_cannot_change_role_or_claim_independent_authority(monkeypatch, tmp_path, mutation):
+    gate = wire(monkeypatch, tmp_path)
+    path = tmp_path / "PROJECT_CURRENT.md"
+    text = path.read_text(encoding="utf-8")
+    if mutation == "role":
+        text = text.replace("navigation-only", "authoritative")
+    elif mutation == "identity":
+        text = text.replace("ArcheAxis-Knowledge-OS", "Other-Project")
+    elif mutation == "self-authority":
+        text += "\n本文件是唯一权威。\n"
+    elif mutation == "competing-authority":
+        text += f"\n唯一规范：[replacement]({PROGRESS})。\n"
+    else:
+        (tmp_path / "docs/truth/PRODUCT_IDENTITY_V2.md").unlink()
+    path.write_text(text, encoding="utf-8")
+    assert gate.check_current_entry_navigation()
+
+
+def test_thin_entry_participates_in_competing_queue_detection(monkeypatch, tmp_path):
+    gate = wire(monkeypatch, tmp_path)
+    monkeypatch.setattr(gate, "LIVE_ENTRY_DOCS", (*gate.LIVE_ENTRY_DOCS, "PROJECT_CURRENT.md"))
+    with (tmp_path / "PROJECT_CURRENT.md").open("a", encoding="utf-8") as stream:
+        stream.write("\ncurrent pack docs/taskpacks/taskpack-0001-wrong\n")
+    assert any("taskpack-0001-wrong" in p for p in gate.check_single_current())
+
+
+def test_navigation_gate_failure_reaches_the_command_exit(monkeypatch, tmp_path, capsys):
+    gate = wire(monkeypatch, tmp_path)
+    inputs = tmp_path / "docs/current/AAOS-INPUT-SOURCES-20261006.json"
+    document = json.loads(inputs.read_text(encoding="utf-8"))
+    document["inputs_read_this_round"][0]["byte_sha256"] = digest_of(tmp_path / "docs/current/input.md")
+    inputs.write_text(json.dumps(document), encoding="utf-8")
+    assert gate.main() == 0
+    capsys.readouterr()
+    with (tmp_path / "PROJECT_CURRENT.md").open("a", encoding="utf-8") as stream:
+        stream.write("\n当前执行队列：[other](docs/taskpacks/another-queue)。\n")
+    assert gate.main() == 1
+    assert "competing current queue" in capsys.readouterr().out

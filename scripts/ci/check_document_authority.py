@@ -31,6 +31,7 @@ import re
 import stat
 import sys
 from pathlib import Path, PurePosixPath
+from urllib.parse import unquote
 
 REPO = Path(__file__).resolve().parents[2]
 AUTHORITY = REPO / "AUTHORITY.md"
@@ -42,6 +43,7 @@ MATRIX = REPO / "docs" / "current" / "AAOS-COVERAGE-MATRIX-20261006.md"
 # history is how a guard becomes noise. The defect this catches is two live pointers disagreeing.
 LIVE_ENTRY_DOCS = (
     "README.md",
+    "PROJECT_CURRENT.md",
     "AUTHORITY.md",
     "AGENTS.md",
     "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
@@ -205,6 +207,89 @@ def check_single_current() -> list[str]:
 
 LINK = re.compile(r"\]\(([^)]+)\)")
 CODE_PATH = re.compile(r"`((?:docs|scripts|tests|config|services|crates|frontend|apps)/[^`]+)`")
+
+
+def check_current_entry_navigation() -> list[str]:
+    """Check the small live navigation surface, never crawl its historical targets.
+
+    This proves links and selected routing plus a few explicit role assertions. It
+    cannot prove that arbitrary prose preserves every aspect of product meaning.
+    """
+    pointer, problems = load_active_execution()
+    if pointer is None:
+        return problems
+    entry = "PROJECT_CURRENT.md"
+    canonical = {"AUTHORITY.md", "docs/truth/PRODUCT_IDENTITY_V2.md",
+                 "docs/truth/CLOSED_LOOP_DEFINITION.md"}
+    try:
+        context = pointer.get("continuation_context", {})
+        order = context.get("read_order")
+        archive = context.get("latest_owner_discussion_archive")
+        required = canonical | {entry, ACTIVE_EXECUTION}
+        if archive is not None:
+            if not isinstance(archive, str) or unquote(archive) != archive:
+                raise ValueError("latest owner archive must use an unencoded repository path")
+            _project_path(archive)  # Reject unsafe locators before any target probe.
+            required.add(archive)
+        if (not isinstance(order, list) or not order
+                or not all(isinstance(item, str) for item in order)):
+            raise ValueError("continuation_context.read_order must be a nonempty path array")
+        if order[0] != entry or len(order) != len(set(order)):
+            problems.append("read_order must start with PROJECT_CURRENT.md and contain no duplicates")
+        for item in order:
+            if unquote(item) != item:
+                raise ValueError("read_order must use unencoded repository paths")
+            if not _project_path(item).is_file():
+                problems.append(f"read_order: missing file {item}")
+        for missing in sorted(required - set(order)):
+            problems.append(f"read_order: missing required entry {missing}")
+
+        for root_entry in ("README.md", "AGENTS.md"):
+            root_path = _project_path(root_entry)
+            content = root_path.read_text(encoding="utf-8")
+            targets = {unquote(target.strip().removeprefix("<").removesuffix(">")
+                               .split("#", 1)[0]) for target in LINK.findall(content)}
+            if entry not in targets and "./" + entry not in targets:
+                problems.append(f"{root_entry}: missing direct Markdown link to {entry}")
+
+        content = _project_path(entry).read_text(encoding="utf-8")
+        if not re.search(r"入口角色[：:]\s*navigation-only\b", content):
+            problems.append(f"{entry}: missing explicit navigation-only role")
+        if "ArcheAxis-Knowledge-OS" not in content:
+            problems.append(f"{entry}: missing repository identity ArcheAxis-Knowledge-OS")
+        targets: set[str] = set()
+        for raw in LINK.findall(content):
+            target = unquote(raw.strip().removeprefix("<").removesuffix(">"))
+            if target.startswith("#"):
+                continue
+            target = target.split("#", 1)[0]
+            try:
+                path = _project_path(target)
+                if not path.is_file():
+                    problems.append(f"{entry}: missing navigation file {target}")
+                targets.add(PurePosixPath(target).as_posix())
+            except ValueError as error:
+                problems.append(f"{entry}: unsafe navigation reference {target}: {error}")
+        for missing in sorted((required - {entry} | {pointer["active_progress"]}) - targets):
+            problems.append(f"{entry}: missing direct navigation to {missing}")
+        for number, line in enumerate(content.splitlines(), 1):
+            for clause in re.split(r"[;；。]", line):
+                if re.search(r"不|并非|不得|not\b", clause, re.IGNORECASE):
+                    continue
+                if re.search(r"(?:本文件|本入口|PROJECT_CURRENT\.md|this (?:file|entry)).{0,20}"
+                             r"(?:唯一权威|唯一规范|sole authority)", clause, re.IGNORECASE):
+                    problems.append(f"{entry}:{number}: navigation entry claims independent authority")
+                if re.search(r"唯一权威|唯一规范|当前规范|sole authority|current specification", clause, re.IGNORECASE):
+                    claimed = {unquote(t).split("#", 1)[0] for t in LINK.findall(clause)}
+                    if claimed - canonical:
+                        problems.append(f"{entry}:{number}: competing authority reference {sorted(claimed - canonical)}")
+                if re.search(r"当前任务包|当前(?:唯一)?(?:执行)?队列|唯一(?:执行)?队列|current (?:pack|queue)", clause, re.IGNORECASE):
+                    queues = set(re.findall(r"docs/taskpacks/[A-Za-z0-9._/-]+", clause))
+                    if queues - {pointer["active_taskpack"], pointer["active_taskpack"] + "/"}:
+                        problems.append(f"{entry}:{number}: competing current queue reference {sorted(queues)}")
+    except (ValueError, TypeError, OSError, AttributeError) as error:
+        problems.append(f"current entry navigation: {error}")
+    return problems
 
 
 def check_authority_references() -> list[str]:
@@ -552,6 +637,7 @@ def main() -> int:
     problems += check_owner_dialogue_archive()
     problems += check_knowledge_compatibility()
     problems += check_single_current()
+    problems += check_current_entry_navigation()
     problems += check_rule_entries()
     problems += check_authority_references()
     problems += check_input_hashes()

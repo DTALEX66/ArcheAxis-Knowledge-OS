@@ -23,6 +23,8 @@ scope:
     - bounded full-web research with cloud cross-check (advanced into this round per SUP-008)
     - source-independence clustering, claim-level comparison and source localization
     - human gold sets, CoverageReceipt and MachineCompetenceReceipt
+    - domain-independent AI knowledge conversion from authorized work content, outcomes, problems, errors, solutions, workflows, methods, rules and updates; programming is one example rather than a domain restriction
+    - existing Document and AiAsset candidate governance, applicability and versioned revision, authorized real use, feedback, correction and independent retest; raw Agent sessions and runtime context remain in their source systems (SUP-031)
     # Current user direction extends the immutable AAOS-01 baseline; this is a requirement, not a PASS receipt.
     - audio decoding and local transcription with preserved raw results, valid time anchors, losses and retryable failures
     - video decoding, audio transcription and bounded LM Studio frame recognition with explicit sampling coverage
@@ -30,7 +32,7 @@ scope:
     - reuse the declared shared model library and real learning material; missing sample formats may use traceable public sources or documented conversions
   excluded_until_v01_go:
     - system-level platform
-    - WORK-LAB or DESIGN-LAB runtime contracts
+    - AI-WORK-LAB (AIWORKLAB) runtime contracts; WORK-LAB and DESIGN-LAB are historical and migration sources of that independent merged project (SUP-032)
     - public plugin distribution and paid marketplace; built-in capability catalog and controlled integrations follow the closed_loop_definition
     - online collaboration and cross-device sync
     - graph database and full event sourcing

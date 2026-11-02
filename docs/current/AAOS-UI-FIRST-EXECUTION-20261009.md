@@ -3178,3 +3178,385 @@ c324b4ee的[CI41265388203](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/ac
 87项组合测试、14项subtests通过；独立真实复验确认三组原件/副本、源冻结元数据、映射及精确四个成员，无INCOMPLETE/FAILURE。dev本来覆盖公开untracked文件的完整字节，早先相反表述已由冻结收据显式纠正，原收据保留。此次增加保全副本，不计空间释放；只完成Host输入角色准备，完整旧包仍HOLD，六包归一和后继资格仍未闭合。
 
 精确源码、实际退出码及复验入口见[CONTINUATION-5](../history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-5.json)。历史记录186份及默认检索排除保持原身份；PR205的35f696云端资格、合并与本后继公开交付分别核验，不能互借PASS。其他生产者、Green mig及F05/CL/J/R6继续PARTIAL。
+
+### 2026-11-01 暂停期间AI侧知识转化目标纠偏
+
+Owner明确“上下文应该转化成知识到本项目里，不是管理各类上下文”，并补充不限编程，所有AI工作中的内容、问题、工作流及一切可转知识均可归纳到AI侧。按[本轮来源](../../workspace/intake/20261101-ai-knowledge-conversion/README.md)、决定第二十六节和SUP-031更新产品身份V2.3、唯一闭环V3原J4、既有AI边界、合同scope、活动指针及当前入口/索引。旧SUP-030及原ZIP保持来源身份，冲突的助手/上下文管理或编程专用解释由本轮覆盖。
+
+AI侧沿原Document/AiAsset完成任意领域内容提炼、候选、审查/适用性、准入、授权使用、反馈纠正、版本更新/失效及独立复测；不以会话收集量或候选接收接口当全链通过。规范/工作流知识不自动改全局配置或执行，原始上下文仍由来源系统保管。供应链登记仅定位元数据随之修订，其派生指纹由原生成器重绑，组件和能力采用状态不变。
+
+本次是暂停期间的目标与引用修订，必要文档/合同校验沿本仓canonical `aik-*`运行记录；未恢复全部执行目标、UI/监控或进行产品实现、外部采集、模型调用、构建、推送、合并和部署。整体PARTIAL、既有F05/CL/J业务缺口及原始失败不改；文档检查不当功能已实现。
+
+### 2026-11-01 最近对话与任务包固定权威入口
+
+Owner要求将近两日对话和包内权威/定义放在最明显位置，避免丢失定位与闭环。根[AUTHORITY第0节](../../AUTHORITY.md#0-当前定位定义与最近决定)现集中路由产品身份V2.3、唯一闭环V3、人类/AI职责、专业边界、原话与各包。README首屏、AGENTS接手规则、资料/文档/配置/历史索引和当前交接统一指回；六个原审计入口补后继目标选择，原结论/原包不改。
+
+[近两日来源总对照](../history/owner-dialogue-20261101-current-goals/README.md)保存当前可见Owner关键原话、任务去向和R2→R5→R6、v3→v3.1→日志补件关系；未补造消息时间或DOT私人会话。活动指针`continuation_context.latest_owner_discussion_archive`从旧10/23交接改选该入口，读序补产品身份与近期来源，旧入口继续作为历史导航。原包/成员沿原manifest核验，本轮不重复复制载荷、不建第二目标/队列/进度。
+
+本次仍为暂停期间文档整理；本地入口/引用/原件身份检查沿canonical `entry-*`回执，历史失败、F05/CL/J/R6与未完交付不改。未执行产品开发、模型、构建、merge/push、发布、Green替换或外溢删除；任务恢复及现行状态仍沿活动指针和Owner控制判断。
+
+### 2026-11-01 统一归档补齐与最新基准确认
+
+Owner选择统一归档中的对账治理提示词后，又以刚完成整理的截图明确“最新的按照刚才这个为最新的 其他的都为历史和补充材料”。据此，AUTHORITY、近两日13组对照、产品身份V2.3及唯一闭环V3保持最新基准；活动指针的`latest_owner_discussion_archive`仍指13组入口。新PROJECT_CURRENT仅薄导航，归档对账只作历史和补充，不替换目标。来源与采用边界沿[本轮intake](../../workspace/intake/20261101-project-archiving-reconciliation/README.md)、决定第二十七节和SUP-032。
+
+只读重核865个AAOS标签对象；完整解码103份对话及分支，语义审读全部1,300条去重用户文本，分类为393条AAOS要求/约束、246历史授权、184提问/报告、414跨项目不适用、63附件或上下文不足。20个专题仅本地报告定位，233条原能力/职责/场景ID复用既有合同和任务。10/23任务书原字节14,897B补存；10/09恢复包125成员已有同字节引用，不再复制64MB。历史正文、失败和不同版本保留，零删除，不把来源扫描/静态映射算产品通过。
+
+本轮补既有文档门禁的薄入口、身份、读序、路径及竞争权威/队列检查与负向测试；CAP/REQ原字段和16项载荷不改，仅解释旧阶段/证据门禁适用范围并同步生成指纹。最终同树资格、原退出码、完整patch SHA及来源/链接核验只沿canonical `archive-final-*`回执读回；早期生成导致的INVALIDATED保留，不算验收。任务前已存在32处修改；较晚baseline捕获还含2处已启动的门禁修改，原收据注明该差别，不把34处全当任务前状态。
+
+未全审助手推理/代码或1216历史文本成员，未视觉/听觉验收附件，未运行产品、引擎、模型、构建、安装或Owner接受。整体目标、UI与监控未恢复；F05、完整CL/J/X/R6、增长/外溢、候选归一和交付仍沿原ID未闭合。本轮不提交/推送/合并/发布，不改外部归档、其他项目、全局配置、Green或真实库。
+
+### 2026-11-01 来源资料仓库内独立留存后继
+
+Owner追加要求“确保都在仓库了吧 要独立的”。最新规范与近期原包已在仓库；前轮865历史对象对账仍有仅外部原件引用，本轮按原稳定SHA补本地忽略区压缩保全，已有字节引用复用，来源和不同版本不删。13个管理/来源记录同样给本地位置；[LOCAL-SOURCES](../../workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json)只以本仓相对文件/ZIP成员供独立校验，前轮外部位置留溯源，不再成为必需输入。
+
+全量导出对话是local-only历史原件，不自动进入业务库、公开索引正文或Git上传。搬迁完整本地项目须带`.project-local/archives/`；仅Git clone不含忽略原件。现行基准仍为AUTHORITY/13组/V2.3/V3，产品未完项和执行控制不变。实际复制、压缩大小、去重、原件SHA、本地-only运行及反例测试回执沿canonical `local-closure-*`，不沿用前轮“零复制”阶段快照或借产品PASS。
+
+### 2026-11-01 两平台新源码及全部未完任务交接
+
+Owner新选定DeepTutor1.7.1和OpenMAIC1.3.0能力并入，并要求新会话完整提示词、包含全部未完任务。两份原ZIP共134,466,253B已在本仓ignored原件区，容器SHA及全部CRC验证；只做选定源码/现有接缝静态审读，没有安装、整包解压、模型调用或实际接入资格。主许可证分别Apache-2.0/MIT，后继仍核实际采用依赖闭包及保留声明。精确hash、成员数、具体路径见[来源与交接](../../workspace/intake/20261101-learning-platform-integration/README.md)。
+
+[完整执行提示词](../../workspace/intake/20261101-learning-platform-integration/新会话完整执行提示词.txt)和[拆分表](../../workspace/intake/20261101-learning-platform-integration/FOLLOWUP-WORKBREAKDOWN.md)给出DeepTutor正式Core事件桥、OpenMAIC课程v2/generation/DSL/renderer、并行写集及15组原未完项。保留旧1.5.17与课程v1来源/资格边界，不复活Python业务writer、不替换整站/第二库；实际实施由后继执行，文档不算并入完成。
+
+治理/六候选/Host整包/Green mig/交付、F01/02/04/05、R6旅程、V3补件边界、完整CL/J/X、安装态AI/跨版本及UI真实PARTIAL均保留原ID。已纠正旧七失败为后继已通过，而当前源码资格仍待验；历史stdout不补造、模板缺件/时区误读不重派。当前来源绑定/提示词引用检查沿canonical `donor-handoff-*`；未借旧131治理测试宣称供体运行PASS。产品基准不变，执行选择按决定第二十八节/SUP-033。
+
+### 2026-11-01 两平台接手、治理反例与额度停止
+
+Owner要求新会话直接推进两平台和全部未完任务。本次现场HEAD为`08d96fc64c6856ad03e51dfff298183eafadfbfa`，分支`codex/candidate-input-normalization-20261101`；其父提交为`35f6960010b7e94d123019bbcbc6b4cfd071dd3e`。接手前59处公开工作树文件原字节、状态、索引diff与完整patch已保存在本仓ignored `.project-local/runs/be268a2d33/int00-baseline-20261101/artifacts/`；59文件共5,667,428B，ZIP逐项SHA回读通过，child/wrapper均0且`source_consistent=true`。基线worktree identity为`efebc867571e4d6f5c0f1177f02945ecb1c5ce5b8e5ab53654a2df32808ec30d`；原始Git diff SHA为`037ea17c3754386924cb6606f9376dd4287cc3d175ae33c8f74e435b41a8b31d`，不混同两种算法。该本地快照含原工作内容，不上传。
+
+并行只读发现：DeepTutor 1.7.1实际practice前缀为`/api/question-notebook/practice`；自报的`correct`可为null，上游自报mastered不能作为独立掌握。现有Rust `learning/reviews`要求bool正确性并对answer要求Core真实assessment，不能直接冒充供体题目；现有Document授权范围也不能自动扩为向DeepTutor提供材料。后继须按已授权Document版本与hash、消费者/用途、activity/attempt/client_event_id建立正式Core契约，并在结果提交时处理幂等、撤权、取消、迟到及恢复。上述是待审方案，未安装供体、运行模型或实现Core桥。
+
+OpenMAIC 1.3.0实际导出manifest的`formatVersion`仍为1；AAOS新增的课程v2应是本项目适配/持久化合同，不能改写为上游导出版本。上游slide和quiz分别有真实内容结构；现有AAOS课件仅quiz、作答仅React临时状态，现有Core review不能安全承载未核验外部答案。v1 reader/旧产物必须保留，slide播放、Core事件、重启及导出恢复均未实施。两条lane均未改源码、未运行供体/模型/产品测试；DeepTutor ZIP SHA实测与intake一致。OpenMAIC只读查询曾因Windows输出编码退出1，后用UTF-8定向查询退出0，不作为行为资格。
+
+治理lane先建立了一个模拟反例：`tests/test_local_pinned_packaging.py::test_missing_generated_output_estimate_rejected_before_copy`新增17行，缺少生成量声明、微小复制输入时实际到达`copy_member`，由测试触发`unguarded copy attempted`；`.project-local/runs/be268a2d33/gov-pin-estimate-red1/artifacts/execution.json`原结果1 failed、child1、wrapper1、`source_consistent=true`，绑定patch `da04ee81c67e82f1e580e7236ee8a368462cbc0d12c6cae82567a06a3faa8b33`。这是mock反例，不证明真实NSIS运行或实际超预算。生产脚本未修改，新增测试当前有意保持失败并保留原证据；恢复后沿现有`storage_generated_bytes`及增长/claim/seal门禁修复，核实全部调用方后复测。S01.A/B/C、G01继续PARTIAL。
+
+官方额度只读查询时`rateLimitsByLimitId.codex.primary.usedPercent=90`，即剩余10%；secondary为null/UNKNOWN。2026-11-01 23:03:20（Asia/Shanghai，查询后的时钟读数）触及Owner既定≤10%规则，已通知各lane停止启动新开发、构建和测试并封存现场；查询之前治理反例已启动并结束。监控未恢复，自动额度重置不等于继续授权。项目`.venv`在默认沙箱报uv trampoline权限拒绝；正常授权通道验证`dev.py --help`及基线可执行，未更换解释器或改全局配置。两个项目工作流skill文件被系统拒绝读取，未绕过；不将其声称为已应用。
+
+只读远端结果：PR [#205](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/205)仍OPEN、未合并，head `35f6960010b7e94d123019bbcbc6b4cfd071dd3e`；其[CI 41267526637](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41267526637)完成success，a0-gates及installer-lifecycle分别success，5个条件job skipped。这只绑定该旧SHA，不能移绑当前dirty树、两供体或Owner接受。该PR改动包含所发现治理缺口的脚本与测试，且`35f696..08d96`相关两文件无差异；反例是在08d dirty树经模拟运行，须修复并复审对该PR的影响，不能仅凭旧CI合并。远端main为`da9fca0de9c617a0e8c100c32d9fcecf00f45ee7`，远端治理分支为35f，未查到本地candidate分支同名远端；默认沙箱SSH只读因known_hosts权限拒绝，正常授权只读路径成功。未提交/推送/合并或删除分支，未确认双端一致；未上传本地原件、运行资料或私有数据。
+
+后继在Owner明确恢复后先读活动指针、当前git状态和本段，保留基线及红测；按原15组未完ID继续两供体正式接入与治理，修复后跑必要反例及既有文档门禁。停止后未另启动文档门禁，本次状态回写尚未得到门禁验证；不得称本轮实现、安装或完整闭环PASS。
+
+Owner随后看到剩余10%、停止原因与继续选项后明确回复“继续”；本轮按该后继指令恢复两供体及治理任务，保留此前停止与红测原始证据。官方再次读回仍为已用90%/剩余10%，本次继续不永久更改既有阈值或恢复监控；实际实现与测试按本记录后继结果单独登记。
+
+随后Owner依次要求“优先完美复刻复制复用这两款软件”“先做后端所有任务 包括这两款软件  前端我还要思考下”。本轮执行重心改为全部已选后端未完事项及两供体后端真实源码/SDK复用；前端设计、实现和前端测试暂停，已经产生的未提交前端改动及先前测试证据保全待后续Owner决定，不自动删除或宣称视觉接受。Rust Core唯一业务写入者、供体隔离、授权、许可和当前闭环定义不因复用目标改变。恢复后、此决定前的同一dirty patch `2696a5beb894238efd49435de82ba504310cfce929d3d853769fd970087cc491`上，`lp-deep-resume-py1`为123 passed/1 skipped，`openmaic-resume-ui1`为54 passed，child/wrapper均0且source_consistent；分别是定向合成/单元与jsdom/mock，不是完整供体、真实Core或产品验收。后续前端Core接线处于未验证状态；原治理RED仍保留。
+
+Owner后续明确“全部授权 静默执行”；在本轮后端目标及既有数据、认证与发布边界内持续推进，必要依赖可按受控项目本地方式获取，不将该指令扩成未知资料外发或自动覆盖真实库。精确实施、失败和验证继续沿本记录追加。
+
+#### 后端推进中间证据（未完成）
+
+固定包装的未知生成量反例后继已接现有固定checkpoint及pre/投影/post；`backend-growth-donor-py1`共238 passed/1 skipped、child/wrapper 0、source_consistent，包含相关合成门禁与DeepTutor单测，真实大型组包未运行。另`backend-providers-growth-py2` 52 passed及`backend-check-gate-py3` 76 passed，均child/wrapper 0、source_consistent；采用的DeepTutor 1.7.1客观判题原源码及Apache-2.0许可证分别逐字节核SHA，OpenMAIC `generation` 0.3.28的`buildCompleteScene`及MIT许可证保留来源/修改记录，分别在隔离Python/Node进程用合成输入运行。两者仍是单组件，未证明真实供体服务、模型生成或Core任务闭环；固定sceneId不保证含随机canvas ID/时间的输出字节幂等。
+
+新Cargo受限增长门禁复用固定基线和现有类别预算。`backend-core-domain-gated1`针对一次domain test的可审计保守预测1,806,922,993B；pre可读增长957,079,970B，投影2,764,002,963B超过2GiB线，原child/wrapper 2、source_consistent，Cargo未启动。较小且独立的`backend-core-domain-check1`先通过增长pre/投影/post，但实际offline Cargo因本仓registry缺`rusqlite 0.39.0`退出101，child/wrapper均101、source_consistent；这不是代码编译失败或通过，也没有运行测试。当前固定基线不滚动，先只读定位已登记共享缓存及受控官方依赖获取；单次编译check不替代真实测试。两次测量均PARTIAL，受私有排除及读取错误限制，逻辑字节不等于物理空间。
+
+本机既有LM Studio `/v1/models`只读返回HTTP 200及模型列表；仅表示MODEL_INVENTORY_ONLY，未发送模型推理请求，不证明加载、真实采用或F05改善。Rust持久化、导出恢复、DeepTutor任务/授权及OpenMAIC受控执行器仍在实施，未经新候选编译和端到端验收。
+
+V3-F02选择性承接检测器修复：worker从自身安装目录加载代码，模型与配置回执使用实际传给ONNX及解析器的字节SHA；不同路径及并发调用不混淆身份，同路径文件被替换时已缓存会话继续报告其原字节，重新选择路径才重新加载。外部不同模型不继承内置模型的许可证断言。`backend-detector-portable1`实际21 passed、child/wrapper 0、source_consistent，dirty patch `b05c3f3477a817b21ca1ac7a74d69e16d7b59a46c30ca59ce2c8910ac0780eab`；其中运行真实ONNX并用临时模拟的便携目录实际启动NDJSON子进程，核对三产物及模型/配置身份。这不是正式安装包或真实Core端到端资格，也未关闭V3其余事项。
+
+`backend-cargo-fetch1`固定Windows目标的官方锁定依赖获取实际Cargo child 0；期间源码并行变化，外层wrapper 3、`INVALIDATED`，不作为源码一致的构建或测试证据。Cargo.lock前后SHA均为`32215d8af53615046cd823d68a0d8d58a802b5c4d8f486442ea638fbaaeef7d4`。增长门禁后继新增限定目标、测试数量核对和有限fetch超时，`backend-verify-gate-e6a4a0f6dd`实际69 passed、child/wrapper 0、source_consistent。首次`backend-verify-domain-check-e12ffc0d7b`因本轮临时验证入口误放在`.project-local`根被门禁正确拒绝，child/wrapper 2，Cargo未启动；入口已移入允许的cache类，未更改固定基线/预算。后继`backend-verify-domain-check-7d8b1f00aa`以同一1,060,931,848B预测通过pre/投影/post并实际运行offline、locked的`archeaxis-domain --test provider_learning`编译检查，child/wrapper 0、source_consistent，dirty patch `a5332038574d626e3665a02a8990e63c7df35be3289082942ecd90d5930c398c`。该结果未执行Rust测试或证明实际provider；post相对固定基线的可读增长1,156,236,595B，统计仍PARTIAL，不能当物理空间或全覆盖。
+
+后继`backend-verify-python-21a14a330e`在冻结patch `684e47694fb4a6a2e74775ae96761e3515afa0af32c614d5c8dbecab9d7df9bf`下154 passed、child/wrapper 0、source_consistent，包含检测器、固定增长门禁、DeepTutor原版判题及OpenMAIC原版outline/scene构建的隔离进程测试。OpenMAIC outline保留18个原始源码/模板/许可证字节，Git clean过滤与原始blob对照18/18一致；执行使用合成回复、jsonrepair禁用，不是模型生成或Core持久任务。DeepTutor判题成功回执新增精确stdin原始字节SHA，摘要不保证答案保密。
+
+同一`684e...`下`backend-verify-question-check-9b66b815be`为限定domain集成目标compile-only 0；`backend-verify-app-check-04695b746a`实际编译发现E0308类型不匹配，Cargo child/wrapper 101、source_consistent，失败保留。最小修复后`backend-verify-app-check-d942542d67`及`backend-verify-api-check-329f15d001`分别在patch `07122d14fc2c85c4e7447e4df3d5b1cfed7bfd413bafa2388679b56aebd84189`下Cargo child/wrapper 0、source_consistent，均是限定目标compile-only，未执行Rust测试。API check后相对固定基线可读增长1,348,464,911B、测量PARTIAL。DeepTutor评分事务仍是未接真实子进程的内部准备，OpenMAIC Node尚未证明打包安装或真正课程生成；两平台端到端及F05仍未完成。
+
+`backend-verify-python-f7bb61d5dd`在后继patch `152217b66384079d5506198e931ab441b01f664fe0b0e82bd95e00c7724c7d80`下再次154 passed、child/wrapper 0、source_consistent；OpenMAIC replay的进程内Node版本和TypeScript导入能力被实际校验，输入仍为合成数据。`backend-verify-research-8808ae92fb`使用固定公开合成查询词直接运行既有公开检索worker，Wikipedia、StackExchange、OpenAlex各返回complete且各1条结果，worker child 0，原始结果及自身/worker依赖前后hash在该run保留；并行修改造成dev外层wrapper 3/INVALIDATED，故不能当同一完整源码树资格，亦未运行Core保存、重启、比较或安装态链路。
+
+`backend-verify-configuration-check-25ad5c2792`在patch `d71be1d6b3c3b3c97d3b69e2b602def57bf9c0d3f62ef7b2e4bb5609b6af356c`下通过offline、locked的OpenMAIC配置计划集成目标编译，child/wrapper 0、source_consistent；只检查未执行测试。此后源码继续变化。DeepTutor owned-process草稿仍限测试编译，生产启动过滤该未完成路由，尚未接材料授权、能力启停世代或事务化结果准入。已识别的历史实际测试增长预测仍超现有固定2 GiB复核线，真实Rust测试不得以compile-only替代。OpenMAIC依赖的npm目标版本许可及归档还在受控核验，系统HTTPS元数据尝试发生TLS认证失败；未降低证书检查，也未安装或运行包安装脚本。
+
+后继以Owner原ZIP及锁文件固定的SRI，只通过直连官方HTTPS获取`jsonrepair 3.13.3`和`nanoid 5.1.14`，未运行npm安装脚本。`backend-verify-npm-fetch-f3e76bef33` child/wrapper 0、source_consistent；独立`backend-verify-npm-audit-bf6dd02ad3`逐文件核验解包字节分别70/70和11/11，ISC/MIT许可证保留。下载门禁的原`backend-verify-npm-gate-a2d88a9cd0`为79 passed/3 failed（深路径），修复后的`backend-verify-npm-gate-696d60dfb6`为84 passed、child/wrapper 0、source_consistent；中间并行变化的INVALIDATED结果另存。后续采用的源码仍需与该归档逐成员核对、验证许可证闭包和实际消费；这不是模型推理或完整OpenMAIC生成。
+
+检测器打包已按实际声明的route计入四个固定来源文件并核复制与manifest，测试先后暴露Windows深路径问题：`backend-verify-python-95f3b0560e`为215 passed/5 failed，`backend-verify-python-baff21fd98`为263 passed/5 failed，均child/wrapper 1且source_consistent，原失败保留。修正RECORD读取及ASR身份文件等深路径后，限定`backend-verify-stager-eeca1f95e5`为64 passed、child/wrapper 0、source_consistent，patch `48880063e98eb9a7fe3a7ffa0d167a7ed6cc268f505c985303ba52d159ea7152`；这涵盖合成stager反例和使用本地项目解释器的隔离worker样例，不是合格安装包或真实uv深路径资格。后继源码继续变化，完整组合需在冻结树重验。
+
+`backend-verify-storage-701be394da`只读复测相对固定checkpoint的可读增长1,495,341,146B，674读取错误、283私有排除，仍为PARTIAL；不能据此推算全部物理空间或滚动基线。现有同锁历史Rust测试保守参考预测约901,197,608B，与当时剩余可读投影空间652,142,502B相加仍超过2 GiB线；未启动真实Rust测试。已识别若干有保留原件的合成临时模型副本但尚未执行删除；失败现场和变异样本继续保留，删除与实际释放均为零。
+
+冻结dirty patch `f268c53741eeda596f925ddb40eff211be0337ba50ef5209b703973d683bded0`后，`backend-verify-python-eddfb1f581`为272 passed、child/wrapper 0、source_consistent，范围为选定Python/Node供体、检测器、包装及增长门禁测试。OpenMAIC outline现导入两份原版依赖，选用的10个原件独立核对审计缓存、各自SOURCE及Git clean字节均一致；不严格JSON即使原版可修复也隔离，不把合成回复当真实模型生成。随后同一patch的`backend-verify-research-05235c4810` child/wrapper 0、source_consistent，实际直接调用固定公开查询worker，Wikipedia、StackExchange、OpenAlex各返回complete且各一条；这是直接worker的公开合成查询，不是Core持久化、完整J2或安装态通过。
+
+DeepTutor新增的预留及有界派发状态机目前仍为内部合成测试草稿，无生产评分路由或实际子进程接线；Rust反例未编译运行。独立静态复核提出grant到期与分块写入时间窗、实际COMMIT失败和BEGIN锁等待等缺口，必须修正或明确未验，不能将合成sink当作Windows管道即时撤权证明。前端及UI测试继续按Owner要求暂停，整体后端闭环仍为PARTIAL。
+
+OpenMAIC后继复用上游quiz辅助函数的原始连续行及对应提示模板，保留完整原文件、MIT许可和摘录调整说明；outline与quiz各自启动前校验实际采用的固定成员。`backend-verify-node-012ac2e428`在patch `e5ecdce0a2c1ae56cbdc5fa686b7cf478fd5c8414b12fd99a594c5a12291e1c3`下62 passed、child/wrapper 0、source_consistent，包含原包逐成员、离线合成回复、篡改及不支持数据拒绝；不等于完整`generateSceneContent`、动作生成、真实模型或Core课程任务。
+
+DeepTutor内部合成派发及结果接纳后继增加双grant到期、已观察墙钟倒退和部分写入等拒绝逻辑；最新两文件通过rustfmt语法解析，仅为语法检查，未进行Rust类型检查或运行反例。真实COMMIT故障、等待SQLite写锁的总耗时、Windows进程管道按期停写及真正接线仍未建立。小型store测试参考场景约658,910,285B，历史目标测试exe/PDB并非同一目标、当前实测空间已变化，因此该场景不是可信上界或真实测试通过；固定checkpoint和2 GiB门槛不变。
+
+后继冻结patch `0b374729414171528c6f6254c4cc7076039482b9367ff42bff124a96f98f3f28`下，`backend-verify-node-2d280c8ff8`为78 passed，实际将上游outline→quiz函数摘录→scene builder以合成回复顺序联接；actions仅空或调用方提供。`backend-verify-deep-25e59185cd`为38 passed，将原版题目解析候选交给原版隔离判题worker，并核精确输入字节；两者child/wrapper均0、source_consistent，均未接真实Core/模型。其后对DeepTutor测试子进程进一步收紧环境，须后继验证。
+
+为原版OpenMAIC动作解析的依赖，受控获取器新增单一固定选择`partial-json 0.1.7`。`backend-verify-npm-gate-8e3e048837`为97 passed，Owner锁preflight `backend-verify-npm-partial-preflight-c9b7e6fdc4`及真实获取`backend-verify-npm-partial-fetch-0f3e8682f8`均child/wrapper 0、source_consistent；SRI与原锁一致、归档6,304B，MIT LICENSE原SHA `cd519ad3d7e012427f978dfb2e3b92ee403d189d7b859ba6bf68fd7e12ca456f`。独立`backend-verify-npm-partial-audit-3f85412d2d`核解包9/9成员与原归档逐字节一致；没有执行安装脚本。获取后的固定checkpoint可读净增1,532,106,533B、PARTIAL，不代表全盘物理占用。
+
+DeepTutor原版练习导入预览首轮`backend-verify-deep-90767318ae`的pytest为42 passed/14 failed/2 errors、child 1；并行源码变化导致run收据标`INVALIDATED`（记录exit 3，外层命令观察exit 1），不能作为同树资格。原始失败保留：选定常量中存在算术AST而非纯字面量。独立审查另发现公开摘要含答案依赖哈希、字段覆盖损失和宽松CSV可能吞行的反例；后继修复和重新测试前，导入预览不具备可用资格。原始文件和未映射字段仅驻留内存，重启后不保留，不是已实现的无损导入或Core保存。
+
+针对上述输入与脱敏反例修正后，`backend-verify-deep-9b3dd39afe`在patch `f6644e9efae833f4b3c533e4dd2cb4ff316b5a6a289735fe722dda5f3d35e890`下66 passed、child/wrapper 0、source_consistent；CSV/TSV/JSON预览使用原始解析函数的隔离子集，报告已知覆盖和未比较范围，不返回答案依赖ID/摘要或精确源长度。它仍仅是合成输入、无数据库的短时预览，并非保密系统或可重启导入。该同树的`backend-verify-node-306b795182`为95 passed/1 failed、child/wrapper 1、source_consistent；原错误断言jsonrepair拒绝一个实际可修复的输入，后继须用真实上游行为重验。
+
+另已识别当前Core Store合同禁止在数据库写回调中等待worker、网络或进程；DeepTutor的同步合成sink不能直接作为正式接线。须另行证明不阻塞单写者的真实派发、撤权线性化、管道停止及迟到结果边界，再开放评分路由。
+
+后继同一patch `fd13e386737dd2a2f9b5b82e6b167294f0f0c799f8e4793f904543bd59e18161`下，`backend-verify-node-063afd29a9`为96 passed，实际复用原版quiz动作分支及解析器处理合成回复，修复和过滤后的内容仍隔离、动作未执行；`backend-verify-deep-8ac383a7f9`为71 passed。两者child/wrapper均0、source_consistent。后者包含直接提取Rust现有DDL在Python SQLite 3.53.1的临时库反例，核外键、状态/事件约束和DDL失败回滚；还观察到普通SQLite表的`TEXT PRIMARY KEY`可接收NULL、DDL本身不验证JSON或SHA，领域校验须另验。此为Python SQLite合成行为，不是Rust/rusqlite迁移、旧真实库或恢复资格。
+
+`backend-verify-node-31991c689c`在patch `eccff88dab58307794216fe18e9a39738fb3d65893caf9c658aebf8a5a7e8739`下111 passed、child/wrapper 0、source_consistent，包含四阶段合成链及失败阻断；动作仅作为数据传递且未执行，仍无真实模型或Core持久化。另`backend-verify-pipe-138d95763f`在patch `297c616438ce971d6860ec2afd86244b5390b3b52d67f4220a0032790f4ec0cd`下1 passed、child/wrapper 0、source_consistent：Windows独占合成Job内的同步写线程阻塞后，取消返回成功、线程退出、子进程退出、Job零活动。取消前读端可观察到2,097,152B，取消及join后观察为0并保持稳定；接收端未读取，不能据此认定已发送数据可撤回或证明现有Rust管道及授权边界。两次先前UNKNOWN/skip原收据保留。
+
+已将本轮实际采用的DeepTutor、OpenMAIC、DSL和三份npm源码及许可纳入仓库来源声明与SBOM源文件核验，明确`SOURCE_ONLY`、打包`NOT_PROVEN`；不以现有frontend锁文件冒充新版供体依赖。`backend-verify-sbom-83d9fce917`为12 passed，同树`backend-verify-docs-196852c5b7`文档门禁通过，均child/wrapper 0、source_consistent，patch `18f1a56d16fc39357dd4cbfc89edf461b30b495aca95a1dec6743a9728de6a33`。真实发行包是否含对应文件、许可证及完整依赖仍未验证。
+
+`backend-verify-store-check-7793004c9a`在同一patch下经固定checkpoint与类别投影，实际执行offline/locked `archeaxis-store-sqlite --test writer` compile-only并返回0；child/wrapper 0、source_consistent，未执行Rust测试。预估465,203,934B，post可读净增1,575,532,585B且测量仍PARTIAL；未删除清理候选或滚动基线。当前domain后继check的同锁保守情景仍超过可读增长复核线，不能把已通过的store编译移绑DeepTutor领域代码。
+
+为保留OpenMAIC `AICallFn`的system/user角色和原文，已加入未注册的本地双角色relay原型，显式数值loopback、无代理/重定向或云回退，并拒绝缺失/不同模型身份、非assistant角色和非最终响应。`backend-verify-relay-5a0b22a631`在patch `a528192700165ddd83bc8ac546dc0bcd74c1a468aedcc5820d2cb602d27e2fc5`下32 passed、child/wrapper 0、source_consistent；均为本机合成HTTP stub，未调用模型或接Core。原型输出可能复述输入，无盐摘要不保密；入口stdin等待、父进程输出硬上限、动态guard/解释器身份与检查到使用竞态、服务端取消和持久授权均未建立，不能当生产安全沙箱。
+
+后继对固定DeepTutor判题源补有界读取及可见链接、文件身份检查，保留供体原件和错误协议，Rust测试专用seam的worker SHA同步更新；不能据此声称排除全部并发祖先替换或开放生产评分路由。OpenMAIC quiz回放增加原选项与答案的独立唯一匹配检查，隔离上游可能保留的歧义答案及被丢弃的选项`text`，保留实际上游观察；relay允许空的`tool_calls`数组，但仍拒绝非空、异常类型和非空`function_call`。冻结patch `0fa277c0a7177f8038a2545b6161d3ddabdf08de6e984e75099734d79be08546`下，`backend-verify-deep-7af12c3c22`为76 passed、`backend-verify-node-91a04eb118`为119 passed、`backend-verify-relay-5e907c009f`为47 passed，三者child/wrapper均0且source_consistent；分别是Python、Node合成回放和loopback stub定向回归，不替代Rust测试或产品验收。`OPTION_TEXT_NORMALIZED_TO_LABEL`在quiz单阶段可记录，既有四阶段合成helper仍保守拒绝该新转换。
+
+本机固定合成READY探针`backend-verify-model-real-ca9cb507f0`确实收到`READY`、`stop`与服务自报的`qwen3.5-4b`，但旧relay以`MODEL_TOOL_CALL_UNSUPPORTED`拒绝，child 2、wrapper失败、source_consistent；完整HTTP正文未保存，不能倒推当时具体工具字段，原失败保留。上述空数组兼容修复后的独立一次quiz探针`backend-verify-model-quiz-babbc65810`在同一`0fa277c0...` patch下child/wrapper 0、source_consistent：固定虚构事实“Luma is blue”经本机loopback服务自报模型返回一道单选题，上游quiz摘录保留了Blue选项和对应答案A；本次relay观察`tool_calls=EMPTY_ARRAY`、`function_call=ABSENT`。此为一次有限候选观察，不证明旧失败的具体字段、模型实际身份、本地模型学习改善、完整OpenMAIC生成或Core持久任务。对应离线`backend-verify-model-quiz-selfcheck-a49509ebf7`通过五个合成反例且未联网；两次均记录本次Job中直接Node/relay启动Python和清理，网络孙进程仅依赖Job继承，服务端停止状态UNKNOWN。固定合成提示、可得relay回执、模型内容和上游对象回执保存在各自ignored run artifacts，HTTP完整正文未保留；仅启动器SHA已固定，基础解释器/完整运行时身份及生产沙箱未认证。
+
+OpenMAIC outline后继新增未注册的两阶段提示捕获与调用方回复回放：实际调用上游outline函数捕获system/user，回放时重建提示并比较，拒绝额外回调、非空图片、非严格/被修复内容及可见字段损失。独立静态复核发现无效请求原样回显、重复outline ID及无密钥输入摘要无法认证等边界；前两项在新两阶段分支收紧，第三项以空来源与字面`None`可产生相同提示的反例保留。冻结patch `2988152d253ca3cda1fcf5b2ffc57c9b14853ae15c0570431bfb1c5a3ea40382`下`backend-verify-node-9da711ae95`为143 passed、child/wrapper 0、source_consistent；不接模型或Core。有效提示、上游观察和隔离差异仍可能含材料或回复，不是隐私过滤或可公开日志；真正接线须由Core自持可信资料快照和执行身份，不能信调用方自带摘要。独立复核还发现旧单阶段多outline分支的重复ID缺口，后继须单独修复并复验，不能由上述两阶段结果代验。
+
+DeepTutor正式派发还须覆盖文档save/restore、`ingest_relations::apply`经`document::save_tx`改变版本、provider cancel、能力停用及关闭等入口；现有Runtime admission不覆盖全部路径。关联grant撤销与在途writer/Job停止确认必须分开表达，已发送字节不能撤回，普通Document保存不能依赖供体。现有合成sink、Python管道实验和测试专用executor均不构成真实Rust事务及撤权接线。
+
+固定增长checkpoint未滚动。只读复核的38个成功合成测试中同字节模型副本共120,210,264逻辑B、具备原件和逐项身份，但仍不足以覆盖前述domain compile-check预测缺口；另5个变异样本须保留。30个具名成功测试run中其他文件的总量也不足以补足缺口且未逐项证明可清理，未删除任何候选。该估算使用此前PARTIAL测量，不是最新pre或物理释放；没有可靠依据缩小真实Rust测试预测，Rust运行资格继续未建立。
+
+后继已在旧outline和quiz合成回放中隔离重复ID，在quiz两阶段中按值比较答案数组并保留原版观察；quiz也新增与outline同性质的提示捕获/调用方回复回放。无效、无法解析的旧quiz帧不再回传原始bytes或其SHA，这是有意的旧错误回执兼容变化，输入仍由调用方保留，并非Core无损保全。有效提示及隔离数据可能含材料或答案；两个阶段的无密钥比较均不认证调用方或资料身份。冻结patch `dc6b0b1511bf94694b638e5489d89a350a003483f47e09063fc1e83e31b7fadb`下`backend-verify-node-00cd96327b`为173 passed、child/wrapper 0、source_consistent；范围仍为离线合成回放，未注册为Core生产任务。
+
+独立静态审查另识别人类自报活动create/start/submit在事务中仅一次检查grant时间，写入阻塞跨过到期时可能仍提交；当前源码增加写后、提交前重新核验并补三个受控SQLite阻塞跨期反例，历史已提交事件的幂等读取继续保留。`backend-verify-rust-parse-4e1947dfa5`同patch以固定MSVC原生rustfmt逐文件解析源码及测试、child/wrapper 0、source_consistent；这只是语法解析，反例尚未编译或运行。提交前核验与COMMIT自身仍可能跨期，SQLite事务析构回滚也不证明所有I/O故障下成功，不能称物理硬截止或真实provider撤权通过。
+
+`backend-verify-model-scene-1362002f8b`在patch `65493cc13220495025f3d441934e32ebd0cfaa1397e85dd063b282cfd6197f8e`下child/wrapper 0、source_consistent：读取此前保全的固定合成题目及quiz摘录结果，不再请求模型，将其送入原版scene builder适配器，实际得到指定sceneId、原题/选项/答案与空actions均保留的候选场景。outline顺序由调用方补为1，source只是合成标签而非Core文档；原输出和身份回执保留在该run。此次只确认直接子进程和自有管道，后代状态UNKNOWN；文件检查与启动之间的竞态未封闭。该有限组合不等于完整上游生成、Core保存、renderer、学习掌握或安装态验收。
+
+本轮在文件处理transport实际复现两项缺陷：`backend-verify-text-red-2029d7c3d5`以合成SRT原件A及预存后缀副本B实际输出B，child/dev 1且source_consistent；`backend-verify-video-red-1fa097c535`用合成视频worker分别复现三种合法MP4声明在后缀路由处KeyError，child/dev 1且source_consistent。现已从已核输入字节建立或校验后缀副本，保留预存异字节并拒绝，处理后再次核副本和原件；MIME统一归一后再路由。首轮`backend-verify-text-transport-236bd2f7a1`有两处collection error，原因是修复时漏闭括号，child/dev 2、source_consistent，原失败保留；语法修复后`backend-verify-text-transport-46c3ee4a35`在patch `965fbb69c5e797c0e927affe26487e5e6418726a56e5179c081addae7946c14a`下74 passed、1 skipped、60 subtests passed，child/wrapper 0且source_consistent；skip为本机不能创建符号链接。前后核验不能排除期间替换后复原，其他worker在拒绝前可能已产生临时artifact，此结果不等于安装态或真实媒体模型资格。
+
+`backend-verify-grade-owned-e24692bfbc`使用固定合成单选题实际运行DeepTutor原版判题worker：固定Node先加入专用Job，Python自检标记后才投递评分帧，输出绑定精确输入SHA、返回`provider_correct=true`，直接进程已回收且Job活动数为零；child/wrapper 0、source_consistent。不同管道事件的OS全序、基础Python身份、真实材料授权及Rust撤权均未证明，结果不表示独立掌握或Core评分路由完成。
+
+另从Owner原OpenMAIC ZIP逐项保全连续的scene-content原版源码切片：generation/dsl/geometry三包共80个原件、686,789 B，包含46个静态运行时TS成员、25个直接模板/snippet及9个包级元数据/许可证；具体范围和逐文件SHA见[来源说明](../../services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/REUSE.md)。`backend-verify-scene-originals-fa1ebf1921`四项通过，含本地ZIP逐项原字节对照；`backend-verify-scene-gitcheck-4543e525c3`当前工作树80/80 Git clean对象与原字节一致，两者child/wrapper 0、source_consistent。三包source-only许可证已纳入SBOM；首轮`backend-verify-sbom-2d0ebf9954`为14 passed/1 failed，原因是原测试固定断言6个来源组件而现为7个，后继`backend-verify-sbom-ab20d6e23d`为15 passed、child/wrapper 0、source_consistent。该源码切片仍缺额外类型、npm依赖及其他分支资产，未构建或运行完整入口，不能称完整OpenMAIC已并入或打包资格通过。
+
+后继静态复核确认当前转写MIME与后缀映射完整，并将未来出现缺映射时的无后缀回退改为显式拒绝。`backend-verify-text-transport-d95e6592a9`在patch `cfd52631d33248b7107d7a38f8598d29ab05d7fdaa3aa1c137d30f23910e4420`下75 passed、1 skipped、60 subtests passed，child/wrapper 0、source_consistent；该skip仍是本机符号链接创建不可用。
+
+图像描述worker的合成回归`backend-verify-caption-red-cae6eed038`实际为8 failed/4 passed：未启用身份回执时JPEG/WebP/BMP/TIFF会被标为PNG，启用回执时WebP/BMP/TIFF仍被标为PNG；失败child/wrapper 1且source_consistent，原证据保留。现按文件后缀为两种模式传递对应MIME，保留字节、模型和端点；`backend-verify-caption-f2c6fff080`在patch `e9846d77e2fbda0722cb910432275d683f9c87782656cd749de9a33b6e7c3392`下51 passed、child/wrapper 0、source_consistent，使用合成stub和关联测试，未调用真实视觉模型。MIME来自后缀，不证明图片字节类型或服务支持该格式。
+
+显式`text/plain` charset此前被transport忽略：`backend-verify-charset-red-3191d76bc7`实际以声明windows-1252的合成字节得到GBK投影，child/wrapper 1、source_consistent。现对有限常用charset按声明严格解码并记录UTF-8投影；无声明保留原回退，非法、重复、未知或与BOM冲突的声明拒绝，暂不支持charset扩展/续段，泛型UTF-16要求BOM。独立反例驱动补充未闭合引号、参数引用、UTF-16LE BOM+NUL和说明转码等边界；`backend-verify-text-transport-d78dbab4cf`在patch `3198c06b120529f907ffd4a715d83a0ef05409fdc3fe517f813d0a3758467a74`下80 passed、1 skipped、101 subtests passed，child/wrapper 0、source_consistent；skip仍为符号链接不可用。此适用于实际传入明确声明的worker请求，当前Core常规文件名推断尚不携带charset，也未扩展JSON/XML/邮件的编码合同。
+
+为后续完整OpenMAIC入口，单包受控获取`postcss-value-parser 4.2.0`：`backend-verify-npm-pvp-fetch-848f060242`按Owner锁定SRI从官方registry取得7,997 B归档，MIT许可证文件与9个成员共27,193 B，未运行安装脚本；独立`backend-verify-npm-pvp-audit-9982b6fd58`逐成员核对9/9一致。来源包全部9个原件及许可已保全入仓并列入source-only SBOM，单包固定增长投影167,772,160 B，fetch后固定checkpoint的可读净增1,631,810,675 B且测量PARTIAL。冻结patch `3198c06b...`下`backend-verify-npm-gate-6280ecf0fc`为121 passed、`backend-verify-node-169fb09f0d`为177 passed、`backend-verify-sbom-09f58dea74`为16 passed，三者child/wrapper 0、source_consistent；其中包含该原包的离线合成解析以及Git clean字节检查，不等于完整OpenMAIC入口已运行或发行包合格。
+
+文本编码后继在未声明charset且BOM字节可能有多种解释时追加歧义提示，不改变旧自动解码结果或声称检测出真实编码。`backend-verify-text-transport-d3bcf549fd`在patch `11b53df203f9573b02997e47a2473d439952d93aef6e00192c4983b52f0c2234`下81 passed、1 skipped、117 subtests passed，child/wrapper 0、source_consistent；skip仍为本机符号链接不可用。该回执不证明Core常规路径传递了charset或全部编码已覆盖。
+
+已按Owner锁定SRI受控获取`es-module-lexer 2.0.0`：`backend-verify-npm-es-fetch-6e9aa3a383`获取32,377 B归档，独立`backend-verify-npm-es-audit-63de9e7bc2`核其8个原件共97,323 B与归档逐字节一致；两次child/wrapper 0、source_consistent，未运行安装脚本。全部原件与MIT许可已纳入来源树和source-only SBOM，清单`SOURCE.json`的SHA为`2c222673e20d94f84a03d8a277df5a91c842053a6e991a44cec6b62e8aa45d71`；现有Git过滤和Node离线合成解析验证须在本轮后继冻结工作树上另跑，未据保全结果声称原版完整generation可用或发行合格。
+
+真实字幕worker的合成反例`backend-verify-webvtt-red-7a6dca9d10`在patch `2f57b7b87c915e9a81b3205d42ecbc01d8119b3bfbe3c965aea9d145f96336e8`下复现混合长、短WebVTT时间戳时成功回执仅输出首条cue；child/wrapper 1、source_consistent，失败原件保留。修复与受影响路径的独立复验正在进行，不能将该RED移作修复通过。
+
+字幕后继支持短、长及混合时间戳并保留毫秒锚点，在cue外丢弃完整NOTE块而保留正文中以NOTE开头的行；带箭头的非法时间、逆序和相邻cue缺空行显式失败、不发布部分结果。`backend-verify-webvtt-abbb582abe`在patch `37ac3cfc13a8cde1755113b6eebb18f120d82fef9cae2acddcb8375724a2cff2`下63 passed、1 skipped、129 subtests passed，child/wrapper 0、source_consistent，包含真实字幕NDJSON子进程和受影响兼容测试；skip为本机符号链接不可用。尚非完整WebVTT语法验收，不含箭头的畸形普通块仍可能忽略。
+
+同一`37ac...`下`backend-verify-node-c405e36864`为181 passed，包含`es-module-lexer`全部8个原件与缓存归档比对、9个文件Git clean字节对照，以及固定Node执行原包`./js`目标解析合成静态/动态import和export；`backend-verify-sbom-f49dd07b6d`为20 passed，涵盖该包及DeepTutor新增原版中英提示和语言文件的source-only身份与缺失/篡改反例，均child/wrapper 0、source_consistent。该测试直接加载包入口目标，未证明裸模块路径、完整generation或发行包内容。
+
+为原版geometry的三个外部直接依赖，获取器严格核Owner锁对应geometry importer、版本、SRI及完全空snapshot，先经`backend-verify-npm-gate-15686694f4`的142项合成门禁和`backend-verify-npm-geometry-preflight-af131b5149`实际原锁预检，再执行`backend-verify-npm-geometry-fetch-cd02693046`。独立`backend-verify-npm-geometry-audit-b93b418f87`核对`entities 6.0.1` 86/86文件、`svg-pathdata 8.0.0` 176/176文件及`tinycolor2 1.6.0` 14/14文件分别与SRI匹配归档逐字节一致；许可证声明依次BSD-2-Clause、MIT、MIT，安装脚本均未执行。四个run均child/wrapper 0、source_consistent，patch `37ac...`；这些文件尚处受控本地缓存，入仓身份、Git过滤与实际消费另验。获取投影419,430,400 B；post相对固定checkpoint可读净增1,671,175,124 B、测量PARTIAL，不代表全盘物理用量或完整扫描。
+
+该包组取得不构成完整OpenMAIC依赖闭包：generation实际锁定`postcss 8.5.23`，并需分别保持geometry的`entities 6.0.1`和parse5的`entities 8.0.0`、generation的`nanoid 5.1.14`和postcss的`nanoid 3.3.19`；原完整scene入口的TS转换、包解析及slide/quiz实际调用均待验证。近期18个具名成功run经长路径只读检查，临时目录可读39,434,747 B但尚未逐对象验证可清理；即使假设其全部可清理并加上已核38份模型副本120,210,264 B，仍不足以让此前保守Rust编译/测试预测回到固定2 GiB复核线。构建缓存仍有已记录后续消费者，未删除、未滚动checkpoint，也未将逻辑字节当物理释放。
+
+后继将geometry三包276个原件及三个来源清单保全于源码树，并将其许可及来源清单加入source-only SBOM。发现根`.gitignore`的`dist/`规则原本会忽略所测五个npm包的201个保全成员，先前Git clean对象对照未覆盖忽略状态；现仅为五个已固定包的`dist`精确解除忽略，未放开一般构建目录。冻结patch `8df0a84e3ac25f69f0ccb158f1afc6d7c6eccd84302c2fddbfc70deb38eb7555`下，`backend-verify-sbom-a9c49c45e2`为23 passed、child/wrapper 0、source_consistent；其中覆盖三个新增包来源/许可缺失和篡改。`backend-verify-node-f89d902caf`为194 passed/1 failed，child/wrapper 1、source_consistent：svg-pathdata把合成路径关闭命令编码成小写`z`，测试预期大写`Z`；该原失败保留，后继须核语义并重验，不能把整个Node组合称PASS。该组中逐项Git ignore检查及合成拒绝反例已执行，检查不写真实index；完整发行包内容仍未验。
+
+DeepTutor后继以原版`QuestionPipeline._quiz_one`、原版中英文模板及语言函数构造合成单题捕获/调用方回复回放；上游问题解析和判题源码分别保留，对原版判题别名发生跨选项碰撞的候选额外拒绝。`backend-verify-deep-4677bd0692`在同一`8df0...`下115 passed、child/wrapper 0、source_consistent，范围包含真实隔离子进程处理合成输入；调用方自行提供回复和答案，不建立来源、授权、知识掌握或Core接线。非选择题候选的`options=null`不能直接用于现有评分DTO，测试显式映射`{}`后原版评分结果为null/未评分，不是自动评分通过。该套测试启用了`-X utf8`；独立本机合成复现发现文档所述未带该选项的Windows GBK管道遇emoji会以UnicodeEncodeError退出且无协议JSON，后继须修复和重新验证，当前不能以115项通过掩盖此边界。
+
+WebVTT后继进一步在loss receipt中说明不保留header元数据、原cue标识、STYLE/REGION及cue布局设置，正文和时间锚点保留。`backend-verify-webvtt-69e2834065`在同一`8df0...`下64 passed、1 skipped、129 subtests passed，child/wrapper 0、source_consistent；skip为符号链接不可用。无箭头的畸形普通块仍可能被忽略，未验证完整WebVTT语法。
+
+已加入固定`parse5 8.0.1`及其`entities 8.0.0`锁图准入，与geometry的`entities 6.0.1`分开；`backend-verify-npm-gate-e8dc1a395c`为150 passed，`backend-verify-npm-parse5-preflight-1094d169f5`核Owner原锁通过，均在同一`8df0...`下child/wrapper 0、source_consistent。实包manifest、许可证和读取尚待受控获取核对，实际Node两版本解析隔离与完整入口尚未证明。
+
+后继核原版svg-pathdata编码器及解析器：路径关闭命令编码输出小写`z`，解析大小写均为同一关闭命令。更新合成测试后`backend-verify-node-d2a643fa64`在patch `0fb25cb77c737ff0c64f5e570ff6a2ce97ae84eb63c38c10d089bffb03c15695`下196 passed、child/wrapper 0、source_consistent；同时逐项检查五个已保全包293个原件/清单未被当前Git忽略，隔离合成仓库重现旧`dist/`忽略，虚构非例外路径仍命中项目忽略规则。此为本机源码和合成调用验证，不证明完整OpenMAIC或发行包。
+
+DeepTutor UTF-8问题的受控回归`backend-verify-utf8-red-c6e2ad49ed`在同一`0fb25cb...`下6 failed/6 passed、child/wrapper 1、source_consistent：`question_turn_worker.py`、`question_normalizer.py`、`practice_import.py`三个真实子进程的自然GBK管道与ASCII负控遇合成emoji时均在输出阶段抛UnicodeEncodeError。失败原件保留，修复后须重跑真实无`-X utf8`管道和相关套件；不将含有用户材料的正常提示输出当作隐私过滤。
+
+三个DeepTutor隔离CLI后继以明确UTF-8字节写入JSON管道，question-turn同时重新绑定normalizer固定字节大小与SHA。`backend-verify-deep-6f2e613f6c`在patch `bafcd4565ec573edeb861b32dc99b98e9df7130898e30a3ce60bf6e36177388e`下127 passed、child/wrapper 0、source_consistent，覆盖自然Windows管道和强制ASCII文本流的合成emoji往返、错误回执及原有相关测试。有效capture仍按合同返回含调用方材料的提示；来源认证、Core任务和完整DeepTutor pipeline仍未建立。
+
+同一`bafcd...`下`backend-verify-npm-gate-3082d2dfea`为150 passed，`backend-verify-npm-parse5-preflight-4efce9e29b`原锁预检通过，随后`backend-verify-npm-parse5-fetch-8d76a12965`受控获取`parse5 8.0.1` MIT 33文件/337,099 B及其`entities 8.0.0` BSD-2-Clause 58文件/236,002 B，实际manifest依赖声明与预期一致；`backend-verify-npm-parse5-audit-8ba9aef43c`逐文件核对33/33和58/58原档一致。四run child/wrapper均0、source_consistent，无安装脚本。该两包仍在本地缓存，入仓保全、Git属性及与entities 6同时存在时的实际模块解析须后继测试。获取前可读净增1,851,332,862 B，投影2,144,934,142 B，post为1,853,058,430 B；测量PARTIAL，离固定2 GiB线的余量已很小，后续增长和测试产物须重新审查，不滚动基线。
+
+parse5与entities 8的91个原件及两个来源清单后继已保全源码树，加入精确Git忽略例外、原字节规则与source-only SBOM。`backend-verify-parse5-source-45aee20235`在patch `38021b11d8dc341bccea397099c399a313e919b492f0e49243f99b901192ad68`下12 passed，核原档、Git clean/ignore，以及固定Node在临时目录中parse5解析到entities 8、同时顶层entities 6共存；缺8时观察Node回退并在受控hook加载前拒绝，篡改8亦拒绝。`backend-verify-sbom-new-afda7d9b53`为4 passed，仅覆盖新增包与来源清单的定向SBOM反例；两者child/wrapper 0、source_consistent，不替代完整generation或发行包验证。
+
+独立检查显示geometry post到parse5 pre的可读增长180,157,738 B，其中runs类净增178,538,140 B，两次均PARTIAL；测试副本的大小不是可删除总量。限定两次成功SBOM正向夹具审计形成本地清单`.project-local/cache/backend-duplicate-fixture-inventory-20261102-governance-v1.json`，含1,262个与保留源等SHA的副本、共8,267,812逻辑B；消费者仍UNKNOWN，清单自身1,553,138 B，未删除任何项，不计物理释放或据此跨越增长门禁。
+
+KaTeX锁图经`backend-verify-npm-gate-704eed0b65` 161 passed和`backend-verify-npm-katex-preflight-f762fb386a`预检后，串行受控获取`katex 0.16.38`与`commander 8.3.0`；`backend-verify-npm-katex-fetch-e39c99f4c1`及`backend-verify-npm-commander-fetch-9aa2c4e0be`分别取得210文件/4,010,758 B和13文件/151,267 B，`backend-verify-npm-katex-audit-b3193af45e`核原档全部成员一致，上述五run child/wrapper均0、source_consistent，patch `9fc526670aa38b3ec7f970e84701ca967bd7b3ae3a7d0e58ec34df7b5aa5ff8b`；实包manifest中KaTeX依赖commander范围也与预期一致。KaTeX根包声明MIT，但所含TTF字体元数据及部分SVG另标OFL-1.1，mhchem源另有Apache-2.0声明，`Extra.otf`单独权利尚未核；不得把完整包及全部字体统一标MIT。缓存原件不等于可以整体发行，待按实际采用切片补齐许可文本、声明与资格；commander可单独核验保全。最新commander post相对固定checkpoint可读净增1,883,873,580 B、PARTIAL，保持基线和预算不变。
+
+后继单独保全`commander 8.3.0`全部13个原件及来源清单，加入原字节Git属性、MIT说明和source-only SBOM。`backend-verify-commander-source-09fb80563f`为4 passed，覆盖原档对照、固定Node合成解析和Git字节；`backend-verify-sbom-commander-d82543b48a`为3 passed，覆盖该项的来源/许可缺失与篡改，均child/wrapper 0、source_consistent，patch `f28b62e12bb5d5bf41cd02b6c746f922973e6dff7305dbd81a4d50fc1c47f5df`。该结果不证明KaTeX或完整OpenMAIC已接入、打包或发行。
+
+DeepTutor新增私有候选准备函数：同一原始回复经固定原版题目步骤回放与独立normalizer比较，再准备现有Core source-import及Document请求；`backend-verify-candidate-b5544e39ba`在patch `41358b6a587e74fa8ee6306c26337bb2be30cf9241ac2b765d0bb92c05446247`下104 passed、child/wrapper 0、source_consistent。初始正文包含题面和选项，但完整editor与原回复仍含答案及解释；返回请求可被调用方修改，Core尚未从原件重算题目绑定。导入和创建是两个独立请求，失败可能留下source；材料存在性、授权、真实Core写入、回读与重启恢复均未由该合成结果证明。详见`services/learning-providers/deeptutor/CANDIDATE_DOCUMENT.md`。
+
+PostCSS锁图经`backend-verify-npm-gate-c89d7ad731` 185 passed和`backend-verify-npm-postcss-preflight-c4efa4c7d1`原锁预检后，在同一`41358b6a...` patch依次受控获取`postcss 8.5.23`、其`nanoid 3.3.19`、`picocolors 1.1.1`及`source-map-js 1.2.1`；四次获取及`backend-verify-npm-postcss-audit-0e275110cc`均child/wrapper 0、source_consistent，独立审计分别核55/55、25/25、7/7、18/18成员与各自锁定SRI归档逐字节一致，未执行安装脚本。它们目前是本地缓存证据，入仓身份、原生模块解析、完整场景生成和发行资格尚需另验。source-map获取post相对固定checkpoint可读净增1,903,984,985 B，状态PARTIAL；这是可读逻辑量，不是全盘物理空间结论。
+
+`backend-verify-official-ofl-6c8c276e78`和`backend-verify-official-apache-0dd205c15c`分别取得公开OFL 1.1和Apache 2.0官方文本，child/wrapper 0、source_consistent；原文字节SHA分别为`1d361a8f8e8ce6e68457dcd93fb56e162e6baa3bbb7e7573a290d44399f6b57e`和`cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`。KaTeX最小ESM还标有TeX、LaTeX及amsmath来源，所用版次与可能义务尚未证实；先保留缓存，不据许可证文件存在宣称权利闭合。OpenMAIC交互后处理源码还注明`learn-your-way`移植来源，具体来源与许可待独立核对，这一线索本身不是违规结论。
+
+PostCSS四包后继保全105个原件和四份来源清单，许可证分别为MIT、MIT、ISC及BSD-3-Clause；`source-map-js/lib/base64-vlq.js`还原样保留Closure Compiler Authors版权和完整BSD条款，并作为额外notice来源列入source-only SBOM。生成来源清单保留`learn-your-way`未核线索，不把OpenMAIC声明的MIT扩大为第三方来源已闭合。`backend-verify-postcss-source-d36fb924d5`为21 passed，逐项核原档、源码及Git clean/ignore，并在固定Node的临时合成布局中验证nanoid 3与5共存、缺失/篡改拒绝、CSS解析与错误反例；`backend-verify-sbom-postcss-4b818b6599`为6 passed，覆盖四包来源/许可缺失篡改及notice，均child/wrapper 0、source_consistent，patch `e85739c887ad73e22bbd8f9d64b0c1a6d64d9c2f2a6e0043f5f3fe1b574208e7`。其中合成CSS实测默认source-map处理可读本地映射文件，`map:false`在该样例未读；测试hook和参数不是生产沙箱或完整输入策略，尚未接通完整场景生成。
+
+DeepTutor后继新增离线私有回读对账器，对调用方声明的来源原文、创建/版本读取和question-view回执，与同一候选重新准备的题目、答案、正文及材料引用作有界比较。独立静态审查发现创建请求ID和首次导入source ID未绑定真实Core派生规则，后继补齐并保留duplicate沿用已有ID的分支；`backend-verify-deep-readback-4879980713`在同一`e85739c...`下142 passed、child/wrapper 0、source_consistent，均为本地合成回执和相关适配器测试。完全伪造但自洽的回执仍可能通过；内容和视图摘要仅核格式/引用而未重算，也未建立Core身份、授权、事务、真实写入或重启持久化。多个回读不是原子快照；实际派发仍须在Core内重新核版本、双grant、尝试状态和恢复epoch，普通文档保存不依赖供体。
+
+`backend-verify-webvtt-block-red-395fcb1ebb`在patch `6ffa4e89a7f0e1b67ae18556671461c60b309df1aa669d9caf1880e8a26811e4`实际复现无箭头畸形块静默丢弃，以及空payload cue的时间锚点丢失，共3 failed、1 passed，child/wrapper 1、source_consistent；失败记录保留。后继按空行分块处理、拒绝缺失有效时间的普通块，保留空payload的时间锚点，且拒绝未用空行分隔的header与cue；NOTE、STYLE/REGION及其可能作为cue ID的边界另有合成测试。`backend-verify-webvtt-7f3ac11054`在`e85739c...`下68 passed、1 skipped、131 subtests passed，child/wrapper 0、source_consistent；skip仍是本机符号链接不可用。此为字幕worker及transport定向回归，不是完整WebVTT规范或安装态验收；header metadata、STYLE/REGION、cue标识与设置等不保留的范围仍由loss receipt说明。
+
+独立复核发现上述块解析引入把`NOTE` cue标识误作注释的回归，并揭示原有纯空格payload行被当分隔符而丢失后文；以真实NDJSON子进程的`backend-verify-webvtt-identity-red-56d8ce185c`在patch `bad7751c4e770e8d72c3c4e9fccf0078d3e43b6e26c553c5d55e538f3df169e8`复现6 failed、1 passed，child/wrapper 1、source_consistent。后继只把真正空行作为分隔、保留payload空格，将第二行是时间的NOTE识别为cue、拒绝非cue块后部的含箭头歧义，并严格识别`WEBVTT`文件头；旧测试中第二行是时间的所谓NOTE注释样例不符合其注释解释，已换为不含箭头的普通注释。`backend-verify-webvtt-3941fea13f`为72 passed、1 skipped、134 subtests passed，child/wrapper 0、source_consistent，patch `5505f9dcd40112c02bba67161c88e583370614ac944f4ba8f29a53b518a195ca`。
+
+进一步复核发现第一次修复错误拒绝header首行合法的箭头注释，带前导空格的无效NOTE/STYLE/REGION块也被误当作非cue略过；`backend-verify-webvtt-header-red-52ed4c8ed8`在patch `1b18ac444ed1b6f581441950adbbe768461a9f343caec0a5b8f56d4e55fd4793`复现4 failed、1 passed，child/wrapper 1、source_consistent。后继区分header首行与后续缺分隔时间行，严格在行首识别非cue标记；`backend-verify-webvtt-acc5664dbd`在patch `38c7a03db65cf5a3e8f052da115ae9af8cc7257df61986e75b751d824f86df08`下74 passed、1 skipped、137 subtests passed，child/wrapper 0、source_consistent。现有parser仍保留非标准逗号/短小数等兼容，实体引用如`&amp;`未解码；这些结果仍不是完整WebVTT规范资格。
+
+后继对NOTE首行自身含箭头的遗漏增加显式拒绝与真实transport反例，并在loss receipt中说明字符引用仍保持编码；`backend-verify-webvtt-a21d60ae34`在patch `d70c1115f5a5b2dff960120df469e066838c197aa24da57d2c4845d5c06f6785`下76 passed、1 skipped、137 subtests passed，child/wrapper 0、source_consistent。独立审查此前以合成输入证实该遗漏；skip仍为本机符号链接不可用。
+
+DeepTutor本机模型合成探针先以固定ignored文件SHA运行离线检查：`backend-verify-deep-model-tests-edc9e8ca4b` 6项及`backend-verify-deep-model-selfcheck-20b865a43c`自检通过，`backend-verify-deep-model-offline-dab3d50cb2`在固定合成输入、无网络下实际运行原版题目步骤capture/replay，三者child/wrapper 0、source_consistent，patch `96c85121c71251b1ba307a59405c461ac21ffcd956cfae3efbbe058a980950f5`；ignored probe/test/helper/labels另外保留前后SHA，不由source_consistent覆盖。离线capture的两条消息经独立重算为6,313 B、SHA `342205816bd247e7d342030c227eca8adb5a4c32ee610cae6830e1f1288d2e7c`，Job中直接Node/Python的归属与回收按回执观察；这不是模型推理或Core接线。真实POST前的独立复核发现先前只核prompt自报摘要和replay结构，尚需分别绑定固定预期prompt以及该次回复中的题面/选项；当前修复和重新自检未完成，不启动真实推理。模型与端点保持既有配置，完整HTTP正文不由既有relay保留，模型身份与服务停止状态不能由自报确立。
+
+后继补齐固定prompt与同次回复题面/选项绑定，`backend-verify-deep-model-tests-ff6400377e` 7项、自检`backend-verify-deep-model-selfcheck-ce33f36418`及无网络capture/replay `backend-verify-deep-model-offline-af74e46956`均child/wrapper 0、source_consistent，patch `fb726b67882517bbc98205e0b4cf616cd2665c1aa6271a0f80545e9c426f105f`；ignored文件另核精确前后SHA。独立复核后，以同一固定合成题目向既有本机loopback模型服务至多发送一次POST：`backend-verify-deep-model-invoke-61bbae86f3`收到服务自报`qwen3.5-4b`和`stop`，但其内容未通过当前双反引号FINISH首行的严格子集，状态`TERMINAL_LABEL_INVALID`，child/dev记录2、外层命令返回1，source_consistent；未执行replay或写Core。原始可得合成内容与回执仅留ignored run，完整HTTP正文未保存；当前须核原版标签解析对该实际格式的行为，不能将此次真实推理记为端到端通过，也不能从服务自报断言权重身份或服务停止。
+
+后继对该固定合成回复作两次独立、无网络内存核对：原版`classify_label(final=True)`未识别未闭合标签；原版另一个`recover_finished_label`可将其恢复为FINISH，恢复后的正文可通过严格JSON与原版题目规范化，离线replay的题面和选项与同一正文匹配。源码对照显示原版question所用`run_labeled_step`结束时仍使用`classify_label`，并不调用此恢复函数，UNKNOWN会被loop视为missing_label；因此这个手动恢复只是诊断，不逆转真实调用失败，不等于原question循环自动接受或完整agentic loop通过。原版可能的修复重试须按实际源码和独立执行另验；未追加模型POST、未验证答案事实或Core持久化。
+
+OpenMAIC后继新增未注册的有限URL映射worker，实际调用已保全原版`mapInteractiveLibraryUrl`，固定Node、两份上游TS及八包来源成员，包装层对返回路径做受限词法检查并拒绝上游路径穿越反例。`backend-verify-openmaic-url-map-7ac6ba996a`在同一`d70c...`下6 passed、child/wrapper 0、source_consistent，覆盖合成URL、依赖缺失/篡改、错误版本和有限Node进程。上游可能把旧版本映到固定版本；`MAPPED`不证明内容等价、对应资产存在或经过逐文件清单核验。拒绝和未映射也可child 0，消费方须检查JSON状态；未来宿主还须启动前净化环境、绑定worker自身身份和核实资产，当前无Core接线、网络沙箱或HTML净化资格。
+
+进一步新增固定合成HTML的原版改写探针；首次`backend-verify-openmaic-html-probe-e27f82d7d4`在patch `e5737f95909aef7847044b7cb4af0db885c6374130b76436b358ee8a6e14d029`下2 passed、1 failed，child/wrapper 1、source_consistent：含内联source map及损坏CSS的样例触发`UNLISTED_DYNAMIC_CODE`。该失败保留，须核对实际动态构造代码及固定来源，不能为通过而允许任意动态代码；独立复核亦要求拒绝回执不要声称完成了输入脚本执行观察。
+
+固定Node的受控单样例诊断`backend-verify-openmaic-html-diagnostic-f742a4acec`在patch `e7048f629f8c22d1890773bbf8bea987458d3525db83a98b182dd3f1d05b7ecc`下1 passed、child/wrapper 0、source_consistent，仅观测并在执行前拒绝不匹配的动态构造参数：1个string、2,509 UTF-8 B、SHA `8f0039413e6feed51fa7ac4093658fda70d90fb5877ca2343b0ed4be7a3dafe0`。其与独立核对的固定`source-map-js`排序模板一致，首次探针pin末段有一位写错；诊断通过不等于HTML改写通过。拒绝回执已将期待源摘要与实际检查状态区分，固定输入脚本哨兵也以true/false/NOT_OBSERVED记录；该Function代理只覆盖调用期间经`globalThis.Function`直接取得的构造，非完整动态代码监控或沙箱。同一`e704...`下修正回执语义的`backend-verify-openmaic-url-map-10e3b0a455`为6 passed、child/wrapper 0、source_consistent。
+
+仅纠正经固定Node诊断确认的精确模板SHA后，`backend-verify-openmaic-html-probe-3c923a5204`在patch `b85bfacd4273dafde596f17efe7e9fffd28f7becd7448421a69ef2361e4f8d2a`下4 passed、child/wrapper 0、source_consistent；未放行任意动态代码。固定合成样例实测：原版替换依赖URL时可删除integrity并改变crossorigin；发生style改写时其内部CRLF可变LF，而外部原文保留；未扫描的img和重复属性中的外部URL可留存且未匹配主机计数为空；损坏CSS及无效内联map可原样保留。固定外置source-map哨兵在mapper调用期间未经被监测的两种同步读取，单独正向对照确实读取了它；该结果仅限此哨兵和样例，不能外推全文件/网络隔离。内联损坏CSS样例实际走到已核固定排序模板；所有输入均为合成，未渲染或将该探针注册为产品功能。
+
+后继新增未注册的HTML改写候选worker及私有runner：候选保留原版结果的字节差异和输入/输出摘要，调用方保留原文；结果不是安全净化或资源存在证明。首次`backend-verify-openmaic-html-candidate-db5fde6688`在patch `b8335dba82c721c3449cf9f2c676b4c266969d2942348954e3302b72b0914447`下10 passed、1 failed，child/wrapper 1、source_consistent：Windows合成孙进程管道保持反例预期`PIPE_CLEANUP_UNKNOWN`，实际得到`INVALID_WORKER_REPLY`。须先确认夹具的管道继承及直接子进程回收事实，再修复和重验；不得将该套测试当作通过或假定未知后代已停止。
+
+原失败夹具仅证明spawn返回数字PID、直接worker退出且管道线程结束，未保留孙进程活体或持管道证据，不能倒推继承失败的具体原因。后继改用测试自身持有的匿名pipe与独立Popen holder，先验证该holder确实写入并保持管道，再检查worker退出后的`PIPE_CLEANUP_UNKNOWN`和单实例拒绝；仅通过测试原有进程句柄释放/等待/必要时结束，不按PID重新打开终止。`backend-verify-openmaic-html-candidate-ac401c8e51`在patch `28816a0fba863d1a84cbac5cadf9c44464684990d5f048c7d5df70f33110acc9`下11 passed、child/wrapper 0、source_consistent。该合成holder是兄弟进程，不证明真实孙进程继承或停止；实例内单槽不限制其他进程，候选输出仍可能含原始脚本、未扫描外链和私料，不能直接安全渲染或视为Core任务完成。
+
+DeepTutor XLSX练习导入预览恢复原版`parse_rows`的XLSX分支，现以私有子进程及有限ZIP/XML与单工作表准入处理合成输入；`backend-verify-deep-xlsx-00f78f65f7`为79 passed，相关旧协议回归`backend-verify-deep-4fb4cd707d`为127 passed，均在`d70c...`下child/wrapper 0、source_consistent。独立复核随后发现`sheetFormatPr zeroHeight`及部分隐藏标记值尚可绕过当前预检，故该XLSX切片仍需修复和重验，不能将上述测试视为完整输入资格；结果也不证明Core导入、持久化、真实材料或学习掌握。
+
+针对默认隐藏、零尺寸和畸形子进程回执的后继修复，`backend-verify-deep-xlsx-76aa72ffd5`在patch `5433fc9c71227c8f8f204646d97baf3ac85e2848377d2a614d96232762bcde31`下153 passed、2 failed，child/wrapper 1、source_consistent：两个column隐藏属性正例在隔离子进程中返回`InvalidInput`。失败证据保留，须先核对合成XML和实现再修复，不能将153项通过作为本轮XLSX回归通过。
+
+复核确认上述两个失败由合成测试helper漏写XML属性间空格引起：实际生成`hidden`属性与`width`连在一起，defusedxml和真实openpyxl均将其判为无效XML；生产预检拒绝该数据的行为正确。修复夹具并加入独立解析校验后，`backend-verify-deep-xlsx-f9e6635ece`在patch `c85137b20ea63a1201188b0dbf594d7f7790a416f3c9a570be60d5200eef63b9`下155 passed、child/wrapper 0、source_consistent，含合成工作簿真实原版XLSX分支、隐藏/零尺寸拒绝、子进程畸形回执以及原有UTF-8协议回归。此切片对无效或无法确认的内容采取保守拒绝，不保证所有表格UI样式的实际可见性；它不证明Core导入、真实工作簿覆盖、模型、重启持久化或操作系统沙箱。
+
+DeepTutor新增原版教学反馈有限切片，分别逐字节保全教学逻辑和模型原件，source-only SBOM、Git原字节规则及许可入口已登记。`backend-verify-deep-teaching-0cd36e75e3`为27 passed，`backend-verify-sbom-teaching-d093e44ef8`为4 passed，均在`e704...`下child/wrapper 0、source_consistent。独立复核随后指出既有其他目标observation可通过remove或同key upsert被影响，且已有profile证据未由本轮文字检查；这些边界须修复并重验，不能把首次合成结果视为资格完成。
+
+后继在调用原版apply前，拒绝对本轮调用方声明范围外的已有observation进行删除或同key覆盖；范围内及不存在key的情况保留原版行为。回执区分本轮更新证据的字面检查与旧profile证据未验证，`UNCHANGED`仅表示默认化后的教学字段无变化。`backend-verify-deep-teaching-dc314103f2`在patch `8e41d0d4bd842480d4958a5b3a2666b20d2d6157f8b1f4c9709d70b21ffdc4a0`下37 passed、child/wrapper 0、source_consistent。原版对证据的子串判断不证明语义支持、真人意愿或当前Core授权；历史profile、时间戳和objective仍为调用方声明，未持久化或具备版本冲突保护，不代表实际学习或掌握。
+
+独立复核发现教学worker原输出上界只计JSON本体、漏计末尾换行；后继将换行纳入总字节限制。`backend-verify-deep-teaching-aed3ec32b2`在patch `f5e96e11340005e821d0a9bda0fe893c2e8fa87f42634acb0eb78bdcdfa2d729`下38 passed、child/wrapper 0、source_consistent；合成真实子进程对总输出恰好196,608 B接受、再增加1 B返回固定UNAVAILABLE。该边界不赋予来源认证或Core执行权限。
+
+`backend-verify-teaching-git-b6e5baf32b`在patch `d234cc2a6160afa33726414a22110895d897b5a9e02f5efe9b641104818b4d52`下核对两份教学原件的SHA、有效Git text属性、未被忽略和Git clean/raw对象一致，child/wrapper 0、source_consistent；该只读检查未写index或证明发行包装。独立对照Owner原ZIP的对应成员与保全文件字节身份一致。
+
+本轮并行代理曾因本机连接代理返回502而中断；此前源码和原始测试收据均保留，Owner询问后已恢复相关任务。该连接错误不是产品测试结果，也不意味着先前未完事项已完成。
+
+对当前工作树的正式Core候选做限定只读核查：规范Cargo和Tauri输出路径未发现当前`archeaxis-api.exe`；现存`.project-local/rt/core/archeaxis-api.exe`的SHA为`40b563626a07c5bd9658da9b1b8c2289bf930e4d9fbbf4b39b20fe7909db30`，但其旧清单只自报历史commit且标`ASSERTED_NOT_VERIFIED`，不能绑定当前`08d96fc6...`及其未提交Core改动。旧构建收据的规范输出也已缺失；因此尚未建立当前源码、锁、工具链和可执行文件的完整对应，不用旧程序冒充真实Core验收。现有增长门禁下本轮Rust编译/测试预计会越固定复核线；已查候选旧测试和`.project-local/rt`，未证明有足量且可安全退役的副本，未删改、未滚动基线。
+
+DeepTutor XLSX私有子进程后继补并发及清理边界。合成反例`backend-verify-xlsx-concurrency-red-71d304a9`在同树核验下2项失败，实际显示首个启动未结束或其管道清理未确认时会尝试再次启动；`backend-verify-xlsx-pipe-red-5c9199e0`另复现诊断失败后直接子进程的stdout未关闭。首次单槽修复后，独立复核又发现`Popen`可能在操作系统已创建子进程后抛错；`backend-verify-xlsx-launch-red-1b0a45f8`两项同树反例失败。线程构造或启动失败时的清理遗漏由`backend-verify-xlsx-thread-red-d8020155`两项同树反例复现。现限制单Python模块实例一次启动，启动后无法取得句柄、线程/管道清理未知或close失败时保守保留槽；已取得的直接子进程尝试停止与回收，已知启动线程限时join，只关闭尚未尝试交由线程使用的管道。此机制不限制其他进程或模块实例，不证明后代停止；无法确认的情况需宿主重建实例并另外处理，不自动重试。
+
+首次组合回归`backend-verify-xlsx-concurrency-regression-6882c34d`同树为162 passed、1 failed：旧测试文件跨异常场景共用实例，前序某次异常后的未知状态使后续测试忙拒绝；原日志不足以定位究竟是哪一次，其中旧诊断/摘要测试仅凭通用错误可假通过。独立合成诊断随后复现同样工作簿大小下的timeout可保留槽，但不能倒推出原run的确切分支。原失败保留。后继将警告、超限、超时和摘要反例分别置于独立实例，实际检查直接子进程启动/退出，并对合成stdout和stderr记录读取字节数、对源摘要错误记录解析输入身份。新增测试首轮`backend-verify-xlsx-observed-23021e76`为5 passed/1 failed且source_consistent=false；失败源于Windows文本stdout把LF改为CRLF，后继以二进制写固定合成字节。`backend-verify-xlsx-observed-2ef04166`为6 passed，`backend-verify-xlsx-unknown-62a7fc19`为8 passed，均child/wrapper 0、source_consistent，但属于不同patch，组合回归仍须在最终冻结树上重跑。合成holder为测试自持的兄弟进程，不是后代停止证据。
+
+OpenMAIC文本slide原版DSL归一化候选首次`backend-verify-openmaic-slide-5f4be028`同树为10 passed、1 failed：共享HTML超限夹具实际只输出96,000 B，超过HTML限制但不足slide的196,608 B，因而该项观察到超时而非期望的超限。已安排按实际上限修夹具并复核同类启动/清理边界；未降低限制或把首次结果算作通过。此候选未注册、未接Core，输入仅受限text slide，原版默认值和字节差异由私有回执保留；完整场景生成、渲染和持久化尚未建立。
+
+DeepTutor缺标签修复回合的固定合成请求仍未发送。独立无网络反例对旧probe`d423fbe2...`证实：声明较长Content-Length但正文中途结束时，Python `HTTPResponse.read(amt)`可返回短字节而不报错，旧代码可能误认已完整接收。后继正在收紧为受限HTTP消息帧验证，并分别记录四消息和完整POST body的不同SHA；完整body是私有未脱敏材料，前次本机模型原文并未证明本身为合成数据。声明帧完成不证明socket物理EOF、帧后无额外字节或原始HTTP wire被保全。任何后继真实重试须先冻结脚本、独立复审并通过离线Job验证；模型清单至多一次GET、题目修复至多一次POST，服务端实际请求数和模型权重身份仍未知。
+
+后继XLSX组合`backend-verify-xlsx-final-71ddc9af`在patch `42cd36f1e5ca06c03085af94528ffdb67b6a785b32fbfa5ecd4213b994720a16`下164 passed、child/wrapper 0、source_consistent，包含原版XLSX、CSV/JSON、UTF-8、并发、启动异常、close异常和已持有合成管道反例。每个连续篡改子例还确认各自直接child启动、reply进入解析及槽可再次获取，避免忙拒绝冒充覆盖。只证明这组当前合成测试及直接子进程观察，不证明跨进程限流、后代回收、真实材料或Core持久化。
+
+DeepTutor修复probe最终ignored源码SHA `b9bba17fe472e8c2fb45146b790eee47c1e5fd4a7198f97c795fee102812eef0`、测试SHA `914487ee43336668cc10dd028b9571de1b39330521365de7ec7c04a33b2a5344`；`backend-verify-deep-repair-tests-37fe18a2`为25项、`backend-verify-deep-repair-selfcheck-4c8b16f5`及实际Windows Job离线运行`backend-verify-deep-repair-offline-df568a34`均child/wrapper 0、source_consistent，patch同`42cd...`。ignored测试、probe、helper、原ZIP和前次回执另作前后SHA核对，不由source_consistent代验。独立复核以真实标准库HTTPResponse及内存数据验证有限framing反例；离线运行观察直接Node/Python归属、回收及Job为零，不证明服务端状态或完整原版agentic loop。
+
+随后`backend-verify-deep-repair-invoke-a593ed62`在同一`42cd...`下执行一次受限本机修复回合，清单GET和POST的代码上限各为1，收到2,599 B经声明Content-Length帧读取的响应body，但仍为`REJECTED / TERMINAL_LABEL_INVALID`，child/wrapper退出2、source_consistent；不得当作真实question loop或端到端通过。此前初始模型调用的失败和本次失败均保留。此次消息包含固定合成提示及未审查的前次模型输出，输入和响应保存在ignored私有run；响应未脱敏，未保存原始HTTP头/wire，未核socket物理EOF、帧后字节或服务端实际请求数。原版标签的具体拒绝原因正在只读核对，未执行额外POST；模型/服务自报不认证实际权重、答案正确、Core授权或学习改善。
+
+两次独立只读内存核对确认，上述修复回合可得的message content与首轮保留内容逐字节相同，均为389 B、SHA `f8917afd6d77dc3249bff6fa3c3f4662a234beea943c7e41e609c916626f81f9`；其FINISH标签缺少闭合反引号，原版question所用`classify_label(final=True)`返回NONE。单独调用原版research路径中的`recover_finished_label`可取得FINISH，恢复体通过严格JSON与原版题目parser/normalizer，题面与四选项按该实现的trim规则和同一正文一致；这只是离线诊断，question loop并不自动调用该恢复，未证明答案正确或学习改善。首次完整HTTP响应、reasoning及流片段未保留，内容相同不能外推完整响应相同；本次未再联网或重试。
+
+OpenMAIC后继分别修复HTML与slide候选runner：Popen调用开始后即把直接子进程状态标为未知；启动异常、线程交接未知或管道close失败不释放本实例单槽。后台线程的读写和关闭异常不回显异常内容；只尝试回收直接持有的子进程、限时join可识别线程并关闭尚未交接的管道。slide侧校正ECMAScript与Python空白字符差异，并将共享stdout超限样例改为确实超过各runner原有上限。`backend-verify-openmaic-slide-final-440a6f1c`为29 passed，`backend-verify-openmaic-html-final-98f5e4ca`为27 passed，均在patch `ae6fa22f55e3fc4dbe7b8feeffd4066dd9eca0542b0a542d14aa6e0d29f40aad`下child/wrapper 0、source_consistent；独立静态复核未发现新增具体阻塞。该patch同时含另一未完成的DeepTutor草稿，测试仅覆盖上述OpenMAIC目标，不代表整棵树或DeepTutor草稿合格。测试涉及的pipe holder为测试拥有的兄弟进程；跨模块限流、后代回收、网络隔离、Core接线、真实课程、渲染和安装态仍未证明。
+
+DeepTutor后继新增未注册的显式回复恢复候选：逐字节保全原版`runtime/agentic/labels.py`，SHA `5b72f0efb922741b8dde7c9082c12778dfb21cf087c431d872d7f4c806705c05`，已登记Git原字节属性、Apache-2.0来源及source-only SBOM，并独立与Owner ZIP成员核同。候选默认按原版严格分类；只有调用方明确声明完成、无工具且主动开启，才可在受限首行形式下调用原版research恢复函数。另发现原版题目parser会误读JSON字符串内部的代码围栏；单独的默认关闭开关只在严格JSON与题目验证已通过、原parser输出不一致、首个原版围栏匹配确位于同一JSON字符串token内时，直接调用原版normalize及issue检查，不伪造成真实pipeline结果。两种开关互不隐含，私有回执保留原文及字节差异并区分实际parser路径；调用方提供的完成状态/工具状态、来源、授权与答案正确性均未认证。候选没有网络、模型、数据库或Core接线，原question loop行为不变。
+
+`backend-verify-deep-recovery-final-f963b2a1`在patch `6d0ef1c5513652140d3a9f8ea2bc63c78c1357fbd450fddef3a16fb0d568e11d`下171 passed、child/wrapper 0、source_consistent，含六题型、双开关、同/跨token代码围栏、伪造第二题、工具、JSON、输入及源码缺失/同长篡改。独立审查对冻结adapter另做12项纯合成内存控制。此前`backend-verify-deep-recovery-sbom-23f7cb61`为3 passed、child/wrapper 0、source_consistent，但其patch是`8f11a011...`；未据此称发行包或安装态合格。实际两次模型回复均保持原失败；将固定本地回复传入新adapter的私有离线读回尚待单独执行和核验。
+
+CL-03现行`research.public` worker的合成反例`research-json-duplicate-red-20261102`同树child/wrapper 1：社区来源JSON含重复body时，旧实现静默采用后值并标complete；原始合成响应仍保全。后继拒绝重复键及非有限数，首次综合回归`backend-verify-research-json-4c30755d`同树149 passed、2 failed：1500层嵌套在当前pytest进程未触发Python递归错误，不能将依赖解释器设置的异常当固定深度门禁。原失败保留，明确深度边界及不同传输编码的修复和重验仍在进行；本轮测试使用合成响应，不说明真实来源曾发送重复字段。
+
+后继为research JSON增加本地64层嵌套边界（根为1），按当前Python `json.loads(bytes)`的编码探测解码，再识别字符串与转义后计数结构，已收取且不超过上限的原始传输字节仍先保留。`backend-verify-research-json-final-63e1c20a`在patch `c5dcdae2f297883d4eca84ebf104c5e4a0bc1a6e8841208a8bb917a2546a8f78`下177 passed、child/wrapper 0、source_consistent；覆盖重复和转义同名键、NaN/Infinity、浮点溢出、plain/gzip、UTF-8/16/32、64/65层、字符串内括号、原始响应和不意外回退。独立只读复核未发现新具体阻塞；有限浮点仍可能舍入/下溢，64层为本地保守约束而非完整JSON标准资格，超出传输限额的响应不在原始回执保证范围，真实外部渠道和Core接线未由该组模拟测试证明。
+
+同一`c5dc...`下`backend-verify-deep-recovery-readback-b172c4ea`在无网络、无新模型请求的独立本地进程中读取此前保存的两个固定私有输入：严格默认路径返回`RECOVERY_DISABLED`，显式启用原版research helper子集后取得私有题目候选，原始content可由前缀和body逐字节重建，实际parser路径为`ORIGINAL_MODEL_TEXT_PARSER`；child/wrapper 0、source_consistent。ignored driver的磁盘前后SHA均为`1856f10ce7a14ee82a053552ca9064e5e29a3b415a5bbf8467162cf0b34b97cf`，adapter与两个输入另做前后SHA核对；这不认证driver启动映像或排除所有并发替换。该观察只比较content，未在此driver重验原运行的HTTP帧或reasoning，完成/工具状态为调用方声明，不逆转两次原版模型调用的失败，不证明原question loop、答案、Core授权、持久化或学习改善。
+
+对DeepTutor正式Core接缝的限定只读核查：已有source import、Document create、source original readback、human-only question-view和活动API，仍由Rust Store单写；普通submit记录`unverified_client_report`，不是供体判题或FSRS复习。现有`candidate_document`只接受与去标签JSON正文完全相同的source bytes，不能把含标签原文冒充同一正文；两个独立Core调用也可能在Document失败后留下source。现有`provider_grade`执行器仍为测试专用，`OwnedObservation`无生产构造，事务内合成sink和cancel后的`provider_stop_state:unknown`不能证明真实worker停止。真实接线须在SQLite事务外管理受控进程，与撤权/取消/恢复/停用串行，并在短事务中重核材料和题目grant、快照、epoch及迟到结果；已发字节无法撤回。上述核查未执行Rust测试，当前增长门禁和同树Core可执行体资格缺口仍在。
+
+系统级自动目标在本次Owner询问后仍显示`blocked`；本对话中已有Owner继续后端工作授权，故此处继续本地执行，不把目标阻塞误称额外权限请求或产品验收状态。当前Agent工具不能自行将该自动目标恢复为active，不能承诺本回合结束后自动续跑；前端与监控仍按Owner原指示暂停。
+
+DeepTutor后继补受限的带标签原文候选文档桥：必须显式启用标签恢复，强制关闭另一个JSON parser fallback，从完整原文重建正文并要求其与replay body一致，再复用原有question-turn与独立normalizer校验；source import请求以`.txt`携带完整原文，Document使用调用方传入的实际导入回执及完整原文SHA。回读每次重新执行恢复与replay，并共享原有source/document/question-view比对；旧JSON入口保持兼容。duplicate来源按Core现有规则可能保留旧名称/MIME，不据名称判定字节身份。`backend-verify-deep-bridge-98f6ce71`在patch `e6c9cd639acd48490131284520e7126936456462ebbb6dec434a495610032e0f`下265 passed、child/wrapper 0、source_consistent，另经独立静态审查。
+
+`backend-verify-deep-bridge-real-offline-fe732d66`在patch `927b9517ed2682fa4b05da3dfce32d6ef8071d5daf39653e3941ed312f778663`下child/wrapper 0、source_consistent：将此前两次相同的已存content作本地私有输入，重建固定合成两消息基础replay，并使用合成材料和模拟导入回执；准备出的`.txt`原文与Document请求中的source SHA一致，题目字段与恢复正文一致。ignored driver磁盘前后SHA `ddcce40e766ab8e3b2254262cd1dab63da9453cb700b819db1f4be8c9e3c59b6`，仅固定bridge/recovery/turn与三个输入做前后读回；传递依赖、启动映像和所有并发替换未由此认证。该replay不等于当时实际四消息修复请求，未发模型或写真实Core，模拟回执、材料和终止/工具状态不认证Core或授权；原source及Document属性仍可能含答案，导入与建文档非原子，恢复策略未由Core认证。
+
+OpenAlex/Crossref DOI离线关联候选首次`backend-verify-research-identity-3a0b7df2`在`e6c9cd...`下149 passed、child/wrapper 0、source_consistent。独立审查发现固定parser读取尚未拒绝已观察的多硬链接，`research-doi-parser-hardlink-red-20261102`以测试自有硬链接同树复现child/wrapper 1；另发现原版本只核所选ID的重复。后继增加观察到的链接/reparse/硬链接和文件身份检查，以及有界原结果集内的重复ID/DOI拒绝。`backend-verify-research-identity-final-44c44e87`在`927b...`下165 passed、2 skipped、child/wrapper 0、source_consistent；两项skip为本机不能创建合成symlink，不能当作真实链接验收。候选只比较caller-supplied/unverified的回执、原始source bytes和受限DOI声明；相同仅提示可能同一声明，不合并或认证独立来源，不同声明不能证明不同作品。该功能未注册或接入Core，历史/当前epoch也仅为各自调用方声明。
+
+DeepTutor后继增加未注册、离线的单行练习候选文档准备：复用固定1.7.1导入解析与现有Document构造，保留调用方完整原文件，调用方分别提供合法题目ID、创建请求ID和独立材料快照；行、原供体ID及选项变化仅在显式私有回执中提供。对原版grader的整串别名、分隔与连续多选键碰撞做较上游更保守的拒绝，未判题或声称掌握。XLSX沿用该模块实例内固定解析器和清理未知时的保守占位；其他实例/进程须由宿主协调，子进程返回的所选行尚不能独立认证与工作簿的来源绑定。拒绝时只返回固定错误，不保存或返回该次私有行，调用方仍持有原文件；导入与创建非原子，大文件Core回读未实现，未接Core、授权、模型或真实持久化。
+
+首次`backend-verify-practice-bridge-20261102-01`在patch `05d6f6bd964bf2bf4eaf5b78c0dea9796b91a87e53946966dbb585d20ee0621a`下231 passed、2 failed，child/wrapper 1、source_consistent；两项原测试期望下游字节拒绝，却被既有单元格字节预检更早拒绝。后继保留该预检负控，并用原版可处理的分叶列表在字符串化后超过Core字节限额；实际原版parse/normalize、既有私有预览及候选字段分别比对。候选生产源码保持SHA `219e04721d662198b1fa1169c4be8e3acc63be24e3c7595d3e01847d1c2ead17`，`backend-verify-practice-bridge-20261102-02`在patch `00f67b8024348d47f3ab0606edcb327323963c3911d7da2af5f7f8a706995f8d`下35 passed、child/wrapper 0、source_consistent，另经独立静态复核；这是该候选测试重跑，不把前一轮含失败的组合运行改称整套通过。
+
+OpenMAIC后继增加未注册的纯文本slide提示构建候选，实际调用固定原版`buildSlideContentPrompt`及其源码、模板和即使禁用媒体仍会读取的三个snippet；默认只返回状态，明确选择private才返回可能含材料的提示。该候选未调用模型、生成完整scene或接入Core，输入、提示与结果均需调用方保护；路径替换、映射盘、后代进程和网络隔离未由此闭合。先前`backend-verify-slide-prompt-20261102-01` 53 passed，随后独立复核指出文件在检查后增长时`readFileSync`读取无独立限额，修订为最多观察大小加1的分块读取并核身份。`backend-verify-slide-prompt-20261102-02` 60 passed；再次审查发现竞态测试未证明目标句柄实际读取，于是补记调用次数及字节数后，`backend-verify-slide-prompt-20261102-03`在patch `259935022a21df019ff1dabfd9572fdf4e0e3826d177483d1ff9b4a8ef50a049`下60 passed、child/wrapper 0、source_consistent，并有独立静态复核。增长竞态使用对当前worker副本插桩后的合成文件，不是未修改worker的实测；此前两次收据仍保留。worker SHA `8034b902686eaf594d5e6527d1afccdbfbafa5a927460a1a23befa84039bdf84`，最终测试SHA `515690d0adb9a69bfa56484f655ea667753899d7c008c20b92a966e3fd58b0d7`。
+
+本轮协作代理再次因本机CC Switch代理到上游握手失败而返回502，Owner要求继续后重新核对已落盘文件、运行收据并恢复只读复核；此错误不是Owner授权不足或产品测试结果。当前DeepTutor练习候选仍无正式worker路由或宿主接线；现有Core源码提供human source import、Document create及question-view，但现有通用worker输出可能保留私有题目和答案，不能直接拿它冒充已完成安全接入。普通文档保存不依赖供体grant，材料交给供体生成或评分时才须按现有合同重核相应授权、撤销、attempt与恢复epoch。
+
+`backend-storage-recheck-20261102-01`只读重测固定checkpoint（SHA `c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6`），patch `81cf88ca115148b848b76e91cc3ece94591d57ba221b49b74076eb83d2973b5d`前后一致、child/wrapper 0：可读逻辑量相对checkpoint增加2,010,735,927 B，距2 GiB复核线余136,747,721 B；当前实际增长状态`NO_NEW_GROWTH_TRIGGER`，但测量为`PARTIAL`，有674项读取错误和283个私有排除，不代表完整物理空间。既有Rust同类测试的保守增长估计仍超余量；未降低估计、绕过门禁、删除资料或据此宣称Rust测试已执行。
+
+正式公共研究worker的OpenAlex投影曾接受孤立Unicode surrogate，导致最终序列化失败并使整批结果无法返回；`backend-research-surrogate-red-20261102-01`在patch `19cd306f16d277f8acb64005efe0d6120c7d3908e28755133b50f49493cc9bd6`用合成响应复现高、低surrogate两项失败，child/wrapper 1、source_consistent。后继在provider异常边界内对投影文本严格检查UTF-8可编码性：不合法通道标为`invalid_response`、保留原始响应、不触发Crossref回退；先前正常通道仍可交付，合法成对Unicode及ASCII保留。同步未注册DOI关联候选的固定parser SHA与说明，`backend-research-surrogate-final-20261102-01`在patch `f9a8a5d69ff05af82c49bd26af81e1f8b8a90864be206b2560e37d108b882af3`下170 passed、2 skipped、child/wrapper 0、source_consistent；skip为本机不能创建合成symlink。该多通道负例验证了问题出现前的正常通道，问题通道之后继续处理目前有源码依据但无该反例的独立运行断言；本轮未访问真实外部服务或真实Core。
+
+DeepTutor新增未注册练习原件/Document/view对账候选，复用既有比较器，并以同一模块实例最近一次准备对象及指纹对照原文、行、题目、材料、ID与调用方提供的回执；对账不重新解析或重启XLSX子进程，新准备失败也使旧对象失效。`backend-practice-readback-20261102-01`在patch `dced8d868b26b60e369e7746ee5e7e0d2e8e4f7a6fcf03595711dc0b3afb1a63`下150 passed、child/wrapper 0、source_consistent，含四格式与内存中5 MiB合成原件；独立复核后进一步发现同进程异常篡改私有字符串可在fingerprint编码前造成过大临时分配，当前正在补充上界，故该收据只对应修订前源码。该对账不认证调用者或Core，XLSX行源绑定、多实例/重启协调及真实持久性仍未建立；原件JSON、Document和view分别有保守上限，合法大回执亦可能被拒绝。
+
+OpenMAIC新增未注册slide回复处理候选，直接调用固定原版`parseJsonResponse`与DSL `normalizeElement`，只接收受限的无媒体、零旋转文本元素，原版填入的默认值作为变化记录；非严格/有歧义或不支持结构隔离，原回复和原版观察仅显式private提供。`backend-openmaic-slide-reply-20261102-01`在同一`dced8d...` patch下25 passed、child/wrapper 0、source_consistent；该worker由测试持有直接子进程并设置截止，不继承已有runner的生命周期保障或构成沙箱。文本内容未消毒也未渲染，数值词法往返不证明十进制数学精确；完整场景、随机ID、模型、Core和安装态均未由此建立，独立复核进行中。
+
+DeepTutor练习对账的fingerprint后继增加内部字符串编码前的字符数与编码后的UTF-8字节数上限，保留已有正常来源与私有回执上限；避免同进程异常篡改对象时无界临时分配。`backend-practice-readback-20261102-02`在patch `6f96e13393ba9ddb5452d43c91c204ffde568cdad89a93e610ca6e5d883db791`下154 passed、child/wrapper 0、source_consistent，含超字符、超多字节及合法中文标题负控/正控，并经独立静态复核。字符数预检只把单字段临时编码约束在该字符上限的最多四倍量级，不构成同进程安全边界；先前150项收据保留为修订前证据。
+
+OpenMAIC slide回复独立审查要求实证原parser错误日志不会泄漏私有原文。`backend-openmaic-slide-reply-20261102-02`在patch `b5a8eb5c97f95c431ad88117d3f7431eda9e0bf1227506ddb5e18e4ce99b1f87`下25 passed、1 failed、child/wrapper 1、source_consistent：原版jsonrepair实际会合并测试用的字符串连接，因此该例没有触发预期错误日志。后继改用原版无法修复的合成非法Unicode转义，核私有诊断的warn/error计数、原字节留存及默认stdout/stderr均不含哨兵；`backend-openmaic-slide-reply-20261102-03`在patch `a6b054e97d96bb82ce6665bde1a8b9d22ee07767e6ccd252ea0481d94a9c13de`下26 passed、child/wrapper 0、source_consistent，并经独立静态复核。两次结果均仅针对本地合成输入；默认回执不输出提示或回复不是操作系统隔离或通用隐私过滤器。
+
+Owner再次要求继续后端，系统级旧goal已由Owner清除；不据此新建后台目标或承诺断线自动续跑。检查现行字幕worker时，以真实NDJSON子进程和合成SRT复现倒序时间被钳成零时长、分钟或秒为60仍返回成功；`backend-srt-time-red-20261102-01`在patch `44d09511b04c4ac1034ca2108b50c2da659ed263d27e16a33b52b466edc287a1`下5 failed、1 passed、child/wrapper 1、source_consistent。后继拒绝分钟/秒越界及结束早于开始，保留等时零时长及原毫秒精度；`backend-srt-time-final-20261102-01`在patch `0cc55668157a1befc129fbef0d7ec7a78e06bf4edcda7cb49fea36e09e2e81ea`下66 passed、1 skipped、131 subtests passed，child/wrapper 0、source_consistent。skip为本机合成symlink不可用；这是字幕worker/transport局部证据，非完整SRT规范或真实Core/安装态资格。
+
+对SRT后继的独立复核发现时间正则可能从三位小时的中间开始匹配或截取过长毫秒。`backend-srt-token-red-20261102-01`以真实NDJSON子进程复现3 failed、2 passed、6 deselected；后继扩展有界小时数、拒绝超长小数和超过精确时间范围的时间，保留合法行尾定位数据与等时零时长。`backend-srt-token-final-20261102-01`在patch `7eab42b94c3f6178025ca3d29f9dd4e1cdf6bc660500a8f6c50f19403ddd50d0`下71 passed、1 skipped、131 subtests passed，child/wrapper 0、source_consistent；此为定向worker证据，非完整字幕标准或真实Core验收。
+
+独立复核继续发现SRT时间行可跳过负号、前缀和紧贴时间的小数或额外箭头。`backend-srt-line-red-20261102-01`在patch `cf14f69cf35660eb74de8b82bd4436331c89c77216bc3154712772b39954a037`下6例全部failed；后继按完整时间行校验并允许空白分隔的行尾设置，loss receipt明确说明其不保留。另以超过1 MiB的合成编号复现错误消息回显导致NDJSON输出1,049,351 B：`backend-srt-error-red-20261102-01`在patch `3871fd8cdc21b10f62568163ec6e9a45092c131e994c9dcb40569be9148d70a2`下1 failed。后继使用固定错误消息、核最大精确时间及+1反例；`backend-srt-validation-20261102-01`在patch `f1d06efb672b2c254a9d522b5009e875356e010a521ea47d12cc708de0e6da2d`下80 passed、1 skipped、131 subtests passed。上述各收据child/wrapper与测试结果一致、source_consistent；skip为合成symlink不可用。
+
+共享text NDJSON输出曾先写三个contract artifact，再以16 MiB上限逐个读回；后项确定性超限时前项与超限文件可能已经留在staging/output。`backend-output-preflight-red-20261102-01`在patch `ec34510591bf541126552dcb214e2aa7a3e6d80304108651f770e21cad0208e0`下以合成worker结果和真实staging writer复现既有哨兵保留但出现3个新文件，child/wrapper 1、source_consistent。后继对三个已编码artifact先统一核既有读取上限；`backend-output-preflight-final-20261102-01`在patch `1fdd3d73ccda9339e4b22d4dff3a14c30292aed34a9dc2b139bb766a94859531`下83 passed、1 skipped、131 subtests passed，child/wrapper 0、source_consistent。此检查只避免该类确定性超限前写入三个contract artifact，worker自身可能先写artifact_root，后续文件错误仍可能留下部分结果，编码前后的内存开销也不由此约束；不能宣称通用原子发布或真实Core验收。独立审查后补充更精确的错误码测试，待重跑。
+
+DeepTutor新增仅供未来受控宿主的私有单次进程入口，调用固定1.7.1练习导入和既有Document请求构造，限定CSV/TSV/JSON，明确拒绝当前行源/子进程归属未证的XLSX。输入有界单帧、原字节SHA及调用方声明的导入回执；成功stdout包含题目、答案与解释，必须由宿主保护，不能写入通用job输出或日志。`backend-practice-host-20261102-01`在patch `0d77804eac2e9e93f534f8300c6a07e42a6406ce073f48748f7fb02c113b5ec8`下126 passed、child/wrapper 0、source_consistent，包含真实合成Python子进程与共享输出预检的错误码补测；这仍是未注册候选，回执/材料未认证，不代表真实Core、跨进程停止或生产接线。普通source import本身并非human-only，新入口和派发须自行核身份、源版本、恢复epoch和写入事务；普通Document保存不依赖供体grant。
+
+OpenMAIC现有Rust Executor的固定源码身份检查此前用`std::fs::read`，文件在metadata检查后增长可触发过量读取。后继源码改为从已打开句柄按初始长度+1作有限分块哈希，并于成功后复核同句柄类型和长度；新增短读、增长、空值、上限与I/O失败的Rust合成单测。该段经独立静态复核，但固定增长checkpoint下仍无可审计余量支持当前Cargo测试，编译/单测尚未执行；路径替换、等长改写、阻塞I/O和进程树停止不由该修复闭合，待语法解析和实际Rust验证分别记录。
+
+`backend-openmaic-rust-syntax-20261102-01`使用前后均匹配固定SHA的原生rustfmt对`derived.rs`做语法解析，源码SHA `975928b786f22fda92b84cb8f411bd9792ceca5fd7ecc0d5648b47ca97508be9`前后一致，child/wrapper 0、source_consistent；没有做类型检查、Cargo构建或运行新增Rust测试。独立复核确认增长时最多读取初始长度加1，仍不能排除等长改写、路径替换或阻塞I/O。
+
+归档成员转移独立检查发现现有写入会覆盖同名文件并可改写其硬链接目标。`backend-archive-collision-red-20261102-01`在patch `b92b52d342aa0454ddc95988c3cab4bddb595fdc8676a74f6e3b3714daccbabe`下用合成ZIP/TAR及测试自有硬链接复现8 failed、4 skipped，child/wrapper 1、source_consistent；4项symlink反例因本机不可创建而跳过，非通过。当前正补防覆盖与相同内容重试处理，失败收据和测试原件保留。
+
+DeepTutor私有进程入口经独立复核后，补测实际子进程接收的7,056,044 B含LF最大帧、上限加1及LF后额外字节；`backend-practice-host-boundary-20261102-01`在patch `5190b8add791e3c2de334cfc69169f01258ccd3bdc50e8e33b5f0670566ce37e`下47 passed、child/wrapper 0、source_consistent，也覆盖共享输出预检的固定错误码。最大帧测试为内存构造，不代表真实Core或OS隔离；宿主必须关闭stdin并承担超时、回收和私有stdout保护。
+
+归档防覆写初轮`backend-archive-collision-final-20261102-01`在patch `d30f0df9586bc7e80febea9dce8c82571a8e18c462c5c2547cc23e58411a881f`下46 passed、4 skipped、child/wrapper 0、source_consistent；skip为真实symlink不能创建，模拟reparse不等于真实junction。后续独立审查发现单次member读取未核声明长度、失败残片未计入后续预算、部分写失败说明不完整及连续点平面名不符Core规则。`backend-archive-integrity-red-20261102-01`在patch `0751876fa66923fe109b01c5ddcb750e7b1a7ad06ed9f974c3f16861da5dd4f2`下22 failed、32 passed、4 skipped，child/wrapper 1、source_consistent，均为明确合成流/故障注入或ZIP/TAR反例；正在后继修复，不以初轮PASS替代这些失败。
+
+同类邮件附件和XLS工作表转移经`backend-member-transfer-red-20261102-01`在patch `3111e74b5203b054c9142870658c02c5664208bacc20dee61c7ce9603e88993b`下复现7 failed、child/wrapper 1、source_consistent：测试自有普通文件与硬链接被覆盖，相同内容重试重写，邮件双点平面名不符现有Core静态规则。邮件为合成MIME，XLS为固定SHA的临时fixture副本；未执行真实Core。后继应统一复用可审查的成员安全写入逻辑并验证运行时打包，不把事后Core摘要核对当成能撤销已经发生的覆盖。
+
+归档后继实现声明长度+1的有限循环读取，要求短读继续直至EOF且长度一致；在可能写入前保守预留次数和声明字节，失败不退款，回执区分完整声明与可能残片；平面名去除连续点但保留原名和扩展名。`backend-archive-integrity-final-20261102-01`在patch `429a72385d7732c0da482dd2fe7dcf69a0a6a2aa6711443181347779d0242133`下72 passed、4 skipped、child/wrapper 0、source_consistent；skip仍为本机不能创建真实symlink，故模拟reparse不代表真实junction已验。固定成员字节预算不等于OS内存或磁盘硬配额：当前成功读取时bytearray转bytes可能同时持有两份最多64 MiB内容，未做峰值实测；路径竞态、阻塞I/O与真实Core消费者仍分别待验。
+
+SRT独立复核确认本轮严格时间行检查意外收窄旧版对箭头两侧Unicode空白的兼容。`backend-srt-whitespace-red-20261102-01`在patch `32250927e1cd366532db87619e63497d5767a86bcc536662adafe79060ed44d3`下2 failed、3 passed；后继恢复旧空白接受范围，保留完整时间行、越界与额外箭头拒绝，`backend-srt-whitespace-final-20261102-01`在patch `2929881bc5aee8b77e1a2fbd2c5e9c31012db20d11b8aedbc8b6897cf79f1a14`下53 passed、14 subtests passed。两次child/wrapper与结果一致、source_consistent；这仍是worker/transport合成证据。
+
+OpenMAIC本地模型relay原型先前用`HTTPResponse.read(MAX+1)`，未验证声明长度是否读满或帧头唯一。`backend-openmaic-framing-red-20261102-01`在patch `5c60b76191fdbc5896e0f1ef7f3ba09aee65d3a216d66da3837472c17d7b43f1`下使用真实`http.client.HTTPResponse`和内存字节流：完整合法JSON但Content-Length多声明7 B即EOF仍被旧实现当作候选，及其他歧义/不支持帧共14 failed、2 passed，child/wrapper 1、source_consistent。测试未打开网络或调用模型，部分被拒的chunk扩展、trailer和close-delimited帧可能符合通用HTTP，只是不属于拟定有限relay合同；修复与回归进行中，未反向改写旧模型调用收据。
+
+邮件附件/XLS成员后继复用`document/member_transfer.py`：观察到的符号链接、重解析点、硬链接与不同内容目标拒绝；相同内容仅有界读回核身份后复用，新文件排他创建并读回。邮件写入前保守预留预算，失败不退款；XLS失败中止并释放工作簿。helper按相邻路径仅在实际转移成员时装载，以受信任的worker运行目录为前提；路径检查后的替换、既有bytecode/源码身份及OS隔离没有由此认证。`backend-member-transfer-final-20261102-01`在patch `ae8006af202756409a3ce3d141f4a1707b800cd2c72fce5ae5762f4e40598224`下13 failed、108 passed、2 skipped：13项均停于合成打包时同一清单写入，目标路径为264字符；2项skip为本机不可创建合成symlink。短路径`bm01`同patch为121 passed、2 skipped，不能单凭缩短路径断言产品支持深路径。
+
+`rx01`以已存在父目录、同长度普通路径负控和扩展路径正控实证Windows清单深路径写入失败；另以真实内存HTTPResponse复现异常头和Content-Encoding被误接纳。该轮共9 failed、4 passed，其中1项是新增测试误以为解析器保留空首行折行的前提错误，不计作生产反例；其余失败原样保留。清单写入后继改用现有`filesystem_path`，另用真实stager与合成运行时复制当前helper字节并核manifest摘要。`backend-stage-longpath-fix-20261102-01` 50 passed；`fx02` 205 passed、2 skipped，均在patch `8d97e6606fd2b527b833593a933a71d2a6772494c7b2d64e35b84e9e18a14857`下child/wrapper 0、source_consistent。该证据覆盖所测的深路径及合成打包，不是完整安装、所有Windows链接或真实Core验收；不覆盖此前的失败与skip。
+
+OpenMAIC relay后继限制声明长度与严格chunk帧，拒绝重复/冲突分帧、解析器报告的头缺陷、可观察折行及不支持的Content-Encoding。`omrelay01`在patch `ae8006af202756409a3ce3d141f4a1707b800cd2c72fce5ae5762f4e40598224`下69 passed。再以`owsred1`在patch `ca7daa216f99ddfbc52618995ce8d1f7225c10472be9c14f7c27138132937fea`复现5 failed、5 passed：四项把非ASCII空白误当作HTTP空白并接纳，另一项拒绝了合法chunked尾随ASCII空白；原已拒绝的TE非ASCII空白不算新漏洞。后继只按ASCII空格和制表符处理相关头值，在当前未预读响应的调用链中对唯一chunked帧使用既有有限解析。`omfinal1`在patch `2b6d5d63348bb98288d8a4e8e08473c6a2c0cf1675d432cbc8a08830c2922c1c`下91 passed、child/wrapper 0、source_consistent，并经独立静态复核。现有合成内存短读不证明真实网络分片、物理socket EOF或解析器已归一化的原始折行；合法的chunk扩展、trailer和close-delimited响应仍不在该有限合同。此relay尚未注册、未调用真实模型或Core，旧固定SHA探针不能自动指向新源码。
+
+OpenMAIC真实离线Node供体构造的合成特征化测试包含在`fx02`：slide的elements/background保留，但输入的remark、outline description与keyPoints没有出现在scene中；分别改变各字段会改变原输入SHA，而摘要不能恢复原文。这是当前scene投影的已测范围，不将投影称为完整课程或无损输入；实际受控保存原请求/明确损失、Core持久化与消费者仍待实现。
+
+DeepTutor当前私有练习worker尚未注册生产路由，成功stdout包含答案；通用imports端点本身不限定human，正式协调必须另设身份边界。源码已有source import、Core单写者Document创建幂等及human question-view接缝，但材料/题目供体授权、源版本与restore epoch重核、短事务、受控子进程、取消及未知终态恢复尚需贯通；现有通用derived worker的帧上限和输出协议不能直接代替该私有协议。`provider_grade`与测试专用executor源码不构成实际接线；现有CAS读取可能发生在事务内，直接子进程回收亦不证明所有Windows后代退出。上述为当前源码静态核对，不是Rust编译或真实Core执行资格。
+
+`store03`对固定checkpoint只读重测，patch `2b6d5d63348bb98288d8a4e8e08473c6a2c0cf1675d432cbc8a08830c2922c1c`前后一致、child/wrapper 0：可读逻辑增量2,061,835,021 B，距2 GiB复核线余85,648,627 B；测量仍为PARTIAL，674项读取错误、283项私有排除。该余量不是物理可用空间；此前同锁compile-only保守估算约465,203,934 B仍高于它，故未执行Cargo/Rust编译或新增Rust单测，不将语法解析当成编译通过。未修改模型/全局配置、真实数据库、已安装程序或前端。
+
+后继DeepTutor的最小真实接线应由受控human入口先取得Core真实导入回执，再在事务外以封闭stdin、有限stdout/stderr和有界并发运行私有worker；在同一提交事务重核源/材料、workspace与restore epoch、取消状态，创建Document并核对question-view，失败回滚Document而保留已去重的source。该输入与Document本身仍含答案，题面视图才是有限投影；行号/损失映射尚未持久化。Windows子进程、Job及管道线程不能确认已静止时应保留UNKNOWN、不自动重放。实际材料发送/评分才需现行grant、撤销和时效围栏；普通本地导入与普通保存不增加供体grant前置。其实现和真实Core/竞争/恢复测试仍待完成，不能因本段设计宣称已经接线。
+
+`docgate06`在patch `2674547bc3bb57b9be2b15ad4cd995e351448cf7853c7fe2fa018f6969a789f9`下child/wrapper 0、source_consistent；仓内权威与引用门禁通过，4项外部/私有输入仍为UNVERIFIED。`git diff --check`无输出且exit 0；工作树原有大量dirty/untracked，不能把全部改动归属于本次或从diff统计推断未跟踪文件内容。最终文档后继仍需重新运行门禁。
+
+`fx02`场景特征测试当时沿旧测试从PATH选择Node，未将可执行文件身份绑定至该收据。后继改为显式指定绝对Node路径和摘要、最小子进程环境，并在每次调用前后核摘要；`omscene2`在patch `8bf7c2e8beaf8f85c9df66c7b07c6034bbffbcfbf84fdf75f9e1ff910fb410c2`下1 passed、child/wrapper 0、source_consistent，Node SHA `ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32`。该静态摘要核对不能排除启动期间路径替换；旧测试模块导入时仍做只读PATH查找，但新测试不以其结果启动Node。此测试仅确认前述合成scene投影，不建立Core/安装态或完整产品验收。
+
+已对现行latest-only授权及已登记候选作只读核对：截至`store03`，固定基线余量与此前同锁writer compile-only情景相差379,555,307 B，未计额外裕量，且类别门禁仍须单独核实；未找到可证明安全释放足额空间的已审候选。SBOM合成夹具副本登记的8,267,812逻辑B不足且使用状态未确认，不计作可释放量；有后继消费者的`cpphost-input1`和`.project-local/rt`保留，先前已删除项目不重复计数。未删除、搬迁或更换checkpoint，Rust验证仍待合规解除增长复核条件后执行。
+
+后继只对`.project-local/runs/be268a2d33/remaining-runs-review-20261031/large-public-generated-leaves.json`既有76个公开精确叶逐项读当前元数据：38个存在、总逻辑长度2,941,345,071 B，38个不存在；无递归或文件正文读取。排除登记中仍有消费者/保留要求的bpr1、cnprep3、cppcand1、cppns2、zc1c8、ui-small-final-portable及sci-build1后，其余存在的登记叶理论合计最多327,041,408 B，低于上述差额且尚未证明空闲、可再生或无消费者，不能当作可安全释放量。消费线索见同目录`consumer-text-hits.json`；同大小安装包不等于同SHA或可替代。此仅为该旧登记清单的有限快照，不代表项目其他对象不存在，也不是物理空间或全项目上界；未删除、移动或修改基线。
+
+### 2026-11-02 两平台实际后端接线继续
+
+Owner追问为何尚未并入。前期把过多工作放在离线候选和边界验证，未优先完成Core调用与持久化，是执行顺序问题；不是Owner未授权。当前按既有后端优先、前端暂缓继续，以下是有限切片，不是两平台完整并入或产品验收。
+
+- DeepTutor新增human入口`POST /api/v1/learning/deeptutor/practice-import`源码：从Core读取真实source及材料快照，将受限私有帧交给固定版本Python worker，再由Core在事务内复核source、材料、workspace及恢复代次，创建题目Document并返回有限question-view。后端stager源码已纳入六个固定供体/许可文件并声明私有route；这些文件是否和对应新Core一起进入某个实际发行物仍须逐包核对。原始source、worker数据及题目Document可能含答案，question-view不等于整个存储具备答案保密性。
+- OpenMAIC新增human入口`POST /api/v1/courses/openmaic/scenes`源码：当前只接slide/quiz的离线scene构造，保存完整原请求和供体输出，Core事务复核来源及workspace，支持按请求ID读回已有结果。禁用代次贯穿派发和写入准入；当前没有证明所有取消、恢复与派发竞争已闭合，也没有自动安装Node或完整课程渲染、真实模型调用。
+- 取消先于DeepTutor派发/提交的CAS准入点时不会准入；派发准入和实际创建子进程之间仍有竞态。强制停止后无法确认所有后代时记UNKNOWN并阻止本Executor后续新调用，但该标志只在进程内，重启后的未知状态恢复尚未闭合。提交已准入后断线结果可能未知，需以同一请求ID查询/重试确认；不能宣称取消后所有进程均已停止。
+- `bridge1`在patch `61dca30908dfc9f458d0dd709c866c4ca180037ae5a349b85fe165e3c3e0545`下为30 failed、152 passed：合成fixture使用的growth模块实例与stager不一致，假仓库因此触发真实运行目录校验；原始失败保留。修正测试fixture而未削弱生产增长门禁后，`bridge2`在patch `287a88b759351dc26ab41086631e425dbf517c18c31126aba4c342607f8efac8`下183 passed、child/wrapper 0、source_consistent，覆盖合成stager、私有worker和增长runner。此为有限本地Python回归，不证明Rust编译或安装态。独立`rustsyntax1`对45个Rust文件只读语法解析通过，不等于类型检查或编译。
+- `store03`固定基线余量85,648,627 B是部分逻辑增长测量，并非磁盘空闲；同锁`provider_question` compile-only历史估算840,088,397 B，超过余量，未绕过本机2 GiB复核线。按Owner既有公开源码与CI授权，已隔离相关公开Rust、有限供体及许可到远端诊断提交`7cb00ddcc01b92fd15f0fbe08ea992fd66fb0848`，运行[Windows诊断](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41402804092)；该提交不含现有前端、私有原件或本地打包stager，启动时状态为运行中。CI实际结果以后继记录和精确SHA为准，不能把诊断分支当作main合并、安装产品或Owner验收。
+
+后继读回该精确SHA的Windows诊断：所选DeepTutor API测试目标及其依赖编译成功，但真实合成调用返回503，测试FAIL；OpenMAIC、workspace全量和后续步骤SKIPPED。该503合并多个错误，不能仅凭响应认定根因。本机`prefixprobe1`用与该CI Rust标准库相同的Win32打开及元数据API作有限反例：`\\?\D:`前缀单独查询失败且Win32 error=1，完整`\\?\D:\`根查询成功。测试将worker路径规范化成该类verbatim路径，故这是高度可信的原因，仍不是远端对错误枚举的直接证明。源码现从完整根开始检查，并在Windows上仅接受普通本地盘符或verbatim盘符、继续拒绝E/F、UNC、设备命名空间和链接；新增合成错误类别及路径回归。上述后继源码尚未Rust编译/实际运行复验。
+
+为复测创建的本地独立诊断提交`b1a1b8959ec4920be45f38e6f6964036c6aafa17`加入错误类别探针和失败后继续执行OpenMAIC测试的工作流调整；它早于上述路径修复，不能用于声称已包含修复。向远端推送后继诊断时，执行环境自动审批拒绝，原因为操作需要审批而当前策略为不允许请求审批；Owner已有授权没有撤回，禁止把该平台限制记成Owner未授权，也未换通道绕过。此前远端失败与本地候选均保留，后续须在允许执行的环境推送包含最终修复的精确提交并重跑两条真实合成测试。
+
+本地后继诊断提交`c98d88b087cbae8d61d7c8f7d5de457ed38a19ba`在前者之上包含Windows路径修复与有限错误类别，并由本地分支`codex/aaos-provider-ci-fix-20261102`保全；这是隔离对象而非当前工作树HEAD或已推送版本，也不含后续安装打包接线。它尚未执行Rust测试，不能以本机Win32反例或旧提交的编译替代精确SHA验证。
+
+后继OpenMAIC运行时源码增加显式Node、SHA和许可三个选项，只有完整指定且通过固定供体摘要及既有增长计划时才复制七个文件；默认不启用、不搜索PATH。Python独立启动器和Tauri宿主分别从固定位置构造`openmaic_node_worker`，不注册成普通Python route；缺失或损坏时只关闭可选能力。资源校验检查固定源码/许可证、清单字段和重复键、16 MiB边界，启动侧增加单链接与身份检查；这些检查减少竞态但不证明检查与执行之间绝无替换。同目录Node摘要仅绑定字节，不认证其来源、版本或分发许可。未复制或执行真实Node、未运行实际组包或安装程序。
+
+`bridgefinal1`在patch `3df0f2c9a264e7f0dfd9d97d36c93bc959ef068df3f6cb11c56a1e5bce72d228`下238 passed、child/wrapper 0、source_consistent；覆盖两供体合成stager、现有启动器、worker、资源闭包及增长门禁，包括Node输入超限时复制前停止、清单超限和硬链接反例。`rustsyntax3`在同一patch只读解析46个Rust文件成功；包括Tauri宿主的Rust代码仍未编译或执行测试。此前`omguard2`虽然子测试显示41项通过，但运行期间源码变动、回执为INVALIDATED，不当作当前源树PASS。
+
+DeepTutor自动评分仍未并入正式后端：评分Domain/执行器当前属内部或测试专用，正式API未提供调用入口；现有学习活动与自评记录不等于运行DeepTutor评分，客户端提交的`provider_correct`标记为未验证。还需完成受控授权和撤销/超时/未知状态围栏、固定评分worker与其上游文件打包、实际Core事务接线及竞争/恢复测试；普通Document保存不得由此附加供体grant前置。OpenMAIC目前仍只有有限离线scene能力，完整课程、模型、渲染及桌面交互均未证明。
+
+最终后继将Tauri声明条件补到七个固定成员、大小和清单身份，并让Python启动器拒绝非标准NaN/Infinity；缺失或不合格仍只关闭可选能力。Tauri宿主检查句柄、链接数、路径、清单身份及实际大小，本身不逐字节哈希七个成员：Core复核Node及三个执行源码，完整发布字节由资源门禁校验。该门禁对INCLUDED清单的16 MiB判断发生在读入及解析之后，不是解析期内存上限；对无关嵌套字段的重复键Python校验比Tauri更严格，不能宣称两者对所有异常清单完全等价。
+
+`bridgefinal2`在patch `0841bedec2fb25389fbc45658ec95cea41c4597a9c41a460c3db7b661fa94b9b`下246 passed、child/wrapper 0、source_consistent；`rustsyntax4`在同一patch解析46个Rust文件、child/wrapper 0、source_consistent，仍不是Rust编译。合成Node和许可只用于验证打包/声明，真实Node、两条Core-worker合成端到端、Tauri宿主构建与安装态均未验证；上述远端CI失败和自动审批拒绝状态未改变。
+
+后继在`src-tauri/src/core_bridge.rs`为DeepTutor练习导入、题面视图和OpenMAIC场景创建补充三个固定human-session Core转发命令，并同步命令schema与生成类型；非JSON错误保留HTTP状态但不回显正文，成功响应必须是JSON对象。`providerbridge-tests2`在patch `981de5e9a979f0d4ac31b44a213b534d8c8d9426f86ecbf5c2da1d6fdebb9f98`下23 passed（另有2个既有jsonschema弃用警告）；`providerbridge-check2`核schema、生成类型一致与Rust语法，均child/wrapper 0、source_consistent。新增Rust合成传输测试尚未编译或执行，界面尚未消费这三个命令。宿主丢弃调用不保证取消已启动的Core请求；超时可能为UNKNOWN，须以同一请求ID查询／重试，跨重启UNKNOWN围栏仍未闭合。
+
+### 2026-11-02 Owner要求公开交付与界面调研
+
+Owner后继要求联网研究并重新思考界面，形成[研究方案与三张合成概念图](../design/20261102-ui-research/界面调研与重设计方案.md)及STITCH研究稿；本次查看了DeepTutor和OpenMAIC示例界面，Owner所说“两个合并的项目”是否另有所指尚待明确。概念图不是实际应用截图、可操作原型或功能验收，不代表前端已重构或被Owner接受。完整原始会话、原始ZIP及运行数据仍本地保全。
+
+Owner再次要求“先全部上传 双端仓库保持一致 该合并的合并”。现场核对[PR205](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/205)的head `35f6960010b7e94d123019bbcbc6b4cfd071dd3e`所绑定[CI 41267526637](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41267526637)中必需`a0-gates`为success，五个条件任务skipped；随后PR以merge commit `fa10cfa9d768047ad8e9c6c5d389469eee7d20d8`进入远端main并读回。执行者合并前遗漏了本记录此前指出的固定包装生成量治理反例，旧PR的通过不能消除此缺口；补救修复只在当前后继工作树，尚需另行提交、推送和按精确候选SHA检查，合并不代表两供体或完整产品合格。
+
+在提交准备期间，当前后继工作树patch `6974a795668ce6f77df4c082f9014691774b8622289457eeb3073363bcb6bee9`的`delivery-gov-20261102`取得104 passed/1 skipped，`delivery-sbom-20261102`取得33 passed，`delivery-doc-20261102`文档门禁通过，三者child/wrapper均0且source_consistent；分别是本地定向合成测试与文档检查。SBOM测试在其自有ignored run的tmp内留下21,762个文件共129,194,389 B，随后以固定checkpoint测得可读逻辑增长2,235,587,736 B，超过2 GiB复核线，测量仍为PARTIAL；未删除该run、未滚动基线或放宽大包门禁。当前候选源码、设计成果、远端发布、精确SHA CI和本地/远端一致状态以后继实际读回为准。

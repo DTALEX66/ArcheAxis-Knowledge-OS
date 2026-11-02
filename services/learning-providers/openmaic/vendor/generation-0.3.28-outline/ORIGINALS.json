@@ -1,0 +1,26 @@
+{
+  "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+  "source_prefix": "OpenMAIC-1.3.0/packages/@openmaic/generation/",
+  "generation_version": "0.3.28",
+  "license": "MIT",
+  "originals": {
+    "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+    "src/constants.ts": "74a5587d712ce45ad1ae1ff5dfbb6f52ca31ca81a8ab8a209f0d396bd79b5570",
+    "src/json-repair.ts": "dd0cfb6b1224e28c0e96ac5437e06074f5159ab5ec2cb93d4c81784bafcbedff",
+    "src/logger.ts": "f8fd9136c2d5a31881c7c00d8a1f1804ba04af5f9d76c85888296e2d0b481306",
+    "src/outline-formatters.ts": "bca91e5e5bfdc78b632b7eb0d41507f75107e16df207fc9c71c6299637997a6d",
+    "src/outline-generator.ts": "379f0e439f527ce88d4c62d64378e51ad83f72c4c689f29646c87201f155764e",
+    "src/outline-media.ts": "5ff63d0485aff789ff0a31fa5db7c3706217b4ce0dd851a3891e7c57c960e66e",
+    "src/outline-types.ts": "51a50c3954ba3ac2f27868d1fa5aace9b409ebcaafb140b2592fc105d9835f45",
+    "src/pipeline-types.ts": "e68821117129733c1193b07a2c681e3e00efea727225799422b731f1295c27ad",
+    "src/interactive-libraries.ts": "1c9f212d7e2010dd3e1f4889efe22825fcb1f52772b056e5a30fc58753f29de1",
+    "src/prompts/index.ts": "2d71a8c8e261b773562b2d2597d61690fa547a80c7aca9f5cc329b49a6c987ab",
+    "src/prompts/loader.ts": "584bd51c71c53c02e058df5209d9bcb1f73ff531677a9d7a3aa168d135a43e50",
+    "src/prompts/types.ts": "ed2a00db125fe1057d876dbb5a9212c38c323731bbc7f4df1c74c5d7be27a8da",
+    "templates/requirements-to-outlines/system.md": "813240c132acfe63007ddcf3dd764b47b5ad1d7b5005d47361ede3aa42614c65",
+    "templates/requirements-to-outlines/user.md": "79fe5ce9a64dc63f174bd1c99dd3e4f1feb2a00e2797edc2a11abc5ac2d6f9ff",
+    "snippets/image-instructions.md": "8acf722ec46e57739a8d29f485e542e178295a0ffd8449c38555de7e0469068e",
+    "snippets/video-instructions.md": "7e8f1ce6b4b0d680e65ca4a784544e6bdcdd1a659a72466a38c13f2a695e5b79",
+    "snippets/media-safety-guidelines.md": "3affbe74b1621faa3fd4cec7587063fcbca374b07f13e91129c74cac8d4c611c"
+  }
+}

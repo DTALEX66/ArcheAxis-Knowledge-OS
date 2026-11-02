@@ -1,3 +1,8 @@
+# Existing REQ/CAP identities and dated stage declarations are historical trace
+# metadata, not an independent current queue or qualification. Required scope and
+# acceptance follow CLOSED_LOOP_DEFINITION.md V3 and SUP-030/031/032; actual results
+# follow AAOS-ACTIVE-EXECUTION.json -> active_progress. Archive reconciliation is
+# recorded in workspace/intake/20261101-project-archiving-reconciliation/README.md.
 schema_version: "2.0"
 trace_name: "ArcheAxis Knowledge — Requirement Trace"
 updated: "2026-08-12"

@@ -1,0 +1,66 @@
+{
+  "name": "commander",
+  "version": "8.3.0",
+  "license": "MIT",
+  "archive_sri": "sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==",
+  "archive_sha256": "1b38e65f9229a84060ca5d041a58e3bc1ea374da6d933f9060ca86a67949c10b",
+  "archive_bytes": 39361,
+  "origin": "https://registry.npmjs.org/",
+  "fetch_run": "backend-verify-npm-commander-fetch-9aa2c4e0be",
+  "audit_run": "backend-verify-npm-katex-audit-b3193af45e",
+  "scripts_executed": false,
+  "files": {
+    "esm.mjs": {
+      "bytes": 256,
+      "sha256": "d590f9c55c9f8bfec81fdc4170b3e7653226a39956055aec657b52ae45495d88"
+    },
+    "index.js": {
+      "bytes": 798,
+      "sha256": "d4f8af488a7a08cd71df8503fcc3e5f2fd61e9b26eb368ecd5cc8159862cde3f"
+    },
+    "lib/argument.js": {
+      "bytes": 3164,
+      "sha256": "7859398cfac1869df6cbba646e7e437875185866b79ac70a5a3cd802fd4df96b"
+    },
+    "lib/command.js": {
+      "bytes": 62360,
+      "sha256": "69047076c77593471bbf1aa2ba5f01f0565bffa187d415a600d8ec5998d2056b"
+    },
+    "lib/error.js": {
+      "bytes": 1240,
+      "sha256": "c69bbc276b3c7fec052f930b9de091db2206646761f765a2077d5731f763dc55"
+    },
+    "lib/help.js": {
+      "bytes": 11889,
+      "sha256": "f07a902508e463968826dd36b567640a563f0192989355c6559723415951bcf2"
+    },
+    "lib/option.js": {
+      "bytes": 4869,
+      "sha256": "9dfc7ae4b048435196cbdd888819bb84253d2693460adfa262cffcbb31d6cf98"
+    },
+    "lib/suggestSimilar.js": {
+      "bytes": 2765,
+      "sha256": "2f96448988ab89b4acd941d298e51bb103544bf65b60eb0a4260a26a8b39bb57"
+    },
+    "LICENSE": {
+      "bytes": 1098,
+      "sha256": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b"
+    },
+    "package-support.json": {
+      "bytes": 231,
+      "sha256": "b07a441d1dbc88588a2e7f219d43a5ea9b7c429a44f119caa49229da86bb0063"
+    },
+    "package.json": {
+      "bytes": 1804,
+      "sha256": "5f5944b2fa479bf68003ca239940f8ad9cae893ddfc3662272a1855dfb9ce4db"
+    },
+    "Readme.md": {
+      "bytes": 36404,
+      "sha256": "9ee7c537cb5e335e2e9c383b3b08ee7361fd227fb83c86ffa35eedc9c7f92877"
+    },
+    "typings/index.d.ts": {
+      "bytes": 24389,
+      "sha256": "051ae0b0bda811703875e6f2e466b9344cfe320b39087676327dc0c109f26d32"
+    }
+  }
+}

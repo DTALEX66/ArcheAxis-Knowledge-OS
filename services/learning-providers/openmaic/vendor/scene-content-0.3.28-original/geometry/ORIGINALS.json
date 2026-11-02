@@ -1,0 +1,13 @@
+{
+  "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+  "source_prefix": "OpenMAIC-1.3.0/packages/@openmaic/geometry/",
+  "version": "0.1.0",
+  "license": "MIT",
+  "originals": {
+    "src/index.ts": "1ab4907b11abd1796bdd30ef46ef43d13c0136bda2da456cc42e647aa6e44f3e",
+    "src/shape-text-fallback.ts": "bee152b8538276d921be9db7414c7b14d286a7a6b7814329b5e68f837361dda3",
+    "package.json": "fa0ecd1ff32ff2218c3504e1ec558bf655499609870ca5f8aa9dfb01a6b35798",
+    "tsconfig.json": "e561a617d9ac6b0f0778c95ed176221787f07c3f3aedd09b4e8f594fb6afb1c5",
+    "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"
+  }
+}

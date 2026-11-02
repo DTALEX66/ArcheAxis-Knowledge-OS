@@ -1,0 +1,42 @@
+{
+  "name": "picocolors",
+  "version": "1.1.1",
+  "license": "ISC",
+  "archive_sri": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
+  "archive_sha256": "d3aedb2807967b7eb37fd11b03b7e3701e725af79c650d0812ff7213f8f882d9",
+  "archive_bytes": 2625,
+  "origin": "https://registry.npmjs.org/",
+  "fetch_run": "backend-verify-npm-postcss-picocolors-4ffabc42f8",
+  "audit_run": "backend-verify-npm-postcss-audit-0e275110cc",
+  "scripts_executed": false,
+  "files": {
+    "LICENSE": {
+      "bytes": 787,
+      "sha256": "6582629e2979466878f6014313dcc2f3756c9616148682227ce3063dde310750"
+    },
+    "package.json": {
+      "bytes": 552,
+      "sha256": "ef2ac226c4811d312e12c64214c453878653e834482125ae475f27cea60de737"
+    },
+    "picocolors.browser.js": {
+      "bytes": 598,
+      "sha256": "a2e045ba16013e35c7045797ae940e3ea1c0e0ada13467bc73f7538690ea091a"
+    },
+    "picocolors.d.ts": {
+      "bytes": 138,
+      "sha256": "8c5f0739f00f89f89b03a1fe6658c6d78000d7ebd7f556f0f8d6908fa679de35"
+    },
+    "picocolors.js": {
+      "bytes": 2663,
+      "sha256": "213bb870fcaad4def0215fe34fbb0f529836cc4d2462e02f14f1a49d09781625"
+    },
+    "README.md": {
+      "bytes": 622,
+      "sha256": "5027b2836551ea0f91fa27b97335de905e24e1459d590eacfa45c0156962b70c"
+    },
+    "types.d.ts": {
+      "bytes": 1013,
+      "sha256": "590595c1230ebb7c43ebac51b2b2da956a719b213355b4358e2a6b16a8b5936c"
+    }
+  }
+}

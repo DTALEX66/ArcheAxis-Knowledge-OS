@@ -1,0 +1,29 @@
+{
+  "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+  "source_prefix": "OpenMAIC-1.3.0/packages/@openmaic/dsl/",
+  "version": "0.12.0",
+  "license": "MIT",
+  "originals": {
+    "src/action.ts": "90cfe76897cf3b791bd344a06921c7a7b154f53f7b15f6b8d4ed401a3a3ddfa8",
+    "src/asset-manifest.ts": "fb57e7898d6c9f41906fe8671661924a3e1ca20a03caa4156cc8667f01aa4f2a",
+    "src/course-issues.ts": "374fc5e15c4c3ac2ddd3c84e958bd1b9ec7fe5a7e9810d6f3c2a392e89605230",
+    "src/guards.ts": "56f5d295a88c17823227f19c1efcc5924a83abcdec801aaad7e7b114e79ff02c",
+    "src/index.ts": "ca311f38f9be3533c31186f17ae2468512705857bc26de9a275a3887e54f7055",
+    "src/interactive.ts": "05135f12f827a2dc0220569368343eb31ee4c01b9449cf1395a0226ed8162299",
+    "src/legacy-line-geometry.ts": "0cd692fd6bbdb6df9f50b97092c4e44d1700ce136aca63ac4767494e1aaa205f",
+    "src/math-render.ts": "3e932308c522c96223901537b6d77cf6f474004ae9909e944eae1607ec2e9f30",
+    "src/media-address.ts": "3fc92714ddb6d42630c834a6a2e2d3aaab486373d05acccbf7700277eec1c82f",
+    "src/normalize.ts": "e4f21f3273d9d65dadd53768afc5049b5473d087d1c525ea804c3d057b5ecf06",
+    "src/pbl.ts": "5076efe66d44ec6e91cb89bfc07a7eee994cf73c1ea64475e4f8e07881be74f0",
+    "src/runtime.ts": "304f0d2d84b49aa2a5bb91af31bf422496aa8b2565e1be109a881b624e52d175",
+    "src/slide-media-slots.ts": "117b9c5adb58b5ebe21a7913429505668cf37060b103beaca8a0f700d8ae6fee",
+    "src/slides.ts": "e456737f7ebcbb6da04fac53e73525dc313397aa5e323dc537d6f1204a5d3f1b",
+    "src/stage.ts": "b8ce1ac2cff5a37e7fee7b23a1eb4df59499f0357366d80166163d7b32a9fc6a",
+    "src/storage.ts": "8157cab8538cae50b98533c101cef7dd4f84c14472c70ee5895f9b56da546cff",
+    "src/validate.ts": "3daf0ecc98ebbde90f04e34e4b4176cb5b0aca62298592ed7b6077c3a0af4f8b",
+    "src/version.ts": "fdd261439aeefd64facdabc6303bee6f8c218d0564b58783428b0b962d095d22",
+    "package.json": "847c2f4054034aab29586171872cb64a0f0b4e39db8dd9b8c50cff5e67014c98",
+    "tsconfig.json": "e561a617d9ac6b0f0778c95ed176221787f07c3f3aedd09b4e8f594fb6afb1c5",
+    "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"
+  }
+}

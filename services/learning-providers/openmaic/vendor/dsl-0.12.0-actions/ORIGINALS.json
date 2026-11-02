@@ -1,0 +1,11 @@
+{
+  "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+  "source_prefix": "OpenMAIC-1.3.0/packages/@openmaic/dsl/",
+  "version": "0.12.0",
+  "license": "MIT",
+  "originals": {
+    "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+    "package.json": "847c2f4054034aab29586171872cb64a0f0b4e39db8dd9b8c50cff5e67014c98",
+    "src/action.ts": "90cfe76897cf3b791bd344a06921c7a7b154f53f7b15f6b8d4ed401a3a3ddfa8"
+  }
+}

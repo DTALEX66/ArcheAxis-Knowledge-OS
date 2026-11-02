@@ -148,7 +148,7 @@ fn v8_migration_and_online_backup_restore_preserve_candidate() {
     let (m, b) = fixture(&mut conn);
     // Synthetic v8 course-shape fixture: later document/teaching tables cannot
     // remain in a database labelled v8. Preserve the actual source/knowledge.
-    conn.execute_batch("DROP TABLE teaching_withdrawals;DROP TABLE teaching_records;
+    conn.execute_batch("DROP TABLE learning_provider_attempts;DROP TABLE learning_provider_activities;DROP TABLE teaching_withdrawals;DROP TABLE teaching_records;
         DROP TABLE document_blocks;DROP TABLE document_checks;DROP TABLE document_versions;DROP TABLE documents;
         DROP TABLE general_course_bindings;DROP TABLE general_course_artifacts;DROP TABLE general_courses;
         UPDATE workspace_meta SET value='8' WHERE key='schema_version';").unwrap();

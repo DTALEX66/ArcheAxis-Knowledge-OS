@@ -1,0 +1,46 @@
+{
+  "name": "es-module-lexer",
+  "version": "2.0.0",
+  "license": "MIT",
+  "archive_sri": "sha512-5POEcUuZybH7IdmGsD8wlf0AI55wMecM9rVBTI/qEAy2c1kTOm3DjFYjrBdI2K3BaJjJYfYFeRtM0t9ssnRuxw==",
+  "archive_sha256": "723f195974be6363e0b5c75824b2ac24a9ded20de98e298f3ec33b8c7f17b43a",
+  "archive_bytes": 32377,
+  "origin": "https://registry.npmjs.org/",
+  "fetch_run": "backend-verify-npm-es-fetch-6e9aa3a383",
+  "audit_run": "backend-verify-npm-es-audit-63de9e7bc2",
+  "scripts_executed": false,
+  "files": {
+    "LICENSE": {
+      "bytes": 1095,
+      "sha256": "fecc38b5e10d889686b3862e7ade17e8b3e5c94b24b7256b05a354d8524b3274"
+    },
+    "README.md": {
+      "bytes": 11423,
+      "sha256": "d85ead05690ae9118b36a911b7122ed0f6d0ed3ce605dd776ff61357b3c2e033"
+    },
+    "dist/lexer.asm.js": {
+      "bytes": 21184,
+      "sha256": "e1fc80f5096702350c2e30ff4095e35fddc98fb07b902bf2e5d9a8e70e6f82af"
+    },
+    "dist/lexer.cjs": {
+      "bytes": 14787,
+      "sha256": "4fce6f80c9919dd063de1dce2e06a85a3948109263115223a8fb7b0deeca953c"
+    },
+    "dist/lexer.js": {
+      "bytes": 14668,
+      "sha256": "4cc7b4f14ce0dbcece5154e4f069217e013b8f04098adde99d230228977c016e"
+    },
+    "lexer.js": {
+      "bytes": 26599,
+      "sha256": "868ab413367cc9d85ed9cbe5aedcdbaeb97b4e968b0c2cd8ba45d408e3f6739f"
+    },
+    "package.json": {
+      "bytes": 1464,
+      "sha256": "98175eed3b65f199b6482325421978a42a7e17fc2e52d04055c83f1e58eb210b"
+    },
+    "types/lexer.d.ts": {
+      "bytes": 6103,
+      "sha256": "eb4f66ca424c996c2defcfb03e901a408bee2d992020104ed587e243a872acc4"
+    }
+  }
+}

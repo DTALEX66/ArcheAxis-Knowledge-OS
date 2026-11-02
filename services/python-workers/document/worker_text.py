@@ -61,6 +61,153 @@ LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+", re.MULTILINE)
 DEPTH_UNIT = "nested containers, the outermost one counts as 1"
 
 
+class TextCharsetError(ValueError):
+    """A text/plain charset declaration cannot be safely applied."""
+
+
+_TEXT_CHARSETS = {
+    "utf-8": "utf-8", "utf8": "utf-8",
+    "utf-16": "utf-16", "utf16": "utf-16",
+    "utf-16le": "utf-16-le", "utf-16-le": "utf-16-le", "utf16le": "utf-16-le",
+    "utf-16be": "utf-16-be", "utf-16-be": "utf-16-be", "utf16be": "utf-16-be",
+    "gbk": "gbk", "cp936": "gbk", "gb2312": "gb2312", "gb18030": "gb18030",
+    "windows-1252": "cp1252", "cp1252": "cp1252",
+    "iso-8859-1": "iso-8859-1", "latin1": "iso-8859-1", "latin-1": "iso-8859-1",
+    "us-ascii": "ascii", "ascii": "ascii",
+}
+
+
+def _plain_parameters(media_type: str) -> list[tuple[str, str | None]]:
+    """Split parameters only at unquoted semicolons and validate quoted pairs."""
+    parameters = media_type.split(";", 1)[1]
+    fields = []
+    start = 0
+    quoted = False
+    escaped = False
+    for index, character in enumerate(parameters):
+        if quoted:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                quoted = False
+        elif character == '"':
+            quoted = True
+        elif character == "\\":
+            raise TextCharsetError("invalid text/plain parameter escape")
+        elif character == ";":
+            fields.append(parameters[start:index])
+            start = index + 1
+    if quoted or escaped:
+        raise TextCharsetError("unclosed text/plain parameter quote or escape")
+    fields.append(parameters[start:])
+
+    result = []
+    for field in fields:
+        if not field.strip(" \t"):
+            continue
+        name, separator, value = field.partition("=")
+        name = name.strip(" \t")
+        if not re.fullmatch(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+", name):
+            raise TextCharsetError("invalid text/plain parameter name")
+        if not separator:
+            result.append((name, None))
+            continue
+        value = value.strip(" \t")
+        if value.startswith('"'):
+            decoded = []
+            index = 1
+            while index < len(value):
+                character = value[index]
+                if character == "\\":
+                    index += 1
+                    if index >= len(value):
+                        raise TextCharsetError("unclosed text/plain parameter escape")
+                    decoded.append(value[index])
+                elif character == '"':
+                    if value[index + 1:].strip(" \t"):
+                        raise TextCharsetError("invalid text/plain parameter after quote")
+                    break
+                else:
+                    decoded.append(character)
+                index += 1
+            else:
+                raise TextCharsetError("unclosed text/plain parameter quote")
+            value = "".join(decoded)
+        elif '"' in value or "\\" in value:
+            raise TextCharsetError("invalid text/plain parameter quote or escape")
+        result.append((name, value))
+    return result
+
+
+def _declared_plain_charset(media_type: str) -> str | None:
+    """Extract one bounded text/plain charset without applying it to other formats."""
+    if (media_type or "text/plain").split(";", 1)[0].strip().lower() != "text/plain":
+        return None
+    if not media_type:
+        return None
+    if any((ord(character) < 32 and character != "\t") or ord(character) == 127
+           for character in media_type):
+        raise TextCharsetError("invalid text/plain charset declaration")
+    if ";" not in media_type:
+        return None
+    declarations = []
+    for name, value in _plain_parameters(media_type):
+        name = name.casefold()
+        if name.startswith("charset*"):
+            # RFC 2231 extended/continued values are deliberately unsupported.
+            raise TextCharsetError("extended text/plain charset declarations are unsupported")
+        elif name == "charset":
+            declarations.append(value)
+    if not declarations:
+        return None
+    if len(declarations) != 1:
+        raise TextCharsetError("multiple text/plain charset declarations")
+    value = declarations[0]
+    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", value):
+        raise TextCharsetError("invalid text/plain charset declaration")
+    if value.casefold() not in _TEXT_CHARSETS:
+        raise TextCharsetError("unsupported text/plain charset")
+    return value
+
+
+def _decode_declared_plain(raw: bytes, declaration: str) -> tuple[str, dict]:
+    codec = _TEXT_CHARSETS[declaration.casefold()]
+    ambiguity = None
+    if raw.startswith(b"\xff\xfe\x00\x00") and codec in {"utf-16", "utf-16-le"}:
+        ambiguity = ("prefix FF FE 00 00 is ambiguous between a UTF-16LE BOM followed by NUL "
+                     "and a UTF-32LE BOM; decoded according to the declared UTF-16")
+    elif raw.startswith(b"\x00\x00\xfe\xff") and codec in {"utf-16-le", "utf-16-be"}:
+        ambiguity = ("prefix 00 00 FE FF is ambiguous between UTF-16 data "
+                     "and a UTF-32BE BOM; decoded according to the declared UTF-16 byte order")
+    # An explicit UTF-16 byte order takes precedence when a four-byte prefix is
+    # also interpretable as text beginning with NUL rather than a UTF-32 BOM.
+    if raw.startswith(b"\x00\x00\xfe\xff") and codec not in {"utf-16-le", "utf-16-be"}:
+        raise TextCharsetError("text/plain charset conflicts with an unsupported UTF-32 BOM")
+    loss_note = None
+    if raw.startswith(b"\xef\xbb\xbf"):
+        if codec != "utf-8":
+            raise TextCharsetError("text/plain charset conflicts with UTF-8 BOM")
+        codec, loss_note = "utf-8-sig", "UTF-8 BOM stripped"
+    elif raw.startswith(b"\xff\xfe"):
+        if codec not in {"utf-16", "utf-16-le"}:
+            raise TextCharsetError("text/plain charset conflicts with UTF-16LE BOM")
+        codec, loss_note = "utf-16", "UTF-16 BOM decoded"
+    elif raw.startswith(b"\xfe\xff"):
+        if codec not in {"utf-16", "utf-16-be"}:
+            raise TextCharsetError("text/plain charset conflicts with UTF-16BE BOM")
+        codec, loss_note = "utf-16", "UTF-16 BOM decoded"
+    elif codec == "utf-16":
+        raise TextCharsetError("text/plain utf-16 declaration requires a BOM")
+    try:
+        text = raw.decode(codec, errors="strict")
+    except UnicodeError as exc:
+        raise TextCharsetError("text/plain bytes are invalid for declared charset") from exc
+    return text, {"encoding": codec, "loss_note": loss_note, "bom_ambiguity": ambiguity,
+                  "declared_charset": declaration, "charset_source": "explicit_parameter"}
+
+
 def decode_bytes(raw: bytes, source: str = "<bytes>") -> tuple[str, dict]:
     """Deterministic decode: BOM-aware, strict UTF-8, documented fallbacks."""
     if raw.startswith(b"\xef\xbb\xbf"):
@@ -465,7 +612,20 @@ def extract(path: str, media_type: str = "text/plain", member_dir: str | None = 
         structured_raw = raw
         text, decode_note = "", {"encoding": "MIME/container charset", "loss_note": ""}
     else:
-        text, decode_note = decode_bytes(raw, source=path)
+        declared_charset = _declared_plain_charset(media_type)
+        text, decode_note = (_decode_declared_plain(raw, declared_charset) if declared_charset is not None
+                             else decode_bytes(raw, source=path))
+        if media == "text/plain" and declared_charset is None:
+            if raw.startswith(b"\xff\xfe\x00\x00"):
+                decode_note["bom_ambiguity"] = (
+                    "ambiguous prefix FF FE 00 00: possible UTF-16LE BOM followed by NUL or UTF-32LE BOM; "
+                    "without a declared charset the intended encoding is uncertain, and the existing fallback was applied"
+                )
+            elif raw.startswith(b"\x00\x00\xfe\xff"):
+                decode_note["bom_ambiguity"] = (
+                    "ambiguous prefix 00 00 FE FF: possible UTF-16 data or UTF-32BE BOM; "
+                    "without a declared charset the intended encoding is uncertain, and the existing fallback was applied"
+                )
         structured_raw = text.encode("utf-8")
     try:
         parsed = light.parse(structured_raw, media) if light is not None else None
@@ -530,6 +690,17 @@ def extract(path: str, media_type: str = "text/plain", member_dir: str | None = 
         "coverage": covered / total if total else 1.0,
         "loss_note": "; ".join(losses) if losses else "no transform applied",
     }
+    if "declared_charset" in decode_note:
+        loss_receipt["params"]["declared_charset"] = decode_note["declared_charset"]
+        loss_receipt["params"]["charset_source"] = decode_note["charset_source"]
+        projection = ("decoded using the declared charset and projected as UTF-8; "
+                      "the worker did not overwrite the input file")
+        notes = [*losses]
+        if decode_note.get("bom_ambiguity"):
+            notes.append(decode_note["bom_ambiguity"])
+        loss_receipt["loss_note"] = "; ".join([*notes, projection])
+    elif decode_note.get("bom_ambiguity"):
+        loss_receipt["loss_note"] = "; ".join([*losses, decode_note["bom_ambiguity"]])
     if total == 0:
         loss_receipt["loss_note"] += "; no lines to anchor; zero-line coverage defined as 1.0"
     return {

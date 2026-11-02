@@ -1,0 +1,114 @@
+你是AAOS本地Codex新会话的执行整合者。请直接接手并持续推进，不要只回复计划或能力说明。
+
+一、当前Owner请求与目标
+
+项目：D:\All projects\ArcheAxis-Knowledge-OS
+Owner本次原话：
+“拆分后续任务 D:\All projects\新建文件夹 (2) 这里有两个平台软件源码 抓紧并入到项目里 给我新会话完整提示词”
+“还有未完成的任务”
+
+执行目标：尽快把DeepTutor 1.7.1与OpenMAIC 1.3.0适用能力接入现有AAOS，实际实现、使用、反馈和恢复；同时承接全部既有未完成任务。先做完整可用切片，再继续覆盖适用能力，不能交付一份注册表/研究清单就停，也不能以一条导入或一个模型回答宣布平台/完整闭环完成。
+
+当前请求选定两供体接入实现；此前只做文档/归档的回合范围不否定这次新任务。全面布局重排、取消的截图/素材批次、监控、发布、Green替换和真实库覆盖仍不自动恢复。必要局部功能接线沿现有界面结构实施，避免与其他界面工作冲突，不重新设计整套布局。
+
+二、先读取以下本仓文件，保护现场
+
+按根AGENTS规则，先读PROJECT_CURRENT.md，再读：
+1. AUTHORITY.md第0节；docs/history/owner-dialogue-20261101-current-goals/README.md。
+2. docs/truth/PRODUCT_IDENTITY_V2.md；docs/truth/CLOSED_LOOP_DEFINITION.md。
+3. docs/current/AAOS-ACTIVE-EXECUTION.json：owner_scope_current、execution_control、continuation_context及active_progress。
+4. 活动指针选定的唯一执行记录docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md末段，及当前交接。
+5. workspace/intake/20261101-learning-platform-integration/README.md、MANIFEST.json、FOLLOWUP-WORKBREAKDOWN.md和本提示词。
+6. 选定原任务包TASKPACK/TASKS/PAGE-PLAN/FREEZE与本任务相关合同；不要默认扫描整个历史树。
+
+最新产品基准只有Owner确认的AUTHORITY + 近两日13组对照 + 定位V2.3 + 唯一闭环V3。其他包均为历史/补充，不得重选旧定位。AAOS是通用知识底座与Human–AI双向学习：人类学习链不冻结；AI侧将任何领域AI工作中的内容、成果、问题、失败、方法、工作流、规范和更新转为可复用知识，经治理、授权使用、反馈纠正、版本更新和独立复测。不限编程，不是收集管理所有Agent原始上下文。原始会话归来源系统。来源用于回查和多源比较，普通保存不以联网/人工事实审批为前置。
+
+立即读git status/分支/HEAD。交接准备起点为codex/candidate-input-normalization-20261101，HEAD 08d96fc64c6856ad03e51dfff298183eafadfbfa，当时已有55项公开dirty；这是时点，不代表现在全部新文件数。保全全部dirty/untracked/intent-to-add及精确patch身份；HEAD不含这批未提交工作。禁止hard reset、git clean、整树覆盖或把此前成果丢回HEAD。创建隔离分支/worktree前必须保全并承接有效未提交规范，不在干净旧HEAD上丢失V2.3/V3和新资料。
+
+三、两个源码已在本仓，无需依赖外部目录
+
+DeepTutor：
+.project-local/archives/owner-inputs/20261101-learning-platform-sources/DeepTutor-1.7.1.zip
+SHA-256：9614f50cfe2cef476c25ad378631f5a5d15a7c0f3f54ef1fa3180c8f41286262
+4471文件，5049含目录成员；主源码版本由deeptutor/__version__.py声明1.7.1，Web包1.0.0不是主版本。
+
+OpenMAIC：
+.project-local/archives/owner-inputs/20261101-learning-platform-sources/OpenMAIC-1.3.0.zip
+SHA-256：7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40
+3830文件，4438含目录成员；主应用1.3.0。
+
+两ZIP共134,466,253B，原字节与全部成员CRC已验证。主许可证分别Apache-2.0、MIT，精确成员/license SHA在MANIFEST。OpenMAIC这份版本根及generation/renderer包实际是MIT，不沿用旧版许可证判断。依赖、字体、素材和模型权利分别核，不把主许可证当所有东西已审清。采用代码保留许可证/版权、来源和修改记录。
+
+原件只在Git忽略区保全；选择必要源码/模块入正式工程，不整包展开到根目录，不塞入node_modules/重复模型/多份构建。外部“新建文件夹 (2)”仅来源身份，保持只读。旧历史原件有效读取沿workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json，865对象+13管理来源都在本仓；搬迁需带.project-local/archives，Git clone不含忽略原件。禁止把完整对话、凭证、运行库上传。
+
+四、并行拆分：每个写集一名writer
+
+按工具实际并发槽执行，通常整合者加三个独立lane：
+A. DeepTutor 1.7.1隔离运行/正式Core桥/局部学习消费者。
+B. OpenMAIC课程v2/generation/DSL/renderer与Core事件。
+C. 持续增长治理、候选输入归一与外溢来源、后继资格。
+整合者负责共同合同、根入口/活动指针/唯一进度、生成文件、许可证闭包、合并与最终验收。先冻结共享DTO/协议，再并行实现；真实验收时冻结目标源码。空闲后另派独立反例审查，不让writer自签全部产品资格。
+
+按难度匹配可用模型/推理：高复杂合同/架构可用gpt-6-astra/high，明确模块实现用gpt-6.1-sol/high，低风险资料核对用可用较轻模型。工具不支持时继承模型，不为分派改全局provider或配置。不同Lane不得互改同文件，不超并发限制，不假设子任务自动继承授权/上下文。
+
+五、DeepTutor落地任务
+
+1. 复用C013与现有authority投影/candidate/权限边界，但旧1.5.17 installed/HTTP200不能继承给1.7.1；新建精确版本候选资格，不只替换launch pin。数据/home/cache放本仓任务隔离区，.hermes只保留历史，不新增写。
+2. 旧app/integrations/deeptutor_bridge.py.accept_event最终调用app.learning.event_store.append_event(db_path)，读写source_objects_v2/anchors_v2/learning_events_v2，是旧Python业务模型，不能作为正式canonical writer复活。正式接缝先查src-tauri/src/core_bridge.rs的LearningItems/State/History/Review和对应Rust API真实schema/handler。
+3. 供体deeptutor/api/routers/practice.py有queue/question/check/review。review含answer/self_report/request_id/version/rating，会写供体PracticeStore；只作可重建运行投影。确认实际router prefix和DTO后映射Core，稳定source_version/activity/attempt/client_event_id；canonical持久化仅Rust Core。
+4. 首片：固定Document版本→Core授权快照→真1.7.1练习题→人作答→Rust保存版本绑定attempt/result→重复只落一次→取消/迟到结果→重启与导出恢复。供应方评分、自报完成、独立掌握分别表达。禁用供体后普通学习保存继续。
+5. 需要真实模型时复用现行已授权本地路线，显式产品配置，不自动借Codex/Claude/GitHub/浏览器鉴权或读取外部Agent会话；不得偷偷回退云端。继续适用教程、练习、研究、反馈等能力，逐项映射现有任务，不能首片完成即称整个DeepTutor接入完成。
+
+六、OpenMAIC落地任务
+
+1. 优先复用@openmaic/generation 0.3.28、@openmaic/dsl 0.12.0、@openmaic/renderer 0.2.0，选择必要依赖。避免整站Next16/React19/Postgres/Agent持久化与AAOS并存成第二知识系统。
+2. 现有frontend/src/adapters/openmaicCourse.ts是旧pin 6b83751a87896df99c47e98c20cea40cec09efb4、256KiB、formatVersion1、quiz-only；packages/contracts/learning/v1/imported-course.schema.json的旧SHA是const。新增课程v2与明确分派，保留v1 reader/旧产物，不简单改常量破坏旧课。
+3. 复用presentation/importedCourseStorage.ts的source_import→原字节比对→document_create/get，以及ImportedCoursePanel.tsx/CanonicalLearningJourneySpace.tsx。先完成不依赖模型的导入→slide+quiz实际播放→作答反馈→重启→导出恢复；所有业务写经Core。TeachingStageWorkspace文字投影不是现成完整播放器。
+4. generation的AICallFn(systemPrompt,userPrompt,images?)接既有模型底座；generateSceneOutlinesFromRequirements/generateSceneContent/generateSceneActions/buildCompleteScene产候选，固定sceneId重试，Core管task/attempt/result。缺模型、invalid-model-output/prompt-unavailable/null如实失败；课程必须沿第3项实际消费，不能只测连接。
+5. renderer是渲染组件而非完整播放器；React>=18/motion>=11可局部适配，Tailwind>=4需局部构建/样式隔离，不升级全前端框架。可选fonts.css默认指外部CDN，首片不引入，系统字体回退验证中文；媒体和外部URL仍需权限/离线退路，不把资源改写当全离线。
+6. 继续动作/讲解/白板/语音、interactive/PBL、PPTX/importer/editor等适用能力，逐项标采用/实际实现/未验/有依据延期。交互HTML隔离；PBL接R6外部实践与文字回流，不建设专业生产工具。
+7. archeaxis-sidecar-protocol/src/worker.rs现TEXT_SCHEMAS仅text/document-structure/loss-receipt，不代表课程引擎协议已实现；按现有worker原则补合同和能力生命周期，不另建调度器。
+
+七、既有未完全部接续，不能被两个供体替代
+
+详细15组矩阵及证据定位已入FOLLOWUP-WORKBREAKDOWN.md，必须读取并逐组保留原ID。执行优先序：治理控增长与两供体并行→真实小切片→其余本期required和同候选资格→精确SHA交付；等待/延期项显式保留。
+
+1. S01.A/B/C、G01：把其余stager/build、local_pinned_packaging及linked-worktree common-owner接入既有增长/保留/恢复门禁；operator固定基线、类预算、2GiB复核、claim/seal规则不放宽，不另造预算框架。
+2. 存量布局：303只是旧浅层快照；早期49项清单须与latest-only实删及后继5叶归位对账，保留未确认项。按实际消费者与恢复映射清理，不把旧总数当当前扫描。逻辑B、压缩差、物理释放分开。
+3. 外溢/Green mig三处来源及替代账：先查本仓归档/ZIP/精确SHA，再判缺失；不据失效旧路径宣布丢失或全迁移，不扫磁盘/home，不删未知/私有/真实库。
+4. 六主候选/各硬钉消费者：cnprep3、bpr1、cppcand1、zc1c8、sci-build1等沿原映射归一、恢复、逐包重新资格后才退役旧载荷，不先删旧包。
+5. Host三角色输入53,668,973B已准备，不重做；cpphost-input1/SOURCE-MAP及三hash复核后继续完整消费者。HOST_INPUT_PREPARED不等于整包合格；WHOLE_PACKAGE_HOLD仍保留；--donor-manifest指553B pin而非大manifest。
+6. PR205/35f696及CI41267526637、main与后继公开dirty交付：先现场读远端，当前交接未联网核终态。按既有公开交付授权继续必要提交/推送/PR、精确SHA门禁、合格合并、已吸收旧分支删除与对应ref读回。不得强推/绕过保护/上传忽略原件，不因旧pending或PASS猜今日状态。
+7. F01/F02/F04：历史云编码外发豁免、外部/未知/私有引用、硬链接归属及旧清场终态的未核边界继续保留；新Popen模拟不能追认历史。F03后继已补，zc1c8安装态冲突子集已执行，别重复派“guest冲突待设计”。
+8. F05真实学习改善：REAL-V2首题正确/有效，第二HTTP503 INVALID_OUTPUT/content/length、2048 token上限且根因未证；packet=null/members=[]，迁移/干预/纠正独立复测未执行，改善NOT_ESTABLISHED。固定原问题/量规/负控，不能提预算、去围栏或改正确答案来洗掉FAIL。
+9. R6 E01—E10/CL05/J5/X7：开始、自报完成、独立掌握、教程替换/跳过、计划版本、第二消费者、同候选恢复逐项补真实旅程。文字实践/Feedback/typed草稿冷恢复只有限子集；51共享操作缺第二消费者仍补，不把186静态映射当运行。
+10. V3-F01—04：选择性本地重基适用detector/worker安装定位/full-suite候选，修reproduce脚本system-site/固定输出问题；不叠加六个中间patch或用整包覆盖现树。旧差异数字、旧测试不当当前Windows/Core资格。
+11. V3-F05/S31-E01两历史stdout及执行时绑定缺口保留MISSING/UNVERIFIED；不补造日志/事后补签。时区误读已撤回、V3-F06模板缺件已关，不重派。
+12. 全CL01—07/J1—6/X1—8：常用多格式内容可用、百科/社区/科研真实免费检索、非企业知识库特色、学习/AI资产、四消费者当前性、同候选可靠性；22格式/37平台、186/22原ID及required不得丢。供体新增只是增量，不取消本期其他承诺。
+13. 安装态真实AI、真正跨版本升级/回退：同版本重装不等于跨版本；宿主LM Studio不等于guest内真实消费。先核Owner精确授权；不自行改监听、Sandbox Networking、模型/provider或版本。能做其他合法隔离路径就继续，不伪造安装资格。
+14. UI实际PARTIAL：UI06/18/21/23/24、Owner视觉接受、持久跨重启日志/未捕获异常兜底、普通术语、教学第5条差异和当前同候选资格。历史2399P/7F已有后继修复：24d为2406P，V12为2418/2418P且有真实引导/导航，不能再派“七失败尚未修/原生全未跑”。V12资格不移绑当前树；大布局/取消素材仍不自动恢复。
+15. 云端专业接口须按期验收；真实云推理仍另记后续未执行，不阻塞本地首版；原始上下文外接NOT_CONNECTED不等于接收候选已真采集。保留动画/仿真/3D/VR/AR/空间记忆等长期能力，但不借本次重建通用Agent OS/Marketplace或自动激活FT/V01。
+
+证据优先沿唯一执行记录及以下精确入口：
+docs/history/storage-cleanup/2026-11-01-governance-followup/CONTINUATION-5.json
+docs/history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md
+docs/history/backend-response-format-20261031/REAL-V2.md
+docs/history/asset-scoped-real-model-20261031/README.md
+workspace/intake/20261030-r6-external-practice-boundary-review/
+workspace/intake/20261031-cloud-integration-v3-review/
+workspace/intake/20261101-cloud-integration-v3-1-review/
+workspace/intake/20261101-log-binding-addendum-review/
+
+八、验收和交付纪律
+
+正式宿主Tauri/React，Rust Core是唯一canonical SQLite/CAS写入者；Python/Node供体隔离、可替换。复用现有能力中心、Document/AiAsset/学习活动/任务和版本权限，不造第二知识库/LMS/账号真值或跨项目共享业务DB。AI-WORK-LAB是独立融合后项目，不是AAOS依赖。
+
+按改动风险做最小必要测试。至少覆盖旧课程继续可读、新版本/schema未知、坏SHA、越预算、重复事件、撤权、取消/超时/迟到结果、缺模型、null/无效输出、未知renderer、缺媒体/离线、provider升级回退、重启/导出恢复不重放事件；普通保存不因供体缺失被阻塞。
+
+使用PowerShell 7、项目.venv及scripts/runtime/dev.py；临时文件/日志/依赖缓存/构建通过.project-local按run隔离，不在根/源树/home散落，不改全局PATH/依赖/provider设置。大型安装/构建前接入既有体积门禁，避免再膨胀。普通可逆步骤自行决策、静默推进，只报告实质阻塞和阶段结果；授权内正常提权，权限拒绝不得换工具绕过，确需Owner手工则提供已具体化的精确命令及原因。
+
+静态读源/归档/单测/mock/真实Core-worker/真实本地模型/同候选原生安装/精确SHA CI/Green/Owner接受分别记账，保留原FAIL/INVALIDATED/skip。前轮131治理检查、878本地来源定位、45近期包和125恢复成员已完成，不重复制/重审全历史，也不能当新供体运行资格。
+
+实际实施与未完成只回写现有唯一执行记录，并同步活动指针、相关规范、根入口、引用和源绑定；FOLLOWUP拆分只是交接快照。公开源码提交/合并依既有授权及真实门禁进行，归档/私有/运行数据本地保全，不强推，不随PASS自动发布、更新Green或覆盖真实库。
+
+开始时先简短确认现场与并行分工，随即实施INT-00、DeepTutor正式Core桥、OpenMAIC兼容合同/离线完整片及P0治理，不再停留于重复整理文档。每阶段交付可检查的代码、输入版本、命令与原退出码、输出/损失/失败、恢复证据、未完ID及下一步。明确未完成而不假称全部完成。

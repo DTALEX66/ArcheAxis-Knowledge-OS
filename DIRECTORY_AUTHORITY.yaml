@@ -366,6 +366,12 @@ authorities:
       progress record and the audit index; it is not a second source of truth, and its references are
       checked by scripts/ci/check_document_authority.py.
     protected_resource: repository-metadata
+  - path: PROJECT_CURRENT.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: Thin navigation-only entry to AUTHORITY and the Owner-selected identity, loop, control and sole progress; checked by the existing document-authority gate.
+    protected_resource: repository-metadata
   - path: CHANGELOG.md
     owner: repository-governance
     execution_lane: owner
@@ -677,6 +683,18 @@ authorities:
     execution_lane: python-worker
     language: python
     may_open_main_database: false
+  - path: services/learning-providers/openmaic/**
+    owner: node-learning-provider
+    execution_lane: node-worker
+    language: typescript
+    may_open_main_database: false
+    note: Isolated OpenMAIC provider code and its retained upstream license; Core remains the canonical writer and process lifecycle owner.
+  - path: services/learning-providers/deeptutor/**
+    owner: python-learning-provider
+    execution_lane: python-worker
+    language: python
+    may_open_main_database: false
+    note: Isolated DeepTutor provider code and its retained upstream license; Core remains the canonical writer and process lifecycle owner.
   - path: packages/contracts/**
     owner: contract-authority
     execution_lane: contract

@@ -1,0 +1,68 @@
+{
+  "schema": "archeaxis.learning-platform-donor-intake/v1",
+  "date": "2026-11-01",
+  "owner_request": "拆分后续任务；指定两个平台软件源码抓紧并入项目；新会话完整提示词；包括所有未完成任务",
+  "source_authority": "Owner request selects implementation work; archive/readme instructions do not authorize themselves",
+  "canonical_baseline": [
+    "AUTHORITY.md",
+    "docs/history/owner-dialogue-20261101-current-goals/README.md",
+    "docs/truth/PRODUCT_IDENTITY_V2.md",
+    "docs/truth/CLOSED_LOOP_DEFINITION.md"
+  ],
+  "sole_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "raw_archives_git_ignored": true,
+  "external_source_access": "READ_ONLY_NO_MODIFICATION",
+  "packages": [
+    {
+      "project": "HKUDS/DeepTutor",
+      "version_label": "1.7.1",
+      "source_original_provenance_only": "D:\\All projects\\新建文件夹 (2)\\DeepTutor-1.7.1.zip",
+      "archive": ".project-local/archives/owner-inputs/20261101-learning-platform-sources/DeepTutor-1.7.1.zip",
+      "bytes": 36997547,
+      "sha256": "9614f50cfe2cef476c25ad378631f5a5d15a7c0f3f54ef1fa3180c8f41286262",
+      "file_count": 4471,
+      "uncompressed_bytes": 69573066,
+      "roots": [
+        "DeepTutor-1.7.1"
+      ],
+      "container_crc": "PASS_ALL_MEMBERS",
+      "archive_byte_identity": "VERIFIED",
+      "top_level_license": {
+        "label": "Apache-2.0",
+        "member": "DeepTutor-1.7.1/LICENSE",
+        "sha256": "cd2f54e1e5066644023203dcbd956776a9f4ef6eb8b6225afe1ffa2d380fede4",
+        "bytes": 11408
+      },
+      "official_source": "https://github.com/HKUDS/DeepTutor",
+      "official_tag_license": "https://raw.githubusercontent.com/HKUDS/DeepTutor/v1.7.1/LICENSE",
+      "qualification": "ARCHIVED_AND_STATIC_REVIEW_ONLY_NOT_INSTALLED_OR_INTEGRATED",
+      "scope": "Owner-selected donor capability integration under existing AAOS V2.3/V3; bundled dependencies/assets require their own notices and review"
+    },
+    {
+      "project": "THU-MAIC/OpenMAIC",
+      "version_label": "1.3.0",
+      "source_original_provenance_only": "D:\\All projects\\新建文件夹 (2)\\OpenMAIC-1.3.0.zip",
+      "archive": ".project-local/archives/owner-inputs/20261101-learning-platform-sources/OpenMAIC-1.3.0.zip",
+      "bytes": 97468706,
+      "sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+      "file_count": 3830,
+      "uncompressed_bytes": 126977302,
+      "roots": [
+        "OpenMAIC-1.3.0"
+      ],
+      "container_crc": "PASS_ALL_MEMBERS",
+      "archive_byte_identity": "VERIFIED",
+      "top_level_license": {
+        "label": "MIT",
+        "member": "OpenMAIC-1.3.0/LICENSE",
+        "sha256": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+        "bytes": 1065
+      },
+      "official_source": "https://github.com/THU-MAIC/OpenMAIC",
+      "official_tag_license": "https://raw.githubusercontent.com/THU-MAIC/OpenMAIC/v1.3.0/LICENSE",
+      "qualification": "ARCHIVED_AND_STATIC_REVIEW_ONLY_NOT_INSTALLED_OR_INTEGRATED",
+      "scope": "Owner-selected donor capability integration under existing AAOS V2.3/V3; bundled dependencies/assets require their own notices and review"
+    }
+  ],
+  "limits": "No package code execution, installation, model call, full extraction, remote publication or product integration qualification in this intake step"
+}

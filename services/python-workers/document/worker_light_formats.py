@@ -221,6 +221,10 @@ def _safe_attachment_name(index: int, name: str) -> str:
     """
     base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
     safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-64:]
+    # Core's member reader rejects any consecutive dots in the flat name.
+    # Preserve the final dot so ordinary extensions remain available.
+    while ".." in safe:
+        safe = safe.replace("..", "_.")
     return f"{index:04d}-{safe or 'attachment'}"
 
 
@@ -241,6 +245,25 @@ def _long_path(path) -> str:
     return text
 
 
+def _load_member_transfer():
+    """Load only the fixed sibling when an attachment may be written."""
+    import importlib.util
+    from pathlib import Path as _Path
+
+    helper = _Path(__file__).with_name("member_transfer.py")
+    try:
+        spec = importlib.util.spec_from_file_location("mail_member_transfer", helper)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("member transfer helper unavailable")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if not callable(getattr(module, "prepare_directory", None)) or not callable(getattr(module, "offer_member", None)):
+            raise RuntimeError("member transfer helper unavailable")
+        return module
+    except Exception:
+        raise RuntimeError("member transfer helper unavailable") from None
+
+
 def mail_attachments(raw, member_dir):
     """Write the attachments a mail carries and declare each one by digest.
 
@@ -258,8 +281,13 @@ def mail_attachments(raw, member_dir):
         raise ValueError("malformed EML MIME structure")
     extracted: list[dict] = []
     problems: list[str] = []
-    total = 0
+    # Each possible write reserves count and bytes before touching its target;
+    # a failed or partial write is not refunded. The MIME decoder materializes
+    # each payload before the byte check, so this is not a memory quota.
+    reserved_bytes = 0
+    attempts = 0
     seen = 0
+    transfer = None
     for part in message.walk():
         if part.is_multipart():
             continue
@@ -267,10 +295,12 @@ def mail_attachments(raw, member_dir):
         if not filename and part.get_content_disposition() != "attachment":
             continue
         seen += 1
-        if len(extracted) >= ATTACHMENT_JOB_CAP:
-            problems.append(
-                f"only the first {ATTACHMENT_JOB_CAP} of {seen} attachments were extracted"
-            )
+        if attempts >= ATTACHMENT_JOB_CAP:
+            if len(extracted) == attempts and seen == ATTACHMENT_JOB_CAP + 1:
+                problems.append(f"only the first {ATTACHMENT_JOB_CAP} of {seen} attachments were extracted")
+            else:
+                problems.append(f"attachment attempt limit of {ATTACHMENT_JOB_CAP} reached; "
+                                "later attachments were not attempted")
             break
         try:
             payload = part.get_payload(decode=True)
@@ -282,19 +312,25 @@ def mail_attachments(raw, member_dir):
         if payload is None:
             problems.append(f"attachment {filename!r} carries no decodable payload")
             continue
-        if total + len(payload) > ATTACHMENT_BYTES_CAP:
+        if reserved_bytes + len(payload) > ATTACHMENT_BYTES_CAP:
             problems.append(
                 f"attachment byte budget of {ATTACHMENT_BYTES_CAP} reached; later attachments were not extracted"
             )
             break
+        if transfer is None:
+            # A missing helper is an explicit route failure, not an empty
+            # successful extraction. Non-member paths never load it.
+            transfer = _load_member_transfer()
+        attempts += 1
+        reserved_bytes += len(payload)
         try:
-            _Path(_long_path(out)).mkdir(parents=True, exist_ok=True)
             target = out / _safe_attachment_name(seen, filename or "attachment")
-            _Path(_long_path(target)).write_bytes(payload)
+            transfer.prepare_directory(out, _long_path)
+            transfer.offer_member(target, payload, _long_path)
         except OSError as exc:
-            problems.append(f"attachment {filename!r} could not be written: {exc}")
+            problems.append(f"attachment {filename!r} could not be written: {exc}; "
+                            "a partial transfer file may remain")
             continue
-        total += len(payload)
         extracted.append({
             "name": filename or f"attachment-{seen}",
             "file": target.name,

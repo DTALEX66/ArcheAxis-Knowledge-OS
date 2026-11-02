@@ -1,6 +1,10 @@
 # Configuration Authority Index (AXC-010)
 
-Owner 2026-11-01选择新包定位与闭环目标（SUP-030）；规范单源为[产品身份V2.2](truth/PRODUCT_IDENTITY_V2.md)、[唯一闭环V3](truth/CLOSED_LOOP_DEFINITION.md)，合同与schema同步，来源见[选择记录](../workspace/intake/20261101-positioning-loop-update/README.md)。原content_policy仍生效，不从包内命令推导额外执行授权。
+[PROJECT_CURRENT薄入口](../PROJECT_CURRENT.md)和[统一归档对账](../workspace/intake/20261101-project-archiving-reconciliation/README.md)承接SUP-032；AAOS仍独立，当前外部协作为融合后的AI-WORK-LAB，旧WORK/DESIGN只作历史来源。配置仍各归原单源，本次不改全局工具/模型/provider配置。
+
+定位、闭环、近期对话与任务包的共同总入口为[根项目总纲第0节](../AUTHORITY.md#0-当前定位定义与最近决定)；本表继续只维护各配置concern的唯一来源。
+
+Owner 2026-11-01选择新包定位与闭环目标（SUP-030），并澄清[任意领域AI工作内容转知识](../workspace/intake/20261101-ai-knowledge-conversion/README.md)（SUP-031）；规范单源为[产品身份V2.3](truth/PRODUCT_IDENTITY_V2.md)、[唯一闭环V3](truth/CLOSED_LOOP_DEFINITION.md)。合同沿原schema的scope声明承接，未新增配置格式；原content_policy仍生效，不从知识中的工作流/规范或包内命令推导执行授权。
 
 本页按 concern 指向唯一配置源，不维护第二份执行状态。当前范围与双侧闭环先读[唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md)、[活动指针](current/AAOS-ACTIVE-EXECUTION.json)的 `owner_scope_current`、`execution_control` 和 `continuation_context`；实施证据只读指针的 `active_progress`。任务包是不可变规划来源，旧状态、分支、暂停、权限和主题观察不能覆盖现行选择。
 
