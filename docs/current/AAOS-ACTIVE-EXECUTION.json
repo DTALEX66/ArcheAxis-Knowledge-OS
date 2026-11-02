@@ -263,6 +263,16 @@
         "boundary": "Regenerable local build output only; registry cache, release output, receipts, archives and every candidate leaf stay. The next local cargo run rebuilds from the registry, CI is independent.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "growth_review_20261103": {
+        "tool": "scripts/runtime/storage_report.py --baseline .project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json --check-budgets",
+        "first_measurement": "REVIEW_REQUIRED with new_out_of_layout_count=9 (all nine were this session's own scratch files in the .project-local root), delta_readable_bytes=1,118,316,399 and measurement_status=PARTIAL; exit 2.",
+        "action": "Removed those nine session-owned scratch files (5 CI log copies, 2 PR body drafts, 1 helper script, 2 grader-verify logs; 2,408,675 B). No historical receipt, archive, candidate leaf or cited evidence was touched.",
+        "second_measurement": "NO_NEW_GROWTH_TRIGGER with new_out_of_layout_count=0; delta_readable_bytes=1,116,391,733 (~1.04 GiB), below the 2,147,483,648 growth-review line; measurement_status=PARTIAL; over_budget_classes=[runs/] with a small over_budget_class_delta (13,081,816 B) and growing_over_budget_classes=[]; deletion_authorized=false; exit 1 because 158 pre-existing OUT-OF-LAYOUT entries still need decisions.",
+        "left_for_decision": "The 158 pre-existing out-of-layout entries (root .screenshots/, UI preview files, bundles, acceptance/appdata/audit dirs, 30 wrongly shaped runs entries, 20 identity run roots whose checkout is gone) are reported, not silently deleted. They need the existing S01/layout taxonomy decisions.",
+        "baseline_status": "OBSERVATION_ONLY: the pinned v2 checkpoint was read for growth review and is not rolled or replaced; deletion_authorized=false and no gate was loosened.",
+        "receipts": [".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-vs-pinned.json", ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-scratch.json"],
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
