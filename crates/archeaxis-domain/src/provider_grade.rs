@@ -1278,7 +1278,14 @@ mod tests {
             .unwrap()
             .collect::<rusqlite::Result<Vec<_>>>()
             .unwrap();
-        assert_eq!(rows.len(), 2);
+        // The claim and its event index always exist; a dispatch-time note with the
+        // wall-clock second is added once a dispatch intent is committed. None of
+        // these three keys may carry answer or key plaintext.
+        assert!(
+            rows.len() == 2 || rows.len() == 3,
+            "unexpected provider_grade metadata count: {}",
+            rows.len()
+        );
         for value in rows {
             assert!(!value.contains("SYNTHETIC_ANSWER") && !value.contains("SYNTHETIC_KEY"));
         }
