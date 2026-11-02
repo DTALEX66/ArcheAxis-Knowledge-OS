@@ -533,6 +533,54 @@ def run_journey(core: Core) -> dict:
     )
     core.stop()
 
+    # The preview only verifies bytes. A real restore creates an independent
+    # database through the maintenance mode, and a fresh Core must serve the
+    # material from it.
+    artifact = core.workspace / "backups" / backup["filename"]
+    if not artifact.is_file():
+        raise CoreFailure(f"backup artifact is missing: {artifact}")
+    restored_dir = core.workspace / "restored"
+    restored_db = restored_dir / "workspace.sqlite"
+    restored_dir.mkdir(parents=True, exist_ok=True)
+    restored = subprocess.run(
+        [str(core.exe), "--maintenance-restore", str(restored_db), str(artifact)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    try:
+        receipt = json.loads(restored.stdout) if restored.stdout.strip() else {}
+    except json.JSONDecodeError:
+        receipt = {}
+    if restored.returncode != 0 or receipt.get("ok") is not True:
+        raise CoreFailure(
+            f"maintenance restore failed: rc={restored.returncode} "
+            f"out={restored.stdout[:400]} err={restored.stderr[:200]}"
+        )
+    steps.append(
+        {
+            "step": "maintenance restore into an independent database",
+            "status": restored.returncode,
+            "verified": receipt.get("verified"),
+        }
+    )
+    restored_core = Core(core.exe, restored_dir, core.python)
+    restored_core.start()
+    status, restored_document = restored_core.request(
+        "GET", f"/api/v1/documents/{material_snapshot['document_id']}"
+    )
+    expect("restored document read", status, 200, restored_document)
+    if restored_document.get("content_sha256") != material_snapshot["content_sha256"]:
+        raise CoreFailure(f"restored document changed: {restored_document}")
+    steps.append(
+        {
+            "step": "restored Core serves the material document",
+            "status": status,
+            "content_sha256": restored_document["content_sha256"],
+        }
+    )
+    restored_core.stop()
+
     return {
         "schema": "aaos.real-core-process-journey/v1",
         "executed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),

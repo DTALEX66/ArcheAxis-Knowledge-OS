@@ -178,6 +178,19 @@ fn tracked_real_core_journey_command_passes_against_this_build() {
         .find(|step| step["step"] == "restore preview verifies the backup")
         .expect("restore preview step");
     assert_eq!(preview["verified"], true);
+    // The maintenance mode must build an independent database from the artifact and
+    // a fresh Core must serve the material from it.
+    let restored = steps
+        .iter()
+        .find(|step| step["step"] == "maintenance restore into an independent database")
+        .expect("maintenance restore step");
+    assert_eq!(restored["status"], 0);
+    assert_eq!(restored["verified"], true);
+    let served = steps
+        .iter()
+        .find(|step| step["step"] == "restored Core serves the material document")
+        .expect("restored document step");
+    assert_eq!(served["status"], 200);
     // The workspace database is a real Core SQLite file, not an in-memory stub.
     assert!(workspace.join("workspace.sqlite").is_file());
 }
