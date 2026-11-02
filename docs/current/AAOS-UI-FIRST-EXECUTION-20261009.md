@@ -3653,4 +3653,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - run scratch：仅删除2026-11-02T20:00后写入的验证run目录内的`pytest-tmp`与`tmp`树，保留`artifacts/`、`logs/`、`run-metadata.json`与权威引用的`tmp/journey`回执；九个被权威文档引用的journey回执逐一复核仍存在。
 - **保留的偏差（不写成PASS）**：本轮按祖先`tmp`树删除时，连带删除了**27份未被任何权威引用的嵌套`tmp/journey/receipt.json`**（清理前266份，清理后239份）。没有权威引用的回执丢失，但这与上一轮"保留每个tmp树"的规则不同，已如实记录；后续清理只删`pytest-tmp`、不再删祖先`tmp`。
 - 实测：整个`.project-local`从523,088文件/58.78 GiB降至270,948文件/25,873,198,869 B（24.10 GiB），约释放34.68 GiB（33.66 GiB Cargo debug + 约1.0 GiB run scratch + 4.9 MiB归档源）。
+
+#### 2026-11-03 端到端学习旅程测试与负载敏感等待硬化
+
+- PR #215（`40920ca7`）以merge commit `27797ee4f138bdc5acd773bedfa095e1db9da7f0`合并。新增`crates/archeaxis-api/tests/deeptutor_learning_journey.rs`：**一条完整旅程**走真实router与真实Core写者——合成材料→真实私有practice-import出题（受限视图不含答案/解释）→创建材料与题目双version-bound grant→人类activity/attempt→人类作答→正式`practice-grade`运行固定DeepTutor 1.7.1 grader→activity GET只读投影`grade_disposition=COMPLETED`与dispatch秒→重启同一数据库后仍读到该处置、同事件重放为duplicate且不二次运行worker。
+- 同时把两个曾在共享runner负载下失败的**固定短等待**改为宽松30s挂起保护（不是放宽断言）：`material_question_api`的cold Python started标记（15s→30s）；`document_cloud_loop`的worker标记、终态轮询与在途任务完成等待（5s→30s）。断言行为不变，真实挂起仍失败。
+- 精确SHA门禁：run 41484351911 **一次通过**——`lint` pass、`rust-vnext` 14m07s pass、`a0-gates` 14s pass，其余门禁由gateplan跳过（无负载敏感重跑）。
+- 本地验证（ARCHEAXIS_PYTHON显式设置）：新journey 1/1；`document_cloud_loop` 8/8（21.94s）；`material_question_api` 16/16；三文件rustfmt clean。本地验证重建了较小的Cargo debug缓存（deps 1.77 GiB、incremental 1.01 GiB），作为当前活动开发缓存保留，本轮不再二次退役。
+- 边界：只用合成材料，无模型/网络；这是路由+Core+worker集成证据，不是安装态、真实用户数据或模型质量验收。
 - 回执：`.project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt.json`。边界：可再生测试/构建载荷清理，不是产品/证据/资格/Owner接受变化；未滚动增长基线、未放宽门禁。

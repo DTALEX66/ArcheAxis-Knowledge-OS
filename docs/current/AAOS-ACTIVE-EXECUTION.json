@@ -220,6 +220,18 @@
         "boundary": "Regenerable test/build payload cleanup only. No tracked file, archive, receipt, artifact, rt, registry cache or registered candidate leaf was removed; no growth baseline rolled and no gate loosened.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "learning_journey_20261103": {
+        "pull_request": 215,
+        "merge_commit": "27797ee4f138bdc5acd773bedfa095e1db9da7f0",
+        "merged_at": "2026-11-02T17:05:00Z",
+        "remote_main_after_merge": "27797ee4f138bdc5acd773bedfa095e1db9da7f0",
+        "scope": "One end-to-end human learning journey over the formal router and the real Core writer: synthetic material -> real private practice-import question (limited view without the answer key) -> version-bound grants -> human activity/attempt -> formal practice-grade through the fixed DeepTutor 1.7.1 grader -> read-only grade_disposition COMPLETED with dispatch second -> restart replay as duplicate with no second grader run. Also relaxed two previously tight hang-guard waits to 30s (material_question_api cold-worker started marker; document_cloud_loop worker markers, terminal polling and in-flight task completion) without changing any behavioural assertion.",
+        "required_gate_verdict": "Run 41484351911 succeeded first time: lint passed, rust-vnext 14m07s passed, a0-gates passed 14s; gateplan skipped the other gates for this path set.",
+        "local_verification_only": "With ARCHEAXIS_PYTHON set: deeptutor_learning_journey 1/1, document_cloud_loop 8/8 in 21.94s, material_question_api 16/16; rustfmt clean on all three files.",
+        "local_cache_note": "Running the local verification rebuilt a smaller Cargo debug cache (deps 1.77 GiB, incremental 1.01 GiB); it is retained as the active local dev cache rather than treated as disposable again in this round.",
+        "boundary": "Synthetic material only; no model or network provider; this is route/Core/worker integration evidence, not installed-runtime, real-user-data or model-quality acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
