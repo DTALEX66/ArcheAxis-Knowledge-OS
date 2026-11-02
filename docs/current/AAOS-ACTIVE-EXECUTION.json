@@ -339,6 +339,22 @@
         "baseline_status": "OBSERVATION_ONLY: the pinned checkpoint is read for review and neither rolled nor replaced; no gate was loosened.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "unreadable_layout_entry_20261103": {
+        "state": "KNOWN_ACL_PROTECTED_ITEM_REQUIRES_ELEVATED_REPAIR",
+        "entry": ".project-local/runs/fulltest-final-20260913",
+        "finding": "The decision table reported this runs-layout entry UNREADABLE. Investigation shows the directory itself is listable, but 26 nested documents/.git directories deny read: python os.walk reports 26 PermissionError (WinError 5) paths while reading 3295 files. Get-Acl on one nested .git fails with an unauthorized operation and icacls /grant for the current user fails with Access is denied, so the owning principal and DACL cannot be read or changed without elevation.",
+        "action": "Nothing was deleted or moved. The entry stays for the S01 pass with a concrete repair path: an authorized elevated ACL inspection/repair of the 26 nested .git directories, after which it can be measured and classified like the others.",
+        "measurement_note": "This is why the storage report's measurement_status stays PARTIAL; it is not hidden as a clean measurement.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
+      "project_footprint_measurement_20261103": {
+        "measured_at": "2026-11-03T07:40:00+08:00",
+        "method": "Top-level directories measured recursively with the ignored tree included; root files measured separately.",
+        "result": "Whole project 27.44 GiB / 317,834 files plus 38 root files (1.73 MB); .project-local is about 24.52 GiB.",
+        "cleanup_round": "Three superseded failed-attempt directories from this session's restart-finalization fixture debugging were removed (finalization-20261103, -b, -c; 1,117,386 B) with cleanup-receipt-round12.json; the successful -d run and all cited receipts stay.",
+        "baseline_status": "OBSERVATION_ONLY: this is a fresh observation, not a growth-baseline roll; the pinned checkpoint is unchanged.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
