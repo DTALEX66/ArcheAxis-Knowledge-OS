@@ -79,6 +79,11 @@ PRACTICE_FILES = {
     "practice_candidate_document.py": {"bytes": 17679, "sha256": "219e04721d662198b1fa1169c4be8e3acc63be24e3c7595d3e01847d1c2ead17"},
     "candidate_document.py": {"bytes": 23478, "sha256": "96ad414a1d35e842ad42362ea6ba1327ab7dfd8b3bb06d6e5bab39073a25953c"},
     "practice_import.py": {"bytes": 47396, "sha256": "fd8e8bbdf0700b84995f8b83fcd22b40770112e9414d2ea1c29cf65cf364a477"},
+    # The formal grading route runs these two files from the same staged practice
+    # directory and pins their identity again in Rust. Staging the import worker
+    # without them would leave grading fail-closed at 503 in an install.
+    "grade_worker.py": {"bytes": 12186, "sha256": "30d0a8e3f88a00186af0162f20953f14070cdc51ef42be4dca0e9948cb787b0e"},
+    "upstream/answers.py": {"bytes": 1538, "sha256": "fdfbaee6cd0fa2c0f31de9a792e220e6989434fc1f44359db3e6afc62cd2472f"},
     "upstream/importing.py": {"bytes": 8880, "sha256": "9ee4dd1abfa150fd81c3e3e31e2321761bab05509f6e4a5fca555ede2bbfd260"},
     "LICENSE": {"bytes": 11408, "sha256": "cd2f54e1e5066644023203dcbd956776a9f4ef6eb8b6225afe1ffa2d380fede4"},
 }

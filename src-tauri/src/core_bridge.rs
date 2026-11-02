@@ -91,6 +91,7 @@ pub enum Operation {
     LearningHistory,
     LearningReview,
     LearningDeeptutorPracticeImport,
+    LearningDeeptutorPracticeGrade,
     LearningDeeptutorQuestionView,
     LearningProviderActivityCreate,
     LearningProviderActivityGet,
@@ -727,6 +728,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         ),
         CourseOpenmaicSceneCreate
         | LearningDeeptutorPracticeImport
+        | LearningDeeptutorPracticeGrade
         | LearningDeeptutorQuestionView => {
             // Only fixed, human-session Core routes are exposed. The selected
             // body contains provider data and must not become a generic URL,
@@ -739,6 +741,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             let path = match request.operation {
                 CourseOpenmaicSceneCreate => "/api/v1/courses/openmaic/scenes",
                 LearningDeeptutorPracticeImport => "/api/v1/learning/deeptutor/practice-import",
+                LearningDeeptutorPracticeGrade => "/api/v1/learning/deeptutor/practice-grade",
                 LearningDeeptutorQuestionView => "/api/v1/learning/deeptutor/question-view",
                 _ => unreachable!(),
             };
@@ -1287,6 +1290,10 @@ mod provider_host_transport_tests {
                 "/api/v1/learning/deeptutor/practice-import",
             ),
             (
+                "learning_deeptutor_practice_grade",
+                "/api/v1/learning/deeptutor/practice-grade",
+            ),
+            (
                 "learning_deeptutor_question_view",
                 "/api/v1/learning/deeptutor/question-view",
             ),
@@ -1309,24 +1316,34 @@ mod provider_host_transport_tests {
 
     #[test]
     fn provider_transport_does_not_echo_a_malformed_private_response() {
-        for response in [
-            "SYNTHETIC_PRIVATE_INVALID",
-            r#""SYNTHETIC_PRIVATE_INVALID""#,
-            "null",
+        for (operation, path) in [
+            (
+                "learning_deeptutor_practice_import",
+                "/api/v1/learning/deeptutor/practice-import",
+            ),
+            (
+                "learning_deeptutor_practice_grade",
+                "/api/v1/learning/deeptutor/practice-grade",
+            ),
         ] {
-            let (port, server) =
-                serve_once("/api/v1/learning/deeptutor/practice-import", 200, response);
-            let request: Request = serde_json::from_value(serde_json::json!({
-                "operation":"learning_deeptutor_practice_import",
-                "payload":{"body":{"request_id":"synthetic"}}
-            }))
-            .unwrap();
-            let error = execute(port, "synthetic-host-token", request)
-                .err()
+            for response in [
+                "SYNTHETIC_PRIVATE_INVALID",
+                r#""SYNTHETIC_PRIVATE_INVALID""#,
+                "null",
+            ] {
+                let (port, server) = serve_once(path, 200, response);
+                let request: Request = serde_json::from_value(serde_json::json!({
+                    "operation":operation,
+                    "payload":{"body":{"request_id":"synthetic"}}
+                }))
                 .unwrap();
-            assert_eq!(error, "CORE_PROVIDER_RESPONSE_INVALID");
-            assert!(!error.contains("SYNTHETIC_PRIVATE_INVALID"));
-            server.join().unwrap();
+                let error = execute(port, "synthetic-host-token", request)
+                    .err()
+                    .unwrap();
+                assert_eq!(error, "CORE_PROVIDER_RESPONSE_INVALID");
+                assert!(!error.contains("SYNTHETIC_PRIVATE_INVALID"));
+                server.join().unwrap();
+            }
         }
     }
 
@@ -1519,6 +1536,7 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // jobs run past both, so the transport must outlive them.
         Operation::JobExecute => 320,
         Operation::LearningDeeptutorPracticeImport => 95,
+        Operation::LearningDeeptutorPracticeGrade => 95,
         Operation::CourseFromKnowledge
         | Operation::CourseRender
         | Operation::CourseOpenmaicSceneCreate => 60,
@@ -1529,6 +1547,10 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 fn request_byte_limit(operation: &Operation) -> usize {
     if matches!(operation, Operation::CourseOpenmaicSceneCreate) {
         262_144
+    } else if matches!(operation, Operation::LearningDeeptutorPracticeGrade) {
+        // The Core grading route accepts one bounded answer submission; this is the
+        // route's own 32,768-byte body limit, not the larger import envelope.
+        32_768
     } else if matches!(
         operation,
         Operation::LearningDeeptutorPracticeImport | Operation::LearningDeeptutorQuestionView
@@ -1621,6 +1643,7 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
         request.operation,
         Operation::CourseOpenmaicSceneCreate
             | Operation::LearningDeeptutorPracticeImport
+            | Operation::LearningDeeptutorPracticeGrade
             | Operation::LearningDeeptutorQuestionView
     );
     let body = if bytes.is_empty() && !private_provider_response {
@@ -1650,6 +1673,10 @@ mod tests {
             (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
+            ),
+            (
+                "learning_deeptutor_practice_grade",
+                "/api/v1/learning/deeptutor/practice-grade",
             ),
             (
                 "learning_deeptutor_question_view",
@@ -1688,6 +1715,10 @@ mod tests {
             65_536
         );
         assert_eq!(
+            request_byte_limit(&Operation::LearningDeeptutorPracticeGrade),
+            32_768
+        );
+        assert_eq!(
             request_byte_limit(&Operation::LearningDeeptutorQuestionView),
             65_536
         );
@@ -1697,6 +1728,10 @@ mod tests {
         );
         assert!(
             transport_timeout(&Operation::LearningDeeptutorPracticeImport)
+                > std::time::Duration::from_secs(60)
+        );
+        assert!(
+            transport_timeout(&Operation::LearningDeeptutorPracticeGrade)
                 > std::time::Duration::from_secs(60)
         );
         assert!(

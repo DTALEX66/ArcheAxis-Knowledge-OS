@@ -52,6 +52,7 @@
         "learning_history",
         "learning_review",
         "learning_deeptutor_practice_import",
+        "learning_deeptutor_practice_grade",
         "learning_deeptutor_question_view",
         "learning_provider_activity_create",
         "learning_provider_activity_get",
