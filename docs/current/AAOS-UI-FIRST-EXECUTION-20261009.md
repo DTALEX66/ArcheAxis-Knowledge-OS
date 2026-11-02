@@ -3760,3 +3760,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本地验证：对保留二进制运行命令**exit 0**（三项备份步骤通过）；ruff、py_compile、rustfmt通过。
 - 精确SHA门禁：run 41533648529 `lint` 59s pass、**`rust-vnext`（windows-latest）18m0s pass**、`a0-gates` pass。
 - 边界：debug二进制+合成材料；仅验证发布与预览，不做真实restore；不证明安装态、真实用户数据或Owner接受。
+
+#### 2026-11-03 真实进程验证维护模式恢复并读回材料
+
+- PR #238（`d92ef593`）以merge commit `e5e300330543d2fefc5cb635883ac1479946b3de`合并：备份预览步骤之后追加**真正的恢复**——用`archeaxis-api --maintenance-restore <new-db> <artifact>`把已发布备份恢复到**独立数据库**（要求`ok=true`且`verified=true`回执），再启动**全新Core**并读回同一材料Document（`content_sha256`一致）；回归测试断言两步。
+- 为什么重要：此前只有进程内恢复测试与预览验证；本步骤在真实进程下走完 backup→preview→**maintenance restore**→新Core读回的恢复闭环，覆盖CB01恢复后端的进程级证据。
+- 精确SHA门禁：run 41538309490 首轮`rust-vnext`在**无关的**`context_grant_api::frozen_answer_identity_serializes_concurrent_retries_survives_restart_and_refuses_conflict`上并发429失败（6 passed/1 failed）；**同SHA重跑**`rust-vnext` 17m23s pass、`a0-gates` pass，`lint`此前59s pass。按既定规则记为**flake，不是一次通过**。
+- 本地验证：对保留二进制运行命令**exit 0**（maintenance restore into an independent database / restored Core serves the material document通过）；ruff、py_compile、rustfmt通过。
+- 边界：debug二进制+合成材料；恢复路径真实执行但不证明安装态、真实用户数据或Owner接受。
