@@ -3744,3 +3744,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 复核固定checkpoint的`OUT-OF-LAYOUT`清单后，仅删除**递归不含任何文件且不含任何条目**的7个越界目录（逐个递归校验）：仓库根`.screenshots/`、`.project-local`下`g/`、`n/`、`probe/`、`restored/`、`test-fallback-run/`、`wt/`。**没有删除任何文件字节**。
 - 复测（同一固定checkpoint）：`OUT-OF-LAYOUT` **99 → 92**；`new_out_of_layout_count=0`；`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,562,782,357`（约1.46 GiB，低于2 GiB复核线）；`measurement_status=PARTIAL`；`runs/`仍超2.0 GB预算；`deletion_authorized=false`。
 - 回执：`.project-local/runs/be268a2d33/storage-observation-20261103/artifacts/empty-dir-cleanup.json`。边界：只删除空目录、固定checkpoint只读未滚动、未放宽门禁；剩余92项仍为被引用/受保护/泛名或runs布局taxonomy，需既有S01决定。
+
+#### 2026-11-03 越界布局只读决策表与无引用UI审计归档
+
+- 新增只读工具`scripts/maintenance/layout_decision_report.py`：把存储报告转成**逐项决策表**（REFERENCED / PROTECTED_OR_GENERIC / RUNS_LAYOUT / EMPTY / MISSING / UNREADABLE / UNREFERENCED_CANDIDATE，含每项文件数与字节），工具本身不删除、不移动任何东西；`classify()`为纯函数便于后续测试。
+- 对92项运行结果：REFERENCED 56、RUNS_LAYOUT 29、UNREFERENCED_CANDIDATE 5、PROTECTED_OR_GENERIC 1、UNREADABLE 1（`fulltest-final-20260913`，PermissionError）。决策表回执`layout-decision-table-20261103.json`。
+- 将5个**无引用候选**同卷重命名归档到`.project-local/archives/legacy-layout-20261103/`：`logo-candidates`、2026-10-27云端审计截图树（1565文件/242,714,540 B）及三份UI审计交付回执JSON；目标逐个复核存在，**未删除任何字节**；清单`MANIFEST-decision-20261103.json`。
+- 复测（同一固定checkpoint）：`OUT-OF-LAYOUT` **92 → 87**（57个`.project-local`条目 + 30个runs条目，根条目为0）；`new_out_of_layout_count=0`；`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,563,804,691`（约1.46 GiB，低于2 GiB复核线）；`measurement_status=PARTIAL`；`runs/`仍超2.0 GB预算；`deletion_authorized=false`。
+- 边界：只移动无引用历史UI审计证据、不删除；固定checkpoint只读未滚动；剩余87项属被引用/受保护/泛名/runs taxonomy/一个不可读目录，需既有S01决定。
