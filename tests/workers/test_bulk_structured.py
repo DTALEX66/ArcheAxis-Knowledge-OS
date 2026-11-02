@@ -1,7 +1,7 @@
 """BULK-0907 P09: bulk structured (Canvas / SRT / VTT) boundary cases.
 
 Extends the R1 fixture matrix with uncovered edges: default node types, missing
-nodes/edges handling, multi-line SRT cue text, duration clamping, fractional
+nodes/edges handling, multi-line SRT cue text, negative-duration rejection, fractional
 millisecond timecodes, VTT inline timing tags, empty/malformed rejections and
 BOM handling. Expectations are independent and never copied from worker output.
 """
@@ -146,12 +146,16 @@ class SubtitleBulkTests(unittest.TestCase):
         self.assertEqual([a["path"] for a in out["structure"]], [["cue-1"], ["cue-2"]])
         self.assertEqual(out["structure"][0]["char_end"], len("第一行\n第二行"))
 
-    def test_fractional_millisecond_timecode_and_duration_clamp(self):
-        content = "1\n00:00:01,5 --> 00:00:00,1\nx"  # end before start
-        out = self.sub.extract(self._write(content, ".srt"))
+    def test_fractional_millisecond_timecode_stays_exact_and_negative_duration_is_rejected(self):
+        # One-to-three digit fractional milliseconds are exact (",5" is 500 ms, not 5 ms).
+        out = self.sub.extract(self._write("1\n00:00:01,5 --> 00:00:02,250\nx", ".srt"))
         first = out["structure"][0]
         self.assertEqual(first["offset_ms"], 1500)
-        self.assertEqual(first["duration_ms"], 0)  # clamped, not negative
+        self.assertEqual(first["duration_ms"], 750)
+        # A cue that ends before it starts is a malformed file: the worker now fails
+        # closed instead of silently clamping the duration to zero.
+        with self.assertRaises(ValueError):
+            self.sub.extract(self._write("1\n00:00:01,5 --> 00:00:00,1\nx", ".srt"))
 
     def test_vtt_inline_timing_tags_are_stripped(self):
         content = (
