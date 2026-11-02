@@ -3644,3 +3644,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本PR自身被CI抓到一个真实回归：lib单测`assert_no_plaintext`原断言恰好2个`provider_grade_`键，dispatch秒使计数变3而失败；已改为接受2或3个键并继续断言不含答案/答案键明文，随后`archeaxis-domain --lib` 88/88。
 - 本地验证：`cargo check -p archeaxis-api -p archeaxis-domain --all-targets` exit 0；`provider_grade_chain` 9/9（新增3项：dispatch秒跨重启读回；窗口未到与无记录秒均拒绝、过期后置UNKNOWN；终态可重复且同事件不会二次启动）；`deeptutor_practice_import` 4 passed/1既有ignored（真实固定worker，journey新增`grade_disposition=COMPLETED`读回断言）；`provider_learning_api` 2/2；合同route/number 15 passed；改动文件rustfmt clean。
 - 边界与未证：没有后台自动对账任务，陈旧claim只在重试或显式调用时终结；UNKNOWN不会变成"可重试的已确认失败"；安装态、真实用户数据、模型质量仍未验证。本地全workspace测试另遇`oss_template_reuse`对可选解析引擎的本地环境依赖失败（CI锁定依赖下此前通过），不作为本变更证据。
+
+#### 2026-11-03 本地清理第二轮：一次性脚本归档、run scratch与Cargo调试产物退役
+
+- 授权与范围：按Owner目标"该归档归档、该退役退役、该清理的清理掉、保持仓库干净规范"，本轮只处理`.project-local`内**可再生**载荷：根目录无引用的一次性过程文件、本会话验证run的临时scratch、以及本会话验证构建产生的Cargo debug产物。**未删**任何tracked文件、`archives/`、`artifacts/`、`rt/`、registry缓存、run-metadata或有登记消费者的候选叶。
+- 归档：139个根目录过程文件（5,174,066 B，扩展名py/ps1/mjs/patch/md/txt/cmd/tsx/nul/zip/bundle/log，basename在全部tracked文件中0命中）按原字节写入`.project-local/archives/local-scratch-20261102/local-scratch-20261102.zip`（3,610,362 B），附逐成员SHA-256 MANIFEST并先做zip完整性+逐成员字节/SHA校验后才删除原件；4个被引用的根文件保留。
+- 退役可再生构建产物：删除本会话验证构建产生的`.project-local/build/cargo/debug/deps`（24.61 GiB）与`debug/incremental`（9.05 GiB）；依赖registry缓存、release输出与`.project-local`以外内容保留。下次本地cargo运行会从registry重建；CI独立于该缓存。
+- run scratch：仅删除2026-11-02T20:00后写入的验证run目录内的`pytest-tmp`与`tmp`树，保留`artifacts/`、`logs/`、`run-metadata.json`与权威引用的`tmp/journey`回执；九个被权威文档引用的journey回执逐一复核仍存在。
+- **保留的偏差（不写成PASS）**：本轮按祖先`tmp`树删除时，连带删除了**27份未被任何权威引用的嵌套`tmp/journey/receipt.json`**（清理前266份，清理后239份）。没有权威引用的回执丢失，但这与上一轮"保留每个tmp树"的规则不同，已如实记录；后续清理只删`pytest-tmp`、不再删祖先`tmp`。
+- 实测：整个`.project-local`从523,088文件/58.78 GiB降至270,948文件/25,873,198,869 B（24.10 GiB），约释放34.68 GiB（33.66 GiB Cargo debug + 约1.0 GiB run scratch + 4.9 MiB归档源）。
+- 回执：`.project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt.json`。边界：可再生测试/构建载荷清理，不是产品/证据/资格/Owner接受变化；未滚动增长基线、未放宽门禁。

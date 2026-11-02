@@ -208,6 +208,18 @@
         "boundary": "This is regenerable test-scratch cleanup only. It is not a product, evidence, qualification or Owner-acceptance change, and it does not roll any growth baseline or loosen any gate.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "local_cleanup_round4_20261103": {
+        "authorization": "Owner goal: 所有旧的过时的该归档归档该退役退役 该清理的清理掉 保持仓库干净规范",
+        "archive": "139 unreferenced .project-local root process files (5,174,066 B) were byte-preserved into .project-local/archives/local-scratch-20261102/local-scratch-20261102.zip (3,610,362 B) with a SHA-256 manifest; the ZIP was test-verified and every member hash checked before the originals were removed. Basenames absent from all tracked files; the 4 referenced root files stay in place.",
+        "cargo_debug_retired": "The local regenerable Cargo debug build output produced by this session's verification builds was retired: debug/deps 24.61 GiB and debug/incremental 9.05 GiB. The dependency registry cache, release output and everything outside .project-local stay; the next local cargo run rebuilds from the registry, and CI is independent.",
+        "run_scratch": "Per-run pytest-tmp and tmp trees from run directories written after 2026-11-02T20:00 by this session's verification runs were removed; artifacts, logs, run-metadata and every tmp/journey receipt cited by authority were preserved (nine cited paths re-checked present).",
+        "deviation": "27 uncited tmp/journey receipts nested inside removed ancestor tmp trees were deleted (counted 266 before, 239 after). No cited receipt or other authoritative evidence was lost, but this is recorded as a real deviation from the earlier 'preserve every tmp tree' rule, not written as a clean pass.",
+        "measured_delta": "Whole .project-local: 523,088 files / 58.78 GiB -> 270,948 files / 25,873,198,869 B (24.10 GiB); about 34.68 GiB freed. Components: 33.66 GiB retired Cargo debug output, ~1.0 GiB run scratch, 4.9 MiB archive source.",
+        "receipt": ".project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt.json",
+        "branch_cleanup_note": "Local and remote branches remain main only; the two merged PR branches from the previous round were deleted after ancestor checks.",
+        "boundary": "Regenerable test/build payload cleanup only. No tracked file, archive, receipt, artifact, rt, registry cache or registered candidate leaf was removed; no growth baseline rolled and no gate loosened.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
