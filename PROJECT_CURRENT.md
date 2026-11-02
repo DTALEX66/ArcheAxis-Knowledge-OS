@@ -27,10 +27,10 @@
 2. F05真实学习改善、独立复测、真实模型消费及安装态/Owner接受缺口分别保留；未验证的历史引擎、课程/空间能力、技能模板和开源接入不能写成已实现。
 3. 旧构建/候选归一、持续增长治理、Green外溢迁移及后继交付尚有具名未闭合项；按唯一执行记录末段和原稳定ID接续，不从本页另排队。
 4. 归档正文存在跨项目内容，必须区分不适用、历史来源与有效AAOS要求；未进行的附件视觉/听觉或产品操作检查明确保留，不以总扫描数抹平。
-5. 下一步按[新会话完整执行提示词](workspace/intake/20261101-learning-platform-integration/新会话完整执行提示词.txt)并行接入两供体、P0治理及原具名未完项；再按[当前交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和活动指针落实权限/实际进度，不重复已完成归档或历史全审。旧七项前端失败已有后继全量通过，待验的是当前候选与Owner接受。
+5. 下一步按[新会话完整执行提示词](workspace/intake/20261101-learning-platform-integration/新会话完整执行提示词.txt)并行接入两供体、P0治理及原具名未完项；再按[当前交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和活动指针落实权限/实际进度，不重复已完成归档或历史全审。旧七项前端失败已有后继全量通过，待验的是当前候选与Owner接受。2026-11-02本轮已交付DeepTutor正式评分链与OpenMAIC场景v2契约切片（本地定向验证），修复`lint`、gitleaks、`workers-vnext`、`desktop-build`四个云端必需门禁阻断并发布候选；精确SHA门禁、合并与安装态仍未证。下一步优先级：等当前SHA必需门禁读回并合并；补正式宿主对practice-grade的前向命令与打包声明；处理DISPATCHED残留对账与真实课程链未证项。
 
 ## 最近核验的版本边界
 
-日期：**2026-11-01（Asia/Shanghai）**。依托HEAD：`08d96fc64c6856ad03e51dfff298183eafadfbfa`，分支：`codex/candidate-input-normalization-20261101`。接任务时已有32处未提交修改；本轮继续在该dirty工作树完成，HEAD不是这些新修改的精确提交身份。本轮运行回执另绑定完整工作树patch SHA；核验日期/HEAD是时点快照，后继Agent须现场读Git与活动指针。
+日期：**2026-11-02（Asia/Shanghai）**。依托HEAD：`5dc1828d0fbd123d2cf2f93388e270a7f1f16445`，分支：`codex/delivery-20261102`，已非强推发布到远端同名分支并建立PR #206（base `main`）；远端main当时仍为`fa10cfa9d768047ad8e9c6c5d389469eee7d20d8`。精确SHA云端必需门禁（a0-gates）、合并结果与合并后main读回须现场读GitHub/CI，不以本页代替。本轮实际推送的是已审核公开源码与任务记录，ignored原件、运行数据与数据库仍只在本机`.project-local/`。核验日期/HEAD是时点快照，后继Agent须现场读Git与活动指针。
 
 本轮历史及补充资料的来源定位见[归档对账记录](workspace/intake/20261101-project-archiving-reconciliation/README.md)。完整导出JSON只作仓库内local-only压缩保全，不导入业务知识库或聊天管理系统，不自动上传。
