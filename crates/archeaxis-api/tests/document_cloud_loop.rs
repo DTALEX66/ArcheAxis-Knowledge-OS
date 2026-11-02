@@ -398,7 +398,9 @@ raise SystemExit(worker.main())
     let launched_router = router.clone();
     let task =
         tokio::spawn(async move { call(&launched_router, "POST", &execute, body, "human").await });
-    tokio::time::timeout(std::time::Duration::from_secs(5), async {
+    // Wait for the cold Python worker to reach its first statement. This bound only
+    // turns a hang into a failure; a loaded shared runner can exceed a few seconds.
+    tokio::time::timeout(std::time::Duration::from_secs(30), async {
         while !ready.exists() {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
@@ -533,7 +535,7 @@ sys.exit(1)
             raw_call(&owned, "POST", &endpoint, body, "human").await
         }));
         if index < 4 {
-            tokio::time::timeout(std::time::Duration::from_secs(5), async {
+            tokio::time::timeout(std::time::Duration::from_secs(30), async {
                 while !marker.exists() {
                     tokio::time::sleep(std::time::Duration::from_millis(10)).await;
                 }
@@ -543,7 +545,8 @@ sys.exit(1)
         }
     }
     let root = last_body["check_id"].clone();
-    tokio::time::timeout(std::time::Duration::from_secs(5), async {
+    // Terminal-state polling on a loaded runner: the bound only prevents a hang.
+    tokio::time::timeout(std::time::Duration::from_secs(30), async {
         loop {
             let (_, history) = raw_call(&router, "GET", &checks, Value::Null, "human").await;
             if history["checks"]
@@ -565,8 +568,10 @@ sys.exit(1)
     let (status, withdrawal) =
         raw_call(&router, "POST", &execute, active_withdrawal, "human").await;
     assert_eq!(status, 200, "{withdrawal}");
+    // The withdrawal must make the in-flight task finish; the bound is generous so
+    // a loaded runner fails only when the task genuinely hangs.
     let (status, cancelled) =
-        tokio::time::timeout(std::time::Duration::from_secs(5), tasks.remove(0))
+        tokio::time::timeout(std::time::Duration::from_secs(30), tasks.remove(0))
             .await
             .expect("active withdrawal must finish before fixture release")
             .unwrap();
