@@ -527,8 +527,20 @@ fn verify_restored_authorization_views(
         let expected = Connection::open_in_memory()?;
         archeaxis_store_sqlite::upgrade_provider_learning_v15(&expected)?;
         for table in added {
-            let ddl = |c: &Connection| c.query_row("SELECT sql FROM sqlite_master WHERE type='table' AND name=?1", [table], |r| r.get::<_,String>(0));
-            if ddl(&expected)? != ddl(target)? || target.query_row(&format!("SELECT EXISTS(SELECT 1 FROM \"{table}\")"), [], |r| r.get::<_,bool>(0))? {
+            let ddl = |c: &Connection| {
+                c.query_row(
+                    "SELECT sql FROM sqlite_master WHERE type='table' AND name=?1",
+                    [table],
+                    |r| r.get::<_, String>(0),
+                )
+            };
+            if ddl(&expected)? != ddl(target)?
+                || target.query_row(
+                    &format!("SELECT EXISTS(SELECT 1 FROM \"{table}\")"),
+                    [],
+                    |r| r.get::<_, bool>(0),
+                )?
+            {
                 return Ok(false);
             }
         }
@@ -543,9 +555,14 @@ fn verify_restored_authorization_views(
             .collect())
     };
     let comparable_tables = |conn: &Connection| -> rusqlite::Result<Vec<_>> {
-        Ok(table_names(conn)?.into_iter().filter(|name| !(upgrading && added.contains(&name.as_str()))).collect())
+        Ok(table_names(conn)?
+            .into_iter()
+            .filter(|name| !(upgrading && added.contains(&name.as_str())))
+            .collect())
     };
-    if schema(source)? != schema(target)? || comparable_tables(source)? != comparable_tables(target)? {
+    if schema(source)? != schema(target)?
+        || comparable_tables(source)? != comparable_tables(target)?
+    {
         return Ok(false);
     }
     for table in table_names(source)? {
@@ -768,7 +785,9 @@ fn validate_workspace(conn: &Connection) -> rusqlite::Result<()> {
         .query_map([], |row| row.get(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     if integrity.as_slice() != ["ok"]
-        || !(version == "13" || version == "14" || version == archeaxis_store_sqlite::SCHEMA_VERSION.to_string())
+        || !(version == "13"
+            || version == "14"
+            || version == archeaxis_store_sqlite::SCHEMA_VERSION.to_string())
         || conn.prepare("PRAGMA foreign_key_check")?.exists([])?
     {
         return Err(rusqlite::Error::InvalidQuery);

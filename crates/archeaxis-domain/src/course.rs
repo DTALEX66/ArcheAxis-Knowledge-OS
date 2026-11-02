@@ -341,7 +341,9 @@ fn openmaic_invalid(message: &'static str) -> crate::document::Error {
 fn openmaic_token(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 128
-        && value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
 
 fn openmaic_digest(bytes: &[u8]) -> String {
@@ -349,7 +351,10 @@ fn openmaic_digest(bytes: &[u8]) -> String {
 }
 
 fn openmaic_internal_request_id(create_request_id: &str) -> String {
-    format!("openmaic_scene_{}", openmaic_digest(create_request_id.as_bytes()))
+    format!(
+        "openmaic_scene_{}",
+        openmaic_digest(create_request_id.as_bytes())
+    )
 }
 
 fn openmaic_document_id(create_request_id: &str) -> String {
@@ -366,14 +371,31 @@ fn openmaic_frame(
     if !openmaic_token(create_request_id) {
         return Err(openmaic_invalid("invalid OpenMAIC create request ID"));
     }
-    let object = request.as_object().ok_or(openmaic_invalid("invalid OpenMAIC request"))?;
-    let keys = ["schema", "request_id", "attempt", "source", "stage_id", "scene_id", "outline", "content", "actions"];
-    if object.len() != keys.len() || keys.iter().any(|key| !object.contains_key(*key))
+    let object = request
+        .as_object()
+        .ok_or(openmaic_invalid("invalid OpenMAIC request"))?;
+    let keys = [
+        "schema",
+        "request_id",
+        "attempt",
+        "source",
+        "stage_id",
+        "scene_id",
+        "outline",
+        "content",
+        "actions",
+    ];
+    if object.len() != keys.len()
+        || keys.iter().any(|key| !object.contains_key(*key))
         || request["schema"] != OPENMAIC_REQUEST_SCHEMA
         || ["request_id", "stage_id", "scene_id"].iter().any(|key| {
-            request[*key].as_str().is_none_or(|value| !openmaic_token(value))
+            request[*key]
+                .as_str()
+                .is_none_or(|value| !openmaic_token(value))
         })
-        || !request["attempt"].as_i64().is_some_and(|value| (1..=9_007_199_254_740_991).contains(&value))
+        || !request["attempt"]
+            .as_i64()
+            .is_some_and(|value| (1..=9_007_199_254_740_991).contains(&value))
     {
         return Err(openmaic_invalid("invalid OpenMAIC request identity"));
     }
@@ -383,31 +405,42 @@ fn openmaic_frame(
         return Err(openmaic_invalid("invalid OpenMAIC material snapshot"));
     }
     let outline = &request["outline"];
-    let title = outline["title"].as_str().filter(|value| {
-        !value.trim().is_empty() && value.len() <= 960 && !value.contains('\0')
-    });
+    let title = outline["title"]
+        .as_str()
+        .filter(|value| !value.trim().is_empty() && value.len() <= 960 && !value.contains('\0'));
     if !outline.is_object()
-        || outline["id"].as_str().is_none_or(|value| !openmaic_token(value))
+        || outline["id"]
+            .as_str()
+            .is_none_or(|value| !openmaic_token(value))
         || title.is_none()
         || !outline["description"].is_string()
         || !outline["keyPoints"].is_array()
-        || !outline["order"].as_i64().is_some_and(|value| (0..=1_000_000).contains(&value))
+        || !outline["order"]
+            .as_i64()
+            .is_some_and(|value| (0..=1_000_000).contains(&value))
         || !request["content"].is_object()
-        || !request["actions"].as_array().is_some_and(|items| items.len() <= 100)
+        || !request["actions"]
+            .as_array()
+            .is_some_and(|items| items.len() <= 100)
     {
         return Err(openmaic_invalid("invalid OpenMAIC outline or content"));
     }
     // Only the offline slide/quiz slice is stored. The request is retained in
     // full, including fields the upstream scene projection does not carry.
     let valid_content = match outline["type"].as_str() {
-        Some("slide") => request["content"]["elements"].as_array().is_some_and(|items| items.len() <= 200),
-        Some("quiz") => request["content"]["questions"].as_array().is_some_and(|items| !items.is_empty() && items.len() <= 200),
+        Some("slide") => request["content"]["elements"]
+            .as_array()
+            .is_some_and(|items| items.len() <= 200),
+        Some("quiz") => request["content"]["questions"]
+            .as_array()
+            .is_some_and(|items| !items.is_empty() && items.len() <= 200),
         _ => false,
     };
     if !valid_content {
         return Err(openmaic_invalid("unsupported OpenMAIC scene"));
     }
-    let mut bytes = serde_json::to_vec(request).map_err(|_| openmaic_invalid("invalid OpenMAIC JSON"))?;
+    let mut bytes =
+        serde_json::to_vec(request).map_err(|_| openmaic_invalid("invalid OpenMAIC JSON"))?;
     bytes.push(b'\n');
     if bytes.len() > OPENMAIC_MAX_FRAME {
         return Err(openmaic_invalid("OpenMAIC frame exceeds bound"));
@@ -425,7 +458,9 @@ fn openmaic_material_current(
     if current["version"].as_i64() != Some(material.version)
         || current["content_sha256"] != material.content_sha256
     {
-        return Err(openmaic_invalid("OpenMAIC material snapshot is no longer current"));
+        return Err(openmaic_invalid(
+            "OpenMAIC material snapshot is no longer current",
+        ));
     }
     Ok(())
 }
@@ -462,16 +497,22 @@ fn openmaic_check_result(
         || scene["actions"] != request["actions"]
         || scene["content"]["type"] != scene["type"]
     {
-        return Err(openmaic_invalid("OpenMAIC worker receipt does not match input"));
+        return Err(openmaic_invalid(
+            "OpenMAIC worker receipt does not match input",
+        ));
     }
     let content_matches = match scene["type"].as_str() {
-        Some("slide") => scene["content"]["canvas"]["elements"] == request["content"]["elements"]
-            && scene["content"]["canvas"]["background"] == request["content"]["background"],
+        Some("slide") => {
+            scene["content"]["canvas"]["elements"] == request["content"]["elements"]
+                && scene["content"]["canvas"]["background"] == request["content"]["background"]
+        }
         Some("quiz") => scene["content"]["questions"] == request["content"]["questions"],
         _ => false,
     };
     if !content_matches {
-        return Err(openmaic_invalid("OpenMAIC scene content does not match input"));
+        return Err(openmaic_invalid(
+            "OpenMAIC scene content does not match input",
+        ));
     }
     Ok(())
 }
@@ -480,14 +521,25 @@ fn openmaic_material_status(
     conn: &Connection,
     material: &crate::provider_material_grant::Snapshot,
 ) -> &'static str {
-    let selected = match crate::document::read_verified(conn, &material.document_id, Some(material.version)) {
-        Ok(value) if value["content_sha256"] == material.content_sha256 => value,
-        _ => return "unavailable",
-    };
+    let selected =
+        match crate::document::read_verified(conn, &material.document_id, Some(material.version)) {
+            Ok(value) if value["content_sha256"] == material.content_sha256 => value,
+            _ => return "unavailable",
+        };
     match crate::document::read_verified(conn, &material.document_id, None) {
-        Ok(current) if current["version"] == selected["version"]
-            && current["content_sha256"] == selected["content_sha256"] => "current",
-        Ok(current) if current["version"].as_i64().is_some_and(|version| version > material.version) => "historical",
+        Ok(current)
+            if current["version"] == selected["version"]
+                && current["content_sha256"] == selected["content_sha256"] =>
+        {
+            "current"
+        }
+        Ok(current)
+            if current["version"]
+                .as_i64()
+                .is_some_and(|version| version > material.version) =>
+        {
+            "historical"
+        }
         _ => "unavailable",
     }
 }
@@ -499,9 +551,19 @@ fn openmaic_receipt(
 ) -> Value {
     let candidate_status = match document["document_id"].as_str() {
         Some(id) => match crate::document::read_verified(conn, id, None) {
-            Ok(current) if current["version"] == document["version"]
-                && current["content_sha256"] == document["content_sha256"] => "current",
-            Ok(current) if current["version"].as_i64().is_some_and(|version| version > 1) => "historical",
+            Ok(current)
+                if current["version"] == document["version"]
+                    && current["content_sha256"] == document["content_sha256"] =>
+            {
+                "current"
+            }
+            Ok(current)
+                if current["version"]
+                    .as_i64()
+                    .is_some_and(|version| version > 1) =>
+            {
+                "historical"
+            }
             _ => "unavailable",
         },
         None => "unavailable",
@@ -522,9 +584,12 @@ fn openmaic_existing(
     let id = openmaic_document_id(create_request_id);
     let exists: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",
-        [&id], |row| row.get(0),
+        [&id],
+        |row| row.get(0),
     )?;
-    if !exists { return Ok(None); }
+    if !exists {
+        return Ok(None);
+    }
     let document = crate::document::read_verified(conn, &id, Some(1))?;
     let saved = &document["editor_json"]["attrs"][OPENMAIC_NAMESPACE];
     if saved["schema"] != OPENMAIC_DOCUMENT_SCHEMA
@@ -532,7 +597,9 @@ fn openmaic_existing(
         || saved["request_frame"] != frame
         || saved["input_sha256"] != input_sha256
     {
-        return Err(openmaic_invalid("OpenMAIC create request ID conflicts with another document"));
+        return Err(openmaic_invalid(
+            "OpenMAIC create request ID conflicts with another document",
+        ));
     }
     openmaic_check_result(request, input_sha256, &saved["worker_document"])?;
     Ok(Some(openmaic_receipt(conn, document, material)))
@@ -550,7 +617,14 @@ pub fn prepare_openmaic_scene(
 ) -> Result<OpenMaicPreparation, crate::document::Error> {
     let (frame, input_sha256, material) = openmaic_frame(create_request_id, request)?;
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    if let Some(receipt) = openmaic_existing(&tx, create_request_id, request, &frame, &input_sha256, &material)? {
+    if let Some(receipt) = openmaic_existing(
+        &tx,
+        create_request_id,
+        request,
+        &frame,
+        &input_sha256,
+        &material,
+    )? {
         tx.commit()?;
         return Ok(OpenMaicPreparation::Existing(receipt));
     }
@@ -562,7 +636,10 @@ pub fn prepare_openmaic_scene(
         .map_err(|_| openmaic_invalid("OpenMAIC workspace identity unavailable"))?;
     tx.commit()?;
     Ok(OpenMaicPreparation::Pending(OpenMaicPending {
-        restore_epoch, workspace_id, input_sha256, create_request_id: create_request_id.to_owned(),
+        restore_epoch,
+        workspace_id,
+        input_sha256,
+        create_request_id: create_request_id.to_owned(),
     }))
 }
 
@@ -577,7 +654,9 @@ pub fn commit_openmaic_scene(
     worker_document: &Value,
 ) -> Result<Value, crate::document::Error> {
     let (frame, input_sha256, material) = openmaic_frame(create_request_id, request)?;
-    if input_sha256 != pending.input_sha256 || create_request_id != pending.create_request_id.as_str() {
+    if input_sha256 != pending.input_sha256
+        || create_request_id != pending.create_request_id.as_str()
+    {
         return Err(openmaic_invalid("OpenMAIC request changed after admission"));
     }
     openmaic_check_result(request, &input_sha256, worker_document)?;
@@ -585,8 +664,12 @@ pub fn commit_openmaic_scene(
     let epoch = archeaxis_store_sqlite::authorization_fence::authorization_epoch(&tx)?;
     let workspace_id = crate::ui_state::existing_workspace_id(&tx)
         .map_err(|_| openmaic_invalid("OpenMAIC workspace identity unavailable"))?;
-    if epoch != pending.restore_epoch || workspace_id.as_deref() != Some(pending.workspace_id.as_str()) {
-        return Err(openmaic_invalid("OpenMAIC workspace or restore epoch changed"));
+    if epoch != pending.restore_epoch
+        || workspace_id.as_deref() != Some(pending.workspace_id.as_str())
+    {
+        return Err(openmaic_invalid(
+            "OpenMAIC workspace or restore epoch changed",
+        ));
     }
     openmaic_material_current(&tx, &material)?;
     if !archeaxis_store_sqlite::capability_settings::is_enabled(&tx, OPENMAIC_CAPABILITY)? {
@@ -594,11 +677,20 @@ pub fn commit_openmaic_scene(
     }
     // Two requests may have passed preparation concurrently. Never replace the
     // first scene with a later canvas ID or timestamps from a second run.
-    if let Some(existing) = openmaic_existing(&tx, create_request_id, request, &frame, &input_sha256, &material)? {
+    if let Some(existing) = openmaic_existing(
+        &tx,
+        create_request_id,
+        request,
+        &frame,
+        &input_sha256,
+        &material,
+    )? {
         tx.commit()?;
         return Ok(existing);
     }
-    let outline_title = request["outline"]["title"].as_str().ok_or(openmaic_invalid("OpenMAIC title missing"))?;
+    let outline_title = request["outline"]["title"]
+        .as_str()
+        .ok_or(openmaic_invalid("OpenMAIC title missing"))?;
     let title = format!("OpenMAIC candidate · {outline_title}");
     let saved = json!({
         "schema": OPENMAIC_DOCUMENT_SCHEMA,
@@ -615,8 +707,11 @@ pub fn commit_openmaic_scene(
         "content":[{"type":"paragraph","attrs":{"block_id":"openmaic_scene_candidate"},
             "content":[{"type":"text","text":title.clone()}]}]});
     let internal_id = openmaic_internal_request_id(create_request_id);
-    let document = crate::document::create_optional_tx(&tx, None, None, &title, editor, Some(&internal_id))?;
-    let document_id = document["document_id"].as_str().ok_or(openmaic_invalid("OpenMAIC document ID missing"))?;
+    let document =
+        crate::document::create_optional_tx(&tx, None, None, &title, editor, Some(&internal_id))?;
+    let document_id = document["document_id"]
+        .as_str()
+        .ok_or(openmaic_invalid("OpenMAIC document ID missing"))?;
     let verified = crate::document::read_verified(&tx, document_id, Some(1))?;
     let receipt = openmaic_receipt(&tx, verified, &material);
     tx.commit()?;

@@ -305,7 +305,14 @@ async fn main() {
                 .map(|executor| {
                     // Optional provider configuration must not block ordinary saves.
                     if let Some(profile) = launch.openmaic_node_profile() {
-                        executor.clone().with_openmaic_node(&profile.executable, &profile.executable_sha256, &profile.script).unwrap_or(executor)
+                        executor
+                            .clone()
+                            .with_openmaic_node(
+                                &profile.executable,
+                                &profile.executable_sha256,
+                                &profile.script,
+                            )
+                            .unwrap_or(executor)
                     } else {
                         executor
                     }

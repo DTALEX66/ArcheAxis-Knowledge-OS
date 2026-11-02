@@ -9,7 +9,10 @@ const MAX_ERROR: usize = 8192;
 const MAX_OPENMAIC_SOURCE: u64 = 1_000_000;
 
 pub(super) fn supported(capability: &str) -> bool {
-    matches!(capability, "course.general" | "search.semantic" | "course.openmaic.scene-build")
+    matches!(
+        capability,
+        "course.general" | "search.semantic" | "course.openmaic.scene-build"
+    )
 }
 
 fn local_path_shape_allowed(path: &Path) -> bool {
@@ -20,16 +23,25 @@ fn local_path_shape_allowed(path: &Path) -> bool {
     {
         return false;
     }
-    let normalized = path.to_string_lossy().replace('\\', "/").to_ascii_lowercase();
+    let normalized = path
+        .to_string_lossy()
+        .replace('\\', "/")
+        .to_ascii_lowercase();
     let normalized = normalized.strip_prefix("//?/").unwrap_or(&normalized);
-    path.is_absolute() && !normalized.starts_with("e:") && !normalized.starts_with("f:")
-        && !normalized.starts_with("//") && !normalized.starts_with("unc/")
-        && !path.components().any(|part| matches!(part, std::path::Component::ParentDir))
+    path.is_absolute()
+        && !normalized.starts_with("e:")
+        && !normalized.starts_with("f:")
+        && !normalized.starts_with("//")
+        && !normalized.starts_with("unc/")
+        && !path
+            .components()
+            .any(|part| matches!(part, std::path::Component::ParentDir))
 }
 
 pub(super) fn safe_local_file(path: &Path) -> bool {
-    if !local_path_shape_allowed(path)
-    { return false; }
+    if !local_path_shape_allowed(path) {
+        return false;
+    }
     let mut part = PathBuf::new();
     for component in path.components() {
         // A Windows verbatim prefix such as `\\?\D:` is not a complete
@@ -37,8 +49,12 @@ pub(super) fn safe_local_file(path: &Path) -> bool {
         // appended, then retain the link check for every remaining component.
         let prefix_only = matches!(component, std::path::Component::Prefix(_));
         part.push(component);
-        if prefix_only { continue; }
-        if archeaxis_store_sqlite::raw_objects::reject_links(&part).is_err() { return false; }
+        if prefix_only {
+            continue;
+        }
+        if archeaxis_store_sqlite::raw_objects::reject_links(&part).is_err() {
+            return false;
+        }
     }
     file_usable(path)
 }
@@ -55,9 +71,15 @@ mod windows_local_path_tests {
         assert!(safe_local_file(&canonical));
         assert!(!local_path_shape_allowed(Path::new(r"E:\worker.py")));
         assert!(!local_path_shape_allowed(Path::new(r"\\?\F:\worker.py")));
-        assert!(!local_path_shape_allowed(Path::new(r"\\server\share\worker.py")));
-        assert!(!local_path_shape_allowed(Path::new(r"\\?\UNC\server\share\worker.py")));
-        assert!(!local_path_shape_allowed(Path::new(r"\\?\Volume{12345678-1234-1234-1234-123456789abc}\worker.py")));
+        assert!(!local_path_shape_allowed(Path::new(
+            r"\\server\share\worker.py"
+        )));
+        assert!(!local_path_shape_allowed(Path::new(
+            r"\\?\UNC\server\share\worker.py"
+        )));
+        assert!(!local_path_shape_allowed(Path::new(
+            r"\\?\Volume{12345678-1234-1234-1234-123456789abc}\worker.py"
+        )));
         let dir = tempfile::tempdir().unwrap();
         let link = dir.path().join("linked.rs");
         if std::os::windows::fs::symlink_file(&path, &link).is_ok() {
@@ -69,11 +91,23 @@ mod windows_local_path_tests {
 /// Bind a trusted launch manifest to the executable's actual bytes, with bounded
 /// streaming IO. The digest does not by itself qualify the Node version.
 pub(super) fn executable_matches(path: &Path, expected: &str) -> bool {
-    if expected.len() != 64 || !expected.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
-        || !safe_local_file(path) { return false; }
-    let Ok(mut file) = std::fs::File::open(path) else { return false; };
-    let Ok(meta) = file.metadata() else { return false; };
-    if !meta.is_file() || meta.len() == 0 || meta.len() > 512 * 1024 * 1024 { return false; }
+    if expected.len() != 64
+        || !expected
+            .bytes()
+            .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+        || !safe_local_file(path)
+    {
+        return false;
+    }
+    let Ok(mut file) = std::fs::File::open(path) else {
+        return false;
+    };
+    let Ok(meta) = file.metadata() else {
+        return false;
+    };
+    if !meta.is_file() || meta.len() == 0 || meta.len() > 512 * 1024 * 1024 {
+        return false;
+    }
     let mut hash = Sha256::new();
     let mut buffer = [0_u8; 64 * 1024];
     let mut total = 0_u64;
@@ -82,7 +116,9 @@ pub(super) fn executable_matches(path: &Path, expected: &str) -> bool {
             Ok(0) => break,
             Ok(count) => {
                 total += count as u64;
-                if total > 512 * 1024 * 1024 { return false; }
+                if total > 512 * 1024 * 1024 {
+                    return false;
+                }
                 hash.update(&buffer[..count]);
             }
             Err(_) => return false,
@@ -94,7 +130,9 @@ pub(super) fn executable_matches(path: &Path, expected: &str) -> bool {
 /// Hash no more than the observed size plus one byte. The extra byte detects
 /// growth after metadata without reading an unbounded file into memory.
 fn bounded_openmaic_source_matches<R: Read>(reader: &mut R, observed: u64, expected: &str) -> bool {
-    if observed > MAX_OPENMAIC_SOURCE { return false; }
+    if observed > MAX_OPENMAIC_SOURCE {
+        return false;
+    }
     let mut hash = Sha256::new();
     let mut buffer = [0_u8; 64 * 1024];
     let mut total = 0_u64;
@@ -104,9 +142,13 @@ fn bounded_openmaic_source_matches<R: Read>(reader: &mut R, observed: u64, expec
             Ok(count) => count,
             Err(_) => return false,
         };
-        if count == 0 { break; }
+        if count == 0 {
+            break;
+        }
         total += count as u64;
-        if total > observed { return false; }
+        if total > observed {
+            return false;
+        }
         hash.update(&buffer[..count]);
     }
     total == observed && hex::encode(hash.finalize()) == expected
@@ -117,20 +159,39 @@ fn bounded_openmaic_source_matches<R: Read>(reader: &mut R, observed: u64, expec
 /// handle reduces drift but does not lock the later Node import path.
 pub(super) fn openmaic_worker_matches(script: &Path) -> bool {
     fn matches(path: &Path, expected: &str) -> bool {
-        if !safe_local_file(path) { return false; }
-        let Ok(mut file) = std::fs::File::open(path) else { return false; };
-        let Ok(meta) = file.metadata() else { return false; };
-        if !meta.is_file() || !bounded_openmaic_source_matches(&mut file, meta.len(), expected) { return false; }
-        let Ok(after) = file.metadata() else { return false; };
+        if !safe_local_file(path) {
+            return false;
+        }
+        let Ok(mut file) = std::fs::File::open(path) else {
+            return false;
+        };
+        let Ok(meta) = file.metadata() else {
+            return false;
+        };
+        if !meta.is_file() || !bounded_openmaic_source_matches(&mut file, meta.len(), expected) {
+            return false;
+        }
+        let Ok(after) = file.metadata() else {
+            return false;
+        };
         after.is_file() && after.len() == meta.len()
     }
     if script.file_name().and_then(|name| name.to_str()) != Some("scene-build-worker.mjs") {
         return false;
     }
-    let Some(root) = script.parent() else { return false; };
-    matches(script, "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9")
-        && matches(&root.join("vendor/generation-0.3.28/scene-builder.ts"), "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a")
-        && matches(&root.join("vendor/generation-0.3.28/nanoid.mjs"), "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e")
+    let Some(root) = script.parent() else {
+        return false;
+    };
+    matches(
+        script,
+        "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9",
+    ) && matches(
+        &root.join("vendor/generation-0.3.28/scene-builder.ts"),
+        "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a",
+    ) && matches(
+        &root.join("vendor/generation-0.3.28/nanoid.mjs"),
+        "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e",
+    )
 }
 
 impl Executor {
@@ -145,10 +206,14 @@ impl Executor {
         if *generation == u64::MAX {
             return Err("OpenMAIC admission exhausted".into());
         }
-        let enabled = self.store.submit_wait(|conn| {
-            capability_settings::is_enabled(conn, "course.openmaic.scene-build")
-        }).await.map_err(|_| "capability settings unavailable")?
-          .map_err(|_| "capability settings unavailable")?;
+        let enabled = self
+            .store
+            .submit_wait(|conn| {
+                capability_settings::is_enabled(conn, "course.openmaic.scene-build")
+            })
+            .await
+            .map_err(|_| "capability settings unavailable")?
+            .map_err(|_| "capability settings unavailable")?;
         if !enabled {
             return Err("OpenMAIC capability is disabled".into());
         }
@@ -171,16 +236,19 @@ impl Executor {
         if *guard != expected_generation || *guard == u64::MAX {
             return Err("OpenMAIC capability was withdrawn".into());
         }
-        self.store.submit_wait(move |conn| {
-            let _guard = guard;
-            let enabled = capability_settings::is_enabled(conn, "course.openmaic.scene-build")
-                .map_err(|_| "capability settings unavailable")?;
-            if !enabled {
-                return Err("OpenMAIC capability is disabled");
-            }
-            Ok(operation(conn))
-        }).await.map_err(|_| "capability settings unavailable".to_string())?
-          .map_err(|reason| reason.to_owned())
+        self.store
+            .submit_wait(move |conn| {
+                let _guard = guard;
+                let enabled = capability_settings::is_enabled(conn, "course.openmaic.scene-build")
+                    .map_err(|_| "capability settings unavailable")?;
+                if !enabled {
+                    return Err("OpenMAIC capability is disabled");
+                }
+                Ok(operation(conn))
+            })
+            .await
+            .map_err(|_| "capability settings unavailable".to_string())?
+            .map_err(|reason| reason.to_owned())
     }
 
     /// Preserves declared worker outcomes, including PARTIAL/UNAVAILABLE exit 2.
@@ -190,7 +258,8 @@ impl Executor {
         request: Value,
         timeout: Duration,
     ) -> Result<Value, String> {
-        self.derived_json_checked(capability, request, timeout, None).await
+        self.derived_json_checked(capability, request, timeout, None)
+            .await
     }
 
     /// Dispatch against the same admission generation captured by the caller
@@ -202,7 +271,13 @@ impl Executor {
         request: Value,
         timeout: Duration,
     ) -> Result<Value, String> {
-        self.derived_json_checked("course.openmaic.scene-build", request, timeout, Some(expected_generation)).await
+        self.derived_json_checked(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+        )
+        .await
     }
 
     async fn derived_json_checked(
@@ -217,7 +292,11 @@ impl Executor {
             return Err("unsupported derived capability".into());
         }
         let node = if capability == "course.openmaic.scene-build" {
-            Some(self.openmaic_node.clone().ok_or("OpenMAIC Node worker not configured")?)
+            Some(
+                self.openmaic_node
+                    .clone()
+                    .ok_or("OpenMAIC Node worker not configured")?,
+            )
         } else {
             None
         };
@@ -225,8 +304,12 @@ impl Executor {
             let guard = tokio::time::timeout(
                 deadline.saturating_duration_since(Instant::now()),
                 self.openmaic_admission.lock(),
-            ).await.map_err(|_| "derived worker admission timed out")?;
-            if *guard == u64::MAX { return Err("OpenMAIC admission exhausted".into()); }
+            )
+            .await
+            .map_err(|_| "derived worker admission timed out")?;
+            if *guard == u64::MAX {
+                return Err("OpenMAIC admission exhausted".into());
+            }
             if expected_generation.is_some_and(|expected| *guard != expected) {
                 return Err("OpenMAIC capability was withdrawn".into());
             }
@@ -266,7 +349,9 @@ impl Executor {
         let (worker, site, program) = if let Some(node) = &node {
             (node.script.clone(), false, node.executable.clone())
         } else {
-            let (worker, site) = self.worker_for(capability).ok_or("derived worker is not registered")?;
+            let (worker, site) = self
+                .worker_for(capability)
+                .ok_or("derived worker is not registered")?;
             (worker, site, self.python.clone())
         };
         let input_sha = hex::encode(Sha256::digest(&bytes));
@@ -299,8 +384,10 @@ impl Executor {
             if timeout.is_zero() {
                 return Err("derived worker timed out before spawn".into());
             }
-            if node.as_ref().is_some_and(|configured| !executable_matches(&program, &configured.executable_sha256)
-                || !openmaic_worker_matches(&worker)) {
+            if node.as_ref().is_some_and(|configured| {
+                !executable_matches(&program, &configured.executable_sha256)
+                    || !openmaic_worker_matches(&worker)
+            }) {
                 return Err("OpenMAIC Node worker unavailable or identity mismatch".into());
             }
             // Serialize the final spawn decision with capability changes. A
@@ -310,21 +397,35 @@ impl Executor {
                     let guard = tokio::time::timeout(
                         deadline.saturating_duration_since(Instant::now()),
                         admission.clone().lock_owned(),
-                    ).await.map_err(|_| "derived worker admission timed out")?;
-                    if *guard != expected { return Err("derived capability was withdrawn"); }
+                    )
+                    .await
+                    .map_err(|_| "derived worker admission timed out")?;
+                    if *guard != expected {
+                        return Err("derived capability was withdrawn");
+                    }
                     let check_capability = capability.clone();
                     let enabled = tokio::time::timeout(
                         deadline.saturating_duration_since(Instant::now()),
-                        store.submit_wait(move |conn| capability_settings::is_enabled(conn, &check_capability)),
-                    ).await.map_err(|_| "derived worker admission timed out")?
-                        .map_err(|_| "capability settings unavailable")?
-                        .map_err(|_| "capability settings unavailable")?;
-                    if !enabled { return Err("derived capability was disabled before spawn"); }
+                        store.submit_wait(move |conn| {
+                            capability_settings::is_enabled(conn, &check_capability)
+                        }),
+                    )
+                    .await
+                    .map_err(|_| "derived worker admission timed out")?
+                    .map_err(|_| "capability settings unavailable")?
+                    .map_err(|_| "capability settings unavailable")?;
+                    if !enabled {
+                        return Err("derived capability was disabled before spawn");
+                    }
                     Ok::<_, &str>(guard)
                 })?)
-            } else { None };
+            } else {
+                None
+            };
             let timeout = deadline.saturating_duration_since(Instant::now());
-            if timeout.is_zero() { return Err("derived worker timed out before spawn".into()); }
+            if timeout.is_zero() {
+                return Err("derived worker timed out before spawn".into());
+            }
             let result = if node.is_some() {
                 run_node(&staging, &program, &worker, bytes, timeout, spawn_guard)?
             } else {
@@ -335,14 +436,25 @@ impl Executor {
                     let guard = tokio::time::timeout(
                         deadline.saturating_duration_since(Instant::now()),
                         admission.lock_owned(),
-                    ).await.map_err(|_| "derived worker admission timed out")?;
-                    if *guard != expected { return Err("derived capability was withdrawn"); }
-                    let enabled = tokio::time::timeout(deadline.saturating_duration_since(Instant::now()),
-                        store.submit_wait(move |conn| capability_settings::is_enabled(conn, &capability)))
-                        .await.map_err(|_| "derived worker admission timed out")?
-                        .map_err(|_| "capability settings unavailable")?
-                        .map_err(|_| "capability settings unavailable")?;
-                    if !enabled { return Err("derived capability was disabled before result admission"); }
+                    )
+                    .await
+                    .map_err(|_| "derived worker admission timed out")?;
+                    if *guard != expected {
+                        return Err("derived capability was withdrawn");
+                    }
+                    let enabled = tokio::time::timeout(
+                        deadline.saturating_duration_since(Instant::now()),
+                        store.submit_wait(move |conn| {
+                            capability_settings::is_enabled(conn, &capability)
+                        }),
+                    )
+                    .await
+                    .map_err(|_| "derived worker admission timed out")?
+                    .map_err(|_| "capability settings unavailable")?
+                    .map_err(|_| "capability settings unavailable")?;
+                    if !enabled {
+                        return Err("derived capability was disabled before result admission");
+                    }
                     Ok::<_, &str>(guard)
                 })?;
                 validate_openmaic_result(&result, &request, &input_sha)?;
@@ -354,41 +466,73 @@ impl Executor {
     }
 }
 
-fn validate_openmaic_result(result: &Value, request: &Value, input_sha: &str) -> Result<(), String> {
+fn validate_openmaic_result(
+    result: &Value,
+    request: &Value,
+    input_sha: &str,
+) -> Result<(), String> {
     let doc = &result["document"];
     if doc["schema"] != "archeaxis.openmaic-scene-build-result/v1"
-        || doc["model_call"] != "NOT_INVOKED" || doc["canonical_bindings_verified"] != false
-        || doc["human_review_required"] != true || doc["active_content_executed"] != false
-    { return Err("invalid OpenMAIC worker receipt".into()); }
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["canonical_bindings_verified"] != false
+        || doc["human_review_required"] != true
+        || doc["active_content_executed"] != false
+    {
+        return Err("invalid OpenMAIC worker receipt".into());
+    }
     if result["exit_code"] == 2 {
-        return if matches!(doc["status"].as_str(), Some("INVALID_REQUEST" | "UPSTREAM_NULL")) && doc["scene"].is_null() {
+        return if matches!(
+            doc["status"].as_str(),
+            Some("INVALID_REQUEST" | "UPSTREAM_NULL")
+        ) && doc["scene"].is_null()
+        {
             Ok(())
-        } else { Err("invalid OpenMAIC failure receipt".into()) };
+        } else {
+            Err("invalid OpenMAIC failure receipt".into())
+        };
     }
     let scene = &doc["scene"];
-    if result["exit_code"] != 0 || doc["status"] != "CANDIDATE"
-        || doc["request_id"] != request["request_id"] || doc["attempt"] != request["attempt"]
-        || doc["input_sha256"] != input_sha || doc["source"] != request["source"]
-        || doc["source_binding"] != "client_declared_unverified" || doc["provider"] != "openmaic"
-        || doc["provider_version"] != "1.3.0" || doc["generation_version"] != "0.3.28"
-        || doc["authority_effect"] != "candidate_only" || doc["rendering_authorized"] != false
-        || doc["retry_bytes_stable"] != false || scene["id"] != request["scene_id"]
-        || scene["stageId"] != request["stage_id"] || scene["outlineId"] != request["outline"]["id"]
-        || scene["type"] != request["outline"]["type"] || scene["title"] != request["outline"]["title"]
-        || scene["order"] != request["outline"]["order"] || scene["actions"] != request["actions"]
+    if result["exit_code"] != 0
+        || doc["status"] != "CANDIDATE"
+        || doc["request_id"] != request["request_id"]
+        || doc["attempt"] != request["attempt"]
+        || doc["input_sha256"] != input_sha
+        || doc["source"] != request["source"]
+        || doc["source_binding"] != "client_declared_unverified"
+        || doc["provider"] != "openmaic"
+        || doc["provider_version"] != "1.3.0"
+        || doc["generation_version"] != "0.3.28"
+        || doc["authority_effect"] != "candidate_only"
+        || doc["rendering_authorized"] != false
+        || doc["retry_bytes_stable"] != false
+        || scene["id"] != request["scene_id"]
+        || scene["stageId"] != request["stage_id"]
+        || scene["outlineId"] != request["outline"]["id"]
+        || scene["type"] != request["outline"]["type"]
+        || scene["title"] != request["outline"]["title"]
+        || scene["order"] != request["outline"]["order"]
+        || scene["actions"] != request["actions"]
         || scene["content"]["type"] != scene["type"]
-    { return Err("OpenMAIC candidate identity mismatch".into()); }
+    {
+        return Err("OpenMAIC candidate identity mismatch".into());
+    }
     let content_matches = match scene["type"].as_str() {
         Some("quiz") => scene["content"]["questions"] == request["content"]["questions"],
-        Some("slide") => scene["content"]["canvas"]["elements"] == request["content"]["elements"]
-            && scene["content"]["canvas"]["background"] == request["content"]["background"],
-        Some("interactive") => scene["content"]["html"] == request["content"]["html"]
-            && scene["content"]["widgetType"] == request["content"]["widgetType"]
-            && scene["content"]["widgetConfig"] == request["content"]["widgetConfig"],
+        Some("slide") => {
+            scene["content"]["canvas"]["elements"] == request["content"]["elements"]
+                && scene["content"]["canvas"]["background"] == request["content"]["background"]
+        }
+        Some("interactive") => {
+            scene["content"]["html"] == request["content"]["html"]
+                && scene["content"]["widgetType"] == request["content"]["widgetType"]
+                && scene["content"]["widgetConfig"] == request["content"]["widgetConfig"]
+        }
         Some("pbl") => scene["content"]["projectV2"] == request["content"]["projectV2"],
         _ => false,
     };
-    if !content_matches { return Err("OpenMAIC candidate content mismatch".into()); }
+    if !content_matches {
+        return Err("OpenMAIC candidate content mismatch".into());
+    }
     Ok(())
 }
 
@@ -400,17 +544,54 @@ pub(super) fn run(
     input: Option<Vec<u8>>,
     timeout: Duration,
 ) -> Result<Value, String> {
-    run_mode(staging, python, worker, input, timeout,
-        DerivedMode::Python { site, inventory: false, profile: None })
+    run_mode(
+        staging,
+        python,
+        worker,
+        input,
+        timeout,
+        DerivedMode::Python {
+            site,
+            inventory: false,
+            profile: None,
+        },
+    )
 }
 
-fn run_node(staging: &Path, node: &Path, worker: &Path, input: Vec<u8>, timeout: Duration,
-    spawn_admission: Option<tokio::sync::OwnedMutexGuard<u64>>) -> Result<Value, String> {
-    run_mode(staging, node, worker, Some(input), timeout, DerivedMode::Node { spawn_admission })
+fn run_node(
+    staging: &Path,
+    node: &Path,
+    worker: &Path,
+    input: Vec<u8>,
+    timeout: Duration,
+    spawn_admission: Option<tokio::sync::OwnedMutexGuard<u64>>,
+) -> Result<Value, String> {
+    run_mode(
+        staging,
+        node,
+        worker,
+        Some(input),
+        timeout,
+        DerivedMode::Node { spawn_admission },
+    )
 }
 
-pub(super) fn node_hello(staging: &Path, node: &Path, worker: &Path, timeout: Duration) -> Result<Value, String> {
-    run_mode(staging, node, worker, None, timeout, DerivedMode::Node { spawn_admission: None })
+pub(super) fn node_hello(
+    staging: &Path,
+    node: &Path,
+    worker: &Path,
+    timeout: Duration,
+) -> Result<Value, String> {
+    run_mode(
+        staging,
+        node,
+        worker,
+        None,
+        timeout,
+        DerivedMode::Node {
+            spawn_admission: None,
+        },
+    )
 }
 
 pub(super) fn inventory(
@@ -420,8 +601,18 @@ pub(super) fn inventory(
     site: bool,
     timeout: Duration,
 ) -> Result<Value, String> {
-    run_mode(staging, python, worker, None, timeout,
-        DerivedMode::Python { site, inventory: true, profile: None })
+    run_mode(
+        staging,
+        python,
+        worker,
+        None,
+        timeout,
+        DerivedMode::Python {
+            site,
+            inventory: true,
+            profile: None,
+        },
+    )
 }
 
 pub(super) fn configured_inventory(
@@ -432,13 +623,29 @@ pub(super) fn configured_inventory(
     timeout: Duration,
     profile: &archeaxis_domain::model_configuration::Profile,
 ) -> Result<Value, String> {
-    run_mode(staging, python, worker, None, timeout,
-        DerivedMode::Python { site, inventory: true, profile: Some(profile) })
+    run_mode(
+        staging,
+        python,
+        worker,
+        None,
+        timeout,
+        DerivedMode::Python {
+            site,
+            inventory: true,
+            profile: Some(profile),
+        },
+    )
 }
 
 enum DerivedMode<'a> {
-    Python { site: bool, inventory: bool, profile: Option<&'a archeaxis_domain::model_configuration::Profile> },
-    Node { spawn_admission: Option<tokio::sync::OwnedMutexGuard<u64>> },
+    Python {
+        site: bool,
+        inventory: bool,
+        profile: Option<&'a archeaxis_domain::model_configuration::Profile>,
+    },
+    Node {
+        spawn_admission: Option<tokio::sync::OwnedMutexGuard<u64>>,
+    },
 }
 
 fn run_mode(
@@ -450,7 +657,11 @@ fn run_mode(
     mode: DerivedMode<'_>,
 ) -> Result<Value, String> {
     let (site, inventory, profile, node, spawn_admission) = match mode {
-        DerivedMode::Python { site, inventory, profile } => (site, inventory, profile, false, None),
+        DerivedMode::Python {
+            site,
+            inventory,
+            profile,
+        } => (site, inventory, profile, false, None),
         DerivedMode::Node { spawn_admission } => (false, false, None, true, spawn_admission),
     };
     let dir = tempfile::tempdir_in(staging).map_err(|_| "derived staging unavailable")?;
@@ -492,7 +703,9 @@ fn run_mode(
     // Node gets only its fixed script; Python retains its isolated launch exactly.
     if !node {
         command.arg("-I").arg("-B").arg("-X").arg("utf8");
-        if !site { command.arg("-S"); }
+        if !site {
+            command.arg("-S");
+        }
     }
     command.arg(worker);
     if input.is_none() {
@@ -703,15 +916,23 @@ mod openmaic_source_bound_tests {
 
     #[test]
     fn short_reads_reach_eof_and_match_the_fixed_digest() {
-        let mut reader = ShortReader { bytes: std::io::Cursor::new(b"abc".to_vec()),
-            max_chunk: 2, largest_request: 0, calls: 0 };
+        let mut reader = ShortReader {
+            bytes: std::io::Cursor::new(b"abc".to_vec()),
+            max_chunk: 2,
+            largest_request: 0,
+            calls: 0,
+        };
         assert!(bounded_openmaic_source_matches(&mut reader, 3, ABC_SHA));
         assert_eq!(reader.calls, 3);
         assert!(reader.largest_request <= 64 * 1024);
         let mut short = std::io::Cursor::new(b"ab".to_vec());
         assert!(!bounded_openmaic_source_matches(&mut short, 3, ABC_SHA));
         let mut wrong_digest = std::io::Cursor::new(b"abc".to_vec());
-        assert!(!bounded_openmaic_source_matches(&mut wrong_digest, 3, &"0".repeat(64)));
+        assert!(!bounded_openmaic_source_matches(
+            &mut wrong_digest,
+            3,
+            &"0".repeat(64)
+        ));
     }
 
     #[test]
@@ -734,12 +955,24 @@ mod openmaic_source_bound_tests {
 
     #[test]
     fn exact_size_limit_is_allowed_and_oversize_never_reads() {
-        let mut exact = ShortReader { bytes: std::io::Cursor::new(vec![b'a'; 1_000_000]),
-            max_chunk: 4096, largest_request: 0, calls: 0 };
-        assert!(bounded_openmaic_source_matches(&mut exact, MAX_OPENMAIC_SOURCE, MILLION_A_SHA));
+        let mut exact = ShortReader {
+            bytes: std::io::Cursor::new(vec![b'a'; 1_000_000]),
+            max_chunk: 4096,
+            largest_request: 0,
+            calls: 0,
+        };
+        assert!(bounded_openmaic_source_matches(
+            &mut exact,
+            MAX_OPENMAIC_SOURCE,
+            MILLION_A_SHA
+        ));
         assert!(exact.largest_request <= 64 * 1024);
         let mut oversized = std::io::Cursor::new(b"abc".to_vec());
-        assert!(!bounded_openmaic_source_matches(&mut oversized, MAX_OPENMAIC_SOURCE + 1, ABC_SHA));
+        assert!(!bounded_openmaic_source_matches(
+            &mut oversized,
+            MAX_OPENMAIC_SOURCE + 1,
+            ABC_SHA
+        ));
         assert_eq!(oversized.position(), 0);
     }
 
@@ -748,7 +981,10 @@ mod openmaic_source_bound_tests {
         struct Failing;
         impl Read for Failing {
             fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
-                Err(std::io::Error::new(std::io::ErrorKind::Other, "synthetic read failure"))
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "synthetic read failure",
+                ))
             }
         }
         assert!(!bounded_openmaic_source_matches(&mut Failing, 3, ABC_SHA));
@@ -757,14 +993,21 @@ mod openmaic_source_bound_tests {
         impl Read for PartialThenFail {
             fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
                 if self.0 {
-                    return Err(std::io::Error::new(std::io::ErrorKind::Other, "synthetic read failure"));
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "synthetic read failure",
+                    ));
                 }
                 self.0 = true;
                 output[0] = b'a';
                 Ok(1)
             }
         }
-        assert!(!bounded_openmaic_source_matches(&mut PartialThenFail(false), 3, ABC_SHA));
+        assert!(!bounded_openmaic_source_matches(
+            &mut PartialThenFail(false),
+            3,
+            ABC_SHA
+        ));
     }
 }
 
@@ -796,11 +1039,17 @@ mod openmaic_receipt_tests {
                 "input" => bad["document"]["input_sha256"] = json!("other"),
                 "source" => bad["document"]["source"]["version"] = json!(2),
                 "scene" => bad["document"]["scene"]["id"] = json!("other"),
-                "content" => bad["document"]["scene"]["content"]["questions"][0]["question"] = json!("changed"),
+                "content" => {
+                    bad["document"]["scene"]["content"]["questions"][0]["question"] =
+                        json!("changed")
+                }
                 "model" => bad["document"]["model_call"] = json!("INVOKED"),
                 _ => bad["document"]["canonical_bindings_verified"] = json!(true),
             }
-            assert!(validate_openmaic_result(&bad, &request, "input-sha").is_err(), "{field}");
+            assert!(
+                validate_openmaic_result(&bad, &request, "input-sha").is_err(),
+                "{field}"
+            );
         }
     }
 
@@ -825,100 +1074,166 @@ mod withdrawal_tests {
     #[tokio::test]
     async fn openmaic_persistence_rejects_a_withdrawn_generation() {
         let dir = tempfile::tempdir().unwrap();
-        let node = dir.path().join(if cfg!(windows) { "node.exe" } else { "node" });
+        let node = dir
+            .path()
+            .join(if cfg!(windows) { "node.exe" } else { "node" });
         let fake = b"synthetic non-executable";
         std::fs::write(&node, fake).unwrap();
         let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../services/learning-providers/openmaic/scene-build-worker.mjs")
-            .canonicalize().unwrap();
-        let ex = Executor::open(&dir.path().join("db"), &dir.path().join("staging"),
-            &dir.path().join("unused-python"), &dir.path().join("unused-worker"))
-            .await.unwrap()
-            .with_openmaic_node(&node, &hex::encode(Sha256::digest(fake)), &worker).unwrap();
+            .canonicalize()
+            .unwrap();
+        let ex = Executor::open(
+            &dir.path().join("db"),
+            &dir.path().join("staging"),
+            &dir.path().join("unused-python"),
+            &dir.path().join("unused-worker"),
+        )
+        .await
+        .unwrap()
+        .with_openmaic_node(&node, &hex::encode(Sha256::digest(fake)), &worker)
+        .unwrap();
         let old = ex.openmaic_admission_generation().await.unwrap();
         ex.set_openmaic_enabled(false).await.unwrap();
         assert!(ex.openmaic_admission_generation().await.is_err());
         ex.set_openmaic_enabled(true).await.unwrap();
-        assert_eq!(ex.openmaic_scene_with_generation(old, json!({}), Duration::from_secs(2))
-            .await.unwrap_err(), "OpenMAIC capability was withdrawn");
+        assert_eq!(
+            ex.openmaic_scene_with_generation(old, json!({}), Duration::from_secs(2))
+                .await
+                .unwrap_err(),
+            "OpenMAIC capability was withdrawn"
+        );
         let called = Arc::new(AtomicBool::new(false));
         let observed = called.clone();
-        assert!(ex.commit_openmaic_if_current(old, move |_| {
-            observed.store(true, Ordering::SeqCst);
-        }).await.is_err());
+        assert!(
+            ex.commit_openmaic_if_current(old, move |_| {
+                observed.store(true, Ordering::SeqCst);
+            })
+            .await
+            .is_err()
+        );
         assert!(!called.load(Ordering::SeqCst));
         let current = ex.openmaic_admission_generation().await.unwrap();
-        assert_eq!(ex.commit_openmaic_if_current(current, |_| 17).await.unwrap(), 17);
+        assert_eq!(
+            ex.commit_openmaic_if_current(current, |_| 17)
+                .await
+                .unwrap(),
+            17
+        );
     }
 
     #[tokio::test]
     async fn openmaic_queued_persistence_holds_admission_after_caller_disconnects() {
         let dir = tempfile::tempdir().unwrap();
-        let node = dir.path().join(if cfg!(windows) { "node.exe" } else { "node" });
+        let node = dir
+            .path()
+            .join(if cfg!(windows) { "node.exe" } else { "node" });
         let fake = b"synthetic non-executable";
         std::fs::write(&node, fake).unwrap();
         let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../services/learning-providers/openmaic/scene-build-worker.mjs")
-            .canonicalize().unwrap();
-        let ex = Executor::open(&dir.path().join("db"), &dir.path().join("staging"),
-            &dir.path().join("unused-python"), &dir.path().join("unused-worker"))
-            .await.unwrap()
-            .with_openmaic_node(&node, &hex::encode(Sha256::digest(fake)), &worker).unwrap();
+            .canonicalize()
+            .unwrap();
+        let ex = Executor::open(
+            &dir.path().join("db"),
+            &dir.path().join("staging"),
+            &dir.path().join("unused-python"),
+            &dir.path().join("unused-worker"),
+        )
+        .await
+        .unwrap()
+        .with_openmaic_node(&node, &hex::encode(Sha256::digest(fake)), &worker)
+        .unwrap();
         let generation = ex.openmaic_admission_generation().await.unwrap();
         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
         let (release_tx, release_rx) = mpsc::channel();
         let writer = ex.clone();
         let task = tokio::spawn(async move {
-            writer.commit_openmaic_if_current(generation, move |_| {
-                let _ = started_tx.send(());
-                release_rx.recv_timeout(Duration::from_secs(2)).unwrap();
-            }).await
+            writer
+                .commit_openmaic_if_current(generation, move |_| {
+                    let _ = started_tx.send(());
+                    release_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+                })
+                .await
         });
         started_rx.await.unwrap();
         task.abort();
         let withdrawing = ex.clone();
-        let mut disable = tokio::spawn(async move { withdrawing.set_openmaic_enabled(false).await });
-        assert!(tokio::time::timeout(Duration::from_millis(30), &mut disable).await.is_err());
+        let mut disable =
+            tokio::spawn(async move { withdrawing.set_openmaic_enabled(false).await });
+        assert!(
+            tokio::time::timeout(Duration::from_millis(30), &mut disable)
+                .await
+                .is_err()
+        );
         release_tx.send(()).unwrap();
-        assert!(tokio::time::timeout(Duration::from_secs(2), disable).await.unwrap().unwrap().is_ok());
+        assert!(
+            tokio::time::timeout(Duration::from_secs(2), disable)
+                .await
+                .unwrap()
+                .unwrap()
+                .is_ok()
+        );
     }
 
     #[test]
     fn node_disable_then_reenable_does_not_revive_queued_work() {
         tokio::runtime::Builder::new_current_thread()
-            .enable_time().max_blocking_threads(1).build().unwrap()
+            .enable_time()
+            .max_blocking_threads(1)
+            .build()
+            .unwrap()
             .block_on(async {
                 let dir = tempfile::tempdir().unwrap();
-                let node = dir.path().join(if cfg!(windows) { "node.exe" } else { "node" });
+                let node = dir
+                    .path()
+                    .join(if cfg!(windows) { "node.exe" } else { "node" });
                 let fake = b"synthetic non-executable";
                 std::fs::write(&node, fake).unwrap();
                 let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                     .join("../../services/learning-providers/openmaic/scene-build-worker.mjs")
-                    .canonicalize().unwrap();
-                let ex = Executor::open(&dir.path().join("db"), &dir.path().join("staging"),
-                    &dir.path().join("unused-python"), &dir.path().join("unused-worker"))
-                    .await.unwrap()
-                    .with_openmaic_node(&node, &hex::encode(Sha256::digest(fake)), &worker).unwrap();
+                    .canonicalize()
+                    .unwrap();
+                let ex = Executor::open(
+                    &dir.path().join("db"),
+                    &dir.path().join("staging"),
+                    &dir.path().join("unused-python"),
+                    &dir.path().join("unused-worker"),
+                )
+                .await
+                .unwrap()
+                .with_openmaic_node(&node, &hex::encode(Sha256::digest(fake)), &worker)
+                .unwrap();
                 let (started_send, started_receive) = mpsc::channel();
                 let (release_send, release_receive) = mpsc::channel();
                 let blocker = tokio::task::spawn_blocking(move || {
                     started_send.send(()).unwrap();
-                    release_receive.recv_timeout(Duration::from_secs(10)).unwrap();
+                    release_receive
+                        .recv_timeout(Duration::from_secs(10))
+                        .unwrap();
                 });
-                started_receive.recv_timeout(Duration::from_secs(2)).unwrap();
-                let mut request = Box::pin(ex.derived_json("course.openmaic.scene-build", json!({}), Duration::from_secs(5)));
+                started_receive
+                    .recv_timeout(Duration::from_secs(2))
+                    .unwrap();
+                let mut request = Box::pin(ex.derived_json(
+                    "course.openmaic.scene-build",
+                    json!({}),
+                    Duration::from_secs(5),
+                ));
                 let end = Instant::now() + Duration::from_secs(2);
                 loop {
                     std::future::poll_fn(|cx| {
                         assert!(request.as_mut().poll(cx).is_pending());
                         Poll::Ready(())
-                    }).await;
+                    })
+                    .await;
                     if ex.derived_slots.available_permits() == 3 {
                         ex.store.submit_wait(|_| ()).await.unwrap();
                         std::future::poll_fn(|cx| {
                             assert!(request.as_mut().poll(cx).is_pending());
                             Poll::Ready(())
-                        }).await;
+                        })
+                        .await;
                         break;
                     }
                     assert!(Instant::now() < end, "request never reached slot admission");
@@ -928,7 +1243,9 @@ mod withdrawal_tests {
                 ex.set_openmaic_enabled(true).await.unwrap();
                 release_send.send(()).unwrap();
                 blocker.await.unwrap();
-                let result = tokio::time::timeout(Duration::from_secs(3), request).await.unwrap();
+                let result = tokio::time::timeout(Duration::from_secs(3), request)
+                    .await
+                    .unwrap();
                 assert_eq!(result.unwrap_err(), "derived capability was withdrawn");
             });
     }

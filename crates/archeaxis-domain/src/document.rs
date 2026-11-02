@@ -184,8 +184,8 @@ pub(crate) fn read_verified(
     if snapshot["content_sha256"].as_str() != Some(digest.as_str()) {
         return Err(Error::Invalid("stored document content digest mismatch"));
     }
-    let editor: Value = serde_json::from_str(&raw)
-        .map_err(|_| Error::Invalid("stored editor JSON is invalid"))?;
+    let editor: Value =
+        serde_json::from_str(&raw).map_err(|_| Error::Invalid("stored editor JSON is invalid"))?;
     if snapshot.get("editor_json") != Some(&editor) {
         return Err(Error::Invalid("stored document changed while reading"));
     }

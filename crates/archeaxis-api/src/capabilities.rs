@@ -375,9 +375,9 @@ pub async fn set_enabled(executor: &Executor, capability: &str, enabled: bool) -
     let registered = (capability == OPENMAIC_SCENE_BUILD
         && executor.openmaic_node_paths().is_some())
         || executor
-        .registered_routes()
-        .iter()
-        .any(|(name, _, _)| *name == capability);
+            .registered_routes()
+            .iter()
+            .any(|(name, _, _)| *name == capability);
     if !registered {
         // Refusing an unknown capability keeps this table from accumulating rows for capabilities
         // that do not exist, which would later read as decisions about nothing.

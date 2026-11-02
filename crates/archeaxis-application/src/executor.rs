@@ -1,10 +1,10 @@
 //! Real single-shot text worker execution outside the SQLite owner thread.
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
-mod derived;
 #[cfg(test)]
 mod deeptutor_grade;
 mod deeptutor_practice_import;
+mod derived;
 pub use deeptutor_practice_import::{PracticeImportCancellation, PracticeImportWorkerError};
 mod dispatch;
 mod health;
@@ -196,7 +196,9 @@ impl Executor {
                 continue;
             }
             if *capability == "course.openmaic.scene-build" {
-                return Err("OpenMAIC Node capability requires its dedicated launch profile".into());
+                return Err(
+                    "OpenMAIC Node capability requires its dedicated launch profile".into(),
+                );
             }
             routes.push(((*capability).to_string(), path.clone(), true));
         }
@@ -218,10 +220,21 @@ impl Executor {
 
     /// Enable the one fixed OpenMAIC adapter only from an explicit launch profile.
     /// A missing or changed provider leaves normal document operations available.
-    pub fn with_openmaic_node(mut self, executable: &Path, executable_sha256: &str, script: &Path) -> Result<Self, String> {
-        let is_node = executable.file_name().and_then(|name| name.to_str())
-            .is_some_and(|name| name.eq_ignore_ascii_case("node") || name.eq_ignore_ascii_case("node.exe"));
-        if !is_node || !derived::executable_matches(executable, executable_sha256) || !script.is_absolute()
+    pub fn with_openmaic_node(
+        mut self,
+        executable: &Path,
+        executable_sha256: &str,
+        script: &Path,
+    ) -> Result<Self, String> {
+        let is_node = executable
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| {
+                name.eq_ignore_ascii_case("node") || name.eq_ignore_ascii_case("node.exe")
+            });
+        if !is_node
+            || !derived::executable_matches(executable, executable_sha256)
+            || !script.is_absolute()
             || !derived::openmaic_worker_matches(script)
         {
             return Err("OpenMAIC Node worker unavailable or identity mismatch".into());
@@ -779,7 +792,13 @@ impl Executor {
 
     /// Node is a separate provider kind; Python route descriptors remain unchanged.
     pub fn openmaic_node_paths(&self) -> Option<(&Path, &Path, &str)> {
-        self.openmaic_node.as_ref().map(|node| (node.executable.as_path(), node.script.as_path(), node.executable_sha256.as_str()))
+        self.openmaic_node.as_ref().map(|node| {
+            (
+                node.executable.as_path(),
+                node.script.as_path(),
+                node.executable_sha256.as_str(),
+            )
+        })
     }
 
     /// Change only the explicitly registered Node capability. The generation is advanced
@@ -789,11 +808,16 @@ impl Executor {
             return Err("OpenMAIC Node worker not configured".into());
         }
         let mut generation = self.openmaic_admission.lock().await;
-        *generation = generation.checked_add(1).ok_or("OpenMAIC admission exhausted")?;
-        self.store.submit_wait(move |conn| {
-            capability_settings::set_enabled(conn, "course.openmaic.scene-build", enabled)
-        }).await.map_err(|_| "capability settings unavailable")?
-          .map_err(|_| "capability settings unavailable".to_string())
+        *generation = generation
+            .checked_add(1)
+            .ok_or("OpenMAIC admission exhausted")?;
+        self.store
+            .submit_wait(move |conn| {
+                capability_settings::set_enabled(conn, "course.openmaic.scene-build", enabled)
+            })
+            .await
+            .map_err(|_| "capability settings unavailable")?
+            .map_err(|_| "capability settings unavailable".to_string())
     }
 
     /// Observe the existing NDJSON hello without submitting a task or selecting a
@@ -814,9 +838,13 @@ impl Executor {
         let node = if capability == "course.openmaic.scene-build" {
             match &self.openmaic_node {
                 Some(profile) if profile.script == worker => Some(profile.clone()),
-                _ => return serde_json::json!({"status":"handshake_failed","reason":"Node provider not registered","task_executed":false}),
+                _ => {
+                    return serde_json::json!({"status":"handshake_failed","reason":"Node provider not registered","task_executed":false});
+                }
             }
-        } else { None };
+        } else {
+            None
+        };
         let python = self.python.clone();
         let staging = self.staging.clone();
         let worker = worker.to_owned();

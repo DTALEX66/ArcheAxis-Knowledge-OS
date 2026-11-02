@@ -37,16 +37,25 @@ fn invalid(message: &'static str) -> Error {
 pub fn valid_snapshot_shape(snapshot: &Snapshot) -> bool {
     !snapshot.document_id.is_empty()
         && snapshot.document_id.len() <= 128
-        && snapshot.document_id.bytes().all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b))
+        && snapshot
+            .document_id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b))
         && (1..=9_007_199_254_740_991).contains(&snapshot.version)
         && snapshot.content_sha256.len() == 64
-        && snapshot.content_sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        && snapshot
+            .content_sha256
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 fn metadata(editor: &Value) -> Result<Option<Grant>, Error> {
     editor["attrs"]
         .get(NAMESPACE)
-        .map(|value| serde_json::from_value(value.clone()).map_err(|_| invalid("invalid provider material grant")))
+        .map(|value| {
+            serde_json::from_value(value.clone())
+                .map_err(|_| invalid("invalid provider material grant"))
+        })
         .transpose()
 }
 
@@ -64,14 +73,20 @@ pub fn assert_material(conn: &Connection, material: &Snapshot) -> Result<(), Err
 fn assert_material_current(conn: &Connection, material: &Snapshot) -> Result<(), Error> {
     assert_material(conn, material)?;
     let current = document::read_verified(conn, &material.document_id, None)?;
-    if current["version"].as_i64() != Some(material.version) || current["content_sha256"] != material.content_sha256 {
-        return Err(invalid("provider material is not the current document version"));
+    if current["version"].as_i64() != Some(material.version)
+        || current["content_sha256"] != material.content_sha256
+    {
+        return Err(invalid(
+            "provider material is not the current document version",
+        ));
     }
     Ok(())
 }
 
 pub fn validate_editor(conn: &Connection, document_id: &str, editor: &Value) -> Result<(), Error> {
-    let Some(grant) = metadata(editor)? else { return Ok(()); };
+    let Some(grant) = metadata(editor)? else {
+        return Ok(());
+    };
     if grant.schema != SCHEMA
         || grant.consumer != "deeptutor"
         || grant.operations.len() != 1
@@ -105,26 +120,44 @@ pub fn validate_editor(conn: &Connection, document_id: &str, editor: &Value) -> 
 
 /// Check the current grant and exact material, in the caller's Store view or
 /// transaction. A restored grant identity can never authorize a new operation.
-pub fn consume(conn: &Connection, grant_ref: &Snapshot, material: &Snapshot, now: u64) -> Result<(), Error> {
+pub fn consume(
+    conn: &Connection,
+    grant_ref: &Snapshot,
+    material: &Snapshot,
+    now: u64,
+) -> Result<(), Error> {
     consume_with_expiry(conn, grant_ref, material, now).map(|_| ())
 }
 
 /// Return the expiry only after exactly the same current-version, restoration,
 /// revocation and material checks as ordinary consumption. This is internal
 /// to a transaction holding the write lock; it is not a transferable grant.
-pub(crate) fn consume_with_expiry(conn: &Connection, grant_ref: &Snapshot, material: &Snapshot, now: u64) -> Result<Option<u64>, Error> {
+pub(crate) fn consume_with_expiry(
+    conn: &Connection,
+    grant_ref: &Snapshot,
+    material: &Snapshot,
+    now: u64,
+) -> Result<Option<u64>, Error> {
     if !valid_snapshot_shape(grant_ref) || !valid_snapshot_shape(material) {
         return Err(invalid("invalid provider grant snapshot"));
     }
-    archeaxis_store_sqlite::authorization_fence::assert_grant_not_fenced(conn, &grant_ref.document_id)
-        .map_err(|_| invalid("restored grant requires new human authorization"))?;
+    archeaxis_store_sqlite::authorization_fence::assert_grant_not_fenced(
+        conn,
+        &grant_ref.document_id,
+    )
+    .map_err(|_| invalid("restored grant requires new human authorization"))?;
     let doc = document::read_verified(conn, &grant_ref.document_id, None)?;
-    if doc["version"].as_i64() != Some(grant_ref.version) || doc["content_sha256"] != grant_ref.content_sha256 {
+    if doc["version"].as_i64() != Some(grant_ref.version)
+        || doc["content_sha256"] != grant_ref.content_sha256
+    {
         return Err(invalid("provider grant snapshot is no longer current"));
     }
     validate_editor(conn, &grant_ref.document_id, &doc["editor_json"])?;
     let grant = metadata(&doc["editor_json"])?.ok_or(invalid("provider grant absent"))?;
-    if grant.state != "granted" || grant.material != *material || grant.expires_at.is_some_and(|expiry| now >= expiry) {
+    if grant.state != "granted"
+        || grant.material != *material
+        || grant.expires_at.is_some_and(|expiry| now >= expiry)
+    {
         return Err(invalid("provider material access not authorized"));
     }
     assert_material_current(conn, material)?;

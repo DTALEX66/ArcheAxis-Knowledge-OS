@@ -160,7 +160,10 @@ pub(super) async fn create_openmaic_scene(
     Json(body): Json<OpenMaicSceneBody>,
 ) -> Response {
     if crate::request_actor(&headers) != Ok("human") {
-        return error(StatusCode::FORBIDDEN, "OpenMAIC scene creation requires a human actor");
+        return error(
+            StatusCode::FORBIDDEN,
+            "OpenMAIC scene creation requires a human actor",
+        );
     }
     let create_request_id = body.create_request_id;
     let request = body.request;
@@ -171,18 +174,32 @@ pub(super) async fn create_openmaic_scene(
     let admission = runtime.executor.openmaic_admission_generation().await;
     let lookup_id = create_request_id.clone();
     let lookup_request = request.clone();
-    let prepared = match runtime.executor.store().submit_wait(move |conn| {
-        course::prepare_openmaic_scene(conn, &lookup_id, &lookup_request)
-    }).await {
+    let prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| course::prepare_openmaic_scene(conn, &lookup_id, &lookup_request))
+        .await
+    {
         Ok(Ok(prepared)) => prepared,
         Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
-            return error(StatusCode::NOT_FOUND, "OpenMAIC source document is unavailable");
+            return error(
+                StatusCode::NOT_FOUND,
+                "OpenMAIC source document is unavailable",
+            );
         }
         Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
         | Ok(Err(archeaxis_domain::document::Error::Conflict(_))) => {
-            return error(StatusCode::CONFLICT, "OpenMAIC request or source snapshot is invalid or changed");
+            return error(
+                StatusCode::CONFLICT,
+                "OpenMAIC request or source snapshot is invalid or changed",
+            );
         }
-        _ => return error(StatusCode::INTERNAL_SERVER_ERROR, "OpenMAIC preparation failed"),
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC preparation failed",
+            );
+        }
     };
     let pending = match prepared {
         course::OpenMaicPreparation::Existing(receipt) => {
@@ -191,43 +208,76 @@ pub(super) async fn create_openmaic_scene(
                 "candidate_document_status":receipt["candidate_document_status"],
                 "source_snapshot_status":receipt["source_snapshot_status"],
                 "source_derivation":"client_declared_unverified","human_review_required":true,
-                "rendering_authorized":false,"answer_secrecy":"not_established"})).into_response();
+                "rendering_authorized":false,"answer_secrecy":"not_established"}))
+            .into_response();
         }
         course::OpenMaicPreparation::Pending(pending) => pending,
     };
     let generation = match admission {
         Ok(value) => value,
-        Err(_) => return error(StatusCode::SERVICE_UNAVAILABLE, "OpenMAIC provider unavailable or disabled"),
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC provider unavailable or disabled",
+            );
+        }
     };
-    let result = match runtime.executor.openmaic_scene_with_generation(
-        generation, request.clone(), Duration::from_secs(30),
-    ).await {
+    let result = match runtime
+        .executor
+        .openmaic_scene_with_generation(generation, request.clone(), Duration::from_secs(30))
+        .await
+    {
         Ok(value) => value,
-        Err(_) => return error(StatusCode::SERVICE_UNAVAILABLE, "OpenMAIC worker did not produce a candidate"),
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC worker did not produce a candidate",
+            );
+        }
     };
     if result["exit_code"] != 0 || result["document"]["status"] != "CANDIDATE" {
-        return error(StatusCode::UNPROCESSABLE_ENTITY, "OpenMAIC worker did not produce a candidate");
+        return error(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "OpenMAIC worker did not produce a candidate",
+        );
     }
     let worker_document = result["document"].clone();
-    let committed = runtime.executor.commit_openmaic_if_current(generation, move |conn| {
-        course::commit_openmaic_scene(conn, &create_request_id, &request, &pending, &worker_document)
-    }).await;
+    let committed = runtime
+        .executor
+        .commit_openmaic_if_current(generation, move |conn| {
+            course::commit_openmaic_scene(
+                conn,
+                &create_request_id,
+                &request,
+                &pending,
+                &worker_document,
+            )
+        })
+        .await;
     match committed {
         Ok(Ok(receipt)) => Json(json!({"schema":"archeaxis.openmaic-scene-persistence/v1",
             "worker_invoked":true,"document":receipt["document"],
             "candidate_document_status":receipt["candidate_document_status"],
             "source_snapshot_status":receipt["source_snapshot_status"],
             "source_derivation":"client_declared_unverified","human_review_required":true,
-            "rendering_authorized":false,"answer_secrecy":"not_established"})).into_response(),
+            "rendering_authorized":false,"answer_secrecy":"not_established"}))
+        .into_response(),
         Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
-        | Ok(Err(archeaxis_domain::document::Error::Conflict(_))) => {
-            error(StatusCode::CONFLICT, "OpenMAIC request, source, capability or workspace changed")
-        }
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_))) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC request, source, capability or workspace changed",
+        ),
         Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
             error(StatusCode::CONFLICT, "OpenMAIC source document changed")
         }
-        Ok(Err(_)) => error(StatusCode::INTERNAL_SERVER_ERROR, "OpenMAIC candidate persistence failed"),
-        Err(_) => error(StatusCode::SERVICE_UNAVAILABLE, "OpenMAIC capability unavailable or withdrawn"),
+        Ok(Err(_)) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC candidate persistence failed",
+        ),
+        Err(_) => error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC capability unavailable or withdrawn",
+        ),
     }
 }
 

@@ -81,7 +81,10 @@ fn current14_lifecycle_and_authored13_wire_preserve_documents_knowledge_learning
     drop(c);
     let archive = dir.path().join("v14");
     let mut manifest = export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
-    assert_eq!(manifest.schema_version, archeaxis_store_sqlite::SCHEMA_VERSION);
+    assert_eq!(
+        manifest.schema_version,
+        archeaxis_store_sqlite::SCHEMA_VERSION
+    );
     let objects = manifest.raw_objects.clone();
     let restored = dir.path().join("restored14.sqlite");
     restore_workspace(archive.to_str().unwrap(), restored.to_str().unwrap()).unwrap();

@@ -4,11 +4,18 @@
 //! Ordinary Document reads and exports retain the full editor, including any
 //! answer key. This projection suppresses those fields only in the practice
 //! view; neither its digest nor this workspace is an answer-secrecy boundary.
-use crate::{document::{self, Error}, provider_material_grant::{self as grant, Snapshot}, ui_state};
+use crate::{
+    document::{self, Error},
+    provider_material_grant::{self as grant, Snapshot},
+    ui_state,
+};
 use archeaxis_store_sqlite::{authorization_fence, raw_objects};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
-use serde::{Deserialize, Deserializer, Serialize, de::{self, MapAccess, SeqAccess, Visitor}};
+use serde::{
+    Deserialize, Deserializer, Serialize,
+    de::{self, MapAccess, SeqAccess, Visitor},
+};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
@@ -48,8 +55,11 @@ fn text(value: &str, max: usize, nonblank: bool) -> bool {
 }
 
 fn token(value: &str) -> bool {
-    !value.is_empty() && value.len() <= 256
-        && value.bytes().all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b))
+    !value.is_empty()
+        && value.len() <= 256
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b))
 }
 
 fn validate(value: &Candidate, question_document: &Snapshot) -> Result<(), Error> {
@@ -58,16 +68,20 @@ fn validate(value: &Candidate, question_document: &Snapshot) -> Result<(), Error
         || value.origin != "user_import_unverified"
         || !grant::valid_snapshot_shape(&value.source_material)
         || value.source_material.document_id == question_document.document_id
-        || value.upstream_entry_id.as_ref().is_some_and(|id| !text(id, 1024, true))
+        || value
+            .upstream_entry_id
+            .as_ref()
+            .is_some_and(|id| !text(id, 1024, true))
         || !token(&question.question_id)
         || !text(&question.question, 128_000, true)
         || !text(&question.question_type, 128, false)
         || !text(&question.correct_answer, 20_000, false)
         || !text(&question.explanation, 128_000, false)
         || question.options.len() > 64
-        || question.options.iter().any(|(key, option)| {
-            !text(key, 256, true) || !text(option, 20_000, false)
-        })
+        || question
+            .options
+            .iter()
+            .any(|(key, option)| !text(key, 256, true) || !text(option, 20_000, false))
     {
         return Err(Error::Invalid("invalid DeepTutor question candidate"));
     }
@@ -112,13 +126,19 @@ pub struct PracticeImportPlan {
 impl PracticeImportPlan {
     /// Exact bounded JSON line to send to the dedicated private worker. The
     /// host must close stdin and retain the frame's privacy through cleanup.
-    pub fn worker_frame(&self) -> &[u8] { &self.worker_frame }
+    pub fn worker_frame(&self) -> &[u8] {
+        &self.worker_frame
+    }
 }
 
 fn practice_source(conn: &Connection, source_id: &str, expected: &str) -> Result<(), Error> {
-    let stored: Option<String> = conn.query_row(
-        "SELECT sha256 FROM sources WHERE source_id=?1", [source_id], |row| row.get(0),
-    ).optional()?;
+    let stored: Option<String> = conn
+        .query_row(
+            "SELECT sha256 FROM sources WHERE source_id=?1",
+            [source_id],
+            |row| row.get(0),
+        )
+        .optional()?;
     if stored.as_deref() != Some(expected) {
         return Err(Error::Invalid("practice source identity mismatch"));
     }
@@ -126,7 +146,10 @@ fn practice_source(conn: &Connection, source_id: &str, expected: &str) -> Result
 }
 
 fn practice_document_id(request_id: &str) -> String {
-    format!("doc_req_{}", hex::encode(Sha256::digest(request_id.as_bytes())))
+    format!(
+        "doc_req_{}",
+        hex::encode(Sha256::digest(request_id.as_bytes()))
+    )
 }
 
 /// Capture the Core-owned source, selected material and restore identity.
@@ -136,15 +159,21 @@ pub fn prepare_practice_import(
     conn: &mut Connection,
     request: &PracticeImportRequest,
 ) -> Result<PracticeImportPlan, Error> {
-    if !token(&request.request_id) || request.request_id.len() > 128
-        || request.source_id.is_empty() || !text(&request.source_id, 128, false)
+    if !token(&request.request_id)
+        || request.request_id.len() > 128
+        || request.source_id.is_empty()
+        || !text(&request.source_id, 128, false)
         || request.source_sha256.len() != 64
-        || !request.source_sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        || !request
+            .source_sha256
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
         || !matches!(request.source_format.as_str(), "csv" | "tsv" | "json")
         || !(1..=502).contains(&request.source_row)
         || !grant::valid_snapshot_shape(&request.material_snapshot)
         || !token(&request.question_id)
-        || !token(&request.create_request_id) || request.create_request_id.len() > 128
+        || !token(&request.create_request_id)
+        || request.create_request_id.len() > 128
         || !text(&request.title, 1024, false)
         || request.material_snapshot.document_id == practice_document_id(&request.create_request_id)
     {
@@ -178,7 +207,13 @@ pub fn prepare_practice_import(
         return Err(Error::Invalid("practice worker frame exceeds limit"));
     }
     let worker_frame_sha256 = hex::encode(Sha256::digest(&worker_frame));
-    Ok(PracticeImportPlan { request: request.clone(), workspace_id, restore_epoch, worker_frame, worker_frame_sha256 })
+    Ok(PracticeImportPlan {
+        request: request.clone(),
+        workspace_id,
+        restore_epoch,
+        worker_frame,
+        worker_frame_sha256,
+    })
 }
 
 // A worker line is parsed without permitting duplicate object names at any
@@ -193,25 +228,42 @@ impl<'de> Deserialize<'de> for UniqueJson {
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 f.write_str("JSON with unique object names")
             }
-            fn visit_bool<E: de::Error>(self, value: bool) -> Result<Self::Value, E> { Ok(UniqueJson(json!(value))) }
-            fn visit_i64<E: de::Error>(self, value: i64) -> Result<Self::Value, E> { Ok(UniqueJson(json!(value))) }
-            fn visit_u64<E: de::Error>(self, value: u64) -> Result<Self::Value, E> { Ok(UniqueJson(json!(value))) }
+            fn visit_bool<E: de::Error>(self, value: bool) -> Result<Self::Value, E> {
+                Ok(UniqueJson(json!(value)))
+            }
+            fn visit_i64<E: de::Error>(self, value: i64) -> Result<Self::Value, E> {
+                Ok(UniqueJson(json!(value)))
+            }
+            fn visit_u64<E: de::Error>(self, value: u64) -> Result<Self::Value, E> {
+                Ok(UniqueJson(json!(value)))
+            }
             fn visit_f64<E: de::Error>(self, value: f64) -> Result<Self::Value, E> {
-                serde_json::Number::from_f64(value).map(|n| UniqueJson(Value::Number(n)))
+                serde_json::Number::from_f64(value)
+                    .map(|n| UniqueJson(Value::Number(n)))
                     .ok_or_else(|| E::custom("invalid number"))
             }
-            fn visit_str<E: de::Error>(self, value: &str) -> Result<Self::Value, E> { Ok(UniqueJson(json!(value))) }
-            fn visit_string<E: de::Error>(self, value: String) -> Result<Self::Value, E> { Ok(UniqueJson(json!(value))) }
-            fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> { Ok(UniqueJson(Value::Null)) }
+            fn visit_str<E: de::Error>(self, value: &str) -> Result<Self::Value, E> {
+                Ok(UniqueJson(json!(value)))
+            }
+            fn visit_string<E: de::Error>(self, value: String) -> Result<Self::Value, E> {
+                Ok(UniqueJson(json!(value)))
+            }
+            fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+                Ok(UniqueJson(Value::Null))
+            }
             fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
                 let mut values = Vec::new();
-                while let Some(value) = seq.next_element::<UniqueJson>()? { values.push(value.0); }
+                while let Some(value) = seq.next_element::<UniqueJson>()? {
+                    values.push(value.0);
+                }
                 Ok(UniqueJson(Value::Array(values)))
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut values = serde_json::Map::new();
                 while let Some((key, value)) = map.next_entry::<String, UniqueJson>()? {
-                    if values.contains_key(&key) { return Err(de::Error::custom("duplicate object name")); }
+                    if values.contains_key(&key) {
+                        return Err(de::Error::custom("duplicate object name"));
+                    }
                     values.insert(key, value.0);
                 }
                 Ok(UniqueJson(Value::Object(values)))
@@ -231,18 +283,31 @@ struct PracticeWorkerDocument {
     editor_json: Value,
 }
 
-fn private_worker_document(plan: &PracticeImportPlan, line: &[u8]) -> Result<PracticeWorkerDocument, Error> {
-    if line.is_empty() || line.len() > MAX_PRACTICE_REPLY || line.last() != Some(&b'\n')
-        || line[..line.len()-1].iter().any(|&byte| matches!(byte, b'\n' | b'\r'))
+fn private_worker_document(
+    plan: &PracticeImportPlan,
+    line: &[u8],
+) -> Result<PracticeWorkerDocument, Error> {
+    if line.is_empty()
+        || line.len() > MAX_PRACTICE_REPLY
+        || line.last() != Some(&b'\n')
+        || line[..line.len() - 1]
+            .iter()
+            .any(|&byte| matches!(byte, b'\n' | b'\r'))
     {
         return Err(Error::Invalid("invalid private practice worker frame"));
     }
-    let mut parser = serde_json::Deserializer::from_slice(&line[..line.len()-1]);
+    let mut parser = serde_json::Deserializer::from_slice(&line[..line.len() - 1]);
     let value = UniqueJson::deserialize(&mut parser)
-        .map_err(|_| Error::Invalid("invalid private practice worker JSON"))?.0;
-    parser.end().map_err(|_| Error::Invalid("invalid private practice worker JSON"))?;
-    let object = value.as_object().ok_or(Error::Invalid("invalid private practice worker result"))?;
-    if object.len() != 12 || value["schema"] != PRACTICE_HOST_SCHEMA
+        .map_err(|_| Error::Invalid("invalid private practice worker JSON"))?
+        .0;
+    parser
+        .end()
+        .map_err(|_| Error::Invalid("invalid private practice worker JSON"))?;
+    let object = value
+        .as_object()
+        .ok_or(Error::Invalid("invalid private practice worker result"))?;
+    if object.len() != 12
+        || value["schema"] != PRACTICE_HOST_SCHEMA
         || value["status"] != "PRIVATE_CANDIDATE"
         || value["request_id"] != plan.request.request_id
         || value["input_sha256"] != plan.worker_frame_sha256
@@ -256,8 +321,9 @@ fn private_worker_document(plan: &PracticeImportPlan, line: &[u8]) -> Result<Pra
     {
         return Err(Error::Invalid("private practice worker result mismatch"));
     }
-    let document: PracticeWorkerDocument = serde_json::from_value(value["document_create_request"].clone())
-        .map_err(|_| Error::Invalid("invalid private practice document"))?;
+    let document: PracticeWorkerDocument =
+        serde_json::from_value(value["document_create_request"].clone())
+            .map_err(|_| Error::Invalid("invalid private practice document"))?;
     if document.create_request_id != plan.request.create_request_id
         || document.source_id != plan.request.source_id
         || document.source_revision != plan.request.source_sha256
@@ -265,15 +331,28 @@ fn private_worker_document(plan: &PracticeImportPlan, line: &[u8]) -> Result<Pra
     {
         return Err(Error::Invalid("private practice document binding mismatch"));
     }
-    let root = document.editor_json.as_object().filter(|root| root.len() == 3)
+    let root = document
+        .editor_json
+        .as_object()
+        .filter(|root| root.len() == 3)
         .ok_or(Error::Invalid("invalid private practice editor"))?;
-    let attrs = root.get("attrs").and_then(Value::as_object).filter(|attrs| attrs.len() == 1)
+    let attrs = root
+        .get("attrs")
+        .and_then(Value::as_object)
+        .filter(|attrs| attrs.len() == 1)
         .ok_or(Error::Invalid("invalid private practice editor attributes"))?;
-    let candidate: Candidate = serde_json::from_value(attrs.get(NAMESPACE).cloned()
-        .ok_or(Error::Invalid("practice question candidate missing"))?)
-        .map_err(|_| Error::Invalid("invalid practice question candidate"))?;
-    let future = Snapshot { document_id: practice_document_id(&plan.request.create_request_id),
-        version: 1, content_sha256: "0".repeat(64) };
+    let candidate: Candidate = serde_json::from_value(
+        attrs
+            .get(NAMESPACE)
+            .cloned()
+            .ok_or(Error::Invalid("practice question candidate missing"))?,
+    )
+    .map_err(|_| Error::Invalid("invalid practice question candidate"))?;
+    let future = Snapshot {
+        document_id: practice_document_id(&plan.request.create_request_id),
+        version: 1,
+        content_sha256: "0".repeat(64),
+    };
     validate(&candidate, &future)?;
     if candidate.source_material != plan.request.material_snapshot
         || candidate.question.question_id != plan.request.question_id
@@ -281,9 +360,20 @@ fn private_worker_document(plan: &PracticeImportPlan, line: &[u8]) -> Result<Pra
         return Err(Error::Invalid("practice question binding mismatch"));
     }
     let mut texts = vec![candidate.question.question.clone()];
-    texts.extend(candidate.question.options.iter().map(|(key, option)| format!("{key}. {option}")));
-    let content: Vec<Value> = texts.into_iter().map(|text| json!({"type":"paragraph",
-        "content":[{"type":"text","text":text}]})).collect();
+    texts.extend(
+        candidate
+            .question
+            .options
+            .iter()
+            .map(|(key, option)| format!("{key}. {option}")),
+    );
+    let content: Vec<Value> = texts
+        .into_iter()
+        .map(|text| {
+            json!({"type":"paragraph",
+        "content":[{"type":"text","text":text}]})
+        })
+        .collect();
     if root.get("type") != Some(&json!("doc")) || root.get("content") != Some(&json!(content)) {
         return Err(Error::Invalid("practice editor projection mismatch"));
     }
@@ -303,7 +393,8 @@ pub fn finish_practice_import(
     let document = private_worker_document(plan, private_worker_line)?;
     // This is a bounded preflight, not a hard limit on the later existing
     // create_optional_tx CAS reread or on concurrent filesystem replacement.
-    if raw_objects::read_bounded(conn, &plan.request.source_sha256, MAX_PRACTICE_SOURCE)?.is_empty() {
+    if raw_objects::read_bounded(conn, &plan.request.source_sha256, MAX_PRACTICE_SOURCE)?.is_empty()
+    {
         return Err(Error::Invalid("practice source is empty"));
     }
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -312,20 +403,38 @@ pub fn finish_practice_import(
     if workspace.as_deref() != Some(plan.workspace_id.as_str())
         || authorization_fence::authorization_epoch(&tx)? != plan.restore_epoch
     {
-        return Err(Error::Invalid("practice workspace or restore epoch changed"));
+        return Err(Error::Invalid(
+            "practice workspace or restore epoch changed",
+        ));
     }
     practice_source(&tx, &plan.request.source_id, &plan.request.source_sha256)?;
     grant::assert_material(&tx, &plan.request.material_snapshot)?;
     let id = practice_document_id(&plan.request.create_request_id);
     let duplicate: bool = tx.query_row(
-        "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)", [&id], |row| row.get(0),
+        "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",
+        [&id],
+        |row| row.get(0),
     )?;
-    let created = document::create_optional_tx(&tx, Some(&document.source_id), Some(&document.source_revision),
-        &document.title, document.editor_json, Some(&document.create_request_id))?;
+    let created = document::create_optional_tx(
+        &tx,
+        Some(&document.source_id),
+        Some(&document.source_revision),
+        &document.title,
+        document.editor_json,
+        Some(&document.create_request_id),
+    )?;
     let snapshot = Snapshot {
-        document_id: created["document_id"].as_str().ok_or(Error::Invalid("created question identity unavailable"))?.to_owned(),
-        version: created["version"].as_i64().ok_or(Error::Invalid("created question version unavailable"))?,
-        content_sha256: created["content_sha256"].as_str().ok_or(Error::Invalid("created question digest unavailable"))?.to_owned(),
+        document_id: created["document_id"]
+            .as_str()
+            .ok_or(Error::Invalid("created question identity unavailable"))?
+            .to_owned(),
+        version: created["version"]
+            .as_i64()
+            .ok_or(Error::Invalid("created question version unavailable"))?,
+        content_sha256: created["content_sha256"]
+            .as_str()
+            .ok_or(Error::Invalid("created question digest unavailable"))?
+            .to_owned(),
     };
     if snapshot.document_id != id || snapshot.version != 1 {
         return Err(Error::Invalid("created question identity mismatch"));
@@ -333,16 +442,21 @@ pub fn finish_practice_import(
     let view = read_view(&tx, &snapshot)?;
     if view["question"]["question_id"] != plan.request.question_id
         || view["source_material"] != json!(plan.request.material_snapshot)
-        || !matches!(view["source_snapshot_status"].as_str(), Some("current" | "historical"))
+        || !matches!(
+            view["source_snapshot_status"].as_str(),
+            Some("current" | "historical")
+        )
         || view["question_document_origin"] == "portable_historical"
     {
         return Err(Error::Invalid("created question view mismatch"));
     }
     tx.commit()?;
-    Ok(json!({"schema":"archeaxis.deeptutor-practice-import-result/v1",
+    Ok(
+        json!({"schema":"archeaxis.deeptutor-practice-import-result/v1",
         "question_document":snapshot,"question_view":view,"duplicate":duplicate,
         "source_link":"registered_source_and_cas_verified_not_row_proven","provider_execution":"NOT_INVOKED",
-        "worker_process_identity":"HOST_RESPONSIBILITY","independent_mastery":"not_established"}))
+        "worker_process_identity":"HOST_RESPONSIBILITY","independent_mastery":"not_established"}),
+    )
 }
 
 /// Produce a learner-facing view. No material, answer key, explanation,
@@ -355,14 +469,21 @@ pub fn read_view(conn: &Connection, question_document: &Snapshot) -> Result<Valu
     if !grant::valid_snapshot_shape(question_document) {
         return Err(Error::Invalid("invalid question document snapshot"));
     }
-    let snapshot = document::read_verified(conn, &question_document.document_id, Some(question_document.version))?;
+    let snapshot = document::read_verified(
+        conn,
+        &question_document.document_id,
+        Some(question_document.version),
+    )?;
     if snapshot["content_sha256"] != question_document.content_sha256 {
         return Err(Error::Invalid("question document snapshot mismatch"));
     }
     let candidate: Candidate = serde_json::from_value(
-        snapshot["editor_json"]["attrs"].get(NAMESPACE)
-            .cloned().ok_or(Error::Invalid("question candidate missing"))?,
-    ).map_err(|_| Error::Invalid("invalid question candidate fields"))?;
+        snapshot["editor_json"]["attrs"]
+            .get(NAMESPACE)
+            .cloned()
+            .ok_or(Error::Invalid("question candidate missing"))?,
+    )
+    .map_err(|_| Error::Invalid("invalid question candidate fields"))?;
     validate(&candidate, question_document)?;
 
     // The import provenance is attached to version 1; later ordinary saves do
@@ -376,8 +497,13 @@ pub fn read_view(conn: &Connection, question_document: &Snapshot) -> Result<Valu
             "unavailable"
         } else {
             match document::read_verified(conn, &candidate.source_material.document_id, None) {
-                Ok(current) if current["version"].as_i64() == Some(candidate.source_material.version)
-                    && current["content_sha256"] == candidate.source_material.content_sha256 => "current",
+                Ok(current)
+                    if current["version"].as_i64() == Some(candidate.source_material.version)
+                        && current["content_sha256"]
+                            == candidate.source_material.content_sha256 =>
+                {
+                    "current"
+                }
                 Ok(_) => "historical",
                 Err(_) => "unavailable",
             }
@@ -387,7 +513,11 @@ pub fn read_view(conn: &Connection, question_document: &Snapshot) -> Result<Valu
     let current_question = document::read_verified(conn, &question_document.document_id, None)?;
     let question_status = if current_question["version"].as_i64() == Some(question_document.version)
         && current_question["content_sha256"] == question_document.content_sha256
-    { "current" } else { "historical" };
+    {
+        "current"
+    } else {
+        "historical"
+    };
 
     // The full digest includes the source, all visible fields, answer key and
     // explanation. It binds content but is not a secret or an origin proof.
@@ -442,12 +572,25 @@ pub(crate) fn grading_question(
     question_id: &str,
     question_version: &str,
 ) -> Result<Value, Error> {
-    assert_selected_snapshot_matches_candidate(conn, question_document, selected_source, question_id, question_version)?;
-    let snapshot = document::read_verified(conn, &question_document.document_id, Some(question_document.version))?;
+    assert_selected_snapshot_matches_candidate(
+        conn,
+        question_document,
+        selected_source,
+        question_id,
+        question_version,
+    )?;
+    let snapshot = document::read_verified(
+        conn,
+        &question_document.document_id,
+        Some(question_document.version),
+    )?;
     let candidate: Candidate = serde_json::from_value(
-        snapshot["editor_json"]["attrs"].get(NAMESPACE)
-            .cloned().ok_or(Error::Invalid("question candidate missing"))?,
-    ).map_err(|_| Error::Invalid("invalid question candidate fields"))?;
+        snapshot["editor_json"]["attrs"]
+            .get(NAMESPACE)
+            .cloned()
+            .ok_or(Error::Invalid("question candidate missing"))?,
+    )
+    .map_err(|_| Error::Invalid("invalid question candidate fields"))?;
     validate(&candidate, question_document)?;
     Ok(json!({"question_type":candidate.question.question_type,
         "options":candidate.question.options,"correct_answer":candidate.question.correct_answer}))

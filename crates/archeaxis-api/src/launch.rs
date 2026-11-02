@@ -201,17 +201,38 @@ impl Launch {
         let profile = self.openmaic_node_worker.clone()?;
         // No E/F drive access is granted by a project launch profile.
         for path in [&profile.executable, &profile.script] {
-            let normalized = path.to_string_lossy().replace('\\', "/").to_ascii_lowercase();
+            let normalized = path
+                .to_string_lossy()
+                .replace('\\', "/")
+                .to_ascii_lowercase();
             let normalized = normalized.strip_prefix("//?/").unwrap_or(&normalized);
-            if normalized.starts_with("e:") || normalized.starts_with("f:") { return None; }
+            if normalized.starts_with("e:") || normalized.starts_with("f:") {
+                return None;
+            }
         }
         TextWorker::validate_path(&profile.executable).ok()?;
         TextWorker::validate_path(&profile.script).ok()?;
-        if profile.executable_sha256.len() != 64 || !profile.executable_sha256.bytes()
-            .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c)) { return None; }
-        if !profile.executable.file_name().and_then(|name| name.to_str())
-            .is_some_and(|name| name.eq_ignore_ascii_case("node") || name.eq_ignore_ascii_case("node.exe")) { return None; }
-        if !profile.executable.is_file() || !profile.script.is_file() { return None; }
+        if profile.executable_sha256.len() != 64
+            || !profile
+                .executable_sha256
+                .bytes()
+                .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+        {
+            return None;
+        }
+        if !profile
+            .executable
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| {
+                name.eq_ignore_ascii_case("node") || name.eq_ignore_ascii_case("node.exe")
+            })
+        {
+            return None;
+        }
+        if !profile.executable.is_file() || !profile.script.is_file() {
+            return None;
+        }
         Some(profile)
     }
 
@@ -421,7 +442,9 @@ mod tests {
     #[test]
     fn optional_openmaic_node_never_guesses_paths_or_blocks_old_launch_shape() {
         let dir = tempfile::tempdir().unwrap();
-        let node = dir.path().join(if cfg!(windows) { "node.exe" } else { "node" });
+        let node = dir
+            .path()
+            .join(if cfg!(windows) { "node.exe" } else { "node" });
         let script = dir.path().join("scene-build-worker.mjs");
         std::fs::write(&node, b"fixture").unwrap();
         std::fs::write(&script, b"fixture").unwrap();
@@ -435,10 +458,16 @@ mod tests {
         configured["openmaic_node_worker"]["executable"] = serde_json::json!("node");
         let relative: Launch = serde_json::from_value(configured.clone()).unwrap();
         assert!(relative.openmaic_node_profile().is_none());
-        configured["openmaic_node_worker"]["executable"] = serde_json::json!(dir.path().join("missing-node.exe"));
+        configured["openmaic_node_worker"]["executable"] =
+            serde_json::json!(dir.path().join("missing-node.exe"));
         let missing: Launch = serde_json::from_value(configured).unwrap();
         assert!(missing.openmaic_node_profile().is_none());
-        let duplicate = format!(r#"{{"launch_token":"{}","session_id":"{}","openmaic_node_worker":{{"executable":"one","executable":"two","executable_sha256":"{}","script":"x"}}}}"#, "a".repeat(64), "b".repeat(32), "c".repeat(64));
+        let duplicate = format!(
+            r#"{{"launch_token":"{}","session_id":"{}","openmaic_node_worker":{{"executable":"one","executable":"two","executable_sha256":"{}","script":"x"}}}}"#,
+            "a".repeat(64),
+            "b".repeat(32),
+            "c".repeat(64)
+        );
         assert!(serde_json::from_str::<Launch>(&duplicate).is_err());
     }
 }
@@ -629,7 +658,12 @@ mod route_declaration_tests {
         let dir = tempfile::tempdir().unwrap();
         let profile = worker(
             dir.path(),
-            vec![route(dir.path(), "deeptutor.practice.import", "absent.py", false)],
+            vec![route(
+                dir.path(),
+                "deeptutor.practice.import",
+                "absent.py",
+                false,
+            )],
         );
         assert!(profile.validate().is_ok());
         assert_eq!(profile.extra_routes()[0].0, "deeptutor.practice.import");

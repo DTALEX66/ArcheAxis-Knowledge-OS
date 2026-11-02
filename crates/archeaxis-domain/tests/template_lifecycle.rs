@@ -120,14 +120,21 @@ fn sqlite_backup_13_upgrade_and_14_restore_keep_originals_and_all_old_rows() {
         archeaxis_store_sqlite::capability_settings::set_enabled(&c, "course.general", false)
             .unwrap();
         if version < 15 {
-            c.execute_batch("DROP TABLE learning_provider_attempts;DROP TABLE learning_provider_activities;").unwrap();
+            c.execute_batch(
+                "DROP TABLE learning_provider_attempts;DROP TABLE learning_provider_activities;",
+            )
+            .unwrap();
         }
         if version == 13 {
             c.execute_batch("ALTER TABLE capability_settings DROP COLUMN state_epoch;ALTER TABLE capability_settings DROP COLUMN definition_version;ALTER TABLE capability_settings DROP COLUMN installed;UPDATE workspace_meta SET value='13' WHERE key='schema_version';").unwrap();
         } else {
             template_definition::set_enabled(&mut c, false).unwrap();
             if version == 14 {
-                c.execute("UPDATE workspace_meta SET value='14' WHERE key='schema_version'", []).unwrap();
+                c.execute(
+                    "UPDATE workspace_meta SET value='14' WHERE key='schema_version'",
+                    [],
+                )
+                .unwrap();
             }
         }
         let snapshot = dir.path().join("backup.sqlite");
@@ -211,7 +218,13 @@ fn sqlite_backup_13_upgrade_and_14_restore_keep_originals_and_all_old_rows() {
         }
         if version < 15 {
             for table in ["learning_provider_activities", "learning_provider_attempts"] {
-                assert_eq!(target.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r.get::<_,i64>(0)).unwrap(), 0);
+                assert_eq!(
+                    target
+                        .query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r
+                            .get::<_, i64>(0))
+                        .unwrap(),
+                    0
+                );
             }
             target.execute("INSERT INTO learning_provider_activities(activity_id,request_json,request_sha256) VALUES('unexpected','{}','x')", []).unwrap();
             assert!(!backup::verify_restored_authorization(&source, &target).unwrap());
