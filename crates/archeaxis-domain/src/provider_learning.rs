@@ -35,8 +35,8 @@ type Result<T> = std::result::Result<T, Error>;
 /// `abandon_unknown` records an unclear outcome without inventing a result.
 pub mod grade {
     pub use crate::provider_grade::{
-        Admission, GradeRequest, Prepared, abandon_unknown, begin_dispatch, complete_observed,
-        prepare,
+        Admission, GradeRequest, Prepared, Reconciled, abandon_unknown, begin_dispatch,
+        complete_observed, disposition, prepare, reconcile_stale_dispatch,
     };
 }
 
