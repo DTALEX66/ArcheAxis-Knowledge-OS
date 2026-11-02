@@ -1,3 +1,10 @@
+# Current scope clarification (SUP-030/031/032): IDs and historical roadmap/technical
+# declarations below are retained; formal_later/planned never cancel required
+# journeys in docs/truth/CLOSED_LOOP_DEFINITION.md or prove current implementation.
+# Legacy entry_gate/evidence/manual-confirmation declarations describe their dated
+# governed actions, not ordinary save/read/learn runtime gates (SUP-029/content_policy).
+# Current execution/evidence: docs/current/AAOS-ACTIVE-EXECUTION.json and its sole
+# active_progress. Archive reconciliation: workspace/intake/20261101-project-archiving-reconciliation/README.md.
 schema_version: "2.0"
 atlas_name: "ArcheAxis Knowledge — Capability Atlas"
 updated: "2026-08-12"

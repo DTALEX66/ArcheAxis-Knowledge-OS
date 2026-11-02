@@ -77,6 +77,7 @@ pub enum Operation {
     CourseFromKnowledge,
     CourseGet,
     CourseList,
+    CourseOpenmaicSceneCreate,
     TeachingList,
     TeachingGet,
     TeachingCreate,
@@ -89,6 +90,13 @@ pub enum Operation {
     LearningState,
     LearningHistory,
     LearningReview,
+    LearningDeeptutorPracticeImport,
+    LearningDeeptutorQuestionView,
+    LearningProviderActivityCreate,
+    LearningProviderActivityGet,
+    LearningProviderAttemptStart,
+    LearningProviderAttemptSubmit,
+    LearningProviderAttemptCancel,
     CapabilitiesList,
     CapabilitySetEnabled,
     CapabilityTemplateChange,
@@ -717,6 +725,25 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             format!("/api/v1/courses/{}/render", id(p, "course_id")?),
             Some(body()?),
         ),
+        CourseOpenmaicSceneCreate
+        | LearningDeeptutorPracticeImport
+        | LearningDeeptutorQuestionView => {
+            // Only fixed, human-session Core routes are exposed. The selected
+            // body contains provider data and must not become a generic URL,
+            // job payload, or transport log.
+            if p.as_object().is_none_or(|fields| fields.len() != 1)
+                || !p.get("body").is_some_and(Value::is_object)
+            {
+                return Err("CORE_COMMAND_PROVIDER_PAYLOAD_INVALID".into());
+            }
+            let path = match request.operation {
+                CourseOpenmaicSceneCreate => "/api/v1/courses/openmaic/scenes",
+                LearningDeeptutorPracticeImport => "/api/v1/learning/deeptutor/practice-import",
+                LearningDeeptutorQuestionView => "/api/v1/learning/deeptutor/question-view",
+                _ => unreachable!(),
+            };
+            ("POST", path.into(), Some(body()?))
+        }
         LearningItems => ("GET", "/api/v1/learning/items".into(), None),
         LearningState => (
             "GET",
@@ -729,6 +756,43 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             None,
         ),
         LearningReview => ("POST", "/api/v1/learning/reviews".into(), Some(body()?)),
+        LearningProviderActivityCreate => (
+            "POST",
+            "/api/v1/learning/provider-activities".into(),
+            Some(body()?),
+        ),
+        LearningProviderActivityGet => {
+            let mut path = format!(
+                "/api/v1/learning/provider-activities/{}",
+                id(p, "activity_id")?
+            );
+            if p.get("after_attempt_id").is_some() {
+                path.push_str(&format!("?after_attempt_id={}", id(p, "after_attempt_id")?));
+            }
+            ("GET", path, None)
+        }
+        LearningProviderAttemptStart => (
+            "POST",
+            format!(
+                "/api/v1/learning/provider-activities/{}/attempts",
+                id(p, "activity_id")?
+            ),
+            Some(body()?),
+        ),
+        LearningProviderAttemptSubmit | LearningProviderAttemptCancel => (
+            "POST",
+            format!(
+                "/api/v1/learning/provider-activities/{}/attempts/{}/{}",
+                id(p, "activity_id")?,
+                id(p, "attempt_id")?,
+                if matches!(request.operation, LearningProviderAttemptSubmit) {
+                    "submit"
+                } else {
+                    "cancel"
+                }
+            ),
+            Some(body()?),
+        ),
         ConversationSessionCreate => (
             "POST",
             "/api/v1/conversation/sessions".into(),
@@ -1146,6 +1210,150 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
 }
 
 #[cfg(test)]
+mod provider_host_transport_tests {
+    use super::*;
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::time::{Duration, Instant};
+
+    // An owned synthetic loopback fixture. It is not an actual Core or worker.
+    fn serve_once(
+        expected_path: &'static str,
+        status: u16,
+        response: &'static str,
+    ) -> (u16, std::thread::JoinHandle<()>) {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let deadline = Instant::now() + Duration::from_secs(5);
+            let mut socket = loop {
+                match listener.accept() {
+                    Ok((socket, _)) => break socket,
+                    Err(error)
+                        if error.kind() == std::io::ErrorKind::WouldBlock
+                            && Instant::now() < deadline =>
+                    {
+                        std::thread::sleep(Duration::from_millis(5))
+                    }
+                    Err(error) => panic!("synthetic provider fixture accept: {error}"),
+                }
+            };
+            socket.set_nonblocking(false).unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut wire = Vec::new();
+            let mut chunk = [0_u8; 1024];
+            loop {
+                let count = socket.read(&mut chunk).unwrap();
+                assert!(count > 0);
+                wire.extend_from_slice(&chunk[..count]);
+                assert!(wire.len() < 16_384);
+                if let Some(end) = wire.windows(4).position(|bytes| bytes == b"\r\n\r\n") {
+                    let headers = String::from_utf8(wire[..end].to_vec()).unwrap();
+                    let lower = headers.to_ascii_lowercase();
+                    let length = lower
+                        .lines()
+                        .find_map(|line| {
+                            line.strip_prefix("content-length:")
+                                .map(|value| value.trim().parse::<usize>().unwrap())
+                        })
+                        .unwrap();
+                    if wire.len() < end + 4 + length {
+                        continue;
+                    }
+                    assert!(headers.starts_with(&format!("POST {expected_path} HTTP/1.1")));
+                    assert!(lower
+                        .lines()
+                        .any(|line| line == "x-archeaxis-launch-token: synthetic-host-token"));
+                    let body: Value =
+                        serde_json::from_slice(&wire[end + 4..end + 4 + length]).unwrap();
+                    assert_eq!(body, serde_json::json!({"request_id":"synthetic"}));
+                    break;
+                }
+            }
+            write!(socket, "HTTP/1.1 {status} Synthetic\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                response.len(), response).unwrap();
+        });
+        (port, server)
+    }
+
+    #[test]
+    fn provider_commands_use_the_owned_loopback_and_return_json() {
+        for (operation, path) in [
+            (
+                "learning_deeptutor_practice_import",
+                "/api/v1/learning/deeptutor/practice-import",
+            ),
+            (
+                "learning_deeptutor_question_view",
+                "/api/v1/learning/deeptutor/question-view",
+            ),
+            (
+                "course_openmaic_scene_create",
+                "/api/v1/courses/openmaic/scenes",
+            ),
+        ] {
+            let (port, server) = serve_once(path, 200, r#"{"state":"synthetic"}"#);
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":operation, "payload":{"body":{"request_id":"synthetic"}}
+            }))
+            .unwrap();
+            let reply = execute(port, "synthetic-host-token", request).unwrap();
+            assert_eq!(reply.status, 200);
+            assert_eq!(reply.body["state"], "synthetic");
+            server.join().unwrap();
+        }
+    }
+
+    #[test]
+    fn provider_transport_does_not_echo_a_malformed_private_response() {
+        for response in [
+            "SYNTHETIC_PRIVATE_INVALID",
+            r#""SYNTHETIC_PRIVATE_INVALID""#,
+            "null",
+        ] {
+            let (port, server) =
+                serve_once("/api/v1/learning/deeptutor/practice-import", 200, response);
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"learning_deeptutor_practice_import",
+                "payload":{"body":{"request_id":"synthetic"}}
+            }))
+            .unwrap();
+            let error = execute(port, "synthetic-host-token", request)
+                .err()
+                .unwrap();
+            assert_eq!(error, "CORE_PROVIDER_RESPONSE_INVALID");
+            assert!(!error.contains("SYNTHETIC_PRIVATE_INVALID"));
+            server.join().unwrap();
+        }
+    }
+
+    #[test]
+    fn provider_transport_keeps_http_error_status_without_echoing_the_body() {
+        let (port, server) = serve_once(
+            "/api/v1/learning/deeptutor/question-view",
+            422,
+            "SYNTHETIC_PRIVATE_INVALID",
+        );
+        let request: Request = serde_json::from_value(serde_json::json!({
+            "operation":"learning_deeptutor_question_view",
+            "payload":{"body":{"request_id":"synthetic"}}
+        }))
+        .unwrap();
+        let reply = execute(port, "synthetic-host-token", request).unwrap();
+        assert_eq!(reply.status, 422);
+        assert_eq!(
+            reply.body,
+            serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"})
+        );
+        assert!(!reply.body.to_string().contains("SYNTHETIC_PRIVATE_INVALID"));
+        server.join().unwrap();
+    }
+}
+
+#[cfg(test)]
 mod ingest_batch_routes {
     use super::*;
     use serde_json::json;
@@ -1310,13 +1518,23 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
         // jobs run past both, so the transport must outlive them.
         Operation::JobExecute => 320,
-        Operation::CourseFromKnowledge | Operation::CourseRender => 60,
+        Operation::LearningDeeptutorPracticeImport => 95,
+        Operation::CourseFromKnowledge
+        | Operation::CourseRender
+        | Operation::CourseOpenmaicSceneCreate => 60,
         _ => 30,
     })
 }
 
 fn request_byte_limit(operation: &Operation) -> usize {
-    if matches!(
+    if matches!(operation, Operation::CourseOpenmaicSceneCreate) {
+        262_144
+    } else if matches!(
+        operation,
+        Operation::LearningDeeptutorPracticeImport | Operation::LearningDeeptutorQuestionView
+    ) {
+        65_536
+    } else if matches!(
         operation,
         Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot
     ) {
@@ -1399,8 +1617,23 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
     if bytes.len() > response_limit {
         return Err("CORE_RESPONSE_TOO_LARGE".into());
     }
-    let body = if bytes.is_empty() {
+    let private_provider_response = matches!(
+        request.operation,
+        Operation::CourseOpenmaicSceneCreate
+            | Operation::LearningDeeptutorPracticeImport
+            | Operation::LearningDeeptutorQuestionView
+    );
+    let body = if bytes.is_empty() && !private_provider_response {
         Value::Null
+    } else if private_provider_response {
+        // Worker/source text may be sensitive. Never echo a malformed Core
+        // response as a fallback message for these provider operations. Keep
+        // the HTTP status for an error so callers can distinguish a 4xx/5xx.
+        match serde_json::from_slice::<Value>(&bytes) {
+            Ok(value) if value.is_object() => value,
+            _ if status >= 400 => serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"}),
+            _ => return Err("CORE_PROVIDER_RESPONSE_INVALID".into()),
+        }
     } else {
         serde_json::from_slice(&bytes)
             .unwrap_or_else(|_| serde_json::json!({"message":String::from_utf8_lossy(&bytes)}))
@@ -1411,6 +1644,106 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn provider_host_routes_are_fixed_and_require_one_object_body() {
+        for (operation, expected) in [
+            (
+                "learning_deeptutor_practice_import",
+                "/api/v1/learning/deeptutor/practice-import",
+            ),
+            (
+                "learning_deeptutor_question_view",
+                "/api/v1/learning/deeptutor/question-view",
+            ),
+            (
+                "course_openmaic_scene_create",
+                "/api/v1/courses/openmaic/scenes",
+            ),
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":operation, "payload":{"body":{"request_id":"synthetic"}}
+            }))
+            .unwrap();
+            let (method, path, body) = route(&request).unwrap();
+            assert_eq!((method, path.as_str()), ("POST", expected));
+            assert_eq!(body.unwrap()["request_id"], "synthetic");
+            for payload in [
+                serde_json::json!({}),
+                serde_json::json!({"body":null}),
+                serde_json::json!({"body":[]}),
+                serde_json::json!({"body":{}, "url":"http://127.0.0.1/private"}),
+            ] {
+                let request: Request = serde_json::from_value(serde_json::json!({
+                    "operation":operation, "payload":payload
+                }))
+                .unwrap();
+                assert_eq!(
+                    route(&request).unwrap_err(),
+                    "CORE_COMMAND_PROVIDER_PAYLOAD_INVALID"
+                );
+            }
+        }
+        assert_eq!(
+            request_byte_limit(&Operation::LearningDeeptutorPracticeImport),
+            65_536
+        );
+        assert_eq!(
+            request_byte_limit(&Operation::LearningDeeptutorQuestionView),
+            65_536
+        );
+        assert_eq!(
+            request_byte_limit(&Operation::CourseOpenmaicSceneCreate),
+            262_144
+        );
+        assert!(
+            transport_timeout(&Operation::LearningDeeptutorPracticeImport)
+                > std::time::Duration::from_secs(60)
+        );
+        assert!(
+            transport_timeout(&Operation::CourseOpenmaicSceneCreate)
+                > std::time::Duration::from_secs(30)
+        );
+    }
+    #[test]
+    fn provider_learning_routes_are_finite_and_history_cursor_is_bounded() {
+        for (operation, path) in [
+            (
+                "learning_provider_activity_create",
+                "/api/v1/learning/provider-activities",
+            ),
+            (
+                "learning_provider_attempt_start",
+                "/api/v1/learning/provider-activities/a/attempts",
+            ),
+            (
+                "learning_provider_attempt_submit",
+                "/api/v1/learning/provider-activities/a/attempts/b/submit",
+            ),
+            (
+                "learning_provider_attempt_cancel",
+                "/api/v1/learning/provider-activities/a/attempts/b/cancel",
+            ),
+        ] {
+            let request: Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":{"activity_id":"a","attempt_id":"b","body":{}}})).unwrap();
+            let (method, actual, body) = route(&request).unwrap();
+            assert_eq!((method, actual.as_str()), ("POST", path));
+            assert!(body.is_some());
+        }
+        let request: Request=serde_json::from_value(serde_json::json!({"operation":"learning_provider_activity_get","payload":{"activity_id":"a","after_attempt_id":"b"}})).unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(
+            (method, path.as_str()),
+            (
+                "GET",
+                "/api/v1/learning/provider-activities/a?after_attempt_id=b"
+            )
+        );
+        assert!(body.is_none());
+        for invalid in ["../private", "bad?x=1", "bad/other"] {
+            let request: Request=serde_json::from_value(serde_json::json!({"operation":"learning_provider_activity_get","payload":{"activity_id":"a","after_attempt_id":invalid}})).unwrap();
+            assert!(route(&request).is_err());
+        }
+    }
     #[test]
     fn course_commands_and_long_learning_keys_remain_finite() {
         let course = format!("course-{}", "a".repeat(64));

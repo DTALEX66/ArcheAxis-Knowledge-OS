@@ -1,7 +1,13 @@
 //! Real single-shot text worker execution outside the SQLite owner thread.
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
+#[cfg(test)]
+mod deeptutor_grade;
+mod deeptutor_practice_import;
 mod derived;
+pub use deeptutor_practice_import::{
+    PracticeGradeWorkerError, PracticeImportCancellation, PracticeImportWorkerError,
+};
 mod dispatch;
 mod health;
 mod inventory;
@@ -86,6 +92,14 @@ fn file_usable(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// Explicit trusted launch configuration; never populated from an HTTP request.
+#[derive(Clone)]
+struct OpenMaicNodeWorker {
+    executable: PathBuf,
+    executable_sha256: String,
+    script: PathBuf,
+}
+
 #[derive(Clone)]
 pub struct Executor {
     store: Store,
@@ -96,6 +110,14 @@ pub struct Executor {
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
     /// from the configured interpreter, so `-S` must not strip it.
     routes: Arc<Vec<(String, PathBuf, bool)>>,
+    /// Private one-shot import protocol, never a generic NDJSON job route.
+    deeptutor_practice_worker: Option<PathBuf>,
+    /// A failed cleanup fences new private imports for this Executor lifetime;
+    /// restarting Core does not prove an old descendant has exited.
+    deeptutor_practice_unknown: Arc<AtomicBool>,
+    openmaic_node: Option<Arc<OpenMaicNodeWorker>>,
+    /// Serialize Node admission with capability changes; every change invalidates older work.
+    openmaic_admission: Arc<tokio::sync::Mutex<u64>>,
     document_check_config: Option<Arc<DocumentCheckConfig>>,
     document_check_config_error: Option<String>,
     health_slots: Arc<tokio::sync::Semaphore>,
@@ -158,9 +180,27 @@ impl Executor {
             .map_err(|_| "document check recovery failed")?;
         let mut routes: Vec<(String, PathBuf, bool)> =
             vec![("text.extract".to_string(), default_worker.to_owned(), true)];
+        let mut deeptutor_practice_worker = None;
         for (capability, path) in extra {
             if capability.trim().is_empty() {
                 return Err("route capability must not be empty".into());
+            }
+            // The grading seam is synthetic-test-only until capability withdrawal,
+            // dispatch authorization and result admission share the Core boundary.
+            // Do not register it as an ordinary NDJSON route in product launches.
+            if *capability == "deeptutor.practice.grade" && !cfg!(test) {
+                continue;
+            }
+            if *capability == "deeptutor.practice.import" {
+                if deeptutor_practice_worker.replace(path.clone()).is_some() {
+                    return Err("duplicate DeepTutor practice import worker".into());
+                }
+                continue;
+            }
+            if *capability == "course.openmaic.scene-build" {
+                return Err(
+                    "OpenMAIC Node capability requires its dedicated launch profile".into(),
+                );
             }
             routes.push(((*capability).to_string(), path.clone(), true));
         }
@@ -169,11 +209,44 @@ impl Executor {
             staging,
             python: python.to_owned(),
             routes: Arc::new(routes),
+            deeptutor_practice_worker,
+            deeptutor_practice_unknown: Arc::new(AtomicBool::new(false)),
+            openmaic_node: None,
+            openmaic_admission: Arc::new(tokio::sync::Mutex::new(0)),
             document_check_config: None,
             document_check_config_error: None,
             health_slots: Arc::new(tokio::sync::Semaphore::new(4)),
             derived_slots: Arc::new(tokio::sync::Semaphore::new(4)),
         })
+    }
+
+    /// Enable the one fixed OpenMAIC adapter only from an explicit launch profile.
+    /// A missing or changed provider leaves normal document operations available.
+    pub fn with_openmaic_node(
+        mut self,
+        executable: &Path,
+        executable_sha256: &str,
+        script: &Path,
+    ) -> Result<Self, String> {
+        let is_node = executable
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| {
+                name.eq_ignore_ascii_case("node") || name.eq_ignore_ascii_case("node.exe")
+            });
+        if !is_node
+            || !derived::executable_matches(executable, executable_sha256)
+            || !script.is_absolute()
+            || !derived::openmaic_worker_matches(script)
+        {
+            return Err("OpenMAIC Node worker unavailable or identity mismatch".into());
+        }
+        self.openmaic_node = Some(Arc::new(OpenMaicNodeWorker {
+            executable: executable.to_owned(),
+            executable_sha256: executable_sha256.to_owned(),
+            script: script.to_owned(),
+        }));
+        Ok(self)
     }
 
     /// The worker registered for a capability, with its launch policy.
@@ -719,6 +792,36 @@ impl Executor {
         &self.python
     }
 
+    /// Node is a separate provider kind; Python route descriptors remain unchanged.
+    pub fn openmaic_node_paths(&self) -> Option<(&Path, &Path, &str)> {
+        self.openmaic_node.as_ref().map(|node| {
+            (
+                node.executable.as_path(),
+                node.script.as_path(),
+                node.executable_sha256.as_str(),
+            )
+        })
+    }
+
+    /// Change only the explicitly registered Node capability. The generation is advanced
+    /// before the store write so even a failed withdrawal cannot admit an older result.
+    pub async fn set_openmaic_enabled(&self, enabled: bool) -> Result<(), String> {
+        if self.openmaic_node.is_none() {
+            return Err("OpenMAIC Node worker not configured".into());
+        }
+        let mut generation = self.openmaic_admission.lock().await;
+        *generation = generation
+            .checked_add(1)
+            .ok_or("OpenMAIC admission exhausted")?;
+        self.store
+            .submit_wait(move |conn| {
+                capability_settings::set_enabled(conn, "course.openmaic.scene-build", enabled)
+            })
+            .await
+            .map_err(|_| "capability settings unavailable")?
+            .map_err(|_| "capability settings unavailable".to_string())
+    }
+
     /// Observe the existing NDJSON hello without submitting a task or selecting a
     /// replacement. Health is handshake evidence, not engine or inference success.
     pub async fn provider_health(
@@ -734,13 +837,27 @@ impl Executor {
                 return serde_json::json!({"status":"handshake_failed","reason":"health probe unavailable","task_executed":false});
             }
         };
+        let node = if capability == "course.openmaic.scene-build" {
+            match &self.openmaic_node {
+                Some(profile) if profile.script == worker => Some(profile.clone()),
+                _ => {
+                    return serde_json::json!({"status":"handshake_failed","reason":"Node provider not registered","task_executed":false});
+                }
+            }
+        } else {
+            None
+        };
         let python = self.python.clone();
         let staging = self.staging.clone();
         let worker = worker.to_owned();
         let capability = capability.to_owned();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
-            health::probe(&staging,&python,&worker,&capability,allow_site)
+            if let Some(node) = node {
+                health::probe_node(&staging, &node.executable, &node.executable_sha256, &worker)
+            } else {
+                health::probe(&staging,&python,&worker,&capability,allow_site)
+            }
         }).await.unwrap_or_else(|_| serde_json::json!({
             "status":"handshake_failed","reason":"health probe task failed","task_executed":false
         }))

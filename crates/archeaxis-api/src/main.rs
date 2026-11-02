@@ -301,6 +301,21 @@ async fn main() {
                     executor.with_document_check_config_error(
                         launch.document_check_config_error.clone(),
                     )
+                })
+                .map(|executor| {
+                    // Optional provider configuration must not block ordinary saves.
+                    if let Some(profile) = launch.openmaic_node_profile() {
+                        executor
+                            .clone()
+                            .with_openmaic_node(
+                                &profile.executable,
+                                &profile.executable_sha256,
+                                &profile.script,
+                            )
+                            .unwrap_or(executor)
+                    } else {
+                        executor
+                    }
                 }) {
                 Ok(executor) => (
                     executor.store().clone(),

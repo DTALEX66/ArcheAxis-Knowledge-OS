@@ -345,8 +345,11 @@ def copy_plan(source: Path, members: dict, nsis: dict) -> dict:
             "projection_scope": "copied payload and NSIS tools lower bound; generated installer, log and metadata excluded"}
 
 
-def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict, *, storage_context=None) -> dict:
+def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict, *,
+           storage_context=None, storage_generated_bytes=None) -> dict:
     """Bundle an exact copy; every post-mkdir failure leaves a failed receipt."""
+    require(type(storage_generated_bytes) is int and storage_generated_bytes > 0,
+            "generated output requires an explicit positive byte estimate")
     root = Path(root).resolve()
     require(node.is_absolute() and node == Path(os.path.abspath(node))
             and node.name.casefold() == "node.exe", "explicit canonical Node executable required")
@@ -357,12 +360,16 @@ def bundle(root: Path, request: dict, output: Path, node: Path, consumers: dict,
     members = identity["payload"]["files"]
     nsis = consumers["tool_trees"]["nsis"]
     plan = copy_plan(source, members, nsis)
-    state = (portable._storage_pre(output, plan["total_bytes"], storage_context)
-             if plan["total_bytes"] >= portable.LARGE_COPY_BYTES else None)
-    if state is not None:
-        state["producer"] = SCHEMA
-        state["copy_plan"] = plan
-        state["projection_scope"] = plan["projection_scope"]
+    plan["generated_bytes_estimate"] = storage_generated_bytes
+    plan["projected_bytes"] = plan["total_bytes"] + storage_generated_bytes
+    plan["projection_scope"] = ("bounded payload and NSIS tool copies plus caller-declared installer, log and "
+                                "metadata estimate; estimate is not a hard quota; storage evidence excluded")
+    # The bundler creates outputs of unknown size even when its input copies are
+    # small, so every execution requires the existing pre/post review.
+    state = portable._storage_pre(output, plan["projected_bytes"], storage_context)
+    state["producer"] = SCHEMA
+    state["copy_plan"] = plan
+    state["projection_scope"] = plan["projection_scope"]
     cli = root / "frontend/node_modules/@tauri-apps/cli/tauri.js"
     created = False
     receipt = {"schema": SCHEMA, "status": "FAIL", "stage": "PREPARING",
@@ -469,6 +476,8 @@ def main() -> int:
     parser.add_argument("--storage-purpose")
     parser.add_argument("--storage-sharing")
     parser.add_argument("--storage-retention-reason")
+    parser.add_argument("--storage-generated-bytes", type=int,
+                        help="positive estimate for installer, log and metadata; not a hard quota")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     request = read_pinned(owned_path(root, args.request), args.request_sha256)
@@ -481,7 +490,8 @@ def main() -> int:
             context = {"paths": portable.dev.layout(root, args.run_id), "purpose": args.storage_purpose,
                        "sharing": args.storage_sharing, "retention_reason": args.storage_retention_reason}
         try:
-            bundle(root, request, args.output, args.node, consumers, storage_context=context)
+            bundle(root, request, args.output, args.node, consumers, storage_context=context,
+                   storage_generated_bytes=args.storage_generated_bytes)
         except portable.GrowthReviewRequiredError as error:
             print(str(error), file=sys.stderr)
             return 2

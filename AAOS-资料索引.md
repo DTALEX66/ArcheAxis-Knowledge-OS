@@ -1,6 +1,14 @@
 # AAOS / ArcheAxis 资料查找入口
 
+最新执行资料：[DeepTutor1.7.1/OpenMAIC1.3.0原件与完整新会话提示词](workspace/intake/20261101-learning-platform-integration/README.md)，包含两供体接线、并行分工及全部15组既有未完项。原ZIP已在本仓忽略归档，不依赖外部“新建文件夹 (2)”。
+
+**先读[当前状态与执行入口](PROJECT_CURRENT.md)**。Owner要求独立留存后，原件读取以本仓[LOCAL-SOURCES](workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json)及[逐项对账](workspace/intake/20261101-project-archiving-reconciliation/README.md)为准；865对象和13管理来源均有仓库内位置。外部Project Archiving、Record、xiangmuguidang仅保留溯源身份，读取原件不再以这些目录存在为前提。原件在本地`.project-local/archives/`，迁移完整项目须带上，Git clone不会自动包含。
+
+**先看[根项目总纲与权威总入口](AUTHORITY.md#0-当前定位定义与最近决定)**。[近两日对话与任务包总对照](docs/history/owner-dialogue-20261101-current-goals/README.md)集中定位原话、全部近期包、选用定义和后继关系；现行定位/闭环不从历史资料反推。
+
 当前任务目标先读[2026-11-01 Owner选择的新任务包定位与闭环](workspace/intake/20261101-positioning-loop-update/README.md)，再按活动指针接续；原v3/R6审计是历史证据，不再阻止本次规范选择。
+
+AI侧另按[任意领域AI工作内容转知识的Owner澄清](workspace/intake/20261101-ai-knowledge-conversion/README.md)（SUP-031）：承接可复用知识的提炼、治理、使用和更新，原始上下文外置；编程只是示例。定位现行V2.3，闭环仍为唯一V3。
 
 日常检索先查当前源码、truth与活动记录；十月以前过程记录从[集中历史恢复入口](docs/history/2026-11-01-preoct-archive/README.md)按需读取，不默认展开扫描。十月及之后的记录保留；原始输入、现行合同及程序依赖按身份核对。
 

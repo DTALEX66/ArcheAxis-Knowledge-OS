@@ -17,6 +17,12 @@ ORIGINAL_PREPARER = producer.prepare_bundle_runtime
 
 @pytest.fixture
 def prepared(tmp_path, monkeypatch):
+    # The production bundle preparer imports the canonical growth module before
+    # it loads the stager. A different pytest collection order may have loaded
+    # the standalone stager first, creating a separate module instance. Bind
+    # the fixture to the same real growth implementation used by the preparer so
+    # its synthetic repository and the nested copy plan share one guard state.
+    monkeypatch.setattr(stager, "growth", producer.growth)
     for key in list(os.environ):
         if key.startswith("ARCHEAXIS_") or key in {"CARGO_TARGET_DIR", "UV_CACHE_DIR", "UV_PROJECT_ENVIRONMENT"}:
             monkeypatch.delenv(key)
@@ -76,7 +82,9 @@ def prepared(tmp_path, monkeypatch):
             assert _environment[key] == env[key]
         observed.append(destination)
         python = producer.stage_runtime(repository=repository, destination=destination, _backend_in_place=True)
-        packages = python.parent / "Lib/site-packages"
+        # The generated run path can exceed MAX_PATH on Windows. Use the same
+        # extended-path helper as the stager for these synthetic fixture files.
+        packages = stager.filesystem_path(python.parent / "Lib/site-packages")
         (packages / "fastapi/.agents").mkdir(parents=True)
         (packages / "fastapi/.agents/upstream.md").write_bytes(b"public fixture")
         (packages / "fastapi-1.0.dist-info").mkdir()
@@ -111,6 +119,14 @@ def run_stager(case, callback=None, environment=None, extra=()):
                        _runtime_preparer=callback or (lambda root: case["prepare"](
                            repository=case["repo"], destination=root, _backend_in_place=True,
                            _environment=case["env"])))
+
+
+def test_synthetic_repository_still_rejects_foreign_dev_root(prepared, monkeypatch):
+    case = prepared
+    monkeypatch.setenv("ARCHEAXIS_DEV_ROOT", str(case["repo"].parent / "foreign/.project-local"))
+    with pytest.raises(ValueError, match="ARCHEAXIS_DEV_ROOT must equal"):
+        run_stager(case)
+    assert not case["output"].exists()
 
 
 def test_in_place_core_pair_is_bounded_materialized_and_observed_not_build_qualified(prepared, monkeypatch):
@@ -226,24 +242,24 @@ def test_producer_prepares_one_final_runtime_and_real_stager_keeps_formal_contra
     assert c["observed"] == [c["output"]]
     assert c["copies"].count((c["base"], c["output"] / "runtime")) == 1
     assert not any(source == c["output"] / "runtime" for source, target in c["copies"])
-    assert python.read_bytes() == (c["base"] / "python.exe").read_bytes()
-    assert not c["output"].with_name("backend-python-input").exists()
-    assert not (c["output"] / "runtime/python").exists()
-    assert (c["output"] / "runtime/Lib/site-packages/fastapi/.agents/upstream.md").read_bytes() == b"public fixture"
-    manifest = json.loads((c["output"] / "backend-runtime-manifest.json").read_text(encoding="utf-8"))
+    assert stager.filesystem_path(python).read_bytes() == stager.filesystem_path(c["base"] / "python.exe").read_bytes()
+    assert not stager.filesystem_path(c["output"].with_name("backend-python-input")).exists()
+    assert not stager.filesystem_path(c["output"] / "runtime/python").exists()
+    assert stager.filesystem_path(c["output"] / "runtime/Lib/site-packages/fastapi/.agents/upstream.md").read_bytes() == b"public fixture"
+    manifest = json.loads(stager.filesystem_path(c["output"] / "backend-runtime-manifest.json").read_text(encoding="utf-8"))
     assert manifest["runtime_preparation"]["intermediate_runtime_tree_copies"] == 0
     assert manifest["runtime_preparation"]["run_root"] == c["env"]["ARCHEAXIS_RUN_ROOT"]
-    assert manifest["files"]["runtime/python.exe"]["sha256"] == hashlib.sha256(python.read_bytes()).hexdigest()
+    assert manifest["files"]["runtime/python.exe"]["sha256"] == hashlib.sha256(stager.filesystem_path(python).read_bytes()).hexdigest()
     assert manifest["files"]["core/archeaxis-api.exe"]["sha256"] == hashlib.sha256(c["core"].read_bytes()).hexdigest()
-    profile = json.loads((c["output"] / "worker-profile.json").read_text(encoding="utf-8"))
+    profile = json.loads(stager.filesystem_path(c["output"] / "worker-profile.json").read_text(encoding="utf-8"))
     assert profile["python"] == "runtime/python.exe"
     assert profile["script"] == "workers/transport/text_ndjson.py"
     for name in ("core/archeaxis-api.exe", "workers/transport/text_ndjson.py", "shared/learning_scheduler.py",
                  "shared/safe_http.py", "shared/llm_adapter.py", "start-backend.py", "start-backend.cmd",
                  "vcruntime140.dll", "vcruntime140_1.dll"):
-        assert (c["output"] / name).is_file(), name
+        assert stager.filesystem_path(c["output"] / name).is_file(), name
     for name in ("vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll"):
-        assert (c["output"] / "runtime" / name).read_bytes() == (c["vc"] / name).read_bytes()
+        assert stager.filesystem_path(c["output"] / "runtime" / name).read_bytes() == stager.filesystem_path(c["vc"] / name).read_bytes()
 
 
 def test_default_cli_mode_still_copies_and_does_not_consume_donor(prepared):
@@ -383,17 +399,38 @@ def test_synthetic_asr_exact_path_additions_are_pinned_not_prefix_exempt(prepare
         if drift == "donor":
             (model / "config.json").write_bytes(b"changed")
         elif drift == "copy":
-            (c["output"] / "runtime/models/asr/fixture/config.json").write_bytes(b"changed")
+            stager.filesystem_path(c["output"] / "runtime/models/asr/fixture/config.json").write_bytes(b"changed")
         return result
     monkeypatch.setattr(stager, "stage_asr_model", stage)
     if drift == "none":
         assert run_stager(c, extra=["--asr-model", str(model), "--asr-model-name", "fixture"]) == 0
-        manifest = json.loads((c["output"] / "backend-runtime-manifest.json").read_text(encoding="utf-8"))
+        manifest = json.loads(stager.filesystem_path(c["output"] / "backend-runtime-manifest.json").read_text(encoding="utf-8"))
         assert manifest["asr_model"]["status"] == "BUNDLED"
     else:
         with pytest.raises(ValueError, match="changed"):
             run_stager(c, extra=["--asr-model", str(model), "--asr-model-name", "fixture"])
-        assert not (c["output"] / "backend-runtime-manifest.json").exists()
+        assert not stager.filesystem_path(c["output"] / "backend-runtime-manifest.json").exists()
+
+
+def test_asr_identity_and_copy_work_at_deep_paths_without_overwrite(tmp_path):
+    base = tmp_path.joinpath(*(["long-asr-component-1234567890"] * 5))
+    donor, output = base / "donor", base / "output"
+    stager.filesystem_path(donor).mkdir(parents=True)
+    stager.filesystem_path(output).mkdir(parents=True)
+    for name, data in (("model.bin", b"synthetic model"), ("config.json", b"{}")):
+        stager.filesystem_path(donor / name).write_bytes(data)
+    if os.name == "nt":
+        assert len(str(output / "runtime/models/asr/fixture/aaos-model.json")) > 260
+    inputs = {stager.growth.plain(donor / name): stager.growth.row(donor / name)
+              for name in ("model.bin", "config.json")}
+    with stager.growth.batch(output, inputs, sum(row["bytes"] for row in inputs.values())):
+        receipt = stager.stage_asr_model(donor, output, "fixture")
+    identity = json.loads(stager.filesystem_path(output / "runtime/models/asr/fixture/aaos-model.json")
+                          .read_text(encoding="utf-8"))
+    assert receipt["files"] == identity["files"]
+    assert identity["files"]["model.bin"] == inputs[stager.growth.plain(donor / "model.bin")]
+    with pytest.raises(ValueError, match="overwrite"):
+        stager.stage_asr_model(donor, output, "fixture")
 
 
 def test_actual_runtime_preparer_uses_copy_link_mode_and_separate_metadata(prepared, monkeypatch):
@@ -408,9 +445,9 @@ def test_actual_runtime_preparer_uses_copy_link_mode_and_separate_metadata(prepa
         calls.append((command, dict(env), stage))
         assert env["UV_LINK_MODE"] == "copy"
         if stage == "dependency-export":
-            Path(command[-1]).write_bytes(b"# synthetic requirements")
+            stager.filesystem_path(Path(command[-1])).write_bytes(b"# synthetic requirements")
         elif stage == "wheel-build":
-            wheels = Path(command[command.index("--out-dir")+1])
+            wheels = stager.filesystem_path(Path(command[command.index("--out-dir")+1]))
             wheels.mkdir()
             (wheels / "archeaxis_workspace-fixture.whl").write_bytes(b"synthetic wheel; never installed")
     monkeypatch.setattr(producer, "_run", execute)
@@ -418,12 +455,12 @@ def test_actual_runtime_preparer_uses_copy_link_mode_and_separate_metadata(prepa
     python = original_preparer(repository=c["repo"], destination=destination, _backend_in_place=True,
         _environment=c["env"], storage_context=c["context"], storage_generated_bytes=256)
     assert python == destination / "runtime/python.exe"
-    assert not (destination / "runtime/python").exists()
-    assert not (destination / "requirements.locked.txt").exists()
-    assert not (destination / "wheels").exists()
+    assert not stager.filesystem_path(destination / "runtime/python").exists()
+    assert not stager.filesystem_path(destination / "requirements.locked.txt").exists()
+    assert not stager.filesystem_path(destination / "wheels").exists()
     evidence = Path(c["env"]["ARCHEAXIS_RUN_ROOT"]) / "artifacts/python-preparation"
-    assert (evidence / "requirements.locked.txt").is_file()
-    assert (evidence / "wheels/archeaxis_workspace-fixture.whl").is_file()
+    assert stager.filesystem_path(evidence / "requirements.locked.txt").is_file()
+    assert stager.filesystem_path(evidence / "wheels/archeaxis_workspace-fixture.whl").is_file()
     assert calls[-1][0][1:4] == ["-I", "-B", "-c"]
     assert os.environ.get("UV_LINK_MODE") == before
 
@@ -568,3 +605,64 @@ def test_producer_rejects_linked_explicit_paths_before_preparation(prepared, mon
     assert (target / "core.exe").read_bytes() == b"preserve linked fixture"
     assert not (target / "output").exists()
     assert not c["output"].exists()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the unprefixed MAX_PATH failure is a Windows-specific observation")
+def test_stage_capability_manifest_handles_windows_long_path(tmp_path):
+    """A real existing parent and working extended-path control isolate this write."""
+    root = tmp_path
+    while len(str(root / "workers/capability-requirements.yaml")) <= 260:
+        root = root / ("synthetic-component-" + "x" * 12)
+    workers = root / "workers"
+    target = workers / "capability-requirements.yaml"
+    assert len(str(target)) > 260
+
+    try:
+        stager.filesystem_path(workers).mkdir(parents=True)
+        control = workers / ("c" * len(target.name))
+        stager.filesystem_path(control).write_bytes(b"synthetic extended-path control")
+    except OSError as error:
+        pytest.skip(f"cannot establish extended-path fixture: {type(error).__name__}")
+    assert stager.filesystem_path(workers).is_dir()
+    assert len(str(control)) == len(str(target))
+    assert stager.filesystem_path(control).read_bytes() == b"synthetic extended-path control"
+
+    # Test the host's actual unprefixed behavior at the same length, without
+    # touching the manifest target. A long-path-aware host cannot reproduce the
+    # observed failure; preserve that limitation instead of claiming RED.
+    plain_control = workers / ("p" * len(target.name))
+    try:
+        plain_control.write_bytes(b"synthetic plain-path control")
+    except OSError as error:
+        if (getattr(error, "winerror", None) not in (3, 206)
+                and not (isinstance(error, FileNotFoundError) and error.errno == 2)):
+            pytest.skip(f"unprefixed control failed for a different reason: {type(error).__name__}")
+    else:
+        pytest.skip("this host permits the same-length unprefixed path")
+
+    source = Path(stager.__file__).resolve().parents[2] / "config/environment/capability-requirements.yaml"
+    expected = source.read_text(encoding="utf-8").encode("utf-8")
+    receipt = stager.stage_capability_manifest(root, None)
+    assert stager.filesystem_path(target).read_bytes() == expected
+    assert receipt["artifact_path"] == "workers/capability-requirements.yaml"
+    assert receipt["source_sha256"] == stager.sha256(source)
+    assert receipt["artifact_sha256"] == hashlib.sha256(expected).hexdigest()
+
+
+def test_synthetic_stager_copies_current_member_transfer_and_records_its_digest(prepared):
+    """Copy the reviewed helper as bytes; neither it nor synthetic Core is run."""
+    c = prepared
+    source = Path(__file__).resolve().parents[1] / "services/python-workers/document/member_transfer.py"
+    expected = source.read_bytes()
+    assert expected
+    fixture_helper = c["repo"] / "services/python-workers/document/member_transfer.py"
+    stager.filesystem_path(fixture_helper.parent).mkdir(parents=True)
+    stager.filesystem_path(fixture_helper).write_bytes(expected)
+
+    assert run_stager(c) == 0
+
+    relative = "workers/document/member_transfer.py"
+    staged = stager.filesystem_path(c["output"] / relative)
+    assert staged.read_bytes() == expected
+    manifest = json.loads(stager.filesystem_path(c["output"] / "backend-runtime-manifest.json").read_bytes())
+    assert manifest["files"][relative] == {"bytes": len(expected), "sha256": hashlib.sha256(expected).hexdigest()}

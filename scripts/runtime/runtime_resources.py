@@ -21,6 +21,7 @@ RESOURCES = {"runtime", "core", "workers", "shared", "worker-profile.json",
              "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json",
              "vcruntime140.dll", "vcruntime140_1.dll"}
 SHA = re.compile(r"[0-9a-f]{64}\Z")
+MAX_OPENMAIC_MANIFEST_BYTES = 16 * 1024 * 1024
 FIXED_WEBVIEW2_MANIFEST_SHA256 = "d465623969d3ba9ac271deb6fb81865007261e20c93dd723ff65c38144bc89f7"
 # Public file shipped by the already qualified locked FastAPI distribution.
 # This exception never authorizes a native agent directory or changed bytes.
@@ -270,6 +271,69 @@ def verify_worker_contract(root: Path, members: dict) -> None:
         raise ValueError("Native/profile routes differ or worker input absent")
 
 
+def verify_openmaic_contract(backend: dict, members: dict) -> None:
+    """Check the optional fixed closure identities before reading member bytes.
+
+    The Node digest binds the selected artifact, not its origin, licensing
+    provenance, Core compatibility, or actual execution.
+    """
+    if "openmaic_scene_build" not in backend:  # Existing manifests predate this capability.
+        return
+    selected = backend["openmaic_scene_build"]
+    if not isinstance(selected, dict) or set(selected) != {"status", "node_sha256"}:
+        raise ValueError("Invalid OpenMAIC runtime declaration")
+    if selected.get("status") == "NOT_INCLUDED":
+        if selected.get("node_sha256") is not None:
+            raise ValueError("Unexpected Node identity for absent OpenMAIC")
+        return
+    node_sha = selected.get("node_sha256")
+    if selected.get("status") != "INCLUDED" or not isinstance(node_sha, str) or not SHA.fullmatch(node_sha):
+        raise ValueError("Invalid OpenMAIC runtime identity")
+    prefix = "workers/openmaic/"
+    expected = {
+        prefix + "scene-build-worker.mjs": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9",
+        prefix + "vendor/generation-0.3.28/scene-builder.ts": "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a",
+        prefix + "vendor/generation-0.3.28/nanoid.mjs": "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e",
+        prefix + "vendor/generation-0.3.28/LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+        prefix + "vendor/generation-0.3.28/UPSTREAM.md": "83962cee94daba3596fba378867756981c87a8bd7839ced586510643c113d579",
+        prefix + "node.exe": node_sha,
+    }
+    required = set(expected) | {prefix + "NODE-LICENSE"}
+    if not required.issubset(members) or any(
+        not isinstance(members[name], dict) or members[name].get("sha256") != sha
+        for name, sha in expected.items()
+    ):
+        raise ValueError("OpenMAIC fixed runtime closure is missing or changed")
+    if any(not isinstance(members[name], dict) or type(members[name].get("bytes")) is not int
+           or members[name]["bytes"] <= 0 for name in required):
+        raise ValueError("OpenMAIC runtime closure has an empty member")
+    if members[prefix + "node.exe"]["bytes"] > 512 * 1024 * 1024 or members[prefix + "NODE-LICENSE"]["bytes"] > 1_000_000:
+        raise ValueError("OpenMAIC runtime member exceeds host limit")
+
+
+def parse_backend_manifest(raw: str | bytes) -> dict:
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Duplicate backend manifest field")
+            result[key] = value
+        return result
+
+    def reject_constant(_value):
+        raise ValueError("Non-finite backend manifest number")
+
+    raw_bytes = raw.encode("utf-8") if isinstance(raw, str) else raw
+    value = json.loads(raw_bytes.decode("utf-8"), object_pairs_hook=unique_object, parse_constant=reject_constant)
+    if not isinstance(value, dict):
+        raise ValueError("Invalid backend manifest")
+    choice = value.get("openmaic_scene_build")
+    if (isinstance(choice, dict) and choice.get("status") == "INCLUDED"
+            and len(raw_bytes) > MAX_OPENMAIC_MANIFEST_BYTES):
+        raise ValueError("OpenMAIC backend manifest exceeds host limit")
+    return value
+
+
 def verify_fixed_webview2(root: Path) -> dict:
     """Qualify the desktop dependency separately from backend-only staging."""
     directory = checked(root / "runtime/webview2")
@@ -301,14 +365,17 @@ def verify_runtime_resources(root: Path, configured_resources: set[str]) -> dict
         raise ValueError("Formal resource contract changed; update the adapter explicitly")
     root = checked(root)
     runtime_manifest = regular(root / "backend-runtime-manifest.json")
-    backend = json.loads(runtime_manifest.read_text(encoding="utf-8"))
+    backend = parse_backend_manifest(runtime_manifest.read_bytes())
     if backend.get("schema") != "archeaxis.backend-runtime/v1":
         raise ValueError("Unrecognized backend manifest")
     members = backend["files"]
+    if not isinstance(members, dict) or not members:
+        raise ValueError("Missing member manifest")
     for name in members:
         relative_path(name)
         if PurePosixPath(name).parts[0] not in RESOURCES:
             raise ValueError("Backend member outside declared runtime resources")
+    verify_openmaic_contract(backend, members)
     verify_members(root, members)
     verify_worker_contract(root, members)
     expected = set(members) | {"backend-runtime-manifest.json"}

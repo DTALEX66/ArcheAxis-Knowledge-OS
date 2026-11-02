@@ -16,7 +16,7 @@ interface RecoveryShellProps {
   onRestoreBackup: (
     name: string,
     onReceipt: () => void,
-  ) => Promise<"refreshed" | "refresh-unavailable">;
+  ) => Promise<"refreshed" | "refresh-unavailable" | "not-started-status-refreshed" | "failed-status-refreshed" | "failed-status-unavailable">;
   onReloadCurrentCore: () => Promise<void>;
 }
 
@@ -25,7 +25,7 @@ type Operation = "logs" | "safe-mode" | "restore" | "retry" | "reload" | "exit";
 const ERRORS: Record<Operation, string> = {
   logs: "安全诊断日志不可用。",
   "safe-mode": "安全模式不可用。",
-  restore: "备份恢复失败；本地核心仍保持停止。",
+  restore: "备份恢复未完成；请核对本地核心状态和安全诊断。",
   retry: "本地核心重试失败，请检查安全诊断后重试。",
   reload: "当前核心重新加载失败，请检查安全诊断后重试。",
   exit: "无法从此处退出，请使用窗口关闭按钮。",
@@ -64,6 +64,10 @@ export function RecoveryShell({
   const [selectedBackup, setSelectedBackup] = useState(status.backups[0] ?? "");
   const [confirmRestore, setConfirmRestore] = useState(false);
   const [restoreLocked, setRestoreLocked] = useState(false);
+  const [restoreUnconfirmed, setRestoreUnconfirmed] = useState(false);
+  const [restoreStatusUnknown, setRestoreStatusUnknown] = useState(false);
+  const [restoreNotStarted, setRestoreNotStarted] = useState(false);
+  const restoreStarted = useRef(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const feedbackRef = useRef<HTMLDivElement>(null);
@@ -124,6 +128,7 @@ export function RecoveryShell({
   );
 
   const restore = async () => {
+    if (restoreStarted.current) return;
     if (hasUnsavedDrafts) {
       setError("草稿尚未保存，请先保存或保留文字后恢复备份。");
       return;
@@ -133,7 +138,15 @@ export function RecoveryShell({
       return;
     }
     const epoch = ++operationEpoch.current;
+    restoreStarted.current = true;
     setBusy("restore");
+    // A failed or lost receipt can follow a partial restore. Do not repeat it
+    // or reopen the workspace without an independently confirmed outcome.
+    setConfirmRestore(false);
+    setRestoreLocked(true);
+    setRestoreUnconfirmed(true);
+    setRestoreStatusUnknown(false);
+    setRestoreNotStarted(false);
     setError("");
     setSuccess("");
     try {
@@ -144,22 +157,45 @@ export function RecoveryShell({
       });
       if (!mounted.current || operationEpoch.current !== epoch) return;
       if (result === "refresh-unavailable") {
+        setRestoreStatusUnknown(true);
         setError("备份已恢复，但状态刷新不可用。");
+      } else if (result === "not-started-status-refreshed") {
+        // This one fixed host code means no restore side effect occurred.
+        // Permit a later explicit action, but never retry or reopen by itself.
+        restoreStarted.current = false;
+        setRestoreLocked(false);
+        setRestoreUnconfirmed(false);
+        setRestoreNotStarted(true);
+        setError("未找到本地核心；本次恢复未执行。修复应用后可手动重试。");
+      } else if (result === "failed-status-unavailable") {
+        setRestoreStatusUnknown(true);
+        setError("备份恢复未完成；本地核心状态无法确认。请保留草稿并查看安全诊断，再重新打开应用核对。");
+      } else if (result === "failed-status-refreshed") {
+        setError(ERRORS.restore);
       } else {
+        setRestoreUnconfirmed(false);
         setSuccess("备份已恢复；准备好后可重试本地核心。");
       }
     } catch {
-      if (mounted.current && operationEpoch.current === epoch) setError(ERRORS.restore);
+      if (mounted.current && operationEpoch.current === epoch) {
+        setRestoreStatusUnknown(true);
+        setError("备份恢复未完成；本地核心状态无法确认。请保留草稿并查看安全诊断，再重新打开应用核对。");
+      }
     } finally {
       finish(epoch);
     }
   };
 
   const disabled = busy !== null || verificationPending;
-  const primaryMessage = status.safe_mode
+  const unverifiedReady = (restoreUnconfirmed || restoreNotStarted) && status.state === "ready";
+  const primaryMessage = restoreStatusUnknown ? "本地核心状态无法确认。" : unverifiedReady
+    ? "宿主报告本地核心可用；工作区尚未重新验证。"
+    : status.safe_mode
     ? "安全模式已启用；本地核心保持停止。"
     : RECOVERY_MESSAGES[status.state];
-  const diagnostic = /[\u3400-\u9fff]/.test(status.message) && status.message !== primaryMessage
+  const diagnostic = status.message === "CORE_UNAVAILABLE"
+    ? "未找到本地核心，请修复应用后重试。"
+    : /[\u3400-\u9fff]/.test(status.message) && status.message !== primaryMessage
     ? status.message
     : "";
 
@@ -176,8 +212,8 @@ export function RecoveryShell({
               <p className="recovery-kicker">本地桌面恢复</p>
               <h1 id="recovery-title">恢复工作台</h1>
             </div>
-            <AaosStatusBadge tone={status.state === "ready" ? "success" : status.state === "failed" ? "danger" : "warning"}>
-              {stateLabel(status.state)}
+            <AaosStatusBadge tone={unverifiedReady || restoreStatusUnknown ? "warning" : status.state === "ready" ? "success" : status.state === "failed" ? "danger" : "warning"}>
+              {unverifiedReady || restoreStatusUnknown ? "待确认" : stateLabel(status.state)}
             </AaosStatusBadge>
           </div>
           <p className="recovery-message" aria-live="polite">{primaryMessage}</p>
@@ -185,9 +221,9 @@ export function RecoveryShell({
           {hasUnsavedDrafts ? <p role="alert">草稿尚未保存，请先保存或保留文字后恢复备份。</p> : null}
 
           <div className="recovery-actions" aria-label="恢复操作">
-            <button type="button" className="primary" disabled={disabled} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试启动</button>
+            <button type="button" className="primary" disabled={disabled || restoreUnconfirmed} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试启动</button>
             <button type="button" disabled={disabled} onClick={() => void showLogs()}>安全诊断</button>
-            <button type="button" disabled={disabled || status.safe_mode} onClick={() => void enterSafeMode()}>安全模式</button>
+            <button type="button" disabled={disabled || restoreUnconfirmed || status.safe_mode} onClick={() => void enterSafeMode()}>安全模式</button>
             <button
               type="button"
               disabled={disabled || restoreLocked || !selectedBackup || hasUnsavedDrafts}
@@ -198,7 +234,7 @@ export function RecoveryShell({
             {status.external_dev ? (
               <button
                 type="button"
-                disabled={disabled}
+                disabled={disabled || restoreUnconfirmed}
                 onClick={() => void perform("reload", onReloadCurrentCore, "当前核心已重新加载。")}
               >
                 重新加载当前核心

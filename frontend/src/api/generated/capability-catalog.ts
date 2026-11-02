@@ -3,7 +3,7 @@ export const CAPABILITY_CATALOG = {
   "sources": [
     {
       "path": "docs/truth/CAPABILITY_ATLAS_V2.yaml",
-      "sha256": "dff205241537adcd0023673bc15455883a9cc235d63296cfeefbf1d3af664b71"
+      "sha256": "b6c23494c5b7b60f35c2992654bda23ee64ca7d049699ec58ef803b32cb67a9f"
     },
     {
       "path": "config/capability-map.v1.json",

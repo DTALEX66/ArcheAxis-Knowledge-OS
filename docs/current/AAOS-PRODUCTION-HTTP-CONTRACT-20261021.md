@@ -1,7 +1,7 @@
 # AAOS Production HTTP Contract (maintained derivative) — 2026-10-21
 
 Contract id: `archeaxis.production-http/v1`
-Status: `PARTIAL` — this is the maintained derivative contract for the current source route inventory, not a new execution grant or runtime acceptance receipt. The current 2026-10-21 route counts in §§3/6/16 are source inventory; they do not extend historical observations. The current Rust storage declaration is `SCHEMA_VERSION = 13` (`crates/archeaxis-store-sqlite/src/lib.rs`); storage schema 13 is not a new HTTP contract or launch-protocol version.
+Status: `PARTIAL` — this is the maintained derivative contract for the current source route inventory, not a new execution grant or runtime acceptance receipt. §§3/6 reflect the 2026-11-02 source inventory; the dated §16 count and historical observations retain their own scope. The current Rust storage declaration is `SCHEMA_VERSION = 15` (`crates/archeaxis-store-sqlite/src/lib.rs`); storage schema 15 is not a new HTTP contract or launch-protocol version.
 
 本文件是派生维护合同：保留[2026-10-01 冻结合同](../history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md)的历史语义，维护本轮现行完整路由及调用约束。历史原字节和归档 manifest 不变；原文中的 `OBSERVED`、收据、SHA、机器路径与响应示例只属于各自日期和版本，不迁为当前源码、CI、已安装版本或 Owner 验收资格。后续 source inventory 段落同样不是运行通过声明。
 
@@ -203,9 +203,12 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (140 pairs in a `text_worker` launch)
+## 3. Route inventory (149 pairs in a `text_worker` launch)
 
-`PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
+`PROD` identifies a route mounted in the current source for the specified production launch shape.
+Whether the UI can rely on it also depends on the applicable capability/provider availability,
+authorization and qualification of the candidate being used. Prior runtime evidence retains its
+own candidate and date; source registration alone does not establish a new runtime acceptance.
 All paths are relative to the loopback base URL.
 
 ### Session and workspace
@@ -322,8 +325,23 @@ The confirmed plan includes `retrieval_scope` (`public_search_results_only`, GET
 
 ### Human learning
 
+Rows 234–241 record source mounts, not proof that the current candidate has run
+or passed provider integration, installed-runtime or Owner acceptance. For these
+rows, the production launch middleware authenticates the launch token and sets
+the actor; each handler requires `human`. In-process routers without that
+middleware default a missing actor header to human, so they are not independently
+a token-authentication boundary.
+
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
+| 234 | `POST /api/v1/learning/deeptutor/question-view` | **human only** | Reads a limited question view for a specified Document snapshot. It neither authorizes nor invokes DeepTutor. Ordinary Document reads and exports may still contain the answer; this view is not workspace-wide answer secrecy. |
+| 235 | `POST /api/v1/learning/provider-activities` | **human only** | Creates an activity bound to the supplied material snapshot, provider/version and question identity. A new DeepTutor 1.7.1 activity requires its material-bound grant; OpenMAIC 1.3.0 uses a null grant. An identical existing activity returns a duplicate; a changed request under the same ID conflicts. |
+| 236 | `GET /api/v1/learning/provider-activities/{activity_id}` | **human only** | Reads the activity and up to 100 attempts; `after_attempt_id` is an optional cursor. Provider identity and ordinary client-submitted result remain unverified claims. |
+| 237 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts` | **human only** | Starts or re-reads an attempt by `attempt_id`. Admission and pending retry check the material and applicable grant; a pending attempt from an earlier restore epoch cannot be resumed. |
+| 238 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts/{attempt_id}/submit` | **human only** | Records a caller-declared answer, `provider_correct`, self-report and optional rating. The ordinary submit does not invoke the provider grader or establish independent mastery; it is not an FSRS review. |
+| 239 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts/{attempt_id}/cancel` | **human only** | Records cancellation by `client_cancel_id`; the returned provider stop state is `unknown`, not proof that a provider process stopped. |
+| 240 | `POST /api/v1/learning/deeptutor/practice-import` | **human only** | Text-worker launch only; request body at most 65,536 bytes. Core prepares from an existing source and material snapshot, invokes the private practice worker, and rechecks the bound request and cancellation at commit before returning a limited view. Ordinary local import does not require a provider grant; this route is not automatic grading or a model call. |
+| 242 | `POST /api/v1/learning/deeptutor/practice-grade` | **human only** | Text-worker launch only; request body at most 32,768 bytes. Core reserves the exact client event and attempt together, rechecks both material grants, attempt state and restore epoch, runs the fixed private DeepTutor 1.7.1 grader, and persists an observed result — including `provider_correct = null` as an unscored terminal observation — or refuses. Interrupted or indeterminate worker outcomes are recorded `UNKNOWN` and are never retried automatically. A duplicate event replays its stored receipt. This is an observed provider result, not an independent mastery or learning-improvement claim. |
 | 15 | `POST /api/v1/learning/items/{item_key}/references` | any token | Links an accepted knowledge id. **No actor guard** — a machine principal may call it. |
 | 17 | `POST /api/v1/learning/items/{item_key}/assessment` | any token | Body `{knowledge_id}`. **No actor guard.** Returns `assessment_id` + `knowledge_version`. |
 | 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Latest assessment. |
@@ -349,6 +367,7 @@ A successful model process leaves evaluation `unmeasured`; it does not prove ans
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
+| 241 | `POST /api/v1/courses/openmaic/scenes` | **human only** | Text-worker launch only; request body at most 262,144 bytes. An existing matching candidate may be returned without invoking the worker; a new candidate requires the configured, enabled provider and checks its admission generation and source snapshot before commit. The result requires human review and does not authorize rendering or establish answer secrecy. |
 | R16 | `POST /api/v1/courses` | **human only** | Stores a course the caller supplies through the `course.general` donor worker. A machine principal is refused, and a malformed body is refused before a write. Asserted by `crates/archeaxis-api/tests/contract_general_course.rs`. |
 | R17 | `POST /api/v1/courses/from-knowledge` | **human only** | Builds a candidate course from **active accepted** canonical knowledge that carries an anchor. The Core re-checks the worker's manifest against the canonical knowledge and answers `502` when the worker rewrote the body, id or title, so a tampered lesson never reaches the store. Knowledge without an anchor is refused rather than guessed. Asserted by `contract_general_course.rs`. |
 | R18 | `GET /api/v1/courses/{id}` | any token | Course readback. |
@@ -608,10 +627,10 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 88 addresses: 87 projection method/path pairs (75 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 140 addresses (86 base projection method/path pairs + 53 runtime method/path pairs on 50 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **no** `text_worker` | 94 addresses: 93 projection method/path pairs (81 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 149 addresses (92 base projection method/path pairs + 56 runtime method/path pairs on 53 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **50** route mounts, mounted there rather than with the projections because
+The runtime builder carries **53** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -623,14 +642,15 @@ Historical launch shapes were started from the real binary and asked over HTTP; 
 `crates/archeaxis-api/tests/contract_launch_shape.rs`. **How to tell "absent" from "no such
 object":** ask the path with the *wrong* method. A mounted path answers `405 Method Not Allowed`;
 an absent one answers `404`. The four **job-execution** runtime paths answer `405` with a worker and
-`404` without one, while all projection paths answer `200` in both shapes. This matters because
+`404` without one; the tested version, workspace and evidence read paths answer `200` in both
+shapes. Other projection responses depend on their method, actor and input. This matters because
 with a worker the *correct*-method answer for an unknown job is also `404`, so a UI cannot
 conclude from a `404` alone that the runtime routes are missing.
 
-The three **capability registry** paths behave differently and the difference is deliberate: they
-depend on the runtime router, not on a worker, so they answer `200` in both launch shapes. A
-workspace that has declared no worker can still be asked which capabilities exist — that is the
-question a broken launch most needs answered.
+The three **capability registry** paths are mounted by the runtime router, not the projection
+router. The production launch without `text_worker` uses projections and does not mount them;
+the launch with `text_worker` uses the runtime router. An in-process runtime-router test may use
+an executor without extra worker routes, which is not the same as the production no-worker launch.
 
 `POST /api/v1/jobs/{job_id}/receipts` is **not** in the production surface. It is mounted
 only when the in-process router is built with `manual_receipts=true`, which the shipped
@@ -814,7 +834,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 86 base projection pairs plus 53 runtime pairs plus one native session-control pair total 140. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 92 base projection pairs plus 56 runtime pairs plus one native session-control pair total 149. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 

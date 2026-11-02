@@ -1,7 +1,9 @@
 """Bounded anonymous public search; fixtures are synthetic, never live evidence."""
 import base64
+import gzip
 import importlib.util
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -40,6 +42,184 @@ def fake_http(worker, monkeypatch, payloads):
         return SimpleNamespace(body=bodies[len(calls)-1], headers={}, status=200)
     monkeypatch.setattr(worker.http, "fetch", fetch)
     return calls, bodies
+
+
+def test_duplicate_public_body_is_rejected_without_losing_raw_response(worker, monkeypatch):
+    raw = (b'{"items":[{"question_id":42,"title":"Synthetic question",'
+           b'"link":"https://academia.stackexchange.com/questions/42/synthetic",'
+           b'"body":"<p>SYNTHETIC_FIRST</p>","body":"<p>SYNTHETIC_SECOND</p>"}]}')
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        return SimpleNamespace(body=raw, headers={}, status=200)
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    channel = worker.execute(request(families=["community"]))["channels"][0]
+    assert len(calls) == 1
+    assert base64.b64decode(channel["raw_response_base64"]) == raw
+    assert channel["status"] == "failed", (
+        "duplicate body accepted; synthetic observed excerpt="
+        + repr(channel["hits"][0]["excerpt"] if channel["hits"] else None)
+    )
+    assert channel["error_code"] == "invalid_response" and channel["hits"] == []
+
+
+@pytest.mark.parametrize("revision", [br"\ud800", br"\udc00"], ids=["high-surrogate", "low-surrogate"])
+def test_openalex_unpaired_revision_keeps_raw_and_other_channel(worker, monkeypatch, revision):
+    wiki_raw = b'{"batchcomplete":true}'
+    openalex_raw = (b'{"results":[{"id":"https://openalex.org/W7",'
+                    b'"title":"Synthetic paper","updated_date":"' + revision + b'"}]}')
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        if url.startswith("https://en.wikipedia.org/"):
+            return SimpleNamespace(body=wiki_raw, headers={}, status=200)
+        if url.startswith("https://api.openalex.org/"):
+            return SimpleNamespace(body=openalex_raw, headers={}, status=200)
+        pytest.fail("invalid provider data must not trigger a fallback")
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    result = worker.execute(request(families=["encyclopedia", "research"], limit=1))
+    assert len(calls) == 2 and len(result["channels"]) == 2
+    wiki, openalex = result["channels"]
+    assert wiki["status"] == "complete" and base64.b64decode(wiki["raw_response_base64"]) == wiki_raw
+    assert openalex["status"] == "failed" and openalex["error_code"] == "invalid_response"
+    assert openalex["hits"] == [] and base64.b64decode(openalex["raw_response_base64"]) == openalex_raw
+    json.dumps(result, ensure_ascii=False).encode("utf-8", errors="strict")
+
+
+@pytest.mark.parametrize(("revision", "expected"), [
+    (b"2026-11-02", "2026-11-02"),
+    (br"2026-\ud83d\ude00", "2026-😀"),
+], ids=["ascii-date", "paired-surrogates"])
+def test_openalex_valid_revision_preserves_unicode_and_raw(worker, monkeypatch, revision, expected):
+    raw = (b'{"results":[{"id":"https://openalex.org/W7",'
+           b'"title":"Synthetic paper","updated_date":"' + revision + b'"}]}')
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        assert url.startswith("https://api.openalex.org/")
+        return SimpleNamespace(body=raw, headers={}, status=200)
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    result = worker.execute(request(families=["research"], limit=1))
+    assert len(calls) == 1 and len(result["channels"]) == 1
+    channel = result["channels"][0]
+    assert channel["status"] == "complete" and channel["error_code"] is None
+    assert channel["hits"][0]["upstream_revision"] == expected
+    assert base64.b64decode(channel["raw_response_base64"]) == raw
+    json.dumps(result, ensure_ascii=False).encode("utf-8", errors="strict")
+
+
+@pytest.mark.parametrize("compressed", [False, True], ids=["plain", "gzip"])
+@pytest.mark.parametrize("raw", [
+    b'{"results":[],"results":[]}',
+    b'{"results":[],"results":[{}]}',
+    br'{"results":[],"res\u0075lts":[]}',
+    b'{"results":[],"ignored":{"nested":[{"key":1,"key":1}]}}',
+    b'{"results":[],"ignored":{"nested":[{"key":1,"key":2}]}}',
+    b'{"results":[],"ignored":[NaN]}',
+    b'{"results":[],"ignored":[Infinity]}',
+    b'{"results":[],"ignored":[-Infinity]}',
+    b'{"results":[],"ignored":{"nested":[1e9999]}}',
+    b'{"results":[],"ignored":{"nested":[-1e9999]}}',
+    b'{"results":[],"ignored":' + b'[' * 1500 + b'0' + b']' * 1500 + b'}',
+], ids=["same-root", "conflicting-root", "escaped-key", "same-nested", "conflicting-nested",
+        "nan", "positive-infinity", "negative-infinity", "positive-float-overflow",
+        "negative-float-overflow", "excessive-depth"])
+def test_ambiguous_or_nonfinite_json_fails_closed_without_fallback(worker, monkeypatch, capsys, raw, compressed):
+    received = gzip.compress(raw, mtime=0) if compressed else raw
+    response_headers = {"content-encoding": "gzip"} if compressed else {}
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        return SimpleNamespace(body=received, headers=response_headers, status=200)
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    result = worker.execute(request(families=["research"]))
+    assert len(calls) == 1 and calls[0].startswith("https://api.openalex.org/")
+    assert len(result["channels"]) == 1
+    channel = result["channels"][0]
+    assert channel["provider"] == "openalex" and channel["status"] == "failed"
+    assert channel["error_code"] == "invalid_response" and channel["hits"] == []
+    assert base64.b64decode(channel["raw_response_base64"]) == received
+    captured = capsys.readouterr()
+    assert captured.out == captured.err == ""
+
+
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "utf-16", "utf-16-be", "utf-32", "utf-32-be"])
+@pytest.mark.parametrize("depth", [64, 65], ids=["at-limit", "over-limit"])
+@pytest.mark.parametrize("compressed", [False, True], ids=["plain", "gzip"])
+def test_json_nesting_bound_preserves_existing_utf_encodings(
+        worker, monkeypatch, encoding, depth, compressed):
+    # The outer object counts as one; alternate object/array levels thereafter.
+    levels = [("[", "]") if index % 2 == 0 else ('{"node":', "}")
+              for index in range(depth - 1)]
+    text = ('{"results":[],"ignored":' + "".join(level[0] for level in levels) + "0"
+            + "".join(level[1] for level in reversed(levels)) + "}")
+    raw = text.encode(encoding)
+    received = gzip.compress(raw, mtime=0) if compressed else raw
+    response_headers = {"content-encoding": "gzip"} if compressed else {}
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        return SimpleNamespace(body=received, headers=response_headers, status=200)
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    result = worker.execute(request(families=["research"]))
+    assert len(calls) == len(result["channels"]) == 1
+    channel = result["channels"][0]
+    assert channel["status"] == ("complete" if depth == 64 else "failed")
+    assert channel["error_code"] == (None if depth == 64 else "invalid_response")
+    assert channel["hits"] == [] and base64.b64decode(channel["raw_response_base64"]) == received
+
+
+@pytest.mark.parametrize("compressed", [False, True], ids=["plain", "gzip"])
+def test_json_nesting_ignores_brackets_in_escaped_strings(worker, monkeypatch, compressed):
+    # json.dumps escapes the adjacent backslashes and quotes; braces in this
+    # string are data even when their count exceeds the structural limit.
+    opaque = "left" + chr(92) + chr(34) + "[" * 200 + chr(92) * 2 + "}" * 200 + chr(34) + "right"
+    raw = json.dumps({"results": [], "ignored": opaque}, ensure_ascii=False).encode("utf-8")
+    received = gzip.compress(raw, mtime=0) if compressed else raw
+    response_headers = {"content-encoding": "gzip"} if compressed else {}
+    assert worker._json_response(received, response_headers)["ignored"] == opaque
+    monkeypatch.setattr(worker.http, "fetch", lambda *a, **k: SimpleNamespace(
+        body=received, headers=response_headers, status=200))
+    result = worker.execute(request(families=["research"]))
+    assert len(result["channels"]) == 1
+    channel = result["channels"][0]
+    assert channel["status"] == "complete" and channel["hits"] == []
+    assert base64.b64decode(channel["raw_response_base64"]) == received
+
+
+@pytest.mark.parametrize("compressed", [False, True], ids=["plain", "gzip"])
+def test_finite_public_json_numbers_remain_accepted(worker, monkeypatch, compressed):
+    raw = (b'{"results":[],"ignored":{"values":'
+           b'[0,-1,1.25,-0.125,1.75e3,1e-310,1.7976931348623157e308]}}')
+    received = gzip.compress(raw, mtime=0) if compressed else raw
+    response_headers = {"content-encoding": "gzip"} if compressed else {}
+    parsed = worker._json_response(received, response_headers)
+    numbers = parsed["ignored"]["values"]
+    assert numbers[:5] == [0, -1, 1.25, -0.125, 1750.0]
+    assert numbers[5] > 0 and all(math.isfinite(number) for number in numbers)
+
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        return SimpleNamespace(body=received, headers=response_headers, status=200)
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    result = worker.execute(request(families=["research"]))
+    assert len(calls) == len(result["channels"]) == 1
+    channel = result["channels"][0]
+    assert channel["status"] == "complete" and channel["hits"] == [] and channel["error_code"] is None
+    assert base64.b64decode(channel["raw_response_base64"]) == received
 
 
 def test_three_families_keep_raw_and_distinguish_representations(worker, monkeypatch):
@@ -183,7 +363,6 @@ def test_isolated_core_entrypoint_loads_its_fixed_module_without_pythonpath():
 
 
 def test_gzip_preserves_actual_response_bytes_and_bounds_inflation(worker, monkeypatch):
-    import gzip
     raw = gzip.compress(b'{"results":[]}')
     monkeypatch.setattr(worker.http, "fetch", lambda *a, **k: SimpleNamespace(body=raw, headers={"content-encoding": "gzip"}, status=200))
     channel = worker.execute(request(families=["research"]))["channels"][0]

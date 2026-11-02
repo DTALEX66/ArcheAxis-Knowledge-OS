@@ -1,0 +1,79 @@
+{
+  "scope": "Source/requirement reconciliation, not a competing capability registry, task queue or chat database",
+  "asset_scan": {
+    "objects_all": 1212,
+    "mapping_rows_all": 2031,
+    "aaos_objects": 865,
+    "aaos_bytes": 645727056,
+    "aaos_by_category": {
+      "历史方案": 63,
+      "来源证据": 211,
+      "近期参考": 33,
+      "界面与附件": 558
+    },
+    "source_hash_mismatch": 0,
+    "local_exact_objects": 84,
+    "not_local_exact_objects": 781,
+    "aaos_alias_rows": 1650,
+    "indexes": [
+      {
+        "path": "D:\\All projects\\Project Archiving\\AAOS项目\\00_先读这里.md",
+        "lines": 20,
+        "sha256": "bd42145cc4603d9ea92be2ad0cca0130c259a1c2afcacf415038712e7cb9e081",
+        "links": 10
+      },
+      {
+        "path": "D:\\All projects\\Project Archiving\\AAOS项目\\01_近期参考.md",
+        "lines": 37,
+        "sha256": "02a6ce7666abba8cad9e37e47094aef029fc91ad32c7d439938c03b3b744cafa",
+        "links": 33
+      },
+      {
+        "path": "D:\\All projects\\Project Archiving\\AAOS项目\\02_历史方案.md",
+        "lines": 67,
+        "sha256": "8ca24413d7bece17862fbf1370c96c33abb222e58324845d3499c612d3b965f8",
+        "links": 63
+      },
+      {
+        "path": "D:\\All projects\\Project Archiving\\AAOS项目\\03_完整对话.md",
+        "lines": 107,
+        "sha256": "f68fb12be69a68148a55c57536b97f30f14eeb8479eb3c679ad60071bf170d15",
+        "links": 103
+      },
+      {
+        "path": "D:\\All projects\\Project Archiving\\AAOS项目\\04_界面与附件.md",
+        "lines": 562,
+        "sha256": "d9b70298121e47f755e0335d8a9fcd84a3d6993f85fc82835d2d39ccc1270211",
+        "links": 558
+      },
+      {
+        "path": "D:\\All projects\\Project Archiving\\AAOS项目\\05_全部资料.md",
+        "lines": 871,
+        "sha256": "a153637e1027194c8df1fdc76cbc57783f1e2b1a7abe19f70460997fbae441ba",
+        "links": 866
+      }
+    ]
+  },
+  "source_objects": 865,
+  "intents_by_kind": {
+    "capability_intent": 186,
+    "legacy_page_duty": 22,
+    "acceptance_scenario": 25
+  },
+  "source_processing": {
+    "BYTE_IDENTICAL_SOURCE_ALIASES_CONSOLIDATED": 92,
+    "STRUCTURALLY_INDEXED_PENDING_TARGETED_SEMANTIC_DISPOSITION": 772,
+    "SOURCE_ADDED": 1
+  },
+  "recovered_members_reused": 125,
+  "raw_originals_added": 1,
+  "raw_original_bytes_added": 14897,
+  "invoked_prompt_local_preservation_bytes": 6986,
+  "binary_archive_copies": 0,
+  "deleted_objects": 0,
+  "semantic_near_duplicates_deleted": 0,
+  "full_dialogue_json_copies": 0,
+  "zip_member_structure_rows": 3139,
+  "readable_member_structure_scans": 1216,
+  "limits": "865 labels include broad related sources; byte/structure scans are not all-source semantic approval. Runtime, engines, image/audio interpretation and Owner acceptance not qualified here."
+}

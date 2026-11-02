@@ -1,4 +1,4 @@
-//! SYNTHETIC schema-13 wire fixture and real schema-14 export/restore.
+//! SYNTHETIC schema-13 wire fixture and current export/restore.
 use archeaxis_archive::{ArchiveManifest, export_workspace, restore_workspace};
 use archeaxis_domain::{document, knowledge, learning, source, template_definition};
 use archeaxis_store_sqlite::init_workspace;
@@ -81,7 +81,10 @@ fn current14_lifecycle_and_authored13_wire_preserve_documents_knowledge_learning
     drop(c);
     let archive = dir.path().join("v14");
     let mut manifest = export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
-    assert_eq!(manifest.schema_version, 14);
+    assert_eq!(
+        manifest.schema_version,
+        archeaxis_store_sqlite::SCHEMA_VERSION
+    );
     let objects = manifest.raw_objects.clone();
     let restored = dir.path().join("restored14.sqlite");
     restore_workspace(archive.to_str().unwrap(), restored.to_str().unwrap()).unwrap();
@@ -129,6 +132,8 @@ fn current14_lifecycle_and_authored13_wire_preserve_documents_knowledge_learning
             hex::encode(Sha256::digest(lines.as_bytes()));
     }
     manifest.schema_version = 13;
+    manifest.tables.remove("learning_provider_activities");
+    manifest.tables.remove("learning_provider_attempts");
     seal(&mut manifest, &archive);
     let upgraded = dir.path().join("upgraded13.sqlite");
     restore_workspace(archive.to_str().unwrap(), upgraded.to_str().unwrap()).unwrap();
@@ -150,12 +155,12 @@ fn current14_lifecycle_and_authored13_wire_preserve_documents_knowledge_learning
     );
     // Fail before publication for bad manifest/table/CAS, future schema, and
     // an old manifest that attempts to supply non-default v14 lifecycle state.
-    for (version, folder) in [(13, &archive), (14, &exported)] {
+    for (version, folder) in [(13, &archive), (15, &exported)] {
         let manifest_path = folder.join("manifest.json");
         let original = std::fs::read(&manifest_path).unwrap();
         let valid: ArchiveManifest = serde_json::from_slice(&original).unwrap();
         for bad in ["manifest", "table", "cas", "schema", "lifecycle"] {
-            if bad == "lifecycle" && version == 14 {
+            if bad == "lifecycle" && version == 15 {
                 continue;
             }
             let mut changed = valid.clone();

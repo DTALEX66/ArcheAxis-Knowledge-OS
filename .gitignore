@@ -71,6 +71,22 @@ knowledge_base/data/
 __pycache__/
 *.egg-info/
 
+# These are retained original npm package members, not local build output.
+!/services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/dist/
+!/services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/dist/**
+!/services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/
+!/services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/**
+!/services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/
+!/services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/**
+!/services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/
+!/services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/**
+!/services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/dist/
+!/services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/dist/**
+!/services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/dist/
+!/services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/dist/**
+!/services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/
+!/services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/**
+
 # Agent-private planning files and generated report share packages.
 /.trae/
 /.trae-html-share-packages/

@@ -1,4 +1,5 @@
 """Synthetic loopback servers prove image requests cannot follow redirects."""
+import base64
 import importlib.util
 import json
 import threading
@@ -91,3 +92,63 @@ def test_reasoning_only_is_not_a_description(monkeypatch):
 
     monkeypatch.setattr(caption, "local_urlopen", lambda *args, **kwargs: Response())
     assert caption._call({"base": "http://127.0.0.1/v1", "protocol": "openai"}, "synthetic-model", "c3ludGhldGlj", 2) == ""
+
+
+@pytest.mark.parametrize(
+    ("suffix", "expected_mime", "raw"),
+    [
+        (".png", "image/png", b"\x89PNG\r\n\x1a\nSYNTHETIC"),
+        (".jpg", "image/jpeg", b"\xff\xd8\xffSYNTHETIC"),
+        (".jpeg", "image/jpeg", b"\xff\xd8\xffSYNTHETIC"),
+        (".webp", "image/webp", b"RIFF\x00\x00\x00\x00WEBPSYNTHETIC"),
+        (".bmp", "image/bmp", b"BMSYNTHETIC"),
+        (".tiff", "image/tiff", b"II\x2a\x00SYNTHETIC"),
+    ],
+)
+@pytest.mark.parametrize("require_identity", [False, True])
+def test_openai_image_mime_matches_declared_suffix_and_preserves_bytes(
+    tmp_path, monkeypatch, suffix, expected_mime, raw, require_identity
+):
+    # These are synthetic marker bytes, not valid images: this tests transport
+    # labeling and exact bytes, not MIME sniffing or image decoding.
+    caption = load_caption()
+    image = tmp_path / ("synthetic" + suffix)
+    image.write_bytes(raw)
+    calls = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def read(self):
+            return json.dumps({
+                "model": "synthetic-model",
+                "choices": [{"message": {"content": "synthetic description"}, "finish_reason": "stop"}],
+            }).encode("utf-8")
+
+    def capture(request, **kwargs):
+        calls.append((request, kwargs))
+        return Response()
+
+    monkeypatch.setattr(caption, "local_urlopen", capture)
+    endpoint = {"base": "http://127.0.0.1:1234/v1", "protocol": "openai", "model": "synthetic-model"}
+    result = caption.describe(image, "synthetic-model", require_identity=require_identity, endpoint_override=endpoint)
+
+    assert result["description"] == "synthetic description"
+    assert len(calls) == 1
+    request, _ = calls[0]
+    assert request.full_url == "http://127.0.0.1:1234/v1/chat/completions"
+    assert request.get_method() == "POST"
+    body = json.loads(request.data)
+    assert body["model"] == "synthetic-model"
+    data_url = body["messages"][0]["content"][1]["image_url"]["url"]
+    assert data_url == f"data:{expected_mime};base64,{base64.b64encode(raw).decode('ascii')}"
+    if require_identity:
+        assert result["engine_receipt"]["mime"] == expected_mime
+        assert result["engine_receipt"]["actual_model"] == "synthetic-model"
+        assert result["engine_receipt"]["completion_state"] == "complete"
+    else:
+        assert result["engine_receipt"] is None

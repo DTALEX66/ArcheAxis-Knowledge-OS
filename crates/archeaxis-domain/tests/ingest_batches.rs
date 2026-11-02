@@ -25,7 +25,8 @@ fn additive_upgrade_preserves_sources_and_batch_reopen() {
     archeaxis_domain::source::import_source(&mut conn, b"x", "a.md", None).unwrap();
     // Construct the previous additive schema by removing only the newly introduced tables.
     conn.execute_batch(
-        "DROP TABLE ingest_batch_members; DROP TABLE ingest_batches;
+        "DROP TABLE learning_provider_attempts; DROP TABLE learning_provider_activities;
+        DROP TABLE ingest_batch_members; DROP TABLE ingest_batches;
         UPDATE workspace_meta SET value='12' WHERE key='schema_version';",
     )
     .unwrap();
@@ -38,7 +39,7 @@ fn additive_upgrade_preserves_sources_and_batch_reopen() {
             |r| r.get(0)
         )
         .unwrap(),
-        "14"
+        "15"
     );
     assert_eq!(
         conn.query_row::<i64, _, _>("SELECT count(*) FROM sources", [], |r| r.get(0))

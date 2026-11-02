@@ -55,6 +55,46 @@ pub const EXPORT_TABLES: &[&str] = &[
     "ingest_batches",
     "ingest_batch_members",
     "public_research_runs",
+    "learning_provider_activities",
+    "learning_provider_attempts",
+];
+
+/// Frozen table set shared by schema 13 and 14, before provider learning.
+pub const V14_LAYOUT: &[&str] = &[
+    "workspace_meta",
+    "sources",
+    "transforms",
+    "anchors",
+    "knowledge",
+    "review_events",
+    "learning_events",
+    "jobs",
+    "job_attempts",
+    "job_outputs",
+    "canvas_projections",
+    "canvas_projection_nodes",
+    "canvas_projection_edges",
+    "source_origins",
+    "learning_event_keys",
+    "knowledge_supersedes",
+    "knowledge_v3_metadata",
+    "learning_assessments",
+    "card_references",
+    "machine_tasks",
+    "capability_settings",
+    "vault_links",
+    "general_courses",
+    "general_course_artifacts",
+    "general_course_bindings",
+    "documents",
+    "document_versions",
+    "document_blocks",
+    "document_checks",
+    "teaching_records",
+    "teaching_withdrawals",
+    "ingest_batches",
+    "ingest_batch_members",
+    "public_research_runs",
 ];
 
 /// Frozen schema 12 exporter layout (31 tables).
@@ -376,7 +416,7 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
         12 if same_set(V12_LAYOUT) => Ok(V12_LAYOUT),
         // Schema 14 only adds columns to capability_settings; the shipped v13
         // table inventory is unchanged. Missing columns use v14 SQL defaults.
-        13 if same_set(EXPORT_TABLES) => Ok(EXPORT_TABLES),
+        13 | 14 if same_set(V14_LAYOUT) => Ok(V14_LAYOUT),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
             .iter()
             .find(|layout| same_set(layout))

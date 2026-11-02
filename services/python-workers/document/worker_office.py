@@ -548,7 +548,12 @@ def _safe_csv_name(index: int, name: str) -> str:
     """A flat, collision-free file name for one converted sheet."""
     base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
     safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-48:]
-    return f"sheet-{index:02d}-{safe or 'sheet'}.csv"
+    result = f"sheet-{index:02d}-{safe or 'sheet'}.csv"
+    # Include the appended suffix in the check: a sheet title ending in a dot
+    # would otherwise create consecutive dots across the suffix boundary.
+    while ".." in result:
+        result = result.replace("..", "_.")
+    return result
 
 
 def _long_path(path: Path) -> str:
@@ -564,6 +569,22 @@ def _long_path(path: Path) -> str:
     if sys.platform == "win32" and not text.startswith("\\\\?\\") and Path(text).is_absolute():
         return "\\\\" + "?\\" + text
     return text
+
+
+def _load_member_transfer():
+    """Load only the fixed sibling when a sheet may be transferred."""
+    helper = Path(__file__).with_name("member_transfer.py")
+    try:
+        spec = importlib.util.spec_from_file_location("xls_member_transfer", helper)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("member transfer helper unavailable")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if not callable(getattr(module, "prepare_directory", None)) or not callable(getattr(module, "offer_member", None)):
+            raise RuntimeError("member transfer helper unavailable")
+        return module
+    except Exception:
+        raise RuntimeError("member transfer helper unavailable") from None
 
 
 def _xls_cell(sheet, book, row: int, col: int) -> tuple[str, str]:
@@ -918,7 +939,15 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
         book = xlrd.open_workbook(str(path), on_demand=True)
     except xlrd.XLRDError as exc:
         raise ValueError(f"xls could not be opened: {exc}") from exc
+    # All parsing and transfer exits, including a missing helper or a partial
+    # filesystem failure, release xlrd's mapped file before returning.
+    try:
+        return _xls_book_text(book, member_dir, xlrd)
+    finally:
+        book.release_resources()
 
+
+def _xls_book_text(book, member_dir: Path | None, xlrd) -> dict:
     text_parts: list[dict] = []
     sheets: list[dict] = []
     converted: list[dict] = []
@@ -927,6 +956,7 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
     locations: list[dict] = []
     type_counts: dict[str, int] = {}
     total_bytes = 0
+    transfer = None
     formulas_available = hasattr(book.sheet_by_index(0), "cell_formula_text") if book.nsheets else False
 
     for index in range(book.nsheets):
@@ -973,9 +1003,17 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
                               "later sheets were not converted")
                 break
             out = Path(member_dir)
-            Path(_long_path(out)).mkdir(parents=True, exist_ok=True)
             target = out / _safe_csv_name(index + 1, sheet.name)
-            Path(_long_path(target)).write_bytes(payload)
+            if transfer is None:
+                transfer = _load_member_transfer()
+            try:
+                transfer.prepare_directory(out, _long_path)
+                transfer.offer_member(target, payload, _long_path)
+            except OSError as exc:
+                # Never claim a failed sheet as a member or remove a file whose
+                # identity may have changed during a partial operation.
+                raise OSError(f"XLS member transfer failed ({type(exc).__name__}); "
+                              "a partial transfer file may remain") from None
             total_bytes += len(payload)
             members_written.append({
                 "name": f"{sheet.name}.csv",
@@ -984,9 +1022,6 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
                 "sha256": _hashlib.sha256(payload).hexdigest(),
             })
 
-    # xlrd keeps the stream mapped while the book lives, and on Windows that holds the attempt's
-    # view file open; release it before anything else can raise or return.
-    book.release_resources()
     if not text_parts:
         raise ValueError("xls contains no readable cell values")
     projection = "\n".join(part["text"] for part in text_parts)

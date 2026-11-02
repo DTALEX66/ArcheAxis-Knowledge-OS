@@ -19,6 +19,7 @@ pub fn install_after_restore(conn: &Connection) -> rusqlite::Result<()> {
              SELECT DISTINCT document_id FROM document_versions
              WHERE json_type(editor_json,'$.attrs.archeaxis_context_grant') IS NOT NULL
                 OR json_type(editor_json,'$.attrs.archeaxis_asset_context_grant') IS NOT NULL
+                OR json_type(editor_json,'$.attrs.archeaxis_provider_material_grant') IS NOT NULL
              ORDER BY document_id)), '[]')))
          ON CONFLICT(key) DO UPDATE SET value=excluded.value",
         rusqlite::params![KEY, SCHEMA],

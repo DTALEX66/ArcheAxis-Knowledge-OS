@@ -293,9 +293,11 @@ fn concurrent_open_migrates_v1_once_and_preserves_existing_jobs() {
     let (dir, conn, _) = fixture();
     conn.execute_batch(
         // This is a synthetic v1 job-shape fixture, constructed from today's
-        // workspace. Remove v12-only teaching tables before reopening as v1;
+        // workspace. Remove tables that later versions add before reopening as v1;
         // production migration must still create them exactly once.
-        "DROP TABLE teaching_withdrawals;
+        "DROP TABLE learning_provider_attempts;
+        DROP TABLE learning_provider_activities;
+        DROP TABLE teaching_withdrawals;
         DROP TABLE teaching_records;
         ALTER TABLE jobs DROP COLUMN completion_digest;
         ALTER TABLE jobs DROP COLUMN transform_id;

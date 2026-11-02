@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { App } from "../app/App";
 import { coreCommand } from "../api/core";
+import { normalizeRecoveryStatus } from "../runtime/recovery";
 
 const recovery = vi.hoisted(() => ({
   getRecoveryStatus: vi.fn(),
@@ -73,6 +74,108 @@ describe("Recovery Shell", () => {
     expect(within(shell).getByRole("button", { name: "退出" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "全部页面，打开产品导航" })).not.toBeInTheDocument();
   });
+
+  it("SIMULATED host status maps only the sanitized Core-unavailable code to a path-free diagnosis", async () => {
+    const status = normalizeRecoveryStatus({ ...failedRecovery, message: "CORE_UNAVAILABLE" });
+    expect(status.message).toBe("CORE_UNAVAILABLE");
+    recovery.getRecoveryStatus.mockResolvedValue(status);
+    render(<App />);
+    expect(await screen.findByText("诊断：未找到本地核心，请修复应用后重试。"))
+      .toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("CORE_UNAVAILABLE");
+  });
+
+  it("SIMULATED unrelated status codes keep the existing display filter", async () => {
+    const status = normalizeRecoveryStatus({ ...failedRecovery, message: "OTHER_STATUS_CODE" });
+    recovery.getRecoveryStatus.mockResolvedValue(status);
+    render(<App />);
+    expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("OTHER_STATUS_CODE");
+    expect(screen.queryByText(/未找到本地核心/)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["early refusal, host reports running", { ...failedRecovery, state: "ready", backend_available: true },
+      "宿主报告本地核心可用；工作区尚未重新验证。"],
+    ["later failure, host reports stopped", { ...failedRecovery, state: "stopped", safe_mode: true },
+      "安全模式已启用；本地核心保持停止。"],
+    ["status unavailable", null, "本地核心状态无法确认。"],
+  ])("SIMULATED restore %s retains the recovery fence and never repeats", async (_case, fresh, message) => {
+    const user = userEvent.setup();
+    recovery.getRecoveryStatus.mockResolvedValueOnce(failedRecovery);
+    if (fresh) recovery.getRecoveryStatus.mockResolvedValueOnce(fresh);
+    else recovery.getRecoveryStatus.mockRejectedValueOnce(new Error("SIMULATED status unavailable"));
+    recovery.restoreRecoveryBackup.mockRejectedValueOnce(new Error("SIMULATED restore failure"));
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "恢复备份" }));
+    await user.click(screen.getByRole("button", { name: "确认恢复" }));
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(fresh ? "备份恢复未完成" : "本地核心状态无法确认");
+    expect(screen.queryByText("本地核心已就绪。")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "应用菜单" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "确认恢复" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "重试启动" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "安全模式" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "恢复备份" }));
+    fireEvent.click(screen.getByRole("button", { name: "重试启动" }));
+    expect(recovery.restoreRecoveryBackup).toHaveBeenCalledOnce();
+    expect(recovery.retryDesktopBackend).not.toHaveBeenCalled();
+    expect(recovery.verifyCanonicalCore).not.toHaveBeenCalled();
+    expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it("SIMULATED exact preflight code allows a later manual action without reopening automatically", async () => {
+    const user = userEvent.setup();
+    recovery.getRecoveryStatus.mockResolvedValueOnce(failedRecovery).mockResolvedValueOnce({
+      ...failedRecovery, state: "ready", backend_available: true,
+    });
+    recovery.restoreRecoveryBackup.mockRejectedValueOnce("CORE_UNAVAILABLE");
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "恢复备份" }));
+    await user.click(screen.getByRole("button", { name: "确认恢复" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("本次恢复未执行");
+    expect(screen.getByText("宿主报告本地核心可用；工作区尚未重新验证。")).toBeInTheDocument();
+    expect(screen.queryByText("本地核心已就绪。")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "重试启动" })).toBeEnabled();
+    expect(recovery.restoreRecoveryBackup).toHaveBeenCalledOnce();
+    expect(recovery.retryDesktopBackend).not.toHaveBeenCalled();
+    expect(recovery.verifyCanonicalCore).not.toHaveBeenCalled();
+    expect(screen.queryByRole("navigation", { name: "应用菜单" })).not.toBeInTheDocument();
+  });
+
+  it("SIMULATED repeated confirmation in one event batch dispatches only one restore", async () => {
+    const user = userEvent.setup();
+    const pending = deferred<never>();
+    recovery.restoreRecoveryBackup.mockReturnValueOnce(pending.promise);
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "恢复备份" }));
+    const confirm = screen.getByRole("button", { name: "确认恢复" });
+    act(() => { confirm.click(); confirm.click(); });
+    expect(recovery.restoreRecoveryBackup).toHaveBeenCalledOnce();
+    await act(async () => { pending.reject(new Error("SIMULATED lost result")); });
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeDisabled();
+  });
+
+  it.each(["CORE_UNAVAILABLE_AFTER_RESTORE", " CORE_UNAVAILABLE", new Error("CORE_UNAVAILABLE")])(
+    "SIMULATED similar failure %s cannot establish that restoration did not start", async (failure) => {
+      const user = userEvent.setup();
+      recovery.getRecoveryStatus.mockResolvedValueOnce(failedRecovery).mockResolvedValueOnce({
+        ...failedRecovery, state: "ready", backend_available: true,
+      });
+      recovery.restoreRecoveryBackup.mockRejectedValueOnce(failure);
+      render(<App />);
+      await user.click(await screen.findByRole("button", { name: "恢复备份" }));
+      await user.click(screen.getByRole("button", { name: "确认恢复" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("备份恢复未完成");
+      expect(screen.getByRole("button", { name: "恢复备份" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "重试启动" })).toBeDisabled();
+      expect(recovery.restoreRecoveryBackup).toHaveBeenCalledOnce();
+      expect(recovery.verifyCanonicalCore).not.toHaveBeenCalled();
+    },
+  );
 
   it("shows only Tauri-provided sanitized logs and restores only a selected opaque backup", async () => {
     const user = userEvent.setup();
@@ -290,6 +393,36 @@ describe("Recovery Shell", () => {
     expect(closing.defaultPrevented).toBe(true);
     act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "page-A", dirty: false } })); });
     expect(restore).toBeEnabled();
+  });
+
+  it("SIMULATED failed restore retains the mounted workspace and a draft that becomes dirty during the request", async () => {
+    vi.useFakeTimers();
+    const ready = { ...failedRecovery, state: "ready", backend_available: true, backups: [] };
+    const restore = deferred<never>();
+    recovery.getRecoveryStatus.mockResolvedValueOnce(ready)
+      .mockResolvedValueOnce({ ...failedRecovery, state: "stopped" })
+      .mockRejectedValueOnce(new Error("SIMULATED status unavailable"));
+    recovery.restoreRecoveryBackup.mockReturnValueOnce(restore.promise);
+    render(<App />);
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByRole("button", { name: "全部页面，打开产品导航" })).toBeInTheDocument();
+    await act(async () => vi.advanceTimersByTimeAsync(10_000));
+    const retained = document.querySelector<HTMLElement>("[data-retained-workspace]");
+    expect(retained).not.toBeNull();
+    expect(retained).toHaveAttribute("aria-hidden", "true");
+    fireEvent.click(screen.getByRole("button", { name: "恢复备份" }));
+    fireEvent.click(screen.getByRole("button", { name: "确认恢复" }));
+    act(() => window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "synthetic-draft", dirty: true } })));
+    await act(async () => { restore.reject(new Error("SIMULATED lost result")); });
+    expect(document.querySelector("[data-retained-workspace]")).toBe(retained);
+    expect(retained).toHaveAttribute("aria-hidden", "true");
+    expect(retained!.inert).toBe(true);
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "重试启动" })).toBeDisabled();
+    const closing = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(closing);
+    expect(closing.defaultPrevented).toBe(true);
+    expect(recovery.restoreRecoveryBackup).toHaveBeenCalledOnce();
   });
 
   it("cleans up one non-overlapping liveness loop on unmount", async () => {

@@ -15,11 +15,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "23149f8ea19a667ddb1f5e3d7ec6e201a6aa948a496054e513b57e57dd965b8b"
+      "sha256": "fc5ed6d145b5a7007ae911775590b7a22743540962df022a9e7b954ec7beade1"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
-      "sha256": "edf5add651d5d54288e0b4f757f2a294ad4c849c8d57b3fccbeb5d98e2f97eb0"
+      "sha256": "0c0af2b7ef98a2f81fd15a95964d29bc56e9fd4e3694110f0ebb774b3d5d3d81"
     },
     {
       "path": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json",
@@ -246,7 +246,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
       },
       {
-        "path": "scripts/release_sbom.py",
+        "path": "docs/history/oss-absorption-evidence/20261102-resource-source-binding/source/scripts/release_sbom.py",
         "sha256": "528ba4d3bdd95496101060211cc374fecfcd2f2ba3debd947b948b1aeda6f041"
       },
       {

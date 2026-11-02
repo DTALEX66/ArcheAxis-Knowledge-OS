@@ -1,5 +1,62 @@
 * text=auto eol=lf
 
+# Preserve the exact licensed upstream source and license bytes in every checkout.
+services/learning-providers/deeptutor/upstream/answers.py -text
+services/learning-providers/deeptutor/upstream/importing.py -text
+services/learning-providers/deeptutor/upstream/question_pipeline.py -text
+services/learning-providers/deeptutor/upstream/question_pipeline.en.yaml -text
+services/learning-providers/deeptutor/upstream/question_pipeline.zh.yaml -text
+services/learning-providers/deeptutor/upstream/question_language.py -text
+services/learning-providers/deeptutor/upstream/teaching.py -text
+services/learning-providers/deeptutor/upstream/learning_models.py -text
+services/learning-providers/deeptutor/upstream/agentic_labels.py -text
+services/learning-providers/deeptutor/upstream/THIRD_PARTY_NOTICES.md -text
+services/learning-providers/deeptutor/LICENSE -text
+services/learning-providers/openmaic/vendor/generation-0.3.28/LICENSE -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-outline/LICENSE -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-outline/ORIGINALS.json -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-outline/src/** -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-outline/templates/** -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-outline/snippets/** -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/LICENSE -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/package.json -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/src/scene-generator.ts -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/templates/quiz-content/system.md -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/templates/quiz-content/user.md -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/snippets/json-output-rules.md -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/quiz-functions.ts -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/ORIGINALS.json -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/LICENSE -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/package.json -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/src/action-parser.ts -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/src/prompt-formatters.ts -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/templates/quiz-actions/system.md -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/templates/quiz-actions/user.md -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/snippets/speech-tts-readability.md -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/quiz-actions-functions.ts -text
+services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/ORIGINALS.json -text
+services/learning-providers/openmaic/vendor/dsl-0.12.0-actions/LICENSE -text
+services/learning-providers/openmaic/vendor/dsl-0.12.0-actions/package.json -text
+services/learning-providers/openmaic/vendor/dsl-0.12.0-actions/src/action.ts -text
+services/learning-providers/openmaic/vendor/dsl-0.12.0-actions/ORIGINALS.json -text
+services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/** -text
+services/learning-providers/openmaic/vendor/npm/nanoid-5.1.14/** -text
+services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/LICENSE -text
+services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/package.json -text
+services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/SOURCE.json -text
+services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/dist/index.js -text
+services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/dist/options.js -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/LICENSE -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/README.md -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/package.json -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/SOURCE.json -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/lib/index.d.ts -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/lib/index.js -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/lib/parse.js -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/lib/stringify.js -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/lib/unit.js -text
+services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/lib/walk.js -text
+
 # DOT v3.1 supplied originals retain manifest-pinned bytes, including CSV CRLF.
 workspace/intake/20261101-cloud-integration-v3-1-review/source/** -text whitespace=cr-at-eol,-blank-at-eol
 
@@ -105,6 +162,7 @@ docs/history/repository-consolidation-20261019/** -text
 docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json -text whitespace=cr-at-eol,-blank-at-eol
 
 # Exact archived sources and receipts retain their manifest-pinned bytes across checkout.
+docs/history/oss-absorption-evidence/20261102-resource-source-binding/source/scripts/release_sbom.py -text
 docs/history/rules-entry-repair-20261023/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/rules-entry-repair-20261023/before/AGENTS.md -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/rules-entry-repair-20261023/before/AUTHORITY.md -text whitespace=cr-at-eol,-blank-at-eol
@@ -117,3 +175,34 @@ docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json -text whitespa
 docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md -text whitespace=cr-at-eol,-blank-at-eol
+
+# Exact small historical source; never normalize its bytes into current instructions.
+workspace/intake/20261101-project-archiving-reconciliation/source/AAOS_AI_Context_Separation_Codex_Task_20261023.md -text
+
+# OpenMAIC original source-only slices retain the selected ZIP member bytes.
+services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/generation/** -text
+services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/dsl/** -text
+services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/geometry/** -text
+
+# The retained es-module-lexer archive members and their identity manifest.
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/LICENSE -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/README.md -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/SOURCE.json -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/package.json -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/lexer.js -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/lexer.asm.js -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/lexer.cjs -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/lexer.js -text
+services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/types/lexer.d.ts -text
+
+# Exact geometry npm archive members and their pinned identity manifests.
+services/learning-providers/openmaic/vendor/npm/entities-6.0.1/** -text
+services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/** -text
+services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/** -text
+services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/** -text
+services/learning-providers/openmaic/vendor/npm/entities-8.0.0/** -text
+services/learning-providers/openmaic/vendor/npm/commander-8.3.0/** -text
+services/learning-providers/openmaic/vendor/npm/postcss-8.5.23/** -text
+services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/** -text
+services/learning-providers/openmaic/vendor/npm/picocolors-1.1.1/** -text
+services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/** -text

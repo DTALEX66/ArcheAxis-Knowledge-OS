@@ -110,7 +110,8 @@ mod recovery_contract_tests {
         RecoveryState, RecoveryStatusDto,
     };
     use super::{
-        try_operation_guard, try_refresh_if_idle, DesktopBackend, RECOVERY_OPERATION_IN_PROGRESS,
+        try_operation_guard, try_refresh_if_idle, DesktopBackend,
+        RECOVERY_CANONICAL_CORE_UNAVAILABLE, RECOVERY_OPERATION_IN_PROGRESS,
         RECOVERY_STATE_UNAVAILABLE,
     };
     use std::sync::{Arc, Mutex};
@@ -207,6 +208,17 @@ mod recovery_contract_tests {
         ] {
             assert!(!sanitized.contains(forbidden), "leaked {forbidden}");
         }
+    }
+
+    #[test]
+    fn missing_core_error_code_remains_visible_after_recovery_sanitization() {
+        assert_eq!(
+            sanitize_recovery_message(RECOVERY_CANONICAL_CORE_UNAVAILABLE),
+            "CORE_UNAVAILABLE"
+        );
+        let status = RecoveryState::failed(RECOVERY_CANONICAL_CORE_UNAVAILABLE).status(Vec::new());
+        assert_eq!(status.message, "CORE_UNAVAILABLE");
+        assert!(!status.backend_available);
     }
 
     #[test]
@@ -409,7 +421,7 @@ mod protocol;
 mod runtime;
 
 #[cfg(windows)]
-use backend::{run_restore_backup, BackendProcess, CoreSpec};
+use backend::{run_canonical_restore_backup, BackendProcess, CoreSpec};
 #[cfg(windows)]
 use recovery::{
     enumerate_backups, stage_backup_for_restore, validate_enumerated_backup_name, EnumeratedBackup,
@@ -429,6 +441,8 @@ const RECOVERY_STATE_UNAVAILABLE: &str = "RECOVERY_STATE_UNAVAILABLE";
 #[cfg(windows)]
 const RECOVERY_RUNTIME_UNAVAILABLE: &str = "RECOVERY_RUNTIME_UNAVAILABLE";
 #[cfg(windows)]
+const RECOVERY_CANONICAL_CORE_UNAVAILABLE: &str = "CORE_UNAVAILABLE";
+#[cfg(windows)]
 const RECOVERY_RETRY_FAILED: &str = "RECOVERY_RETRY_FAILED";
 #[cfg(windows)]
 const RECOVERY_OPERATION_IN_PROGRESS: &str = "RECOVERY_OPERATION_IN_PROGRESS";
@@ -441,10 +455,9 @@ const RECOVERY_BACKUP_SELECTION_REJECTED: &str = "Backup selection was rejected"
 
 #[cfg(windows)]
 fn launch_product_backend(runtime: &runtime::RuntimeSpec) -> Result<BackendProcess, String> {
-    match CoreSpec::beside_runtime(runtime) {
-        Some(spec) => BackendProcess::launch_core(&spec),
-        None => BackendProcess::launch(runtime),
-    }
+    let spec = CoreSpec::beside_runtime(runtime)
+        .ok_or_else(|| RECOVERY_CANONICAL_CORE_UNAVAILABLE.to_owned())?;
+    BackendProcess::launch_core(&spec)
 }
 
 #[cfg(windows)]
@@ -1027,10 +1040,19 @@ fn restore_backup_checked(
 ) -> Result<RestoreReceiptDto, String> {
     let runtime =
         current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
-    if expected.is_some() && (runtime.external_dev || CoreSpec::beside_runtime(&runtime).is_none())
-    {
+    if expected.is_some() && runtime.external_dev {
         return Err("WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE".into());
     }
+    // Resolve once, before stopping the current Core or staging a backup.
+    // The selected Core is passed to the Rust-only restore path even if the
+    // executable later disappears; no Python fallback may write the workspace.
+    let core = CoreSpec::beside_runtime(&runtime).ok_or_else(|| {
+        if expected.is_some() {
+            "WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE".to_owned()
+        } else {
+            RECOVERY_CANONICAL_CORE_UNAVAILABLE.to_owned()
+        }
+    })?;
     if let Some(ref sha) = expected {
         let id = name
             .strip_suffix(".sqlite")
@@ -1102,7 +1124,7 @@ fn restore_backup_checked(
         record_invalid_backup_selection(&state);
         RECOVERY_BACKUP_INVALID.to_owned()
     })?;
-    match run_restore_backup(&runtime, staged.backup_path()) {
+    match run_canonical_restore_backup(&runtime, &core, staged.backup_path()) {
         Ok(()) => {
             state
                 .recovery
@@ -1855,10 +1877,8 @@ fn main() {
                     {
                         return;
                     }
-                    // Prefer the canonical Core when the candidate ships one. The host still
-                    // owns the port and the launch token; only the process behind them changes.
-                    // The legacy entrypoint remains the fallback so a candidate without a Core
-                    // keeps working exactly as before.
+                    // The formal host requires the canonical Core. If it is absent,
+                    // keep the recovery window available instead of starting a legacy writer.
                     let launched = launch_product_backend(&runtime);
                     match launched {
                         Ok(process) => {
@@ -1948,6 +1968,108 @@ fn main() {
 #[cfg(not(windows))]
 fn main() {
     panic!("ArcheAxis desktop shell is supported only on Windows");
+}
+
+#[cfg(all(test, windows))]
+mod canonical_backend_boundary_tests {
+    use super::{
+        launch_product_backend, recovery::RecoveryState, restore_backup_checked,
+        runtime::RuntimeSpec, DesktopBackend, RECOVERY_CANONICAL_CORE_UNAVAILABLE,
+    };
+    use std::path::Path;
+    use std::sync::{Arc, Mutex};
+
+    fn runtime(root: &Path, external_dev: bool) -> RuntimeSpec {
+        let python = root.join("runtime").join("python.exe");
+        std::fs::create_dir_all(python.parent().unwrap()).unwrap();
+        std::fs::write(&python, b"synthetic Python marker").unwrap();
+        RuntimeSpec {
+            python,
+            cwd: root.to_path_buf(),
+            data_dir: root.join("private-workspace"),
+            isolated: !external_dev,
+            external_dev,
+            profile: if external_dev {
+                "external-dev"
+            } else {
+                "installed-stable"
+            },
+        }
+    }
+
+    fn state(runtime: RuntimeSpec) -> DesktopBackend {
+        let external_dev = runtime.external_dev;
+        DesktopBackend {
+            process: Arc::new(Mutex::new(None)),
+            runtime: Arc::new(Mutex::new(Some(runtime))),
+            resolver: Arc::new(Mutex::new(None)),
+            recovery: Arc::new(Mutex::new(RecoveryState::booting(external_dev))),
+            operations: Arc::new(Mutex::new(())),
+            exiting: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+        }
+    }
+
+    #[test]
+    fn missing_core_never_launches_python_or_creates_a_workspace() {
+        for external_dev in [false, true] {
+            let temp = tempfile::tempdir().unwrap();
+            let runtime = runtime(temp.path(), external_dev);
+            let error = match launch_product_backend(&runtime) {
+                Ok(_) => panic!("missing Core must not start a backend"),
+                Err(error) => error,
+            };
+            assert_eq!(error, RECOVERY_CANONICAL_CORE_UNAVAILABLE);
+            assert!(!runtime.data_dir.exists());
+        }
+    }
+
+    #[test]
+    fn missing_core_rejects_restore_before_workspace_or_recovery_changes() {
+        for external_dev in [false, true] {
+            for preview_bound in [false, true] {
+                let temp = tempfile::tempdir().unwrap();
+                let runtime = runtime(temp.path(), external_dev);
+                let data_dir = runtime.data_dir.clone();
+                let state = state(runtime);
+                let before =
+                    serde_json::to_value(state.recovery.lock().unwrap().status(Vec::new()))
+                        .unwrap();
+                let expected = preview_bound.then(|| "a".repeat(64));
+                let error =
+                    restore_backup_checked(state.clone(), "synthetic.sqlite".into(), expected)
+                        .err()
+                        .expect("missing Core must reject restore");
+                assert_eq!(
+                    error,
+                    if preview_bound {
+                        "WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE"
+                    } else {
+                        RECOVERY_CANONICAL_CORE_UNAVAILABLE
+                    }
+                );
+                assert!(!data_dir.exists());
+                let after = serde_json::to_value(state.recovery.lock().unwrap().status(Vec::new()))
+                    .unwrap();
+                assert_eq!(after, before);
+            }
+        }
+    }
+
+    #[test]
+    fn preview_bound_restore_still_rejects_external_dev_with_a_core() {
+        let temp = tempfile::tempdir().unwrap();
+        let runtime = runtime(temp.path(), true);
+        let data_dir = runtime.data_dir.clone();
+        let executable = temp.path().join("core").join("archeaxis-api.exe");
+        std::fs::create_dir_all(executable.parent().unwrap()).unwrap();
+        std::fs::write(&executable, b"synthetic Core marker").unwrap();
+        let state = state(runtime);
+        let error = restore_backup_checked(state, "synthetic.sqlite".into(), Some("a".repeat(64)))
+            .err()
+            .expect("preview-bound restore must reject external development");
+        assert_eq!(error, "WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE");
+        assert!(!data_dir.exists());
+    }
 }
 
 #[cfg(all(test, windows))]

@@ -19,6 +19,7 @@ mod configuration_plans;
 mod context_refusal;
 mod conversation;
 mod courses;
+mod deeptutor_import;
 mod execution_claim;
 mod execution_status_projection;
 mod job_journal;
@@ -460,6 +461,24 @@ pub fn router(executor: Executor) -> Router {
         // loop rather than leaving the correction as an unreferenced note.
         .route("/api/v1/machine/retests", post(run_retest))
         .route("/api/v1/courses", get(courses::list).post(courses::create))
+        .route(
+            "/api/v1/learning/deeptutor/practice-import",
+            post(deeptutor_import::import_practice)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
+        // Formal DeepTutor grading admission. Core reserves the exact client event and attempt
+        // together, then runs the fixed private grader through the owned worker path, so a caller
+        // cannot submit its own correctness verdict as if it had been observed by the provider.
+        .route(
+            "/api/v1/learning/deeptutor/practice-grade",
+            post(deeptutor_import::grade_practice)
+                .layer(axum::extract::DefaultBodyLimit::max(32_768)),
+        )
+        .route(
+            "/api/v1/courses/openmaic/scenes",
+            post(courses::create_openmaic_scene)
+                .layer(axum::extract::DefaultBodyLimit::max(262_144)),
+        )
         .route(
             "/api/v1/courses/from-knowledge",
             post(courses::from_knowledge),

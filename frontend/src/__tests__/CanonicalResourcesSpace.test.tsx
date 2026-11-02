@@ -65,6 +65,29 @@ describe("resource source catalog", () => {
     expect(screen.getByText(/筛选结果/)).not.toHaveTextContent("筛选结果 0 项");
   });
 
+  it("distinguishes historical source selection and activation from current connection status", async () => {
+    const user = userEvent.setup();
+    render(<CanonicalResourcesSpace/>);
+    await user.click(screen.getByRole("tab", { name: "接入来源与运行设置" }));
+    await screen.findByText(/宿主返回空能力列表/);
+    const directory = screen.getByRole("region", { name: "资源目录" });
+    const detail = screen.getByRole("complementary", { name: "资源来源详情" });
+    const findSource = (key: string) => {
+      const name = RESOURCE_CATALOG.entries.find(entry => entry.stable_key === key)!.display_names[0];
+      return within(directory).getAllByRole("button").find(button => button.querySelector("strong")?.textContent === name)!;
+    };
+
+    await user.click(findSource("deeptutor"));
+    expect(detail).toHaveTextContent("登记时选择：当时未选用");
+    expect(within(detail).getByRole("region", { name: "启用条件" })).toHaveTextContent("登记时启用条件 · 当时冻结");
+    expect(within(detail).getByRole("region", { name: "资源连接状态" })).toHaveTextContent("当前无法直接确认运行连接");
+    expect(detail).not.toHaveTextContent("当前选择：暂未选用");
+
+    await user.click(findSource("tiptap"));
+    expect(detail).toHaveTextContent("登记时选择：当时选用");
+    expect(detail).not.toHaveTextContent("当前选择：当前选用");
+  });
+
   it("shows live route permission separately and does not promote donor qualification", async () => {
     bridge.call.mockResolvedValue({ capabilities: [{ capability: "media.transcribe", enabled: false, health: "handshake_ready" }] });
     render(<CanonicalResourcesSpace/>);

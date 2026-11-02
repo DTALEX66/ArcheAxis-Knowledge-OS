@@ -2,19 +2,29 @@
 
 本入口只保存接续顺序、合同和历史导航。当前授权、执行／监控控制、源码、候选、CI、实际失败与下一步，读取[活动指针](AAOS-ACTIVE-EXECUTION.json)和[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)，不复制第二份可变进度。日期快照中的“当前／最新／暂停”只说明当时，不能覆盖活动指针选中的后继Owner决定。
 
-**2026-11-01 Git交付覆盖：** Owner要求总结对话与未完成任务、合并可合并分支、删除过时分支、双端一致。先读活动指针`execution_control.owner_delivery_20261101`及唯一执行记录末段；本次允许公开源码/任务记录的推送、必要PR/检查/合格合并、已吸收旧分支删除和双端SHA读回，精确覆盖此前本地阶段的远端写禁止。ignored原件、运行数据、数据库、缓存及Agent私有材料不上传；不追认历史云编码外发，不恢复UI实施、监控、发布、Green替换或真实库覆盖。
+**Git交付覆盖：** Owner要求总结未完成任务、合并合格分支并保持双端一致，2026-11-02再次要求上传和必要合并。先读活动指针`execution_control.owner_delivery_20261101`、`execution_control.owner_ui_research_and_delivery_20261102`及唯一执行记录末段；允许公开源码、任务记录和已选设计成果的推送及合格合并。ignored原件、完整会话、运行数据、数据库、缓存及Agent私有材料不上传；不追认历史云编码外发或自动发布、替换Green及覆盖真实库。界面调研与设计概念不代表已实现或验收。
 
 2026-10-29前后端交接仍为产品范围来源：活动指针`execution_control.owner_handoff_20261029`及[完整交接入口](../../workspace/intake/20261029-stitch-zcode-handoff/README.md)。STITCH前端设计、有限后端及独立审计边界保留；提示词不等于网络隔离，严格本地编码模型模式须独立核实。
 
 ## 接续顺序
 
-现行定位/闭环已按Owner 2026-11-01选择的新任务包更新（SUP-030），见[目标选择与来源](../../workspace/intake/20261101-positioning-loop-update/README.md)、[产品身份V2.2](../truth/PRODUCT_IDENTITY_V2.md)及[唯一闭环V3](../truth/CLOSED_LOOP_DEFINITION.md)。旧任务包的规划、历史运行和本次实现分别读取，不以旧首段替代新目标。
+本次新会话接手后达到Owner既定额度停止阈值，Owner知情后明确要求“继续”；执行控制先读[活动指针](AAOS-ACTIVE-EXECUTION.json)的`execution_control.allowance_guard`，具体封存、原始失败和下一步读[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)。监控未因本次恢复自动启动，额度自动恢复本身不构成恢复执行的指令。
+
+Owner后续明确要求先做所有后端任务，包括两平台，前端仍由Owner思考；并要求优先忠实复用两软件。先读活动指针`execution_control.owner_backend_first_after_platform_reuse_20261101`和唯一执行记录，不继续前端设计/修改/测试；已产生的未提交前端改动保全待定。
+
+**最新实现交接**：[两平台接入及全部未完任务完整提示词](../../workspace/intake/20261101-learning-platform-integration/新会话完整执行提示词.txt)，配套[具体接缝/并行写集/15组未完验收](../../workspace/intake/20261101-learning-platform-integration/FOLLOWUP-WORKBREAKDOWN.md)。Owner已选定DeepTutor1.7.1、OpenMAIC1.3.0适用能力并入；两原ZIP已在本仓，不依赖外部来源目录。当前只完成准备，后继须实际实现，不把归档或旧版本资格当新接入PASS。此为执行后继，产品基准仍为下述13组/V2.3/V3。
+
+先沿[薄导航](../../PROJECT_CURRENT.md)读[AUTHORITY](../../AUTHORITY.md)及[近两日13组对照](../history/owner-dialogue-20261101-current-goals/README.md)。Owner最新确认这两入口、产品身份V2.3和唯一闭环V3为最新基准；[统一归档逐项对账](../../workspace/intake/20261101-project-archiving-reconciliation/README.md)及其他资料为历史和补充，不能覆盖该基准。归档回合只写AAOS/外部只读且未远端交付；新接入及既有公开交付分别按活动指针对应Owner授权，不把旧回合范围当后继禁止。当前可选外部项目为AI-WORK-LAB（AIWORKLAB），WORK-LAB/DESIGN-LAB独立目录仅是历史来源。
+
+**先完整读[根项目总纲第0节](../../AUTHORITY.md#0-当前定位定义与最近决定)**，再读[近两日对话与任务包总对照](../history/owner-dialogue-20261101-current-goals/README.md)中与任务有关的原话和包。活动指针的`continuation_context.latest_owner_discussion_archive`已选这个入口；原10/23交接保留历史导航，不再冒充最近讨论。
+
+现行定位/闭环按Owner 2026-11-01新任务包（SUP-030）及[AI任意领域知识转化澄清](../../workspace/intake/20261101-ai-knowledge-conversion/README.md)（SUP-031），见[目标选择与来源](../../workspace/intake/20261101-positioning-loop-update/README.md)、[产品身份V2.3](../truth/PRODUCT_IDENTITY_V2.md)及[唯一闭环V3](../truth/CLOSED_LOOP_DEFINITION.md)。AI侧接收可复用知识，不管理全量上下文，也不限编程；本次是暂停中的文档纠偏。旧任务包的规划、历史运行和实现证据分别读取。
 
 Owner 2026-11-01后继要求优先治理与规范、静默连续执行；沿活动指针`owner_priority_20261030.governance_followup_20261101`、[生产者治理与无损归位记录](../history/storage-cleanup/2026-11-01-governance-normalization/README.md)和唯一执行记录末段接续。已吸收批次不重复清理，未确认归属保持；此前`owner_delivery_20261101`的公开源码同步授权继续适用，治理优先不新增私有材料外发、产品发布、UI或监控恢复授权。
 
 后继的新目标覆盖、历史记录保留和默认检索规则见[治理续批](../history/storage-cleanup/2026-11-01-governance-followup/README.md)及[集中历史恢复入口](../history/2026-11-01-preoct-archive/README.md)。从当前源码和规范开始；显式历史问题再经索引读取旧材料，实际退役及未完项只沿唯一执行记录末段核实。
 
-Owner 后继追加外溢数据追踪、迁移和清理，以及 [R5 未来能力承接包独立审计与归档](../../workspace/intake/20261030-r5-future-capability-review/README.md)。外溢先追生产者、配置、所有者、消费者与精确路径，按哈希/恢复核验迁移；不扫描整盘或清理共享库/真实库/私有状态。R5 五场景吸收到现有 R2/CL/J 工作，原始提示词不自动执行，不恢复 UI、不解冻重型扩展；WORK-LAB 仍为可选协调方。实际修复、验证、剩余权限及外溢结果沿唯一执行记录末段，不从本导航复制状态。
+Owner 后继追加外溢数据追踪、迁移和清理，以及 [R5 未来能力承接包独立审计与归档](../../workspace/intake/20261030-r5-future-capability-review/README.md)。外溢先追生产者、配置、所有者、消费者与精确路径，按哈希/恢复核验迁移；不扫描整盘或清理共享库/真实库/私有状态。R5 五场景吸收到现有 R2/CL/J 工作，原始提示词不自动执行，不恢复 UI、不解冻重型扩展；当时称WORK-LAB的可选协调身份，现按SUP-032归融合后的AI-WORK-LAB。实际修复、验证、剩余权限及外溢结果沿唯一执行记录末段，不从本导航复制状态。
 
 本轮收尾先看[深度清理及外溢实际结果](../history/storage-cleanup/2026-10-31-portable-pair-qualification/DEEP-RETIREMENT.md)、[增长治理范围](../history/storage-cleanup/2026-10-31-portable-pair-qualification/GROWTH-ENFORCEMENT.md)和[v3.1补件审计](../../workspace/intake/20261101-cloud-integration-v3-1-review/README.md)。历史权限错误、候选PASS及原审计不移绑当前状态；剩余项只沿唯一执行记录末段接续。
 

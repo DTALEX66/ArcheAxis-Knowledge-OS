@@ -9,6 +9,7 @@ import base64
 import hashlib
 import importlib.util
 import json
+import math
 import os
 import re
 import sys
@@ -24,6 +25,8 @@ MAX_INPUT = 8192
 MAX_OUTPUT = 1024 * 1024
 MAX_RESPONSE = 128 * 1024
 MAX_EXCERPT = 16 * 1024
+# A local resource qualification, not a claim about the JSON standard.
+MAX_JSON_NESTING = 64
 FAMILIES = {"encyclopedia": "wikipedia", "community": "stackexchange", "research": "openalex"}
 COMMUNITY_SITES = {"academia": "academia.stackexchange.com", "stats": "stats.stackexchange.com"}
 USER_AGENT = "ArcheAxis-Knowledge/0.6 (public-research; https://github.com/DTALEX66/ArcheAxis-Knowledge-OS)"
@@ -88,6 +91,10 @@ def _text(value, *, optional=False):
         return None
     if not isinstance(value, str) or "\0" in value:
         raise ValueError("invalid_response")
+    try:
+        value.encode("utf8", errors="strict")
+    except UnicodeError:
+        raise ValueError("invalid_response") from None
     return value
 
 
@@ -259,13 +266,63 @@ def _endpoint(family, query, limit, site="academia", provider=None):
     return "https://api.openalex.org/works?" + urlencode({"search": query, "per_page": limit})
 
 
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            # Do not include the provider's key or response in an error.
+            raise ValueError("invalid_response")
+        result[key] = value
+    return result
+
+
+def _finite_float(token):
+    value = float(token)
+    if not math.isfinite(value):
+        raise ValueError("invalid_response")
+    return value
+
+
+def _reject_nonfinite_constant(_token):
+    raise ValueError("invalid_response")
+
+
+def _check_json_nesting(text):
+    depth = 0
+    quoted = False
+    escaped = False
+    for char in text:
+        if quoted:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                quoted = False
+        elif char == '"':
+            quoted = True
+        elif char in "[{":
+            depth += 1
+            if depth > MAX_JSON_NESTING:
+                raise ValueError("invalid_response")
+        elif char in "]}":
+            depth -= 1
+            if depth < 0:
+                raise ValueError("invalid_response")
+
+
 def _json_response(body, headers):
     if headers.get("content-encoding", "").lower() == "gzip" or body.startswith(b"\x1f\x8b"):
         decoder = zlib.decompressobj(16 + zlib.MAX_WBITS)
         body = decoder.decompress(body, MAX_RESPONSE + 1)
         if len(body) > MAX_RESPONSE or not decoder.eof or decoder.unused_data:
             raise ValueError("invalid_response")
-    value = json.loads(body)
+    # Match json.loads(bytes): detect UTF-8/16/32 including BOMs and preserve
+    # its surrogate handling before applying the finite local nesting limit.
+    text = body.decode(json.detect_encoding(body), "surrogatepass")
+    _check_json_nesting(text)
+    value = json.loads(text, object_pairs_hook=_unique_object,
+                       parse_float=_finite_float, parse_constant=_reject_nonfinite_constant)
     if not isinstance(value, dict):
         raise ValueError("invalid_response")
     return value
@@ -328,7 +385,7 @@ def execute(request: dict, *, cancelled: Callable[[], bool] = lambda: False) -> 
             offline = message.startswith("DNS resolution") or "timeout" in message.lower()
             channel.update(status="offline" if offline else "failed",
                            error_code="network_unavailable" if offline else "transport_or_policy")
-        except (ValueError, TypeError, KeyError, IndexError, AttributeError, zlib.error):
+        except (ValueError, TypeError, KeyError, IndexError, AttributeError, RecursionError, zlib.error):
             channel.update(status="failed", error_code="invalid_response", hits=[])
         except OSError:
             channel.update(status="offline", error_code="network_unavailable", hits=[])

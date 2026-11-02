@@ -1,7 +1,7 @@
 import {getLearningItemButton} from "../test/learningQueue";
 import { CommandPalette } from "../components/CommandPalette";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { CanonicalWorkspaceSpace } from "../spaces/CanonicalWorkspaceSpace";
 import { resolveNavigationHash } from "../presentation/navigation";
 import { UI_PAGES } from "../presentation/uiPages";
@@ -9,6 +9,36 @@ const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 afterEach(()=>{cleanup();bridge.call.mockReset();});
 describe("UI-first real object entry",()=>{
+  it("SIMULATED: keeps the workbench heading, description and actions visible while loading and after an empty read", async()=>{
+    let finishDocuments: (value: unknown) => void = () => { throw new Error("documents read did not start"); };
+    bridge.call.mockImplementation((operation:string)=>{
+      if(operation === "documents_list") return new Promise(resolve=>{finishDocuments=resolve;});
+      if(operation === "learning_items") return Promise.resolve({items:[]});
+      throw new Error(`Unexpected operation: ${operation}`);
+    });
+    const navigate=vi.fn();
+    render(<CanonicalWorkspaceSpace onNavigate={navigate}/>);
+    const overview=within(screen.getByRole("group",{name:"工作台概览"}));
+    const expectActions=(importLabel:string)=>{
+      for(const name of [importLabel,"新建笔记与阅读","查找本地文档","打开学习空间"]){
+        expect(overview.getByRole("button",{name})).toBeVisible();
+        expect(overview.getByRole("button",{name})).toBeEnabled();
+      }
+    };
+    expect(screen.getByRole("status")).toHaveTextContent("正在读取本地工作区");
+    expect(overview.getByRole("heading",{name:"今日工作台"})).toBeVisible();
+    expect(overview.getByText("继续阅读已保存文档，处理已到期的复习。")).toBeVisible();
+    expectActions("导入资料");
+    fireEvent.click(overview.getByRole("button",{name:"导入资料"}));
+    expect(navigate).toHaveBeenLastCalledWith("intake");
+
+    finishDocuments({documents:[]});
+    expect(await overview.findByRole("heading",{name:"从第一份资料开始"})).toBeVisible();
+    expect(overview.getByText("导入资料，或先记下一个想法。")).toBeVisible();
+    expectActions("导入第一份资料");
+    fireEvent.click(overview.getByRole("button",{name:"导入第一份资料"}));
+    expect(navigate.mock.calls).toEqual([["intake"],["intake"]]);
+  });
   it("SIMULATED: Stitch workbench preserves real object callbacks and uses the shared companion without a home conversation request", async()=>{
     bridge.call.mockImplementation(async(operation:string)=>operation==="documents_list"?{documents:[{document_id:"kept_doc",title:"保留文档",version:2,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[{item_key:"due_item",next_review:"2020-01-01T00:00:00Z"}]});
     const navigate=vi.fn(),open=vi.fn(),review=vi.fn();

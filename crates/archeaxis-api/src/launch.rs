@@ -19,6 +19,9 @@ pub struct Launch {
     #[serde(default, deserialize_with = "present_string")]
     pub actor: Option<String>,
     pub text_worker: Option<TextWorker>,
+    /// Optional isolated provider. Missing files make only that capability unavailable.
+    #[serde(default)]
+    pub openmaic_node_worker: Option<OpenMaicNodeProfile>,
     pub document_check_config: Option<archeaxis_application::executor::DocumentCheckConfig>,
     pub document_check_config_error: Option<String>,
     #[serde(default, deserialize_with = "present_string")]
@@ -66,6 +69,14 @@ pub struct TextWorker {
 #[serde(deny_unknown_fields)]
 pub struct WorkerRoute {
     pub capability: String,
+    pub script: std::path::PathBuf,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OpenMaicNodeProfile {
+    pub executable: std::path::PathBuf,
+    pub executable_sha256: String,
     pub script: std::path::PathBuf,
 }
 
@@ -152,6 +163,12 @@ impl TextWorker {
             if capability == "text.extract" {
                 return Err("worker route must not redeclare text.extract");
             }
+            // This optional private protocol is checked again immediately before
+            // use. A missing or changed provider must not prevent ordinary Core
+            // startup or document saving.
+            if capability == "deeptutor.practice.import" {
+                continue;
+            }
             Self::validate_path(&route.script)?;
             if !route.script.is_file() {
                 return Err("worker route script missing");
@@ -177,6 +194,48 @@ impl TextWorker {
 const MAX_LAUNCH_BYTES: usize = 65536;
 
 impl Launch {
+    /// Only explicit, local, non-linked launch paths can select this provider.
+    /// Invalid configuration is an unavailable optional capability, not a Core
+    /// startup or ordinary-save failure.
+    pub fn openmaic_node_profile(&self) -> Option<OpenMaicNodeProfile> {
+        let profile = self.openmaic_node_worker.clone()?;
+        // No E/F drive access is granted by a project launch profile.
+        for path in [&profile.executable, &profile.script] {
+            let normalized = path
+                .to_string_lossy()
+                .replace('\\', "/")
+                .to_ascii_lowercase();
+            let normalized = normalized.strip_prefix("//?/").unwrap_or(&normalized);
+            if normalized.starts_with("e:") || normalized.starts_with("f:") {
+                return None;
+            }
+        }
+        TextWorker::validate_path(&profile.executable).ok()?;
+        TextWorker::validate_path(&profile.script).ok()?;
+        if profile.executable_sha256.len() != 64
+            || !profile
+                .executable_sha256
+                .bytes()
+                .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+        {
+            return None;
+        }
+        if !profile
+            .executable
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| {
+                name.eq_ignore_ascii_case("node") || name.eq_ignore_ascii_case("node.exe")
+            })
+        {
+            return None;
+        }
+        if !profile.executable.is_file() || !profile.script.is_file() {
+            return None;
+        }
+        Some(profile)
+    }
+
     /// Non-secret identity used by the native session control route.
     pub fn session_id(&self) -> &str {
         &self.session_id
@@ -379,6 +438,38 @@ mod tests {
             "invalid worker profile path"
         );
     }
+
+    #[test]
+    fn optional_openmaic_node_never_guesses_paths_or_blocks_old_launch_shape() {
+        let dir = tempfile::tempdir().unwrap();
+        let node = dir
+            .path()
+            .join(if cfg!(windows) { "node.exe" } else { "node" });
+        let script = dir.path().join("scene-build-worker.mjs");
+        std::fs::write(&node, b"fixture").unwrap();
+        std::fs::write(&script, b"fixture").unwrap();
+        let base = serde_json::json!({"launch_token":"a".repeat(64), "session_id":"b".repeat(32)});
+        let legacy: Launch = serde_json::from_value(base.clone()).unwrap();
+        assert!(legacy.openmaic_node_profile().is_none());
+        let mut configured = base.clone();
+        configured["openmaic_node_worker"] = serde_json::json!({"executable":node,"executable_sha256":"a".repeat(64),"script":script});
+        let launch: Launch = serde_json::from_value(configured.clone()).unwrap();
+        assert!(launch.openmaic_node_profile().is_some());
+        configured["openmaic_node_worker"]["executable"] = serde_json::json!("node");
+        let relative: Launch = serde_json::from_value(configured.clone()).unwrap();
+        assert!(relative.openmaic_node_profile().is_none());
+        configured["openmaic_node_worker"]["executable"] =
+            serde_json::json!(dir.path().join("missing-node.exe"));
+        let missing: Launch = serde_json::from_value(configured).unwrap();
+        assert!(missing.openmaic_node_profile().is_none());
+        let duplicate = format!(
+            r#"{{"launch_token":"{}","session_id":"{}","openmaic_node_worker":{{"executable":"one","executable":"two","executable_sha256":"{}","script":"x"}}}}"#,
+            "a".repeat(64),
+            "b".repeat(32),
+            "c".repeat(64)
+        );
+        assert!(serde_json::from_str::<Launch>(&duplicate).is_err());
+    }
 }
 #[derive(Clone)]
 struct Session {
@@ -560,6 +651,22 @@ mod route_declaration_tests {
             vec![route(dir.path(), "pdf.extract", "absent.py", false)],
         );
         assert_eq!(profile.validate(), Err("worker route script missing"));
+    }
+
+    #[test]
+    fn a_missing_optional_practice_worker_does_not_block_core_startup() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(
+            dir.path(),
+            vec![route(
+                dir.path(),
+                "deeptutor.practice.import",
+                "absent.py",
+                false,
+            )],
+        );
+        assert!(profile.validate().is_ok());
+        assert_eq!(profile.extra_routes()[0].0, "deeptutor.practice.import");
     }
 
     #[test]

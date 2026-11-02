@@ -71,21 +71,20 @@ def test_the_loader_returns_one_shape_under_any_prefix():
         assert plain[capability] == tuple(s[len("workers/"):] for s in scripts)
 
 
-def test_the_loader_refuses_a_manifest_that_is_not_ours():
+def test_the_loader_refuses_a_manifest_that_is_not_ours(tmp_path, monkeypatch):
     module = _loader()
-    # Bytes, put back byte for byte. Writing text would let the host translate newlines and
-    # rewrite a tracked file, leaving the working tree dirty for every later check that reads
-    # git diff - a test must not be able to dirty the repository it is checking.
+    # Test the same loader against an isolated manifest: an interrupted test
+    # must never leave the project's real worker routes corrupted.
     original = MANIFEST.read_bytes()
+    fixture = tmp_path / "routes.json"
+    fixture.write_bytes(b'{"schema": "something-else", "routes": {}}')
+    monkeypatch.setattr(module, "MANIFEST", fixture)
     try:
-        MANIFEST.write_bytes(b'{"schema": "something-else", "routes": {}}')
-        try:
-            module.load()
-            raise AssertionError("a foreign schema must be refused")
-        except ValueError:
-            pass
-    finally:
-        MANIFEST.write_bytes(original)
+        module.load()
+        raise AssertionError("a foreign schema must be refused")
+    except ValueError:
+        pass
+    assert MANIFEST.read_bytes() == original
 
 
 def test_the_transport_dispatches_exactly_the_declared_routes() -> None:

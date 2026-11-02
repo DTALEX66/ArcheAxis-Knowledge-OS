@@ -18,7 +18,7 @@ fn additive_v13_upgrade_preserves_documents_capability_decisions_and_rejects_fut
     archeaxis_store_sqlite::capability_settings::set_enabled(&conn, "course.general", false)
         .unwrap();
     // Construct the exact old shape only in this disposable regression fixture.
-    conn.execute_batch("ALTER TABLE capability_settings DROP COLUMN state_epoch; ALTER TABLE capability_settings DROP COLUMN definition_version; ALTER TABLE capability_settings DROP COLUMN installed; UPDATE workspace_meta SET value='13' WHERE key='schema_version';").unwrap();
+    conn.execute_batch("DROP TABLE learning_provider_attempts;DROP TABLE learning_provider_activities;ALTER TABLE capability_settings DROP COLUMN state_epoch; ALTER TABLE capability_settings DROP COLUMN definition_version; ALTER TABLE capability_settings DROP COLUMN installed; UPDATE workspace_meta SET value='13' WHERE key='schema_version';").unwrap();
     drop(conn);
     let conn = archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
     assert_eq!(
@@ -93,7 +93,7 @@ fn invalid_t3_pin_cannot_be_null_and_first_addition_to_existing_ordinary_documen
 fn sqlite_backup_13_upgrade_and_14_restore_keep_originals_and_all_old_rows() {
     use archeaxis_domain::{backup, knowledge, learning, source};
     use archeaxis_store_sqlite::raw_objects;
-    for version in [13, 14] {
+    for version in [13, 14, 15] {
         let dir = tempfile::tempdir().unwrap();
         let original = dir.path().join("source.sqlite");
         let mut c = archeaxis_store_sqlite::init_workspace(original.to_str().unwrap()).unwrap();
@@ -119,10 +119,23 @@ fn sqlite_backup_13_upgrade_and_14_restore_keep_originals_and_all_old_rows() {
         learning::record_card_reference(&mut c, "owned-card", &k, None).unwrap();
         archeaxis_store_sqlite::capability_settings::set_enabled(&c, "course.general", false)
             .unwrap();
+        if version < 15 {
+            c.execute_batch(
+                "DROP TABLE learning_provider_attempts;DROP TABLE learning_provider_activities;",
+            )
+            .unwrap();
+        }
         if version == 13 {
             c.execute_batch("ALTER TABLE capability_settings DROP COLUMN state_epoch;ALTER TABLE capability_settings DROP COLUMN definition_version;ALTER TABLE capability_settings DROP COLUMN installed;UPDATE workspace_meta SET value='13' WHERE key='schema_version';").unwrap();
         } else {
             template_definition::set_enabled(&mut c, false).unwrap();
+            if version == 14 {
+                c.execute(
+                    "UPDATE workspace_meta SET value='14' WHERE key='schema_version'",
+                    [],
+                )
+                .unwrap();
+            }
         }
         let snapshot = dir.path().join("backup.sqlite");
         backup::backup(&c, snapshot.to_str().unwrap()).unwrap();
@@ -184,7 +197,7 @@ fn sqlite_backup_13_upgrade_and_14_restore_keep_originals_and_all_old_rows() {
                     |r| r.get::<_, String>(0)
                 )
                 .unwrap(),
-            "14"
+            "15"
         );
         assert_eq!(std::fs::read(&snapshot).unwrap(), before);
         if version == 13 {
@@ -201,6 +214,19 @@ fn sqlite_backup_13_upgrade_and_14_restore_keep_originals_and_all_old_rows() {
                 target.execute("UPDATE capability_settings SET installed=?1,changed_at=?2,enabled=?3 WHERE capability='course.general'",rusqlite::params![before.0,before.1,before.2]).unwrap();
             }
             target.execute_batch("ALTER TABLE capability_settings RENAME TO saved_capability_settings;CREATE TABLE capability_settings(capability TEXT PRIMARY KEY,enabled INTEGER NOT NULL,changed_at TEXT NOT NULL,installed INTEGER NOT NULL DEFAULT 1,definition_version INTEGER NOT NULL DEFAULT 1,state_epoch INTEGER NOT NULL DEFAULT 0);INSERT INTO capability_settings SELECT * FROM saved_capability_settings;DROP TABLE saved_capability_settings;").unwrap();
+            assert!(!backup::verify_restored_authorization(&source, &target).unwrap());
+        }
+        if version < 15 {
+            for table in ["learning_provider_activities", "learning_provider_attempts"] {
+                assert_eq!(
+                    target
+                        .query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r
+                            .get::<_, i64>(0))
+                        .unwrap(),
+                    0
+                );
+            }
+            target.execute("INSERT INTO learning_provider_activities(activity_id,request_json,request_sha256) VALUES('unexpected','{}','x')", []).unwrap();
             assert!(!backup::verify_restored_authorization(&source, &target).unwrap());
         }
     }

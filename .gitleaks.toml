@@ -23,6 +23,13 @@ regexes = [
   # name, not a credential; the exact literal is named so a real secret in the same
   # attribute shape would still fail.
   '''AaosSurface2Brush''',
+  # Synthetic sentinel markers that tests/integrations/test_openmaic_outline_replay.py
+  # passes through request/binding frames and then asserts are never echoed back. The
+  # "secret"-shaped prefix makes the generic-api-key entropy rule fire on the assertion
+  # tuple; the two exact values are named here so any other value in the same shape, and
+  # any real credential elsewhere in the file, still fails.
+  '''SYN_SECRET_PROMPT_37''',
+  '''SYN_SECRET_PROMPT_91''',
 ]
 # Stopwords target the extracted secret itself. "REDACTED" in a sentence of an
 # already-committed reconciliation doc is a redaction marker, not a credential.

@@ -73,6 +73,7 @@ def plan(host: Path, build: dict, configured_resources: set[str]) -> dict:
 
 LARGE_COPY_BYTES = 1024 ** 3
 CHECKPOINT_SCHEMA = "aaos.operator-storage-checkpoint/v1"
+OPENMAIC_OWNER_LOCK_SHA256 = "4660cd2b97ac2a3862cd238fc28b54195a622c8beabb87c9185d87f626f47a29"
 
 
 class GrowthReviewRequiredError(ValueError):
@@ -185,8 +186,10 @@ def _measure(artifacts, phase):
     return report, {**identity, "measurement_started_at": started, "measurement_ended_at": ended}
 
 
-def _storage_pre(destination, total, context, *, formal_runtime=False):
+def _storage_pre(destination, total, context, *, formal_runtime=False, formal_cargo=False, formal_npm=False):
     _uint(total)
+    if sum(map(bool, (formal_runtime, formal_cargo, formal_npm))) > 1:
+        raise ValueError("storage producer roles are mutually exclusive")
     fields = {"paths", "purpose", "sharing", "retention_reason"}
     if not isinstance(context, dict) or set(context) not in (fields, fields | {"ci_checkpoint"}):
         raise ValueError("large copy requires run paths, purpose, sharing and retention_reason")
@@ -203,7 +206,26 @@ def _storage_pre(destination, total, context, *, formal_runtime=False):
         raise ValueError("large portable copy requires this checkout's in-root canonical artifacts; linked checkout evidence cannot silently inherit the main checkpoint")
     runtime_root = (formal_runtime and destination == dev.safe_path(REPO / ".project-local/rt")
                     and storage_report.dev_allowed("rt"))
-    if not artifacts.is_dir() or (destination.parent != artifacts and not runtime_root):
+    cargo_root = False
+    if formal_cargo:
+        # Only the primary checkout owns this shared target. A linked checkout
+        # cannot borrow the operator checkpoint or another producer's cache.
+        common = dev.safe_path(Path(dev.git(REPO, "rev-parse", "--path-format=absolute", "--git-common-dir")))
+        expected = dev.safe_path(REPO / ".project-local/build/cargo")
+        cargo_root = (common == dev.safe_path(REPO / ".git")
+                      and canonical.get("cargo_build") == expected and destination == expected)
+        if not cargo_root or "ci_checkpoint" in context:
+            raise ValueError("Cargo growth requires the primary checkout's canonical shared target")
+    npm_root = False
+    if formal_npm:
+        common = dev.safe_path(Path(dev.git(REPO, "rev-parse", "--path-format=absolute", "--git-common-dir")))
+        cache = dev.safe_path(REPO / ".project-local/cache")
+        expected = dev.safe_path(cache / "npm" / ("openmaic-owner-" + OPENMAIC_OWNER_LOCK_SHA256) / paths["run"].name)
+        npm_root = (common == dev.safe_path(REPO / ".git") and canonical.get("cache") == cache
+                    and destination == expected)
+        if not npm_root or "ci_checkpoint" in context:
+            raise ValueError("OpenMAIC npm growth requires the primary checkout's exact project cache target")
+    if not artifacts.is_dir() or (destination.parent != artifacts and not runtime_root and not cargo_root and not npm_root):
         raise ValueError("large copy must use its canonical allocated run artifacts")
     # Check exclusive evidence names before measuring or copying; never overwrite.
     for name in ("pre", "post", "receipt"):
@@ -221,7 +243,7 @@ def _storage_pre(destination, total, context, *, formal_runtime=False):
     current, identity = _measure(artifacts, "pre")
     projected = copy.deepcopy(current)
     projected["readable_bytes"] += total
-    storage_class = "rt/" if runtime_root else "runs/"
+    storage_class = "build/" if cargo_root else "cache/" if npm_root else "rt/" if runtime_root else "runs/"
     rows = [row for row in projected["dev_root"] if row["name"] == storage_class]
     if len(rows) > 1:
         raise ValueError("duplicate projected storage class")

@@ -1,0 +1,27 @@
+{
+  "name": "nanoid",
+  "version": "5.1.14",
+  "license": "MIT",
+  "archive_sri": "sha512-5c8l8kVzqpnDPaicbEop/fV0Q1w16FmbWtVhMqugTozAwYdlIQojWH5a/M7UfziFmGdQRrUdV+EPzc9Xng3VAQ==",
+  "origin": "https://registry.npmjs.org/",
+  "audit_run": "backend-verify-npm-audit-bf6dd02ad3",
+  "scripts_executed": false,
+  "files": {
+    "LICENSE": {
+      "bytes": 1095,
+      "sha256": "4383cb2c3608397ce7a4159502614ed66890f8999c2a9c056dd3b1024d6721f0"
+    },
+    "package.json": {
+      "bytes": 1000,
+      "sha256": "4b450a13e5bd3bc5be8b5f81274bc0beee02987b00575ae55d61f3837d75244c"
+    },
+    "index.js": {
+      "bytes": 1912,
+      "sha256": "6961295e035ccdd079f0f142ca9e4fc81c46074420e2445c68cab84f1d158465"
+    },
+    "url-alphabet/index.js": {
+      "bytes": 94,
+      "sha256": "0e1e2118e5e5ad7c1895002997cc1b0ec20bff05ac44ce10cdf78596c5c14ea8"
+    }
+  }
+}

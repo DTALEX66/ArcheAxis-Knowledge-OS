@@ -41,6 +41,90 @@ license and notices. A redistributor must preserve those terms and audit the
 exact built artifact; this document does not claim that every optional package
 is bundled into every distribution.
 
+## Learning-provider source reuse (source only)
+
+The following identities describe selected repository source files and their
+upstream licenses. They do not establish that a wheel, installer, Green or
+Portable build contains these components. Before any distribution that includes
+them, inspect its actual payload and carry the applicable license and notice
+texts with that payload.
+
+- **DeepTutor 1.7.1**, Apache-2.0: selected original files under
+  [`services/learning-providers/deeptutor/upstream/`](services/learning-providers/deeptutor/upstream/),
+  with the upstream [`LICENSE`](services/learning-providers/deeptutor/LICENSE)
+  (SHA-256 `cd2f54e1e5066644023203dcbd956776a9f4ef6eb8b6225afe1ffa2d380fede4`)
+  and upstream [`THIRD_PARTY_NOTICES.md`](services/learning-providers/deeptutor/upstream/THIRD_PARTY_NOTICES.md)
+  (SHA-256 `d59dc01b43d1916db9418bc1ebcc213a4859047dc07e2766c4234391f9db033c`).
+  The supplied archive and individual source identities are documented in
+  [`UPSTREAM.md`](services/learning-providers/deeptutor/UPSTREAM.md),
+  [`QUESTION_UPSTREAM.md`](services/learning-providers/deeptutor/QUESTION_UPSTREAM.md),
+  [`PRACTICE_IMPORT_UPSTREAM.md`](services/learning-providers/deeptutor/PRACTICE_IMPORT_UPSTREAM.md),
+  [`QUESTION_TURN_UPSTREAM.md`](services/learning-providers/deeptutor/QUESTION_TURN_UPSTREAM.md),
+  [`TEACHING_FEEDBACK_UPSTREAM.md`](services/learning-providers/deeptutor/TEACHING_FEEDBACK_UPSTREAM.md),
+  and [`RESPONSE_RECOVERY_UPSTREAM.md`](services/learning-providers/deeptutor/RESPONSE_RECOVERY_UPSTREAM.md).
+- **OpenMAIC `@openmaic/generation` 0.3.28**, **`@openmaic/dsl` 0.12.0** and
+  **`@openmaic/geometry` 0.1.0**, MIT: selected originals, excerpts and license files are under
+  [`services/learning-providers/openmaic/vendor/`](services/learning-providers/openmaic/vendor/).
+  The original MIT LICENSE bytes have SHA-256
+  `ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19`;
+  the `ORIGINALS.json` files bind their listed upstream source members. The
+  [`scene-content` source slice](services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/REUSE.md)
+  is not a qualified complete or runnable package. Its `interactive-post-processor.ts`
+  identifies a port from `learn-your-way/concept_to_html.py`; the referenced
+  original and any additional terms have not been verified. The MIT label is
+  the supplied OpenMAIC declaration, not a completed third-party provenance review.
+- **jsonrepair 3.13.3**, ISC: the selected files and
+  [`LICENSE.md`](services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/LICENSE.md)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/SOURCE.json).
+- **nanoid 5.1.14**, MIT: the selected files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/nanoid-5.1.14/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/nanoid-5.1.14/SOURCE.json).
+- **partial-json 0.1.7**, MIT: the selected files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/SOURCE.json).
+- **postcss-value-parser 4.2.0**, MIT: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/SOURCE.json).
+- **es-module-lexer 2.0.0**, MIT: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/SOURCE.json).
+- **entities 6.0.1**, BSD-2-Clause: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/entities-6.0.1/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/entities-6.0.1/SOURCE.json).
+- **svg-pathdata 8.0.0**, MIT: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/SOURCE.json).
+- **tinycolor2 1.6.0**, MIT: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/SOURCE.json).
+- **parse5 8.0.1**, MIT: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/SOURCE.json).
+- **entities 8.0.0**, BSD-2-Clause: a separate version from entities 6.0.1;
+  its retained files and [`LICENSE`](services/learning-providers/openmaic/vendor/npm/entities-8.0.0/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/entities-8.0.0/SOURCE.json).
+- **commander 8.3.0**, MIT: the retained package files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/commander-8.3.0/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/commander-8.3.0/SOURCE.json).
+- **postcss 8.5.23**, MIT: the retained files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/postcss-8.5.23/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/postcss-8.5.23/SOURCE.json).
+- **nanoid 3.3.19**, MIT: a separate version from nanoid 5.1.14; the retained files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/SOURCE.json).
+- **picocolors 1.1.1**, ISC: the retained files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/picocolors-1.1.1/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/picocolors-1.1.1/SOURCE.json).
+- **source-map-js 1.2.1**, BSD-3-Clause: the retained files and
+  [`LICENSE`](services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/LICENSE)
+  are identified by [`SOURCE.json`](services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/SOURCE.json).
+  [`lib/base64-vlq.js`](services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/lib/base64-vlq.js)
+  also retains the Closure Compiler Authors' copyright and BSD terms in its original header.
+
+The release SBOM source inventory pins these manifests and selected members by
+SHA-256 and records their status as `SOURCE_ONLY`, `NOT_PROVEN` for packaging.
+That inventory and this notice do not replace a distribution-specific review.
+
 ## External tools
 
 Some development or verification paths can invoke separately installed tools

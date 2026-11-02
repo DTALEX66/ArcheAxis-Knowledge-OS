@@ -2,6 +2,10 @@
 
 ## 当前状态读取方式
 
+先读根[PROJECT_CURRENT.md当前入口](PROJECT_CURRENT.md)，再读其所指AUTHORITY、产品身份、唯一闭环和活动指针；相关历史原文随后沿[统一归档对账](workspace/intake/20261101-project-archiving-reconciliation/README.md)定位。PROJECT_CURRENT只是薄入口，不能另定产品真值、任务队列或实时进度；新的决定、实现或验收变化须同步规范、活动指针、根入口与唯一执行记录，并运行现有文档门禁。
+
+接手或核对项目定位、描述、定义、闭环与范围时，先完整读取根[项目总纲与权威总入口第0节](AUTHORITY.md#0-当前定位定义与最近决定)及其所指产品身份/唯一闭环，再沿活动指针接续；最近对话与包内定义统一查[近两日来源总对照](docs/history/owner-dialogue-20261101-current-goals/README.md)。不得用旧会话摘要、历史包标题或关键词命中代替现行规范。新的Owner定义须同步唯一规范、总入口、活动指针、决定/替代关系及来源，不能只追加分散交接。
+
 当前授权范围、执行控制、权限检查、监控状态和实际进度，读取[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)及其指向的[Owner决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[当前交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录。分别核对 `owner_scope_current`、`execution_control`、`execution_control.permission_recovery_current`、`execution_control.allowance_guard` 与 `active_progress`，入口不维护第二份可变状态。
 
 历史恢复、暂停和权限事件只说明对应时点，不自行产生当前授权或完成结论；权限恢复不等于产品完成，监控暂停不等于产品暂停，归档完成不等于后继开发已执行。冲突按既有替代账本解析，证据不足标为未确认。Markdown链接只是导航，Agent须按任务实际读取目标；客户端全文加载由其原生导入机制负责。
@@ -22,10 +26,15 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 ArcheAxis Knowledge is a local-first personal knowledge, research and Human–AI learning
 workspace centered on content objects, source versions, learning activities and governed AI assets.
-Contextual task agents assist the existing workspace; professional production runs externally.
+The AI side converts reusable content and experience from AI work in any domain into
+governed knowledge, then supports authorized use, feedback, revision and independent retest.
+Raw Agent context stays with its source systems; workspace conversation is an interaction entry,
+not the definition of the AI side. Professional production runs externally (SUP-031).
 Owner-selected v3/R6 goals and X1–X8 acceptance are absorbed under SUP-030; read
 `workspace/intake/20261101-positioning-loop-update/README.md` and the sole loop definition. Scope and acceptance follow the unique
 closed-loop definition and the Owner decisions selected by the active pointer.
+Owner clarification SUP-031 and `workspace/intake/20261101-ai-knowledge-conversion/README.md`
+govern domain-independent AI knowledge conversion; coding is an example, not a scope limit.
 The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
 routed by `docs/current/AAOS-ACTIVE-EXECUTION.json`. The inherited AAOS-01 2026-10-04
 contracts (SUP-022) and PROJECT_CONTRACT.yaml content saving principles remain binding.
@@ -152,9 +161,11 @@ official capabilities). No external workflow repository is required for executio
 
 ## 9. External Coordination (Optional)
 
-WORK-LAB is an independent repository that may optionally coordinate this project
-via stable CLI/API protocol; it is never a runtime prerequisite. This project
-runs standalone locally, in CI, RC and Release without WORK-LAB. Cross-repo
+AI-WORK-LAB (AIWORKLAB) is the independent merged successor of WORK-LAB and
+DESIGN-LAB; those two names identify historical and migration sources, not two
+current peer projects to maintain. It may optionally coordinate via stable
+CLI/API protocol and is never an AAOS runtime prerequisite. AAOS runs standalone
+locally, in CI, RC and Release without it. Cross-repo
 changes are two tasks, two branches, two PRs, two test suites, two rollbacks.
 `.codex.example/config.example.toml` is a minimal project pointer only; real
 `.codex/` state remains private and uncommitted.
@@ -164,6 +175,7 @@ changes are two tasks, two branches, two PRs, two test suites, two rollbacks.
 查找 AAOS / ArcheAxis 的蓝图、原始任务包、补交材料或历史恢复档时，先查根目录
 [`AAOS-资料索引.md`](AAOS-资料索引.md) 与
 [`docs/history/record-archive-20261009/INDEX.md`](docs/history/record-archive-20261009/INDEX.md)。
+统一外部归档现行为`D:/All projects/Project Archiving`，本轮只读；沿[本轮对账与来源映射](workspace/intake/20261101-project-archiving-reconciliation/README.md)定位原件、完整JSON及恢复包。Record、xiangmuguidang是历史来源别名，不作为归档存在或读取的前提。
 机器登记 `MANIFEST.json` 提供原路径、项目内归档路径、完整 SHA-256、共享资料身份和容器校验状态。
 原始字节保全在主项目 `.project-local/archives/record-20261009/`，属于本地保全资料，不提交 Git。
 确认归档及相关 ZIP 内成员后再报告 SOURCE_MISSING；路径失效应标 UNVERIFIED 并核实登记。

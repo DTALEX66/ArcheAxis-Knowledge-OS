@@ -1,0 +1,24 @@
+{
+  "schema": "aaos.historical-resource-source-binding/v1",
+  "status": "HISTORICAL_SOURCE_CUSTODY_ONLY",
+  "reason": "Preserve the exact script bytes referenced by the 2026-10-10 resource qualification after the current script changed. This does not requalify any resource or authorize execution.",
+  "files": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261102-resource-source-binding/source/scripts/release_sbom.py",
+      "original_path": "scripts/release_sbom.py",
+      "baseline_commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "git_blob_oid": "3e5dec81a212901b790fc0ef30d7bbc7653cf56e",
+      "bytes": 7922,
+      "sha256": "528ba4d3bdd95496101060211cc374fecfcd2f2ba3debd947b948b1aeda6f041"
+    }
+  ],
+  "references": [
+    {
+      "document": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "pointer": "/sources/8",
+      "original_path": "scripts/release_sbom.py",
+      "historical_path": "docs/history/oss-absorption-evidence/20261102-resource-source-binding/source/scripts/release_sbom.py",
+      "sha256": "528ba4d3bdd95496101060211cc374fecfcd2f2ba3debd947b948b1aeda6f041"
+    }
+  ]
+}

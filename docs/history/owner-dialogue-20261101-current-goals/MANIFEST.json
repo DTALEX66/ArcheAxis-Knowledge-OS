@@ -1,0 +1,133 @@
+{
+  "schema": "archeaxis.owner-dialogue-package-index/v1",
+  "compiled_date": "2026-11-01",
+  "role": "FROZEN_VISIBLE_OWNER_EXCERPTS_AND_INPUT_IDENTITIES_NOT_CURRENT_PROGRESS",
+  "source_scope": "Visible Owner messages in this chat and explicitly registered project archives; not a private-session or DOT transcript export",
+  "per_message_timestamps": "NOT_AVAILABLE_DO_NOT_INFER",
+  "owner_excerpt_ids": [
+    "U01",
+    "U02",
+    "U03",
+    "U04",
+    "U05",
+    "U06",
+    "U07",
+    "U08",
+    "U09",
+    "U10",
+    "U11",
+    "U12",
+    "U13"
+  ],
+  "frozen_sources": [
+    {
+      "path": "docs/history/owner-dialogue-20261101-current-goals/README.md",
+      "bytes": 10567,
+      "sha256": "90fb090522a43518604e1c095cf574a521b112b1f6457988dd9c0148efabb147"
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261101-current-goals/OWNER-EXCERPTS.json",
+      "bytes": 6458,
+      "sha256": "9fb16cb1d9223118d66a925a1c2d1f0b15874aa9db6d29ae5498dbd802e5e0ce"
+    },
+    {
+      "path": "workspace/intake/20261030-cloud-review-and-backend-priority/MANIFEST.json",
+      "bytes": 5016,
+      "sha256": "a2fa168b12aa87679e78aca118373cd6aff42d903308b01c18ecf7c19526fe94"
+    },
+    {
+      "path": "workspace/intake/20261030-r5-future-capability-review/MANIFEST.json",
+      "bytes": 5680,
+      "sha256": "245764df772aaecf5c161db7e3cb852a4e7c6e6fbacf2ec4215cb473439a76ab"
+    },
+    {
+      "path": "workspace/intake/20261030-r6-external-practice-boundary-review/MANIFEST.json",
+      "bytes": 7681,
+      "sha256": "c75fd43111da65659ee51f7f03a1a71f47eb6bd277418ac3ba9e60b8c69bd005"
+    },
+    {
+      "path": "workspace/intake/20261031-cloud-integration-v3-review/MANIFEST.json",
+      "bytes": 9744,
+      "sha256": "f62cdf4c8b638e56c3681ec3af559009577d63fda61caa00309842873497ad9b"
+    },
+    {
+      "path": "workspace/intake/20261101-cloud-integration-v3-1-review/MANIFEST.json",
+      "bytes": 9290,
+      "sha256": "55abdf9080f2f4c2bcba4d4290d6a337d3dca526f277c56eeda3f91e2f55c781"
+    },
+    {
+      "path": "workspace/intake/20261101-log-binding-addendum-review/MANIFEST.json",
+      "bytes": 4498,
+      "sha256": "9283f76868a25c5138a15949afb61eca44489d083db71eefd9aebdb6a891bf7f"
+    },
+    {
+      "path": "workspace/intake/20261101-positioning-loop-update/SOURCE-BINDING.json",
+      "bytes": 4531,
+      "sha256": "aee28d3dc73bee38e846068e14d61e20aa59dbf2f094aa8c5e70814369dca1b9"
+    },
+    {
+      "path": "workspace/intake/20261030-zcode-backend-closure/ZCODE-完成报告.md",
+      "bytes": 22301,
+      "sha256": "fa379503161c8e5fbab7326013dcbda5c2ef498c7090e86d673c7d97809ef763"
+    },
+    {
+      "path": "workspace/intake/20261029-stitch-zcode-handoff/ZCODE-仅本地/03-Codex独立审计清单.md",
+      "bytes": 3326,
+      "sha256": "6635a559220e57de1ed3230580efd7fb957afc37d4043109124190a4b4722e2d"
+    }
+  ],
+  "packages": [
+    {
+      "id": "R2",
+      "entry": "workspace/intake/20261030-cloud-review-and-backend-priority/README.md",
+      "manifest": "workspace/intake/20261030-cloud-review-and-backend-priority/MANIFEST.json",
+      "role": "PREDECESSOR_REQUIREMENTS_AND_LOCAL_AUDIT"
+    },
+    {
+      "id": "R5",
+      "entry": "workspace/intake/20261030-r5-future-capability-review/README.md",
+      "manifest": "workspace/intake/20261030-r5-future-capability-review/MANIFEST.json",
+      "role": "PREDECESSOR_DESIGN_CORRECTED_BY_R6"
+    },
+    {
+      "id": "R6",
+      "entry": "workspace/intake/20261030-r6-external-practice-boundary-review/README.md",
+      "manifest": "workspace/intake/20261030-r6-external-practice-boundary-review/MANIFEST.json",
+      "role": "OWNER_SELECTED_BOUNDARY_REQUIREMENTS_SUP_030"
+    },
+    {
+      "id": "V3",
+      "entry": "workspace/intake/20261031-cloud-integration-v3-review/README.md",
+      "manifest": "workspace/intake/20261031-cloud-integration-v3-review/MANIFEST.json",
+      "role": "OWNER_SELECTED_REPORT_ARCHITECTURE_X1_X8_SUP_030_NOT_IMPLEMENTATION_PASS"
+    },
+    {
+      "id": "V3_1",
+      "entry": "workspace/intake/20261101-cloud-integration-v3-1-review/README.md",
+      "manifest": "workspace/intake/20261101-cloud-integration-v3-1-review/MANIFEST.json",
+      "role": "SUPPLEMENT_CANDIDATES_AND_EVIDENCE_LIMITATIONS"
+    },
+    {
+      "id": "LOG_ADDENDUM",
+      "entry": "workspace/intake/20261101-log-binding-addendum-review/README.md",
+      "manifest": "workspace/intake/20261101-log-binding-addendum-review/MANIFEST.json",
+      "role": "EVIDENCE_CORRECTION_NOT_PRODUCT_PATCH"
+    }
+  ],
+  "canonical_routes_not_frozen_content": {
+    "root": "AUTHORITY.md",
+    "identity": "docs/truth/PRODUCT_IDENTITY_V2.md",
+    "loop": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+    "content_policy": "PROJECT_CONTRACT.yaml",
+    "owner_decisions": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+    "supersession": "DECISION_SUPERSESSION_LEDGER.yaml",
+    "control": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+    "sole_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+  },
+  "payload_identity_readback": {
+    "method": "Existing R2 files, R5 members and four raw ZIPs rehashed against original registered manifests; no extraction or package execution",
+    "objects": 45,
+    "logical_bytes": 27821184,
+    "status": "BYTE_IDENTITIES_MATCH_REGISTERED_MANIFESTS_NOT_PRODUCT_ACCEPTANCE"
+  }
+}

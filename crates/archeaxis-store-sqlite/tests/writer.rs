@@ -194,6 +194,8 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
     // A synthetic v10-shaped fixture with pre-existing Source, editor version and block.
     // Remove every post-v10 object from the current initializer before changing its version.
     conn.execute_batch("PRAGMA foreign_keys=OFF;
+        DROP TABLE learning_provider_attempts;
+        DROP TABLE learning_provider_activities;
         DROP TABLE ingest_batch_members;
         DROP TABLE ingest_batches;
         DROP TABLE public_research_runs;
@@ -222,7 +224,7 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
         .unwrap();
     drop(conn);
     let conn = archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
-    assert_eq!(archeaxis_store_sqlite::SCHEMA_VERSION, 14);
+    assert_eq!(archeaxis_store_sqlite::SCHEMA_VERSION, 15);
     assert_eq!(
         conn.query_row(
             "SELECT value FROM workspace_meta WHERE key='schema_version'",

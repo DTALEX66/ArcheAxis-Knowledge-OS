@@ -1,0 +1,27 @@
+{
+  "name": "partial-json",
+  "version": "0.1.7",
+  "license": "MIT",
+  "archive_sri": "sha512-Njv/59hHaokb/hRUjce3Hdv12wd60MtM9Z5Olmn+nehe0QDAsRtRbJPvJ0Z91TusF0SuZRIvnM+S4l6EIP8leA==",
+  "origin": "https://registry.npmjs.org/",
+  "audit_run": "backend-verify-npm-partial-fetch-0f3e8682f8",
+  "scripts_executed": false,
+  "files": {
+    "LICENSE": {
+      "bytes": 1075,
+      "sha256": "cd519ad3d7e012427f978dfb2e3b92ee403d189d7b859ba6bf68fd7e12ca456f"
+    },
+    "package.json": {
+      "bytes": 977,
+      "sha256": "42b3ae6c99ec959249f8eb4d3da7fdb44ec1f96ec627fa7f9ca5487a4e80963f"
+    },
+    "dist/index.js": {
+      "bytes": 8376,
+      "sha256": "23f750aa1170c830b7ef180135852317886cc58ce7d2597e5eeee044539072c7"
+    },
+    "dist/options.js": {
+      "bytes": 2849,
+      "sha256": "779b2aded6d4e2ec6171ea9d5d5d97551e8c3258b6e78a01d2e9fc6235865b36"
+    }
+  }
+}

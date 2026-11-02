@@ -469,6 +469,9 @@ pub fn finalize_restore_authorization(
     )?;
     if version == "13" {
         archeaxis_store_sqlite::upgrade_capability_settings_v14(&transaction)?;
+    }
+    if version == "13" || version == "14" {
+        archeaxis_store_sqlite::upgrade_provider_learning_v15(&transaction)?;
         transaction.execute(
             "UPDATE workspace_meta SET value=?1 WHERE key='schema_version'",
             [archeaxis_store_sqlite::SCHEMA_VERSION.to_string()],
@@ -516,23 +519,57 @@ fn verify_restored_authorization_views(
         [],
         |r| r.get(0),
     )?;
-    let upgrading = source_version == "13" && target_version == "14";
+    let upgrading = matches!(source_version.as_str(), "13" | "14") && target_version == "15";
+    let upgrading_capability = source_version == "13" && target_version == "15";
+    let added = ["learning_provider_activities", "learning_provider_attempts"];
+    if upgrading {
+        // Check exact migration DDL and require both newly created tables to be empty.
+        let expected = Connection::open_in_memory()?;
+        archeaxis_store_sqlite::upgrade_provider_learning_v15(&expected)?;
+        for table in added {
+            let ddl = |c: &Connection| {
+                c.query_row(
+                    "SELECT sql FROM sqlite_master WHERE type='table' AND name=?1",
+                    [table],
+                    |r| r.get::<_, String>(0),
+                )
+            };
+            if ddl(&expected)? != ddl(target)?
+                || target.query_row(
+                    &format!("SELECT EXISTS(SELECT 1 FROM \"{table}\")"),
+                    [],
+                    |r| r.get::<_, bool>(0),
+                )?
+            {
+                return Ok(false);
+            }
+        }
+    }
     let schema = |conn: &Connection| -> rusqlite::Result<Vec<_>> {
         Ok(schema_objects(conn)?
             .into_iter()
             .filter(|(kind, name, _, _)| {
-                !upgrading || kind != "table" || name != "capability_settings"
+                !(upgrading && kind == "table" && added.contains(&name.as_str()))
+                    && !(upgrading_capability && kind == "table" && name == "capability_settings")
             })
             .collect())
     };
-    if schema(source)? != schema(target)? || table_names(source)? != table_names(target)? {
+    let comparable_tables = |conn: &Connection| -> rusqlite::Result<Vec<_>> {
+        Ok(table_names(conn)?
+            .into_iter()
+            .filter(|name| !(upgrading && added.contains(&name.as_str())))
+            .collect())
+    };
+    if schema(source)? != schema(target)?
+        || comparable_tables(source)? != comparable_tables(target)?
+    {
         return Ok(false);
     }
     for table in table_names(source)? {
         let equal = if table == "workspace_meta" {
             metadata_content_without_fence(source, upgrading)?
                 == metadata_content_without_fence(target, upgrading)?
-        } else if table == "capability_settings" && upgrading {
+        } else if table == "capability_settings" && upgrading_capability {
             legacy_capability_upgrade_equal(source, target)?
         } else {
             table_content_digest(source, &table)? == table_content_digest(target, &table)?
@@ -591,6 +628,7 @@ fn verify_restored_authorization_views(
             "SELECT DISTINCT document_id FROM document_versions
         WHERE json_type(editor_json,'$.attrs.archeaxis_context_grant') IS NOT NULL
            OR json_type(editor_json,'$.attrs.archeaxis_asset_context_grant') IS NOT NULL
+           OR json_type(editor_json,'$.attrs.archeaxis_provider_material_grant') IS NOT NULL
         ORDER BY document_id",
         )?
         .query_map([], |r| r.get::<_, String>(0))?
@@ -747,7 +785,9 @@ fn validate_workspace(conn: &Connection) -> rusqlite::Result<()> {
         .query_map([], |row| row.get(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     if integrity.as_slice() != ["ok"]
-        || !(version == "13" || version == archeaxis_store_sqlite::SCHEMA_VERSION.to_string())
+        || !(version == "13"
+            || version == "14"
+            || version == archeaxis_store_sqlite::SCHEMA_VERSION.to_string())
         || conn.prepare("PRAGMA foreign_key_check")?.exists([])?
     {
         return Err(rusqlite::Error::InvalidQuery);

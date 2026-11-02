@@ -1,0 +1,125 @@
+{
+  "schema": "archeaxis.archive-reconciliation-source-binding/v1",
+  "date": "2026-11-01",
+  "external_root": "D:\\All projects\\Project Archiving",
+  "external_access": "READ_ONLY_NO_SOURCE_MUTATIONS",
+  "selection": "Owner invoked a bounded governance prompt, then explicitly retained AUTHORITY / 13-group recent crosswalk / identity V2.3 / loop V3 as latest baseline. All other archives and packages remain historical/supplemental, not replacement product goals or independent grants.",
+  "supersession": "SUP-032",
+  "sole_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "invoked_prompt": {
+    "path": ".project-local/archives/owner-inputs/20261101-project-archiving/01_AAOS_对账补齐归档与顶层防漂移.txt",
+    "bytes": 6986,
+    "sha256": "e8cc824de45e355521a1c80ba38cdd20d2fd386837fb3ad872470e5f022e61b4",
+    "source_sha256": "e8cc824de45e355521a1c80ba38cdd20d2fd386837fb3ad872470e5f022e61b4"
+  },
+  "source_records": [
+    {
+      "path": "执行提示词/01_AAOS_对账补齐归档与顶层防漂移.txt",
+      "bytes": 6986,
+      "sha256": "e8cc824de45e355521a1c80ba38cdd20d2fd386837fb3ad872470e5f022e61b4"
+    },
+    {
+      "path": "00_归档总览.md",
+      "bytes": 2171,
+      "sha256": "567298c33ee13f854b76a8aa7ec9253b8bffe1fb254e96d26efe66c7a254ae7e"
+    },
+    {
+      "path": "_归档管理/完整性校验报告.json",
+      "bytes": 1094,
+      "sha256": "93e6cf0970c624303439538195c29f82c4ee891375e2e69452c53e81ab2b9a18"
+    },
+    {
+      "path": "_归档管理/来源到归档映射.csv",
+      "bytes": 522469,
+      "sha256": "09fa87b8346e4c8314cde99c1ac05bfa00d841dec063dc190ec05307cf82462a"
+    },
+    {
+      "path": "_归档管理/对象目录.json",
+      "bytes": 623675,
+      "sha256": "bbc0e87149745a1396cda030399e675185bedca6d50e9596db2f182c448aca94"
+    },
+    {
+      "path": "_归档管理/冲突与过时内容处理.md",
+      "bytes": 3926,
+      "sha256": "eec9f58e370c9b76c345ccd3bc41b319d5cce8e64b0ca42c95e866c849741d45"
+    },
+    {
+      "path": "_归档管理/ZIP补充诊断与恢复.json",
+      "bytes": 33666,
+      "sha256": "4b3121e07a430bfb7f3462369c907c42655bb28c0ffbfc30af17032c7f9cc9e9"
+    },
+    {
+      "path": "AAOS项目/00_先读这里.md",
+      "bytes": 1386,
+      "sha256": "bd42145cc4603d9ea92be2ad0cca0130c259a1c2afcacf415038712e7cb9e081"
+    },
+    {
+      "path": "AAOS项目/01_近期参考.md",
+      "bytes": 5259,
+      "sha256": "02a6ce7666abba8cad9e37e47094aef029fc91ad32c7d439938c03b3b744cafa"
+    },
+    {
+      "path": "AAOS项目/02_历史方案.md",
+      "bytes": 10594,
+      "sha256": "8ca24413d7bece17862fbf1370c96c33abb222e58324845d3499c612d3b965f8"
+    },
+    {
+      "path": "AAOS项目/03_完整对话.md",
+      "bytes": 8518,
+      "sha256": "f68fb12be69a68148a55c57536b97f30f14eeb8479eb3c679ad60071bf170d15"
+    },
+    {
+      "path": "AAOS项目/04_界面与附件.md",
+      "bytes": 91672,
+      "sha256": "d9b70298121e47f755e0335d8a9fcd84a3d6993f85fc82835d2d39ccc1270211"
+    },
+    {
+      "path": "AAOS项目/05_全部资料.md",
+      "bytes": 140779,
+      "sha256": "a153637e1027194c8df1fdc76cbc57783f1e2b1a7abe19f70460997fbae441ba"
+    }
+  ],
+  "preserved_small_original": {
+    "path": "workspace/intake/20261101-project-archiving-reconciliation/source/AAOS_AI_Context_Separation_Codex_Task_20261023.md",
+    "bytes": 14897,
+    "sha256": "de476678054c51e9ab5800c7b4ed608fa0c778ab4eaf3a0419c619bb688d596a"
+  },
+  "derived_outputs": [
+    {
+      "path": "workspace/intake/20261101-project-archiving-reconciliation/SOURCE-OBJECTS.jsonl",
+      "bytes": 936877,
+      "sha256": "c743fc833b07f7cfb5beb6761c7a2e57ed867b3bc45999975b7fa3510212ded8"
+    },
+    {
+      "path": "workspace/intake/20261101-project-archiving-reconciliation/INTENT-ROWS.jsonl",
+      "bytes": 284298,
+      "sha256": "ffb0ef8e89cd524047b9e79c42b8c68e93ec9089355819ae9228f4e8afc00465"
+    },
+    {
+      "path": "workspace/intake/20261101-project-archiving-reconciliation/RECOVERY-125.json",
+      "bytes": 56401,
+      "sha256": "0a80ca37491dc2ae34a39d6d856a3be311b839d2ddd71070d5123bb01429ee0c"
+    },
+    {
+      "path": "workspace/intake/20261101-project-archiving-reconciliation/DIALOGUE-USER-MAP.jsonl",
+      "bytes": 1567722,
+      "sha256": "276d965bca1f7b9776eca0c637781a80913e40a3697b3fca397c5a1ace657de9"
+    },
+    {
+      "path": "workspace/intake/20261101-project-archiving-reconciliation/RECONCILIATION.json",
+      "bytes": 41710,
+      "sha256": "619c940fffed68fc3790d5ce423522e2b803851e965f4980886bc8fdfc0e1839"
+    },
+    {
+      "path": "workspace/intake/20261101-project-archiving-reconciliation/SOURCE-SUMMARY.json",
+      "bytes": 2814,
+      "sha256": "ff4364bfdf1bd2afaaf01607cc53ca18a676b66989bf17c3997046ae7681162c"
+    }
+  ],
+  "source_only_qualifications": {
+    "objects": 865,
+    "records_186_22_25": 233,
+    "recovery_members": 125
+  },
+  "history_policy": "Raw names, versions, failures and source aliases retained; ordinary search ignores original copies; no old root existence prerequisite"
+}

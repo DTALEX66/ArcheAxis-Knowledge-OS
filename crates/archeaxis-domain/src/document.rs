@@ -163,6 +163,42 @@ pub fn read(conn: &Connection, id: &str, requested: Option<i64>) -> Result<Value
     Ok(result)
 }
 
+/// Read a snapshot for version-bound provider access and verify its persisted
+/// editor bytes and derived projections. Ordinary document reads keep their
+/// existing behavior; an inconsistent snapshot is unavailable to a provider.
+pub(crate) fn read_verified(
+    conn: &Connection,
+    id: &str,
+    requested: Option<i64>,
+) -> Result<Value, Error> {
+    let snapshot = read(conn, id, requested)?;
+    let version = snapshot["version"]
+        .as_i64()
+        .ok_or(Error::Invalid("stored document version invalid"))?;
+    let raw: String = conn.query_row(
+        "SELECT editor_json FROM document_versions WHERE document_id=?1 AND version=?2",
+        params![id, version],
+        |row| row.get(0),
+    )?;
+    let digest = hex::encode(Sha256::digest(raw.as_bytes()));
+    if snapshot["content_sha256"].as_str() != Some(digest.as_str()) {
+        return Err(Error::Invalid("stored document content digest mismatch"));
+    }
+    let editor: Value =
+        serde_json::from_str(&raw).map_err(|_| Error::Invalid("stored editor JSON is invalid"))?;
+    if snapshot.get("editor_json") != Some(&editor) {
+        return Err(Error::Invalid("stored document changed while reading"));
+    }
+    let (normalized, blocks, projection) = codec(id, version, editor)?;
+    if snapshot.get("editor_json") != Some(&normalized)
+        || snapshot.get("blocks") != Some(&Value::Array(blocks))
+        || snapshot["text_projection"].as_str() != Some(projection.as_str())
+    {
+        return Err(Error::Invalid("stored document projection mismatch"));
+    }
+    Ok(snapshot)
+}
+
 fn append(
     tx: &rusqlite::Transaction<'_>,
     id: &str,
@@ -189,6 +225,7 @@ fn append(
     crate::research::validate_editor(tx, &editor)?;
     crate::collection::validate_document(tx, &editor)?;
     crate::context_grant::validate_editor(tx, id, &editor)?;
+    crate::provider_material_grant::validate_editor(tx, id, &editor)?;
     crate::ai_asset::validate_editor(tx, id, &editor)?;
     crate::asset_context_grant::validate_editor(tx, id, &editor)?;
     crate::machine_evaluation::validate_transition(tx, id, expected, &editor)?;

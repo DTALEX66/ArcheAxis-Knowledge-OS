@@ -70,8 +70,13 @@ def asr_model_name(donor: Path) -> str:
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
                               asr_model: Path | None = None, vc_runtime: Path | None = None,
+                              openmaic_node: Path | None = None, openmaic_node_sha256: str | None = None,
+                              openmaic_node_license: Path | None = None,
                               storage_context=None, storage_generated_bytes=None) -> Path:
     """Prepare locked Python directly in the authoritative fresh backend root."""
+    openmaic = (openmaic_node, openmaic_node_sha256, openmaic_node_license)
+    if any(value is not None for value in openmaic) and not all(value is not None for value in openmaic):
+        raise ValueError("OpenMAIC requires an explicit Node file, SHA-256, and Node license")
     repository = runtime_paths.safe_path(repository)
     storage_generated_bytes = growth.generated_bytes(storage_context, storage_generated_bytes)
     destination = runtime_paths.safe_path(destination)
@@ -97,6 +102,9 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
     if asr_model is not None:
         command += ["--asr-model", str(Path(asr_model).resolve()),
                     "--asr-model-name", asr_model_name(Path(asr_model))]
+    if openmaic_node is not None:
+        command += ["--openmaic-node", str(openmaic_node), "--openmaic-node-sha256", openmaic_node_sha256,
+                    "--openmaic-node-license", str(openmaic_node_license)]
     if storage_generated_bytes is not None:
         command += ["--storage-generated-bytes", str(storage_generated_bytes)]
     if storage_context is not None:
@@ -260,11 +268,11 @@ def _prepare_runtime(repository, destination, _backend_in_place, env, uv, bindin
         copy["source_binding"] = binding
         staged_python = (stage_runtime(repository=repository, destination=destination, _backend_in_place=True)
                          if _backend_in_place else stage_runtime(repository=repository, destination=destination))
-        copy["bytes"] = sum(path.stat().st_size for path in staged_python.parent.rglob("*") if path.is_file())
+        copy["bytes"] = sum(path.stat().st_size for path in growth.native(staged_python.parent).rglob("*") if path.is_file())
     preparation = (Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts/python-preparation"
                    if _backend_in_place else destination)
     if _backend_in_place:
-        preparation.mkdir(exist_ok=False)
+        growth.native(preparation).mkdir(exist_ok=False)
     requirements = preparation / "requirements.locked.txt"
     wheels = preparation / "wheels"
     # The pinned setuptools backend builds in place even when uv's wheel output
@@ -273,8 +281,8 @@ def _prepare_runtime(repository, destination, _backend_in_place, env, uv, bindin
     wheel_build = runtime_paths.safe_path(Path(env["UV_PROJECT_ENVIRONMENT"]).parent / "setuptools")
     egg_base = wheel_build / "egg-info"
     build_base = wheel_build / "build"
-    egg_base.mkdir(parents=True, exist_ok=True)
-    build_base.mkdir(parents=True, exist_ok=True)
+    growth.native(egg_base).mkdir(parents=True, exist_ok=True)
+    growth.native(build_base).mkdir(parents=True, exist_ok=True)
     settings = ["--config-setting=--global-option=" + option for option in (
         "egg_info", "--egg-base=" + str(egg_base),
         "build", "--build-base=" + str(build_base),
@@ -314,7 +322,7 @@ def _prepare_runtime(repository, destination, _backend_in_place, env, uv, bindin
         env=env,
         stage="wheel-build", timings=timings,
     )
-    built_wheels = tuple(wheels.glob("archeaxis_workspace-*.whl"))
+    built_wheels = tuple(growth.plain(path) for path in growth.native(wheels).glob("archeaxis_workspace-*.whl"))
     if len(built_wheels) != 1:
         raise RuntimeError(f"expected exactly one Cognitive-OS wheel, found {len(built_wheels)}")
     _run(
@@ -430,6 +438,9 @@ def main() -> int:
                              "defaults to the model the capability declaration names")
     parser.add_argument("--vc-runtime", type=Path,
                         help="explicit reviewed x64 VC donor; defaults to build-local environment or official VS registration")
+    parser.add_argument("--openmaic-node", type=Path, help="explicit local Node executable for OpenMAIC")
+    parser.add_argument("--openmaic-node-sha256", help="expected lowercase SHA-256 of that Node executable")
+    parser.add_argument("--openmaic-node-license", type=Path, help="explicit Node license file")
     parser.add_argument("--run-id")
     parser.add_argument("--storage-purpose")
     parser.add_argument("--storage-sharing")
@@ -439,6 +450,12 @@ def main() -> int:
     parser.add_argument("--ci-runtime-checkpoint", type=Path,
                         help="explicit singleton checkpoint initialized for this isolated CI job; not a local override")
     args = parser.parse_args()
+    openmaic = (args.openmaic_node, args.openmaic_node_sha256, args.openmaic_node_license)
+    if any(value is not None for value in openmaic):
+        if not all(value is not None for value in openmaic):
+            parser.error("OpenMAIC requires --openmaic-node, --openmaic-node-sha256 and --openmaic-node-license")
+        if not args.backend_candidate:
+            parser.error("OpenMAIC inputs require --backend-candidate")
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
     if args.core_only and args.core is None:
@@ -462,6 +479,8 @@ def main() -> int:
         print(prepare_backend_candidate(
             repository=args.repository, destination=destination, core=args.core,
             vc_runtime=args.vc_runtime,
+            openmaic_node=args.openmaic_node, openmaic_node_sha256=args.openmaic_node_sha256,
+            openmaic_node_license=args.openmaic_node_license,
             storage_context=context, storage_generated_bytes=args.storage_generated_bytes,
             asr_model=args.asr_model or declared_asr_model(args.repository)))
         return 0

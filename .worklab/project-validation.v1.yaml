@@ -126,6 +126,65 @@ risk_classes:
       - "tests/workers/test_text_ndjson.py"
     gates: [static, lint, rust-vnext, workers-vnext]
 
+  - id: learning-provider-runtime
+    description: Consumed DeepTutor and OpenMAIC worker sources and version-pinned vendor slices; changes require Python, Rust and worker checks
+    paths:
+      # Exact entry points and the reviewed DeepTutor upstream slice.
+      - services/learning-providers/deeptutor/LICENSE
+      - services/learning-providers/deeptutor/candidate_document.py
+      - services/learning-providers/deeptutor/candidate_readback.py
+      - services/learning-providers/deeptutor/grade_worker.py
+      - services/learning-providers/deeptutor/practice_171.py
+      - services/learning-providers/deeptutor/practice_candidate_document.py
+      - services/learning-providers/deeptutor/practice_candidate_readback.py
+      - services/learning-providers/deeptutor/practice_host_worker.py
+      - services/learning-providers/deeptutor/practice_import.py
+      - services/learning-providers/deeptutor/question_normalizer.py
+      - services/learning-providers/deeptutor/question_turn_worker.py
+      - services/learning-providers/deeptutor/response_recovery.py
+      - services/learning-providers/deeptutor/teaching_feedback_worker.py
+      - "services/learning-providers/deeptutor/upstream/**"
+      # Exact OpenMAIC worker and runner entry points.
+      - services/learning-providers/openmaic/interactive-html-rewrite-probe.mjs
+      - services/learning-providers/openmaic/interactive-html-rewrite-worker.mjs
+      - services/learning-providers/openmaic/interactive-url-map-worker.mjs
+      - services/learning-providers/openmaic/interactive_html_rewrite_runner.py
+      - services/learning-providers/openmaic/local_model_relay.py
+      - services/learning-providers/openmaic/outline-prompt-guard.mjs
+      - services/learning-providers/openmaic/outline-replay-worker.mjs
+      - services/learning-providers/openmaic/quiz-actions-replay-worker.mjs
+      - services/learning-providers/openmaic/quiz-replay-worker.mjs
+      - services/learning-providers/openmaic/scene-build-worker.mjs
+      - services/learning-providers/openmaic/scene-contract-report.mjs
+      - services/learning-providers/openmaic/slide-normalize-worker.mjs
+      - services/learning-providers/openmaic/slide-prompt-worker.mjs
+      - services/learning-providers/openmaic/slide-reply-worker.mjs
+      - services/learning-providers/openmaic/slide_normalize_runner.py
+      - services/learning-providers/openmaic/slide_prompt_runner.py
+      # Pin each retained vendor slice rather than accepting arbitrary new packages.
+      - "services/learning-providers/openmaic/vendor/dsl-0.12.0-actions/**"
+      - "services/learning-providers/openmaic/vendor/generation-0.3.28/**"
+      - "services/learning-providers/openmaic/vendor/generation-0.3.28-outline/**"
+      - "services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/**"
+      - "services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/**"
+      - "services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/**"
+      - "services/learning-providers/openmaic/vendor/npm/commander-8.3.0/**"
+      - "services/learning-providers/openmaic/vendor/npm/entities-6.0.1/**"
+      - "services/learning-providers/openmaic/vendor/npm/entities-8.0.0/**"
+      - "services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/**"
+      - "services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/**"
+      - "services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/**"
+      - "services/learning-providers/openmaic/vendor/npm/nanoid-5.1.14/**"
+      - "services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/**"
+      - "services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/**"
+      - "services/learning-providers/openmaic/vendor/npm/picocolors-1.1.1/**"
+      - "services/learning-providers/openmaic/vendor/npm/postcss-8.5.23/**"
+      - "services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/**"
+      - "services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/**"
+      - "services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/**"
+      - "services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/**"
+    gates: [static, lint, py-primary, rust-vnext, workers-vnext]
+
   - id: vnext-workers
     description: vNext isolated Python capability workers
     paths:
@@ -203,11 +262,25 @@ risk_classes:
     gates: [static, lint, migration-targeted, py-primary]
 
   - id: rust-tauri-shell
-    description: Legacy Tauri recovery-shell Rust logic; fast compatibility gate without packaging inputs
+    description: Formal Tauri host Rust logic under SUP-022; fast host gate without packaging inputs
     paths:
       - "src-tauri/src/*.rs"
       - "src-tauri/src/**/*.rs"
     gates: [desktop-fast]
+
+  - id: formal-frontend-entry
+    description: Formal React frontend document entry; verify the rendered browser shell
+    paths:
+      - frontend/index.html
+    gates: [static, lint, browser-smoke]
+
+  - id: formal-frontend-build-inputs
+    description: Formal frontend dependency and TypeScript build inputs affect the browser, host build and installer
+    paths:
+      - frontend/package.json
+      - frontend/package-lock.json
+      - frontend/tsconfig.json
+    gates: [static, lint, browser-smoke, desktop-fast, desktop-build, installer-lifecycle]
 
   - id: installer
     description: React/Tauri bundle and NSIS packaging lifecycle - the formal host installer under SUP-022, retained compatibility checks included
@@ -221,7 +294,7 @@ risk_classes:
     gates: [desktop-fast, desktop-build, installer-lifecycle]
 
   - id: desktop-build
-    description: Legacy Tauri build/config/resources compatibility
+    description: Separate recovery Tauri build/config/resources compatibility
     paths:
       - desktop/src-tauri/tauri.conf.json
       - desktop/src-tauri/build.rs
@@ -229,7 +302,7 @@ risk_classes:
     gates: [desktop-fast, desktop-build]
 
   - id: rust-tauri
-    description: Legacy Tauri Rust runtime compatibility logic
+    description: Recovery and shared Tauri Rust runtime, including code used by the formal host
     paths:
       - "desktop/src-tauri/**/*.rs"
     gates: [desktop-fast]
@@ -342,10 +415,16 @@ risk_classes:
       - "config/**"
     gates: [static, lint, py-primary]
 
-  - id: legacy-ui-other
-    description: Legacy UI shell assets outside the dedicated frontend/desktop/src paths (maintenance-only)
+  - id: formal-frontend-metadata
+    description: Known documentation under the formal frontend outside its UI and build-input classes
     paths:
-      - "frontend/**"
+      - frontend/README.md
+      - frontend/UI-POLISH-PLAN.md
+    gates: [static, lint]
+
+  - id: legacy-ui-other
+    description: Other desktop repository paths not covered by the specific host and build classes
+    paths:
       - "desktop/**"
     gates: [static, lint]
 

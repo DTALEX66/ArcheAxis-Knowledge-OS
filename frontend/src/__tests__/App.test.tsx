@@ -340,6 +340,34 @@ describe("App shell", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("SIMULATED native preflight rejection remains a primitive through the real recovery adapter", async () => {
+    const user = userEvent.setup();
+    const backup = "cognitive_os_20260823T010203_000000Z.sqlite";
+    let reads = 0;
+    const invoke = vi.fn(async (command: string) => {
+      if (command === "recovery_status") {
+        reads += 1;
+        return reads <= 2
+          ? { state: "failed", safe_mode: false, backend_available: false, message: "CORE_UNAVAILABLE", backups: [backup], external_dev: false }
+          : { state: "ready", safe_mode: false, backend_available: true, message: "Core is ready", backups: [backup], external_dev: false };
+      }
+      if (command === "restore_backup") throw "CORE_UNAVAILABLE";
+      throw new Error(`unexpected simulated command ${command}`);
+    });
+    window.__TAURI__ = { core: { invoke } };
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "恢复备份" }));
+    await user.click(screen.getByRole("button", { name: "确认恢复" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("本次恢复未执行");
+    expect(invoke.mock.calls.map(([command]) => command)).toEqual([
+      "recovery_status", "recovery_status", "restore_backup", "recovery_status",
+    ]);
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "重试启动" })).toBeEnabled();
+    expect(screen.getByText("宿主报告本地核心可用；工作区尚未重新验证。")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "应用菜单" })).not.toBeInTheDocument();
+  });
+
   it("keeps the Recovery Shell when a ready desktop fails the authenticated handshake", async () => {
     const invoke = vi.fn(async (command: string, _args?:Record<string,unknown>) => {
       if (command === "recovery_status") {

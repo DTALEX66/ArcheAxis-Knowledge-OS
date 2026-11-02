@@ -1,4 +1,4 @@
-"""Schema12 policy through independent candidate Core processes, never direct SQL.
+"""Content-saving policy through independent candidate Core processes, never direct SQL.
 
 Authored text fixtures, actual Core/Python execution; no installed UI, human
 assessment or paid cloud call is qualified. Machine/human claims use distinct
@@ -207,7 +207,7 @@ def main():
         version = call("GET", "/api/v1/system/version")
         receipt["system"] = version
         workspace_info = call("GET", "/api/v1/workspaces/info")
-        assert workspace_info["schema_version"] == 14, workspace_info
+        assert workspace_info["schema_version"] == 15, workspace_info
         receipt["workspace_info"] = workspace_info
         ack_request = {
             "create_request_id": "policy_ack_" + uuid.uuid4().hex,

@@ -316,6 +316,7 @@ pub fn import(
     for namespace in [
         "archeaxis_context_grant",
         "archeaxis_asset_context_grant",
+        "archeaxis_provider_material_grant",
         "archeaxis_ai_asset",
         "archeaxis_machine_evaluation",
         "archeaxis_machine_rubric",

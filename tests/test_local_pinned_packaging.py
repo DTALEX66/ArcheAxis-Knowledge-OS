@@ -19,6 +19,32 @@ def put(path, content=b"synthetic"):
     return local.file_row(path)
 
 
+def test_missing_generated_output_estimate_rejected_before_copy(tmp_path, monkeypatch):
+    source = tmp_path / "candidate"
+    member = put(source / "ArcheAxis.exe")
+    nsis = tmp_path / "nsis"
+    tool = put(nsis / "makensis.exe")
+    identity = {"payload": {"files": {"ArcheAxis.exe": member}}}
+    consumers = {"tool_trees": {"nsis": {"path": str(nsis), "files": {"makensis.exe": tool}}}}
+    monkeypatch.setattr(local, "qualify", lambda *args: identity)
+    monkeypatch.setattr(local, "bundle_consumer_inventory", lambda *args: consumers)
+    monkeypatch.setattr(local, "owned_path", lambda root, path, **kwargs: path)
+    monkeypatch.setattr(local, "copy_member", lambda *args: pytest.fail("unguarded copy attempted"))
+    output = tmp_path / "output"
+    with pytest.raises(ValueError, match="generated.*positive.*estimate"):
+        local.bundle(tmp_path, {"candidate": str(source)}, output, tmp_path / "node.exe", consumers)
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("estimate", [0, -1, True, 1.5, "1"])
+def test_invalid_generated_output_estimate_rejected_before_any_write(tmp_path, monkeypatch, estimate):
+    output = tmp_path / "output"
+    monkeypatch.setattr(local, "qualify", lambda *args: pytest.fail("qualification should not start"))
+    with pytest.raises(ValueError, match="generated.*positive.*estimate"):
+        local.bundle(tmp_path, {}, output, tmp_path / "node.exe", {}, storage_generated_bytes=estimate)
+    assert not output.exists()
+
+
 def pinned_growth_fixture(tmp_path, monkeypatch):
     """Tiny copied inputs with the actual shared checkpoint/review code."""
     portable = local.portable
@@ -224,7 +250,8 @@ def test_bundle_requires_exact_reviewed_consumers(tmp_path, monkeypatch):
     monkeypatch.setattr(local, "qualify", lambda *args: {})
     monkeypatch.setattr(local, "bundle_consumer_inventory", lambda *args: {"actual": True})
     with pytest.raises(ValueError, match="consumer inputs differ"):
-        local.bundle(tmp_path, {}, tmp_path / "out", tmp_path / "node.exe", {"reviewed": True})
+        local.bundle(tmp_path, {}, tmp_path / "out", tmp_path / "node.exe", {"reviewed": True},
+                     storage_generated_bytes=1)
     assert not (tmp_path / "out").exists()
 
 
@@ -417,32 +444,29 @@ def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkey
     consumers = {"tool_trees": {"nsis": {"path": str(nsis_root), "files": {"makensis.exe": nsis_row}}}}
     monkeypatch.setattr(local, "bundle_consumer_inventory", lambda *args:
                         {} if failure == "consumer" and calls else copy.deepcopy(consumers))
-    output = tmp_path / "new-run"
-    context = None
-    if storage_case:
-        output, context, report, measures, pointer, baseline = pinned_growth_fixture(tmp_path, monkeypatch)
-        checkpoint_before = (pointer.read_bytes(), baseline.read_bytes())
-        total = sum(row["bytes"] for row in identity["payload"]["files"].values()) + nsis_row["bytes"]
-        # Only the combined payload+tools crosses this synthetic threshold.
-        monkeypatch.setattr(local.portable, "LARGE_COPY_BYTES", total)
-        if storage_case == "pre":
-            report["readable_bytes"] += 2 * 1024 ** 3 + 1
-            report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
-        elif storage_case == "projected":
-            report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 - total + 1
-        elif storage_case in {"post", "copy_posterror"}:
-            measure = local.portable.storage_report.measure
-            def changed_measure(root):
-                if measures:
-                    if storage_case == "copy_posterror":
-                        raise OSError("synthetic post measurement refusal")
-                    report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
-                return measure(root)
-            monkeypatch.setattr(local.portable.storage_report, "measure", changed_measure)
-        elif storage_case == "checkpoint":
-            baseline.write_bytes(b"{}")
-    else:
-        monkeypatch.setattr(local.portable.storage_report, "measure", lambda *args: pytest.fail("small bundle scanned"))
+    output, context, report, measures, pointer, baseline = pinned_growth_fixture(tmp_path, monkeypatch)
+    checkpoint_before = (pointer.read_bytes(), baseline.read_bytes())
+    total = sum(row["bytes"] for row in identity["payload"]["files"].values()) + nsis_row["bytes"]
+    generated = 127
+    projected = total + generated
+    if storage_case == "pre":
+        report["readable_bytes"] += 2 * 1024 ** 3 + 1
+        report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+    elif storage_case == "projected":
+        # The known copies alone remain below the review line; the declared
+        # generated estimate is what takes this projection over it.
+        report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 - projected + 1
+    elif storage_case in {"post", "copy_posterror"}:
+        measure = local.portable.storage_report.measure
+        def changed_measure(root):
+            if measures:
+                if storage_case == "copy_posterror":
+                    raise OSError("synthetic post measurement refusal")
+                report["dev_root"][0]["bytes"] += 2 * 1024 ** 3 + 1
+            return measure(root)
+        monkeypatch.setattr(local.portable.storage_report, "measure", changed_measure)
+    elif storage_case == "checkpoint":
+        baseline.write_bytes(b"{}")
     def run(command, **kwargs):
         calls.append(command)
         overlay = json.loads((output / "bundle-config.json").read_text())
@@ -471,7 +495,8 @@ def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkey
             return original_open(path, mode, *args, **kwargs)
         monkeypatch.setattr(builtins, "open", changing_source)
     if failure == "large_missing":
-        monkeypatch.setattr(local.portable, "LARGE_COPY_BYTES", 1)
+        # Even tiny copied inputs cannot bypass the required canonical run.
+        context = None
     if failure == "precopy":
         real_copy = local.copy_member
         def fail_copy(incoming, outgoing, *args, **kwargs):
@@ -488,16 +513,21 @@ def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkey
         monkeypatch.setattr(local, "open", refuse_receipt, raising=False)
     if failure or storage_case in {"pre", "projected", "post", "checkpoint"}:
         with pytest.raises(ValueError) as caught:
-            local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers, storage_context=context)
+            local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers, storage_context=context,
+                         storage_generated_bytes=generated)
     else:
         assert local.bundle(tmp_path, {"candidate": str(source)}, output, node, consumers,
-                            storage_context=context)["status"] == "LOCAL_PACKAGING_PASS"
+                            storage_context=context, storage_generated_bytes=generated)["status"] == "LOCAL_PACKAGING_PASS"
     if storage_case:
         if storage_case == "checkpoint":
             assert not measures and not output.exists()
             return
         storage = json.loads((output.parent / "portable-storage-receipt.json").read_bytes())
-        assert storage["planned_payload_bytes"] == total
+        assert storage["planned_payload_bytes"] == projected
+        assert storage["copy_plan"]["total_bytes"] == total
+        assert storage["copy_plan"]["generated_bytes_estimate"] == generated
+        assert storage["copy_plan"]["projected_bytes"] == projected
+        assert "not a hard quota" in storage["projection_scope"]
         assert storage["copy_plan"]["nsis_bytes"] == nsis_row["bytes"]
         assert storage["copy_plan"]["payload_bytes"] == total - nsis_row["bytes"]
         assert storage["measurement_status"] == "PARTIAL"
@@ -530,7 +560,7 @@ def test_bundle_wrapper_only_runs_bundle_and_preserves_failures(tmp_path, monkey
             assert storage["projected_review"]["status"] == "NO_NEW_GROWTH_TRIGGER"
         return
     if failure == "large_missing":
-        assert calls == [] and not output.exists()
+        assert calls == [] and not output.exists() and not measures
         return
     receipt = json.loads((output / "packaging-receipt.json").read_text())
     assert receipt["installed_qualification"] == "NOT_RUN"
@@ -580,10 +610,11 @@ def test_cli_routes_existing_storage_declarations_and_review_exit(tmp_path, monk
     monkeypatch.setattr(local, "read_pinned", lambda path, digest: request if path == request_path else consumers)
     monkeypatch.setattr(local.portable.dev, "layout", lambda root, run_id: paths if run_id == "finite" else None)
     called = []
-    def bundle(root, requested, output, node, consumed, *, storage_context):
+    def bundle(root, requested, output, node, consumed, *, storage_context, storage_generated_bytes):
         called.append(True)
         assert requested is request and consumed is consumers
         assert storage_context == {"paths": paths, "purpose": "qualification", "sharing": "reuse", "retention_reason": "evidence"}
+        assert storage_generated_bytes == 123
         if review:
             raise local.portable.GrowthReviewRequiredError("review required")
     monkeypatch.setattr(local, "bundle", bundle)
@@ -591,7 +622,7 @@ def test_cli_routes_existing_storage_declarations_and_review_exit(tmp_path, monk
         "--request-sha256", "a" * 64, "--output", str(tmp_path / "output"), "--execute-bundle",
         "--node", str(tmp_path / "node.exe"), "--consumers", str(consumer_path), "--consumers-sha256", "b" * 64,
         "--run-id", "finite", "--storage-purpose", "qualification", "--storage-sharing", "reuse",
-        "--storage-retention-reason", "evidence"])
+        "--storage-retention-reason", "evidence", "--storage-generated-bytes", "123"])
     assert local.main() == (2 if review else 0)
     assert called == [True]
 

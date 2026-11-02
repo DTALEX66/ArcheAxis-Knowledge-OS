@@ -1,0 +1,70 @@
+{
+  "name": "tinycolor2",
+  "version": "1.6.0",
+  "license": "MIT",
+  "archive_sri": "sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==",
+  "archive_sha256": "1fd8164c4b0e1bad09bf2252705fbcf6789dcce7c121aa52b515dd6438eb635b",
+  "archive_bytes": 62909,
+  "origin": "https://registry.npmjs.org/",
+  "fetch_run": "backend-verify-npm-geometry-fetch-cd02693046",
+  "audit_run": "backend-verify-npm-geometry-audit-b93b418f87",
+  "scripts_executed": false,
+  "files": {
+    "cjs/package.json": {
+      "bytes": 25,
+      "sha256": "8005a3491db7d92f36ac66369861589f9c47123d3a7c71e643fc2c06168cd45a"
+    },
+    "cjs/test_template.js": {
+      "bytes": 757,
+      "sha256": "b9ae2973b0d8527ce52b0ba2473d8e86272e833c797cd40247c57b4c5353a662"
+    },
+    "cjs/test.js": {
+      "bytes": 56320,
+      "sha256": "44405c0b10a92cc7b4f00dcbea0dc89036090aeeaddb7da0865bfaafdcfc14c0"
+    },
+    "cjs/tinycolor.js": {
+      "bytes": 37584,
+      "sha256": "641b5be2179618240bb9b186f359aad97195c2bc6ec9f4d07756c7e5718a42be"
+    },
+    "deno_asserts@0.168.0.mjs": {
+      "bytes": 28000,
+      "sha256": "54225911a1c1f95fed05b8b55ef4fefaf3531d0f119b3ace4df2621bf8d8a42c"
+    },
+    "dist/tinycolor-min.js": {
+      "bytes": 15605,
+      "sha256": "ad6086765d928da9109c816d26ee33ffbf23dc913bd0d550bb15de24b42f729d"
+    },
+    "esm/package.json": {
+      "bytes": 23,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+    },
+    "esm/test_template.js": {
+      "bytes": 716,
+      "sha256": "922f4e57eb60174509f3b2b89e57757e0d59023478b424a97558ec63f8342de3"
+    },
+    "esm/test.js": {
+      "bytes": 56279,
+      "sha256": "a15512719b7d09523a4a79d1ba8d5a7307a8550e8f9b474bfe9692f4f53b0834"
+    },
+    "esm/tinycolor.js": {
+      "bytes": 35009,
+      "sha256": "e215b1d455fcafb78ecb8b86a1f5c7be37e2251372ada4b7e0f882584954fab8"
+    },
+    "LICENSE": {
+      "bytes": 1081,
+      "sha256": "c6cb470a9ba0a50d57611aeec1f31da609c5aefdbee8eac7f289bcb0e30625fa"
+    },
+    "package.json": {
+      "bytes": 840,
+      "sha256": "0eee5ba2f0c0dc640abf827db6a355132b945689eb0d3f6d624cc849eab9fbf8"
+    },
+    "README.md": {
+      "bytes": 14878,
+      "sha256": "0330fbb874156a0d81cb3a34c5ca6731e8f1af62af74dd2e0fda205ec3a996f4"
+    },
+    "tinycolor.js": {
+      "bytes": 37738,
+      "sha256": "b48f0496c07714f229d9281ada329381242e895ab3316556d372c9a6568b1a88"
+    }
+  }
+}

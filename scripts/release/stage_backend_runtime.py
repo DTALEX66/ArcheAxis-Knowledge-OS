@@ -58,6 +58,45 @@ MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
 
+# The detector's four repository-owned inputs are fixed identities, not a
+# directory search or a request-selected model. Updating them requires review.
+DETECTOR_SOURCE = Path(__file__).resolve().parents[2]
+DETECTOR_FILES = {
+    "shared/file_detection.py": {"bytes": 7449, "sha256": "9c91f6efa77a2344e5f0c1ce09a63a077f098b0f76a2f949fbba46408df49f7c"},
+    "shared/models/magika/model.onnx": {"bytes": 3163428, "sha256": "0c9bf7255c5a68e8e74c878005989b5ea7682c15d46f42fbb0198cfe5eeea38c"},
+    "shared/models/magika/config.min.json": {"bytes": 2075, "sha256": "a387462c2421f189c50a79a711f46c7992ab814ef0b5a6c3d8afe74949526251"},
+    "shared/models/magika/LICENSE": {"bytes": 11358, "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"},
+}
+
+# This is a private one-shot protocol, not an ordinary NDJSON worker.  The Core
+# must explicitly intercept this capability; the closure is staged only when
+# every selected byte matches this finite, reviewed DeepTutor 1.7.1 set.
+PRACTICE_CAPABILITY = "deeptutor.practice.import"
+PRACTICE_DIRECTORY = "workers/deeptutor"
+PRACTICE_SCRIPT = f"{PRACTICE_DIRECTORY}/practice_host_worker.py"
+PRACTICE_FILES = {
+    "practice_host_worker.py": {"bytes": 11888, "sha256": "af186a32b2a98c248f28b447edbf9fb27399c1873fa93bd29bcda557a173b6d1"},
+    "practice_candidate_document.py": {"bytes": 17679, "sha256": "219e04721d662198b1fa1169c4be8e3acc63be24e3c7595d3e01847d1c2ead17"},
+    "candidate_document.py": {"bytes": 23478, "sha256": "96ad414a1d35e842ad42362ea6ba1327ab7dfd8b3bb06d6e5bab39073a25953c"},
+    "practice_import.py": {"bytes": 47396, "sha256": "fd8e8bbdf0700b84995f8b83fcd22b40770112e9414d2ea1c29cf65cf364a477"},
+    "upstream/importing.py": {"bytes": 8880, "sha256": "9ee4dd1abfa150fd81c3e3e31e2321761bab05509f6e4a5fca555ede2bbfd260"},
+    "LICENSE": {"bytes": 11408, "sha256": "cd2f54e1e5066644023203dcbd956776a9f4ef6eb8b6225afe1ffa2d380fede4"},
+}
+MAX_WORKER_ROUTES_BYTES = 256 * 1024
+
+# OpenMAIC is a separate Node process, never a Python worker route. The five
+# repository-owned files are the same fixed generation subset pinned by Core.
+OPENMAIC_DIRECTORY = "workers/openmaic"
+OPENMAIC_FILES = {
+    "scene-build-worker.mjs": {"bytes": 7315, "sha256": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9"},
+    "vendor/generation-0.3.28/scene-builder.ts": {"bytes": 3082, "sha256": "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a"},
+    "vendor/generation-0.3.28/nanoid.mjs": {"bytes": 389, "sha256": "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e"},
+    "vendor/generation-0.3.28/LICENSE": {"bytes": 1065, "sha256": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"},
+    "vendor/generation-0.3.28/UPSTREAM.md": {"bytes": 1134, "sha256": "83962cee94daba3596fba378867756981c87a8bd7839ced586510643c113d579"},
+}
+OPENMAIC_NODE_MAX_BYTES = 512 * 1024 * 1024
+OPENMAIC_LICENSE_MAX_BYTES = 1_000_000
+
 # The transcript model a candidate ships beside its own interpreter. It sits under `runtime/`
 # because that directory is already a declared bundle resource, so the model travels with the
 # interpreter instead of needing a second resource mapping, a machine-level model library or a
@@ -100,7 +139,7 @@ def present_routes(root: Path) -> list[dict[str, str]]:
     declared: list[dict[str, str]] = []
     for capability in sorted(ROUTE_SCRIPTS):
         for relative in ROUTE_SCRIPTS[capability]:
-            if (root / relative).is_file():
+            if filesystem_path(root / relative).is_file():
                 declared.append({"capability": capability, "script": relative})
                 break
     return declared
@@ -112,6 +151,155 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def detector_route_present(workers: Path) -> bool:
+    """Use the same route candidates as the staged profile, against its input tree."""
+    for relative in ROUTE_SCRIPTS.get("document.detect", ()):
+        parts = PurePosixPath(relative).parts
+        if len(parts) < 2 or parts[0] != "workers" or ".." in parts:
+            raise ValueError("invalid detector route declaration")
+        if filesystem_path(workers.joinpath(*parts[1:])).is_file():
+            return True
+    return False
+
+
+def detector_source_rows() -> dict[str, dict[str, object]]:
+    """Verify exactly the reviewed detector implementation, model, config and licence."""
+    rows = {}
+    for relative, expected in DETECTOR_FILES.items():
+        source = DETECTOR_SOURCE / relative
+        try:
+            reject_reparse(source)
+            observed = growth.row(source)
+        except (OSError, ValueError) as error:
+            raise ValueError(f"detector donor unavailable: {relative}") from error
+        if observed != expected:
+            raise ValueError(f"detector donor identity mismatch: {relative}")
+        rows[relative] = observed
+    return rows
+
+
+def stage_detector(root: Path, expected: dict[str, dict[str, object]]) -> None:
+    """Copy only reviewed, planned inputs; verify both donor and destination."""
+    if detector_source_rows() != expected:
+        raise ValueError("detector donor changed after planning")
+    for relative, identity in expected.items():
+        source, target = DETECTOR_SOURCE / relative, root / relative
+        filesystem_path(target.parent).mkdir(parents=True, exist_ok=True)
+        growth.copy2(source, target)
+        if growth.row(source) != identity or growth.row(target) != identity:
+            raise ValueError(f"detector copy identity mismatch: {relative}")
+
+
+def practice_source_rows(repository: Path) -> dict[str, dict[str, object]] | None:
+    """Select the optional private provider only when its complete pin matches.
+
+    An absent, unqualified or unreadable optional provider leaves ordinary
+    staging available. Once selected in the copy plan, any later change fails
+    the staging run instead of silently changing the selected provider.
+    """
+    source_root = repository / "services/learning-providers/deeptutor"
+    rows = {}
+    try:
+        for relative, expected in PRACTICE_FILES.items():
+            observed = growth.row(source_root / relative)
+            if observed != expected:
+                return None
+            rows[relative] = observed
+    except (OSError, ValueError):
+        return None
+    return rows
+
+
+def practice_routes_payload(source: Path, expected: dict[str, object] | None) -> bytes | None:
+    """Prepare the staged routes file from its already-planned exact bytes."""
+    if expected is None or expected["bytes"] > MAX_WORKER_ROUTES_BYTES:
+        return None
+    with filesystem_path(source).open("rb") as stream:
+        raw = stream.read(int(expected["bytes"]) + 1)
+    if len(raw) != expected["bytes"] or hashlib.sha256(raw).hexdigest() != expected["sha256"]:
+        raise ValueError("worker routes changed during practice planning")
+
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate worker routes field")
+            result[key] = value
+        return result
+
+    try:
+        document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique)
+    except (UnicodeError, ValueError):
+        return None
+    if not isinstance(document, dict) or document.get("schema") != "archeaxis.worker-routes/v1":
+        return None
+    routes = document.get("routes")
+    if not isinstance(routes, dict) or not routes:
+        return None
+    if PRACTICE_CAPABILITY in routes:
+        raise ValueError("private practice route is already present in worker source")
+    if any(not isinstance(name, str) or not isinstance(scripts, list) or not scripts
+           or any(not isinstance(script, str) for script in scripts)
+           for name, scripts in routes.items()):
+        return None
+    routes[PRACTICE_CAPABILITY] = [PRACTICE_SCRIPT.removeprefix("workers/")]
+    payload = (json.dumps(document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    return payload if len(payload) <= MAX_WORKER_ROUTES_BYTES else None
+
+
+def stage_practice_provider(root: Path, plan: dict) -> None:
+    """Copy the selected private closure and publish its staged route map."""
+    repository = plan["repository"]
+    if practice_source_rows(repository) != plan["files"]:
+        raise ValueError("private practice provider changed after planning")
+    source_root = repository / "services/learning-providers/deeptutor"
+    target_root = growth.safe(root / PRACTICE_DIRECTORY)
+    filesystem_path(target_root).mkdir(parents=True, exist_ok=False)
+    for relative, identity in plan["files"].items():
+        source = source_root / relative
+        target = target_root / relative
+        filesystem_path(growth.safe(target.parent)).mkdir(parents=True, exist_ok=True)
+        growth.copy2(source, target)
+        if growth.row(source) != identity or growth.row(target) != identity:
+            raise ValueError(f"private practice provider copy changed: {relative}")
+
+    routes = growth.safe(root / "workers/routes.json")
+    if growth.row(routes) != plan["routes_original"]:
+        raise ValueError("staged worker routes changed before practice registration")
+    payload = plan["routes_payload"]
+    with filesystem_path(routes).open("r+b") as stream:
+        if stream.write(payload) != len(payload):
+            raise OSError("short staged worker routes write")
+        stream.truncate()
+    if growth.row(routes) != {"bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}:
+        raise ValueError("staged worker routes differ from practice plan")
+    if practice_source_rows(repository) != plan["files"]:
+        raise ValueError("private practice provider changed during staging")
+
+
+def verify_openmaic_plan(plan: dict, root: Path | None = None) -> None:
+    """Recheck every selected input and, when present, its independent copy."""
+    for relative, item in plan["files"].items():
+        if growth.row(item["source"]) != item["identity"]:
+            raise ValueError(f"OpenMAIC input changed after planning: {relative}")
+        if root is not None and growth.row(root / OPENMAIC_DIRECTORY / relative) != item["identity"]:
+            raise ValueError(f"OpenMAIC staged input changed: {relative}")
+
+
+def stage_openmaic_provider(root: Path, plan: dict) -> None:
+    """Copy only the seven planned files into a new private provider folder."""
+    verify_openmaic_plan(plan)
+    target_root = growth.safe(root / OPENMAIC_DIRECTORY)
+    filesystem_path(target_root).mkdir(parents=True, exist_ok=False)
+    for relative, item in plan["files"].items():
+        target = target_root / relative
+        filesystem_path(growth.safe(target.parent)).mkdir(parents=True, exist_ok=True)
+        growth.copy2(item["source"], target)
+        if growth.row(target) != item["identity"] or growth.row(item["source"]) != item["identity"]:
+            raise ValueError(f"OpenMAIC input or copy changed: {relative}")
+    verify_openmaic_plan(plan, root)
 
 
 # Approved x64 runtime donors already included in the selected Python runtime.
@@ -336,28 +524,28 @@ def stage_asr_model(model: Path, root: Path, name: str | None = None,
     """
     model = Path(os.path.abspath(model))
     reject_reparse(model)
-    if not model.is_dir():
+    if not filesystem_path(model).is_dir():
         raise ValueError(f"ASR model donor is not a directory: {model}")
     declared_name = (name or model.name).strip()
     if not ASR_MODEL_NAME.fullmatch(declared_name):
         raise ValueError(f"ASR model name is not a safe directory name: {declared_name!r}")
     for required in ASR_MODEL_REQUIRED:
-        if not (model / required).is_file():
+        if not filesystem_path(model / required).is_file():
             raise ValueError(f"ASR model donor has no {required}: {model}")
     target = root / Path(ASR_MODEL_ROOT) / declared_name
-    if target.exists():
+    if filesystem_path(target).exists():
         raise ValueError(f"refusing ASR model overwrite: {target}")
-    target.mkdir(parents=True)
+    filesystem_path(target).mkdir(parents=True)
     files: dict[str, dict[str, object]] = {}
-    for source in sorted(model.iterdir()):
-        if not source.is_file():
+    for source in sorted(ordinary_path(path) for path in filesystem_path(model).iterdir()):
+        if not filesystem_path(source).is_file():
             # A CTranslate2 directory is flat; a nested tree is a different asset shape and is
             # not copied silently as if it were one.
             continue
         reject_links_along(source)
         destination = target / source.name
         growth.copy2(filesystem_path(source), filesystem_path(destination))
-        files[source.name] = {"bytes": destination.stat().st_size, "sha256": sha256(destination)}
+        files[source.name] = {"bytes": filesystem_path(destination).stat().st_size, "sha256": sha256(destination)}
     licence = asr_model_licence(declared_name)
     if license_override:
         licence["asset_license"] = license_override
@@ -373,7 +561,7 @@ def stage_asr_model(model: Path, root: Path, name: str | None = None,
         "bundled_location": f"{ASR_MODEL_ROOT}/{declared_name}",
         "note": "copied from an explicit donor; no download and no search was performed",
     }
-    (target / ASR_MODEL_IDENTITY).write_text(
+    filesystem_path(target / ASR_MODEL_IDENTITY).write_text(
         json.dumps(identity, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     return {"status": "BUNDLED", **identity}
 
@@ -435,15 +623,16 @@ def validate_runtime_tree(source: Path) -> None:
     source = Path(os.path.abspath(source))
     packages = source / "Lib" / "site-packages"
     allowed: set[Path] = set()
-    if packages.is_dir():
+    if filesystem_path(packages).is_dir():
         reject_reparse(packages)
         reject_nested_links(packages)
-        for info in packages.glob("*.dist-info"):
+        for native_info in filesystem_path(packages).glob("*.dist-info"):
+            info = ordinary_path(native_info)
             reject_reparse(info)
             record = info / "RECORD"
-            if not record.is_file():
+            if not filesystem_path(record).is_file():
                 continue
-            for row in csv.reader(record.read_text(encoding="utf-8").splitlines()):
+            for row in csv.reader(filesystem_path(record).read_text(encoding="utf-8").splitlines()):
                 if not row or not row[0]:
                     continue
                 relative = Path(row[0])
@@ -758,7 +947,7 @@ def stage_capability_manifest(root: Path, external_root: Path | None) -> dict:
             measured[name] = entry
         text += "\nartifact_external_root: " + json.dumps(str(external_root)) + "\n"
     target = root / "workers/capability-requirements.yaml"
-    target.write_text(text, encoding="utf-8", newline="\n")
+    filesystem_path(target).write_text(text, encoding="utf-8", newline="\n")
     return {"source_sha256": sha256(source), "artifact_path": "workers/capability-requirements.yaml",
             "artifact_sha256": sha256(target), "external_root": str(external_root) if external_root else None,
             "ocr_paths": measured}
@@ -827,9 +1016,9 @@ def expected_model_members(model: Path, name: str | None) -> dict:
     if not ASR_MODEL_NAME.fullmatch(declared):
         raise ValueError("unsafe prepared ASR model name")
     rows = {}
-    for source in sorted(model.iterdir()):
+    for source in sorted(ordinary_path(path) for path in filesystem_path(model).iterdir()):
         reject_reparse(source)
-        if source.is_file():
+        if filesystem_path(source).is_file():
             info = filesystem_path(source).lstat()
             if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
                 raise ValueError("prepared ASR donor requires independent regular files")
@@ -841,6 +1030,15 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
     """Enumerate only actual selected donors, never an entire dependency source."""
     inputs = {}
     total = 0
+    # A caller may omit repository in a direct unit test. Infer it only from the
+    # canonical services/python-workers layout, never from this module's own
+    # checkout when the worker donor belongs to a different fixture/worktree.
+    if repository is not None:
+        provider_repository = Path(repository).absolute()
+    elif args.workers.name == "python-workers" and args.workers.parent.name == "services":
+        provider_repository = args.workers.absolute().parent.parent
+    else:
+        provider_repository = None
     validate_tree(args.workers)
     if not in_place:
         validate_runtime_tree(args.runtime)
@@ -865,6 +1063,76 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
     tree(source, validate=reject_reparse if in_place else None,
          interpreter_binding=args._interpreter_binding if in_place else None)
     tree(args.workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    args._practice_plan = None
+    practice_rows = practice_source_rows(provider_repository) if provider_repository is not None else None
+    if practice_rows is not None:
+        route_source = growth.plain(args.workers / "routes.json")
+        route_original = inputs.get(route_source)
+        payload = practice_routes_payload(route_source, route_original)
+        if payload is not None:
+            try:
+                filesystem_path(args.workers / "deeptutor").lstat()
+            except FileNotFoundError:
+                pass
+            else:
+                raise ValueError("private practice output conflicts with worker donor")
+            for relative, identity in practice_rows.items():
+                donor = provider_repository / "services/learning-providers/deeptutor" / relative
+                add(donor)
+                if inputs[growth.plain(donor)] != identity:
+                    raise ValueError(f"private practice provider changed during planning: {relative}")
+            args._practice_plan = {"repository": provider_repository, "files": practice_rows,
+                                   "routes_source": route_source, "routes_original": route_original,
+                                   "routes_payload": payload}
+            # The source routes file is copied first and then rewritten in the
+            # fresh output; count the full generated replacement conservatively.
+            total += len(payload)
+    args._openmaic_plan = None
+    node = getattr(args, "openmaic_node", None)
+    node_sha = getattr(args, "openmaic_node_sha256", None)
+    node_license = getattr(args, "openmaic_node_license", None)
+    supplied = (node is not None, node_sha is not None, node_license is not None)
+    if any(supplied):
+        if not all(supplied):
+            raise ValueError("OpenMAIC requires an explicit Node file, SHA-256, and Node license")
+        if not re.fullmatch(r"[a-f0-9]{64}", node_sha):
+            raise ValueError("OpenMAIC Node SHA-256 must be 64 lowercase hexadecimal characters")
+        if provider_repository is None:
+            raise ValueError("OpenMAIC requires an explicit provider repository")
+        node, node_license = growth.safe(node), growth.safe(node_license)
+        reject_reparse(node)
+        reject_reparse(node_license)
+        if node == node_license:
+            raise ValueError("OpenMAIC Node and license must be separate files")
+        for source, limit in ((node, OPENMAIC_NODE_MAX_BYTES), (node_license, OPENMAIC_LICENSE_MAX_BYTES)):
+            size = filesystem_path(source).stat().st_size
+            if size <= 0 or size > limit:
+                raise ValueError("OpenMAIC Node or license size is out of bounds")
+        try:
+            filesystem_path(args.workers / "openmaic").lstat()
+        except FileNotFoundError:
+            pass
+        else:
+            raise ValueError("OpenMAIC output conflicts with worker donor")
+        source_root = provider_repository / "services/learning-providers/openmaic"
+        sources = {name: source_root / name for name in OPENMAIC_FILES}
+        sources.update({"node.exe": node, "NODE-LICENSE": node_license})
+        selected = {}
+        for relative, source in sources.items():
+            add(source)
+            identity = inputs[growth.plain(source)]
+            expected = OPENMAIC_FILES.get(relative)
+            if (expected is not None and identity != expected) or (relative == "node.exe" and identity["sha256"] != node_sha):
+                raise ValueError(f"OpenMAIC input identity mismatch: {relative}")
+            selected[relative] = {"source": growth.plain(source), "identity": identity}
+        args._openmaic_plan = {"files": selected, "node_sha256": node_sha}
+    args._detector_plan = detector_source_rows() if detector_route_present(args.workers) else None
+    if args._detector_plan is not None:
+        for relative, identity in args._detector_plan.items():
+            donor = DETECTOR_SOURCE / relative
+            add(donor)
+            if inputs[growth.plain(donor)] != identity:
+                raise ValueError(f"detector donor changed during planning: {relative}")
     core = growth.plain(args.core)
     args._core_input = growth.core_row(core, repository=repository)
     inputs[core] = args._core_input
@@ -879,8 +1147,8 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
         add(vc / name, 3 if name in APP_LOCAL_VC_RUNTIME else 1)
     if args.asr_model:
         reject_reparse(args.asr_model)
-        for member in args.asr_model.iterdir():
-            if member.is_file():
+        for member in (ordinary_path(path) for path in filesystem_path(args.asr_model).iterdir()):
+            if filesystem_path(member).is_file():
                 add(member, upstream=True)
     if args.webview2_runtime:
         validate_fixed_webview2(args.webview2_runtime.absolute(), args.webview2_manifest.absolute())
@@ -946,6 +1214,12 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
                         help="directory name under the ASR model root; defaults to the donor's own name")
     parser.add_argument("--asr-model-license",
                         help="licence text asserted for a donor whose upstream terms are not recognised by name")
+    parser.add_argument("--openmaic-node", type=Path,
+                        help="explicit local Node executable for the optional OpenMAIC worker")
+    parser.add_argument("--openmaic-node-sha256",
+                        help="expected lowercase SHA-256 of the explicitly supplied Node executable")
+    parser.add_argument("--openmaic-node-license", type=Path,
+                        help="explicit local Node licence file copied alongside the executable")
     parser.add_argument("--run-id")
     parser.add_argument("--storage-purpose")
     parser.add_argument("--storage-sharing")
@@ -985,6 +1259,17 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
 
 
 def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
+    detector_plan = getattr(args, "_detector_plan", None)
+    practice_plan = getattr(args, "_practice_plan", None)
+    openmaic_plan = getattr(args, "_openmaic_plan", None)
+    if openmaic_plan is not None:
+        verify_openmaic_plan(openmaic_plan)
+    if practice_plan is not None and practice_source_rows(practice_plan["repository"]) != practice_plan["files"]:
+        raise ValueError("private practice provider changed after planning")
+    if detector_route_present(args.workers) != (detector_plan is not None):
+        raise ValueError("detector route changed after planning")
+    if detector_plan is not None and detector_source_rows() != detector_plan:
+        raise ValueError("detector donor changed after planning")
     if bool(args.webview2_runtime) != bool(args.webview2_manifest):
         raise ValueError("fixed WebView2 requires both runtime and manifest")
     if args.webview2_runtime:
@@ -1014,7 +1299,7 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     prepared_owner = None
     if _runtime_preparer is not None:
         if (args.vc_runtime is None or args.dep or args.webview2_runtime or args.archive):
-            raise ValueError("in-place producer supports only explicit VC and optional ASR inputs")
+            raise ValueError("in-place producer supports explicit VC and optional ASR/OpenMAIC inputs")
         root = args.out.absolute()
         prepared_owner = prepared_context(root, args.runtime, _runtime_environment)
         if root.exists():
@@ -1070,6 +1355,10 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     app_local_webview2 = (stage_fixed_webview2(args.webview2_runtime.absolute(),
                          args.webview2_manifest.absolute(), root) if args.webview2_runtime else None)
     copy_tree(args.workers, root / "workers")
+    if practice_plan is not None:
+        stage_practice_provider(root, practice_plan)
+    if openmaic_plan is not None:
+        stage_openmaic_provider(root, openmaic_plan)
     capability_manifest = stage_capability_manifest(root, args.external_root)
     # The transcript model travels with the runtime, which is already a bundle resource: an
     # installed machine needs no shared model library and no first-run download. When no donor
@@ -1110,6 +1399,9 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
             raise ValueError(f"document-check donor is missing: {relative}")
         growth.copy2(donor, root / "shared" / name)
 
+    if detector_plan is not None:
+        stage_detector(root, detector_plan)
+
 
     site_packages = root / "runtime" / "Lib" / "site-packages"
     dependencies = []
@@ -1126,6 +1418,11 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         "staging": "data/worker-staging",
     }
     declared_routes = present_routes(root)
+    if practice_plan is not None:
+        declared_routes.append({"capability": PRACTICE_CAPABILITY, "script": PRACTICE_SCRIPT})
+        declared_routes.sort(key=lambda route: route["capability"])
+    if any(route["capability"] == "document.detect" for route in declared_routes) != (detector_plan is not None):
+        raise ValueError("staged detector route differs from the copy plan")
     if declared_routes:
         profile["routes"] = declared_routes
     profile_path = root / "worker-profile.json"
@@ -1160,6 +1457,23 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
         files[relative] = {"bytes": filesystem_path(path).stat().st_size, "sha256": sha256(path)}
+    if detector_plan is not None:
+        if detector_source_rows() != detector_plan or any(files.get(name) != row for name, row in detector_plan.items()):
+            raise ValueError("detector inputs or staged manifest inventory changed")
+    if practice_plan is not None:
+        routes_payload = practice_plan["routes_payload"]
+        routes_identity = {"bytes": len(routes_payload), "sha256": hashlib.sha256(routes_payload).hexdigest()}
+        if (practice_source_rows(practice_plan["repository"]) != practice_plan["files"]
+                or growth.row(practice_plan["routes_source"]) != practice_plan["routes_original"]
+                or files.get("workers/routes.json") != routes_identity
+                or any(files.get(f"{PRACTICE_DIRECTORY}/{name}") != row
+                       for name, row in practice_plan["files"].items())):
+            raise ValueError("private practice provider or staged manifest inventory changed")
+    if openmaic_plan is not None:
+        verify_openmaic_plan(openmaic_plan, root)
+        if any(files.get(f"{OPENMAIC_DIRECTORY}/{name}") != item["identity"]
+               for name, item in openmaic_plan["files"].items()):
+            raise ValueError("OpenMAIC staged manifest inventory changed")
 
     manifest = {
         "schema": MANIFEST_SCHEMA,
@@ -1211,6 +1525,16 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
              "note": asr_model.get("reason") or "shipped with the runtime; discovered by the transcribe worker"},
         ],
         "dependencies": dependencies,
+        "deeptutor_practice_import": {
+            "status": "INCLUDED" if practice_plan is not None else "NOT_INCLUDED",
+            "protocol": "private one-shot; Core-controlled only",
+            "provider_version": "1.7.1",
+            "route": PRACTICE_CAPABILITY if practice_plan is not None else None,
+        },
+        "openmaic_scene_build": {
+            "status": "INCLUDED" if openmaic_plan is not None else "NOT_INCLUDED",
+            "node_sha256": openmaic_plan["node_sha256"] if openmaic_plan is not None else None,
+        },
         "asr_model": asr_model,
         "capability_manifest": capability_manifest,
         "app_local_vc_runtime": app_local_vc,
@@ -1240,8 +1564,31 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
             "run_root": _runtime_environment["ARCHEAXIS_RUN_ROOT"],
             "host_runtime_tree_copies": 1, "intermediate_runtime_tree_copies": 0}
     manifest_path = root / "backend-runtime-manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
-                             encoding="utf-8", newline="\n")
+    filesystem_path(manifest_path).write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+                                              encoding="utf-8", newline="\n")
+    if detector_plan is not None:
+        recorded = json.loads(filesystem_path(manifest_path).read_text(encoding="utf-8"))
+        if (any(recorded.get("files", {}).get(name) != row or growth.row(root / name) != row
+                for name, row in detector_plan.items()) or detector_source_rows() != detector_plan):
+            raise ValueError("detector final manifest or staged bytes changed")
+    if practice_plan is not None:
+        recorded = json.loads(filesystem_path(manifest_path).read_text(encoding="utf-8"))
+        final_files = {f"{PRACTICE_DIRECTORY}/{name}": row for name, row in practice_plan["files"].items()}
+        routes_payload = practice_plan["routes_payload"]
+        final_files["workers/routes.json"] = {
+            "bytes": len(routes_payload), "sha256": hashlib.sha256(routes_payload).hexdigest()}
+        if (practice_source_rows(practice_plan["repository"]) != practice_plan["files"]
+                or growth.row(practice_plan["routes_source"]) != practice_plan["routes_original"]
+                or any(recorded.get("files", {}).get(name) != row or growth.row(root / name) != row
+                       for name, row in final_files.items())):
+            raise ValueError("private practice final manifest or staged bytes changed")
+    if openmaic_plan is not None:
+        recorded = json.loads(filesystem_path(manifest_path).read_text(encoding="utf-8"))
+        verify_openmaic_plan(openmaic_plan, root)
+        if (recorded.get("openmaic_scene_build") != manifest["openmaic_scene_build"]
+                or any(recorded.get("files", {}).get(f"{OPENMAIC_DIRECTORY}/{name}") != item["identity"]
+                       for name, item in openmaic_plan["files"].items())):
+            raise ValueError("OpenMAIC final manifest changed")
 
     archive_path = None
     if args.archive:
