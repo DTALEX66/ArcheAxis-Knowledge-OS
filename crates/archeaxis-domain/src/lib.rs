@@ -40,6 +40,10 @@ pub mod vault_members;
 
 pub use source::ImportOutcome;
 pub mod portable_document;
+pub mod provider_material_grant;
+pub mod provider_learning;
+pub mod provider_question;
+pub(crate) mod provider_grade;
 
 pub mod configuration_plans;
 pub mod material_question;

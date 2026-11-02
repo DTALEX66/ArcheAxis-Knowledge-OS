@@ -464,6 +464,7 @@ fn damaged_media_and_invalid_editor_leave_no_registered_partial_state() {
     for namespace in [
         "archeaxis_context_grant",
         "archeaxis_asset_context_grant",
+        "archeaxis_provider_material_grant",
         "archeaxis_ai_asset",
         "archeaxis_machine_evaluation",
         "archeaxis_machine_rubric",

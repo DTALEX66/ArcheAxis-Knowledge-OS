@@ -117,3 +117,10 @@ docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json -text whitespa
 docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json -text whitespace=cr-at-eol,-blank-at-eol
 docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md -text whitespace=cr-at-eol,-blank-at-eol
+
+# Exact licensed learning-provider bytes for the diagnostic candidate.
+services/learning-providers/deeptutor/upstream/answers.py -text
+services/learning-providers/deeptutor/upstream/importing.py -text
+services/learning-providers/deeptutor/upstream/THIRD_PARTY_NOTICES.md -text
+services/learning-providers/deeptutor/LICENSE -text
+services/learning-providers/openmaic/vendor/generation-0.3.28/LICENSE -text

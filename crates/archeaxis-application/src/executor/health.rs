@@ -2,6 +2,36 @@
 use super::*;
 use std::io::{BufRead, BufReader};
 
+/// Node's fixed derived hello; no model, user content, or business task is sent.
+pub(super) fn probe_node(staging: &Path, node: &Path, node_sha: &str, worker: &Path) -> serde_json::Value {
+    let checked_at = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64).unwrap_or_default();
+    let (status, checked) = if !file_usable(worker) {
+        ("worker_missing", Err("worker file does not exist".to_string()))
+    } else if !file_usable(node) {
+        ("interpreter_missing", Err("Node executable does not exist".to_string()))
+    } else if !derived::executable_matches(node, node_sha) || !derived::openmaic_worker_matches(worker) {
+        ("handshake_failed", Err("Node or provider identity mismatch".to_string()))
+    } else {
+        let checked = derived::node_hello(staging, node, worker, Duration::from_secs(2)).and_then(|value| {
+            let doc = &value["document"];
+            if value["exit_code"] != 0 || doc["schema"] != "archeaxis.derived-worker-hello/v1"
+                || doc["capability"] != "course.openmaic.scene-build" || doc["version"] != 1
+                || doc["upstream_generation"] != "0.3.28" || doc["core_transport"] != "NOT_CONNECTED" {
+                return Err("incompatible OpenMAIC Node hello".into());
+            }
+            Ok(())
+        });
+        (if checked.is_ok() { "handshake_ready" } else { "handshake_failed" }, checked)
+    };
+    serde_json::json!({"status":status,
+        "checked_at_unix_ms":checked_at, "worker_identity":if checked.is_ok() {Some("course.openmaic.scene-build")} else {None},
+        "runtime_dependency":null, "reason":checked.err(), "task_executed":false,
+        "timeout_ms":null, "hello_timeout_ms":2000,
+        "protocol":"archeaxis.derived-worker-hello/v1",
+        "basis":"Pinned Node and worker bytes plus an input-free hello; the hello has a 2-second timeout, identity hashing is outside it; no task, model, persistent job or installed-runtime qualification"})
+}
+
 pub(super) fn probe(
     staging: &Path,
     python: &Path,

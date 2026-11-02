@@ -1,8 +1,9 @@
 use super::*;
 use archeaxis_domain::{configuration_plans as plans, model_configuration};
 
-/// Reads one consistent store snapshot and registered route names only. No path inspection,
-/// credentials, service probe, model discovery, worker launch or installation.
+/// Reads one consistent store snapshot and registered capability names only. The Node
+/// provider is checked through its dedicated typed launch registration, not as a Python route.
+/// No path inspection, credentials, service probe, worker launch or installation.
 pub async fn get(State(runtime): State<Runtime>) -> Response {
     let mut names: Vec<String> = runtime
         .executor
@@ -10,6 +11,9 @@ pub async fn get(State(runtime): State<Runtime>) -> Response {
         .into_iter()
         .map(|r| r.0.to_owned())
         .collect();
+    if runtime.executor.openmaic_node_paths().is_some() {
+        names.push("course.openmaic.scene-build".to_string());
+    }
     names.sort();
     names.dedup();
     match runtime

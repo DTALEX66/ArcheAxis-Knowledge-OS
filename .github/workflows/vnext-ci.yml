@@ -67,6 +67,19 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
+      - name: Set up Node for the OpenMAIC scene worker
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: '24.21.0'
+      - name: DeepTutor synthetic practice through Python and Core
+        shell: pwsh
+        run: cargo test --locked -p archeaxis-api --test deeptutor_practice_import -- --ignored
+      - name: OpenMAIC synthetic scene through Node and Core
+        shell: pwsh
+        run: |
+          $env:ARCHEAXIS_TEST_NODE = (Get-Command node.exe -ErrorAction Stop).Source
+          $env:ARCHEAXIS_TEST_NODE_SHA256 = (Get-FileHash -LiteralPath $env:ARCHEAXIS_TEST_NODE -Algorithm SHA256).Hash.ToLowerInvariant()
+          cargo test --locked -p archeaxis-api --test openmaic_scene_runtime -- --ignored
       - name: cargo test (workspace)
         shell: bash
         run: cargo test --workspace --locked

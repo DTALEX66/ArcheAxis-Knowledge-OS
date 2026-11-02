@@ -28,6 +28,8 @@ use serde_json::json;
 use archeaxis_application::executor::Executor;
 use archeaxis_store_sqlite::capability_settings;
 
+const OPENMAIC_SCENE_BUILD: &str = "course.openmaic.scene-build";
+
 /// File presence supports route selection; the live hello observation supplies health separately.
 fn file_exists(path: &Path) -> bool {
     std::fs::metadata(path)
@@ -188,11 +190,34 @@ fn registered_record(
     )
 }
 
+/// The optional Node provider is a distinct launch profile, never a Python route.
+fn openmaic_record(
+    executor: &Executor,
+    disabled: &HashSet<String>,
+    readable: bool,
+) -> Option<serde_json::Value> {
+    let (node, worker, executable_sha256) = executor.openmaic_node_paths()?;
+    let mut record = capability_record(
+        OPENMAIC_SCENE_BUILD,
+        worker,
+        false,
+        node,
+        disabled,
+        readable,
+        worker,
+        None,
+    );
+    record["provider"]["kind"] = "node-worker".into();
+    record["provider"]["executable_sha256"] = executable_sha256.into();
+    record["provider"]["version_qualification"] = "not_established".into();
+    Some(record)
+}
+
 /// The whole registry.
 pub async fn list(executor: &Executor) -> Response {
     let (disabled, readable) = disabled_and_readable(executor).await;
     let routes = executor.registered_routes();
-    let records: Vec<serde_json::Value> = routes
+    let mut records: Vec<serde_json::Value> = routes
         .iter()
         .map(|(capability, worker, site_packages)| {
             registered_record(
@@ -205,6 +230,9 @@ pub async fn list(executor: &Executor) -> Response {
             )
         })
         .collect();
+    if let Some(record) = openmaic_record(executor, &disabled, readable) {
+        records.push(record);
+    }
     // Preserve declaration order while the executor limits live probes to four.
     let probes: Vec<_> = records
         .into_iter()
@@ -278,6 +306,26 @@ async fn read_record(executor: &Executor, capability: &str, observe_health: bool
                 .await,
         );
     }
+    if capability == OPENMAIC_SCENE_BUILD {
+        let (disabled, readable) = disabled_and_readable(executor).await;
+        let Some(record) = openmaic_record(executor, &disabled, readable) else {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("no capability is registered as {capability}"),
+            )
+                .into_response();
+        };
+        let record = if observe_health {
+            observed_record(executor.clone(), record).await
+        } else {
+            record
+        };
+        return Json(json!({
+            "schema": "archeaxis.capability/v1",
+            "capability": record,
+        }))
+        .into_response();
+    }
     // Registration is checked first: a capability that does not exist cannot be enabled, disabled or
     // reported, and saying "not found" is more useful than answering about its settings.
     let registered = executor
@@ -324,7 +372,9 @@ pub async fn set_enabled(executor: &Executor, capability: &str, enabled: bool) -
                 .await,
         );
     }
-    let registered = executor
+    let registered = (capability == OPENMAIC_SCENE_BUILD
+        && executor.openmaic_node_paths().is_some())
+        || executor
         .registered_routes()
         .iter()
         .any(|(name, _, _)| *name == capability);
@@ -336,6 +386,16 @@ pub async fn set_enabled(executor: &Executor, capability: &str, enabled: bool) -
             format!("no capability is registered as {capability}"),
         )
             .into_response();
+    }
+    if capability == OPENMAIC_SCENE_BUILD {
+        return match executor.set_openmaic_enabled(enabled).await {
+            Ok(()) => read_record(executor, capability, false).await,
+            Err(_) => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "the capability record could not be written",
+            )
+                .into_response(),
+        };
     }
     let owned = capability.to_string();
     let written = executor

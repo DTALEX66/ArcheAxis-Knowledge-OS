@@ -307,3 +307,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+
+## Learning-provider source used by the diagnostic candidate
+
+Selected DeepTutor 1.7.1 source is Apache-2.0; see services/learning-providers/deeptutor/LICENSE and upstream/THIRD_PARTY_NOTICES.md.
+The OpenMAIC generation scene builder is MIT; see services/learning-providers/openmaic/vendor/generation-0.3.28/LICENSE and UPSTREAM.md.
+This source diagnostic does not establish a qualified product distribution.

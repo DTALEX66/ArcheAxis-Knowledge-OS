@@ -21,6 +21,7 @@ mod ocr_locator;
 mod pdf_locator;
 pub mod project_handoff;
 mod project_handoff_preview;
+mod provider_learning;
 pub mod project_observer;
 pub mod runtime;
 pub mod session_shutdown;
@@ -285,6 +286,12 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         )
         .route("/api/v1/learning/events", post(record_learning_event))
         .route("/api/v1/learning/reviews", post(record_stateful_review))
+        .route("/api/v1/learning/deeptutor/question-view", post(provider_learning::question_view))
+        .route("/api/v1/learning/provider-activities", post(provider_learning::create))
+        .route("/api/v1/learning/provider-activities/:activity_id", get(provider_learning::read))
+        .route("/api/v1/learning/provider-activities/:activity_id/attempts", post(provider_learning::start))
+        .route("/api/v1/learning/provider-activities/:activity_id/attempts/:attempt_id/submit", post(provider_learning::submit))
+        .route("/api/v1/learning/provider-activities/:activity_id/attempts/:attempt_id/cancel", post(provider_learning::cancel))
         .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/learning/items", get(learning_items))
         .route(
