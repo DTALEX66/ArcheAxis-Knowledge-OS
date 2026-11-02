@@ -3693,3 +3693,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - **重启真实Core进程**（同一workspace、新session_hex）后：处置仍为COMPLETED且dispatch秒相同；同一事件重放返回200 `duplicate=true`、`provider_correct=true`（不二次运行grader）。
 - 回执：`.project-local/runs/be268a2d33/real-core-journey-20261103/artifacts/journey-receipt.json`；二进制保留以便复跑。验证后再次退役本次重建的Cargo debug deps/incremental（1.17 GiB + 0.90 GiB），回执`cleanup-receipt-round9.json`；`.project-local`约24.51 GiB。
 - 边界（不写成安装态）：真实Core进程/HTTP/SQLite写者/固定worker都用真，但这是**debug开发二进制 + 合成材料、无模型/网络**，不是安装包、不是Tauri宿主、不是真实用户数据、也不是Owner接受；该旅程目前是已记录的人工运行，**尚未编码为自动回归测试**。两个Core进程均已停止，端口已释放。
+
+#### 2026-11-03 真实Core旅程固化为可重复命令
+
+- PR #223（`188e1f97`）以merge commit `b98bc39d15d0d29025ccc9a69c8e1a7f88485122`合并，新增`scripts/ci/real_core_grading_journey.py`（仅标准库）：以stdin launch JSON + launch token启动调用者指定的`archeaxis-api`二进制，真实HTTP走完 材料→真实私有出题（校验受限视图不含答案）→双version-bound grant→activity/attempt→正式practice-grade（校验`provider_correct=true`与固定upstream SHA）→`grade_disposition=COMPLETED`→重启同一workspace→处置不变→同事件重放`duplicate=true`；输出/可选写入JSON回执，始终停止Core，失败非零退出并指出步骤。
+- 本地验证：对保留debug二进制运行该命令**exit 0**，全部步骤通过；回执`.project-local/runs/be268a2d33/real-core-journey-auto-20261103/artifacts/journey-receipt.json`；ruff、py_compile、worktree约定检查通过。
+- 精确SHA门禁：run 41499288802中`gateplan` pass、`lint` 1m29s pass、`a0-gates` 28s pass，其余门禁由gateplan跳过。
+- 边界：CI无构建好的Core二进制，因此这是**面向调用者指定二进制的资格命令**，不是CI门禁、不静默skip；仍不等于安装包/Tauri宿主/真实数据/Owner接受。
