@@ -917,6 +917,85 @@ pub fn reconcile_stale_dispatch(
     Ok(Reconciled::Abandoned)
 }
 
+/// Result of the one-shot restart reconciliation.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct RestartFinalization {
+    /// Dispatched claims older than the grace window that are now terminal UNKNOWN.
+    pub abandoned: usize,
+    /// Claim pairs too damaged to prove identity or age; left untouched.
+    pub skipped: usize,
+    /// Dispatched claims still inside the grace window; left untouched.
+    pub recent: usize,
+}
+
+/// Finalize grading dispatches left over from a previous Core process.
+///
+/// A Core restart cannot complete a claim that the previous process dispatched:
+/// the owned bridge is gone, so no receipt can arrive. The function marks
+/// `DISPATCHED` claims terminal UNKNOWN only when their recorded dispatch second is
+/// older than `grace`, which must cover the maximum grading budget plus transport
+/// margin. A younger claim is left untouched so a second process that is still
+/// grading cannot be cancelled, and a claim without a trusted dispatch second is
+/// never guessed stale. It never launches, re-sends or retries a worker; repeating
+/// it is a no-op once claims are terminal.
+pub fn abandon_dispatched_after_restart(
+    conn: &mut Connection,
+    grace: Duration,
+) -> Result<RestartFinalization> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let keys = {
+        let mut statement =
+            tx.prepare("SELECT key FROM workspace_meta WHERE key GLOB 'provider_grade_attempt_*'")?;
+        let rows = statement.query_map([], |row| row.get::<_, String>(0))?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()?
+    };
+    let now = learning::now()?;
+    let mut result = RestartFinalization::default();
+    for key in keys {
+        let Some(raw) = bounded_value(&tx, &key)? else {
+            result.skipped += 1;
+            continue;
+        };
+        let Ok(claim) = serde_json::from_str::<Claim>(&raw) else {
+            result.skipped += 1;
+            continue;
+        };
+        if !valid_claim(&key, &claim) {
+            result.skipped += 1;
+            continue;
+        }
+        if claim.state != "DISPATCHED" {
+            continue;
+        }
+        let event_index = event_key(&claim.client_event_id);
+        let Some(index_raw) = bounded_value(&tx, &event_index)? else {
+            result.skipped += 1;
+            continue;
+        };
+        let Ok(index) = serde_json::from_str::<EventIndex>(&index_raw) else {
+            result.skipped += 1;
+            continue;
+        };
+        if !valid_pair(&event_index, &index, &key, &claim, &raw) {
+            result.skipped += 1;
+            continue;
+        }
+        let Some(dispatched_at) = read_dispatch_time(&tx, &claim.client_event_id)? else {
+            continue;
+        };
+        if now < dispatched_at.saturating_add(grace.as_secs()) {
+            result.recent += 1;
+            continue;
+        }
+        let mut unknown = claim;
+        unknown.state = "UNKNOWN".into();
+        store_claim(&tx, &unknown, false)?;
+        result.abandoned += 1;
+    }
+    tx.commit()?;
+    Ok(result)
+}
+
 /// Commit checks the earlier grant expiry immediately before SQLite COMMIT.
 /// COMMIT itself can block or cross a wall-clock boundary; this function cannot
 /// prove that durable publication finished before an expiry or clock jump.
