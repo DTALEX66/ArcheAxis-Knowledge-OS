@@ -160,6 +160,24 @@ fn tracked_real_core_journey_command_passes_against_this_build() {
         .find(|step| step["step"] == "startup finalization of stale dispatch")
         .expect("startup finalization step");
     assert_eq!(finalized["state"], "UNKNOWN");
+    // A live backup publishes a verified artifact, its list survives a restart and
+    // the restore preview verifies the same bytes without restoring.
+    let backup = steps
+        .iter()
+        .find(|step| step["step"] == "live workspace backup")
+        .expect("live backup step");
+    assert_eq!(backup["status"], 201);
+    assert_eq!(backup["verified"], true);
+    let listed = steps
+        .iter()
+        .find(|step| step["step"] == "backup list survives restart")
+        .expect("backup list step");
+    assert!(listed["backups"].as_u64().unwrap_or(0) >= 1);
+    let preview = steps
+        .iter()
+        .find(|step| step["step"] == "restore preview verifies the backup")
+        .expect("restore preview step");
+    assert_eq!(preview["verified"], true);
     // The workspace database is a real Core SQLite file, not an in-memory stub.
     assert!(workspace.join("workspace.sqlite").is_file());
 }
