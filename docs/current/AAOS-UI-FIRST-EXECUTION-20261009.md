@@ -3635,4 +3635,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 保留的拒绝：171个pytest-tmp目录共1,173,843,179 B因内部路径**Access denied**未能删除；这些树来自先前项目权限/ACL测试，**未做ACL绕过、未换通道重试**，原样保留。
 - 会话自有scratch：删除15项本次会话生成的临时文件/目录（CI日志副本、gitleaks工具副本、临时脚本、PR正文草稿、本地worker run root、`C:\aaos-tmp`），共32,205,007 B；均非引用证据。
 - 明确未清理（留给既有登记）：`runs/be268a2d33`下cnprep3、ui-small-final-portable、cppcand1、zc1c8、bpr1、cppns2、sci-build1等大候选叶仍按`remaining-runs-review-20261031`登记与各自消费者判断保留；`rt/`、`build/cargo`、`archives/`与界面审计截图目录同样保留。
-- 回执：`.project-local/runs/be268a2d33/cleanup-20261102/artifacts/cleanup-receipt.json`（schema `aaos.local-tmp-cleanup/v1`）。边界：这是可再生测试scratch清理，不是产品/证据/资格/Owner接受变化，不滚动增长基线、不放宽门禁。
+- 回执：`.project-local/runs/be268a2d33/cleanup-20261102/artifacts/cleanup-receipt.json`（schema `aaos.local-tmp-cleanup/v1`）。边界：这是可再生测试scratch清理，不是产品/证据/资格/Owner接受变化，不滚动基线、不放宽门禁。
+
+#### 2026-11-03 评分DISPATCHED残留：只读处置与有界终态对账
+
+- PR #212（`9a992b4b`+`cdc5ad16`）以merge commit`c0da929ce22f5be55171c8292abdd401e2c4ce8d`合并，前后远端/本地main一致。内容：`begin_dispatch`在同一写事务记录dispatch的wall-clock秒（按精确client event键，后续事件不继承旧时间）；`disposition(activity, attempt)`只读投影claim状态与dispatch秒，activity GET路由按attempt附加`grade_disposition`；`reconcile_stale_dispatch`仅在调用者给定窗口（60s评分预算+30s余量）相对记录秒已关闭时把DISPATCHED置UNKNOWN，**永不启动/重发/重试worker**，无记录秒则视为未证过期原样保留，终态后重复调用no-op；评分重试路径在admission前调用它，因此同一事件仍是只读UNKNOWN，新attempt走自己的claim。HTTP合同第236/242行同步说明。
+- 精确SHA门禁：run 41475717004中`lint`通过；`rust-vnext`首轮失败于`material_question_api`的`wait_started` 15秒超时（并行负载下cold Python启动），**同SHA重跑**后`rust-vnext` 16m40s通过、`a0-gates`通过、run success。该超时属负载敏感flaky，保留记录。
+- 本PR自身被CI抓到一个真实回归：lib单测`assert_no_plaintext`原断言恰好2个`provider_grade_`键，dispatch秒使计数变3而失败；已改为接受2或3个键并继续断言不含答案/答案键明文，随后`archeaxis-domain --lib` 88/88。
+- 本地验证：`cargo check -p archeaxis-api -p archeaxis-domain --all-targets` exit 0；`provider_grade_chain` 9/9（新增3项：dispatch秒跨重启读回；窗口未到与无记录秒均拒绝、过期后置UNKNOWN；终态可重复且同事件不会二次启动）；`deeptutor_practice_import` 4 passed/1既有ignored（真实固定worker，journey新增`grade_disposition=COMPLETED`读回断言）；`provider_learning_api` 2/2；合同route/number 15 passed；改动文件rustfmt clean。
+- 边界与未证：没有后台自动对账任务，陈旧claim只在重试或显式调用时终结；UNKNOWN不会变成"可重试的已确认失败"；安装态、真实用户数据、模型质量仍未验证。本地全workspace测试另遇`oss_template_reuse`对可选解析引擎的本地环境依赖失败（CI锁定依赖下此前通过），不作为本变更证据。

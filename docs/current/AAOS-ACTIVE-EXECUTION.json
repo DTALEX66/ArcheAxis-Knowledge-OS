@@ -185,6 +185,18 @@
         "local_verification_only": "rustfmt on the bridge, contract generators and --check variants, 77 contract/authority tests, staging and bridge suites (the single Windows >260-char temp-path staging failure passes with a short basetemp). The Tauri host compiles in CI, not locally; no installed grading journey was run.",
         "retained_flake": "document_cloud_loop synthetic worker timeouts remain a load-sensitive flake; not hidden or fixed by this record."
       },
+      "grading_disposition_20261102": {
+        "pull_request": 212,
+        "merge_commit": "c0da929ce22f5be55171c8292abdd401e2c4ce8d",
+        "merged_at": "2026-11-02T16:25:07Z",
+        "remote_main_after_merge": "c0da929ce22f5be55171c8292abdd401e2c4ce8d",
+        "scope": "begin_dispatch records the dispatch wall-clock second in the same write transaction, keyed by the exact client event; disposition(activity, attempt) projects the durable claim state and that second read-only, and the activity GET route attaches it per attempt as grade_disposition; reconcile_stale_dispatch finalizes a DISPATCHED claim as UNKNOWN only after the caller-supplied window (60s grading budget + 30s margin) has closed against the recorded second, never starting or retrying a worker; the grade retry path calls it before admission so the same event stays read-only UNKNOWN.",
+        "required_gate_verdict": "Run 41475717004: lint passed; rust-vnext failed once on material_question_api wait_started 15s timeout under runner load, then passed on the same-SHA rerun in 16m40s and a0-gates passed. gateplan skipped the other gates for this path set.",
+        "ci_caught_regression": "The first exact-SHA run failed on our own unit-test assumption: assert_no_plaintext counted exactly two provider_grade keys and a dispatched claim now stores a third. Fixed by accepting two or three keys while still asserting no answer/key plaintext; domain lib then passed 88/88 locally.",
+        "local_verification_only": "cargo check --all-targets; archeaxis-domain --lib 88/88; provider_grade_chain 9/9 with three new tests (dispatch second survives restart; reconcile refuses before the window and without a recorded second; terminal state is repeat-safe with no second launch); deeptutor_practice_import 4 passed + 1 pre-existing ignored with the real fixed worker and a COMPLETED disposition readback assertion; provider_learning_api 2/2; contract route/number tests 15 passed; rustfmt clean.",
+        "boundary": "No background reconciliation job: a stale claim is finalized only on a retry or an explicit caller, and UNKNOWN never becomes a retryable confirmed failure. Installed runtime, real user data and model quality are still unverified.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "local_tmp_cleanup_20261102": {
         "authorization": "Owner goal: 所有旧的过时的该归档归档该退役退役 该清理的清理掉 保持仓库干净规范",
         "scope": "Deleted only per-run pytest scratch (pytest-tmp) directories and Python/pytest bytecode caches under .project-local. Preserved every tmp/ tree (including the 266 cited tmp/journey receipts, verified byte-identical), artifacts/, logs/, run-metadata.json, archives/, rt/, build caches, ignored originals and every candidate leaf that an existing registry or consumer protects.",
