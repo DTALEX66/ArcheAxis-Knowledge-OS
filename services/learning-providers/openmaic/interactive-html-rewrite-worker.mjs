@@ -1,5 +1,5 @@
-/** Unregistered bounded HTML rewrite candidate; not a Core route, sandbox or sanitizer. 
- * Loader copied from the finite HTML probe; original mapper is unchanged. 
+/** Unregistered bounded HTML rewrite candidate; not a Core route, sandbox or sanitizer.
+ * Loader copied from the finite HTML probe; original mapper is unchanged.
  */
 import { createHash } from "node:crypto";
 import { closeSync, lstatSync, openSync, readFileSync, readSync } from "node:fs";

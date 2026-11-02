@@ -9,14 +9,25 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import hashlib
+import importlib.util
 import json
 from pathlib import Path, PurePosixPath
 import re
 import sys
 import zipfile
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from archive_record_materials import bounded, digest
+# Load the sibling helper by explicit file location: scripts must not mutate sys.path
+# (architecture guard), and this keeps the import independent of the working directory.
+_MATERIALS = importlib.util.spec_from_file_location(
+    "archive_record_materials",
+    Path(__file__).resolve().with_name("archive_record_materials.py"),
+)
+if _MATERIALS is None or _MATERIALS.loader is None:
+    raise ImportError("archive_record_materials helper is unavailable")
+_materials = importlib.util.module_from_spec(_MATERIALS)
+_MATERIALS.loader.exec_module(_materials)
+bounded = _materials.bounded
+digest = _materials.digest
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = "workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json"

@@ -1,5 +1,5 @@
-/** Fixed synthetic HTML rewrite probe; not a Core route, sandbox or sanitizer. 
- * Loader adapted from the pinned interactive-url-map worker; original mapper is unchanged. 
+/** Fixed synthetic HTML rewrite probe; not a Core route, sandbox or sanitizer.
+ * Loader adapted from the pinned interactive-url-map worker; original mapper is unchanged.
  */
 import { createHash } from "node:crypto";
 import { closeSync, lstatSync, openSync, readFileSync, readSync } from "node:fs";

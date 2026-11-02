@@ -250,6 +250,471 @@ _OCT30_PRESERVED_INPUT_HASHES = {
 }
 _PRESERVED_PACKAGE_MEMBER_HASHES.update(_OCT30_PRESERVED_INPUT_HASHES)
 
+# Third-party donor source bytes: DeepTutor 1.7.1 upstream files and OpenMAIC 1.3.0
+# vendored packages are preserved exactly as shipped. Their final newline, CRLF, NFC and
+# trailing-whitespace shape belongs to the donor; reformatting them would falsify the
+# source binding and the byte-identity claim. Pin each exact file hash instead of
+# exempting the directory -- an edited byte still fails as preserved-fixture-mismatch.
+_DONOR_BYTE_PRESERVED = {
+    'services/learning-providers/deeptutor/upstream/agentic_labels.py':
+        '5b72f0efb922741b8dde7c9082c12778dfb21cf087c431d872d7f4c806705c05',  # zero-width-character
+    'services/learning-providers/openmaic/vendor/dsl-0.12.0-actions/ORIGINALS.json':
+        'ef4102ca18abefcf0c5956a8caa356236d60d248416b1b666cfc6daa99066dc0',  # crlf
+    'services/learning-providers/openmaic/vendor/generation-0.3.28-outline/ORIGINALS.json':
+        'e9e5396d1676de1bc25e3f9df81f65b5a52724ae9e3bcaf49fb109b82051e9d6',  # crlf
+    'services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/ORIGINALS.json':
+        '8e4b62a07c4daf3085fadd126396e467084a7dd35c9c5e9159f863fb527e655a',  # crlf
+    'services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/ORIGINALS.json':
+        '54499d6b7840d2968a3b02d11a27ee70ceed92d865efe702882015044b597de8',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/commander-8.3.0/Readme.md':
+        '9ee7c537cb5e335e2e9c383b3b08ee7361fd227fb83c86ffa35eedc9c7f92877',  # trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode-codepoint.d.ts':
+        'e9c96f08c7909362d5ee343d5ea9c0f315b585626545ed7b96ed6dd272e9e847',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode-codepoint.d.ts.map':
+        '6174d597e35699263b4ff68b0e6595f3cadf6a6e2aea2fd0e7d33c6d459718d1',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode-codepoint.js':
+        'f917de312a0e1dbc20cfc28423549760dc5245b2fdd7a1ee5f42946c3369c01e',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode-codepoint.js.map':
+        '93211fa7bec08466c217177e7c5815f17ca22a4078a8b1031c9fe0e2b6180752',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode.d.ts':
+        '565902cb0755fa703d1dff0e50714ff40c26f786fc98606c10b8ff0662b261db',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode.d.ts.map':
+        'df3672b541b0195d84766529e6ea189def13b8d3cf0272843e2a6a7d90a710c5',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode.js':
+        'ee09bff7def49f3d806df7cc7434c0dab047bf780ab537698d52086d91c3debc',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/decode.js.map':
+        '771aa77918aeb7f9c7e2faf79feee95f0ac3c5f6116200b4c6e2b0835c2e78af',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/encode.d.ts':
+        '1dbe94040113537101b340704d52482bd0f0bc2c53cffd370f1a5e3627c39c99',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/encode.d.ts.map':
+        'a8094b6c286e847fbd0eada93b3a41f698241e0a73f48aa27c89dcf462afe01f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/encode.js':
+        '1bcf88772f2149bc138ba882260c1849ba642ba48b5771516e843a5d69a85a77',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/encode.js.map':
+        '871603b8877cf88324e50c2652ca8e596d7494c7c9699a6aec267b81192ffafb',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/escape.d.ts':
+        'b8d98fccf8370b0df611693b21e7c80a700ee2f63a1f5831542a990795d7f90a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/escape.d.ts.map':
+        '67629ba928fb8c60160bcef8c5f096cdcd314abcd01db1b81cbd30dee20b09a2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/escape.js':
+        '59feaa8c468b1ac2ab6917134a1cad5a66fef1bb8e6f4e22539c31e5a095fa37',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/escape.js.map':
+        '4e275b5d638ce2048b252cdb777a42061b730981e95b32b32fe2861392341fd4',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-html.d.ts':
+        '700e175233fc5158e9d2e02268dcbc2709c8487936a6f292cb97ede32549ab3a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-html.d.ts.map':
+        'f93bf682563dbec84d18aafd510b47f07966852f49370a1214a11f5f5c9091fc',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-html.js':
+        '8e23a640258c070f67ef1dafe6cff86ccd392527487db5e7da3a1889205e4811',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-html.js.map':
+        'aae77848acda60ef5d0c546efc5a1baaf8583f5356221e44ccca47209e6dee49',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-xml.d.ts':
+        'b77b94b224dc00977a2b7cb66e52832d3b2dec7097b2ca10ef3b7e7c751f37a8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-xml.d.ts.map':
+        '90ba3ace650ba0122a9539f8921dd912b86c266285135c26bcf3650be92773a8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-xml.js':
+        'a16665dd828b79acd603644b203802eb9cdc0f75d585b05a68c99a665e130fbe',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/decode-data-xml.js.map':
+        'e0933fe227d108db7371896dbd778de2121b387bbc699ae67c534b4f975618b6',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/encode-html.d.ts':
+        '4cb53da48815f6c0dec0bf1611cde38904b1264ca447204e87039f513d2fe0a2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/encode-html.d.ts.map':
+        'fe015c626e1c962cdd3e785ab901a77586125db177c9526c8599e3b6cb57d8df',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/encode-html.js':
+        '888069d7f8454d2aae9a44c0d5e5150bebfb85c8820076dc85763a54f826761d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/generated/encode-html.js.map':
+        '8b38ded365f42456d741120d59e821db0510e946010af035c10c38f0546b92e9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/index.d.ts':
+        'd0cab503b591631b6272c92ea8a2bf58abdf877b35b0a927dd6956a0657b9d01',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/index.d.ts.map':
+        '5d4e636c48a783a11977d53a560ce00d9193c424aa43653f1cefc5d8590e8237',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/index.js':
+        'd8e3ad00f7e9014e2ce4c7136d708362617b7958ca3279d2482079aa5647532b',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/commonjs/index.js.map':
+        '9b180572ee52be1ffc9e021083243f414449efb964ab9416156832d8710542b8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode-codepoint.d.ts':
+        'e9c96f08c7909362d5ee343d5ea9c0f315b585626545ed7b96ed6dd272e9e847',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode-codepoint.d.ts.map':
+        '6174d597e35699263b4ff68b0e6595f3cadf6a6e2aea2fd0e7d33c6d459718d1',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode-codepoint.js':
+        '5d8ee93923d609724c69c8c356147176af5226585d4f343c87a5eec6590ebca9',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode-codepoint.js.map':
+        'c0f49b23a41368c6173560704d38a3f40324926b2b983ffee5208f957f43ba01',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode.d.ts':
+        '565902cb0755fa703d1dff0e50714ff40c26f786fc98606c10b8ff0662b261db',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode.d.ts.map':
+        'df3672b541b0195d84766529e6ea189def13b8d3cf0272843e2a6a7d90a710c5',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode.js':
+        '8af227bae5682a686bf9e9a6547af8c388274f41cb857ff39592fe74fc848d25',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/decode.js.map':
+        '8a9de4c9c55b1499d8ea9e78458478dccd42d74d414dfb054985a6f3d1f597d7',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/encode.d.ts':
+        '1dbe94040113537101b340704d52482bd0f0bc2c53cffd370f1a5e3627c39c99',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/encode.d.ts.map':
+        'a8094b6c286e847fbd0eada93b3a41f698241e0a73f48aa27c89dcf462afe01f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/encode.js':
+        '4f13bade5f8f34c7fd4723d15f91793e5c1b56acaba1a218b9f89c9c6ecad715',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/encode.js.map':
+        '7d658123a54699506c452264eccc51c21330db52c2f73031b12b9a415380830b',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/escape.d.ts':
+        'b8d98fccf8370b0df611693b21e7c80a700ee2f63a1f5831542a990795d7f90a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/escape.d.ts.map':
+        '67629ba928fb8c60160bcef8c5f096cdcd314abcd01db1b81cbd30dee20b09a2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/escape.js':
+        '50528d67b2fb87687f0658cfab58eb640ebbcd7e3bcfe8e5e2863e8293ae65b7',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/escape.js.map':
+        '36aa615f7438435d05b534d027e126eb407c6d668852835b56a2e4aea733bb03',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-html.d.ts':
+        '700e175233fc5158e9d2e02268dcbc2709c8487936a6f292cb97ede32549ab3a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-html.d.ts.map':
+        'f93bf682563dbec84d18aafd510b47f07966852f49370a1214a11f5f5c9091fc',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-html.js':
+        'b035b71d6969983297e39df1a06d760f2a8000a0f98444c4fe845fe1155da451',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-html.js.map':
+        '94c5e37d11ee47fbb7e75c994b56e8e43d12d415c36a3f42e713153105afda26',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-xml.d.ts':
+        'b77b94b224dc00977a2b7cb66e52832d3b2dec7097b2ca10ef3b7e7c751f37a8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-xml.d.ts.map':
+        '90ba3ace650ba0122a9539f8921dd912b86c266285135c26bcf3650be92773a8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-xml.js':
+        'e28599f48fddd869435e44e6ae8644e70a610450d97562e33c869c056e3b129f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/decode-data-xml.js.map':
+        '9e2860430dc81ca8eae7d7278e132aacbb64c02aa683a70b065cf80caf208294',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/encode-html.d.ts':
+        '4cb53da48815f6c0dec0bf1611cde38904b1264ca447204e87039f513d2fe0a2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/encode-html.d.ts.map':
+        'fe015c626e1c962cdd3e785ab901a77586125db177c9526c8599e3b6cb57d8df',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/encode-html.js':
+        'e41e86f13d6c5072a518eca9d24d74a75c36d6a4521750286b9b8965913af2df',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/generated/encode-html.js.map':
+        '95385706d760d2cea5eb3e66ee00cd1a9a26dfc9914efdd7f1a8def4dbc43b09',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/index.d.ts':
+        'd0cab503b591631b6272c92ea8a2bf58abdf877b35b0a927dd6956a0657b9d01',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/index.d.ts.map':
+        '5d4e636c48a783a11977d53a560ce00d9193c424aa43653f1cefc5d8590e8237',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/index.js':
+        '5e8978a4fee7c71ed9d5440424d6a08ad727693739c821c3fd65dc29cede7241',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-6.0.1/dist/esm/index.js.map':
+        '137a406cc05e0d3af6279f28797c02f4d53936a22bbcb10c02191d94d4af0bfd',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode-codepoint.d.ts':
+        '064b9b22b6e5123762dad859f9cef4cc9a6c42ea53b0147ce82303f4f10a4b8d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode-codepoint.d.ts.map':
+        '995ac4a8a967afb7bcca61532273f729e46d83d8aba1fe41ff785a78a98de046',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode-codepoint.js':
+        'f09dbc23d35abbf96718dfdd04def3c1d3444495541d050c69a12706ee76dbb1',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode-codepoint.js.map':
+        'e6b7d7db6f948a7852b2f8715c1f5cdc9e57a29e5a97382f81c5ec84f5233ce8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode.d.ts':
+        '6e58fb5960ba31b5b3fc2e484ee27a170373098e3b53a59b938caac97fa1e83e',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode.d.ts.map':
+        '4076e698af3c1cfe4dcee070fc599e49a63ddb0e1e9daf822cfd2cd15ca7c367',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode.js':
+        '5e3e1c938416abcb354ff4d7808f0a010d27d0e4170195c6f95f2e6895cb081a',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/decode.js.map':
+        '1e3804ffba48afa97fe240978019b35fa16870a31beca4734fd52d6969411fcc',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/encode.d.ts':
+        '2d6cb47725bff7664b0d6d411a5b7f1e5ea3d513ed8c36e91ad48d449b3fbf82',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/encode.d.ts.map':
+        '570755fd12a72da70206fbfa8c92b800f45a25858dd330dc38e60e154d82102e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/encode.js':
+        '40a788f341a5e60b3a88c24987565a05cd96fb6d5be6e81820a45c6b6deb1a63',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/encode.js.map':
+        '7a91083bcd14238403cd148721a69ac4285abedbe6f5b72401d2de5632eb63a9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/escape.d.ts':
+        'abaa29549e4f661f437edc3c0b17d6bf1b05132380c18399ec7ea2ebe9eb07d9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/escape.d.ts.map':
+        '5baf7780bb23ca7c58620bc9cbfbaea245bc4af42731386365ea4270e94d613f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/escape.js':
+        'c898ee1bfdaa487bdc4157b318f13dd67e8697fd82a22eefd270ddb7440561ee',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/escape.js.map':
+        'e522736cc7180eb8a2c1ad22ea5e8734ebcc52e4faa9c3ce542954a8bafbbf7b',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-html.d.ts':
+        'b7d93c698f801b98c48953443ce741244a695f27ff2934d135c6689730022b19',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-html.d.ts.map':
+        'f15f806d3a56d53c6bd4242a4ed14128b1b80a751e1ec36c00982ab2020b8299',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-html.js':
+        'a845d1bb8e661abad2642088c646031523dc58b6e8bd0453308b0d71c01c8b8f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-html.js.map':
+        '2931db8097796f2c4d6eac836babffd40c3f0ae46fd7340d4894b22c213e21dd',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-xml.d.ts':
+        '29d8aa980b3ced0f40d5a1f9821cb17568f078edea29f9dcf6708e1efdf886b0',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-xml.d.ts.map':
+        'bdea975cb2c509577886073d3cee111d75aa2d7b10a193057671750358ae032f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-xml.js':
+        'e11599611184b79a44d80cf0c135f4eeaf09e0ccac8845da54333177336a20ed',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/decode-data-xml.js.map':
+        'a5e6fe35c1758a516c38596ce315375d7508e473ddaecf7338e3e0bf2da28de2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/encode-html.d.ts':
+        'c9ed486f9191aa6e1069fb80e65a472755f8e2817fb97c4293b9760bc21e4e1a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/encode-html.d.ts.map':
+        'e4ec8eb92007e408abe21bff35095b46d01c1767587e00b30d42c4f7b5797267',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/encode-html.js':
+        '3f5dc85b3f48357d246f54e5be07d4b8d6ccb59757f917a1a063af0cea235440',  # missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/generated/encode-html.js.map':
+        '51d67e8f20e05a3135decc90e0da226d7bcb18f8010a4366f11f6383c887e1ac',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/index.d.ts':
+        '4ac4d5bbfd8b888d1298c90249a84e29eb039980125d30748f7fe58fa8f97198',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/index.d.ts.map':
+        'ca20c105d367f7ebbf812229ee11c4eb779b5b9eedad6c0df602e8028a279465',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/index.js':
+        '442e6496aca70e865e6e9f295a71794e1889d247031e77ea1c58c415d172485b',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/index.js.map':
+        '1312cc09a9e06c8996e5577a2d1b6e63e7d7f2f3bf18fa05d537067bbdc3cac9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/bin-trie-flags.d.ts':
+        '8cc69c261ba0efbf1a8fa980a23c3dfa343ced9af51230efeb082939079489fc',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/bin-trie-flags.d.ts.map':
+        '32003bcc655977f624cdbc60ab404a0ba3a3a4da264afc86694a0c5d76dc680c',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/bin-trie-flags.js':
+        '4f2d90d78b57cc2549cda4c53c7b5a1ca6176fcf746da1bd4ad4e6e9608ea89d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/bin-trie-flags.js.map':
+        'ff5fbe6385c13b31e5ae35573ae948dd3eade836c1afadf5ae06ff89ff4a3aa6',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/decode-shared.d.ts':
+        'cc77f5682968d342bad2b99ae5dfb2235b2867676f28ba3cc7bd1ceb426910ed',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/decode-shared.d.ts.map':
+        'dde17506af1a2489134382f78bf9ac19bede7a99c9b3cf862d8fe70418b4a580',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/decode-shared.js':
+        '51a2120afeae660916954be58f323c718b0415b78e9719c0b0279f49f3cc0d96',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/decode-shared.js.map':
+        'd31f6849bec74845cb1b73dabb36092fba0a4b47795227960853f1dda5f7f65e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/encode-shared.d.ts':
+        '8de4f36c9c00e25d57aa0b7130ae8a75980c211c04ec4b7ca29c6c9f9dee323e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/encode-shared.d.ts.map':
+        '46daef0083aa135c88c9e9d2e4d23e9d2d01a5bfced76e70735e4dadfaebff88',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/encode-shared.js':
+        '75c6c0864c91132410350743dfb61ce3bd645cb4aee70961015af6ae70b59ec3',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/entities-8.0.0/dist/internal/encode-shared.js.map':
+        '5116e554d2d4dc619abb7bf46a40043d8629d12c2fb7552eb9dc1579aed24528',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/LICENSE':
+        'fecc38b5e10d889686b3862e7ade17e8b3e5c94b24b7256b05a354d8524b3274',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/README.md':
+        'd85ead05690ae9118b36a911b7122ed0f6d0ed3ce605dd776ff61357b3c2e033',  # crlf, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/lexer.cjs':
+        '4fce6f80c9919dd063de1dce2e06a85a3948109263115223a8fb7b0deeca953c',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/dist/lexer.js':
+        '4cc7b4f14ce0dbcece5154e4f069217e013b8f04098adde99d230228977c016e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/lexer.js':
+        '868ab413367cc9d85ed9cbe5aedcdbaeb97b4e968b0c2cd8ba45d408e3f6739f',  # crlf, missing-final-newline, trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/package.json':
+        '98175eed3b65f199b6482325421978a42a7e17fc2e52d04055c83f1e58eb210b',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/es-module-lexer-2.0.0/types/lexer.d.ts':
+        'eb4f66ca424c996c2defcfb03e901a408bee2d992020104ed587e243a872acc4',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/SOURCE.json':
+        '11533c9ff27380455269407795ca6dd72a9c997ae4b4efa0285110ac23e60453',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/lib/esm/index.js':
+        '523d175b61d8517fd3ba90cd2f065c6ecd45f4c95ea7ac706a9d87ccaceb7faf',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/lib/esm/regular/jsonrepair.js':
+        '9b7d7367a763931855d1c962e998529f06c6e80a4a056dccb8ebdb96e1d68a1d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/lib/esm/utils/JSONRepairError.js':
+        '760bbdf77243afe6da53aad48520423c2b3da2e15838ca89cb118e87067ef130',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/jsonrepair-3.13.3/lib/esm/utils/stringUtils.js':
+        'd5e1065bc473e1c06c9ae2c70dae048175fe8b96c7749b00c267fe29f5c322c3',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/async/package.json':
+        '0e02b9178f3638eba65e96c8643f3bf08ea192dcef7faadaf3c38c50a829b301',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/nanoid.js':
+        '8d11a2a154f892b392c0c84dbe3cf9515413e1976103e1827e1a90685b78ae32',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/non-secure/package.json':
+        '2f9b8c4bee9312538f388b49c13987f4565ac25d6756fabdbbb771d339945e3e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/nanoid-3.3.19/url-alphabet/package.json':
+        '2f9b8c4bee9312538f388b49c13987f4565ac25d6756fabdbbb771d339945e3e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/nanoid-5.1.14/SOURCE.json':
+        '48edba08227f52a6b72e802292de3833a1ae82170c90ad836641f5b5b582cc75',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/dist/parser/index.d.ts':
+        '06cf55b6da5cef54eaaf51cdc3d4e5ebf16adfdd9ebd20cec7fe719be9ced017',  # trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/parse5-8.0.1/dist/parser/index.js':
+        '23eb8e0f6b45abc36132c08f067899e0e615acbe9069762ba7780a66db78e65d',  # trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/partial-json-0.1.7/SOURCE.json':
+        'b2513602f3097aa7f6d090fa50290b9f7e00603a61a71c20882f5fb0963e5403',  # crlf
+    'services/learning-providers/openmaic/vendor/npm/postcss-value-parser-4.2.0/README.md':
+        '7b183e14c4853ed481ef03b5b4c924a7fbe70635ff2e2decd3cea5329eb9b2d6',  # trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/lib/source-map-consumer.js':
+        '78f7a8f6d20f51a99a9cbd8d552321b1a72de9b9fb9c39dbeb27dc84eb2eade5',  # trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/source-map-js-1.2.1/package.json':
+        '58f8e94a461a5e461e0cb2bb2be681cbd89b9181989fd26fceb858e67711469a',  # non-nfc-text
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/README.md':
+        '479c8b8d5bd8439323302013439e1966db3a8a7c668e2bb2661adb171760d2e4',  # trailing-whitespace
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathData.js':
+        'c3e2ae5bc87ccb3e37daba844248a3a70b6fc5089eb32aad1e6222e01c110219',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathData.js.map':
+        '15263ce6629346dfb7f1e329ffa9de6e7da2d8b0b7cff3de7189f8c6f3ae7103',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathDataEncoder.js':
+        'b5f1f7751bd8393fdae7922a85fb41d8f5824aabbae28bc5b57f1594aff23c6f',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathDataEncoder.js.map':
+        'a7c0ecf79c07863e9f79466b7c3a8c37687c7882d8d0f1a681d78474614ba974',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathDataParser.js':
+        'e2a03a8d6ffc4e029745da42a92935852033a02dbe1da8588221f0a7b5d2aa76',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathDataParser.js.map':
+        'd72ed3d777dbfacc4e0adfa400d13b3ee92d00c34736b5f3ece3c17340dfcd50',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathDataTransformer.js':
+        '6575cb3783ebe6adaa420b0c7bb7b94d175af6a33b4635facf12e2a55ca787d6',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGPathDataTransformer.js.map':
+        '6a6f0bd6daa5ec71323fcd050fb1b00c34f16b737f9e95b313fa9a85992dd5f3',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGShapes.js':
+        'cfa68e636f121d5e7e78e9e83954363bbcac2e18d2d402373b1de28698ee1030',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/SVGShapes.js.map':
+        'fcfd13851487b2b7b7679b126b1f49fe855587b29ae67d3551b273fe27627573',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/TransformableSVG.js':
+        '777f95596ac82a1f2557a752b33ad44c05163aaeb54bb6f7ede09a209170b849',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/TransformableSVG.js.map':
+        'cca63d00576675d79796e4a2c12d1e8bc3dd49ac0b26837109e62fccec2f7768',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/index.js':
+        'd7aa1c4787a1680387f24078c54afeb4b9d374f955038cd4163d5396ffc407ca',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/index.js.map':
+        'f7badfbdc84f28d528ebfc40e3ccf90f09a3810f960be1f66f9f23d7461b59ab',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/mathUtils.js':
+        '4e5856621b8c6ef2504e0e3e23cd20f6882f91dc7414ce8fc138eef0a4febcac',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/mathUtils.js.map':
+        '69ee6e6e851ed3f50e2c5c39fd3233376a6c0ecc4d41d4a4eab0b8c2a6184b63',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/arc.test.js':
+        'e09ebf20229dbe4c46400e5aa4425a2d483f53274ff1adaf685f1c5486929556',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/arc.test.js.map':
+        '69b8a1df5bd9d73bc738c27e70b5d95900beb6a2010c9019be5d72a6c5983be4',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/arcannotate.test.js':
+        '250e15be18bb84d532e522016a5bafb93757107a55632d5931187ec40880f4e2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/arcannotate.test.js.map':
+        '59fcf1a23de5731bf23985240b6e10199e3be2bebad999dc27d82194541676e0',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/arctocurve.test.js':
+        '1a41659e955d1406771a89110de5753479c493103931fbab966f3ff02f515737',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/arctocurve.test.js.map':
+        'c135a5c1b7825b63b8b2f7213948cda68ddcd1256e930ad4d676d0581dcac1b4',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/bounds.test.js':
+        '492917d8338577836cbc8e058d6c78f0fc01162ec87b9003077527dbcc2a90a5',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/bounds.test.js.map':
+        'cf2c0ad16f31ed58cef6f35c9d66d8b5af3789e25eea93489f37712a05d7f115',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/closepath.test.js':
+        'f929ed5b4dba5790dd5242d1f9089158926768b625f8259964e6c2ad3d08f1c5',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/closepath.test.js.map':
+        '6a476483f09be77470ed45428da350317fc11416e20d3c6070a8648dc2adecc4',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/curveto.test.js':
+        '103b0f96494ee99fc3e7011301ee384b2974784a58b8fcff997d6e0196fbacc5',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/curveto.test.js.map':
+        '3675335fc4368309b330674c38da01f2fedeb3e324f0add6d0772dd8fba2d483',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/encoder.test.js':
+        '266e4893aaaad92f8ffeee6e5271d6262abbb302130a52bb49b5ef24618c7cf9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/encoder.test.js.map':
+        '804f2b0ab584080eeeb2e7477a21f588bfc74c21fe43862f041d8189b3c440c1',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/hv.test.js':
+        '5467e6ecf5f44bd2005fef6b41b87302f6fc779afac9993151780b0e5c347528',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/hv.test.js.map':
+        '282002cd9baae087d1410ee66787396d937828d7632f66f10830f079b2101a29',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/lineto.test.js':
+        '35471812678a79f7de6e03303b057fe605ae21583b1dd5f96d89bbdf9466934a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/lineto.test.js.map':
+        '517f896ce2c579e66e2c6944e9beb2f7614e8cf914095e4724d39c1b92af6e44',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/matrix.test.js':
+        '12b03fdfa5da030cace9ba5f4799cef91f2e11cfa1f4b6b91a92ffbe0b7afcba',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/matrix.test.js.map':
+        '4a2c049384d7d6133a3aa218e0d377649fbcc578e55342fa5ab8369cdb2ca111',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/moveto.test.js':
+        'c3340a541cad3b7632cd65e0fac0c57d9c833475959bd56f7ce360b3c418d787',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/moveto.test.js.map':
+        'afd2ac940557bcef3d8f7518c9e8086467413d99407dbf47d3dc107fd9365708',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/normalize_curves.test.js':
+        '69455d2d0f9579ec457a023ea965693d814e93c8ab15556ae1ca8b7f81f5ec36',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/normalize_curves.test.js.map':
+        'a01d18c33f17d0265be9dbdbf55d05058b49e3feccc1f0c97bde86f79b391ae9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/normalize_hvz.test.js':
+        '8ec8f2029d8572c7e6eb4c102021c28d25234cea2c26333fe99b291fa70ae418',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/normalize_hvz.test.js.map':
+        '456d300a46811a3d0772401ebead9cc270bd4b8082ead5448351424bc283a4a9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/numbers.test.js':
+        '29c9377fc54de1469e999fdb0d586fc384526532c150e7fe70aad58dc381320d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/numbers.test.js.map':
+        'b4cdd88cda99767d21f6b5b7dc89c04ca3bb16a6987f78fd48d161a3ce7a79e5',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/parser.test.js':
+        'f48c74287c72bf536edabf20d55fcccd5bb5e703ffb7d4813ff8dfeb5bfd50a3',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/parser.test.js.map':
+        '3316a3150d6ab80f8ffe073b398e1a0dc0e352ecabb4dd5521d378a82329aecc',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/qttoc.test.js':
+        'ba9a228a99bdf3268e8b1e0db0ae93efbf31d5d7e14489bd83bd230905997ad8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/qttoc.test.js.map':
+        'ac7b5569257c24f4e9f2346b87e2d5e53a2438fe1c8532c8524d81654e413aad',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/quadraticbeziercurveto.test.js':
+        '33227e745c75382e3b20a1c45f9263f5a82b08b7e9fed7d686899261724618a8',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/quadraticbeziercurveto.test.js.map':
+        '3eead4bb274761f794187832d15ddc6de3a41a2ade6d580d0e56c59e58fa906e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/realword.test.js':
+        '42a584132de3610714deb636259f8c9b4c529c2670ab8e5d178004625c345182',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/realword.test.js.map':
+        'b8aabc86189a93e30ce59832da3472f258778f6c0477857bd888f043b57c1952',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/relabs.test.js':
+        'fa57281075db33b300547f356b981ca3406fa06272432624844928c319a463a7',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/relabs.test.js.map':
+        'e2ca867bc6db2a2642561ba04e54cdff1543bad293180458329b56869a8bee09',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/remove_collinear.test.js':
+        '887cd1b6a9de2767e7d678a590ef7ebdbe36919931dbd217fe0702fabd453e82',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/remove_collinear.test.js.map':
+        'ebdf848fdc648f57536e04e85dcb1870f92c91c35d81913b8d1d9dde3fcf3dbb',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/reverse_path.test.js':
+        'a5c39c47d631135ed62119ee3a092dd2db702b400f3643f393492074e1c5c57a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/reverse_path.test.js.map':
+        '74014db1e3798c44a40a9b49fa5cf457096e335be8069a5c32ca593d9794f501',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/rotate.test.js':
+        '7656c67765a140920c41ed23386cca6b0868417e2bf989a00ca51c74f274c087',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/rotate.test.js.map':
+        'e13bd664cc8e6dc5c4e83abc66824ddd27c98f07f7e14f9930bc4a60f265486b',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/round.test.js':
+        '96ce261c0c860a1b4be921834c89c45b29b3481462b21f139f332c9ba20526c1',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/round.test.js.map':
+        '1f6279e55437defece217de6b7eed75db951ca94604d3e9d6ea13574e1f5c24a',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/sanitize.test.js':
+        '78f7018af6fe02bf56cc42c78357c8555b08980ffa3766e121bc05b6db3f8fbe',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/sanitize.test.js.map':
+        '1e27251508544165f50ecfa353a06f9a1b0152f549f9b5928d2e5cbed61a6f4e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/scale.test.js':
+        'af4908e6c5f324dc0cc3c452e93ebe7d1358d517d040b387fd2dacfae1d29948',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/scale.test.js.map':
+        '6ef776afdd9e61b173164cdcac1171f004245969813dfde5654c0f64d8d9ada0',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/shapes.test.js':
+        'e3eb921f9c48a73f053db588dc8d688c0af417a0d78d41fbad5fdbb6f8c2970d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/shapes.test.js.map':
+        '9647f7250bc09e8a0e10628e4b794ec3f865209d21c675bafc00bf3cd28f8cce',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/skew.test.js':
+        'd419ef01470388fa0c7e43328a5b4b4aec5817ce81057d03945d48b519dc8186',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/skew.test.js.map':
+        'af896111db6739953f5959dcf373226dbc3f1efa385a464e6c9804261aa197c6',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/smoothcurveto.test.js':
+        '4dcb862ab61e05535adbda84f80bb118be10a272adeb24e8fd6d5b846b796466',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/smoothcurveto.test.js.map':
+        'b084ab56b5674db806eefebc5147354850e8e1d153a6b08edd224ddd6e39571c',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/smoothquadraticcurveto.test.js':
+        'c20f2702eacfa7d4d0459d9519cf27f50e2030787c7cd7d2120e711c4756b629',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/smoothquadraticcurveto.test.js.map':
+        '249b352b22a1abaf116e06a5bf47dcee03581c4ceb73e92b4b76d8b4d5e6685b',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/symmetry.test.js':
+        'f96efbcb39a51849a011eb4ad320f04328c157802a51d0e30fd25751df1de996',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/symmetry.test.js.map':
+        '302c6d23bd29e11fd478283f4b39ec494e8321a03dbbe1a926744d32ab60903e',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/transformer.test.js':
+        '397015e9388a7de314a5f7bc3baf083566940580864ca201d6b421d6bc560ea3',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/transformer.test.js.map':
+        'b4e4322d4e031f383b08827abdeda7befe8b7edfddfa8b4339ecb17c8e0c9908',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/translation.test.js':
+        '6289d366eebdac1a0916395909975c0fb2612efff12a994ac361db7039085fdc',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/tests/translation.test.js.map':
+        '9ebc658f6c3c68a895d3fbb7bdf98ab63c2d6f0d2f53050494332b95b9466a93',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/transformers/remove_collinear.js':
+        '59987ce8afab100fb45af840525bc6683a2cfb66ca63d48126a2a641f3a529c9',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/transformers/remove_collinear.js.map':
+        '065d51eebb3333dcb1326e56ecd455d2284a0ba1eccf6ed0714913bd62df9043',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/transformers/reverse_path.js':
+        '94211bf25d517861d16975693acc8bff1daf31622d9c0d3f689fea08971663d0',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/transformers/reverse_path.js.map':
+        '541078ea9e3240866b71ce0e38626375487d384eb835c56b33463c1d7e3fc8ae',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/types.js':
+        '01ae2a5b120382f9a648ced7ee8507493a134f216d100fc61600c6c9738235d2',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/svg-pathdata-8.0.0/dist/types.js.map':
+        'a7de897b48fe57bf54d6f84169135ff2e89e2fc95ea0a0a815761cc29a41efee',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/LICENSE':
+        'c6cb470a9ba0a50d57611aeec1f31da609c5aefdbee8eac7f289bcb0e30625fa',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/npm/tinycolor2-1.6.0/dist/tinycolor-min.js':
+        'ad6086765d928da9109c816d26ee33ffbf23dc913bd0d550bb15de24b42f729d',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/generation/templates/simulation-content/user.md':
+        'd5a52c8a249351b8438f5edfeac9b95ca0af2da6631be3aedc95b13f1a199bfe',  # missing-final-newline
+    'services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/generation/templates/visualization3d-content/system.md':
+        '874452d98f255c9cda85485a4d95518d250556aa4b6a25b8a53f219b09acb624',  # trailing-whitespace
+}
+_PRESERVED_PACKAGE_MEMBER_HASHES.update(_DONOR_BYTE_PRESERVED)
+
 # DOT v3.1 originals match the earlier v3 inventory and the preserved supplement.
 # Preserve their BOM/CRLF only at these exact paths and byte hashes.
 _PRESERVED_PACKAGE_MEMBER_HASHES.update({
