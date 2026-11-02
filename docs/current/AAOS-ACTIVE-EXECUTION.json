@@ -321,6 +321,14 @@
         "boundary": "Real Core process, HTTP and SQLite writer, but a debug binary and a synthetic candidate: this is not an installed package, not a real OpenMAIC multi-scene course, not local model generation and not Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "empty_layout_dirs_20261103": {
+        "state": "EMPTY_SCRATCH_DIRS_REMOVED_ONLY",
+        "scope": "Seven out-of-layout directories that contained no files and no entries (verified recursively) were removed: repository-root .screenshots and .project-local g, n, probe, restored, test-fallback-run, wt. No file bytes were deleted.",
+        "measurement_after": "storage_report against the same pinned v2 checkpoint: OUT-OF-LAYOUT 99 -> 92; new_out_of_layout_count=0; NO_NEW_GROWTH_TRIGGER with delta_readable_bytes=1,562,782,357 (~1.46 GiB, below the 2 GiB review line); measurement_status=PARTIAL; runs/ still over its 2.0 GB budget; deletion_authorized=false.",
+        "receipt": ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/empty-dir-cleanup.json",
+        "baseline_status": "OBSERVATION_ONLY: the pinned checkpoint is read for review and neither rolled nor replaced; no gate was loosened.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",

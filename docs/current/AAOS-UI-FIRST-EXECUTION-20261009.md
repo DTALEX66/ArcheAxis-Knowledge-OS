@@ -3738,3 +3738,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本地验证：对保留二进制运行命令**exit 0**，三项守卫与此前finalization步骤均通过；ruff、py_compile、rustfmt通过。
 - 精确SHA门禁：run 41526428368 `lint` 56s pass、**`rust-vnext`（windows-latest）16m56s pass**、`a0-gates` pass。
 - 边界：debug二进制+合成材料；probe使用不存在的activity，不产生评分写入；不证明安装态、真实用户数据或Owner接受。
+
+#### 2026-11-03 空目录级布局清理
+
+- 复核固定checkpoint的`OUT-OF-LAYOUT`清单后，仅删除**递归不含任何文件且不含任何条目**的7个越界目录（逐个递归校验）：仓库根`.screenshots/`、`.project-local`下`g/`、`n/`、`probe/`、`restored/`、`test-fallback-run/`、`wt/`。**没有删除任何文件字节**。
+- 复测（同一固定checkpoint）：`OUT-OF-LAYOUT` **99 → 92**；`new_out_of_layout_count=0`；`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,562,782,357`（约1.46 GiB，低于2 GiB复核线）；`measurement_status=PARTIAL`；`runs/`仍超2.0 GB预算；`deletion_authorized=false`。
+- 回执：`.project-local/runs/be268a2d33/storage-observation-20261103/artifacts/empty-dir-cleanup.json`。边界：只删除空目录、固定checkpoint只读未滚动、未放宽门禁；剩余92项仍为被引用/受保护/泛名或runs布局taxonomy，需既有S01决定。
