@@ -243,6 +243,26 @@
         "boundary": "One-shot startup reconciliation only: no recurring background sweep, and UNKNOWN still never becomes a retryable confirmed failure. Installed runtime, real user data and model quality remain unverified.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "grade_contract_tests_20261103": {
+        "pull_request": 219,
+        "merge_commit": "2dc0305ce3048c9fdad8aaf453dbb125f79be279",
+        "remote_main_after_merge": "2dc0305ce3048c9fdad8aaf453dbb125f79be279",
+        "scope": "Negative contract tests for the formal grading route and the activity read: machine actor refused before any reservation, missing/undeclared members and malformed snapshots refused as invalid requests, oversize body rejected at the 32,768-byte route limit, missing activity reported not-found, and the activity read requires a human and reports missing records. None of these cases reaches a worker.",
+        "required_gate_verdict": "Run 41492058406 succeeded first time: lint passed, rust-vnext 17m16s passed, a0-gates passed.",
+        "local_verification_only": "cargo test -p archeaxis-api --test deeptutor_grade_contract 5/5; rustfmt clean.",
+        "boundary": "Guards and error mapping only; the successful grading path is covered by the journey/grading tests, and installed runtime or real data remain unverified.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
+      "operational_measurement_20261103": {
+        "observed_at": "2026-11-03T02:00:00+08:00",
+        "before": "Whole project top-level directories recursively measured 33.06 GiB / 324,622 files; .project-local was 30.13 GiB / 277,650 files.",
+        "action": "Retired only the local regenerable Cargo debug deps/incremental produced by this round's verification build after the tests finished: deps 3.04 GiB (972 files) and incremental 2.99 GiB (5,574 files).",
+        "after": "Whole project 27.03 GiB / 318,078 files; .project-local 24.10 GiB / 271,104 files.",
+        "receipt": ".project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt-round7.json",
+        "baseline_status": "OBSERVATION_ONLY: this is not a growth-baseline roll and no gate was loosened. The fixed checkpoint still needs an Owner-visible re-measure earlier than any later baseline change.",
+        "boundary": "Regenerable local build output only; registry cache, release output, receipts, archives and every candidate leaf stay. The next local cargo run rebuilds from the registry, CI is independent.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",

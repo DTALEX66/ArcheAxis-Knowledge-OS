@@ -3669,3 +3669,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41488548252 **一次通过**——`lint` pass、`rust-vnext` 14m12s pass、`a0-gates` pass，其余门禁由gateplan跳过。
 - 本地验证：`cargo check -p archeaxis-api -p archeaxis-application -p archeaxis-domain --all-targets` exit 0；`provider_grade_chain` **12/12**（新增3项：fresh dispatch不动；aged dispatch只置UNKNOWN一次、同事件只读UNKNOWN且不二次启动；损坏对skipped且读回fail-closed）；`application_flow` 2/2、`job_atomicity` 16/16 在启用startup reconciliation后仍通过；`deeptutor_learning_journey` 1/1、`deeptutor_practice_import` 4 passed/1既有ignored、`provider_learning_api` 2/2；合同route/number 15 passed；rustfmt clean。
 - 边界：只覆盖"上个进程dispatch且超预算"的claim，不做后台巡检，也不把UNKNOWN变成可重试的已确认失败；安装态、真实用户数据、模型质量仍未验证。
+
+#### 2026-11-03 评分路由负向契约测试与本地载荷观测
+
+- PR #219（`8b17a310`）以merge commit `2dc0305c`合并，新增`crates/archeaxis-api/tests/deeptutor_grade_contract.rs` 五项**不触达worker**的拒绝边界测试：machine actor 在reservation前403固定reason；缺字段/多字段/畸形snapshot → 422（invalid request / invalid grade request）；body > 32,768字节 → 413；不存在activity → 404 `practice_object_not_found`；activity读回machine→403、不存在记录→404。
+- 精确SHA门禁：run 41492058406 **一次通过**——`lint` pass、`rust-vnext` 17m16s pass、`a0-gates` pass；本地`cargo test -p archeaxis-api --test deeptutor_grade_contract` 5/5、rustfmt clean。
+- 本轮验证期间重建的本地可再生Cargo debug产物在测试完成后再次退役：deps 3.04 GiB（972文件）+ incremental 2.99 GiB（5,574文件），共6.03 GiB；registry缓存、release输出、回执与候选叶未动。回执`.project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt-round7.json`。
+- 本地观测（非基线滚动）：整项目顶层目录递归从33.06 GiB/324,622文件降至**27.03 GiB/318,078文件**；`.project-local`从30.13 GiB/277,650文件降至**24.10 GiB/271,104文件**。固定增长checkpoint仍未重测为Owner可见基线，本记录不滚动基线、不放宽门禁。
+- 边界：负向测试只锁路由守卫与错误映射；成功评分路径由journey/评分测试覆盖；安装态、真实用户数据与模型质量仍未验证。
