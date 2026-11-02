@@ -3700,3 +3700,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本地验证：对保留debug二进制运行该命令**exit 0**，全部步骤通过；回执`.project-local/runs/be268a2d33/real-core-journey-auto-20261103/artifacts/journey-receipt.json`；ruff、py_compile、worktree约定检查通过。
 - 精确SHA门禁：run 41499288802中`gateplan` pass、`lint` 1m29s pass、`a0-gates` 28s pass，其余门禁由gateplan跳过。
 - 边界：CI无构建好的Core二进制，因此这是**面向调用者指定二进制的资格命令**，不是CI门禁、不静默skip；仍不等于安装包/Tauri宿主/真实数据/Owner接受。
+
+#### 2026-11-03 真实Core旅程纳入CI回归
+
+- PR #225（`5a22afcc`）以merge commit `eabdbb63b3705b2a3ea69558f1dab24aa1ab5748`合并，新增`crates/archeaxis-api/tests/real_core_journey_command.rs`：用`CARGO_BIN_EXE_archeaxis-api`（同一次测试构建的真实二进制）在临时workspace运行已跟踪的`scripts/ci/real_core_grading_journey.py`；解释器按`ARCHEAXIS_PYTHON`→文档化`.venv`→PATH的顺序解析，都不可用时显式skip并说明skip不是证据；回执断言schema、至少10步、真实评分`provider_correct`与固定upstream摘要、重启后`COMPLETED`处置、同事件`duplicate=true`、真实SQLite workspace文件。
+- 精确SHA门禁：run 41501409618 `lint` pass、**`rust-vnext`（windows-latest）12m49s pass**；日志显示该job实际执行`tests\real_core_journey_command.rs`并以0.62s通过——真实Core旅程由此从本地人工证据变为**CI内执行的回归**，而非skip。
+- 本地验证：`cargo test -p archeaxis-api --test real_core_journey_command` 1/1；rustfmt clean。
+- 边界：CI执行的是Windows runner上的debug二进制+合成材料+固定worker（无模型/网络）；仍不是安装包、不是Tauri宿主、不是真实用户数据、不是Owner接受，安装态旅程仍待单独验收。
