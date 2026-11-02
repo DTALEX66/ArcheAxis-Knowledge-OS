@@ -750,9 +750,12 @@ jobs:
               browser.close()
           print("Locked Chromium and system dependencies verified; no apt installation")
           PY
-      - name: Install locked legacy React/Tauri recovery tooling
+      - name: Install locked frontend dependencies
         run: npm ci --prefix frontend --ignore-scripts
-      - name: Run legacy React/Tauri recovery-browser regressions
+      - name: Run formal workbench React regressions
+        working-directory: frontend
+        run: npm test -- src/__tests__/UiFirstWorkspace.test.tsx src/__tests__/App.test.tsx
+      - name: Run formal React browser regressions
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
         run: python scripts/a0_browser_smoke.py

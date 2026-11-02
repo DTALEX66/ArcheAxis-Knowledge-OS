@@ -1,7 +1,8 @@
-"""Prepare a persistent TEST desktop development launch; --launch explicitly opens it.
+"""Prepare the legacy Avalonia TEST desktop; --legacy-avalonia opts in explicitly.
 
 Uses existing builds and the calling project interpreter, never installs or builds.
 This is a development entry, not a portable installer or a user-library migration.
+The formal Tauri/React host has a different runtime and must not use this launcher.
 """
 from __future__ import annotations
 
@@ -69,6 +70,8 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     paths = dev.layout(REPO)
     desktop = dev.safe_path(desktop or paths['build'] / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe')
     core = dev.safe_path(core or paths['cargo_build'] / 'debug/archeaxis-api.exe')
+    if desktop.name.casefold() == 'archeaxis.exe':
+        raise ValueError('the formal Tauri host cannot use the legacy Avalonia launcher')
     for path in (desktop, core):
         if not path.is_relative_to(paths['dev']):
             raise ValueError('development executable must be inside project .project-local')
@@ -141,12 +144,17 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--legacy-avalonia', action='store_true',
+                        help='explicitly prepare the retained legacy Avalonia TEST desktop')
     parser.add_argument('--desktop', type=Path)
     parser.add_argument('--core', type=Path)
     parser.add_argument('--fresh-workspace', action='store_true',
                         help='use a new isolated TEST database instead of resuming the worktree TEST workspace')
     parser.add_argument('--launch', action='store_true', help='open the prepared desktop and wait for it to close')
     args = parser.parse_args(argv)
+    if not args.legacy_avalonia:
+        print('this is the legacy Avalonia TEST launcher; use --legacy-avalonia to opt in', file=sys.stderr)
+        return 2
     try:
         receipt = prepare_launch(desktop=args.desktop, core=args.core, fresh_workspace=args.fresh_workspace)
     except (OSError, ValueError) as exc:

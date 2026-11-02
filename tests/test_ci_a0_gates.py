@@ -42,6 +42,19 @@ def test_ci_runs_javascript_and_real_browser_gates() -> None:
     assert "python -m playwright install --with-deps chromium" in workflow
 
 
+def test_browser_gate_runs_current_workbench_contracts_after_install() -> None:
+    import yaml
+
+    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["browser-smoke"]["steps"]
+    install = next(step for step in steps if "npm ci --prefix frontend" in step.get("run", ""))
+    workbench = next(step for step in steps if "src/__tests__/UiFirstWorkspace.test.tsx" in step.get("run", ""))
+    assert steps.index(install) < steps.index(workbench)
+    assert workbench.get("working-directory") == "frontend"
+    assert "src/__tests__/App.test.tsx" in workbench["run"]
+    assert not workbench.get("continue-on-error", False)
+    assert "if" not in workbench
+
+
 def test_windows_runtime_smoke_probes_only_the_api_and_retired_ui_boundary() -> None:
     smoke = (ROOT / "scripts/runtime_http_smoke.py").read_text(encoding="utf-8")
 

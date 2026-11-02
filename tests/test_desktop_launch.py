@@ -322,3 +322,43 @@ def test_prepare_accepts_project_local_staging_candidate(tmp_path, monkeypatch):
             fixture_root.parent.rmdir()
         except OSError:
             pass
+
+
+@pytest.mark.parametrize('arguments', [[], ['--launch'], ['--desktop', 'ArcheAxis.exe']])
+def test_cli_requires_explicit_legacy_choice_before_preparing_or_launching(monkeypatch, capsys, arguments):
+    launcher = load_launcher()
+
+    def must_not_prepare(**kwargs):
+        raise AssertionError('legacy preparation must require an explicit choice')
+
+    monkeypatch.setattr(launcher, 'prepare_launch', must_not_prepare)
+    assert launcher.main(arguments) == 2
+    assert '--legacy-avalonia' in capsys.readouterr().err
+
+
+def test_cli_can_still_prepare_legacy_desktop_when_explicitly_requested(monkeypatch, capsys):
+    launcher = load_launcher()
+    calls = []
+    monkeypatch.setattr(launcher, 'prepare_launch', lambda **kwargs: calls.append(kwargs) or {'status': 'prepared'})
+    assert launcher.main(['--legacy-avalonia', '--fresh-workspace']) == 0
+    assert calls == [{'desktop': None, 'core': None, 'fresh_workspace': True}]
+    assert json.loads(capsys.readouterr().out)['status'] == 'prepared'
+
+
+def test_legacy_preparer_rejects_formal_tauri_binary_before_allocation(tmp_path, monkeypatch):
+    launcher = load_launcher()
+    monkeypatch.setattr(launcher.resource_boundaries, 'check_resource_boundaries', lambda *args, **kwargs: {
+        'purpose': 'test', 'target': {'id': 'project_test_corpus'},
+    })
+    development = tmp_path / '.project-local'
+    desktop = development / 'build' / 'ArcheAxis.exe'
+    core = development / 'build' / 'archeaxis-api.exe'
+    for path in (desktop, core):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b'fixture')
+    monkeypatch.setattr(launcher.dev, 'layout', lambda root: {
+        'dev': development, 'build': development / 'build', 'cargo_build': development / 'build',
+    })
+    monkeypatch.setattr(launcher.dev, 'artifact_directory', lambda *args: (_ for _ in ()).throw(AssertionError('must not allocate')))
+    with pytest.raises(ValueError, match='Tauri'):
+        launcher.prepare_launch(desktop=desktop, core=core)

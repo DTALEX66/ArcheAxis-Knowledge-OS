@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import stat
 import subprocess
 import sys
@@ -48,6 +49,12 @@ def test_exact_retained_upstream_and_license_identities():
     assert hashlib.sha256((WORKER.parent / "LICENSE").read_bytes()).hexdigest() == (
         "cd2f54e1e5066644023203dcbd956776a9f4ef6eb8b6225afe1ffa2d380fede4"
     )
+
+
+def test_rust_executor_pins_the_current_adapter_bytes():
+    source = (ROOT / "crates/archeaxis-application/src/executor/deeptutor_grade.rs").read_text(encoding="utf-8")
+    pins = re.findall(r'^const WORKER_SHA: &str = "([0-9a-f]{64})";', source, re.MULTILINE)
+    assert pins == [hashlib.sha256(WORKER.read_bytes()).hexdigest()]
 
 
 def test_changed_upstream_bytes_fail_closed(tmp_path, monkeypatch):
@@ -141,6 +148,91 @@ def test_invalid_requests_fail_closed(mutation):
     mutation(value)
     with pytest.raises(worker.InvalidRequest):
         worker.process(value)
+
+
+@pytest.mark.parametrize("kind,options,expected,answer", [
+    ("single_choice", {"A": "same", "B": " same "}, "B", "same"),
+    ("choice", {"A": "first", "B": " A "}, "A", "A"),
+    ("single_choice", {"A": "one", "a": "two"}, "A", "a"),
+    ("single_choice", {"A": "", "B": "two"}, "A", ""),
+    ("multi_choice", {"A": "alpha", "B": "beta", "C": "AB"}, "A,B", "AB"),
+    ("multiple_select", {"A": "alpha", "B": "beta", "C": "A，B"}, "A,B", "A，B"),
+    ("multi_choice", {"A": "alpha", "B": "beta", "C": "AA"}, "A", "AA"),
+    ("multi_choice", {"AB": "combined", "A": "alpha", "B": "beta"}, "AB", "AB"),
+    ("multiple_select", {"S": "sigma", "T": "tau", "C": "ß"}, "S", "ß"),
+    ("multi_choice", {"a": "alpha", "b": "beta", "c": "a,b"}, "a,b", "a,b"),
+    ("multiple_select", {"a": "alpha", "b": "beta", "c": "ab"}, "ab", "ab"),
+])
+def test_ambiguous_options_and_answer_aliases_are_rejected_before_grading(
+        kind, options, expected, answer, monkeypatch):
+    value = request(kind, answer, expected)
+    value["question"]["options"] = options
+    monkeypatch.setattr(worker, "_upstream_grader", lambda: pytest.fail("ambiguous input reached grader"))
+    with pytest.raises(worker.InvalidRequest):
+        worker.process(value)
+
+
+@pytest.mark.parametrize("kind,options,expected,answer,correct", [
+    ("single_choice", {"A": "A", "B": "B"}, "A", "A", True),
+    ("single_choice", {"A": "one", "B": "two"}, "A", "", False),
+    ("multiple_choice", {"A": "one", "B": "two"}, "A", "A", True),
+    ("mcq", {"A": "one", "B": "two"}, "A", "A", True),
+    ("单选", {"A": "one", "B": "two"}, "A", "A", True),
+    ("判断", {"T": "true", "F": "false"}, "T", "T", True),
+    ("多选", {"A": "one", "B": "two"}, "A,B", "A,B", True),
+    ("多选", {"A": "one", "B": "two"}, "A,B", "AB", True),
+    ("多选题", {"A": "one", "B": "two"}, "AB", "A,B", True),
+    ("multi_choice", {"A": "alpha", "B": "beta", "C": "gamma"}, "A,B", "AB", True),
+    ("multiple_select", {"A": "alpha", "B": "beta", "C": "gamma"}, "AB", "A,B", True),
+    ("multi_choice", {"AB": "group", "C": "gamma"}, "AB", "AB", True),
+    ("short_answer", {}, "reference", "answer", None),
+    ("short_answer", {"A": "same", "B": "same"}, "reference", "same", None),
+    ("qualitative", {"A": "", "B": " "}, "reference", "", None),
+    ("single_choice", {"A": "same", "B": "same"}, "", "same", None),
+])
+def test_unambiguous_inputs_keep_original_grading(kind, options, expected, answer, correct):
+    value = request(kind, answer, expected)
+    value["question"]["options"] = options
+    assert worker.process(value)["provider_correct"] is correct
+
+
+@pytest.mark.parametrize("kind", ["choice", "single_choice", "true_false"])
+@pytest.mark.parametrize("expected", ["A,B", "A B", "A;B"])
+def test_single_choice_with_multiple_answer_keys_is_not_scored(kind, expected):
+    value = request(kind, expected, expected)
+    assert worker.process(value)["provider_correct"] is None
+
+
+@pytest.mark.parametrize("kind", ["written", "coding", "concept", "fill_in_blank", "unknown_future_type"])
+def test_non_choice_question_with_options_does_not_claim_objective_score(kind):
+    value = request(kind, "A", "A")
+    # Some upstream types happen to return a bool when callers supply options;
+    # a boolean here would be an unwarranted objective grading claim.
+    assert worker.process(value)["provider_correct"] is None
+
+
+def test_subjective_question_with_ambiguous_options_stays_ungraded():
+    value = request("written", "A", "A")
+    value["question"]["options"] = {"A": "same", "B": "same"}
+    assert worker.process(value)["provider_correct"] is None
+
+
+def test_single_choice_option_text_with_comma_can_still_be_one_answer():
+    value = request("choice", "A,B", "A,B")
+    value["question"]["options"] = {"A": "alpha", "B": "beta", "C": "A,B"}
+    assert worker.process(value)["provider_correct"] is True
+
+
+def test_real_worker_rejects_ambiguous_options_without_echoing_private_data():
+    value = request("multi_choice", "AB", "A,B")
+    value["question"]["options"] = {"A": "SYNTHETIC_PRIVATE_1", "B": "SYNTHETIC_PRIVATE_2", "C": "AB"}
+    raw = json.dumps(value, separators=(",", ":")).encode("utf-8") + b"\n"
+    result = subprocess.run([sys.executable, "-I", "-B", "-S", str(WORKER)], input=raw,
+                            capture_output=True, timeout=10, check=False)
+    assert result.returncode == 2 and result.stderr == b""
+    assert json.loads(result.stdout) == {"schema": worker.SCHEMA, "status": "INVALID_REQUEST",
+                                          "reason_code": "INVALID_INPUT"}
+    assert b"SYNTHETIC_PRIVATE" not in result.stdout
 
 
 def test_actual_isolated_process_handles_result_and_duplicate_json_members():

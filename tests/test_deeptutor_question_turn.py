@@ -275,11 +275,19 @@ def test_original_validator_and_grader_expose_duplicate_choice_ambiguity(isolate
     grade = {"schema": "archeaxis.deeptutor-practice-grade/v1", "request_id": "synthetic_ambiguity",
              "question": {"question_type": "choice", "options": normalized["options"],
                           "correct_answer": "B"}, "answer": "same"}
+    grade_spec = importlib.util.spec_from_file_location("original_grader_test", GRADER)
+    assert grade_spec is not None and grade_spec.loader is not None
+    grader = importlib.util.module_from_spec(grade_spec)
+    grade_spec.loader.exec_module(grader)
+    original = grader._upstream_grader()
+    assert original(grade["question"], "same") is False
+    assert original(grade["question"], "B") is True
     code, by_text, _ = invoke(grade, isolated_env, target=GRADER)
     grade["answer"] = "B"
     code_by_key, by_key, _ = invoke(grade, isolated_env, target=GRADER)
-    assert code == code_by_key == 0
-    assert by_text["provider_correct"] is False and by_key["provider_correct"] is True
+    assert code == code_by_key == 2
+    assert by_text == by_key == {"schema": grader.SCHEMA, "status": "INVALID_REQUEST",
+                                 "reason_code": "INVALID_INPUT"}
 
 
 def test_option_text_may_match_its_own_label_without_cross_option_collision(isolated_env):

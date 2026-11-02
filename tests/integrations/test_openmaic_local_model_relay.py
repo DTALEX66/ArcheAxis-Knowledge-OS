@@ -326,6 +326,307 @@ def test_total_timeout_stops_owned_child_even_with_trickling_headers():
     assert len(seen) == 1 and elapsed < 5
 
 
+@pytest.mark.parametrize("user_size", [16, 180_000])
+def test_child_stdout_limit_interrupts_a_flood_before_its_deadline(monkeypatch, user_size):
+    """The parent must bound the pipe while reading, not after communicate()."""
+    spec = importlib.util.spec_from_file_location("openmaic_relay_stdout_limit_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    original_popen = subprocess.Popen
+    children = []
+
+    def start_synthetic_flood(_args, **kwargs):
+        script = (
+            "import sys,time; "
+            "sys.stdout.buffer.write(b'x' * 1000001); "
+            "sys.stdout.buffer.flush(); time.sleep(30)"
+        )
+        child = original_popen([sys.executable, "-I", "-B", "-S", "-c", script], **kwargs)
+        children.append(child)
+        return child
+
+    monkeypatch.setattr(relay.subprocess, "Popen", start_synthetic_flood)
+    data = frame(1234)
+    data["profile"]["timeout_s"] = 10
+    data["user"] = "x" * user_size
+    raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+    started = time.monotonic()
+    result = relay.relay(raw)
+    elapsed = time.monotonic() - started
+    assert result["status"] == "REJECTED"
+    assert result["reason"] == "CHILD_OUTPUT_LIMIT"
+    assert result["owned_child_stop_state"] == "REAPED"
+    assert result["pipe_threads"] == "JOINED"
+    assert result["provider_stop_state"] == "UNKNOWN"
+    assert result["provider_reply"] is None
+    assert len(children) == 1 and children[0].poll() is not None
+    # The larger request also fills stdin because this synthetic child does
+    # not read it; killing the child must unblock and join the writer.
+    assert elapsed < 5
+
+
+def test_unconfirmed_pipe_cleanup_blocks_reuse_of_the_same_relay_instance(monkeypatch):
+    spec = importlib.util.spec_from_file_location("openmaic_relay_cleanup_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    release_reader = threading.Event()
+    reader_finished = threading.Event()
+    starts = []
+
+    class HeldStdout:
+        def read(self, _limit):
+            release_reader.wait()
+            return b""
+
+        def close(self):
+            reader_finished.set()
+
+    class WritableStdin:
+        def write(self, value):
+            return len(value)
+
+        def close(self):
+            pass
+
+    class ExitedChildWithHeldPipe:
+        stdout = HeldStdout()
+        stdin = WritableStdin()
+        returncode = 0
+
+        def poll(self):
+            return 0
+
+        def wait(self, timeout):
+            return 0
+
+    def start_synthetic_child(_args, **_kwargs):
+        starts.append(True)
+        return ExitedChildWithHeldPipe()
+
+    monkeypatch.setattr(relay.subprocess, "Popen", start_synthetic_child)
+    monkeypatch.setattr(relay, "_CLEANUP_WAIT_SECONDS", 0.1)
+    data = frame(1234)
+    data["profile"]["timeout_s"] = 1
+    raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+    try:
+        first = relay.relay(raw)
+        assert first["reason"] == "TOTAL_DEADLINE_EXCEEDED"
+        assert first["owned_child_stop_state"] == "REAPED"
+        assert first["pipe_threads"] == "UNKNOWN"
+        assert first["provider_stop_state"] == "UNKNOWN"
+        second = relay.relay(raw)
+        assert second["reason"] == "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED"
+        assert len(starts) == 1
+    finally:
+        release_reader.set()
+        assert reader_finished.wait(2)
+
+
+def test_spawn_failure_without_a_handle_keeps_cleanup_unknown_and_blocks_reuse(monkeypatch):
+    spec = importlib.util.spec_from_file_location("openmaic_relay_spawn_unknown_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    starts = []
+
+    def fail_without_returning_a_handle(_args, **_kwargs):
+        starts.append(True)
+        raise OSError("synthetic spawn failure")
+
+    monkeypatch.setattr(relay.subprocess, "Popen", fail_without_returning_a_handle)
+    raw = json.dumps(frame(1234), ensure_ascii=False).encode("utf-8")
+    first = relay.relay(raw)
+    assert first["reason"] == "CHILD_SPAWN_FAILED"
+    assert first["owned_child_stop_state"] == "UNKNOWN"
+    assert first["pipe_threads"] == "UNKNOWN" and first["provider_stop_state"] == "UNKNOWN"
+    second = relay.relay(raw)
+    assert second["reason"] == "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED"
+    assert len(starts) == 1
+
+
+def test_collector_initialization_failure_stops_its_returned_child_and_keeps_slot(monkeypatch):
+    spec = importlib.util.spec_from_file_location("openmaic_relay_collector_failure_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    original_popen = subprocess.Popen
+    children = []
+
+    def start_synthetic_child(_args, **kwargs):
+        child = original_popen([sys.executable, "-I", "-B", "-S", "-c",
+                                "import time; time.sleep(30)"], **kwargs)
+        children.append(child)
+        return child
+
+    def fail_thread_construction(*_args, **_kwargs):
+        raise RuntimeError("synthetic thread construction failure")
+
+    monkeypatch.setattr(relay.subprocess, "Popen", start_synthetic_child)
+    monkeypatch.setattr(relay.threading, "Thread", fail_thread_construction)
+    raw = json.dumps(frame(1234), ensure_ascii=False).encode("utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="synthetic thread construction failure"):
+            relay.relay(raw)
+        assert len(children) == 1 and children[0].poll() is not None
+        assert relay.relay(raw)["reason"] == "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED"
+        assert len(children) == 1
+    finally:
+        for child in children:
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=2)
+
+
+@pytest.mark.parametrize("mode", ["collector", "outer_fallback"])
+def test_poll_failure_still_kills_and_waits_only_the_owned_child(monkeypatch, mode):
+    spec = importlib.util.spec_from_file_location("openmaic_relay_poll_failure_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    original_popen = subprocess.Popen
+    children = []
+
+    class PollFails:
+        def __init__(self, child):
+            self.child = child
+            self.stdout = child.stdout
+            self.stdin = child.stdin
+            self.kill_calls = 0
+
+        def poll(self):
+            raise OSError("synthetic poll failure")
+
+        def kill(self):
+            self.kill_calls += 1
+            self.child.kill()
+
+        def wait(self, timeout):
+            return self.child.wait(timeout=timeout)
+
+    def start_synthetic_child(_args, **kwargs):
+        child = original_popen([sys.executable, "-I", "-B", "-S", "-c",
+                                "import time; time.sleep(30)"], **kwargs)
+        wrapper = PollFails(child)
+        children.append(wrapper)
+        return wrapper
+
+    monkeypatch.setattr(relay.subprocess, "Popen", start_synthetic_child)
+    if mode == "outer_fallback":
+        def fail_collector(*_args):
+            raise RuntimeError("synthetic collector failure")
+        monkeypatch.setattr(relay, "collect_owned_child", fail_collector)
+    raw = json.dumps(frame(1234), ensure_ascii=False).encode("utf-8")
+    try:
+        if mode == "collector":
+            result = relay.relay(raw)
+            assert result["reason"] == "CHILD_IO_FAILURE"
+            assert result["owned_child_stop_state"] == "UNKNOWN"
+        else:
+            with pytest.raises(RuntimeError, match="synthetic collector failure"):
+                relay.relay(raw)
+        assert len(children) == 1 and children[0].kill_calls >= 1
+        assert children[0].child.poll() is not None
+        assert relay.relay(raw)["reason"] == "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED"
+        assert len(children) == 1
+    finally:
+        for wrapper in children:
+            if wrapper.child.poll() is None:
+                wrapper.child.kill()
+                wrapper.child.wait(timeout=2)
+
+
+@pytest.mark.parametrize("interruption", [KeyboardInterrupt, SystemExit])
+def test_interruption_after_spawn_before_collector_stops_the_owned_child(monkeypatch, interruption):
+    spec = importlib.util.spec_from_file_location("openmaic_relay_post_spawn_interrupt_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    original_popen = subprocess.Popen
+    children = []
+
+    def start_synthetic_child(_args, **kwargs):
+        child = original_popen([sys.executable, "-I", "-B", "-S", "-c",
+                                "import time; time.sleep(30)"], **kwargs)
+        children.append(child)
+        return child
+
+    monkeypatch.setattr(relay.subprocess, "Popen", start_synthetic_child)
+    source = RELAY.read_text(encoding="utf-8").splitlines()
+    targets = [number for number, line in enumerate(source, 1)
+               if line.strip() == "stdout, reason, reaped, joined = collect_owned_child(child, raw, deadline)"]
+    assert len(targets) == 1
+
+    def interrupt_before_collector(frame, event, _arg):
+        if event == "line" and frame.f_code is relay.relay.__code__ and frame.f_lineno == targets[0]:
+            sys.settrace(None)
+            raise interruption("synthetic post-spawn interruption")
+        return interrupt_before_collector
+
+    raw = json.dumps(frame(1234), ensure_ascii=False).encode("utf-8")
+    previous_trace = sys.gettrace()
+    try:
+        sys.settrace(interrupt_before_collector)
+        with pytest.raises(interruption, match="synthetic post-spawn interruption"):
+            relay.relay(raw)
+        sys.settrace(previous_trace)
+        assert len(children) == 1 and children[0].poll() is not None
+        assert relay.relay(raw)["reason"] == "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED"
+        assert len(children) == 1
+    finally:
+        sys.settrace(previous_trace)
+        for child in children:
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=2)
+
+
+@pytest.mark.parametrize("interruption", [KeyboardInterrupt, SystemExit])
+def test_interruption_stops_the_owned_direct_child_and_preserves_unknown_state(monkeypatch, interruption):
+    spec = importlib.util.spec_from_file_location("openmaic_relay_interruption_test", RELAY)
+    assert spec is not None and spec.loader is not None
+    relay = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relay)
+    starts = []
+
+    class InterruptedChild:
+        def __init__(self):
+            self.stdout = io.BytesIO(b"")
+            self.stdin = io.BytesIO()
+            self.returncode = None
+            self.polls = 0
+            self.killed = False
+
+        def poll(self):
+            self.polls += 1
+            if self.polls == 1:
+                raise interruption()
+            return self.returncode
+
+        def kill(self):
+            self.killed = True
+            self.returncode = -1
+
+        def wait(self, timeout):
+            return self.returncode
+
+    child = InterruptedChild()
+
+    def start_synthetic_child(_args, **_kwargs):
+        starts.append(True)
+        return child
+
+    monkeypatch.setattr(relay.subprocess, "Popen", start_synthetic_child)
+    raw = json.dumps(frame(1234), ensure_ascii=False).encode("utf-8")
+    with pytest.raises(interruption):
+        relay.relay(raw)
+    assert child.killed is True and child.returncode is not None
+    # The interruption propagates before the coordinator can attest cleanup.
+    assert relay.relay(raw)["reason"] == "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED"
+    assert len(starts) == 1
+
+
 class InMemoryHttpBytes(io.BytesIO):
     def __init__(self, wire, fragmented):
         super().__init__(wire)

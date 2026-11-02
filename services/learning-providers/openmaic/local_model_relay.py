@@ -4,8 +4,11 @@ The caller supplies a finite internal stage and an explicit local OpenAI profile
 This module does not select or change global model settings and does not grant
 material access. Its child is owned only by this prototype. A successful HTTP
 reply can be supplied by a test stub; it is not proof of real model inference.
-The interpreter and script/parent paths are not identity-pinned, and child
-stdout is checked after communicate; this is not a production security sandbox.
+The interpreter and script/parent paths are not identity-pinned. Child stdout
+is bounded as it is read, but this is not a production security sandbox.
+Only one call per module instance may own a child at a time; if child or pipe
+cleanup cannot be confirmed, that instance remains unavailable. Descendants
+are not tracked and network isolation is not established by this module.
 All SHA-256 digests are unsalted; low-entropy prompts or requests may be guessed
 from them, so digests are not a confidentiality or redaction mechanism.
 Only the provider's content field is returned. That field is unreviewed and
@@ -29,6 +32,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -41,6 +45,8 @@ MAX_HTTP_BODY = 4 * 1024 * 1024
 MAX_HTTP_CHUNKS = 4_096
 MAX_CONTENT = 120_000
 MAX_OUTPUT = 1_000_000
+_CLEANUP_WAIT_SECONDS = 2.0
+_CHILD_SLOT = threading.BoundedSemaphore(1)
 
 
 class Rejected(ValueError):
@@ -368,6 +374,120 @@ def network_child(raw: bytes, request: dict):
     return result
 
 
+def collect_owned_child(child, raw: bytes, deadline: float):
+    """Bound both pipes while retaining ownership of this direct child.
+
+    A pipe may be held by a descendant; never close a stream from a different
+    thread while its read/write is in progress. Report cleanup as unknown and
+    retain the module slot if the direct child or either pipe cannot be joined.
+    """
+    output = []
+    overflow = threading.Event()
+    io_error = threading.Event()
+    close_error = threading.Event()
+
+    def read_stdout():
+        try:
+            data = child.stdout.read(MAX_OUTPUT + 1)
+            output.append(data)
+            if len(data) > MAX_OUTPUT:
+                overflow.set()
+        except (OSError, ValueError):
+            io_error.set()
+        finally:
+            try:
+                child.stdout.close()
+            except (OSError, ValueError):
+                close_error.set()
+                io_error.set()
+
+    def write_stdin():
+        try:
+            if child.stdin.write(raw) != len(raw):
+                io_error.set()
+        except (OSError, ValueError):
+            io_error.set()
+        finally:
+            try:
+                child.stdin.close()
+            except (OSError, ValueError):
+                close_error.set()
+                io_error.set()
+
+    threads = [threading.Thread(target=read_stdout, daemon=True),
+               threading.Thread(target=write_stdin, daemon=True)]
+    pipes_not_handed_off = [child.stdout, child.stdin]
+    attempted = []
+    launch_complete = False
+    reason = None
+    try:
+        for index, thread in enumerate(threads):
+            # A failed start can still have started the thread. Never close
+            # that pipe from this thread once its hand-off was attempted.
+            pipes_not_handed_off[index] = None
+            attempted.append(thread)
+            thread.start()
+        launch_complete = True
+        while True:
+            if overflow.is_set():
+                reason = "CHILD_OUTPUT_LIMIT"
+                break
+            if io_error.is_set():
+                reason = "CHILD_IO_FAILURE"
+                break
+            if child.poll() is not None and all(not thread.is_alive() for thread in threads):
+                break
+            if time.monotonic() >= deadline:
+                reason = "TOTAL_DEADLINE_EXCEEDED"
+                break
+            time.sleep(0.01)
+    except Exception:
+        reason = "CHILD_IO_FAILURE"
+    finally:
+        # This also runs for KeyboardInterrupt/SystemExit while the coordinator
+        # is waiting. The handle belongs only to the child started above.
+        try:
+            should_kill = child.poll() is None
+        except OSError:
+            # A failed poll is not evidence that the child exited.
+            should_kill = True
+        if should_kill:
+            try:
+                child.kill()
+            except OSError:
+                pass
+        try:
+            child.wait(timeout=_CLEANUP_WAIT_SECONDS)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+        for stream in pipes_not_handed_off:
+            if stream is not None:
+                try:
+                    stream.close()
+                except (OSError, ValueError):
+                    close_error.set()
+        join_until = time.monotonic() + _CLEANUP_WAIT_SECONDS
+        for thread in attempted:
+            if thread.ident is not None:
+                thread.join(timeout=max(0.0, join_until - time.monotonic()))
+
+    try:
+        reaped = child.poll() is not None
+    except OSError:
+        reaped = False
+    joined = launch_complete and all(not thread.is_alive() for thread in threads) and not close_error.is_set()
+    if reason is None:
+        if not reaped or not joined:
+            reason = "CHILD_CLEANUP_UNVERIFIED"
+        elif overflow.is_set():
+            reason = "CHILD_OUTPUT_LIMIT"
+        elif io_error.is_set():
+            reason = "CHILD_IO_FAILURE"
+        elif time.monotonic() >= deadline:
+            reason = "TOTAL_DEADLINE_EXCEEDED"
+    return (output[0] if output else b""), reason, reaped, joined
+
+
 def relay(raw: bytes):
     try:
         request = validate(raw)
@@ -375,61 +495,69 @@ def relay(raw: bytes):
         return base(raw, error.reason)
     except (UnicodeError, RecursionError):
         return base(raw, "INVALID_REQUEST")
+    if not _CHILD_SLOT.acquire(blocking=False):
+        return base(raw, "CHILD_BUSY_OR_CLEANUP_UNCONFIRMED", request)
     started = time.monotonic()
     deadline = started + request["profile"]["timeout_s"]
     child_env = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "SYSTEMDRIVE") if key in os.environ}
+    cleanup_confirmed = False
+    child = None
     try:
-        child = subprocess.Popen([sys.executable, "-I", "-B", "-S", "-X", "utf8", str(Path(__file__).resolve()),
-                                  "--_owned-network-child"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                 stderr=subprocess.DEVNULL, env=child_env)
-    except OSError:
-        return base(raw, "CHILD_SPAWN_FAILED", request)
-    try:
-        remaining = max(0, deadline - time.monotonic())
-        stdout, _stderr = child.communicate(input=raw, timeout=remaining)
-    except subprocess.TimeoutExpired:
-        result = base(raw, "TOTAL_DEADLINE_EXCEEDED", request)
-        result["provider_stop_state"] = "UNKNOWN"
-        result["owned_child_stop_state"] = "UNKNOWN"
         try:
-            child.kill()
-            child.communicate(timeout=2)
-            if child.returncode is not None:
-                result["owned_child_stop_state"] = "REAPED"
-        except (OSError, subprocess.TimeoutExpired):
-            result["reason"] = "CHILD_CLEANUP_UNVERIFIED"
+            child = subprocess.Popen([sys.executable, "-I", "-B", "-S", "-X", "utf8", str(Path(__file__).resolve()),
+                                      "--_owned-network-child"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.DEVNULL, env=child_env,
+                                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0)
+        except OSError:
+            # Popen can fail after creating a process but before returning its
+            # handle. We cannot confirm cleanup, so retain the instance slot.
+            result = base(raw, "CHILD_SPAWN_FAILED", request)
+            result.update(owned_child_stop_state="UNKNOWN", pipe_threads="UNKNOWN", provider_stop_state="UNKNOWN")
+            return result
+        stdout, reason, reaped, joined = collect_owned_child(child, raw, deadline)
+        cleanup_confirmed = reaped and joined
+        if reason is not None:
+            result = base(raw, reason, request)
+            result.update(owned_child_stop_state="REAPED" if reaped else "UNKNOWN",
+                          pipe_threads="JOINED" if joined else "UNKNOWN", provider_stop_state="UNKNOWN")
+            return result
+        if child.returncode not in (0, 2):
+            result = base(raw, "CHILD_RESPONSE_INVALID", request)
+        else:
+            try:
+                result = decode_json(stdout)
+            except Rejected:
+                result = None
+            if (type(result) is not dict or result.get("schema") != RESULT_SCHEMA
+                    or result.get("request_sha256") != digest(raw) or result.get("request_id") != request["request_id"]
+                    or result.get("stage") != request["stage"] or result.get("requested_model") != request["profile"]["model"]
+                    or result.get("status") not in {"CANDIDATE", "REJECTED"}
+                    or (result["status"] == "CANDIDATE") != (child.returncode == 0)):
+                result = base(raw, "CHILD_RESPONSE_INVALID", request)
+        result["owned_child_stop_state"] = "REAPED"
+        result["pipe_threads"] = "JOINED"
         return result
-    except OSError:
-        result = base(raw, "CHILD_IO_FAILURE", request)
-        result["provider_stop_state"] = "UNKNOWN"
-        result["owned_child_stop_state"] = "UNKNOWN"
-        try:
-            child.kill()
-            child.communicate(timeout=2)
-            if child.returncode is not None:
-                result["owned_child_stop_state"] = "REAPED"
-        except (OSError, subprocess.TimeoutExpired):
-            result["reason"] = "CHILD_CLEANUP_UNVERIFIED"
-        return result
-    if time.monotonic() >= deadline:
-        result = base(raw, "TOTAL_DEADLINE_EXCEEDED", request)
-        result["provider_stop_state"] = "UNKNOWN"
-        result["owned_child_stop_state"] = "REAPED" if child.returncode is not None else "UNKNOWN"
-        return result
-    if len(stdout) > MAX_OUTPUT or child.returncode not in (0, 2):
-        return base(raw, "CHILD_RESPONSE_INVALID", request)
-    try:
-        result = decode_json(stdout)
-    except Rejected:
-        return base(raw, "CHILD_RESPONSE_INVALID", request)
-    if (type(result) is not dict or result.get("schema") != RESULT_SCHEMA
-            or result.get("request_sha256") != digest(raw) or result.get("request_id") != request["request_id"]
-            or result.get("stage") != request["stage"] or result.get("requested_model") != request["profile"]["model"]
-            or result.get("status") not in {"CANDIDATE", "REJECTED"}
-            or (result["status"] == "CANDIDATE") != (child.returncode == 0)):
-        return base(raw, "CHILD_RESPONSE_INVALID", request)
-    result["owned_child_stop_state"] = "REAPED"
-    return result
+    finally:
+        if child is not None and not cleanup_confirmed:
+            # Protect the entire interval after Popen returned its handle,
+            # including an interruption before the collector is entered. Only
+            # the returned direct child belongs to this module. Cleanup here
+            # cannot attest pipe-thread termination, so retain the slot.
+            try:
+                should_kill = child.poll() is None
+            except BaseException:
+                should_kill = True
+            if should_kill:
+                try:
+                    child.kill()
+                except BaseException:
+                    pass
+            try:
+                child.wait(timeout=_CLEANUP_WAIT_SECONDS)
+            except BaseException:
+                pass
+        if cleanup_confirmed:
+            _CHILD_SLOT.release()
 
 
 def main():

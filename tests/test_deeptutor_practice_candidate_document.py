@@ -225,11 +225,16 @@ def test_multiselect_alias_conflicts_with_real_original_grader(adapter, options,
     spec.loader.exec_module(grader)
     question = {"question_type": "multi_choice", "options": options, "correct_answer": expected}
     request = {"schema": grader.SCHEMA, "request_id": "synthetic_grade", "question": question, "answer": expected}
-    assert grader.process(request)["provider_correct"] is True
-    # Although the alias can also be read as selection keys, the original
-    # grader first treats the same text as C's whole-string alias.
+    original = grader._upstream_grader()
+    assert original(question, expected) is True
+    # Keep the original's behavior visible: the alias can also be read as
+    # selection keys, but the upstream grader assigns it to C first.
+    assert original(question, alias) is False
+    with pytest.raises(grader.InvalidRequest):
+        grader.process(request)
     request["answer"] = alias
-    assert grader.process(request)["provider_correct"] is False
+    with pytest.raises(grader.InvalidRequest):
+        grader.process(request)
     row = {"question": "Synthetic?", **question}
     with pytest.raises(adapter.PracticeCandidateError, match="^AMBIGUOUS_OPTIONS$"):
         prepare(adapter, json_source([row]))

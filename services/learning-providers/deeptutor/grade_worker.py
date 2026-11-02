@@ -23,6 +23,11 @@ MAX_ANSWER_BYTES = 20_000
 MAX_OPTION_BYTES = 20_000
 UPSTREAM_ROOT = Path(__file__).absolute().parent / "upstream"
 UPSTREAM = UPSTREAM_ROOT / "answers.py"
+SINGLE_CHOICE_TYPES = frozenset({
+    "choice", "single_choice", "multiple_choice", "mcq", "单选", "单选题",
+    "true_false", "判断", "判断题",
+})
+MULTI_CHOICE_TYPES = frozenset({"multi_choice", "multiple_select", "多选", "多选题"})
 
 
 class InvalidRequest(ValueError):
@@ -48,6 +53,45 @@ def _bounded_text(value: object, maximum: int, *, empty: bool = True) -> str:
     if len(encoded) > maximum or (not empty and not value.strip()):
         raise InvalidRequest("text outside bounds")
     return value
+
+
+def _reject_ambiguous_options(options: dict[str, str], kind: str) -> dict[str, str]:
+    """Reject aliases that the original grader can assign to conflicting keys.
+
+    DeepTutor tries whole-option aliases before splitting a multiple selection.
+    Keep that original function unchanged, but do not turn an ambiguous input
+    into an apparently definite grade. The same conservative policy is applied
+    to the ``multiple_select`` spelling accepted by the original grader.
+    """
+    aliases: dict[str, str] = {}
+    for key, text in options.items():
+        # Otherwise an unanswered question can match an empty option text.
+        if not text.strip():
+            raise InvalidRequest("blank option text")
+        for alias in (key, text, f"{key}. {text}", f"{key}) {text}"):
+            folded = " ".join(alias.strip().upper().split())
+            if folded in aliases and aliases[folded] != key:
+                raise InvalidRequest("ambiguous option aliases")
+            aliases[folded] = key
+
+    if kind in MULTI_CHOICE_TYPES:
+        # The imported worker normally uppercases keys, but direct callers
+        # may supply lowercase keys. Detect ambiguity as a learner sees it,
+        # using the same folding as the whole-option alias comparisons.
+        folded_keys = {" ".join(key.strip().upper().split()) for key in options}
+        for alias, owner in aliases.items():
+            folded_owner = " ".join(owner.strip().upper().split())
+            parts = {part.strip().upper() for part in re.split(r"[,;，；\s]+", alias) if part.strip()}
+            if len(parts) == 1 and not parts <= folded_keys:
+                parts = set(alias.strip().upper())
+            if parts and parts <= folded_keys and parts != {folded_owner}:
+                raise InvalidRequest("ambiguous multiple-selection alias")
+            # An existing multi-character key suppresses upstream's fallback,
+            # but the same text may still mean its individual option keys.
+            continuous = set(alias.strip().upper())
+            if len(alias) > 1 and continuous <= folded_keys and continuous != {folded_owner}:
+                raise InvalidRequest("ambiguous multiple-selection alias")
+    return aliases
 
 
 def _read_upstream() -> bytes:
@@ -140,13 +184,33 @@ def process(value: object) -> dict[str, object]:
     clean_options: dict[str, str] = {}
     for key, text in options.items():
         clean_options[_bounded_text(key, 256, empty=False)] = _bounded_text(text, MAX_OPTION_BYTES)
+    # Only known choice types can support an objective observation. Upstream
+    # also emits bool for unknown/subjective types when options are supplied;
+    # that alone does not justify an objective grading claim.
+    objective = kind in SINGLE_CHOICE_TYPES or kind in MULTI_CHOICE_TYPES
+    aliases = {}
+    if objective and clean_options and correct_answer.strip():
+        aliases = _reject_ambiguous_options(clean_options, kind)
     # Never return the answer key or learner answer. Upstream returns None for
     # subjective, missing-key or malformed-key questions; do not coerce it.
+    # Match the retained importer's normalization before using its grader:
+    # the grader only applies its compact multi-key fallback to these names.
+    upstream_kind = "multi_choice" if kind in {"多选", "多选题"} else kind
     correct = _upstream_grader()(
-        {"question_type": kind, "options": clean_options, "correct_answer": correct_answer}, answer
+        {"question_type": upstream_kind, "options": clean_options, "correct_answer": correct_answer}, answer
     )
     if correct is not None and type(correct) is not bool:
         raise RuntimeError("upstream practice grader returned an invalid result")
+    if not objective:
+        correct = None
+    elif kind in SINGLE_CHOICE_TYPES and clean_options and correct_answer.strip():
+        # Like the retained grader, resolve whole-option aliases before
+        # splitting keys. A comma can belong to one option's actual text.
+        folded = " ".join(correct_answer.strip().upper().split())
+        if folded not in aliases:
+            parts = {part.strip().upper() for part in re.split(r"[,;，；\s]+", correct_answer) if part.strip()}
+            if len(parts) != 1 or not parts <= clean_options.keys():
+                correct = None
     return {"schema": SCHEMA, "request_id": request_id, "status": "OBSERVED",
             "provider": "deeptutor", "adapter_version": "1.7.1",
             "upstream_member_sha256": UPSTREAM_SHA256, "provider_correct": correct,

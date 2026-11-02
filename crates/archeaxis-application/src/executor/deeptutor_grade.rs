@@ -10,7 +10,7 @@ use sha2::{Digest, Sha256};
 
 const CAPABILITY: &str = "deeptutor.practice.grade";
 const SCHEMA: &str = "archeaxis.deeptutor-practice-grade/v1";
-const WORKER_SHA: &str = "062724fc1a2b3ba3334a8b77a10d3214a6fbd966b7e34261be923a87b2cabaa8";
+const WORKER_SHA: &str = "30d0a8e3f88a00186af0162f20953f14070cdc51ef42be4dca0e9948cb787b0e";
 const UPSTREAM_SHA: &str = "fdfbaee6cd0fa2c0f31de9a792e220e6989434fc1f44359db3e6afc62cd2472f";
 const MAX_INPUT: usize = 240_000;
 const MAX_OUTPUT: u64 = 16_384;
