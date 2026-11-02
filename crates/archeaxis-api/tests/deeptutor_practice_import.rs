@@ -46,7 +46,9 @@ async fn missing_private_worker_does_not_write_a_question() {
         &dir.path().join("unused-python"), &dir.path().join("unused-worker")).await.unwrap();
     let router = archeaxis_api::runtime::router(executor.clone());
     assert_eq!(post(&router, &request, "machine").await.0, StatusCode::FORBIDDEN);
-    assert_eq!(post(&router, &request, "human").await.0, StatusCode::SERVICE_UNAVAILABLE);
+    let (status, unavailable) = post(&router, &request, "human").await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(unavailable["reason"], "practice_worker_unavailable");
     let count = executor.store().submit_wait(|conn| conn.query_row(
         "SELECT count(*) FROM documents", [], |row| row.get::<_, i64>(0))).await.unwrap().unwrap();
     assert_eq!(count, 1, "missing worker must not create a question document");

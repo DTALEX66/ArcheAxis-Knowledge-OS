@@ -1,6 +1,6 @@
 //! Private practice import: the Core owns both the input snapshot and the write.
 use super::*;
-use archeaxis_application::executor::PracticeImportCancellation;
+use archeaxis_application::executor::{PracticeImportCancellation, PracticeImportWorkerError};
 use archeaxis_domain::{document, provider_question::{self, PracticeImportRequest}};
 use std::time::Duration;
 
@@ -17,6 +17,18 @@ impl Drop for RequestLease {
 
 fn failure(status: StatusCode, reason: &'static str) -> Response {
     (status, Json(json!({"code":"DEEPTUTOR_PRACTICE_IMPORT", "reason":reason}))).into_response()
+}
+
+fn worker_failure_reason(error: PracticeImportWorkerError) -> &'static str {
+    match error {
+        PracticeImportWorkerError::InvalidInput => "practice_worker_input_invalid",
+        PracticeImportWorkerError::Unavailable => "practice_worker_unavailable",
+        PracticeImportWorkerError::IdentityMismatch => "practice_worker_identity_mismatch",
+        PracticeImportWorkerError::Rejected => "practice_worker_rejected",
+        PracticeImportWorkerError::Cancelled => "practice_request_cancelled",
+        PracticeImportWorkerError::TimedOut => "practice_worker_timed_out",
+        PracticeImportWorkerError::CleanupUnknown => "practice_worker_cleanup_unknown",
+    }
 }
 
 pub(super) async fn import_practice(
@@ -45,7 +57,7 @@ pub(super) async fn import_practice(
         frame, Duration::from_secs(60), lease.cancel.clone(),
     ).await {
         Ok(reply) => reply,
-        Err(_) => return failure(StatusCode::SERVICE_UNAVAILABLE, "practice_worker_unavailable_or_result_unknown"),
+        Err(error) => return failure(StatusCode::SERVICE_UNAVAILABLE, worker_failure_reason(error)),
     };
     let cancelled = lease.cancel.clone();
     let result = runtime.executor.store().submit_wait(move |conn| {

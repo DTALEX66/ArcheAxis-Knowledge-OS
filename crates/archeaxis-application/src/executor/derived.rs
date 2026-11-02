@@ -12,19 +12,58 @@ pub(super) fn supported(capability: &str) -> bool {
     matches!(capability, "course.general" | "search.semantic" | "course.openmaic.scene-build")
 }
 
-pub(super) fn safe_local_file(path: &Path) -> bool {
-    let normalized = path.to_string_lossy().replace('\\', "/").to_ascii_lowercase();
-    let normalized = normalized.strip_prefix("//?/").unwrap_or(&normalized);
-    if !path.is_absolute() || normalized.starts_with("e:") || normalized.starts_with("f:") || normalized.starts_with("//")
-        || path.components().any(|part| matches!(part, std::path::Component::ParentDir)) {
+fn local_path_shape_allowed(path: &Path) -> bool {
+    #[cfg(windows)]
+    if !matches!(path.components().next(),
+        Some(std::path::Component::Prefix(prefix))
+            if matches!(prefix.kind(), std::path::Prefix::Disk(_) | std::path::Prefix::VerbatimDisk(_)))
+    {
         return false;
     }
+    let normalized = path.to_string_lossy().replace('\\', "/").to_ascii_lowercase();
+    let normalized = normalized.strip_prefix("//?/").unwrap_or(&normalized);
+    path.is_absolute() && !normalized.starts_with("e:") && !normalized.starts_with("f:")
+        && !normalized.starts_with("//") && !normalized.starts_with("unc/")
+        && !path.components().any(|part| matches!(part, std::path::Component::ParentDir))
+}
+
+pub(super) fn safe_local_file(path: &Path) -> bool {
+    if !local_path_shape_allowed(path)
+    { return false; }
     let mut part = PathBuf::new();
     for component in path.components() {
+        // A Windows verbatim prefix such as `\\?\D:` is not a complete
+        // filesystem root. Query the root only after its separator has been
+        // appended, then retain the link check for every remaining component.
+        let prefix_only = matches!(component, std::path::Component::Prefix(_));
         part.push(component);
+        if prefix_only { continue; }
         if archeaxis_store_sqlite::raw_objects::reject_links(&part).is_err() { return false; }
     }
     file_usable(path)
+}
+
+#[cfg(all(test, windows))]
+mod windows_local_path_tests {
+    use super::*;
+
+    #[test]
+    fn existing_verbatim_file_is_checked_from_root_and_unc_is_refused() {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/executor/derived.rs");
+        let canonical = path.canonicalize().unwrap();
+        assert!(safe_local_file(&path));
+        assert!(safe_local_file(&canonical));
+        assert!(!local_path_shape_allowed(Path::new(r"E:\worker.py")));
+        assert!(!local_path_shape_allowed(Path::new(r"\\?\F:\worker.py")));
+        assert!(!local_path_shape_allowed(Path::new(r"\\server\share\worker.py")));
+        assert!(!local_path_shape_allowed(Path::new(r"\\?\UNC\server\share\worker.py")));
+        assert!(!local_path_shape_allowed(Path::new(r"\\?\Volume{12345678-1234-1234-1234-123456789abc}\worker.py")));
+        let dir = tempfile::tempdir().unwrap();
+        let link = dir.path().join("linked.rs");
+        if std::os::windows::fs::symlink_file(&path, &link).is_ok() {
+            assert!(!safe_local_file(&link));
+        }
+    }
 }
 
 /// Bind a trusted launch manifest to the executable's actual bytes, with bounded
