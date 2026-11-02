@@ -3626,3 +3626,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41459130141中gateplan、lint、contracts-vnext、desktop-vnext、green-candidate-vnext、workers-vnext、browser-smoke、desktop-fast通过；`rust-vnext`首轮失败于`document_cloud_loop`两个用例的合成worker 5秒超时，**同一SHA重跑失败任务**后`rust-vnext` 16m51s通过、`a0-gates`通过、run结论success。该超时是非本PR源码的负载敏感flaky，保留记录、未隐藏。gateplan对该路径集跳过了`desktop-build`、`test`、`security-targeted`与`installer-lifecycle`；生成契约一致性由contracts-vnext及本地生成器--check覆盖。
 - 本地验证：宿主bridge`rustfmt --check`通过；契约生成器与各自`--check`通过；77项契约/权威测试、staging与bridge套件通过（staging中1项为本机>260字符临时路径既有环境问题，短basetemp下通过）。本机无宿主target缓存，未做本地Tauri编译；安装态真实评分旅程未运行。
 - 边界：这只证明"正式宿主可调用该固定路由且安装闭包含评分worker"的源码与云端门禁，不证明安装态真实评分、真实用户数据、模型质量、多场景课程或Owner接受。
+
+#### 2026-11-02 本地临时scratch有界清理（保留引用回执）
+
+- 授权与范围：按Owner目标"所有旧的过时的该归档归档该退役退役 该清理的清理掉 保持仓库干净规范"，只清理`.project-local`下**每run的pytest临时目录（pytest-tmp）**与Python/pytest字节码缓存；**未删除**任何`tmp/`树、`artifacts/`、`logs/`、`run-metadata.json`、`archives/`、`rt/`、build缓存、忽略原件，也未动任何有登记消费者/保全决定的候选叶。
+- 引用保全：删除前后`tmp/journey/receipt.json`均为**266**份，抽样10份逐SHA一致（receipt记录样本）；被清理的pytest scratch不属于任何现行权威/回执引用路径。
+- 实测结果：整个`.project-local`从35,406,332,336 B / 636,630文件变为34,583,567,392 B / 497,226文件，**释放822,764,944 B（784.6 MiB）**。逐目标求和会重复计算嵌套pytest目录，故以整目录实测差值为准。
+- 保留的拒绝：171个pytest-tmp目录共1,173,843,179 B因内部路径**Access denied**未能删除；这些树来自先前项目权限/ACL测试，**未做ACL绕过、未换通道重试**，原样保留。
+- 会话自有scratch：删除15项本次会话生成的临时文件/目录（CI日志副本、gitleaks工具副本、临时脚本、PR正文草稿、本地worker run root、`C:\aaos-tmp`），共32,205,007 B；均非引用证据。
+- 明确未清理（留给既有登记）：`runs/be268a2d33`下cnprep3、ui-small-final-portable、cppcand1、zc1c8、bpr1、cppns2、sci-build1等大候选叶仍按`remaining-runs-review-20261031`登记与各自消费者判断保留；`rt/`、`build/cargo`、`archives/`与界面审计截图目录同样保留。
+- 回执：`.project-local/runs/be268a2d33/cleanup-20261102/artifacts/cleanup-receipt.json`（schema `aaos.local-tmp-cleanup/v1`）。边界：这是可再生测试scratch清理，不是产品/证据/资格/Owner接受变化，不滚动增长基线、不放宽门禁。
