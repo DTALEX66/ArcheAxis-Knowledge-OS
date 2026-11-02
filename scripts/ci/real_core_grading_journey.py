@@ -485,6 +485,52 @@ def run_journey(core: Core) -> dict:
             "state": final["state"],
         }
     )
+    # A live backup must publish a verified artifact, its list must survive a process
+    # restart, and the restore preview must verify the same bytes without restoring.
+    status, backup = core.request("POST", "/api/v1/workspace/backups", {})
+    expect("workspace backup", status, 201, backup)
+    if backup.get("verified") is not True:
+        raise CoreFailure(f"backup did not verify: {backup}")
+    steps.append(
+        {
+            "step": "live workspace backup",
+            "status": status,
+            "verified": True,
+            "backup_id": backup.get("backup_id"),
+        }
+    )
+    status, first_list = core.request("GET", "/api/v1/workspace/backups")
+    expect("backup list", status, 200, first_list)
+    first_ids = sorted(item.get("backup_id") for item in first_list.get("backups", []))
+    if backup.get("backup_id") not in first_ids:
+        raise CoreFailure(f"the new backup is absent from the list: {first_list}")
+    core.stop()
+
+    core.start()
+    steps.append({"step": "Core restart before backup re-read", "status": "ready"})
+    status, second_list = core.request("GET", "/api/v1/workspace/backups")
+    expect("backup list after restart", status, 200, second_list)
+    second_ids = sorted(item.get("backup_id") for item in second_list.get("backups", []))
+    if second_ids != first_ids:
+        raise CoreFailure(f"backup list changed across restart: {first_ids} -> {second_ids}")
+    steps.append(
+        {
+            "step": "backup list survives restart",
+            "status": status,
+            "backups": len(second_ids),
+        }
+    )
+    status, preview = core.request(
+        "POST",
+        "/api/v2/workspace/restore/preview",
+        {"backup_id": backup["backup_id"], "expected_sha256": backup["sha256"]},
+    )
+    expect("restore preview", status, 200, preview)
+    if preview.get("verified") is not True:
+        raise CoreFailure(f"restore preview did not verify: {preview}")
+    steps.append(
+        {"step": "restore preview verifies the backup", "status": status, "verified": True}
+    )
     core.stop()
 
     return {
