@@ -3677,3 +3677,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本轮验证期间重建的本地可再生Cargo debug产物在测试完成后再次退役：deps 3.04 GiB（972文件）+ incremental 2.99 GiB（5,574文件），共6.03 GiB；registry缓存、release输出、回执与候选叶未动。回执`.project-local/runs/be268a2d33/cleanup-20261102-round4/artifacts/cleanup-receipt-round7.json`。
 - 本地观测（非基线滚动）：整项目顶层目录递归从33.06 GiB/324,622文件降至**27.03 GiB/318,078文件**；`.project-local`从30.13 GiB/277,650文件降至**24.10 GiB/271,104文件**。固定增长checkpoint仍未重测为Owner可见基线，本记录不滚动基线、不放宽门禁。
 - 边界：负向测试只锁路由守卫与错误映射；成功评分路径由journey/评分测试覆盖；安装态、真实用户数据与模型质量仍未验证。
+
+#### 2026-11-03 增长复核只读测量与本地scratch清理
+
+- 用仓库自带`scripts/runtime/storage_report.py`对**固定v2 checkpoint**（`.project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json`）做只读增长复核，而非另立基线。首次测量：`REVIEW_REQUIRED`、`new_out_of_layout_count=9`（全部为本会话自己放在`.project-local`根目录的scratch）、`delta_readable_bytes=1,118,316,399`、`measurement_status=PARTIAL`、exit 2。
+- 删除这9个会话自有scratch（5份CI日志副本、1份PR正文草稿、1个helper脚本、2份grader-verify日志，共2,408,675 B）；未动任何历史回执、归档、候选叶或引用证据。
+- 复测：`NO_NEW_GROWTH_TRIGGER`、`new_out_of_layout_count=0`；`delta_readable_bytes=1,116,391,733`（约1.04 GiB，低于2,147,483,648复核线）；`measurement_status=PARTIAL`；`over_budget_classes=["runs/"]`但`growing_over_budget_classes=[]`、该类超预算增量仅13,081,816 B；`deletion_authorized=false`；exit 1是因为仍有**158个既有OUT-OF-LAYOUT条目待决定**（根目录`.screenshots/`、UI预览文件/bundle、acceptance/appdata/audit目录、30个形状不符的runs条目、20个checkout已消失的identity run root等），按工具要求只报告不静默删除。
+- 回执：`.project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-vs-pinned.json`与`storage-growth-after-scratch.json`。边界：固定checkpoint被读取用于复核、**未滚动或替换**；`deletion_authorized=false`，未放宽门禁。
+- 另核实：OpenMAIC imported-course 的 v1/v2 分派目前在客户端按**已存文档的schema**选择reader（`frontend/src/presentation/importedCourseStorage.ts`）；Core只存文档、不解析课程载荷，未发现需要新增的服务端分派点。若要求服务端强制校验/拒绝旧版课程载荷，属产品定义，不能由本轮自行补造。
