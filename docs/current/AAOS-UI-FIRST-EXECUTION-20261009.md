@@ -3970,3 +3970,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同第 16 行同步。
 - 验证：`item_state_api` **2/2**（新增 current 断言）、`learning_state_api` **8/8**、`contract_schedule_authority` **2/2**；rustfmt clean。
 - 边界：本地切片、未推送；只新增字段，不改评估创建/评审与调度语义。
+
+#### 2026-11-03 后端其余 crate 的本地回归核对（验证，无代码变更）
+
+- `cargo test -p archeaxis-store-sqlite -p archeaxis-contracts -p archeaxis-archive --offline`：**全部通过、0 failed**（store 9 项、contracts 4 项、archive 及其集成用例）。
+- `cargo test -p archeaxis-application --lib --offline`：**72 passed / 0 failed / 3 ignored**——被 ignored 的正是前文受控本地资格中已单独跑通的真实评分 worker、超时回收、取消回收三个用例（skip 不是证据，故另行显式运行并记录）。
+- 与上一轮 API crate 全量运行（仅 OCR 环境用例失败）合并后，本地测试面已覆盖 `archeaxis-domain` / `archeaxis-api` / `archeaxis-application`（lib）/ `archeaxis-store-sqlite` / `archeaxis-contracts` / `archeaxis-archive`。
+- 边界：本地 `--offline` 运行，不是精确 SHA CI；不含 OCR、Node、媒体/ASR 等需要外部引擎的集成用例（其本机环境缺失已单独记录）。
