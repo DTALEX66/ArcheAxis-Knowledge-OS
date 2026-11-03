@@ -186,9 +186,9 @@ impl Executor {
         // ordinary document use, so it is reported to stderr only.
         if let Err(error) = store
             .submit_wait(|conn| {
-                archeaxis_domain::provider_learning::grade::abandon_dispatched_after_restart(
+                archeaxis_domain::provider_learning::grade::finalize_abandoned_dispatches(
                     conn,
-                    std::time::Duration::from_secs(150),
+                    archeaxis_domain::provider_learning::grade::DISPATCH_STALE_GRACE,
                 )
             })
             .await
@@ -234,6 +234,50 @@ impl Executor {
             document_check_config_error: None,
             health_slots: Arc::new(tokio::sync::Semaphore::new(4)),
             derived_slots: Arc::new(tokio::sync::Semaphore::new(4)),
+        })
+    }
+
+    /// Period of the terminal-only grading dispatch sweep. Five minutes keeps a
+    /// dead dispatch from showing as live for long without adding polling load;
+    /// the sweep window itself is the domain grace constant, not this period.
+    pub const GRADE_DISPATCH_SWEEP_INTERVAL: Duration = Duration::from_secs(300);
+
+    /// Run the terminal-only dispatch sweep periodically for as long as the caller
+    /// keeps this task alive.
+    ///
+    /// It finalizes `DISPATCHED` claims whose receipt window has closed and never
+    /// starts, re-sends or retries a worker, so "at most once" dispatch is
+    /// unchanged. The task owns a store handle only for its own callbacks, so the
+    /// caller must abort it before closing the writer; it also ends by itself once
+    /// the writer is closed.
+    pub fn spawn_grade_dispatch_sweeper(&self, interval: Duration) -> tokio::task::JoinHandle<()> {
+        let store = self.store.clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(interval).await;
+                let swept = store
+                    .submit(|conn| {
+                        archeaxis_domain::provider_learning::grade::finalize_abandoned_dispatches(
+                            conn,
+                            archeaxis_domain::provider_learning::grade::DISPATCH_STALE_GRACE,
+                        )
+                    })
+                    .await;
+                match swept {
+                    Ok(Ok(counts)) if counts.abandoned > 0 => eprintln!(
+                        "grade dispatch sweep finalized {} stale dispatch(es)",
+                        counts.abandoned
+                    ),
+                    Ok(Ok(_)) => {}
+                    Ok(Err(error)) => eprintln!("grade dispatch sweep unavailable: {error:?}"),
+                    // A closed writer means the Core is shutting down; stop instead
+                    // of polling a queue nobody drains.
+                    Err(error) => {
+                        eprintln!("grade dispatch sweep stopped: {error}");
+                        break;
+                    }
+                }
+            }
         })
     }
 

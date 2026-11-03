@@ -150,6 +150,17 @@
       "still_requires_separate_authorization": "installation acceptance in an independent Windows account or isolated environment; release publication; Green replacement; real-data overwrite; bulk deletion",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "grade_dispatch_terminal_sweep_20261104": {
+      "authorization": "execution_control.owner_full_authorization_20261103.authorized item 4: terminal-only periodic sweep plus an explicit operator trigger, never an automatic worker relaunch",
+      "implemented": [
+        "grade::finalize_abandoned_dispatches with grade::DISPATCH_STALE_GRACE is the single bounded rule; startup, periodic sweep and the operator trigger all call it instead of hardcoding a window",
+        "Executor::spawn_grade_dispatch_sweeper runs the same rule every 300 seconds in the Core process and is aborted before the writer closes so graceful exit is not blocked",
+        "POST /api/v1/learning/deeptutor/practice-grade/reconcile is the human-only explicit trigger and reports this call's abandoned/recent/skipped counts"
+      ],
+      "unchanged": "UNKNOWN stays terminal; the same client event is refused before admission and never relaunched; no new persistence, background retry loop or second business database",
+      "evidence": "Local only: domain provider_grade_chain 12/12, domain lib 88/88, new crates/archeaxis-api/tests/grade_dispatch_reconcile.rs 3/3, deeptutor_grade_contract 5/5, provider_learning_api 2/2, contract_absent_surfaces 8/8, session_shutdown_process 2/2, contract route inventory 7/7, document authority and repository convention gates pass, rustfmt clean. Not pushed, no exact-SHA CI, no installed-runtime or Owner acceptance.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {

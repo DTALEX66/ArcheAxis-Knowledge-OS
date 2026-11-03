@@ -307,3 +307,39 @@ pub(super) async fn grade_practice(
         }
     }
 }
+
+/// Explicit operator trigger for the terminal-only dispatch sweep.
+///
+/// It applies exactly the same bounded rule as startup and the background sweep:
+/// a `DISPATCHED` claim whose recorded second is older than the grading budget plus
+/// margin becomes terminal `UNKNOWN`, a younger or second-less claim is left as
+/// it is, and no worker is started, re-sent or retried. Repeating it is a no-op
+/// once claims are terminal, so the counts it returns are the effect of this call.
+pub(super) async fn reconcile_grade_dispatches(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return grade_failure(StatusCode::FORBIDDEN, "human_actor_required");
+    }
+    let swept = runtime
+        .executor
+        .store()
+        .submit_wait(|conn| grade::finalize_abandoned_dispatches(conn, grade::DISPATCH_STALE_GRACE))
+        .await;
+    match swept {
+        Ok(Ok(counts)) => Json(json!({
+            "schema": "archeaxis.grade-dispatch-reconcile/v1",
+            "window_seconds": grade::DISPATCH_STALE_GRACE.as_secs(),
+            "abandoned": counts.abandoned,
+            "recent": counts.recent,
+            "skipped": counts.skipped,
+            "worker_relaunches": 0
+        }))
+        .into_response(),
+        _ => grade_failure(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "grade_reconciliation_failed",
+        ),
+    }
+}
