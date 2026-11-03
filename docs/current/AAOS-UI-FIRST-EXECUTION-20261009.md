@@ -3846,3 +3846,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 结果：**1 passed / 0 failed，4.81s**——真实本地Node进程执行固定的OpenMAIC 1.3.0场景构建worker；slide场景的inert候选持久化（含完整request frame与供体输出）；随后**不配置Node**重开Core，读到已持久化版本而不重跑worker。
 - 回执：`runs/be268a2d33/openmaic-node-scene-20261103/artifacts/qualification-receipt.json`；可再生的debug构建产物已退役，`.project-local`约22.41 GiB，增长`NO_NEW_GROWTH_TRIGGER`且delta为负。
 - 边界：**本地**点验；该测试在CI中仍为`#[ignore]`，无模型/网络；不是安装态、不是真实多场景课程或真实本地模型生成、不是Owner接受。
+
+#### 2026-11-03 精确SHA全量资格（含安装态旅程）在 main 028f1afd 通过
+
+- 对当前main `028f1afd80a711375671fb9e07748787b94e477d` 以`workflow_dispatch` + `force_full=true` 触发全量CI：run [41562889858](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41562889858)，最终**conclusion success**（01:55:47Z→03:00:51Z）。
+- 所有required gates成功，含`installer-lifecycle`、`desktop-fast`、`desktop-build`；`a0-gates`日志结尾为`ci-verdict: all required gates success`、`INSTALLER_RESULT: success`。
+- **安装态证据**：`installer-lifecycle`运行9m55s并上传`installed-native-journey-028f1afd…-1`（2,802,087 B）。其回执含三条安装态WebDriver旅程，`requested_product_exits`均为`CONFIRMED`、`shared_exit_budget_seconds=15`、`wait_timeout_seconds`最大14.99、`wait_result=RETURNED`——**退出预算被遵守，浮点假越界未复现**。
+- 取消说明：该dispatch首次调度在`desktop-fast`运行期间被行政取消（非源码失败）；**同SHA**重跑失败/取消的作业后`desktop-fast`与`a0-gates`成功，run最终success。
+- 回执：`.project-local/runs/be268a2d33/ci-full-qual-028f1afd-20261103/`（安装态旅程receipt、driver/native-driver日志、截图）。
+- 边界：这是**CI runner上的安装态旅程**（合成数据），不是Owner机器安装、不是真实用户数据、不是Owner接受；本轮本地构建的未签名安装器不属于该资格身份。

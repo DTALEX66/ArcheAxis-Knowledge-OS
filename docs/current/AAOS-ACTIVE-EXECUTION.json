@@ -451,6 +451,16 @@
         "boundary": "Local-only qualification of the real Node worker path; the test stays #[ignore]d in CI, no model or network is involved, and this is not an installed runtime, real multi-scene course, local model generation or Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "full_qualification_028f1afd_20261103": {
+        "state": "EXACT_SHA_FULL_QUALIFICATION_SUCCESS_INCLUDING_INSTALLED_JOURNEY",
+        "run": {"url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41562889858", "conclusion": "success", "event": "workflow_dispatch", "force_full": true, "head_sha": "028f1afd80a711375671fb9e07748787b94e477d", "duration": "01:55:47Z -> 03:00:51Z"},
+        "gate_verdict": "All required gates succeeded, including installer-lifecycle, desktop-fast and desktop-build; the a0-gates log ends with 'ci-verdict: all required gates success' and INSTALLER_RESULT: success.",
+        "installed_evidence": "installer-lifecycle ran 9m55s and uploaded installed-native-journey-028f1afd...-1 (2,802,087 B). Its receipts contain three installed WebDriver journeys whose requested_product_exits are all ack CONFIRMED with shared_exit_budget_seconds=15, wait_timeout_seconds at most 14.99 and wait_result RETURNED - the native exit budget is respected and the spurious float overrun did not recur in the installed path.",
+        "cancellation_note": "The first scheduling of this dispatch was cancelled while desktop-fast was running (administrative cancellation, not a source failure); rerunning the failed/cancelled jobs at the same SHA completed desktop-fast and a0-gates successfully, after which the run concluded success.",
+        "receipts": [".project-local/runs/be268a2d33/ci-full-qual-028f1afd-20261103/ (downloaded installed journey receipts, driver and native-driver logs, screenshots)"],
+        "boundary": "CI-runner installed journey on synthetic data, not an Owner-machine installation, not real user data and not Owner acceptance; the locally built unpinned installers remain outside this qualification.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
