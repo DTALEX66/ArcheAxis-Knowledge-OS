@@ -419,6 +419,15 @@
         "boundary": "Clean extracted payload of a locally built unsigned installer with the CURRENT runtime: not installed (no registry entry, no Owner-account installation), not the CI candidate identity, not Green, not Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "default_worker_root_recheck_20261103": {
+        "state": "DEFAULT_PATH_RECHECK_PASSED",
+        "why": "The --worker-root option was added in PR #245 but that PR's CI path set skipped rust-vnext, so the default repository worker layout was re-verified locally after the merge.",
+        "how": "Rebuilt the release core from the merge head (47.97s) and ran the tracked journey command without --worker-root, so the launch profile used the repository services layout.",
+        "result": "All 22 steps passed with exit 0 and no leftover process; receipt at .project-local/runs/be268a2d33/default-worker-root-journey-20261103/artifacts/journey-receipt.json.",
+        "cleanup": "The regenerable release cargo outputs from this recheck were retired afterwards; .project-local is about 22.41 GiB and growth review stays NO_NEW_GROWTH_TRIGGER with a negative delta (-698,454,740 B), OUT-OF-LAYOUT 87, deletion_authorized=false.",
+        "boundary": "Local re-verification only; it does not replace the CI regression run for the repository layout, and this is still not installed acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
