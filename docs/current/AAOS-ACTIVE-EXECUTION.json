@@ -391,6 +391,21 @@
         "boundary": "Install-layout journey, not an installed application: the payload was extracted rather than installed, the core was replaced with the current release build, and the workers came from the repository. Not the CI candidate identity, not Green, not Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "current_runtime_staging_blockers_20261103": {
+        "state": "PRECISE_TOOLING_BLOCKERS_NO_OUTPUT_INSTALLED",
+        "goal": "Rebuild the local installer so it carries the current runtime and run the tracked journey from a clean extracted payload without patching the core.",
+        "attempts": [
+          "vc-runtime from .project-local/rt: FileNotFoundError for msvcp140.dll - the app-local C++ cohort needs vcruntime140.dll, vcruntime140_1.dll and msvcp140.dll with exact pinned bytes; the bpr1 and cppcand1 backend-runtime copies match those pins.",
+          "bpr1/cppcand1 runtime with their fixed WebView2 directory: ValueError fixed WebView2 inventory mismatch - the local trees carry the right manifest (d4656239...) but not the pinned fixed-runtime inventory.",
+          "staging without the optional WebView2 pair: ValueError large copy must use its canonical allocated run artifacts - runtime_growth refuses large copies outside the dev.py run allocation."
+        ],
+        "prepared_sources": "Current release core rebuilt from HEAD in 51.34s (sha256 e7241f1f...); workers from the current tracked services/python-workers; portable runtime from cppcand1 with the pinned C++ cohort. Only the governed staging path is missing.",
+        "next": "Run staging through scripts/runtime/dev.py so the large copy lands in a canonical allocated run artifact directory and use the exact fixed WebView2 distribution CI downloads; then rebundle, extract and run the tracked journey from the clean payload.",
+        "cleanup": "The empty failed staging output directory and the regenerable release cargo deps/build outputs from the attempt were retired; .project-local is about 24.57 GiB; growth review NO_NEW_GROWTH_TRIGGER with delta_readable_bytes=1,622,731,021 (~1.51 GiB, below the 2 GiB line), OUT-OF-LAYOUT 87, deletion_authorized=false.",
+        "receipts": [".project-local/runs/be268a2d33/installed-staging-blockers-20261103/artifacts/staging-blockers-receipt.json", ".project-local/runs/be268a2d33/installed-staging-blockers-20261103/artifacts/cleanup-receipt-round16.json"],
+        "boundary": "No staging output was produced and nothing was installed; this is a tooling blocker record, not a runtime failure and not installed acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",

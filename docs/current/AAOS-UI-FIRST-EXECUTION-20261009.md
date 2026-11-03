@@ -3800,3 +3800,14 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 回执：`install-layout-receipt.json`与`journey-receipt.json`（runs/be268a2d33/installed-layout-journey-20261103/artifacts）。
 - 清理：记录哈希后退役解包payload（1.31 GiB）、安装器与release/debug可再生产物及staged runtime副本；`.project-local`回到约24.48 GiB，增长复核`NO_NEW_GROWTH_TRIGGER`（delta 1,530,099,620 B≈1.42 GiB<2GiB；OUT-OF-LAYOUT 87；deletion_authorized=false；checkpoint未滚动）。
 - 边界：这是**安装形态布局**旅程，不是已安装应用：payload是解包而非安装、core被当前构建替换、workers来自仓库；不是CI候选身份、不是Green、不是Owner接受。
+
+#### 2026-11-03 当前运行时staging的精确阻断（未产出、未安装）
+
+- 目标：把当前运行时stage后重新打包，使安装器自带当前core/workers，再从干净解包（不替换core）跑同一旅程。已准备：当前release core重建（51.34s，sha256 `e7241f1f…`）、当前`services/python-workers`、含固定C++ cohort的便携python runtime（cppcand1副本）。
+- 三次尝试与精确阻断：
+  1. `--vc-runtime .project-local/rt` → `FileNotFoundError: msvcp140.dll`：app-local C++ cohort需要`vcruntime140.dll`/`vcruntime140_1.dll`/`msvcp140.dll`三项精确字节；bpr1与cppcand1的backend-runtime副本符合固定哈希（`d5e4d9a3…`、`1f2d41c4…`、`0f885b50…`）。
+  2. 用上述runtime与其fixed WebView2目录 → `ValueError: fixed WebView2 inventory mismatch`：本地WebView2树manifest正确（`d4656239…`）但文件清单与固定运行时清单不一致；CI下载的才是固定分发。
+  3. 省略可选WebView2对 → `ValueError: large copy must use its canonical allocated run artifacts`：`runtime_growth.batch`拒绝在dev.py规范分配的run artifact之外做大拷贝。
+- 下一步已明确：经`scripts/runtime/dev.py`在规范分配的run目录中staging，并使用CI下载的固定WebView2分发；随后重打包、解包并从干净payload跑跟踪旅程。
+- 清理：删除空的失败staging输出目录并退役本次重建的release cargo依赖（可再生产物）；`.project-local`约24.57 GiB；增长复核`NO_NEW_GROWTH_TRIGGER`（delta 1,622,731,021 B≈1.51 GiB<2GiB；OUT-OF-LAYOUT 87；deletion_authorized=false）。
+- 回执：`staging-blockers-receipt.json`与`cleanup-receipt-round16.json`（runs/be268a2d33/installed-staging-blockers-20261103/artifacts）。边界：未产出staging、未安装任何东西；这是工具链阻断记录，不是运行时失败或安装态接受。
