@@ -31,7 +31,9 @@ mod workspace_backup;
 
 use archeaxis_application::container;
 use archeaxis_application::jobs::{self, LossReceipt};
-use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, machine, search, source};
+use archeaxis_domain::{
+    ImportOutcome, anchor, knowledge, learning, machine, object_reference, search, source,
+};
 use archeaxis_store_sqlite::{
     workspace_info_json,
     writer::{Store, StoreError},
@@ -2094,18 +2096,39 @@ async fn knowledge_qualification(
     Path(id): Path<String>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-        match knowledge::knowledge_status(conn, &id) {
-            Ok(Some(_)) => (
+        // One resolver for every consumer: the identity is immutable, so the
+        // qualification projection reports currentness/limits beside it instead of
+        // letting "exists" stand in for "still a current basis".
+        let reference = object_reference::Reference::Knowledge {
+            knowledge_id: id.clone(),
+        };
+        match object_reference::resolve(conn, &reference) {
+            Ok(value) => (
                 StatusCode::OK,
                 Json(serde_json::json!({
                     "knowledge_id": id,
                     "exists": true,
-                    "active": knowledge::is_knowledge_active(conn, &id).unwrap_or(false),
+                    "active": value["active"],
+                    "status": value["status"],
+                    "currentness": value["currentness"],
+                    "superseded_by": value["superseded_by"],
+                    "successor_count": value["successor_count"],
+                    "valid_to": value["valid_to"],
                 })),
             )
                 .into_response(),
-            Ok(None) => (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
-            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            Err(archeaxis_domain::document::Error::NotFound) => {
+                (StatusCode::NOT_FOUND, "knowledge not found").into_response()
+            }
+            Err(archeaxis_domain::document::Error::Invalid(message)) => {
+                (StatusCode::BAD_REQUEST, message).into_response()
+            }
+            Err(archeaxis_domain::document::Error::Sql(error)) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response()
+            }
+            Err(archeaxis_domain::document::Error::Conflict(_)) => {
+                (StatusCode::CONFLICT, "knowledge qualification conflict").into_response()
+            }
         }
     })
     .await

@@ -3871,3 +3871,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41574391831 `lint` 1m7s pass、**`rust-vnext`（windows-latest）16m30s pass**、`a0-gates` pass；该测试需显式`ARCHEAXIS_TEST_NODE/SHA256`，无env时显式skip并说明skip不是证据——CI保持skip而非假覆盖。
 - 本地验证：设置Node后`cargo test -p archeaxis-api --test openmaic_scene_process` **2/2**（3.85s）；rustfmt clean。
 - 边界：本地点验（真实固定Node worker的进程级多场景构建）；不是安装态、不是完整多场景课程产品链、不是真实本地模型生成、不是Owner接受。
+
+#### 2026-11-03 知识引用当前性投影（本地切片，未推送）
+
+- 变更：`crates/archeaxis-domain/src/object_reference.rs` 的 Knowledge 分支不再只返回不可变身份，而是在同一投影里分离报告 `readable`/`status`/`currentness`（`current`｜`superseded`｜`not_current`）/`superseded_by`/`successor_count`/`valid_to`；`relation_projection` 节点镜像该 `currentness`，但 `status` 仍是 `resolved`、引用身份仍是原不可变 ID（历史引用不被偷偷替换、不消失）。`GET /api/v1/knowledge-items/{id}/qualification` 复用同一 resolver 并返回同一组字段；生产 HTTP 合同第 9 行同步描述。
+- 本地验证：`cargo test -p archeaxis-domain --test object_reference` **3/3**、`--test relation_projection` **10/10**、`-p archeaxis-domain --offline` 全量通过；`cargo test -p archeaxis-api --test qualification_api` **4/4**、`--test machine_correction_loop` **1/1**；`cargo check -p archeaxis-api --all-targets --offline` 通过；rustfmt clean；`check_document_authority.py` 与 `check_repository_conventions.py --source head` 通过。
+- 边界：本地分支 `codex/backend-knowledge-currentness-20261103` 内提交（`bd73fdbe` 及后续契约/路由提交），**未推送、无 PR、无精确 SHA CI**；前端消费者接线按 Owner 指示不在本会话；不改动版本身份与历史保留语义，不替代安装态或 Owner 接受。

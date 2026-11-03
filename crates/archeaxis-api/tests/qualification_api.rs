@@ -67,6 +67,74 @@ async fn review(router: &axum::Router, id: &str, action: &str) {
         .unwrap();
 }
 
+async fn review_body(router: &axum::Router, id: &str, body: &str) -> Value {
+    let resp = router
+        .clone()
+        .oneshot(
+            Request::post(format!("/api/v1/knowledge-items/{id}/review-decisions"))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let bytes = resp.into_body().collect().await.unwrap().to_bytes();
+    serde_json::from_slice(&bytes).unwrap_or(Value::Null)
+}
+
+#[tokio::test]
+async fn qualification_reports_currentness_beside_the_immutable_identity() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
+
+    // accepted row -> current and active
+    let id = post_knowledge(&router, "qual currentness alpha", "candidate").await;
+    review(&router, &id, "accepted").await;
+    let (s, v) = get_qual(&router, &id).await;
+    assert_eq!(s, StatusCode::OK);
+    assert_eq!(v["exists"], true);
+    assert_eq!(v["active"], true);
+    assert_eq!(v["status"], "accepted");
+    assert_eq!(v["currentness"], "current");
+    assert_eq!(v["superseded_by"], Value::Null);
+    assert_eq!(v["successor_count"], 0);
+
+    // deprecated row -> readable but not current
+    let id2 = post_knowledge(&router, "qual currentness beta", "candidate").await;
+    review(&router, &id2, "deprecated").await;
+    let (_, v2) = get_qual(&router, &id2).await;
+    assert_eq!(v2["active"], false);
+    assert_eq!(v2["status"], "deprecated");
+    assert_eq!(v2["currentness"], "not_current");
+
+    // modified review keeps the old identity addressable while reporting the
+    // successor; the successor itself is current.
+    let id3 = post_knowledge(&router, "qual currentness gamma", "candidate").await;
+    let reviewed = review_body(
+        &router,
+        &id3,
+        r#"{"action":"modified","reviewer":"owner","note":"fix","new_body":"gamma v2"}"#,
+    )
+    .await;
+    let successor = reviewed["knowledge_id"]
+        .as_str()
+        .expect("successor id")
+        .to_string();
+    assert_ne!(successor, id3);
+    let (_, old) = get_qual(&router, &id3).await;
+    assert_eq!(old["currentness"], "superseded");
+    assert_eq!(old["superseded_by"], Value::String(successor.clone()));
+    assert_eq!(old["successor_count"], 1);
+    assert_eq!(old["exists"], true);
+    let (_, newest) = get_qual(&router, &successor).await;
+    assert_eq!(newest["currentness"], "current");
+    assert_eq!(newest["successor_count"], 0);
+
+    // missing -> 404
+    let (s3, _) = get_qual(&router, "k_missing").await;
+    assert_eq!(s3, StatusCode::NOT_FOUND);
+}
+
 #[tokio::test]
 async fn qualification_reflects_status_and_active_gate() {
     let dir = tempfile::tempdir().unwrap();
