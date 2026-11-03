@@ -629,9 +629,9 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 94 addresses: 93 projection method/path pairs (81 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 149 addresses (92 base projection method/path pairs + 56 runtime method/path pairs on 53 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **with** `text_worker` | 150 addresses (92 base projection method/path pairs + 57 runtime method/path pairs on 54 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **53** route mounts, mounted there rather than with the projections because
+The runtime builder carries **54** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -835,7 +835,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 92 base projection pairs plus 56 runtime pairs plus one native session-control pair total 149. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 92 base projection pairs plus 57 runtime pairs plus one native session-control pair total 150. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
