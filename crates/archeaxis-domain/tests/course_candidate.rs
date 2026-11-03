@@ -65,6 +65,10 @@ fn atomic_idempotent_course_survives_restart_and_reports_stale_history() {
     let (m, b) = fixture(&mut conn);
     let first = course::create_candidate(&mut conn, &m, &b).unwrap();
     assert_eq!(first["stale"], false);
+    assert_eq!(
+        first["bindings"][0]["knowledge_state"]["currentness"],
+        "current"
+    );
     assert_eq!(course::create_candidate(&mut conn, &m, &b).unwrap(), first);
     let mut conflicting = m.clone();
     conflicting["title"] = json!("different");
@@ -83,6 +87,10 @@ fn atomic_idempotent_course_survives_restart_and_reports_stale_history() {
     .unwrap();
     let stale = course::create_candidate(&mut conn, &m, &b).unwrap();
     assert_eq!(stale["stale"], true);
+    assert_eq!(
+        stale["bindings"][0]["knowledge_state"]["currentness"],
+        "not_current"
+    );
     assert_eq!(stale["manifest"], m);
     assert_eq!(
         stale["bindings"][0]["knowledge_version"],
@@ -172,5 +180,40 @@ fn v8_migration_and_online_backup_restore_preserve_candidate() {
     assert_eq!(
         course::read_candidate(&conn, "course-1").unwrap().unwrap(),
         first
+    );
+}
+
+#[test]
+fn binding_reports_superseded_knowledge_and_names_the_successor() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("live.sqlite").to_str().unwrap()).unwrap();
+    let (m, b) = fixture(&mut conn);
+    let first = course::create_candidate(&mut conn, &m, &b).unwrap();
+    assert_eq!(
+        first["bindings"][0]["knowledge_state"]["currentness"],
+        "current"
+    );
+    let successor = knowledge::review(
+        &mut conn,
+        &b[0].knowledge_id,
+        "modified",
+        "owner",
+        Some("corrected statement"),
+        Some("An anchor locates evidence."),
+    )
+    .unwrap();
+    let stale = course::read_candidate(&conn, "course-1").unwrap().unwrap();
+    assert_eq!(stale["stale"], true);
+    assert_eq!(
+        stale["bindings"][0]["knowledge_state"]["currentness"],
+        "superseded"
+    );
+    assert_eq!(
+        stale["bindings"][0]["knowledge_state"]["superseded_by"],
+        successor.as_str()
+    );
+    assert_eq!(
+        stale["bindings"][0]["knowledge_id"], b[0].knowledge_id,
+        "the historical binding is not rewritten to the successor"
     );
 }

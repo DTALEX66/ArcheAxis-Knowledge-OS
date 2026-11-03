@@ -3933,3 +3933,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同第 113 行（`POST /api/v1/ai/context-packets`）同步描述。
 - 验证：domain `ai_assets` **10/10**（新增用例：provenance 知识 `current` → 被 modified 后继替代后 `superseded`，资产版本不变）；api `machine_asset_context_api` **5/5**、`ai_assets_api` **3/3**、`context_grant_api` **7/7**；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
 - 边界：本地切片、未推送；只新增字段，不改既有字段、授权与 packet 缓存语义；前端展示接线不在本会话。
+
+#### 2026-11-03 课程绑定报告"知识点当前性"（课程 stale 可比较投影，本地切片）
+
+- `course::read_candidate` 的每个 binding 在 `stale` 之外新增 `knowledge_state`：`status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`（缺失为 `unavailable`）。`stale` 仍按原来的锚点/状态规则计算，**历史 binding 的 `knowledge_id` 不被改写成后继**；课程列表与 readback 都带这组字段。
+- 合同 R18（`GET /api/v1/courses/{id}`）同步描述。
+- 验证：domain `course_candidate` **5/5**（新增：current → modified 后继后 `superseded` 且 `superseded_by` 指向后继、历史 binding 不变）；api `contract_general_course` **6/6**、`deeptutor_learning_journey` **1/1**；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
+- 边界：本地切片、未推送；只新增字段，不改 `stale` 判定与课程写入/渲染语义；前端展示接线不在本会话。
