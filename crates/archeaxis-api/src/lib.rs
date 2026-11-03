@@ -31,7 +31,9 @@ mod workspace_backup;
 
 use archeaxis_application::container;
 use archeaxis_application::jobs::{self, LossReceipt};
-use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, machine, search, source};
+use archeaxis_domain::{
+    ImportOutcome, anchor, knowledge, learning, machine, object_reference, search, source,
+};
 use archeaxis_store_sqlite::{
     workspace_info_json,
     writer::{Store, StoreError},
@@ -466,47 +468,82 @@ async fn import_source(
     .await
 }
 
+/// R09: one knowledge reference with its identity and its use status separated.
+///
+/// "The row exists" is not "this revision is still a current basis". A consumer
+/// re-reading an item must see the revision it was built from, whether that
+/// revision is current, superseded or no longer active, without the successor
+/// being substituted into the historical reference.
+fn reference_view(conn: &Connection, knowledge_id: &str) -> serde_json::Value {
+    match knowledge::currentness(conn, knowledge_id) {
+        Ok(Some(view)) => serde_json::json!({
+            "knowledge_id": knowledge_id,
+            "active": view.active,
+            "status": view.status,
+            "currentness": view.currentness,
+            "superseded_by": view.superseded_by,
+            "successor_count": view.successor_count,
+            "valid_to": view.valid_to,
+        }),
+        Ok(None) => serde_json::json!({
+            "knowledge_id": knowledge_id,
+            "active": false,
+            "currentness": "unavailable",
+        }),
+        Err(error) => serde_json::json!({
+            "knowledge_id": knowledge_id,
+            "active": false,
+            "currentness": "unavailable",
+            "read_error": error.to_string(),
+        }),
+    }
+}
+
 async fn learning_history(
     State(state): State<AppState>,
     Path(item_key): Path<String>,
 ) -> impl IntoResponse {
-    with_store(state, move |conn| match learning::events_for_item(conn, &item_key) {
-        Ok(events) => {
-            let rows: Vec<serde_json::Value> = events
-                .into_iter()
-                .map(|(event_id, kind, outcome, next_review)| {
-                    serde_json::json!({
-                        "event_id": event_id,
-                        "kind": kind,
-                        "outcome": outcome,
-                        "next_review": next_review,
-                    })
-                })
-                .collect();
-            // R09: report what this learning item was built from, annotated with
-            // whether that revision is still current. A consumer re-reading the
-            // item must not silently keep using a superseded revision.
-            let references: Vec<serde_json::Value> = match learning::references_for_card(conn, &item_key) {
-                Ok(found) => found
+    with_store(state, move |conn| {
+        match learning::events_for_item(conn, &item_key) {
+            Ok(events) => {
+                let rows: Vec<serde_json::Value> = events
                     .into_iter()
-                    .map(|(knowledge_id, active)| {
-                        serde_json::json!({"knowledge_id": knowledge_id, "active": active})
+                    .map(|(event_id, kind, outcome, next_review)| {
+                        serde_json::json!({
+                            "event_id": event_id,
+                            "kind": kind,
+                            "outcome": outcome,
+                            "next_review": next_review,
+                        })
                     })
-                    .collect(),
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-            };
-            (
-                StatusCode::OK,
-                Json(serde_json::json!({
-                    "item_key": item_key,
-                    "events": rows,
-                    "count": rows.len(),
-                    "references": references,
-                })),
-            )
-                .into_response()
+                    .collect();
+                // R09: report what this learning item was built from, annotated with
+                // whether that revision is still current. A consumer re-reading the
+                // item must not silently keep using a superseded revision.
+                let references: Vec<serde_json::Value> =
+                    match learning::references_for_card(conn, &item_key) {
+                        Ok(found) => found
+                            .into_iter()
+                            .map(|(knowledge_id, _)| reference_view(conn, &knowledge_id))
+                            .collect(),
+                        Err(e) => {
+                            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+                                .into_response();
+                        }
+                    };
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "item_key": item_key,
+                        "events": rows,
+                        "count": rows.len(),
+                        "references": references,
+                    })),
+                )
+                    .into_response()
+            }
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     })
     .await
 }
@@ -587,11 +624,14 @@ async fn item_state(
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
         let references = match learning::references_for_card(conn, &item_key) {
-            Ok(found) => found,
+            Ok(found) => found
+                .into_iter()
+                .map(|(knowledge_id, _)| reference_view(conn, &knowledge_id))
+                .collect::<Vec<_>>(),
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
         let assessment = match learning::assessment_for_item_key(conn, &item_key) {
-            Ok(Some(value)) => assessment_json(&value),
+            Ok(Some(value)) => assessment_json(conn, &value),
             Ok(None) => serde_json::Value::Null,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
@@ -610,10 +650,7 @@ async fn item_state(
                     "next_review": latest_review.get("next_review").cloned().unwrap_or(serde_json::Value::Null),
                     "assessment": assessment,
                     "latest_review": latest_review,
-                    "references": references
-                        .into_iter()
-                        .map(|(knowledge_id, active)| serde_json::json!({"knowledge_id": knowledge_id, "active": active}))
-                        .collect::<Vec<_>>(),
+                    "references": references,
                     "recording": "a human records learning outcomes through the learning-events endpoint; an unavailable schedule is stored as unscheduled rather than invented",
                 },
                 "machine": {
@@ -993,9 +1030,10 @@ mod stateful_schedule_failures {
     }
 }
 
-fn assessment_json(value: &learning::AssessmentRecord) -> serde_json::Value {
+fn assessment_json(conn: &Connection, value: &learning::AssessmentRecord) -> serde_json::Value {
     serde_json::json!({"assessment_id": value.assessment_id, "item_key": value.item_key,
         "knowledge_id": value.knowledge_id, "knowledge_version": value.knowledge_version,
+        "knowledge_state": reference_view(conn, &value.knowledge_id),
         "question": value.question, "content": value.content,
         "source_id": value.source_id, "anchor_id": value.anchor_id, "created_at": value.created_at})
 }
@@ -1007,7 +1045,7 @@ async fn create_assessment(
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
         match learning::create_assessment(conn, &item_key, &body.knowledge_id) {
-            Ok(value) => (StatusCode::CREATED, Json(assessment_json(&value))).into_response(),
+            Ok(value) => (StatusCode::CREATED, Json(assessment_json(conn, &value))).into_response(),
             Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
         }
     })
@@ -1020,7 +1058,9 @@ async fn read_assessment(
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
         match learning::assessment_for_item_key(conn, &item_key) {
-            Ok(Some(value)) => (StatusCode::OK, Json(assessment_json(&value))).into_response(),
+            Ok(Some(value)) => {
+                (StatusCode::OK, Json(assessment_json(conn, &value))).into_response()
+            }
             Ok(None) => (StatusCode::NOT_FOUND, "assessment not found").into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
@@ -2094,18 +2134,39 @@ async fn knowledge_qualification(
     Path(id): Path<String>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-        match knowledge::knowledge_status(conn, &id) {
-            Ok(Some(_)) => (
+        // One resolver for every consumer: the identity is immutable, so the
+        // qualification projection reports currentness/limits beside it instead of
+        // letting "exists" stand in for "still a current basis".
+        let reference = object_reference::Reference::Knowledge {
+            knowledge_id: id.clone(),
+        };
+        match object_reference::resolve(conn, &reference) {
+            Ok(value) => (
                 StatusCode::OK,
                 Json(serde_json::json!({
                     "knowledge_id": id,
                     "exists": true,
-                    "active": knowledge::is_knowledge_active(conn, &id).unwrap_or(false),
+                    "active": value["active"],
+                    "status": value["status"],
+                    "currentness": value["currentness"],
+                    "superseded_by": value["superseded_by"],
+                    "successor_count": value["successor_count"],
+                    "valid_to": value["valid_to"],
                 })),
             )
                 .into_response(),
-            Ok(None) => (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
-            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            Err(archeaxis_domain::document::Error::NotFound) => {
+                (StatusCode::NOT_FOUND, "knowledge not found").into_response()
+            }
+            Err(archeaxis_domain::document::Error::Invalid(message)) => {
+                (StatusCode::BAD_REQUEST, message).into_response()
+            }
+            Err(archeaxis_domain::document::Error::Sql(error)) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response()
+            }
+            Err(archeaxis_domain::document::Error::Conflict(_)) => {
+                (StatusCode::CONFLICT, "knowledge qualification conflict").into_response()
+            }
         }
     })
     .await
@@ -2583,49 +2644,63 @@ async fn search_knowledge(
     Query(query): Query<SearchQuery>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-    match search::search(conn, &query.q, 20) {
-        Ok(rows) => {
-            let mut items: Vec<serde_json::Value> = rows
-                .into_iter()
-                .map(|(id, status, head)| {
-                    let active = knowledge::is_knowledge_active(conn, &id).unwrap_or(false);
-                    serde_json::json!({"knowledge_id": id, "status": status, "head": head, "active": active})
-                })
-                .collect();
-            if query.active_only {
-                items.retain(|item| item["active"] == true);
-            }
-            // R08: extracted text is retrievable too, attributed to the original
-            // file and the engine that produced it - without claiming the text is
-            // knowledge (see domain::search::search_transforms).
-            let transforms: Vec<serde_json::Value> = match search::search_transforms(conn, &query.q, 20) {
-                Ok(rows) => rows
+        match search::search(conn, &query.q, 20) {
+            Ok(rows) => {
+                let mut items: Vec<serde_json::Value> = rows
                     .into_iter()
-                    .map(|(transform_id, source_id, engine, head)| {
-                        serde_json::json!({
-                            "transform_id": transform_id,
-                            "source_id": source_id,
-                            "engine": engine,
-                            "head": head,
-                        })
+                    .map(|(id, status, head)| {
+                        // R09: a search hit is not automatically a current basis. Report the
+                        // separated currentness view next to the excerpt and the persisted status.
+                        let mut item = reference_view(conn, &id);
+                        if let Some(fields) = item.as_object_mut() {
+                            fields.insert("status".into(), serde_json::json!(status));
+                            fields.insert("head".into(), serde_json::json!(head));
+                        }
+                        item
                     })
-                    .collect(),
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-            };
-            let documents=match archeaxis_domain::document::search(conn,&query.q){Ok(rows)=>rows,Err(e)=>return documents::failure(e)};
-            Json(serde_json::json!({
-                "count": items.len(),
-                "items": items,
-                "document_count": documents.len(),
-                "documents": documents,
-                "transform_count": transforms.len(),
-                "transforms": transforms,
-            }))
-            .into_response()
+                    .collect();
+                if query.active_only {
+                    items.retain(|item| item["active"] == true);
+                }
+                // R08: extracted text is retrievable too, attributed to the original
+                // file and the engine that produced it - without claiming the text is
+                // knowledge (see domain::search::search_transforms).
+                let transforms: Vec<serde_json::Value> =
+                    match search::search_transforms(conn, &query.q, 20) {
+                        Ok(rows) => rows
+                            .into_iter()
+                            .map(|(transform_id, source_id, engine, head)| {
+                                serde_json::json!({
+                                    "transform_id": transform_id,
+                                    "source_id": source_id,
+                                    "engine": engine,
+                                    "head": head,
+                                })
+                            })
+                            .collect(),
+                        Err(e) => {
+                            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+                                .into_response();
+                        }
+                    };
+                let documents = match archeaxis_domain::document::search(conn, &query.q) {
+                    Ok(rows) => rows,
+                    Err(e) => return documents::failure(e),
+                };
+                Json(serde_json::json!({
+                    "count": items.len(),
+                    "items": items,
+                    "document_count": documents.len(),
+                    "documents": documents,
+                    "transform_count": transforms.len(),
+                    "transforms": transforms,
+                }))
+                .into_response()
+            }
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-    }).await
+    })
+    .await
 }
 
 /// R08: quality facts for one job - engine, coverage, loss and region counts.

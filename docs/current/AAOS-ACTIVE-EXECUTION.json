@@ -108,10 +108,10 @@
   "drift_readback": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
   "permissions": {
     "remote_description_update": "DENIED_CURRENT_LOCAL_HANDOFF_AND_ZCODE_PHASE_OWNER_20261029",
-    "commit": "LOCAL_ONLY_CURRENT_OWNER_HANDOFF_20261029; preserve existing dirty work and stage explicit reviewed paths",
-    "push": "DENIED_CURRENT_LOCAL_HANDOFF_AND_ZCODE_PHASE_OWNER_20261029",
-    "merge": "LOCAL_ONLY_NECESSARY_QUALIFIED_PROJECT_CHANGES_OWNER_20261029; no remote merge or history rewrite",
-    "cloud_ci": "DENIED_CURRENT_LOCAL_HANDOFF_AND_ZCODE_PHASE_OWNER_20261029; report NOT_EXECUTED_BY_OWNER_LOCAL_ONLY_BOUNDARY",
+    "commit": "ALLOWED_OWNER_FULL_AUTHORIZATION_20261103; stage explicit reviewed paths, no force push or history rewrite",
+    "push": "ALLOWED_OWNER_FULL_AUTHORIZATION_20261103",
+    "merge": "ALLOWED_OWNER_FULL_AUTHORIZATION_20261103; exact-SHA required gates, no history rewrite",
+    "cloud_ci": "ALLOWED_OWNER_FULL_AUTHORIZATION_20261103",
     "release": "NOT_GRANTED",
     "bulk_delete": "EXACT_PATH_GRANT_REQUIRED"
   },
@@ -135,6 +135,19 @@
       "supersession": "For this bounded delivery, overrides prior owner_handoff_20261029 remote-write prohibition. Does not retroactively authorize historical cloud-model egress or resume product/UI/monitor work.",
       "merge_conditions": "Preserve current work; absorb unique valid changes or prove prior identical absorption; honor main a0-gates and verify exact candidate SHA. No force push, protection bypass, release, Green replacement or real-data overwrite.",
       "excluded": "Ignored archives/runtime/build/cache/database, credentials and agent-private state remain local. No model/provider/listener/global settings changes.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "owner_full_authorization_20261103": {
+      "instruction": "全部授权",
+      "context": "Owner answered the 2026-11-03 list of six pending decisions with a blanket authorization after eleven rounds of local-only work.",
+      "authorized": [
+        "push the qualified local branch, open a PR, run and read exact-SHA cloud CI, and merge when the required gates pass (no force push, no history rewrite)",
+        "apply S01 appendix B/C: sanction the 21 referenced infrastructure roots, list the 30 cited evidence entries as frozen legacy, and archive the 6 scratch entries byte-preserved with a MANIFEST",
+        "keep the frozen finite rubric strict; do not normalize code-fenced model output",
+        "implement the recommended UNKNOWN policy: terminal-only periodic sweep plus an explicit operator trigger, never an automatic worker relaunch",
+        "build the minimal read-only OpenMAIC course-package projection before any server-side course validation"
+      ],
+      "still_requires_separate_authorization": "installation acceptance in an independent Windows account or isolated environment; release publication; Green replacement; real-data overwrite; bulk deletion",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "state": "RUNNING_BY_OWNER",

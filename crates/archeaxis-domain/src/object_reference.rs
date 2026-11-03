@@ -115,19 +115,23 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
             )
         }
         Reference::Knowledge { knowledge_id } => {
-            let exists: bool = conn.query_row(
-                "SELECT EXISTS(SELECT 1 FROM knowledge WHERE knowledge_id=?1)",
-                [knowledge_id],
-                |r| r.get(0),
-            )?;
-            if !exists {
-                return Err(Error::NotFound);
-            }
+            let view = crate::knowledge::currentness(conn, knowledge_id)?.ok_or(Error::NotFound)?;
             // Knowledge revision identity is the immutable ID; never substitute a
             // superseding item and never manufacture a Document/version relationship.
-            Ok(
-                json!({"reference":reference,"title":knowledge_id,"identity":"immutable_knowledge_id"}),
-            )
+            // The reference stays readable and historically addressable: currentness
+            // is reported beside the identity instead of being inferred from it.
+            Ok(json!({
+                "reference":reference,
+                "title":knowledge_id,
+                "identity":"immutable_knowledge_id",
+                "readable":true,
+                "status":view.status,
+                "currentness":view.currentness,
+                "active":view.active,
+                "superseded_by":view.superseded_by,
+                "successor_count":view.successor_count,
+                "valid_to":view.valid_to,
+            }))
         }
     }
 }

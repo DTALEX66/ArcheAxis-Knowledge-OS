@@ -518,6 +518,56 @@ pub fn status_counts(conn: &Connection) -> rusqlite::Result<String> {
     Ok(s)
 }
 
+/// Separated qualification view for one knowledge identity.
+///
+/// The identity is immutable, so "the row exists" and "the row is still a current
+/// basis" are different claims. Consumers must be able to report both without
+/// substituting the successor or hiding the historical row.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Currentness {
+    pub status: String,
+    pub active: bool,
+    /// `current`, `superseded` (a successor revision exists) or `not_current`
+    /// (deprecated/rejected). Unknown ids yield `None` from [`currentness`].
+    pub currentness: &'static str,
+    pub superseded_by: Option<String>,
+    pub successor_count: usize,
+    pub valid_to: Option<String>,
+}
+
+/// Read the currentness view for a knowledge identity. `None` means the identity
+/// does not exist; that is different from a row that exists but is not current.
+pub fn currentness(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Option<Currentness>> {
+    let Some(status) = knowledge_status(conn, knowledge_id)? else {
+        return Ok(None);
+    };
+    let active = is_knowledge_active(conn, knowledge_id)?;
+    let successors = knowledge_successors(conn, knowledge_id)?;
+    let valid_to: Option<String> = conn
+        .query_row(
+            "SELECT valid_to FROM knowledge_v3_metadata WHERE knowledge_id=?1",
+            [knowledge_id],
+            |r| r.get::<_, Option<String>>(0),
+        )
+        .optional()?
+        .flatten();
+    let currentness = if !successors.is_empty() {
+        "superseded"
+    } else if active {
+        "current"
+    } else {
+        "not_current"
+    };
+    Ok(Some(Currentness {
+        status,
+        active,
+        currentness,
+        superseded_by: successors.first().cloned(),
+        successor_count: successors.len(),
+        valid_to,
+    }))
+}
+
 /// Qualification check used before a machine (or any consumer) reuses a
 /// knowledge unit as current context (X09). A knowledge row is active only
 /// while its latest status is candidate or accepted; deprecated/rejected rows

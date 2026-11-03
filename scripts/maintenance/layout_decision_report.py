@@ -7,6 +7,14 @@ tracked file, whether it is protected or a generic name, whether it is a runs-la
 entry, whether it exists, and its size - so a later S01 pass can decide per item
 instead of scanning the tree again.
 
+Reference evidence is reported at two strengths. A path-qualified citation
+(`.project-local/<name>` or `.project-local/runs/<name>`) is evidence on its own. A
+bare name is only evidence when it is distinctive - at least ten characters and a
+digit or a separator - because a short or generic token (for example `c`, `p`,
+`dist`, `state`) matches ordinary text thousands of times and would otherwise mark an
+unreferenced candidate as referenced. Both signals stay in the row so a decision can
+see which one applied.
+
 It never deletes, moves or writes inside the measured tree. It only reads the report
 and, optionally, writes the table to a named JSON file.
 
@@ -36,6 +44,68 @@ PROTECTED = {
 GENERIC = {".screenshots", ".tmp", "artifacts", "reports", "tmp", "temp", "cache", "logs"}
 
 
+def shell_name(name: str) -> str:
+    """The last path segment of a report entry name."""
+    return name.rstrip("/").rsplit("/", 1)[-1]
+
+
+def distinctive(name: str) -> bool:
+    """Whether a bare token cannot plausibly be ordinary prose.
+
+    Matches the rule the archive rounds already use for candidate names: long
+    enough to be specific, and carrying a digit or a separator. A name such as
+    `c`, `p`, `dist` or `state` is never counted from a bare token alone.
+    """
+    bare = shell_name(name)
+    return len(bare) >= 10 and (
+        any(character.isdigit() for character in bare)
+        or "-" in bare
+        or "_" in bare
+    )
+
+
+def path_token(kind: str, name: str) -> str:
+    """The path-qualified spelling a tracked file would use to cite this entry."""
+    if kind == "runs":
+        return ".project-local/runs/" + shell_name(name)
+    if kind == "root":
+        return shell_name(name)
+    return ".project-local/" + shell_name(name)
+
+
+ERE_SPECIAL = frozenset("\\.^$|?*+()[]{}")
+
+
+def ere_escape(text: str) -> str:
+    """Escape only what a POSIX extended regular expression treats as special.
+
+    `git grep -E` uses POSIX ERE, so a PCRE lookahead would quietly fail to match.
+    A trailing character class is the portable boundary; escaping only the ERE
+    metacharacters keeps separators such as `-` literal instead of relying on a
+    GNU-extension escaped hyphen.
+    """
+    return "".join(("\\" + character) if character in ERE_SPECIAL else character for character in text)
+
+
+def path_pattern(kind: str, name: str) -> str:
+    """An ERE spelling of the path token that ends at the path segment.
+
+    A fixed-string match on `.project-local/p` also hits `.project-local/proposals`,
+    so the citation has to end at the segment: `/`, a quote, a backtick or the end
+    of the line are all valid boundaries, a longer name is not.
+    """
+    token = ere_escape(path_token(kind, name))
+    if kind == "root":
+        return r"(^|[^A-Za-z0-9_.-])" + token + r"([^A-Za-z0-9_.-]|$)"
+    return token + r"([^A-Za-z0-9_.-]|$)"
+
+
+def strong_reference(*, path_hit: bool, bare_hit: bool, name: str) -> bool:
+    """A path-qualified hit always counts; a bare hit only for a distinctive name."""
+    return path_hit or (bare_hit and distinctive(name))
+
+
+
 def classify(
     *,
     kind: str,
@@ -62,17 +132,35 @@ def classify(
     return "UNREFERENCED_CANDIDATE"
 
 
-def referenced(name: str, repo: Path) -> bool:
-    for token in (name, ".project-local/" + name):
-        result = subprocess.run(
-            ["git", "-C", str(repo), "grep", "-l", "--fixed-strings", token, "--", "."],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        if result.stdout:
-            return True
-    return False
+def grep_hit(arguments: list[str], token: str, repo: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(repo), "grep", "-l", *arguments, token, "--", "."],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return bool(result.stdout)
+
+
+def reference_evidence(kind: str, name: str, repo: Path) -> dict:
+    """Both reference strengths for one entry, without collapsing them."""
+    path_hit = grep_hit(["-E"], path_pattern(kind, name), repo)
+    bare_hit = grep_hit(["--fixed-strings"], shell_name(name), repo)
+    strong = strong_reference(path_hit=path_hit, bare_hit=bare_hit, name=name)
+    if path_hit:
+        note = "cited by path"
+    elif strong:
+        note = "cited by a distinctive bare name only"
+    elif bare_hit:
+        note = "bare token matches only as ordinary text; not evidence"
+    else:
+        note = "no tracked citation"
+    return {
+        "referenced": strong,
+        "reference_path": path_hit,
+        "reference_bare_name": bare_hit,
+        "reference_note": note,
+    }
 
 
 def measure(path: Path) -> tuple[int, int]:
@@ -115,7 +203,8 @@ def build_table(report: dict, repo: Path = REPO) -> list[dict]:
             size, files = 0, 0
             unreadable = type(error).__name__
         run_layout = kind == "runs"
-        has_ref = referenced(name, repo)
+        evidence = reference_evidence(kind, name, repo)
+        has_ref = evidence["referenced"]
         classification = (
             "UNREADABLE"
             if unreadable
@@ -137,6 +226,9 @@ def build_table(report: dict, repo: Path = REPO) -> list[dict]:
                 "files": files,
                 "bytes": size,
                 "referenced": has_ref,
+                "reference_path": evidence["reference_path"],
+                "reference_bare_name": evidence["reference_bare_name"],
+                "reference_note": evidence["reference_note"],
                 "class": classification,
                 "unreadable": unreadable,
             }

@@ -3871,3 +3871,131 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41574391831 `lint` 1m7s pass、**`rust-vnext`（windows-latest）16m30s pass**、`a0-gates` pass；该测试需显式`ARCHEAXIS_TEST_NODE/SHA256`，无env时显式skip并说明skip不是证据——CI保持skip而非假覆盖。
 - 本地验证：设置Node后`cargo test -p archeaxis-api --test openmaic_scene_process` **2/2**（3.85s）；rustfmt clean。
 - 边界：本地点验（真实固定Node worker的进程级多场景构建）；不是安装态、不是完整多场景课程产品链、不是真实本地模型生成、不是Owner接受。
+
+#### 2026-11-03 知识引用当前性投影（本地切片，未推送）
+
+- 变更：`crates/archeaxis-domain/src/object_reference.rs` 的 Knowledge 分支不再只返回不可变身份，而是在同一投影里分离报告 `readable`/`status`/`currentness`（`current`｜`superseded`｜`not_current`）/`superseded_by`/`successor_count`/`valid_to`；`relation_projection` 节点镜像该 `currentness`，但 `status` 仍是 `resolved`、引用身份仍是原不可变 ID（历史引用不被偷偷替换、不消失）。`GET /api/v1/knowledge-items/{id}/qualification` 复用同一 resolver 并返回同一组字段；生产 HTTP 合同第 9 行同步描述。
+- 本地验证：`cargo test -p archeaxis-domain --test object_reference` **3/3**、`--test relation_projection` **10/10**、`-p archeaxis-domain --offline` 全量通过；`cargo test -p archeaxis-api --test qualification_api` **4/4**、`--test machine_correction_loop` **1/1**；`cargo check -p archeaxis-api --all-targets --offline` 通过；rustfmt clean；`check_document_authority.py` 与 `check_repository_conventions.py --source head` 通过。
+- 边界：本地分支 `codex/backend-knowledge-currentness-20261103` 内提交（`bd73fdbe` 及后续契约/路由提交），**未推送、无 PR、无精确 SHA CI**；前端消费者接线按 Owner 指示不在本会话；不改动版本身份与历史保留语义，不替代安装态或 Owner 接受。
+
+#### 2026-11-03 受控本地资格：全部 `#[ignore]` Rust 测试在显式 Node／Python 身份下通过
+
+- 背景：交接摘要记为"5 个 ignored 测试"；现场复核 `crates/**` 实际为 **7 个**（4 个集成测试 + 3 个 `archeaxis-application` lib 单测），CI 从不执行，skip 不是证据。本次用本机显式身份补齐本地资格。
+- 身份（不做 PATH 发现）：Node `v24.21.0`，`C:\Users\ALEX\.local\node-v24.21.0-win-x64\node.exe`，sha256 `ba4e6d11…`；Python `3.13.14`，`.venv\Scripts\python.exe`，sha256 `29a7e168…`。
+- 命令与结果（均 `--offline`，Windows）：`archeaxis-api --test deeptutor_practice_import -- --ignored` **1/1**（0.79s，真实固定 DeepTutor 出题 worker）；`--test openmaic_capabilities` **1/1**（3.66s，真实 Node 握手）；`--test openmaic_scene_runtime` **1/1**（4.87s，真实 Node 构建并持久化、去 Node 重开读回）；`archeaxis-application --test openmaic_node` **1/1**（3.65s，固定上游但可禁用）；`archeaxis-application --lib -- --ignored` **3/3**（真实评分 worker、超时回收、取消回收）。合计 **7 passed / 0 failed**。
+- 回执：`.project-local/runs/be268a2d33/backend-qualification-20261103/artifacts/qualification-receipt.json` 及 `logs/`。
+- 边界：**本地**资格；这些测试在 CI 仍为 `#[ignore]`（本地通过不改变 CI 覆盖，也不把 skip 当通过）；不是安装态旅程、不是真实多场景课程、不是真实本地模型生成，也不是 Owner 接受。
+
+#### 2026-11-03 S01 布局决策表修正与逐项提案（只读）
+
+- 问题：`scripts/maintenance/layout_decision_report.py` 用裸名判定引用，短名/通用名（`c`、`p`、`dist`、`state` 等）会被普通正文误算为引用；路径匹配用固定字符串，`.project-local/p` 还会误命中 `.project-local/proposals`。
+- 修正：引用证据拆成"路径限定引用"（POSIX ERE 段边界，`.project-local/<name>` 或 `.project-local/runs/<name>`）与"裸名引用"（仅独特名——≥10 字符且含数字或分隔符——才成立）；每行保留 `reference_path`/`reference_bare_name`/`reference_note`，分类词汇不变；新增 **18** 项单测（`tests/maintenance/test_layout_decision_report.py`）。
+- 重跑结果（同一固定 v2 checkpoint 报告，只读）：87 项 = REFERENCED **56**（51 路径 + 5 仅独特名）、RUNS_LAYOUT **29**、PROTECTED_OR_GENERIC **1**（`backups`）、UNREADABLE **1**（`fulltest-final-20260913`）；**无 UNREFERENCED_CANDIDATE**，即已不存在"无引用、可安全归档"的条目。
+- 提案：`workspace/intake/20261103-s01-layout-decision/README.md` 给出四组决策（A 登记 sanctioned 例外、B runs/ 迁移、C ACL 提权修复、D `backups/` 确认），附 87 行逐项表；本轮未移动、未删除、未改 `storage_report.py` 布局清单、未滚动基线。
+- 验证：`pytest tests/maintenance/test_layout_decision_report.py` **18/18**；ruff clean；`check_repository_conventions.py --source head` 与 `check_document_authority.py` 通过。
+- 边界：本地只读分析与工具修正；提案需要 Owner 逐组签字后才会执行任何移动/清单变更；未推送。
+
+#### 2026-11-03 学习与问答消费者接通"当前性"（R09 跨消费者补全，本地切片）
+
+- 共享视图：`knowledge::currentness` 返回 `status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`；`None` 表示身份不存在，与"存在但非当前"分开。`object_reference::resolve` 的知识分支改为复用该视图，不再各自拼装。
+- 消费者：`GET /learning/events/{item_key}` 与 `GET /learning/items/{item_key}/state` 的 `references`、`POST /api/v1/ask` 的 citation 均改为分离报告身份与使用状态（缺失身份为 `currentness: unavailable`）；历史引用不被改写、后继不被替换。
+- 合同：生产 HTTP 合同 R9、第 13 行、第 18 行同步描述。
+- 验证：domain `knowledge_active` **2/2**（新增当前性用例）、`object_reference` **3/3**、`relation_projection` **10/10**、`-p archeaxis-domain --offline` 全量通过；api `card_reference_api` **1/1**、`qualification_api` **4/4**、`contract_ask` **7/7**；`tests/maintenance/test_contract_route_inventory.py` **7/7**；rustfmt clean；`check_document_authority.py` 与 `check_repository_conventions.py --source head` 通过。
+- 边界：本地切片、未推送、无 PR、无精确 SHA CI；前端展示接线按 Owner 指示不在本会话；不改变历史引用、版本身份与既有守卫语义。
+
+#### 2026-11-03 真实本地模型经 Core 与固定 worker 的本地旅程（P1 证据缺口，部分通过）
+
+- 环境：LM Studio 本地回环 `http://127.0.0.1:1234/v1`，模型 `qwen3.5-4b`（`observed_model` 与 `requested_model` 一致），协议 `openai`；Core 为当前源码构建的 debug `archeaxis-api.exe`（sha256 `ad3f84a0…`，29,839,360 B，source head `4fe5b366`）；worker `python-worker-machine-answer 0.1.0`。**仅回环推理，无外发**，材料为合成文本。
+- 方法：运行既有探针 `scripts/probes/colearning_real_model_smoke.py`（冻结 rubric 未改、产品代码未改）：导入→文本转换→知识创建→人工接受→`machine.answer`。
+- 结果：`evidence_class=LIVE_CORE_MODEL_RESPONSE_OBSERVED`；3 次真实模型响应（original 5.47s、out-of-scope 21.19s、transfer 20.27s），`usage_status=REPORTED`，回答 authority 仍是 candidate、未写知识。out-of-scope 返回 `{"answerable": false}`、transfer 返回 `{"worker_write_allowed": false, "release_allowed": false}`，均按冻结 rubric 判定 `CORRECT`；original 的 JSON 内容正确但被模型包在 ```json 代码围栏中，冻结 rubric 要求严格 JSON，因此判定 `REVIEW_REQUIRED`，探针停在 correction/retest 之前。
+- 未执行：`human_correction`、`machine_retest`、`transfer_after`、`retest_readback`；**不是完整 J4、不是安装态、不是 Owner 接受**。是否让冻结 rubric 接受代码围栏属于评测口径的产品决定，本轮未擅自修改。
+- 回执：`.project-local/runs/be268a2d33/5671dfe0d10e/artifacts/colearning-real-model/6d1764ce292f43888bf0d551661766b7/receipt.json`；摘要 `.project-local/runs/be268a2d33/backend-qualification-20261103/artifacts/local-model-qualification.json`。
+
+#### 2026-11-03 真实本地模型资格（7B 通过冻结 rubric，27B 超出 120s 预算）与 S01 附录 B
+
+- 同一探针（`scripts/probes/colearning_real_model_smoke.py`，冻结 rubric 未改）、同一 Core 二进制（sha256 `ad3f84a0…`，source head `4fe5b366`）、同一合成材料；仅 LM Studio 本地回环，无外发。
+- `qwen2.5-vl-7b-instruct`：完整走完 导入→转换→知识创建→人工接受→`machine.answer`，三次有界作答全部按冻结 rubric 判定 **CORRECT**（original 0.38s / abstention 0.18s / transfer 0.29s），`evidence_class=LIVE_CORE_MODEL_RESPONSE_OBSERVED`、`quality=NO_FAILURE_OBSERVED`、**exit 0**。回执 `runs/be268a2d33/75696b7a7c91/artifacts/colearning-real-model/981205c84f3e4f11809d1d37fc101d51/receipt.json`。
+- `qwen3.8-27b`：同一路径在 `machine_answer` 处 **119s 模型请求超时（503）**，`evidence_class=LIVE_ATTEMPT_NO_MODEL_EVIDENCE`；说明本机（63.8 GB RAM、RTX 5060）上的 27B 不满足固定 120s 生成预算，是容量/预算事实而非代码缺陷。回执 `runs/be268a2d33/03cc9f96753e/.../receipt.json`。
+- 对照早前 `qwen3.5-4b`（original 被 ```json 代码围栏包裹 → `REVIEW_REQUIRED`）：模型选择直接影响冻结 rubric 判定；**未修改 rubric**，该口径仍待 Owner 决定。
+- S01 提案更新：`workspace/intake/20261103-s01-layout-decision/README.md` 追加**附录 B**（A 组 57 项处置草案：21 项 sanctioned、6 项归档、19 项冻结证据、11 个根级回执；获批后 OUT-OF-LAYOUT 87→30）。仍未改 `storage_report.py`、未移动/删除任何条目。
+- 边界：`machine.answer` 单环真实模型资格（question→candidate answer），**不是完整 J4、不是安装态、不是 Owner 接受**；纠正/复测链只在模型答错时触发，本轮未触发。
+
+#### 2026-11-03 关键词搜索结果接通"当前性"（R08/R09 消费者补全，本地切片）
+
+- `GET /api/v1/search?q=&active_only=` 的 `items[]` 不再只给 `active`，改为与资格路由同一组字段：`status`、`active`、`currentness`、`superseded_by`、`successor_count`、`valid_to`；一次命中不再隐含"仍是当前依据"，被替换版本仍可检索并指回后继。`active_only` 语义不变（仍按 `active` 过滤）。
+- 合同第 21 行同步描述。
+- 验证：`cargo test -p archeaxis-api --test qualification_api` **4/4**（新增 accepted→current、deprecated→not_current、modified→superseded 且 `superseded_by` 指向后继的断言）；`tests/maintenance/test_contract_route_inventory.py` **7/7**；rustfmt clean；`check_document_authority.py` 通过。
+- 边界：本地切片、未推送、无 PR、无精确 SHA CI；前端展示接线按 Owner 指示不在本会话；不改变检索排序、`active_only` 过滤与既有响应字段。
+
+#### 2026-11-03 AI 资产 packet 补充"来源当前性"（第四条消费者，本地切片）
+
+- `ai_asset::packet_items` 的每个资产项新增 `reference_states`：知识引用报告 `readable`/`status`/`currentness`/`active`/`superseded_by`/`successor_count`/`valid_to`（缺失或读失败为 `unavailable`），文档/来源引用标记 `currentness: not_applicable`（版本固定，不存在"当前"语义）。**资产被采用不证明其引用的知识仍是当前依据**，后继不被替换、历史引用不被改写。
+- 合同第 113 行（`POST /api/v1/ai/context-packets`）同步描述。
+- 验证：domain `ai_assets` **10/10**（新增用例：provenance 知识 `current` → 被 modified 后继替代后 `superseded`，资产版本不变）；api `machine_asset_context_api` **5/5**、`ai_assets_api` **3/3**、`context_grant_api` **7/7**；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
+- 边界：本地切片、未推送；只新增字段，不改既有字段、授权与 packet 缓存语义；前端展示接线不在本会话。
+
+#### 2026-11-03 课程绑定报告"知识点当前性"（课程 stale 可比较投影，本地切片）
+
+- `course::read_candidate` 的每个 binding 在 `stale` 之外新增 `knowledge_state`：`status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`（缺失为 `unavailable`）。`stale` 仍按原来的锚点/状态规则计算，**历史 binding 的 `knowledge_id` 不被改写成后继**；课程列表与 readback 都带这组字段。
+- 合同 R18（`GET /api/v1/courses/{id}`）同步描述。
+- 验证：domain `course_candidate` **5/5**（新增：current → modified 后继后 `superseded` 且 `superseded_by` 指向后继、历史 binding 不变）；api `contract_general_course` **6/6**、`deeptutor_learning_journey` **1/1**；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
+- 边界：本地切片、未推送；只新增字段，不改 `stale` 判定与课程写入/渲染语义；前端展示接线不在本会话。
+
+#### 2026-11-03 后端决策备忘与 S01 补丁草案（只读）
+
+- `workspace/intake/20261103-s01-layout-decision/README.md` 追加**附录 C**：B1–B4 获批后的确切代码改动——两个清单常量（21 项基础设施 + 30 项冻结证据）、`dev_allowed` 接受清单、`dev_classes.layout_class` 区分活动基础设施与冻结证据、报告新增 `s01_allowlist` 快照、需同步的布局契约测试，以及预期效果（`.project-local` 57→6，B2 归档后总 `OUT-OF-LAYOUT` 87→30）。**未应用任何代码改动**。
+- 新增 `workspace/intake/20261103-backend-pending-decisions/README.md`：UNKNOWN/周期性对账的四个选项（建议"只终结不自动重试 + 人工触发"）、OpenMAIC 课程级入口的三个产品问题与只读课程包投影建议、安装态接受的前置条件、远端上传的授权现状。
+- 全仓编译核对：`cargo check --workspace --all-targets --offline` 通过（仅既有告警）。
+- 验证：`check_document_authority.py` 通过；未改产品代码、未移动或删除任何条目、未改布局清单。
+- 边界：决策与提案材料，不是实现或验收；所有选项等 Owner 指示后才执行。
+
+#### 2026-11-03 一次修订的跨消费者一致性回归测试（审计切片 B 的验收用例）
+
+- 新增 `crates/archeaxis-domain/tests/currentness_cross_consumer.rs`：同一条知识先被关系文档、学习卡片、AI 资产（provenance）、课程绑定同时引用；断言修订前所有投影都报 `current`；经一次 `modified` 复核产生后继后，**同一时间点**所有投影都报 `superseded` 且 `superseded_by` 指向同一后继，历史 `knowledge_id` 与关系/课程/资产里的引用身份均未被改写。
+- 覆盖：`object_reference::resolve`（资格路由与关系节点共用）、`relation_projection::query`、`learning::references_for_card`、`ai_asset::packet_items`、`course::read_candidate`。
+- 验证：该用例 **1/1** 通过；`-p archeaxis-domain --offline` 全量通过；rustfmt clean。
+- 边界：这是领域投影层的一致性回归，不是 HTTP 端到端、不是前端展示、不是安装态或 Owner 接受。
+
+#### 2026-11-03 本地全量 API 测试（`cargo test -p archeaxis-api --no-fail-fast`）
+
+- 运行对象：提交 `65bb3eb3` 编译出的全部 `archeaxis-api` test target（本轮 assessment 改动尚未编译；assess 改动单独验证见下条）。
+- 结果：**除一个环境相关用例外全部通过**。唯一失败是 `oss_template_reuse::parsers_run_through_core_and_outputs_survive_reopen`，失败点为 OCR 黄金文本断言 `text.contains("OCR GOLDEN ANCHOR")`。
+- 原因（已核实）：该测试文件相对 main **没有改动**（`git diff main...HEAD` 为空）；本机配置的 tesseract 路径不存在——`...\apps\tesseract\current\tesseract.exe` 与 `...\apps\tesseract-languages\current` 均返回 False，PATH 上的 shim 无法创建目标进程。属于本机 OCR 引擎缺失的环境限制，不是本分支代码回归。
+- 其余通过包括 `workspace_backup_publish`（655s）、`real_core_journey_command`、`openmaic_scene_process`、`teaching_state_api` 等；`#[ignore]` 用例按设计跳过（skip 不是证据）。
+- 边界：**本地** API crate 全量运行，不是精确 SHA CI；OCR 相关门禁仍需有引擎的环境复核（CI 或装好 tesseract）。
+
+#### 2026-11-03 评估绑定报告"知识点当前性"（本地切片）
+
+- `GET/POST /api/v1/learning/items/{item_key}/assessment` 及学习状态里的 `learner.assessment` 新增 `knowledge_state`（`status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`）；评估绑定不再是隐含"仍是当前依据"。
+- 合同第 16 行同步。
+- 验证：`item_state_api` **2/2**（新增 current 断言）、`learning_state_api` **8/8**、`contract_schedule_authority` **2/2**；rustfmt clean。
+- 边界：本地切片、未推送；只新增字段，不改评估创建/评审与调度语义。
+
+#### 2026-11-03 后端其余 crate 的本地回归核对（验证，无代码变更）
+
+- `cargo test -p archeaxis-store-sqlite -p archeaxis-contracts -p archeaxis-archive --offline`：**全部通过、0 failed**（store 9 项、contracts 4 项、archive 及其集成用例）。
+- `cargo test -p archeaxis-application --lib --offline`：**72 passed / 0 failed / 3 ignored**——被 ignored 的正是前文受控本地资格中已单独跑通的真实评分 worker、超时回收、取消回收三个用例（skip 不是证据，故另行显式运行并记录）。
+- 与上一轮 API crate 全量运行（仅 OCR 环境用例失败）合并后，本地测试面已覆盖 `archeaxis-domain` / `archeaxis-api` / `archeaxis-application`（lib）/ `archeaxis-store-sqlite` / `archeaxis-contracts` / `archeaxis-archive`。
+- 边界：本地 `--offline` 运行，不是精确 SHA CI；不含 OCR、Node、媒体/ASR 等需要外部引擎的集成用例（其本机环境缺失已单独记录）。
+
+#### 2026-11-03 教学记录报告"知识点当前性"（本地切片）
+
+- `teaching::get` 返回的 `RecordView` 新增 `knowledge_state`（`knowledge_id`/`status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`）。读、列表、写入回执、撤销与导入回执共用同一构造函数，因此这些表面都带该字段；被交换/导入但本地未观察的视图保持字段缺省（`serde(default, skip_serializing_if)`），不伪造本地状态。
+- 合同第 111 行（`GET /api/v2/teaching/records/{id}`）同步描述。
+- 验证：domain `teaching_records` **21/21**；api `teaching_state_api` **10/10**（新增 `knowledge_state.currentness == current` 等断言）；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
+- 边界：本地切片、未推送；只新增只读字段，不改教学记录写入、撤销、交换、导入与评分语义。
+
+#### 2026-11-03 Owner 全量授权（"全部授权"）
+
+- Owner 对第 4–11 轮列出的六项待决事项回复 **"全部授权"**。活动指针 `permissions` 由 DENIED 改为 `ALLOWED_OWNER_FULL_AUTHORIZATION_20261103`（commit/push/merge/cloud_ci），并新增 `execution_control.owner_full_authorization_20261103` 记录授权内容。
+- 授权范围（逐项记录，便于日后核对与纠正）：①推送本分支、开 PR、跑并读取精确 SHA 云 CI、门禁通过后合并（不 force push、不改写历史）；②执行 S01 附录 B/C（21 项基础设施登记 sanctioned、30 项被引用证据列为冻结、6 项 scratch 按 MANIFEST 归档，不删除字节）；③冻结 rubric 保持严格，不为代码围栏放宽；④UNKNOWN 采用"只终结 + 显式触发、绝不自动重启 worker"的方案；⑤先做只读 OpenMAIC 课程包投影，不做服务端课程校验。
+- 仍不可自行动的边界：release 发布 `NOT_GRANTED`；安装态接受仍需独立账户/隔离环境；Green 替换、真实数据覆盖与批量删除仍需单独授权。
+- 边界声明：这是授权与治理记录，不是产品完成或验收；推送后的精确 SHA 门禁、合并与双端读回另行记录。
+
+#### 2026-11-03 PR #255 精确 SHA CI 失败、取消与容量修正
+
+- run `41664786867`（SHA `750c39a8`）：`rust-vnext` 失败——`contract_general_course::generated_course_assessment_and_review_keep_original_versions_after_reopen` 用整体响应相等断言"评估回读不变"，而评估新增 `knowledge_state` 后修订会合法地由 `current` 变 `superseded`。修复 `108fe336`：断言改为固定身份/内容字段，并单独断言 current→superseded 与 `superseded_by`。
+- run `41669144215`（SHA `108fe336`）：`rust-vnext` 通过；`test (3.12)` **8421 passed / 472 skipped / 1 failed**——`tests/test_desktop_learning_review_contract.py::test_core_projection_nests_card_references_under_the_learner_section` 以源码扫描断言 `item_state` 内出现 `"knowledge_id"`/`"active"`，而这两个字段已移入共享 `reference_view` 投影。修复 `71b99f38`：生产者接受 `reference_view(conn` 调用，并断言共享视图含 knowledge_id/active/currentness。
+- run `41672779327`（SHA `71b99f38`）：`gateplan`/`lint`/`rust-vnext` 通过；`test (3.12)` 在 20 分钟处被取消两次（首次 20m16s、rerun 20m23s，pytest 已到 97%），`a0-gates` 因必需门禁被取消而失败。判定为 **test job 的 `timeout-minutes: 20` 容量不足**：同一 8421 项套件在上一 run 用 14m09s，本次慢跑超过 19 分钟。
+- 修正：`.github/workflows/ci.yml` 的 `test` job 超时 20 → 30 分钟并附证据注释；**测试集、断言与通过条件不变**，属容量修正而非放宽门禁。记录分类：源码失败 1 次（已修）、断言对齐 1 次（已修）、行政取消 2 次（容量）。
+- 边界：全部为精确 SHA 运行；未 force push、未改写历史。

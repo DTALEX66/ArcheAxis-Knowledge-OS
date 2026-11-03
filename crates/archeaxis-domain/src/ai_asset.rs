@@ -312,6 +312,47 @@ pub fn validate_editor(conn: &Connection, id: &str, editor: &Value) -> Result<()
     Ok(())
 }
 
+/// An asset's scope/provenance descriptors name real objects, but an adopted asset
+/// version does not prove the knowledge behind it is still current. Each reference
+/// reports its own use state instead of being silently substituted.
+fn reference_state(conn: &Connection, reference: &Reference) -> Value {
+    match reference {
+        Reference::Knowledge { knowledge_id } => {
+            match crate::knowledge::currentness(conn, knowledge_id) {
+                Ok(Some(view)) => json!({
+                    "reference": reference,
+                    "readable": true,
+                    "status": view.status,
+                    "currentness": view.currentness,
+                    "active": view.active,
+                    "superseded_by": view.superseded_by,
+                    "successor_count": view.successor_count,
+                    "valid_to": view.valid_to,
+                }),
+                Ok(None) => json!({
+                    "reference": reference,
+                    "readable": false,
+                    "status": "missing",
+                    "currentness": "unavailable",
+                }),
+                Err(_) => json!({
+                    "reference": reference,
+                    "readable": false,
+                    "status": "unknown",
+                    "currentness": "unavailable",
+                }),
+            }
+        }
+        // A document/source descriptor is version-pinned, so "current" is not a
+        // property of the pinned reference itself.
+        _ => json!({
+            "reference": reference,
+            "readable": true,
+            "currentness": "not_applicable",
+        }),
+    }
+}
+
 /// Read only a bounded tree of current, adopted asset metadata. Source refs are
 /// descriptors: no full Document body, CAS bytes, private session or tool execution.
 pub fn packet_items(conn: &Connection, root: &Snapshot, now: u64) -> Result<Vec<Value>, Error> {
@@ -341,7 +382,10 @@ pub fn packet_items(conn: &Connection, root: &Snapshot, now: u64) -> Result<Vec<
             ));
         }
         out.push(json!({"snapshot":s,"kind":asset.kind,"content":asset.content,"purpose":asset.purpose,
-            "scope":asset.scope,"provenance":asset.provenance,"engine_execution":"NOT_EXECUTED",
+            "scope":asset.scope,"provenance":asset.provenance,
+            "reference_states":asset.scope.iter().chain(asset.provenance.iter())
+                .map(|reference| reference_state(conn, reference)).collect::<Vec<_>>(),
+            "engine_execution":"NOT_EXECUTED",
             "grants_professional_truth":false,"grants_human_mastery":false,"grants_machine_qualification":false}));
         for member in &asset.members {
             visit(conn, member, now, depth + 1, seen, out)?;

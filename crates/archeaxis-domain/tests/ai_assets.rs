@@ -2,7 +2,7 @@
 use archeaxis_domain::{
     ai_asset::{self, Snapshot},
     asset_context_grant::{self, Consumer, Operation, PacketRequest},
-    document,
+    document, knowledge,
     machine_evaluation::{self, Criterion, Rubric},
 };
 use serde_json::{Value, json};
@@ -349,4 +349,46 @@ fn revision_is_a_new_identity_with_immutable_original_link_and_cannot_copy_origi
             .len(),
         1
     );
+}
+
+#[test]
+fn provenance_knowledge_reports_currentness_in_packet_items() {
+    let (_dir, mut c) = workspace();
+    let kid = knowledge::create_knowledge(
+        &mut c,
+        "FACTUAL_CLAIM",
+        "synthetic provenance claim",
+        "accepted",
+        None,
+        None,
+        "owner",
+    )
+    .unwrap();
+    let mut a = asset("memory");
+    a["provenance"] = json!([{"kind":"knowledge","knowledge_id":kid}]);
+    let adopted = adopt(&mut c, "currentness-memory", "memory", a);
+    let items = ai_asset::packet_items(&c, &ai_asset::snapshot(&adopted).unwrap(), 1).unwrap();
+    let state = &items[0]["reference_states"][0];
+    assert_eq!(state["reference"]["knowledge_id"], kid.as_str());
+    assert_eq!(state["currentness"], "current");
+    assert_eq!(state["active"], true);
+    assert_eq!(state["readable"], true);
+
+    // A later review supersedes the knowledge. The adopted asset version is unchanged,
+    // but its provenance is now reported as superseded instead of assumed current.
+    let successor = knowledge::review(
+        &mut c,
+        &kid,
+        "modified",
+        "owner",
+        Some("fix"),
+        Some("corrected claim"),
+    )
+    .unwrap();
+    let items = ai_asset::packet_items(&c, &ai_asset::snapshot(&adopted).unwrap(), 1).unwrap();
+    let state = &items[0]["reference_states"][0];
+    assert_eq!(state["currentness"], "superseded");
+    assert_eq!(state["superseded_by"], successor.as_str());
+    assert_eq!(state["reference"]["knowledge_id"], kid.as_str());
+    assert_eq!(state["active"], false);
 }

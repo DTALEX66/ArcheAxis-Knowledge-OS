@@ -139,6 +139,14 @@ async fn state_projection_reads_back_assessment_review_and_queue_after_reopen() 
     )
     .await;
     assert_eq!(status, StatusCode::CREATED, "{assessment}");
+    // The assessment binds one knowledge revision; report its use state instead of
+    // only the identity, so a superseded binding is visible.
+    assert_eq!(assessment["knowledge_state"]["currentness"], "current");
+    assert_eq!(
+        assessment["knowledge_state"]["knowledge_id"],
+        knowledge_id.as_str()
+    );
+    assert_eq!(assessment["knowledge_state"]["active"], true);
 
     let answer = "FSRS uses prior review history.";
     let (status, review) = call(
@@ -177,6 +185,10 @@ async fn state_projection_reads_back_assessment_review_and_queue_after_reopen() 
     assert_eq!(
         state["learner"]["assessment"]["knowledge_version"],
         assessment["knowledge_version"]
+    );
+    assert_eq!(
+        state["learner"]["assessment"]["knowledge_state"]["currentness"],
+        "current"
     );
     assert_eq!(state["learner"]["latest_review"]["answer"], answer);
     assert_eq!(

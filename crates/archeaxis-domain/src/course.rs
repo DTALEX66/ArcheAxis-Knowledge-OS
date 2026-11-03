@@ -197,6 +197,27 @@ fn binding_current(conn: &Connection, b: &CourseBinding) -> rusqlite::Result<boo
          AND a.source_id=?2 AND a.source_revision=?3 AND s.sha256=?3)",
         params![b.knowledge_id,b.source_id,b.source_revision], |r| r.get(0))
 }
+
+/// Separated use state of a course binding's knowledge. A stale course says which
+/// knowledge changed and what replaced it instead of only a boolean; the successor
+/// is named, never substituted into the historical binding.
+fn knowledge_state(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Value> {
+    Ok(match crate::knowledge::currentness(conn, knowledge_id)? {
+        Some(view) => json!({
+            "status": view.status,
+            "active": view.active,
+            "currentness": view.currentness,
+            "superseded_by": view.superseded_by,
+            "successor_count": view.successor_count,
+            "valid_to": view.valid_to,
+        }),
+        None => json!({
+            "status": "missing",
+            "active": false,
+            "currentness": "unavailable",
+        }),
+    })
+}
 fn stored_bindings(conn: &Connection, id: &str) -> rusqlite::Result<Vec<CourseBinding>> {
     conn.prepare("SELECT component_id,knowledge_id,knowledge_version,source_id,source_revision
                   FROM general_course_bindings WHERE manifest_id=?1 ORDER BY component_id,source_id")?
@@ -227,7 +248,8 @@ pub fn read_candidate(conn: &Connection, id: &str) -> rusqlite::Result<Option<Va
         bindings.push(
             json!({"component_id":b.component_id,"knowledge_id":b.knowledge_id,
             "knowledge_version":b.knowledge_version,"source_id":b.source_id,
-            "source_revision":b.source_revision,"stale":is_stale}),
+            "source_revision":b.source_revision,"stale":is_stale,
+            "knowledge_state":knowledge_state(conn, &b.knowledge_id)?}),
         );
     }
     Ok(Some(

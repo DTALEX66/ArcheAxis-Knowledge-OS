@@ -84,8 +84,14 @@ def test_core_projection_nests_card_references_under_the_learner_section() -> No
     assert producer.index('"learner"') < producer.index('"references"'), (
         "references must be nested inside learner, not emitted at the document root"
     )
-    assert '"knowledge_id"' in producer and '"active"' in producer, (
+    assert '"knowledge_id"' in producer or "reference_view(conn" in producer, (
         "each reference must carry its knowledge_id and whether it is still active"
+    )
+    # The identity/active/currentness fields moved into the shared projection on
+    # 2026-11-03; the producer must use it rather than emitting its own row.
+    helper = _region(core, "fn reference_view(", "\nasync fn ")
+    assert '"knowledge_id"' in helper and '"active"' in helper and '"currentness"' in helper, (
+        "the shared reference view must carry identity, the active flag and currentness"
     )
 
 

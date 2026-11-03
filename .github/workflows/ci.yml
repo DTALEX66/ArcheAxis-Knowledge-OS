@@ -106,7 +106,11 @@ jobs:
           test -f .project-local/task-runtime/gateplan.json && echo "GatePlan written"
 
   test:
-    timeout-minutes: 20
+    # OS-level suite runtime varies with runner load: the 2026-11-03 exact-SHA runs took
+    # 14m09s, 17m46s and >19m for the same 8,421 tests, and the 20-minute cap cancelled
+    # the job after the suite had reached 97%. 30 minutes is capacity headroom, not
+    # relaxed coverage: the same tests and the same pass condition still apply.
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}

@@ -115,11 +115,23 @@ pub fn ask(conn: &Connection, question: &str, limit: i64) -> rusqlite::Result<se
             .optional()?;
         let body = body.unwrap_or_default();
         // Inactive (superseded) knowledge is offered as a citation but marked, rather than hidden:
-        // a reader asking about something that was replaced needs to see that it was.
-        let active =
-            archeaxis_domain::knowledge::is_knowledge_active(conn, knowledge_id).unwrap_or(false);
+        // a reader asking about something that was replaced needs to see that it was. The
+        // identity is immutable, so the use status is reported beside it rather than inferred.
+        let view = archeaxis_domain::knowledge::currentness(conn, knowledge_id)
+            .ok()
+            .flatten();
+        let active = view.as_ref().is_some_and(|current| current.active);
         let mut entry = citation(conn, knowledge_id, status, &body);
         entry["active"] = json!(active);
+        entry["currentness"] = json!(
+            view.as_ref()
+                .map(|current| current.currentness)
+                .unwrap_or("unavailable")
+        );
+        entry["superseded_by"] = json!(
+            view.as_ref()
+                .and_then(|current| current.superseded_by.clone())
+        );
         entry["active_note"] = json!(if active {
             "this is the current version of the item"
         } else {

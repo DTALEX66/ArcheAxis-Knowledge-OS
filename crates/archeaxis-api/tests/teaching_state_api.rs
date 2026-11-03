@@ -368,6 +368,10 @@ async fn complete_formal_chain_replays_conflicts_and_reopens_exact_content() {
             human(&app, "GET", "/api/v2/teaching/records/teachback", json!({})).await;
         assert_eq!(status, 200);
         first = value;
+        // The record keeps the identity it was built from and reports its use state.
+        assert_eq!(first["knowledge_state"]["currentness"], "current");
+        assert_eq!(first["knowledge_state"]["knowledge_id"], kid.as_str());
+        assert_eq!(first["knowledge_state"]["active"], true);
         assert_eq!(first["record"], serde_json::to_value(&rows[7]).unwrap());
         let (status, replay) = human(
             &app,

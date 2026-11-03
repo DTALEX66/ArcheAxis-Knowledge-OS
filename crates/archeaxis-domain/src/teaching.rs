@@ -104,6 +104,10 @@ pub struct RecordView {
     pub content_sha256: String,
     pub withdrawn: bool,
     pub scoring_status: String,
+    /// Separated use state of the knowledge this record was built from. Populated on
+    /// read; an exchanged/imported view without local observation stays absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub knowledge_state: Option<Value>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -338,11 +342,25 @@ pub fn get(conn: &Connection, id: &str) -> Result<Option<RecordView>> {
     let Some((record, content_sha256)) = stored_record(conn, id)? else {
         return Ok(None);
     };
+    // A teaching record names the revision it was built from; report that revision's
+    // use state beside the identity instead of letting "recorded" imply "current".
+    let knowledge_state = crate::knowledge::currentness(conn, &record.knowledge_id)?.map(|view| {
+        serde_json::json!({
+            "knowledge_id": record.knowledge_id,
+            "status": view.status,
+            "active": view.active,
+            "currentness": view.currentness,
+            "superseded_by": view.superseded_by,
+            "successor_count": view.successor_count,
+            "valid_to": view.valid_to,
+        })
+    });
     Ok(Some(RecordView {
         record,
         content_sha256,
         withdrawn: is_withdrawn(conn, id)?,
         scoring_status: "not_scored".into(),
+        knowledge_state,
     }))
 }
 fn references(
