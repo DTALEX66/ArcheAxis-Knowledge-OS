@@ -428,6 +428,18 @@
         "boundary": "Local re-verification only; it does not replace the CI regression run for the repository layout, and this is still not installed acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "native_confirmation_budget_fix_20261103": {
+        "state": "CODE_PATH_FIXED_AND_UNIT_PROVEN_INSTALLED_SAMPLE_STILL_UNREPRODUCED",
+        "pull_request": 247,
+        "merge_commit": "9b552a3e05c2a0834c5274ebfd588603476dbf65",
+        "root_cause": "request_owned_product_exit asserts that the synthetic native confirmation returns at most the declared 15s budget. confirm_synthetic_close computed the remaining time as (t0 + budget) - now; when the host had already exited the loop was skipped, and for some t0 the float subtraction returns 15.000000000000002, one ulp above the budget, which trips the assertion with the 'Native confirmation exceeded the original exit budget' message without any real overrun.",
+        "fix": "Clamp the remaining time to [0, budget] instead of only to zero, so the 15s shared exit budget is preserved exactly and the spurious overrun cannot be produced. No budget increase and no product exit-semantics change.",
+        "test": "A deterministic regression test pins time.monotonic to a value where the raw subtraction exceeds the budget and requires the returned confirmation budget to be exactly the declared budget.",
+        "gate_verdict": "Run 41558289875: lint pass 56s, test (3.12) 16m38s pass, a0-gates pass; desktop/installer gates were skipped by gateplan for this path set.",
+        "local_verification_only": "The new test and the existing synthetic-close tests pass; tests/test_native_navigation_entry.py 86/86 with PYTHONUTF8=1 and ruff clean.",
+        "boundary": "The failed installed-runtime sample was not reproduced here; this fixes a provable code path and its unit test, not an installed acceptance result. The earlier same-SHA flake record is retained.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",

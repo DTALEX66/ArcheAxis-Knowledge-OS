@@ -3829,3 +3829,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 结果：**22步全部通过、exit 0、无残留进程**；回执`runs/be268a2d33/default-worker-root-journey-20261103/artifacts/journey-receipt.json`。
 - 清理：复验产生的release可再生物已退役；`.project-local`约**22.41 GiB**，增长复核`NO_NEW_GROWTH_TRIGGER`且delta为负（-698,454,740 B），OUT-OF-LAYOUT 87，deletion_authorized=false。
 - 边界：本地复验，不替代CI对仓库布局的回归结论；仍不是安装态接受。
+
+#### 2026-11-03 修复原生确认返回超出共享退出预算的浮点越界
+
+- PR #247（`f8913ea7`）以merge commit `9b552a3e05c2a0834c5274ebfd588603476dbf65`合并。根因：`request_owned_product_exit`断言synthetic原生确认返回不超过声明的15s预算，而`confirm_synthetic_close`用`(t0+budget)-now`计算剩余；host已退出时循环跳过，某些t0下浮点减法返回`15.000000000000002`（高一个ulp），触发`Native confirmation exceeded the original exit budget`但**没有真实超时**。
+- 修复：把返回值同时钳制到`[0, budget]`，精确保留15s共享预算，不提高预算、不改变产品退出语义；新增确定性回归测试（固定时钟到裸减法超出预算的值，要求返回值恰为声明预算）。
+- 精确SHA门禁：run 41558289875 `lint` 56s pass、**`test (3.12)` 16m38s pass**、`a0-gates` pass；desktop/installer门禁由gateplan按路径跳过。
+- 本地验证：新测试与既有synthetic-close测试通过；`tests/test_native_navigation_entry.py` **86/86**（PYTHONUTF8=1）；ruff clean。
+- 边界：这是对**可复现代码路径**的修复与单测证明；安装态环境下的原失败样本未复现，首次失败/flake记录保留，仍需安装态旅程确认。
