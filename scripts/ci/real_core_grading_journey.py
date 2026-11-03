@@ -52,10 +52,17 @@ def _reader(stream, sink: queue.Queue) -> None:
 
 
 class Core:
-    def __init__(self, exe: Path, workspace: Path, python: Path) -> None:
+    def __init__(
+        self,
+        exe: Path,
+        workspace: Path,
+        python: Path,
+        worker_root: Path | None = None,
+    ) -> None:
         self.exe = exe
         self.workspace = workspace
         self.python = python
+        self.worker_root = worker_root
         self.proc: subprocess.Popen[str] | None = None
         self.port = 0
         self.token = secrets.token_hex(32)
@@ -66,6 +73,14 @@ class Core:
 
     def _launch_document(self) -> dict:
         root = Path(__file__).resolve().parents[2]
+        if self.worker_root is None:
+            text_worker = root / TEXT_WORKER
+            practice_worker = root / PRACTICE_WORKER
+        else:
+            # An extracted install layout keeps workers/ next to core/ and runtime/;
+            # the practice provider is staged under workers/deeptutor.
+            text_worker = self.worker_root / "transport" / "text_ndjson.py"
+            practice_worker = self.worker_root / "deeptutor" / "practice_host_worker.py"
         staging = self.workspace / "staging"
         staging.mkdir(parents=True, exist_ok=True)
         return {
@@ -76,10 +91,10 @@ class Core:
             "machine_token": self.machine_token,
             "text_worker": {
                 "python": str(self.python),
-                "script": str(root / TEXT_WORKER),
+                "script": str(text_worker),
                 "staging": str(staging.resolve()),
                 "routes": [
-                    {"capability": "deeptutor.practice.import", "script": str(root / PRACTICE_WORKER)}
+                    {"capability": "deeptutor.practice.import", "script": str(practice_worker)}
                 ],
             },
             "openmaic_node_worker": None,
@@ -564,7 +579,7 @@ def run_journey(core: Core) -> dict:
             "verified": receipt.get("verified"),
         }
     )
-    restored_core = Core(core.exe, restored_dir, core.python)
+    restored_core = Core(core.exe, restored_dir, core.python, core.worker_root)
     restored_core.start()
     status, restored_document = restored_core.request(
         "GET", f"/api/v1/documents/{material_snapshot['document_id']}"
@@ -602,6 +617,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--core-exe", required=True, type=Path)
     parser.add_argument("--workspace-dir", required=True, type=Path)
     parser.add_argument("--python", type=Path, default=None)
+    parser.add_argument(
+        "--worker-root",
+        type=Path,
+        default=None,
+        help="installed workers/ directory (transport/ and deeptutor/ inside); "
+        "default is the repository services layout",
+    )
     parser.add_argument("--receipt", type=Path, default=None)
     args = parser.parse_args(argv)
 
@@ -612,9 +634,17 @@ def main(argv: list[str] | None = None) -> int:
     if not python.is_file():
         print(f"python interpreter not found: {python}", file=sys.stderr)
         return 2
+    worker_root = args.worker_root.resolve() if args.worker_root else None
+    if worker_root is not None:
+        for relative in ("transport/text_ndjson.py", "deeptutor/practice_host_worker.py"):
+            if not (worker_root / relative).is_file():
+                print(f"worker script missing: {worker_root / relative}", file=sys.stderr)
+                return 2
 
     args.workspace_dir.mkdir(parents=True, exist_ok=True)
-    core = Core(args.core_exe.resolve(), args.workspace_dir.resolve(), python.resolve())
+    core = Core(
+        args.core_exe.resolve(), args.workspace_dir.resolve(), python.resolve(), worker_root
+    )
     try:
         receipt = run_journey(core)
     except CoreFailure as error:
