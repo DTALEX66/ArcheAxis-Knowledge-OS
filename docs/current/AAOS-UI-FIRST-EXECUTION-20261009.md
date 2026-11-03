@@ -3837,3 +3837,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 精确SHA门禁：run 41558289875 `lint` 56s pass、**`test (3.12)` 16m38s pass**、`a0-gates` pass；desktop/installer门禁由gateplan按路径跳过。
 - 本地验证：新测试与既有synthetic-close测试通过；`tests/test_native_navigation_entry.py` **86/86**（PYTHONUTF8=1）；ruff clean。
 - 边界：这是对**可复现代码路径**的修复与单测证明；安装态环境下的原失败样本未复现，首次失败/flake记录保留，仍需安装态旅程确认。
+
+#### 2026-11-03 真实Node进程执行OpenMAIC固定worker的本地点验
+
+- 原因：`explicit_node_builds_and_persists_an_inert_scene_then_reopens_without_node`是`#[ignore]`测试，需显式Node身份，CI从不运行；当前树的OpenMAIC真实worker路径缺少本地运行记录。
+- Node身份：`C:\Users\ALEX\.local\node-v24.21.0-win-x64\node.exe`，sha256 `ba4e6d11…`；worker `services/learning-providers/openmaic/scene-build-worker.mjs` 7,315 B，sha256 `c4a2dad9…`（与固定值一致）。
+- 方法：设置`ARCHEAXIS_TEST_NODE`与`ARCHEAXIS_TEST_NODE_SHA256`后运行该ignored测试。
+- 结果：**1 passed / 0 failed，4.81s**——真实本地Node进程执行固定的OpenMAIC 1.3.0场景构建worker；slide场景的inert候选持久化（含完整request frame与供体输出）；随后**不配置Node**重开Core，读到已持久化版本而不重跑worker。
+- 回执：`runs/be268a2d33/openmaic-node-scene-20261103/artifacts/qualification-receipt.json`；可再生的debug构建产物已退役，`.project-local`约22.41 GiB，增长`NO_NEW_GROWTH_TRIGGER`且delta为负。
+- 边界：**本地**点验；该测试在CI中仍为`#[ignore]`，无模型/网络；不是安装态、不是真实多场景课程或真实本地模型生成、不是Owner接受。
