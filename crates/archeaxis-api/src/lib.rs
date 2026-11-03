@@ -468,47 +468,82 @@ async fn import_source(
     .await
 }
 
+/// R09: one knowledge reference with its identity and its use status separated.
+///
+/// "The row exists" is not "this revision is still a current basis". A consumer
+/// re-reading an item must see the revision it was built from, whether that
+/// revision is current, superseded or no longer active, without the successor
+/// being substituted into the historical reference.
+fn reference_view(conn: &Connection, knowledge_id: &str) -> serde_json::Value {
+    match knowledge::currentness(conn, knowledge_id) {
+        Ok(Some(view)) => serde_json::json!({
+            "knowledge_id": knowledge_id,
+            "active": view.active,
+            "status": view.status,
+            "currentness": view.currentness,
+            "superseded_by": view.superseded_by,
+            "successor_count": view.successor_count,
+            "valid_to": view.valid_to,
+        }),
+        Ok(None) => serde_json::json!({
+            "knowledge_id": knowledge_id,
+            "active": false,
+            "currentness": "unavailable",
+        }),
+        Err(error) => serde_json::json!({
+            "knowledge_id": knowledge_id,
+            "active": false,
+            "currentness": "unavailable",
+            "read_error": error.to_string(),
+        }),
+    }
+}
+
 async fn learning_history(
     State(state): State<AppState>,
     Path(item_key): Path<String>,
 ) -> impl IntoResponse {
-    with_store(state, move |conn| match learning::events_for_item(conn, &item_key) {
-        Ok(events) => {
-            let rows: Vec<serde_json::Value> = events
-                .into_iter()
-                .map(|(event_id, kind, outcome, next_review)| {
-                    serde_json::json!({
-                        "event_id": event_id,
-                        "kind": kind,
-                        "outcome": outcome,
-                        "next_review": next_review,
-                    })
-                })
-                .collect();
-            // R09: report what this learning item was built from, annotated with
-            // whether that revision is still current. A consumer re-reading the
-            // item must not silently keep using a superseded revision.
-            let references: Vec<serde_json::Value> = match learning::references_for_card(conn, &item_key) {
-                Ok(found) => found
+    with_store(state, move |conn| {
+        match learning::events_for_item(conn, &item_key) {
+            Ok(events) => {
+                let rows: Vec<serde_json::Value> = events
                     .into_iter()
-                    .map(|(knowledge_id, active)| {
-                        serde_json::json!({"knowledge_id": knowledge_id, "active": active})
+                    .map(|(event_id, kind, outcome, next_review)| {
+                        serde_json::json!({
+                            "event_id": event_id,
+                            "kind": kind,
+                            "outcome": outcome,
+                            "next_review": next_review,
+                        })
                     })
-                    .collect(),
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-            };
-            (
-                StatusCode::OK,
-                Json(serde_json::json!({
-                    "item_key": item_key,
-                    "events": rows,
-                    "count": rows.len(),
-                    "references": references,
-                })),
-            )
-                .into_response()
+                    .collect();
+                // R09: report what this learning item was built from, annotated with
+                // whether that revision is still current. A consumer re-reading the
+                // item must not silently keep using a superseded revision.
+                let references: Vec<serde_json::Value> =
+                    match learning::references_for_card(conn, &item_key) {
+                        Ok(found) => found
+                            .into_iter()
+                            .map(|(knowledge_id, _)| reference_view(conn, &knowledge_id))
+                            .collect(),
+                        Err(e) => {
+                            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+                                .into_response();
+                        }
+                    };
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "item_key": item_key,
+                        "events": rows,
+                        "count": rows.len(),
+                        "references": references,
+                    })),
+                )
+                    .into_response()
+            }
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     })
     .await
 }
@@ -589,7 +624,10 @@ async fn item_state(
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
         let references = match learning::references_for_card(conn, &item_key) {
-            Ok(found) => found,
+            Ok(found) => found
+                .into_iter()
+                .map(|(knowledge_id, _)| reference_view(conn, &knowledge_id))
+                .collect::<Vec<_>>(),
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
         let assessment = match learning::assessment_for_item_key(conn, &item_key) {
@@ -612,10 +650,7 @@ async fn item_state(
                     "next_review": latest_review.get("next_review").cloned().unwrap_or(serde_json::Value::Null),
                     "assessment": assessment,
                     "latest_review": latest_review,
-                    "references": references
-                        .into_iter()
-                        .map(|(knowledge_id, active)| serde_json::json!({"knowledge_id": knowledge_id, "active": active}))
-                        .collect::<Vec<_>>(),
+                    "references": references,
                     "recording": "a human records learning outcomes through the learning-events endpoint; an unavailable schedule is stored as unscheduled rather than invented",
                 },
                 "machine": {

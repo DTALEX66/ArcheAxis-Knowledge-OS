@@ -3894,3 +3894,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 提案：`workspace/intake/20261103-s01-layout-decision/README.md` 给出四组决策（A 登记 sanctioned 例外、B runs/ 迁移、C ACL 提权修复、D `backups/` 确认），附 87 行逐项表；本轮未移动、未删除、未改 `storage_report.py` 布局清单、未滚动基线。
 - 验证：`pytest tests/maintenance/test_layout_decision_report.py` **18/18**；ruff clean；`check_repository_conventions.py --source head` 与 `check_document_authority.py` 通过。
 - 边界：本地只读分析与工具修正；提案需要 Owner 逐组签字后才会执行任何移动/清单变更；未推送。
+
+#### 2026-11-03 学习与问答消费者接通"当前性"（R09 跨消费者补全，本地切片）
+
+- 共享视图：`knowledge::currentness` 返回 `status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`；`None` 表示身份不存在，与"存在但非当前"分开。`object_reference::resolve` 的知识分支改为复用该视图，不再各自拼装。
+- 消费者：`GET /learning/events/{item_key}` 与 `GET /learning/items/{item_key}/state` 的 `references`、`POST /api/v1/ask` 的 citation 均改为分离报告身份与使用状态（缺失身份为 `currentness: unavailable`）；历史引用不被改写、后继不被替换。
+- 合同：生产 HTTP 合同 R9、第 13 行、第 18 行同步描述。
+- 验证：domain `knowledge_active` **2/2**（新增当前性用例）、`object_reference` **3/3**、`relation_projection` **10/10**、`-p archeaxis-domain --offline` 全量通过；api `card_reference_api` **1/1**、`qualification_api` **4/4**、`contract_ask` **7/7**；`tests/maintenance/test_contract_route_inventory.py` **7/7**；rustfmt clean；`check_document_authority.py` 与 `check_repository_conventions.py --source head` 通过。
+- 边界：本地切片、未推送、无 PR、无精确 SHA CI；前端展示接线按 Owner 指示不在本会话；不改变历史引用、版本身份与既有守卫语义。

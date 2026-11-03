@@ -77,6 +77,9 @@ async fn re_reading_an_item_reports_its_revision_and_validity() {
         references[0]["active"], true,
         "the revision is current: {history}"
     );
+    assert_eq!(references[0]["currentness"], "current");
+    assert_eq!(references[0]["status"], "accepted");
+    assert_eq!(references[0]["superseded_by"], Value::Null);
 
     // A correction supersedes it and the successor is accepted.
     let (status, superseded) = post(
@@ -110,6 +113,20 @@ async fn re_reading_an_item_reports_its_revision_and_validity() {
     assert_eq!(
         references[0]["active"], false,
         "the referenced revision is no longer current: {history}"
+    );
+    assert_eq!(
+        references[0]["currentness"], "superseded",
+        "a superseded revision is reported as such: {history}"
+    );
+    assert_eq!(
+        references[0]["superseded_by"],
+        Value::String(successor.clone()),
+        "the successor is named rather than substituted: {history}"
+    );
+    assert_eq!(
+        references[0]["knowledge_id"],
+        original.as_str(),
+        "the historical identity is not rewritten: {history}"
     );
 
     // A reference to an unknown revision is refused rather than silently ignored.

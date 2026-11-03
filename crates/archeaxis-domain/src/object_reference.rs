@@ -115,25 +115,7 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
             )
         }
         Reference::Knowledge { knowledge_id } => {
-            let status =
-                crate::knowledge::knowledge_status(conn, knowledge_id)?.ok_or(Error::NotFound)?;
-            let active = crate::knowledge::is_knowledge_active(conn, knowledge_id)?;
-            let successors = crate::knowledge::knowledge_successors(conn, knowledge_id)?;
-            let valid_to: Option<String> = conn
-                .query_row(
-                    "SELECT valid_to FROM knowledge_v3_metadata WHERE knowledge_id=?1",
-                    [knowledge_id],
-                    |r| r.get::<_, Option<String>>(0),
-                )
-                .optional()?
-                .flatten();
-            let currentness = if !successors.is_empty() {
-                "superseded"
-            } else if active {
-                "current"
-            } else {
-                "not_current"
-            };
+            let view = crate::knowledge::currentness(conn, knowledge_id)?.ok_or(Error::NotFound)?;
             // Knowledge revision identity is the immutable ID; never substitute a
             // superseding item and never manufacture a Document/version relationship.
             // The reference stays readable and historically addressable: currentness
@@ -143,12 +125,12 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
                 "title":knowledge_id,
                 "identity":"immutable_knowledge_id",
                 "readable":true,
-                "status":status,
-                "currentness":currentness,
-                "active":active,
-                "superseded_by":successors.first(),
-                "successor_count":successors.len(),
-                "valid_to":valid_to,
+                "status":view.status,
+                "currentness":view.currentness,
+                "active":view.active,
+                "superseded_by":view.superseded_by,
+                "successor_count":view.successor_count,
+                "valid_to":view.valid_to,
             }))
         }
     }
