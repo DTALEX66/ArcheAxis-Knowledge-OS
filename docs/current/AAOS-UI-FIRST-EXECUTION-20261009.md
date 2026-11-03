@@ -3821,3 +3821,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 回执：`clean-install-receipt.json`与`journey-receipt.json`（runs/be268a2d33/installed-clean-journey-20261103/artifacts）。
 - 清理：记录哈希后退役解包payload、安装器、staged/donor runtime、临时rt junction与release可再生产物；`.project-local`约**22.40 GiB**，增长复核`NO_NEW_GROWTH_TRIGGER`且delta为负（-700,984,990 B），OUT-OF-LAYOUT 87，deletion_authorized=false。
 - 边界：这是本地构建未签名安装器的**干净解包payload**旅程（当前运行时、未替换core），但**未安装**（无注册表写入、未于Owner账户安装），不是CI候选身份、不是Green、不是Owner接受。
+
+#### 2026-11-03 默认仓库worker布局的旅程复验
+
+- 原因：`--worker-root`选项在PR #245加入，但该PR的CI路径集跳过了rust-vnext；因此合并后本地复验**默认**（不带`--worker-root`、使用仓库`services`布局）路径。
+- 方法：从合并后HEAD重建release core（47.97s），运行跟踪命令（不加`--worker-root`）。
+- 结果：**22步全部通过、exit 0、无残留进程**；回执`runs/be268a2d33/default-worker-root-journey-20261103/artifacts/journey-receipt.json`。
+- 清理：复验产生的release可再生物已退役；`.project-local`约**22.41 GiB**，增长复核`NO_NEW_GROWTH_TRIGGER`且delta为负（-698,454,740 B），OUT-OF-LAYOUT 87，deletion_authorized=false。
+- 边界：本地复验，不替代CI对仓库布局的回归结论；仍不是安装态接受。
