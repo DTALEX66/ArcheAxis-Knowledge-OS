@@ -124,9 +124,13 @@ def test_the_s01_allowlist_is_declared_classified_and_does_not_cover_scratch():
     assert report["s01_allowlist"]["infrastructure"] == sorted(module.S01A_INFRA)
     assert report["s01_allowlist"]["frozen_legacy"] == sorted(module.S01A_FROZEN)
     classes = {entry["name"].rstrip("/"): entry["layout_class"] for entry in report["dev_root"]}
-    if (REPO / ".project-local").is_dir():
-        assert classes.get("inputs") == "sanctioned_infrastructure", classes.get("inputs")
-    else:
-        # A clean checkout carries no `.project-local` tree; the allow list is still
-        # declared and must not invent an entry to satisfy this test.
-        assert classes == {}, classes
+    # Classify whatever dev roots this checkout actually has: a clean CI checkout carries
+    # only the paths it initialises, while the owner tree carries many more. A name in an
+    # allow list must always be classified by it wherever the entry appears.
+    for name, layout_class in classes.items():
+        if name in module.S01A_INFRA:
+            assert layout_class == "sanctioned_infrastructure", name
+        elif name in module.S01A_FROZEN:
+            assert layout_class == "frozen_legacy_evidence", name
+        else:
+            assert layout_class in {"declared", "stray"}, (name, layout_class)
