@@ -684,6 +684,24 @@ def synthetic_close_controller():
     return controller
 
 
+def test_synthetic_confirmation_never_returns_more_than_the_shared_budget():
+    # An already-exited host makes the loop skip; deadline = t0 + 15 can round up by
+    # one float ulp, so computing deadline - t0 can return 15.000000000000002 and
+    # trip the request_owned_product_exit assertion as an "exceeded exit budget".
+    controller = harness_helper('confirm_synthetic_close')
+    clock = Mock()
+    clock.monotonic.return_value = 1.1
+    clock.sleep.side_effect = lambda seconds: None
+    controller.__globals__.update(time=clock, validate_owned_close_confirmation=harness_helper('validate_owned_close_confirmation'))
+    host = Mock()
+    host.pid = 12
+    host.poll.return_value = 0
+    remaining = controller(host, {'pid': 12, 'created': 77}, {}, 15,
+                           lambda: None, lambda observed: True)
+    assert 0 <= remaining <= 15
+    assert remaining == 15
+
+
 @pytest.mark.parametrize('change', ['foreign-pid', 'recycled-pid', 'unknown-title', 'unknown-text',
     'fallback-only', 'default-yes', 'foreign-owner', 'foreign-button', 'wrong-button-id',
     'not-a-button', 'not-a-child', 'hidden-dialog'])

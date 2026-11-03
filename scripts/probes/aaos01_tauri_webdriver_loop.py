@@ -142,7 +142,10 @@ def confirm_synthetic_close(host, identity, record, timeout, observe, choose):
             record["native_confirmation"].update(posted=True, action="OWNED_BUTTON_BM_CLICK_NOT_PHYSICAL_INPUT")
             break
         time.sleep(.05)
-    return max(0, deadline - time.monotonic())
+    # The remaining-time subtraction can round a hair above the shared budget when
+    # the host has already exited (deadline = t0 + budget may round up while t0 is
+    # subtracted again). Never return more than the budget the caller declared.
+    return max(0.0, min(timeout, deadline - time.monotonic()))
 
 
 def confirm_owned_synthetic_close(host, identity, record, timeout):
