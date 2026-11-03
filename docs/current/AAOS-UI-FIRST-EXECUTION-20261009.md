@@ -3940,3 +3940,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同 R18（`GET /api/v1/courses/{id}`）同步描述。
 - 验证：domain `course_candidate` **5/5**（新增：current → modified 后继后 `superseded` 且 `superseded_by` 指向后继、历史 binding 不变）；api `contract_general_course` **6/6**、`deeptutor_learning_journey` **1/1**；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
 - 边界：本地切片、未推送；只新增字段，不改 `stale` 判定与课程写入/渲染语义；前端展示接线不在本会话。
+
+#### 2026-11-03 后端决策备忘与 S01 补丁草案（只读）
+
+- `workspace/intake/20261103-s01-layout-decision/README.md` 追加**附录 C**：B1–B4 获批后的确切代码改动——两个清单常量（21 项基础设施 + 30 项冻结证据）、`dev_allowed` 接受清单、`dev_classes.layout_class` 区分活动基础设施与冻结证据、报告新增 `s01_allowlist` 快照、需同步的布局契约测试，以及预期效果（`.project-local` 57→6，B2 归档后总 `OUT-OF-LAYOUT` 87→30）。**未应用任何代码改动**。
+- 新增 `workspace/intake/20261103-backend-pending-decisions/README.md`：UNKNOWN/周期性对账的四个选项（建议"只终结不自动重试 + 人工触发"）、OpenMAIC 课程级入口的三个产品问题与只读课程包投影建议、安装态接受的前置条件、远端上传的授权现状。
+- 全仓编译核对：`cargo check --workspace --all-targets --offline` 通过（仅既有告警）。
+- 验证：`check_document_authority.py` 通过；未改产品代码、未移动或删除任何条目、未改布局清单。
+- 边界：决策与提案材料，不是实现或验收；所有选项等 Owner 指示后才执行。

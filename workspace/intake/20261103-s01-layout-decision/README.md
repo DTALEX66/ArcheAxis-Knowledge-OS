@@ -191,7 +191,7 @@
 ### 建议的清单改动形态（尚未应用）
 
 ```python
-DEV_ALLOWED = {..., 
+DEV_ALLOWED = {...,
     # 2026-11-03 S01-A: infrastructure roots that tooling, state and recorded receipts
     # already name; sanctioned instead of relocated so citations stay valid.
     "acceptance", "account-preferences", "appdata", "audit-tools", "audits", "backups",
@@ -203,3 +203,72 @@ FROZEN_LEGACY = {"deeptutor-val", "zcode-newcore-20261030", ...}
 ```
 
 只要 B1–B4 获批，`OUT-OF-LAYOUT` 会从 87 降到 **30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），且不移动任何被引用的证据。
+
+## 附录 C：布局清单补丁草案（未应用，批准后一次性落地）
+
+下面是 B1–B4 获批后要改的**确切代码**。当前分支没有应用它；`scripts/runtime/storage_report.py` 保持原样。
+
+### C1 新增两个常量（放在 `DEV_ALLOWED_PATTERN` 之后）
+
+```python
+# 2026-11-03 S01-A: `.project-local` roots that tooling, state and recorded receipts
+# already cite. Sanctioned in place because relocating them would invalidate the paths
+# the execution record and its receipts use.
+S01A_INFRA = {
+    "acceptance", "account-preferences", "appdata", "audit-tools", "audits", "backups",
+    "cargo-home-a04", "ci-replay", "consolidation-ci", "dist", "dotnet-home", "inputs",
+    "inspect", "localappdata", "obsidian-compat", "probes", "proposals", "staging",
+    "state", "tooling", "tools",
+}
+# 2026-11-03 S01-A: historical evidence trees and root receipts frozen in place. They
+# are listed apart from live infrastructure so the report can say which entries are
+# frozen evidence rather than working state.
+S01A_FROZEN = {
+    "deeptutor-val", "dp-nf-03-probe", "dsh-audit", "dsh-recon-20261001",
+    "dsh-recon-20261001-bytes", "installed-native-correction-20261029",
+    "installed-post-ai-recovery-orchestrator-20261029", "local-pinned-sandbox-20261029",
+    "m0loop", "motion-contract-final-cache", "motion-contract-pytest-cache",
+    "node-manifest-guard-cases", "pdf-runtime-fix-20261029", "rsb24",
+    "stitch-audit-20261026", "stitch-replica", "ui-audit", "ui-review-20261026",
+    "zcode-newcore-20261030",
+    "AAOS-UI-Preview-20261026-launch.json", "AAOS-UI-Preview-20261026.cmd",
+    "archive-local-branch-candidates-20260918.bundle",
+    "archive-local-only-recovery-20260926.bundle", "build-stage-learning.py",
+    "closure-27b-matched-20261013.json", "closure-delivery-blocker-20261026.json",
+    "minimax-avatar-owner-declined-20261027.json",
+    "ui-audit-remediation-mapping-final.json",
+    "ui-audit-remediation-v13-grouped-capture-missing-map.json",
+    "ui-polish-protected-source-seal.json",
+}
+```
+
+### C2 `dev_allowed` 接受这两个受控清单
+
+```python
+def dev_allowed(name: str) -> bool:
+    return (name in DEV_ALLOWED or name in S01A_INFRA or name in S01A_FROZEN
+            or bool(DEV_ALLOWED_PATTERN.match(name)))
+```
+
+### C3 报告里区分"活动基础设施"与"冻结证据"
+
+`measure()` 的 `dev_classes` 记录增加 `layout_class` 字段，报告顶层增加清单快照：
+
+```python
+"layout_class": ("sanctioned_infrastructure" if name in S01A_INFRA
+                 else "frozen_legacy_evidence" if name in S01A_FROZEN
+                 else "declared" if dev_allowed(name) else "stray"),
+...
+"s01_allowlist": {"infrastructure": sorted(S01A_INFRA), "frozen_legacy": sorted(S01A_FROZEN)},
+```
+
+### C4 预期效果与需要同步的测试
+
+- 应用后 `.project-local` 的 57 项里：51 项转为 sanctioned（21 基础设施 + 30 冻结证据），剩 6 项 scratch 仍报 out-of-layout，直到按 B2 归档（byte-preserved + MANIFEST）后才归零。
+- 总 `OUT-OF-LAYOUT`：87 → 6 + 29 runs + 1 ACL = 36；B2 归档完成后 → 30。
+- 需要同步 `tests/workflow/test_workspace_layout_contract.py` 的断言与基线（它当前依赖 87 项现状），并在 `docs/current/AAOS-ACTIVE-EXECUTION.json` 的布局记录里登记 s01_allowlist 版本。
+- **不改变**任何删除/移动行为：清单只影响报告的"越界"判定，不授予删除权。
+
+### C5 不批准时的退路
+
+保持现状（87 项越界）也能运行；否则按 B2 先归档 6 项 scratch（这一步不依赖 sanctioned 清单，风险最低）。
