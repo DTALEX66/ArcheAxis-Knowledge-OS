@@ -1,4 +1,4 @@
-use archeaxis_domain::{document, relation_projection};
+use archeaxis_domain::{document, knowledge, relation_projection};
 use archeaxis_store_sqlite::init_workspace;
 use serde_json::{Value, json};
 fn envelope(relations: Value) -> Value {
@@ -357,4 +357,69 @@ fn legacy_collection_missing_targets_and_malformed_definitions_are_distinct() {
         "unsupported_collection_metadata"
     );
     assert!(p["edges"].as_array().unwrap().is_empty());
+}
+#[test]
+fn knowledge_node_shows_currentness_beside_resolved_status() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut c = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let kid = knowledge::create_knowledge(
+        &mut c,
+        "FACTUAL_CLAIM",
+        "v1",
+        "candidate",
+        None,
+        None,
+        "owner",
+    )
+    .unwrap();
+    let center = document::create_optional(
+        &mut c,
+        None,
+        None,
+        "中心",
+        envelope(json!([{"id":"rel","kind":"supports","label":"依据","target":{"kind":"knowledge","knowledge_id":kid}}])),
+    )
+    .unwrap();
+    let cid = center["document_id"].as_str().unwrap().to_owned();
+    let projected = relation_projection::query(&c, &cid, Some(1), None).unwrap();
+    let node = projected["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|n| n["reference"]["kind"] == "knowledge")
+        .expect("knowledge node")
+        .clone();
+    assert_eq!(node["status"], "resolved");
+    assert_eq!(node["currentness"], "current");
+    assert_eq!(node["object"]["readable"], true);
+    assert_eq!(node["reference"]["knowledge_id"], kid);
+    // A plain document node stays resolved without a currentness claim.
+    let document_node = projected["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|n| n["reference"]["kind"] == "document")
+        .expect("center document node")
+        .clone();
+    assert_eq!(document_node["status"], "resolved");
+    assert!(document_node.get("currentness").is_none());
+
+    let next =
+        knowledge::review(&mut c, &kid, "modified", "owner", Some("fix"), Some("v2")).unwrap();
+    knowledge::review(&mut c, &next, "accepted", "owner", None, None).unwrap();
+    let after = relation_projection::query(&c, &cid, Some(1), None).unwrap();
+    let node = after["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|n| n["reference"]["kind"] == "knowledge")
+        .expect("knowledge node")
+        .clone();
+    // The edge still points at the exact immutable identity; only currentness
+    // changes, and the node stays addressable rather than vanishing.
+    assert_eq!(node["status"], "resolved");
+    assert_eq!(node["currentness"], "superseded");
+    assert_eq!(node["reference"]["knowledge_id"], kid);
+    assert_eq!(node["object"]["superseded_by"], json!(next));
+    assert_eq!(after["edges"].as_array().unwrap().len(), 1);
 }

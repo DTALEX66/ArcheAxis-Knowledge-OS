@@ -1,5 +1,5 @@
 use archeaxis_domain::{
-    document,
+    document, knowledge,
     object_reference::{self, Reference},
     source,
 };
@@ -44,6 +44,74 @@ fn document_and_block_references_pin_history_after_restart() {
         )
         .is_err()
     );
+}
+#[test]
+fn knowledge_reference_reports_currentness_beside_the_immutable_identity() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("workspace.sqlite");
+    let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let kid = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "v1",
+        "candidate",
+        None,
+        None,
+        "owner",
+    )
+    .unwrap();
+    let reference = Reference::Knowledge {
+        knowledge_id: kid.clone(),
+    };
+    let resolved = object_reference::resolve(&conn, &reference).unwrap();
+    assert_eq!(resolved["identity"], "immutable_knowledge_id");
+    assert_eq!(resolved["readable"], true);
+    assert_eq!(resolved["currentness"], "current");
+    assert_eq!(resolved["superseded_by"], json!(null));
+    assert_eq!(resolved["reference"]["knowledge_id"], kid);
+
+    let next = knowledge::review(
+        &mut conn,
+        &kid,
+        "modified",
+        "owner",
+        Some("fix"),
+        Some("v2"),
+    )
+    .unwrap();
+    knowledge::review(&mut conn, &next, "accepted", "owner", None, None).unwrap();
+    let historical = object_reference::resolve(&conn, &reference).unwrap();
+    assert_eq!(historical["currentness"], "superseded");
+    assert_eq!(historical["superseded_by"], json!(next));
+    assert_eq!(historical["successor_count"], 1);
+    // The successor is current; the old identity is still readable and still
+    // points at itself rather than being silently substituted.
+    let newest =
+        object_reference::resolve(&conn, &Reference::Knowledge { knowledge_id: next }).unwrap();
+    assert_eq!(newest["currentness"], "current");
+    assert_eq!(newest["status"], "accepted");
+
+    let rejected = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "bad",
+        "candidate",
+        None,
+        None,
+        "owner",
+    )
+    .unwrap();
+    knowledge::review(&mut conn, &rejected, "rejected", "owner", None, None).unwrap();
+    let refused = object_reference::resolve(
+        &conn,
+        &Reference::Knowledge {
+            knowledge_id: rejected,
+        },
+    )
+    .unwrap();
+    assert_eq!(refused["currentness"], "not_current");
+    assert_eq!(refused["readable"], true);
+    assert_eq!(refused["status"], "rejected");
 }
 #[test]
 fn source_hash_and_absent_object_fail_closed() {

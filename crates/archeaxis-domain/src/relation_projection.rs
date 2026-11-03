@@ -26,7 +26,17 @@ fn add_node(conn: &Connection, reference: &Reference, nodes: &mut BTreeMap<Strin
         return;
     }
     let value = match object_reference::resolve(conn, reference) {
-        Ok(value) => json!({"key":key,"reference":reference,"status":"resolved","object":value}),
+        Ok(object) => {
+            // A resolved identity is not the same claim as a current one: carry the
+            // resolver's currentness beside the node status so a projection consumer
+            // can distinguish "addressable" from "still a current basis".
+            let mut node =
+                json!({"key":key,"reference":reference,"status":"resolved","object":object});
+            if let Some(currentness) = node["object"].get("currentness").cloned() {
+                node["currentness"] = currentness;
+            }
+            node
+        }
         Err(_) => json!({"key":key,"reference":reference,"status":"unavailable","object":null}),
     };
     nodes.insert(key, value);
