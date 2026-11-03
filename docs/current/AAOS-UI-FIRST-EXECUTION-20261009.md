@@ -4007,3 +4007,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 复测（本地只读 `storage_report.py`）：`OUT-OF-LAYOUT` **87 → 30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），`dev_strays` **0**；`measurement_status=PARTIAL`、`deletion_authorized=false`，增长复核为 `REVIEW_REQUIRED`（`build/`、`runs/` 超预算，仅观察，不滚动基线）。
 - 新增契约测试：清单非空且两类不重叠、每个名字被 `dev_allowed` 接受并分类正确、6 个 scratch 名字仍未获 sanction、报告 `s01_allowlist` 与常量一致。
 - 边界：本地测量与本地归档；CI 是干净检出（不含 `.project-local`），不受该清单影响；未删除、未移动任何被引用的证据。
+
+#### 2026-11-03 远端交付：PR #255 与 #256 合并、双端一致（记录）
+
+- PR **#255**（`codex/backend-knowledge-currentness-20261103`，head `1cf59387`）以 merge commit `1866912291b2` 合并；required gates 全部 success：`gateplan`、`lint`、`test (3.12)`、`rust-vnext`、`desktop-fast`、`desktop-build`、`installer-lifecycle`、`a0-gates`（其余由 gateplan 按路径跳过）。
+- **flake 如实记录**：`installer-lifecycle` 首次失败——安装态 WebDriver 旅程中，原生确认观察耗时 15016ms 已耗尽 15s 共享退出预算，`wait_timeout_seconds=0.0` 后 `host.wait(0.0)` 立即 `TimeoutExpired`。这不是产品代码路径失败；同一 SHA `gh run rerun --failed` 后该作业通过（**同 SHA 重跑通过，不是一次通过**）。同时保留该探针在"确认观察耗满预算时 wait 超时为 0"的已知退化行为，待后续单独修复。
+- PR **#256**（`codex/s01-layout-allowlist-20261103`，head `d3e390c1`）以 merge commit `eff8b354` 合并；required gates 全部 success（`gateplan`、`lint`、`test (3.12)`、`rust-vnext`、`desktop-vnext`、`green-candidate-vnext`、`contracts-vnext`、`workers-vnext`、`a0-gates`）。
+- S01 实际结果：`OUT-OF-LAYOUT` **87 → 30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），`dev_strays` **0**；7 个 scratch/探针条目（**483 文件 / 12,825,600 字节**）按字节保全移入本地忽略区 `.project-local/archives/s01-scratch-20261103/` 并带 MANIFEST，**未删除任何字节**。
+- 双端读回：`origin/main` = `eff8b354`；本地 `main` 已 fast-forward 同步。
+- 边界：CI 精确 SHA 结果不等于安装态 Owner 接受或产品闭环完成；`installer-lifecycle` 的通过是 CI runner 安装态旅程。
