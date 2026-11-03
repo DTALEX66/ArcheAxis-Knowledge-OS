@@ -3977,3 +3977,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - `cargo test -p archeaxis-application --lib --offline`：**72 passed / 0 failed / 3 ignored**——被 ignored 的正是前文受控本地资格中已单独跑通的真实评分 worker、超时回收、取消回收三个用例（skip 不是证据，故另行显式运行并记录）。
 - 与上一轮 API crate 全量运行（仅 OCR 环境用例失败）合并后，本地测试面已覆盖 `archeaxis-domain` / `archeaxis-api` / `archeaxis-application`（lib）/ `archeaxis-store-sqlite` / `archeaxis-contracts` / `archeaxis-archive`。
 - 边界：本地 `--offline` 运行，不是精确 SHA CI；不含 OCR、Node、媒体/ASR 等需要外部引擎的集成用例（其本机环境缺失已单独记录）。
+
+#### 2026-11-03 教学记录报告"知识点当前性"（本地切片）
+
+- `teaching::get` 返回的 `RecordView` 新增 `knowledge_state`（`knowledge_id`/`status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`）。读、列表、写入回执、撤销与导入回执共用同一构造函数，因此这些表面都带该字段；被交换/导入但本地未观察的视图保持字段缺省（`serde(default, skip_serializing_if)`），不伪造本地状态。
+- 合同第 111 行（`GET /api/v2/teaching/records/{id}`）同步描述。
+- 验证：domain `teaching_records` **21/21**；api `teaching_state_api` **10/10**（新增 `knowledge_state.currentness == current` 等断言）；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
+- 边界：本地切片、未推送；只新增只读字段，不改教学记录写入、撤销、交换、导入与评分语义。
