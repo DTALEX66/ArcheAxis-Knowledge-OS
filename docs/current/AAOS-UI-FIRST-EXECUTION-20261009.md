@@ -3999,3 +3999,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - run `41672779327`（SHA `71b99f38`）：`gateplan`/`lint`/`rust-vnext` 通过；`test (3.12)` 在 20 分钟处被取消两次（首次 20m16s、rerun 20m23s，pytest 已到 97%），`a0-gates` 因必需门禁被取消而失败。判定为 **test job 的 `timeout-minutes: 20` 容量不足**：同一 8421 项套件在上一 run 用 14m09s，本次慢跑超过 19 分钟。
 - 修正：`.github/workflows/ci.yml` 的 `test` job 超时 20 → 30 分钟并附证据注释；**测试集、断言与通过条件不变**，属容量修正而非放宽门禁。记录分类：源码失败 1 次（已修）、断言对齐 1 次（已修）、行政取消 2 次（容量）。
 - 边界：全部为精确 SHA 运行；未 force push、未改写历史。
+
+#### 2026-11-03 S01 布局清单应用（Owner "全部授权"后）
+
+- `scripts/runtime/storage_report.py` 应用附录 C：新增 `S01A_INFRA`（21 项基础设施 + 本次出现的 `handoff/`）与 `S01A_FROZEN`（30 项被引用历史证据/根回执）、`layout_class()`；`dev_allowed()` 接受两清单；`dev_classes` 增加 `layout_class`；报告顶层新增 `s01_allowlist` 快照。清单只影响"是否越界"的判定，不授予删除权。
+- 7 个 scratch/会话探针条目（`c`、`p`、`probe2`、`test-fixtures`、`tmp-measure`、`tmpuf_amolv` 与会话写入探针文件）按字节保全移入 `.project-local/archives/s01-scratch-20261103/`，MANIFEST schema `aaos.s01-scratch-archive/v1` 记录原路径/目标路径/文件数/字节数/树哈希：**483 个文件、12,825,600 字节**，移动后逐个校验目标存在，**未删除任何字节**。
+- 复测（本地只读 `storage_report.py`）：`OUT-OF-LAYOUT` **87 → 30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），`dev_strays` **0**；`measurement_status=PARTIAL`、`deletion_authorized=false`，增长复核为 `REVIEW_REQUIRED`（`build/`、`runs/` 超预算，仅观察，不滚动基线）。
+- 新增契约测试：清单非空且两类不重叠、每个名字被 `dev_allowed` 接受并分类正确、6 个 scratch 名字仍未获 sanction、报告 `s01_allowlist` 与常量一致。
+- 边界：本地测量与本地归档；CI 是干净检出（不含 `.project-local`），不受该清单影响；未删除、未移动任何被引用的证据。

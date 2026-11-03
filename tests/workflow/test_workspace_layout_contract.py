@@ -99,3 +99,29 @@ def test_growth_budgets_are_recorded_and_respected():
     assert over == [], (
         "classes over budget: " + ", ".join(over)
         + " — exceeding a budget needs a decision, not an automatic delete")
+
+def test_the_s01_allowlist_is_declared_classified_and_does_not_cover_scratch():
+    """The 2026-11-03 Owner-authorized allowlist is two explicit sets, not a blanket.
+
+    Infrastructure roots and frozen evidence are sanctioned in place because the
+    execution record cites them; leftover scratch entries stay out-of-layout until
+    they are archived byte-preserved, so the list cannot become a hiding place.
+    """
+    module = load_report()
+    assert module.S01A_INFRA, "the infrastructure allowlist must be declared"
+    assert module.S01A_FROZEN, "the frozen-evidence list must be declared"
+    assert not (module.S01A_INFRA & module.S01A_FROZEN), "a name cannot be in both classes"
+    for name in module.S01A_INFRA:
+        assert module.dev_allowed(name), name
+        assert module.layout_class(name) == "sanctioned_infrastructure", name
+    for name in module.S01A_FROZEN:
+        assert module.dev_allowed(name), name
+        assert module.layout_class(name) == "frozen_legacy_evidence", name
+    for scratch in ("c", "p", "probe2", "test-fixtures", "tmp-measure", "tmpuf_amolv"):
+        assert not module.dev_allowed(scratch), f"{scratch} must stay out-of-layout until archived"
+        assert module.layout_class(scratch) == "stray", scratch
+    report = module.measure()
+    assert report["s01_allowlist"]["infrastructure"] == sorted(module.S01A_INFRA)
+    assert report["s01_allowlist"]["frozen_legacy"] == sorted(module.S01A_FROZEN)
+    classes = {entry["name"].rstrip("/"): entry["layout_class"] for entry in report["dev_root"]}
+    assert classes.get("inputs") == "sanctioned_infrastructure", classes.get("inputs")

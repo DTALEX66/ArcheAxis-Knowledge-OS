@@ -61,6 +61,38 @@ DEV_ALLOWED = {"build", "runs", "task-runtime", "candidates", "recovery", "mig",
                "archives",
                # named by a tracked document, so it stays; sanctioned rather than re-flagged forever
                "tmp"}
+# 2026-11-03 S01-A (Owner authorization): `.project-local` roots that tooling, state and
+# recorded receipts already cite. Sanctioned in place because relocating them would
+# invalidate the paths the execution record and its receipts use.
+S01A_INFRA = {
+    "acceptance", "account-preferences", "appdata", "audit-tools", "audits", "backups",
+    "cargo-home-a04", "ci-replay", "consolidation-ci", "dist", "dotnet-home", "inputs",
+    "inspect", "localappdata", "obsidian-compat", "probes", "proposals", "staging",
+    "state", "tooling", "tools",
+    # Owner-named handoff workspace material (the 2026-11-03 handoff prompt lives here;
+    # `handoff/` arrived after the S01 measurement and is working material, not drift).
+    "handoff",
+}
+# 2026-11-03 S01-A (Owner authorization): historical evidence trees and root receipts
+# frozen in place. They are listed apart from live infrastructure so the report can say
+# which entries are frozen evidence rather than working state.
+S01A_FROZEN = {
+    "deeptutor-val", "dp-nf-03-probe", "dsh-audit", "dsh-recon-20261001",
+    "dsh-recon-20261001-bytes", "installed-native-correction-20261029",
+    "installed-post-ai-recovery-orchestrator-20261029", "local-pinned-sandbox-20261029",
+    "m0loop", "motion-contract-final-cache", "motion-contract-pytest-cache",
+    "node-manifest-guard-cases", "pdf-runtime-fix-20261029", "rsb24",
+    "stitch-audit-20261026", "stitch-replica", "ui-audit", "ui-review-20261026",
+    "zcode-newcore-20261030",
+    "AAOS-UI-Preview-20261026-launch.json", "AAOS-UI-Preview-20261026.cmd",
+    "archive-local-branch-candidates-20260918.bundle",
+    "archive-local-only-recovery-20260926.bundle", "build-stage-learning.py",
+    "closure-27b-matched-20261013.json", "closure-delivery-blocker-20261026.json",
+    "minimax-avatar-owner-declined-20261027.json",
+    "ui-audit-remediation-mapping-final.json",
+    "ui-audit-remediation-v13-grouped-capture-missing-map.json",
+    "ui-polish-protected-source-seal.json",
+}
 # Budgets are ceilings for review, not delete triggers: exceeding one means the class needs a
 # decision, and a class is only ever pruned with an audited path list and a preservation ref.
 DEV_BUDGET_GB = {"build": 22.0, "task-runtime": 12.0, "candidates": 4.0, "runs": 2.0, "recovery": 4.0}
@@ -70,7 +102,17 @@ DEV_ALLOWED_PATTERN = __import__("re").compile(r"^(a\d+(-.*)?|rt(-.*)?|legacy-sc
 
 
 def dev_allowed(name: str) -> bool:
-    return name in DEV_ALLOWED or bool(DEV_ALLOWED_PATTERN.match(name))
+    return (name in DEV_ALLOWED or name in S01A_INFRA or name in S01A_FROZEN
+            or bool(DEV_ALLOWED_PATTERN.match(name)))
+
+
+def layout_class(name: str) -> str:
+    """Report-only class: live infrastructure, frozen evidence, declared, or stray."""
+    if name in S01A_INFRA:
+        return "sanctioned_infrastructure"
+    if name in S01A_FROZEN:
+        return "frozen_legacy_evidence"
+    return "declared" if dev_allowed(name) else "stray"
 
 
 def io_path(path: Path | str) -> str:
@@ -457,6 +499,7 @@ def measure(repo: Path | None = None) -> dict:
             dev_classes.append({
                 "name": name + "/" if directory else name,
                 "layout_declared": dev_allowed(name),
+                "layout_class": layout_class(name),
                 **measured,
                 "gb": round(size / 1024 ** 3, 2),
                 "protected_bytes": protected,
@@ -481,6 +524,10 @@ def measure(repo: Path | None = None) -> dict:
         "readable_bytes": sum(row["bytes"] for row in measured_rows),
         "readable_files": sum(row["files"] for row in measured_rows),
         "ignored_root": sorted(ALLOWED_IGNORED),
+        "s01_allowlist": {
+            "infrastructure": sorted(S01A_INFRA),
+            "frozen_legacy": sorted(S01A_FROZEN),
+        },
         "dev_root": dev_classes,
         "dev_strays": [str(path.relative_to(repo)).replace("\\", "/") for path in dev_strays],
         "runs_layout": runs_violations,

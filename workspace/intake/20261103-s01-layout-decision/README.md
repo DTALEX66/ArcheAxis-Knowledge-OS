@@ -204,9 +204,18 @@ FROZEN_LEGACY = {"deeptutor-val", "zcode-newcore-20261030", ...}
 
 只要 B1–B4 获批，`OUT-OF-LAYOUT` 会从 87 降到 **30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），且不移动任何被引用的证据。
 
-## 附录 C：布局清单补丁草案（未应用，批准后一次性落地）
+## 附录 C：布局清单补丁（**已于 2026-11-03 应用**）
 
-下面是 B1–B4 获批后要改的**确切代码**。当前分支没有应用它；`scripts/runtime/storage_report.py` 保持原样。
+> 应用记录（2026-11-03，Owner"全部授权"）：`scripts/runtime/storage_report.py` 已加入
+> `S01A_INFRA`（含 `handoff`）、`S01A_FROZEN` 两个受控清单与 `layout_class()`，
+> 报告新增 `s01_allowlist`；`tests/workflow/test_workspace_layout_contract.py` 增加清单契约用例。
+> 7 个 scratch/探针条目（`c`、`p`、`probe2`、`test-fixtures`、`tmp-measure`、`tmpuf_amolv`、
+> 会话写入探针文件）已按字节保全移入 `.project-local/archives/s01-scratch-20261103/`
+> （含 MANIFEST，483 个文件 / 约 13.1 MB，未删除字节）。
+> 复测：`OUT-OF-LAYOUT` **87 → 30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），`dev_strays` **0**；
+> 移动/归档的只有 scratch，所有被引用的证据原地未动。
+
+下面是这一应用对应的代码形态（用于复核）：
 
 ### C1 新增两个常量（放在 `DEV_ALLOWED_PATTERN` 之后）
 
