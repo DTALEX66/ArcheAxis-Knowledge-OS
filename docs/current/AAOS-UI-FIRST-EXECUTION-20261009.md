@@ -3885,3 +3885,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 命令与结果（均 `--offline`，Windows）：`archeaxis-api --test deeptutor_practice_import -- --ignored` **1/1**（0.79s，真实固定 DeepTutor 出题 worker）；`--test openmaic_capabilities` **1/1**（3.66s，真实 Node 握手）；`--test openmaic_scene_runtime` **1/1**（4.87s，真实 Node 构建并持久化、去 Node 重开读回）；`archeaxis-application --test openmaic_node` **1/1**（3.65s，固定上游但可禁用）；`archeaxis-application --lib -- --ignored` **3/3**（真实评分 worker、超时回收、取消回收）。合计 **7 passed / 0 failed**。
 - 回执：`.project-local/runs/be268a2d33/backend-qualification-20261103/artifacts/qualification-receipt.json` 及 `logs/`。
 - 边界：**本地**资格；这些测试在 CI 仍为 `#[ignore]`（本地通过不改变 CI 覆盖，也不把 skip 当通过）；不是安装态旅程、不是真实多场景课程、不是真实本地模型生成，也不是 Owner 接受。
+
+#### 2026-11-03 S01 布局决策表修正与逐项提案（只读）
+
+- 问题：`scripts/maintenance/layout_decision_report.py` 用裸名判定引用，短名/通用名（`c`、`p`、`dist`、`state` 等）会被普通正文误算为引用；路径匹配用固定字符串，`.project-local/p` 还会误命中 `.project-local/proposals`。
+- 修正：引用证据拆成"路径限定引用"（POSIX ERE 段边界，`.project-local/<name>` 或 `.project-local/runs/<name>`）与"裸名引用"（仅独特名——≥10 字符且含数字或分隔符——才成立）；每行保留 `reference_path`/`reference_bare_name`/`reference_note`，分类词汇不变；新增 **18** 项单测（`tests/maintenance/test_layout_decision_report.py`）。
+- 重跑结果（同一固定 v2 checkpoint 报告，只读）：87 项 = REFERENCED **56**（51 路径 + 5 仅独特名）、RUNS_LAYOUT **29**、PROTECTED_OR_GENERIC **1**（`backups`）、UNREADABLE **1**（`fulltest-final-20260913`）；**无 UNREFERENCED_CANDIDATE**，即已不存在"无引用、可安全归档"的条目。
+- 提案：`workspace/intake/20261103-s01-layout-decision/README.md` 给出四组决策（A 登记 sanctioned 例外、B runs/ 迁移、C ACL 提权修复、D `backups/` 确认），附 87 行逐项表；本轮未移动、未删除、未改 `storage_report.py` 布局清单、未滚动基线。
+- 验证：`pytest tests/maintenance/test_layout_decision_report.py` **18/18**；ruff clean；`check_repository_conventions.py --source head` 与 `check_document_authority.py` 通过。
+- 边界：本地只读分析与工具修正；提案需要 Owner 逐组签字后才会执行任何移动/清单变更；未推送。
