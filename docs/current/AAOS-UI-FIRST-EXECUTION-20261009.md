@@ -3877,3 +3877,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 变更：`crates/archeaxis-domain/src/object_reference.rs` 的 Knowledge 分支不再只返回不可变身份，而是在同一投影里分离报告 `readable`/`status`/`currentness`（`current`｜`superseded`｜`not_current`）/`superseded_by`/`successor_count`/`valid_to`；`relation_projection` 节点镜像该 `currentness`，但 `status` 仍是 `resolved`、引用身份仍是原不可变 ID（历史引用不被偷偷替换、不消失）。`GET /api/v1/knowledge-items/{id}/qualification` 复用同一 resolver 并返回同一组字段；生产 HTTP 合同第 9 行同步描述。
 - 本地验证：`cargo test -p archeaxis-domain --test object_reference` **3/3**、`--test relation_projection` **10/10**、`-p archeaxis-domain --offline` 全量通过；`cargo test -p archeaxis-api --test qualification_api` **4/4**、`--test machine_correction_loop` **1/1**；`cargo check -p archeaxis-api --all-targets --offline` 通过；rustfmt clean；`check_document_authority.py` 与 `check_repository_conventions.py --source head` 通过。
 - 边界：本地分支 `codex/backend-knowledge-currentness-20261103` 内提交（`bd73fdbe` 及后续契约/路由提交），**未推送、无 PR、无精确 SHA CI**；前端消费者接线按 Owner 指示不在本会话；不改动版本身份与历史保留语义，不替代安装态或 Owner 接受。
+
+#### 2026-11-03 受控本地资格：全部 `#[ignore]` Rust 测试在显式 Node／Python 身份下通过
+
+- 背景：交接摘要记为"5 个 ignored 测试"；现场复核 `crates/**` 实际为 **7 个**（4 个集成测试 + 3 个 `archeaxis-application` lib 单测），CI 从不执行，skip 不是证据。本次用本机显式身份补齐本地资格。
+- 身份（不做 PATH 发现）：Node `v24.21.0`，`C:\Users\ALEX\.local\node-v24.21.0-win-x64\node.exe`，sha256 `ba4e6d11…`；Python `3.13.14`，`.venv\Scripts\python.exe`，sha256 `29a7e168…`。
+- 命令与结果（均 `--offline`，Windows）：`archeaxis-api --test deeptutor_practice_import -- --ignored` **1/1**（0.79s，真实固定 DeepTutor 出题 worker）；`--test openmaic_capabilities` **1/1**（3.66s，真实 Node 握手）；`--test openmaic_scene_runtime` **1/1**（4.87s，真实 Node 构建并持久化、去 Node 重开读回）；`archeaxis-application --test openmaic_node` **1/1**（3.65s，固定上游但可禁用）；`archeaxis-application --lib -- --ignored` **3/3**（真实评分 worker、超时回收、取消回收）。合计 **7 passed / 0 failed**。
+- 回执：`.project-local/runs/be268a2d33/backend-qualification-20261103/artifacts/qualification-receipt.json` 及 `logs/`。
+- 边界：**本地**资格；这些测试在 CI 仍为 `#[ignore]`（本地通过不改变 CI 覆盖，也不把 skip 当通过）；不是安装态旅程、不是真实多场景课程、不是真实本地模型生成，也不是 Owner 接受。
