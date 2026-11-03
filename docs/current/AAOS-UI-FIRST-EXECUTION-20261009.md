@@ -3863,3 +3863,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本地验证：`cargo test -p archeaxis-api --test real_core_journey_command` **2/2**（1.09s）；rustfmt clean。
 - 清理：本地运行产生的debug可再生物已退役；`.project-local`约22.41 GiB，增长复核`NO_NEW_GROWTH_TRIGGER`且delta为负（-687,307,888 B），OUT-OF-LAYOUT 87，deletion_authorized=false。
 - 边界：拼出的是**合成最小安装形态**，不是打包安装器；证明`--worker-root`代码路径在CI被真实执行，不等于安装态或Owner接受。
+
+#### 2026-11-03 真实进程经固定Node worker构建两个OpenMAIC场景
+
+- PR #253（`0c6c18ec`）以merge commit `7b65a6fa`合并：`crates/archeaxis-api/tests/openmaic_scene_process.rs`新增测试——只seed源文档，启动真实Core（`openmaic_node_worker` profile），经固定Node worker构建**两个独立slide场景**（两者`worker_invoked`、document_id不同），随后**不带Node重启**并读回两个候选且不重跑worker。
+- 修正：Windows `canonicalize`返回verbatim `\\?\`路径，launch profile拒绝且身份检查不接受verbatim祖先；测试改为传plain绝对路径。
+- 精确SHA门禁：run 41574391831 `lint` 1m7s pass、**`rust-vnext`（windows-latest）16m30s pass**、`a0-gates` pass；该测试需显式`ARCHEAXIS_TEST_NODE/SHA256`，无env时显式skip并说明skip不是证据——CI保持skip而非假覆盖。
+- 本地验证：设置Node后`cargo test -p archeaxis-api --test openmaic_scene_process` **2/2**（3.85s）；rustfmt clean。
+- 边界：本地点验（真实固定Node worker的进程级多场景构建）；不是安装态、不是完整多场景课程产品链、不是真实本地模型生成、不是Owner接受。

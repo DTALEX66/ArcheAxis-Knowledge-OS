@@ -472,6 +472,16 @@
         "boundary": "The installed-shaped tree is a synthetic minimal layout, not a packaged installer; it proves the --worker-root code path in CI, not installed acceptance or Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "openmaic_two_scene_process_20261103": {
+        "state": "LOCAL_REAL_PROCESS_MULTI_SCENE_NODE_BUILD_PASS",
+        "pull_request": 253,
+        "merge_commit": "7b65a6fa",
+        "what": "crates/archeaxis-api/tests/openmaic_scene_process.rs gained a test that seeds only the source document, launches the actual Core binary with an openmaic_node_worker profile and builds two independent slide scenes through the pinned Node worker (worker_invoked for both, distinct document ids), then restarts Core without Node and requires both candidates to be read back without a worker. It hands Core a plain absolute worker path because canonicalize returns a verbatim prefix the launch profile refuses and the identity checks reject verbatim ancestors.",
+        "gate_verdict": "Run 41574391831: lint pass 1m7s, rust-vnext (windows-latest) 16m30s pass, a0-gates pass; the new test is env-gated on ARCHEAXIS_TEST_NODE/SHA256 and says so when it skips, so CI skips it instead of pretending coverage.",
+        "local_verification_only": "With Node set: cargo test -p archeaxis-api --test openmaic_scene_process 2/2 in 3.85s; rustfmt clean.",
+        "boundary": "Local-only multi-scene qualification through the real pinned Node worker; it is not an installed runtime, not the full multi-scene course product chain, not real local model generation and not Owner acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
