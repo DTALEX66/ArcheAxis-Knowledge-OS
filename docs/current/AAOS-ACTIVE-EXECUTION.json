@@ -377,6 +377,20 @@
         "boundary": "Unsigned locally built installer with a stale runtime snapshot; no installation, no CI identity, no Green replacement, not Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "install_layout_journey_20261103": {
+        "state": "FULL_JOURNEY_PASSED_ON_EXTRACTED_INSTALL_LAYOUT",
+        "source_head": "296eb8051b8c74e9ccf6175dfc7c3b14c2655ac3",
+        "setup": "Rebuilt the current release core (49.86s), the Tauri host (1m23s) and the unsigned NSIS installer with the local NSIS tool cache, then extracted the installer with 7z only - nothing was installed and no registry entry was written.",
+        "installer": {"bytes": 421745043, "sha256": "647b6bab72e475dabcbce472f9342c8bf0f75b2b32e6331ea3aec10f6d0af90e"},
+        "layout": "Extracted payload: ArcheAxis.exe, core/archeaxis-api.exe, runtime/ (python + webview2), shared/, workers/, worker-profile.json. The core binary was replaced with the current release build (20,529,664 B, sha256 631ed1bbcc46f10fbfe8bfad98944c51a9afef644ec1f4728c3fc8035549e706) because the bundle's own runtime snapshot records source_commit c4531c1b and is stale.",
+        "runtime_python": {"bytes": 91648, "sha256": "081786173866d86cda1b06aa671848217fa0d635edb6dcd2218644466f4229cd"},
+        "journey": "The tracked command ran with --core-exe <extracted>/core/archeaxis-api.exe and --python <extracted>/runtime/python.exe: all 22 steps passed, exit 0, no leftover process - production actor guards, material, real private practice import (executed by the installed runtime interpreter), grants, activity/attempt, formal grade with the pinned upstream digest, COMPLETED disposition, duplicate replay, stale-dispatch finalization to UNKNOWN, live backup, backup list across restart, restore preview, maintenance restore and the restored Core serving the material.",
+        "workers_note": "The launch profile pointed at repository worker scripts because the installer's bundled workers belong to the stale c453 snapshot; the installed runtime interpreter executed them successfully.",
+        "receipts": [".project-local/runs/be268a2d33/installed-layout-journey-20261103/artifacts/install-layout-receipt.json", ".project-local/runs/be268a2d33/installed-layout-journey-20261103/artifacts/journey-receipt.json"],
+        "cleanup": "After recording the hashes, the extracted payload (1.31 GiB), the installer and the regenerable release/debug build outputs and staged runtime copy were retired; .project-local returned to about 24.48 GiB and growth review to NO_NEW_GROWTH_TRIGGER (delta 1,530,099,620 B, about 1.42 GiB, below the 2 GiB line; OUT-OF-LAYOUT 87; deletion_authorized=false; checkpoint not rolled).",
+        "boundary": "Install-layout journey, not an installed application: the payload was extracted rather than installed, the core was replaced with the current release build, and the workers came from the repository. Not the CI candidate identity, not Green, not Owner acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",

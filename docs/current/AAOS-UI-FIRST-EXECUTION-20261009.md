@@ -3790,3 +3790,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 清理：删除可再解包的提取payload（1.31 GiB/19,751文件）与临时批处理/配置；退役release可再生产物1.74 GiB；随后在核对与记录哈希后，把未签名安装器（421,762,554 B，sha256 `5222b1a2…afe`）、宿主`ArcheAxis.exe`与release core二进制作为可再生产物一并退役，并最后退役staged runtime副本（1.24 GiB/19,691文件）。构建命令、二进制/安装器哈希在`installer-assembly-receipt.json`。`.project-local`约**24.48 GiB**。
 - 增长复核（同一固定checkpoint，只读）：退役后回到`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,527,585,077`（约1.42 GiB，低于2 GiB线）；`OUT-OF-LAYOUT` 87；`measurement_status=PARTIAL`；`runs/`仍超预算；`deletion_authorized=false`；checkpoint未滚动。
 - 边界：未签名本地构建安装器+过期运行时快照；未安装、无CI身份、未替换Green、不是Owner接受。
+
+#### 2026-11-03 安装形态布局上的完整旅程（解包，不安装）
+
+- 重新构建当前release core（49.86s）、Tauri宿主（1m23s）与未签名NSIS安装器（本地NSIS缓存），并用7z**只解包、不安装**（无注册表写入）：payload 19751文件/1,403,106,986 B，布局含`ArcheAxis.exe`、`core/archeaxis-api.exe`、`runtime/`（python+webview2）、`shared/`、`workers/`、`worker-profile.json`。安装器 421,745,043 B，sha256 `647b6bab…90e`。
+- 由于安装器自带运行时快照仍是c453-era（manifest `source_commit=c4531c1b…`），把解包布局的`core/archeaxis-api.exe`替换为**当前release构建**（20,529,664 B，sha256 `631ed1bb…706`），并直接使用解包布局的`runtime/python.exe`（91,648 B，sha256 `08178617…9cd`）。
+- 用跟踪命令`--core-exe <解包>/core/archeaxis-api.exe --python <解包>/runtime/python.exe`运行：**22步全部通过、exit 0、无残留进程**——生产actor守卫、材料、真实私有出题（由安装形态的runtime解释器执行）、双grant、activity/attempt、正式评分（固定upstream摘要）、处置COMPLETED、duplicate、启动时终结为UNKNOWN、live backup、跨重启备份列表、restore preview、维护模式恢复与恢复后读回。
+- workers说明：launch profile仍指向仓库worker脚本（安装器自带workers属旧快照）；安装形态的runtime解释器成功执行它们。
+- 回执：`install-layout-receipt.json`与`journey-receipt.json`（runs/be268a2d33/installed-layout-journey-20261103/artifacts）。
+- 清理：记录哈希后退役解包payload（1.31 GiB）、安装器与release/debug可再生产物及staged runtime副本；`.project-local`回到约24.48 GiB，增长复核`NO_NEW_GROWTH_TRIGGER`（delta 1,530,099,620 B≈1.42 GiB<2GiB；OUT-OF-LAYOUT 87；deletion_authorized=false；checkpoint未滚动）。
+- 边界：这是**安装形态布局**旅程，不是已安装应用：payload是解包而非安装、core被当前构建替换、workers来自仓库；不是CI候选身份、不是Green、不是Owner接受。
