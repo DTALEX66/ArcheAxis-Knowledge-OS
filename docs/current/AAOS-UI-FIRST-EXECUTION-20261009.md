@@ -3855,3 +3855,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 取消说明：该dispatch首次调度在`desktop-fast`运行期间被行政取消（非源码失败）；**同SHA**重跑失败/取消的作业后`desktop-fast`与`a0-gates`成功，run最终success。
 - 回执：`.project-local/runs/be268a2d33/ci-full-qual-028f1afd-20261103/`（安装态旅程receipt、driver/native-driver日志、截图）。
 - 边界：这是**CI runner上的安装态旅程**（合成数据），不是Owner机器安装、不是真实用户数据、不是Owner接受；本轮本地构建的未签名安装器不属于该资格身份。
+
+#### 2026-11-03 旅程回归覆盖安装形态worker布局
+
+- PR #251（`efe12f91`）以merge commit `6a68971e`合并：`crates/archeaxis-api/tests/real_core_journey_command.rs`新增第二个回归——在临时目录拼出最小安装形态`workers/`（`transport/text_ndjson.py` + 固定DeepTutor provider目录），用`--worker-root`运行跟踪旅程命令，要求同一schema、真实practice grade与restore步骤。
+- 精确SHA门禁：run 41571464120 `lint` 59s pass、**`rust-vnext`（windows-latest）13m13s pass**、`a0-gates` pass——安装形态worker布局旅程现在在CI内执行，不再只有本地覆盖。
+- 本地验证：`cargo test -p archeaxis-api --test real_core_journey_command` **2/2**（1.09s）；rustfmt clean。
+- 清理：本地运行产生的debug可再生物已退役；`.project-local`约22.41 GiB，增长复核`NO_NEW_GROWTH_TRIGGER`且delta为负（-687,307,888 B），OUT-OF-LAYOUT 87，deletion_authorized=false。
+- 边界：拼出的是**合成最小安装形态**，不是打包安装器；证明`--worker-root`代码路径在CI被真实执行，不等于安装态或Owner接受。

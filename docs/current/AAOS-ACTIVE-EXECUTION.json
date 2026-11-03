@@ -461,6 +461,17 @@
         "boundary": "CI-runner installed journey on synthetic data, not an Owner-machine installation, not real user data and not Owner acceptance; the locally built unpinned installers remain outside this qualification.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
+      "installed_worker_layout_ci_20261103": {
+        "state": "CI_COVERS_REPOSITORY_AND_INSTALLED_WORKER_LAYOUTS",
+        "pull_request": 251,
+        "merge_commit": "6a68971e",
+        "what": "crates/archeaxis-api/tests/real_core_journey_command.rs gained a second regression that assembles a minimal installed-shaped workers/ tree (transport/text_ndjson.py plus the pinned DeepTutor provider directory) in a temp directory and runs the tracked journey command with --worker-root, requiring the same receipt schema, a real practice grade and the restore step.",
+        "gate_verdict": "Run 41571464120: lint pass 59s, rust-vnext (windows-latest) 13m13s pass, a0-gates pass - the installed-layout journey command now runs inside CI instead of only locally.",
+        "local_verification_only": "cargo test -p archeaxis-api --test real_core_journey_command 2/2 in 1.09s with rustfmt clean.",
+        "cleanup": "The regenerable debug build outputs from the local run were retired; .project-local is about 22.41 GiB and growth review stays NO_NEW_GROWTH_TRIGGER with a negative delta (-687,307,888 B), OUT-OF-LAYOUT 87, deletion_authorized=false.",
+        "boundary": "The installed-shaped tree is a synthetic minimal layout, not a packaged installer; it proves the --worker-root code path in CI, not installed acceptance or Owner acceptance.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      },
       "branch_cleanup": "Deleted four remote heads only after git merge-base proved each head fully contained in main: codex/aaos-provider-ci-20261102@7cb00ddc, codex/delivery-20261102@4bed2d09, codex/delivery-record-20261102@d210f08d, codex/governance-normalization-20261101@35f69600. Remaining remote branches: main only. No tag deletion, history rewrite or force push; the deleted heads stay reachable by SHA from main history.",
       "remote_main_before": "fa10cfa9d768047ad8e9c6c5d389469eee7d20d8",
       "required_gate_verdict": "Run 41445017483 concluded success at exact head 4bed2d09 with a0-gates pass: gateplan, lint, test (3.12), rust-vnext, workers-vnext, contracts-vnext, desktop-vnext, browser-smoke, green-candidate-vnext, desktop-fast, desktop-build and security-targeted all passed; the other gates were skipped by gateplan.",
