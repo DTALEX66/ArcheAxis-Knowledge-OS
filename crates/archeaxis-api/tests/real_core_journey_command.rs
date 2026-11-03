@@ -194,3 +194,94 @@ fn tracked_real_core_journey_command_passes_against_this_build() {
     // The workspace database is a real Core SQLite file, not an in-memory stub.
     assert!(workspace.join("workspace.sqlite").is_file());
 }
+
+fn copy_tree(source: &Path, target: &Path) {
+    std::fs::create_dir_all(target).unwrap();
+    for entry in std::fs::read_dir(source).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        let destination = target.join(entry.file_name());
+        if path.is_dir() {
+            copy_tree(&path, &destination);
+        } else {
+            std::fs::copy(&path, &destination).unwrap();
+        }
+    }
+}
+
+/// A minimal installed-shaped workers/ tree: transport/text_ndjson.py plus the
+/// pinned DeepTutor practice provider directory.
+fn installed_worker_layout(dir: &Path) -> PathBuf {
+    let workers = dir.join("workers");
+    let transport = workers.join("transport");
+    std::fs::create_dir_all(&transport).unwrap();
+    std::fs::copy(
+        repo().join("services/python-workers/transport/text_ndjson.py"),
+        transport.join("text_ndjson.py"),
+    )
+    .unwrap();
+    copy_tree(
+        &repo().join("services/learning-providers/deeptutor"),
+        &workers.join("deeptutor"),
+    );
+    workers
+}
+
+#[test]
+fn tracked_journey_runs_with_an_installed_worker_layout() {
+    let Some(python) = interpreter() else {
+        eprintln!("skipping: no usable Python interpreter; this skip is not evidence");
+        return;
+    };
+    let core = PathBuf::from(env!("CARGO_BIN_EXE_archeaxis-api"));
+    assert!(core.is_file(), "built Core binary missing: {core:?}");
+    let dir = tempfile::tempdir().unwrap();
+    let workers = installed_worker_layout(dir.path());
+    let workspace = dir.path().join("installed-journey");
+    let receipt = dir.path().join("installed-receipt.json");
+    let script = repo().join("scripts/ci/real_core_grading_journey.py");
+    let mut child = Command::new(&python)
+        .arg("-B")
+        .arg(&script)
+        .arg("--core-exe")
+        .arg(&core)
+        .arg("--workspace-dir")
+        .arg(&workspace)
+        .arg("--python")
+        .arg(&python)
+        .arg("--worker-root")
+        .arg(&workers)
+        .arg("--receipt")
+        .arg(&receipt)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn installed-layout journey command");
+    let status = wait_with_deadline(&mut child, Duration::from_secs(300));
+    let output = child.wait_with_output().expect("collect journey output");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        status.success(),
+        "installed-layout journey failed; stdout tail={}\nstderr tail={}",
+        &stdout[stdout.len().saturating_sub(2000)..],
+        &stderr[stderr.len().saturating_sub(2000)..]
+    );
+    let value: Value =
+        serde_json::from_str(&std::fs::read_to_string(&receipt).expect("journey receipt"))
+            .expect("journey receipt json");
+    assert_eq!(value["schema"], "aaos.real-core-process-journey/v1");
+    let steps = value["steps"].as_array().expect("steps array");
+    assert!(
+        steps
+            .iter()
+            .any(|step| step["step"] == "practice grade" && step["provider_correct"] == true),
+        "the installed worker layout did not grade: {value}"
+    );
+    assert!(
+        steps
+            .iter()
+            .any(|step| step["step"] == "restored Core serves the material document"),
+        "the installed worker layout did not reach the restore step: {value}"
+    );
+}
