@@ -3955,3 +3955,18 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 覆盖：`object_reference::resolve`（资格路由与关系节点共用）、`relation_projection::query`、`learning::references_for_card`、`ai_asset::packet_items`、`course::read_candidate`。
 - 验证：该用例 **1/1** 通过；`-p archeaxis-domain --offline` 全量通过；rustfmt clean。
 - 边界：这是领域投影层的一致性回归，不是 HTTP 端到端、不是前端展示、不是安装态或 Owner 接受。
+
+#### 2026-11-03 本地全量 API 测试（`cargo test -p archeaxis-api --no-fail-fast`）
+
+- 运行对象：提交 `65bb3eb3` 编译出的全部 `archeaxis-api` test target（本轮 assessment 改动尚未编译；assess 改动单独验证见下条）。
+- 结果：**除一个环境相关用例外全部通过**。唯一失败是 `oss_template_reuse::parsers_run_through_core_and_outputs_survive_reopen`，失败点为 OCR 黄金文本断言 `text.contains("OCR GOLDEN ANCHOR")`。
+- 原因（已核实）：该测试文件相对 main **没有改动**（`git diff main...HEAD` 为空）；本机配置的 tesseract 路径不存在——`...\apps\tesseract\current\tesseract.exe` 与 `...\apps\tesseract-languages\current` 均返回 False，PATH 上的 shim 无法创建目标进程。属于本机 OCR 引擎缺失的环境限制，不是本分支代码回归。
+- 其余通过包括 `workspace_backup_publish`（655s）、`real_core_journey_command`、`openmaic_scene_process`、`teaching_state_api` 等；`#[ignore]` 用例按设计跳过（skip 不是证据）。
+- 边界：**本地** API crate 全量运行，不是精确 SHA CI；OCR 相关门禁仍需有引擎的环境复核（CI 或装好 tesseract）。
+
+#### 2026-11-03 评估绑定报告"知识点当前性"（本地切片）
+
+- `GET/POST /api/v1/learning/items/{item_key}/assessment` 及学习状态里的 `learner.assessment` 新增 `knowledge_state`（`status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to`）；评估绑定不再是隐含"仍是当前依据"。
+- 合同第 16 行同步。
+- 验证：`item_state_api` **2/2**（新增 current 断言）、`learning_state_api` **8/8**、`contract_schedule_authority` **2/2**；rustfmt clean。
+- 边界：本地切片、未推送；只新增字段，不改评估创建/评审与调度语义。

@@ -631,7 +631,7 @@ async fn item_state(
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
         let assessment = match learning::assessment_for_item_key(conn, &item_key) {
-            Ok(Some(value)) => assessment_json(&value),
+            Ok(Some(value)) => assessment_json(conn, &value),
             Ok(None) => serde_json::Value::Null,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
@@ -1030,9 +1030,10 @@ mod stateful_schedule_failures {
     }
 }
 
-fn assessment_json(value: &learning::AssessmentRecord) -> serde_json::Value {
+fn assessment_json(conn: &Connection, value: &learning::AssessmentRecord) -> serde_json::Value {
     serde_json::json!({"assessment_id": value.assessment_id, "item_key": value.item_key,
         "knowledge_id": value.knowledge_id, "knowledge_version": value.knowledge_version,
+        "knowledge_state": reference_view(conn, &value.knowledge_id),
         "question": value.question, "content": value.content,
         "source_id": value.source_id, "anchor_id": value.anchor_id, "created_at": value.created_at})
 }
@@ -1044,7 +1045,7 @@ async fn create_assessment(
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
         match learning::create_assessment(conn, &item_key, &body.knowledge_id) {
-            Ok(value) => (StatusCode::CREATED, Json(assessment_json(&value))).into_response(),
+            Ok(value) => (StatusCode::CREATED, Json(assessment_json(conn, &value))).into_response(),
             Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
         }
     })
@@ -1057,7 +1058,9 @@ async fn read_assessment(
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
         match learning::assessment_for_item_key(conn, &item_key) {
-            Ok(Some(value)) => (StatusCode::OK, Json(assessment_json(&value))).into_response(),
+            Ok(Some(value)) => {
+                (StatusCode::OK, Json(assessment_json(conn, &value))).into_response()
+            }
             Ok(None) => (StatusCode::NOT_FOUND, "assessment not found").into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
