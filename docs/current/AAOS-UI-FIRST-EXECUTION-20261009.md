@@ -3910,3 +3910,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 结果：`evidence_class=LIVE_CORE_MODEL_RESPONSE_OBSERVED`；3 次真实模型响应（original 5.47s、out-of-scope 21.19s、transfer 20.27s），`usage_status=REPORTED`，回答 authority 仍是 candidate、未写知识。out-of-scope 返回 `{"answerable": false}`、transfer 返回 `{"worker_write_allowed": false, "release_allowed": false}`，均按冻结 rubric 判定 `CORRECT`；original 的 JSON 内容正确但被模型包在 ```json 代码围栏中，冻结 rubric 要求严格 JSON，因此判定 `REVIEW_REQUIRED`，探针停在 correction/retest 之前。
 - 未执行：`human_correction`、`machine_retest`、`transfer_after`、`retest_readback`；**不是完整 J4、不是安装态、不是 Owner 接受**。是否让冻结 rubric 接受代码围栏属于评测口径的产品决定，本轮未擅自修改。
 - 回执：`.project-local/runs/be268a2d33/5671dfe0d10e/artifacts/colearning-real-model/6d1764ce292f43888bf0d551661766b7/receipt.json`；摘要 `.project-local/runs/be268a2d33/backend-qualification-20261103/artifacts/local-model-qualification.json`。
+
+#### 2026-11-03 真实本地模型资格（7B 通过冻结 rubric，27B 超出 120s 预算）与 S01 附录 B
+
+- 同一探针（`scripts/probes/colearning_real_model_smoke.py`，冻结 rubric 未改）、同一 Core 二进制（sha256 `ad3f84a0…`，source head `4fe5b366`）、同一合成材料；仅 LM Studio 本地回环，无外发。
+- `qwen2.5-vl-7b-instruct`：完整走完 导入→转换→知识创建→人工接受→`machine.answer`，三次有界作答全部按冻结 rubric 判定 **CORRECT**（original 0.38s / abstention 0.18s / transfer 0.29s），`evidence_class=LIVE_CORE_MODEL_RESPONSE_OBSERVED`、`quality=NO_FAILURE_OBSERVED`、**exit 0**。回执 `runs/be268a2d33/75696b7a7c91/artifacts/colearning-real-model/981205c84f3e4f11809d1d37fc101d51/receipt.json`。
+- `qwen3.8-27b`：同一路径在 `machine_answer` 处 **119s 模型请求超时（503）**，`evidence_class=LIVE_ATTEMPT_NO_MODEL_EVIDENCE`；说明本机（63.8 GB RAM、RTX 5060）上的 27B 不满足固定 120s 生成预算，是容量/预算事实而非代码缺陷。回执 `runs/be268a2d33/03cc9f96753e/.../receipt.json`。
+- 对照早前 `qwen3.5-4b`（original 被 ```json 代码围栏包裹 → `REVIEW_REQUIRED`）：模型选择直接影响冻结 rubric 判定；**未修改 rubric**，该口径仍待 Owner 决定。
+- S01 提案更新：`workspace/intake/20261103-s01-layout-decision/README.md` 追加**附录 B**（A 组 57 项处置草案：21 项 sanctioned、6 项归档、19 项冻结证据、11 个根级回执；获批后 OUT-OF-LAYOUT 87→30）。仍未改 `storage_report.py`、未移动/删除任何条目。
+- 边界：`machine.answer` 单环真实模型资格（question→candidate answer），**不是完整 J4、不是安装态、不是 Owner 接受**；纠正/复测链只在模型答错时触发，本轮未触发。

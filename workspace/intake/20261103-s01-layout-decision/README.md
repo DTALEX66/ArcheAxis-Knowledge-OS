@@ -159,3 +159,47 @@
 | dp-nf-03-probe | REFERENCED | 1 | 0 | 路径引用 |
 | backups | PROTECTED_OR_GENERIC | 26 | 30.36 | 无强引用 |
 
+
+## 附录 B：A 组处置清单草案（待确认，未改任何文件）
+
+把 57 个 `.project-local` 根条目（A 组 56 + `backups`）按内容抽查与引用强度分为四类。这是**建议**，不是已执行动作；`storage_report.py` 的布局清单没有改动。
+
+### B1 建议登记为 sanctioned（21 项，约 517 MB）
+
+运行、工具、状态与输入根，被脚本/测试/回执路径引用；建议加入布局清单并注明理由，不移动（移动会让执行记录里的路径失效）。
+
+`acceptance`(27.8 MB)、`account-preferences`、`appdata`、`audit-tools`(21.3)、`audits`(5.8)、`backups`(30.4)、`cargo-home-a04`、`ci-replay`(4.8)、`consolidation-ci`、`dist`(10.5)、`dotnet-home`、`inputs`(237.8)、`inspect`、`localappdata`、`obsidian-compat`、`probes`、`proposals`(1.8)、`staging`(74.3)、`state`、`tooling`、`tools`(101.7)。
+
+其中三项建议再单独判断：`dist`（构建产物，可重建）、`staging`（staging 副本）、`backups`（保留价值取决于是否还有消费者）。
+
+### B2 建议归档（6 项，约 12.2 MB）
+
+明确的临时/探测残留，不属于证据：`c`(11.9 MB，内部是 `p-*` pytest 临时目录)、`p`、`probe2`、`test-fixtures`、`tmp-measure`、`tmpuf_amolv`。建议沿用既有做法：移入 `.project-local/archives/s01-scratch-20261103/`，附 MANIFEST（原路径/字节/哈希），不删除字节。
+
+### B3 建议冻结并登记为历史证据（19 项，约 522 MB）
+
+历史候选/审计/实验树，被旧记录引用：`deeptutor-val`(78.8)、`zcode-newcore-20261030`(231.8)、`ui-review-20261026`(70.6)、`m0loop`(60.5)、`node-manifest-guard-cases`(53.9)、`stitch-replica`(10.8)、`ui-audit`(7.6)、`rsb24`(3.5)、`stitch-audit-20261026`(2.0)、`pdf-runtime-fix-20261029`、`dsh-audit`、`dsh-recon-20261001`、`dsh-recon-20261001-bytes`、`installed-native-correction-20261029`、`installed-post-ai-recovery-orchestrator-20261029`、`local-pinned-sandbox-20261029`、`motion-contract-final-cache`、`motion-contract-pytest-cache`、`dp-nf-03-probe`。
+
+建议：原地冻结（不再写入），在布局清单里作为"frozen legacy evidence"单独记录，不混进基础设施。若你要收敛体积，再单独立项做 MANIFEST 归档 + 引用更新。
+
+### B4 建议冻结的根级回执（11 项，约 38 MB）
+
+`AAOS-UI-Preview-20261026-launch.json`、`AAOS-UI-Preview-20261026.cmd`、`archive-local-branch-candidates-20260918.bundle`、`archive-local-only-recovery-20260926.bundle`(35.7)、`build-stage-learning.py`、`closure-27b-matched-20261013.json`、`closure-delivery-blocker-20261026.json`、`minimax-avatar-owner-declined-20261027.json`、`ui-audit-remediation-mapping-final.json`(2.3)、`ui-audit-remediation-v13-grouped-capture-missing-map.json`、`ui-polish-protected-source-seal.json`。
+
+建议：与 B3 同属冻结证据，登记后不再新增同类根文件；后续新回执一律写进 `runs/<identity>/artifacts/`。
+
+### 建议的清单改动形态（尚未应用）
+
+```python
+DEV_ALLOWED = {..., 
+    # 2026-11-03 S01-A: infrastructure roots that tooling, state and recorded receipts
+    # already name; sanctioned instead of relocated so citations stay valid.
+    "acceptance", "account-preferences", "appdata", "audit-tools", "audits", "backups",
+    "cargo-home-a04", "ci-replay", "consolidation-ci", "dist", "dotnet-home", "inputs",
+    "inspect", "localappdata", "obsidian-compat", "probes", "proposals", "staging",
+    "state", "tooling", "tools"}
+# 2026-11-03 S01-A: frozen historical evidence, listed separately from live infrastructure.
+FROZEN_LEGACY = {"deeptutor-val", "zcode-newcore-20261030", ...}
+```
+
+只要 B1–B4 获批，`OUT-OF-LAYOUT` 会从 87 降到 **30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），且不移动任何被引用的证据。
