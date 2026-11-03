@@ -3902,3 +3902,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同：生产 HTTP 合同 R9、第 13 行、第 18 行同步描述。
 - 验证：domain `knowledge_active` **2/2**（新增当前性用例）、`object_reference` **3/3**、`relation_projection` **10/10**、`-p archeaxis-domain --offline` 全量通过；api `card_reference_api` **1/1**、`qualification_api` **4/4**、`contract_ask` **7/7**；`tests/maintenance/test_contract_route_inventory.py` **7/7**；rustfmt clean；`check_document_authority.py` 与 `check_repository_conventions.py --source head` 通过。
 - 边界：本地切片、未推送、无 PR、无精确 SHA CI；前端展示接线按 Owner 指示不在本会话；不改变历史引用、版本身份与既有守卫语义。
+
+#### 2026-11-03 真实本地模型经 Core 与固定 worker 的本地旅程（P1 证据缺口，部分通过）
+
+- 环境：LM Studio 本地回环 `http://127.0.0.1:1234/v1`，模型 `qwen3.5-4b`（`observed_model` 与 `requested_model` 一致），协议 `openai`；Core 为当前源码构建的 debug `archeaxis-api.exe`（sha256 `ad3f84a0…`，29,839,360 B，source head `4fe5b366`）；worker `python-worker-machine-answer 0.1.0`。**仅回环推理，无外发**，材料为合成文本。
+- 方法：运行既有探针 `scripts/probes/colearning_real_model_smoke.py`（冻结 rubric 未改、产品代码未改）：导入→文本转换→知识创建→人工接受→`machine.answer`。
+- 结果：`evidence_class=LIVE_CORE_MODEL_RESPONSE_OBSERVED`；3 次真实模型响应（original 5.47s、out-of-scope 21.19s、transfer 20.27s），`usage_status=REPORTED`，回答 authority 仍是 candidate、未写知识。out-of-scope 返回 `{"answerable": false}`、transfer 返回 `{"worker_write_allowed": false, "release_allowed": false}`，均按冻结 rubric 判定 `CORRECT`；original 的 JSON 内容正确但被模型包在 ```json 代码围栏中，冻结 rubric 要求严格 JSON，因此判定 `REVIEW_REQUIRED`，探针停在 correction/retest 之前。
+- 未执行：`human_correction`、`machine_retest`、`transfer_after`、`retest_readback`；**不是完整 J4、不是安装态、不是 Owner 接受**。是否让冻结 rubric 接受代码围栏属于评测口径的产品决定，本轮未擅自修改。
+- 回执：`.project-local/runs/be268a2d33/5671dfe0d10e/artifacts/colearning-real-model/6d1764ce292f43888bf0d551661766b7/receipt.json`；摘要 `.project-local/runs/be268a2d33/backend-qualification-20261103/artifacts/local-model-qualification.json`。
