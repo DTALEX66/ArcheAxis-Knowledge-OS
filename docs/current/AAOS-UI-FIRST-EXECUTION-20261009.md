@@ -3991,3 +3991,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 授权范围（逐项记录，便于日后核对与纠正）：①推送本分支、开 PR、跑并读取精确 SHA 云 CI、门禁通过后合并（不 force push、不改写历史）；②执行 S01 附录 B/C（21 项基础设施登记 sanctioned、30 项被引用证据列为冻结、6 项 scratch 按 MANIFEST 归档，不删除字节）；③冻结 rubric 保持严格，不为代码围栏放宽；④UNKNOWN 采用"只终结 + 显式触发、绝不自动重启 worker"的方案；⑤先做只读 OpenMAIC 课程包投影，不做服务端课程校验。
 - 仍不可自行动的边界：release 发布 `NOT_GRANTED`；安装态接受仍需独立账户/隔离环境；Green 替换、真实数据覆盖与批量删除仍需单独授权。
 - 边界声明：这是授权与治理记录，不是产品完成或验收；推送后的精确 SHA 门禁、合并与双端读回另行记录。
+
+#### 2026-11-03 PR #255 精确 SHA CI 失败、取消与容量修正
+
+- run `41664786867`（SHA `750c39a8`）：`rust-vnext` 失败——`contract_general_course::generated_course_assessment_and_review_keep_original_versions_after_reopen` 用整体响应相等断言"评估回读不变"，而评估新增 `knowledge_state` 后修订会合法地由 `current` 变 `superseded`。修复 `108fe336`：断言改为固定身份/内容字段，并单独断言 current→superseded 与 `superseded_by`。
+- run `41669144215`（SHA `108fe336`）：`rust-vnext` 通过；`test (3.12)` **8421 passed / 472 skipped / 1 failed**——`tests/test_desktop_learning_review_contract.py::test_core_projection_nests_card_references_under_the_learner_section` 以源码扫描断言 `item_state` 内出现 `"knowledge_id"`/`"active"`，而这两个字段已移入共享 `reference_view` 投影。修复 `71b99f38`：生产者接受 `reference_view(conn` 调用，并断言共享视图含 knowledge_id/active/currentness。
+- run `41672779327`（SHA `71b99f38`）：`gateplan`/`lint`/`rust-vnext` 通过；`test (3.12)` 在 20 分钟处被取消两次（首次 20m16s、rerun 20m23s，pytest 已到 97%），`a0-gates` 因必需门禁被取消而失败。判定为 **test job 的 `timeout-minutes: 20` 容量不足**：同一 8421 项套件在上一 run 用 14m09s，本次慢跑超过 19 分钟。
+- 修正：`.github/workflows/ci.yml` 的 `test` job 超时 20 → 30 分钟并附证据注释；**测试集、断言与通过条件不变**，属容量修正而非放宽门禁。记录分类：源码失败 1 次（已修）、断言对齐 1 次（已修）、行政取消 2 次（容量）。
+- 边界：全部为精确 SHA 运行；未 force push、未改写历史。
