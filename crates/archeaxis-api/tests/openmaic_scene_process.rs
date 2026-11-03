@@ -21,6 +21,26 @@ const ROUTE: &str = "/api/v1/courses/openmaic/scenes";
 const LAUNCH_TOKEN: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const MACHINE_TOKEN: &str = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd";
 
+fn repo() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+fn canonicalize(path: PathBuf) -> PathBuf {
+    path.canonicalize().expect("pinned worker present")
+}
+
+/// Strip the Windows verbatim prefix that `canonicalize` returns.
+fn plain(path: PathBuf) -> PathBuf {
+    #[cfg(windows)]
+    {
+        let text = path.to_string_lossy();
+        if let Some(rest) = text.strip_prefix(r"\\?\") {
+            return PathBuf::from(rest);
+        }
+    }
+    path
+}
+
 fn request(source: &Value) -> Value {
     json!({"schema":"archeaxis.openmaic-scene-build/v1", "request_id":"req_1", "attempt":1,
         "source":{"document_id":source["document_id"],"version":source["version"],"content_sha256":source["content_sha256"]},
@@ -78,7 +98,20 @@ struct Core {
 }
 
 impl Core {
-    fn launch(binary: &Path, workspace: &Path, staging: &Path) -> Self {
+    fn launch(
+        binary: &Path,
+        workspace: &Path,
+        staging: &Path,
+        node: Option<(&Path, &str, &Path)>,
+    ) -> Self {
+        let openmaic_node = match node {
+            Some((executable, sha256, script)) => json!({
+                "executable": executable,
+                "executable_sha256": sha256,
+                "script": script
+            }),
+            None => Value::Null,
+        };
         let launch = json!({
             "launch_token": LAUNCH_TOKEN,
             "session_id": "c".repeat(32),
@@ -91,7 +124,7 @@ impl Core {
                 "staging": staging,
                 "routes": []
             },
-            "openmaic_node_worker": null,
+            "openmaic_node_worker": openmaic_node,
             "document_check_config": null,
             "document_check_config_error": null
         });
@@ -227,7 +260,7 @@ fn a_persisted_openmaic_scene_is_served_by_a_real_process_across_restart() {
     let request = seed(&workspace);
     let body = json!({"create_request_id":"client_1","request":request});
 
-    let core = Core::launch(&binary, &workspace, &staging);
+    let core = Core::launch(&binary, &workspace, &staging, None);
     let (status, denied) = core.call(MACHINE_TOKEN, &body);
     assert_eq!(status, 403, "{denied}");
     assert!(denied["refusal"].is_null());
@@ -237,7 +270,7 @@ fn a_persisted_openmaic_scene_is_served_by_a_real_process_across_restart() {
     assert_candidate(&first);
     core.stop();
 
-    let core = Core::launch(&binary, &workspace, &staging);
+    let core = Core::launch(&binary, &workspace, &staging, None);
     let (status, reopened) = core.call(LAUNCH_TOKEN, &body);
     assert_eq!(status, 200, "{reopened}");
     assert_candidate(&reopened);
@@ -245,4 +278,92 @@ fn a_persisted_openmaic_scene_is_served_by_a_real_process_across_restart() {
     core.stop();
 
     assert!(workspace.is_file());
+}
+
+fn slide_request(source: &Value, create_request_id: &str, scene_id: &str) -> Value {
+    json!({"create_request_id": create_request_id, "request": {
+        "schema":"archeaxis.openmaic-scene-build/v1", "request_id": format!("req_{scene_id}"),
+        "attempt":1,
+        "source":{"document_id":source["document_id"],"version":source["version"],
+            "content_sha256":source["content_sha256"]},
+        "stage_id":"stage_1","scene_id":scene_id,
+        "outline":{"id":format!("outline_{scene_id}"),"type":"slide",
+            "title":"Synthetic title","description":"","keyPoints":[],"order":0},
+        "content":{"elements":[{"id":"text1","type":"text","content":"<p>synthetic</p>"}],
+            "background":{"type":"solid","color":"#ffffff"}},
+        "actions":[]}})
+}
+
+/// Only the source document is seeded; the Node worker must create the scenes.
+fn seed_source(workspace: &Path) -> Value {
+    let mut conn = init_workspace(workspace.to_str().unwrap()).unwrap();
+    document::create_optional(
+        &mut conn,
+        None,
+        None,
+        "synthetic material",
+        json!({"type":"doc","content":[]}),
+    )
+    .unwrap()
+}
+
+/// The real process must build two independent scenes through the pinned Node
+/// worker, and a restart without Node must read both persisted candidates back.
+#[test]
+fn two_scenes_build_with_node_and_reopen_without_it() {
+    let node = match std::env::var_os("ARCHEAXIS_TEST_NODE") {
+        Some(value) => PathBuf::from(value),
+        None => {
+            eprintln!("skipping: ARCHEAXIS_TEST_NODE not set; this skip is not evidence");
+            return;
+        }
+    };
+    let sha = match std::env::var("ARCHEAXIS_TEST_NODE_SHA256") {
+        Ok(value) => value,
+        Err(_) => {
+            eprintln!("skipping: ARCHEAXIS_TEST_NODE_SHA256 not set; this skip is not evidence");
+            return;
+        }
+    };
+    // The launch profile refuses paths carrying parent components, so resolve the
+    // repository-relative script before handing it to Core.
+    // canonicalize() yields a verbatim `\\?\D:\...` path on Windows, which the
+    // launch profile refuses; hand Core the plain absolute form instead.
+    let script = plain(canonicalize(
+        repo().join("services/learning-providers/openmaic/scene-build-worker.mjs"),
+    ));
+    assert!(script.is_file(), "pinned worker missing: {script:?}");
+    let binary = PathBuf::from(env!("CARGO_BIN_EXE_archeaxis-api"));
+    assert!(binary.is_file(), "built Core binary missing: {binary:?}");
+    let dir = tempfile::tempdir().unwrap();
+    let workspace = dir.path().join("workspace.sqlite");
+    let staging = dir.path().join("staging");
+    std::fs::create_dir_all(&staging).unwrap();
+    let source = seed_source(&workspace);
+    let first_body = slide_request(&source, "node_a", "scene_a");
+    let second_body = slide_request(&source, "node_b", "scene_b");
+
+    let core = Core::launch(&binary, &workspace, &staging, Some((&node, &sha, &script)));
+    let (status, first) = core.call(LAUNCH_TOKEN, &first_body);
+    assert_eq!(status, 200, "{first}");
+    assert_eq!(first["worker_invoked"], true, "{first}");
+    let (status, second) = core.call(LAUNCH_TOKEN, &second_body);
+    assert_eq!(status, 200, "{second}");
+    assert_eq!(second["worker_invoked"], true, "{second}");
+    assert_ne!(
+        first["document"]["document_id"], second["document"]["document_id"],
+        "two scenes must persist as independent documents"
+    );
+    core.stop();
+
+    let core = Core::launch(&binary, &workspace, &staging, None);
+    let (status, first_again) = core.call(LAUNCH_TOKEN, &first_body);
+    assert_eq!(status, 200, "{first_again}");
+    assert_eq!(first_again["worker_invoked"], false, "{first_again}");
+    assert_eq!(first_again["document"], first["document"]);
+    let (status, second_again) = core.call(LAUNCH_TOKEN, &second_body);
+    assert_eq!(status, 200, "{second_again}");
+    assert_eq!(second_again["worker_invoked"], false, "{second_again}");
+    assert_eq!(second_again["document"], second["document"]);
+    core.stop();
 }
