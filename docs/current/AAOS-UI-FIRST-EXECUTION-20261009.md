@@ -3811,3 +3811,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 下一步已明确：经`scripts/runtime/dev.py`在规范分配的run目录中staging，并使用CI下载的固定WebView2分发；随后重打包、解包并从干净payload跑跟踪旅程。
 - 清理：删除空的失败staging输出目录并退役本次重建的release cargo依赖（可再生产物）；`.project-local`约24.57 GiB；增长复核`NO_NEW_GROWTH_TRIGGER`（delta 1,622,731,021 B≈1.51 GiB<2GiB；OUT-OF-LAYOUT 87；deletion_authorized=false）。
 - 回执：`staging-blockers-receipt.json`与`cleanup-receipt-round16.json`（runs/be268a2d33/installed-staging-blockers-20261103/artifacts）。边界：未产出staging、未安装任何东西；这是工具链阻断记录，不是运行时失败或安装态接受。
+
+#### 2026-11-03 干净当前运行时payload上的完整旅程（不安装、不替换core）
+
+- 先退役过期c453 staged root（1.26 GiB，记录manifest/core哈希）与可再生的debug编译产物，腾出增长空间；随后按治理要求把**当前运行时**stage进规范分配的run artifacts（run `stagecur4-20261103`，19,501文件，manifest sha256 `58c456e8…`）。
+- 构建Tauri宿主时把`.project-local/rt`临时恢复为指向该staged运行时的目录junction，使签入的tauri.conf资源解析到当前运行时；用本地NSIS缓存打包出未签名安装器 **192,212,874 B**（sha256 `1c1ada33…d24`，比旧包小因不含固定WebView2，安装模式skip）。
+- 7z**只解包**（不安装），**未做任何core替换**：payload内`core/archeaxis-api.exe` 20,529,664 B sha256 `e7241f1f…`（当前release构建）、`runtime/python.exe` 91,648 B sha256 `08178617…`、`workers/deeptutor/practice_host_worker.py` sha256 `af186a32…`（固定值）。
+- 跟踪命令新增`--worker-root`选项（默认仓库布局不变；启动前校验transport与deeptutor两个worker脚本），以 `--core-exe <payload>/core/... --python <payload>/runtime/python.exe --worker-root <payload>/workers` 运行：**22步全部通过、exit 0、无残留进程**——守卫、材料、真实私有出题（用payload自带worker）、双grant、activity/attempt、正式评分（固定upstream摘要）、COMPLETED处置、duplicate、启动时终结UNKNOWN、live backup、跨重启列表、restore preview、维护模式恢复与恢复后读回。
+- 回执：`clean-install-receipt.json`与`journey-receipt.json`（runs/be268a2d33/installed-clean-journey-20261103/artifacts）。
+- 清理：记录哈希后退役解包payload、安装器、staged/donor runtime、临时rt junction与release可再生产物；`.project-local`约**22.40 GiB**，增长复核`NO_NEW_GROWTH_TRIGGER`且delta为负（-700,984,990 B），OUT-OF-LAYOUT 87，deletion_authorized=false。
+- 边界：这是本地构建未签名安装器的**干净解包payload**旅程（当前运行时、未替换core），但**未安装**（无注册表写入、未于Owner账户安装），不是CI候选身份、不是Green、不是Owner接受。
