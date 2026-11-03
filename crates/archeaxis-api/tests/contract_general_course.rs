@@ -804,9 +804,27 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
         .0,
         409
     );
+    let (status, stale_assessment) = call(&app, "GET", &assessment_path, json!({}), "human").await;
+    assert_eq!(status, 200);
+    // The assessment keeps the revision it bound; only the separated use view changes,
+    // so a superseded binding becomes visible instead of the readback staying identical.
     assert_eq!(
-        call(&app, "GET", &assessment_path, json!({}), "human").await,
-        (200, assessment.clone())
+        stale_assessment["assessment_id"],
+        assessment["assessment_id"]
+    );
+    assert_eq!(stale_assessment["knowledge_id"], assessment["knowledge_id"]);
+    assert_eq!(
+        stale_assessment["knowledge_version"],
+        assessment["knowledge_version"]
+    );
+    assert_eq!(stale_assessment["content"], assessment["content"]);
+    assert_eq!(
+        stale_assessment["knowledge_state"]["currentness"],
+        "superseded"
+    );
+    assert_eq!(
+        stale_assessment["knowledge_state"]["superseded_by"],
+        json!(new_id)
     );
     let (status, revised_history) = call(&app, "GET", &history_path, json!({}), "human").await;
     assert_eq!(status, 200);
@@ -826,10 +844,11 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
         call(&app, "GET", &course_path, json!({}), "human").await,
         (200, stale)
     );
-    assert_eq!(
-        call(&app, "GET", &assessment_path, json!({}), "human").await,
-        (200, assessment)
-    );
+    // Reopening must not rewrite the binding; the same post-revision view is read back.
+    let (status, reopened_assessment) =
+        call(&app, "GET", &assessment_path, json!({}), "human").await;
+    assert_eq!(status, 200);
+    assert_eq!(reopened_assessment, stale_assessment);
     assert_eq!(
         call(&app, "GET", &history_path, json!({}), "human").await,
         (200, revised_history)
