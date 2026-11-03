@@ -124,4 +124,9 @@ def test_the_s01_allowlist_is_declared_classified_and_does_not_cover_scratch():
     assert report["s01_allowlist"]["infrastructure"] == sorted(module.S01A_INFRA)
     assert report["s01_allowlist"]["frozen_legacy"] == sorted(module.S01A_FROZEN)
     classes = {entry["name"].rstrip("/"): entry["layout_class"] for entry in report["dev_root"]}
-    assert classes.get("inputs") == "sanctioned_infrastructure", classes.get("inputs")
+    if (REPO / ".project-local").is_dir():
+        assert classes.get("inputs") == "sanctioned_infrastructure", classes.get("inputs")
+    else:
+        # A clean checkout carries no `.project-local` tree; the allow list is still
+        # declared and must not invent an entry to satisfy this test.
+        assert classes == {}, classes
