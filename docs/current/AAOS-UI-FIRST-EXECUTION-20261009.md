@@ -3926,3 +3926,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同第 21 行同步描述。
 - 验证：`cargo test -p archeaxis-api --test qualification_api` **4/4**（新增 accepted→current、deprecated→not_current、modified→superseded 且 `superseded_by` 指向后继的断言）；`tests/maintenance/test_contract_route_inventory.py` **7/7**；rustfmt clean；`check_document_authority.py` 通过。
 - 边界：本地切片、未推送、无 PR、无精确 SHA CI；前端展示接线按 Owner 指示不在本会话；不改变检索排序、`active_only` 过滤与既有响应字段。
+
+#### 2026-11-03 AI 资产 packet 补充"来源当前性"（第四条消费者，本地切片）
+
+- `ai_asset::packet_items` 的每个资产项新增 `reference_states`：知识引用报告 `readable`/`status`/`currentness`/`active`/`superseded_by`/`successor_count`/`valid_to`（缺失或读失败为 `unavailable`），文档/来源引用标记 `currentness: not_applicable`（版本固定，不存在"当前"语义）。**资产被采用不证明其引用的知识仍是当前依据**，后继不被替换、历史引用不被改写。
+- 合同第 113 行（`POST /api/v1/ai/context-packets`）同步描述。
+- 验证：domain `ai_assets` **10/10**（新增用例：provenance 知识 `current` → 被 modified 后继替代后 `superseded`，资产版本不变）；api `machine_asset_context_api` **5/5**、`ai_assets_api` **3/3**、`context_grant_api` **7/7**；`-p archeaxis-domain --offline` 全量通过；rustfmt clean；文档门禁通过。
+- 边界：本地切片、未推送；只新增字段，不改既有字段、授权与 packet 缓存语义；前端展示接线不在本会话。
