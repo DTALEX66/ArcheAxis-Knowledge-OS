@@ -320,7 +320,7 @@ The confirmed plan includes `retrieval_scope` (`public_search_results_only`, GET
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
-| 21 | `GET /api/v1/search?q=&active_only=` | any token | Lexical **FTS5 only**. Returns `count`, `items[]`, `transforms[]`. `count=0` is a successful empty result. This route itself uses no vector or reranker; the graded route is R15. |
+| 21 | `GET /api/v1/search?q=&active_only=` | any token | Lexical **FTS5 only**. Returns `count`, `items[]`, `transforms[]`. `count=0` is a successful empty result. Each item carries `knowledge_id`, the persisted `status`, a 60-character `head`, and the separated use view `active`, `currentness` (`current`/`superseded`/`not_current`/`unavailable`), `superseded_by`, `successor_count` and `valid_to`: a hit is not automatically a current basis. `active_only=true` filters on `active`. This route itself uses no vector or reranker; the graded route is R15. |
 | R15 | `POST /api/v1/search/semantic` | any token | Body `{q}` only. Bounded query-time ranking over **accepted** canonical knowledge: no persisted index, at most 128 candidates, 90 s ceiling. Returns `schema: archeaxis.semantic-search/v1` with `status` (`AVAILABLE`/`EMPTY`/`PARTIAL`), `complete`, `candidate_count`, `candidates[]` and per-leg `embedding`/`reranker` completeness. `EMPTY` with `candidate_count=0` is the correct answer when nothing is accepted yet, not an error; `index_persisted` is always `false`, so this is not a full vector index. |
 
 ### Human learning

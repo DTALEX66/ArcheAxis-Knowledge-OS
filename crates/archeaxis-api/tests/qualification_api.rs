@@ -188,6 +188,47 @@ async fn search_results_carry_active_qualification() {
     let inactive = items.iter().filter(|it| it["active"] == false).count();
     assert_eq!(active, 1);
     assert_eq!(inactive, 1);
+    // A search hit is not automatically a current basis: the separated view is
+    // reported per item instead of only the boolean.
+    let current = items
+        .iter()
+        .find(|it| it["knowledge_id"] == a.as_str())
+        .expect("accepted item");
+    assert_eq!(current["currentness"], "current");
+    assert_eq!(current["status"], "accepted");
+    assert_eq!(current["superseded_by"], Value::Null);
+    let historical = items
+        .iter()
+        .find(|it| it["knowledge_id"] == b.as_str())
+        .expect("deprecated item");
+    assert_eq!(historical["currentness"], "not_current");
+    assert_eq!(historical["status"], "deprecated");
+    assert_eq!(historical["active"], false);
+
+    // A superseded row stays in the results and names the successor rather than
+    // being silently dropped or rewritten.
+    let c = post_knowledge(&router, "gamma superseded marker zxq1", "candidate").await;
+    let reviewed = review_body(
+        &router,
+        &c,
+        r#"{"action":"modified","reviewer":"owner","note":"fix","new_body":"gamma v2"}"#,
+    )
+    .await;
+    let successor = reviewed["knowledge_id"]
+        .as_str()
+        .expect("successor")
+        .to_string();
+    let v = get_search(&router, "zxq1").await;
+    let superseded = v["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|it| it["knowledge_id"] == c.as_str())
+        .expect("superseded item stays searchable")
+        .clone();
+    assert_eq!(superseded["currentness"], "superseded");
+    assert_eq!(superseded["superseded_by"], Value::String(successor));
+    assert_eq!(superseded["active"], false);
 }
 
 #[tokio::test]

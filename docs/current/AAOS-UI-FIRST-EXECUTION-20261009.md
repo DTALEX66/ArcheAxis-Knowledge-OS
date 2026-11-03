@@ -3919,3 +3919,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 对照早前 `qwen3.5-4b`（original 被 ```json 代码围栏包裹 → `REVIEW_REQUIRED`）：模型选择直接影响冻结 rubric 判定；**未修改 rubric**，该口径仍待 Owner 决定。
 - S01 提案更新：`workspace/intake/20261103-s01-layout-decision/README.md` 追加**附录 B**（A 组 57 项处置草案：21 项 sanctioned、6 项归档、19 项冻结证据、11 个根级回执；获批后 OUT-OF-LAYOUT 87→30）。仍未改 `storage_report.py`、未移动/删除任何条目。
 - 边界：`machine.answer` 单环真实模型资格（question→candidate answer），**不是完整 J4、不是安装态、不是 Owner 接受**；纠正/复测链只在模型答错时触发，本轮未触发。
+
+#### 2026-11-03 关键词搜索结果接通"当前性"（R08/R09 消费者补全，本地切片）
+
+- `GET /api/v1/search?q=&active_only=` 的 `items[]` 不再只给 `active`，改为与资格路由同一组字段：`status`、`active`、`currentness`、`superseded_by`、`successor_count`、`valid_to`；一次命中不再隐含"仍是当前依据"，被替换版本仍可检索并指回后继。`active_only` 语义不变（仍按 `active` 过滤）。
+- 合同第 21 行同步描述。
+- 验证：`cargo test -p archeaxis-api --test qualification_api` **4/4**（新增 accepted→current、deprecated→not_current、modified→superseded 且 `superseded_by` 指向后继的断言）；`tests/maintenance/test_contract_route_inventory.py` **7/7**；rustfmt clean；`check_document_authority.py` 通过。
+- 边界：本地切片、未推送、无 PR、无精确 SHA CI；前端展示接线按 Owner 指示不在本会话；不改变检索排序、`active_only` 过滤与既有响应字段。

@@ -2641,49 +2641,63 @@ async fn search_knowledge(
     Query(query): Query<SearchQuery>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-    match search::search(conn, &query.q, 20) {
-        Ok(rows) => {
-            let mut items: Vec<serde_json::Value> = rows
-                .into_iter()
-                .map(|(id, status, head)| {
-                    let active = knowledge::is_knowledge_active(conn, &id).unwrap_or(false);
-                    serde_json::json!({"knowledge_id": id, "status": status, "head": head, "active": active})
-                })
-                .collect();
-            if query.active_only {
-                items.retain(|item| item["active"] == true);
-            }
-            // R08: extracted text is retrievable too, attributed to the original
-            // file and the engine that produced it - without claiming the text is
-            // knowledge (see domain::search::search_transforms).
-            let transforms: Vec<serde_json::Value> = match search::search_transforms(conn, &query.q, 20) {
-                Ok(rows) => rows
+        match search::search(conn, &query.q, 20) {
+            Ok(rows) => {
+                let mut items: Vec<serde_json::Value> = rows
                     .into_iter()
-                    .map(|(transform_id, source_id, engine, head)| {
-                        serde_json::json!({
-                            "transform_id": transform_id,
-                            "source_id": source_id,
-                            "engine": engine,
-                            "head": head,
-                        })
+                    .map(|(id, status, head)| {
+                        // R09: a search hit is not automatically a current basis. Report the
+                        // separated currentness view next to the excerpt and the persisted status.
+                        let mut item = reference_view(conn, &id);
+                        if let Some(fields) = item.as_object_mut() {
+                            fields.insert("status".into(), serde_json::json!(status));
+                            fields.insert("head".into(), serde_json::json!(head));
+                        }
+                        item
                     })
-                    .collect(),
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-            };
-            let documents=match archeaxis_domain::document::search(conn,&query.q){Ok(rows)=>rows,Err(e)=>return documents::failure(e)};
-            Json(serde_json::json!({
-                "count": items.len(),
-                "items": items,
-                "document_count": documents.len(),
-                "documents": documents,
-                "transform_count": transforms.len(),
-                "transforms": transforms,
-            }))
-            .into_response()
+                    .collect();
+                if query.active_only {
+                    items.retain(|item| item["active"] == true);
+                }
+                // R08: extracted text is retrievable too, attributed to the original
+                // file and the engine that produced it - without claiming the text is
+                // knowledge (see domain::search::search_transforms).
+                let transforms: Vec<serde_json::Value> =
+                    match search::search_transforms(conn, &query.q, 20) {
+                        Ok(rows) => rows
+                            .into_iter()
+                            .map(|(transform_id, source_id, engine, head)| {
+                                serde_json::json!({
+                                    "transform_id": transform_id,
+                                    "source_id": source_id,
+                                    "engine": engine,
+                                    "head": head,
+                                })
+                            })
+                            .collect(),
+                        Err(e) => {
+                            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+                                .into_response();
+                        }
+                    };
+                let documents = match archeaxis_domain::document::search(conn, &query.q) {
+                    Ok(rows) => rows,
+                    Err(e) => return documents::failure(e),
+                };
+                Json(serde_json::json!({
+                    "count": items.len(),
+                    "items": items,
+                    "document_count": documents.len(),
+                    "documents": documents,
+                    "transform_count": transforms.len(),
+                    "transforms": transforms,
+                }))
+                .into_response()
+            }
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-    }).await
+    })
+    .await
 }
 
 /// R08: quality facts for one job - engine, coverage, loss and region counts.
