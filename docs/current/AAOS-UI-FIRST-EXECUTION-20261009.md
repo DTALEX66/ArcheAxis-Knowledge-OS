@@ -3948,3 +3948,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 全仓编译核对：`cargo check --workspace --all-targets --offline` 通过（仅既有告警）。
 - 验证：`check_document_authority.py` 通过；未改产品代码、未移动或删除任何条目、未改布局清单。
 - 边界：决策与提案材料，不是实现或验收；所有选项等 Owner 指示后才执行。
+
+#### 2026-11-03 一次修订的跨消费者一致性回归测试（审计切片 B 的验收用例）
+
+- 新增 `crates/archeaxis-domain/tests/currentness_cross_consumer.rs`：同一条知识先被关系文档、学习卡片、AI 资产（provenance）、课程绑定同时引用；断言修订前所有投影都报 `current`；经一次 `modified` 复核产生后继后，**同一时间点**所有投影都报 `superseded` 且 `superseded_by` 指向同一后继，历史 `knowledge_id` 与关系/课程/资产里的引用身份均未被改写。
+- 覆盖：`object_reference::resolve`（资格路由与关系节点共用）、`relation_projection::query`、`learning::references_for_card`、`ai_asset::packet_items`、`course::read_candidate`。
+- 验证：该用例 **1/1** 通过；`-p archeaxis-domain --offline` 全量通过；rustfmt clean。
+- 边界：这是领域投影层的一致性回归，不是 HTTP 端到端、不是前端展示、不是安装态或 Owner 接受。
