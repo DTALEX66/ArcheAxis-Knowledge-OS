@@ -3780,3 +3780,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 从当前源码HEAD `cfd97613`构建**release**版`archeaxis-api`（20,529,664 B），并用跟踪的`scripts/ci/real_core_grading_journey.py --core-exe <release二进制>`运行全部22步：version、生产actor守卫（machine 403/缺失404/超限413）、材料、真实私有出题、双grant、activity/attempt、正式评分（固定upstream摘要）、只读处置COMPLETED、重启持久、duplicate重放、遗留DISPATCHED启动终结为UNKNOWN、live backup、跨重启备份列表、restore preview、维护模式恢复到独立数据库、恢复后新Core读回材料。
 - 命令**exit 0**、无残留进程；回执`.project-local/runs/be268a2d33/real-core-journey-release-20261103/artifacts/journey-receipt.json`；release二进制保留以便复跑。
 - 边界：release-profile开发二进制+合成材料，仍不是安装包、不是Tauri宿主、无模型/网络、不是真实用户数据或Owner接受；但这比debug二进制更接近生产运行时。构建产生的release依赖（0.33 GiB）保留为当前活动release缓存。
+
+#### 2026-11-03 本地构建未签名NSIS安装器（运行时快照过期，未作安装态证据）
+
+- 成功在本地构建Tauri宿主：`cargo tauri build --no-bundle`（禁用`beforeBuildCommand`，复用已有`frontendDist`）产`.project-local/build/cargo/release/ArcheAxis.exe`（47,639,552 B），耗时1m12s。
+- 成功用**本地NSIS工具缓存**打包：`cargo tauri bundle -b nsis --no-sign --no-binary-patching` + `bundle.useLocalToolsDir=true`，产`.project-local/build/cargo/release/bundle/nsis/ArcheAxis Knowledge_0.6.14_x64-setup.exe`（421,762,554 B）。首次未指定本地工具目录时尝试联网下载NSIS并超时。
+- 用7z**只解包、不安装**（无注册表写入）核对了安装布局：`ArcheAxis.exe`、`core/archeaxis-api.exe`（19,147,776 B）、`runtime/`（python+webview2）、`shared/`、`workers/`、`worker-profile.json`，符合预期安装形态。
+- **阻断性发现**：`backend-runtime-manifest.json`记录的`source_commit=c4531c1b…`与c453-era core构建回执表明本次安装器打包的是**较早的staged运行时**，不是当前HEAD；因此**不能作为安装态旅程证据**。下一步须用`scripts/release/stage_backend_runtime.py`重新stage当前Core/worker后重新打包，再解包运行已跟踪旅程命令（仍不在Owner账户安装）。
+- 清理：删除可再解包的提取payload（1.31 GiB/19,751文件）与临时批处理/配置；退役release可再生产物1.74 GiB；随后在核对与记录哈希后，把未签名安装器（421,762,554 B，sha256 `5222b1a2…afe`）、宿主`ArcheAxis.exe`与release core二进制作为可再生产物一并退役，并最后退役staged runtime副本（1.24 GiB/19,691文件）。构建命令、二进制/安装器哈希在`installer-assembly-receipt.json`。`.project-local`约**24.48 GiB**。
+- 增长复核（同一固定checkpoint，只读）：退役后回到`NO_NEW_GROWTH_TRIGGER`，`delta_readable_bytes=1,527,585,077`（约1.42 GiB，低于2 GiB线）；`OUT-OF-LAYOUT` 87；`measurement_status=PARTIAL`；`runs/`仍超预算；`deletion_authorized=false`；checkpoint未滚动。
+- 边界：未签名本地构建安装器+过期运行时快照；未安装、无CI身份、未替换Green、不是Owner接受。
