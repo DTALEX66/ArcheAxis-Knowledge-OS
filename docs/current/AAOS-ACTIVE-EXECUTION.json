@@ -158,7 +158,14 @@
         "POST /api/v1/learning/deeptutor/practice-grade/reconcile is the human-only explicit trigger and reports this call's abandoned/recent/skipped counts"
       ],
       "unchanged": "UNKNOWN stays terminal; the same client event is refused before admission and never relaunched; no new persistence, background retry loop or second business database",
-      "evidence": "Local only: domain provider_grade_chain 12/12, domain lib 88/88, new crates/archeaxis-api/tests/grade_dispatch_reconcile.rs 3/3, deeptutor_grade_contract 5/5, provider_learning_api 2/2, contract_absent_surfaces 8/8, session_shutdown_process 2/2, contract route inventory 7/7, document authority and repository convention gates pass, rustfmt clean. Not pushed, no exact-SHA CI, no installed-runtime or Owner acceptance.",
+      "delivery": {
+        "pull_request": 258,
+        "head_sha": "a0b4edf6",
+        "merge_commit": "e9f4b08fd272035d29ee591e6bec2f4c48ac22b3",
+        "exact_sha_run": 41743204591,
+        "required_gates": "gateplan, lint, rust-vnext and a0-gates passed on the merged SHA; the first exact-SHA lint run failed on the contract route-count drift the number-consistency test guards, and the fix only brought the stated 149/56/53 figures in line with the 150/57/54 source counts"
+      },
+      "evidence": "Local only: domain provider_grade_chain 12/12, domain lib 88/88, new crates/archeaxis-api/tests/grade_dispatch_reconcile.rs 3/3, deeptutor_grade_contract 5/5, provider_learning_api 2/2, contract_absent_surfaces 8/8, session_shutdown_process 2/2, contract route inventory and number consistency 15/15, document authority and repository convention gates pass, rustfmt clean. Exact-SHA CI is recorded under delivery; no installed-runtime or Owner acceptance.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "state": "RUNNING_BY_OWNER",
