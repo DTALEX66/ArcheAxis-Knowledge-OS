@@ -4208,3 +4208,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 中文 OCR（run `238c39f40b46`，回执 `.../238c39f40b46/artifacts/common-chinese-ocr.json`）：`ok: true`、`qualification: INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART`；png/jpeg/pdf 各自选中中文短语、`restart_equal: true`；使用声明的外置 tesseract（`10-toolchains\scoop\apps\tesseract\current`）与 `tesseract-languages`（`chi_sim.traineddata`），生成器记录 `ocr_languages_qualified: ["chi_sim"]` 且 `recognition_accuracy: UNMEASURED`。
 - 过程事实：中文 OCR 首次运行时 Core 在 anchor 请求处报 `WinError 10055`（系统 socket 缓冲/队列耗尽），冷却后同一候选重跑通过；该失败保留，不作为通过。
 - 边界：选中短语验证而非整页准确率；未做 ASR/媒体转写；非安装态、非 Owner 接受。
+
+#### 2026-11-04 媒体语音/ASR 在 staged 运行时（真实 faster-whisper 模型）
+
+- 候选 `.project-local/rt/staged-20261104d`：在 c 候选基础上把 faster-whisper 的依赖闭包以独立副本加入 runtime（faster-whisper 1.2.1、ctranslate2 4.8.1、onnxruntime 1.20.1、av、tokenizers、huggingface-hub、numpy、sympy、protobuf、httpx 等），manifest `a68b5bb9…`（7,583 文件、1,569,411 B），Core `b3624aa9…`、runtime python `08178617…`；候选 runtime 实测可 `import faster_whisper, ctranslate2, onnxruntime, av`。
+- 模型使用项目声明的共享资源 `D:\All projects\Model library\whisper\faster-whisper-large-v3-turbo`（1.6 GB，外部引用、不打包），未下载任何模型。
+- 回执 `.project-local/runs/be268a2d33/90f135494810/artifacts/common-speech.json`：`ok: true`、`qualification: INTEGRATED_SELECTED_PHRASE_AUDIO_CONTENT_TIME_REPARSE_RESTART`、`execution: ACTUAL_CANDIDATE_CORE_ASR`；wav/mp3/mp4 三种输入各自 import→转写 job→独立重解析→重启读回相等（`restart_equal: true`），transcript 135 字符，选中短语由探针内断言校验。
+- **打包发现**：仅凭 staged 运行时（无 faster-whisper 依赖闭包）时媒体转写不可用；本轮把依赖闭包纳入 staging 后恢复。模型仍作为外部声明资源，未打包进候选。
+- 边界：只验证显式选中的归一化短语，完整转写与识别准确率 `UNMEASURED`；MP4 仅音频内容，未做视觉推理；非安装态、非 Owner 接受。
