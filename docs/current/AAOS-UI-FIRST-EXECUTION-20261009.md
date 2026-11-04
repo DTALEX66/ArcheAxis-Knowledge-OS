@@ -4124,3 +4124,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - `timeout`/`cancel`/`crash` 三个注入用例：终态正确（`failed`/`cancelled`/`failed`，错误分别为 deadline exceeded、owner cancelled、closed stdout），`no_outputs_published: true`，Core 已停止；但探针要求的"故障 worker 的直接父进程 == 本次 Core PID"断言失败（标记文件记录的 `parent_pid` 与 receipt 的 `core_pid` 不同），因此这三例记为 **未通过**而非通过。
 - 原因未定位：可能是本机手工候选（无 staged runtime/launcher 布局）造成的进程父子关系差异，也可能是探针期望与当前启动方式不一致；需要 staged 候选或单独排查，不能据此判定产品缺陷或通过。
 - 边界：手工候选、本机运行，不是安装态或 Owner 接受。
+
+#### 2026-11-04 CL-02 交换/导出真实链（markdown 与 obsidian）
+
+- 回执 `.project-local/task-runtime/aaos01-exchange/1188db918bfb4209968b4c83b5076fcf/receipt.json`：`ok: true`，`scope: RUST_API_EXPORT_AND_FILE_READBACK`。
+- `markdown` 与 `obsidian` 两种导出各自写出 `document.md` + `manifest.json`，逐文件哈希与投影指纹记录，`restart_equal: true`；`cas_original_equal: true`；不安全 profile 引用被拒绝（`unsafe_profile_refused: true`）。
+- 损失如实记录在 manifest：Markdown 是文本投影、结构化/未知节点在 manifest 保全、无外部导航处理器、未知编辑器节点 `UNSUPPORTED_EDITOR_NODE`（`metadata_status: PARTIAL`）。
+- **外部 Obsidian 应用未启动**（`external_application: NOT_EXECUTED`），因此这不是 J3 外部往返或 J1 安装态验收。
