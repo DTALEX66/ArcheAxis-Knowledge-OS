@@ -4195,3 +4195,8 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 安装态旅程：以**安装后的** core/runtime/workers 运行 `scripts/ci/real_core_grading_journey.py`（`--worker-root <install>/workers`），22 步全部通过：版本、材料导入、出题、双 grant、作答、正式评分、只读处置、重启读回、启动终结遗留 DISPATCHED、live backup `verified`、备份列表跨重启不变、restore preview `verified`、`--maintenance-restore` 到独立数据库并由新 Core 读回材料（`content_sha256 d2201218…`）。回执 `.project-local/install-acceptance-20261104/journey-receipt.json`。
 - 卸载：`uninstall.exe /S` exit 0，安装目录已删除，`HKCU` Uninstall 下无 ArcheAxis 条目残留；工作区与回执保留在 ignored 目录供复核。
 - 边界：**未运行 Tauri/WebView2 UI 的 WebDriver 旅程**（安装后仅启动 Core 业务流程）；旅程脚本内固定 boundary 文本仍写“Not an installed package”，本记录按实际安装路径与安装后二进制身份更正；仍非 Owner 每日使用/接受、非真实用户数据、非发布。安装器未签名。
+
+#### 2026-11-04 DBpedia 回退与安装记录合并（PR #277）
+
+- 分支 head `a9965976`（四提交：`0087f69f` 实现、`09321543` 三通道/J1 记录、`fd25ece6` 格式化、`a9965976` 隔离安装记录）以 merge commit `2a2ca0c4` 合并；精确 SHA CI（run `41812395630`）required gates 全部 success：`gateplan`（19s）、`lint`（59s）、`workers-vnext`（1m13s）、`rust-vnext`（13m28s）、`a0-gates`（3s），其余按路径跳过。首次 run 因新增 Rust 测试未过 `cargo fmt --check` 失败（`rust-vnext`），已本地 `cargo fmt --all` 后以新 SHA 重跑通过；原失败保留不覆盖。
+- 本地与 `origin/main` 一致于 `2a2ca0c4`；本地与远端分支均已删除。安装器、安装工作区与回执仍在 ignored `.project-local`；安装未签名，仍非 Owner 接受。
