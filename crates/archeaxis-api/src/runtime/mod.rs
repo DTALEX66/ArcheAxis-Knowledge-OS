@@ -474,6 +474,12 @@ pub fn router(executor: Executor) -> Router {
             post(deeptutor_import::grade_practice)
                 .layer(axum::extract::DefaultBodyLimit::max(32_768)),
         )
+        // Explicit operator trigger for the same terminal-only sweep the Core runs
+        // periodically: it finalizes dead dispatches but never relaunches a worker.
+        .route(
+            "/api/v1/learning/deeptutor/practice-grade/reconcile",
+            post(deeptutor_import::reconcile_grade_dispatches),
+        )
         .route(
             "/api/v1/courses/openmaic/scenes",
             post(courses::create_openmaic_scene)

@@ -4016,3 +4016,14 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - S01 实际结果：`OUT-OF-LAYOUT` **87 → 30**（29 个 `runs/` 形状 + 1 个 ACL 不可读），`dev_strays` **0**；7 个 scratch/探针条目（**483 文件 / 12,825,600 字节**）按字节保全移入本地忽略区 `.project-local/archives/s01-scratch-20261103/` 并带 MANIFEST，**未删除任何字节**。
 - 双端读回：`origin/main` = `eff8b354`；本地 `main` 已 fast-forward 同步。
 - 边界：CI 精确 SHA 结果不等于安装态 Owner 接受或产品闭环完成；`installer-lifecycle` 的通过是 CI runner 安装态旅程。
+
+#### 2026-11-04 P0：评分 claim 的周期只终结与显式人工触发（本地切片）
+
+- 授权依据：活动指针 `execution_control.owner_full_authorization_20261103.authorized` 第 4 条（"只终结 + 显式触发、绝不自动重启 worker"）。
+- 单一规则：`grade::finalize_abandoned_dispatches(conn, grace)`（原 `abandon_dispatched_after_restart` 更名，语义不变）把 `DISPATCHED` 且已记录派发秒数超过 `grace` 的 claim 终态化为 `UNKNOWN`；窗口内、无派发秒数、身份或索引损坏的 claim 一律不动；从不启动、重发或重试 worker。窗口常量 `grade::DISPATCH_STALE_GRACE` = 150s（覆盖 60s worker 预算 + 95s 传输预算 + 余量），Core 启动、周期巡检与人工触发共用同一常量，不再各自硬编码。
+- 周期只终结：`Executor::spawn_grade_dispatch_sweeper(interval)` 每 `GRADE_DISPATCH_SWEEP_INTERVAL`（300s）调用同一条规则；`main.rs` 在真实 Core 进程启动后挂载，并在 `store.close()` 前 abort，避免后台任务持有写者句柄导致 graceful exit 阻塞（已用真实进程退出测试验证）。
+- 显式人工触发：新增 `POST /api/v1/learning/deeptutor/practice-grade/reconcile`（**human only**，无请求体），返回 `archeaxis.grade-dispatch-reconcile/v1`（`window_seconds` + `abandoned`/`recent`/`skipped` + `worker_relaunches: 0`）。重复调用幂等；机器 actor 403。
+- 未改变：`UNKNOWN` 仍是终态，不自动重派；同一 `client_event_id` 重试仍只在 admission 前被拒（409 `practice_grade_outcome_unknown`），"至多一次"派发语义不变；未引入新持久化或后台重试。
+- 验证（本地）：domain `provider_grade_chain` **12/12**、domain lib **88/88**；新增 `crates/archeaxis-api/tests/grade_dispatch_reconcile.rs` **3/3**（窗口内不动且 human-only/机器 403、超窗口一次终结 + 重复幂等 + 同事件只读 UNKNOWN、周期巡检在多个 tick 后仍不动新 claim 再终结老化 claim）；`deeptutor_grade_contract` 5/5、`provider_learning_api` 2/2、`contract_absent_surfaces` 8/8、`session_shutdown_process` 2/2（真实进程退出）；路由清单 `tests/maintenance/test_contract_route_inventory.py` **7/7**；文档门禁与仓库约定检查通过；rustfmt clean。
+- 合同同步：`docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 第 3 节路由数 149→150，新增第 243 行（human only / 无 body / 幂等 / 绝不重启 worker），并在第 242 行加入周期巡检与窗口常量说明。
+- 边界：全部为本地定向验证与本地提交，未推送、未开 PR、无精确 SHA CI；未做真实进程周期巡检旅程（300s 间隔不具测试可行性），周期机制目前由进程内测试用短间隔覆盖；`installer-lifecycle` 的 `wait(0.0)` 已知 harness 退化仍未修；安装态接受、真实数据与 Owner 接受均未触及。

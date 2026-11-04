@@ -541,15 +541,15 @@ fn age_recorded_dispatch(conn: &rusqlite::Connection, seconds_ago: u64) {
 }
 
 #[test]
-fn restart_finalization_leaves_a_fresh_dispatch_alone() {
+fn a_pass_leaves_a_fresh_dispatch_alone() {
     let mut chain = fixture("A");
     let prepared = reserved(&mut chain);
     grade::begin_dispatch(&mut chain.conn, &prepared, Duration::from_secs(60)).unwrap();
     let result =
-        grade::abandon_dispatched_after_restart(&mut chain.conn, Duration::from_secs(150)).unwrap();
+        grade::finalize_abandoned_dispatches(&mut chain.conn, Duration::from_secs(150)).unwrap();
     assert_eq!(
         result,
-        grade::RestartFinalization {
+        grade::AbandonedFinalization {
             abandoned: 0,
             skipped: 0,
             recent: 1,
@@ -564,13 +564,13 @@ fn restart_finalization_leaves_a_fresh_dispatch_alone() {
 }
 
 #[test]
-fn restart_finalization_abandons_only_an_aged_dispatch_once() {
+fn a_pass_abandons_only_an_aged_dispatch_once() {
     let mut chain = fixture("A");
     let prepared = reserved(&mut chain);
     grade::begin_dispatch(&mut chain.conn, &prepared, Duration::from_secs(60)).unwrap();
     age_recorded_dispatch(&chain.conn, 1_000);
     let result =
-        grade::abandon_dispatched_after_restart(&mut chain.conn, Duration::from_secs(150)).unwrap();
+        grade::finalize_abandoned_dispatches(&mut chain.conn, Duration::from_secs(150)).unwrap();
     assert_eq!(result.abandoned, 1);
     assert_eq!(result.recent, 0);
     assert_eq!(
@@ -584,21 +584,21 @@ fn restart_finalization_abandons_only_an_aged_dispatch_once() {
         grade::prepare(&mut chain.conn, "activity", "attempt", &chain.request).unwrap(),
         grade::Admission::Unknown
     ));
-    // Repeating the restart pass is a no-op.
+    // Repeating the pass is a no-op.
     let again =
-        grade::abandon_dispatched_after_restart(&mut chain.conn, Duration::from_secs(150)).unwrap();
-    assert_eq!(again, grade::RestartFinalization::default());
+        grade::finalize_abandoned_dispatches(&mut chain.conn, Duration::from_secs(150)).unwrap();
+    assert_eq!(again, grade::AbandonedFinalization::default());
 }
 
 #[test]
-fn restart_finalization_skips_damaged_or_undispatched_claims() {
-    // A reserved claim was never dispatched; a restart cannot finalize it.
+fn a_pass_skips_damaged_or_undispatched_claims() {
+    // A reserved claim was never dispatched; a pass cannot finalize it.
     let mut reserved_only = fixture("A");
     let _prepared = reserved(&mut reserved_only);
     let reserved_result =
-        grade::abandon_dispatched_after_restart(&mut reserved_only.conn, Duration::from_secs(0))
+        grade::finalize_abandoned_dispatches(&mut reserved_only.conn, Duration::from_secs(0))
             .unwrap();
-    assert_eq!(reserved_result, grade::RestartFinalization::default());
+    assert_eq!(reserved_result, grade::AbandonedFinalization::default());
     assert_eq!(
         grade::disposition(&reserved_only.conn, "activity", "attempt")
             .unwrap()
@@ -607,7 +607,7 @@ fn restart_finalization_skips_damaged_or_undispatched_claims() {
     );
 
     // A dispatched claim whose event index is missing cannot prove its identity, so
-    // the restart pass counts it as skipped and leaves the claim untouched.
+    // the pass counts it as skipped and leaves the claim untouched.
     let mut damaged = fixture("A");
     let prepared = reserved(&mut damaged);
     grade::begin_dispatch(&mut damaged.conn, &prepared, Duration::from_secs(60)).unwrap();
@@ -620,13 +620,12 @@ fn restart_finalization_skips_damaged_or_undispatched_claims() {
         )
         .unwrap();
     let damaged_result =
-        grade::abandon_dispatched_after_restart(&mut damaged.conn, Duration::from_secs(150))
-            .unwrap();
+        grade::finalize_abandoned_dispatches(&mut damaged.conn, Duration::from_secs(150)).unwrap();
     assert_eq!(damaged_result.abandoned, 0);
     assert_eq!(damaged_result.skipped, 1);
     // The readback is fail-closed on a damaged pair rather than trusting its state.
     assert!(grade::disposition(&damaged.conn, "activity", "attempt").is_err());
-    // The claim itself was not rewritten by the restart pass.
+    // The claim itself was not rewritten by the pass.
     let state: String = damaged
         .conn
         .query_row(

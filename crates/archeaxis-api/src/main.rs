@@ -278,6 +278,7 @@ async fn main() {
             std::process::exit(2);
         }
     };
+    let mut sweeper: Option<tokio::task::JoinHandle<()>> = None;
     let (store, router) = if let Some(profile) = &launch.text_worker {
         // Routes are declared by the launch, never assumed from a checkout layout.
         // An absent declaration keeps the single text route.
@@ -317,10 +318,17 @@ async fn main() {
                         executor
                     }
                 }) {
-                Ok(executor) => (
-                    executor.store().clone(),
-                    archeaxis_api::runtime::router(executor),
-                ),
+                Ok(executor) => {
+                    // Terminal-only periodic reconciliation of dead grading
+                    // dispatches; it never starts or retries a worker.
+                    sweeper = Some(executor.spawn_grade_dispatch_sweeper(
+                        archeaxis_application::executor::Executor::GRADE_DISPATCH_SWEEP_INTERVAL,
+                    ));
+                    (
+                        executor.store().clone(),
+                        archeaxis_api::runtime::router(executor),
+                    )
+                }
                 Err(_) => {
                     eprintln!("document check configuration unavailable");
                     std::process::exit(1);
@@ -372,6 +380,11 @@ async fn main() {
     {
         eprintln!("Core HTTP drain failed");
         std::process::exit(1);
+    }
+    // The sweep holds its own writer handle; stop it before joining the writer.
+    if let Some(task) = sweeper {
+        task.abort();
+        let _ = task.await;
     }
     if store.close().await.is_err() {
         eprintln!("Core writer close failed");

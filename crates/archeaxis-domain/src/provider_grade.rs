@@ -917,9 +917,16 @@ pub fn reconcile_stale_dispatch(
     Ok(Reconciled::Abandoned)
 }
 
-/// Result of the one-shot restart reconciliation.
+/// Window after which a `DISPATCHED` claim can no longer produce a receipt.
+///
+/// It covers the 60-second worker budget, the 95-second transport budget and a
+/// margin, so a claim is never finalized while its owned worker could still be
+/// grading in this process.
+pub const DISPATCH_STALE_GRACE: Duration = Duration::from_secs(150);
+
+/// Result of one terminal-only reconciliation pass.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct RestartFinalization {
+pub struct AbandonedFinalization {
     /// Dispatched claims older than the grace window that are now terminal UNKNOWN.
     pub abandoned: usize,
     /// Claim pairs too damaged to prove identity or age; left untouched.
@@ -928,20 +935,21 @@ pub struct RestartFinalization {
     pub recent: usize,
 }
 
-/// Finalize grading dispatches left over from a previous Core process.
+/// Finalize grading dispatches whose receipt window has closed.
 ///
-/// A Core restart cannot complete a claim that the previous process dispatched:
-/// the owned bridge is gone, so no receipt can arrive. The function marks
-/// `DISPATCHED` claims terminal UNKNOWN only when their recorded dispatch second is
-/// older than `grace`, which must cover the maximum grading budget plus transport
-/// margin. A younger claim is left untouched so a second process that is still
-/// grading cannot be cancelled, and a claim without a trusted dispatch second is
-/// never guessed stale. It never launches, re-sends or retries a worker; repeating
-/// it is a no-op once claims are terminal.
-pub fn abandon_dispatched_after_restart(
+/// A claim can only complete while its owning process still holds the bridge. Core
+/// startup has no bridge from the previous process, and a long-running process can
+/// outlive a dispatch whose worker already died, so both call the same bounded
+/// rule: mark `DISPATCHED` claims terminal UNKNOWN only when their recorded
+/// dispatch second is older than `grace`, which must cover the maximum grading
+/// budget plus transport margin. A younger claim is left untouched so a worker
+/// that is still grading is not cancelled, and a claim without a trusted dispatch
+/// second is never guessed stale. It never launches, re-sends or retries a worker;
+/// repeating it is a no-op once claims are terminal.
+pub fn finalize_abandoned_dispatches(
     conn: &mut Connection,
     grace: Duration,
-) -> Result<RestartFinalization> {
+) -> Result<AbandonedFinalization> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let keys = {
         let mut statement =
@@ -950,7 +958,7 @@ pub fn abandon_dispatched_after_restart(
         rows.collect::<rusqlite::Result<Vec<_>>>()?
     };
     let now = learning::now()?;
-    let mut result = RestartFinalization::default();
+    let mut result = AbandonedFinalization::default();
     for key in keys {
         let Some(raw) = bounded_value(&tx, &key)? else {
             result.skipped += 1;
