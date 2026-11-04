@@ -1,0 +1,7 @@
+# AAOS absorption boundary: preserve the archived donor bytes.
+#
+# The donor's own .gitattributes rules still win for the paths they name.
+# This parent rule stops the host repository's core.autocrlf from rewriting
+# donor files that have no explicit donor rule, so a Windows checkout keeps
+# the same bytes that SOURCE-MANIFEST.json records.
+** -text -eol -filter -diff -merge

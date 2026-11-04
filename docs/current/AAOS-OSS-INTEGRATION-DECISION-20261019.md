@@ -457,3 +457,18 @@ Owner随后以刚完成整理的截图明确：“最新的按照刚才这个为
 新接入不取消任何本期required或既有F05/CL/J/X/R6、治理、候选、外溢与交付未完项；首个完整片之后继续适用能力。旧七项前端失败已有后继通过、Host角色输入已准备、zc1c8冲突子集已执行等不得重复当欠账；当前候选及真实学习效果/Owner接受仍分别验收。暂停、未核、失败和历史证据不能混写。
 
 最新产品基准继续为AUTHORITY/近两日13组/身份V2.3/闭环V3，`latest_owner_discussion_archive`不改。当前请求不自动恢复监控、取消的素材、发布、Green替换或真实库覆盖，不改全局模型/provider，不上传原始归档；公开源码交付沿已有精确Owner授权和真实门禁分别处理。
+
+## 二十九、全量吸收与全量融入（2026-11-05）
+
+决定编号：`OWNER-FULL-DONOR-ABSORPTION-20261105`；替代记录：`SUP-034`。
+
+Owner明确：“两个项目先全量吸收进来，全量融入进来”。这条指令覆盖第二十八节及`SUP-033`中“只选适用能力”的窄解释：DeepTutor 1.7.1与OpenMAIC 1.3.0的**完整上游源码**先进入本仓，随后按完整能力逐项融入；不再以“未选中/延后”作为不吸收源码的理由。
+
+保留边界：
+
+- 完整源码快照是只读参考源，不自动成为产品运行时；Rust Core继续是SQLite/CAS唯一canonical writer，不新增第二业务库、第二调度器或通用Agent Runtime。
+- 吸收（源码在仓内）与融入（真实消费者可用）、安装态、Owner接受分开记录；源码存在、测试数量或构建成功都不能替代功能验收。
+- 旧DeepTutor Python业务桥、1.5.17资格与`.hermes`写路径仍不复活；OpenMAIC整站Next/Postgres/Agent持久化不替代AAOS。
+- 原始ZIP、运行数据、模型和依赖缓存仍保留在Git忽略区；仓库只提交经审核的源码快照、许可与逐文件清单。
+
+已执行的第一步：两套完整源码分别落在`services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1/`与`services/learning-providers/openmaic/upstream/OpenMAIC-1.3.0/`，附`README.md`与`SOURCE-MANIFEST.json`；归档SHA、许可证与文件计数见[交接入口](../../workspace/intake/20261101-learning-platform-integration/README.md)。功能融入仍按`INT-DT-01—03`、`INT-MAIC-01—05`、`INT-QUAL`逐项推进，实际进度只记唯一执行记录。

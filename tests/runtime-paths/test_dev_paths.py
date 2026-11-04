@@ -48,6 +48,28 @@ class DevelopmentPaths(unittest.TestCase):
               self.assertRaisesRegex(ValueError, 'protected source')):
             dev.worktree_identity(self.repo)
 
+    def test_pytest_basetemp_stays_out_of_run_evidence(self):
+        dev_root = self.repo / '.project-local'
+        paths = {'dev': dev_root, 'run': dev_root / 'runs' / 'abc123' / 'run1'}
+        basetemp = dev.pytest_basetemp(paths)
+        assert basetemp.parent == dev_root / 'task-runtime' / 'pytest-tmp'
+        assert basetemp.name == 'basetemp-run1'
+        assert basetemp.relative_to(dev_root).parts[:2] == ('task-runtime', 'pytest-tmp')
+
+    def test_identity_allows_the_public_example_template_but_not_a_value_env_file(self):
+        example = self.repo / '.env.example'
+        example.write_text('OPENAI_API_KEY=\n', encoding='utf-8')
+        self.run_git('add', '.env.example')
+        self.run_git('commit', '-qm', 'example template')
+        dirty, digest = dev.worktree_identity(self.repo)
+        self.assertFalse(dirty)
+        self.assertEqual(len(digest), 64)
+        private = self.repo / '.env.production'
+        private.write_text('fixture-only', encoding='utf-8')
+        with (patch.object(Path, 'open', side_effect=AssertionError('must not read private file')),
+              self.assertRaisesRegex(ValueError, 'protected source')):
+            dev.worktree_identity(self.repo)
+
     @unittest.skipUnless(os.name == 'nt', 'Windows junction regression')
     def test_identity_rejects_junction_ancestor(self):
         target = self.repo.parent / 'outside-sources'

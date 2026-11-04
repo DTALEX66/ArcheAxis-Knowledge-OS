@@ -1,0 +1,41 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# build output
+.next
+out
+build
+dist
+
+# git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# env & secrets
+.env*
+!.env.example
+server-providers*.yml
+# model configuration: may hold inline keys; mounted at run time, never baked in
+openmaic.yml
+
+# misc
+assets
+*.md
+*.pdf
+*.pem
+.DS_Store
+.vercel
+coverage
+logs
+data
+docs
+.claude
+
+# isolated MP4 render service — built as its own image (render-service/Dockerfile),
+# never part of the main app image.
+render-service

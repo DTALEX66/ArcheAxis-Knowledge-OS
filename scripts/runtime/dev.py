@@ -281,11 +281,20 @@ PRIVATE_SOURCE_PARTS = frozenset({
 })
 
 
+# Example templates are public by definition: they carry key names and empty or
+# placeholder values, never a usable credential. The complete donor snapshots
+# absorbed on 2026-11-05 include their upstream `.env.example`; a value-bearing
+# file such as `.env`, `.env.local` or `.env.production` stays protected by the
+# `.env*` rule below and is still refused before any read.
+PUBLIC_ENV_TEMPLATES = frozenset({'.env.example'})
+
+
 def private_source_path(relative: Path) -> bool:
     """Path spelling only; never stat/read protected state to classify it."""
     return relative.as_posix().casefold() == 'test-results.log' or any(
         part.casefold() in PRIVATE_SOURCE_PARTS
-        or part.casefold().startswith('.env') for part in relative.parts)
+        or (part.casefold().startswith('.env')
+            and part.casefold() not in PUBLIC_ENV_TEMPLATES) for part in relative.parts)
 
 
 def _private_diff_exclusions() -> tuple[str, ...]:
@@ -336,6 +345,20 @@ def worktree_identity(root: Path) -> tuple[bool, str]:
                 for block in iter(lambda: source.read(1024 * 1024), b''):
                     digest.update(block)
     return bool(diff) or bool(public_files), digest.hexdigest()
+
+
+def pytest_basetemp(paths: dict[str, Path]) -> Path:
+    """Pytest scratch belongs to task-runtime, not to run evidence.
+
+    `tmp_path` fixtures accumulate for the whole suite. Putting them under
+    `runs/` made the `runs` growth budget measure mostly disposable test
+    scratch (the full Python suite exceeded 2 GB) and blocked the layout
+    contract. The suite's TMP/TEMP and pycache already sit inside the launcher
+    run, so callers that require output inside `ARCHEAXIS_RUN_ROOT` declare it
+    explicitly instead of inheriting pytest's placement; the per-run name keeps
+    concurrent runs separate.
+    """
+    return paths["dev"] / "task-runtime" / "pytest-tmp" / f"basetemp-{paths['run'].name}"
 
 
 def environment(paths: dict[str, Path]) -> dict[str, str]:
@@ -657,8 +680,10 @@ def main() -> int:
                 targets = []
             if any(arg.startswith("--basetemp") for arg in command):
                 raise ValueError("basetemp is owned by the development launcher")
+            basetemp = pytest_basetemp(paths)
+            basetemp.parent.mkdir(parents=True, exist_ok=True)
             command = [sys.executable, "-m", "pytest", *targets,
-                       f"--basetemp={paths['tmp'] / 'pytest'}",
+                       f"--basetemp={basetemp}",
                        "-o", f"cache_dir={paths['run'] / 'pytest-cache'}", *command]
         if not command:
             raise ValueError("a child command or --pytest is required")

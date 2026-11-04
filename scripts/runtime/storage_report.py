@@ -36,6 +36,30 @@ def protected_name(name: str) -> bool:
     return name in PRIVATE_NAMES or name in PRIVATE_FILES or name.startswith('.env')
 
 
+def under_upstream_snapshot(parts) -> bool:
+    """Declared complete donor snapshots are public source, not private state.
+
+    DeepTutor 1.7.1 and OpenMAIC 1.3.0 ship an upstream `.env.example` template.
+    Treating that name as private made the clean CI measurement PARTIAL and
+    blocked the runtime seal. Only the exact upstream snapshot prefixes are
+    exempt; `.env`, `.env.local` and any other value-bearing file anywhere else
+    stay excluded before stat or descent.
+    """
+    folded = [part.casefold() for part in parts]
+    return any(
+        folded[index] == "services"
+        and folded[index + 1] == "learning-providers"
+        and folded[index + 2] in {"deeptutor", "openmaic"}
+        and folded[index + 3] == "upstream"
+        for index in range(len(folded) - 3)
+    )
+
+
+def upstream_env_template(parts, name: str) -> bool:
+    """Only the example template is public; any other `.env*` stays private."""
+    return name.casefold() == ".env.example" and under_upstream_snapshot(parts)
+
+
 def under_shared_cache(parts) -> bool:
     """Sanctioned shared package cache, not project evidence.
 
@@ -197,7 +221,8 @@ def directory_measurement(path: Path) -> dict:
     """
     result = {"bytes": 0, "files": 0, "errors": [], "excluded_private": [], "links": []}
     parts = tuple(part.casefold() for part in path.parts)
-    if (any(protected_name(part) for part in parts)
+    protected = [part for part in parts if protected_name(part)]
+    if ((protected and not upstream_env_template(parts, path.name))
             or any(a == ".project-local" and b == "agents" for a, b in zip(parts, parts[1:], strict=False))):
         result["excluded_private"].append(str(path))
         return result
@@ -222,7 +247,10 @@ def directory_measurement(path: Path) -> dict:
                     # project evidence, even when it sits below a project-owned worktree.
                     # Sanctioned shared caches are measured instead: a third-party crate's
                     # `.envrc` is not private project state (see `under_shared_cache`).
-                    if protected_name(entry.name) and not under_shared_cache(Path(display_path(entry.path)).parts):
+                    entry_parts = Path(display_path(entry.path)).parts
+                    if (protected_name(entry.name)
+                            and not under_shared_cache(entry_parts)
+                            and not upstream_env_template(entry_parts, entry.name)):
                         result["excluded_private"].append(display_path(entry.path))
                         continue
                     if current.name.casefold() == ".project-local" and entry.name.casefold() == "agents":

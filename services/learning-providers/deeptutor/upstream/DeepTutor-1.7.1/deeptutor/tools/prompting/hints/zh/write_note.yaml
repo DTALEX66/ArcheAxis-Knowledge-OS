@@ -1,0 +1,5 @@
+short_description: "把整理后的内容写成笔记本页面。"
+when_to_use: "用户要记笔记或整理内容时使用；原样收藏对话用 save_favorite；编辑当前页面用 note_suggest。"
+input_format: '{"title": "标题", "content": "带来源链接的完整 Markdown"}'
+guideline: "区分来源与整理内容，保留引用。创建后返回页面链接。"
+phase: "synthesis"

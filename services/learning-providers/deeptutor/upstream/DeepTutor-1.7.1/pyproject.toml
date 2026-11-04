@@ -1,0 +1,337 @@
+# Python project configuration for DeepTutor
+# This file configures Black, Ruff, and other Python tools
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deeptutor"
+dynamic = ["version", "optional-dependencies"]
+description = "An agent-native intelligent learning companion with multi-agent collaboration and RAG"
+# Python 3.14 is supported by the core app now that compiled base dependencies
+# such as FAISS publish compatible wheels. Keep a forward cap so a future
+# interpreter is not advertised before the compiled dependency stack is ready.
+# Individual optional integrations may carry tighter markers below.
+requires-python = ">=3.11,<3.15"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+dependencies = [
+    "PyYAML>=6.0",
+    "jinja2>=3.1.0",
+    "openai>=1.30.0",
+    "tiktoken>=0.5.0",
+    "aiohttp>=3.9.4",
+    "httpx>=0.27.0",
+    "requests>=2.32.2",
+    "ddgs>=9.9.1",
+    "nest_asyncio>=1.5.8",
+    "tenacity>=8.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "packaging>=24.2",
+    "jsonschema>=4.20.0,<5.0.0",
+    "aiosqlite>=0.19.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "markdown-it-py>=3.0.0,<5.0.0",
+    "prompt_toolkit>=3.0.36",
+    "pyte>=0.8.1",
+    "mcp>=1.26.0,<2.0.0",
+    "tzdata>=2024.1",
+    "loguru>=0.7.3,<1.0.0",
+    "json-repair>=0.57.0,<1.0.0",
+    "psutil>=5.9.0,<8.0.0",
+    "python-docx>=1.1.0",
+    "openpyxl>=3.1.0"
+]
+
+[project.scripts]
+deeptutor = "deeptutor_cli.main:main"
+
+[tool.deeptutor.optional-dependencies]
+# Optional modules own their code and dependencies. Full is an installation profile.
+cli = []
+codebuddy = ["codebuddy-agent-sdk>=0.3,<0.4"]
+claude-code = ["claude-agent-sdk>=0.2.174,<0.3"]
+video-learning = ["deeptutor-reading=={version}"]
+edge-tts = ["edge-tts>=7.0,<8.0"]
+video-lesson = ["deeptutor-video-lesson=={version}", "edge-tts>=7.0,<8.0"]
+server = ["deeptutor-server=={version}"]
+partners = ["deeptutor-partners=={version}"]
+parse-markitdown = ["deeptutor-parser-markitdown=={version}"]
+parse-docling = ["deeptutor-parser-docling=={version}"]
+parse-pymupdf4llm = ["deeptutor-parser-pymupdf4llm=={version}"]
+parse-liteparse = ["deeptutor-parser-liteparse=={version}"]
+parse = ["deeptutor[parse-markitdown]=={version}", "deeptutor[parse-docling]=={version}", "deeptutor[parse-pymupdf4llm]=={version}", "deeptutor[parse-liteparse]=={version}"]
+tutorbot = ["deeptutor[partners]=={version}"]
+matrix = ["matrix-nio>=0.25.2,<1.0.0", "mistune>=3.0.0,<4.0.0", "nh3>=0.2.18,<1.0.0"]
+matrix-e2e = ["deeptutor[matrix]=={version}", "matrix-nio[e2e]>=0.25.2,<1.0.0"]
+math-animator = ["deeptutor-renderer-manim=={version}"]
+graphrag = ["graphrag>=3.0.1,<4.0.0; python_version < '3.14'"]
+rag-lightrag = ["lightrag-hku==1.5.7"]
+rag-rerank = ["sentence-transformers>=3.0.0,<6.0.0; python_version < '3.14'"]
+guard = ["fastapi-guard>=8.1.1,<9.0.0"]
+dev = ["deeptutor[server]=={version}", "pytest>=7.0.0", "pytest-asyncio>=0.23.0", "pre-commit>=3.0.0", "safety<3.0.0", "bandit>=1.8.0", "import-linter>=2.1.0,<3.0.0", "python-docx>=1.1.0", "openpyxl>=3.1.0", "python-pptx>=1.0.0", "pypdf>=4.0.0", "defusedxml>=0.7.1"]
+all = ["deeptutor[full,math-animator,dev]=={version}"]
+audio-overview = ["deeptutor-audio-overview=={version}"]
+solve = ["deeptutor-solve=={version}"]
+reading = ["deeptutor-reading=={version}"]
+memory = ["deeptutor-memory=={version}"]
+providers = ["deeptutor-providers=={version}"]
+questions = ["deeptutor-questions=={version}"]
+notebook = ["deeptutor-notebook=={version}"]
+web = ["deeptutor-web=={version}"]
+parsing = ["deeptutor-parsing=={version}"]
+books = ["deeptutor-books=={version}"]
+research = ["deeptutor-research=={version}"]
+visualize = ["deeptutor-visualize=={version}"]
+renderer-manim = ["deeptutor-renderer-manim=={version}"]
+calendar = ["deeptutor-calendar=={version}"]
+knowledge = ["deeptutor-knowledge=={version}"]
+co-writer = ["deeptutor-co-writer=={version}"]
+mastery = ["deeptutor-mastery=={version}"]
+full = ["deeptutor-audio-overview=={version}", "deeptutor-solve=={version}", "deeptutor-server=={version}", "deeptutor-reading=={version}", "deeptutor-partners=={version}", "deeptutor-memory=={version}", "deeptutor-providers=={version}", "deeptutor-questions=={version}", "deeptutor-notebook=={version}", "deeptutor-web=={version}", "deeptutor-video-lesson=={version}", "deeptutor-parsing=={version}", "deeptutor-books=={version}", "deeptutor-research=={version}", "deeptutor-visualize=={version}", "deeptutor-calendar=={version}", "deeptutor-knowledge=={version}", "deeptutor-co-writer=={version}", "deeptutor-mastery=={version}"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "deeptutor.__version__.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["deeptutor*", "deeptutor_cli*"]
+
+[tool.setuptools.package-data]
+# Runtime data shipped inside the deeptutor package: prompt YAMLs (loaded by
+# PromptManager from PACKAGE_ROOT/deeptutor/.../prompts/*.yaml), markdown
+# templates (builtin SKILL.md files, vision_solver prompts), and helper shell
+# scripts. Without these, ``pip install deeptutor`` ships a wheel missing
+# every agent prompt and capability fails at first use.
+deeptutor = [
+    "**/*.yaml",
+    "**/*.yml",
+    "**/*.md",
+    "**/*.json",
+    "**/*.sh",
+    "**/*.j2",
+    "**/*.jinja",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mjs",
+]
+deeptutor_cli = ["**/*.md"]
+deeptutor_web = ["**/*", ".next/**/*"]
+
+# ============================================
+# Black code formatter configuration
+# ============================================
+[tool.black]
+line-length = 100
+target-version = ['py311', 'py312', 'py313', 'py314']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # Exclude directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | __pycache__
+  | node_modules
+  | \.next
+)/
+'''
+
+# ============================================
+# Ruff linter and formatter configuration
+# ============================================
+[tool.ruff]
+# Target Python version
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+# Enable only foundational lint rules (intentionally relaxed)
+select = [
+    "E",   # pycodestyle errors (语法错误)
+    "F",   # pyflakes (未使用的导入、变量等)
+    "I",   # isort (import 排序)
+    # Keep only essential checks; other rules stay relaxed
+]
+
+extend-select = [
+    "B006",  # Do not use mutable data structures for argument defaults
+]
+
+# Ignore specific rules (keep the lint profile relaxed)
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Do not perform function calls in argument defaults
+    "PLR0911", # Too many return statements
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments
+    "PLR0915", # Too many statements
+    "PLR2004", # Magic value used in comparison
+    "TRY003", # Avoid specifying long messages outside exception class
+    "T201",  # print found (allowed for debugging scripts)
+    "E722",  # Do not use bare except (kept relaxed for legacy paths)
+    "E402",  # Module level import not at top of file (kept relaxed)
+    "PLC0415", # import should be at top-level (kept relaxed)
+    "PTH123", # open() should be replaced by Path.open() (standard open allowed)
+    "PTH103", # os.makedirs() should be replaced by Path.mkdir() (os.makedirs allowed)
+    "PTH118", # os.path.join() should be replaced by Path (os.path.join allowed)
+    "EM101",  # Exception must not use a string literal
+    "EM102",  # Exception must not use an f-string literal
+    "TRY002", # Create your own exception
+    "TRY300", # Consider moving this statement to an else block
+    "DTZ005", # datetime.now() called without tz argument
+    "RET504", # Unnecessary assignment before return
+    "PLW2901", # for loop variable overwritten by assignment target
+    "F841",  # Local variable assigned but never used
+    "ERA001", # Found commented-out code (kept relaxed)
+]
+
+# Exclude patterns
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    ".next",
+    "out",
+    "venv",
+    "__pycache__",
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+# Indent with spaces
+indent-style = "space"
+# Respect magic trailing comma
+skip-magic-trailing-comma = false
+# Automatically detect the appropriate line ending
+line-ending = "auto"
+
+# ============================================
+# Ruff import sorting (isort replacement)
+# ============================================
+[tool.ruff.lint.isort]
+known-first-party = ["deeptutor", "deeptutor_cli", "scripts"]
+force-sort-within-sections = true
+split-on-trailing-comma = true
+
+# ============================================
+# Ruff per-file-ignores
+# ============================================
+[tool.ruff.lint.per-file-ignores]
+# Allow longer lines in test files
+# F401: Allow unused imports for availability checks in tests
+"**/test_*.py" = ["E501", "PLR2004", "F401"]
+"**/__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+
+# ============================================
+# Ruff mccabe complexity
+# ============================================
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+# ============================================
+# Pytest configuration
+# ============================================
+[tool.pytest.ini_options]
+testpaths = ["tests", "deeptutor/learning/tests"]
+pythonpath = ["."]
+markers = [
+    "asyncio: mark async tests that require pytest-asyncio",
+    "integration: requires explicitly configured external services",
+    "redis_integration: requires DEEPTUTOR_TEST_REDIS_URL",
+    "real_llm_resolver: exercises LLM config resolution itself, so it keeps the real resolver",
+]
+asyncio_default_fixture_loop_scope = "function"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--disable-warnings",
+    "--tb=short",
+    "--import-mode=importlib",
+]
+
+# ============================================
+# MyPy type checking configuration
+# ============================================
+[tool.mypy]
+python_version = "3.11"
+# Relaxed type checking for gradual adoption
+pretty = false
+show_error_context = false
+warn_return_any = false
+warn_no_return = false
+show_error_codes = true
+ignore_missing_imports = true
+follow_imports = "silent"
+# Disable strict checks that generate too many errors
+check_untyped_defs = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+no_implicit_optional = false
+
+# Module-specific overrides
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "deeptutor.tools.*"
+ignore_errors = true  # Some tools may have dynamic imports
+
+# ============================================
+# Bandit security linting configuration
+# ============================================
+[tool.bandit]
+exclude_dirs = ["tests", "scripts"]
+# B101=assert, B311=random, B403/B404=pickle/subprocess imports
+# B110=try_except_pass (intentional for non-critical error handling)
+# B104=hardcoded_bind_all_interfaces (required for server binding)
+# B112=try_except_continue (intentional for iteration)
+# B105=hardcoded_password_string (false positive on empty string initialization)
+# B301=pickle (used for internal embedding cache, not untrusted data)
+# B501=request_with_no_cert_validation (opt-in via env var for dev/testing)
+# B603=subprocess_without_shell_equals_true (controlled execution)
+# B202=tarfile_unsafe_members (already using safe_members filter)
+skips = ["B101", "B311", "B403", "B404", "B110", "B104", "B112", "B105", "B301", "B501", "B603", "B202"]

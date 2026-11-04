@@ -144,6 +144,7 @@ risk_classes:
       - services/learning-providers/deeptutor/response_recovery.py
       - services/learning-providers/deeptutor/teaching_feedback_worker.py
       - "services/learning-providers/deeptutor/upstream/**"
+      - "services/learning-providers/openmaic/upstream/**"
       # Exact OpenMAIC worker and runner entry points.
       - services/learning-providers/openmaic/interactive-html-rewrite-probe.mjs
       - services/learning-providers/openmaic/interactive-html-rewrite-worker.mjs

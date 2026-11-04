@@ -4251,3 +4251,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 知识/备份身份：`k_c235e65a1ae4bad2f6b4da56`（backup sha `9fd2c1f7…`）、`k_7434f9dd4f03df128e2fa538`（`3a3cd415…`）、`k_d662fc83bdf947a57752cd03`（`38f51ac5…`）；三次 `source_consistent`/`candidate_consistent` 均为 true，`status: PARTIAL` 仅因工作区 restore 明确 `NOT_EXECUTED`。
 - **回退观察**：探针运行期间 `curl` 对 `en.wikipedia.org` 多次返回 `000`，但 Core worker 这三次都得到 Wikipedia `complete`，因此本轮**没有触发 DBpedia 回退**；回退仍只有 worker 级真实网络观察（wikipedia `offline/network_unavailable` → dbpedia `complete`）、worker 离线用例与 domain 六个拒绝变体的证据，不能写成“Core 全链已验证回退”。
 - 边界：真实网络、真实 Core、合成查询与单人工 actor；非安装态、非 Owner 接受。
+
+#### 2026-11-05 Owner 全量吸收指令：两份完整上游源码进入仓库
+
+- 授权：Owner 明确“两个项目先全量吸收进来，全量融入进来”；记入决定第二十九节与 `SUP-034`，覆盖此前“只选适用能力”的窄解释。吸收不等于融入或验收，Rust Core 仍是唯一 canonical writer。
+- 解包来源为本仓归档 ZIP（`.project-local/archives/owner-inputs/20261101-learning-platform-sources/`），归档 SHA-256 与 `MANIFEST.json` 逐项一致，无新增下载：
+  - **DeepTutor 1.7.1** → `services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1/`；4,471 文件、69,573,066 B、归档 `9614f50c…`、`Apache-2.0`（LICENSE `cd2f54e1…`）。
+  - **OpenMAIC 1.3.0** → `services/learning-providers/openmaic/upstream/OpenMAIC-1.3.0/`；3,830 文件、仓库快照 126,976,875 B（归档 126,977,302 B）、归档 `7cea2a58…`、`MIT`（LICENSE `ba252563…`）。
+- 每份快照附 `README.md` 与 `SOURCE-MANIFEST.json`（归档身份、许可证、逐文件路径/字节/SHA-256）。OpenMAIC 上游 `.gitattributes` 的 `* text=auto eol=lf` 使 3 个 CRLF Markdown 在入库时归一化为 LF；清单记录仓库快照哈希并单列 `line_ending_normalization`，原始 CRLF 字节仍在归档中。
+- 未引入 `node_modules`、模型权重、运行数据库、缓存或真实 `.env`；唯一看起来像密钥的 `runtime-public.pem` 经核实是**公钥**，`docker-compose.defaults.env` 是开发默认模板。上游源码默认不参与普通文本搜索（根 `.ignore`）。
+- 边界：本轮只完成**源码吸收**；两套平台的完整功能接线（INT-DT-01—03、INT-MAIC-01—05、INT-QUAL）尚未开始或尚未完成，源码在仓内不能写成“已融入”“已安装”或“Owner 已接受”。

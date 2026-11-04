@@ -430,7 +430,9 @@ def test_probe_builder_routes_fake_manifest_without_system_temp(tmp_path, monkey
 def test_probe_workdir_override_stays_in_current_run(tmp_path, monkeypatch):
     from concurrent.futures import ThreadPoolExecutor
     from scripts.environment import build_external_resources_index as builder
-    inside = tmp_path / 'explicit-probe'
+    # The override is validated against the current launcher run, so the fixture
+    # belongs inside it; pytest's own `tmp_path` now sits in `task-runtime`.
+    inside = Path(os.environ['ARCHEAXIS_RUN_ROOT']) / 'tmp' / 'explicit-probe'
     monkeypatch.setenv('ARCHEAXIS_RESOURCE_PROBE_WORKDIR', str(inside))
     with ThreadPoolExecutor(max_workers=2) as pool:
         first, second = list(pool.map(lambda _: builder.probe_workdir(), range(2)))
