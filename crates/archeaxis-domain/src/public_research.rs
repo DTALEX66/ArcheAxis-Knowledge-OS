@@ -245,6 +245,7 @@ where
 fn provider(family: &str, name: &str) -> Option<&'static str> {
     match (family, name) {
         ("encyclopedia", "wikipedia") => Some("https://en.wikipedia.org/w/api.php?"),
+        ("encyclopedia", "dbpedia") => Some("https://lookup.dbpedia.org/api/search?"),
         ("community", "stackexchange") => {
             Some("https://api.stackexchange.com/2.3/search/advanced?")
         }
@@ -312,8 +313,8 @@ fn request_url_matches(channel: &Channel, request: &Request, prefix: &str) -> bo
         }
     }
     let limit = request.limit.to_string();
-    let expected = match channel.family.as_str() {
-        "encyclopedia" => vec![
+    let expected = match (channel.family.as_str(), channel.provider.as_str()) {
+        ("encyclopedia", "wikipedia") => vec![
             ("action", "query"),
             ("generator", "search"),
             ("gsrsearch", &request.query),
@@ -326,19 +327,24 @@ fn request_url_matches(channel: &Channel, request: &Request, prefix: &str) -> bo
             ("format", "json"),
             ("formatversion", "2"),
         ],
-        "community" => vec![
+        ("encyclopedia", "dbpedia") => vec![
+            ("query", request.query.as_str()),
+            ("maxHits", limit.as_str()),
+            ("format", "json"),
+        ],
+        ("community", _) => vec![
             ("site", request.community_site()),
             ("q", &request.query),
             ("pagesize", &limit),
             ("sort", "relevance"),
             ("filter", "withbody"),
         ],
-        "research" if channel.provider == "crossref" => vec![
+        ("research", "crossref") => vec![
             ("query.bibliographic", request.query.as_str()),
             ("rows", limit.as_str()),
             ("select", "DOI,title,URL,published"),
         ],
-        "research" => vec![
+        ("research", _) => vec![
             ("search", request.query.as_str()),
             ("per_page", limit.as_str()),
         ],
@@ -408,6 +414,21 @@ fn utc_time(value: &str) -> bool {
 
 fn hit_identity(hit: &Hit, request: &Request) -> bool {
     match hit.family.as_str() {
+        "encyclopedia" if hit.provider == "dbpedia" => {
+            let Some(name) = hit.id.strip_prefix("https://dbpedia.org/resource/") else {
+                return false;
+            };
+            !name.is_empty()
+                && name.len() <= 240
+                && !name.contains(['/', '?', '#'])
+                && name
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || b"-_.,()'!~*+&=:%".contains(&byte))
+                && hit.id == hit.url
+                && hit.upstream_revision.is_none()
+                && (hit.excerpt.is_empty()
+                    || hit.locator.as_deref() == Some("dbpedia:lookup;comment"))
+        }
         "encyclopedia" => {
             let Some((page, revision)) = hit
                 .id
@@ -501,6 +522,9 @@ fn hit_representation(hit: &Hit) -> bool {
         return false;
     }
     match hit.family.as_str() {
+        "encyclopedia" if hit.provider == "dbpedia" => {
+            hit.representation == "abstract" && hit.content == "excerpt"
+        }
         "encyclopedia" => hit.representation == "wikitext" && hit.content == "excerpt",
         "community" => {
             hit.representation == "html_text"
@@ -553,6 +577,7 @@ fn validate_channel(channel: &Channel, request: &Request) -> Result<Option<Vec<u
                 .license
                 .as_ref()
                 .is_some_and(|license| match hit.family.as_str() {
+                    "encyclopedia" if hit.provider == "dbpedia" => license != "CC BY-SA 3.0",
                     "encyclopedia" => license != "CC BY-SA 4.0",
                     "community" => !["CC BY-SA 2.5", "CC BY-SA 3.0", "CC BY-SA 4.0"]
                         .contains(&license.as_str()),
@@ -626,7 +651,9 @@ pub fn publish(conn: &mut Connection, request: &Request, value: Value) -> Result
         || response.families != request.families
         || response.channels.len() < request.families.len()
         || response.channels.len()
-            > request.families.len() + usize::from(request.families.iter().any(|f| f == "research"))
+            > request.families.len()
+                + usize::from(request.families.iter().any(|f| f == "research"))
+                + usize::from(request.families.iter().any(|f| f == "encyclopedia"))
     {
         return Err(failure("public_response_identity_mismatch"));
     }
@@ -653,6 +680,22 @@ pub fn publish(conn: &mut Connection, request: &Request, value: Value) -> Result
             .any(|c| &c.family == family && c.provider == expected)
         {
             return Err(failure("public_channel_identity_mismatch"));
+        }
+    }
+    if let Some(fallback) = response
+        .channels
+        .iter()
+        .position(|c| c.provider == "dbpedia")
+    {
+        let Some(primary) = response
+            .channels
+            .iter()
+            .position(|c| c.provider == "wikipedia")
+        else {
+            return Err(failure("public_fallback_identity_invalid"));
+        };
+        if fallback <= primary || !fallback_allowed(&response.channels[primary]) {
+            return Err(failure("public_fallback_identity_invalid"));
         }
     }
     if let Some(fallback) = response

@@ -4170,3 +4170,28 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 候选与 J1 相同：`.project-local/rt/staged-deps-20261104`（manifest `13499f89…`、Core sha `3ec23b23…`）。回执 `.project-local/runs/be268a2d33/27edbd6f8470/artifacts/public-research-receipt.json`：`ok: true`、`status: PARTIAL`、`evidence_level: REAL_CORE_PUBLIC_NETWORK`、`source_consistent/candidate_consistent: true`。
 - `families`：community（StackExchange）与 research（OpenAlex）真实网络通道；encyclopedia 记 `NOT_EXECUTED`（本机对 en/zh.wikipedia、api.wikimedia.org、wikidata 的 8s 直连仍为 000）。链路含 raw/derived 原件哈希、固定 source 引用、anchor 定位与 resolve、研究草稿保存、package 与 Markdown 导出 manifest、人工接纳的知识 `k_244d9890332d9d5ed0910712`；重启读回相等（`same_objects_after_restart: true`）、备份 `verified`（sha `78ba73e0…`）；本探针 `restore` 记 `NOT_EXECUTED`，真实恢复到独立数据库已在同候选的 J1 批次链中验证。
 - 边界：公开合成查询与单人 actor；非安装态、非 Owner 接受；百科通道仍待 Owner 的代理端点或新免费源决定。
+
+#### 2026-11-04 百科回退通道：DBpedia Lookup（Owner 选择“先用其他免费百科源”）
+
+- 事实：本机对 Wikipedia/Wikidata/Wikimedia API 的直连**间歇性**超时（8–10s 返回 `000`），但在同一次 Core 运行中 Wikipedia 也曾成功返回（见下条），说明不是稳定不可达；因此保留 Wikipedia 为主通道，并只在主通道处于可回退失败态（offline/network_unavailable、proxy_timeout、http_429、5xx）时调用 DBpedia Lookup。
+- 实现：worker 追加 `dbpedia` 百科通道（`https://lookup.dbpedia.org/api/search?query=&maxHits=&format=json`），把 `comment` 作为 `abstract` excerpt、`locator=dbpedia:lookup;comment`、`license=CC BY-SA 3.0`、不绑定 revision；失败的 Wikipedia 通道与其原始响应保留。Core（`crates/archeaxis-domain/src/public_research.rs`）为 `("encyclopedia","dbpedia")` 增加精确请求参数、身份/URL/locator、representation、许可与“回退位于主通道之后且主通道确实可回退失败”的校验；通道数上界按 family 增加的回退通道计数。
+- 解析器固定身份更新（`public_research_identity.py` 21,462 B / `9165858c…`），并更新其说明；`docs/environment/EXTERNAL_DEPENDENCIES.md` 登记 Wikipedia/DBpedia/Stack Exchange；来源与边界见 [intake 说明](../../workspace/intake/20261104-encyclopedia-fallback-dbpedia/README.md)。
+- 测试：worker `tests/workers/test_public_research*.py` 244 passed/2 skipped（含新增 Wikipedia 离线→DBpedia complete 用例，且代理失败时保留两条失败通道）；domain `public_research_runs` 14/14（含新增回退用例与 6 个拒绝变体：错许可、错 URL、错 locator、错请求参数、回退在前的顺序、错身份）。
+- 真实网络观察：在本机网络仍不可直连 Wikipedia 的时刻，直接运行 worker 的 `execute()` 得到 `wikipedia offline/network_unavailable` + `dbpedia complete`（hit `https://dbpedia.org/resource/Spaced_repetition`、CC BY-SA 3.0、`dbpedia:lookup;comment`、raw 115,032 B）。这是 worker 级真实网络观察，不是 Core 全链。
+- 边界：DBpedia 是 Wikipedia 的派生索引，不代表 Wikipedia 覆盖或正文完整性；`maxHits>1` 响应可能超过 128 KiB 上限而记 `invalid_response`（不静默截断）；代理/主通道恢复后无需改产品行为。
+
+#### 2026-11-04 三通道真实 J2 与新候选复跑（staged-20261104b）
+
+- 新候选由 DBpedia 提交（`0087f69f`）staging 生成：`.project-local/rt/staged-20261104b`，version `0.6.15`，manifest `1ba96a6a…`（3,133 文件），Core sha `b3624aa9…`；同一候选用于本轮 J1 与 J2。
+- J2（run `03d213570808`，回执 `.project-local/runs/be268a2d33/03d213570808/artifacts/public-research-receipt.json`）：`ok: true`、`status: PARTIAL`、`REAL_CORE_PUBLIC_NETWORK`、`source_consistent/candidate_consistent: true`；**三族主通道全部 complete**——community `stackexchange:academia:question:51974`、encyclopedia `wikipedia:en:10806718:1376788556`（CC BY-SA 4.0）、research `openalex.org/W3213369587`；含原件哈希、固定引用、anchor 定位与 resolve、研究草稿、Markdown 导出、人工接纳知识 `k_2606d7f11e79c1acda5869c5`、重启读回相等与 `verified` 备份（sha `41c77164…`）。
+- 同候选 J1：批次链 `5b454c3ffb58/artifacts/j1-batch-folder.json` `ok: true`（6 enqueued + 1 imported_no_job、第二轮 7/7 跳过 0 Core 调用、修复后仅 1 文件重跑、备份与独立数据库恢复）；四格式 `6f005529c989/artifacts/common-formats.json` `ok: true`（docx/xlsx/pptx/pdf 的 selected content→anchor→重解析→重启相等）。
+- 边界：Wikipedia 可达性在本机不稳定（同一天既有超时也有成功），因此“三通道全通”只对应该次运行；DBpedia 回退仍是主通道失败时的真实可用通道。非安装态、非 Owner 接受。
+
+#### 2026-11-04 隔离安装与安装态业务旅程（Owner 授权）
+
+- 授权：Owner 明确“授权隔离安装与旅程”——只安装到本机隔离目录，使用合成材料，不覆盖 Green/真实库、不发布，安装与卸载各自留回执。
+- 构建：从当前分支源码本地构建（`dev.py -- node scripts/runtime/frontend.mjs tauri ... --bundles nsis`，运行时资源为 `.project-local/rt` 指向当前 staged 候选 `staged-20261104b` 的 junction）；Tauri 编译 152.9s、NSIS 93.6s。产物：安装器 `ArcheAxis Knowledge_0.6.14_x64-setup.exe`，82,839,919 B、sha256 `f7f9abbf…`；宿主 `ArcheAxis.exe` sha256 `b8fddaa4…`。**身份边界**：宿主按工作树 HEAD `fd25ece6` 构建，而打包的后端候选 manifest 记 `source_commit=0087f69f`（两者仅差 Rust 格式化提交、语义相同），因此本次安装产物是“宿主 HEAD + 后端候选记录提交”的组合，不宣称单一精确源码身份。
+- 安装：静默安装到隔离目录 `.project-local/install-acceptance-20261104/app`，exit 0；安装后清单/manifest sha `1ba96a6a…` 与 staged 候选一致，core sha `b3624aa9…`、runtime python sha `08178617…`，`workers/transport` 与 `workers/deeptutor` 均在。注意这是 `currentUser` 静默安装到自定义目录，不是 Owner 账户的日常 Green 安装。
+- 安装态旅程：以**安装后的** core/runtime/workers 运行 `scripts/ci/real_core_grading_journey.py`（`--worker-root <install>/workers`），22 步全部通过：版本、材料导入、出题、双 grant、作答、正式评分、只读处置、重启读回、启动终结遗留 DISPATCHED、live backup `verified`、备份列表跨重启不变、restore preview `verified`、`--maintenance-restore` 到独立数据库并由新 Core 读回材料（`content_sha256 d2201218…`）。回执 `.project-local/install-acceptance-20261104/journey-receipt.json`。
+- 卸载：`uninstall.exe /S` exit 0，安装目录已删除，`HKCU` Uninstall 下无 ArcheAxis 条目残留；工作区与回执保留在 ignored 目录供复核。
+- 边界：**未运行 Tauri/WebView2 UI 的 WebDriver 旅程**（安装后仅启动 Core 业务流程）；旅程脚本内固定 boundary 文本仍写“Not an installed package”，本记录按实际安装路径与安装后二进制身份更正；仍非 Owner 每日使用/接受、非真实用户数据、非发布。安装器未签名。

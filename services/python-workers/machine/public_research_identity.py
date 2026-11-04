@@ -20,8 +20,8 @@ import zlib
 
 SCHEMA = "archeaxis.public-research-identity-candidate/v1"
 PARSER_PATH = Path(__file__).absolute().with_name("public_research.py")
-PARSER_SHA256 = "cb54f07bb86263fe264809f22817fccb9b7f6705cb26c3a6efde7baa1a3fc321"
-PARSER_BYTES = 18_998
+PARSER_SHA256 = "9165858c9f3e5f1021fe76a8383dd231d1ece9ad243d9d4eaa511b45f6c82b26"
+PARSER_BYTES = 21_462
 MAX_PATH_COMPONENTS = 64
 MAX_RAW_BYTES = 128 * 1024
 MAX_RAW_BASE64 = 4 * ((MAX_RAW_BYTES + 2) // 3)

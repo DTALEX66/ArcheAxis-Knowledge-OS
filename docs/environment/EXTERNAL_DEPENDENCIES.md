@@ -290,6 +290,10 @@ Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibi
 
 | 服务 | 地址 | 认证 | 限制 |
 |---|---|---|---|
+| Wikipedia API | https://en.wikipedia.org/w/api.php | 无 | 低频（礼貌；CC BY-SA 4.0；本机当前不可达） |
+| DBpedia Lookup | https://lookup.dbpedia.org/api/search | 无 | 低频（礼貌；派生自 Wikipedia，CC BY-SA 3.0；Wikipedia 不可达时的百科回退通道） |
+| DBpedia SPARQL | https://dbpedia.org/sparql | 无 | 低频/查询受限；不作为主检索入口 |
+| Stack Exchange API | https://api.stackexchange.com/2.3/ | 无 | 无 key 有限配额（返回 backoff/quota_remaining） |
 | Crossref | https://api.crossref.org/ | 无（polite pool） | ~50 次/秒 |
 | DataCite | https://api.datacite.org/ | 无 | ~50 次/秒 |
 | OpenAlex | https://api.openalex.org/ | 可选免费 key | 10次/秒（key）/ ~10次/分（无key） |

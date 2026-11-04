@@ -234,6 +234,12 @@
         "receipt": ".project-local/runs/be268a2d33/27edbd6f8470/artifacts/public-research-receipt.json",
         "result": "community and research live again on the same staged candidate as the J1 runs; accepted knowledge k_244d9890332d9d5ed0910712, restart equal readback true, backup verified sha256 78ba73e0...; encyclopedia NOT_EXECUTED (still unreachable)"
       },
+      "three_channel_run": {
+        "candidate": ".project-local/rt/staged-20261104b (manifest 1ba96a6a..., core sha256 b3624aa9...)",
+        "receipt": ".project-local/runs/be268a2d33/03d213570808/artifacts/public-research-receipt.json",
+        "result": "All three primary channels complete in one run: community stackexchange:academia:question:51974, encyclopedia wikipedia:en:10806718:1376788556 (CC BY-SA 4.0), research https://openalex.org/W3213369587; accepted knowledge k_2606d7f11e79c1acda5869c5, restart equal, backup verified sha256 41c77164...",
+        "reachability_note": "Wikimedia directs are intermittent on this host: the same day produced both TCP timeouts and this successful Core run, so this run is not proof of stable reachability."
+      },
       "receipt": ".project-local/runs/be268a2d33/e700676c56a9/artifacts/public-research-receipt.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
@@ -251,6 +257,7 @@
       "limits": "No installed UI or source-application navigation; text PDF only with OCR separate; formulas and cached charts are not live calculation; no source-package reconstruction.",
       "receipt": ".project-local/runs/be268a2d33/56fd2dcaba07/artifacts/common-formats.json",
       "candidate": ".project-local/rt/staged-deps-20261104 (manifest 13499f89..., core sha256 3ec23b23...)",
+      "latest_repeat": ".project-local/runs/be268a2d33/6f005529c989/artifacts/common-formats.json on candidate .project-local/rt/staged-20261104b (manifest 1ba96a6a..., core sha256 b3624aa9..., source commit 0087f69f)",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "j1_batch_folder_20261104": {
@@ -261,6 +268,28 @@
       "restart_and_recovery": "After restart the document, export, knowledge, anchors and batch manifest read back equal; the backup verified, the restore preview verified, and a maintenance restore into an independent database served the same document and knowledge from a fresh Core.",
       "limits": "Synthetic authored materials on a staged runtime; not installed and not Owner-accepted; text PDF only; no source-application rendering, OCR, media transcription or live formula calculation.",
       "receipt": ".project-local/runs/be268a2d33/6d833f3811f1/artifacts/j1-batch-folder.json",
+      "latest_repeat": ".project-local/runs/be268a2d33/5b454c3ffb58/artifacts/j1-batch-folder.json (re-run on the DBpedia-commit candidate 0087f69f; three passes 6 enqueued / 7 skipped with zero Core calls / 1 re-processed after fix, backup and maintenance restore)",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "install_acceptance_20261104": {
+      "state": "SILENT_ISOLATED_INSTALL_JOURNEY_PASSED_UNINSTALLED_NOT_OWNER_ACCEPTED",
+      "authorization": "Owner explicitly authorized an isolated install and journey without touching Green, real data or publication.",
+      "installer": "ArcheAxis Knowledge_0.6.14_x64-setup.exe, 82,839,919 bytes, sha256 f7f9abbf...; host ArcheAxis.exe sha256 b8fddaa4...; host built from working-tree HEAD fd25ece6 while the bundled backend candidate records source_commit 0087f69f (format-only difference, not one exact identity).",
+      "install": "Silent currentUser install to .project-local/install-acceptance-20261104/app exited 0; installed backend manifest sha256 1ba96a6a... equals the staged candidate, core sha256 b3624aa9..., runtime python sha256 08178617..., transport and deeptutor workers present.",
+      "journey": "22-step real-core journey ran on the installed core/runtime/workers (--worker-root) and passed, including material import, quiz, grants, answers, grading, disposition, restart readback, startup finalization, verified live backup, backup list across restart, verified restore preview and a maintenance restore into an independent database served by a new Core.",
+      "receipt": ".project-local/install-acceptance-20261104/journey-receipt.json",
+      "uninstall": "uninstall.exe /S exited 0, the install directory was removed and no ArcheAxis entry remained under HKCU Uninstall; workspace and receipt stay in the ignored directory.",
+      "limits": "No Tauri/WebView2 UI WebDriver journey; the journey script's static boundary text still says not installed, which this record corrects by the actual install path and installed binary identities; not Owner acceptance or real user data; the installer is unsigned.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "encyclopedia_dbpedia_fallback_20261104": {
+      "state": "IMPLEMENTED_AND_TESTED_FALLBACK_ONLY",
+      "decision": "Owner chose an alternative free encyclopedia source while Wikimedia directs keep timing out; Wikipedia stays the primary channel.",
+      "implementation": "The public-research worker queries DBpedia Lookup only when the Wikipedia channel fails in a retryable way, keeps the failed Wikipedia channel and its raw response, and labels the provider comment as a CC BY-SA 3.0 abstract excerpt with locator dbpedia:lookup;comment and no revision binding. The Core validates the exact fallback request, identity, URL, locator, representation, licence and ordering before publishing.",
+      "tests": "worker public-research files 244 passed / 2 skipped; domain public_research_runs 14/14 including six rejection variants for the new provider.",
+      "live_worker_observation": "Direct worker execute() while Wikipedia was unreachable: wikipedia offline/network_unavailable plus dbpedia complete with https://dbpedia.org/resource/Spaced_repetition and a 115,032-byte raw response. This is not a Core chain or installed evidence.",
+      "limits": "DBpedia is a Wikipedia-derived index, not Wikipedia coverage or full text; maxHits above 1 can exceed the 128 KiB response bound and is recorded as invalid_response without silent truncation.",
+      "intake": "workspace/intake/20261104-encyclopedia-fallback-dbpedia/README.md",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "x5_j1_merge_20261104": {
