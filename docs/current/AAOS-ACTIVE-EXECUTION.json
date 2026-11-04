@@ -248,11 +248,12 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "x5_fault_probe_20261104": {
-      "state": "PARTIAL_INVALID_INPUT_CASE_PASSED_OTHERS_FAILED_OWNER_PID_ASSERTION",
-      "passed": "Real invalid UTF-16 input failed with no published outputs and a following recovery job succeeded and read back the original text.",
-      "failed": "The timeout, cancel and crash injected cases reached the correct terminal states with no outputs and a stopped Core, but the probe's owned-worker parent-identity assertion did not hold (marker parent PID differs from the captured Core PID).",
-      "cause": "NOT_LOCATED: may be the locally assembled candidate without staged runtime/launcher layout, or a probe expectation mismatch; requires a staged candidate or separate investigation and supports neither a pass nor a product-defect claim.",
-      "receipt": ".project-local/task-runtime/aaos01-fault/74bb50270eaa40d9b62d699e9f04a9e6/receipt.json",
+      "state": "PASSED_FOUR_CASES_ON_STAGED_RUNTIME_NOT_INSTALLED",
+      "passed": "All four cases passed on a staged runtime (version 0.6.15, manifest aa752bbb...): timeout, cancel and crash each reached the correct terminal state with no published outputs, the owned fault worker's parent PID equalled the captured Core PID and exited after the terminal state, a following recovery job succeeded and read back the original text; real invalid UTF-16 input failed with no outputs and the same recovery.",
+      "cause": "LOCATED: the earlier failure came from the hand-built candidate using the virtualenv Scripts/python.exe redirector, which starts the real interpreter as its own child, so the worker was a grandchild and os.getppid() named the redirector. A portable/staged interpreter has no redirector and the parent identity holds; the probe now states this layout precondition and the assertion was not relaxed.",
+      "receipt": ".project-local/task-runtime/aaos01-fault/7f62231394c14ae3b3ceb3b9f016023a/receipt.json",
+      "candidate": ".project-local/rt/staged-20261104 (produced by scripts/release/stage_backend_runtime.py, core sha256 3ec23b23...)",
+      "limits": "Staged runtime with no third-party dependency staging and no ASR donor; not installed, not Owner-accepted, injected fault fixtures only.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "exchange_export_real_20261104": {

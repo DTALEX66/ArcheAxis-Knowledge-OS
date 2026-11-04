@@ -3,6 +3,13 @@
 Fault shims live in a new data root, import the candidate transport, then inject
 one hang or abrupt worker exit. Candidate files are never edited. Measurements
 are Core API integration, not installed UI cold-start or whole-process memory.
+
+The candidate must be a staged/portable runtime (`--candidate` pointing at a
+`stage_backend_runtime.py` output or an equivalent layout). A virtualenv
+`Scripts/python.exe` is a redirector that starts the real interpreter as its own
+child, so the worker becomes a grandchild of the Core and `owned_worker
+.parent_pid` names the redirector instead of the Core pid. That is an artefact of
+the launcher layout, not a Core supervision defect; do not relax the assertion.
 """
 from __future__ import annotations
 

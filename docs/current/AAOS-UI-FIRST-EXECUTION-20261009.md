@@ -4138,3 +4138,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - `verified_content_extensions` **9 项**：csv、tsv、json、jsonl、yaml、toml、xml、eml、epub；`verified_negative_sample_count` **4**。全部走真实 import → job → 结果读回。
 - `evidence_scope: CORE_WORKER_API_AND_FILE_READBACK_NOT_INSTALLED_UI`；`export_scope`：wave B 逐格式 Rust document files，原生格式回执作为 unknown node 保全。
 - 回执自带限制：Obsidian 原生应用未启动；EPUB 章节/段落事实对照 fixture，定位器绑定不可变源、job/attempt、段落与结果 SHA，原始视觉版式未渲染；音视频仅 `media.probe`，无解码/ASR/时间段内容主张。
+
+#### 2026-11-04 X5 故障/恢复探针（staged 运行时，四例全部通过）
+
+- 先前手工候选上 `timeout`/`cancel`/`crash` 的父进程断言失败已定位并解除：**虚拟环境 `Scripts/python.exe` 是 redirector**，它把真实解释器作为自己的子进程启动，因此 worker 是 Core 的孙进程、`os.getppid()` 记录的是 redirector 而不是 Core。以同一 python 实测父进程链（`parent_pid 2240 → popen_pid 31476 → child pid 21212, ppid 31476`）可复现该差异；portable/`staged` 解释器则实测 `popen_pid == child pid`、`ppid == 父进程`，不经过中间进程。这是启动布局差异，不是 Core 监督缺陷，因此没有放宽任务断言，而是改为用 staged 候选运行。
+- 候选由正式 `scripts/release/stage_backend_runtime.py` 从当前 release Core 与 portable 解释器生成：`.project-local/rt/staged-20261104`，version `0.6.15`，manifest `aa752bbb…`，2,327 个文件，`source_commit=e50a4cbc…`、`source_tree=b7d89406…`；Core sha `3ec23b23…`（20,716,032 B）、transport sha `f65f3dba…`。`--vc-runtime` 使用已批准 14.44.35211 x64 三文件 cohort，`asr-model` 为 `MISSING`（未提供 donor，媒体转写因此按名失败，不下载）。
+- 回执 `.project-local/task-runtime/aaos01-fault/7f62231394c14ae3b3ceb3b9f016023a/receipt.json`：`ok: true`、`evidence_level: REAL_CORE_EXECUTION_WITH_INJECTED_WORKER_FAULTS`，四例逐一通过——`timeout`（deadline exceeded）、`cancel`（owner cancelled）、`crash`（closed stdout）均为正确终态且 `no_outputs_published: true`，`owned_worker.parent_pid` 本次等于对应 `core_pid`（32616/13684/15164），故障 worker 在终态后退出，随后恢复任务 `succeeded` 并读回原文；`invalid_input`（真实无效 UTF-16 字节）同样通过。探针已补充说明：该断言只对 staged/portable 运行时成立，venv redirector 会造成孙进程假失败，不得为此放宽断言。
+- 边界：staged 运行时 + 本机运行 + 注入故障 fixture；**不是**安装态、Owner 接受或真实用户数据；该候选未带第三方依赖（`--dep` 未使用），文档类路由仍取决于外部依赖/后续带依赖 staging。
