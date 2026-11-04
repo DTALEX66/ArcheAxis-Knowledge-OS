@@ -241,18 +241,30 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "j1_formats_real_20261104": {
-      "state": "FOUR_FORMAT_SELECTED_CHAIN_REAL_NOT_BATCH_OR_INSTALLED",
-      "measured": "docx, xlsx, pptx and text PDF each produced selected content, located anchors, a fresh reparse and an equal restart readback on the current source with a locally assembled probe candidate.",
-      "limits": "No installed UI or source-application navigation; text PDF only with OCR separate; formulas and cached charts are not live calculation; no source-package reconstruction; no batch/folder failure localization, export or recovery chain in this run.",
-      "receipt": ".project-local/runs/be268a2d33/627b44e2a9cd/artifacts/common-formats.json",
+      "state": "FOUR_FORMAT_SELECTED_CHAIN_REAL_STAGED_RUNTIME_NOT_INSTALLED",
+      "measured": "docx, xlsx, pptx and text PDF each produced selected content, located anchors, a fresh reparse and an equal restart readback on the current source; re-verified on a staged runtime with the document engine dependencies.",
+      "limits": "No installed UI or source-application navigation; text PDF only with OCR separate; formulas and cached charts are not live calculation; no source-package reconstruction.",
+      "receipt": ".project-local/runs/be268a2d33/56fd2dcaba07/artifacts/common-formats.json",
+      "candidate": ".project-local/rt/staged-deps-20261104 (manifest 13499f89..., core sha256 3ec23b23...)",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "j1_batch_folder_20261104": {
+      "state": "MIXED_FOLDER_BATCH_KNOWLEDGE_EXPORT_BACKUP_RESTORE_REAL_NOT_INSTALLED",
+      "measured": "A seven-file folder (docx, xlsx, pptx, text PDF, markdown, one unmapped extension, one corrupt container) ran the shipped batch driver: 6 imports plus enqueues, 1 imported_no_job, no refusals, private state excluded; every job was executed, the four formats produced text/structure/loss/quality with equal original bytes and two current anchor resolutions each, the corrupt container failed with the Core's own error and no outputs, and the note succeeded.",
+      "resume": "The unchanged second pass skipped all seven files with zero Core calls; after the corrupt file was rewritten with a valid container, the third pass re-processed only that file and its job succeeded.",
+      "knowledge_and_export": "The markdown note became accepted knowledge through the ordinary transform path, knowledge and an edited document were found by search, and the document exported markdown plus manifest.",
+      "restart_and_recovery": "After restart the document, export, knowledge, anchors and batch manifest read back equal; the backup verified, the restore preview verified, and a maintenance restore into an independent database served the same document and knowledge from a fresh Core.",
+      "limits": "Synthetic authored materials on a staged runtime; not installed and not Owner-accepted; text PDF only; no source-application rendering, OCR, media transcription or live formula calculation.",
+      "receipt": ".project-local/runs/be268a2d33/6d833f3811f1/artifacts/j1-batch-folder.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "x5_fault_probe_20261104": {
-      "state": "PARTIAL_INVALID_INPUT_CASE_PASSED_OTHERS_FAILED_OWNER_PID_ASSERTION",
-      "passed": "Real invalid UTF-16 input failed with no published outputs and a following recovery job succeeded and read back the original text.",
-      "failed": "The timeout, cancel and crash injected cases reached the correct terminal states with no outputs and a stopped Core, but the probe's owned-worker parent-identity assertion did not hold (marker parent PID differs from the captured Core PID).",
-      "cause": "NOT_LOCATED: may be the locally assembled candidate without staged runtime/launcher layout, or a probe expectation mismatch; requires a staged candidate or separate investigation and supports neither a pass nor a product-defect claim.",
-      "receipt": ".project-local/task-runtime/aaos01-fault/74bb50270eaa40d9b62d699e9f04a9e6/receipt.json",
+      "state": "PASSED_FOUR_CASES_ON_STAGED_RUNTIME_NOT_INSTALLED",
+      "passed": "All four cases passed on a staged runtime (version 0.6.15, manifest aa752bbb...): timeout, cancel and crash each reached the correct terminal state with no published outputs, the owned fault worker's parent PID equalled the captured Core PID and exited after the terminal state, a following recovery job succeeded and read back the original text; real invalid UTF-16 input failed with no outputs and the same recovery.",
+      "cause": "LOCATED: the earlier failure came from the hand-built candidate using the virtualenv Scripts/python.exe redirector, which starts the real interpreter as its own child, so the worker was a grandchild and os.getppid() named the redirector. A portable/staged interpreter has no redirector and the parent identity holds; the probe now states this layout precondition and the assertion was not relaxed.",
+      "receipt": ".project-local/task-runtime/aaos01-fault/7f62231394c14ae3b3ceb3b9f016023a/receipt.json",
+      "candidate": ".project-local/rt/staged-20261104 (produced by scripts/release/stage_backend_runtime.py, core sha256 3ec23b23...)",
+      "limits": "Staged runtime with no third-party dependency staging and no ASR donor; not installed, not Owner-accepted, injected fault fixtures only.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "exchange_export_real_20261104": {
