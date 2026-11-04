@@ -4098,9 +4098,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 #### 2026-11-04 J2 真实公开检索：2/3 通道全链路（本地真实网络）
 
 - 探针 `scripts/probes/aaos_public_research_runtime_loop.py` 新增 `--families`：允许只测可达通道，并把未测通道写为 NOT_EXECUTED（不会把缺测通道算作通过）；默认仍要求三通道。
-- **真实网络证据**（回执 `.project-local/runs/be268a2d33/d21f878ff7dc/artifacts/public-research-receipt.json`，`ok: true`、`status: PARTIAL`、`evidence_level: REAL_CORE_PUBLIC_NETWORK`）：community=`stackexchange:academia:question:211203`、research=`https://openalex.org/W4402167617` 均 complete；33 步链路含原始/派生原件哈希、固定 source 引用、文本 anchor 定位与 resolve、研究草稿保存、package 与 Markdown 导出 manifest、重启前后对象完全相等（`same_objects_after_restart: true`）、备份 `verified: true`、源码与候选文件前后一致。
+- **真实网络证据**（回执 `.project-local/runs/be268a2d33/e700676c56a9/artifacts/public-research-receipt.json`，`ok: true`、`status: PARTIAL`、`evidence_level: REAL_CORE_PUBLIC_NETWORK`、42 步）：community=`stackexchange:academia:question:211203`、research=`https://openalex.org/W4402167617` 均 complete；链路含原始/派生原件哈希、固定 source 引用、文本 anchor 定位与 resolve、研究草稿保存、package 与 Markdown 导出 manifest、**人工选择后的知识接纳**（选中派生 source 经普通 text job + from-transform 生成 `k_42304b7c6bb8582cd57afb91`，人工 accept，quote 绑定 transform 1）和重启后知识读回完全相等（`same_objects_after_restart: true`）、备份 `verified: true`、源码与候选文件前后一致。
 - **未闭合（真实环境）**：encyclopedia（wikipedia）在本机不可达——`curl` 对 `en.wikipedia.org`/`zh.wikipedia.org`/`www.wikidata.org` 均 TCP 超时；完整三通道运行（run `ca81c3829f7b`）里 wikipedia 返回 `offline/network_unavailable`，另两通道正常。本机可访问的 DBpedia `data`/`sparql` 端点可达、但其 Lookup 搜索接口返回错误页，暂无可用的免费百科搜索 API。J2 三通道**尚未在本机全通**，属网络/来源选择问题，不是代码伪造为通过。
-- 边界：真实网络、真实 Core、合成查询；不是安装态，也不是知识接纳验收（草稿保持未核验）。
+- 边界：真实网络、真实 Core、合成查询与单人工 actor；知识接纳走的是真实产品路径（text job → from-transform → 人工 accept），但这不是真实用户使用、安装态或 Owner 接受的证据。
 
 #### 2026-11-04 J4 真实本地模型：产品链观察（非学习改善）
 

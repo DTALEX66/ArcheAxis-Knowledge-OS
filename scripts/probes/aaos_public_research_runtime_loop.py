@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import time
 import uuid
 
 REPO = Path(__file__).resolve().parents[2]
@@ -182,14 +183,16 @@ def main():
         finally:
             checkpoint()
 
-    def call(label, method, path, body=None, expected=200, timeout=30):
+    def call(label, method, path, body=None, expected=200, timeout=30, headers=None):
         step = {"label": label, "method": method, "path": path, "state": "STARTED"}
         receipt["steps"].append(step)
         checkpoint()
-        status, response = client.call(base, method, path, token, body, timeout=timeout)
+        status, response = client.call(base, method, path, token, body, timeout=timeout,
+                                       extra_headers=headers)
         step.update({"status": status, "body": response, "state": "RETURNED"})
         checkpoint()
-        require(status == expected, f"{label}: expected HTTP {expected}, received {status}")
+        allowed = expected if isinstance(expected, (tuple, list)) else (expected,)
+        require(status in allowed, f"{label}: expected HTTP {allowed}, received {status}")
         return response
 
     def source_identity():
@@ -328,6 +331,43 @@ def main():
         for name, content in files.items():
             (work / name).write_text(content, encoding="utf-8")
         (work / "research-package.json").write_text(json.dumps(package, ensure_ascii=False), encoding="utf-8")
+        # The human-selected research snapshot becomes an accepted, source-bound
+        # knowledge item through the ordinary text-job and review path, so J2 ends
+        # in knowledge rather than only a draft.
+        admission_source = next(
+            material["reference"]["source_id"] for material in materials if material["id"] == "research")
+        job_id = "j2-admission"
+        call("admission_enqueue", "POST", "/api/v1/jobs",
+             {"job_id": job_id, "kind": "text", "input_ref": admission_source}, expected=202)
+        call("admission_execute", "POST", f"/api/v1/jobs/{job_id}/executions",
+             {"deadline_ms": 120000}, expected=202, headers={"idempotency-key": job_id})
+        state = None
+        for _ in range(120):
+            job = call("admission_status", "GET", f"/api/v1/jobs/{job_id}")
+            state = job.get("state") if isinstance(job, dict) else None
+            if state in ("succeeded", "failed", "cancelled"):
+                break
+            time.sleep(1)
+        require(state == "succeeded", f"admission transform state {state}")
+        transform = call("admission_transform", "GET",
+                         f"/api/v1/sources/{admission_source}/jobs/{job_id}/transform")
+        content = transform["content"]
+        created = call("admission_knowledge", "POST", "/api/v1/knowledge-items/from-transform", {
+            "knowledge_type": "FACTUAL_CLAIM", "body": content, "source_id": admission_source,
+            "job_id": job_id, "transform_id": transform["transform_id"],
+            "selection_start_utf16": 0,
+            "selection_end_utf16": len(content.encode("utf-16-le")) // 2, "quote": content,
+        }, expected=(200, 201))
+        knowledge_id = created.get("knowledge_id") or created.get("id")
+        require(isinstance(knowledge_id, str) and knowledge_id, "knowledge identity missing")
+        call("admission_review", "POST", f"/api/v1/knowledge-items/{knowledge_id}/review-decisions",
+             {"action": "accepted", "reviewer": "owner"}, expected=(200, 201))
+        knowledge_before = call("admission_read", "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3")
+        receipt["knowledge_admission"] = {
+            "state": "ACCEPTED", "knowledge_id": knowledge_id, "source_id": admission_source,
+            "job_id": job_id, "transform_id": transform["transform_id"],
+            "quote_sha256": sha(content.encode("utf-8")),
+        }
         stop()
         child, base, token, _ = hidden_start(office, candidate, work, launcher)
         receipt["restart_pid"] = child.pid
@@ -346,6 +386,9 @@ def main():
         ):
             require(call("restart_" + name, "GET", path) == before, name + " changed after restart")
         receipt["same_objects_after_restart"] = True
+        require(call("restart_knowledge_admission", "GET",
+                     f"/api/v1/knowledge-items/{knowledge_id}/v3") == knowledge_before,
+                "accepted knowledge changed after restart")
         if args.backup:
             backup = call("backup", "POST", "/api/v1/workspace/backups", {}, expected=201, timeout=180)
             receipt["backup"] = backup
@@ -362,7 +405,8 @@ def main():
             f"{len(families)} live public channel(s) of {len(FAMILIES)}", "raw and derived original hashes",
             "fixed source references",
             "derived text anchors and original readback", "research draft save",
-            "restart equal readback", "document package and Markdown manifest",
+            "human-accepted source-bound knowledge", "restart equal readback",
+            "document package and Markdown manifest",
         ]})
     except Exception as error:
         receipt.update({"status": "FAIL", "error": f"{type(error).__name__}: {error}"})
