@@ -168,6 +168,17 @@
       "evidence": "Local only: domain provider_grade_chain 12/12, domain lib 88/88, new crates/archeaxis-api/tests/grade_dispatch_reconcile.rs 3/3, deeptutor_grade_contract 5/5, provider_learning_api 2/2, contract_absent_surfaces 8/8, session_shutdown_process 2/2, contract route inventory and number consistency 15/15, document authority and repository convention gates pass, rustfmt clean. Exact-SHA CI is recorded under delivery; no installed-runtime or Owner acceptance.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "openmaic_package_projection_20261104": {
+      "authorization": "execution_control.owner_full_authorization_20261103.authorized item 5: the minimal read-only OpenMAIC course-package projection before any server-side course validation",
+      "implemented": [
+        "course::openmaic_package_projection reads 1 to 64 persisted scene candidate Documents and reports scene count, type distribution and recorded playability",
+        "POST /api/v1/courses/openmaic/package-projection is human only and quotes the recorded projection/render reports only after rechecking them against the persisted scene",
+        "legacy v1, edited reports, non-candidate Documents and missing IDs are reported as playability unknown instead of guessed; no course payload is parsed, rendered, validated, refused or written"
+      ],
+      "unchanged": "No course manifest validation, no course-to-scene server index, no second persistence and no consumer wiring; the response is not a claim that a multi-scene course is complete or runnable",
+      "evidence": "Local only: new crates/archeaxis-api/tests/openmaic_package_projection.rs 4/4, contract_general_course 6/6, contract route inventory and number consistency 15/15, document authority and repository convention gates pass, rustfmt clean.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {

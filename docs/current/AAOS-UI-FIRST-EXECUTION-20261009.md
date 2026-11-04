@@ -4034,3 +4034,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - **CI 抓到的真实问题（源码无关但有价值）**：首个精确 SHA run `41742748125`（head `0a818455`）在 `lint` 失败——`tests/maintenance/test_contract_number_consistency.py` 发现合同 §6 仍写 `149` 地址（92 base + 56 runtime + 1 control）与 53 runtime mounts，而路由清单已随新路由变为 `150`/57/54。本地只跑了 `test_contract_route_inventory.py`，漏跑了 number consistency 测试**（本地验证的遗漏，不是断言问题）**。修复 `a0b4edf6` 同步 §6 表格与段落计数，未放宽任何断言；修复后本地 `test_contract_number_consistency.py` + `test_contract_route_inventory.py` **15/15**。
 - 双端读回：`origin/main` = `e9f4b08f`；本地 `main` 已 fast-forward 同步。
 - 边界：CI 只覆盖 git 干净检出与合成数据；周期巡检的 300s 间隔无真实进程旅程；安装态、真实数据与 Owner 接受仍未触碰。
+
+#### 2026-11-04 P1：只读 OpenMAIC 课程包投影（本地切片）
+
+- 授权依据：活动指针 `execution_control.owner_full_authorization_20261103.authorized` 第 5 条（"build the minimal read-only OpenMAIC course-package projection before any server-side course validation"）。
+- 实现：domain `course::openmaic_package_projection(conn, document_ids)`（1–64 个唯一有界 ID）；路由 `POST /api/v1/courses/openmaic/package-projection`（**human only**，body ≤ 65,536 B）返回 `archeaxis.openmaic-course-package-projection/v1`：`scene_count`、`reported_scene_count`、`non_scene_document_count`、`by_scene_type`、`playable`/`not_playable`/`unknown` 计数、`all_playable`，以及逐场景 `lossless`/`omitted_field_count`/`unsupported_count` 和固定 `server_validation: NONE`、`renderer_executed: false`、`rendering_authorized: false`。
+- 只读与诚实边界：只引用 Core 已记录的 projection/render report，并逐个对持久化场景复核（`openmaic_projection(request_frame)` 与 `openmaic_render_contract(scene)` 与存储值相等才引用）；旧 v1 候选、被改写的报告、普通非候选文档、缺失 ID 一律标 `playability: unknown`，不猜可播放；`all_playable` 仅当所有文档都是已记录且可播放的场景时为 true。**不解析课程载荷、不渲染、不做服务端课程校验/拒绝、不写入**，也不新增持久化。
+- 验证（本地）：新增 `crates/archeaxis-api/tests/openmaic_package_projection.rs` **4/4**（全记录混合类型、不可播放+旧版+非候选+缺失分别如实标注、被编辑报告不被采信、human-only 与 1–64/唯一/未知字段边界）；`contract_general_course` **6/6**（既有课程写入/渲染/重启语义不变）；合同清单与计数 **15/15**；文档门禁、仓库约定通过；rustfmt clean。
+- 合同同步：`docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 第 3 节 150→151 pairs，新增第 244 行；§6 文本/段落计数 151 addresses（92 base + 58 runtime + 1 control，55 runtime mounts）。
+- 边界：document ID 由调用方给出，Core 没有"课程→场景"服务端索引，也没有课程 manifest 校验或四消费者（研究/学习/工作区/导出）接线；不声称完整多场景课程产品链，也未接真实本地模型生成；未做真实 Node 多场景课程旅程（本切片不需要 worker）。
