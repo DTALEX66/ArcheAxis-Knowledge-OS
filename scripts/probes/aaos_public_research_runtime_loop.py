@@ -31,11 +31,11 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def checked_channels(receipt):
+def checked_channels(receipt, expected=FAMILIES):
     require(receipt.get("state") == "complete", "public search is not complete")
     channels = receipt.get("channels", [])
-    require(len(channels) == 3, "expected exactly three public channels")
-    require({c.get("family") for c in channels} == set(FAMILIES), "channel identity mismatch")
+    require(len(channels) == len(expected), "expected one channel per requested family")
+    require({c.get("family") for c in channels} == set(expected), "channel identity mismatch")
     for channel in channels:
         require(channel.get("status") == "complete", "channel is not complete")
         require(len(channel.get("hits", [])) == 1, "each channel must return one real hit")
@@ -125,11 +125,14 @@ def main():
     parser.add_argument("--public-query", required=True, help="Public text sent to all three providers")
     parser.add_argument("--public-network", action="store_true", help="Explicitly enable public requests")
     parser.add_argument("--backup", action="store_true", help="Also require Core backup creation")
+    parser.add_argument("--families", nargs="+", choices=FAMILIES, default=list(FAMILIES),
+                        help="Measured families; a subset records the rest as not measured, never as passed")
     args = parser.parse_args()
     if not args.public_network:
         parser.error("execution requires --public-network; no request has been sent")
     if not args.public_query.strip() or len(args.public_query.encode("utf-8")) > 512:
         parser.error("public-query must contain 1-512 UTF-8 bytes")
+    families = sorted(set(args.families))
     spec = importlib.util.spec_from_file_location(
         "public_loop_office", REPO / "scripts/probes/aaos01_office_runtime_loop.py"
     )
@@ -212,8 +215,13 @@ def main():
         source_before = source_identity()
         candidate_before = candidate_identity()
         receipt.update({"source": source_before, "candidate_files": candidate_before,
+                        "families": families,
                         "probe": office.identity(Path(__file__)),
                         "lockfile": office.identity(REPO / "uv.lock")})
+        if len(families) != len(FAMILIES):
+            receipt["limitations"].append(
+                "Only the requested families were measured; the remaining public channels are NOT_EXECUTED "
+                "in this run and are not reported as passed")
         child, base, token, worker = hidden_start(office, candidate, work, launcher)
         receipt.update({"pid": child.pid, "launch_worker": worker})
         call("version", "GET", "/api/v1/system/version")
@@ -222,11 +230,11 @@ def main():
         request_id = "public-loop-" + uuid.uuid4().hex
         target = {**scope, "request_id": request_id}
         search = call("public_search", "POST", "/api/v1/research/public/search",
-                      {**target, "query": args.public_query, "families": list(FAMILIES), "limit": 1},
+                      {**target, "query": args.public_query, "families": families, "limit": 1},
                       timeout=180)
         receipt["evidence_level"] = "REAL_CORE_PUBLIC_NETWORK"
         require(search.get("request_id") == request_id, "search receipt identity mismatch")
-        channels = checked_channels(search)
+        channels = checked_channels(search, families)
         materials, selected, anchors = [], [], []
         for channel in channels:
             family, hit = channel["family"], channel["hits"][0]
@@ -351,7 +359,8 @@ def main():
             require(preview.get("verified") is True and preview.get("compatible") is True,
                     "backup restore preflight failed")
         receipt.update({"ok": True, "status": "PARTIAL", "verified_subset": [
-            "three live public channels", "raw and derived original hashes", "fixed source references",
+            f"{len(families)} live public channel(s) of {len(FAMILIES)}", "raw and derived original hashes",
+            "fixed source references",
             "derived text anchors and original readback", "research draft save",
             "restart equal readback", "document package and Markdown manifest",
         ]})
