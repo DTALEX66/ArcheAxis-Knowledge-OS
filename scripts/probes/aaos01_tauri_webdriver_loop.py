@@ -310,7 +310,7 @@ def owned_exit_timeout_snapshot(host, launch_identity, work):
     return result
 
 
-def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt, *, confirm_synthetic=None, diagnose_timeout=None):
+def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt, *, confirm_synthetic=None, diagnose_timeout=None, release_session=None):
     """Exit ACK may disappear with WebView; only this owned process's exit 0 qualifies."""
     assert launch_identity and launch_identity["pid"] == host.pid, "Owned launch identity missing"
     assert any(row["pid"] == host.pid and row["created"] == launch_identity["created"]
@@ -352,6 +352,23 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
             "enabled": confirm_synthetic is not None,
             "elapsed_ms": round((time.monotonic() - confirmation_started) * 1000, 3),
             "owned_yes_posted": record.get("native_confirmation", {}).get("posted") is True}
+    # No native dialog appeared and the host is still alive: the product already
+    # recorded its app-exit sequence but the WebView2/WebDriver attachment kept the
+    # process open. On installed CI runs 41826675383 and 41837406520 the host ended
+    # only once another WebDriver command arrived, so release the owned session here
+    # (never when an owned YES was posted) and let the bounded wait judge the exit.
+    if release_session is not None and host.poll() is None and not record["confirmation_observation"]["owned_yes_posted"]:
+        release_started = time.monotonic()
+        try:
+            release_session()
+            record["session_release"] = {
+                "status": "REQUESTED", "elapsed_ms": round((time.monotonic() - release_started) * 1000, 3)}
+        except Exception as error:
+            # Releasing only detaches the driver. The owned process exit stays the
+            # qualification, so a close refusal is recorded and the wait still runs.
+            record["session_release"] = {
+                "status": "FAILED", "error_type": type(error).__name__,
+                "elapsed_ms": round((time.monotonic() - release_started) * 1000, 3)}
     # A confirmation that consumed the whole shared budget must not turn this into
     # wait(0.0): that fails instantly without observing anything and used to be
     # reported as if the owned host had failed to exit. Keep the budget field
@@ -1919,7 +1936,7 @@ def main():
 
     driver_transport = OwnedWebDriverTransport(port)
 
-    def request(method, path, body=None):
+    def request(method, path, body=None, timeout=None):
         data = None if body is None else json.dumps(body).encode()
         req = Request(
             f"http://127.0.0.1:{port}" + path,
@@ -1928,7 +1945,7 @@ def main():
             headers={"Content-Type": "application/json"},
         )
         try:
-            timeout = args.session_timeout if method == "POST" and path == "/session" else 45
+            timeout = timeout or (args.session_timeout if method == "POST" and path == "/session" else 45)
             with driver_transport.open(req, timeout=timeout) as response:
                 value = json.load(response)["value"]
         except HTTPError as error:
@@ -2165,7 +2182,8 @@ def main():
                 "args": []}), receipt,
             confirm_synthetic=lambda record, timeout: confirm_owned_synthetic_close(
                 owned_host, identity_record, record, timeout),
-            diagnose_timeout=lambda: owned_exit_timeout_snapshot(owned_host, identity_record, work))
+            diagnose_timeout=lambda: owned_exit_timeout_snapshot(owned_host, identity_record, work),
+            release_session=lambda: request("DELETE", f"/session/{session}", timeout=10))
         if session:
             # Host has already verifiably exited with code 0.
             with suppress(OSError, RuntimeError):

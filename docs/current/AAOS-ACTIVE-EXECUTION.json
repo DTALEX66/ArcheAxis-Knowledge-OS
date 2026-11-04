@@ -211,12 +211,26 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "installer_exit_wait_floor_20261104": {
-      "state": "FLOOR_RAISED_TO_10S_LOCAL_ONLY_MERGE_AND_FULL_CI_PENDING",
+      "state": "FLOOR_10S_STILL_TOO_SHORT_SESSION_RELEASE_FIX_LOCAL_ONLY",
       "cause": "The synthetic native confirmation could consume the whole 15-second shared exit budget, leaving a zero remainder that turned host.wait into wait(0.0): an instant TimeoutExpired misreported as a failed owned exit (PR #255 first run).",
       "fix": "MIN_EXIT_OBSERVATION_SECONDS (10.0, raised 0.5 -> 5.0 -> 10.0 by installed-run and full-CI evidence) replaces the zero wait only when the budget is exhausted; the receipt records budget_exhausted_by_confirmation and, when the floor applies, wait_timeout_floor_seconds beside the unchanged shared_exit_budget_seconds, and wait_timeout_seconds now carries the actual wait.",
       "unchanged": "The over-budget confirmation assertion, first-timeout preservation and diagnostic snapshot ordering, and the rule that only this owned process exiting 0 qualifies are untouched.",
-      "evidence": "Local: tests/test_native_exit_ack.py and tests/test_native_navigation_entry.py now assert the 10.0 floor and pass 139/139 (67.74s). History: the 0.5 floor was too short in the installed journey at 41767729062 (live host at 500ms), and the 5.0 floor passed force-full run 41774030014 only because that run never exhausted the confirmation budget (waits 14.75s/15s). The 5.0 floor was then triggered on full CI run 41826675383 at f1d64b26: the installed journey ack was CONFIRMED in 172ms, budget_exhausted_by_confirmation was true, wait_timeout_floor_seconds/wait_timeout_seconds were 5.0, and the wait TIMEOUTed at 5000ms while the snapshot already recorded the full app exit sequence, so the host teardown under load exceeded the window rather than the product refusing to exit.",
-      "pending_delivery": "Uncommitted local changes: scripts/probes/aaos01_tauri_webdriver_loop.py, tests/test_native_exit_ack.py and tests/test_native_navigation_entry.py; exact-SHA CI, merge and a follow-up force-full installer-lifecycle run are still required before this 10.0 floor can be called installed evidence.",
+      "evidence": "Local: tests/test_native_exit_ack.py and tests/test_native_navigation_entry.py now assert the 10.0 floor and pass 142/142. History: the 0.5 floor was too short in the installed journey at 41767729062 (live host at 500ms), and the 5.0 floor passed force-full run 41774030014 only because that run never exhausted the confirmation budget (waits 14.75s/15s). The 5.0 floor was triggered on run 41826675383 at f1d64b26 (TIMEOUT at 5000ms), and the merged 10.0 floor was triggered on run 41837406520 at 90e07da6 (TIMEOUT at 10000ms): both receipts show the full app exit sequence finished at ~2.6-2.9s and the process ending only when the cleanup's second WebDriver exit command arrived, so the lingering was a WebDriver/WebView2 attachment rather than a longer natural teardown.",
+      "session_release_fix": {
+        "status": "LOCALLY_VERIFIED_NOT_YET_IN_INSTALLED_CI",
+        "change": "request_owned_product_exit accepts an optional release_session callback and calls DELETE /session/<id> (local 10s bound) after the confirmation loop only when the host is still alive and no owned YES was posted; the receipt records session_release REQUESTED or FAILED. A posted native YES keeps the session. request() gained an optional timeout argument with unchanged defaults.",
+        "tests": "Three new cases in tests/test_native_exit_ack.py cover release-before-wait, no release after an owned YES, and a recorded release failure that still requires the owned exit; both harness files pass 142/142.",
+        "pending": "Exact-SHA CI, merge and a force-full installer-lifecycle run are still required; the exit rule itself is unchanged."
+      },
+      "delivery_10s": {
+        "pull_request": 282,
+        "head_sha": "ce1da070",
+        "merge_commit": "90e07da686209889afbcba8d5314b28ae982ed2a",
+        "exact_sha_run": 41833961739,
+        "gates": "gateplan, lint, test (3.12) and a0-gates success; other jobs skipped by path",
+        "full_ci_run": "41837406520 (force_full on 90e07da6): every gate but installer-lifecycle succeeded; installer-lifecycle timed out again at the 10.0 floor, so the floor alone is not the fix.",
+        "pending": "The session-release change must pass exact-SHA CI, be merged and then pass a force-full installer-lifecycle run before the installed exit evidence is closed."
+      },
       "delivery": {
         "pull_request": 262,
         "head_sha": "ec39cf8b",
@@ -240,6 +254,11 @@
         "receipt": ".project-local/runs/be268a2d33/03d213570808/artifacts/public-research-receipt.json",
         "result": "All three primary channels complete in one run: community stackexchange:academia:question:51974, encyclopedia wikipedia:en:10806718:1376788556 (CC BY-SA 4.0), research https://openalex.org/W3213369587; accepted knowledge k_2606d7f11e79c1acda5869c5, restart equal, backup verified sha256 41c77164...",
         "reachability_note": "Wikimedia directs are intermittent on this host: the same day produced both TCP timeouts and this successful Core run, so this run is not proof of stable reachability."
+      },
+      "repeats_20261104": {
+        "runs": ["public-research-fallback-20261104", "public-research-fallback2-20261104", "public-research-fallback3-20261104"],
+        "result": "Three consecutive three-family runs on staged-20261104b returned every primary channel complete (stackexchange, wikipedia, openalex), each with originals, fixed references, anchors and resolve, research draft, package and Markdown manifest, human-accepted knowledge, equal restart readback and a verified backup; PARTIAL reflects only the declared restore NOT_EXECUTED.",
+        "fallback_note": "curl returned 000 for en.wikipedia.org during these runs, but the Core worker still received wikipedia complete each time, so the DBpedia fallback was not triggered through Core; its evidence stays the worker-level offline-to-dbpedia observation plus worker and domain rejection cases."
       },
       "receipt": ".project-local/runs/be268a2d33/e700676c56a9/artifacts/public-research-receipt.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
