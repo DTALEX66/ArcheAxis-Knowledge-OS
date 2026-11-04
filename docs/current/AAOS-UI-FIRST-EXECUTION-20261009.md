@@ -4234,9 +4234,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本地验证：`tests/test_native_exit_ack.py` + `tests/test_native_navigation_entry.py` **139 passed**（67.74s）；`scripts/ci/check_document_authority.py` 通过。
 - 交付：PR **#282**（head `ce1da070`）以 merge commit `90e07da6` 合并；精确 SHA CI（run `41833961739`）`gateplan`/`lint`/`test (3.12)`/`a0-gates` 全部 success，其余按路径跳过。随后在合并后的 `90e07da6` 上触发 `workflow_dispatch + force_full`（run `41837406520`）以验证安装态 `installer-lifecycle`。
 - **10s 仍不够**：run `41837406520` 除 `installer-lifecycle`（连带 `a0-gates`）外全部 required gates success；安装态旅程回执 `wait_timeout_floor_seconds = 10.0`、`wait_result = TIMEOUT`、`wait_elapsed_ms = 10000.0`、`request_to_timeout_ms = 25297.0`，确认仍耗尽 15s 预算。`host_close_trace` 再次显示 `EXIT_COMMAND → … → RUN_EXIT_REQUESTED_RETURN` 在 **2.9s** 内完成，而进程直到 finally 的**第二次退出命令**（ack 15ms、wait 0ms）才退出——两次失败（5s 与 10s 回退）都恰好在发送下一条 WebDriver 命令的瞬间退出，说明不是自然 teardown 时长，而是 **WebDriver/WebView2 会话附着使宿主进程在退出序列完成后仍被保持**。
-- 根因修复（探针，不放宽产品退出规则）：`request_owned_product_exit` 在确认循环结束、宿主仍存活且**没有发出 owned YES** 时调用新增的可选 `release_session`（`DELETE /session/<id>`，局部 10s 上限），记录 `session_release`（`REQUESTED`/`FAILED`）；随后仍由同一个有界 wait 判定“本进程自然退出 0”。dirty 草稿路径一旦已发出 owned YES 就不释放会话，保持原有原生日志确认语义。`request` 增加可选 `timeout` 参数（默认行为不变）。
+- 首轮尝试（**本次修复未成立，见下一条**）：`request_owned_product_exit` 在确认循环结束、宿主仍存活且**没有发出 owned YES** 时调用可选 `release_session`（`DELETE /session/<id>`，局部 10s 上限），记录 `session_release`（`REQUESTED`/`FAILED`）；随后仍由同一个有界 wait 判定“本进程自然退出 0”。dirty 草稿路径一旦已发出 owned YES 就不释放会话。`request` 增加可选 `timeout` 参数（默认行为不变）。
 - 测试：`tests/test_native_exit_ack.py` 新增三例——释放先于 wait 且记录、已发 owned YES 时不释放、释放失败被记录且不替代退出要求；连同 `test_native_navigation_entry.py` **142 passed**（64.45s）。
-- 边界：修复只在探针与会话 teardown 层；尚未在安装态 CI 确认，`installer-lifecycle` 通过后才可记为安装态证据。仍非 Owner 接受、非真实用户数据、安装器未签名。
+- 交付：PR **#283**（head `fbc7dab8`）以 merge commit `b0c5e308` 合并；精确 SHA CI（run `41844169031`）`gateplan`/`lint`/`test (3.12)`/`a0-gates` 全部 success。随后在合并后的 `b0c5e308` 上触发 `workflow_dispatch + force_full`（run `41847524167`）。
+- **DELETE 会话更糟**：run `41847524167` 除 `installer-lifecycle`（连带 `a0-gates`）外全部 required gates success；安装态回执 `session_release: REQUESTED`（0ms）后仍 `TIMEOUT`（`wait_elapsed_ms 10000`），第二次尝试因会话已删除得到 `TRANSPORT_CLOSED / invalid session id`、无法再发任何命令，宿主仍未退出；该次 `host_close_trace` 连 `RUN_EXIT_REQUESTED` 事件都未出现。结论：删除会话既没有释放宿主，还去掉了唯一能唤醒附着会话的命令通道；不能把 DELETE 当作修复保留。
+- 改为**保留会话的有界唤醒（nudge）**：确认循环后宿主仍存活且没有发出 owned YES 时，`nudge_exit` 重新调用**同一个** `exit_application` 命令（记录 `exit_nudge` 的 `CONFIRMED`/`UNEXPECTED_REPLY`/`FAILED`），然后仍由同一个有界 wait 判定“本进程自然退出 0”。这与两次失败样本中“第二次退出命令到达后宿主立刻退出”的行为一致，且不新增第二次用户退出请求、不改变 dirty 草稿的 owned YES 路径。
+- 测试：`tests/test_native_exit_ack.py` 的三例改为 nudge 先于 wait、已发 owned YES 不 nudge、nudge 失败被记录且不替代退出要求；连同 `test_native_navigation_entry.py` **142 passed**（66.93s）。
+- 边界：nudge 修复尚未提交/未在安装态 CI 确认；`installer-lifecycle` 在合并 SHA 的全量 CI 通过后才可记为安装态证据。仍非 Owner 接受、非真实用户数据、安装器未签名。
 
 #### 2026-11-04 J2 三通道在当前候选上连续三次复跑（DBpedia 回退未触发）
 

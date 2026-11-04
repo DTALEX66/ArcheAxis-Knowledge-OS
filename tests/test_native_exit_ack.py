@@ -224,27 +224,27 @@ def test_a_partly_consumed_budget_keeps_the_real_remaining_window():
     assert attempt["wait_result"] == "RETURNED"
 
 
-def test_session_release_precedes_the_owned_wait_and_is_recorded():
+def test_harness_nudge_precedes_the_owned_wait_and_is_recorded():
     host = Mock(pid=12)
     host.poll.side_effect = [None, None, 0]
     order = []
     host.wait.side_effect = lambda timeout: order.append(("wait", timeout)) or 0
-    release = Mock(side_effect=lambda: order.append(("release",)))
+    nudge = Mock(side_effect=lambda: order.append(("nudge",)) or {"ok": True, "value": None})
     receipt = {}
     exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}],
-               Mock(return_value={"ok": True, "value": None}), receipt, release_session=release)
-    assert order == [("release",), ("wait", 15)]
-    release.assert_called_once_with()
+               Mock(return_value={"ok": True, "value": None}), receipt, nudge_exit=nudge)
+    assert order == [("nudge",), ("wait", 15)]
+    nudge.assert_called_once_with()
     attempt = receipt["requested_product_exits"][0]
-    assert attempt["session_release"]["status"] == "REQUESTED"
+    assert attempt["exit_nudge"]["status"] == "CONFIRMED"
     assert receipt["host_shutdowns"][0]["exited"] is True
 
 
-def test_posted_native_yes_keeps_the_session_until_the_owned_exit_finishes():
+def test_posted_native_yes_is_never_nudged_and_keeps_the_original_exit():
     host = Mock(pid=12)
     host.poll.side_effect = [None, None, 0]
     host.wait.return_value = 0
-    release = Mock()
+    nudge = Mock()
     receipt = {}
 
     def confirm(record, timeout):
@@ -253,26 +253,27 @@ def test_posted_native_yes_keeps_the_session_until_the_owned_exit_finishes():
 
     exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}],
                Mock(return_value={"ok": True, "value": None}), receipt,
-               confirm_synthetic=confirm, release_session=release)
-    release.assert_not_called()
+               confirm_synthetic=confirm, nudge_exit=nudge)
+    nudge.assert_not_called()
+    assert "exit_nudge" not in receipt["requested_product_exits"][0]
     assert receipt["requested_product_exits"][0]["confirmation_observation"]["owned_yes_posted"] is True
     host.wait.assert_called_once_with(timeout=10)
 
 
-def test_release_refusal_is_recorded_and_the_owned_exit_is_still_required():
+def test_nudge_failure_is_recorded_and_the_owned_exit_is_still_required():
     host = Mock(pid=12)
     host.poll.return_value = None
     error = subprocess.TimeoutExpired("owned-host", 15)
     host.wait.side_effect = error
-    release = Mock(side_effect=ProtocolError({"error": "invalid session id"}))
+    nudge = Mock(side_effect=ProtocolError({"error": "invalid session id"}))
     receipt = {}
     with pytest.raises(subprocess.TimeoutExpired) as raised:
         exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}],
-                   Mock(return_value={"ok": True, "value": None}), receipt, release_session=release)
+                   Mock(return_value={"ok": True, "value": None}), receipt, nudge_exit=nudge)
     assert raised.value is error
     attempt = receipt["requested_product_exits"][0]
-    assert attempt["session_release"]["status"] == "FAILED"
-    assert attempt["session_release"]["error_type"] == "WebDriverProtocolError"
+    assert attempt["exit_nudge"]["status"] == "FAILED"
+    assert attempt["exit_nudge"]["error_type"] == "WebDriverProtocolError"
     assert attempt["wait_result"] == "TIMEOUT" and "host_shutdowns" not in receipt
     host.wait.assert_called_once_with(timeout=15)
 
