@@ -255,6 +255,13 @@
       "receipt": ".project-local/task-runtime/aaos01-fault/74bb50270eaa40d9b62d699e9f04a9e6/receipt.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "exchange_export_real_20261104": {
+      "state": "MARKDOWN_AND_OBSIDIAN_EXPORT_READ_BACK_REAL_EXTERNAL_APP_NOT_RUN",
+      "measured": "Both markdown and obsidian exports wrote document.md plus manifest.json with per-file hashes and a projection fingerprint, read back equal after restart, preserved the CAS original and refused an unsafe profile reference.",
+      "limits": "Markdown is a text projection; structured and unknown nodes are preserved only in manifest.json; no external navigation handler; an unsupported editor node is reported as partial metadata; the external Obsidian application was not launched.",
+      "receipt": ".project-local/task-runtime/aaos01-exchange/1188db918bfb4209968b4c83b5076fcf/receipt.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {
