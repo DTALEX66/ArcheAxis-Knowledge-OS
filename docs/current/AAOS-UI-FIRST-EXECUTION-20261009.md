@@ -4224,3 +4224,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 修复：`crates/archeaxis-api/src/runtime/colearning.rs` 中，带 frozen `client_request_id` 的请求等待 `effective_timeout + 10`（上限 130s，覆盖声明预算 1–120s）；无冻结身份的并发请求仍保留 10s 快速 busy 拒绝。新增回归测试 `frozen_answer_duplicate_waits_past_the_old_admission_window_and_replays_once`：worker 故意 sleep 12s，两个并发同身份请求必须均 200、worker 只执行一次、重启后回放相同结果。
 - 本地验证：`context_grant_api` **8/8** 通过（12.17s）；`archeaxis-api` 全包中 `oss_template_reuse::parsers_run_through_core_and_outputs_survive_reopen` 的 OCR 失败经核实为本地环境 `TESSDATA_PREFIX` 指向非声明路径，改用声明路径后 **2/2** 通过，与本修复无关。
 - 边界：新 SHA 的 rust-vnext/全量 CI 结果待合并后另记；本地 8/8 与 2/2 只是本地证据。
+
+#### 2026-11-04 “并发重试 429 修复”合并与第二次全量 CI（唯一失败为安装态退出窗口）
+
+- PR **#281**（head `b4b2dd39`）以 merge commit `f1d64b26` 合并；精确 SHA CI（run `41824423128`）conclusion success。
+- 对合并后的 `f1d64b26` 再次触发 `workflow_dispatch + force_full` 全量 CI（run `41826675383`）：`gateplan`/`lint`/`test (3.12)`/`py-compat 3.11+3.13`/`format-targeted`/`migration-targeted`/`security-targeted`/`wheel-smoke`/`browser-smoke`/`windows-runtime-smoke`/`contracts-vnext`/`workers-vnext`/`green-candidate-vnext`/`desktop-fast`/`desktop-vnext`/`desktop-build`/`rust-vnext` 全部 success——**并发重试 429 修复在全量 CI 的 rust-vnext 上得到确认**；唯一失败为 `installer-lifecycle`，`a0-gates` 随之失败。
+- 失败回执（安装态 Tauri WebDriver 旅程 `receipt.json`）：`requested_product_exits[0].ack = CONFIRMED`（172ms）、`shared_exit_budget_seconds = 15`、`budget_exhausted_by_confirmation = true`、`wait_timeout_floor_seconds = 5.0`、`wait_timeout_seconds = 5.0`、`wait_result = TIMEOUT`、`wait_elapsed_ms = 5000.0`，错误 `TimeoutExpired: ... timed out after 5.0 seconds`；snapshot 已记录完整 app 退出序列（`APP_EXIT_REQUESTED → APP_EXIT_DISPATCH_RETURNED → RUN_EXIT_REQUESTED_ENTER → RUN_EXIT_REQUESTED_RETURN`），说明宿主 teardown 在负载下超过 5s，而非产品未退出。随后 finally 的第二次 cleanup exit `ack CONFIRMED`（15ms）、`wait_timeout 14.938`、`RETURNED`（0ms），但按既有规则不改写首次失败尝试；`verify_nsis_install.ps1` 因此抛出 `actual installed Tauri WebDriver journey failed`。
+- 修复：`scripts/probes/aaos01_tauri_webdriver_loop.py` 的 `MIN_EXIT_OBSERVATION_SECONDS` 由 `5.0` 提高到 `10.0`（沿此前证据链 0.5 → 5.0 → 10.0），注释记录 run `41826675383`；该值仍是**有界观察窗口**、不放宽“只有本进程自然退出 0 才算通过”、不改变确认超预算断言、首次 `TimeoutExpired` 保留和诊断快照语义。`tests/test_native_exit_ack.py` 与 `tests/test_native_navigation_entry.py` 的固定断言同步为 `10.0`。
+- 本地验证：`tests/test_native_exit_ack.py` + `tests/test_native_navigation_entry.py` **139 passed**（67.74s）。
+- 边界：10s 只是本机定向测试证据；须在新 SHA 精确 CI 与随后全量 CI 的 `installer-lifecycle` 上确认才可记为安装态通过。仍非 Owner 接受、非真实用户数据、安装器未签名。
