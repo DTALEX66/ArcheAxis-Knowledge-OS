@@ -262,6 +262,13 @@
       "receipt": ".project-local/task-runtime/aaos01-exchange/1188db918bfb4209968b4c83b5076fcf/receipt.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "light_formats_real_20261104": {
+      "state": "NINE_EXTENSIONS_AND_FOUR_NEGATIVES_REAL_NOT_INSTALLED",
+      "measured": "csv, tsv, json, jsonl, yaml, toml, xml, eml and epub each ran real import, job execution and readback, with four verified negative samples; wave B per-format Rust document files were exported and native format receipts preserved as unknown nodes.",
+      "limits": "No native Obsidian application; EPUB source facts are asserted against the fixture with an immutable locator, original visual layout not rendered; audio and video remain media.probe only with no decoding, ASR or time-range claim.",
+      "receipt": ".project-local/task-runtime/aaos01-light/50685e064dcc4c298fd8483d1c441c0f/receipt.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {

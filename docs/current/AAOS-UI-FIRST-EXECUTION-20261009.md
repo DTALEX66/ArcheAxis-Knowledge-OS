@@ -4131,3 +4131,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - `markdown` 与 `obsidian` 两种导出各自写出 `document.md` + `manifest.json`，逐文件哈希与投影指纹记录，`restart_equal: true`；`cas_original_equal: true`；不安全 profile 引用被拒绝（`unsafe_profile_refused: true`）。
 - 损失如实记录在 manifest：Markdown 是文本投影、结构化/未知节点在 manifest 保全、无外部导航处理器、未知编辑器节点 `UNSUPPORTED_EDITOR_NODE`（`metadata_status: PARTIAL`）。
 - **外部 Obsidian 应用未启动**（`external_application: NOT_EXECUTED`），因此这不是 J3 外部往返或 J1 安装态验收。
+
+#### 2026-11-04 CL-02 轻量格式真实链（9 扩展名 + 4 负样本，wave B）
+
+- 回执 `.project-local/task-runtime/aaos01-light/50685e064dcc4c298fd8483d1c441c0f/receipt.json`：`ok: true`。
+- `verified_content_extensions` **9 项**：csv、tsv、json、jsonl、yaml、toml、xml、eml、epub；`verified_negative_sample_count` **4**。全部走真实 import → job → 结果读回。
+- `evidence_scope: CORE_WORKER_API_AND_FILE_READBACK_NOT_INSTALLED_UI`；`export_scope`：wave B 逐格式 Rust document files，原生格式回执作为 unknown node 保全。
+- 回执自带限制：Obsidian 原生应用未启动；EPUB 章节/段落事实对照 fixture，定位器绑定不可变源、job/attempt、段落与结果 SHA，原始视觉版式未渲染；音视频仅 `media.probe`，无解码/ASR/时间段内容主张。
