@@ -258,6 +258,15 @@
       "receipt": ".project-local/runs/be268a2d33/6d833f3811f1/artifacts/j1-batch-folder.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "x5_j1_merge_20261104": {
+      "state": "MERGED_REQUIRED_GATES_SUCCESS_NOT_INSTALLED",
+      "head": "93db8e05",
+      "merge_commit": "9306a8ee",
+      "ci_run": "41805099846",
+      "gates": "gateplan, lint and a0-gates success; other jobs skipped by path",
+      "note": "Local and origin main are identical at the merge commit; the merged branch is deleted. Evidence stays local-only and remains not installed and not Owner-accepted.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "x5_fault_probe_20261104": {
       "state": "PASSED_FOUR_CASES_ON_STAGED_RUNTIME_NOT_INSTALLED",
       "passed": "All four cases passed on a staged runtime (version 0.6.15, manifest aa752bbb...): timeout, cancel and crash each reached the correct terminal state with no published outputs, the owned fault worker's parent PID equalled the captured Core PID and exited after the terminal state, a following recovery job succeeded and read back the original text; real invalid UTF-16 input failed with no outputs and the same recovery.",
