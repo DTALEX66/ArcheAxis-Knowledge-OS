@@ -4077,6 +4077,7 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
   2. **`rust-vnext` 同 SHA rerun 通过**：`pdf_health_observes_actual_dependency_without_a_document` 以 2s worker hello 超时失败（`handshake_failed`），同 SHA rerun 通过。按负载敏感 flake 记录，未放宽断言。
 - 同一全量 CI 的 `installer-lifecycle` 用 0.5s 回退窗口仍失败（详见上一小节 CI 实测）；回退窗口已改为 5s，等待下一次安装态 rerun 确认。
 - 边界：`force_full` 的并发组按 main 最新 SHA 取消旧 run（`41759930318` 因同 SHA 派发被行政取消），不是失败；安装态仍是 CI runner 合成数据，不等于 Owner 机器接受。
+- **5s 回退窗口的全量复验**：`main` 合并 `709dd9be` 后再次 `force_full`（run `41774030014`）conclusion **success**，`desktop-build`/`installer-lifecycle`/`rust-vnext`/`test (3.12)`/`a0-gates` 全部 success；`pdf_health` hello 这次一次通过（前次失败确为负载敏感 flake）。安装态 journey 回执 `ok: true`，但两次退出尝试的 `budget_exhausted_by_confirmation` 均为 false、等待 14.75s/15s、93ms/109ms 即 `RETURNED`——**本次没有重新进入"确认耗尽预算"分支**，5s 回退窗口只由单元测试覆盖，尚未在安装态实测触发。如实保留该证据层级。
 
 #### 2026-11-04 授权内后端队列收尾审计（证据分层）
 
