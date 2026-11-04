@@ -271,6 +271,17 @@
       "latest_repeat": ".project-local/runs/be268a2d33/5b454c3ffb58/artifacts/j1-batch-folder.json (re-run on the DBpedia-commit candidate 0087f69f; three passes 6 enqueued / 7 skipped with zero Core calls / 1 re-processed after fix, backup and maintenance restore)",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "install_acceptance_20261104": {
+      "state": "SILENT_ISOLATED_INSTALL_JOURNEY_PASSED_UNINSTALLED_NOT_OWNER_ACCEPTED",
+      "authorization": "Owner explicitly authorized an isolated install and journey without touching Green, real data or publication.",
+      "installer": "ArcheAxis Knowledge_0.6.14_x64-setup.exe, 82,839,919 bytes, sha256 f7f9abbf...; host ArcheAxis.exe sha256 b8fddaa4...; host built from working-tree HEAD fd25ece6 while the bundled backend candidate records source_commit 0087f69f (format-only difference, not one exact identity).",
+      "install": "Silent currentUser install to .project-local/install-acceptance-20261104/app exited 0; installed backend manifest sha256 1ba96a6a... equals the staged candidate, core sha256 b3624aa9..., runtime python sha256 08178617..., transport and deeptutor workers present.",
+      "journey": "22-step real-core journey ran on the installed core/runtime/workers (--worker-root) and passed, including material import, quiz, grants, answers, grading, disposition, restart readback, startup finalization, verified live backup, backup list across restart, verified restore preview and a maintenance restore into an independent database served by a new Core.",
+      "receipt": ".project-local/install-acceptance-20261104/journey-receipt.json",
+      "uninstall": "uninstall.exe /S exited 0, the install directory was removed and no ArcheAxis entry remained under HKCU Uninstall; workspace and receipt stay in the ignored directory.",
+      "limits": "No Tauri/WebView2 UI WebDriver journey; the journey script's static boundary text still says not installed, which this record corrects by the actual install path and installed binary identities; not Owner acceptance or real user data; the installer is unsigned.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "encyclopedia_dbpedia_fallback_20261104": {
       "state": "IMPLEMENTED_AND_TESTED_FALLBACK_ONLY",
       "decision": "Owner chose an alternative free encyclopedia source while Wikimedia directs keep timing out; Wikipedia stays the primary channel.",

@@ -4186,3 +4186,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - J2（run `03d213570808`，回执 `.project-local/runs/be268a2d33/03d213570808/artifacts/public-research-receipt.json`）：`ok: true`、`status: PARTIAL`、`REAL_CORE_PUBLIC_NETWORK`、`source_consistent/candidate_consistent: true`；**三族主通道全部 complete**——community `stackexchange:academia:question:51974`、encyclopedia `wikipedia:en:10806718:1376788556`（CC BY-SA 4.0）、research `openalex.org/W3213369587`；含原件哈希、固定引用、anchor 定位与 resolve、研究草稿、Markdown 导出、人工接纳知识 `k_2606d7f11e79c1acda5869c5`、重启读回相等与 `verified` 备份（sha `41c77164…`）。
 - 同候选 J1：批次链 `5b454c3ffb58/artifacts/j1-batch-folder.json` `ok: true`（6 enqueued + 1 imported_no_job、第二轮 7/7 跳过 0 Core 调用、修复后仅 1 文件重跑、备份与独立数据库恢复）；四格式 `6f005529c989/artifacts/common-formats.json` `ok: true`（docx/xlsx/pptx/pdf 的 selected content→anchor→重解析→重启相等）。
 - 边界：Wikipedia 可达性在本机不稳定（同一天既有超时也有成功），因此“三通道全通”只对应该次运行；DBpedia 回退仍是主通道失败时的真实可用通道。非安装态、非 Owner 接受。
+
+#### 2026-11-04 隔离安装与安装态业务旅程（Owner 授权）
+
+- 授权：Owner 明确“授权隔离安装与旅程”——只安装到本机隔离目录，使用合成材料，不覆盖 Green/真实库、不发布，安装与卸载各自留回执。
+- 构建：从当前分支源码本地构建（`dev.py -- node scripts/runtime/frontend.mjs tauri ... --bundles nsis`，运行时资源为 `.project-local/rt` 指向当前 staged 候选 `staged-20261104b` 的 junction）；Tauri 编译 152.9s、NSIS 93.6s。产物：安装器 `ArcheAxis Knowledge_0.6.14_x64-setup.exe`，82,839,919 B、sha256 `f7f9abbf…`；宿主 `ArcheAxis.exe` sha256 `b8fddaa4…`。**身份边界**：宿主按工作树 HEAD `fd25ece6` 构建，而打包的后端候选 manifest 记 `source_commit=0087f69f`（两者仅差 Rust 格式化提交、语义相同），因此本次安装产物是“宿主 HEAD + 后端候选记录提交”的组合，不宣称单一精确源码身份。
+- 安装：静默安装到隔离目录 `.project-local/install-acceptance-20261104/app`，exit 0；安装后清单/manifest sha `1ba96a6a…` 与 staged 候选一致，core sha `b3624aa9…`、runtime python sha `08178617…`，`workers/transport` 与 `workers/deeptutor` 均在。注意这是 `currentUser` 静默安装到自定义目录，不是 Owner 账户的日常 Green 安装。
+- 安装态旅程：以**安装后的** core/runtime/workers 运行 `scripts/ci/real_core_grading_journey.py`（`--worker-root <install>/workers`），22 步全部通过：版本、材料导入、出题、双 grant、作答、正式评分、只读处置、重启读回、启动终结遗留 DISPATCHED、live backup `verified`、备份列表跨重启不变、restore preview `verified`、`--maintenance-restore` 到独立数据库并由新 Core 读回材料（`content_sha256 d2201218…`）。回执 `.project-local/install-acceptance-20261104/journey-receipt.json`。
+- 卸载：`uninstall.exe /S` exit 0，安装目录已删除，`HKCU` Uninstall 下无 ArcheAxis 条目残留；工作区与回执保留在 ignored 目录供复核。
+- 边界：**未运行 Tauri/WebView2 UI 的 WebDriver 旅程**（安装后仅启动 Core 业务流程）；旅程脚本内固定 boundary 文本仍写“Not an installed package”，本记录按实际安装路径与安装后二进制身份更正；仍非 Owner 每日使用/接受、非真实用户数据、非发布。安装器未签名。
