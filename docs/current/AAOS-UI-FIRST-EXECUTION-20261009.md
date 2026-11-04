@@ -4094,3 +4094,17 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 | 真实数据 / release / Green 替换 | **未授权** | — | 活动指针 `still_requires_separate_authorization` |
 
 **结论**：授权范围内的后端开发队列已全部落地并合并；剩余闭环缺口都属于"需要 Owner 单独授权或真实环境/人力"的类别，不再由本 Agent 自行推进。合成数据、干净检出 CI 与本地定向测试都不能写成安装态、真实数据或 Owner 接受。
+
+#### 2026-11-04 J2 真实公开检索：2/3 通道全链路（本地真实网络）
+
+- 探针 `scripts/probes/aaos_public_research_runtime_loop.py` 新增 `--families`：允许只测可达通道，并把未测通道写为 NOT_EXECUTED（不会把缺测通道算作通过）；默认仍要求三通道。
+- **真实网络证据**（回执 `.project-local/runs/be268a2d33/d21f878ff7dc/artifacts/public-research-receipt.json`，`ok: true`、`status: PARTIAL`、`evidence_level: REAL_CORE_PUBLIC_NETWORK`）：community=`stackexchange:academia:question:211203`、research=`https://openalex.org/W4402167617` 均 complete；33 步链路含原始/派生原件哈希、固定 source 引用、文本 anchor 定位与 resolve、研究草稿保存、package 与 Markdown 导出 manifest、重启前后对象完全相等（`same_objects_after_restart: true`）、备份 `verified: true`、源码与候选文件前后一致。
+- **未闭合（真实环境）**：encyclopedia（wikipedia）在本机不可达——`curl` 对 `en.wikipedia.org`/`zh.wikipedia.org`/`www.wikidata.org` 均 TCP 超时；完整三通道运行（run `ca81c3829f7b`）里 wikipedia 返回 `offline/network_unavailable`，另两通道正常。本机可访问的 DBpedia `data`/`sparql` 端点可达、但其 Lookup 搜索接口返回错误页，暂无可用的免费百科搜索 API。J2 三通道**尚未在本机全通**，属网络/来源选择问题，不是代码伪造为通过。
+- 边界：真实网络、真实 Core、合成查询；不是安装态，也不是知识接纳验收（草稿保持未核验）。
+
+#### 2026-11-04 J4 真实本地模型：产品链观察（非学习改善）
+
+- 模型：`qwen2.5-vl-7b-instruct`（本机 LM Studio `http://127.0.0.1:1234/v1`，OpenAI 协议），真实 Core debug 二进制。
+- 回执 `.project-local/runs/be268a2d33/4bb6fceb953b/artifacts/colearning-real-model/5d9879350562467fbd2892cd7930a9cd/receipt.json`：`evidence_class: LIVE_CORE_MODEL_RESPONSE_OBSERVED`、`execution_mode: LIVE_LOCAL_ATTEMPT`、`failed_stage: null`、`blocked: {}`；阶段依次 import→text transform→knowledge 创建→人工 accept→machine answer→out-of-scope 追问→transfer 前测。冻结 rubric 原题判 CORRECT，因此按设计**没有**进入纠正/复测分支。
+- `quality_assessment`: `NO_FAILURE_OBSERVED`，`learning_improvement: NOT_ESTABLISHED`，`asset_effect: NOT_QUALIFIED`——真实推理成功不等于学习改善或资产效果。
+- 边界：合成材料与单人 fixture；非安装态、非云端、非 Owner 接受；模型质量不是准确率证据。

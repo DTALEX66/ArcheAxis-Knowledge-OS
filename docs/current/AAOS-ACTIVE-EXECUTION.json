@@ -224,6 +224,22 @@
       },
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "j2_public_research_real_20261104": {
+      "state": "TWO_OF_THREE_CHANNELS_REAL_THIRD_UNREACHABLE_NOT_CODE",
+      "measured": "Real Core with real network: community stackexchange and research openalex completed, with raw/derived original hashes, fixed references, text anchors and resolve, research draft save, package and Markdown export, restart equality, verified backup and consistent source/candidate identities across 33 steps.",
+      "gap": "The encyclopedia (wikipedia) channel is unreachable from this host (en/zh.wikipedia.org and wikidata TCP time out; the full three-channel run recorded offline/network_unavailable for it). DBpedia data/sparql is reachable but its Lookup search API returns an error page, so no free encyclopedia search channel is usable here yet.",
+      "probe_change": "scripts/probes/aaos_public_research_runtime_loop.py --families measures a declared subset and records the rest as NOT_EXECUTED instead of passing them.",
+      "receipt": ".project-local/runs/be268a2d33/d21f878ff7dc/artifacts/public-research-receipt.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "j4_local_model_real_20261104": {
+      "state": "LIVE_LOCAL_OBSERVED_NO_LEARNING_CLAIM",
+      "model": "qwen2.5-vl-7b-instruct through the local LM Studio OpenAI-compatible endpoint",
+      "observed": "Real Core product chain imported a file, produced a text transform, created and human-accepted knowledge, then observed live model responses for the original, out-of-scope and transfer-before stages; the frozen rubric original scored CORRECT so correction and retest were not entered by design.",
+      "quality": "NO_FAILURE_OBSERVED; learning_improvement NOT_ESTABLISHED; asset_effect NOT_QUALIFIED. A live local answer is not learning improvement, accuracy or Owner acceptance.",
+      "receipt": ".project-local/runs/be268a2d33/4bb6fceb953b/artifacts/colearning-real-model/5d9879350562467fbd2892cd7930a9cd/receipt.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {
