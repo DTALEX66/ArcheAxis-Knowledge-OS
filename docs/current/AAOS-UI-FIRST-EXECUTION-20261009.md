@@ -4026,4 +4026,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 未改变：`UNKNOWN` 仍是终态，不自动重派；同一 `client_event_id` 重试仍只在 admission 前被拒（409 `practice_grade_outcome_unknown`），"至多一次"派发语义不变；未引入新持久化或后台重试。
 - 验证（本地）：domain `provider_grade_chain` **12/12**、domain lib **88/88**；新增 `crates/archeaxis-api/tests/grade_dispatch_reconcile.rs` **3/3**（窗口内不动且 human-only/机器 403、超窗口一次终结 + 重复幂等 + 同事件只读 UNKNOWN、周期巡检在多个 tick 后仍不动新 claim 再终结老化 claim）；`deeptutor_grade_contract` 5/5、`provider_learning_api` 2/2、`contract_absent_surfaces` 8/8、`session_shutdown_process` 2/2（真实进程退出）；路由清单 `tests/maintenance/test_contract_route_inventory.py` **7/7**；文档门禁与仓库约定检查通过；rustfmt clean。
 - 合同同步：`docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 第 3 节路由数 149→150，新增第 243 行（human only / 无 body / 幂等 / 绝不重启 worker），并在第 242 行加入周期巡检与窗口常量说明。
-- 边界：全部为本地定向验证与本地提交，未推送、未开 PR、无精确 SHA CI；未做真实进程周期巡检旅程（300s 间隔不具测试可行性），周期机制目前由进程内测试用短间隔覆盖；`installer-lifecycle` 的 `wait(0.0)` 已知 harness 退化仍未修；安装态接受、真实数据与 Owner 接受均未触及。
+- 边界：以上为本地定向验证；推送、精确 SHA CI 与合并见下一小节。未做真实进程周期巡检旅程（300s 间隔不具测试可行性），周期机制目前由进程内测试用短间隔覆盖；`installer-lifecycle` 的 `wait(0.0)` 已知 harness 退化仍未修；安装态接受、真实数据与 Owner 接受均未触及。
+
+#### 2026-11-04 P0 远端交付：PR #258 合并与 CI 抓到的计数漂移
+
+- PR **#258**（`codex/grade-dispatch-sweep-20261104`，head `a0b4edf6`）以 merge commit `e9f4b08f` 合并；精确 SHA run `41743204591` conclusion success，required gates `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success，其余门禁按 gateplan 路径跳过。
+- **CI 抓到的真实问题（源码无关但有价值）**：首个精确 SHA run `41742748125`（head `0a818455`）在 `lint` 失败——`tests/maintenance/test_contract_number_consistency.py` 发现合同 §6 仍写 `149` 地址（92 base + 56 runtime + 1 control）与 53 runtime mounts，而路由清单已随新路由变为 `150`/57/54。本地只跑了 `test_contract_route_inventory.py`，漏跑了 number consistency 测试**（本地验证的遗漏，不是断言问题）**。修复 `a0b4edf6` 同步 §6 表格与段落计数，未放宽任何断言；修复后本地 `test_contract_number_consistency.py` + `test_contract_route_inventory.py` **15/15**。
+- 双端读回：`origin/main` = `e9f4b08f`；本地 `main` 已 fast-forward 同步。
+- 边界：CI 只覆盖 git 干净检出与合成数据；周期巡检的 300s 间隔无真实进程旅程；安装态、真实数据与 Owner 接受仍未触碰。
