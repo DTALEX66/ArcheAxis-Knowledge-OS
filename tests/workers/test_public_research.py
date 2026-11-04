@@ -264,17 +264,22 @@ def test_invalid_request_never_dispatches(worker, monkeypatch, changes):
 
 def test_provider_failure_is_not_successful_empty_and_others_continue(worker, monkeypatch):
     count = 0
-    def fetch(*a, **k):
+    dbpedia_raw = b'{"docs":[]}'
+    def fetch(url, *, policy, headers):
         nonlocal count
         count += 1
-        if count == 1:
+        if url.startswith("https://en.wikipedia.org/"):
             raise worker.http.SafeHTTPStatusError(429, {"retry-after": "42", "set-cookie": "SECRET"})
+        if url.startswith("https://lookup.dbpedia.org/"):
+            return SimpleNamespace(body=dbpedia_raw, headers={}, status=200)
         return SimpleNamespace(body=b'{"items":[],"quota_remaining":0}', headers={}, status=200)
     monkeypatch.setattr(worker.http, "fetch", fetch)
     result = worker.execute(request(families=["encyclopedia", "community"]))
-    w, s = result["channels"]
+    w, s, d = result["channels"]
     assert w["status"] == "limited" and w["retry_after_seconds"] == 42
     assert w["raw_response_base64"] is None and w["error_code"] == "http_429"
+    assert d["provider"] == "dbpedia" and d["status"] == "complete" and d["hits"] == []
+    assert base64.b64decode(d["raw_response_base64"]) == dbpedia_raw
     assert s["status"] == "limited" and s["error_code"] == "quota_exhausted"
     assert "SECRET" not in json.dumps(result)
 
@@ -454,3 +459,36 @@ def test_crossref_does_not_bypass_invalid_response_or_security_refusal(worker, m
     monkeypatch.setattr(worker.http, "fetch", fetch)
     channels = worker.execute(request(families=["research"]))["channels"]
     assert len(calls) == len(channels) == 1 and channels[0]["error_code"] == failure
+
+def test_wikipedia_offline_falls_back_to_dbpedia_and_keeps_the_failure(worker, monkeypatch):
+    dbpedia_raw = (b'{"docs":[{"resource":["http://dbpedia.org/resource/Spaced_repetition"],'
+                   b'"label":["<B>Spaced</B> repetition"],'
+                   b'"comment":["<B>Spaced</B> repetition is a synthetic abstract."]}]}')
+    calls = []
+
+    def fetch(url, *, policy, headers):
+        calls.append(url)
+        if url.startswith("https://en.wikipedia.org/"):
+            raise worker.http.SafeHTTPError("DNS resolution failed for en.wikipedia.org")
+        assert url.startswith("https://lookup.dbpedia.org/api/search?")
+        assert policy.allowed_hosts == ("lookup.dbpedia.org",)
+        assert policy.allowed_content_types == ("application/json",)
+        return SimpleNamespace(body=dbpedia_raw, headers={}, status=200)
+
+    monkeypatch.setattr(worker.http, "fetch", fetch)
+    result = worker.execute(request(families=["encyclopedia"]))
+    wiki, dbpedia = result["channels"]
+    assert len(calls) == 2
+    assert wiki["status"] == "offline" and wiki["error_code"] == "network_unavailable"
+    assert wiki["hits"] == [] and wiki["raw_response_base64"] is None
+    assert dbpedia["status"] == "complete" and dbpedia["error_code"] is None
+    hit = dbpedia["hits"][0]
+    assert hit["id"] == "https://dbpedia.org/resource/Spaced_repetition"
+    assert hit["url"] == hit["id"]
+    assert hit["provider"] == "dbpedia" and hit["family"] == "encyclopedia"
+    assert hit["title"] == "Spaced repetition" and "<B>" not in hit["title"]
+    assert hit["license"] == "CC BY-SA 3.0"
+    assert hit["locator"] == "dbpedia:lookup;comment"
+    assert hit["representation"] == "abstract" and hit["content"] == "excerpt"
+    assert hit["upstream_revision"] is None
+    assert base64.b64decode(dbpedia["raw_response_base64"]) == dbpedia_raw

@@ -124,7 +124,7 @@ def test_worker_resolves_once_and_preserves_each_channel_on_proxy_failure(monkey
     def fetch(url, *, proxy_url, **kwargs):
         assert proxy_url == "http://127.0.0.1:7890"
         urls.append(url)
-        if "en.wikipedia.org" in url:
+        if "en.wikipedia.org" in url or "lookup.dbpedia.org" in url:
             raise worker.proxy_transport.ProxyFailure("proxy_timeout")
         payload = {"items": [], "quota_remaining": 1} if "stackexchange" in url else {"results": []}
         return SimpleNamespace(body=json.dumps(payload).encode(), headers={}, status=200)
@@ -133,10 +133,13 @@ def test_worker_resolves_once_and_preserves_each_channel_on_proxy_failure(monkey
     monkeypatch.setattr(worker.http, "fetch", lambda *a, **k: pytest.fail("no direct fallback"))
     result = worker.execute({"schema": worker.SCHEMA, "query": "synthetic",
         "families": ["encyclopedia", "community", "research"]})
-    assert len(discovery) == 1 and len(urls) == 3
-    assert [c["status"] for c in result["channels"]] == ["offline", "complete", "complete"]
+    assert len(discovery) == 1 and len(urls) == 4
+    assert [c["status"] for c in result["channels"]] == [
+        "offline", "complete", "complete", "offline"]
     assert result["channels"][0]["error_code"] == "proxy_timeout"
-    assert all(c["raw_response_base64"] for c in result["channels"][1:])
+    assert result["channels"][3]["provider"] == "dbpedia"
+    assert result["channels"][3]["error_code"] == "proxy_timeout"
+    assert all(c["raw_response_base64"] for c in result["channels"][1:3])
 
 
 def test_direct_control_is_not_a_valid_transport_proxy(proxy):

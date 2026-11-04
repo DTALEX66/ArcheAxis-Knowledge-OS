@@ -593,3 +593,71 @@ fn captured_three_provider_response_replays_exact_raw_bytes_and_derives_after_re
         .unwrap();
     assert_eq!(count, 6);
 }
+
+fn encyclopedia_fallback_response(req: &Request) -> serde_json::Value {
+    json!({"schema":"public-research-worker/v1","query":req.query,"families":req.families,"channels":[
+        {"family":"encyclopedia","provider":"wikipedia","status":"offline","retrieved_at":"2026-11-04T00:00:00Z",
+         "request_url":"https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=spaced+repetition&gsrlimit=1&gsrnamespace=0&prop=revisions&rvprop=ids%7Ctimestamp%7Ccontent&rvslots=main&rvsection=0&format=json&formatversion=2",
+         "retry_after_seconds":null,"error_code":"network_unavailable","raw_response_base64":null,"hits":[]},
+        {"family":"encyclopedia","provider":"dbpedia","status":"complete","retrieved_at":"2026-11-04T00:00:01Z",
+         "request_url":"https://lookup.dbpedia.org/api/search?query=spaced+repetition&maxHits=1&format=json",
+         "retry_after_seconds":null,"error_code":null,
+         "raw_response_base64":STANDARD.encode(br#"{"docs":[{"resource":["http://dbpedia.org/resource/Spaced_repetition"],"label":["<B>Spaced</B> repetition"],"comment":["<B>Spaced</B> repetition is a synthetic abstract."]}]}"#),
+         "hits":[{"id":"https://dbpedia.org/resource/Spaced_repetition","family":"encyclopedia","provider":"dbpedia",
+         "title":"Spaced repetition","url":"https://dbpedia.org/resource/Spaced_repetition","retrieved_at":"2026-11-04T00:00:01Z",
+         "content":"excerpt","excerpt":"Spaced repetition is a synthetic abstract.","locator":"dbpedia:lookup;comment",
+         "license":"CC BY-SA 3.0","free_access":"free","upstream_revision":null,"representation":"abstract","truncated":false}]}]})
+}
+
+#[test]
+fn dbpedia_is_a_real_encyclopedia_fallback_after_wikipedia_offline() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("dbpedia.sqlite").to_str().unwrap()).unwrap();
+    let mut req = request(&mut conn);
+    req.families = vec!["encyclopedia".into()];
+    research::begin(&mut conn, &req).unwrap();
+    for variant in 0..6 {
+        let mut value = encyclopedia_fallback_response(&req);
+        match variant {
+            0 => value["channels"][1]["hits"][0]["license"] = json!("CC BY-SA 4.0"),
+            1 => value["channels"][1]["hits"][0]["url"] =
+                json!("https://en.wikipedia.org/wiki/Spaced_repetition"),
+            2 => value["channels"][1]["hits"][0]["locator"] = json!("lookup"),
+            3 => value["channels"][1]["request_url"] =
+                json!("https://lookup.dbpedia.org/api/search?query=changed&maxHits=1&format=json"),
+            4 => value["channels"].as_array_mut().unwrap().swap(0, 1),
+            _ => value["channels"][1]["hits"][0]["id"] = json!("wikipedia:en:1:2"),
+        }
+        assert!(
+            research::publish(&mut conn, &req, value).is_err(),
+            "variant {variant}"
+        );
+        assert_eq!(
+            research::read(&conn, &req.request_id).unwrap().unwrap()["state"],
+            "unknown"
+        );
+    }
+    let receipt =
+        research::publish(&mut conn, &req, encyclopedia_fallback_response(&req)).unwrap();
+    assert_eq!(receipt["state"], "partial");
+    assert_eq!(receipt["channels"][0]["provider"], "wikipedia");
+    assert_eq!(receipt["channels"][0]["error_code"], "network_unavailable");
+    assert_eq!(receipt["channels"][1]["provider"], "dbpedia");
+    assert_eq!(
+        receipt["channels"][1]["hits"][0]["id"],
+        "https://dbpedia.org/resource/Spaced_repetition"
+    );
+    assert_eq!(receipt["channels"][1]["hits"][0]["license"], "CC BY-SA 3.0");
+    assert_eq!(
+        receipt["channels"][1]["hits"][0]["locator"],
+        "dbpedia:lookup;comment"
+    );
+    let selected = research::materialize(
+        &mut conn,
+        &req.request_id,
+        "encyclopedia",
+        "https://dbpedia.org/resource/Spaced_repetition",
+    )
+    .unwrap();
+    assert_eq!(selected["knowledge_admission"], "not_executed");
+}

@@ -34,7 +34,7 @@ Crossref 的每项须有受支持 DOI，整个结果集任何重复或大小写�
 或上传。输入中不合格的 DOI 不会作为详情回显，原始字节仍由调用方保留。
 
 为复用当前严格 JSON/gzip 行为，模块只读取本目录 `public_research.py` 的固定字节
-（18,998 字节，SHA-256 `cb54f07bb86263fe264809f22817fccb9b7f6705cb26c3a6efde7baa1a3fc321`），
+（21,462 字节，SHA-256 `9165858c9f3e5f1021fe76a8383dd231d1ece9ad243d9d4eaa511b45f6c82b26`），
 从该字节加载其五个解析函数，不执行 worker 的网络入口或传输模块。校验失败或文件
 缺失即 `UNKNOWN`；读取前后检查有限祖先的符号链接／已观察到的 Windows reparse 属性，
 拒绝多硬链接，并比较文件句柄与路径的设备、inode、长度及修改时间。未来更改 worker

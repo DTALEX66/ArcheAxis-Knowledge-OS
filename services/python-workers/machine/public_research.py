@@ -169,6 +169,46 @@ def _wikipedia(data, when, limit):
     return result
 
 
+DBPEDIA_NAME = re.compile(r"[A-Za-z0-9_\-.,()'!~*+&=:%]{1,240}")
+
+
+def _dbpedia(data, when, limit):
+    """DBpedia Lookup: a Wikipedia-derived encyclopedia index with a short abstract.
+
+    Only the lookup document is used. The resource URI is the identity and the
+    citation URL (upgraded to https); the `comment` field is a provider-side
+    excerpt, never claimed as the full abstract, and DBpedia exposes no
+    per-lookup revision to bind.
+    """
+    if not isinstance(data.get("docs"), list):
+        raise ValueError("invalid_response")
+    result = []
+    for doc in data["docs"][:limit]:
+        if not isinstance(doc, dict):
+            raise ValueError("invalid_response")
+        resource = doc.get("resource")
+        if not isinstance(resource, list) or not resource or not isinstance(resource[0], str):
+            raise ValueError("invalid_response")
+        url = resource[0]
+        if url.startswith("http://dbpedia.org/resource/"):
+            url = "https://" + url[len("http://"):]
+        if not url.startswith("https://dbpedia.org/resource/"):
+            raise ValueError("invalid_response")
+        name = url[len("https://dbpedia.org/resource/"):]
+        if not DBPEDIA_NAME.fullmatch(name):
+            raise ValueError("invalid_response")
+        label = doc.get("label")
+        title = label[0] if isinstance(label, list) and label and isinstance(label[0], str) else name.replace("_", " ")
+        title = _html_text(title) if "<" in title else _text(title)
+        comment = doc.get("comment")
+        text = ""
+        if isinstance(comment, list) and comment and isinstance(comment[0], str):
+            text = _html_text(comment[0]) if "<" in comment[0] else _text(comment[0])
+        result.append(_hit("encyclopedia", url, title, url, when, text, "abstract",
+            "dbpedia:lookup;comment", "CC BY-SA 3.0", None, provider="dbpedia"))
+    return result
+
+
 def _community(data, when, limit, site="academia"):
     if "error_id" in data or not isinstance(data.get("items"), list):
         raise ValueError("invalid_response")
@@ -253,6 +293,9 @@ def _fallback_allowed(channel):
 
 def _endpoint(family, query, limit, site="academia", provider=None):
     if family == "encyclopedia":
+        if provider == "dbpedia":
+            return "https://lookup.dbpedia.org/api/search?" + urlencode({"query": query,
+                "maxHits": limit, "format": "json"})
         return "https://en.wikipedia.org/w/api.php?" + urlencode({"action": "query", "generator": "search",
             "gsrsearch": query, "gsrlimit": limit, "gsrnamespace": 0, "prop": "revisions",
             "rvprop": "ids|timestamp|content", "rvslots": "main", "rvsection": 0,
@@ -332,7 +375,8 @@ def execute(request: dict, *, cancelled: Callable[[], bool] = lambda: False) -> 
     query, families, limit = validate(request)
     result = {"schema": SCHEMA, "query": query, "families": families, "channels": []}
     site = request.get("community_site", "academia")
-    parsers = {"wikipedia": _wikipedia, "stackexchange": lambda d, w, n: _community(d, w, n, site),
+    parsers = {"wikipedia": _wikipedia, "dbpedia": _dbpedia,
+               "stackexchange": lambda d, w, n: _community(d, w, n, site),
                "openalex": _research, "crossref": _crossref}
     if cancelled():
         raise Cancelled()
@@ -395,6 +439,11 @@ def execute(request: dict, *, cancelled: Callable[[], bool] = lambda: False) -> 
             # Preserve the failed OpenAlex channel; the fallback has its own identity,
             # failure state and raw-response provenance. Never retry a safety refusal.
             pending.append(("research", "crossref"))
+        if provider == "wikipedia" and _fallback_allowed(channel):
+            # Where Wikipedia is unreachable, DBpedia Lookup is a real
+            # encyclopedia-class index over the same upstream corpus, openly
+            # licensed and free to query. The failed Wikipedia channel is kept.
+            pending.append(("encyclopedia", "dbpedia"))
     if len(json.dumps(result, ensure_ascii=False).encode("utf8")) > MAX_OUTPUT:
         raise ValueError("output_limit")
     return result
