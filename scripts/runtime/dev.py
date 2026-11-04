@@ -347,6 +347,18 @@ def worktree_identity(root: Path) -> tuple[bool, str]:
     return bool(diff) or bool(public_files), digest.hexdigest()
 
 
+def pytest_basetemp(paths: dict[str, Path]) -> Path:
+    """Pytest scratch belongs to task-runtime, not to run evidence.
+
+    `tmp_path` fixtures accumulate for the whole suite. Putting them under
+    `runs/` made the `runs` growth budget measure mostly disposable test
+    scratch (the full Python suite exceeded 2 GB) and blocked the layout
+    contract. `task-runtime` already owns the suite's TMP/TEMP and pycache;
+    the per-run name keeps concurrent runs separate.
+    """
+    return paths["dev"] / "task-runtime" / "pytest-tmp" / f"basetemp-{paths['run'].name}"
+
+
 def environment(paths: dict[str, Path]) -> dict[str, str]:
     cache, build = paths["cache"], paths["build"]
     dirty, patch_sha256 = worktree_identity(paths["root"])
@@ -666,8 +678,10 @@ def main() -> int:
                 targets = []
             if any(arg.startswith("--basetemp") for arg in command):
                 raise ValueError("basetemp is owned by the development launcher")
+            basetemp = pytest_basetemp(paths)
+            basetemp.parent.mkdir(parents=True, exist_ok=True)
             command = [sys.executable, "-m", "pytest", *targets,
-                       f"--basetemp={paths['tmp'] / 'pytest'}",
+                       f"--basetemp={basetemp}",
                        "-o", f"cache_dir={paths['run'] / 'pytest-cache'}", *command]
         if not command:
             raise ValueError("a child command or --pytest is required")

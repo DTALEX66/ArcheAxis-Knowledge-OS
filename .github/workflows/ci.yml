@@ -241,7 +241,11 @@ jobs:
       - name: Install Chromium for OS-level layout regressions
         run: python -m playwright install --with-deps chromium
       - name: Run OS-level tests
-        run: python -m pytest tests/ -q --tb=short
+        # Pytest `tmp_path` fixtures accumulate for the whole suite. Keeping them
+        # under the run evidence root made the `runs` growth budget measure
+        # disposable test scratch and fail the layout contract. Task-runtime owns
+        # the suite's TMP/TEMP and pycache; this keeps scratch there as well.
+        run: python -m pytest tests/ -q --tb=short --basetemp=.project-local/task-runtime/pytest-tmp/basetemp-ci
 
       - name: Run KB tests
         working-directory: knowledge_base
