@@ -465,3 +465,25 @@ def test_forbidden_terms_skip_non_active_paths() -> None:
         "元枢工作台 相关。".encode(),
     )
     assert not [i for i in issues if i.code == "legacy-product-name"]
+
+
+def test_declared_upstream_snapshot_is_exempt_but_other_paths_are_not(tmp_path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "Path fixture"], cwd=repo, check=True)
+    donor = (repo / "services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1/fixture.txt")
+    donor.parent.mkdir(parents=True)
+    donor.write_bytes(b"donor text without a final newline")
+    local = repo / "src/local.txt"
+    local.parent.mkdir()
+    local.write_bytes(b"local text without a final newline")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-qm", "fixture"], cwd=repo, check=True)
+    issues = scan_git_repository(repo, source="head")
+    flagged = {(issue.path, issue.code) for issue in issues
+               if issue.code == "missing-final-newline"}
+    assert "src/local.txt" in {path for path, _ in flagged}
+    assert not any(path.startswith("services/learning-providers/deeptutor/upstream/")
+                   for path, _ in flagged)
