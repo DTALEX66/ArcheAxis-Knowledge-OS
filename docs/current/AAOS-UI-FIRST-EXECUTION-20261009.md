@@ -4116,3 +4116,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 候选：本地探针候选目录（当前 debug Core + 仓库 worker 脚本：pdf.extract/office.structure/canvas.structure/html.structure），**不是** staged/已资格运行时，也不是安装态。
 - 明确限制（回执自带）：无已安装 UI／源应用导航；仅文本 PDF（OCR 单独验收）；公式文本／缓存图表数据不是实时计算；无源包重建；独立重解析使用新 job，旧 job 仍有效而非被替代。
 - 未覆盖：批量/整文件夹失败定位、扫描 PDF OCR、导出/恢复全链与更多格式（本机 tesseract 路径缺失，OCR 只在 CI 覆盖）。
+
+#### 2026-11-04 X5 故障/恢复探针（本机手工候选，部分通过）
+
+- 回执 `.project-local/task-runtime/aaos01-fault/74bb50270eaa40d9b62d699e9f04a9e6/receipt.json`。
+- `invalid_input`（REAL_INVALID_BYTES）**完整通过**：真实无效 UTF-16 字节 → job failed、无任何 output 发布、后续恢复任务 succeeded 并读回原文。
+- `timeout`/`cancel`/`crash` 三个注入用例：终态正确（`failed`/`cancelled`/`failed`，错误分别为 deadline exceeded、owner cancelled、closed stdout），`no_outputs_published: true`，Core 已停止；但探针要求的"故障 worker 的直接父进程 == 本次 Core PID"断言失败（标记文件记录的 `parent_pid` 与 receipt 的 `core_pid` 不同），因此这三例记为 **未通过**而非通过。
+- 原因未定位：可能是本机手工候选（无 staged runtime/launcher 布局）造成的进程父子关系差异，也可能是探针期望与当前启动方式不一致；需要 staged 候选或单独排查，不能据此判定产品缺陷或通过。
+- 边界：手工候选、本机运行，不是安装态或 Owner 接受。
