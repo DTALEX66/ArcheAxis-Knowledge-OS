@@ -287,6 +287,24 @@ def test_nested_sensitive_filename_is_not_statted_or_read(tmp_path, monkeypatch)
     assert measured['excluded_private']==[str(secret)]
 
 
+def test_third_party_crate_envrc_in_shared_cache_is_measured_not_private(tmp_path):
+    # A real crate source (sharded-slab-0.1.7) ships .envrc. Under the declared shared
+    # cache that is third-party content, not project-private state; elsewhere the same
+    # name is still excluded before stat or descent.
+    crate = tmp_path / '.project-local/cache/cargo/registry/src/index/sharded-slab-0.1.7'
+    crate.mkdir(parents=True)
+    (crate / '.envrc').write_bytes(b'layout crate')
+    (crate / 'lib.rs').write_bytes(b'pub fn x() {}')
+    measured = report.directory_measurement(tmp_path / '.project-local')
+    assert measured['excluded_private'] == []
+    assert measured['files'] == 2
+    elsewhere = tmp_path / '.project-local/rt/.envrc'
+    elsewhere.parent.mkdir(parents=True)
+    elsewhere.write_bytes(b'private')
+    outside = report.directory_measurement(tmp_path / '.project-local/rt')
+    assert outside['excluded_private'] == [str(elsewhere)]
+
+
 def test_cargo_named_recovery_archive_is_not_exempt_compile_cache(tmp_path):
     recovery=tmp_path/'.project-local/recovery'
     archive=recovery/'cargo-msvc-pdb-20261006'
