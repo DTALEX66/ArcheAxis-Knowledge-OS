@@ -421,9 +421,9 @@ fn hit_identity(hit: &Hit, request: &Request) -> bool {
             !name.is_empty()
                 && name.len() <= 240
                 && !name.contains(['/', '?', '#'])
-                && name.bytes().all(|byte| {
-                    byte.is_ascii_alphanumeric() || b"-_.,()'!~*+&=:%".contains(&byte)
-                })
+                && name
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || b"-_.,()'!~*+&=:%".contains(&byte))
                 && hit.id == hit.url
                 && hit.upstream_revision.is_none()
                 && (hit.excerpt.is_empty()

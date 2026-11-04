@@ -620,11 +620,16 @@ fn dbpedia_is_a_real_encyclopedia_fallback_after_wikipedia_offline() {
         let mut value = encyclopedia_fallback_response(&req);
         match variant {
             0 => value["channels"][1]["hits"][0]["license"] = json!("CC BY-SA 4.0"),
-            1 => value["channels"][1]["hits"][0]["url"] =
-                json!("https://en.wikipedia.org/wiki/Spaced_repetition"),
+            1 => {
+                value["channels"][1]["hits"][0]["url"] =
+                    json!("https://en.wikipedia.org/wiki/Spaced_repetition")
+            }
             2 => value["channels"][1]["hits"][0]["locator"] = json!("lookup"),
-            3 => value["channels"][1]["request_url"] =
-                json!("https://lookup.dbpedia.org/api/search?query=changed&maxHits=1&format=json"),
+            3 => {
+                value["channels"][1]["request_url"] = json!(
+                    "https://lookup.dbpedia.org/api/search?query=changed&maxHits=1&format=json"
+                )
+            }
             4 => value["channels"].as_array_mut().unwrap().swap(0, 1),
             _ => value["channels"][1]["hits"][0]["id"] = json!("wikipedia:en:1:2"),
         }
@@ -637,8 +642,7 @@ fn dbpedia_is_a_real_encyclopedia_fallback_after_wikipedia_offline() {
             "unknown"
         );
     }
-    let receipt =
-        research::publish(&mut conn, &req, encyclopedia_fallback_response(&req)).unwrap();
+    let receipt = research::publish(&mut conn, &req, encyclopedia_fallback_response(&req)).unwrap();
     assert_eq!(receipt["state"], "partial");
     assert_eq!(receipt["channels"][0]["provider"], "wikipedia");
     assert_eq!(receipt["channels"][0]["error_code"], "network_unavailable");
