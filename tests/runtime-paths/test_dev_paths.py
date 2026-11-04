@@ -48,6 +48,20 @@ class DevelopmentPaths(unittest.TestCase):
               self.assertRaisesRegex(ValueError, 'protected source')):
             dev.worktree_identity(self.repo)
 
+    def test_identity_allows_the_public_example_template_but_not_a_value_env_file(self):
+        example = self.repo / '.env.example'
+        example.write_text('OPENAI_API_KEY=\n', encoding='utf-8')
+        self.run_git('add', '.env.example')
+        self.run_git('commit', '-qm', 'example template')
+        dirty, digest = dev.worktree_identity(self.repo)
+        self.assertFalse(dirty)
+        self.assertEqual(len(digest), 64)
+        private = self.repo / '.env.production'
+        private.write_text('fixture-only', encoding='utf-8')
+        with (patch.object(Path, 'open', side_effect=AssertionError('must not read private file')),
+              self.assertRaisesRegex(ValueError, 'protected source')):
+            dev.worktree_identity(self.repo)
+
     @unittest.skipUnless(os.name == 'nt', 'Windows junction regression')
     def test_identity_rejects_junction_ancestor(self):
         target = self.repo.parent / 'outside-sources'

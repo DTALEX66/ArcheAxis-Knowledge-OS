@@ -281,11 +281,20 @@ PRIVATE_SOURCE_PARTS = frozenset({
 })
 
 
+# Example templates are public by definition: they carry key names and empty or
+# placeholder values, never a usable credential. The complete donor snapshots
+# absorbed on 2026-11-05 include their upstream `.env.example`; a value-bearing
+# file such as `.env`, `.env.local` or `.env.production` stays protected by the
+# `.env*` rule below and is still refused before any read.
+PUBLIC_ENV_TEMPLATES = frozenset({'.env.example'})
+
+
 def private_source_path(relative: Path) -> bool:
     """Path spelling only; never stat/read protected state to classify it."""
     return relative.as_posix().casefold() == 'test-results.log' or any(
         part.casefold() in PRIVATE_SOURCE_PARTS
-        or part.casefold().startswith('.env') for part in relative.parts)
+        or (part.casefold().startswith('.env')
+            and part.casefold() not in PUBLIC_ENV_TEMPLATES) for part in relative.parts)
 
 
 def _private_diff_exclusions() -> tuple[str, ...]:
