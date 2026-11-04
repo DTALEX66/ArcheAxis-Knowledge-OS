@@ -271,6 +271,15 @@
       "latest_repeat": ".project-local/runs/be268a2d33/5b454c3ffb58/artifacts/j1-batch-folder.json (re-run on the DBpedia-commit candidate 0087f69f; three passes 6 enqueued / 7 skipped with zero Core calls / 1 re-processed after fix, backup and maintenance restore)",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "full_ci_main_429_fix_20261104": {
+      "state": "LOCALLY_FIXED_FULL_CI_PENDING_ON_NEW_SHA",
+      "full_ci_run": "41817553939 (workflow_dispatch force_full on fe48dd25): every gate but rust-vnext succeeded, including desktop-build and installer-lifecycle; a0-gates failed as a consequence.",
+      "failure": "context_grant_api::frozen_answer_identity_serializes_concurrent_retries_survives_restart_and_refuses_conflict got 429 'machine resource is busy' for the second concurrent identical answer because the admission lock wait was a fixed 10s while the first worker run exceeded it on the runner.",
+      "fix": "crates/archeaxis-api/src/runtime/colearning.rs now waits effective_timeout + 10 seconds (max 130) for requests with a frozen client_request_id, and keeps the 10s busy window for non-idempotent callers.",
+      "regression": "New test frozen_answer_duplicate_waits_past_the_old_admission_window_and_replays_once uses a 12s worker and requires both 200, one worker run and an equal restart replay; context_grant_api 8/8 passed locally (12.17s).",
+      "local_environment_note": "The archeaxis-api OCR test failure in oss_template_reuse was a local TESSDATA_PREFIX pointing at a non-declared path; with the declared path it passes 2/2 and is unrelated to this fix.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "speech_asr_staged_20261104": {
       "state": "WAV_MP3_MP4_REAL_WHISPER_TRANSCRIPTION_REAL_STAGED_NOT_INSTALLED",
       "candidate": ".project-local/rt/staged-20261104d (manifest a68b5bb9..., 7583 files, core b3624aa9..., runtime python 08178617...)",

@@ -455,22 +455,27 @@ pub(super) async fn machine_answer(
         Ok(id) => id,
         Err(response) => return response,
     };
-    let _guard = match tokio::time::timeout(
-        std::time::Duration::from_secs(10),
-        runtime.colearning_admission.lock(),
-    )
-    .await
-    {
-        Ok(guard) => guard,
-        Err(_) => {
-            return (StatusCode::TOO_MANY_REQUESTS, "machine resource is busy").into_response();
-        }
-    };
+    let effective_tokens = body.max_tokens.unwrap_or(2048);
+    let effective_timeout = body.timeout_s.unwrap_or(120);
+    // A frozen client_request_id names one idempotent execution: a concurrent
+    // retry must be allowed to wait for that execution's own declared budget
+    // before it is refused as busy. Non-idempotent callers keep the short
+    // admission window instead of queueing behind an unrelated answer.
+    let admission_wait = std::time::Duration::from_secs(if body.client_request_id.is_some() {
+        effective_timeout.saturating_add(10).min(130)
+    } else {
+        10
+    });
+    let _guard =
+        match tokio::time::timeout(admission_wait, runtime.colearning_admission.lock()).await {
+            Ok(guard) => guard,
+            Err(_) => {
+                return (StatusCode::TOO_MANY_REQUESTS, "machine resource is busy").into_response();
+            }
+        };
     if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "machine.answer").await {
         return refusal;
     }
-    let effective_tokens = body.max_tokens.unwrap_or(2048);
-    let effective_timeout = body.timeout_s.unwrap_or(120);
     let wanted = body.knowledge_id.clone();
     let refusal_request = super::context_refusal::answer_request(&body);
     let admission_request_sha256 = withheld::digest(&refusal_request.to_string());
