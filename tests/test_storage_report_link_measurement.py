@@ -121,6 +121,21 @@ def test_unreadable_subtree_is_reported_with_readable_lower_bound(tmp_path, monk
     assert measured["errors"] == [{"path": str(blocked), "error": "PermissionError", "errno": 13}]
 
 
+def test_declared_upstream_env_example_is_public_but_other_env_names_stay_private(tmp_path):
+    donor = tmp_path / "services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1"
+    donor.mkdir(parents=True)
+    (donor / ".env.example").write_bytes(b"OPENAI_API_KEY=\n")
+    (donor / ".env.local").write_bytes(b"secret")
+    outside = tmp_path / "fixture" / ".env.example"
+    outside.parent.mkdir()
+    outside.write_bytes(b"outside template")
+    measured = report.directory_measurement(tmp_path)
+    assert measured["bytes"] == len(b"OPENAI_API_KEY=\n")
+    excluded = set(measured["excluded_private"])
+    assert str(donor / ".env.local") in excluded
+    assert str(outside) in excluded
+
+
 def test_private_subtree_is_excluded_before_any_descent(tmp_path, monkeypatch):
     private = tmp_path / ".codex"
     private.mkdir()

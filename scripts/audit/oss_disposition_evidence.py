@@ -52,6 +52,14 @@ PIPELINE_GLOBS = [".github/workflows/*.yml", ".github/workflows/*.yaml", "script
 # OpenAlex and Wikidata rows are first-party `urllib` clients. Without this scope they read as
 # unabsorbed, which is the opposite of the truth.
 SOURCE_ROOTS = ["shared", "services", "app", "crates", "frontend/src"]
+# Complete upstream donor snapshots are reference source, not this repository's
+# first-party implementation. Scanning them made a donor name found only inside
+# DeepTutor/OpenMAIC look like an AAOS integration and shadowed the real
+# worker_office.py evidence for Tika. Keep this an exact prefix list.
+UPSTREAM_SNAPSHOT_PREFIXES = (
+    "services/learning-providers/deeptutor/upstream/",
+    "services/learning-providers/openmaic/upstream/",
+)
 # `shared/` used to be listed here, which made any first-party module whose *filename* contained a
 # A vendor root holds copies, not this repository's own code.
 # `shared/models` is a vendor root because it holds the vendored upstream model copy itself
@@ -183,9 +191,12 @@ def _source_files():
                 continue
             # Only parts *below* the repository root may disqualify a file: this checkout can sit
             # under a `.project-local/` path, so an absolute-path check would skip everything.
-            if any(part in SKIP_DIRS for part in path.relative_to(REPO).parts):
+            relative = path.relative_to(REPO)
+            if any(part in SKIP_DIRS for part in relative.parts):
                 continue
-            if not runtime_source_path(path.relative_to(REPO)):
+            if relative.as_posix().startswith(UPSTREAM_SNAPSHOT_PREFIXES):
+                continue
+            if not runtime_source_path(relative):
                 continue
             if path.suffix.casefold() not in TEXT_SUFFIXES:
                 continue
