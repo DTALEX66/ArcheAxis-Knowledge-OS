@@ -4145,3 +4145,17 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 候选由正式 `scripts/release/stage_backend_runtime.py` 从当前 release Core 与 portable 解释器生成：`.project-local/rt/staged-20261104`，version `0.6.15`，manifest `aa752bbb…`，2,327 个文件，`source_commit=e50a4cbc…`、`source_tree=b7d89406…`；Core sha `3ec23b23…`（20,716,032 B）、transport sha `f65f3dba…`。`--vc-runtime` 使用已批准 14.44.35211 x64 三文件 cohort，`asr-model` 为 `MISSING`（未提供 donor，媒体转写因此按名失败，不下载）。
 - 回执 `.project-local/task-runtime/aaos01-fault/7f62231394c14ae3b3ceb3b9f016023a/receipt.json`：`ok: true`、`evidence_level: REAL_CORE_EXECUTION_WITH_INJECTED_WORKER_FAULTS`，四例逐一通过——`timeout`（deadline exceeded）、`cancel`（owner cancelled）、`crash`（closed stdout）均为正确终态且 `no_outputs_published: true`，`owned_worker.parent_pid` 本次等于对应 `core_pid`（32616/13684/15164），故障 worker 在终态后退出，随后恢复任务 `succeeded` 并读回原文；`invalid_input`（真实无效 UTF-16 字节）同样通过。探针已补充说明：该断言只对 staged/portable 运行时成立，venv redirector 会造成孙进程假失败，不得为此放宽断言。
 - 边界：staged 运行时 + 本机运行 + 注入故障 fixture；**不是**安装态、Owner 接受或真实用户数据；该候选未带第三方依赖（`--dep` 未使用），文档类路由仍取决于外部依赖/后续带依赖 staging。
+
+#### 2026-11-04 J1 四格式在 staged 运行时复验
+
+- 候选 `.project-local/rt/staged-deps-20261104`：由正式 `stage_backend_runtime.py` 生成（version `0.6.15`，manifest `13499f89…`、544,826 B，Core sha `3ec23b23…`，runtime python 3.13.14）；依赖以独立文件从 venv 拷贝（`--dep` pymupdf/openpyxl/python-pptx/lxml/pillow/XlsxWriter/et_xmlfile/typing-extensions），因 uv 硬链接会被 staging 的独立文件规则拒绝，故先复制为独立 donor 再 staging。
+- 回执 `.project-local/runs/be268a2d33/56fd2dcaba07/artifacts/common-formats.json`：`ok: true`、`qualification: INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART`、`source_consistent: true`；docx/xlsx/pptx/pdf 各自 selected content→anchor 定位→独立重解析→重启读回相等。此前该四格式证据用的是手工 venv 候选；本次在同一 staged 布局上复验，仍未安装、未 Owner 接受、文本 PDF、无源应用渲染。
+
+#### 2026-11-04 J1 混合文件夹批次全链（同一 staged 候选）
+
+- 新增探针 `scripts/probes/aaos01_j1_batch_folder_loop.py`：真实 Core + 正式批次驱动 `scripts/ingest/directory_batch.py` + 四格式生成器；回执 `.project-local/runs/be268a2d33/6d833f3811f1/artifacts/j1-batch-folder.json`，`ok: true`、`qualification: INTEGRATED_MIXED_FOLDER_BATCH_KNOWLEDGE_EXPORT_BACKUP_RESTORE`。
+- 首轮 7 个常规文件（docx/xlsx/pptx/pdf/md、1 个无映射扩展、1 个损坏容器）：6 个 import+enqueue、1 个 `imported_no_job`、0 refusal，`.git` 按策略排除，13 次 Core 调用。逐文件执行：四格式 succeeded 且 text/document_structure/loss_report/quality 全在，原件字节逐一复读相等，docx 与 PDF 各建 2 个 anchor 并 resolve `CURRENT`；损坏 docx 的 office job 以 Core 自己的错误 `failed` 且无任何 output 发布（失败定位）；md 文本 job succeeded。
+- 第二轮 7/7 `skipped_unchanged` 且 Core 调用 **0**（断点/继续）；修复损坏文件（写入新的有效 docx 内容）后第三轮仅该文件重新 enqueue（1 enqueued / 6 skipped）并执行 succeeded —— 单文件恢复与继续任务。
+- md 源经真实 text job transform → `from-transform` 知识候选 → 人工 `accepted`（`k_665d0e8607f8393d50932fb9`）；`GET /api/v1/search?q=mappable-phrase-41` 命中该知识；文档创建→PUT 草稿编辑（`edited-phrase-77`）→搜索命中该文档→markdown 导出 `document.md` + `manifest.json`。
+- 重启后文档、导出、知识 v3、anchor resolve 与批次 manifest 全部相等（`restart_equal: true`）；备份 `verified: true`、出现在列表、restore preview `verified/compatible: true`，`--maintenance-restore` 到独立数据库后由新 Core 读回同一文档与知识并搜索命中（`restored.verified: true`、`restored.pid` 记录）。
+- 批次状态：manifest 21 行（三轮），`source_consistent: true`。边界：合成材料、staged 运行时、本机；非安装态/Owner 接受；文本 PDF；无源应用渲染、OCR/媒体转写或实时公式计算。
