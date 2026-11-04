@@ -4108,3 +4108,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 回执 `.project-local/runs/be268a2d33/4bb6fceb953b/artifacts/colearning-real-model/5d9879350562467fbd2892cd7930a9cd/receipt.json`：`evidence_class: LIVE_CORE_MODEL_RESPONSE_OBSERVED`、`execution_mode: LIVE_LOCAL_ATTEMPT`、`failed_stage: null`、`blocked: {}`；阶段依次 import→text transform→knowledge 创建→人工 accept→machine answer→out-of-scope 追问→transfer 前测。冻结 rubric 原题判 CORRECT，因此按设计**没有**进入纠正/复测分支。
 - `quality_assessment`: `NO_FAILURE_OBSERVED`，`learning_improvement: NOT_ESTABLISHED`，`asset_effect: NOT_QUALIFIED`——真实推理成功不等于学习改善或资产效果。
 - 边界：合成材料与单人 fixture；非安装态、非云端、非 Owner 接受；模型质量不是准确率证据。
+
+#### 2026-11-04 J1 多格式真实链（docx/xlsx/pptx/pdf，同一候选）
+
+- 回执 `.project-local/runs/be268a2d33/627b44e2a9cd/artifacts/common-formats.json`：`ok: true`，`execution: ACTUAL_CANDIDATE_CORE_WORKERS`，`qualification: INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART`。
+- 四种格式（docx/xlsx/pptx/pdf）各有 `anchors`、`reparse`、`restart_equal: true` 与原件指纹；`source_consistent` 与候选/源码身份在运行前后一致。
+- 候选：本地探针候选目录（当前 debug Core + 仓库 worker 脚本：pdf.extract/office.structure/canvas.structure/html.structure），**不是** staged/已资格运行时，也不是安装态。
+- 明确限制（回执自带）：无已安装 UI／源应用导航；仅文本 PDF（OCR 单独验收）；公式文本／缓存图表数据不是实时计算；无源包重建；独立重解析使用新 job，旧 job 仍有效而非被替代。
+- 未覆盖：批量/整文件夹失败定位、扫描 PDF OCR、导出/恢复全链与更多格式（本机 tesseract 路径缺失，OCR 只在 CI 覆盖）。
