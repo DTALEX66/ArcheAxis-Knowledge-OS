@@ -4,7 +4,7 @@
 use rusqlite::{Connection, OptionalExtension, params};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CourseBinding {
@@ -1058,4 +1058,133 @@ pub fn commit_openmaic_scene(
     let receipt = openmaic_receipt(&tx, verified, &material);
     tx.commit()?;
     Ok(receipt)
+}
+
+/// Read-only package projection over persisted OpenMAIC scene candidate Documents.
+///
+/// It answers three questions from what Core already recorded - how many scenes
+/// there are, which scene types they are, and whether every scene is playable -
+/// and nothing else. It parses no course payload, runs no renderer, performs no
+/// course-level validation and refuses no course; an entry whose report was never
+/// recorded (legacy v1) or whose recorded report no longer matches the persisted
+/// scene is reported as playability unknown rather than guessed.
+pub const OPENMAIC_PACKAGE_SCHEMA: &str = "archeaxis.openmaic-course-package-projection/v1";
+pub const OPENMAIC_PACKAGE_MAX_DOCUMENTS: usize = 64;
+
+pub fn openmaic_package_projection(
+    conn: &Connection,
+    document_ids: &[String],
+) -> Result<Value, crate::document::Error> {
+    if document_ids.is_empty() || document_ids.len() > OPENMAIC_PACKAGE_MAX_DOCUMENTS {
+        return Err(crate::document::Error::Invalid(
+            "package projection needs between 1 and 64 document IDs",
+        ));
+    }
+    let mut scenes: Vec<Value> = Vec::new();
+    let mut seen: HashSet<&str> = HashSet::new();
+    let mut by_type: BTreeMap<String, usize> = BTreeMap::new();
+    let (mut scene_count, mut recorded, mut playable, mut not_playable, mut unknown, mut not_scene) =
+        (0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
+    for document_id in document_ids {
+        if !openmaic_token(document_id) {
+            return Err(crate::document::Error::Invalid(
+                "package projection document ID is not a bounded token",
+            ));
+        }
+        if !seen.insert(document_id.as_str()) {
+            return Err(crate::document::Error::Invalid(
+                "package projection document IDs must be unique",
+            ));
+        }
+        let current = match crate::document::read_verified(conn, document_id, None) {
+            Ok(value) => value,
+            Err(crate::document::Error::NotFound) => {
+                not_scene += 1;
+                scenes.push(json!({"document_id":document_id,"status":"missing",
+                    "playability":"unknown","reason":"the Document is not present in this workspace"}));
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
+        let saved = &current["editor_json"]["attrs"][OPENMAIC_NAMESPACE];
+        let schema = saved["schema"].as_str().unwrap_or("");
+        if !(schema == OPENMAIC_DOCUMENT_SCHEMA_V1 || schema == OPENMAIC_DOCUMENT_SCHEMA_V2) {
+            not_scene += 1;
+            scenes.push(
+                json!({"document_id":document_id,"status":"not_a_scene_candidate",
+                "playability":"unknown",
+                "reason":"the current Document version carries no OpenMAIC scene candidate"}),
+            );
+            continue;
+        }
+        scene_count += 1;
+        if schema == OPENMAIC_DOCUMENT_SCHEMA_V1 {
+            unknown += 1;
+            scenes.push(
+                json!({"document_id":document_id,"status":"report_not_recorded",
+                "playability":"unknown","contract_version":OPENMAIC_DOCUMENT_SCHEMA_V1,
+                "reason":"this legacy candidate predates the projection and render reports"}),
+            );
+            continue;
+        }
+        // Recheck the recorded reports against the persisted scene before quoting
+        // them: an edited Document must not be able to claim lossless or playable.
+        let recorded_render = openmaic_render_contract(&saved["worker_document"]["scene"]);
+        let recorded_contract = saved["request_frame"]
+            .as_str()
+            .and_then(|frame| serde_json::from_str::<Value>(frame.trim()).ok())
+            .map(|request| openmaic_projection(&request));
+        if saved["render"] != recorded_render
+            || recorded_contract.as_ref() != Some(&saved["contract"])
+        {
+            unknown += 1;
+            scenes.push(json!({"document_id":document_id,"status":"report_mismatch",
+                "playability":"unknown",
+                "reason":"the stored projection or render report no longer matches the persisted scene"}));
+            continue;
+        }
+        let scene_type = recorded_render["scene_type"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned();
+        *by_type.entry(scene_type.clone()).or_default() += 1;
+        recorded += 1;
+        let is_playable = recorded_render["playable"] == json!(true);
+        if is_playable {
+            playable += 1;
+        } else {
+            not_playable += 1;
+        }
+        scenes.push(json!({
+            "document_id":document_id,
+            "status":"recorded",
+            "playability":if is_playable {"playable"} else {"not_playable"},
+            "contract_version":OPENMAIC_DOCUMENT_SCHEMA_V2,
+            "scene_type":scene_type,
+            "lossless":saved["contract"]["lossless"],
+            "omitted_field_count":saved["contract"]["omitted"].as_array().map(Vec::len).unwrap_or(0),
+            "renderer":recorded_render["renderer"],
+            "unsupported_count":recorded_render["counts"]["unsupported"],
+            "unsupported":recorded_render["unsupported"],
+        }));
+    }
+    Ok(json!({
+        "schema":OPENMAIC_PACKAGE_SCHEMA,
+        "document_count":document_ids.len(),
+        "scene_count":scene_count,
+        "reported_scene_count":recorded,
+        "non_scene_document_count":not_scene,
+        "by_scene_type":by_type,
+        "playable_scene_count":playable,
+        "not_playable_scene_count":not_playable,
+        "unknown_scene_count":unknown,
+        "all_playable":scene_count > 0 && recorded == scene_count && playable == scene_count,
+        "scenes":scenes,
+        "server_validation":"NONE",
+        "renderer_executed":false,
+        "rendering_authorized":false,
+        "human_review_required":true,
+        "parsing_scope":"Only the recorded projection and render reports are quoted, rechecked \
+         against the persisted scene; no course payload is parsed and no scene is rendered",
+    }))
 }

@@ -485,6 +485,13 @@ pub fn router(executor: Executor) -> Router {
             post(courses::create_openmaic_scene)
                 .layer(axum::extract::DefaultBodyLimit::max(262_144)),
         )
+        // Read-only package projection over already persisted scene candidates.
+        // It reports recorded playability and refuses or parses nothing.
+        .route(
+            "/api/v1/courses/openmaic/package-projection",
+            post(courses::openmaic_package_projection)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
         .route(
             "/api/v1/courses/from-knowledge",
             post(courses::from_knowledge),

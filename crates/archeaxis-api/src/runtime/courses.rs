@@ -540,3 +540,49 @@ pub(super) async fn list(
         _ => error(StatusCode::INTERNAL_SERVER_ERROR, "course list read failed"),
     }
 }
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct PackageProjectionBody {
+    document_ids: Vec<String>,
+}
+
+/// Read-only OpenMAIC course-package projection over persisted scene candidates.
+///
+/// It reports scene count, type distribution and recorded playability; it parses
+/// no course payload, runs no renderer, validates no course and writes nothing.
+pub(super) async fn openmaic_package_projection(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<PackageProjectionBody>,
+) -> Response {
+    // Scene candidates can carry answer keys and material, so this stays human
+    // only exactly like the scene creation and read paths.
+    if crate::request_actor(&headers) != Ok("human") {
+        return error(
+            StatusCode::FORBIDDEN,
+            "OpenMAIC package projection requires a human actor",
+        );
+    }
+    let document_ids = body.document_ids;
+    let projected = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| course::openmaic_package_projection(conn, &document_ids))
+        .await;
+    match projected {
+        Ok(Ok(value)) => Json(value).into_response(),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_))) => error(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "package projection needs 1 to 64 unique bounded document IDs",
+        ),
+        Ok(Err(archeaxis_domain::document::Error::NotFound)) => error(
+            StatusCode::NOT_FOUND,
+            "package projection document is unavailable",
+        ),
+        _ => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "package projection failed",
+        ),
+    }
+}
