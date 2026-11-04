@@ -271,6 +271,16 @@
       "latest_repeat": ".project-local/runs/be268a2d33/5b454c3ffb58/artifacts/j1-batch-folder.json (re-run on the DBpedia-commit candidate 0087f69f; three passes 6 enqueued / 7 skipped with zero Core calls / 1 re-processed after fix, backup and maintenance restore)",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "ocr_staged_20261104": {
+      "state": "LIGHT_FORMATS_AND_ENGLISH_AND_CHINESE_OCR_REAL_STAGED_NOT_INSTALLED",
+      "candidate": ".project-local/rt/staged-20261104c (version 0.6.15, manifest b7fa7eed..., 3159 files, core b3624aa9..., runtime python 08178617...)",
+      "packaging_finding": "A staged runtime without PyYAML fails the capability-resolution worker with 'no YAML parser available'; adding an independent pyyaml copy from the local venv fixed it, with no download.",
+      "light_and_ocr": "txt, md, csv, json, html, srt, vtt, canvas, png, jpeg and pdf all passed with equal restart readback, including English OCR sentinels on png/jpeg/pdf (receipt .project-local/runs/be268a2d33/f51f01fe33af/artifacts/common-light-ocr.json).",
+      "chinese_ocr": "png, jpeg and pdf each located selected Chinese phrases with equal restart readback using the declared external tesseract and chi_sim data; recognition_accuracy remains UNMEASURED (receipt .project-local/runs/be268a2d33/238c39f40b46/artifacts/common-chinese-ocr.json).",
+      "transient_failure": "The first Chinese OCR run hit WinError 10055 (socket buffer/queue exhaustion) at an anchor request; the same candidate passed after a cooldown and the failure is preserved, not counted as a pass.",
+      "limits": "Selected phrases only, not full-page accuracy; no ASR or media transcription; not installed and not Owner-accepted.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "dbpedia_install_merge_20261104": {
       "state": "MERGED_REQUIRED_GATES_SUCCESS",
       "head": "a9965976",

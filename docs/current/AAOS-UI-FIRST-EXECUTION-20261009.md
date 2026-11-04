@@ -4200,3 +4200,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 - 分支 head `a9965976`（四提交：`0087f69f` 实现、`09321543` 三通道/J1 记录、`fd25ece6` 格式化、`a9965976` 隔离安装记录）以 merge commit `2a2ca0c4` 合并；精确 SHA CI（run `41812395630`）required gates 全部 success：`gateplan`（19s）、`lint`（59s）、`workers-vnext`（1m13s）、`rust-vnext`（13m28s）、`a0-gates`（3s），其余按路径跳过。首次 run 因新增 Rust 测试未过 `cargo fmt --check` 失败（`rust-vnext`），已本地 `cargo fmt --all` 后以新 SHA 重跑通过；原失败保留不覆盖。
 - 本地与 `origin/main` 一致于 `2a2ca0c4`；本地与远端分支均已删除。安装器、安装工作区与回执仍在 ignored `.project-local`；安装未签名，仍非 Owner 接受。
+
+#### 2026-11-04 轻量格式与 OCR 在 staged 运行时（含中文 OCR）
+
+- 候选 `.project-local/rt/staged-20261104c`：在 `staged-20261104b` 基础上以独立 dep-source 增加 **PyYAML** 后重新 staging（version `0.6.15`，manifest `b7fa7eed…`、3,159 文件，Core `b3624aa9…`、runtime python `08178617…`）。**打包发现**：staged 候选若不带 PyYAML，能力解析 worker 直接失败（`no YAML parser available`）；把 `pyyaml` 纳入本地 staging 依赖后恢复。该依赖来自本机 venv 的独立副本，不下载。
+- 轻量格式 + 英文 OCR（run `f51f01fe33af`，回执 `.project-local/runs/be268a2d33/f51f01fe33af/artifacts/common-light-ocr.json`）：`ok: true`、`qualification: INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART`；txt/md/csv/json/html/srt/vtt/canvas/png/jpeg/pdf 共 11 项，全部 `restart_equal: true`，含 OCR 的 png/jpeg/pdf。
+- 中文 OCR（run `238c39f40b46`，回执 `.../238c39f40b46/artifacts/common-chinese-ocr.json`）：`ok: true`、`qualification: INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART`；png/jpeg/pdf 各自选中中文短语、`restart_equal: true`；使用声明的外置 tesseract（`10-toolchains\scoop\apps\tesseract\current`）与 `tesseract-languages`（`chi_sim.traineddata`），生成器记录 `ocr_languages_qualified: ["chi_sim"]` 且 `recognition_accuracy: UNMEASURED`。
+- 过程事实：中文 OCR 首次运行时 Core 在 anchor 请求处报 `WinError 10055`（系统 socket 缓冲/队列耗尽），冷却后同一候选重跑通过；该失败保留，不作为通过。
+- 边界：选中短语验证而非整页准确率；未做 ASR/媒体转写；非安装态、非 Owner 接受。
