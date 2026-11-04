@@ -211,16 +211,27 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "installer_exit_wait_floor_20261104": {
-      "state": "FLOOR_10S_STILL_TOO_SHORT_SESSION_RELEASE_FIX_LOCAL_ONLY",
+      "state": "DELETE_SESSION_REJECTED_NUDGE_EXIT_LOCAL_ONLY",
       "cause": "The synthetic native confirmation could consume the whole 15-second shared exit budget, leaving a zero remainder that turned host.wait into wait(0.0): an instant TimeoutExpired misreported as a failed owned exit (PR #255 first run).",
       "fix": "MIN_EXIT_OBSERVATION_SECONDS (10.0, raised 0.5 -> 5.0 -> 10.0 by installed-run and full-CI evidence) replaces the zero wait only when the budget is exhausted; the receipt records budget_exhausted_by_confirmation and, when the floor applies, wait_timeout_floor_seconds beside the unchanged shared_exit_budget_seconds, and wait_timeout_seconds now carries the actual wait.",
       "unchanged": "The over-budget confirmation assertion, first-timeout preservation and diagnostic snapshot ordering, and the rule that only this owned process exiting 0 qualifies are untouched.",
       "evidence": "Local: tests/test_native_exit_ack.py and tests/test_native_navigation_entry.py now assert the 10.0 floor and pass 142/142. History: the 0.5 floor was too short in the installed journey at 41767729062 (live host at 500ms), and the 5.0 floor passed force-full run 41774030014 only because that run never exhausted the confirmation budget (waits 14.75s/15s). The 5.0 floor was triggered on run 41826675383 at f1d64b26 (TIMEOUT at 5000ms), and the merged 10.0 floor was triggered on run 41837406520 at 90e07da6 (TIMEOUT at 10000ms): both receipts show the full app exit sequence finished at ~2.6-2.9s and the process ending only when the cleanup's second WebDriver exit command arrived, so the lingering was a WebDriver/WebView2 attachment rather than a longer natural teardown.",
       "session_release_fix": {
+        "status": "REJECTED_BY_FULL_CI_EVIDENCE",
+        "change": "The merged DELETE /session/<id> release was sent in full CI run 41847524167, returned in 0ms, and still timed out at the 10.0 floor; the following attempt could not send any command (TRANSPORT_CLOSED / invalid session id) and the host did not exit. Deleting the session removed the only command channel that had unblocked the attached host in runs 41826675383 and 41837406520.",
+        "delivery": {
+          "pull_request": 283,
+          "head_sha": "fbc7dab8",
+          "merge_commit": "b0c5e308927fb90ce0cd4a870070de98535bfe66",
+          "exact_sha_run": 41844169031,
+          "full_ci_run": 41847524167
+        }
+      },
+      "nudge_exit_fix": {
         "status": "LOCALLY_VERIFIED_NOT_YET_IN_INSTALLED_CI",
-        "change": "request_owned_product_exit accepts an optional release_session callback and calls DELETE /session/<id> (local 10s bound) after the confirmation loop only when the host is still alive and no owned YES was posted; the receipt records session_release REQUESTED or FAILED. A posted native YES keeps the session. request() gained an optional timeout argument with unchanged defaults.",
-        "tests": "Three new cases in tests/test_native_exit_ack.py cover release-before-wait, no release after an owned YES, and a recorded release failure that still requires the owned exit; both harness files pass 142/142.",
-        "pending": "Exact-SHA CI, merge and a force-full installer-lifecycle run are still required; the exit rule itself is unchanged."
+        "change": "request_owned_product_exit accepts an optional nudge_exit callback and re-invokes the same exit_application command after the confirmation loop only when the host is still alive and no owned YES was posted; the receipt records exit_nudge CONFIRMED, UNEXPECTED_REPLY or FAILED before the same bounded wait. The session is kept, the dirty-draft owned YES path is unchanged, and no second product exit attempt is recorded in requested_product_exits.",
+        "tests": "The three cases in tests/test_native_exit_ack.py now cover nudge-before-wait, no nudge after an owned YES, and a recorded nudge failure that still requires the owned exit; both harness files pass 142/142.",
+        "pending": "Commit, exact-SHA CI, merge and a force-full installer-lifecycle run are required before this counts; the exit rule itself is unchanged."
       },
       "delivery_10s": {
         "pull_request": 282,
