@@ -240,6 +240,13 @@
       "receipt": ".project-local/runs/be268a2d33/4bb6fceb953b/artifacts/colearning-real-model/5d9879350562467fbd2892cd7930a9cd/receipt.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "j1_formats_real_20261104": {
+      "state": "FOUR_FORMAT_SELECTED_CHAIN_REAL_NOT_BATCH_OR_INSTALLED",
+      "measured": "docx, xlsx, pptx and text PDF each produced selected content, located anchors, a fresh reparse and an equal restart readback on the current source with a locally assembled probe candidate.",
+      "limits": "No installed UI or source-application navigation; text PDF only with OCR separate; formulas and cached charts are not live calculation; no source-package reconstruction; no batch/folder failure localization, export or recovery chain in this run.",
+      "receipt": ".project-local/runs/be268a2d33/627b44e2a9cd/artifacts/common-formats.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {
