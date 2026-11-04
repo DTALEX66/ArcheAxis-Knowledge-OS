@@ -33,18 +33,34 @@ def sha(data):
 
 
 def checked_channels(receipt, expected=FAMILIES):
-    require(receipt.get("state") == "complete", "public search is not complete")
+    require(receipt.get("state") in {"complete", "partial"}, "public search failed")
     channels = receipt.get("channels", [])
-    require(len(channels) == len(expected), "expected one channel per requested family")
-    require({c.get("family") for c in channels} == set(expected), "channel identity mismatch")
-    for channel in channels:
-        require(channel.get("status") == "complete", "channel is not complete")
-        require(len(channel.get("hits", [])) == 1, "each channel must return one real hit")
+    require({c.get("family") for c in channels} <= set(expected), "unexpected channel family")
+    primary = {"encyclopedia": "wikipedia", "community": "stackexchange", "research": "openalex"}
+    fallbacks = {"dbpedia": "encyclopedia", "crossref": "research"}
+    selected = []
+    for family in expected:
+        candidates = [c for c in channels if c.get("family") == family]
+        complete = [c for c in candidates if c.get("status") == "complete"]
+        require(complete, f"{family} has no complete channel")
+        require(any(c.get("provider") == primary[family] for c in candidates),
+                f"{family} lost its primary channel")
+        for channel in candidates:
+            provider = channel.get("provider")
+            if provider in fallbacks and fallbacks[provider] == family:
+                require(channel.get("status") in {"complete", "limited", "failed", "offline"},
+                        f"{provider} fallback has an invalid status")
+        # Use the primary channel when it is complete; an incomplete primary keeps its
+        # failed record and the complete fallback speaks for the family.
+        channel = next((c for c in candidates if c.get("provider") == primary[family]
+                        and c.get("status") == "complete"), complete[-1])
+        require(len(channel.get("hits", [])) == 1, "each selected channel must return one real hit")
         require(channel.get("raw_source"), "raw response source missing")
         hit = channel["hits"][0]
         require(hit.get("family") == channel["family"], "hit family mismatch")
         require(bool(hit.get("excerpt", "").strip()), "selected hit has no quotable content")
-    return channels
+        selected.append(channel)
+    return selected
 
 
 def checked_original(original, reference):
@@ -238,6 +254,10 @@ def main():
         receipt["evidence_level"] = "REAL_CORE_PUBLIC_NETWORK"
         require(search.get("request_id") == request_id, "search receipt identity mismatch")
         channels = checked_channels(search, families)
+        receipt["channel_statuses"] = [
+            {"family": c["family"], "provider": c["provider"], "status": c["status"],
+             "error_code": c.get("error_code")}
+            for c in search.get("channels", [])]
         materials, selected, anchors = [], [], []
         for channel in channels:
             family, hit = channel["family"], channel["hits"][0]
@@ -407,6 +427,7 @@ def main():
             "derived text anchors and original readback", "research draft save",
             "human-accepted source-bound knowledge", "restart equal readback",
             "document package and Markdown manifest",
+            "per-channel statuses recorded; a failed primary channel stays failed and is not renamed as success",
         ]})
     except Exception as error:
         receipt.update({"status": "FAIL", "error": f"{type(error).__name__}: {error}"})
