@@ -4067,3 +4067,20 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 验证（本地）：`tests/test_native_exit_ack.py` **53/53**（改写了记录 `wait(0.0)` 的旧用例，并新增"部分消耗预算保留真实剩余 4s"用例）；`tests/test_native_exit_ack.py` 与 `tests/test_native_navigation_entry.py` 合并运行 **139/139**；文档门禁与仓库约定通过。
 - **首个精确 SHA CI 失败一次**（run `41754448092`，head `92ab8f6c`）：`test_native_navigation_entry.py::test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget` 用**自己的 AST 子集**执行同一个函数，没带上新常量 → `NameError: MIN_EXIT_OBSERVATION_SECONDS`（8423 passed / 1 failed）。这是测试装载方式的漏项，不是断言放宽：修复让该 helper 连同常量定义一起执行，并断言耗尽预算时等待 0.5s。
 - 边界：这是探针 harness 修复，不改变产品退出路径，也不改变"只有本进程 exit 0 才算退出"的判定；CI `installer-lifecycle` 需在下一次运行确认该路径，安装态原失败样本仍未在本机复现。
+- 远端交付：PR **#262**（head `ec39cf8b`）以 merge commit `079828bd` 合并；精确 SHA run `41757176732` conclusion success（`gateplan`/`lint`/`test (3.12)` 13m59s/`a0-gates` 全部 success）；`installer-lifecycle` 由 gateplan 按路径跳过，因此**并未**在本轮 CI 中重跑安装态旅程。双端读回 `origin/main` = `079828bd`，已删除已并入分支。
+
+#### 2026-11-04 授权内后端队列收尾审计（证据分层）
+
+| 项 | 状态 | 证据层级 | 未闭合部分 |
+| --- | --- | --- | --- |
+| P0 评分 claim 周期只终结 + 人工触发 | 已合并 | 本地定向 + 精确 SHA CI（#258，run `41743204591`） | 300s 巡检无真实进程旅程；安装态未跑 |
+| P1 只读 OpenMAIC 课程包投影 | 已合并 | 本地定向 + 精确 SHA CI（#260，run `41750281573`） | 无课程 manifest 校验、无课程→场景服务端索引、无四消费者接线 |
+| P1 S01 剩余 runs 条目 | 只读决策，未执行 | 本地只读测量 + 决策表 | 迁移/删除需 Owner 精确授权；29 项消费者未逐项确认 |
+| 安装态退出探针 `wait(0.0)` | 已合并 | 本地回归 + 精确 SHA CI（#262，run `41757176732`） | `installer-lifecycle` 未在该 SHA 路径集运行；原失败样本未复现 |
+| `#[ignore]` Rust 测试 | 维持受控本地资格 | 2026-11-03 显式身份本地通过 | CI 不运行；skip 不是证据 |
+| 安装态接受（P2） | **未执行** | — | 需 Owner 单独授权：独立 Windows 账户/隔离环境 + 五摘要核验 |
+| 真实学习改善（F05）与独立复测 | **未证** | — | 需真实人力真值对与独立复测，不能由合成数据代替 |
+| 真实本地模型产品链 | 部分点验 | 2026-11-03 本地（7B 通过冻结 rubric；27B 超预算） | 未接入正式答案/评分产品链；模型质量不是准确率证据 |
+| 真实数据 / release / Green 替换 | **未授权** | — | 活动指针 `still_requires_separate_authorization` |
+
+**结论**：授权范围内的后端开发队列已全部落地并合并；剩余闭环缺口都属于"需要 Owner 单独授权或真实环境/人力"的类别，不再由本 Agent 自行推进。合成数据、干净检出 CI 与本地定向测试都不能写成安装态、真实数据或 Owner 接受。
