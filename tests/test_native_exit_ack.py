@@ -170,7 +170,7 @@ def test_frame_detach_from_an_ordinary_command_still_propagates():
 def test_zero_remaining_budget_preserves_first_timeout_before_cleanup_attempt():
     host = Mock(pid=12)
     host.poll.return_value = None
-    first_error = subprocess.TimeoutExpired("owned-host", 0.5)
+    first_error = subprocess.TimeoutExpired("owned-host", 5.0)
     host.wait.side_effect = first_error
     receipt = {}
     send = Mock(return_value={"ok": True, "value": None})
@@ -185,11 +185,11 @@ def test_zero_remaining_budget_preserves_first_timeout_before_cleanup_attempt():
     observe.assert_called_once_with()
     # A consumed budget must not become wait(0.0), which fails without observing
     # anything; the small positive window is recorded next to the budget fields.
-    host.wait.assert_called_once_with(timeout=0.5)
+    host.wait.assert_called_once_with(timeout=5.0)
     attempt = receipt["requested_product_exits"][0]
     assert attempt["ack"] == "CONFIRMED" and attempt["wait_result"] == "TIMEOUT"
     assert attempt["shared_exit_budget_seconds"] == 15
-    assert attempt["wait_timeout_seconds"] == 0.5
+    assert attempt["wait_timeout_seconds"] == 5.0
     assert attempt["budget_exhausted_by_confirmation"] is True
     assert attempt["confirmation_observation"]["owned_yes_posted"] is False
     assert attempt["timeout_snapshot"]["stage"] == "AFTER_WAIT_TIMEOUT_BEFORE_CLEANUP_RETRY"

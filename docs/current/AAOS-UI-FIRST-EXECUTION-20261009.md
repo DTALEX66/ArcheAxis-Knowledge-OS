@@ -4063,11 +4063,20 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 #### 2026-11-04 安装态退出探针的 `wait(0.0)` 退化修复（带回归测试）
 
 - 事实（PR #255 首跑 flake）：安装态旅程里合成原生确认耗时约 15,016ms 已耗尽 15s 共享退出预算，剩余时间被钳制为 0，随后 `host.wait(timeout=0.0)` 立即抛 `TimeoutExpired after 0.0 seconds`，被误报成"宿主未正常退出"。
-- 修复（`scripts/probes/aaos01_tauri_webdriver_loop.py`）：新增 `MIN_EXIT_OBSERVATION_SECONDS = 0.5`；当确认耗尽预算时用该正的最小观测窗口等待，而不是 `wait(0.0)`。回执新增 `budget_exhausted_by_confirmation`；`shared_exit_budget_seconds` 仍记 15（预算字段不变），`wait_timeout_seconds` 记实际等待值；确认返回值超出预算的断言、首次 `TimeoutExpired` 保留与诊断快照语义均未改变。
+- 修复（`scripts/probes/aaos01_tauri_webdriver_loop.py`）：新增 `MIN_EXIT_OBSERVATION_SECONDS`；当确认耗尽预算时用该有界回退窗口等待，而不是 `wait(0.0)`。回执新增 `budget_exhausted_by_confirmation`（耗尽时另有 `wait_timeout_floor_seconds`）；`shared_exit_budget_seconds` 仍记 15（预算字段不变），`wait_timeout_seconds` 记实际等待值；确认返回值超出预算的断言、首次 `TimeoutExpired` 保留与诊断快照语义均未改变。
+- **CI 实测把回退窗口从 0.5s 调到 5s**（run `41767729062`，SHA `d1e4ac88`）：安装态旅程在确认观察耗满 15,062ms 后用 0.5s 等待仍超时（`wait_elapsed_ms=500`，宿主窗口仍可见），而 finally 重试在 109ms 内等到 `RETURNED`（`wait_elapsed_ms=0.0`，说明宿主在 0.5s 之后约 1s 内已退出）。即 0.5s 窗口短于真实退出延迟，不是宿主不退出。5s 回退窗口覆盖该实测延迟，仍然上界有限并要求 exit 0。
 - 验证（本地）：`tests/test_native_exit_ack.py` **53/53**（改写了记录 `wait(0.0)` 的旧用例，并新增"部分消耗预算保留真实剩余 4s"用例）；`tests/test_native_exit_ack.py` 与 `tests/test_native_navigation_entry.py` 合并运行 **139/139**；文档门禁与仓库约定通过。
 - **首个精确 SHA CI 失败一次**（run `41754448092`，head `92ab8f6c`）：`test_native_navigation_entry.py::test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget` 用**自己的 AST 子集**执行同一个函数，没带上新常量 → `NameError: MIN_EXIT_OBSERVATION_SECONDS`（8423 passed / 1 failed）。这是测试装载方式的漏项，不是断言放宽：修复让该 helper 连同常量定义一起执行，并断言耗尽预算时等待 0.5s。
 - 边界：这是探针 harness 修复，不改变产品退出路径，也不改变"只有本进程 exit 0 才算退出"的判定；CI `installer-lifecycle` 需在下一次运行确认该路径，安装态原失败样本仍未在本机复现。
 - 远端交付：PR **#262**（head `ec39cf8b`）以 merge commit `079828bd` 合并；精确 SHA run `41757176732` conclusion success（`gateplan`/`lint`/`test (3.12)` 13m59s/`a0-gates` 全部 success）；`installer-lifecycle` 由 gateplan 按路径跳过，因此**并未**在本轮 CI 中重跑安装态旅程。双端读回 `origin/main` = `079828bd`，已删除已并入分支。
+
+#### 2026-11-04 全量 CI 发现的两处环境/阈值问题（共享缓存误判与 0.5s 回退窗口过短）
+
+- 全量 CI 在 `09e3b397`（run `41759996443`，workflow_dispatch `force_full`）暴露两个与产品代码无关的问题：
+  1. **`desktop-build` 确定性失败**：CI 运行时 seal 报 `measurement_status=PARTIAL`、`excluded_private` 1 项——解包在 `.project-local/cache/cargo/registry/.../sharded-slab-0.1.7/.envrc` 的第三方 crate 文件被笼统的 `.env*` 私有名规则排除，seal 拒绝建立基线。修复（PR **#264**）：`storage_report.under_shared_cache` 只对 `.project-local/cache` 放宽该名字检查，其余位置（如 `.project-local/rt/.envrc`）仍排除；只统计大小/路径，不读取内容。PR #264 head `b164a87c`、merge `d1e4ac88`，run `41764962360` 成功；随后全量 CI `41767729062` 的 `desktop-build` **通过**，证明 seal 修复有效。
+  2. **`rust-vnext` 同 SHA rerun 通过**：`pdf_health_observes_actual_dependency_without_a_document` 以 2s worker hello 超时失败（`handshake_failed`），同 SHA rerun 通过。按负载敏感 flake 记录，未放宽断言。
+- 同一全量 CI 的 `installer-lifecycle` 用 0.5s 回退窗口仍失败（详见上一小节 CI 实测）；回退窗口已改为 5s，等待下一次安装态 rerun 确认。
+- 边界：`force_full` 的并发组按 main 最新 SHA 取消旧 run（`41759930318` 因同 SHA 派发被行政取消），不是失败；安装态仍是 CI runner 合成数据，不等于 Owner 机器接受。
 
 #### 2026-11-04 授权内后端队列收尾审计（证据分层）
 
