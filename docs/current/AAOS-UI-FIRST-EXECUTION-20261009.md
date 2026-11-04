@@ -4159,3 +4159,8 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - md 源经真实 text job transform → `from-transform` 知识候选 → 人工 `accepted`（`k_665d0e8607f8393d50932fb9`）；`GET /api/v1/search?q=mappable-phrase-41` 命中该知识；文档创建→PUT 草稿编辑（`edited-phrase-77`）→搜索命中该文档→markdown 导出 `document.md` + `manifest.json`。
 - 重启后文档、导出、知识 v3、anchor resolve 与批次 manifest 全部相等（`restart_equal: true`）；备份 `verified: true`、出现在列表、restore preview `verified/compatible: true`，`--maintenance-restore` 到独立数据库后由新 Core 读回同一文档与知识并搜索命中（`restored.verified: true`、`restored.pid` 记录）。
 - 批次状态：manifest 21 行（三轮），`source_consistent: true`。边界：合成材料、staged 运行时、本机；非安装态/Owner 接受；文本 PDF；无源应用渲染、OCR/媒体转写或实时公式计算。
+
+#### 2026-11-04 X5/J1 合并（PR #274）
+
+- 分支 head `93db8e05`（两提交：`02bb7472` X5、`93db8e05` J1）以 merge commit `9306a8ee` 合并；精确 SHA CI（run `41805099846`）required gates 全部 success：`gateplan`（20s）、`lint`（1m10s）、`a0-gates`（3s），其余 job 由 gateplan 按路径跳过。
+- 本地与 `origin/main` 一致于 `9306a8ee`；本地与远端分支均已删除。仍非安装态、非 Owner 接受；回执与 staged 候选仍只在本机 ignored `.project-local`。
