@@ -1,0 +1,5 @@
+short_description: "Create an authored notebook page from Markdown."
+when_to_use: "The user wants to write or organize a note. Use save_favorite to archive original conversation output, and note_suggest to edit the currently open page."
+input_format: '{"title": "Page title", "content": "Complete Markdown with citations"}'
+guideline: "Preserve source links and distinguish original sources from your synthesis. Return the page link."
+phase: "synthesis"

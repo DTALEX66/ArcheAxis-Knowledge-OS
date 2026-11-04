@@ -26,3 +26,7 @@
 
 # Source-copy locators are explicit lookup metadata, not default prose search.
 /workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json
+
+# Full upstream donor snapshots are explicit reference sources, not current AAOS
+# code. Read them by exact path (and override ignore) when adapting a donor.
+/services/learning-providers/*/upstream/

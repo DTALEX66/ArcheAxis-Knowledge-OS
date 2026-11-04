@@ -258,6 +258,33 @@
       },
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "full_donor_absorption_20261105": {
+      "state": "FULL_SOURCE_SNAPSHOTS_IN_REPOSITORY_FUNCTIONAL_INTEGRATION_NOT_STARTED",
+      "authority": "Owner 2026-11-05 instruction to fully absorb and fully integrate both donors; SUP-034; decision section 29",
+      "snapshots": {
+        "deeptutor": {
+          "path": "services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1",
+          "files": 4471,
+          "bytes": 69573066,
+          "archive_sha256": "9614f50cfe2cef476c25ad378631f5a5d15a7c0f3f54ef1fa3180c8f41286262",
+          "license": "Apache-2.0",
+          "manifest": "services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1-SOURCE-MANIFEST.json"
+        },
+        "openmaic": {
+          "path": "services/learning-providers/openmaic/upstream/OpenMAIC-1.3.0",
+          "files": 3830,
+          "bytes": 126976875,
+          "archive_bytes": 126977302,
+          "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+          "license": "MIT",
+          "manifest": "services/learning-providers/openmaic/upstream/OpenMAIC-1.3.0-SOURCE-MANIFEST.json",
+          "normalization": "Three CRLF Markdown files follow the donor .gitattributes LF rule; the manifest records repository-snapshot hashes and the archive keeps the original bytes."
+        }
+      },
+      "boundary": "Complete upstream source in the repository is a read-only reference, not a second runtime, database, scheduler or canonical writer. Rust Core remains the only SQLite/CAS writer. Absorption is not integration, installed qualification or Owner acceptance.",
+      "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "j2_public_research_real_20261104": {
       "state": "TWO_OF_THREE_CHANNELS_REAL_THIRD_UNREACHABLE_NOT_CODE",
       "measured": "Real Core with real network: community stackexchange and research openalex completed, with raw/derived original hashes, fixed references, text anchors and resolve, research draft save, package and Markdown export, a human-accepted source-bound knowledge item created through the ordinary text-job and review path, restart equality of that knowledge, verified backup and consistent source/candidate identities across 42 steps.",

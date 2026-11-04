@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "deeptutor-cli"
+dynamic = ["version", "dependencies"]
+description = "Compatibility install for the minimal DeepTutor CLI"
+requires-python = ">=3.11,<3.15"
+[tool.setuptools]
+packages = []

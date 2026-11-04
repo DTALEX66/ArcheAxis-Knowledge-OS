@@ -18,3 +18,25 @@
 最新定义继续读取根[AUTHORITY](../../../AUTHORITY.md)、[13组对照](../../../docs/history/owner-dialogue-20261101-current-goals/README.md)、[身份V2.3](../../../docs/truth/PRODUCT_IDENTITY_V2.md)及[唯一闭环V3](../../../docs/truth/CLOSED_LOOP_DEFINITION.md)。当前控制沿[活动指针](../../../docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进展只记[唯一执行记录](../../../docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。新请求选定两源码接入及未完项的接续拆分；UI全面重排、监控、发布、Green替换和真实库覆盖不随此自动恢复。
 
 本轮完成归档、静态接缝核查、任务拆分与提示词；产品实现须由后继会话实际落地，不能以本页或ZIP归档宣称并入已完成。131治理测试、878本地来源定位、45近期包和125恢复成员均为此前各自回执，不是新供体产品资格。
+
+## 2026-11-05 Owner 指令：全量吸收并全量融入
+
+Owner 明确：“两个项目先全量吸收进来，全量融入进来”。这条指令覆盖此前“只选适用能力”的窄解释，但保留以下产品边界：
+
+- Rust Core 仍是 SQLite/CAS 唯一 canonical writer；不新增第二业务库、第二调度器或通用 Agent Runtime。
+- 全量吸收指**完整上游源码快照**进入本仓；不等于两套平台整站替换 AAOS，也不等于功能已完成。
+- 全量融入按 `FOLLOWUP-WORKBREAKDOWN.md` 的 INT-DT-01—03、INT-MAIC-01—05、INT-QUAL 逐项推进，每项仍按真实 Core、真实 worker、安装态与 Owner 接受分层记录。
+
+### 已完成的源码吸收
+
+| 源码 | 快照目录 | 文件数 | 逐文件身份 |
+| --- | --- | ---: | --- |
+| DeepTutor 1.7.1 | `services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1/` | 4,471 | `DeepTutor-1.7.1-SOURCE-MANIFEST.json` |
+| OpenMAIC 1.3.0 | `services/learning-providers/openmaic/upstream/OpenMAIC-1.3.0/` | 3,830 | `OpenMAIC-1.3.0-SOURCE-MANIFEST.json` |
+
+- 两份快照均从本仓归档 ZIP 解包，归档 SHA-256 与 `MANIFEST.json` 一致；没有引入 `node_modules`、模型权重、运行数据库或第二知识库。
+- 每个快照附 `README.md` 与逐文件 SHA-256 清单；清单绑定归档哈希、许可证成员与文件计数。
+- OpenMAIC 上游 `.gitattributes` 会把 3 个 CRLF Markdown 归一化为 LF；清单记录仓库快照哈希并单列该归一化，归档仍保留原始字节。
+- 上游源码默认不参与普通文本搜索（见根 `.ignore`）；需要时按精确路径读取。
+
+**仍未完成**：两套平台的完整功能接线、跨消费者资格、同候选安装态与 Owner 接受。源码在仓内只表示“已吸收”，不表示“已融入”或“已验收”。
