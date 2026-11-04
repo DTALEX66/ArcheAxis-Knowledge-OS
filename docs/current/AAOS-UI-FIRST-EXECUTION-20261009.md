@@ -4164,3 +4164,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 - 分支 head `93db8e05`（两提交：`02bb7472` X5、`93db8e05` J1）以 merge commit `9306a8ee` 合并；精确 SHA CI（run `41805099846`）required gates 全部 success：`gateplan`（20s）、`lint`（1m10s）、`a0-gates`（3s），其余 job 由 gateplan 按路径跳过。
 - 本地与 `origin/main` 一致于 `9306a8ee`；本地与远端分支均已删除。仍非安装态、非 Owner 接受；回执与 staged 候选仍只在本机 ignored `.project-local`。
+
+#### 2026-11-04 J2 两通道在 staged 运行时复验
+
+- 候选与 J1 相同：`.project-local/rt/staged-deps-20261104`（manifest `13499f89…`、Core sha `3ec23b23…`）。回执 `.project-local/runs/be268a2d33/27edbd6f8470/artifacts/public-research-receipt.json`：`ok: true`、`status: PARTIAL`、`evidence_level: REAL_CORE_PUBLIC_NETWORK`、`source_consistent/candidate_consistent: true`。
+- `families`：community（StackExchange）与 research（OpenAlex）真实网络通道；encyclopedia 记 `NOT_EXECUTED`（本机对 en/zh.wikipedia、api.wikimedia.org、wikidata 的 8s 直连仍为 000）。链路含 raw/derived 原件哈希、固定 source 引用、anchor 定位与 resolve、研究草稿保存、package 与 Markdown 导出 manifest、人工接纳的知识 `k_244d9890332d9d5ed0910712`；重启读回相等（`same_objects_after_restart: true`）、备份 `verified`（sha `78ba73e0…`）；本探针 `restore` 记 `NOT_EXECUTED`，真实恢复到独立数据库已在同候选的 J1 批次链中验证。
+- 边界：公开合成查询与单人 actor；非安装态、非 Owner 接受；百科通道仍待 Owner 的代理端点或新免费源决定。

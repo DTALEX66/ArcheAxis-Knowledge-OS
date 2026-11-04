@@ -229,6 +229,11 @@
       "measured": "Real Core with real network: community stackexchange and research openalex completed, with raw/derived original hashes, fixed references, text anchors and resolve, research draft save, package and Markdown export, a human-accepted source-bound knowledge item created through the ordinary text-job and review path, restart equality of that knowledge, verified backup and consistent source/candidate identities across 42 steps.",
       "gap": "The encyclopedia (wikipedia) channel is unreachable from this host (en/zh.wikipedia.org and wikidata TCP time out; the full three-channel run recorded offline/network_unavailable for it). DBpedia data/sparql is reachable but its Lookup search API returns an error page, so no free encyclopedia search channel is usable here yet.",
       "probe_change": "scripts/probes/aaos_public_research_runtime_loop.py --families measures a declared subset and records the rest as NOT_EXECUTED instead of passing them.",
+      "staged_repeat": {
+        "candidate": ".project-local/rt/staged-deps-20261104 (manifest 13499f89..., core sha256 3ec23b23...)",
+        "receipt": ".project-local/runs/be268a2d33/27edbd6f8470/artifacts/public-research-receipt.json",
+        "result": "community and research live again on the same staged candidate as the J1 runs; accepted knowledge k_244d9890332d9d5ed0910712, restart equal readback true, backup verified sha256 78ba73e0...; encyclopedia NOT_EXECUTED (still unreachable)"
+      },
       "receipt": ".project-local/runs/be268a2d33/e700676c56a9/artifacts/public-research-receipt.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
