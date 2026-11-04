@@ -35,6 +35,19 @@ def protected_name(name: str) -> bool:
     name = name.casefold()
     return name in PRIVATE_NAMES or name in PRIVATE_FILES or name.startswith('.env')
 
+
+def under_shared_cache(parts) -> bool:
+    """Sanctioned shared package cache, not project evidence.
+
+    Third-party crate sources are unpacked under `.project-local/cache` and some of
+    them ship files whose names look private (a crate's `.envrc`). Those are not
+    agent-private state or credentials, and treating them as such made a clean CI
+    measurement PARTIAL and blocked the runtime seal. Only the declared cache root
+    is exempt; the same name anywhere else stays excluded.
+    """
+    folded = tuple(part.casefold() for part in parts)
+    return any(a == ".project-local" and b == "cache" for a, b in zip(folded, folded[1:], strict=False))
+
 # Which ignored top-level entries are sanctioned. Everything else at the root is drift.
 ALLOWED_IGNORED = {".git", ".github", ".worklab", ".project-local", ".project", ".codex.example",
                    ".cargo", ".ruff_cache", ".pytest_cache", ".venv", ".hermes", ".codex", ".dsh",
@@ -207,7 +220,9 @@ def directory_measurement(path: Path) -> dict:
                 for entry in entries:
                     # Names are checked before stat or descent: private agent state is not
                     # project evidence, even when it sits below a project-owned worktree.
-                    if protected_name(entry.name):
+                    # Sanctioned shared caches are measured instead: a third-party crate's
+                    # `.envrc` is not private project state (see `under_shared_cache`).
+                    if protected_name(entry.name) and not under_shared_cache(Path(display_path(entry.path)).parts):
                         result["excluded_private"].append(display_path(entry.path))
                         continue
                     if current.name.casefold() == ".project-local" and entry.name.casefold() == "agents":
