@@ -108,9 +108,11 @@ jobs:
   test:
     # OS-level suite runtime varies with runner load: the 2026-11-03 exact-SHA runs took
     # 14m09s, 17m46s and >19m for the same 8,421 tests, and the 20-minute cap cancelled
-    # the job after the suite had reached 97%. 30 minutes is capacity headroom, not
-    # relaxed coverage: the same tests and the same pass condition still apply.
-    timeout-minutes: 30
+    # the job after the suite had reached 97%. The 2026-11-05 complete donor absorption
+    # adds 8,301 tracked files and repo-scanning tests, and the 30-minute cap cancelled
+    # the run at 99%. 45 minutes is capacity headroom, not relaxed coverage: the same
+    # tests and the same pass condition still apply.
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     needs: [gateplan, lint]
     if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
