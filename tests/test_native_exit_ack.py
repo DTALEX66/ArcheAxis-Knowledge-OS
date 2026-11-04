@@ -224,6 +224,59 @@ def test_a_partly_consumed_budget_keeps_the_real_remaining_window():
     assert attempt["wait_result"] == "RETURNED"
 
 
+def test_session_release_precedes_the_owned_wait_and_is_recorded():
+    host = Mock(pid=12)
+    host.poll.side_effect = [None, None, 0]
+    order = []
+    host.wait.side_effect = lambda timeout: order.append(("wait", timeout)) or 0
+    release = Mock(side_effect=lambda: order.append(("release",)))
+    receipt = {}
+    exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}],
+               Mock(return_value={"ok": True, "value": None}), receipt, release_session=release)
+    assert order == [("release",), ("wait", 15)]
+    release.assert_called_once_with()
+    attempt = receipt["requested_product_exits"][0]
+    assert attempt["session_release"]["status"] == "REQUESTED"
+    assert receipt["host_shutdowns"][0]["exited"] is True
+
+
+def test_posted_native_yes_keeps_the_session_until_the_owned_exit_finishes():
+    host = Mock(pid=12)
+    host.poll.side_effect = [None, None, 0]
+    host.wait.return_value = 0
+    release = Mock()
+    receipt = {}
+
+    def confirm(record, timeout):
+        record["native_confirmation"] = {"posted": True}
+        return 10
+
+    exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}],
+               Mock(return_value={"ok": True, "value": None}), receipt,
+               confirm_synthetic=confirm, release_session=release)
+    release.assert_not_called()
+    assert receipt["requested_product_exits"][0]["confirmation_observation"]["owned_yes_posted"] is True
+    host.wait.assert_called_once_with(timeout=10)
+
+
+def test_release_refusal_is_recorded_and_the_owned_exit_is_still_required():
+    host = Mock(pid=12)
+    host.poll.return_value = None
+    error = subprocess.TimeoutExpired("owned-host", 15)
+    host.wait.side_effect = error
+    release = Mock(side_effect=ProtocolError({"error": "invalid session id"}))
+    receipt = {}
+    with pytest.raises(subprocess.TimeoutExpired) as raised:
+        exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}],
+                   Mock(return_value={"ok": True, "value": None}), receipt, release_session=release)
+    assert raised.value is error
+    attempt = receipt["requested_product_exits"][0]
+    assert attempt["session_release"]["status"] == "FAILED"
+    assert attempt["session_release"]["error_type"] == "WebDriverProtocolError"
+    assert attempt["wait_result"] == "TIMEOUT" and "host_shutdowns" not in receipt
+    host.wait.assert_called_once_with(timeout=15)
+
+
 def test_passive_observer_failure_does_not_replace_original_timeout_or_leak_message():
     host = Mock(pid=12)
     host.poll.return_value = None
