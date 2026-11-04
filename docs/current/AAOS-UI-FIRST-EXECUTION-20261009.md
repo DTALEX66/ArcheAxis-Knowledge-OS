@@ -4261,3 +4261,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 每份快照附 `README.md` 与 `SOURCE-MANIFEST.json`（归档身份、许可证、逐文件路径/字节/SHA-256）。OpenMAIC 上游 `.gitattributes` 的 `* text=auto eol=lf` 使 3 个 CRLF Markdown 在入库时归一化为 LF；清单记录仓库快照哈希并单列 `line_ending_normalization`，原始 CRLF 字节仍在归档中。
 - 未引入 `node_modules`、模型权重、运行数据库、缓存或真实 `.env`；唯一看起来像密钥的 `runtime-public.pem` 经核实是**公钥**，`docker-compose.defaults.env` 是开发默认模板。上游源码默认不参与普通文本搜索（根 `.ignore`）。
 - 边界：本轮只完成**源码吸收**；两套平台的完整功能接线（INT-DT-01—03、INT-MAIC-01—05、INT-QUAL）尚未开始或尚未完成，源码在仓内不能写成“已融入”“已安装”或“Owner 已接受”。
+
+#### 2026-11-05 全量吸收交付：PR #286 合并与全量 CI
+
+- 分支 `codex/full-donor-absorption-20261105` 最终 head `16fda6e8`，PR **#286**（“Absorb the complete DeepTutor and OpenMAIC sources”）以 merge commit **`81693f84`** 合并，远端分支已删除；本地 `main` 与 `origin/main` 均为 `81693f84`，工作树干净。
+- 精确 SHA CI（run `41922403250`）：`gateplan`、`lint`、`test (3.12)`、`security-targeted`、`contracts-vnext`、`workers-vnext`、`green-candidate-vnext`、`desktop-vnext`、`desktop-fast`、`desktop-build`、`rust-vnext`、`installer-lifecycle`、`a0-gates` 全部 **success**。
+- `installer-lifecycle` 首跑失败于既有的外部资产下载超时（`Prepare pinned project-local OCR ... "error": "The read operation timed out"`），同 SHA `gh run rerun --failed` 后通过；按既有做法保留首次网络失败事实，不放宽断言、不改写回执。
+- `rust-vnext` 在更早的 `c8a8e516` 上曾以 `derived worker timed out` 失败，本 SHA 与 `cd350c77` 均通过；仍按“负载敏感偶发”记录，未删除原失败。
+- 为容纳吸收后的仓库规模与扫描用例，`test` job 预算由 30 分钟提高到 45 分钟（同一批测试与同一通过条件），pytest 的 `--basetemp` 落到已创建的 `.project-local/task-runtime/pytest-tmp/basetemp-ci`。
+- 迁移副作用修复（均在合并前）：①`tests/maintenance/test_bulk_fixture_factory.py`、`tests/test_candidate_manifest.py` 改为显式声明各自治理根（`tmp_path` 已不在 `ARCHEAXIS_RUN_ROOT` 内）；②`tests/test_pytest_boundary.py` 的边界断言改为“位于 `.project-local` 内”（scratch 在 `task-runtime`、TMP/pycache 仍在 run 内）；③`tests/workflow/test_external_resources_index.py` 的探针覆盖改用 run 内目录；④`tests/test_desktop_launch.py` 的开发产物夹具改到项目 `build/` 树下，使启动器的路径分类仍成立。本地验证：上述文件 47 passed/2 skipped、32 passed、47 passed/2 skipped 与 525 passed（`tests/maintenance`+`tests/runtime-paths`，仅 `test_shared_sandbox` 因本机 Windows 长路径既有失败）。
+- 边界：本段只证明**完整源码吸收已入仓并通过全量门禁**；不改变“吸收≠融入≠安装态≠Owner 接受”，功能接线仍按 INT-DT/INT-MAIC/INT-QUAL 逐项推进。

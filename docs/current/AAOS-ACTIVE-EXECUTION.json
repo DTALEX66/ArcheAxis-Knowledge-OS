@@ -259,8 +259,16 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "full_donor_absorption_20261105": {
-      "state": "FULL_SOURCE_SNAPSHOTS_IN_REPOSITORY_FUNCTIONAL_INTEGRATION_NOT_STARTED",
+      "state": "FULL_SOURCE_SNAPSHOTS_MERGED_AND_FULLY_QUALIFIED_FUNCTIONAL_INTEGRATION_IN_PROGRESS",
       "authority": "Owner 2026-11-05 instruction to fully absorb and fully integrate both donors; SUP-034; decision section 29",
+      "delivery": {
+        "pr": 286,
+        "head_sha": "16fda6e8d59da17eeb7bc0f4b4a0b8ee4ea256a7",
+        "merge_commit": "81693f84986edde4a2704ffc15ecf81dcf52dc04",
+        "ci_run": 41922403250,
+        "ci_result": "SUCCESS_ALL_REQUIRED_GATES_INCLUDING_INSTALLER_LIFECYCLE_AND_A0_GATES",
+        "ci_notes": "installer-lifecycle first attempt failed on a pre-existing OCR asset download timeout and passed on the same SHA after gh run rerun --failed; the first network failure is preserved as recorded, not rewritten."
+      },
       "snapshots": {
         "deeptutor": {
           "path": "services/learning-providers/deeptutor/upstream/DeepTutor-1.7.1",
