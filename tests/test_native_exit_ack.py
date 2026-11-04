@@ -185,11 +185,11 @@ def test_zero_remaining_budget_preserves_first_timeout_before_cleanup_attempt():
     observe.assert_called_once_with()
     # A consumed budget must not become wait(0.0), which fails without observing
     # anything; the small positive window is recorded next to the budget fields.
-    host.wait.assert_called_once_with(timeout=5.0)
+    host.wait.assert_called_once_with(timeout=10.0)
     attempt = receipt["requested_product_exits"][0]
     assert attempt["ack"] == "CONFIRMED" and attempt["wait_result"] == "TIMEOUT"
     assert attempt["shared_exit_budget_seconds"] == 15
-    assert attempt["wait_timeout_seconds"] == 5.0
+    assert attempt["wait_timeout_seconds"] == 10.0
     assert attempt["budget_exhausted_by_confirmation"] is True
     assert attempt["confirmation_observation"]["owned_yes_posted"] is False
     assert attempt["timeout_snapshot"]["stage"] == "AFTER_WAIT_TIMEOUT_BEFORE_CLEANUP_RETRY"

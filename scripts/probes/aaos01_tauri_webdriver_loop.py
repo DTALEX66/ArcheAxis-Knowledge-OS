@@ -29,8 +29,10 @@ from native_tcp_listeners import tcp_listener_rows
 # shared budget. It is an observation window, not an extra budget grant.
 # 0.5s was measured too short: the installed journey at 41767729062 still had a
 # live host after 0.5s and exited on the cleanup retry, so a consumed budget needs
-# a window a real exit can finish in.
-MIN_EXIT_OBSERVATION_SECONDS = 5.0
+# a window a real exit can finish in. 5.0s was still too short on the full CI run
+# at f1d64b26 (41826675383) where the host teardown under load exceeded it; the
+# floor stays bounded and independent of the shared budget field.
+MIN_EXIT_OBSERVATION_SECONDS = 10.0
 
 
 class _GroupedJourneyCompleteError(Exception):

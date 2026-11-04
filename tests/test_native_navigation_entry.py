@@ -814,9 +814,9 @@ def test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget(
     assert receipt['host_shutdowns'][0]['exit_code'] == 0
     host.poll.return_value = None
     host.poll.side_effect = None
-    host.wait.side_effect = subprocess.TimeoutExpired('owned', 5.0)
+    host.wait.side_effect = subprocess.TimeoutExpired('owned', 10.0)
     with pytest.raises(subprocess.TimeoutExpired):
         exit_owned(host, {'pid': 12, 'created': 77}, [{'pid': 12, 'created': 77}], send,
             {}, confirm_synthetic=lambda record, seconds: 0)
     # A consumed budget waits on the positive floor instead of wait(0.0).
-    host.wait.assert_called_with(timeout=5.0)
+    host.wait.assert_called_with(timeout=10.0)
