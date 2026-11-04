@@ -247,6 +247,14 @@
       "receipt": ".project-local/runs/be268a2d33/627b44e2a9cd/artifacts/common-formats.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "x5_fault_probe_20261104": {
+      "state": "PARTIAL_INVALID_INPUT_CASE_PASSED_OTHERS_FAILED_OWNER_PID_ASSERTION",
+      "passed": "Real invalid UTF-16 input failed with no published outputs and a following recovery job succeeded and read back the original text.",
+      "failed": "The timeout, cancel and crash injected cases reached the correct terminal states with no outputs and a stopped Core, but the probe's owned-worker parent-identity assertion did not hold (marker parent PID differs from the captured Core PID).",
+      "cause": "NOT_LOCATED: may be the locally assembled candidate without staged runtime/launcher layout, or a probe expectation mismatch; requires a staged candidate or separate investigation and supports neither a pass nor a product-defect claim.",
+      "receipt": ".project-local/task-runtime/aaos01-fault/74bb50270eaa40d9b62d699e9f04a9e6/receipt.json",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {
