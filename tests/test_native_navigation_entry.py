@@ -318,9 +318,14 @@ def test_main_harness_prepares_navigation_instead_of_waiting_for_removed_exact_t
 
 def harness_helper(name):
     source = (ROOT / 'scripts/probes/aaos01_tauri_webdriver_loop.py').read_text()
-    node = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == name)
+    tree = ast.parse(source)
+    nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == name]
+    # The exit helper reads a module-level floor, so the executed subset carries it.
+    nodes += [node for node in tree.body if isinstance(node, ast.Assign)
+              and any(getattr(target, 'id', None) == 'MIN_EXIT_OBSERVATION_SECONDS'
+                      for target in node.targets)]
     namespace = {'json': json, 're': re}
-    exec(compile(ast.Module(body=[node], type_ignores=[]), '<navigation-helper>', 'exec'), namespace)
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), '<navigation-helper>', 'exec'), namespace)
     return namespace[name]
 
 
@@ -809,7 +814,9 @@ def test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget(
     assert receipt['host_shutdowns'][0]['exit_code'] == 0
     host.poll.return_value = None
     host.poll.side_effect = None
-    host.wait.side_effect = subprocess.TimeoutExpired('owned', 0)
+    host.wait.side_effect = subprocess.TimeoutExpired('owned', 0.5)
     with pytest.raises(subprocess.TimeoutExpired):
         exit_owned(host, {'pid': 12, 'created': 77}, [{'pid': 12, 'created': 77}], send,
             {}, confirm_synthetic=lambda record, seconds: 0)
+    # A consumed budget waits on the positive floor instead of wait(0.0).
+    host.wait.assert_called_with(timeout=0.5)

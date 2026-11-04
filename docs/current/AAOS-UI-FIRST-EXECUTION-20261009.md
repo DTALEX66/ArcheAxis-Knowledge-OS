@@ -4064,5 +4064,6 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 - 事实（PR #255 首跑 flake）：安装态旅程里合成原生确认耗时约 15,016ms 已耗尽 15s 共享退出预算，剩余时间被钳制为 0，随后 `host.wait(timeout=0.0)` 立即抛 `TimeoutExpired after 0.0 seconds`，被误报成"宿主未正常退出"。
 - 修复（`scripts/probes/aaos01_tauri_webdriver_loop.py`）：新增 `MIN_EXIT_OBSERVATION_SECONDS = 0.5`；当确认耗尽预算时用该正的最小观测窗口等待，而不是 `wait(0.0)`。回执新增 `budget_exhausted_by_confirmation`；`shared_exit_budget_seconds` 仍记 15（预算字段不变），`wait_timeout_seconds` 记实际等待值；确认返回值超出预算的断言、首次 `TimeoutExpired` 保留与诊断快照语义均未改变。
-- 验证（本地）：`tests/test_native_exit_ack.py` **53/53**（改写了记录 `wait(0.0)` 的旧用例，并新增"部分消耗预算保留真实剩余 4s"用例）；harness 相关 6 个测试文件合计 **140/140**；文档门禁与仓库约定通过。
+- 验证（本地）：`tests/test_native_exit_ack.py` **53/53**（改写了记录 `wait(0.0)` 的旧用例，并新增"部分消耗预算保留真实剩余 4s"用例）；`tests/test_native_exit_ack.py` 与 `tests/test_native_navigation_entry.py` 合并运行 **139/139**；文档门禁与仓库约定通过。
+- **首个精确 SHA CI 失败一次**（run `41754448092`，head `92ab8f6c`）：`test_native_navigation_entry.py::test_confirmed_exit_ack_still_requires_zero_exit_with_only_remaining_budget` 用**自己的 AST 子集**执行同一个函数，没带上新常量 → `NameError: MIN_EXIT_OBSERVATION_SECONDS`（8423 passed / 1 failed）。这是测试装载方式的漏项，不是断言放宽：修复让该 helper 连同常量定义一起执行，并断言耗尽预算时等待 0.5s。
 - 边界：这是探针 harness 修复，不改变产品退出路径，也不改变"只有本进程 exit 0 才算退出"的判定；CI `installer-lifecycle` 需在下一次运行确认该路径，安装态原失败样本仍未在本机复现。
