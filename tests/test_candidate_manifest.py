@@ -227,12 +227,26 @@ def test_the_readme_and_manifest_record_each_other(tmp_path):
     assert any("README.md" in line for line in problems)
 
 
+def _governed_output(tmp_path: Path, monkeypatch, name: str = "candidate") -> Path:
+    """A candidate output path inside this test's own `.project-local` tree.
+
+    `build_candidate.py` only accepts `dist/` or `runs/` under the project's
+    development root. Pytest scratch now lives in
+    `.project-local/task-runtime` rather than in a launcher run, so a test
+    writing under `tmp_path` must declare the root it is governed by instead of
+    inheriting the ambient one.
+    """
+    dev_root = tmp_path / "project-local"
+    monkeypatch.setattr(builder.dev, "layout", lambda _root: {"dev": dev_root})
+    return dev_root / "dist" / name
+
+
 def test_an_explicitly_given_binary_is_labelled_by_where_it_lives(tmp_path, monkeypatch):
     """A binary outside a release target directory is offered as a debug build, not as released."""
     monkeypatch.setattr(builder, "_tree_state", lambda: (True, False))  # the tree state under test
     binary = tmp_path / "archeaxis-api.exe"
     binary.write_bytes(b"debug")
-    out = tmp_path / "out"
+    out = _governed_output(tmp_path, monkeypatch, "out")
     assert builder.main(["--binary", str(binary), "--out", str(out)]) == 0
     manifest = json.loads((out / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
     assert manifest["build_kind"] == "debug-build"
@@ -269,8 +283,9 @@ def test_only_a_debug_binary_in_the_target_directory_is_refused_unless_allowed(t
     assert "--allow-debug" in capsys.readouterr().err
     assert not (tmp_path / "refused" / candidate.MANIFEST_NAME).exists()
 
-    assert builder.main(["--out", str(tmp_path / "labelled"), "--allow-debug"]) == 0
-    manifest = json.loads((tmp_path / "labelled" / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
+    labelled = _governed_output(tmp_path, monkeypatch, "labelled")
+    assert builder.main(["--out", str(labelled), "--allow-debug"]) == 0
+    manifest = json.loads((labelled / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
     assert manifest["build_kind"] == "debug-build"
 
 
@@ -286,8 +301,9 @@ def test_a_bundle_from_a_dirty_tree_is_refused_unless_the_caller_insists(tmp_pat
     assert "--allow-dirty" in capsys.readouterr().err
     assert not (tmp_path / "refused" / candidate.MANIFEST_NAME).exists()
 
-    assert builder.main(["--out", str(tmp_path / "labelled"), "--allow-dirty"]) == 0
-    manifest = json.loads((tmp_path / "labelled" / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
+    labelled = _governed_output(tmp_path, monkeypatch, "labelled")
+    assert builder.main(["--out", str(labelled), "--allow-dirty"]) == 0
+    manifest = json.loads((labelled / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
     assert manifest["tree_clean_when_built"] is False
 
 
@@ -347,7 +363,7 @@ def test_zip_uses_recorded_whitelist_not_directory_walk(tmp_path, monkeypatch):
     monkeypatch.setattr(builder, '_tree_state', lambda: (True, False))
     binary = tmp_path / 'archeaxis-api.exe'
     binary.write_bytes(b'fake')
-    out = tmp_path / 'candidate'
+    out = _governed_output(tmp_path, monkeypatch)
     original = builder.candidate.verify_manifest
 
     def verify_then_create_unrecorded_file(root, manifest, **kwargs):
