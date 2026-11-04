@@ -271,6 +271,15 @@
       "latest_repeat": ".project-local/runs/be268a2d33/5b454c3ffb58/artifacts/j1-batch-folder.json (re-run on the DBpedia-commit candidate 0087f69f; three passes 6 enqueued / 7 skipped with zero Core calls / 1 re-processed after fix, backup and maintenance restore)",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "dbpedia_install_merge_20261104": {
+      "state": "MERGED_REQUIRED_GATES_SUCCESS",
+      "head": "a9965976",
+      "merge_commit": "2a2ca0c4",
+      "ci_run": "41812395630",
+      "gates": "gateplan, lint, workers-vnext, rust-vnext (13m28s) and a0-gates success; other jobs skipped by path",
+      "note": "The first run failed rust-vnext on cargo fmt; the formatted SHA passed on rerun and the original failure is preserved. Local and origin main are identical at the merge commit and both branches were deleted.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "install_acceptance_20261104": {
       "state": "SILENT_ISOLATED_INSTALL_JOURNEY_PASSED_UNINSTALLED_NOT_OWNER_ACCEPTED",
       "authorization": "Owner explicitly authorized an isolated install and journey without touching Green, real data or publication.",
