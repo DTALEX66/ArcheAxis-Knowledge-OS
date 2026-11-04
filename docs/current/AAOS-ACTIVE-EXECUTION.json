@@ -271,6 +271,15 @@
       "latest_repeat": ".project-local/runs/be268a2d33/5b454c3ffb58/artifacts/j1-batch-folder.json (re-run on the DBpedia-commit candidate 0087f69f; three passes 6 enqueued / 7 skipped with zero Core calls / 1 re-processed after fix, backup and maintenance restore)",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "speech_asr_staged_20261104": {
+      "state": "WAV_MP3_MP4_REAL_WHISPER_TRANSCRIPTION_REAL_STAGED_NOT_INSTALLED",
+      "candidate": ".project-local/rt/staged-20261104d (manifest a68b5bb9..., 7583 files, core b3624aa9..., runtime python 08178617...)",
+      "dependencies": "The staged runtime carries the faster-whisper dependency closure (faster-whisper 1.2.1, ctranslate2 4.8.1, onnxruntime 1.20.1, av, tokenizers, huggingface-hub, numpy, sympy, protobuf, httpx) as independent copies; the model stays an external declared resource.",
+      "model": "D:\\All projects\\Model library\\whisper\\faster-whisper-large-v3-turbo (1.6 GB, declared resource, referenced not bundled, nothing downloaded)",
+      "result": "wav, mp3 and mp4 each imported, transcribed through a real transcribe/video job, reparsed independently and read back equal after restart (receipt .project-local/runs/be268a2d33/90f135494810/artifacts/common-speech.json).",
+      "limits": "Selected normalized phrases only, full transcript and recognition accuracy UNMEASURED; MP4 is audio-only with no visual inference; not installed and not Owner-accepted.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "ocr_staged_20261104": {
       "state": "LIGHT_FORMATS_AND_ENGLISH_AND_CHINESE_OCR_REAL_STAGED_NOT_INSTALLED",
       "candidate": ".project-local/rt/staged-20261104c (version 0.6.15, manifest b7fa7eed..., 3159 files, core b3624aa9..., runtime python 08178617...)",
