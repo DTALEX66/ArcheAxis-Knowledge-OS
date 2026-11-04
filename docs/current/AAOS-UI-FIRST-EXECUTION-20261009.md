@@ -4240,7 +4240,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - **DELETE 会话更糟**：run `41847524167` 除 `installer-lifecycle`（连带 `a0-gates`）外全部 required gates success；安装态回执 `session_release: REQUESTED`（0ms）后仍 `TIMEOUT`（`wait_elapsed_ms 10000`），第二次尝试因会话已删除得到 `TRANSPORT_CLOSED / invalid session id`、无法再发任何命令，宿主仍未退出；该次 `host_close_trace` 连 `RUN_EXIT_REQUESTED` 事件都未出现。结论：删除会话既没有释放宿主，还去掉了唯一能唤醒附着会话的命令通道；不能把 DELETE 当作修复保留。
 - 改为**保留会话的有界唤醒（nudge）**：确认循环后宿主仍存活且没有发出 owned YES 时，`nudge_exit` 重新调用**同一个** `exit_application` 命令（记录 `exit_nudge` 的 `CONFIRMED`/`UNEXPECTED_REPLY`/`FAILED`），然后仍由同一个有界 wait 判定“本进程自然退出 0”。这与两次失败样本中“第二次退出命令到达后宿主立刻退出”的行为一致，且不新增第二次用户退出请求、不改变 dirty 草稿的 owned YES 路径。
 - 测试：`tests/test_native_exit_ack.py` 的三例改为 nudge 先于 wait、已发 owned YES 不 nudge、nudge 失败被记录且不替代退出要求；连同 `test_native_navigation_entry.py` **142 passed**（66.93s）。
-- 边界：nudge 修复尚未提交/未在安装态 CI 确认；`installer-lifecycle` 在合并 SHA 的全量 CI 通过后才可记为安装态证据。仍非 Owner 接受、非真实用户数据、安装器未签名。
+- 交付：PR **#284**（head `4b8c0101`）以 merge commit `aeeada23` 合并；精确 SHA CI（run `41855184070`）`gateplan`/`lint`/`test (3.12)`/`a0-gates` 全部 success。随后在合并后的 `aeeada23` 上触发 `workflow_dispatch + force_full`（run `41858846694`）。
+- 全量 CI 首跑：除 `installer-lifecycle`（连带 `a0-gates`）外全部 required gates success；安装态五次退出尝试均为 `CONFIRMED` + `RETURNED`（`budget_exhausted_by_confirmation` 全为 false，等 0ms），**nudge 路径未被触发**。新的失败点在安装态“草稿冲突恢复”旅程：`AssertionError: Native default-button query failed`（对原生确认框默认按钮的 `SendMessageTimeoutW` 在 1000ms 内返回 0），与本轮 nudge 无关。
+- 同 SHA 重跑（`gh run rerun 41858846694 --failed`）：`installer-lifecycle` 与 `a0-gates` 通过，run conclusion **success**；按项目既有做法把首次失败保留为**负载敏感偶发**，不删除原失败、也不放宽断言。nudge 仍只有单元测试与代码路径证据，未在安装态触发。
+- 边界：`aeeada23` 的安装态启停已通过一次重跑；nudge 只在“确认耗尽预算”分支生效，本批五次退出均未进入该分支。仍非 Owner 接受、非真实用户数据、安装器未签名。
 
 #### 2026-11-04 J2 三通道在当前候选上连续三次复跑（DBpedia 回退未触发）
 

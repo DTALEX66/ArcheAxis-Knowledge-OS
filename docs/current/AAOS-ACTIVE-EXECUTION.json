@@ -211,7 +211,7 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "installer_exit_wait_floor_20261104": {
-      "state": "DELETE_SESSION_REJECTED_NUDGE_EXIT_LOCAL_ONLY",
+      "state": "NUDGE_EXIT_MERGED_FULL_CI_PASSED_ON_RERUN_NUDGE_NOT_TRIGGERED",
       "cause": "The synthetic native confirmation could consume the whole 15-second shared exit budget, leaving a zero remainder that turned host.wait into wait(0.0): an instant TimeoutExpired misreported as a failed owned exit (PR #255 first run).",
       "fix": "MIN_EXIT_OBSERVATION_SECONDS (10.0, raised 0.5 -> 5.0 -> 10.0 by installed-run and full-CI evidence) replaces the zero wait only when the budget is exhausted; the receipt records budget_exhausted_by_confirmation and, when the floor applies, wait_timeout_floor_seconds beside the unchanged shared_exit_budget_seconds, and wait_timeout_seconds now carries the actual wait.",
       "unchanged": "The over-budget confirmation assertion, first-timeout preservation and diagnostic snapshot ordering, and the rule that only this owned process exiting 0 qualifies are untouched.",
@@ -228,10 +228,18 @@
         }
       },
       "nudge_exit_fix": {
-        "status": "LOCALLY_VERIFIED_NOT_YET_IN_INSTALLED_CI",
+        "status": "MERGED_FULL_CI_PASSED_ON_SAME_SHA_RERUN_NUDGE_NOT_TRIGGERED",
         "change": "request_owned_product_exit accepts an optional nudge_exit callback and re-invokes the same exit_application command after the confirmation loop only when the host is still alive and no owned YES was posted; the receipt records exit_nudge CONFIRMED, UNEXPECTED_REPLY or FAILED before the same bounded wait. The session is kept, the dirty-draft owned YES path is unchanged, and no second product exit attempt is recorded in requested_product_exits.",
         "tests": "The three cases in tests/test_native_exit_ack.py now cover nudge-before-wait, no nudge after an owned YES, and a recorded nudge failure that still requires the owned exit; both harness files pass 142/142.",
-        "pending": "Commit, exact-SHA CI, merge and a force-full installer-lifecycle run are required before this counts; the exit rule itself is unchanged."
+        "delivery": {
+          "pull_request": 284,
+          "head_sha": "4b8c0101",
+          "merge_commit": "aeeada23acf1a4dd0ce6f8ec472115082f67c838",
+          "exact_sha_run": 41855184070,
+          "gates": "gateplan, lint, test (3.12) and a0-gates success; other jobs skipped by path",
+          "full_ci_run": "41858846694 (force_full on aeeada23): first attempt failed only installer-lifecycle with 'Native default-button query failed' in the installed draft-conflict journey while all five exit attempts returned normally (budget never exhausted, nudge not triggered); the same-SHA failed-job rerun passed installer-lifecycle and a0-gates, so the run concluded success and the first failure is preserved as a load-sensitive flake."
+        },
+        "residual": "The nudge branch itself has not been triggered in an installed run; it stays unit-tested plus code-path evidence, not installed evidence. The exit rule is unchanged."
       },
       "delivery_10s": {
         "pull_request": 282,
