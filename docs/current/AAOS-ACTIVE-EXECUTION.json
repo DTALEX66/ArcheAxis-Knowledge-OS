@@ -176,7 +176,24 @@
         "legacy v1, edited reports, non-candidate Documents and missing IDs are reported as playability unknown instead of guessed; no course payload is parsed, rendered, validated, refused or written"
       ],
       "unchanged": "No course manifest validation, no course-to-scene server index, no second persistence and no consumer wiring; the response is not a claim that a multi-scene course is complete or runnable",
-      "evidence": "Local only: new crates/archeaxis-api/tests/openmaic_package_projection.rs 4/4, contract_general_course 6/6, contract route inventory and number consistency 15/15, document authority and repository convention gates pass, rustfmt clean.",
+      "delivery": {
+        "pull_request": 260,
+        "head_sha": "d6e8b02a",
+        "merge_commit": "b876ed37bd2752294977059a66618a66a73a4103",
+        "exact_sha_run": 41750281573,
+        "required_gates": "gateplan, lint, rust-vnext and a0-gates passed on the merged SHA; the route inventory and number-consistency tests were run locally before pushing, so lint passed on the first exact-SHA attempt"
+      },
+      "evidence": "Local only: new crates/archeaxis-api/tests/openmaic_package_projection.rs 4/4, contract_general_course 6/6, contract route inventory and number consistency 15/15, document authority and repository convention gates pass, rustfmt clean. Exact-SHA CI is recorded under delivery; no installed-runtime or Owner acceptance.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "s01_runs_migration_decision_20261104": {
+      "state": "READ_ONLY_DECISION_NOT_EXECUTED",
+      "authorization_gap": "The 2026-11-03 blanket authorization covers S01 appendix B/C only; moving or deleting the remaining run entries needs separate authority, so this round measured and classified them and moved nothing.",
+      "measured": "31 out-of-layout entries (1 empty root entry, 29 legacy runs roots, 1 ACL-unreadable root) totalling 519,300,111 bytes; every entry is referenced by path, so a move cannot precede the citation update",
+      "drift": "A root .screenshots/ entry (empty, referenced, not created by this round) is newly classified as unowned; fulltest-final-20260913 remains the known ACL item and was not retried or bypassed",
+      "local_gate": "tests/workflow/test_workspace_layout_contract.py fails 3 of 7 locally (out-of-layout set, seven entries absent from the baseline snapshot, build/ and runs/ over budget); the failure set predates this round and CI does not include .project-local payloads",
+      "record": "workspace/intake/20261104-s01-runs-migration-decision/README.md",
+      "receipt": ".project-local/runs/be268a2d33/s01-runs-survey-20261104/artifacts/decision-table.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "state": "RUNNING_BY_OWNER",

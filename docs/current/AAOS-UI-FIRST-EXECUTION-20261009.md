@@ -4043,3 +4043,19 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 验证（本地）：新增 `crates/archeaxis-api/tests/openmaic_package_projection.rs` **4/4**（全记录混合类型、不可播放+旧版+非候选+缺失分别如实标注、被编辑报告不被采信、human-only 与 1–64/唯一/未知字段边界）；`contract_general_course` **6/6**（既有课程写入/渲染/重启语义不变）；合同清单与计数 **15/15**；文档门禁、仓库约定通过；rustfmt clean。
 - 合同同步：`docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 第 3 节 150→151 pairs，新增第 244 行；§6 文本/段落计数 151 addresses（92 base + 58 runtime + 1 control，55 runtime mounts）。
 - 边界：document ID 由调用方给出，Core 没有"课程→场景"服务端索引，也没有课程 manifest 校验或四消费者（研究/学习/工作区/导出）接线；不声称完整多场景课程产品链，也未接真实本地模型生成；未做真实 Node 多场景课程旅程（本切片不需要 worker）。
+
+#### 2026-11-04 P1 远端交付：PR #260 合并
+
+- PR **#260**（`codex/openmaic-package-projection-20261104`，head `d6e8b02a`）以 merge commit `b876ed37` 合并；精确 SHA run `41750281573` conclusion success，required gates `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success，其余按 gateplan 路径跳过。
+- 本地在推送前已跑路由清单与计数一致性测试（15/15），这次 lint 一次通过；上一轮漏跑该测试的教训已记录。
+- 双端读回：`origin/main` = `b876ed37`；本地 `main` 已 fast-forward 同步；已删除已并入的远端分支。
+- 边界：CI 只覆盖干净检出与合成数据；安装态、真实数据与 Owner 接受仍未触碰。
+
+#### 2026-11-04 S01 剩余 `runs/` 条目：只读决策表（未迁移、未删除）
+
+- 依据：本轮授权只覆盖附录 B/C；剩余 29 个条目没有迁移/批量删除授权。按"风险高先出决策表"执行。
+- 只读测量（`.project-local/runs/be268a2d33/s01-runs-survey-20261104/artifacts/`）：`storage_report.py` 退出码 1 表达 `REVIEW_REQUIRED`（不是测量失败）；`OUT-OF-LAYOUT` **31**（`EMPTY` 1 + `RUNS_LAYOUT` 29 + `UNREADABLE` 1），合计 **519,300,111 B**；`layout_decision_report.py` 逐项分类并标记 **31 项全部 `referenced`（按路径被引用）**，体积前三为 `stitch-research-stage-20261022`（262,696,865 B）、`stitch-shell-node-20261022`（140,450,170 B）、`installed-av-04b3aa2f`（96,811,294 B）。
+- 新出现的根条目 `.screenshots/`（空、被引用，非本轮创建）记为待分类；`fulltest-final-20260913` 仍为 `PermissionError` 的 ACL 条目，不绕过、不重试。
+- 本地 `tests/workflow/test_workspace_layout_contract.py` **3 failed / 4 passed**：越界清单、7 个不在基线快照的 runs 条目、`build/`+`runs/` 超预算。该失败集在本轮开工前已存在，CI 干净检出不含量化载荷故不受影响。
+- 交付：只读决策与迁移草案 [S01 runs 迁移决策](workspace/intake/20261104-s01-runs-migration-decision/README.md)（含 MANIFEST schema、引用核对、只读预演、同批提交与回滚步骤）。**未移动、未删除任何文件**，`deletion_authorized=false` 保持。
+- 边界：决策表只证明"被引用"，不证明"仍需要"；迁移需一次性授权与单独审查。
