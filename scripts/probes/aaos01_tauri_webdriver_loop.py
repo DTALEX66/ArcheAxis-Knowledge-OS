@@ -25,6 +25,10 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 from aaos01_office_runtime_loop import REPO, identity, load
 from native_tcp_listeners import tcp_listener_rows
 
+# A positive floor for the owned-exit wait when confirmation used the whole
+# shared budget. It is an observation window, not an extra budget grant.
+MIN_EXIT_OBSERVATION_SECONDS = 0.5
+
 
 class _GroupedJourneyCompleteError(Exception):
     """Internal branch completion; never bypasses the shared finally checks."""
@@ -343,10 +347,17 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
             "enabled": confirm_synthetic is not None,
             "elapsed_ms": round((time.monotonic() - confirmation_started) * 1000, 3),
             "owned_yes_posted": record.get("native_confirmation", {}).get("posted") is True}
-    record["wait_timeout_seconds"] = timeout
+    # A confirmation that consumed the whole shared budget must not turn this into
+    # wait(0.0): that fails instantly without observing anything and used to be
+    # reported as if the owned host had failed to exit. Keep the budget field
+    # intact, record that it was exhausted, and give the wait a small positive
+    # observation window so the overrun is visible instead of mislabelled.
+    record["budget_exhausted_by_confirmation"] = timeout <= 0
+    wait_timeout = timeout if timeout > 0 else MIN_EXIT_OBSERVATION_SECONDS
+    record["wait_timeout_seconds"] = wait_timeout
     wait_started = time.monotonic()
     try:
-        code = host.wait(timeout=timeout)
+        code = host.wait(timeout=wait_timeout)
     except subprocess.TimeoutExpired:
         record["wait_result"] = "TIMEOUT"
         record["wait_elapsed_ms"] = round((time.monotonic() - wait_started) * 1000, 3)

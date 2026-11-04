@@ -13,8 +13,12 @@ import pytest
 SOURCE = Path(__file__).resolve().parents[1] / "scripts/probes/aaos01_tauri_webdriver_loop.py"
 tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
 scope = {"re": re, "time": time, "subprocess": subprocess, "json": json, "hashlib": hashlib}
-nodes = [node for node in tree.body if isinstance(node, (ast.ClassDef, ast.FunctionDef))
-         and node.name in {"WebDriverProtocolError", "request_owned_product_exit", "read_owned_core_shutdown_report", "read_owned_host_close_trace", "owned_exit_timeout_snapshot"}]
+nodes = [node for node in tree.body
+         if (isinstance(node, (ast.ClassDef, ast.FunctionDef))
+             and node.name in {"WebDriverProtocolError", "request_owned_product_exit", "read_owned_core_shutdown_report", "read_owned_host_close_trace", "owned_exit_timeout_snapshot"})
+         or (isinstance(node, ast.Assign)
+             and any(getattr(target, "id", None) == "MIN_EXIT_OBSERVATION_SECONDS"
+                     for target in node.targets))]
 exec(compile(ast.Module(body=nodes, type_ignores=[]), str(SOURCE), "exec"), scope)
 exit_owned = scope["request_owned_product_exit"]
 ProtocolError = scope["WebDriverProtocolError"]
@@ -166,7 +170,7 @@ def test_frame_detach_from_an_ordinary_command_still_propagates():
 def test_zero_remaining_budget_preserves_first_timeout_before_cleanup_attempt():
     host = Mock(pid=12)
     host.poll.return_value = None
-    first_error = subprocess.TimeoutExpired("owned-host", 0)
+    first_error = subprocess.TimeoutExpired("owned-host", 0.5)
     host.wait.side_effect = first_error
     receipt = {}
     send = Mock(return_value={"ok": True, "value": None})
@@ -179,10 +183,14 @@ def test_zero_remaining_budget_preserves_first_timeout_before_cleanup_attempt():
     send.assert_called_once_with()
     confirm.assert_called_once_with(receipt["requested_product_exits"][0], 15)
     observe.assert_called_once_with()
-    host.wait.assert_called_once_with(timeout=0)
+    # A consumed budget must not become wait(0.0), which fails without observing
+    # anything; the small positive window is recorded next to the budget fields.
+    host.wait.assert_called_once_with(timeout=0.5)
     attempt = receipt["requested_product_exits"][0]
     assert attempt["ack"] == "CONFIRMED" and attempt["wait_result"] == "TIMEOUT"
-    assert attempt["shared_exit_budget_seconds"] == 15 and attempt["wait_timeout_seconds"] == 0
+    assert attempt["shared_exit_budget_seconds"] == 15
+    assert attempt["wait_timeout_seconds"] == 0.5
+    assert attempt["budget_exhausted_by_confirmation"] is True
     assert attempt["confirmation_observation"]["owned_yes_posted"] is False
     assert attempt["timeout_snapshot"]["stage"] == "AFTER_WAIT_TIMEOUT_BEFORE_CLEANUP_RETRY"
     assert attempt["wait_elapsed_ms"] >= 0 and attempt["request_to_timeout_ms"] >= 0
@@ -197,6 +205,23 @@ def test_zero_remaining_budget_preserves_first_timeout_before_cleanup_attempt():
     assert receipt["requested_product_exits"][1]["wait_result"] == "RETURNED"
     assert len(receipt["host_shutdowns"]) == 1 and receipt["host_shutdowns"][0]["exit_code"] == 0
     assert "ok" not in receipt
+
+
+def test_a_partly_consumed_budget_keeps_the_real_remaining_window():
+    host = Mock(pid=12)
+    host.poll.side_effect = [None, 0]
+    host.wait.return_value = 0
+    receipt = {}
+    send = Mock(return_value={"ok": True, "value": None})
+    confirm = Mock(side_effect=lambda record, timeout: 4)
+    exit_owned(host, {"pid":12,"created":77}, [{"pid":12,"created":77}], send, receipt,
+               confirm_synthetic=confirm)
+    host.wait.assert_called_once_with(timeout=4)
+    attempt = receipt["requested_product_exits"][0]
+    assert attempt["shared_exit_budget_seconds"] == 15
+    assert attempt["wait_timeout_seconds"] == 4
+    assert attempt["budget_exhausted_by_confirmation"] is False
+    assert attempt["wait_result"] == "RETURNED"
 
 
 def test_passive_observer_failure_does_not_replace_original_timeout_or_leak_message():

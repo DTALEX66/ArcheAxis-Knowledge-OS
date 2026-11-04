@@ -196,6 +196,14 @@
       "receipt": ".project-local/runs/be268a2d33/s01-runs-survey-20261104/artifacts/decision-table.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "installer_exit_wait_floor_20261104": {
+      "state": "LOCAL_FIX_WITH_REGRESSION_TESTS_PENDING_CI",
+      "cause": "The synthetic native confirmation could consume the whole 15-second shared exit budget, leaving a zero remainder that turned host.wait into wait(0.0): an instant TimeoutExpired misreported as a failed owned exit (PR #255 first run).",
+      "fix": "MIN_EXIT_OBSERVATION_SECONDS = 0.5 replaces the zero wait only when the budget is exhausted; the receipt records budget_exhausted_by_confirmation beside the unchanged shared_exit_budget_seconds, and wait_timeout_seconds now carries the actual wait.",
+      "unchanged": "The over-budget confirmation assertion, first-timeout preservation and diagnostic snapshot ordering, and the rule that only this owned process exiting 0 qualifies are untouched.",
+      "evidence": "Local only: tests/test_native_exit_ack.py 53/53 including the rewritten wait(0.0) case and a partly-consumed-budget case; six harness-related test files 140/140; document authority and repository convention gates pass. CI installer-lifecycle must confirm the path on a later run; the original installed failure sample was not reproduced locally.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "state": "RUNNING_BY_OWNER",
     "previous_pause_reason": "2026-11-01 official usage readback reached the Owner's remaining <=10 percent allowance threshold; Owner then explicitly requested continuation after seeing the reading",
     "owner_resume_after_threshold_20261101": {
