@@ -4216,3 +4216,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 回执 `.project-local/runs/be268a2d33/90f135494810/artifacts/common-speech.json`：`ok: true`、`qualification: INTEGRATED_SELECTED_PHRASE_AUDIO_CONTENT_TIME_REPARSE_RESTART`、`execution: ACTUAL_CANDIDATE_CORE_ASR`；wav/mp3/mp4 三种输入各自 import→转写 job→独立重解析→重启读回相等（`restart_equal: true`），transcript 135 字符，选中短语由探针内断言校验。
 - **打包发现**：仅凭 staged 运行时（无 faster-whisper 依赖闭包）时媒体转写不可用；本轮把依赖闭包纳入 staging 后恢复。模型仍作为外部声明资源，未打包进候选。
 - 边界：只验证显式选中的归一化短语，完整转写与识别准确率 `UNMEASURED`；MP4 仅音频内容，未做视觉推理；非安装态、非 Owner 接受。
+
+#### 2026-11-04 main 全量 CI 的并发重试 429 失败与修复
+
+- 对 `fe48dd25` 触发 `workflow_dispatch + force_full` 全量 CI（run `41817553939`）：`gateplan`/`lint`/`test`/`py-compat`/`format-targeted`/`migration-targeted`/`security-targeted`/`wheel-smoke`/`browser-smoke`/`windows-runtime-smoke`/`contracts-vnext`/`workers-vnext`/`green-candidate-vnext`/`desktop-fast`/`desktop-vnext`/`desktop-build`/`installer-lifecycle` 均 success；唯一失败为 `rust-vnext`（`cargo test (vNext workspace)`），`a0-gates` 随之失败。
+- 失败用例：`context_grant_api::frozen_answer_identity_serializes_concurrent_retries_survives_restart_and_refuses_conflict` 第 237 行，第二个并发同身份请求得到 **429 "machine resource is busy"** 而非 200。根因是 admission 锁等待写死 10s，而 runner 上第一个请求（Python worker 启动+执行）超过 10s；产品语义要求同 `client_request_id` 的并发重试串行化并回放，而非在固定窗口后被当作忙拒绝。
+- 修复：`crates/archeaxis-api/src/runtime/colearning.rs` 中，带 frozen `client_request_id` 的请求等待 `effective_timeout + 10`（上限 130s，覆盖声明预算 1–120s）；无冻结身份的并发请求仍保留 10s 快速 busy 拒绝。新增回归测试 `frozen_answer_duplicate_waits_past_the_old_admission_window_and_replays_once`：worker 故意 sleep 12s，两个并发同身份请求必须均 200、worker 只执行一次、重启后回放相同结果。
+- 本地验证：`context_grant_api` **8/8** 通过（12.17s）；`archeaxis-api` 全包中 `oss_template_reuse::parsers_run_through_core_and_outputs_survive_reopen` 的 OCR 失败经核实为本地环境 `TESSDATA_PREFIX` 指向非声明路径，改用声明路径后 **2/2** 通过，与本修复无关。
+- 边界：新 SHA 的 rust-vnext/全量 CI 结果待合并后另记；本地 8/8 与 2/2 只是本地证据。

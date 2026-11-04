@@ -28,10 +28,15 @@ async fn call(router: &Router, method: &str, path: &str, actor: &str, body: Valu
         serde_json::from_slice(&bytes).unwrap_or(Value::Null),
     )
 }
+const FAST_WORKER: &str = "import json\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint(json.dumps({'answer':'SYNTHETIC answer','model':'synthetic/local'}))\n";
+const SLOW_WORKER: &str = "import json,time\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\ntime.sleep(12)\nprint(json.dumps({'answer':'SYNTHETIC answer','model':'synthetic/local'}))\n";
 async fn fixture(dir: &std::path::Path) -> (Router, String) {
+    fixture_worker(dir, FAST_WORKER).await
+}
+async fn fixture_worker(dir: &std::path::Path, source: &str) -> (Router, String) {
     let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
     let worker = dir.join("answer.py");
-    std::fs::write(&worker,"import json\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint(json.dumps({'answer':'SYNTHETIC answer','model':'synthetic/local'}))\n").unwrap();
+    std::fs::write(&worker, source).unwrap();
     let executor = Executor::open_routes(
         &dir.join("db.sqlite"),
         &dir.join("staging"),
@@ -316,6 +321,66 @@ async fn frozen_answer_identity_serializes_concurrent_retries_survives_restart_a
     assert_eq!(
         serde_json::from_str::<Value>(receipt["conditions"].as_str().unwrap()).unwrap(),
         first.1
+    );
+}
+
+#[tokio::test]
+async fn frozen_answer_duplicate_waits_past_the_old_admission_window_and_replays_once() {
+    let dir = tempfile::tempdir().unwrap();
+    let (router, id) = fixture_worker(dir.path(), SLOW_WORKER).await;
+    let (status, doc) = call(
+        &router,
+        "POST",
+        "/api/v1/documents",
+        "human",
+        json!({"title":"slow retry grant","editor_json":editor(&id,"granted")}),
+    )
+    .await;
+    assert_eq!(status, 201);
+    let request = json!({"client_request_id":"answer_slow_retry_fixture","knowledge_id":id,"question":"SYNTHETIC slow original question","context_grant":consumption(&doc)});
+    let (first, second) = tokio::join!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/machine/answers",
+            "human",
+            request.clone()
+        ),
+        call(
+            &router,
+            "POST",
+            "/api/v1/machine/answers",
+            "human",
+            request.clone()
+        )
+    );
+    assert_eq!(first.0, 200, "{}", first.1);
+    assert_eq!(
+        second.0, 200,
+        "a frozen duplicate must wait for the running execution instead of a fixed busy window: {}",
+        second.1
+    );
+    assert_eq!(first.1, second.1);
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1",
+        "the duplicate must replay the frozen answer instead of running the worker again"
+    );
+    drop(router);
+    let (restarted, _) = fixture(dir.path()).await;
+    let replay = call(
+        &restarted,
+        "POST",
+        "/api/v1/machine/answers",
+        "human",
+        request,
+    )
+    .await;
+    assert_eq!(replay.0, 200, "{}", replay.1);
+    assert_eq!(replay.1, first.1);
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
     );
 }
 
