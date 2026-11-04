@@ -27,7 +27,10 @@ from native_tcp_listeners import tcp_listener_rows
 
 # A positive floor for the owned-exit wait when confirmation used the whole
 # shared budget. It is an observation window, not an extra budget grant.
-MIN_EXIT_OBSERVATION_SECONDS = 0.5
+# 0.5s was measured too short: the installed journey at 41767729062 still had a
+# live host after 0.5s and exited on the cleanup retry, so a consumed budget needs
+# a window a real exit can finish in.
+MIN_EXIT_OBSERVATION_SECONDS = 5.0
 
 
 class _GroupedJourneyCompleteError(Exception):
@@ -350,10 +353,12 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
     # A confirmation that consumed the whole shared budget must not turn this into
     # wait(0.0): that fails instantly without observing anything and used to be
     # reported as if the owned host had failed to exit. Keep the budget field
-    # intact, record that it was exhausted, and give the wait a small positive
-    # observation window so the overrun is visible instead of mislabelled.
+    # intact, record that it was exhausted, and give the wait a bounded fallback
+    # window so a real exit can still finish and the overrun stays visible.
     record["budget_exhausted_by_confirmation"] = timeout <= 0
     wait_timeout = timeout if timeout > 0 else MIN_EXIT_OBSERVATION_SECONDS
+    if timeout <= 0:
+        record["wait_timeout_floor_seconds"] = MIN_EXIT_OBSERVATION_SECONDS
     record["wait_timeout_seconds"] = wait_timeout
     wait_started = time.monotonic()
     try:

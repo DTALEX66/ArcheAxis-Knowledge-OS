@@ -196,12 +196,26 @@
       "receipt": ".project-local/runs/be268a2d33/s01-runs-survey-20261104/artifacts/decision-table.json",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
+    "shared_cache_private_name_20261104": {
+      "state": "MERGED_AND_CONFIRMED_BY_FULL_CI",
+      "cause": "The CI Cargo registry unpacked sharded-slab-0.1.7, whose .envrc matched the blanket .env* private-name rule. The measurement became PARTIAL with one excluded private entry and ci_runtime_checkpoint refused to seal a baseline, failing desktop-build deterministically on the same SHA twice.",
+      "fix": "storage_report.under_shared_cache exempts only the declared .project-local/cache root from the name check during the walk; the same name elsewhere is still excluded before stat or descent, and measurement records sizes and paths only, never contents.",
+      "evidence": "tests/test_storage_report_link_measurement.py 36/36 including the new shared-cache case, checkpoint/growth suites 165/165, PR #264 exact-SHA run 41764962360 success, and the following force-full run 41767729062 passed desktop-build.",
+      "delivery": {
+        "pull_request": 264,
+        "head_sha": "b164a87c",
+        "merge_commit": "d1e4ac883be6e45c0797f87c0be870ecaac0323e",
+        "exact_sha_run": 41764962360,
+        "full_ci_confirmation_run": 41767729062
+      },
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "installer_exit_wait_floor_20261104": {
-      "state": "MERGED_EXACT_SHA_GATES_PASS_INSTALLER_JOURNEY_NOT_RERUN",
+      "state": "FLOOR_RAISED_TO_5S_PENDING_INSTALLED_RERUN",
       "cause": "The synthetic native confirmation could consume the whole 15-second shared exit budget, leaving a zero remainder that turned host.wait into wait(0.0): an instant TimeoutExpired misreported as a failed owned exit (PR #255 first run).",
-      "fix": "MIN_EXIT_OBSERVATION_SECONDS = 0.5 replaces the zero wait only when the budget is exhausted; the receipt records budget_exhausted_by_confirmation beside the unchanged shared_exit_budget_seconds, and wait_timeout_seconds now carries the actual wait.",
+      "fix": "MIN_EXIT_OBSERVATION_SECONDS (5.0, raised from 0.5 by installed-run evidence) replaces the zero wait only when the budget is exhausted; the receipt records budget_exhausted_by_confirmation and, when the floor applies, wait_timeout_floor_seconds beside the unchanged shared_exit_budget_seconds, and wait_timeout_seconds now carries the actual wait.",
       "unchanged": "The over-budget confirmation assertion, first-timeout preservation and diagnostic snapshot ordering, and the rule that only this owned process exiting 0 qualifies are untouched.",
-      "evidence": "Local only: tests/test_native_exit_ack.py 53/53 including the rewritten wait(0.0) case and a partly-consumed-budget case; the two harness test files 139/139 together; document authority and repository convention gates pass. The first exact-SHA run failed once because a second AST subset in tests/test_native_navigation_entry.py executed the helper without the new constant; that loader now carries it and asserts the 0.5-second floor. The merged exact-SHA run passed gateplan, lint, test (3.12) and a0-gates, but gateplan skipped installer-lifecycle for this path set, so the installed journey has not been rerun on the fix; the original installed failure sample was not reproduced locally.",
+      "evidence": "Local: tests/test_native_exit_ack.py 53/53 and the two harness test files 139/139 with the 5-second floor; document authority and repository convention gates pass. Exact-SHA full CI at d1e4ac88 passed desktop-build once the shared-cache measurement was fixed, and its installer-lifecycle journey showed a 0.5-second floor still too short (live host at 500ms, exited before the cleanup retry's instant wait); the raised 5-second floor still needs one installed rerun.",
       "delivery": {
         "pull_request": 262,
         "head_sha": "ec39cf8b",
