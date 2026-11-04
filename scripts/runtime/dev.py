@@ -353,8 +353,10 @@ def pytest_basetemp(paths: dict[str, Path]) -> Path:
     `tmp_path` fixtures accumulate for the whole suite. Putting them under
     `runs/` made the `runs` growth budget measure mostly disposable test
     scratch (the full Python suite exceeded 2 GB) and blocked the layout
-    contract. `task-runtime` already owns the suite's TMP/TEMP and pycache;
-    the per-run name keeps concurrent runs separate.
+    contract. The suite's TMP/TEMP and pycache already sit inside the launcher
+    run, so callers that require output inside `ARCHEAXIS_RUN_ROOT` declare it
+    explicitly instead of inheriting pytest's placement; the per-run name keeps
+    concurrent runs separate.
     """
     return paths["dev"] / "task-runtime" / "pytest-tmp" / f"basetemp-{paths['run'].name}"
 

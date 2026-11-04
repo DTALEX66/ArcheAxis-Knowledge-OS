@@ -242,7 +242,12 @@ def test_default_core_uses_authoritative_cargo_directory(tmp_path, monkeypatch, 
             'purpose': 'test', 'target': {'id': 'project_test_corpus'},
         },
     )
-    development = tmp_path / 'development'
+    # The launcher classifies a development executable by the segment that follows
+    # the last `.project-local` in its path, so this fixture is allocated under the
+    # project's own `build/` tree rather than pytest's scratch directory.
+    development = (
+        launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name / 'development'
+    )
     build = development / 'build/worktree'
     desktop = build / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe'
     cargo = development / 'build/cargo' if main_checkout else build / 'cargo'

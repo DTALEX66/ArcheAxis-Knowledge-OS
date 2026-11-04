@@ -18,7 +18,11 @@ def test_pytest_temp_roots_stay_inside_project_runtime(tmp_path: Path) -> None:
             text=True,
         ).stdout.strip()
     )
-    runtime_root = common_dir.parent / ".project-local" / "runs"
+    # The boundary this asserts is "inside the project runtime, never the host temp".
+    # Pytest's own basetemp moved to `task-runtime` because test scratch is disposable
+    # and was being measured as `runs/` evidence; TMP/TEMP and the pycache prefix still
+    # belong to the launcher run. Both classes remain inside `.project-local`.
+    runtime_root = common_dir.parent / ".project-local"
 
     assert Path(tempfile.gettempdir()).resolve().is_relative_to(runtime_root.resolve())
     assert tmp_path.resolve().is_relative_to(runtime_root.resolve())
