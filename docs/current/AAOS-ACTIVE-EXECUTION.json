@@ -326,6 +326,30 @@
           "what": "The prompt-replay path admits the donor-repaired reply only after structural checks and records UPSTREAM_JSON_REPAIRED with exact_json_output=false; the model stage states a bounded 110 s budget inside a 120 s Core cap.",
           "verified": "Real LM Studio qwen2.5-vl-7b-instruct run on the real router, pinned Node worker and Python worker: two outlines persisted in 10.16 s, LOCAL_MODEL_UNVERIFIED, restart readback without rerunning the model. pytest 60 passed; rust outline and scene suites all passed.",
           "not_included": "Interactive/pbl scenes, quiz and action replay workers, the outline-to-scene-content chain and UI wiring remain unimplemented; the repaired candidate still needs human review."
+        },
+        {
+          "item": "INT-MAIC-03",
+          "slice": "outline to slide scene chain",
+          "pr": 290,
+          "head_sha": "5840b1d2",
+          "merge_commit": "2e48eb14943c42b6969706531027d1f36f09ceb2",
+          "ci_run": 42033343400,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_RUST_VNEXT_A0_GATES",
+          "what": "POST /api/v1/courses/openmaic/scenes/generate reads a persisted outline, runs donor slide prompt, the declared local model, donor slide reply and normalize, then the existing scene build, and persists the scene candidate with LOCAL_MODEL_UNVERIFIED provenance.",
+          "verified": "domain 5 passed; api 1 passed in 14.2 s with real Node and a loopback stub model covering machine 403, 503/504, reply 422, duplicate no-rerun and restart readback; outline and scene regressions all passed.",
+          "not_included": "Quiz, interactive and pbl scenes are refused by name; no UI wiring."
+        },
+        {
+          "item": "INT-MAIC-03",
+          "slice": "named local model rejection",
+          "pr": 291,
+          "head_sha": "98a6cc10",
+          "merge_commit": "3a48db61d62745d628af3ddb0bab4de976c00046",
+          "ci_run": 42037716225,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_VNEXT_RUST_VNEXT_A0_GATES",
+          "what": "HTTP 4xx from the lane is MODEL_REJECTED with only the HTTP status and integer engine token numbers; 5xx stays MODEL_UNAVAILABLE; Core maps MODEL_REJECTED to 422 for both generation routes.",
+          "verified": "worker pytest 19 passed including the rejection case; both stub api generation routes passed. The real slide chain currently ends as MODEL_REJECTED because this host's loaded lane has 8,192 tokens and the donor slide prompt needs about 9,500.",
+          "not_included": "No model configuration was changed; raising the loaded context is an operator decision. Quiz/interactive/pbl and UI wiring remain."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",

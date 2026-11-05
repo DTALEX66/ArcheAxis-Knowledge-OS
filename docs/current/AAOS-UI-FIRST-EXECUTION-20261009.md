@@ -4303,3 +4303,20 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 真实端到端证据（本机，非安装态、非 Owner 接受）：LM Studio `http://127.0.0.1:1234/v1`、`qwen2.5-vl-7b-instruct`，Core 真实路由 + 真实 pinned Node worker + 真实 Python worker，10.16s 通过；生成 2 条大纲（`interval-review` slide + quiz，中文标题），落盘 `doc_req_360eb854…`、`model_reply_sha256 ad3c8e3c…`、prompt binding `input_sha256 d028b47d…`，`response_origin LOCAL_MODEL_UNVERIFIED`、`rendering_authorized:false`；关掉 Node 与模型路由重启后同一请求读回同一候选且 `worker_invoked:false`（未重跑模型）。
 - 验证：`test_openmaic_outline_replay` + `test_openmaic_outline_local_model` **60 passed**（真实 Node）；`openmaic_outline_persistence` 5、`openmaic_outline_local_generate_persistence` 5、`openmaic_scene_persistence` 12、`openmaic_outline_runtime` 2、`openmaic_outline_generate_runtime` 1（20.6s）、`openmaic_scene_runtime` 2 passed/1 既有 ignored；`cargo fmt --check` 干净；preflight exit 0；CI run `41961060430` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success。
 - 边界：repaired 准入意味着模型字节不是精确 JSON，且 donor 归一化无法逐项重建；该候选仍需人工复核。`interactive`/`pbl` 场景、quiz/action replay worker、outline→场景内容链与 UI 接线仍未实现。
+
+#### 2026-11-05 INT-MAIC-03 完成段：大纲→Slide 场景生成链
+
+- 现状：大纲路由产出课程结构后，没有任何路径把它变成可用场景；scene-build 只能由调用方直接给内容。
+- 新增 `POST /api/v1/courses/openmaic/scenes/generate`（PR **#290**，head `5840b1d2`，merge **`2e48eb14`**）：Core 读取已持久化的大纲候选（必须 current），按 `outline_index` 取一条 slide 大纲，依次走 donor `slide-prompt-worker` → 已声明的本地模型（复用 `course.openmaic.outline-model` 与 `worker_outline_local_model.py`）→ `slide-reply-worker` → `slide-normalize-worker` → 既有 scene-build，最后经既有 v2 投影/渲染契约落盘场景候选。
+  - 非 slide 大纲按 `UNSUPPORTED_OUTLINE_TYPE` 具名 422，不改写成 slide；模型不可用 503、超时/无正文 504、reply 被隔离 422（保留 worker 自身 status/reason）；任一阶段失败不写半成品；同一 `create_request_id` 重读既有候选、不重跑任何阶段。
+  - Node 脚本从硬编码两个扩为固定名单五个（scene-build / outline-replay / slide-prompt / slide-reply / slide-normalize），仍只从已配置 scene 脚本的同级目录解析；缺失即该阶段具名 503，不回退到别的脚本。
+  - 落盘 attrs 额外记录 `generation_route:"outline_slide_local_model"`、`model_call:"INVOKED"`、模型身份与回复哈希、prompt binding 哈希、`outline_document_id`/`outline_index`、`response_origin:"LOCAL_MODEL_UNVERIFIED"`；仍不授权渲染或执行。
+- 验证：`openmaic_slide_candidate` **5 passed**；`openmaic_slide_generate_runtime` **1 passed（14.2s，真实 Node + loopback stub，覆盖 machine 403、503/504、reply 422、重复不重跑、quiz 422、去 Node 重启读回）**；回归 outline 5/5/2/1 与 scene 12/2(+1 既有 ignored)/2 全过；`cargo fmt --check` 干净；preflight exit 0；CI run `42033343400` 的 `gateplan`/`lint`/`rust-vnext`/`a0-gates` success。
+- 边界：quiz/interactive/pbl 场景、UI 接线仍未实现。
+
+#### 2026-11-05 本地模型拒绝必须具名（不是"不可达"）
+
+- 真实 slide 链在本机暴露：donor slide prompt 约 9,496 tokens，而 LM Studio 载入的 `qwen2.5-vl-7b-instruct` 上下文为 8,192，服务端返回 HTTP 400；worker 却把它报成 `MODEL_ENDPOINT_UNREACHABLE`，会让运维去查网络而不是查模型上下文。
+- 修复（PR **#291**，head `98a6cc10`，merge **`3a48db61`**）：4xx 改为 `MODEL_REJECTED / MODEL_HTTP_REJECTED`，诊断只带 HTTP 状态与引擎的整数 `n_prompt_tokens`/`n_ctx`（能解析 LM Studio 的"prose+JSON"错误体），不反射任何 prompt 文本；5xx 保持 `MODEL_UNAVAILABLE`（新增具名 `MODEL_ENDPOINT_UNHEALTHY`）；Core 两个生成路由把 `MODEL_REJECTED` 映射为 422。
+- 新增 env-gated 真实模型测试 `crates/archeaxis-api/tests/openmaic_slide_real_model_runtime.rs`：本机当前以 `MODEL_REJECTED`（422，`reason MODEL_HTTP_REJECTED`）如实返回，测试注释写明需要 ≥ 约 1 万 token 上下文才能得到成功回执；未改动机器上的模型配置（属运维/ Owner 决定）。
+- 验证：worker pytest **19 passed**（新增拒绝用例断言数字保留、prompt 与引擎消息不外泄）；`openmaic_outline_generate_runtime` 与 `openmaic_slide_generate_runtime` 各 1 passed；CI run `42037716225` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` success。
