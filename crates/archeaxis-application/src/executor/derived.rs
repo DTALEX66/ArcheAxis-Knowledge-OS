@@ -208,6 +208,7 @@ enum OpenMaicScript {
     SlidePrompt,
     SlideReply,
     SlideNormalize,
+    QuizReplay,
 }
 
 impl OpenMaicScript {
@@ -219,6 +220,7 @@ impl OpenMaicScript {
             Self::SlidePrompt => Some("slide-prompt-worker.mjs"),
             Self::SlideReply => Some("slide-reply-worker.mjs"),
             Self::SlideNormalize => Some("slide-normalize-worker.mjs"),
+            Self::QuizReplay => Some("quiz-replay-worker.mjs"),
         }
     }
 
@@ -230,6 +232,7 @@ impl OpenMaicScript {
             Self::SlidePrompt => "slide_prompt",
             Self::SlideReply => "slide_reply",
             Self::SlideNormalize => "slide_normalize",
+            Self::QuizReplay => "quiz_replay",
         }
     }
 }
@@ -404,6 +407,31 @@ impl Executor {
         self.openmaic_node
             .as_ref()
             .and_then(|node| openmaic_script(&node.script, stage.into()))
+    }
+
+    /// The single sibling quiz adapter drives both the capture and replay stages
+    /// under the shared OpenMAIC admission generation.
+    pub async fn openmaic_quiz_with_generation(
+        &self,
+        expected_generation: u64,
+        request: Value,
+        timeout: Duration,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+            OpenMaicScript::QuizReplay,
+        )
+        .await
+    }
+
+    /// Whether the configured scene builder has a usable sibling quiz adapter.
+    pub fn openmaic_quiz_script(&self) -> Option<PathBuf> {
+        self.openmaic_node
+            .as_ref()
+            .and_then(|node| openmaic_script(&node.script, OpenMaicScript::QuizReplay))
     }
 
     async fn derived_json_checked(
@@ -624,6 +652,7 @@ impl Executor {
                     OpenMaicScript::Outline => {
                         validate_openmaic_outline_result(&result, &request, &input_sha)?
                     }
+                    OpenMaicScript::QuizReplay => validate_openmaic_quiz_result(&result, &request)?,
                     other => validate_openmaic_slide_result(&result, other)?,
                 }
             }
@@ -700,6 +729,56 @@ fn validate_openmaic_outline_result(
             })
     }) {
         return Err("OpenMAIC outline candidate entry is unsupported".into());
+    }
+    Ok(())
+}
+
+/// The donor quiz adapter keeps its own fixed receipt for both stages. This
+/// checks the schema, the declared outcome and the fixed non-authority claims;
+/// Core re-checks every field it consumes before persisting anything.
+fn validate_openmaic_quiz_result(result: &Value, request: &Value) -> Result<(), String> {
+    let doc = &result["document"];
+    if doc["schema"] != "archeaxis.openmaic-quiz-prompt-result/v1"
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["network_performed"] != false
+        || doc["core_task"] != "NOT_CONNECTED"
+        || doc["core_authorization"] != "NOT_ESTABLISHED"
+        || doc["canonical_bindings_verified"] != false
+        || doc["active_content_executed"] != false
+        || doc["persisted"] != false
+        || doc["stage"] != request["stage"]
+        || doc["request_id"] != request["request_id"]
+    {
+        return Err("invalid OpenMAIC quiz worker receipt".into());
+    }
+    let status = doc["status"].as_str().unwrap_or("");
+    if status != "CANDIDATE" && status != "PROMPT_CAPTURED" {
+        // Every named non-candidate outcome keeps the worker's own status and
+        // reason; the caller answers 422 with it and Core writes nothing.
+        return if result["exit_code"] == 2 && !status.trim().is_empty() {
+            Ok(())
+        } else {
+            Err("invalid OpenMAIC quiz failure receipt".into())
+        };
+    }
+    if result["exit_code"] != 0 {
+        return Err("OpenMAIC quiz worker exit code".into());
+    }
+    if status == "PROMPT_CAPTURED" {
+        let binding = &doc["binding"];
+        if binding["schema"] != "archeaxis.openmaic-quiz-prompt-binding/v1"
+            || ["system", "user"].iter().any(|key| {
+                binding[*key]
+                    .as_str()
+                    .is_none_or(|text| text.as_bytes().len() > 200_000)
+            })
+        {
+            return Err("OpenMAIC quiz prompt binding is unsupported".into());
+        }
+    } else if doc["human_review_required"] != true
+        || doc["response_origin"] != "CALLER_SUPPLIED_UNVERIFIED"
+    {
+        return Err("invalid OpenMAIC quiz replay candidate receipt".into());
     }
     Ok(())
 }

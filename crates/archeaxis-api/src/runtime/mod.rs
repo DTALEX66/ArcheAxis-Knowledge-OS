@@ -485,12 +485,13 @@ pub fn router(executor: Executor) -> Router {
             post(courses::create_openmaic_scene)
                 .layer(axum::extract::DefaultBodyLimit::max(262_144)),
         )
-        // Outline-driven slide generation: read one persisted slide outline, run the
-        // donor slide prompt/reply/normalize adapters and the declared local model,
-        // then persist the existing v2 scene candidate with its Core-derived chain.
+        // Outline-driven scene generation: read one persisted outline and dispatch
+        // by its type. A `slide` outline runs the donor slide prompt/reply/normalize
+        // adapters, a `quiz` outline runs the donor quiz capture/replay adapter, and
+        // both finish on the declared local model and the existing v2 scene writer.
         .route(
             "/api/v1/courses/openmaic/scenes/generate",
-            post(courses::generate_openmaic_slide)
+            post(courses::generate_openmaic_scene_from_outline)
                 .layer(axum::extract::DefaultBodyLimit::max(262_144)),
         )
         // Offline outline replay: Core persists the caller-declared model reply as

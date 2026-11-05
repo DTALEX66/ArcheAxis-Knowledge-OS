@@ -206,14 +206,20 @@ pub fn read_outline_candidate(
         .as_i64()
         .or_else(|| stored["outlines"][index]["order"].as_i64())
         .unwrap_or(index as i64 + 1);
+    // A quiz outline keeps its declared `quizConfig`; the quiz chain validates
+    // that shape itself and the slide chain never reads this field.
+    let mut selected = json!({"id":outline["id"],"type":outline["type"],"title":outline["title"],
+        "description":outline["description"],"keyPoints":outline["keyPoints"],
+        "order":order});
+    if let Some(config) = outline.get("quizConfig") {
+        selected["quizConfig"] = config.clone();
+    }
     Ok(json!({
         "document_id":document["document_id"],
         "version":document["version"],
         "content_sha256":document["content_sha256"],
         "index":index,
-        "outline":{"id":outline["id"],"type":outline["type"],"title":outline["title"],
-            "description":outline["description"],"keyPoints":outline["keyPoints"],
-            "order":order},
+        "outline":selected,
         "language_directive":language_directive,
     }))
 }

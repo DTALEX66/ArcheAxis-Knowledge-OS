@@ -3,6 +3,7 @@ use super::*;
 use archeaxis_application::executor::OpenMaicSlideStage;
 use archeaxis_domain::course::{self, CourseBinding};
 use archeaxis_domain::openmaic_outline;
+use archeaxis_domain::openmaic_quiz;
 use archeaxis_domain::openmaic_slide;
 use rusqlite::OptionalExtension;
 use sha2::{Digest, Sha256};
@@ -794,6 +795,7 @@ fn openmaic_slide_request(body: &OpenMaicSlideCandidateBody) -> Value {
 
 fn openmaic_slide_receipt_response(receipt: &Value, worker_invoked: bool) -> Response {
     Json(json!({"schema":"archeaxis.openmaic-slide-persistence/v1",
+        "scene_route":"slide",
         "worker_invoked":worker_invoked,"document":receipt["document"],
         "candidate_document_status":receipt["candidate_document_status"],
         "source_snapshot_status":receipt["source_snapshot_status"],
@@ -806,6 +808,31 @@ fn openmaic_slide_receipt_response(receipt: &Value, worker_invoked: bool) -> Res
         "outline_document_id":receipt["outline_document_id"],
         "outline_index":receipt["outline_index"],"outline_id":receipt["outline_id"],
         "reply":receipt["reply"],"normalize":receipt["normalize"],
+        "response_origin":"LOCAL_MODEL_UNVERIFIED",
+        "human_review_required":true,"active_content_executed":false,
+        "rendering_authorized":false,
+        "contract_version":receipt["contract_version"],
+        "projection":receipt["projection"],"render":receipt["render"]}))
+    .into_response()
+}
+
+/// The quiz chain reuses the same response envelope; `scene_route` names the
+/// dispatched chain and the donor replay summary replaces the slide stages.
+fn openmaic_quiz_receipt_response(receipt: &Value, worker_invoked: bool) -> Response {
+    Json(json!({"schema":"archeaxis.openmaic-quiz-persistence/v1",
+        "scene_route":"quiz",
+        "worker_invoked":worker_invoked,"document":receipt["document"],
+        "candidate_document_status":receipt["candidate_document_status"],
+        "source_snapshot_status":receipt["source_snapshot_status"],
+        "generation_route":receipt["generation_route"],
+        "model_call":receipt["model_call"],"model":receipt["model"],
+        "model_observed":receipt["model_observed"],
+        "model_reply_sha256":receipt["model_reply_sha256"],
+        "model_finish_reason":receipt["model_finish_reason"],
+        "prompt_binding":receipt["prompt_binding"],
+        "outline_document_id":receipt["outline_document_id"],
+        "outline_index":receipt["outline_index"],"outline_id":receipt["outline_id"],
+        "replay":receipt["replay"],
         "response_origin":"LOCAL_MODEL_UNVERIFIED",
         "human_review_required":true,"active_content_executed":false,
         "rendering_authorized":false,
@@ -861,6 +888,55 @@ fn openmaic_slide_error(failure: archeaxis_domain::document::Error) -> Response 
     }
 }
 
+/// One named refusal from a domain read or write. A conflict is answered as `409`
+/// and every content refusal as `422`, with the reason kept verbatim. This maps
+/// the quiz chain's own conflict reasons too; the shape is the same as the slide
+/// chain because both write the same scene candidate.
+fn openmaic_quiz_error(failure: archeaxis_domain::document::Error) -> Response {
+    use archeaxis_domain::document::Error as Failure;
+    match failure {
+        Failure::NotFound => error(
+            StatusCode::NOT_FOUND,
+            "OpenMAIC outline or source document is unavailable",
+        ),
+        Failure::Conflict(_) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC quiz request conflicts with an existing candidate",
+        ),
+        Failure::Invalid(reason) => {
+            let conflict = matches!(
+                reason,
+                "QUIZ_REQUEST_CONFLICT"
+                    | "QUIZ_REQUEST_CHANGED"
+                    | "QUIZ_WORKSPACE_CHANGED"
+                    | "OUTLINE_DOCUMENT_CHANGED"
+                    | "SOURCE_SNAPSHOT_NOT_CURRENT"
+            );
+            let status = if conflict {
+                StatusCode::CONFLICT
+            } else {
+                StatusCode::UNPROCESSABLE_ENTITY
+            };
+            let code = if conflict {
+                "AAK-CON-002"
+            } else {
+                "AAK-VAL-001"
+            };
+            (
+                status,
+                Json(json!({"code":code,
+                    "message":"this outline-quiz route refused the request",
+                    "retryable":false,"refusal":{"reason":reason}})),
+            )
+                .into_response()
+        }
+        Failure::Sql(_) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC quiz store operation failed",
+        ),
+    }
+}
+
 /// The first fixed adapter this chain needs that the launch does not provide.
 fn openmaic_slide_script_gap(runtime: &Runtime) -> Option<&'static str> {
     for (stage, label) in [
@@ -878,7 +954,21 @@ fn openmaic_slide_script_gap(runtime: &Runtime) -> Option<&'static str> {
     None
 }
 
-pub(super) async fn generate_openmaic_slide(
+/// The quiz chain needs its one sibling adapter plus the existing scene builder.
+fn openmaic_quiz_script_gap(runtime: &Runtime) -> Option<&'static str> {
+    if runtime.executor.openmaic_quiz_script().is_none() {
+        return Some("quiz_replay");
+    }
+    if runtime.executor.openmaic_node_paths().is_none() {
+        return Some("scene_build");
+    }
+    None
+}
+
+/// One route, two chains: the persisted outline's `type` selects the donor
+/// adapters. The request and response envelopes are shared; only the chain-specific
+/// stage summary and `scene_route` differ.
+pub(super) async fn generate_openmaic_scene_from_outline(
     State(runtime): State<Runtime>,
     headers: HeaderMap,
     Json(body): Json<OpenMaicSlideCandidateBody>,
@@ -886,7 +976,7 @@ pub(super) async fn generate_openmaic_slide(
     if crate::request_actor(&headers) != Ok("human") {
         return error(
             StatusCode::FORBIDDEN,
-            "OpenMAIC slide generation requires a human actor",
+            "OpenMAIC scene generation requires a human actor",
         );
     }
     let request = openmaic_slide_request(&body);
@@ -895,7 +985,7 @@ pub(super) async fn generate_openmaic_slide(
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
             Json(json!({"code":"AAK-VAL-001",
-            "message":"this outline-slide route cannot accept the declared request",
+            "message":"this outline-scene generation route cannot accept the declared request",
             "retryable":false,"refusal":refusal,
             "supported_request_schema":openmaic_slide::OPENMAIC_SLIDE_REQUEST_SCHEMA})),
         )
@@ -922,17 +1012,36 @@ pub(super) async fn generate_openmaic_slide(
             );
         }
     };
-    if selection["outline"]["type"].as_str() != Some("slide") {
-        return (
+    // Capture the admission generation before either chain's potentially queued
+    // Core preparation. A disable/re-enable while preparation is waiting must not
+    // let that older request dispatch under the newer generation. An existing
+    // candidate stays readable without a configured or enabled provider.
+    let admission = runtime.executor.openmaic_admission_generation().await;
+    match selection["outline"]["type"].as_str() {
+        Some("slide") => {
+            openmaic_slide_chain(runtime, create_request_id, request, selection, admission).await
+        }
+        Some("quiz") => {
+            openmaic_quiz_chain(runtime, create_request_id, request, selection, admission).await
+        }
+        other => (
             StatusCode::UNPROCESSABLE_ENTITY,
             Json(json!({"code":"AAK-VAL-001",
-            "message":"this slide route only builds slide outlines",
+            "message":"this route builds only slide and quiz outlines",
             "retryable":false,"refusal":{"reason":"UNSUPPORTED_OUTLINE_TYPE",
-            "declared":selection["outline"]["type"],"supported":["slide"]}})),
+            "declared":other,"supported":["slide","quiz"]}})),
         )
-            .into_response();
+            .into_response(),
     }
-    let admission = runtime.executor.openmaic_admission_generation().await;
+}
+
+async fn openmaic_slide_chain(
+    runtime: Runtime,
+    create_request_id: String,
+    request: Value,
+    selection: Value,
+    admission: Result<u64, String>,
+) -> Response {
     let prepare_id = create_request_id.clone();
     let prepare_request = request.clone();
     let prepare_selection = selection.clone();
@@ -1325,6 +1434,353 @@ pub(super) async fn generate_openmaic_slide(
         Err(_) => error(
             StatusCode::SERVICE_UNAVAILABLE,
             "OpenMAIC slide capability unavailable or withdrawn",
+        ),
+    }
+}
+
+/// Outline-to-quiz generation: capture the donor quiz prompt, call the declared
+/// local model, replay the model text through the same donor adapter, then build
+/// the scene through the existing fixed builder. Only an admitted replay
+/// candidate is persisted; no failure writes a partial candidate.
+async fn openmaic_quiz_chain(
+    runtime: Runtime,
+    create_request_id: String,
+    request: Value,
+    selection: Value,
+    admission: Result<u64, String>,
+) -> Response {
+    let prepare_id = create_request_id.clone();
+    let prepare_request = request.clone();
+    let prepare_selection = selection.clone();
+    let prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            openmaic_quiz::prepare_openmaic_quiz_candidate(
+                conn,
+                &prepare_id,
+                &prepare_request,
+                &prepare_selection,
+            )
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(failure)) => return openmaic_quiz_error(failure),
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC quiz preparation failed",
+            );
+        }
+    };
+    let pending = match prepared {
+        openmaic_quiz::OpenMaicQuizPreparation::Existing(receipt) => {
+            // A repeated request reads the stored candidate; no prompt, model or
+            // worker runs again.
+            return openmaic_quiz_receipt_response(&receipt, false);
+        }
+        openmaic_quiz::OpenMaicQuizPreparation::Pending(pending) => pending,
+    };
+    if let Some(stage) = openmaic_quiz_script_gap(&runtime) {
+        return openmaic_stage_failure(
+            StatusCode::SERVICE_UNAVAILABLE,
+            stage,
+            "OpenMAIC quiz chain unavailable: a fixed sibling script is missing",
+            Value::Null,
+        );
+    }
+    let generation = match admission {
+        Ok(value) => value,
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC provider unavailable or disabled",
+            );
+        }
+    };
+    // Stage 1: the donor quiz prompt capture. It carries no reply, so the worker
+    // can only produce the prompt binding.
+    let capture_request =
+        match openmaic_quiz::openmaic_quiz_capture_request(&create_request_id, &selection) {
+            Ok(value) => value,
+            Err(failure) => return openmaic_quiz_error(failure),
+        };
+    let capture = match runtime
+        .executor
+        .openmaic_quiz_with_generation(generation, capture_request, Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "quiz_capture",
+                "OpenMAIC quiz prompt worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let capture_outcome = openmaic_stage_outcome(&capture);
+    if capture["exit_code"] != 0 || capture["document"]["status"] != "PROMPT_CAPTURED" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "quiz_capture",
+            "OpenMAIC quiz prompt did not produce a binding",
+            capture_outcome,
+        );
+    }
+    let binding = match openmaic_quiz::openmaic_quiz_capture_binding(
+        &create_request_id,
+        &capture["document"],
+    ) {
+        Ok(value) => value,
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            let mut outcome = capture_outcome.clone();
+            outcome["receipt_refusal"] = json!(reason);
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "quiz_capture",
+                "OpenMAIC quiz prompt receipt is inconsistent",
+                outcome,
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "quiz_capture",
+                "OpenMAIC quiz prompt receipt is inconsistent",
+                capture_outcome,
+            );
+        }
+    };
+    // Stage 2: the declared local model, through the same capability and worker
+    // as the outline route.
+    let model_request =
+        openmaic_outline::openmaic_outline_model_request(&binding, &request["model"]);
+    let model = match runtime
+        .executor
+        .derived_json(
+            openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
+            model_request,
+            Duration::from_secs(120),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(reason) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "local_model",
+                &format!("local model capability unavailable: {reason}"),
+                Value::Null,
+            );
+        }
+    };
+    let model_outcome = openmaic_stage_outcome(&model);
+    if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
+        let named = model["document"]["status"].as_str().unwrap_or("");
+        let status = match named {
+            "INVALID_MODEL_OUTPUT" | "MODEL_REJECTED" => StatusCode::UNPROCESSABLE_ENTITY,
+            "MODEL_TIMEOUT" | "NO_FINAL_ANSWER" => StatusCode::GATEWAY_TIMEOUT,
+            _ => StatusCode::SERVICE_UNAVAILABLE,
+        };
+        return openmaic_stage_failure(
+            status,
+            "local_model",
+            "the local model did not produce a usable quiz reply",
+            model_outcome,
+        );
+    }
+    let Some(content) =
+        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+    else {
+        return openmaic_stage_failure(
+            StatusCode::BAD_GATEWAY,
+            "local_model",
+            "local model receipt is inconsistent",
+            model_outcome,
+        );
+    };
+    // Stage 3: the donor quiz adapter. A quarantined, repaired-but-unsupported or
+    // otherwise non-candidate reply keeps the worker's own status and reason.
+    let replay_request = match openmaic_quiz::openmaic_quiz_replay_request(
+        &create_request_id,
+        &selection,
+        &binding,
+        &content,
+    ) {
+        Ok(value) => value,
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            return openmaic_stage_failure(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "quiz_replay",
+                "the local model reply exceeds the donor reply budget",
+                json!({"status":"MODEL_REPLY_EXCEEDS_BOUND","reason":reason,
+                    "exit_code":model["exit_code"]}),
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "quiz_replay",
+                "the local model reply cannot be replayed",
+                model_outcome,
+            );
+        }
+    };
+    let replay = match runtime
+        .executor
+        .openmaic_quiz_with_generation(generation, replay_request, Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "quiz_replay",
+                "OpenMAIC quiz replay worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let replay_outcome = openmaic_stage_outcome(&replay);
+    let questions = match openmaic_quiz::openmaic_quiz_replay_candidate(&replay["document"]) {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return openmaic_stage_failure(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "quiz_replay",
+                "the donor quiz adapter did not admit the model reply",
+                replay_outcome,
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "quiz_replay",
+                "OpenMAIC quiz replay receipt is inconsistent",
+                replay_outcome,
+            );
+        }
+    };
+    // Stage 4: the existing scene builder and the existing v2 candidate writer.
+    let scene_request = match openmaic_quiz::openmaic_quiz_scene_build_request(
+        &create_request_id,
+        &selection,
+        &questions,
+        &request["source"],
+    ) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_quiz_error(failure),
+    };
+    let scene_prepare_id = create_request_id.clone();
+    let scene_prepare_request = scene_request.clone();
+    let scene_prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            course::prepare_openmaic_scene(conn, &scene_prepare_id, &scene_prepare_request)
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
+            return error(
+                StatusCode::NOT_FOUND,
+                "OpenMAIC source document is unavailable",
+            );
+        }
+        Ok(Err(_)) => {
+            return error(
+                StatusCode::CONFLICT,
+                "OpenMAIC quiz request or source snapshot is invalid or changed",
+            );
+        }
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC scene preparation failed",
+            );
+        }
+    };
+    let scene_pending = match scene_prepared {
+        course::OpenMaicPreparation::Existing(_) => {
+            return error(
+                StatusCode::CONFLICT,
+                "this create request ID already owns a scene candidate without the outline-quiz record",
+            );
+        }
+        course::OpenMaicPreparation::Pending(pending) => pending,
+    };
+    let scene_build = match runtime
+        .executor
+        .openmaic_scene_with_generation(generation, scene_request.clone(), Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "scene_build",
+                "OpenMAIC scene builder unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let scene_outcome = openmaic_stage_outcome(&scene_build);
+    if scene_build["exit_code"] != 0 || scene_build["document"]["status"] != "CANDIDATE" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "scene_build",
+            "OpenMAIC scene builder did not produce a candidate",
+            scene_outcome,
+        );
+    }
+    let record = openmaic_quiz::openmaic_quiz_record(
+        &create_request_id,
+        &openmaic_slide::openmaic_slide_request_sha256(&request, &selection),
+        &selection,
+        &openmaic_quiz::openmaic_quiz_prompt_record(&binding),
+        &model["document"],
+        &replay["document"],
+    );
+    let generation_chain = openmaic_quiz::OpenMaicQuizGeneration {
+        scene_request: scene_request.clone(),
+        record,
+    };
+    let commit_id = create_request_id.clone();
+    let commit_request = request.clone();
+    let worker_document = scene_build["document"].clone();
+    let committed = runtime
+        .executor
+        .commit_openmaic_if_current(generation, move |conn| {
+            openmaic_quiz::commit_openmaic_quiz_candidate(
+                conn,
+                &commit_id,
+                &commit_request,
+                &pending,
+                &scene_pending,
+                &worker_document,
+                &generation_chain,
+            )
+        })
+        .await;
+    match committed {
+        Ok(Ok(receipt)) => openmaic_quiz_receipt_response(&receipt, true),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC quiz request, capability or workspace changed",
+        ),
+        Ok(Err(_)) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC quiz candidate persistence failed",
+        ),
+        Err(_) => error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC quiz capability unavailable or withdrawn",
         ),
     }
 }

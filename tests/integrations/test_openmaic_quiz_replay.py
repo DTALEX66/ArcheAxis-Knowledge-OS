@@ -479,14 +479,39 @@ def test_changed_prompt_guard_is_rejected_before_any_prompt(tmp_path):
 
 
 @requires_node
-def test_repaired_response_is_quarantined_with_original_and_upstream_observation():
+def test_repaired_response_is_admitted_with_its_repair_declared_and_structure_checked():
     request, binding = capture_prompt()
     malformed = '[{"id":"q1","type":"single","question":"Q","options":["a","b"],"answer":"A",}]'
     code, result = invoke(replay_frame(request, binding, malformed))
-    assert code == 2 and result["status"] == "UPSTREAM_RECOVERY_NOT_ADMITTED" and result["data"] is None
-    assert result["original_reply"] == malformed and result["observed_upstream"]["questions"][0]["id"] == "q1"
-    assert result["differences"] == [{"kind": "JSON_REPAIR_NOT_ADMITTED"}]
+    assert code == 0 and result["status"] == "CANDIDATE", result
+    assert result["exact_json_output"] is False
+    assert result["transformations"] == ["UPSTREAM_JSON_REPAIRED", "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED"]
+    assert result["data"]["questions"][0]["id"] == "q1"
+    assert result["data"]["questions"][0]["answer"] == ["A"]
+    assert "original_reply" not in result and "observed_upstream" not in result
     assert result["output_privacy_filter"] == "NOT_APPLIED"
+
+
+@requires_node
+@pytest.mark.parametrize("malformed,difference", [
+    ('[{"id":"q1","type":"single","question":"Q","options":["a","b"],"answer":"A","unknown":1,}]',
+     "UPSTREAM_QUESTION_FIELDS_UNSUPPORTED"),
+    ('{"questions":[{"id":"q1","type":"single","question":"Q","options":["a","b"],"answer":"A",}]}',
+     None),
+])
+def test_repaired_response_outside_the_bounded_structure_is_not_admitted(malformed, difference):
+    request, binding = capture_prompt()
+    code, result = invoke(replay_frame(request, binding, malformed))
+    assert code == 2 and result["status"] in {"UPSTREAM_RESULT_NOT_ADMITTED", "UPSTREAM_FAILURE"}, result
+    assert result["data"] is None
+    if result["status"] == "UPSTREAM_RESULT_NOT_ADMITTED":
+        assert difference is not None
+        assert result["original_reply"] == malformed
+        assert result["transformations"] == ["UPSTREAM_JSON_REPAIRED", "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED"]
+        assert difference in {item["kind"] for item in result["differences"]}
+    else:
+        assert difference is None
+        assert result["failures"] == ["invalid-model-output"]
 
 
 @requires_node
