@@ -485,6 +485,13 @@ pub fn router(executor: Executor) -> Router {
             post(courses::create_openmaic_scene)
                 .layer(axum::extract::DefaultBodyLimit::max(262_144)),
         )
+        // Offline outline replay: Core persists the caller-declared model reply as
+        // an inert candidate Document and never invokes a model or the network.
+        .route(
+            "/api/v1/courses/openmaic/outlines",
+            post(courses::create_openmaic_outline)
+                .layer(axum::extract::DefaultBodyLimit::max(262_144)),
+        )
         // Read-only package projection over already persisted scene candidates.
         // It reports recorded playability and refuses or parses nothing.
         .route(

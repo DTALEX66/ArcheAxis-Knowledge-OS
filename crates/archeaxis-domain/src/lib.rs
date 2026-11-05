@@ -27,6 +27,7 @@ pub mod learning;
 pub mod machine;
 pub mod machine_evaluation;
 pub mod object_reference;
+pub mod openmaic_outline;
 pub mod relation_projection;
 pub mod research;
 pub mod search;

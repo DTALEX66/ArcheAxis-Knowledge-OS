@@ -194,6 +194,23 @@ pub(super) fn openmaic_worker_matches(script: &Path) -> bool {
     )
 }
 
+/// The fixed OpenMAIC Node adapter a launch may own. The scene builder keeps its
+/// existing profile; the outline replay script is discovered only as its sibling,
+/// so an HTTP caller cannot name a script or a directory.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum OpenMaicScript {
+    Scene,
+    Outline,
+}
+
+/// The outline replay worker next to the configured scene builder script. No
+/// path is guessed: a missing, non-regular or linked sibling means the capability
+/// is unavailable rather than an alternate provider.
+pub(super) fn outline_worker_script(scene: &Path) -> Option<PathBuf> {
+    let script = scene.parent()?.join("outline-replay-worker.mjs");
+    safe_local_file(&script).then_some(script)
+}
+
 impl Executor {
     /// Capture the current OpenMAIC admission generation before doing work.
     /// A capability disable/re-enable advances this value, so a caller can
@@ -280,12 +297,55 @@ impl Executor {
         .await
     }
 
+    /// The outline replay adapter shares the scene launch: same Node executable,
+    /// same frame budget, timeout and cleanup, but the sibling outline worker.
+    pub async fn openmaic_outline_with_generation(
+        &self,
+        expected_generation: u64,
+        request: Value,
+        timeout: Duration,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+            OpenMaicScript::Outline,
+        )
+        .await
+    }
+
+    /// Whether the configured scene builder has a usable sibling outline worker.
+    pub fn openmaic_outline_script(&self) -> Option<PathBuf> {
+        self.openmaic_node
+            .as_ref()
+            .and_then(|node| outline_worker_script(&node.script))
+    }
+
     async fn derived_json_checked(
         &self,
         capability: &str,
         request: Value,
         timeout: Duration,
         expected_generation: Option<u64>,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            capability,
+            request,
+            timeout,
+            expected_generation,
+            OpenMaicScript::Scene,
+        )
+        .await
+    }
+
+    async fn derived_json_checked_script(
+        &self,
+        capability: &str,
+        request: Value,
+        timeout: Duration,
+        expected_generation: Option<u64>,
+        script_kind: OpenMaicScript,
     ) -> Result<Value, String> {
         let deadline = Instant::now() + timeout.min(Duration::from_secs(120));
         if !supported(capability) {
@@ -347,7 +407,12 @@ impl Executor {
             return Err("derived capability was disabled while queued".into());
         }
         let (worker, site, program) = if let Some(node) = &node {
-            (node.script.clone(), false, node.executable.clone())
+            let worker = match script_kind {
+                OpenMaicScript::Scene => node.script.clone(),
+                OpenMaicScript::Outline => outline_worker_script(&node.script)
+                    .ok_or("OpenMAIC outline worker unavailable")?,
+            };
+            (worker, false, node.executable.clone())
         } else {
             let (worker, site) = self
                 .worker_for(capability)
@@ -386,7 +451,13 @@ impl Executor {
             }
             if node.as_ref().is_some_and(|configured| {
                 !executable_matches(&program, &configured.executable_sha256)
-                    || !openmaic_worker_matches(&worker)
+                    || match script_kind {
+                        OpenMaicScript::Scene => !openmaic_worker_matches(&worker),
+                        OpenMaicScript::Outline => {
+                            outline_worker_script(&configured.script).as_deref()
+                                != Some(worker.as_path())
+                        }
+                    }
             }) {
                 return Err("OpenMAIC Node worker unavailable or identity mismatch".into());
             }
@@ -457,13 +528,85 @@ impl Executor {
                     }
                     Ok::<_, &str>(guard)
                 })?;
-                validate_openmaic_result(&result, &request, &input_sha)?;
+                match script_kind {
+                    OpenMaicScript::Scene => {
+                        validate_openmaic_result(&result, &request, &input_sha)?
+                    }
+                    OpenMaicScript::Outline => {
+                        validate_openmaic_outline_result(&result, &request, &input_sha)?
+                    }
+                }
             }
             Ok(result)
         })
         .await
         .map_err(|_| "derived worker task failed")?
     }
+}
+
+fn validate_openmaic_outline_result(
+    result: &Value,
+    request: &Value,
+    input_sha: &str,
+) -> Result<(), String> {
+    let doc = &result["document"];
+    if doc["schema"] != "archeaxis.openmaic-outline-replay-result/v1"
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["network_performed"] != false
+        || doc["canonical_bindings_verified"] != false
+    {
+        return Err("invalid OpenMAIC outline worker receipt".into());
+    }
+    // Every non-candidate outcome keeps the worker's own status and reason. It
+    // is never rewritten into a candidate, and the caller answers 422 with them.
+    if doc["status"] != "CANDIDATE" {
+        return if result["exit_code"] == 2
+            && doc["status"]
+                .as_str()
+                .is_some_and(|status| !status.trim().is_empty())
+        {
+            Ok(())
+        } else {
+            Err("invalid OpenMAIC outline failure receipt".into())
+        };
+    }
+    if result["exit_code"] != 0
+        || doc["input_sha256"] != input_sha
+        || doc["input"] != *request
+        || doc["response_origin_verification"] != "CALLER_DECLARED_UNVERIFIED"
+        || doc["human_review_required"] != true
+        || doc["active_content_executed"] != false
+    {
+        return Err("OpenMAIC outline candidate does not match input".into());
+    }
+    let outlines = doc["data"]["outlines"]
+        .as_array()
+        .filter(|items| (1..=30).contains(&items.len()))
+        .ok_or("OpenMAIC outline candidate list is unsupported")?;
+    if outlines.iter().any(|outline| {
+        !outline.is_object()
+            || !outline["id"]
+                .as_str()
+                .is_some_and(|id| id.len() <= 128 && !id.is_empty())
+            || !["slide", "quiz"].contains(&outline["type"].as_str().unwrap_or(""))
+            || !outline["title"].as_str().is_some_and(|title| {
+                !title.trim().is_empty() && title.chars().count() <= 240
+            })
+            || !outline["description"]
+                .as_str()
+                .is_some_and(|description| description.chars().count() <= 16_000)
+            || !outline["keyPoints"].as_array().is_some_and(|points| {
+                (0..=200).contains(&points.len())
+                    && points.iter().all(|point| {
+                        point
+                            .as_str()
+                            .is_some_and(|value| value.chars().count() <= 2_000)
+                    })
+            })
+    }) {
+        return Err("OpenMAIC outline candidate entry is unsupported".into());
+    }
+    Ok(())
 }
 
 fn validate_openmaic_result(

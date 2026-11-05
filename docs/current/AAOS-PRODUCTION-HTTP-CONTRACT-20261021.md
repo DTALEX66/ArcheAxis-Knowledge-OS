@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (151 pairs in a `text_worker` launch)
+## 3. Route inventory (152 pairs in a `text_worker` launch)
 
 `PROD` identifies a route mounted in the current source for the specified production launch shape.
 Whether the UI can rely on it also depends on the applicable capability/provider availability,
@@ -370,6 +370,7 @@ A successful model process leaves evaluation `unmeasured`; it does not prove ans
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
 | 241 | `POST /api/v1/courses/openmaic/scenes` | **human only** | Text-worker launch only; request body at most 262,144 bytes. An existing matching candidate may be returned without invoking the worker; a new candidate requires the configured, enabled provider and checks its admission generation and source snapshot before commit. The result requires human review and does not authorize rendering or establish answer secrecy. |
+| 245 | `POST /api/v1/courses/openmaic/outlines` | **human only** | Offline outline replay only; body `{create_request_id, request}` at most 262,144 bytes. `request` is exactly `archeaxis.openmaic-outline-replay/v1` (`schema`, `request_id`, `requirement`, `source_text`, `reply`) with `reply` either `{kind: synthetic_error}` or `{kind: synthetic_response, value}`; the 1–30 emitted outlines must be `slide`/`quiz` with bounded id, title, description and key points. No model and no network are invoked. The outline worker is the sibling `outline-replay-worker.mjs` of the configured scene script; a missing sibling is `503`. An identical `create_request_id` replays the stored candidate without running the worker, and changed content under the same ID is `409`. A new candidate persists the exact request frame, its SHA-256 and the worker reply as an ordinary Document whose `response_origin` is `CALLER_DECLARED_UNVERIFIED`, `model_call` is `NOT_INVOKED`, `active_content_executed`/`rendering_authorized` are `false` and `human_review_required` is `true`. A non-candidate worker outcome is `422` carrying the worker's own `status`/`reason`; this is not an executable or render-authorized course. |
 | R16 | `POST /api/v1/courses` | **human only** | Stores a course the caller supplies through the `course.general` donor worker. A machine principal is refused, and a malformed body is refused before a write. Asserted by `crates/archeaxis-api/tests/contract_general_course.rs`. |
 | R17 | `POST /api/v1/courses/from-knowledge` | **human only** | Builds a candidate course from **active accepted** canonical knowledge that carries an anchor. The Core re-checks the worker's manifest against the canonical knowledge and answers `502` when the worker rewrote the body, id or title, so a tampered lesson never reaches the store. Knowledge without an anchor is refused rather than guessed. Asserted by `contract_general_course.rs`. |
 | R18 | `GET /api/v1/courses/{id}` | any token | Course readback. Each binding reports `stale` plus its `knowledge_state` (`status`, `active`, `currentness`, `superseded_by`, `successor_count`, `valid_to`), so a stale course says which knowledge changed and what replaced it; the historical `knowledge_id` is never rewritten to the successor. |
@@ -630,14 +631,14 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 94 addresses: 93 projection method/path pairs (81 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 151 addresses (92 base projection method/path pairs + 58 runtime method/path pairs on 55 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **with** `text_worker` | 152 addresses (92 base projection method/path pairs + 59 runtime method/path pairs on 56 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **55** route mounts, mounted there rather than with the projections because
+The runtime builder carries **56** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
 search route; the machine answer, correction and retest routes; the three vault routes; and the
-four course routes; the job-journal clearance route; and the document-check execution route replacing the projection-only
+four course routes; the OpenMAIC outline replay route; the job-journal clearance route; and the document-check execution route replacing the projection-only
 unconfigured handler at the same method/path.
 
 Historical launch shapes were started from the real binary and asked over HTTP; the 2026-10-19 additions below are source inventory only. Launch-shape behavior is asserted by
