@@ -54,7 +54,8 @@
       "capability_id": "CAP-0060",
       "state": "worker_backed",
       "runtime_capabilities": [
-        "course.general"
+        "course.general",
+        "course.openmaic.outline-model"
       ]
     },
     {

@@ -7,7 +7,7 @@ export const CAPABILITY_CATALOG = {
     },
     {
       "path": "config/capability-map.v1.json",
-      "sha256": "74b7c3d4fdc6cb5b238fdd2dbf385e2f5142807211f9275fcf3a657effda5bed"
+      "sha256": "b2c4ea6002460dcc8ff769ecd4a753a3df770df8a8b011c8ebf2c3b5137a903b"
     }
   ],
   "note": "Read-only projection. Atlas declarations and implementation links are not runtime execution evidence.",
@@ -320,7 +320,8 @@ export const CAPABILITY_CATALOG = {
         "capability_id": "CAP-0060",
         "state": "worker_backed",
         "runtime_capabilities": [
-          "course.general"
+          "course.general",
+          "course.openmaic.outline-model"
         ]
       }
     },
