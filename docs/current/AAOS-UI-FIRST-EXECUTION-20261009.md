@@ -4320,3 +4320,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 修复（PR **#291**，head `98a6cc10`，merge **`3a48db61`**）：4xx 改为 `MODEL_REJECTED / MODEL_HTTP_REJECTED`，诊断只带 HTTP 状态与引擎的整数 `n_prompt_tokens`/`n_ctx`（能解析 LM Studio 的"prose+JSON"错误体），不反射任何 prompt 文本；5xx 保持 `MODEL_UNAVAILABLE`（新增具名 `MODEL_ENDPOINT_UNHEALTHY`）；Core 两个生成路由把 `MODEL_REJECTED` 映射为 422。
 - 新增 env-gated 真实模型测试 `crates/archeaxis-api/tests/openmaic_slide_real_model_runtime.rs`：本机当前以 `MODEL_REJECTED`（422，`reason MODEL_HTTP_REJECTED`）如实返回，测试注释写明需要 ≥ 约 1 万 token 上下文才能得到成功回执；未改动机器上的模型配置（属运维/ Owner 决定）。
 - 验证：worker pytest **19 passed**（新增拒绝用例断言数字保留、prompt 与引擎消息不外泄）；`openmaic_outline_generate_runtime` 与 `openmaic_slide_generate_runtime` 各 1 passed；CI run `42037716225` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` success。
+
+#### 2026-11-05 INT-MAIC-02/05：大纲→Quiz 场景生成链
+
+- 既有 scene 生成路由只建 slide，课程的评价半边仍要人工提供。PR **#292**（head `402236bd`，merge **`3f968895`**）把同一条 `POST /api/v1/courses/openmaic/scenes/generate` 按大纲 `type` 分派：
+  - `quiz` 大纲 → donor `quiz-replay-worker` 的 `stage:"capture"` → 已声明本地模型 → 同一 worker 的 `stage:"replay"` → 既有 scene-build → 既有 v2 契约落盘；响应新增 `scene_route`（`slide`/`quiz`），请求形状不变，**没有新增第二条路由**。
+  - attrs 记 `generation_route:"outline_quiz_local_model"`、模型与回包哈希、prompt binding、`outline_document_id`/`outline_index`、`response_origin:"LOCAL_MODEL_UNVERIFIED"`，仍不授权渲染或执行。
+  - quiz 的 prompt-replay 路径与 outline 采用同一 repaired 准入规则（结构校验通过才准入，记 `UPSTREAM_JSON_REPAIRED`/`UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED`/`exact_json_output:false`）；legacy replay 与 capture 行为未变；无法修复出可用 quiz 仍拒绝。
+  - 非 slide/quiz 大纲继续具名 422 `UNSUPPORTED_OUTLINE_TYPE`；任一阶段失败不写半成品，重复请求不重跑。
+- 验证：`test_openmaic_quiz_replay.py`+`test_openmaic_quiz_actions_replay.py` **80 passed**（真实 Node）；`openmaic_quiz_candidate` 5、`openmaic_slide_candidate` 5、`openmaic_slide_generate_runtime` **1 passed（25.2s，含 quiz 分派、machine 403、503/504、非候选 422、重复不重跑、重启读回）**；outline/scene/package-projection 回归全过；`cargo fmt --check` 干净；preflight exit 0；CI run `42045818068` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` success。
+- 边界：`quiz-actions-replay-worker` 未接入（本链 actions 为空）；`interactive`/`pbl` 仍未实现；真实模型在本机受 8,192 上下文限制，生成链只能走到具名 `MODEL_REJECTED`（属运维配置，非代码缺陷）。

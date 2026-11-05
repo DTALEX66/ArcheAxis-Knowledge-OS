@@ -350,6 +350,18 @@
           "what": "HTTP 4xx from the lane is MODEL_REJECTED with only the HTTP status and integer engine token numbers; 5xx stays MODEL_UNAVAILABLE; Core maps MODEL_REJECTED to 422 for both generation routes.",
           "verified": "worker pytest 19 passed including the rejection case; both stub api generation routes passed. The real slide chain currently ends as MODEL_REJECTED because this host's loaded lane has 8,192 tokens and the donor slide prompt needs about 9,500.",
           "not_included": "No model configuration was changed; raising the loaded context is an operator decision. Quiz/interactive/pbl and UI wiring remain."
+        },
+        {
+          "item": "INT-MAIC-02",
+          "slice": "outline to quiz scene chain",
+          "pr": 292,
+          "head_sha": "402236bd",
+          "merge_commit": "3f96889547ce3814c04adabaf5edf1191e8d667e",
+          "ci_run": 42045818068,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_VNEXT_RUST_VNEXT_A0_GATES",
+          "what": "The existing scene generation route now dispatches on the outline type: a quiz outline runs the donor quiz prompt, the declared local model and the donor quiz replay before the same scene build, returning scene_route and recording LOCAL_MODEL_UNVERIFIED provenance.",
+          "verified": "quiz replay pytest 80 passed with real Node; domain quiz candidate 5, slide candidate 5, dispatch api 1 passed in 25.2 s covering machine 403, 503/504, non-candidate 422, duplicate no-rerun and restart readback; outline and scene regressions passed.",
+          "not_included": "quiz-actions-replay stays unwired; interactive and pbl scenes are still refused; the local lane's 8,192-token context limits real-model runs to a named MODEL_REJECTED."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
