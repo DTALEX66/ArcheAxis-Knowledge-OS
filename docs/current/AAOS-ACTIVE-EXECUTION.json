@@ -302,6 +302,18 @@
           "what": "POST /api/v1/courses/openmaic/outlines persists a caller-declared outline replay as one ordinary Core Document with CALLER_DECLARED_UNVERIFIED, NOT_INVOKED and no rendering or execution authorization; idempotent per create request ID.",
           "verified": "domain 5 passed; api 2 passed with real Node sha ba4e6d11...; scene regressions 12 passed and 2 passed/1 pre-existing ignored; contract preflight all passed.",
           "not_included": "No model call, no network, no interactive or pbl scenes, no rendering authorization; outline currently shares the scene capability switch."
+        },
+        {
+          "item": "INT-MAIC-03",
+          "slice": "outline generation from the declared local model",
+          "pr": 288,
+          "head_sha": "194b987d",
+          "merge_commit": "8b74330c4c269b39f9cf5b023ccdfee530749e51",
+          "ci_run": 41955509655,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_BROWSER_SMOKE_RUST_VNEXT_WORKERS_VNEXT_A0_GATES",
+          "what": "POST /api/v1/courses/openmaic/outlines/generate orchestrates capture (pinned Node), one bounded local-model call through a new Python worker that reuses the hardened loopback-only client, and replay (pinned Node); only a CANDIDATE is persisted, with LOCAL_MODEL_UNVERIFIED and the model and prompt identities.",
+          "verified": "python worker 18 passed; route and capability declarations 99 passed; contract consistency 15 passed; domain 5 passed; api 1 passed in 20.9s with real Node and a loopback stub model, covering 503/504/422 and restart readback.",
+          "not_included": "Only a synthetic loopback stub model has run; no real LM Studio end-to-end evidence, no UI wiring, no interactive/pbl scenes, no quiz or action replay workers."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
