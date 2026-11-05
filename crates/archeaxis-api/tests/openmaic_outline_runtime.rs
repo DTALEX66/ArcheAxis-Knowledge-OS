@@ -91,7 +91,11 @@ async fn a_machine_actor_is_denied_and_an_unconfigured_provider_is_unavailable()
         "request":outline_request(candidate_reply())});
     let (status, unavailable) = call(&router, "human", &body).await;
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{unavailable}");
-    assert!(!unavailable.to_string().contains("SYNTHETIC_OUTLINE_DESCRIPTION"));
+    assert!(
+        !unavailable
+            .to_string()
+            .contains("SYNTHETIC_OUTLINE_DESCRIPTION")
+    );
     assert_eq!(document_count(&executor).await, 0);
 }
 
@@ -156,10 +160,7 @@ async fn explicit_node_persists_an_outline_candidate_and_reopens_without_node() 
     assert!(frame.contains("SYNTHETIC_SOURCE_MATERIAL"));
     assert_eq!(stored["model_call"], "NOT_INVOKED");
     assert_eq!(stored["human_review_required"], true);
-    assert_eq!(
-        stored["outlines"][0]["title"],
-        "Synthetic outline title"
-    );
+    assert_eq!(stored["outlines"][0]["title"], "Synthetic outline title");
     assert_eq!(stored["outlines"][0]["key_points_count"], 1);
     let candidate_id = first["document"]["document_id"]
         .as_str()
@@ -200,10 +201,7 @@ async fn explicit_node_persists_an_outline_candidate_and_reopens_without_node() 
     assert_eq!(duplicate["worker_invoked"], false);
     assert_eq!(duplicate["document"], first["document"]);
     assert_eq!(duplicate["candidate_document_status"], "current");
-    assert_eq!(
-        duplicate["document"]["document_id"],
-        candidate_id
-    );
+    assert_eq!(duplicate["document"]["document_id"], candidate_id);
     assert_eq!(document_count(&reopened).await, 1);
     assert_eq!(
         format!("{:x}", Sha256::digest(std::fs::read(&node).unwrap())),

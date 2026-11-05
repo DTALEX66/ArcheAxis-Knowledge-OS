@@ -589,9 +589,9 @@ fn validate_openmaic_outline_result(
                 .as_str()
                 .is_some_and(|id| id.len() <= 128 && !id.is_empty())
             || !["slide", "quiz"].contains(&outline["type"].as_str().unwrap_or(""))
-            || !outline["title"].as_str().is_some_and(|title| {
-                !title.trim().is_empty() && title.chars().count() <= 240
-            })
+            || !outline["title"]
+                .as_str()
+                .is_some_and(|title| !title.trim().is_empty() && title.chars().count() <= 240)
             || !outline["description"]
                 .as_str()
                 .is_some_and(|description| description.chars().count() <= 16_000)

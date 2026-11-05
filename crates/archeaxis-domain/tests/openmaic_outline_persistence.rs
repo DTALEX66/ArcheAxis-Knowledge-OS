@@ -23,18 +23,18 @@ fn worker(request: &Value) -> Value {
     let mut frame = serde_json::to_vec(request).unwrap();
     frame.push(b'\n');
     json!({"schema":"archeaxis.openmaic-outline-replay-result/v1","status":"CANDIDATE","reason":null,
-        "input":request,"input_sha256":hex::encode(Sha256::digest(&frame)),
-        "upstream_generation":"0.3.28","upstream_entry":"generateSceneOutlinesFromRequirements",
-        "response_origin":"SYNTHETIC_REPLAY","response_origin_verification":"CALLER_DECLARED_UNVERIFIED",
-        "model_call":"NOT_INVOKED","network_performed":false,"core_task":"NOT_CONNECTED",
-        "canonical_bindings_verified":false,"human_review_required":true,"active_content_executed":false,
-        "data":{"languageDirective":"Respond in Simplified Chinese.","courseTitle":"Synthetic course",
-            "outlines":[
-                {"id":"o1","type":"slide","title":"SYNTHETIC_OUTLINE_TITLE",
-                 "description":"SYNTHETIC_OUTLINE_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],"order":1},
-                {"id":"o2","type":"quiz","title":"SYNTHETIC_QUIZ_TITLE",
-                 "description":"","keyPoints":[],"order":2}
-            ]}})
+    "input":request,"input_sha256":hex::encode(Sha256::digest(&frame)),
+    "upstream_generation":"0.3.28","upstream_entry":"generateSceneOutlinesFromRequirements",
+    "response_origin":"SYNTHETIC_REPLAY","response_origin_verification":"CALLER_DECLARED_UNVERIFIED",
+    "model_call":"NOT_INVOKED","network_performed":false,"core_task":"NOT_CONNECTED",
+    "canonical_bindings_verified":false,"human_review_required":true,"active_content_executed":false,
+    "data":{"languageDirective":"Respond in Simplified Chinese.","courseTitle":"Synthetic course",
+        "outlines":[
+            {"id":"o1","type":"slide","title":"SYNTHETIC_OUTLINE_TITLE",
+             "description":"SYNTHETIC_OUTLINE_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],"order":1},
+            {"id":"o2","type":"quiz","title":"SYNTHETIC_QUIZ_TITLE",
+             "description":"","keyPoints":[],"order":2}
+        ]}})
 }
 
 fn pending(conn: &mut Connection, id: &str, request: &Value) -> OpenMaicOutlinePending {
@@ -63,7 +63,10 @@ fn a_candidate_is_persisted_once_and_read_back_after_restart_without_a_rerun() {
     let first = commit(&mut conn, "client_1", &request);
     let saved = &first["document"]["editor_json"]["attrs"][NAMESPACE];
     let stored_frame = saved["request_frame"].as_str().unwrap();
-    assert_eq!(serde_json::from_str::<Value>(stored_frame).unwrap(), request);
+    assert_eq!(
+        serde_json::from_str::<Value>(stored_frame).unwrap(),
+        request
+    );
     assert!(stored_frame.ends_with('\n'));
     assert_eq!(
         saved["input_sha256"],
@@ -95,8 +98,8 @@ fn a_candidate_is_persisted_once_and_read_back_after_restart_without_a_rerun() {
     );
     // A retry reads the same candidate and never runs another worker.
     let before = conn.total_changes();
-    let existing = openmaic_outline::prepare_openmaic_outline(&mut conn, "client_1", &request)
-        .unwrap();
+    let existing =
+        openmaic_outline::prepare_openmaic_outline(&mut conn, "client_1", &request).unwrap();
     match existing {
         OpenMaicOutlinePreparation::Existing(receipt) => assert_eq!(receipt, first),
         _ => panic!("the committed candidate must be found before a worker"),
@@ -126,13 +129,17 @@ fn changed_content_under_the_same_create_request_id_conflicts() {
     let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
     let request = request();
     let ticket = pending(&mut conn, "client_2", &request);
-    openmaic_outline::commit_openmaic_outline(&mut conn, "client_2", &request, &ticket, &worker(&request))
-        .unwrap();
+    openmaic_outline::commit_openmaic_outline(
+        &mut conn,
+        "client_2",
+        &request,
+        &ticket,
+        &worker(&request),
+    )
+    .unwrap();
     let mut other = request.clone();
     other["requirement"] = json!("DIFFERENT requirement");
-    assert!(
-        openmaic_outline::prepare_openmaic_outline(&mut conn, "client_2", &other).is_err()
-    );
+    assert!(openmaic_outline::prepare_openmaic_outline(&mut conn, "client_2", &other).is_err());
     assert!(
         openmaic_outline::commit_openmaic_outline(
             &mut conn,
@@ -177,10 +184,12 @@ fn request_schema_and_shape_are_refused_before_a_worker() {
     reply["reply"] = json!({"kind":"synthetic_response","value":"x","extra":true});
     cases.push(("reply", reply));
     for (name, request) in cases {
-        assert!(openmaic_outline::openmaic_outline_refusal(&request).is_some(), "{name}");
         assert!(
-            openmaic_outline::prepare_openmaic_outline(&mut conn, "client_3", &request)
-                .is_err(),
+            openmaic_outline::openmaic_outline_refusal(&request).is_some(),
+            "{name}"
+        );
+        assert!(
+            openmaic_outline::prepare_openmaic_outline(&mut conn, "client_3", &request).is_err(),
             "{name}"
         );
     }
@@ -241,11 +250,7 @@ fn invalid_worker_replies_never_create_a_candidate() {
         }
         assert!(
             openmaic_outline::commit_openmaic_outline(
-                &mut conn,
-                "client_4",
-                &request,
-                &ticket,
-                &response
+                &mut conn, "client_4", &request, &ticket, &response
             )
             .is_err(),
             "{change}"
@@ -260,12 +265,8 @@ fn a_disabled_capability_refuses_the_commit() {
     let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
     let request = request();
     let ticket = pending(&mut conn, "client_5", &request);
-    capability_settings::set_enabled(
-        &conn,
-        openmaic_outline::OPENMAIC_OUTLINE_CAPABILITY,
-        false,
-    )
-    .unwrap();
+    capability_settings::set_enabled(&conn, openmaic_outline::OPENMAIC_OUTLINE_CAPABILITY, false)
+        .unwrap();
     assert!(
         openmaic_outline::commit_openmaic_outline(
             &mut conn,

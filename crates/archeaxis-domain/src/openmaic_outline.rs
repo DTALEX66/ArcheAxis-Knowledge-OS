@@ -12,16 +12,20 @@ use sha2::{Digest, Sha256};
 /// The bounded replay request contract. The field set is exactly these five.
 pub const OPENMAIC_OUTLINE_REQUEST_SCHEMA: &str = "archeaxis.openmaic-outline-replay/v1";
 pub const OPENMAIC_OUTLINE_RESULT_SCHEMA: &str = "archeaxis.openmaic-outline-replay-result/v1";
-pub const OPENMAIC_OUTLINE_DOCUMENT_SCHEMA: &str =
-    "archeaxis.openmaic-outline-document/v1";
+pub const OPENMAIC_OUTLINE_DOCUMENT_SCHEMA: &str = "archeaxis.openmaic-outline-document/v1";
 pub const OPENMAIC_OUTLINE_NAMESPACE: &str = "archeaxis_openmaic_outline_candidate";
 /// The provider gate this slice shares with the existing scene builder: one
 /// OpenMAIC Node launch owns both fixed scripts.
 pub const OPENMAIC_OUTLINE_CAPABILITY: &str = "course.openmaic.scene-build";
 pub const OPENMAIC_OUTLINE_MAX_FRAME: usize = 256_000;
 const OPENMAIC_OUTLINE_MAX_REPLY_BYTES: usize = 120_000;
-const OPENMAIC_OUTLINE_REQUEST_FIELDS: [&str; 5] =
-    ["schema", "request_id", "requirement", "source_text", "reply"];
+const OPENMAIC_OUTLINE_REQUEST_FIELDS: [&str; 5] = [
+    "schema",
+    "request_id",
+    "requirement",
+    "source_text",
+    "reply",
+];
 const OPENMAIC_OUTLINE_TYPES: [&str; 2] = ["slide", "quiz"];
 
 fn invalid(message: &'static str) -> crate::document::Error {
@@ -68,8 +72,10 @@ fn reply_shape(reply: &Value) -> bool {
 /// means the request may proceed to the write path, which repeats every check.
 pub fn openmaic_outline_refusal(request: &Value) -> Option<Value> {
     let Some(object) = request.as_object() else {
-        return Some(json!({"reason":"UNEXPECTED_REQUEST_SHAPE","declared":"not an object",
-            "supported":[OPENMAIC_OUTLINE_REQUEST_SCHEMA]}));
+        return Some(
+            json!({"reason":"UNEXPECTED_REQUEST_SHAPE","declared":"not an object",
+            "supported":[OPENMAIC_OUTLINE_REQUEST_SCHEMA]}),
+        );
     };
     if object.get("schema").and_then(Value::as_str) != Some(OPENMAIC_OUTLINE_REQUEST_SCHEMA) {
         return Some(json!({"reason":"UNSUPPORTED_REQUEST_VERSION",
@@ -81,8 +87,10 @@ pub fn openmaic_outline_refusal(request: &Value) -> Option<Value> {
             .iter()
             .any(|key| !object.contains_key(*key))
     {
-        return Some(json!({"reason":"UNEXPECTED_REQUEST_FIELDS","declared":object.len(),
-            "supported":OPENMAIC_OUTLINE_REQUEST_FIELDS.len()}));
+        return Some(
+            json!({"reason":"UNEXPECTED_REQUEST_FIELDS","declared":object.len(),
+            "supported":OPENMAIC_OUTLINE_REQUEST_FIELDS.len()}),
+        );
     }
     if request["request_id"]
         .as_str()
@@ -113,10 +121,7 @@ pub fn openmaic_outline_refusal(request: &Value) -> Option<Value> {
 
 /// Internal create-request identity of the candidate Document.
 pub fn openmaic_outline_internal_request_id(create_request_id: &str) -> String {
-    format!(
-        "openmaic_outline_{}",
-        digest(create_request_id.as_bytes())
-    )
+    format!("openmaic_outline_{}", digest(create_request_id.as_bytes()))
 }
 
 /// Deterministic candidate Document ID for a client create request ID.
@@ -143,8 +148,7 @@ fn outline_frame(
         return Err(invalid("OpenMAIC outline frame exceeds bound"));
     }
     let sha = digest(&bytes);
-    let frame =
-        String::from_utf8(bytes).map_err(|_| invalid("invalid OpenMAIC outline frame"))?;
+    let frame = String::from_utf8(bytes).map_err(|_| invalid("invalid OpenMAIC outline frame"))?;
     Ok((frame, sha))
 }
 
@@ -194,9 +198,11 @@ fn outline_check_result(
                 .is_none_or(|value| value.chars().count() > 16_000)
             || !outline["keyPoints"].as_array().is_some_and(|points| {
                 (0..=200).contains(&points.len())
-                    && points
-                        .iter()
-                        .all(|point| point.as_str().is_some_and(|value| value.chars().count() <= 2_000))
+                    && points.iter().all(|point| {
+                        point
+                            .as_str()
+                            .is_some_and(|value| value.chars().count() <= 2_000)
+                    })
             })
         {
             return Err(invalid(
@@ -237,7 +243,11 @@ fn candidate_status(conn: &Connection, document: &Value) -> &'static str {
             {
                 "current"
             }
-            Ok(current) if current["version"].as_i64().is_some_and(|version| version > 1) => {
+            Ok(current)
+                if current["version"]
+                    .as_i64()
+                    .is_some_and(|version| version > 1) =>
+            {
                 "historical"
             }
             _ => "unavailable",
@@ -335,12 +345,14 @@ pub fn prepare_openmaic_outline(
     let workspace_id = crate::ui_state::workspace_id(&tx)
         .map_err(|_| invalid("OpenMAIC outline workspace identity unavailable"))?;
     tx.commit()?;
-    Ok(OpenMaicOutlinePreparation::Pending(OpenMaicOutlinePending {
-        restore_epoch,
-        workspace_id,
-        input_sha256,
-        create_request_id: create_request_id.to_owned(),
-    }))
+    Ok(OpenMaicOutlinePreparation::Pending(
+        OpenMaicOutlinePending {
+            restore_epoch,
+            workspace_id,
+            input_sha256,
+            create_request_id: create_request_id.to_owned(),
+        },
+    ))
 }
 
 /// Persist one inert outline candidate through the existing Document writer.
@@ -372,17 +384,12 @@ pub fn commit_openmaic_outline(
             "OpenMAIC outline workspace or restore epoch changed",
         ));
     }
-    if !archeaxis_store_sqlite::capability_settings::is_enabled(
-        &tx,
-        OPENMAIC_OUTLINE_CAPABILITY,
-    )? {
+    if !archeaxis_store_sqlite::capability_settings::is_enabled(&tx, OPENMAIC_OUTLINE_CAPABILITY)? {
         return Err(invalid("OpenMAIC capability is disabled"));
     }
     // Two requests may have passed preparation concurrently. Never replace the
     // first candidate with a second run's content.
-    if let Some(existing) =
-        outline_existing(&tx, create_request_id, &frame, &input_sha256)?
-    {
+    if let Some(existing) = outline_existing(&tx, create_request_id, &frame, &input_sha256)? {
         tx.commit()?;
         return Ok(existing);
     }
