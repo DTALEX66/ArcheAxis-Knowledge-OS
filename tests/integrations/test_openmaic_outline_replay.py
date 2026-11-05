@@ -428,14 +428,32 @@ def test_binding_mismatch_receipt_does_not_reflect_prompt_material_or_reply():
 
 
 @requires_node
-def test_repaired_and_duplicate_responses_never_become_prompt_replay_candidates():
+def test_repaired_responses_are_admitted_only_with_a_declared_transformation():
     request, binding = capture_prompt()
-    malformed = '{"outlines":[{"id":"q","type":"quiz","title":"T","description":"D","keyPoints":[],}]}'
-    code, recovered = invoke(replay_frame(request, binding, malformed))
-    assert code == 2 and recovered["status"] == "UPSTREAM_RECOVERY_NOT_ADMITTED"
-    assert recovered["data"] is None and recovered["observed_upstream"]["outlines"][0]["id"] == "q"
-    assert recovered["original_reply"] == malformed
-    assert recovered["differences"] == [{"kind": "JSON_REPAIR_NOT_ADMITTED"}]
+    repaired_marks = ["UPSTREAM_JSON_REPAIRED", "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED"]
+    # A reply the donor can repair but that carries no usable outline data stays
+    # out: repair is admitted, an unusable course is not.
+    unusable = '{"outlines":[],}'
+    code, rejected = invoke(replay_frame(request, binding, unusable))
+    assert code == 2 and rejected["status"] == "UPSTREAM_RESULT_NOT_ADMITTED"
+    assert rejected["data"] is None and rejected["original_reply"] == unusable
+    assert rejected["transformations"] == repaired_marks
+    assert rejected["differences"][0]["kind"] == "OUTLINE_COUNT_OR_SHAPE_UNSUPPORTED"
+    # A code-fenced but complete reply is what a real local model returns; it is
+    # admitted as a candidate that says the model bytes were not exact JSON and
+    # that the donor's normalisations could not be enumerated.
+    fenced = (
+        "```json\n"
+        '{"languageDirective":"Teach in Chinese.","courseTitle":"间隔复习入门",'
+        '"outlines":[{"id":"scene_1","type":"slide","title":"原理","description":"讲解原理",'
+        '"keyPoints":["概念","依据"],"order":1}]}'
+        "\n```"
+    )
+    code, admitted = invoke(replay_frame(request, binding, fenced))
+    assert code == 0 and admitted["status"] == "CANDIDATE"
+    assert admitted["exact_json_output"] is False
+    assert admitted["transformations"] == repaired_marks
+    assert admitted["data"]["outlines"][0]["id"] == "scene_1"
     duplicate = '{"outlines":[],"outl\\u0069nes":[]}'
     code, result = invoke(replay_frame(request, binding, duplicate))
     assert code == 2 and result["status"] == "INVALID_RESPONSE" and result["data"] is None

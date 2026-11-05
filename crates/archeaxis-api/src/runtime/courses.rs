@@ -662,7 +662,7 @@ pub(super) async fn generate_openmaic_outline(
         .derived_json(
             openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
             model_request,
-            Duration::from_secs(45),
+            Duration::from_secs(120),
         )
         .await;
     let model = match model {
