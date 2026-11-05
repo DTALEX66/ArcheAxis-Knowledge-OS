@@ -4271,3 +4271,15 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 为容纳吸收后的仓库规模与扫描用例，`test` job 预算由 30 分钟提高到 45 分钟（同一批测试与同一通过条件），pytest 的 `--basetemp` 落到已创建的 `.project-local/task-runtime/pytest-tmp/basetemp-ci`。
 - 迁移副作用修复（均在合并前）：①`tests/maintenance/test_bulk_fixture_factory.py`、`tests/test_candidate_manifest.py` 改为显式声明各自治理根（`tmp_path` 已不在 `ARCHEAXIS_RUN_ROOT` 内）；②`tests/test_pytest_boundary.py` 的边界断言改为“位于 `.project-local` 内”（scratch 在 `task-runtime`、TMP/pycache 仍在 run 内）；③`tests/workflow/test_external_resources_index.py` 的探针覆盖改用 run 内目录；④`tests/test_desktop_launch.py` 的开发产物夹具改到项目 `build/` 树下，使启动器的路径分类仍成立。本地验证：上述文件 47 passed/2 skipped、32 passed、47 passed/2 skipped 与 525 passed（`tests/maintenance`+`tests/runtime-paths`，仅 `test_shared_sandbox` 因本机 Windows 长路径既有失败）。
 - 边界：本段只证明**完整源码吸收已入仓并通过全量门禁**；不改变“吸收≠融入≠安装态≠Owner 接受”，功能接线仍按 INT-DT/INT-MAIC/INT-QUAL 逐项推进。
+
+#### 2026-11-05 INT-MAIC-03 第一片：OpenMAIC 大纲候选接入 Core
+
+- 现状审计（以现有路由与测试为准）：DeepTutor 的 `practice-import`/`practice-grade`/`question-view` 与 OpenMAIC 的 `scene-build`（slide+quiz）/`package-projection` 已在 Rust Core 有正式路由与真实 Core 测试；真正未接进 Core 的是 OpenMAIC 的 `outline-replay`/`generation`/`quiz-replay` 与本地模型 relay，以及 DeepTutor 的出题/教学反馈 worker（仅适配器层）。
+- Owner 2026-11-05 选择优先推进“OpenMAIC 生成链接进 Core”。第一片实现 `POST /api/v1/courses/openmaic/outlines`（PR **#287**，head `15258e97`，merge **`75a2669d`**）：
+  - 仅 `human` actor；未配置 provider 返回 503；请求体 `{create_request_id, request}`，上限 262,144。
+  - 走与 scene 相同的 Node 传输与超时/清理语义，使用 scene 脚本同级的 `outline-replay-worker.mjs`（只做存在性/普通文件/非链接检查，不猜路径；worker 自身校验 donor 18 个成员与锁定 npm 包 SHA）。
+  - 幂等：同一 `create_request_id` 再次请求直接读回既有候选、不重跑 worker；同 id 内容变化 409；并发两次只保留第一份。
+  - 持久化为一个普通 Core Document（`archeaxis.openmaic-outline-document/v1`），含原始请求帧+`input_sha256`、worker 回复、逐条大纲摘要（id/type/title/order/keyPoints 数量）、`response_origin: CALLER_DECLARED_UNVERIFIED`、`model_call: NOT_INVOKED`、`human_review_required: true`、`active_content_executed: false`、`rendering_authorized: false`；提交时校验 workspace/restore epoch 与既有能力开关。
+  - worker 非候选结果（如 `UPSTREAM_FAILURE`）按其自身 status/reason 返回 422，不改写为候选。
+- 验证（真实输出）：`openmaic_outline_persistence` **5 passed**；`openmaic_outline_runtime` 注入真实 Node（sha `ba4e6d11…`）**2 passed（8.95s）**，含“去 Node 重启后仍读回同一候选且 `worker_invoked=false`”与 machine 403；回归 `openmaic_scene_persistence` 12 passed、`openmaic_scene_runtime` 2 passed/1 既有 ignored；`local_verify.py --preflight --conventions-source head` 全项通过（route-inventory 38 passed，10 个契约生成器干净）。首次 CI 失败仅 `cargo fmt --check`，格式化后同分支 CI run `41944641084` 的 `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success。
+- 边界：本片**不调用模型、不联网**，`CALLER_DECLARED_UNVERIFIED` 的回复只作候选；真实本地生成（先 capture prompt → 本地模型 → replay）与 `interactive`/`pbl` 场景仍未实现，`course.openmaic.outline` 暂与 scene 共用同一能力开关。

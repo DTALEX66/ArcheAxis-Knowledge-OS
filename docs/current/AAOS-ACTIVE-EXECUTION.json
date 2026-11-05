@@ -290,6 +290,20 @@
         }
       },
       "boundary": "Complete upstream source in the repository is a read-only reference, not a second runtime, database, scheduler or canonical writer. Rust Core remains the only SQLite/CAS writer. Absorption is not integration, installed qualification or Owner acceptance.",
+      "integration_log": [
+        {
+          "item": "INT-MAIC-03",
+          "slice": "outline candidate admission",
+          "pr": 287,
+          "head_sha": "15258e97a81fd94cfe27a4992642c7e3429c75d3",
+          "merge_commit": "75a2669d30fa5cb4f833fc449854050de2e39198",
+          "ci_run": 41944641084,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_RUST_VNEXT_A0_GATES",
+          "what": "POST /api/v1/courses/openmaic/outlines persists a caller-declared outline replay as one ordinary Core Document with CALLER_DECLARED_UNVERIFIED, NOT_INVOKED and no rendering or execution authorization; idempotent per create request ID.",
+          "verified": "domain 5 passed; api 2 passed with real Node sha ba4e6d11...; scene regressions 12 passed and 2 passed/1 pre-existing ignored; contract preflight all passed.",
+          "not_included": "No model call, no network, no interactive or pbl scenes, no rendering authorization; outline currently shares the scene capability switch."
+        }
+      ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
