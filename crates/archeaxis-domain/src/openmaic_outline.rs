@@ -588,11 +588,15 @@ pub fn openmaic_outline_capture_request(request: &Value) -> Value {
         "source_text":request["source_text"]})
 }
 
-/// The local-model request: only the two captured prompts and an optional model
-/// selection. Nothing else is sent to the model.
+/// The local-model request: only the two captured prompts, an optional model
+/// selection and one bounded wall-clock budget. The budget is stated here rather
+/// than left to the worker's default because a real local model can need longer
+/// than the default to emit a full outline; the worker caps it at 120 s and the
+/// Core kills the child later still, so a hung model is a named timeout, never a
+/// silent truncation.
 pub fn openmaic_outline_model_request(binding: &Value, model: &Value) -> Value {
     let mut request = json!({"schema":OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA,
-        "system":binding["system"],"user":binding["user"]});
+        "system":binding["system"],"user":binding["user"],"timeout_s":110});
     if !model.is_null() {
         request["model"] = model.clone();
     }

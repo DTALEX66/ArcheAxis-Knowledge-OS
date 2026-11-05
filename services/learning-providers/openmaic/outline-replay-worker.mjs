@@ -211,6 +211,32 @@ function promptBase(status, reason, request) {
     upstream_generation: "0.3.28", runtime, data: null };
 }
 
+/// Structural checks for a reply the donor already repaired. They mirror the
+/// text-only slice: a candidate is a course title, one language directive and
+/// 1-30 slide/quiz outlines with bounded text and no media references.
+function repairedOutlineDifferences(data) {
+  if (!object(data) || Object.keys(data).some(k => !["languageDirective", "courseTitle", "outlines"].includes(k)) ||
+      !wellFormedText(data.languageDirective, 2_000, true) ||
+      (data.courseTitle !== undefined && !wellFormedText(data.courseTitle, 120, true)))
+    return [{ kind: "UPSTREAM_RESULT_SHAPE_UNSUPPORTED" }];
+  const outlines = data.outlines;
+  if (!Array.isArray(outlines) || outlines.length < 1 || outlines.length > 30)
+    return [{ kind: "OUTLINE_COUNT_OR_SHAPE_UNSUPPORTED" }];
+  const differences = [];
+  for (let index = 0; index < outlines.length; index++) {
+    const outline = outlines[index];
+    if (!object(outline) || !id(outline.id) || !["slide", "quiz"].includes(outline.type) ||
+        typeof outline.title !== "string" || !outline.title.trim() || outline.title.length > 240 ||
+        typeof outline.description !== "string" || outline.description.length > 16_000 ||
+        !Array.isArray(outline.keyPoints) || outline.keyPoints.length > 200 ||
+        outline.keyPoints.some(point => typeof point !== "string" || point.length > 2_000) ||
+        (Array.isArray(outline.mediaGenerations) && outline.mediaGenerations.length) ||
+        (Array.isArray(outline.suggestedImageIds) && outline.suggestedImageIds.length))
+      differences.push({ kind: "OUTLINE_SHAPE_UNSUPPORTED", outline_index: index });
+  }
+  return differences;
+}
+
 function inspectPromptOutline(parsed, upstream) {
   const differences = [], transformations = [];
   const rawOutlines = Array.isArray(parsed) ? parsed : parsed?.outlines;
@@ -338,15 +364,30 @@ async function processPromptFrame(request) {
   }
   if (invalidResponse) return { ...promptBase("INVALID_RESPONSE", "duplicate keys or excessive nesting", request), callback_count: guard.state.calls, warnings };
   if (!upstream?.success) return { ...promptBase("UPSTREAM_FAILURE", "upstream reported failure", request), callback_count: guard.state.calls, warnings };
-  if (!exact) return { ...promptBase("UPSTREAM_RECOVERY_NOT_ADMITTED", "non-exact JSON was recovered upstream", request),
-    callback_count: guard.state.calls, warnings, original_reply: request.reply.value,
-    differences: [{ kind: "JSON_REPAIR_NOT_ADMITTED" }], observed_upstream: upstream.data };
+  // When the reply was not exact JSON, `parsed` never materialised and the donor
+  // already repaired and normalised the text, so there is nothing left to
+  // reconcile against a raw parse. The repaired candidate is admitted only after
+  // the same structural checks the text-only slice applies, and it says out loud
+  // that the model bytes were not exact JSON.
+  if (!exact) {
+    // A raw parse never materialised, so the donor's own normalisations (default
+    // language directive, title normalisation, dropped media fields) cannot be
+    // reconstructed or listed one by one. Say that instead of implying the reply
+    // was reviewed verbatim.
+    const transformations = ["UPSTREAM_JSON_REPAIRED", "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED"];
+    const differences = repairedOutlineDifferences(upstream?.data);
+    if (differences.length) return { ...promptBase("UPSTREAM_RESULT_NOT_ADMITTED", "unknown, unsupported or altered data", request),
+      callback_count: guard.state.calls, warnings, original_reply: request.reply.value, differences,
+      transformations, observed_upstream: upstream.data };
+    return { ...promptBase("CANDIDATE", null, request), callback_count: guard.state.calls, warnings,
+      transformations, exact_json_output: false, data: upstream.data, human_review_required: true };
+  }
   const inspection = inspectPromptOutline(parsed, upstream);
   if (inspection.differences.length) return { ...promptBase("UPSTREAM_RESULT_NOT_ADMITTED", "unknown, unsupported or altered data", request),
     callback_count: guard.state.calls, warnings, original_reply: request.reply.value, differences: inspection.differences,
     transformations: inspection.transformations, observed_upstream: upstream.data };
   return { ...promptBase("CANDIDATE", null, request), callback_count: guard.state.calls, warnings,
-    transformations: inspection.transformations, data: upstream.data, human_review_required: true };
+    transformations: inspection.transformations, exact_json_output: exact, data: upstream.data, human_review_required: true };
 }
 
 async function processFrame(raw) {
