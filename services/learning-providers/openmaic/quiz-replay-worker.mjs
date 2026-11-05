@@ -301,6 +301,47 @@ function assessQuiz(parsed, upstream, outline, strict = false) {
   return { status: "CANDIDATE", reason: null, transformations, data: upstream, human_review_required: true };
 }
 
+// Structural admission for a reply the donor already repaired. There is no raw
+// parse to reconcile against, so only the bounded shape the text-only slice
+// also requires is checked; the reply is never presented as exact JSON.
+function repairedQuizDifferences(data) {
+  if (!obj(data) || Object.keys(data).length !== 1 || !Object.hasOwn(data, "questions"))
+    return [{ kind: "UPSTREAM_RESULT_SHAPE_UNSUPPORTED" }];
+  const questions = data.questions;
+  if (!Array.isArray(questions) || questions.length < 1 || questions.length > 30)
+    return [{ kind: "UPSTREAM_QUESTION_COUNT_UNSUPPORTED" }];
+  const differences = [], seen = new Map();
+  for (let index = 0; index < questions.length; index++) {
+    const question = questions[index];
+    if (!obj(question) || !id(question.id) || !types.includes(question.type) ||
+        !str(question.question, 8_000, true)) {
+      differences.push({ kind: "UPSTREAM_QUESTION_SHAPE_UNSUPPORTED", question_index: index });
+      continue;
+    }
+    const allowed = ["id", "type", "question", "options", "answer", "correctAnswer", "correct_answer",
+      "analysis", "points", "commentPrompt", "hasAnswer"];
+    const unknown = Object.keys(question).filter(field => !allowed.includes(field));
+    if (unknown.length)
+      differences.push({ kind: "UPSTREAM_QUESTION_FIELDS_UNSUPPORTED", question_index: index,
+        fields: unknown.sort() });
+    if (question.type === "short_answer") {
+      if (question.hasAnswer !== false || question.answer !== undefined || question.options !== undefined)
+        differences.push({ kind: "UPSTREAM_SHORT_ANSWER_CONTRACT", question_index: index });
+    } else if (question.hasAnswer !== true || !Array.isArray(question.options) ||
+        question.options.length < 1 ||
+        question.options.some(option => !obj(option) || !str(option.label, 4_000, true)) ||
+        !Array.isArray(question.answer) || new Set(question.answer).size !== question.answer.length ||
+        (question.type === "single" ? question.answer.length !== 1 : question.answer.length < 2)) {
+      differences.push({ kind: "UPSTREAM_CHOICE_CONTRACT", question_index: index });
+    }
+    if (seen.has(question.id))
+      differences.push({ kind: "DUPLICATE_QUESTION_ID", question_index: index,
+        first_question_index: seen.get(question.id), id: question.id });
+    else seen.set(question.id, index);
+  }
+  return differences;
+}
+
 function base(status, reason, input = null) {
   return { schema: "archeaxis.openmaic-quiz-replay-result/v1", status, reason, input,
     upstream_generation: "0.3.28", upstream_entry: "generateQuizContent excerpt",
@@ -436,13 +477,28 @@ async function processPromptFrame(request) {
   if (upstream === null || upstream === undefined)
     return { ...promptBase("UPSTREAM_FAILURE", "upstream quiz helper returned no result", request),
       callback_count: guard.state.calls, warnings, failures };
-  if (!exact) return { ...promptBase("UPSTREAM_RECOVERY_NOT_ADMITTED", "non-exact response was recovered upstream", request),
-    callback_count: guard.state.calls, warnings, failures, original_reply: request.reply.value,
-    differences: [{ kind: "JSON_REPAIR_NOT_ADMITTED" }], observed_upstream: upstream };
+  // When the reply was not exact JSON, `parsed` never materialised and the donor
+  // already repaired and normalised the text, so there is nothing left to
+  // reconcile against a raw parse. The repaired candidate is admitted only after
+  // the same bounded structural checks the exact slice applies, and it says out
+  // loud that the model bytes were not exact JSON and that the donor's own
+  // normalisations cannot be reconstructed one by one.
+  if (!exact) {
+    const transformations = ["UPSTREAM_JSON_REPAIRED", "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED"];
+    const differences = repairedQuizDifferences(upstream);
+    if (differences.length) return { ...promptBase("UPSTREAM_RESULT_NOT_ADMITTED",
+      "unknown, unsupported or altered data", request), callback_count: guard.state.calls,
+      warnings, failures, original_reply: request.reply.value, differences, transformations,
+      observed_upstream: upstream };
+    return { ...promptBase("CANDIDATE", null, request), callback_count: guard.state.calls,
+      warnings, failures, transformations, exact_json_output: false, data: upstream,
+      human_review_required: true };
+  }
   const assessment = assessQuiz(parsed, upstream, request.outline, true);
   const retained = assessment.status === "UPSTREAM_RESULT_NOT_ADMITTED" ? { original_reply: request.reply.value } : {};
   return { ...promptBase(assessment.status, assessment.reason, request), callback_count: guard.state.calls,
-    warnings, failures, ...assessment, ...retained };
+    warnings, failures, ...assessment, ...retained,
+    ...(assessment.status === "CANDIDATE" ? { exact_json_output: exact } : {}) };
 }
 
 async function processFrame(raw) {

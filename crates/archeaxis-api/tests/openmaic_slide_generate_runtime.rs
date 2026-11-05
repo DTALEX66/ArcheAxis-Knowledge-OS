@@ -98,6 +98,14 @@ fn slide_reply_content() -> String {
     .to_string()
 }
 
+/// The donor quiz reply shape: one bounded single-choice question.
+fn quiz_reply_content() -> String {
+    json!([{"id":"q1","type":"single","question":"SYNTHETIC_QUIZ_QUESTION",
+        "options":[{"label":"Alpha","value":"A"},{"label":"Beta","value":"B"}],
+        "answer":["A"],"analysis":"SYNTHETIC_ANALYSIS","points":5}])
+    .to_string()
+}
+
 fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -109,7 +117,9 @@ fn outline_content() -> String {
              "description":"SYNTHETIC_SLIDE_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],
              "order":0},
             {"id":"o2","type":"quiz","title":"SYNTHETIC_QUIZ_TITLE","description":"",
-             "keyPoints":[],"order":1}]})
+             "keyPoints":[],"order":1,
+             "quizConfig":{"questionCount":1,"difficulty":"easy",
+                 "questionTypes":["single"]}}]})
     .to_string()
 }
 
@@ -147,7 +157,9 @@ fn outline_worker() -> Value {
                  "description":"SYNTHETIC_SLIDE_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],
                  "order":0},
                 {"id":"o2","type":"quiz","title":"SYNTHETIC_QUIZ_TITLE","description":"",
-                 "keyPoints":[],"order":1}]}})
+                 "keyPoints":[],"order":1,
+                 "quizConfig":{"questionCount":1,"difficulty":"easy",
+                     "questionTypes":["single"]}}]}})
 }
 
 /// Seed one committed outline candidate and one source document before the
@@ -447,23 +459,141 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     let (status, conflict) = call(&router, "human", &conflict).await;
     assert_eq!(status, StatusCode::CONFLICT, "{conflict}");
 
-    // A quiz outline is refused by type; it is not rewritten into a slide.
+    // The same route dispatches a quiz outline to the quiz chain. No slide stage
+    // runs and the response names the chain it used.
     let calls_before_quiz = *calls.lock().unwrap();
-    let quiz_body = request(&outline_id, 1, &source);
-    let (status, quiz) = call(&router, "human", &quiz_body).await;
-    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{quiz}");
-    assert_eq!(quiz["refusal"]["reason"], "UNSUPPORTED_OUTLINE_TYPE");
-    assert_eq!(quiz["refusal"]["declared"], "quiz");
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: quiz_reply_content(),
+    };
+    let mut quiz_body = request(&outline_id, 1, &source);
+    quiz_body["create_request_id"] = json!("quiz_1");
+    // A machine actor may not ask for the quiz chain either.
+    let (status, quiz_denied) = call(&router, "machine", &quiz_body).await;
+    assert_eq!(status, StatusCode::FORBIDDEN, "{quiz_denied}");
     assert_eq!(
         *calls.lock().unwrap(),
         calls_before_quiz,
-        "no stage runs for a quiz outline"
+        "no model call for a refused actor"
     );
-    assert_eq!(document_count(&executor).await, 3);
+    let (status, quiz) = call(&router, "human", &quiz_body).await;
+    assert_eq!(status, StatusCode::OK, "{quiz}");
+    assert_eq!(quiz["scene_route"], "quiz");
+    assert_eq!(quiz["worker_invoked"], true);
+    assert_eq!(quiz["generation_route"], "outline_quiz_local_model");
+    assert_eq!(quiz["model_call"], "INVOKED");
+    assert_eq!(quiz["response_origin"], "LOCAL_MODEL_UNVERIFIED");
+    assert_eq!(quiz["candidate_document_status"], "current");
+    assert_eq!(
+        quiz["contract_version"],
+        "archeaxis.openmaic-scene-document/v2"
+    );
+    assert_eq!(quiz["projection"]["status"], "RECORDED");
+    assert_eq!(quiz["render"]["status"], "RECORDED");
+    assert_eq!(quiz["model"], MODEL);
+    assert_eq!(quiz["outline_document_id"], outline_id.as_str());
+    assert_eq!(quiz["outline_index"], 1);
+    assert_eq!(quiz["outline_id"], "o2");
+    assert_eq!(
+        quiz["model_reply_sha256"],
+        digest(quiz_reply_content().as_bytes())
+    );
+    assert!(quiz["prompt_binding"]["system_sha256"].as_str().is_some());
+    assert!(
+        quiz["prompt_binding"].get("system").is_none(),
+        "the stored prompt binding keeps digests only"
+    );
+    assert_eq!(quiz["replay"]["status"], "CANDIDATE");
+    assert_eq!(quiz["replay"]["question_count"], 1);
+    let quiz_stored = &quiz["document"]["editor_json"]["attrs"]["archeaxis_openmaic_scene_candidate"]
+        ["derived_metadata"];
+    assert_eq!(
+        quiz_stored["schema"],
+        "archeaxis.openmaic-quiz-candidate/v1"
+    );
+    assert_eq!(quiz_stored["generation_route"], "outline_quiz_local_model");
+    assert_eq!(quiz_stored["outline_type"], "quiz");
+    assert_eq!(quiz_stored["response_origin"], "LOCAL_MODEL_UNVERIFIED");
+    assert_eq!(quiz_stored["human_review_required"], true);
+    assert_eq!(quiz_stored["active_content_executed"], false);
+    assert_eq!(quiz_stored["rendering_authorized"], false);
+    let quiz_scene = &quiz["document"]["editor_json"]["attrs"]["archeaxis_openmaic_scene_candidate"]
+        ["worker_document"]["scene"];
+    assert_eq!(quiz_scene["type"], "quiz");
+    assert_eq!(quiz_scene["outlineId"], "o2");
+    assert_eq!(
+        quiz_scene["content"]["questions"][0]["question"],
+        "SYNTHETIC_QUIZ_QUESTION"
+    );
+    let quiz_candidate_id = quiz["document"]["document_id"].as_str().unwrap().to_owned();
+    assert_eq!(
+        *calls.lock().unwrap(),
+        calls_before_quiz + 1,
+        "one model call for the quiz chain"
+    );
+    assert_eq!(document_count(&executor).await, 4);
+
+    // A repeated quiz request reads the candidate back without rerunning anything.
+    let (status, quiz_duplicate) = call(&router, "human", &quiz_body).await;
+    assert_eq!(status, StatusCode::OK, "{quiz_duplicate}");
+    assert_eq!(quiz_duplicate["scene_route"], "quiz");
+    assert_eq!(quiz_duplicate["worker_invoked"], false);
+    assert_eq!(quiz_duplicate["document"]["document_id"], quiz_candidate_id);
+    assert_eq!(
+        *calls.lock().unwrap(),
+        calls_before_quiz + 1,
+        "a quiz retry never re-runs the model"
+    );
+    assert_eq!(document_count(&executor).await, 4);
+
+    // The quiz chain keeps its own named model failures.
+    *stub.lock().unwrap() = StubState {
+        status: 500,
+        content: String::new(),
+    };
+    let mut quiz_unavailable = quiz_body.clone();
+    quiz_unavailable["create_request_id"] = json!("quiz_unavailable");
+    let (status, unavailable) = call(&router, "human", &quiz_unavailable).await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{unavailable}");
+    assert_eq!(unavailable["stage"], "local_model");
+    assert_eq!(unavailable["worker_outcome"]["status"], "MODEL_UNAVAILABLE");
+    assert_eq!(document_count(&executor).await, 4);
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: "   ".into(),
+    };
+    let mut quiz_timeout = quiz_body.clone();
+    quiz_timeout["create_request_id"] = json!("quiz_timeout");
+    let (status, timeout) = call(&router, "human", &quiz_timeout).await;
+    assert_eq!(status, StatusCode::GATEWAY_TIMEOUT, "{timeout}");
+    assert_eq!(timeout["stage"], "local_model");
+    assert_eq!(timeout["worker_outcome"]["status"], "NO_FINAL_ANSWER");
+    assert_eq!(document_count(&executor).await, 4);
+    // A reply the quiz adapter cannot admit keeps its own status and reason.
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: "not a quiz reply".into(),
+    };
+    let mut quiz_rejected = quiz_body.clone();
+    quiz_rejected["create_request_id"] = json!("quiz_non_candidate");
+    let (status, rejected) = call(&router, "human", &quiz_rejected).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{rejected}");
+    assert_eq!(rejected["stage"], "quiz_replay");
+    assert!(
+        rejected["worker_outcome"]["status"].as_str().is_some(),
+        "{rejected}"
+    );
+    assert_eq!(document_count(&executor).await, 4);
+    // Same quiz create ID with different content conflicts before any stage.
+    let mut quiz_conflict = quiz_body.clone();
+    quiz_conflict["model"] = json!("another-model");
+    let (status, conflict) = call(&router, "human", &quiz_conflict).await;
+    assert_eq!(status, StatusCode::CONFLICT, "{conflict}");
+    assert_eq!(document_count(&executor).await, 4);
     drop(router);
     drop(executor);
 
-    // Reopening without Node or a registered model route reads the candidate.
+    // Reopening without Node or a registered model route reads the candidates.
     let reopened = Executor::open(&path, &dir.path().join("staging"), &python, &text_worker())
         .await
         .unwrap();
@@ -472,10 +602,16 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
             .openmaic_slide_script(OpenMaicSlideStage::Prompt)
             .is_none()
     );
+    assert!(reopened.openmaic_quiz_script().is_none());
     let router = archeaxis_api::runtime::router(reopened.clone());
     let (status, read_back) = call(&router, "human", &body).await;
     assert_eq!(status, StatusCode::OK, "{read_back}");
     assert_eq!(read_back["worker_invoked"], false);
     assert_eq!(read_back["document"]["document_id"], candidate_id);
-    assert_eq!(document_count(&reopened).await, 3);
+    let (status, quiz_read_back) = call(&router, "human", &quiz_body).await;
+    assert_eq!(status, StatusCode::OK, "{quiz_read_back}");
+    assert_eq!(quiz_read_back["scene_route"], "quiz");
+    assert_eq!(quiz_read_back["worker_invoked"], false);
+    assert_eq!(quiz_read_back["document"]["document_id"], quiz_candidate_id);
+    assert_eq!(document_count(&reopened).await, 4);
 }
