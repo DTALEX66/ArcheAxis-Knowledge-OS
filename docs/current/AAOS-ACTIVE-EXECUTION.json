@@ -314,6 +314,18 @@
           "what": "POST /api/v1/courses/openmaic/outlines/generate orchestrates capture (pinned Node), one bounded local-model call through a new Python worker that reuses the hardened loopback-only client, and replay (pinned Node); only a CANDIDATE is persisted, with LOCAL_MODEL_UNVERIFIED and the model and prompt identities.",
           "verified": "python worker 18 passed; route and capability declarations 99 passed; contract consistency 15 passed; domain 5 passed; api 1 passed in 20.9s with real Node and a loopback stub model, covering 503/504/422 and restart readback.",
           "not_included": "Only a synthetic loopback stub model has run; no real LM Studio end-to-end evidence, no UI wiring, no interactive/pbl scenes, no quiz or action replay workers."
+        },
+        {
+          "item": "INT-MAIC-03",
+          "slice": "real local model end to end and repaired reply admission",
+          "pr": 289,
+          "head_sha": "23227ccf",
+          "merge_commit": "1d0a5b9c9542659652355c33831b113db2fc8046",
+          "ci_run": 41961060430,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_VNEXT_RUST_VNEXT_A0_GATES",
+          "what": "The prompt-replay path admits the donor-repaired reply only after structural checks and records UPSTREAM_JSON_REPAIRED with exact_json_output=false; the model stage states a bounded 110 s budget inside a 120 s Core cap.",
+          "verified": "Real LM Studio qwen2.5-vl-7b-instruct run on the real router, pinned Node worker and Python worker: two outlines persisted in 10.16 s, LOCAL_MODEL_UNVERIFIED, restart readback without rerunning the model. pytest 60 passed; rust outline and scene suites all passed.",
+          "not_included": "Interactive/pbl scenes, quiz and action replay workers, the outline-to-scene-content chain and UI wiring remain unimplemented; the repaired candidate still needs human review."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
