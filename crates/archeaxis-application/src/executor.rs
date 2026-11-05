@@ -8,6 +8,7 @@ mod derived;
 pub use deeptutor_practice_import::{
     PracticeGradeWorkerError, PracticeImportCancellation, PracticeImportWorkerError,
 };
+pub use derived::OpenMaicSlideStage;
 mod dispatch;
 mod health;
 mod inventory;
