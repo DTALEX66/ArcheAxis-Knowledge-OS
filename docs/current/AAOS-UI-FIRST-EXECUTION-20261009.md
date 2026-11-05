@@ -4330,3 +4330,15 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
   - 非 slide/quiz 大纲继续具名 422 `UNSUPPORTED_OUTLINE_TYPE`；任一阶段失败不写半成品，重复请求不重跑。
 - 验证：`test_openmaic_quiz_replay.py`+`test_openmaic_quiz_actions_replay.py` **80 passed**（真实 Node）；`openmaic_quiz_candidate` 5、`openmaic_slide_candidate` 5、`openmaic_slide_generate_runtime` **1 passed（25.2s，含 quiz 分派、machine 403、503/504、非候选 422、重复不重跑、重启读回）**；outline/scene/package-projection 回归全过；`cargo fmt --check` 干净；preflight exit 0；CI run `42045818068` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` success。
 - 边界：`quiz-actions-replay-worker` 未接入（本链 actions 为空）；`interactive`/`pbl` 仍未实现；真实模型在本机受 8,192 上下文限制，生成链只能走到具名 `MODEL_REJECTED`（属运维配置，非代码缺陷）。
+
+#### 2026-11-05 INT-DT-02 第一片：DeepTutor 单题出题接入 Core
+
+- 现状：DeepTutor 的 `practice-import`/`practice-grade`/`question-view` 已由 Core 路由承载，但"按材料出一道题"只在适配器层，用户无法经由 Core 得到候选题。
+- 新增 `POST /api/v1/learning/deeptutor/question-turn`（PR **#293**，head `dc0c8cfb`，merge **`cf1add75`**）：仅 `human` actor，请求体上限 65,536，`{create_request_id, material:{document_id,version,content_sha256}, requirement, model}`。三段编排——donor `practice_host_worker` 的 capture → 已声明本地模型（复用 `course.openmaic.outline-model` 与 `worker_outline_local_model.py` 的硬化 loopback 客户端）→ 同一 worker 的 replay，候选经普通 Document 落盘。
+  - 材料授权按材料授权合同 `grant::consume`（purpose `practice`、consumer `deeptutor`、operation `practice`）逐次消费；提交前复核 workspace/restore epoch 与能力开关。
+  - 失败具名映射：模型不可用 503、模型超时/无最终回答 504、模型拒绝/输出不合法 422、worker 不可用 503、请求非法 422；同一 `create_request_id` 重复请求读回既有候选且不重跑，内容变化 409。
+  - 落盘 attrs 记 `generation_route:"deeptutor_question_turn_local_model"`、`model_call`、`response_origin:"LOCAL_MODEL_UNVERIFIED"`、`answer_secrecy:"not_established"`、`rendering_authorized:false`、`active_content_executed:false`、`human_review_required:true`，并封存 prompt binding 与材料快照。
+  - 发布侧：该路由声明为**可选私有路由**（worker 缺失不阻塞 Core 启动），`question_turn_worker.py` 与 5 个上游 pin 文件一并纳入 `PRACTICE_FILES` 的 name/size/SHA 钉扎。
+- 合同：`AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 新增该地址；§3 标题 155 pairs、§6 155 addresses（62 runtime pairs / 59 mounts）。
+- 验证：`provider_question_turn` **5 passed**；`deeptutor_question_turn_runtime` **1 passed**（真实 Python donor worker + loopback stub 模型，覆盖 machine 403、重复不重跑、503/504/422）；deeptutor 相关回归全过；`cargo fmt --check` 干净；`local_verify.py --preflight` exit 0；CI run `42056382163` 的 `gateplan`/`lint`/`test (3.12)`/`desktop-vnext`/`green-candidate-vnext`/`contracts-vnext`/`workers-vnext`/`rust-vnext` 全部 success。
+- 边界：真实本地模型尚未跑这条链（只有 stub 回执）；DeepTutor 教学反馈 worker 仍只在适配器层；UI 未接线；候选仍是 `LOCAL_MODEL_UNVERIFIED`，需人工复核。

@@ -362,6 +362,18 @@
           "what": "The existing scene generation route now dispatches on the outline type: a quiz outline runs the donor quiz prompt, the declared local model and the donor quiz replay before the same scene build, returning scene_route and recording LOCAL_MODEL_UNVERIFIED provenance.",
           "verified": "quiz replay pytest 80 passed with real Node; domain quiz candidate 5, slide candidate 5, dispatch api 1 passed in 25.2 s covering machine 403, 503/504, non-candidate 422, duplicate no-rerun and restart readback; outline and scene regressions passed.",
           "not_included": "quiz-actions-replay stays unwired; interactive and pbl scenes are still refused; the local lane's 8,192-token context limits real-model runs to a named MODEL_REJECTED."
+        },
+        {
+          "item": "INT-DT-02",
+          "slice": "single-question turn in Core",
+          "pr": 293,
+          "head_sha": "dc0c8cfb74f57b1d60a20b48eff5a681b58e9738",
+          "merge_commit": "cf1add758e03c8b4182534ed720fdc97e8890a15",
+          "ci_run": 42056382163,
+          "ci_result": "SUCCESS_ALL_REQUIRED_GATES",
+          "what": "POST /api/v1/learning/deeptutor/question-turn runs the donor practice worker capture, the declared local model and the donor replay, then persists the candidate as one ordinary Core Document; the model stage reuses the pinned outline local-model worker and the same hardened loopback-only client.",
+          "verified": "domain provider_question_turn 5 passed; api deeptutor_question_turn_runtime 1 passed with the real Python donor worker and a loopback stub model covering machine 403, duplicate readback without rerunning, and named 503/504/422 failures; deeptutor regressions passed; cargo fmt --check clean; contract preflight exit 0.",
+          "not_included": "The route is an optional private runtime route and its worker is a PRACTICE_FILES pin: a missing worker does not block Core startup. The teaching-feedback worker stays adapter-only, no real model has run this chain, and there is no UI wiring."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
