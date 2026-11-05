@@ -1,6 +1,7 @@
 //! General course candidates: Python validates shape, Core owns canonical bindings and writes.
 use super::*;
 use archeaxis_domain::course::{self, CourseBinding};
+use archeaxis_domain::openmaic_outline;
 use rusqlite::OptionalExtension;
 use sha2::{Digest, Sha256};
 use std::time::Duration;
@@ -298,6 +299,170 @@ pub(super) async fn create_openmaic_scene(
         Err(_) => error(
             StatusCode::SERVICE_UNAVAILABLE,
             "OpenMAIC capability unavailable or withdrawn",
+        ),
+    }
+}
+
+/// Request an inert OpenMAIC outline candidate from a caller-declared model
+/// reply. No model or network is invoked; the request and reply are stored as a
+/// bounded ordinary Document that requires human review and grants no rendering.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct OpenMaicOutlineBody {
+    create_request_id: String,
+    request: Value,
+}
+
+fn openmaic_outline_receipt_response(receipt: &Value, worker_invoked: bool) -> Response {
+    Json(json!({"schema":"archeaxis.openmaic-outline-persistence/v1",
+        "worker_invoked":worker_invoked,"document":receipt["document"],
+        "candidate_document_status":receipt["candidate_document_status"],
+        "response_origin":"client_declared_unverified","model_call":"NOT_INVOKED",
+        "human_review_required":true,"active_content_executed":false,
+        "rendering_authorized":false,
+        "outline_count":receipt["outline_count"],"outlines":receipt["outlines"]}))
+    .into_response()
+}
+
+/// Early refusals this slice can name precisely: an unknown request version, an
+/// unexpected field set, an out-of-bounds requirement/source, or an unsupported
+/// reply shape.
+fn openmaic_outline_refusal_response(refusal: &Value) -> Response {
+    (
+        StatusCode::UNPROCESSABLE_ENTITY,
+        Json(json!({"code":"AAK-VAL-001",
+        "message":"this offline outline replay slice cannot accept the declared OpenMAIC request",
+        "retryable":false,"refusal":refusal,
+        "supported_request_schema":openmaic_outline::OPENMAIC_OUTLINE_REQUEST_SCHEMA,
+        "supported_outline_types":["slide","quiz"]})),
+    )
+        .into_response()
+}
+
+pub(super) async fn create_openmaic_outline(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<OpenMaicOutlineBody>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return error(
+            StatusCode::FORBIDDEN,
+            "OpenMAIC outline creation requires a human actor",
+        );
+    }
+    let create_request_id = body.create_request_id;
+    let request = body.request;
+    if let Some(refusal) = openmaic_outline::openmaic_outline_refusal(&request) {
+        return openmaic_outline_refusal_response(&refusal);
+    }
+    // Capture the admission generation before the potentially queued Core
+    // preparation, exactly like the scene route. An existing candidate stays
+    // readable without a configured or enabled provider.
+    let admission = runtime.executor.openmaic_admission_generation().await;
+    let lookup_id = create_request_id.clone();
+    let lookup_request = request.clone();
+    let prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            openmaic_outline::prepare_openmaic_outline(conn, &lookup_id, &lookup_request)
+        })
+        .await
+    {
+        Ok(Ok(prepared)) => prepared,
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
+            return error(
+                StatusCode::CONFLICT,
+                "OpenMAIC outline request or candidate identity changed",
+            );
+        }
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC outline preparation failed",
+            );
+        }
+    };
+    let pending = match prepared {
+        openmaic_outline::OpenMaicOutlinePreparation::Existing(receipt) => {
+            return openmaic_outline_receipt_response(&receipt, false);
+        }
+        openmaic_outline::OpenMaicOutlinePreparation::Pending(pending) => pending,
+    };
+    if runtime.executor.openmaic_outline_script().is_none() {
+        return error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC outline provider unavailable or disabled",
+        );
+    }
+    let generation = match admission {
+        Ok(value) => value,
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC outline provider unavailable or disabled",
+            );
+        }
+    };
+    let result = match runtime
+        .executor
+        .openmaic_outline_with_generation(generation, request.clone(), Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC outline worker did not produce a candidate",
+            );
+        }
+    };
+    if result["exit_code"] != 0 || result["document"]["status"] != "CANDIDATE" {
+        let document = &result["document"];
+        // The worker's declared outcome is preserved verbatim: the caller sees
+        // the status and reason it reported, not a generic failure message.
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"code":"AAK-VAL-001",
+            "message":"OpenMAIC outline worker did not produce a candidate",
+            "retryable":false,"worker_outcome":{
+                "status":document["status"],"reason":document["reason"],
+                "exit_code":result["exit_code"],
+                "response_origin_verification":document["response_origin_verification"],
+                "model_call":document["model_call"]}})),
+        )
+            .into_response();
+    }
+    let worker_document = result["document"].clone();
+    let committed = runtime
+        .executor
+        .commit_openmaic_if_current(generation, move |conn| {
+            openmaic_outline::commit_openmaic_outline(
+                conn,
+                &create_request_id,
+                &request,
+                &pending,
+                &worker_document,
+            )
+        })
+        .await;
+    match committed {
+        Ok(Ok(receipt)) => openmaic_outline_receipt_response(&receipt, true),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC outline request, capability or workspace changed",
+        ),
+        Ok(Err(_)) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC outline candidate persistence failed",
+        ),
+        Err(_) => error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC outline capability unavailable or withdrawn",
         ),
     }
 }
