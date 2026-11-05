@@ -4,10 +4,12 @@ use crate::attempts;
 #[cfg(test)]
 mod deeptutor_grade;
 mod deeptutor_practice_import;
+mod deeptutor_question_turn;
 mod derived;
 pub use deeptutor_practice_import::{
     PracticeGradeWorkerError, PracticeImportCancellation, PracticeImportWorkerError,
 };
+pub use deeptutor_question_turn::QuestionTurnWorkerError;
 pub use derived::OpenMaicSlideStage;
 mod dispatch;
 mod health;
@@ -199,6 +201,7 @@ impl Executor {
         let mut routes: Vec<(String, PathBuf, bool)> =
             vec![("text.extract".to_string(), default_worker.to_owned(), true)];
         let mut deeptutor_practice_worker = None;
+        let mut deeptutor_question_turn_registered = false;
         for (capability, path) in extra {
             if capability.trim().is_empty() {
                 return Err("route capability must not be empty".into());
@@ -213,6 +216,16 @@ impl Executor {
                 if deeptutor_practice_worker.replace(path.clone()).is_some() {
                     return Err("duplicate DeepTutor practice import worker".into());
                 }
+                continue;
+            }
+            // The question-turn route is the same private one-shot protocol
+            // family; its worker is resolved as the practice worker's sibling and
+            // pinned there, never registered as a generic NDJSON route.
+            if *capability == "deeptutor.question.turn" {
+                if deeptutor_question_turn_registered {
+                    return Err("duplicate DeepTutor question turn worker".into());
+                }
+                deeptutor_question_turn_registered = true;
                 continue;
             }
             if *capability == "course.openmaic.scene-build" {

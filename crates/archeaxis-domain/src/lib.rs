@@ -47,6 +47,7 @@ pub(crate) mod provider_grade;
 pub mod provider_learning;
 pub mod provider_material_grant;
 pub mod provider_question;
+pub mod provider_question_turn;
 
 pub mod configuration_plans;
 pub mod material_question;

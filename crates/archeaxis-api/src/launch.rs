@@ -163,10 +163,11 @@ impl TextWorker {
             if capability == "text.extract" {
                 return Err("worker route must not redeclare text.extract");
             }
-            // This optional private protocol is checked again immediately before
-            // use. A missing or changed provider must not prevent ordinary Core
-            // startup or document saving.
-            if capability == "deeptutor.practice.import" {
+            // These optional private protocols are checked again immediately
+            // before use. A missing or changed provider must not prevent ordinary
+            // Core startup or document saving.
+            if capability == "deeptutor.practice.import" || capability == "deeptutor.question.turn"
+            {
                 continue;
             }
             Self::validate_path(&route.script)?;

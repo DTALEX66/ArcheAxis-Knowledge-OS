@@ -72,8 +72,13 @@ DETECTOR_FILES = {
 # must explicitly intercept this capability; the closure is staged only when
 # every selected byte matches this finite, reviewed DeepTutor 1.7.1 set.
 PRACTICE_CAPABILITY = "deeptutor.practice.import"
+# The single-question candidate route is the same private one-shot protocol
+# family: Core intercepts this capability and resolves the worker as the
+# practice worker's pinned sibling, so it is never a generic NDJSON route.
+QUESTION_TURN_CAPABILITY = "deeptutor.question.turn"
 PRACTICE_DIRECTORY = "workers/deeptutor"
 PRACTICE_SCRIPT = f"{PRACTICE_DIRECTORY}/practice_host_worker.py"
+QUESTION_TURN_SCRIPT = f"{PRACTICE_DIRECTORY}/question_turn_worker.py"
 PRACTICE_FILES = {
     "practice_host_worker.py": {"bytes": 11888, "sha256": "af186a32b2a98c248f28b447edbf9fb27399c1873fa93bd29bcda557a173b6d1"},
     "practice_candidate_document.py": {"bytes": 17679, "sha256": "219e04721d662198b1fa1169c4be8e3acc63be24e3c7595d3e01847d1c2ead17"},
@@ -86,6 +91,16 @@ PRACTICE_FILES = {
     "upstream/answers.py": {"bytes": 1538, "sha256": "fdfbaee6cd0fa2c0f31de9a792e220e6989434fc1f44359db3e6afc62cd2472f"},
     "upstream/importing.py": {"bytes": 8880, "sha256": "9ee4dd1abfa150fd81c3e3e31e2321761bab05509f6e4a5fca555ede2bbfd260"},
     "LICENSE": {"bytes": 11408, "sha256": "cd2f54e1e5066644023203dcbd956776a9f4ef6eb8b6225afe1ffa2d380fede4"},
+    # The question-turn route captures DeepTutor's original single-question prompt
+    # and replays the model reply through the same pinned worker. Its own prompt
+    # sources are byte-preserved beside it; a missing file is a named unavailable
+    # route rather than a second implementation.
+    "question_turn_worker.py": {"bytes": 24499, "sha256": "e77a572778a1738195684dcaa672c7e68afc316a8ac7e6312f9ae4eb6f958570"},
+    "question_normalizer.py": {"bytes": 15801, "sha256": "dc60e865e27bb9316dce09bf94ec55a0420503acd2aa31c577557693a81a92a3"},
+    "upstream/question_pipeline.py": {"bytes": 93738, "sha256": "b0e11748806225b286cff92a2dbf2f5722aa4538c8dc42138fa81def42cc392f"},
+    "upstream/question_pipeline.en.yaml": {"bytes": 25482, "sha256": "148ccde0f60f2d96724e1cbaa3db1f4bc676e87ed086bda1dac1bcdc27f2ae89"},
+    "upstream/question_pipeline.zh.yaml": {"bytes": 22946, "sha256": "ef14102e36f9c156528336b48112a3e8336269fdea5a3517119c651707a8ae58"},
+    "upstream/question_language.py": {"bytes": 4860, "sha256": "7ef192bca1cc8d91c838a4601847a2b40d09becca704e5f74ed65af855f55ce3"},
 }
 MAX_WORKER_ROUTES_BYTES = 256 * 1024
 
@@ -245,11 +260,14 @@ def practice_routes_payload(source: Path, expected: dict[str, object] | None) ->
         return None
     if PRACTICE_CAPABILITY in routes:
         raise ValueError("private practice route is already present in worker source")
+    if QUESTION_TURN_CAPABILITY in routes:
+        raise ValueError("private question-turn route is already present in worker source")
     if any(not isinstance(name, str) or not isinstance(scripts, list) or not scripts
            or any(not isinstance(script, str) for script in scripts)
            for name, scripts in routes.items()):
         return None
     routes[PRACTICE_CAPABILITY] = [PRACTICE_SCRIPT.removeprefix("workers/")]
+    routes[QUESTION_TURN_CAPABILITY] = [QUESTION_TURN_SCRIPT.removeprefix("workers/")]
     payload = (json.dumps(document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     return payload if len(payload) <= MAX_WORKER_ROUTES_BYTES else None
 
@@ -1425,6 +1443,9 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     declared_routes = present_routes(root)
     if practice_plan is not None:
         declared_routes.append({"capability": PRACTICE_CAPABILITY, "script": PRACTICE_SCRIPT})
+        declared_routes.append(
+            {"capability": QUESTION_TURN_CAPABILITY, "script": QUESTION_TURN_SCRIPT}
+        )
         declared_routes.sort(key=lambda route: route["capability"])
     if any(route["capability"] == "document.detect" for route in declared_routes) != (detector_plan is not None):
         raise ValueError("staged detector route differs from the copy plan")
