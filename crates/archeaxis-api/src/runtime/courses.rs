@@ -682,7 +682,7 @@ pub(super) async fn generate_openmaic_outline(
     if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
         let named = model["document"]["status"].as_str().unwrap_or("");
         let status = match named {
-            "INVALID_MODEL_OUTPUT" => StatusCode::UNPROCESSABLE_ENTITY,
+            "INVALID_MODEL_OUTPUT" | "MODEL_REJECTED" => StatusCode::UNPROCESSABLE_ENTITY,
             "MODEL_TIMEOUT" | "NO_FINAL_ANSWER" => StatusCode::GATEWAY_TIMEOUT,
             // Unavailable, or an outcome this slice cannot read.
             _ => StatusCode::SERVICE_UNAVAILABLE,
@@ -1068,7 +1068,7 @@ pub(super) async fn generate_openmaic_slide(
     if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
         let named = model["document"]["status"].as_str().unwrap_or("");
         let status = match named {
-            "INVALID_MODEL_OUTPUT" => StatusCode::UNPROCESSABLE_ENTITY,
+            "INVALID_MODEL_OUTPUT" | "MODEL_REJECTED" => StatusCode::UNPROCESSABLE_ENTITY,
             "MODEL_TIMEOUT" | "NO_FINAL_ANSWER" => StatusCode::GATEWAY_TIMEOUT,
             _ => StatusCode::SERVICE_UNAVAILABLE,
         };

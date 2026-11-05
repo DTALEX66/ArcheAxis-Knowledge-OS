@@ -14,8 +14,11 @@ functions; it only builds the request body, because this route must send the
 system and user prompts as two separate messages.
 
 Every non-success is named, no text is invented, no cloud fallback and no
-automatic retry: `MODEL_UNAVAILABLE`, `MODEL_TIMEOUT`, `NO_FINAL_ANSWER` and
-`INVALID_MODEL_OUTPUT`.
+automatic retry: `MODEL_UNAVAILABLE`, `MODEL_TIMEOUT`, `MODEL_REJECTED`,
+`NO_FINAL_ANSWER` and `INVALID_MODEL_OUTPUT`. `MODEL_REJECTED` means the lane
+answered and refused the request (for example a prompt larger than the model's
+loaded context); its diagnostic carries only the HTTP status and integer engine
+fields, never prompt text.
 
 Usage: one bounded JSON request line on stdin, one JSON result line on stdout.
 Exit 0 only for `REPLY`, 2 for every named failure (the Core preserves it).
@@ -48,6 +51,40 @@ MAX_REPLY_BYTES = 120_000
 DEFAULT_TIMEOUT_S = 30
 MAX_TIMEOUT_S = 120
 REQUEST_KEYS = {"schema", "system", "user", "model", "timeout_s"}
+MAX_REJECTION_BYTES = 8192
+
+
+def _rejection_diagnostic(error: urllib.error.HTTPError) -> dict:
+    """Bounded, text-free description of a refused request.
+
+    Only the HTTP status and integer engine fields are carried out: an engine
+    message can quote the prompt, so it never leaves this process.
+    """
+    diagnostic = {"error_type": "HTTPError", "http_status": int(error.code)}
+    try:
+        payload = json.loads(error.read(MAX_REJECTION_BYTES).decode("utf-8", "strict"))
+    except (OSError, ValueError, UnicodeError):
+        return diagnostic
+    engine = payload.get("error") if isinstance(payload, dict) else None
+    if isinstance(engine, str):
+        # Some lanes prefix the engine's JSON with prose ("... returned 400: {...}").
+        start, end = engine.find("{"), engine.rfind("}")
+        if start < 0 or end <= start:
+            return diagnostic
+        try:
+            engine = json.loads(engine[start:end + 1])
+        except ValueError:
+            return diagnostic
+        engine = engine.get("error") if isinstance(engine, dict) else None
+    if not isinstance(engine, dict):
+        return diagnostic
+    if type(engine.get("code")) is int:
+        diagnostic["engine_code"] = engine["code"]
+    inner = engine.get("error") if isinstance(engine.get("error"), dict) else engine
+    for name in ("n_prompt_tokens", "n_ctx"):
+        if type(inner.get(name)) is int:
+            diagnostic[name] = inner[name]
+    return diagnostic
 
 
 def _machine():
@@ -200,6 +237,21 @@ def process(request) -> dict:
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         elapsed_ms=int((time.monotonic() - started) * 1000),
                         diagnostic={"error_type": type(error).__name__})
+    except urllib.error.HTTPError as error:
+        # A 4xx is the lane refusing this request (a context overflow or an
+        # unsupported parameter): an operator-visible capacity decision, not an
+        # unreachable endpoint. A 5xx is the lane itself failing healthy delivery.
+        if error.code >= 500:
+            return _receipt("MODEL_UNAVAILABLE", "MODEL_ENDPOINT_UNHEALTHY",
+                            model=model, requested_model=model,
+                            endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                            elapsed_ms=int((time.monotonic() - started) * 1000),
+                            diagnostic={"error_type": "HTTPError", "http_status": int(error.code)})
+        return _receipt("MODEL_REJECTED", "MODEL_HTTP_REJECTED",
+                        model=model, requested_model=model,
+                        endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        elapsed_ms=int((time.monotonic() - started) * 1000),
+                        diagnostic=_rejection_diagnostic(error))
     except Exception as error:  # noqa: BLE001 - unreachable/timed-out lanes stay local failures
         timed_out = isinstance(error, TimeoutError) or (
             isinstance(error, urllib.error.URLError)

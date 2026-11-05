@@ -198,6 +198,27 @@ def test_unusable_provider_bodies_are_invalid_output_not_a_candidate(body, reaso
     assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
 
 
+def test_a_lane_that_refuses_the_request_is_a_named_rejection_without_prompt_text():
+    # LM Studio answers a prompt larger than the loaded context with 400 and an
+    # engine body prefixed by prose; the lane is reachable, the request is not.
+    engine = {"error": {"code": 400,
+        "message": "request (9496 tokens) exceeds the available context size (8192 tokens)",
+        "type": "exceed_context_size_error", "n_prompt_tokens": 9496, "n_ctx": 8192}}
+    body = json.dumps({"error": "Engine protocol predict request returned 400: " +
+                       json.dumps(engine)}).encode()
+    with stub(body, status=400) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "MODEL_REJECTED", result
+    assert result["reason"] == "MODEL_HTTP_REJECTED"
+    assert result["diagnostic"]["http_status"] == 400
+    assert result["diagnostic"]["n_prompt_tokens"] == 9496
+    assert result["diagnostic"]["n_ctx"] == 8192
+    assert len(seen) == 1 and result["content"] is None
+    serialized = json.dumps(result, ensure_ascii=False)
+    assert "SYNTHETIC_SYSTEM" not in serialized
+    assert "exceeds the available context" not in serialized
+
+
 def test_a_reply_beyond_the_replay_budget_is_refused_not_truncated():
     with stub(response(content="x" * 120_001)) as (port, _seen):
         code, result = invoke(frame(port), port)
