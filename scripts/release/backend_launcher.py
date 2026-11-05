@@ -148,11 +148,12 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
             raise LaunchFailure(f"duplicate worker profile route capability: {capability}")
         seen.add(capability)
         resolved_script = safe_path(path.parent, script)
-        # This one route is a private, optional Core-controlled import process.
-        # Its absence must not prevent the Core or ordinary document saving.
+        # These two routes are private, optional Core-controlled processes.
+        # Their absence must not prevent the Core or ordinary document saving.
         # Unsafe paths still fail above; other routes keep their existing rule.
-        if capability == "deeptutor.practice.import" and not resolved_script.is_file():
-            continue
+        if capability in ("deeptutor.practice.import", "deeptutor.question.turn"):
+            if not resolved_script.is_file():
+                continue
         require_file(resolved_script, f"worker route script for {capability}")
         resolved.append({"capability": capability, "script": resolved_script})
     return resolved

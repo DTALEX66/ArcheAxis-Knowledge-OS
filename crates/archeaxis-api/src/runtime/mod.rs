@@ -20,6 +20,7 @@ mod context_refusal;
 mod conversation;
 mod courses;
 mod deeptutor_import;
+mod deeptutor_question_turn;
 mod execution_claim;
 mod execution_status_projection;
 mod job_journal;
@@ -464,6 +465,14 @@ pub fn router(executor: Executor) -> Router {
         .route(
             "/api/v1/learning/deeptutor/practice-import",
             post(deeptutor_import::import_practice)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
+        // DeepTutor's single-question step: capture the pinned donor prompt,
+        // call the declared local model, replay through the same worker and
+        // persist one inert candidate Document for human review.
+        .route(
+            "/api/v1/learning/deeptutor/question-turn",
+            post(deeptutor_question_turn::question_turn)
                 .layer(axum::extract::DefaultBodyLimit::max(65_536)),
         )
         // Formal DeepTutor grading admission. Core reserves the exact client event and attempt

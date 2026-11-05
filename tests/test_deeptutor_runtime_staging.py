@@ -78,7 +78,10 @@ def test_selected_provider_is_in_growth_plan_and_both_staged_route_views(prepare
     native = json.loads(stager.filesystem_path(root / "workers/routes.json").read_bytes())
     assert stager.filesystem_path(routes).read_bytes() == original_routes
     assert native["routes"][CAPABILITY] == ["deeptutor/practice_host_worker.py"]
+    assert native["routes"]["deeptutor.question.turn"] == ["deeptutor/question_turn_worker.py"]
     assert {row["capability"]: row["script"] for row in profile["routes"]}[CAPABILITY] == SCRIPT
+    assert {row["capability"]: row["script"] for row in profile["routes"]}[
+        "deeptutor.question.turn"] == "workers/deeptutor/question_turn_worker.py"
     assert manifest["deeptutor_practice_import"]["status"] == "INCLUDED"
     for relative, identity in stager.PRACTICE_FILES.items():
         target = root / "workers/deeptutor" / relative
