@@ -146,7 +146,7 @@ def test_the_contracts_readiness_counts_match_the_declared_routes():
     """§7 reports readiness on the staged runtime, one entry per declared route."""
     facts = tree_facts()
     contract = CONTRACT.read_text(encoding="utf-8")
-    assert facts["declared_routes"] == 17, "the fixed worker declaration changed"
+    assert facts["declared_routes"] == 18, "the fixed worker declaration changed"
     declared = re.search(r"\*\*(\d+)\*\* capabilities declared", contract)
     readiness = re.search(r"readiness `total (\d+) / ready", contract)
     assert declared, "§7 no longer states a declared-capability count"

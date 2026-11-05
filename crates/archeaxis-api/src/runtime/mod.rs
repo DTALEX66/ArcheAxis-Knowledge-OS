@@ -492,6 +492,14 @@ pub fn router(executor: Executor) -> Router {
             post(courses::create_openmaic_outline)
                 .layer(axum::extract::DefaultBodyLimit::max(262_144)),
         )
+        // Local-model generation: capture the donor prompts, call the declared
+        // local model, replay the reply through the same outline worker. Only a
+        // replayed CANDIDATE is persisted; no failure writes a partial candidate.
+        .route(
+            "/api/v1/courses/openmaic/outlines/generate",
+            post(courses::generate_openmaic_outline)
+                .layer(axum::extract::DefaultBodyLimit::max(262_144)),
+        )
         // Read-only package projection over already persisted scene candidates.
         // It reports recorded playability and refuses or parses nothing.
         .route(

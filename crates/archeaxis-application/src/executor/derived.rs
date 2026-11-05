@@ -11,7 +11,10 @@ const MAX_OPENMAIC_SOURCE: u64 = 1_000_000;
 pub(super) fn supported(capability: &str) -> bool {
     matches!(
         capability,
-        "course.general" | "search.semantic" | "course.openmaic.scene-build"
+        "course.general"
+            | "search.semantic"
+            | "course.openmaic.scene-build"
+            | "course.openmaic.outline-model"
     )
 }
 
@@ -499,6 +502,11 @@ impl Executor {
             }
             let result = if node.is_some() {
                 run_node(&staging, &program, &worker, bytes, timeout, spawn_guard)?
+            } else if capability == "course.openmaic.outline-model" {
+                // The local-model route is the one derived route whose operator
+                // endpoint override must reach the worker; every other derived
+                // route keeps the cleared environment.
+                run_local_model(&staging, &program, &worker, site, Some(bytes), timeout)?
             } else {
                 run(&staging, &program, &worker, site, Some(bytes), timeout)?
             };
@@ -550,6 +558,11 @@ fn validate_openmaic_outline_result(
     input_sha: &str,
 ) -> Result<(), String> {
     let doc = &result["document"];
+    // The prompt-contract result (`stage: capture|replay`) has its own receipt
+    // shape; the offline replay receipt below keeps its original checks.
+    if doc["schema"] == "archeaxis.openmaic-outline-prompt-result/v1" {
+        return validate_openmaic_outline_prompt_result(result, request);
+    }
     if doc["schema"] != "archeaxis.openmaic-outline-replay-result/v1"
         || doc["model_call"] != "NOT_INVOKED"
         || doc["network_performed"] != false
@@ -605,6 +618,50 @@ fn validate_openmaic_outline_result(
             })
     }) {
         return Err("OpenMAIC outline candidate entry is unsupported".into());
+    }
+    Ok(())
+}
+
+/// The prompt-contract receipt (`stage: capture` or `stage: replay`). Every non-
+/// candidate outcome keeps the worker's own status and reason so the caller can
+/// answer 422 with them; a candidate additionally keeps its origin declaration.
+fn validate_openmaic_outline_prompt_result(result: &Value, request: &Value) -> Result<(), String> {
+    let doc = &result["document"];
+    if doc["model_call"] != "NOT_INVOKED"
+        || doc["network_performed"] != false
+        || doc["core_task"] != "NOT_CONNECTED"
+        || doc["canonical_bindings_verified"] != false
+        || doc["active_content_executed"] != false
+        || doc["persisted"] != false
+        || doc["stage"] != request["stage"]
+        || doc["request_id"] != request["request_id"]
+    {
+        return Err("invalid OpenMAIC outline prompt receipt".into());
+    }
+    let status = doc["status"].as_str().unwrap_or("");
+    if status != "CANDIDATE" && status != "PROMPT_CAPTURED" {
+        return if result["exit_code"] == 2 && !status.trim().is_empty() {
+            Ok(())
+        } else {
+            Err("invalid OpenMAIC outline prompt failure receipt".into())
+        };
+    }
+    if result["exit_code"] != 0 {
+        return Err("OpenMAIC outline prompt receipt exit code".into());
+    }
+    if status == "PROMPT_CAPTURED" {
+        let binding = &doc["binding"];
+        if binding["schema"] != "archeaxis.openmaic-outline-prompt-binding/v1"
+            || ["system", "user"].iter().any(|key| {
+                binding[*key]
+                    .as_str()
+                    .is_none_or(|text| text.as_bytes().len() > 200_000)
+            })
+        {
+            return Err("OpenMAIC outline prompt binding is unsupported".into());
+        }
+    } else if doc["human_review_required"] != true {
+        return Err("invalid OpenMAIC outline prompt candidate receipt".into());
     }
     Ok(())
 }
@@ -697,6 +754,33 @@ pub(super) fn run(
             site,
             inventory: false,
             profile: None,
+            machine_env: false,
+        },
+    )
+}
+
+/// One bounded Python dispatch that also receives the operator's explicit local
+/// model endpoint/model/protocol overrides. Those variables are read only by the
+/// local-model route; no request body can name an endpoint.
+fn run_local_model(
+    staging: &Path,
+    python: &Path,
+    worker: &Path,
+    site: bool,
+    input: Option<Vec<u8>>,
+    timeout: Duration,
+) -> Result<Value, String> {
+    run_mode(
+        staging,
+        python,
+        worker,
+        input,
+        timeout,
+        DerivedMode::Python {
+            site,
+            inventory: false,
+            profile: None,
+            machine_env: true,
         },
     )
 }
@@ -754,6 +838,7 @@ pub(super) fn inventory(
             site,
             inventory: true,
             profile: None,
+            machine_env: false,
         },
     )
 }
@@ -776,6 +861,7 @@ pub(super) fn configured_inventory(
             site,
             inventory: true,
             profile: Some(profile),
+            machine_env: false,
         },
     )
 }
@@ -785,6 +871,8 @@ enum DerivedMode<'a> {
         site: bool,
         inventory: bool,
         profile: Option<&'a archeaxis_domain::model_configuration::Profile>,
+        /// Forward the operator's explicit local-model endpoint overrides.
+        machine_env: bool,
     },
     Node {
         spawn_admission: Option<tokio::sync::OwnedMutexGuard<u64>>,
@@ -799,18 +887,19 @@ fn run_mode(
     timeout: Duration,
     mode: DerivedMode<'_>,
 ) -> Result<Value, String> {
-    let (site, inventory, profile, node, spawn_admission) = match mode {
+    let (site, inventory, profile, machine_env, node, spawn_admission) = match mode {
         DerivedMode::Python {
             site,
             inventory,
             profile,
-        } => (site, inventory, profile, false, None),
-        DerivedMode::Node { spawn_admission } => (false, false, None, true, spawn_admission),
+            machine_env,
+        } => (site, inventory, profile, machine_env, false, None),
+        DerivedMode::Node { spawn_admission } => (false, false, None, false, true, spawn_admission),
     };
     let dir = tempfile::tempdir_in(staging).map_err(|_| "derived staging unavailable")?;
     let mut command = Command::new(python);
     command.env_clear();
-    if inventory {
+    if inventory || machine_env {
         for key in [
             "ARCHEAXIS_MACHINE_ENDPOINT",
             "ARCHEAXIS_MACHINE_MODEL",

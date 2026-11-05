@@ -12,7 +12,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
   "sources": [
     {
       "path": "config/capability-map.v1.json",
-      "sha256": "74b7c3d4fdc6cb5b238fdd2dbf385e2f5142807211f9275fcf3a657effda5bed"
+      "sha256": "b2c4ea6002460dcc8ff769ecd4a753a3df770df8a8b011c8ebf2c3b5137a903b"
     },
     {
       "path": "config/capability-packages/pdf-extract.manifest.json",
@@ -48,7 +48,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "services/python-workers/routes.json",
-      "sha256": "f0c9f796f7e4b449f5dcc595e8f9b5af31b51f321b43e6ddd9a5ee3761c1533d"
+      "sha256": "68db5d6e39a35f927d1fa43cc2da17e79f3895c8210028f5bacab0f0cba48902"
     }
   ],
   "entries": [

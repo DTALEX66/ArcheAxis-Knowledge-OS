@@ -9,17 +9,17 @@
     "old_aliases": "Atlas origin_requirement_ids and legacy space aliases remain resolvable."
   },
   "source_hashes": {
-    "capability_catalog_ts_sha256": "845d16de34c6117c2b29078422978f4b270712a27d0c1733e7064fd4b7e87770",
-    "spaces_ts_sha256": "b88a3d46f1dccbba9c14166276bd33aa3f87727753ac9fcec8de175d81a58ae5",
-    "navigation_ts_sha256": "f83e519e1b35f5efd69e7a9d22d99a468e166fd24d5f460083898054b9281a8a",
+    "capability_catalog_ts_sha256": "6d1387e3ba0fa777e9338796aed27e6166309256a09c8f31b949e019dff78974",
+    "spaces_ts_sha256": "92ab8f5089d024d86427bfd7beb21977d01185e30053fc004ec56eac05b3767e",
+    "navigation_ts_sha256": "8cb5e047b10bbb5e812a01cd057369d222fdb9014796ad3a712456c2a13db15b",
     "authority_sources": [
       {
         "path": "docs/truth/CAPABILITY_ATLAS_V2.yaml",
-        "sha256": "c290b342f47d38e79f3e1539175d21f822808495a902b465ea1b0d42b99cc39a"
+        "sha256": "b6c23494c5b7b60f35c2992654bda23ee64ca7d049699ec58ef803b32cb67a9f"
       },
       {
         "path": "config/capability-map.v1.json",
-        "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
+        "sha256": "b2c4ea6002460dcc8ff769ecd4a753a3df770df8a8b011c8ebf2c3b5137a903b"
       }
     ]
   },
@@ -30,7 +30,7 @@
       "id": "workspace",
       "label": "工作台",
       "icon": "Workspace",
-      "description": "当前工作区与任务",
+      "description": "本地文档与学习继续",
       "route": "#space=workspace",
       "menu_visible": true,
       "command_search_visible": true,
@@ -55,7 +55,7 @@
       "id": "intake",
       "label": "导入",
       "icon": "Import",
-      "description": "URL、文件与批量多格式导入",
+      "description": "本地原件与多格式导入",
       "route": "#space=intake",
       "menu_visible": true,
       "command_search_visible": true,
@@ -281,8 +281,10 @@
       "authority_status": "binding_core",
       "roadmap_state": "critical_now",
       "activation_horizon": "H1",
-      "implementation_state": "core_native",
-      "runtime_capabilities": [],
+      "implementation_state": "worker_backed",
+      "runtime_capabilities": [
+        "research.public"
+      ],
       "menu_visible": true,
       "command_search_visible": true,
       "detail_available": true,
@@ -453,7 +455,8 @@
       "activation_horizon": "H6-H7",
       "implementation_state": "worker_backed",
       "runtime_capabilities": [
-        "course.general"
+        "course.general",
+        "course.openmaic.outline-model"
       ],
       "menu_visible": true,
       "command_search_visible": true,
