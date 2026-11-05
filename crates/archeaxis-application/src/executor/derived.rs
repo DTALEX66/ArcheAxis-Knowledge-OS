@@ -197,21 +197,75 @@ pub(super) fn openmaic_worker_matches(script: &Path) -> bool {
     )
 }
 
-/// The fixed OpenMAIC Node adapter a launch may own. The scene builder keeps its
-/// existing profile; the outline replay script is discovered only as its sibling,
-/// so an HTTP caller cannot name a script or a directory.
+/// The fixed OpenMAIC Node adapters one launch may own. The scene builder keeps
+/// its existing profile; every other script is resolved by its fixed name only
+/// as a sibling of that configured script, so an HTTP caller cannot name a script
+/// or a directory.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum OpenMaicScript {
     Scene,
     Outline,
+    SlidePrompt,
+    SlideReply,
+    SlideNormalize,
 }
 
-/// The outline replay worker next to the configured scene builder script. No
-/// path is guessed: a missing, non-regular or linked sibling means the capability
-/// is unavailable rather than an alternate provider.
-pub(super) fn outline_worker_script(scene: &Path) -> Option<PathBuf> {
-    let script = scene.parent()?.join("outline-replay-worker.mjs");
+impl OpenMaicScript {
+    /// The fixed name of a sibling adapter; `None` is the configured scene script itself.
+    fn sibling_name(self) -> Option<&'static str> {
+        match self {
+            Self::Scene => None,
+            Self::Outline => Some("outline-replay-worker.mjs"),
+            Self::SlidePrompt => Some("slide-prompt-worker.mjs"),
+            Self::SlideReply => Some("slide-reply-worker.mjs"),
+            Self::SlideNormalize => Some("slide-normalize-worker.mjs"),
+        }
+    }
+
+    /// The stage label a named unavailability reports.
+    pub(super) fn stage(self) -> &'static str {
+        match self {
+            Self::Scene => "scene_build",
+            Self::Outline => "outline",
+            Self::SlidePrompt => "slide_prompt",
+            Self::SlideReply => "slide_reply",
+            Self::SlideNormalize => "slide_normalize",
+        }
+    }
+}
+
+/// The three donor slide adapters this chain drives.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum OpenMaicSlideStage {
+    Prompt,
+    Reply,
+    Normalize,
+}
+
+impl From<OpenMaicSlideStage> for OpenMaicScript {
+    fn from(value: OpenMaicSlideStage) -> Self {
+        match value {
+            OpenMaicSlideStage::Prompt => Self::SlidePrompt,
+            OpenMaicSlideStage::Reply => Self::SlideReply,
+            OpenMaicSlideStage::Normalize => Self::SlideNormalize,
+        }
+    }
+}
+
+/// Resolve a fixed sibling adapter next to the configured scene builder script.
+/// No path is guessed: a missing, non-regular or linked sibling means the
+/// capability is unavailable rather than an alternate provider.
+fn openmaic_script(scene: &Path, kind: OpenMaicScript) -> Option<PathBuf> {
+    let Some(name) = kind.sibling_name() else {
+        return Some(scene.to_owned());
+    };
+    let script = scene.parent()?.join(name);
     safe_local_file(&script).then_some(script)
+}
+
+/// The outline replay worker next to the configured scene builder script.
+pub(super) fn outline_worker_script(scene: &Path) -> Option<PathBuf> {
+    openmaic_script(scene, OpenMaicScript::Outline)
 }
 
 impl Executor {
@@ -325,6 +379,33 @@ impl Executor {
             .and_then(|node| outline_worker_script(&node.script))
     }
 
+    /// One of the three donor slide adapters, dispatched under the shared OpenMAIC
+    /// admission generation. Each stage keeps its own fixed script; a missing
+    /// sibling names that stage instead of falling back to another adapter.
+    pub async fn openmaic_slide_with_generation(
+        &self,
+        stage: OpenMaicSlideStage,
+        expected_generation: u64,
+        request: Value,
+        timeout: Duration,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+            stage.into(),
+        )
+        .await
+    }
+
+    /// Whether the configured scene builder has a usable sibling slide adapter.
+    pub fn openmaic_slide_script(&self, stage: OpenMaicSlideStage) -> Option<PathBuf> {
+        self.openmaic_node
+            .as_ref()
+            .and_then(|node| openmaic_script(&node.script, stage.into()))
+    }
+
     async fn derived_json_checked(
         &self,
         capability: &str,
@@ -412,8 +493,8 @@ impl Executor {
         let (worker, site, program) = if let Some(node) = &node {
             let worker = match script_kind {
                 OpenMaicScript::Scene => node.script.clone(),
-                OpenMaicScript::Outline => outline_worker_script(&node.script)
-                    .ok_or("OpenMAIC outline worker unavailable")?,
+                other => openmaic_script(&node.script, other)
+                    .ok_or_else(|| format!("OpenMAIC {} worker unavailable", other.stage()))?,
             };
             (worker, false, node.executable.clone())
         } else {
@@ -456,8 +537,8 @@ impl Executor {
                 !executable_matches(&program, &configured.executable_sha256)
                     || match script_kind {
                         OpenMaicScript::Scene => !openmaic_worker_matches(&worker),
-                        OpenMaicScript::Outline => {
-                            outline_worker_script(&configured.script).as_deref()
+                        other => {
+                            openmaic_script(&configured.script, other).as_deref()
                                 != Some(worker.as_path())
                         }
                     }
@@ -543,6 +624,7 @@ impl Executor {
                     OpenMaicScript::Outline => {
                         validate_openmaic_outline_result(&result, &request, &input_sha)?
                     }
+                    other => validate_openmaic_slide_result(&result, other)?,
                 }
             }
             Ok(result)
@@ -662,6 +744,50 @@ fn validate_openmaic_outline_prompt_result(result: &Value, request: &Value) -> R
         }
     } else if doc["human_review_required"] != true {
         return Err("invalid OpenMAIC outline prompt candidate receipt".into());
+    }
+    Ok(())
+}
+
+/// The three donor slide adapters keep their own fixed receipts. This checks the
+/// schema, the declared outcome and the fixed non-authority claims; Core re-checks
+/// every field it consumes before persisting anything.
+fn validate_openmaic_slide_result(result: &Value, stage: OpenMaicScript) -> Result<(), String> {
+    let doc = &result["document"];
+    let expected = match stage {
+        OpenMaicScript::SlidePrompt => "archeaxis.openmaic-slide-prompt-result/v1",
+        OpenMaicScript::SlideReply => "archeaxis.openmaic-slide-reply-result/v1",
+        OpenMaicScript::SlideNormalize => "archeaxis.openmaic-slide-normalize-result/v1",
+        _ => return Err("invalid OpenMAIC slide worker stage".into()),
+    };
+    if doc["schema"] != expected {
+        return Err("invalid OpenMAIC slide worker receipt".into());
+    }
+    // The normalize adapter states its non-authority in its own fields; the
+    // prompt and reply adapters also declare that no model was invoked.
+    let fixed = match stage {
+        OpenMaicScript::SlideNormalize => {
+            doc["core_authorization"] != "NOT_ESTABLISHED"
+                || doc["canonical_persistence"] != "NOT_PERFORMED"
+                || doc["rendering_authorized"] != false
+                || doc["full_scene_generation"] != false
+        }
+        _ => doc["model_call"] != "NOT_INVOKED" || doc["core_authorization"] != "NOT_ESTABLISHED",
+    };
+    if fixed {
+        return Err("invalid OpenMAIC slide worker receipt".into());
+    }
+    let status = doc["status"].as_str().unwrap_or("");
+    let accepted = match stage {
+        OpenMaicScript::SlidePrompt => matches!(status, "BUILT" | "REJECTED"),
+        OpenMaicScript::SlideReply => matches!(status, "CANDIDATE" | "QUARANTINED" | "REJECTED"),
+        OpenMaicScript::SlideNormalize => matches!(status, "CANDIDATE" | "REJECTED"),
+        _ => false,
+    };
+    if !accepted {
+        return Err("invalid OpenMAIC slide worker outcome".into());
+    }
+    if status == "CANDIDATE" && result["exit_code"] != 0 {
+        return Err("OpenMAIC slide candidate exit code".into());
     }
     Ok(())
 }

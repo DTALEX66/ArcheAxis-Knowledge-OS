@@ -1,7 +1,9 @@
 //! General course candidates: Python validates shape, Core owns canonical bindings and writes.
 use super::*;
+use archeaxis_application::executor::OpenMaicSlideStage;
 use archeaxis_domain::course::{self, CourseBinding};
 use archeaxis_domain::openmaic_outline;
+use archeaxis_domain::openmaic_slide;
 use rusqlite::OptionalExtension;
 use sha2::{Digest, Sha256};
 use std::time::Duration;
@@ -763,6 +765,566 @@ pub(super) async fn generate_openmaic_outline(
         Err(_) => error(
             StatusCode::SERVICE_UNAVAILABLE,
             "OpenMAIC outline capability unavailable or withdrawn",
+        ),
+    }
+}
+
+/// Turn one persisted `slide` outline into a scene candidate through the donor
+/// slide prompt/reply/normalize adapters and the declared local model. Only the
+/// existing scene candidate Document is written, and only after every stage
+/// produced an admitted candidate; there is no cloud fallback and no partial write.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct OpenMaicSlideCandidateBody {
+    create_request_id: String,
+    outline_document_id: String,
+    outline_index: i64,
+    source: Value,
+    model: Option<String>,
+}
+
+fn openmaic_slide_request(body: &OpenMaicSlideCandidateBody) -> Value {
+    json!({"schema":openmaic_slide::OPENMAIC_SLIDE_REQUEST_SCHEMA,
+        "create_request_id":&body.create_request_id,
+        "outline_document_id":&body.outline_document_id,
+        "outline_index":body.outline_index,
+        "source":&body.source,
+        "model":body.model.clone().map(Value::String).unwrap_or(Value::Null)})
+}
+
+fn openmaic_slide_receipt_response(receipt: &Value, worker_invoked: bool) -> Response {
+    Json(json!({"schema":"archeaxis.openmaic-slide-persistence/v1",
+        "worker_invoked":worker_invoked,"document":receipt["document"],
+        "candidate_document_status":receipt["candidate_document_status"],
+        "source_snapshot_status":receipt["source_snapshot_status"],
+        "generation_route":receipt["generation_route"],
+        "model_call":receipt["model_call"],"model":receipt["model"],
+        "model_observed":receipt["model_observed"],
+        "model_reply_sha256":receipt["model_reply_sha256"],
+        "model_finish_reason":receipt["model_finish_reason"],
+        "prompt_binding":receipt["prompt_binding"],
+        "outline_document_id":receipt["outline_document_id"],
+        "outline_index":receipt["outline_index"],"outline_id":receipt["outline_id"],
+        "reply":receipt["reply"],"normalize":receipt["normalize"],
+        "response_origin":"LOCAL_MODEL_UNVERIFIED",
+        "human_review_required":true,"active_content_executed":false,
+        "rendering_authorized":false,
+        "contract_version":receipt["contract_version"],
+        "projection":receipt["projection"],"render":receipt["render"]}))
+    .into_response()
+}
+
+/// One named refusal from a domain read or write. A conflict is answered as `409`
+/// and every content refusal as `422`, with the reason kept verbatim.
+fn openmaic_slide_error(failure: archeaxis_domain::document::Error) -> Response {
+    use archeaxis_domain::document::Error as Failure;
+    match failure {
+        Failure::NotFound => error(
+            StatusCode::NOT_FOUND,
+            "OpenMAIC outline or source document is unavailable",
+        ),
+        Failure::Conflict(_) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC slide request conflicts with an existing candidate",
+        ),
+        Failure::Invalid(reason) => {
+            let conflict = matches!(
+                reason,
+                "SLIDE_REQUEST_CONFLICT"
+                    | "SLIDE_REQUEST_CHANGED"
+                    | "SLIDE_WORKSPACE_CHANGED"
+                    | "OUTLINE_DOCUMENT_CHANGED"
+                    | "SOURCE_SNAPSHOT_NOT_CURRENT"
+            );
+            let status = if conflict {
+                StatusCode::CONFLICT
+            } else {
+                StatusCode::UNPROCESSABLE_ENTITY
+            };
+            let code = if conflict {
+                "AAK-CON-002"
+            } else {
+                "AAK-VAL-001"
+            };
+            (
+                status,
+                Json(json!({"code":code,
+                    "message":"this outline-slide route refused the request",
+                    "retryable":false,"refusal":{"reason":reason}})),
+            )
+                .into_response()
+        }
+        Failure::Sql(_) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC slide store operation failed",
+        ),
+    }
+}
+
+/// The first fixed adapter this chain needs that the launch does not provide.
+fn openmaic_slide_script_gap(runtime: &Runtime) -> Option<&'static str> {
+    for (stage, label) in [
+        (OpenMaicSlideStage::Prompt, "slide_prompt"),
+        (OpenMaicSlideStage::Reply, "slide_reply"),
+        (OpenMaicSlideStage::Normalize, "slide_normalize"),
+    ] {
+        if runtime.executor.openmaic_slide_script(stage).is_none() {
+            return Some(label);
+        }
+    }
+    if runtime.executor.openmaic_node_paths().is_none() {
+        return Some("scene_build");
+    }
+    None
+}
+
+pub(super) async fn generate_openmaic_slide(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<OpenMaicSlideCandidateBody>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return error(
+            StatusCode::FORBIDDEN,
+            "OpenMAIC slide generation requires a human actor",
+        );
+    }
+    let request = openmaic_slide_request(&body);
+    let create_request_id = body.create_request_id.clone();
+    if let Some(refusal) = openmaic_slide::openmaic_slide_refusal(&request) {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"code":"AAK-VAL-001",
+            "message":"this outline-slide route cannot accept the declared request",
+            "retryable":false,"refusal":refusal,
+            "supported_request_schema":openmaic_slide::OPENMAIC_SLIDE_REQUEST_SCHEMA})),
+        )
+            .into_response();
+    }
+    // The persisted outline candidate is read once; no model is asked for the
+    // outline title, description or key points again.
+    let lookup_document = body.outline_document_id.clone();
+    let lookup_index = body.outline_index;
+    let selection = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            openmaic_slide::read_outline_candidate(conn, &lookup_document, lookup_index)
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(failure)) => return openmaic_slide_error(failure),
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC outline candidate read failed",
+            );
+        }
+    };
+    if selection["outline"]["type"].as_str() != Some("slide") {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"code":"AAK-VAL-001",
+            "message":"this slide route only builds slide outlines",
+            "retryable":false,"refusal":{"reason":"UNSUPPORTED_OUTLINE_TYPE",
+            "declared":selection["outline"]["type"],"supported":["slide"]}})),
+        )
+            .into_response();
+    }
+    let admission = runtime.executor.openmaic_admission_generation().await;
+    let prepare_id = create_request_id.clone();
+    let prepare_request = request.clone();
+    let prepare_selection = selection.clone();
+    let prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            openmaic_slide::prepare_openmaic_slide_candidate(
+                conn,
+                &prepare_id,
+                &prepare_request,
+                &prepare_selection,
+            )
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(failure)) => return openmaic_slide_error(failure),
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC slide preparation failed",
+            );
+        }
+    };
+    let pending = match prepared {
+        openmaic_slide::OpenMaicSlidePreparation::Existing(receipt) => {
+            // A repeated request reads the stored candidate; no prompt, model or
+            // worker runs again.
+            return openmaic_slide_receipt_response(&receipt, false);
+        }
+        openmaic_slide::OpenMaicSlidePreparation::Pending(pending) => pending,
+    };
+    // An existing candidate stays readable without a configured or enabled provider;
+    // a fresh chain needs every fixed adapter up front, so a missing one is named
+    // before the model is called rather than after.
+    if let Some(stage) = openmaic_slide_script_gap(&runtime) {
+        return openmaic_stage_failure(
+            StatusCode::SERVICE_UNAVAILABLE,
+            stage,
+            "OpenMAIC slide chain unavailable: a fixed sibling script is missing",
+            Value::Null,
+        );
+    }
+    let generation = match admission {
+        Ok(value) => value,
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC provider unavailable or disabled",
+            );
+        }
+    };
+    // Stage 1: the donor slide prompt.
+    let prompt_request = match openmaic_slide::openmaic_slide_prompt_request(&selection) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_slide_error(failure),
+    };
+    let prompt = match runtime
+        .executor
+        .openmaic_slide_with_generation(
+            OpenMaicSlideStage::Prompt,
+            generation,
+            prompt_request,
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "slide_prompt",
+                "OpenMAIC slide prompt worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let prompt_outcome = openmaic_stage_outcome(&prompt);
+    if prompt["exit_code"] != 0 || prompt["document"]["status"] != "BUILT" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "slide_prompt",
+            "OpenMAIC slide prompt did not build the donor prompts",
+            prompt_outcome,
+        );
+    }
+    let binding = match openmaic_slide::openmaic_slide_prompt_binding(&prompt["document"]) {
+        Ok(value) => value,
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            let mut outcome = prompt_outcome.clone();
+            outcome["receipt_refusal"] = json!(reason);
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "slide_prompt",
+                "OpenMAIC slide prompt receipt is inconsistent",
+                outcome,
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "slide_prompt",
+                "OpenMAIC slide prompt receipt is inconsistent",
+                prompt_outcome,
+            );
+        }
+    };
+    // Stage 2: the declared local model, through the same capability and worker as
+    // the outline route. An unregistered or disabled capability is an unavailability.
+    let model_request =
+        openmaic_outline::openmaic_outline_model_request(&binding, &request["model"]);
+    let model = match runtime
+        .executor
+        .derived_json(
+            openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
+            model_request,
+            Duration::from_secs(120),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(reason) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "local_model",
+                &format!("local model capability unavailable: {reason}"),
+                Value::Null,
+            );
+        }
+    };
+    let model_outcome = openmaic_stage_outcome(&model);
+    if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
+        let named = model["document"]["status"].as_str().unwrap_or("");
+        let status = match named {
+            "INVALID_MODEL_OUTPUT" => StatusCode::UNPROCESSABLE_ENTITY,
+            "MODEL_TIMEOUT" | "NO_FINAL_ANSWER" => StatusCode::GATEWAY_TIMEOUT,
+            _ => StatusCode::SERVICE_UNAVAILABLE,
+        };
+        return openmaic_stage_failure(
+            status,
+            "local_model",
+            "the local model did not produce a usable slide reply",
+            model_outcome,
+        );
+    }
+    let Some(content) =
+        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+    else {
+        return openmaic_stage_failure(
+            StatusCode::BAD_GATEWAY,
+            "local_model",
+            "local model receipt is inconsistent",
+            model_outcome,
+        );
+    };
+    // Stage 3: the donor reply adapter. A quarantined or rejected reply keeps the
+    // worker's own status and reason; Core never repairs or invents content.
+    let reply_request = match openmaic_slide::openmaic_slide_reply_request(&content) {
+        Ok(value) => value,
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            return openmaic_stage_failure(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "slide_reply",
+                "the local model reply exceeds the donor reply budget",
+                json!({"status":"MODEL_REPLY_EXCEEDS_BOUND","reason":reason,
+                    "exit_code":model["exit_code"]}),
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "slide_reply",
+                "the local model reply cannot be replayed",
+                model_outcome,
+            );
+        }
+    };
+    let reply = match runtime
+        .executor
+        .openmaic_slide_with_generation(
+            OpenMaicSlideStage::Reply,
+            generation,
+            reply_request,
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "slide_reply",
+                "OpenMAIC slide reply worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let reply_outcome = openmaic_stage_outcome(&reply);
+    let normalized_reply = match openmaic_slide::openmaic_slide_reply_candidate(&reply["document"])
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return openmaic_stage_failure(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "slide_reply",
+                "the donor reply adapter did not admit the model text",
+                reply_outcome,
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "slide_reply",
+                "OpenMAIC slide reply receipt is inconsistent",
+                reply_outcome,
+            );
+        }
+    };
+    // Stage 4: the donor normalize adapter over the Core-built scene envelope.
+    let scene = match openmaic_slide::openmaic_slide_scene_request(
+        &create_request_id,
+        &selection,
+        &normalized_reply,
+    ) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_slide_error(failure),
+    };
+    let normalize_request =
+        match openmaic_slide::openmaic_slide_normalize_request(&create_request_id, &scene) {
+            Ok(value) => value,
+            Err(failure) => return openmaic_slide_error(failure),
+        };
+    let normalize = match runtime
+        .executor
+        .openmaic_slide_with_generation(
+            OpenMaicSlideStage::Normalize,
+            generation,
+            normalize_request,
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "slide_normalize",
+                "OpenMAIC slide normalize worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let normalize_outcome = openmaic_stage_outcome(&normalize);
+    let normalized_scene =
+        match openmaic_slide::openmaic_slide_normalized_scene(&normalize["document"]) {
+            Ok(Some(value)) => value,
+            Ok(None) => {
+                return openmaic_stage_failure(
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                    "slide_normalize",
+                    "the donor normalize adapter did not admit the scene",
+                    normalize_outcome,
+                );
+            }
+            Err(_) => {
+                return openmaic_stage_failure(
+                    StatusCode::BAD_GATEWAY,
+                    "slide_normalize",
+                    "OpenMAIC slide normalize receipt is inconsistent",
+                    normalize_outcome,
+                );
+            }
+        };
+    // Stage 5: the existing scene builder and the existing v2 candidate writer.
+    let scene_request = match openmaic_slide::openmaic_slide_scene_build_request(
+        &create_request_id,
+        &selection,
+        &normalized_scene,
+        &request["source"],
+    ) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_slide_error(failure),
+    };
+    let scene_prepare_id = create_request_id.clone();
+    let scene_prepare_request = scene_request.clone();
+    let scene_prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            course::prepare_openmaic_scene(conn, &scene_prepare_id, &scene_prepare_request)
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
+            return error(
+                StatusCode::NOT_FOUND,
+                "OpenMAIC source document is unavailable",
+            );
+        }
+        Ok(Err(_)) => {
+            return error(
+                StatusCode::CONFLICT,
+                "OpenMAIC slide request or source snapshot is invalid or changed",
+            );
+        }
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC scene preparation failed",
+            );
+        }
+    };
+    let scene_pending = match scene_prepared {
+        course::OpenMaicPreparation::Existing(_) => {
+            return error(
+                StatusCode::CONFLICT,
+                "this create request ID already owns a scene candidate without the outline-slide record",
+            );
+        }
+        course::OpenMaicPreparation::Pending(pending) => pending,
+    };
+    let scene_build = match runtime
+        .executor
+        .openmaic_scene_with_generation(generation, scene_request.clone(), Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "scene_build",
+                "OpenMAIC scene builder unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let scene_outcome = openmaic_stage_outcome(&scene_build);
+    if scene_build["exit_code"] != 0 || scene_build["document"]["status"] != "CANDIDATE" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "scene_build",
+            "OpenMAIC scene builder did not produce a candidate",
+            scene_outcome,
+        );
+    }
+    let record = openmaic_slide::openmaic_slide_record(
+        &create_request_id,
+        &openmaic_slide::openmaic_slide_request_sha256(&request, &selection),
+        &selection,
+        &openmaic_slide::openmaic_slide_prompt_record(&binding),
+        &model["document"],
+        &reply["document"],
+        &normalize["document"],
+    );
+    let generation_chain = openmaic_slide::OpenMaicSlideGeneration {
+        scene_request: scene_request.clone(),
+        record,
+    };
+    let commit_id = create_request_id.clone();
+    let commit_request = request.clone();
+    let worker_document = scene_build["document"].clone();
+    let committed = runtime
+        .executor
+        .commit_openmaic_if_current(generation, move |conn| {
+            openmaic_slide::commit_openmaic_slide_candidate(
+                conn,
+                &commit_id,
+                &commit_request,
+                &pending,
+                &scene_pending,
+                &worker_document,
+                &generation_chain,
+            )
+        })
+        .await;
+    match committed {
+        Ok(Ok(receipt)) => openmaic_slide_receipt_response(&receipt, true),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC slide request, capability or workspace changed",
+        ),
+        Ok(Err(_)) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC slide candidate persistence failed",
+        ),
+        Err(_) => error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC slide capability unavailable or withdrawn",
         ),
     }
 }

@@ -332,7 +332,7 @@ pub fn list_candidates(conn: &Connection, cursor: Option<&str>) -> rusqlite::Res
 // an ordinary Core Document rather than extending the General-v1 contract.
 // Both may contain answer keys or material: ordinary document reads and
 // exports include them, so the host must require a human actor and protect IO.
-const OPENMAIC_NAMESPACE: &str = "archeaxis_openmaic_scene_candidate";
+pub const OPENMAIC_SCENE_NAMESPACE: &str = "archeaxis_openmaic_scene_candidate";
 const OPENMAIC_REQUEST_SCHEMA: &str = "archeaxis.openmaic-scene-build/v1";
 const OPENMAIC_RESULT_SCHEMA: &str = "archeaxis.openmaic-scene-build-result/v1";
 /// Legacy candidate Documents, written before this slice recorded what the donor
@@ -853,7 +853,7 @@ fn openmaic_receipt(
     // Version dispatch for readers: a v1 candidate reports that no projection or
     // render report was ever recorded, so a consumer cannot read silence as
     // "lossless". A v2 candidate reports exactly what Core derived and stored.
-    let stored = &document["editor_json"]["attrs"][OPENMAIC_NAMESPACE];
+    let stored = &document["editor_json"]["attrs"][OPENMAIC_SCENE_NAMESPACE];
     let (contract_version, projection, render) =
         if stored["schema"].as_str() == Some(OPENMAIC_DOCUMENT_SCHEMA_V2) {
             (
@@ -897,7 +897,7 @@ fn openmaic_existing(
         return Ok(None);
     }
     let document = crate::document::read_verified(conn, &id, Some(1))?;
-    let saved = &document["editor_json"]["attrs"][OPENMAIC_NAMESPACE];
+    let saved = &document["editor_json"]["attrs"][OPENMAIC_SCENE_NAMESPACE];
     let stored_schema = saved["schema"].as_str();
     // Version dispatch: a legacy v1 candidate is read, never upgraded in place;
     // a v2 candidate additionally has to still match the report Core derived.
@@ -926,7 +926,7 @@ fn openmaic_existing(
     // A current version that fails its own integrity recheck is left to the receipt,
     // which reports it as unavailable rather than as a valid scene.
     if let Ok(current) = crate::document::read_verified(conn, &id, None) {
-        let current_saved = &current["editor_json"]["attrs"][OPENMAIC_NAMESPACE];
+        let current_saved = &current["editor_json"]["attrs"][OPENMAIC_SCENE_NAMESPACE];
         if current_saved["schema"].as_str() == Some(OPENMAIC_DOCUMENT_SCHEMA_V2)
             && current_saved["create_request_id"] == saved["create_request_id"]
             && (current_saved["contract"] != openmaic_projection(request)
@@ -939,6 +939,60 @@ fn openmaic_existing(
         }
     }
     Ok(Some(openmaic_receipt(conn, document, material)))
+}
+
+/// Read the scene candidate a create request ID owns without invoking a worker
+/// and without writing. The material snapshot is re-derived from the stored
+/// frame and the same admission checks the write path ran are repeated, so an
+/// edited document is not read back as a valid scene.
+pub fn openmaic_scene_candidate(
+    conn: &Connection,
+    create_request_id: &str,
+) -> Result<Option<Value>, crate::document::Error> {
+    if !openmaic_token(create_request_id) {
+        return Err(openmaic_invalid("invalid OpenMAIC create request ID"));
+    }
+    let id = openmaic_scene_document_id(create_request_id);
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",
+        [&id],
+        |row| row.get(0),
+    )?;
+    if !exists {
+        return Ok(None);
+    }
+    let document = crate::document::read_verified(conn, &id, None)?;
+    let saved = &document["editor_json"]["attrs"][OPENMAIC_SCENE_NAMESPACE];
+    let stored_schema = saved["schema"].as_str();
+    if !(stored_schema == Some(OPENMAIC_DOCUMENT_SCHEMA_V1)
+        || stored_schema == Some(OPENMAIC_DOCUMENT_SCHEMA_V2))
+        || saved["create_request_id"] != create_request_id
+    {
+        return Err(openmaic_invalid(
+            "OpenMAIC create request ID conflicts with another document",
+        ));
+    }
+    let frame = saved["request_frame"]
+        .as_str()
+        .ok_or(openmaic_invalid("OpenMAIC stored request frame is missing"))?;
+    let input_sha256 = saved["input_sha256"]
+        .as_str()
+        .ok_or(openmaic_invalid("OpenMAIC stored input hash is missing"))?;
+    let request: Value = serde_json::from_str(frame.trim())
+        .map_err(|_| openmaic_invalid("invalid stored OpenMAIC request frame"))?;
+    let material: crate::provider_material_grant::Snapshot =
+        serde_json::from_value(request["source"].clone())
+            .map_err(|_| openmaic_invalid("invalid stored OpenMAIC material snapshot"))?;
+    openmaic_check_result(&request, input_sha256, &saved["worker_document"])?;
+    if stored_schema == Some(OPENMAIC_DOCUMENT_SCHEMA_V2)
+        && (saved["contract"] != openmaic_projection(&request)
+            || saved["render"] != openmaic_render_contract(&saved["worker_document"]["scene"]))
+    {
+        return Err(openmaic_invalid(
+            "OpenMAIC stored projection or render report changed",
+        ));
+    }
+    Ok(Some(openmaic_receipt(conn, document, &material)))
 }
 
 /// Check a retry and capture the material, workspace and restore epoch in one
@@ -989,6 +1043,29 @@ pub fn commit_openmaic_scene(
     pending: &OpenMaicPending,
     worker_document: &Value,
 ) -> Result<Value, crate::document::Error> {
+    commit_openmaic_scene_with(
+        conn,
+        create_request_id,
+        request,
+        pending,
+        worker_document,
+        None,
+    )
+}
+
+/// The same scene candidate writer, plus one optional Core-derived metadata
+/// object stored beside the scene. A caller cannot supply it through this route:
+/// `commit_openmaic_scene` passes none, and only Core-derived chain readers pass
+/// their own record. The scene schema, projection and render reports are unchanged.
+#[allow(clippy::too_many_arguments)]
+pub fn commit_openmaic_scene_with(
+    conn: &mut Connection,
+    create_request_id: &str,
+    request: &Value,
+    pending: &OpenMaicPending,
+    worker_document: &Value,
+    derived_metadata: Option<&Value>,
+) -> Result<Value, crate::document::Error> {
     let (frame, input_sha256, material) = openmaic_frame(create_request_id, request)?;
     if input_sha256 != pending.input_sha256
         || create_request_id != pending.create_request_id.as_str()
@@ -1032,7 +1109,7 @@ pub fn commit_openmaic_scene(
     // or worker cannot declare a lossless or playable candidate by itself.
     let projection = openmaic_projection(request);
     let render = openmaic_render_contract(&worker_document["scene"]);
-    let saved = json!({
+    let mut saved = json!({
         "schema": OPENMAIC_DOCUMENT_SCHEMA_V2,
         "create_request_id": create_request_id,
         "input_sha256": input_sha256,
@@ -1045,7 +1122,12 @@ pub fn commit_openmaic_scene(
         "rendering_authorized": false,
         "human_review_required": true,
     });
-    let editor = json!({"type":"doc","attrs":{"archeaxis_openmaic_scene_candidate":saved},
+    // Only a Core-derived chain attaches its own record; the ordinary scene route
+    // writes exactly the fields it always did.
+    if let Some(metadata) = derived_metadata {
+        saved["derived_metadata"] = metadata.clone();
+    }
+    let editor = json!({"type":"doc","attrs":{(OPENMAIC_SCENE_NAMESPACE):saved},
         "content":[{"type":"paragraph","attrs":{"block_id":"openmaic_scene_candidate"},
             "content":[{"type":"text","text":title.clone()}]}]});
     let internal_id = openmaic_internal_request_id(create_request_id);
@@ -1106,7 +1188,7 @@ pub fn openmaic_package_projection(
             }
             Err(error) => return Err(error),
         };
-        let saved = &current["editor_json"]["attrs"][OPENMAIC_NAMESPACE];
+        let saved = &current["editor_json"]["attrs"][OPENMAIC_SCENE_NAMESPACE];
         let schema = saved["schema"].as_str().unwrap_or("");
         if !(schema == OPENMAIC_DOCUMENT_SCHEMA_V1 || schema == OPENMAIC_DOCUMENT_SCHEMA_V2) {
             not_scene += 1;
