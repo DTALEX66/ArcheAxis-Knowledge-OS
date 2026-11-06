@@ -21,6 +21,12 @@ SOURCE = ROOT / "services/learning-providers/openmaic"
 PREFIX = "workers/openmaic/"
 
 
+def synthetic_closure():
+    """The scene-build core only; the full 671-file closure is checked by
+    ``test_openmaic_runtime_closure`` without copying it into every fixture."""
+    return {name: stager.OPENMAIC_FILES[name] for name in stager.OPENMAIC_CORE_FILES}
+
+
 def synthetic_provider(case):
     # These tiny test donors are added after the fixture seals its synthetic
     # run metadata. Exclude only these fixture paths from that fake Git repo;
@@ -67,6 +73,7 @@ def capture_launch(monkeypatch, root):
 
 def test_selected_openmaic_growth_plan_manifest_and_launch(prepared, monkeypatch):
     case = prepared
+    monkeypatch.setattr(stager, "OPENMAIC_FILES", synthetic_closure())
     donor, node, licence, digest, options = synthetic_provider(case)
     called = []
     stage = stager.stage_openmaic_provider
@@ -106,8 +113,9 @@ def test_selected_openmaic_growth_plan_manifest_and_launch(prepared, monkeypatch
                for route in launch["text_worker"].get("routes", []))
 
 
-def test_openmaic_input_bytes_can_trigger_growth_review_before_copy(prepared):
+def test_openmaic_input_bytes_can_trigger_growth_review_before_copy(prepared, monkeypatch):
     case = prepared
+    monkeypatch.setattr(stager, "OPENMAIC_FILES", synthetic_closure())
     *_, options = synthetic_provider(case)
     args = SimpleNamespace(runtime=case["output"] / "runtime", workers=case["repo"] / "services/python-workers",
                            core=case["core"], shared=case["repo"] / "shared/learning_scheduler.py",
@@ -136,8 +144,9 @@ def test_missing_openmaic_options_keep_old_launch_available(prepared, monkeypatc
 
 
 @pytest.mark.parametrize("indices", [(0,), (2,), (4,), (0, 2), (0, 4), (2, 4)])
-def test_partial_openmaic_options_fail_before_output(prepared, indices):
+def test_partial_openmaic_options_fail_before_output(prepared, indices, monkeypatch):
     case = prepared
+    monkeypatch.setattr(stager, "OPENMAIC_FILES", synthetic_closure())
     *_, options = synthetic_provider(case)
     partial = [value for index in indices for value in options[index:index + 2]]
     with pytest.raises(ValueError, match="OpenMAIC requires"):
