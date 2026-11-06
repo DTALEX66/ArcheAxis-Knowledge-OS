@@ -4426,3 +4426,10 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI：首次 run 仅 `cargo fmt (root vNext workspace)` 失败（移动路径后的两处测试未格式化，属本片格式问题），格式化后精确 SHA run `42169304702` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success；原格式失败保留。
 - 交付：PR **#301** 以 merge commit **`c52b8d8a`** 合并；本地与 `origin/main` 一致。
 - 边界：staged 运行时 + 合成材料 + loopback stub 模型；**不是安装包、不是真实模型质量证据、不是 Owner 接受**；跨进程重启只覆盖读回，不覆盖安装/升级/卸载。
+
+#### 2026-11-06 桌面运行时构建纳入 OpenMAIC（PR #302）
+
+- 缺陷（同类安装面缺口）：CI 的 `desktop-fast` 与 `desktop-build` 调用 `prepare_bundle --backend-candidate` 时都**不传任何 OpenMAIC node 参数**，因此它们生成的桌面运行时/NSIS 安装包不含 `workers/openmaic`，安装后的产品无法使用已接线的 OpenMAIC 链。
+- 实现：`desktop/scripts/prepare_bundle.py` 新增 `--openmaic-node-dir`，按 Node 发行目录（`node.exe` + `LICENSE`）解析 donor 并计算 SHA-256；目录形式与显式三件套互斥，缺件、部分提供、摘要不符均具名拒绝，不再静默省略 provider。两个 CI 桌面 job 用 runner 自带的 Node 目录传入该参数，并在缺 `LICENSE` 时以具名错误停止。
+- 验证：新增 `tests/test_prepare_bundle_openmaic.py` **5 passed**；现有 bundle/VC 相关测试 20 passed；真实 donor 解析得 `node.exe` sha `ba4e6d11…` 与 `LICENSE`（160,555 B）；`tests/test_ci_classifier.py` 41 passed。
+- 边界：本片只证明构建参数与解析逻辑；安装包是否真的包含 OpenMAIC、安装后链是否可用，须由本 PR 的 `desktop-build`/`installer-lifecycle` 结果与后续隔离安装复验证明，未提前宣称安装态通过。

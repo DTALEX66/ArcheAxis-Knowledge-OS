@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -70,13 +71,15 @@ def asr_model_name(donor: Path) -> str:
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
                               asr_model: Path | None = None, vc_runtime: Path | None = None,
+                              openmaic_node_dir: Path | None = None,
                               openmaic_node: Path | None = None, openmaic_node_sha256: str | None = None,
                               openmaic_node_license: Path | None = None,
                               storage_context=None, storage_generated_bytes=None) -> Path:
     """Prepare locked Python directly in the authoritative fresh backend root."""
-    openmaic = (openmaic_node, openmaic_node_sha256, openmaic_node_license)
-    if any(value is not None for value in openmaic) and not all(value is not None for value in openmaic):
-        raise ValueError("OpenMAIC requires an explicit Node file, SHA-256, and Node license")
+    resolved = resolve_openmaic_donor(openmaic_node_dir, openmaic_node,
+                                      openmaic_node_sha256, openmaic_node_license)
+    if resolved is not None:
+        openmaic_node, openmaic_node_sha256, openmaic_node_license = resolved
     repository = runtime_paths.safe_path(repository)
     storage_generated_bytes = growth.generated_bytes(storage_context, storage_generated_bytes)
     destination = runtime_paths.safe_path(destination)
@@ -170,6 +173,39 @@ def resolve_vc_runtime(explicit: Path | None = None) -> Path:
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):
         raise RuntimeError("invalid official VC Redist default version")
     return validated(vc / "Redist/MSVC" / version / "x64/Microsoft.VC143.CRT")
+
+
+def resolve_openmaic_donor(node_dir: Path | None = None, node: Path | None = None,
+                           node_sha256: str | None = None,
+                           node_license: Path | None = None) -> tuple[Path, str, Path] | None:
+    """Resolve the OpenMAIC Node donor from a distribution directory or an explicit trio.
+
+    A Node distribution directory is the shipped layout (``node.exe`` and its
+    ``LICENSE`` side by side), so the build names one directory instead of three
+    values a caller could mismatch. Supplying both forms, a mismatched digest or a
+    missing member is refused rather than silently dropping the provider.
+    """
+    explicit = (node, node_sha256, node_license)
+    if node_dir is not None:
+        if any(value is not None for value in explicit):
+            raise ValueError("use either --openmaic-node-dir or the explicit Node file, SHA-256 and license")
+        node_dir = Path(os.path.abspath(node_dir))
+        node, node_sha256, node_license = node_dir / "node.exe", None, node_dir / "LICENSE"
+    elif any(value is not None for value in explicit) and not all(
+            value is not None for value in explicit):
+        raise ValueError("OpenMAIC requires the Node file, SHA-256 and license together")
+    if node is None:
+        return None
+    for member in (node, node_license):
+        member = Path(member)
+        if not member.is_file():
+            raise ValueError(f"OpenMAIC donor file is missing: {member.name}")
+        if member.stat().st_nlink != 1:
+            raise ValueError(f"OpenMAIC donor is not an independent file: {member.name}")
+    observed = hashlib.sha256(Path(node).read_bytes()).hexdigest()
+    if node_sha256 is not None and node_sha256 != observed:
+        raise ValueError("OpenMAIC Node SHA-256 does not match the selected file")
+    return Path(node), observed, Path(node_license)
 
 
 def clear_cached_bundle_resources(*, repository: Path) -> None:
@@ -438,6 +474,8 @@ def main() -> int:
                              "defaults to the model the capability declaration names")
     parser.add_argument("--vc-runtime", type=Path,
                         help="explicit reviewed x64 VC donor; defaults to build-local environment or official VS registration")
+    parser.add_argument("--openmaic-node-dir", type=Path,
+                        help="local Node distribution directory (node.exe and LICENSE) to stage OpenMAIC")
     parser.add_argument("--openmaic-node", type=Path, help="explicit local Node executable for OpenMAIC")
     parser.add_argument("--openmaic-node-sha256", help="expected lowercase SHA-256 of that Node executable")
     parser.add_argument("--openmaic-node-license", type=Path, help="explicit Node license file")
@@ -450,12 +488,17 @@ def main() -> int:
     parser.add_argument("--ci-runtime-checkpoint", type=Path,
                         help="explicit singleton checkpoint initialized for this isolated CI job; not a local override")
     args = parser.parse_args()
-    openmaic = (args.openmaic_node, args.openmaic_node_sha256, args.openmaic_node_license)
+    openmaic = (args.openmaic_node_dir, args.openmaic_node, args.openmaic_node_sha256,
+                args.openmaic_node_license)
     if any(value is not None for value in openmaic):
-        if not all(value is not None for value in openmaic):
-            parser.error("OpenMAIC requires --openmaic-node, --openmaic-node-sha256 and --openmaic-node-license")
         if not args.backend_candidate:
             parser.error("OpenMAIC inputs require --backend-candidate")
+        if args.openmaic_node_dir is not None and any(
+                value is not None for value in openmaic[1:]):
+            parser.error("use either --openmaic-node-dir or the explicit Node file, SHA-256 and license")
+        if args.openmaic_node_dir is None and not all(
+                value is not None for value in openmaic[1:]):
+            parser.error("OpenMAIC requires --openmaic-node, --openmaic-node-sha256 and --openmaic-node-license")
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
     if args.core_only and args.core is None:
@@ -479,6 +522,7 @@ def main() -> int:
         print(prepare_backend_candidate(
             repository=args.repository, destination=destination, core=args.core,
             vc_runtime=args.vc_runtime,
+            openmaic_node_dir=args.openmaic_node_dir,
             openmaic_node=args.openmaic_node, openmaic_node_sha256=args.openmaic_node_sha256,
             openmaic_node_license=args.openmaic_node_license,
             storage_context=context, storage_generated_bytes=args.storage_generated_bytes,

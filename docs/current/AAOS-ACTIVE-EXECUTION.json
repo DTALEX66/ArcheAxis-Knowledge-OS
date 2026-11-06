@@ -460,6 +460,18 @@
           "what": "The Python outline-model worker moved from services/python-workers/openmaic/ to services/python-workers/course/ so the Node staging output workers/openmaic no longer collides with a Python worker directory. routes.json and every referencing test follow the move; the Tauri host and installed layout keep workers/openmaic.",
           "verified": "Real staging from the current release Core: .project-local/rt/staged-20261106-actions, 8,277 files, manifest c4b48379..., core 55cfd8da..., node ba4e6d11..., 684 OpenMAIC members. The staged launcher started Core and generated slide+quiz scenes with admitted narration through real staged Node and Python workers plus a loopback stub model; five model calls, zero extra after restart, worker_invoked false on replay. Regression guard added; 26 staging tests passed with four pre-existing Windows failures.",
           "not_included": "Staged runtime is not an installed package; synthetic material and stub model; no install/upgrade/uninstall journey and no Owner acceptance."
+        },
+        {
+          "item": "INT-QUAL",
+          "slice": "desktop runtime and installer build include the OpenMAIC provider",
+          "pr": 302,
+          "head_sha": "PENDING",
+          "merge_commit": "PENDING",
+          "ci_run": "PENDING",
+          "ci_result": "PENDING",
+          "what": "prepare_bundle gained --openmaic-node-dir: a Node distribution directory resolves node.exe and LICENSE as one donor and computes the digest, so a build cannot mix values or silently omit the provider. The desktop-fast and desktop-build CI runtime steps pass the runner's Node directory.",
+          "verified": "resolver tests 5 passed; existing bundle/VC tests 20 passed; the real donor resolves to node sha ba4e6d11... plus its LICENSE; classifier 41 passed. Installer contents and installed-chain use are expected to be proven by this PR's desktop-build/installer-lifecycle runs.",
+          "not_included": "No isolated install journey was rerun locally from this change; release.yml still uses the non-backend-candidate path and is not claimed to include OpenMAIC."
         }
       ],
       "openmaic_install_surface_20261106": {
@@ -479,8 +491,8 @@
           "result": "Started through the candidate's own start-backend.py. Outline generation produced slide+quiz; both scenes were built with admitted narration (slide 2 actions, quiz 1); five loopback model calls; after a process restart both candidates read back with worker_invoked false and no extra model call; action_execution NOT_PERFORMED and rendering_authorized false.",
           "boundary": "Staged runtime, synthetic material and a loopback stub model. Not an installed package, not real model quality and not Owner acceptance."
         },
-        "next": "Install/upgrade qualification of this staged closure on an isolated install (the staged probe is not an installed journey), then continue INT-MAIC-05 for interactive/PBL scenes and the renderer lifecycle.",
-        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; quiz-action narration landed in PR #299 (merge 0fefa553) and slide narration in PR #300 (merge e55b1a04)."
+        "next": "Install/upgrade qualification of the generated installer (desktop-fast/desktop-build now pass the runner's Node distribution, PR #302) on an isolated install; the staged probe is not an installed journey. Then continue INT-MAIC-05 for interactive/PBL scenes and the renderer lifecycle.",
+        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302."
       },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
