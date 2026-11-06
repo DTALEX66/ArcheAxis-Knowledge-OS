@@ -374,6 +374,18 @@
           "what": "POST /api/v1/learning/deeptutor/question-turn runs the donor practice worker capture, the declared local model and the donor replay, then persists the candidate as one ordinary Core Document; the model stage reuses the pinned outline local-model worker and the same hardened loopback-only client.",
           "verified": "domain provider_question_turn 5 passed; api deeptutor_question_turn_runtime 1 passed with the real Python donor worker and a loopback stub model covering machine 403, duplicate readback without rerunning, and named 503/504/422 failures; deeptutor regressions passed; cargo fmt --check clean; contract preflight exit 0.",
           "not_included": "The route is an optional private runtime route and its worker is a PRACTICE_FILES pin: a missing worker does not block Core startup. The teaching-feedback worker stays adapter-only, no real model has run this chain, and there is no UI wiring."
+        },
+        {
+          "item": "INT-DT-03",
+          "slice": "teaching feedback rules in Core",
+          "pr": 294,
+          "head_sha": "d7a046c5",
+          "merge_commit": "3faa6632",
+          "ci_run": 42135505933,
+          "ci_result": "SUCCESS_ALL_REQUIRED_GATES",
+          "what": "POST /api/v1/learning/deeptutor/teaching-feedback reads a caller-declared profile candidate, runs the pinned DeepTutor 1.7.1 teaching-rules worker exactly once and persists the resulting profile and guidance as one ordinary candidate Document; it calls no model and writes no activity, review or mastery.",
+          "verified": "domain provider_teaching_feedback 3 passed; api deeptutor_teaching_feedback_runtime 1 passed with the real Python donor worker and its byte-preserved upstream modules covering machine 403, duplicate readback, stale snapshot 409, invalid 422 and named 503; staged worker and both upstream modules pinned by name/size/SHA with the optional route declared in routes, profile and launcher; DeepTutor pytest 166 passed; contract and staging 16 passed; route inventory 38 passed; cargo fmt --check clean; preflight LOCAL_PASS.",
+          "not_included": "No UI wiring, no activity/attempt/review/mastery write and no evidence authentication; the profile has no cross-version compare-and-swap beyond the exact-snapshot admission, and every accepted turn is a new Document rather than an in-place profile update."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",

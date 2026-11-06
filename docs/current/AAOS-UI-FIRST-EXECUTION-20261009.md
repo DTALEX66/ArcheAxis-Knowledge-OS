@@ -4342,3 +4342,22 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同：`AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 新增该地址；§3 标题 155 pairs、§6 155 addresses（62 runtime pairs / 59 mounts）。
 - 验证：`provider_question_turn` **5 passed**；`deeptutor_question_turn_runtime` **1 passed**（真实 Python donor worker + loopback stub 模型，覆盖 machine 403、重复不重跑、503/504/422）；deeptutor 相关回归全过；`cargo fmt --check` 干净；`local_verify.py --preflight` exit 0；CI run `42056382163` 的 `gateplan`/`lint`/`test (3.12)`/`desktop-vnext`/`green-candidate-vnext`/`contracts-vnext`/`workers-vnext`/`rust-vnext` 全部 success。
 - 边界：真实本地模型尚未跑这条链（只有 stub 回执）；DeepTutor 教学反馈 worker 仍只在适配器层；UI 未接线；候选仍是 `LOCAL_MODEL_UNVERIFIED`，需人工复核。
+
+#### 2026-11-06 INT-DT-03 第一片：DeepTutor 教学反馈规则接入 Core
+
+- 现状：`teaching_feedback_worker.py` 已能把调用方提供的学习画像按 donor 规则更新并产出目标导向的教学建议，但只在适配器层，Core 没有任何路由消费它；学习侧"人类反馈→画像"因此没有可持久化的正式入口。
+- 新增 `POST /api/v1/learning/deeptutor/teaching-feedback`（PR **#294**，head `d7a046c5`，merge **`3faa6632`**）：仅 `human` actor，请求体上限 131,072（donor worker 自身 128 KiB 输入上限）。
+  - 请求 `{create_request_id, session_id, turn_id, profile?, current_message, objective_ids, focus_objective_id, updates, include_history}`；`profile` 指向既有反馈候选 Document 的快照，Core 按 version + content_sha256 精确读取其 `result_profile` 作为本次输入；不传则用 donor 的空画像默认。
+  - 单次 worker 调用（无 capture/replay 分段，也无模型调用），exit 0/1/2 原样保留；`UPDATED` 与 `UNCHANGED` 都算候选，其余状态具名拒绝。
+  - 落盘为一个普通 Core Document（`archeaxis.deeptutor-teaching-feedback-document/v1`），attrs 记录 `generation_route:"deeptutor_teaching_feedback_donor_rules"`、`model_call:"NOT_INVOKED"`、`response_origin:"DONOR_RULES_UNVERIFIED"`、基准快照、worker 原文、`changed_fields`、`human_review_required:true`、`active_content_executed:false`、`rendering_authorized:false`、`independent_mastery:"not_established"`；正文只渲染偏好与观察的可读段落。
+  - 幂等：同一 `create_request_id` 重复请求读回既有候选且不重跑 worker；同 id 内容变化或基准快照过期/被改动 → 409。
+  - 发布侧：`teaching_feedback_worker.py` 与两个 byte-preserved 上游模块（`upstream/teaching.py`、`upstream/learning_models.py`）一并加入 `PRACTICE_FILES` 的 name/size/SHA 钉扎；`deeptutor.teaching.feedback` 作为**可选私有路由**同时写入 staged `workers/routes.json`、`worker-profile.json` 与 launcher 豁免名单，worker 缺失不阻塞 Core 启动。
+- 合同：`AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 新增该地址；§3 标题 156 pairs、§6 156 addresses（92 base + 63 runtime / 60 mounts + 1 session-control）。
+- 验证：`provider_teaching_feedback` **3 passed**；`deeptutor_teaching_feedback_runtime` **1 passed**（真实 Python donor worker + 真实上游规则 + Pydantic，覆盖 machine 403、重复不重跑、基准快照 409、非法 422、缺 worker 503、重启读回）；DeepTutor pytest **166 passed**；契约与 staging **16 passed**；route inventory **38 passed**；`cargo fmt --check` 干净；`local_verify.py --profile quick --preflight` 报 `LOCAL_PASS`；CI run `42135505933` 的 `gateplan`/`lint`/`test (3.12)`/`desktop-vnext`/`green-candidate-vnext`/`contracts-vnext`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success。
+- 边界：不写 activity/attempt/review/mastery，不做证据真实性认证；画像是"每次新增一个候选 Document"，没有跨版本的 in-place compare-and-swap；UI 未接线。
+
+#### 2026-11-06 学习旅程扩展（在途 PR #295）
+
+- 既有 `deeptutor_learning_journey` 只覆盖 import → activity/attempt → grading → 重启。本片把同一条旅程扩为：材料 → donor 出题候选（真实 prompt/replay worker + 合成 loopback 模型）→ 已导入的评分题目 → 作答与评分 → donor 教学反馈候选 → 重启读回。
+- 重启后断言：模型调用次数仍为 1（不重跑），出题候选与反馈候选都读回同一 Document 且状态 `current`。
+- 本地：`deeptutor_learning_journey` **1 passed（0.95s）**；`cargo fmt --check` 干净。CI 与合并待完成。
