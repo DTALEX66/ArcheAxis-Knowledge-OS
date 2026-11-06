@@ -31,6 +31,7 @@ pub mod openmaic_outline;
 pub mod openmaic_quiz;
 pub mod openmaic_quiz_actions;
 pub mod openmaic_slide;
+pub mod openmaic_slide_actions;
 pub mod relation_projection;
 pub mod research;
 pub mod search;

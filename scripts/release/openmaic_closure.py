@@ -28,6 +28,7 @@ WORKERS = (
     "slide-normalize-worker.mjs",
     "quiz-replay-worker.mjs",
     "quiz-actions-replay-worker.mjs",
+    "slide-actions-replay-worker.mjs",
 )
 
 # The exact donor and locked-dependency closures those adapters import. Only
@@ -39,6 +40,7 @@ VENDORS = (
     "vendor/generation-0.3.28-quiz-actions",
     "vendor/dsl-0.12.0-actions",
     "vendor/scene-content-0.3.28-original",
+    "vendor/generation-0.3.28-slide-actions",
     "vendor/npm",
 )
 

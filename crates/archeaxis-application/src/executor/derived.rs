@@ -210,6 +210,7 @@ enum OpenMaicScript {
     SlideNormalize,
     QuizReplay,
     QuizActions,
+    SlideActions,
 }
 
 impl OpenMaicScript {
@@ -223,6 +224,7 @@ impl OpenMaicScript {
             Self::SlideNormalize => Some("slide-normalize-worker.mjs"),
             Self::QuizReplay => Some("quiz-replay-worker.mjs"),
             Self::QuizActions => Some("quiz-actions-replay-worker.mjs"),
+            Self::SlideActions => Some("slide-actions-replay-worker.mjs"),
         }
     }
 
@@ -236,6 +238,7 @@ impl OpenMaicScript {
             Self::SlideNormalize => "slide_normalize",
             Self::QuizReplay => "quiz_replay",
             Self::QuizActions => "quiz_actions",
+            Self::SlideActions => "slide_actions",
         }
     }
 }
@@ -462,6 +465,32 @@ impl Executor {
             .and_then(|node| openmaic_script(&node.script, OpenMaicScript::QuizActions))
     }
 
+    /// The slide-action adapter drives the narration and focus stage's capture
+    /// and replay under the shared OpenMAIC admission generation.
+    pub async fn openmaic_slide_actions_with_generation(
+        &self,
+        expected_generation: u64,
+        request: Value,
+        timeout: Duration,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+            OpenMaicScript::SlideActions,
+        )
+        .await
+    }
+
+    /// Whether the configured scene builder has a usable sibling slide-action
+    /// adapter.
+    pub fn openmaic_slide_actions_script(&self) -> Option<PathBuf> {
+        self.openmaic_node
+            .as_ref()
+            .and_then(|node| openmaic_script(&node.script, OpenMaicScript::SlideActions))
+    }
+
     async fn derived_json_checked(
         &self,
         capability: &str,
@@ -684,6 +713,9 @@ impl Executor {
                     OpenMaicScript::QuizActions => {
                         validate_openmaic_quiz_actions_result(&result, &request)?
                     }
+                    OpenMaicScript::SlideActions => {
+                        validate_openmaic_slide_actions_result(&result, &request)?
+                    }
                     other => validate_openmaic_slide_result(&result, other)?,
                 }
             }
@@ -860,6 +892,56 @@ fn validate_openmaic_quiz_actions_result(result: &Value, request: &Value) -> Res
         || doc["response_origin"] != "CALLER_SUPPLIED_UNVERIFIED"
     {
         return Err("invalid OpenMAIC quiz-action replay candidate receipt".into());
+    }
+    Ok(())
+}
+
+/// The slide-action adapter keeps the same two-stage receipt family: the
+/// schema, the declared stage and the fixed non-authority claims are checked
+/// here, and Core re-checks every action it consumes before persisting anything.
+fn validate_openmaic_slide_actions_result(result: &Value, request: &Value) -> Result<(), String> {
+    let doc = &result["document"];
+    if doc["schema"] != "archeaxis.openmaic-slide-actions-prompt-result/v1"
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["network_performed"] != false
+        || doc["core_task"] != "NOT_CONNECTED"
+        || doc["core_authorization"] != "NOT_ESTABLISHED"
+        || doc["canonical_bindings_verified"] != false
+        || doc["active_content_executed"] != false
+        || doc["persisted"] != false
+        || doc["rendering_authorized"] != false
+        || doc["action_execution"] != "NOT_PERFORMED"
+        || doc["stage"] != request["stage"]
+        || doc["request_id"] != request["request_id"]
+    {
+        return Err("invalid OpenMAIC slide-action worker receipt".into());
+    }
+    let status = doc["status"].as_str().unwrap_or("");
+    if status != "CANDIDATE" && status != "PROMPT_CAPTURED" {
+        return if result["exit_code"] == 2 && !status.trim().is_empty() {
+            Ok(())
+        } else {
+            Err("invalid OpenMAIC slide-action failure receipt".into())
+        };
+    }
+    if result["exit_code"] != 0 {
+        return Err("OpenMAIC slide-action worker exit code".into());
+    }
+    if status == "PROMPT_CAPTURED" {
+        let binding = &doc["binding"];
+        if binding["schema"] != "archeaxis.openmaic-slide-actions-prompt-binding/v1"
+            || ["system", "user"].iter().any(|key| {
+                binding[*key]
+                    .as_str()
+                    .is_none_or(|text| text.as_bytes().len() > 200_000)
+            })
+        {
+            return Err("OpenMAIC slide-action prompt binding is unsupported".into());
+        }
+    } else if doc["human_review_required"] != true
+        || doc["response_origin"] != "CALLER_SUPPLIED_UNVERIFIED"
+    {
+        return Err("invalid OpenMAIC slide-action replay candidate receipt".into());
     }
     Ok(())
 }

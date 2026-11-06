@@ -9,6 +9,7 @@
 use crate::course;
 use crate::document::{self, Error};
 use crate::openmaic_outline;
+use crate::openmaic_quiz::bounded_text;
 use crate::provider_material_grant::{Snapshot, valid_snapshot_shape};
 use base64::Engine;
 use rusqlite::Connection;
@@ -527,6 +528,64 @@ pub fn openmaic_slide_scene_build_request(
         "actions":[]}))
 }
 
+/// The real mounted element ids a focus action may name.
+pub fn openmaic_slide_element_ids(normalized: &Value) -> HashSet<String> {
+    normalized["content"]["canvas"]["elements"]
+        .as_array()
+        .map(|elements| {
+            elements
+                .iter()
+                .filter_map(|element| element["id"].as_str())
+                .filter(|id| token(id))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The scene-build request for the normalized slide plus its admitted actions.
+/// The action list is re-checked here so a refused verb, a duplicate id or a
+/// focus target outside the mounted elements can never reach the builder.
+pub fn openmaic_slide_scene_build_request_with_actions(
+    create_request_id: &str,
+    selection: &Value,
+    normalized: &Value,
+    source: &Value,
+    actions: &Value,
+) -> Result<Value, Error> {
+    let mut request =
+        openmaic_slide_scene_build_request(create_request_id, selection, normalized, source)?;
+    let ids = openmaic_slide_element_ids(normalized);
+    let list = actions["actions"]
+        .as_array()
+        .filter(|items| (1..=30).contains(&items.len()))
+        .ok_or(invalid("SLIDE_ACTIONS_INVALID"))?;
+    let mut seen = HashSet::new();
+    for action in list {
+        let shaped = action.as_object().is_some_and(|object| {
+            object.len() == 3
+                && object.contains_key("id")
+                && object.contains_key("type")
+                && token(action["id"].as_str().unwrap_or(""))
+                && match action["type"].as_str() {
+                    Some("speech") => {
+                        object.contains_key("text") && bounded_text(&action["text"], 8_000)
+                    }
+                    Some("spotlight" | "laser") => {
+                        object.contains_key("elementId")
+                            && ids.contains(action["elementId"].as_str().unwrap_or(""))
+                    }
+                    _ => false,
+                }
+        });
+        if !shaped || !seen.insert(action["id"].as_str().unwrap_or("").to_owned()) {
+            return Err(invalid("SLIDE_ACTIONS_INVALID"));
+        }
+    }
+    request["actions"] = json!(list);
+    Ok(request)
+}
+
 fn stage_record(document: &Value, keys: &[(&str, &str)]) -> Value {
     let mut record = serde_json::Map::new();
     for (field, path) in keys {
@@ -612,6 +671,30 @@ pub fn openmaic_slide_record(
     })
 }
 
+/// The existing slide record plus the narration stage's own receipt.
+pub fn openmaic_slide_record_with_actions(
+    create_request_id: &str,
+    request_sha256: &str,
+    selection: &Value,
+    prompt_binding: &Value,
+    model_reply: &Value,
+    reply: &Value,
+    normalize: &Value,
+    actions_stage: &Value,
+) -> Value {
+    let mut record = openmaic_slide_record(
+        create_request_id,
+        request_sha256,
+        selection,
+        prompt_binding,
+        model_reply,
+        reply,
+        normalize,
+    );
+    record["actions_stage"] = actions_stage.clone();
+    record
+}
+
 /// The persisted candidate as a client reads it, with the Core-derived chain
 /// metadata surfaced next to the existing scene projection and render reports.
 fn slide_receipt(scene_receipt: Value) -> Value {
@@ -634,6 +717,7 @@ fn slide_receipt(scene_receipt: Value) -> Value {
         "outline_id":stored["outline_id"],
         "reply":stored["reply"],
         "normalize":stored["normalize"],
+        "actions_stage":stored["actions_stage"],
         "response_origin":stored["response_origin"],
         "human_review_required":true,
         "active_content_executed":false,
