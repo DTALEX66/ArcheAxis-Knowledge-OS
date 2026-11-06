@@ -237,6 +237,7 @@ def test_desktop_jobs_prepare_the_same_authoritative_candidate() -> None:
              "--repository", ".", "--destination", ".project-local/rt", "--core",
              "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe",
                "--asr-model", ".project-local/cache/asr-models/faster-whisper-base",
+               "--openmaic-node-dir", "$nodeDir",
                "--run-id", "$runtimeRunId", "--ci-runtime-checkpoint", "$runtimeCheckpoint",
              "--storage-purpose", "Locked runtime qualification", "--storage-sharing", "Shared cache and isolated runtime",
              "--storage-retention-reason", "Current job qualification evidence"],
