@@ -4484,3 +4484,24 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI（run `42222178916`，精确 SHA `7f78bc5c`）：`gateplan` 24s、`lint` 1m28s、`test (3.12)` 21m46s、`workers-vnext` 1m26s、`rust-vnext` 15m3s、`a0-gates` 3s 全部 success；其余 job 按路径分类跳过。
 - 交付：PR **#306** 以 merge commit **`b42900ed`** 合并；本地与 `origin/main` 一致。
 - 边界：**未做 staged/安装态 interactive 复验**（闭包已注册，但未生成新 staged 候选、未跑 staged/installed 探针）；**本地模型生成 interactive 大纲尚不具备**——`/outlines/generate` 仍用标准 donor 提示词，interactive 大纲目前只能来自 `POST /outlines`（caller-declared reply）；候选 HTML 不执行、不服务、不授权渲染，未做 UI 接线；非真实模型质量证据、非 Owner 接受。
+
+#### 2026-11-07 OpenMAIC interactive 大纲适配器与新供体切片（INT-MAIC-05 第四片）
+
+- 新增 `services/learning-providers/openmaic/interactive-outline-worker.mjs`：用已 vendored 的 `@openmaic/generation` 0.3.28 loader 渲染 1.3.0 `interactive-outlines` 模板（capture），并用 donor `parseJsonResponse` 解析 caller 回复（replay）；只准入 `slide` 与普通 `interactive`（五类 widget + 有界 `widgetOutline`），`procedural-skill`、quiz/pbl、对象型 nodes、未知字段一律 `UNSUPPORTED_OUTPUT`；修复/补 id/补 order 只以 `transformations` 声明，不回显原文。
+- 新增 `interactive_outline_runner.py`：owned-child（单实例、取消、超时、有界管道、清理未确认 fail-closed），把回执绑定到请求的 `request_id` 与 binding 身份；worker 哈希钉死 `f8951de9…`。
+- 新增供体切片 `vendor/prompts-1.3.0-interactive-outline/`：`ORIGINALS.json`（`aec7ba19…`）、`LICENSE`、`README.md`、`templates/interactive-outlines/{system,user}.md`、三个 donor snippets（image/video/media-safety）、`REUSE.md`；逐文件 sha 与 owner zip（`7cea2a58…`）一致。
+- 闭包与分类：worker 与 vendor 目录加入 `scripts/release/openmaic_closure.py`，重生成 `RUNTIME-CLOSURE.json` → **694 文件 / 4,117,971 B / 12 workers / 9 vendor 目录**；两个新文件登记 `.worklab/project-validation.v1.yaml`。
+- 验证：`tests/integrations/test_openmaic_interactive_outline.py` **19 passed**（真实 Node；capture 摘要钉死 `7794e3fd…`/`666c7215…`；混合 interactive+slide 准入；修复/补 id/补 order；6 类拒绝；binding 篡改；非法请求不回显；runner 参数与错误 Node；模板被改 → `ADAPTER_IDENTITY_MISMATCH`）；`test_openmaic_runtime_closure.py`+`test_ci_classifier.py` 45 passed；`test_prepare_bundle_openmaic.py`+`test_release_sbom_coverage.py` 38 passed；`check_document_authority.py` 与 `check_repository_conventions.py` 通过。
+- CI（run `42249779637`，精确 SHA `51b10762`）：`gateplan` 24s、`lint` 57s、`workers-vnext` 1m15s、`rust-vnext` 20m36s、`test (3.12)` 21m53s、`a0-gates` 3s 全部 success。
+- 交付：PR **#307** 以 merge commit **`a2098dbd`** 合并。
+- 边界：仍是**未接 Core**的适配器；无模型调用、无场景、无持久化、无渲染授权；媒体片段默认不启用（声明“无 media capability 事实”而非能力不可用）。
+
+#### 2026-11-07 interactive 大纲的 Core 本地模型链（INT-MAIC-05 第五片）
+
+- 新增 `crates/archeaxis-domain/src/openmaic_interactive_outline.rs`：请求/拒绝、capture binding、模型回复、replay 准入（复用 `openmaic_outline::outlines_admitted`，改为 `pub(crate)`）、重试身份与单文档写入（namespace `archeaxis_openmaic_interactive_outline_generate_candidate`，`generation_route: local_model_interactive_outline`）。
+- Core 侧：`derived.rs` 新增 `OpenMaicScript::InteractiveOutline`（sibling `interactive-outline-worker.mjs`、stage `interactive_outline`）与自有回执校验（把 worker 的具名拒绝保留给调用方，而不是折成执行错误）；`courses.rs` 新增 handler，路由 `POST /api/v1/courses/openmaic/outlines/generate-interactive`（human only），capture → 既有 `course.openmaic.outline-model` → replay → 只写 `CANDIDATE`；`openmaic_slide::outline_metadata` 识别新 namespace，使 interactive 场景路由能直接读取其 widget 选择。
+- 契约：`AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md` 的 Courses 表新增该路由行，并把 `scenes/generate` 行补上 `interactive` 链与 `playable:false`；路线总数与 launch-shape 计数更新为 **158 pairs / 65 runtime pairs on 62 mounts**（此前 157/64/61）。
+- 验证：domain `openmaic_interactive_outline_persistence` **4 passed**（生成/重试/回执不符不写/schema 拒绝/读取 widget/场景链拒绝交互大纲）；gated `openmaic_interactive_outline_generate_runtime` **1 passed（21.5s，pinned Node + loopback stub，单一模型 lane 跑通：交互大纲 → 持久化 → 交互场景（widget prompt → 模型 HTML → normalize → 候选）→ 重启读回 0 次额外调用；machine 403、未准入回复 422 `UNSUPPORTED_OUTPUT`、模型 500 具名、无 Node 重开可读回）**；既有 `openmaic_outline_generate_runtime`/`openmaic_outline_runtime`/`openmaic_slide_generate_runtime` 均通过；契约维护测试 38 passed；`cargo fmt --check` 干净。
+- CI：首轮（`42254044847`、`42254802678`）在 lint 失败——新路由未登记契约（157 vs 158）与新增章节缺少 checker；已按既有 Courses 表归档并移除新章节，最终 run `42255357268` 全 required gates success；两次失败保留。
+- 交付：PR **#308** 以 merge commit **`ae034949`** 合并；本地与 `origin/main` 一致。
+- 边界：**未做 staged/安装态 interactive 复验**；真实模型质量未验（合成 loopback stub）；交互 HTML 不执行/不服务；未做 UI 接线；非 Owner 接受。
