@@ -4356,8 +4356,19 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 验证：`provider_teaching_feedback` **3 passed**；`deeptutor_teaching_feedback_runtime` **1 passed**（真实 Python donor worker + 真实上游规则 + Pydantic，覆盖 machine 403、重复不重跑、基准快照 409、非法 422、缺 worker 503、重启读回）；DeepTutor pytest **166 passed**；契约与 staging **16 passed**；route inventory **38 passed**；`cargo fmt --check` 干净；`local_verify.py --profile quick --preflight` 报 `LOCAL_PASS`；CI run `42135505933` 的 `gateplan`/`lint`/`test (3.12)`/`desktop-vnext`/`green-candidate-vnext`/`contracts-vnext`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success。
 - 边界：不写 activity/attempt/review/mastery，不做证据真实性认证；画像是"每次新增一个候选 Document"，没有跨版本的 in-place compare-and-swap；UI 未接线。
 
-#### 2026-11-06 学习旅程扩展（在途 PR #295）
+#### 2026-11-06 学习旅程扩展（PR #295）
 
-- 既有 `deeptutor_learning_journey` 只覆盖 import → activity/attempt → grading → 重启。本片把同一条旅程扩为：材料 → donor 出题候选（真实 prompt/replay worker + 合成 loopback 模型）→ 已导入的评分题目 → 作答与评分 → donor 教学反馈候选 → 重启读回。
+- 既有 `deeptutor_learning_journey` 只覆盖 import → activity/attempt → grading → 重启。PR **#295**（head `cb05d529`，merge **`ff015123`**）把同一条旅程扩为：材料 → donor 出题候选（真实 prompt/replay worker + 合成 loopback 模型）→ 已导入的评分题目 → 作答与评分 → donor 教学反馈候选 → 重启读回。
 - 重启后断言：模型调用次数仍为 1（不重跑），出题候选与反馈候选都读回同一 Document 且状态 `current`。
-- 本地：`deeptutor_learning_journey` **1 passed（0.95s）**；`cargo fmt --check` 干净。CI 与合并待完成。
+- 验证：`deeptutor_learning_journey` **1 passed（0.95s）**；`cargo fmt --check` 干净；CI run `42138405670` 的 `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success。
+- 边界：模型是本地合成 stub，不是真实模型证据；UI 未接线。
+
+#### 2026-11-06 INT-DT-02 第二片：AI 出题候选经人工接纳进入评分链
+
+- 现状：出题路由产出的是 `LOCAL_MODEL_UNVERIFIED` 候选 Document，命名空间与内容契约都与评分链要求的 `archeaxis_deeptutor_question` 不同；因此 AI 出的题**无法进入作答与评分**，闭环在出题与评分之间断开。
+- 新增 `POST /api/v1/learning/deeptutor/question-candidates/accept`（PR **#296**，head `64c444a1`，merge **`6f1158a1`**）：仅 `human` actor，请求体上限 65,536，`{create_request_id, candidate:{document_id,version,content_sha256}, correct_answer, explanation?, question_text?}`。
+  - 只接受 current 的 question-turn 候选；`correct_answer` 必须属于候选给出的 options，**模型自己的答案永不被复用为评分键**；接受记录单独放在 `archeaxis_deeptutor_question_acceptance` 命名空间（题目的 `Candidate` 契约 `deny_unknown_fields`，不能塞进同一对象）。
+  - 新 Document 用标准 `archeaxis.deeptutor-question/v1` 契约，创建后立即用评分链相同的 `read_view` 复核，因此练习视图不含答案与解释；`question_version` 由该路径计算，与 `practice-grade` 的绑定一致。
+  - 幂等：同一 `create_request_id` 返回 `201` + `duplicate:true` 与同一 Document；候选被改动或同 id 内容变化 → 409；键不在 options / 非 choice 候选 → 422；候选不存在 → 404。
+- 验证：`deeptutor_question_accept_runtime` **1 passed（0.65s，真实 question-turn worker + 合成 loopback 模型）**，覆盖 machine 403、键不在选项 422、重复接纳同一 Document，以及用被接纳题目跑通 activity→attempt→`practice-grade` 得到 `provider_correct:true`；契约路由清单 **38 passed**；`cargo fmt --check` 干净；CI run `42139271430` 的 `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success。
+- 边界：没有 UI 接线，也没有自动接纳；接纳是显式人类决定，不产生 provider 身份、掌握度或学习改善结论。

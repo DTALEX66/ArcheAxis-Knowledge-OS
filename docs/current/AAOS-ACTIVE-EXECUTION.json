@@ -386,6 +386,20 @@
           "what": "POST /api/v1/learning/deeptutor/teaching-feedback reads a caller-declared profile candidate, runs the pinned DeepTutor 1.7.1 teaching-rules worker exactly once and persists the resulting profile and guidance as one ordinary candidate Document; it calls no model and writes no activity, review or mastery.",
           "verified": "domain provider_teaching_feedback 3 passed; api deeptutor_teaching_feedback_runtime 1 passed with the real Python donor worker and its byte-preserved upstream modules covering machine 403, duplicate readback, stale snapshot 409, invalid 422 and named 503; staged worker and both upstream modules pinned by name/size/SHA with the optional route declared in routes, profile and launcher; DeepTutor pytest 166 passed; contract and staging 16 passed; route inventory 38 passed; cargo fmt --check clean; preflight LOCAL_PASS.",
           "not_included": "No UI wiring, no activity/attempt/review/mastery write and no evidence authentication; the profile has no cross-version compare-and-swap beyond the exact-snapshot admission, and every accepted turn is a new Document rather than an in-place profile update."
+        },
+        {
+          "item": "INT-DT-02",
+          "slice": "generated question admitted only by a human answer key",
+          "pr": 296,
+          "head_sha": "64c444a1",
+          "merge_commit": "6f1158a1",
+          "ci_run": 42139271430,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_RUST_VNEXT_A0_GATES",
+          "journey_pr": 295,
+          "journey_merge_commit": "ff015123",
+          "what": "POST /api/v1/learning/deeptutor/question-candidates/accept turns one current question-turn candidate into an ordinary graded-question Document only when a human supplies the answer key; the model's own answer is never reused, and the acceptance record lives in its own attributes namespace because the question contract rejects unknown fields.",
+          "verified": "api deeptutor_question_accept_runtime 1 passed with the real question-turn worker and a synthetic loopback lane, covering machine 403, key outside options 422, duplicate acceptance of the same Document and a full activity/attempt/practice-grade run over the accepted question with provider_correct true; contract route inventory 38 passed; cargo fmt --check clean; CI run 42139271430 gateplan/lint/rust-vnext/a0-gates success. The extended deeptutor_learning_journey (PR #295, merge ff015123) now runs material -> question candidate -> imported graded question -> attempt and grading -> teaching-feedback candidate -> restart replay in 0.95 s.",
+          "not_included": "No UI wiring and no automatic acceptance; acceptance is an explicit human decision and establishes no provider identity, mastery or learning improvement."
         }
       ],
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
