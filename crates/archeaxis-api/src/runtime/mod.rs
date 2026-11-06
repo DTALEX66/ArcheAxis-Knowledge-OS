@@ -536,6 +536,13 @@ pub fn router(executor: Executor) -> Router {
             post(courses::generate_openmaic_outline)
                 .layer(axum::extract::DefaultBodyLimit::max(262_144)),
         )
+        // Interactive-mode outline generation: the donor interactive-outlines
+        // prompt, the declared local model and the same bounded replay adapter.
+        .route(
+            "/api/v1/courses/openmaic/outlines/generate-interactive",
+            post(courses::generate_openmaic_interactive_outline)
+                .layer(axum::extract::DefaultBodyLimit::max(262_144)),
+        )
         // Read-only package projection over already persisted scene candidates.
         // It reports recorded playability and refuses or parses nothing.
         .route(
