@@ -1,11 +1,12 @@
 //! One human learning journey over the formal router and the real Core writer:
-//! synthetic material -> imported practice question -> activity and attempt ->
-//! fixed DeepTutor 1.7.1 grading -> read-only grade disposition -> restart replay.
+//! synthetic material -> donor question candidate -> imported practice question
+//! -> activity and attempt -> fixed DeepTutor 1.7.1 grading -> teaching feedback
+//! candidate -> read-only grade disposition -> restart replay.
 //!
 //! The material and the provider are synthetic; the Core writer, the private
-//! import worker and the fixed grader are real. No model or network provider is
-//! involved. Without a usable interpreter the test skips and says so: a skip is
-//! not evidence.
+//! import/feedback workers and the fixed grader are real. The one model call
+//! goes to a synthetic loopback lane, never a cloud provider. Without a usable
+//! interpreter the test skips and says so: a skip is not evidence.
 use archeaxis_application::executor::Executor;
 use archeaxis_domain::{
     document,
@@ -18,12 +19,77 @@ use axum::{
 };
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
-use std::path::PathBuf;
+use std::{
+    io::{BufRead, BufReader, Read, Write},
+    net::TcpListener,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+    thread,
+};
 use tower::ServiceExt;
 
 const IMPORT_ROUTE: &str = "/api/v1/learning/deeptutor/practice-import";
+const QUESTION_TURN_ROUTE: &str = "/api/v1/learning/deeptutor/question-turn";
+const FEEDBACK_ROUTE: &str = "/api/v1/learning/deeptutor/teaching-feedback";
 const GRADE_ROUTE: &str = "/api/v1/learning/deeptutor/practice-grade";
 const ACTIVITIES: &str = "/api/v1/learning/provider-activities";
+const MODEL_CAPABILITY: &str = "course.openmaic.outline-model";
+const SYNTHETIC_MODEL: &str = "synthetic-journey-model";
+
+/// One synthetic loopback model lane. Every request is counted, so a retry that
+/// silently re-ran the model is observable.
+fn start_stub(content: String) -> (u16, Arc<Mutex<usize>>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let calls = Arc::new(Mutex::new(0_usize));
+    let counted = calls.clone();
+    thread::spawn(move || {
+        for stream in listener.incoming() {
+            let Ok(mut stream) = stream else { break };
+            let mut reader = BufReader::new(stream.try_clone().unwrap());
+            let mut length = 0_usize;
+            loop {
+                let mut line = String::new();
+                if !matches!(reader.read_line(&mut line), Ok(_)) || line.trim().is_empty() {
+                    break;
+                }
+                if let Some(value) = line
+                    .to_ascii_lowercase()
+                    .strip_prefix("content-length:")
+                    .map(str::trim)
+                    .and_then(|value| value.parse::<usize>().ok())
+                {
+                    length = value.min(1 << 20);
+                }
+            }
+            let mut body = vec![0_u8; length];
+            let _ = reader.read_exact(&mut body);
+            *counted.lock().unwrap() += 1;
+            let payload = json!({"model":SYNTHETIC_MODEL,
+                "choices":[{"index":0,"finish_reason":"stop",
+                    "message":{"role":"assistant","content":content}}],
+                "usage":{"prompt_tokens":5,"completion_tokens":7}})
+            .to_string();
+            let response = format!(
+                "HTTP/1.1 200 synthetic\r\nContent-Type: application/json\r\n\
+                 Content-Length: {}\r\nConnection: close\r\n\r\n{}",
+                payload.len(),
+                payload
+            );
+            let _ = stream.write_all(response.as_bytes());
+            let _ = stream.flush();
+        }
+    });
+    (port, calls)
+}
+
+/// The donor question-turn reply shape the replay stage admits.
+fn model_content() -> String {
+    json!({"question_type":"choice","question":"What is the synthetic sum?",
+        "options":{"A":"3","B":"4","C":"5","D":"6"},
+        "correct_answer":"B","explanation":"Synthetic explanation."})
+    .to_string()
+}
 
 fn repo() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -99,6 +165,29 @@ async fn human_journey_imports_answers_grades_and_replays_after_restart() {
         .canonicalize()
         .unwrap();
     assert!(practice_worker.is_file());
+    let question_turn_worker = practice_worker
+        .with_file_name("question_turn_worker.py")
+        .canonicalize()
+        .unwrap();
+    let feedback_worker = practice_worker
+        .with_file_name("teaching_feedback_worker.py")
+        .canonicalize()
+        .unwrap();
+    let model_worker = repo()
+        .join("services/python-workers/openmaic/worker_outline_local_model.py")
+        .canonicalize()
+        .unwrap();
+    let (port, calls) = start_stub(model_content());
+    // SAFETY: this binary runs one test; the variables are set once, before any
+    // worker is spawned, so no concurrent reader can observe a partial update.
+    unsafe {
+        std::env::set_var(
+            "ARCHEAXIS_MACHINE_ENDPOINT",
+            format!("http://127.0.0.1:{port}/v1"),
+        );
+        std::env::set_var("ARCHEAXIS_MACHINE_MODEL", SYNTHETIC_MODEL);
+        std::env::set_var("ARCHEAXIS_MACHINE_PROTOCOL", "openai");
+    }
 
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("workspace.sqlite");
@@ -129,7 +218,12 @@ async fn human_journey_imports_answers_grades_and_replays_after_restart() {
         &staging,
         &python,
         &default_worker,
-        &[("deeptutor.practice.import", practice_worker.clone())],
+        &[
+            ("deeptutor.practice.import", practice_worker.clone()),
+            ("deeptutor.question.turn", question_turn_worker.clone()),
+            ("deeptutor.teaching.feedback", feedback_worker.clone()),
+            (MODEL_CAPABILITY, model_worker.clone()),
+        ],
     )
     .await
     .unwrap();
@@ -170,6 +264,24 @@ async fn human_journey_imports_answers_grades_and_replays_after_restart() {
         .await
         .unwrap()
         .unwrap();
+
+    // 2b. The donor question step turns the same material into one candidate
+    //     through the real prompt worker, the synthetic loopback lane and the
+    //     real replay. It is a candidate for human review, not a graded item.
+    let turn = json!({"create_request_id":"journey_turn","material":snap(&material),
+        "requirement":"One synthetic arithmetic choice question","model":null});
+    let (status, candidate) = call(&router, "POST", QUESTION_TURN_ROUTE, &turn, "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{candidate}");
+    assert_eq!(candidate["model_call"], "INVOKED");
+    assert_eq!(candidate["response_origin"], "LOCAL_MODEL_UNVERIFIED");
+    assert_eq!(candidate["answer_secrecy"], "not_established");
+    assert_eq!(candidate["human_review_required"], true);
+    assert_eq!(
+        candidate["question"]["question"],
+        "What is the synthetic sum?"
+    );
+    assert_eq!(candidate["model"], SYNTHETIC_MODEL);
+    assert_eq!(*calls.lock().unwrap(), 1, "one model call");
 
     // 3. Human activity and attempt bound to that question version.
     let activity = json!({"activity_id":"journey_activity","material":snap(&material),
@@ -222,6 +334,36 @@ async fn human_journey_imports_answers_grades_and_replays_after_restart() {
             > 0
     );
 
+    // 5b. The human reports how the answer went and the donor teaching rules
+    //     persist one reviewable profile candidate. This calls no model and
+    //     writes no review or mastery.
+    let feedback = json!({"create_request_id":"journey_feedback",
+        "session_id":"journey_session","turn_id":"journey_turn_1","profile":null,
+        "current_message":"I prefer worked examples before theory, and short ones.",
+        "objective_ids":["journey_objective"],"focus_objective_id":"journey_objective",
+        "updates":[{"kind":"observation","op":"upsert","key":"journey_objective",
+            "text":"Prefers worked examples","knowledge_point_id":"journey_objective",
+            "basis":"learner_report","evidence":"worked examples"}],
+        "include_history":false});
+    let (status, taught) = call(&router, "POST", FEEDBACK_ROUTE, &feedback, "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{taught}");
+    assert_eq!(taught["model_call"], "NOT_INVOKED");
+    assert_eq!(taught["response_origin"], "DONOR_RULES_UNVERIFIED");
+    assert_eq!(taught["status"], "UPDATED");
+    assert_eq!(taught["independent_mastery"], "not_established");
+    assert_eq!(
+        taught["result_profile"]["teaching_observations"]["journey_objective"]["text"],
+        "Prefers worked examples"
+    );
+    assert_eq!(
+        taught["guidance"]["teaching_observations"]["journey_objective"]["text"],
+        "Prefers worked examples"
+    );
+    let taught_id = taught["document"]["document_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+
     // 6. Restart over the same database: the disposition and the receipt replay,
     //    and no second grader run happens.
     drop(router);
@@ -253,4 +395,28 @@ async fn human_journey_imports_answers_grades_and_replays_after_restart() {
     assert_eq!(status, StatusCode::OK, "{replay}");
     assert_eq!(replay["duplicate"], true);
     assert_eq!(replay["provider_correct"], json!(true));
+
+    // The question candidate and the teaching profile replay from storage too:
+    // neither the model nor the donor rules run a second time.
+    let (status, turn_replay) = call(
+        &reopened_router,
+        "POST",
+        QUESTION_TURN_ROUTE,
+        &turn,
+        "human",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{turn_replay}");
+    assert_eq!(turn_replay["worker_invoked"], false);
+    assert_eq!(
+        *calls.lock().unwrap(),
+        1,
+        "a restart never re-runs the model"
+    );
+    let (status, teach_replay) =
+        call(&reopened_router, "POST", FEEDBACK_ROUTE, &feedback, "human").await;
+    assert_eq!(status, StatusCode::OK, "{teach_replay}");
+    assert_eq!(teach_replay["worker_invoked"], false);
+    assert_eq!(teach_replay["document"]["document_id"], taught_id.as_str());
+    assert_eq!(teach_replay["candidate_document_status"], "current");
 }
