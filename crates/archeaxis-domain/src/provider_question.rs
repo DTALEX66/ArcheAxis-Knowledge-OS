@@ -715,6 +715,17 @@ fn accept_receipt(conn: &Connection, snapshot: &Snapshot, document: Value) -> Va
         "active_content_executed":false,"rendering_authorized":false})
 }
 
+/// The model's own explanation text, read from the candidate receipt. The
+/// candidate contract keeps only the visible question, so the explanation has
+/// to come from the stored model reply rather than from the admitted fields.
+fn staged_model_explanation(staged: &Value) -> Option<String> {
+    let content = staged["model_reply"]["content"].as_str()?;
+    let parsed: Value = serde_json::from_str(content).ok()?;
+    let text = parsed["explanation"].as_str()?;
+    (!text.trim().is_empty() && text.len() <= MAX_ACCEPT_TEXT && !text.contains('\0'))
+        .then(|| text.to_owned())
+}
+
 /// Turn one generated candidate into an ordinary graded-question Document only
 /// when a human supplies the answer key. Repeated requests read the accepted
 /// Document; different content under the same ID is a conflict.
@@ -777,12 +788,19 @@ pub fn accept_question_candidate(
         .as_deref()
         .or_else(|| question["question"].as_str())
         .ok_or(Error::Invalid("candidate question text missing"))?;
-    let explanation = request.explanation.clone().unwrap_or_else(|| {
-        question["explanation"]
-            .as_str()
-            .unwrap_or_default()
-            .to_owned()
-    });
+    let (explanation, explanation_source) = match request.explanation.clone() {
+        Some(text) => (text, "human_supplied"),
+        None => match staged_model_explanation(staged) {
+            Some(text) => (text, "model_draft_reviewed"),
+            None => (
+                question["explanation"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_owned(),
+                "absent",
+            ),
+        },
+    };
     let candidate = json!({"schema":SCHEMA,"source_material":material,
         "origin":"user_import_unverified",
         "question":{"question_id":question_id,"question":body,"question_type":question_type,
@@ -796,7 +814,8 @@ pub fn accept_question_candidate(
             "model_reply_sha256":staged["model_reply_sha256"],
             "capture_binding_sha256":staged["capture_binding"]["prompt_sha256"]},
         "answer_key_source":"human_declared",
-        "model_answer_used_as_key":false});
+        "model_answer_used_as_key":false,
+        "explanation_source":explanation_source});
     let editor = json!({"type":"doc","attrs":{(NAMESPACE):candidate,
         (ACCEPTANCE_NAMESPACE):acceptance},
         "content":[{"type":"paragraph","content":[{"type":"text","text":body}]}]});

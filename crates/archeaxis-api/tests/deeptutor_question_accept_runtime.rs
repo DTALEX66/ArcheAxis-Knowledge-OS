@@ -254,10 +254,15 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
     );
     let saved = &accepted["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question"];
     assert_eq!(saved["question"]["correct_answer"], "B");
+    assert_eq!(
+        saved["question"]["explanation"], "Synthetic explanation.",
+        "the reviewed model draft supplies the explanation when the caller does not"
+    );
     let acceptance =
         &accepted["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question_acceptance"];
     assert_eq!(acceptance["answer_key_source"], "human_declared");
     assert_eq!(acceptance["model_answer_used_as_key"], false);
+    assert_eq!(acceptance["explanation_source"], "model_draft_reviewed");
     assert!(
         !accepted["question_view"]
             .to_string()
