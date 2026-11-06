@@ -145,6 +145,9 @@ risk_classes:
       - services/learning-providers/deeptutor/teaching_feedback_worker.py
       - "services/learning-providers/deeptutor/upstream/**"
       - "services/learning-providers/openmaic/upstream/**"
+      # The generated staging closure: which adapters and vendor directories
+      # travel beside the scene builder in an installation.
+      - services/learning-providers/openmaic/RUNTIME-CLOSURE.json
       # Exact OpenMAIC worker and runner entry points.
       - services/learning-providers/openmaic/interactive-html-rewrite-probe.mjs
       - services/learning-providers/openmaic/interactive-html-rewrite-worker.mjs

@@ -53,6 +53,13 @@ assert _worker_routes_spec and _worker_routes_spec.loader
 worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
 _worker_routes_spec.loader.exec_module(worker_routes)
 
+_openmaic_closure_spec = importlib.util.spec_from_file_location(
+    "stage_openmaic_closure", Path(__file__).with_name("openmaic_closure.py")
+)
+assert _openmaic_closure_spec and _openmaic_closure_spec.loader
+openmaic_closure = importlib.util.module_from_spec(_openmaic_closure_spec)
+_openmaic_closure_spec.loader.exec_module(openmaic_closure)
+
 PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
@@ -114,16 +121,24 @@ PRACTICE_FILES = {
 }
 MAX_WORKER_ROUTES_BYTES = 256 * 1024
 
-# OpenMAIC is a separate Node process, never a Python worker route. The five
-# repository-owned files are the same fixed generation subset pinned by Core.
+# OpenMAIC is a separate Node process, never a Python worker route. The staged
+# closure is the scene builder plus every adapter Core can resolve as its fixed
+# sibling, generated from `openmaic_closure.py` rather than written by hand.
 OPENMAIC_DIRECTORY = "workers/openmaic"
-OPENMAIC_FILES = {
+# The scene builder's own five files stay hard-coded so a closure edit cannot
+# quietly drop them; the rest of the selected closure comes from the generated
+# manifest, which is rechecked byte-for-byte like every other staged input.
+OPENMAIC_CORE_FILES = {
     "scene-build-worker.mjs": {"bytes": 7315, "sha256": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9"},
     "vendor/generation-0.3.28/scene-builder.ts": {"bytes": 3082, "sha256": "e550ed528f9a017ea0fa1f9cc4a01f7eb22d541d5ada067967d3434393d1bf0a"},
     "vendor/generation-0.3.28/nanoid.mjs": {"bytes": 389, "sha256": "d5d678dfcecc9a4c0f4dae6555c30b4d0ef41a87b00d4d16d744f31ddae6c16e"},
     "vendor/generation-0.3.28/LICENSE": {"bytes": 1065, "sha256": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"},
     "vendor/generation-0.3.28/UPSTREAM.md": {"bytes": 1134, "sha256": "83962cee94daba3596fba378867756981c87a8bd7839ced586510643c113d579"},
 }
+OPENMAIC_FILES = openmaic_closure.load()
+for relative, identity in OPENMAIC_CORE_FILES.items():
+    if OPENMAIC_FILES.get(relative) != identity:
+        raise ValueError(f"OpenMAIC runtime closure dropped a core file: {relative}")
 OPENMAIC_NODE_MAX_BYTES = 512 * 1024 * 1024
 OPENMAIC_LICENSE_MAX_BYTES = 1_000_000
 
@@ -325,7 +340,7 @@ def verify_openmaic_plan(plan: dict, root: Path | None = None) -> None:
 
 
 def stage_openmaic_provider(root: Path, plan: dict) -> None:
-    """Copy only the seven planned files into a new private provider folder."""
+    """Copy the planned worker closure into a new private provider folder."""
     verify_openmaic_plan(plan)
     target_root = growth.safe(root / OPENMAIC_DIRECTORY)
     filesystem_path(target_root).mkdir(parents=True, exist_ok=False)
