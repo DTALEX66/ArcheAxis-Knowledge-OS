@@ -1,0 +1,16 @@
+{
+ "license": "MIT",
+ "originals": {
+  "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+  "README.md": "39c85ecccdc6d3a534f3d955ea4b1668fcd2ff94a4cade8fb1365ece7f2ff31b",
+  "snippets/image-instructions.md": "8acf722ec46e57739a8d29f485e542e178295a0ffd8449c38555de7e0469068e",
+  "snippets/media-safety-guidelines.md": "3affbe74b1621faa3fd4cec7587063fcbca374b07f13e91129c74cac8d4c611c",
+  "snippets/video-instructions.md": "7e8f1ce6b4b0d680e65ca4a784544e6bdcdd1a659a72466a38c13f2a695e5b79",
+  "templates/interactive-outlines/system.md": "ca99b9dd10282794126f95dd0e3735a0b13f35a6afdb8cd9e61517cc44c7d938",
+  "templates/interactive-outlines/user.md": "3970a0539adffe8e7d78407bc6b67798aa20394452d5d4703b0f0e3723edfa07"
+ },
+ "snippets_from": "OpenMAIC-1.3.0/packages/@openmaic/generation/snippets/",
+ "source_archive": "OpenMAIC-1.3.0.zip",
+ "source_archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+ "source_prefix": "OpenMAIC-1.3.0/lib/prompts/"
+}

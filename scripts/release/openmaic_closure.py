@@ -31,6 +31,7 @@ WORKERS = (
     "slide-actions-replay-worker.mjs",
     "interactive-prompt-worker.mjs",
     "interactive-normalize-worker.mjs",
+    "interactive-outline-worker.mjs",
 )
 
 # The exact donor and locked-dependency closures those adapters import. Only
@@ -43,6 +44,7 @@ VENDORS = (
     "vendor/dsl-0.12.0-actions",
     "vendor/scene-content-0.3.28-original",
     "vendor/generation-0.3.28-slide-actions",
+    "vendor/prompts-1.3.0-interactive-outline",
     "vendor/npm",
 )
 
