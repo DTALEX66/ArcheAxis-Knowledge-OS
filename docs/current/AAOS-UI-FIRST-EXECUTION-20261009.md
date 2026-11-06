@@ -4460,3 +4460,15 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI（run `42202923614`）：首次 `test (3.12)` 在 “Install and verify local OCR engine” 步骤被作业上限取消（与 PR #299 相同的 apt 字体下载卡住，非本次代码失败）；`gh run rerun --failed` 后同一 run 的 required gates 全部 success：`gateplan`/`lint`/`test (3.12)`（22m42s）/`rust-vnext`/`workers-vnext`/`a0-gates`。首次取消保留。
 - 交付：PR **#304** 以 merge commit **`b108dbe9`** 合并。
 - 边界：本片只是**未注册**的 donor 提示词适配器——未接 Core、未进 `RUNTIME-CLOSURE.json`/staging/安装包；仍是“生成提示词”而非交互场景产出。后续需要 normalize（donor post-processor + script validator + URL 改写）、Core 路由与 closure 注册，才能形成安装态 interactive 场景候选。
+
+#### 2026-11-06 OpenMAIC interactive HTML normalize 适配器（INT-MAIC-05 第二片）
+
+- 新增 `services/learning-providers/openmaic/interactive-normalize-worker.mjs` 与 `interactive_normalize_runner.py`：从一次模型回复中按 donor `extractHtml` 的**三种策略**（完整文档 → html/DOCTYPE 围栏块 → 修剪后的文档开头）取出一个 HTML 文档，再用 donor `findInteractiveScriptSyntaxFailure` 编译检查经典内联脚本（**只编译、不执行**；失败返回 `INVALID_MODEL_HTML` 与 `script_index`，不回显脚本），最后调用 donor `postProcessInteractiveHtml` 完成库 URL 改写与 KaTeX 注入（`data-openmaic-katex` 标记）。
+- 身份：Node 24.21.0 精确字节；donor 固定文件（post-processor `aeadbe37…`、script-validator `351d9f65…`、library-mapper `fe4637cc…`、libraries `1c9f212d…`、package.json、LICENSE、`ORIGINALS.json` `5679a801…`）；npm 依赖按既有 `SOURCE.json` 逐成员校验（parse5 8.0.1、entities 8.0.0、es-module-lexer 2.0.0、postcss 8.5.23、postcss-value-parser 4.2.0、nanoid 3.3.19、picocolors 1.1.1、source-map-js 1.2.1）；导入白名单为 donor 四个文件与上述包成员，`node:vm` 仅供编译。环境覆盖 `NODE_OPTIONS`/`NODE_PATH`/`INTERACTIVE_ASSET_BASE_URL` 一律拒绝。
+- 上限（比老的 8 KB rewrite 候选更宽，单独记录）：回复 ≤128 KB、抽取 HTML ≤64 KB、候选输出 ≤96 KB、stdin/stdout ≤256 KB。
+- runner：owned-child 模式（单实例并发、取消、超时、有界管道、清理未确认 fail-closed），校验 `input_sha256`/`output_sha256`/字节数/`extraction_strategy`/`katex_injected`，并把回执 `request_id`+`widget_type` 绑定到请求。
+- 测试：`tests/integrations/test_openmaic_interactive_normalize.py` **16 passed**（真实 Node）。数学回复输出摘要钉死 `20c7a9ea…`/2,647 B（输入 `c520b2a2…`、抽取 166 B）；覆盖三种抽取策略、不可编译脚本拒绝、纯文本拒绝、未知 widget、`request_id`/`widget_type`/摘要篡改、缺失或篡改 donor、环境覆盖、替换 Node 不启动、超长回复不启动、取消与忙碌。开发期一次本地失败：runner 的成功字段集合误含 `error_code`，使合法回执被判 `INVALID_WORKER_REPLY`，已修正。
+- 分类：两个新文件登记到 `.worklab/project-validation.v1.yaml` 的 `learning-provider-runtime`。
+- CI（run `42214246417`）：`gateplan`/`lint`/`test (3.12)`（21m42s）/`rust-vnext`（17m37s）/`workers-vnext`/`a0-gates` 全部 success，本次未被作业上限取消。
+- 交付：PR **#305** 以 merge commit **`bebe2b7f`** 合并。
+- 边界：仍是**未注册**适配器；只产出候选 HTML 字节，**不渲染、不导航、不联网、不持久化、无 Core 授权**，外链仅做 donor 的有限改写且 `external_references: NOT_ENUMERATED`；KaTeX 注入使用库 URL 常量，不证明资源已安装或可离线渲染。

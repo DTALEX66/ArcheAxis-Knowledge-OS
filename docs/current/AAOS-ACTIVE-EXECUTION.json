@@ -508,6 +508,18 @@
           "what": "A private adapter renders the original generation prompts for simulation, diagram, code, game and visualization3d outlines with the donor's own widget variable rules, bounded widget_outline fields, Node/donor identity checks, template-read and import allowlists. procedural-skill stays refused because the donor needs an explicit allow flag. The owned-child runner binds the reply widget type to the request.",
           "verified": "tests/integrations/test_openmaic_interactive_prompt.py 68 passed with the pinned Node; donor originals plus classifier 113 passed; repository conventions and document authority passed. The first CI attempt cancelled test (3.12) inside the OCR engine install step at the job cap (the same apt download stall as PR #299); --failed rerun made every required gate succeed and the cancellation is retained.",
           "not_included": "The adapter is unregistered: no Core route, no model call, no HTML, no rendering, no persistence, not in RUNTIME-CLOSURE.json and not staged or installed. Normalize and Core wiring remain."
+        },
+        {
+          "item": "INT-MAIC-05",
+          "slice": "interactive HTML normalize adapter",
+          "pr": 305,
+          "head_sha": "82650f65",
+          "merge_commit": "bebe2b7f",
+          "ci_run": 42214246417,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_RUST_A0",
+          "what": "A private adapter extracts one document from a model reply with the donor's three extraction strategies, compiles classic inline scripts without running them, refuses uncompilable ones with a script index, and applies the donor post-processor (library URL rewrite and KaTeX injection). Node, donor sources and npm package bytes are identity-pinned; the owned-child runner binds request and reply identities and keeps one call at a time.",
+          "verified": "tests/integrations/test_openmaic_interactive_normalize.py 16 passed with the pinned Node and an output digest pinned to the donor post-processor; classifier plus the suite 57 passed; repository conventions and document authority passed. One development failure (the runner success shape wrongly included error_code) was fixed.",
+          "not_included": "Still unregistered: no Core route, no renderer or navigation, no persistence, no network, external references remain NOT_ENUMERATED, and KaTeX asset availability is not verified."
         }
       ],
       "openmaic_install_surface_20261106": {
@@ -571,7 +583,7 @@
           "probe_changes": "scripts/probes/aaos_openmaic_generation_staged_loop.py gained --installed-runtime (runtime_kind, evidence level and boundary text) and --data-root (workspace outside an installed package), with runtime_kind and data_root in the receipt.",
           "not_included": "No installed Tauri/WebView2 WebDriver UI journey, no same-version upgrade or reinstall lifecycle assertion, no signing, no release publication and no Owner acceptance."
         },
-        "next": "Interactive/PBL is the open shape beyond slide and quiz. The first INT-MAIC-05 slice is an unregistered donor prompt adapter for simulation, diagram, code, game and visualization3d (PR #304); next are its normalize stage (donor post-processor, script validator and URL rewrite), the Core scene route, and closure/installed registration. INT-MAIC-01/02 consumer wiring and the installed renderer lifecycle remain. The default-directory leftovers and the installer /D quoting limitation stay recorded for a later packaging decision.",
+        "next": "Two unregistered INT-MAIC-05 adapters exist: the donor prompt renderer (PR #304) and the HTML normalizer (PR #305). Next is the Core interactive scene route with persistence, plus adding both adapters to RUNTIME-CLOSURE.json and re-running staging and the installed probe. INT-MAIC-01/02 consumer wiring and the installed renderer lifecycle remain. The default-directory leftovers and the installer /D quoting limitation stay recorded for a later packaging decision.",
         "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; installed receipts openmaic-installed.json and openmaic-default-install.json; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302."
       },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
