@@ -21,6 +21,7 @@ mod conversation;
 mod courses;
 mod deeptutor_import;
 mod deeptutor_question_turn;
+mod deeptutor_teaching_feedback;
 mod execution_claim;
 mod execution_status_projection;
 mod job_journal;
@@ -474,6 +475,14 @@ pub fn router(executor: Executor) -> Router {
             "/api/v1/learning/deeptutor/question-turn",
             post(deeptutor_question_turn::question_turn)
                 .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
+        // DeepTutor's teaching-feedback step: run the pinned donor rules once
+        // over a caller-declared profile snapshot and persist one inert
+        // candidate Document. No model, activity, review or mastery is written.
+        .route(
+            "/api/v1/learning/deeptutor/teaching-feedback",
+            post(deeptutor_teaching_feedback::teaching_feedback)
+                .layer(axum::extract::DefaultBodyLimit::max(131_072)),
         )
         // Formal DeepTutor grading admission. Core reserves the exact client event and attempt
         // together, then runs the fixed private grader through the owned worker path, so a caller
