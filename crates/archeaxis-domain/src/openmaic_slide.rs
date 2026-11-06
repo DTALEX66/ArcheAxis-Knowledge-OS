@@ -147,9 +147,16 @@ pub fn openmaic_slide_request_sha256(request: &Value, selection: &Value) -> Stri
 }
 
 /// The outline metadata either persisted outline route writes, if this Document
-/// carries one. Both namespaces are read; nothing is re-generated.
+/// carries one. All three namespaces are read; nothing is re-generated.
 fn outline_metadata(document: &Value) -> Option<&Value> {
     let attrs = &document["editor_json"]["attrs"];
+    let interactive =
+        &attrs[crate::openmaic_interactive_outline::OPENMAIC_INTERACTIVE_OUTLINE_NAMESPACE];
+    if interactive["schema"].as_str()
+        == Some(crate::openmaic_interactive_outline::OPENMAIC_INTERACTIVE_OUTLINE_DOCUMENT_SCHEMA)
+    {
+        return Some(interactive);
+    }
     let generated = &attrs[openmaic_outline::OPENMAIC_OUTLINE_GENERATE_NAMESPACE];
     if generated["schema"].as_str()
         == Some(openmaic_outline::OPENMAIC_OUTLINE_GENERATE_DOCUMENT_SCHEMA)

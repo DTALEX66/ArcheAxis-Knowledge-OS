@@ -3,6 +3,7 @@ use super::*;
 use archeaxis_application::executor::{OpenMaicInteractiveStage, OpenMaicSlideStage};
 use archeaxis_domain::course::{self, CourseBinding};
 use archeaxis_domain::openmaic_interactive;
+use archeaxis_domain::openmaic_interactive_outline;
 use archeaxis_domain::openmaic_outline;
 use archeaxis_domain::openmaic_quiz;
 use archeaxis_domain::openmaic_quiz_actions;
@@ -511,6 +512,35 @@ fn openmaic_outline_generate_response(receipt: &Value, worker_invoked: bool) -> 
     .into_response()
 }
 
+fn openmaic_interactive_outline_generate_request(body: &OpenMaicOutlineGenerateBody) -> Value {
+    json!({"schema":openmaic_interactive_outline::OPENMAIC_INTERACTIVE_OUTLINE_REQUEST_SCHEMA,
+        "create_request_id":&body.create_request_id,
+        "requirement":&body.requirement,
+        "source_text":&body.source_text,
+        "model":body.model.clone().map(Value::String).unwrap_or(Value::Null)})
+}
+
+fn openmaic_interactive_outline_generate_response(
+    receipt: &Value,
+    worker_invoked: bool,
+) -> Response {
+    Json(
+        json!({"schema":"archeaxis.openmaic-interactive-outline-generate-persistence/v1",
+        "worker_invoked":worker_invoked,"document":receipt["document"],
+        "candidate_document_status":receipt["candidate_document_status"],
+        "generation_route":openmaic_interactive_outline::OPENMAIC_INTERACTIVE_OUTLINE_GENERATION_ROUTE,
+        "model_call":"INVOKED",
+        "model":receipt["model"],"model_observed":receipt["model_observed"],
+        "model_reply_sha256":receipt["model_reply_sha256"],
+        "prompt_binding":receipt["prompt_binding"],
+        "response_origin":"LOCAL_MODEL_UNVERIFIED",
+        "human_review_required":true,"active_content_executed":false,
+        "rendering_authorized":false,
+        "outline_count":receipt["outline_count"],"outlines":receipt["outlines"]}),
+    )
+    .into_response()
+}
+
 /// A stage failure named by the stage that produced it and by the worker's own
 /// status/reason, never rewritten into a generic message.
 fn openmaic_stage_failure(
@@ -770,6 +800,261 @@ pub(super) async fn generate_openmaic_outline(
         Err(_) => error(
             StatusCode::SERVICE_UNAVAILABLE,
             "OpenMAIC outline capability unavailable or withdrawn",
+        ),
+    }
+}
+
+/// Local-model generation of interactive outlines: capture the donor
+/// `interactive-outlines` prompt, call the declared local model, replay the reply
+/// through the same adapter and persist one inert outline candidate Document.
+/// Only a replayed `CANDIDATE` is stored; no failure writes a partial candidate.
+pub(super) async fn generate_openmaic_interactive_outline(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<OpenMaicOutlineGenerateBody>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return error(
+            StatusCode::FORBIDDEN,
+            "OpenMAIC interactive outline generation requires a human actor",
+        );
+    }
+    let request = openmaic_interactive_outline_generate_request(&body);
+    let create_request_id = body.create_request_id;
+    if let Some(refusal) =
+        openmaic_interactive_outline::openmaic_interactive_outline_refusal(&request)
+    {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"code":"AAK-VAL-001",
+            "message":"this interactive outline route cannot accept the declared request",
+            "retryable":false,"refusal":refusal,
+            "supported_request_schema":openmaic_interactive_outline::OPENMAIC_INTERACTIVE_OUTLINE_REQUEST_SCHEMA})),
+        )
+            .into_response();
+    }
+    // Capture the admission generation before the potentially queued Core
+    // preparation, exactly like the standard outline route.
+    let admission = runtime.executor.openmaic_admission_generation().await;
+    let lookup_id = create_request_id.clone();
+    let lookup_request = request.clone();
+    let prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            openmaic_interactive_outline::prepare_openmaic_interactive_outline(
+                conn,
+                &lookup_id,
+                &lookup_request,
+            )
+        })
+        .await
+    {
+        Ok(Ok(prepared)) => prepared,
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
+            return error(
+                StatusCode::CONFLICT,
+                "OpenMAIC interactive outline request or candidate identity changed",
+            );
+        }
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC interactive outline preparation failed",
+            );
+        }
+    };
+    let pending = match prepared {
+        openmaic_interactive_outline::OpenMaicInteractiveOutlinePreparation::Existing(receipt) => {
+            // A repeated request reads the stored candidate; no prompt, model or
+            // worker runs again.
+            return openmaic_interactive_outline_generate_response(&receipt, false);
+        }
+        openmaic_interactive_outline::OpenMaicInteractiveOutlinePreparation::Pending(pending) => {
+            pending
+        }
+    };
+    if runtime
+        .executor
+        .openmaic_interactive_outline_script()
+        .is_none()
+    {
+        return openmaic_stage_failure(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "interactive_outline",
+            "OpenMAIC interactive outline provider unavailable or disabled",
+            Value::Null,
+        );
+    }
+    let generation = match admission {
+        Ok(value) => value,
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC interactive outline provider unavailable or disabled",
+            );
+        }
+    };
+    // Stage 1: render the donor interactive-outlines prompt. It carries no reply.
+    let capture = match runtime
+        .executor
+        .openmaic_interactive_outline_with_generation(
+            generation,
+            openmaic_interactive_outline::openmaic_interactive_outline_capture_request(&request),
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "interactive_outline",
+                "OpenMAIC interactive outline worker unavailable at the capture stage",
+                Value::Null,
+            );
+        }
+    };
+    let capture_outcome = openmaic_stage_outcome(&capture);
+    if capture["exit_code"] != 0 || capture["document"]["status"] != "PROMPT_CAPTURED" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "interactive_outline",
+            "OpenMAIC interactive outline capture did not produce a prompt binding",
+            capture_outcome,
+        );
+    }
+    let binding = match openmaic_interactive_outline::openmaic_interactive_outline_capture_binding(
+        &create_request_id,
+        &capture["document"],
+    ) {
+        Ok(binding) => binding,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "interactive_outline",
+                "OpenMAIC interactive outline capture receipt is inconsistent",
+                capture_outcome,
+            );
+        }
+    };
+    // Stage 2: the declared local model, through the same capability as the
+    // standard outline route. An unavailable capability names itself.
+    let model_request = openmaic_interactive_outline::openmaic_interactive_outline_model_request(
+        &binding,
+        &request["model"],
+    );
+    let model = match runtime
+        .executor
+        .derived_json(
+            openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
+            model_request,
+            Duration::from_secs(120),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(reason) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "local_model",
+                &format!("local model capability unavailable: {reason}"),
+                Value::Null,
+            );
+        }
+    };
+    let model_outcome = openmaic_stage_outcome(&model);
+    if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
+        let named = model["document"]["status"].as_str().unwrap_or("");
+        let status = match named {
+            "INVALID_MODEL_OUTPUT" | "MODEL_REJECTED" => StatusCode::UNPROCESSABLE_ENTITY,
+            "MODEL_TIMEOUT" | "NO_FINAL_ANSWER" => StatusCode::GATEWAY_TIMEOUT,
+            _ => StatusCode::SERVICE_UNAVAILABLE,
+        };
+        return openmaic_stage_failure(
+            status,
+            "local_model",
+            "the local model did not produce a usable interactive outline reply",
+            model_outcome,
+        );
+    }
+    let Some(content) = openmaic_interactive_outline::openmaic_interactive_outline_model_content(
+        &model["document"],
+    )
+    .map(str::to_owned) else {
+        return openmaic_stage_failure(
+            StatusCode::BAD_GATEWAY,
+            "local_model",
+            "local model receipt is inconsistent",
+            model_outcome,
+        );
+    };
+    // Stage 3: replay the model text through the real interactive-outline worker.
+    let replay_request = openmaic_interactive_outline::openmaic_interactive_outline_replay_request(
+        &request, &binding, &content,
+    );
+    let replay = match runtime
+        .executor
+        .openmaic_interactive_outline_with_generation(
+            generation,
+            replay_request,
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "interactive_outline",
+                "OpenMAIC interactive outline worker unavailable at the replay stage",
+                Value::Null,
+            );
+        }
+    };
+    let replay_outcome = openmaic_stage_outcome(&replay);
+    if replay["exit_code"] != 0 || replay["document"]["status"] != "CANDIDATE" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "interactive_outline",
+            "OpenMAIC interactive outline replay did not produce a candidate",
+            replay_outcome,
+        );
+    }
+    let stage = openmaic_interactive_outline::OpenMaicInteractiveOutlineGeneration {
+        binding,
+        model_reply: model["document"].clone(),
+        replay_document: replay["document"].clone(),
+    };
+    let committed = runtime
+        .executor
+        .commit_openmaic_if_current(generation, move |conn| {
+            openmaic_interactive_outline::commit_openmaic_interactive_outline_generation(
+                conn,
+                &create_request_id,
+                &request,
+                &pending,
+                &stage,
+            )
+        })
+        .await;
+    match committed {
+        Ok(Ok(receipt)) => openmaic_interactive_outline_generate_response(&receipt, true),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC interactive outline request, capability or workspace changed",
+        ),
+        Ok(Err(_)) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC interactive outline candidate persistence failed",
+        ),
+        Err(_) => error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC interactive outline capability unavailable or withdrawn",
         ),
     }
 }

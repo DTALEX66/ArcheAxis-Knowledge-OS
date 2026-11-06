@@ -213,6 +213,7 @@ enum OpenMaicScript {
     SlideActions,
     InteractivePrompt,
     InteractiveNormalize,
+    InteractiveOutline,
 }
 
 impl OpenMaicScript {
@@ -229,6 +230,7 @@ impl OpenMaicScript {
             Self::SlideActions => Some("slide-actions-replay-worker.mjs"),
             Self::InteractivePrompt => Some("interactive-prompt-worker.mjs"),
             Self::InteractiveNormalize => Some("interactive-normalize-worker.mjs"),
+            Self::InteractiveOutline => Some("interactive-outline-worker.mjs"),
         }
     }
 
@@ -245,6 +247,7 @@ impl OpenMaicScript {
             Self::SlideActions => "slide_actions",
             Self::InteractivePrompt => "interactive_prompt",
             Self::InteractiveNormalize => "interactive_normalize",
+            Self::InteractiveOutline => "interactive_outline",
         }
     }
 }
@@ -540,6 +543,32 @@ impl Executor {
             .and_then(|node| openmaic_script(&node.script, stage.into()))
     }
 
+    /// The interactive-outline prompt/replay adapter, dispatched under the shared
+    /// OpenMAIC admission generation. It renders the donor interactive prompt and
+    /// admits a caller-supplied reply; no model is called by the worker itself.
+    pub async fn openmaic_interactive_outline_with_generation(
+        &self,
+        expected_generation: u64,
+        request: Value,
+        timeout: Duration,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+            OpenMaicScript::InteractiveOutline,
+        )
+        .await
+    }
+
+    /// Whether the configured scene builder has a usable sibling interactive-outline adapter.
+    pub fn openmaic_interactive_outline_script(&self) -> Option<PathBuf> {
+        self.openmaic_node
+            .as_ref()
+            .and_then(|node| openmaic_script(&node.script, OpenMaicScript::InteractiveOutline))
+    }
+
     async fn derived_json_checked(
         &self,
         capability: &str,
@@ -770,6 +799,9 @@ impl Executor {
                     }
                     OpenMaicScript::InteractiveNormalize => {
                         validate_openmaic_interactive_normalize_result(&result, &request)?
+                    }
+                    OpenMaicScript::InteractiveOutline => {
+                        validate_openmaic_interactive_outline_result(&result)?
                     }
                     other => validate_openmaic_slide_result(&result, other)?,
                 }
@@ -1093,6 +1125,33 @@ fn validate_openmaic_interactive_normalize_result(
             || doc["widget_type"] != request["widget_type"])
     {
         return Err("OpenMAIC interactive normalize receipt identity mismatch".into());
+    }
+    Ok(())
+}
+
+/// The interactive-outline adapter keeps its own fixed receipt: a rendered prompt
+/// or an admitted candidate, never a model call or a persisted document.
+fn validate_openmaic_interactive_outline_result(result: &Value) -> Result<(), String> {
+    let doc = &result["document"];
+    if doc["schema"] != "archeaxis.openmaic-interactive-outline-result/v1"
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["network_performed"] != false
+        || doc["core_task"] != "NOT_CONNECTED"
+        || doc["core_authorization"] != "NOT_ESTABLISHED"
+        || doc["prompt_template"] != "interactive-outlines"
+    {
+        return Err("invalid OpenMAIC interactive outline receipt".into());
+    }
+    let status = doc["status"].as_str().unwrap_or("");
+    if status != "PROMPT_CAPTURED" && status != "CANDIDATE" {
+        return if result["exit_code"] == 2 && !status.trim().is_empty() {
+            Ok(())
+        } else {
+            Err("invalid OpenMAIC interactive outline failure receipt".into())
+        };
+    }
+    if result["exit_code"] != 0 {
+        return Err("OpenMAIC interactive outline receipt exit code".into());
     }
     Ok(())
 }

@@ -250,8 +250,9 @@ fn outline_check_result(
     outlines_admitted(&worker["data"])
 }
 
-/// The bounded 1-30 `slide`/`quiz` outline list both slices persist.
-fn outlines_admitted(data: &Value) -> Result<(), crate::document::Error> {
+/// The bounded 1-30 outline list every outline slice persists. Shared with the
+/// interactive-outline route so both sides admit exactly the same shapes.
+pub(crate) fn outlines_admitted(data: &Value) -> Result<(), crate::document::Error> {
     let outlines = data["outlines"]
         .as_array()
         .filter(|items| (1..=30).contains(&items.len()));
