@@ -412,13 +412,49 @@
           "what": "An accepted question previously carried an empty explanation because the candidate contract keeps only the visible question. Acceptance now reads the stored model reply, keeps that explanation and labels it explanation_source: model_draft_reviewed; a human answer key is still required and the model's own answer is never reused.",
           "verified": "api deeptutor_question_accept_runtime 1 passed with the real question-turn worker and a synthetic loopback lane, asserting the explanation, its source label and that the practice view still hides both key and explanation; cargo fmt --check clean; CI run 42142537803 gateplan/lint/rust-vnext/a0-gates success.",
           "not_included": "The explanation is an unverified model draft; it is labelled as reviewed draft only, never as evidence."
+        },
+        {
+          "item": "INT-MAIC-03",
+          "slice": "installed OpenMAIC closure staged from one generated manifest",
+          "pr": 298,
+          "head_sha": "52df68ba",
+          "merge_commit": "c34c5ff8",
+          "ci_run": 42148543746,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_CONTRACTS_WORKERS_GREEN_CANDIDATE_DESKTOP_RUST_A0",
+          "what": "scripts/release/openmaic_closure.py owns one explicit selection of workers and vendor directories and generates RUNTIME-CLOSURE.json (671 files / 3,958,041 B). stage_backend_runtime.py loads OPENMAIC_FILES from that manifest and rechecks every byte before staging; the scene builder's five core files stay hard-coded so a closure edit cannot drop them.",
+          "verified": "closure test 4 passed; ci classifier 41 passed locally; green-candidate-vnext assembled the real closure in CI; required gates all success.",
+          "not_included": "A staged closure is not an installed qualification or Owner acceptance; the installed journey was not rerun on this closure. Local Windows staging tests keep four pre-existing failures that also fail at the same base commit."
+        },
+        {
+          "item": "INT-MAIC-02",
+          "slice": "quiz narration and focus actions admitted into the scene",
+          "pr": 299,
+          "head_sha": "6888ef0d",
+          "merge_commit": "0fefa553",
+          "ci_run": 42153405338,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_RUST_A0_AFTER_RERUN",
+          "what": "quiz-actions-replay-worker.mjs gained the capture/replay prompt contract; Core runs it after the admitted questions, admits only one or two inert speech actions, feeds them to the existing scene builder and records an actions_stage receipt. A refused narration leaves the quiz complete with an empty action list and the stage's named status.",
+          "verified": "worker pytest 24 passed with real Node and the real donor branch; api runtime 1 passed in 44.5 s covering two model calls, duplicate no-rerun, named 503/504/422 and restart readback; domain 5 + 4 passed; cargo fmt clean; preflight exit 0. The first CI attempt was cancelled by the 45-minute job cap while apt downloaded a 61 MB CJK font package; the same run's --failed rerun passed and the cancellation is retained.",
+          "not_included": "Actions stay inert; no execution, rendering authorization or answer non-disclosure verification. No UI wiring, no installed rerun and no Owner acceptance."
+        },
+        {
+          "item": "INT-MAIC-02",
+          "slice": "slide narration and focus actions from the original donor branch",
+          "pr": 300,
+          "head_sha": "9200fc77",
+          "merge_commit": "e55b1a04",
+          "ci_run": 42161830367,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_RUST_A0",
+          "what": "A new donor slice retains the slide action branch and its helpers byte-for-byte; slide-actions-replay-worker.mjs adds capture/replay and admits only speech, spotlight and laser; Core requires every focus action to name a real mounted element and refuses every other named verb. The slide chain runs it after slide_normalize and stores an actions_stage receipt.",
+          "verified": "slide-action pytest 8 passed with real Node; quiz-action pytest 24 passed; api runtime 1 passed in 52.3 s covering both chains, two model calls each, retries and named failures; domain slide 6 + 5 and quiz 5 passed; closure test 4 passed at 682 files; cargo fmt clean; preflight exit 0.",
+          "not_included": "Actions stay inert; play_video, discussion, whiteboard and widget verbs are refused by name. No UI wiring, no installed rerun and no Owner acceptance."
         }
       ],
       "openmaic_install_surface_20261106": {
-        "state": "AUDITED_SUBSET_ONLY_NOT_INTEGRATED",
-        "measured": "OPENMAIC_FILES stages scene-build-worker.mjs and four vendor/generation-0.3.28 files only. outline-replay, slide-prompt/reply/normalize, quiz-replay, quiz-actions-replay and their vendor closures (85 scene-content files, 531 npm files) are not staged, so those Core chains exist only in development and test launches.",
-        "next": "Decide the selected worker closure and license inventory before staging them; until then interactive/pbl and quiz actions are not claimed as integrated into an installation.",
-        "evidence": "services/learning-providers/openmaic/quiz-actions-replay-worker.mjs capture verified locally with real Node and the real donor branch (20 pytest passed) but not committed as an unwired slice."
+        "state": "STAGED_CLOSURE_COMPLETE_INSTALLED_QUALIFICATION_PENDING",
+        "measured": "OPENMAIC_FILES is now loaded from services/learning-providers/openmaic/RUNTIME-CLOSURE.json, generated by scripts/release/openmaic_closure.py from an explicit selection. After PR #298 it listed 671 files / 3,958,041 B (8 workers, 7 vendor directories); after PR #300 it lists 682 files / 4,030,617 B (9 workers, 8 vendor directories, adding slide-actions). The scene builder's five core files stay hard-coded and a closure that drops them fails at import. green-candidate-vnext assembled the real closure from the manifest.",
+        "next": "Qualify the staged/installed runtime on this closure (installed journey and owner acceptance are separate evidence classes), then continue INT-MAIC-05 for interactive/PBL scenes and the renderer lifecycle.",
+        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; CI run 42148543746 (PR #298) all required gates success including green-candidate-vnext; quiz-action narration landed in PR #299 (merge 0fefa553) and slide narration in PR #300."
       },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"

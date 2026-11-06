@@ -4385,3 +4385,33 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 实读 `scripts/release/stage_backend_runtime.py` 的 `OPENMAIC_FILES`：安装包只打包 `scene-build-worker.mjs` 与 `vendor/generation-0.3.28/` 的 4 个文件；`outline-replay`、`slide-prompt/reply/normalize`、`quiz-replay`、`quiz-actions-replay` 及其 vendor 闭包（scene-content 85 文件、npm 531 文件）**都不在 staging 内**。
 - 因此：Core 里已实现的这些链只在开发/测试环境可用，安装态不具备；本轮验证过的 `quiz-actions` prompt capture（真实 Node + 真实 donor 分支，20 passed）也只是适配层能力，不构成安装态可用，故未提交未接线改动。
 - 后续项（单列，不并入本片）：把选定 worker 闭包与许可清单纳入 staging，需要体积/许可/CI 时间评估后再决定采用范围；在此之前 `interactive`/`pbl` 与 quiz actions 不宣称已融入安装态。
+
+#### 2026-11-06 OpenMAIC 安装态闭包：671 文件全量 staging（PR #298）
+
+- 现状缺陷：`stage_backend_runtime.py` 的 `OPENMAIC_FILES` 只打包 `scene-build-worker.mjs` 与 4 个 `generation-0.3.28` 文件，因此 outline/slide/quiz/quiz-actions 链在安装态不可用。
+- 实现：新增 `scripts/release/openmaic_closure.py`，用一个显式选择（8 个 worker + 7 个 vendor 目录）生成 `services/learning-providers/openmaic/RUNTIME-CLOSURE.json`（**671 文件 / 3,958,041 B**；随后 PR #300 增补 slide-actions 后为 9 个 worker + 8 个 vendor 目录、682 文件 / 4,030,617 B）；staging 从该清单加载 `OPENMAIC_FILES` 并在 staging 前逐字节复核，scene-builder 的 5 个核心文件仍硬编码兜底（清单删掉它们会直接失败）。
+- 验证：`tests/test_openmaic_runtime_closure.py` 4 passed（清单与真实文件逐字节一致、核心文件不被派生覆盖）；`test_openmaic_runtime_staging.py` 的 native 相关用例在本机 Windows 上 4 例既有失败（同提交基线同样失败，非本片引入）；本机 `tests/test_ci_classifier.py` 41 passed；精确 SHA CI（run `42148543746`）`gateplan`/`lint`/`test (3.12)`/`contracts-vnext`/`workers-vnext`/`green-candidate-vnext`/`desktop-vnext`/`rust-vnext`/`a0-gates` 全部 success，且 `green-candidate-vnext` 实际组装了完整 671 文件闭包。
+- 交付：PR **#298** 以 merge commit **`c34c5ff8`** 合并；本地与 `origin/main` 一致。
+- 边界：**staged 闭包含全部适配器不等于安装态资格或 Owner 接受**；本片只消除"安装包缺 worker"这一事实缺口，未在已安装宿主上重跑业务旅程。
+
+#### 2026-11-06 INT-MAIC-02/05：Quiz 讲解动作接入 Core（PR #299）
+
+- 现状：quiz 链只产出题目候选，`actions` 恒为空，因为 `quiz-actions-replay-worker.mjs` 只有合成 replay 路径、没有 prompt 契约。
+- 实现：worker 增加 `archeaxis.openmaic-quiz-actions-prompt/v1` 两段协议（capture → 模型 → replay），binding 记录 outline/quiz/actions/dsl/npm/worker 六项身份与 system/user 哈希；Core 新增 `openmaic_quiz_actions.rs`（精确帧、binding 复检、只准入 1–2 条 inert `speech`）。quiz 链在题目候选之后运行该阶段，把准入动作交给既有 scene builder，并在 quiz record 的 `actions_stage` 留存阶段回执。
+- 语义：讲解阶段按设计**尽力而为**——模型未给出可用讲解时，quiz 候选仍完整落盘、`actions` 为空，`actions_stage` 记录具名 status/reason，不静默丢弃、不执行、不授权渲染。
+- 验证：`tests/integrations/test_openmaic_quiz_actions_replay.py` **24 passed**（真实 pinned Node + 真实 donor 分支，含 capture/replay、binding 篡改、repaired、named action 拒绝、fallback 拒绝）；`cargo test -p archeaxis-api --test openmaic_slide_generate_runtime` **1 passed（44.5s，真实 Node + 合成 loopback 模型，quiz 两次模型调用、重试不重跑、失败具名、重启读回）**；domain `openmaic_quiz_candidate` 5 passed、quiz 单测 4 passed；`cargo fmt --check` 干净；`local_verify.py --profile quick --preflight` exit 0。
+- CI：精确 SHA run `42153405338` 首次在 `test (3.12)` 的 OCR 依赖安装阶段被 45 分钟 job 上限取消（下载 `fonts-noto-cjk` 61 MB 耗时 17 分钟，属外部网络），同 run `--failed` 重跑后 `test (3.12)`/`a0-gates` success；原取消保留、未放宽断言。
+- 交付：PR **#299** 以 merge commit **`0fefa553`** 合并，远端分支已删除。
+- 边界：模型回复仍是 `LOCAL_MODEL_UNVERIFIED`；动作保持 inert（`action_execution: NOT_PERFORMED`、`rendering_authorized: false`）且 `answer_non_disclosure_verified: false`；未做 UI 接线、未在安装态复验、非 Owner 接受。
+
+#### 2026-11-06 INT-MAIC-02/05：Slide 讲解与聚焦动作接入 Core（PR #300）
+
+- 现状：slide 链在 normalize 之后把 `actions` 固定为空，而 donor 的 slide 分支会生成教师讲解与 spotlight/laser 聚焦；这两类能力都无法经由 Core 得到。
+- donor 切片：新增 `vendor/generation-0.3.28-slide-actions/`，逐字节保留 `scene-content-0.3.28-original/generation/src/scene-generator.ts` 的 1781–1783（options/logger/agents）、1793–1821（slide 分支）、1943–1965（`formatElementsForPrompt`）、1984–2035（`processActions`）、2040–2066（`generateDefaultSlideActions`），并保留原始 `action-parser.ts`、`prompt-formatters.ts`、slide-actions 模板、speech snippet、许可证与 `ORIGINALS.json`。
+- worker：新增 `slide-actions-replay-worker.mjs`，两段协议 `archeaxis.openmaic-slide-actions-prompt/v1`（capture → 模型 → replay），binding 记录 outline/slide-actions/npm/worker 身份与 system/user 哈希；只准入 `speech`、`spotlight`、`laser`，其他具名动作（`play_video`/`discussion`/白板/widget）按名拒绝，donor fallback 不当作模型输出。
+- Core：新增 `openmaic_slide_actions.rs`（精确帧、binding 复检、动作上限 30、聚焦目标必须属于 normalize 后真实元素）；slide 链在 `slide_normalize` 之后运行该阶段，把准入动作交给既有 scene builder，并在 slide record 的 `actions_stage` 留存阶段回执。讲解阶段仍是**尽力而为**：模型未给出可用动作时 slide 候选完整落盘、`actions` 为空、阶段具名记录。
+- 闭包：`openmaic_closure.py` 选择表增加该 worker 与 vendor 目录，`RUNTIME-CLOSURE.json` 重新生成为 **682 文件 / 4,030,617 B（9 worker + 8 vendor 目录）**；`.worklab/project-validation.v1.yaml` 的 `learning-provider-runtime` 类补登该 worker 与 vendor 切片（首轮 CI 后补，避免未分类路径）。
+- 验证：`tests/integrations/test_openmaic_slide_actions_replay.py` **8 passed**（真实 pinned Node + 真实 donor 分支，含逐字节 excerpt/清单校验、capture/replay、other-named-verb 拒绝、聚焦篡改隔离、repaired、binding 篡改、成员被改拒绝）；`test_openmaic_quiz_actions_replay.py` 24 passed；`cargo test -p archeaxis-api --test openmaic_slide_generate_runtime` **1 passed（52.3s，真实 Node + 合成 loopback 模型，slide 与 quiz 各两次模型调用、重试不重跑、失败具名、重启读回）**；domain slide 单测 6、`openmaic_slide_candidate` 5、`openmaic_quiz_candidate` 5 passed；`test_openmaic_runtime_closure.py` 4 passed；`tests/test_ci_classifier.py` 41 passed；`cargo fmt --check` 干净；`local_verify.py --profile quick --preflight` exit 0。
+- CI：精确 SHA run `42161830367` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success。
+- 交付：PR **#300** 以 merge commit **`e55b1a04`** 合并；本地与 `origin/main` 一致。
+- 边界：动作保持 inert（`action_execution: NOT_PERFORMED`、`rendering_authorized: false`）；`play_video`/`discussion`/白板/widget 动作与 donor fallback 均未准入；未做 UI 接线、未在安装态复验、非 Owner 接受。
