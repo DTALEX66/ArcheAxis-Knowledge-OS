@@ -4372,3 +4372,16 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
   - 幂等：同一 `create_request_id` 返回 `201` + `duplicate:true` 与同一 Document；候选被改动或同 id 内容变化 → 409；键不在 options / 非 choice 候选 → 422；候选不存在 → 404。
 - 验证：`deeptutor_question_accept_runtime` **1 passed（0.65s，真实 question-turn worker + 合成 loopback 模型）**，覆盖 machine 403、键不在选项 422、重复接纳同一 Document，以及用被接纳题目跑通 activity→attempt→`practice-grade` 得到 `provider_correct:true`；契约路由清单 **38 passed**；`cargo fmt --check` 干净；CI run `42139271430` 的 `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success。
 - 边界：没有 UI 接线，也没有自动接纳；接纳是显式人类决定，不产生 provider 身份、掌握度或学习改善结论。
+
+#### 2026-11-06 接纳题目保留经复核的模型解释（PR #297）
+
+- 现状缺陷：question-turn 候选的题目契约只保留可见题干/选项/题型，`correct_answer` 与 `explanation` 都被隔离；于是人工接纳后的题目解释为空，学习侧拿不到任何解释文本。
+- 修复（PR **#297**，head `91f50ba9`，merge **`d8008b04`**）：接纳时若调用方未提供 `explanation`，Core 从候选存储的 `model_reply.content` 解析出模型解释并采用，接纳记录新增 `explanation_source:"model_draft_reviewed"`（人工提供则为 `human_supplied`，都没有则为 `absent`）。答案键仍只能由人类提供，模型自己的答案永不复用；练习视图仍不同时暴露答案与解释。
+- 验证：`deeptutor_question_accept_runtime` **1 passed**（真实 question-turn worker + 合成 loopback 模型），断言被接纳 Document 带解释、来源标记正确、练习视图仍不含答案与解释；`cargo fmt --check` 干净；CI run `42142537803` 的 `gateplan`/`lint`/`rust-vnext`/`a0-gates` 全部 success。
+- 边界：解释文本来自未经事实核验的模型草稿，只按"经人工复核的草稿"标记，不是可验证依据。
+
+#### 2026-11-06 审计结论：OpenMAIC 安装态只包含场景构建子集
+
+- 实读 `scripts/release/stage_backend_runtime.py` 的 `OPENMAIC_FILES`：安装包只打包 `scene-build-worker.mjs` 与 `vendor/generation-0.3.28/` 的 4 个文件；`outline-replay`、`slide-prompt/reply/normalize`、`quiz-replay`、`quiz-actions-replay` 及其 vendor 闭包（scene-content 85 文件、npm 531 文件）**都不在 staging 内**。
+- 因此：Core 里已实现的这些链只在开发/测试环境可用，安装态不具备；本轮验证过的 `quiz-actions` prompt capture（真实 Node + 真实 donor 分支，20 passed）也只是适配层能力，不构成安装态可用，故未提交未接线改动。
+- 后续项（单列，不并入本片）：把选定 worker 闭包与许可清单纳入 staging，需要体积/许可/CI 时间评估后再决定采用范围；在此之前 `interactive`/`pbl` 与 quiz actions 不宣称已融入安装态。

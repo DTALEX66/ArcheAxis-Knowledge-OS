@@ -400,8 +400,26 @@
           "what": "POST /api/v1/learning/deeptutor/question-candidates/accept turns one current question-turn candidate into an ordinary graded-question Document only when a human supplies the answer key; the model's own answer is never reused, and the acceptance record lives in its own attributes namespace because the question contract rejects unknown fields.",
           "verified": "api deeptutor_question_accept_runtime 1 passed with the real question-turn worker and a synthetic loopback lane, covering machine 403, key outside options 422, duplicate acceptance of the same Document and a full activity/attempt/practice-grade run over the accepted question with provider_correct true; contract route inventory 38 passed; cargo fmt --check clean; CI run 42139271430 gateplan/lint/rust-vnext/a0-gates success. The extended deeptutor_learning_journey (PR #295, merge ff015123) now runs material -> question candidate -> imported graded question -> attempt and grading -> teaching-feedback candidate -> restart replay in 0.95 s.",
           "not_included": "No UI wiring and no automatic acceptance; acceptance is an explicit human decision and establishes no provider identity, mastery or learning improvement."
+        },
+        {
+          "item": "INT-DT-02",
+          "slice": "accepted question keeps its reviewed explanation",
+          "pr": 297,
+          "head_sha": "91f50ba9",
+          "merge_commit": "d8008b04",
+          "ci_run": 42142537803,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_RUST_VNEXT_A0_GATES",
+          "what": "An accepted question previously carried an empty explanation because the candidate contract keeps only the visible question. Acceptance now reads the stored model reply, keeps that explanation and labels it explanation_source: model_draft_reviewed; a human answer key is still required and the model's own answer is never reused.",
+          "verified": "api deeptutor_question_accept_runtime 1 passed with the real question-turn worker and a synthetic loopback lane, asserting the explanation, its source label and that the practice view still hides both key and explanation; cargo fmt --check clean; CI run 42142537803 gateplan/lint/rust-vnext/a0-gates success.",
+          "not_included": "The explanation is an unverified model draft; it is labelled as reviewed draft only, never as evidence."
         }
       ],
+      "openmaic_install_surface_20261106": {
+        "state": "AUDITED_SUBSET_ONLY_NOT_INTEGRATED",
+        "measured": "OPENMAIC_FILES stages scene-build-worker.mjs and four vendor/generation-0.3.28 files only. outline-replay, slide-prompt/reply/normalize, quiz-replay, quiz-actions-replay and their vendor closures (85 scene-content files, 531 npm files) are not staged, so those Core chains exist only in development and test launches.",
+        "next": "Decide the selected worker closure and license inventory before staging them; until then interactive/pbl and quiz actions are not claimed as integrated into an installation.",
+        "evidence": "services/learning-providers/openmaic/quiz-actions-replay-worker.mjs capture verified locally with real Node and the real donor branch (20 pytest passed) but not committed as an unwired slice."
+      },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
