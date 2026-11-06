@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (157 pairs in a `text_worker` launch)
+## 3. Route inventory (158 pairs in a `text_worker` launch)
 
 `PROD` identifies a route mounted in the current source for the specified production launch shape.
 Whether the UI can rely on it also depends on the applicable capability/provider availability,
@@ -636,9 +636,9 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 94 addresses: 93 projection method/path pairs (81 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 157 addresses (92 base projection method/path pairs + 64 runtime method/path pairs on 61 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **with** `text_worker` | 158 addresses (92 base projection method/path pairs + 65 runtime method/path pairs on 62 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **61** route mounts, mounted there rather than with the projections because
+The runtime builder carries **62** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -1044,3 +1044,9 @@ Malformed JSON syntax returns 400; launch authentication failure 401; a nonhuman
 The bounded record lives in `workspace_meta`, independently of working-state CAS, draft budgets and saved documents. Saved metadata survives Store reopen and is included in workspace backups; restored entries retain their earlier epoch, while new operations must use the current epoch. Manually opened raw diagnostic payloads remain session-local. Source contract and controlled SQLite/HTTP checks do not qualify a packaged application, installed runtime or Owner acceptance.
 
 Directed offline check: `cargo test -p archeaxis-api --test operation_failure_log_api --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. Sources: `crates/archeaxis-api/src/failure_log.rs` and `crates/archeaxis-domain/src/failure_log.rs`; frontend persistence races are covered separately in `frontend/src/__tests__/FailureLogPersistence.test.tsx`. These are check entry points, not a claim that this documentation update ran them.
+
+## 24. Interactive-mode outline generation (2026-11-07)
+
+| # | Method + path | Authorization | Contract |
+| --- | --- | --- | --- |
+| 234 | `POST /api/v1/courses/openmaic/outlines/generate-interactive` | **human only** | Local-model interactive-mode outline generation; body `{create_request_id, requirement, source_text, model?}` at most 262,144 bytes. Core renders the donor `interactive-outlines` prompt through the private adapter (`stage: capture`, `PROMPT_CAPTURED` with a `archeaxis.openmaic-interactive-outline-binding/v1` binding), dispatches the same declared `course.openmaic.outline-model` capability as the standard route, then replays the model text through the same adapter (`stage: replay`). Only a replayed `CANDIDATE` persists, as one inert Document under `archeaxis_openmaic_interactive_outline_generate_candidate` with `generation_route: local_model_interactive_outline`, `model_call: INVOKED`, the model and prompt identities, the exact capture/replay frames, `response_origin: LOCAL_MODEL_UNVERIFIED`, `human_review_required: true` and `active_content_executed`/`rendering_authorized` `false`. Admitted outlines are `slide` or ordinary `interactive` scenes (`simulation`/`diagram`/`code`/`game`/`visualization3d`) with bounded widget outlines; `procedural-skill`, quiz/pbl entries, object-form diagram nodes and unknown fields are refused with `UNSUPPORTED_OUTPUT`. A repeated `create_request_id` reads the stored candidate without rerunning the prompt, the model or the adapter; changed content under that ID is `409`. Stage failures keep the worker's own status (422 for an unadmitted reply, 503 for an unavailable provider or model, 504 for a model timeout), and no stage writes a partial candidate. The persisted interactive outline is readable by `POST /api/v1/courses/openmaic/scenes/generate`, which keeps the widget selection. |
