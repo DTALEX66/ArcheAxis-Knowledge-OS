@@ -57,7 +57,7 @@ fn scene_script() -> PathBuf {
 
 fn model_worker() -> PathBuf {
     repository()
-        .join("services/python-workers/openmaic/worker_outline_local_model.py")
+        .join("services/python-workers/course/worker_outline_local_model.py")
         .canonicalize()
         .unwrap()
 }

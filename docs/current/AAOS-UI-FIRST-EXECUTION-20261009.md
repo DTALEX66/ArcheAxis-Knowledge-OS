@@ -4390,7 +4390,8 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 - 现状缺陷：`stage_backend_runtime.py` 的 `OPENMAIC_FILES` 只打包 `scene-build-worker.mjs` 与 4 个 `generation-0.3.28` 文件，因此 outline/slide/quiz/quiz-actions 链在安装态不可用。
 - 实现：新增 `scripts/release/openmaic_closure.py`，用一个显式选择（8 个 worker + 7 个 vendor 目录）生成 `services/learning-providers/openmaic/RUNTIME-CLOSURE.json`（**671 文件 / 3,958,041 B**；随后 PR #300 增补 slide-actions 后为 9 个 worker + 8 个 vendor 目录、682 文件 / 4,030,617 B）；staging 从该清单加载 `OPENMAIC_FILES` 并在 staging 前逐字节复核，scene-builder 的 5 个核心文件仍硬编码兜底（清单删掉它们会直接失败）。
-- 验证：`tests/test_openmaic_runtime_closure.py` 4 passed（清单与真实文件逐字节一致、核心文件不被派生覆盖）；`test_openmaic_runtime_staging.py` 的 native 相关用例在本机 Windows 上 4 例既有失败（同提交基线同样失败，非本片引入）；本机 `tests/test_ci_classifier.py` 41 passed；精确 SHA CI（run `42148543746`）`gateplan`/`lint`/`test (3.12)`/`contracts-vnext`/`workers-vnext`/`green-candidate-vnext`/`desktop-vnext`/`rust-vnext`/`a0-gates` 全部 success，且 `green-candidate-vnext` 实际组装了完整 671 文件闭包。
+- 验证：`tests/test_openmaic_runtime_closure.py` 4 passed（清单与真实文件逐字节一致、核心文件不被派生覆盖）；`test_openmaic_runtime_staging.py` 的 native 相关用例在本机 Windows 上 4 例既有失败（同提交基线同样失败，非本片引入）；本机 `tests/test_ci_classifier.py` 41 passed；精确 SHA CI（run `42148543746`）`gateplan`/`lint`/`test (3.12)`/`contracts-vnext`/`workers-vnext`/`green-candidate-vnext`/`desktop-vnext`/`rust-vnext`/`a0-gates` 全部 success。
+- **勘误（2026-11-06 同日核正）**：`green-candidate-vnext` 的 CI 命令只调用 `assemble_green_candidate.py --core/--runtime/--workers`，**没有传 `--openmaic-node`**，因此该 job 并不组装 OpenMAIC 闭包；上面"green-candidate 实际组装了完整闭包"的表述不成立，已按实读命令更正。闭包此前只有清单级测试，真实带 Node 的 staging 从未被跑过，并存在下一节记录的路径冲突。
 - 交付：PR **#298** 以 merge commit **`c34c5ff8`** 合并；本地与 `origin/main` 一致。
 - 边界：**staged 闭包含全部适配器不等于安装态资格或 Owner 接受**；本片只消除"安装包缺 worker"这一事实缺口，未在已安装宿主上重跑业务旅程。
 
@@ -4415,3 +4416,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI：精确 SHA run `42161830367` 的 `gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success。
 - 交付：PR **#300** 以 merge commit **`e55b1a04`** 合并；本地与 `origin/main` 一致。
 - 边界：动作保持 inert（`action_execution: NOT_PERFORMED`、`rendering_authorized: false`）；`play_video`/`discussion`/白板/widget 动作与 donor fallback 均未准入；未做 UI 接线、未在安装态复验、非 Owner 接受。
+
+#### 2026-11-06 OpenMAIC staging 路径冲突修复与 staged 运行时全链首次验证（PR #301）
+
+- 缺陷（真实阻断）：`stage_backend_runtime.py` 的 Node 输出目录是 `workers/openmaic`，而 PR #288 引入的 Python 大纲模型 worker 位于 `services/python-workers/openmaic/`；两者在 `workers/` 下同名，stager 在带 `--openmaic-node` 时直接抛 `OpenMAIC output conflicts with worker donor`。因为 CI 的 `green-candidate-vnext` 从不传 node 参数（见上一节勘误），该冲突从未被发现，**OpenMAIC 闭包自 2026-11-05 起实际无法真实 staging**。
+- 修复：把该 Python worker 移到 `services/python-workers/course/worker_outline_local_model.py`（能力仍是 `course.openmaic.outline-model`），同步 `routes.json` 与 8 个引用路径（Rust 集成测试、Python worker 测试）；Node 的 `workers/openmaic` 安装布局与 Tauri 宿主契约保持不变。新增回归守卫 `test_the_python_worker_tree_does_not_collide_with_the_node_output`（32 例 staging 测试中 26 passed + 既有 4 例 Windows 失败）。
+- 真实 staging：从当前 release Core（`cargo build --release -p archeaxis-api`，sha `55cfd8da…`、22,072,832 B）生成 `.project-local/rt/staged-20261106-actions`：version `0.6.15`、manifest `c4b48379…`、**8,277 文件**、`source_commit 54e753e6…`、`source_tree ab82aa83…`、Node sha `ba4e6d11…`，`openmaic_scene_build: INCLUDED`，`workers/` 下含 **684 个 OpenMAIC 成员**（682 闭包 + `node.exe` + `NODE-LICENSE`）以及新路径的模型 worker。
+- staged 全链探针：新增 `scripts/probes/aaos_openmaic_generation_staged_loop.py`，用候选自带的 `start-backend.py` 启动 Core（真实 launch 文档、真实 staged node/worker 身份），合成来源文档 → 大纲生成（2 条：slide/quiz）→ slide 场景（讲解 2 条：spotlight `el_1` + speech）→ quiz 场景（讲解 1 条：speech）→ 停进程重启 → 两个候选读回。回执 `.project-local/runs/be268a2d33/openmaic-staged-20261106/artifacts/openmaic-staged.json`：`ok: true`，模型调用 **5 次**，重启后仍 **5 次**（不重跑），`worker_invoked: false`，`action_execution: NOT_PERFORMED`、`rendering_authorized: false`。
+- 边界：staged 运行时 + 合成材料 + loopback stub 模型；**不是安装包、不是真实模型质量证据、不是 Owner 接受**；跨进程重启只覆盖读回，不覆盖安装/升级/卸载。

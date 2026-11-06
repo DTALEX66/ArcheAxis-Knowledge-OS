@@ -22,7 +22,7 @@ import time
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-WORKER = ROOT / "services/python-workers/openmaic/worker_outline_local_model.py"
+WORKER = ROOT / "services/python-workers/course/worker_outline_local_model.py"
 SCHEMA = "archeaxis.openmaic-outline-model-request/v1"
 
 

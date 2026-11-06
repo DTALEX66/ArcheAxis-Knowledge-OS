@@ -27,6 +27,15 @@ def synthetic_closure():
     return {name: stager.OPENMAIC_FILES[name] for name in stager.OPENMAIC_CORE_FILES}
 
 
+def test_the_python_worker_tree_does_not_collide_with_the_node_output():
+    """The staged Node provider is ``workers/openmaic``; a Python worker directory
+    of the same name makes ``stage_backend_runtime`` refuse every OpenMAIC
+    staging with "OpenMAIC output conflicts with worker donor". The synthetic
+    fixtures never copy the real worker tree, so this guards the real shape."""
+    assert not (ROOT / "services/python-workers/openmaic").exists()
+    assert (ROOT / "services/python-workers/course/worker_outline_local_model.py").is_file()
+
+
 def synthetic_provider(case):
     # These tiny test donors are added after the fixture seals its synthetic
     # run metadata. Exclude only these fixture paths from that fake Git repo;
