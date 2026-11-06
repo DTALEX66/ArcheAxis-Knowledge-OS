@@ -25,14 +25,14 @@ function checkManifest(root, expected, count, reason) {
     checkFile(root, relative, expectedMember, "UPSTREAM_MEMBER_IDENTITY_MISMATCH");
   return manifest;
 }
-checkManifest(donor, "e9e5396d1676de1bc25e3f9df81f65b5a52724ae9e3bcaf49fb109b82051e9d6", 18,
-  "OUTLINE_MANIFEST_IDENTITY_MISMATCH");
-checkManifest(quiz, "54499d6b7840d2968a3b02d11a27ee70ceed92d865efe702882015044b597de8", 6,
-  "QUIZ_MANIFEST_IDENTITY_MISMATCH");
-checkManifest(dsl, "ef4102ca18abefcf0c5956a8caa356236d60d248416b1b666cfc6daa99066dc0", 3,
-  "DSL_MANIFEST_IDENTITY_MISMATCH");
-const manifest = checkManifest(actions, "8e4b62a07c4daf3085fadd126396e467084a7dd35c9c5e9159f863fb527e655a", 7,
-  "ACTIONS_MANIFEST_IDENTITY_MISMATCH");
+const OUTLINE_MANIFEST_SHA = "e9e5396d1676de1bc25e3f9df81f65b5a52724ae9e3bcaf49fb109b82051e9d6";
+const QUIZ_MANIFEST_SHA = "54499d6b7840d2968a3b02d11a27ee70ceed92d865efe702882015044b597de8";
+const ACTIONS_MANIFEST_SHA = "8e4b62a07c4daf3085fadd126396e467084a7dd35c9c5e9159f863fb527e655a";
+const DSL_MANIFEST_SHA = "ef4102ca18abefcf0c5956a8caa356236d60d248416b1b666cfc6daa99066dc0";
+checkManifest(donor, OUTLINE_MANIFEST_SHA, 18, "OUTLINE_MANIFEST_IDENTITY_MISMATCH");
+checkManifest(quiz, QUIZ_MANIFEST_SHA, 6, "QUIZ_MANIFEST_IDENTITY_MISMATCH");
+checkManifest(dsl, DSL_MANIFEST_SHA, 3, "DSL_MANIFEST_IDENTITY_MISMATCH");
+const manifest = checkManifest(actions, ACTIONS_MANIFEST_SHA, 7, "ACTIONS_MANIFEST_IDENTITY_MISMATCH");
 checkFile(actions, manifest.adapted_file, manifest.adapted_sha256, "ACTIONS_ADAPTER_IDENTITY_MISMATCH");
 const lockedMembers = {
   "jsonrepair-3.13.3/LICENSE.md": "fd50f5abb7eeb614c8d1293b9f239a5238d7536e3a9a9a8929a082c82d12b3fd",
@@ -52,6 +52,12 @@ const lockedMembers = {
 };
 for (const [relative, expected] of Object.entries(lockedMembers))
   checkFile(npm, relative, expected, "LOCKED_NPM_MEMBER_IDENTITY_MISMATCH");
+const workerPath = new URL(import.meta.url);
+const workerInfo = lstatSync(workerPath);
+if (!workerInfo.isFile() || workerInfo.isSymbolicLink() || workerInfo.size > 1_000_000)
+  throw new Error("ACTIONS_WORKER_IDENTITY_UNAVAILABLE");
+const workerIdentity = digest(readFileSync(workerPath));
+const npmIdentity = digest(JSON.stringify(lockedMembers));
 const nanoid = new URL("nanoid-5.1.14/index.js", npm).href;
 const jsonrepair = new URL("jsonrepair-3.13.3/lib/esm/index.js", npm).href;
 const partialJson = new URL("partial-json-0.1.7/dist/index.js", npm).href;
@@ -154,24 +160,35 @@ function validQuestion(q) {
   return true;
 }
 
+function validOutline(outline) {
+  if (!obj(outline) ||
+      !keysAre(outline, ["id", "type", "title", "description", "keyPoints", "order", "quizConfig"]) ||
+      !id(outline.id) || outline.type !== "quiz" || !str(outline.title, 240, true) ||
+      !str(outline.description, 16_000) || !Array.isArray(outline.keyPoints) ||
+      outline.keyPoints.length > 200 || outline.keyPoints.some(p => !str(p, 2_000))) return false;
+  if (Object.hasOwn(outline, "order") &&
+      (!Number.isSafeInteger(outline.order) || outline.order < 0)) return false;
+  if (!Object.hasOwn(outline, "quizConfig")) return true;
+  const config = outline.quizConfig;
+  return obj(config) && keysAre(config, ["questionCount", "difficulty", "questionTypes"]) &&
+    Number.isInteger(config.questionCount) && config.questionCount >= 1 && config.questionCount <= 30 &&
+    ["easy", "medium", "hard"].includes(config.difficulty) &&
+    Array.isArray(config.questionTypes) && config.questionTypes.length >= 1 &&
+    config.questionTypes.length <= 3 &&
+    config.questionTypes.every(t => ["single", "multiple", "short_answer"].includes(t));
+}
+
+function validContent(content) {
+  return obj(content) && keysAre(content, ["questions"]) && Array.isArray(content.questions) &&
+    content.questions.length >= 1 && content.questions.length <= 30 &&
+    content.questions.every(q => validQuestion(q));
+}
+
 function validRequest(r) {
   if (!obj(r) || Object.keys(r).length !== 6 ||
       ["schema", "request_id", "outline", "content", "language_directive", "reply"].some(k => !Object.hasOwn(r, k)) ||
       r.schema !== "archeaxis.openmaic-quiz-actions-replay/v1" || !id(r.request_id) ||
-      !str(r.language_directive, 2_000) || !obj(r.outline) ||
-      !keysAre(r.outline, ["id", "type", "title", "description", "keyPoints", "order", "quizConfig"]) ||
-      !id(r.outline.id) || r.outline.type !== "quiz" || !str(r.outline.title, 240, true) ||
-      !str(r.outline.description, 16_000) || !Array.isArray(r.outline.keyPoints) ||
-      r.outline.keyPoints.length > 200 || r.outline.keyPoints.some(p => !str(p, 2_000)) ||
-      (Object.hasOwn(r.outline, "order") && (!Number.isSafeInteger(r.outline.order) || r.outline.order < 0)) ||
-      (Object.hasOwn(r.outline, "quizConfig") && (!obj(r.outline.quizConfig) ||
-        !keysAre(r.outline.quizConfig, ["questionCount", "difficulty", "questionTypes"]) ||
-        !Number.isInteger(r.outline.quizConfig.questionCount) || r.outline.quizConfig.questionCount < 1 ||
-        r.outline.quizConfig.questionCount > 30 || !["easy", "medium", "hard"].includes(r.outline.quizConfig.difficulty) ||
-        !Array.isArray(r.outline.quizConfig.questionTypes) || r.outline.quizConfig.questionTypes.length < 1 ||
-        r.outline.quizConfig.questionTypes.length > 3 || r.outline.quizConfig.questionTypes.some(t => !["single", "multiple", "short_answer"].includes(t)))) ||
-      !obj(r.content) || !keysAre(r.content, ["questions"]) || !Array.isArray(r.content.questions) ||
-      r.content.questions.length < 1 || r.content.questions.length > 30 || r.content.questions.some(q => !validQuestion(q)) ||
+      !str(r.language_directive, 2_000) || !validOutline(r.outline) || !validContent(r.content) ||
       !obj(r.reply)) return false;
   if (r.reply.kind === "synthetic_error") return Object.keys(r.reply).length === 1;
   return r.reply.kind === "synthetic_response" && Object.keys(r.reply).length === 2 &&
@@ -188,14 +205,202 @@ function base(status, reason, input = null) {
     runtime, data: null };
 }
 
+// ---------------------------------------------------------------------------
+// Prompt contract: capture the donor's quiz-action prompt, then replay the
+// model's reply through the same original branch. The synthetic frame above
+// stays untouched; this is the frame Core drives with a real local model.
+// ---------------------------------------------------------------------------
+const PROMPT_SCHEMA = "archeaxis.openmaic-quiz-actions-prompt/v1";
+const BINDING_SCHEMA = "archeaxis.openmaic-quiz-actions-prompt-binding/v1";
+const PROMPT_RESULT_SCHEMA = "archeaxis.openmaic-quiz-actions-prompt-result/v1";
+const CAPTURE_SENTINEL = "QUIZ_ACTIONS_PROMPT_CAPTURE_ONLY";
+const BINDING_FIELDS = ["schema", "request_id", "input_sha256", "outline_manifest_sha256",
+  "quiz_manifest_sha256", "actions_manifest_sha256", "dsl_manifest_sha256", "npm_members_sha256",
+  "worker_sha256", "system", "user", "system_sha256", "user_sha256"];
+const HASHES = ["input_sha256", "outline_manifest_sha256", "quiz_manifest_sha256",
+  "actions_manifest_sha256", "dsl_manifest_sha256", "npm_members_sha256", "worker_sha256",
+  "system_sha256", "user_sha256"];
+const exactKeys = (value, keys) => obj(value) && Object.keys(value).length === keys.length &&
+  keys.every(key => Object.hasOwn(value, key));
+const textSafe = value => typeof value === "string" && value.isWellFormed() && !value.includes("\0");
+const hashText = value => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+function safeJson(value) {
+  if (typeof value === "string") return textSafe(value);
+  if (typeof value === "number") return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(safeJson);
+  if (obj(value)) return Object.entries(value).every(([key, item]) => textSafe(key) && safeJson(item));
+  return value === null || typeof value === "boolean";
+}
+function canonical(value) {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (obj(value)) return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
+  return JSON.stringify(value);
+}
+// An unkeyed comparison, never proof of the selected source or model call.
+function promptIdentity(request) {
+  return digest(canonical({ request_id: request.request_id, outline: request.outline,
+    content: request.content, language_directive: request.language_directive }));
+}
+function promptRequestValid(request) {
+  const common = ["schema", "stage", "request_id", "outline", "content", "language_directive"];
+  if (!obj(request) || request.schema !== PROMPT_SCHEMA || !id(request.request_id) ||
+      !validOutline(request.outline) || !validContent(request.content) ||
+      !str(request.language_directive, 2_000) || !textSafe(request.language_directive) ||
+      !safeJson(request.outline) || !safeJson(request.content)) return false;
+  if (request.stage === "capture") return exactKeys(request, common);
+  if (request.stage !== "replay" || !exactKeys(request, [...common, "binding", "reply"]) ||
+      !exactKeys(request.reply, ["kind", "value"]) || request.reply.kind !== "caller_supplied" ||
+      !textSafe(request.reply.value) ||
+      Buffer.byteLength(request.reply.value, "utf8") > 120_000) return false;
+  const binding = request.binding;
+  return exactKeys(binding, BINDING_FIELDS) && binding.schema === BINDING_SCHEMA &&
+    binding.request_id === request.request_id && textSafe(binding.system) && textSafe(binding.user) &&
+    Buffer.byteLength(binding.system, "utf8") <= 200_000 &&
+    Buffer.byteLength(binding.user, "utf8") <= 200_000 &&
+    HASHES.every(key => hashText(binding[key]));
+}
+function promptBase(status, reason, request) {
+  const stage = ["capture", "replay"].includes(request?.stage) ? request.stage : null;
+  return { schema: PROMPT_RESULT_SCHEMA, status, reason,
+    request_id: stage && id(request?.request_id) ? request.request_id : null, stage,
+    response_origin: stage === "replay" ? "CALLER_SUPPLIED_UNVERIFIED" : "NOT_AVAILABLE",
+    model_call: "NOT_INVOKED", network_performed: false, core_task: "NOT_CONNECTED",
+    core_authorization: "NOT_ESTABLISHED", canonical_bindings_verified: false,
+    identity_scope: "UNKEYED_COMPARISON_ONLY", binding_authentication: "NOT_PROVIDED",
+    source_snapshot_authority: "CALLER_DECLARED_ONLY", persisted: false,
+    active_content_executed: false, rendering_authorized: false, action_execution: "NOT_PERFORMED",
+    answer_non_disclosure_verified: false, retry_bytes_stable: false,
+    upstream_generation: "0.3.28", upstream_entry: "generateSceneActions quiz branch excerpt",
+    runtime, data: null };
+}
+const SPEECH_KEYS = ["id", "type", "text"];
+const speechShaped = action => obj(action) && id(action.id) && action.type === "speech" &&
+  str(action.text, 8_000, true) && keysAre(action, SPEECH_KEYS);
+
+async function processPromptFrame(request) {
+  if (!promptRequestValid(request))
+    return promptBase("INVALID_REQUEST", "prompt request contract or budget rejected", request);
+  const inputIdentity = promptIdentity(request), binding = request.binding;
+  if (request.stage === "replay" &&
+      (binding.request_id !== request.request_id || binding.input_sha256 !== inputIdentity ||
+        binding.outline_manifest_sha256 !== OUTLINE_MANIFEST_SHA ||
+        binding.quiz_manifest_sha256 !== QUIZ_MANIFEST_SHA ||
+        binding.actions_manifest_sha256 !== ACTIONS_MANIFEST_SHA ||
+        binding.dsl_manifest_sha256 !== DSL_MANIFEST_SHA ||
+        binding.npm_members_sha256 !== npmIdentity || binding.worker_sha256 !== workerIdentity ||
+        binding.system_sha256 !== digest(binding.system) ||
+        binding.user_sha256 !== digest(binding.user)))
+    return promptBase("BINDING_MISMATCH", "input, prompt or donor identity differs", request);
+  let parsed, exact = false, responseError = null;
+  if (request.stage === "replay") {
+    try { parsed = JSON.parse(request.reply.value); exact = true; } catch { /* donor may repair */ }
+    if (exact) {
+      try { rejectDuplicateKeys(request.reply.value); }
+      catch { responseError = "INVALID_RESPONSE"; }
+      if (!responseError && (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 2 ||
+          parsed.some(item => !obj(item) || Object.keys(item).length !== 2 || item.type !== "text" ||
+            !str(item.content, 8_000, true))))
+        responseError = "UNSUPPORTED_OUTPUT";
+    }
+  }
+  const calls = [], notices = [];
+  let capturedSystem = null, capturedUser = null;
+  const replayCall = async (system, user, images) => {
+    if (typeof system !== "string" || typeof user !== "string" ||
+        Buffer.byteLength(system, "utf8") > 200_000 || Buffer.byteLength(user, "utf8") > 200_000 ||
+        (images && images.length)) throw new Error("PROMPT_BUDGET_OR_IMAGES_UNSUPPORTED");
+    calls.push({ system_sha256: digest(system), user_sha256: digest(user),
+      system_bytes: Buffer.byteLength(system, "utf8"), user_bytes: Buffer.byteLength(user, "utf8") });
+    capturedSystem = system; capturedUser = user;
+    if (request.stage === "capture") throw new Error(CAPTURE_SENTINEL);
+    if (responseError) throw new Error(responseError);
+    return request.reply.value;
+  };
+  const logger = { debug() {}, info() {}, warn() { notices.push("UPSTREAM_WARNING"); },
+    error() { notices.push("UPSTREAM_ERROR"); } };
+  let upstream;
+  resetParserObservation();
+  try {
+    upstream = await replayQuizActionsBranch(request.outline, request.content, replayCall,
+      { languageDirective: request.language_directive, logger });
+  } catch (error) {
+    if (calls.length !== 1)
+      return { ...promptBase("CALLBACK_REJECTED", "callback count differs", request),
+        callback_count: calls.length, calls, notices };
+    if (request.stage === "capture" && error instanceof Error && error.message === CAPTURE_SENTINEL) {
+      const captured = { schema: BINDING_SCHEMA, request_id: request.request_id,
+        input_sha256: inputIdentity, outline_manifest_sha256: OUTLINE_MANIFEST_SHA,
+        quiz_manifest_sha256: QUIZ_MANIFEST_SHA, actions_manifest_sha256: ACTIONS_MANIFEST_SHA,
+        dsl_manifest_sha256: DSL_MANIFEST_SHA, npm_members_sha256: npmIdentity,
+        worker_sha256: workerIdentity, system: capturedSystem, user: capturedUser,
+        system_sha256: digest(capturedSystem), user_sha256: digest(capturedUser) };
+      return { ...promptBase("PROMPT_CAPTURED", null, request), binding: captured,
+        callback_count: calls.length, calls, notices };
+    }
+    const reason = responseError === "INVALID_RESPONSE"
+      ? "ambiguous duplicate keys or excessive nesting"
+      : responseError === "UNSUPPORTED_OUTPUT"
+        ? "response outside the bounded text-only slice"
+        : "upstream quiz-action branch raised";
+    return { ...promptBase(responseError || "UPSTREAM_FAILURE", reason, request),
+      callback_count: calls.length, calls, notices };
+  }
+  if (calls.length !== 1)
+    return { ...promptBase("CALLBACK_REJECTED", "callback count differs", request),
+      callback_count: calls.length, calls, notices };
+  if (request.stage === "capture")
+    return { ...promptBase("UPSTREAM_FAILURE", "capture sentinel was not observed", request),
+      callback_count: calls.length, calls, notices };
+  if (!Array.isArray(upstream))
+    return { ...promptBase("UPSTREAM_FAILURE", "upstream branch returned no action array", request),
+      callback_count: calls.length, calls, notices };
+  const parser = getParserObservation();
+  const observation = { parser_called: parser !== null, parser_action_count: parser?.count ?? null,
+    callback_count: calls.length,
+    input_item_count: exact && Array.isArray(parsed) ? parsed.length : null,
+    fallback: parser === null || parser.count === 0 };
+  if (observation.fallback)
+    return { ...promptBase("UPSTREAM_FALLBACK_NOT_ADMITTED",
+      "upstream supplied fallback after no parsed actions", request), calls, notices, observation };
+  // A reply the donor repaired has no raw parse to reconcile against. Only the
+  // bounded text-only speech shape is admitted, and the receipt says the bytes
+  // were not exact JSON and the donor's normalisations cannot be reconstructed.
+  if (!exact) {
+    if (upstream.length < 1 || upstream.length > 2 || upstream.some(action => !speechShaped(action)))
+      return { ...promptBase("UPSTREAM_RESULT_NOT_ADMITTED",
+        "repaired actions exceed the bounded speech slice", request), calls, notices, observation,
+        original_reply: request.reply.value, observed_upstream: upstream };
+    return { ...promptBase("CANDIDATE", null, request), calls, notices, observation,
+      transformations: ["UPSTREAM_JSON_REPAIRED", "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED",
+        "UNSTABLE_GENERATED_ACTION_IDS"],
+      exact_json_output: false, data: { actions: upstream }, human_review_required: true };
+  }
+  if (upstream.length !== parsed.length || upstream.some((action, index) => !speechShaped(action) ||
+      action.text !== parsed[index].content.trim()))
+    return { ...promptBase("UNSUPPORTED_OR_FILTERED_NOT_ADMITTED", "unexpected transformed action", request),
+      calls, notices, observation };
+  const transformations = ["UNSTABLE_GENERATED_ACTION_IDS"];
+  if (parsed.some(item => item.content !== item.content.trim())) transformations.push("SPEECH_TRIMMED");
+  return { ...promptBase("CANDIDATE", null, request), calls, notices, observation, transformations,
+    exact_json_output: true, data: { actions: upstream }, human_review_required: true };
+}
+
 async function processFrame(raw) {
   let request;
   try {
     const source = new TextDecoder("utf-8", { fatal: true }).decode(raw);
     request = JSON.parse(source); rejectDuplicateKeys(source);
-    if (!validRequest(request)) return { ...base("INVALID_REQUEST", "request contract or budget rejected", request), input_sha256: digest(raw) };
   } catch { return { ...base("INVALID_REQUEST", "invalid bounded UTF-8 JSON or duplicate keys"),
     input_sha256: digest(raw), input_raw_base64: raw.toString("base64") }; }
+  if (request?.schema === PROMPT_SCHEMA) {
+    try { return await processPromptFrame(request); }
+    catch { return promptBase("PROCESSING_FAILURE", "quiz-action prompt processing failed", null); }
+  }
+  return processLegacyFrame(request, raw);
+}
+
+async function processLegacyFrame(request, raw) {
+  if (!validRequest(request)) return { ...base("INVALID_REQUEST", "request contract or budget rejected", request), input_sha256: digest(raw) };
   // These fields remain in the original frame but the upstream prompt formatter
   // does not interpolate them. This reports the projection rather than hiding it.
   const promptProjection = {
@@ -288,9 +493,11 @@ if (process.argv.length === 3 && process.argv[2] === "--hello") {
   let result = overflow || !length ? base("INVALID_REQUEST", "input exceeds byte budget or is empty") : await processFrame(Buffer.concat(chunks));
   let output = JSON.stringify(result);
   if (Buffer.byteLength(output, "utf8") > MAX_OUTPUT) {
-    result = base("INVALID_REQUEST", "output exceeds byte budget");
+    result = result.schema === PROMPT_RESULT_SCHEMA
+      ? promptBase("INVALID_REQUEST", "output exceeds byte budget", null)
+      : base("INVALID_REQUEST", "output exceeds byte budget");
     output = JSON.stringify(result);
   }
   process.stdout.write(output + "\n");
-  if (result.status !== "CANDIDATE") process.exitCode = 2;
+  if (!["CANDIDATE", "PROMPT_CAPTURED"].includes(result.status)) process.exitCode = 2;
 }

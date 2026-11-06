@@ -9,8 +9,8 @@
    "sha256": "9a2db7e540c41b2c4faac70be38781d2a01c6af91b0dff8c070f0c3608b65ea4"
   },
   "quiz-actions-replay-worker.mjs": {
-   "bytes": 18455,
-   "sha256": "6446f4cef72c5c89096a6b1b02beda4636c895bba52c301771bced0fd688eb84"
+   "bytes": 30900,
+   "sha256": "d82ec18513d03af07f7317a668c9b76c412c402d442eda37334315edc56feb51"
   },
   "quiz-replay-worker.mjs": {
    "bytes": 36129,

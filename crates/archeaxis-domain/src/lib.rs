@@ -29,6 +29,7 @@ pub mod machine_evaluation;
 pub mod object_reference;
 pub mod openmaic_outline;
 pub mod openmaic_quiz;
+pub mod openmaic_quiz_actions;
 pub mod openmaic_slide;
 pub mod relation_projection;
 pub mod research;
