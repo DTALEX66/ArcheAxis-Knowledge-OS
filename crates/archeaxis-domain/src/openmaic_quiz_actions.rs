@@ -251,6 +251,7 @@ pub fn openmaic_quiz_actions_stage(
     binding: Option<&Value>,
     replay: Option<&Value>,
     action_count: usize,
+    model_invoked: bool,
 ) -> Value {
     let replay_record = replay.map(|replay| {
         json!({
@@ -273,7 +274,7 @@ pub fn openmaic_quiz_actions_stage(
         "rendering_authorized":false,
         "answer_non_disclosure_verified":false,
         "human_review_required":true,
-        "model_call":if binding.is_some() { "INVOKED" } else { "NOT_INVOKED" },
+        "model_call":if model_invoked { "INVOKED" } else { "NOT_INVOKED" },
     })
 }
 
@@ -394,6 +395,7 @@ mod tests {
             Some(&binding()),
             Some(&candidate()),
             1,
+            true,
         );
         assert_eq!(stage["schema"], OPENMAIC_QUIZ_ACTIONS_RECORD_SCHEMA);
         assert_eq!(stage["action_count"], 1);
@@ -401,8 +403,14 @@ mod tests {
         assert_eq!(stage["prompt_binding"]["system_bytes"], 13);
         assert_eq!(stage["replay"]["status"], "CANDIDATE");
         assert_eq!(stage["action_execution"], "NOT_PERFORMED");
-        let refused =
-            openmaic_quiz_actions_stage("NOT_ADMITTED", &json!("NO_MODEL_REPLY"), None, None, 0);
+        let refused = openmaic_quiz_actions_stage(
+            "NOT_ADMITTED",
+            &json!("NO_MODEL_REPLY"),
+            None,
+            None,
+            0,
+            false,
+        );
         assert_eq!(refused["action_count"], 0);
         assert_eq!(refused["model_call"], "NOT_INVOKED");
         assert!(refused["prompt_binding"].is_null());

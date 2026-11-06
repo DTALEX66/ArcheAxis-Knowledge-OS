@@ -1735,6 +1735,7 @@ async fn openmaic_quiz_chain(
                     Some(&binding),
                     None,
                     0,
+                    false,
                 ),
             ),
             Ok(actions_model) => {
@@ -1761,6 +1762,7 @@ async fn openmaic_quiz_chain(
                                 Some(&binding),
                                 None,
                                 0,
+                                true,
                             ),
                         )
                     }
@@ -1808,6 +1810,7 @@ async fn openmaic_quiz_chain(
                                         Some(&binding),
                                         Some(&actions_replay["document"]),
                                         count,
+                                        true,
                                     ),
                                 )
                             }
@@ -1825,6 +1828,7 @@ async fn openmaic_quiz_chain(
                                         Some(&binding),
                                         Some(&actions_replay["document"]),
                                         0,
+                                        true,
                                     ),
                                 )
                             }
@@ -1836,6 +1840,7 @@ async fn openmaic_quiz_chain(
                                     Some(&binding),
                                     None,
                                     0,
+                                    true,
                                 ),
                             ),
                         }
@@ -1851,7 +1856,9 @@ async fn openmaic_quiz_chain(
         let reason = actions_capture["document"]["reason"].clone();
         (
             empty_actions.clone(),
-            openmaic_quiz_actions::openmaic_quiz_actions_stage(&status, &reason, None, None, 0),
+            openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                &status, &reason, None, None, 0, false,
+            ),
         )
     };
     // Stage 5: the existing scene builder and the existing v2 candidate writer.
