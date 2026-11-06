@@ -174,8 +174,7 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     };
     let practice_worker =
         python_route("services/learning-providers/deeptutor/practice_host_worker.py");
-    let model_worker =
-        python_route("services/python-workers/course/worker_outline_local_model.py");
+    let model_worker = python_route("services/python-workers/course/worker_outline_local_model.py");
     let text_worker = python_route("services/python-workers/transport/text_ndjson.py");
     let (port, stub, calls) = start_stub(model_content());
     // SAFETY: this binary runs one test; the variables are set once, before any
