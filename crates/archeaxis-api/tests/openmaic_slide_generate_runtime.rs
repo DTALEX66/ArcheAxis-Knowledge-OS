@@ -61,10 +61,10 @@ impl StubState {
     }
 }
 
-fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>) {
+fn start_stub(state: StubState) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let port = listener.local_addr().unwrap().port();
-    let state = Arc::new(Mutex::new(StubState::new(200, content)));
+    let state = Arc::new(Mutex::new(state));
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
     let counted = calls.clone();
@@ -127,6 +127,14 @@ fn quiz_reply_content() -> String {
     json!([{"id":"q1","type":"single","question":"SYNTHETIC_QUIZ_QUESTION",
         "options":[{"label":"Alpha","value":"A"},{"label":"Beta","value":"B"}],
         "answer":["A"],"analysis":"SYNTHETIC_ANALYSIS","points":5}])
+    .to_string()
+}
+
+/// The donor slide-action reply shape: one focus action then one speech segment.
+/// The mounted text element has no donor id, so Core names it `el_1`.
+fn slide_actions_reply_content() -> String {
+    json!([{"type":"action","name":"spotlight","params":{"elementId":"el_1"}},
+        {"type":"text","content":"SYNTHETIC_SLIDE_OPENING"}])
     .to_string()
 }
 
@@ -339,7 +347,8 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     let python: PathBuf = std::env::var_os("ARCHEAXIS_PYTHON")
         .expect("the canonical isolated Python is required")
         .into();
-    let (port, stub, calls) = start_stub(slide_reply_content());
+    let (port, stub, calls) =
+        start_stub(StubState::new(200, slide_reply_content()).then(slide_actions_reply_content()));
     // SAFETY: this binary runs one test; the variables are set once, before any
     // worker is spawned, so no concurrent reader can observe a partial update.
     unsafe {
@@ -423,11 +432,36 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(scene["type"], "slide");
     assert_eq!(scene["outlineId"], "o1");
     assert_eq!(scene["content"]["canvas"]["elements"][0]["type"], "text");
+    // The narration stage runs after the normalized slide and travels beside it.
+    assert_eq!(first["actions_stage"]["status"], "CANDIDATE");
+    assert_eq!(first["actions_stage"]["action_count"], 2);
+    assert_eq!(
+        first["actions_stage"]["prompt_binding"]["system_sha256"]
+            .as_str()
+            .map(str::len),
+        Some(64)
+    );
+    assert!(
+        first["actions_stage"]["prompt_binding"]
+            .get("system")
+            .is_none(),
+        "the stored action binding keeps digests only"
+    );
+    assert_eq!(scene["actions"][0]["type"], "spotlight");
+    assert_eq!(scene["actions"][0]["elementId"], "el_1");
+    assert_eq!(scene["actions"][1]["type"], "speech");
+    assert_eq!(scene["actions"][1]["text"], "SYNTHETIC_SLIDE_OPENING");
+    assert_eq!(stored["actions_stage"]["action_count"], 2);
+    assert_eq!(stored["actions_stage"]["action_execution"], "NOT_PERFORMED");
     let candidate_id = first["document"]["document_id"]
         .as_str()
         .unwrap()
         .to_owned();
-    assert_eq!(*calls.lock().unwrap(), 1, "one model call");
+    assert_eq!(
+        *calls.lock().unwrap(),
+        2,
+        "one model call for the slide and one for the narration"
+    );
     assert_eq!(document_count(&executor).await, 3);
 
     // A repeated request reads the candidate back without rerunning anything.
@@ -435,7 +469,11 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(status, StatusCode::OK, "{duplicate}");
     assert_eq!(duplicate["worker_invoked"], false);
     assert_eq!(duplicate["document"]["document_id"], candidate_id);
-    assert_eq!(*calls.lock().unwrap(), 1, "a retry never re-runs the model");
+    assert_eq!(
+        *calls.lock().unwrap(),
+        2,
+        "a retry never re-runs either model call"
+    );
     assert_eq!(document_count(&executor).await, 3);
 
     // A model lane that is unavailable is a named service error.

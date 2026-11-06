@@ -20,6 +20,10 @@
    "bytes": 7315,
    "sha256": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9"
   },
+  "slide-actions-replay-worker.mjs": {
+   "bytes": 23494,
+   "sha256": "bfa8e2e3ccfb9a1f3507ac0ab0882b9b79b5ebce2b5b5cb0f19afc2bc55f10af"
+  },
   "slide-normalize-worker.mjs": {
    "bytes": 16282,
    "sha256": "d28803cae8168014b4ba54f32a4dcae744fef86b7b2eee711715a9b2f95e3d31"
@@ -203,6 +207,46 @@
   "vendor/generation-0.3.28-quiz/templates/quiz-content/user.md": {
    "bytes": 901,
    "sha256": "9a3656910548121d3933431424d72b328b2911eb89f837a5da91f26fe9c2d146"
+  },
+  "vendor/generation-0.3.28-slide-actions/LICENSE": {
+   "bytes": 1065,
+   "sha256": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19"
+  },
+  "vendor/generation-0.3.28-slide-actions/ORIGINALS.json": {
+   "bytes": 1976,
+   "sha256": "0d8cf44c2259d908b5f4708b20fcd4c176e676a3a695c189a256623a5215e81e"
+  },
+  "vendor/generation-0.3.28-slide-actions/REUSE.md": {
+   "bytes": 2714,
+   "sha256": "fa2079cce3fbc31aed2a11fb3ef11f4721bb3d6022276c33ba5a2f8f369b78d4"
+  },
+  "vendor/generation-0.3.28-slide-actions/package.json": {
+   "bytes": 1798,
+   "sha256": "5308b268d06dd27e592de00f02d57b046588df0d6e160f4179788388d5a806d1"
+  },
+  "vendor/generation-0.3.28-slide-actions/slide-actions-functions.ts": {
+   "bytes": 6251,
+   "sha256": "fec456d4cd383717a536dd25f25702854df699acd0fbbdb1bb2bcc8e8090fb81"
+  },
+  "vendor/generation-0.3.28-slide-actions/snippets/speech-tts-readability.md": {
+   "bytes": 1675,
+   "sha256": "d20aaa621ae3e0254cc7278afe5384bdf3ac31823de05572d9b732397f45af29"
+  },
+  "vendor/generation-0.3.28-slide-actions/src/action-parser.ts": {
+   "bytes": 5936,
+   "sha256": "bb0e690b785592f99949efc538c4bec0dc7b3942d9c6c1ad538040f1161d47fc"
+  },
+  "vendor/generation-0.3.28-slide-actions/src/prompt-formatters.ts": {
+   "bytes": 6922,
+   "sha256": "5e36537e7f3091fa7e9ac066c7e36bf99e277e071d7afe991fd3c1d09f38469f"
+  },
+  "vendor/generation-0.3.28-slide-actions/templates/slide-actions/system.md": {
+   "bytes": 7907,
+   "sha256": "6f7119c8e2ae5d9b71b3aeb4f6a3de652db361aae0e725d1fbaea2528bd7ce44"
+  },
+  "vendor/generation-0.3.28-slide-actions/templates/slide-actions/user.md": {
+   "bytes": 393,
+   "sha256": "71a95329793ba0fae6030b6b9eb562bed62e9460bd26c2fcbd92d7c53f549512"
   },
   "vendor/generation-0.3.28/LICENSE": {
    "bytes": 1065,
@@ -2693,6 +2737,7 @@
   "vendor/generation-0.3.28-quiz-actions",
   "vendor/dsl-0.12.0-actions",
   "vendor/scene-content-0.3.28-original",
+  "vendor/generation-0.3.28-slide-actions",
   "vendor/npm"
  ],
  "workers": [
@@ -2703,6 +2748,7 @@
   "slide-reply-worker.mjs",
   "slide-normalize-worker.mjs",
   "quiz-replay-worker.mjs",
-  "quiz-actions-replay-worker.mjs"
+  "quiz-actions-replay-worker.mjs",
+  "slide-actions-replay-worker.mjs"
  ]
 }

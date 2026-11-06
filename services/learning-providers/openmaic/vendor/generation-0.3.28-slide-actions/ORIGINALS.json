@@ -1,0 +1,46 @@
+{
+  "archive_sha256": "7cea2a5850083bdc261114d8433daa6ea24c1c0157beae3939a2e9fac3a98f40",
+  "source_prefix": "OpenMAIC-1.3.0/packages/@openmaic/generation/",
+  "version": "0.3.28",
+  "license": "MIT",
+  "originals": {
+    "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
+    "package.json": "5308b268d06dd27e592de00f02d57b046588df0d6e160f4179788388d5a806d1",
+    "src/action-parser.ts": "bb0e690b785592f99949efc538c4bec0dc7b3942d9c6c1ad538040f1161d47fc",
+    "src/prompt-formatters.ts": "5e36537e7f3091fa7e9ac066c7e36bf99e277e071d7afe991fd3c1d09f38469f",
+    "templates/slide-actions/system.md": "6f7119c8e2ae5d9b71b3aeb4f6a3de652db361aae0e725d1fbaea2528bd7ce44",
+    "templates/slide-actions/user.md": "71a95329793ba0fae6030b6b9eb562bed62e9460bd26c2fcbd92d7c53f549512",
+    "snippets/speech-tts-readability.md": "d20aaa621ae3e0254cc7278afe5384bdf3ac31823de05572d9b732397f45af29"
+  },
+  "source_file": "../scene-content-0.3.28-original/generation/src/scene-generator.ts",
+  "source_sha256": "4f9d0cb1fb387c41e172272f0d0a2963c2c0f9471982220283f986eed8db4e92",
+  "excerpts": [
+    {
+      "start_line": 1781,
+      "end_line": 1783,
+      "sha256": "b64509e50d95f285951e07169ccac482a7c711415ec9acb637ba98f8a13a57fa"
+    },
+    {
+      "start_line": 1793,
+      "end_line": 1821,
+      "sha256": "a394c706eec8eafdfd00ec156452d995ecaf68c7176e61d8ff159aed73f84255"
+    },
+    {
+      "start_line": 1943,
+      "end_line": 1965,
+      "sha256": "56a3fb807d4021e29d0d19dbc2358e215103824d0eae75e0eaf994194c97e869"
+    },
+    {
+      "start_line": 1984,
+      "end_line": 2035,
+      "sha256": "51d6cb1d251cb253d29fde05acfd89038305ee6c2a1dacd5d4ea0be6e9e1408b"
+    },
+    {
+      "start_line": 2040,
+      "end_line": 2066,
+      "sha256": "4c56b2062696977e93bf780cfd1dc2e54381dd63bfebf363eb80f2c18e147759"
+    }
+  ],
+  "adapted_file": "slide-actions-functions.ts",
+  "adapted_sha256": "fec456d4cd383717a536dd25f25702854df699acd0fbbdb1bb2bcc8e8090fb81"
+}
