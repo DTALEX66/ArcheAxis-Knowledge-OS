@@ -119,16 +119,18 @@ pub fn openmaic_interactive_outline_refusal(request: &Value) -> Option<Value> {
             "supported":"1-128 ASCII [A-Za-z0-9_-] token"}));
     }
     let requirement = request["requirement"].as_str();
-    if requirement.is_none_or(|value| value.trim().is_empty() || value.chars().count() > 8_000) {
+    // The adapter bounds these fields in bytes; Core refuses the same span so a
+    // request it admits can never be rejected as over-budget by the worker.
+    if requirement.is_none_or(|value| value.trim().is_empty() || value.len() > 8_000) {
         return Some(json!({"reason":"REQUIREMENT_OUT_OF_BOUNDS",
-            "declared":requirement.map(|value| value.chars().count()),
-            "supported":"1 to 8000 characters"}));
+            "declared":requirement.map(str::len),
+            "supported":"1 to 8000 bytes"}));
     }
     let source_text = request["source_text"].as_str();
-    if source_text.is_none_or(|value| value.chars().count() > 50_000) {
+    if source_text.is_none_or(|value| value.len() > 50_000) {
         return Some(json!({"reason":"SOURCE_TEXT_OUT_OF_BOUNDS",
-            "declared":source_text.map(|value| value.chars().count()),
-            "supported":"0 to 50000 characters"}));
+            "declared":source_text.map(str::len),
+            "supported":"0 to 50000 bytes"}));
     }
     if !request["model"].is_null() && !model_identity(&request["model"]) {
         return Some(
