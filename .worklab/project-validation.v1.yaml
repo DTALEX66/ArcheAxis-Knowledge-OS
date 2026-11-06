@@ -151,8 +151,10 @@ risk_classes:
       # Exact OpenMAIC worker and runner entry points.
       - services/learning-providers/openmaic/interactive-html-rewrite-probe.mjs
       - services/learning-providers/openmaic/interactive-html-rewrite-worker.mjs
+      - services/learning-providers/openmaic/interactive-prompt-worker.mjs
       - services/learning-providers/openmaic/interactive-url-map-worker.mjs
       - services/learning-providers/openmaic/interactive_html_rewrite_runner.py
+      - services/learning-providers/openmaic/interactive_prompt_runner.py
       - services/learning-providers/openmaic/local_model_relay.py
       - services/learning-providers/openmaic/outline-prompt-guard.mjs
       - services/learning-providers/openmaic/outline-replay-worker.mjs
