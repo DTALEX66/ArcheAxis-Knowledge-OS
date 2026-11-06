@@ -1,6 +1,6 @@
-"""Run the OpenMAIC generation chain from a staged backend runtime.
+"""Run the OpenMAIC generation chain from a staged or installed backend runtime.
 
-This probe starts the candidate's own `start-backend.py` launcher, so the Core
+This probe starts the runtime's own `start-backend.py` launcher, so the Core
 executable, the staged `workers/openmaic` closure, the staged Python capability
 routes and the manifest-declared Node identity are exactly what an installation
 would launch. It then creates one synthetic source document, generates an
@@ -9,7 +9,8 @@ scene (each with its narration stage), restarts the same workspace and reads
 both candidates back without rerunning a worker or the model.
 
 The model is a loopback stub with a fixed reply queue; this is not real model
-quality evidence, not an installed package and not Owner acceptance.
+quality evidence and not Owner acceptance. The staged root is a candidate
+directory; `--installed-runtime` names an installed package root instead.
 
 Usage:
   python -B scripts/probes/aaos_openmaic_generation_staged_loop.py \
@@ -190,6 +191,11 @@ def main() -> int:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--run-id", default=secrets.token_hex(6))
+    parser.add_argument("--installed-runtime", action="store_true",
+                        help="the root is an installed package, not a staged candidate")
+    parser.add_argument("--data-root", type=Path,
+                        help="workspace root for this probe; defaults to <root>/data, so name an "
+                             "external directory to leave an installed package unchanged")
     args = parser.parse_args()
 
     root = args.root.resolve()
@@ -197,7 +203,7 @@ def main() -> int:
     launcher_path = root / "start-backend.py"
     for required in (manifest_path, launcher_path, root / "core/archeaxis-api.exe"):
         if not required.is_file():
-            raise SystemExit(f"staged member missing: {required}")
+            raise SystemExit(f"runtime member missing: {required}")
 
     manifest = json.loads(manifest_path.read_bytes())
     core_sha = digest(root / "core/archeaxis-api.exe")
@@ -216,20 +222,28 @@ def main() -> int:
     assert spec.loader is not None
     spec.loader.exec_module(launcher)
 
-    data_root = root / "data" / f"probe-{args.run_id}"
+    data_root = (args.data_root.resolve() if args.data_root
+                 else root / "data" / f"probe-{args.run_id}")
     core = Core(launcher, data_root)
+    installed = args.installed_runtime
     receipt: dict = {
         "schema": "archeaxis.probe/openmaic-generation-staged/v1",
         "run_id": args.run_id,
-        "evidence_level": "STAGED_BACKEND_RUNTIME_REAL_CORE_REAL_NODE_WORKERS_SYNTHETIC_LOOPBACK_MODEL",
-        "staged_root": str(root),
+        "runtime_kind": "INSTALLED_PACKAGE" if installed else "STAGED_CANDIDATE",
+        "evidence_level": ("INSTALLED_RUNTIME_REAL_CORE_REAL_NODE_SYNTHETIC_LOOPBACK_MODEL" if installed
+                           else "STAGED_BACKEND_RUNTIME_REAL_CORE_REAL_NODE_WORKERS_SYNTHETIC_LOOPBACK_MODEL"),
+        "runtime_root": str(root),
+        "data_root": str(data_root),
         "manifest_sha256": digest(manifest_path),
         "manifest_version": manifest.get("version"),
         "core_sha256": core_sha,
         "node_sha256": node_sha,
         "openmaic_scene_build": manifest.get("openmaic_scene_build"),
         "model": MODEL,
-        "boundary": ("Staged backend runtime, synthetic material and a loopback stub model. "
+        "boundary": ("Installed package runtime, synthetic material and a loopback stub model. "
+                     "Not real model quality, not Owner acceptance, not release publication."
+                     if installed else
+                     "Staged backend runtime, synthetic material and a loopback stub model. "
                      "Not an installed package, not real model quality, not Owner acceptance."),
     }
     try:
