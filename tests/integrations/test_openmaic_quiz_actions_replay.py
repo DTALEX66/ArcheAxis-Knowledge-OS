@@ -50,6 +50,112 @@ def frame(reply: dict | None = None) -> dict:
                 {"type": "text", "content": " 开始合成练习 "}, {"type": "text", "content": "提交后讨论。"}], ensure_ascii=False)}}
 
 
+def prompt_frame() -> dict:
+    return {"schema": "archeaxis.openmaic-quiz-actions-prompt/v1", "stage": "capture",
+            "request_id": "prompt_1",
+            "outline": {"id": "outline_1", "type": "quiz", "title": "合成练习", "description": "测试",
+                        "keyPoints": ["练习"], "order": 1,
+                        "quizConfig": {"questionCount": 1, "difficulty": "easy", "questionTypes": ["single"]}},
+            "content": {"questions": [{"id": "q_1", "type": "single", "question": "选择一项？",
+                        "options": [{"value": "A", "label": "甲"}, {"value": "B", "label": "乙"}],
+                        "answer": ["B"], "correctAnswer": "乙", "hasAnswer": True}]},
+            "language_directive": "中文"}
+
+
+def capture() -> dict:
+    code, result = invoke(prompt_frame())
+    assert code == 0 and result["status"] == "PROMPT_CAPTURED", result
+    return result
+
+
+def replay(reply: str, binding: dict) -> tuple[int, dict]:
+    data = prompt_frame()
+    data["stage"] = "replay"
+    data["binding"] = binding
+    data["reply"] = {"kind": "caller_supplied", "value": reply}
+    return invoke(data)
+
+
+@requires_node
+def test_prompt_capture_binds_the_original_quiz_action_prompt():
+    result = capture()
+    binding = result["binding"]
+    assert result["schema"] == "archeaxis.openmaic-quiz-actions-prompt-result/v1"
+    assert result["stage"] == "capture" and result["request_id"] == "prompt_1"
+    assert result["callback_count"] == 1 and len(result["calls"]) == 1
+    assert binding["schema"] == "archeaxis.openmaic-quiz-actions-prompt-binding/v1"
+    assert binding["system"].startswith("# Quiz Action Generator")
+    assert "Q1 (single): 选择一项？" in binding["user"]
+    assert "answer" not in binding["user"].lower(), "the prompt carries no answer field"
+    assert len(binding["system_sha256"]) == 64 and len(binding["user_sha256"]) == 64
+    assert binding["system_sha256"] == sha(binding["system"].encode("utf-8"))
+    assert binding["user_sha256"] == sha(binding["user"].encode("utf-8"))
+    assert binding["worker_sha256"] == sha(WORKER.read_bytes())
+    assert binding["actions_manifest_sha256"] == "8e4b62a07c4daf3085fadd126396e467084a7dd35c9c5e9159f863fb527e655a"
+    assert binding["dsl_manifest_sha256"] == "ef4102ca18abefcf0c5956a8caa356236d60d248416b1b666cfc6daa99066dc0"
+    assert result["model_call"] == "NOT_INVOKED" and result["action_execution"] == "NOT_PERFORMED"
+    assert "human_review_required" not in result and result["data"] is None
+
+
+@requires_node
+def test_prompt_replay_admits_only_inert_text_speech():
+    binding = capture()["binding"]
+    code, result = replay('[{"type":"text","content":" 开始合成练习 "}]', binding)
+    assert code == 0 and result["status"] == "CANDIDATE", result
+    assert result["stage"] == "replay" and result["exact_json_output"] is True
+    assert [item["type"] for item in result["data"]["actions"]] == ["speech"]
+    assert result["data"]["actions"][0]["text"] == "开始合成练习"
+    assert set(result["transformations"]) == {"UNSTABLE_GENERATED_ACTION_IDS", "SPEECH_TRIMMED"}
+    assert result["observation"]["parser_action_count"] == 1 and result["observation"]["fallback"] is False
+    assert result["action_execution"] == "NOT_PERFORMED" and result["rendering_authorized"] is False
+    assert result["answer_non_disclosure_verified"] is False and result["human_review_required"] is True
+
+
+@requires_node
+def test_prompt_replay_refuses_a_changed_binding_before_running_the_branch():
+    binding = dict(capture()["binding"])
+    binding["worker_sha256"] = "0" * 64
+    code, result = replay('[{"type":"text","content":"x"}]', binding)
+    assert code == 2 and result["status"] == "BINDING_MISMATCH"
+    assert result["data"] is None and result.get("calls") is None
+
+
+@requires_node
+def test_prompt_replay_quarantines_named_actions_and_fallback():
+    binding = capture()["binding"]
+    code, result = replay('[{"type":"action","name":"discussion","params":{}}]', binding)
+    assert code == 2 and result["status"] == "UNSUPPORTED_OUTPUT" and result["data"] is None
+    # An exact empty array is refused before the branch; the donor is only
+    # allowed to repair the text, and its repaired fallback is still not admitted.
+    code, result = replay("[]", binding)
+    assert code == 2 and result["status"] == "UNSUPPORTED_OUTPUT"
+    code, result = replay("```json\n[]\n```", binding)
+    assert code == 2 and result["status"] == "UPSTREAM_FALLBACK_NOT_ADMITTED"
+    assert result["observation"]["fallback"] is True
+
+
+@requires_node
+def test_prompt_replay_admits_a_donor_repaired_reply_as_non_exact():
+    binding = capture()["binding"]
+    code, result = replay('```json\n[{"type":"text","content":"围栏开场"}]\n```', binding)
+    assert code == 0 and result["status"] == "CANDIDATE", result
+    assert result["exact_json_output"] is False
+    assert "UPSTREAM_JSON_REPAIRED" in result["transformations"]
+    assert "UPSTREAM_NORMALIZATIONS_UNRECONSTRUCTED" in result["transformations"]
+    assert result["data"]["actions"][0]["text"] == "围栏开场"
+
+
+@requires_node
+def test_prompt_frame_rejects_unknown_or_missing_fields():
+    data = prompt_frame()
+    data["reply"] = {"kind": "caller_supplied", "value": "[]"}
+    code, result = invoke(data)
+    assert code == 2 and result["status"] == "INVALID_REQUEST"
+    data = prompt_frame()
+    data["language_directive"] = "中文\0"
+    assert invoke(data)[1]["status"] == "INVALID_REQUEST"
+
+
 def test_all_loaded_openmaic_members_match_exact_owner_zip_bytes():
     if not ARCHIVE.is_file():
         pytest.skip("local-only original absent in a Git clone/CI (Git-ignored .project-local input); "

@@ -51,7 +51,7 @@ fn digest(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
-fn token(value: &str) -> bool {
+pub(crate) fn token(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 128
         && value
@@ -59,13 +59,13 @@ fn token(value: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
 
-fn hex_digest(value: &Value) -> bool {
+pub(crate) fn hex_digest(value: &Value) -> bool {
     value
         .as_str()
         .is_some_and(|text| text.len() == 64 && text.bytes().all(|b| b.is_ascii_hexdigit()))
 }
 
-fn bounded_text(value: &Value, max_chars: usize) -> bool {
+pub(crate) fn bounded_text(value: &Value, max_chars: usize) -> bool {
     value
         .as_str()
         .is_some_and(|text| !text.trim().is_empty() && text.chars().count() <= max_chars)
@@ -132,7 +132,7 @@ pub fn openmaic_quiz_outline(selection: &Value) -> Result<Value, Error> {
     Ok(frame)
 }
 
-fn quiz_language_directive(selection: &Value) -> Result<String, Error> {
+pub(crate) fn quiz_language_directive(selection: &Value) -> Result<String, Error> {
     let directive = selection["language_directive"].as_str().unwrap_or("");
     if directive.chars().count() > 2_000 || directive.contains('\0') {
         return Err(invalid("OUTLINE_LANGUAGE_DIRECTIVE_OUT_OF_BOUNDS"));
@@ -269,7 +269,7 @@ pub fn openmaic_quiz_replay_request(
     )
 }
 
-fn quiz_question_shape(question: &Value) -> bool {
+pub(crate) fn quiz_question_shape(question: &Value) -> bool {
     let Some(object) = question.as_object() else {
         return false;
     };
@@ -404,6 +404,41 @@ pub fn openmaic_quiz_scene_build_request(
         "actions":[]}))
 }
 
+/// The scene-build request for an admitted quiz plus its admitted narration.
+/// The action list is re-checked here so a non-speech, duplicate or oversize
+/// action can never reach the builder.
+pub fn openmaic_quiz_scene_build_request_with_actions(
+    create_request_id: &str,
+    selection: &Value,
+    questions: &Value,
+    source: &Value,
+    actions: &Value,
+) -> Result<Value, Error> {
+    let mut request =
+        openmaic_quiz_scene_build_request(create_request_id, selection, questions, source)?;
+    let list = actions["actions"]
+        .as_array()
+        .filter(|items| (1..=2).contains(&items.len()))
+        .ok_or(invalid("QUIZ_ACTIONS_INVALID"))?;
+    let mut ids = HashSet::new();
+    for action in list {
+        let shaped = action.as_object().is_some_and(|object| {
+            object.len() == 3
+                && object.contains_key("id")
+                && object.contains_key("type")
+                && object.contains_key("text")
+                && token(action["id"].as_str().unwrap_or(""))
+                && action["type"].as_str() == Some("speech")
+                && bounded_text(&action["text"], 8_000)
+        });
+        if !shaped || !ids.insert(action["id"].as_str().unwrap_or("").to_owned()) {
+            return Err(invalid("QUIZ_ACTIONS_INVALID"));
+        }
+    }
+    request["actions"] = json!(list);
+    Ok(request)
+}
+
 fn stage_record(document: &Value, keys: &[(&str, &str)]) -> Value {
     let mut record = serde_json::Map::new();
     for (field, path) in keys {
@@ -480,6 +515,29 @@ pub fn openmaic_quiz_record(
     })
 }
 
+/// The existing quiz record plus the narration stage's own receipt. The stage
+/// record names what ran and never copies prompt or model text.
+pub fn openmaic_quiz_record_with_actions(
+    create_request_id: &str,
+    request_sha256: &str,
+    selection: &Value,
+    prompt_binding: &Value,
+    model_reply: &Value,
+    replay: &Value,
+    actions_stage: &Value,
+) -> Value {
+    let mut record = openmaic_quiz_record(
+        create_request_id,
+        request_sha256,
+        selection,
+        prompt_binding,
+        model_reply,
+        replay,
+    );
+    record["actions_stage"] = actions_stage.clone();
+    record
+}
+
 /// The persisted candidate as a client reads it, with the Core-derived chain
 /// metadata surfaced next to the existing scene projection and render reports.
 fn quiz_receipt(scene_receipt: Value) -> Value {
@@ -501,6 +559,7 @@ fn quiz_receipt(scene_receipt: Value) -> Value {
         "outline_index":stored["outline_index"],
         "outline_id":stored["outline_id"],
         "replay":stored["replay"],
+        "actions_stage":stored["actions_stage"],
         "response_origin":stored["response_origin"],
         "human_review_required":true,
         "active_content_executed":false,

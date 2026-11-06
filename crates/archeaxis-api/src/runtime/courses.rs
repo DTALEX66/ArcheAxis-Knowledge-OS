@@ -4,6 +4,7 @@ use archeaxis_application::executor::OpenMaicSlideStage;
 use archeaxis_domain::course::{self, CourseBinding};
 use archeaxis_domain::openmaic_outline;
 use archeaxis_domain::openmaic_quiz;
+use archeaxis_domain::openmaic_quiz_actions;
 use archeaxis_domain::openmaic_slide;
 use rusqlite::OptionalExtension;
 use sha2::{Digest, Sha256};
@@ -833,6 +834,7 @@ fn openmaic_quiz_receipt_response(receipt: &Value, worker_invoked: bool) -> Resp
         "outline_document_id":receipt["outline_document_id"],
         "outline_index":receipt["outline_index"],"outline_id":receipt["outline_id"],
         "replay":receipt["replay"],
+        "actions_stage":receipt["actions_stage"],
         "response_origin":"LOCAL_MODEL_UNVERIFIED",
         "human_review_required":true,"active_content_executed":false,
         "rendering_authorized":false,
@@ -954,10 +956,14 @@ fn openmaic_slide_script_gap(runtime: &Runtime) -> Option<&'static str> {
     None
 }
 
-/// The quiz chain needs its one sibling adapter plus the existing scene builder.
+/// The quiz chain needs its content and action adapters plus the existing scene
+/// builder. A missing action adapter names that stage instead of dropping it.
 fn openmaic_quiz_script_gap(runtime: &Runtime) -> Option<&'static str> {
     if runtime.executor.openmaic_quiz_script().is_none() {
         return Some("quiz_replay");
+    }
+    if runtime.executor.openmaic_quiz_actions_script().is_none() {
+        return Some("quiz_actions");
     }
     if runtime.executor.openmaic_node_paths().is_none() {
         return Some("scene_build");
@@ -1664,12 +1670,204 @@ async fn openmaic_quiz_chain(
             );
         }
     };
-    // Stage 4: the existing scene builder and the existing v2 candidate writer.
-    let scene_request = match openmaic_quiz::openmaic_quiz_scene_build_request(
+    // Stage 4: the donor's quiz-action prompt. This narration stage is best
+    // effort by design: a refused or unusable reply leaves the quiz candidate
+    // complete with an empty action list, and the stored stage record names
+    // exactly what happened so the omission is never silent.
+    let actions_request = match openmaic_quiz_actions::openmaic_quiz_actions_capture_request(
+        &create_request_id,
+        &selection,
+        &questions,
+    ) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_quiz_error(failure),
+    };
+    let actions_capture = match runtime
+        .executor
+        .openmaic_quiz_actions_with_generation(generation, actions_request, Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "quiz_actions",
+                "OpenMAIC quiz-action worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let actions_outcome = openmaic_stage_outcome(&actions_capture);
+    let empty_actions = json!({"actions":[]});
+    let (actions, actions_stage) = if actions_capture["exit_code"] == 0
+        && actions_capture["document"]["status"] == "PROMPT_CAPTURED"
+    {
+        let binding = match openmaic_quiz_actions::openmaic_quiz_actions_capture_binding(
+            &create_request_id,
+            &actions_capture["document"],
+        ) {
+            Ok(value) => value,
+            Err(_) => {
+                return openmaic_stage_failure(
+                    StatusCode::BAD_GATEWAY,
+                    "quiz_actions",
+                    "OpenMAIC quiz-action prompt receipt is inconsistent",
+                    actions_outcome,
+                );
+            }
+        };
+        let actions_model_request =
+            openmaic_outline::openmaic_outline_model_request(&binding, &request["model"]);
+        let actions_model = runtime
+            .executor
+            .derived_json(
+                openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
+                actions_model_request,
+                Duration::from_secs(120),
+            )
+            .await;
+        match actions_model {
+            Err(reason) => (
+                empty_actions.clone(),
+                openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                    "MODEL_UNAVAILABLE",
+                    &json!(reason),
+                    Some(&binding),
+                    None,
+                    0,
+                    false,
+                ),
+            ),
+            Ok(actions_model) => {
+                let content = if actions_model["exit_code"] == 0
+                    && actions_model["document"]["status"] == "REPLY"
+                {
+                    openmaic_outline::openmaic_outline_model_content(&actions_model["document"])
+                        .map(str::to_owned)
+                } else {
+                    None
+                };
+                match content {
+                    None => {
+                        let status = actions_model["document"]["status"]
+                            .as_str()
+                            .unwrap_or("INVALID_MODEL_OUTPUT")
+                            .to_owned();
+                        let reason = actions_model["document"]["reason"].clone();
+                        (
+                            empty_actions.clone(),
+                            openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                                &status,
+                                &reason,
+                                Some(&binding),
+                                None,
+                                0,
+                                true,
+                            ),
+                        )
+                    }
+                    Some(content) => {
+                        let actions_replay_request =
+                            match openmaic_quiz_actions::openmaic_quiz_actions_replay_request(
+                                &create_request_id,
+                                &selection,
+                                &questions,
+                                &binding,
+                                &content,
+                            ) {
+                                Ok(value) => value,
+                                Err(failure) => return openmaic_quiz_error(failure),
+                            };
+                        let actions_replay = match runtime
+                            .executor
+                            .openmaic_quiz_actions_with_generation(
+                                generation,
+                                actions_replay_request,
+                                Duration::from_secs(30),
+                            )
+                            .await
+                        {
+                            Ok(value) => value,
+                            Err(_) => {
+                                return openmaic_stage_failure(
+                                    StatusCode::SERVICE_UNAVAILABLE,
+                                    "quiz_actions",
+                                    "OpenMAIC quiz-action replay worker unavailable",
+                                    Value::Null,
+                                );
+                            }
+                        };
+                        match openmaic_quiz_actions::openmaic_quiz_actions_candidate(
+                            &actions_replay["document"],
+                        ) {
+                            Ok(Some(admitted)) => {
+                                let count = admitted["actions"].as_array().map_or(0, Vec::len);
+                                (
+                                    admitted,
+                                    openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                                        "CANDIDATE",
+                                        &Value::Null,
+                                        Some(&binding),
+                                        Some(&actions_replay["document"]),
+                                        count,
+                                        true,
+                                    ),
+                                )
+                            }
+                            Ok(None) => {
+                                let status = actions_replay["document"]["status"]
+                                    .as_str()
+                                    .unwrap_or("NOT_ADMITTED")
+                                    .to_owned();
+                                let reason = actions_replay["document"]["reason"].clone();
+                                (
+                                    empty_actions.clone(),
+                                    openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                                        &status,
+                                        &reason,
+                                        Some(&binding),
+                                        Some(&actions_replay["document"]),
+                                        0,
+                                        true,
+                                    ),
+                                )
+                            }
+                            Err(_) => (
+                                empty_actions.clone(),
+                                openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                                    "RECEIPT_INVALID",
+                                    &json!("QUIZ_ACTIONS_REPLAY_RECEIPT_INVALID"),
+                                    Some(&binding),
+                                    None,
+                                    0,
+                                    true,
+                                ),
+                            ),
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        let status = actions_capture["document"]["status"]
+            .as_str()
+            .unwrap_or("NOT_ADMITTED")
+            .to_owned();
+        let reason = actions_capture["document"]["reason"].clone();
+        (
+            empty_actions.clone(),
+            openmaic_quiz_actions::openmaic_quiz_actions_stage(
+                &status, &reason, None, None, 0, false,
+            ),
+        )
+    };
+    // Stage 5: the existing scene builder and the existing v2 candidate writer.
+    let scene_request = match openmaic_quiz::openmaic_quiz_scene_build_request_with_actions(
         &create_request_id,
         &selection,
         &questions,
         &request["source"],
+        &actions,
     ) {
         Ok(value) => value,
         Err(failure) => return openmaic_quiz_error(failure),
@@ -1737,13 +1935,14 @@ async fn openmaic_quiz_chain(
             scene_outcome,
         );
     }
-    let record = openmaic_quiz::openmaic_quiz_record(
+    let record = openmaic_quiz::openmaic_quiz_record_with_actions(
         &create_request_id,
         &openmaic_slide::openmaic_slide_request_sha256(&request, &selection),
         &selection,
         &openmaic_quiz::openmaic_quiz_prompt_record(&binding),
         &model["document"],
         &replay["document"],
+        &actions_stage,
     );
     let generation_chain = openmaic_quiz::OpenMaicQuizGeneration {
         scene_request: scene_request.clone(),

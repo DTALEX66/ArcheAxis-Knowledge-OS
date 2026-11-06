@@ -34,16 +34,37 @@ const MODEL: &str = "synthetic-stub-model";
 
 struct StubState {
     status: u16,
-    content: String,
+    /// One reply per model call. A chain with two stages (questions then
+    /// actions) queues two replies; the last one repeats after that.
+    queue: Vec<String>,
+    cursor: usize,
+}
+
+impl StubState {
+    fn new(status: u16, content: impl Into<String>) -> Self {
+        Self {
+            status,
+            queue: vec![content.into()],
+            cursor: 0,
+        }
+    }
+
+    fn then(mut self, content: impl Into<String>) -> Self {
+        self.queue.push(content.into());
+        self
+    }
+
+    fn next_content(&mut self) -> String {
+        let index = self.cursor.min(self.queue.len().saturating_sub(1));
+        self.cursor += 1;
+        self.queue[index].clone()
+    }
 }
 
 fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let port = listener.local_addr().unwrap().port();
-    let state = Arc::new(Mutex::new(StubState {
-        status: 200,
-        content,
-    }));
+    let state = Arc::new(Mutex::new(StubState::new(200, content)));
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
     let counted = calls.clone();
@@ -69,16 +90,19 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
             let mut body = vec![0_u8; length];
             let _ = reader.read_exact(&mut body);
             *counted.lock().unwrap() += 1;
-            let state = shared.lock().unwrap();
+            let (status, content) = {
+                let mut state = shared.lock().unwrap();
+                (state.status, state.next_content())
+            };
             let payload = json!({"model": MODEL,
                 "choices":[{"index":0,"finish_reason":"stop",
-                    "message":{"role":"assistant","content":state.content}}],
+                    "message":{"role":"assistant","content":content}}],
                 "usage":{"prompt_tokens":5,"completion_tokens":7}})
             .to_string();
             let response = format!(
                 "HTTP/1.1 {} synthetic\r\nContent-Type: application/json\r\n\
                  Content-Length: {}\r\nConnection: close\r\n\r\n{}",
-                state.status,
+                status,
                 payload.len(),
                 payload
             );
@@ -104,6 +128,11 @@ fn quiz_reply_content() -> String {
         "options":[{"label":"Alpha","value":"A"},{"label":"Beta","value":"B"}],
         "answer":["A"],"analysis":"SYNTHETIC_ANALYSIS","points":5}])
     .to_string()
+}
+
+/// The donor quiz-action reply shape: one bounded text segment.
+fn quiz_actions_reply_content() -> String {
+    json!([{"type":"text","content":"SYNTHETIC_QUIZ_OPENING"}]).to_string()
 }
 
 fn digest(bytes: &[u8]) -> String {
@@ -410,10 +439,7 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(document_count(&executor).await, 3);
 
     // A model lane that is unavailable is a named service error.
-    *stub.lock().unwrap() = StubState {
-        status: 500,
-        content: String::new(),
-    };
+    *stub.lock().unwrap() = StubState::new(500, String::new());
     let mut unavailable_body = body.clone();
     unavailable_body["create_request_id"] = json!("slide_unavailable");
     let (status, unavailable) = call(&router, "human", &unavailable_body).await;
@@ -423,10 +449,7 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(document_count(&executor).await, 3);
 
     // A lane with no final answer is a named timeout, never fabricated text.
-    *stub.lock().unwrap() = StubState {
-        status: 200,
-        content: "   ".into(),
-    };
+    *stub.lock().unwrap() = StubState::new(200, "   ");
     let mut timeout_body = body.clone();
     timeout_body["create_request_id"] = json!("slide_timeout");
     let (status, timeout) = call(&router, "human", &timeout_body).await;
@@ -437,10 +460,7 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
 
     // A reply the donor adapter cannot admit is refused with its own status and
     // reason; nothing is repaired and nothing is written.
-    *stub.lock().unwrap() = StubState {
-        status: 200,
-        content: "not a slide reply".into(),
-    };
+    *stub.lock().unwrap() = StubState::new(200, "not a slide reply");
     let mut reply_body = body.clone();
     reply_body["create_request_id"] = json!("slide_non_candidate");
     let (status, rejected) = call(&router, "human", &reply_body).await;
@@ -462,10 +482,8 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     // The same route dispatches a quiz outline to the quiz chain. No slide stage
     // runs and the response names the chain it used.
     let calls_before_quiz = *calls.lock().unwrap();
-    *stub.lock().unwrap() = StubState {
-        status: 200,
-        content: quiz_reply_content(),
-    };
+    *stub.lock().unwrap() =
+        StubState::new(200, quiz_reply_content()).then(quiz_actions_reply_content());
     let mut quiz_body = request(&outline_id, 1, &source);
     quiz_body["create_request_id"] = json!("quiz_1");
     // A machine actor may not ask for the quiz chain either.
@@ -525,11 +543,32 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
         quiz_scene["content"]["questions"][0]["question"],
         "SYNTHETIC_QUIZ_QUESTION"
     );
+    // The narration stage runs after the questions and travels beside them.
+    assert_eq!(quiz["actions_stage"]["status"], "CANDIDATE");
+    assert_eq!(quiz["actions_stage"]["action_count"], 1);
+    assert_eq!(
+        quiz["actions_stage"]["prompt_binding"]["system_sha256"]
+            .as_str()
+            .map(str::len),
+        Some(64)
+    );
+    assert!(
+        quiz["actions_stage"]["prompt_binding"]
+            .get("system")
+            .is_none(),
+        "the stored action binding keeps digests only"
+    );
+    assert_eq!(quiz_scene["actions"][0]["text"], "SYNTHETIC_QUIZ_OPENING");
+    assert_eq!(quiz_stored["actions_stage"]["action_count"], 1);
+    assert_eq!(
+        quiz_stored["actions_stage"]["action_execution"],
+        "NOT_PERFORMED"
+    );
     let quiz_candidate_id = quiz["document"]["document_id"].as_str().unwrap().to_owned();
     assert_eq!(
         *calls.lock().unwrap(),
-        calls_before_quiz + 1,
-        "one model call for the quiz chain"
+        calls_before_quiz + 2,
+        "one model call for the questions and one for the narration"
     );
     assert_eq!(document_count(&executor).await, 4);
 
@@ -541,16 +580,13 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(quiz_duplicate["document"]["document_id"], quiz_candidate_id);
     assert_eq!(
         *calls.lock().unwrap(),
-        calls_before_quiz + 1,
-        "a quiz retry never re-runs the model"
+        calls_before_quiz + 2,
+        "a quiz retry never re-runs either model call"
     );
     assert_eq!(document_count(&executor).await, 4);
 
     // The quiz chain keeps its own named model failures.
-    *stub.lock().unwrap() = StubState {
-        status: 500,
-        content: String::new(),
-    };
+    *stub.lock().unwrap() = StubState::new(500, String::new());
     let mut quiz_unavailable = quiz_body.clone();
     quiz_unavailable["create_request_id"] = json!("quiz_unavailable");
     let (status, unavailable) = call(&router, "human", &quiz_unavailable).await;
@@ -558,10 +594,7 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(unavailable["stage"], "local_model");
     assert_eq!(unavailable["worker_outcome"]["status"], "MODEL_UNAVAILABLE");
     assert_eq!(document_count(&executor).await, 4);
-    *stub.lock().unwrap() = StubState {
-        status: 200,
-        content: "   ".into(),
-    };
+    *stub.lock().unwrap() = StubState::new(200, "   ");
     let mut quiz_timeout = quiz_body.clone();
     quiz_timeout["create_request_id"] = json!("quiz_timeout");
     let (status, timeout) = call(&router, "human", &quiz_timeout).await;
@@ -570,10 +603,7 @@ async fn one_slide_outline_becomes_a_scene_candidate_and_every_failure_stays_nam
     assert_eq!(timeout["worker_outcome"]["status"], "NO_FINAL_ANSWER");
     assert_eq!(document_count(&executor).await, 4);
     // A reply the quiz adapter cannot admit keeps its own status and reason.
-    *stub.lock().unwrap() = StubState {
-        status: 200,
-        content: "not a quiz reply".into(),
-    };
+    *stub.lock().unwrap() = StubState::new(200, "not a quiz reply");
     let mut quiz_rejected = quiz_body.clone();
     quiz_rejected["create_request_id"] = json!("quiz_non_candidate");
     let (status, rejected) = call(&router, "human", &quiz_rejected).await;
