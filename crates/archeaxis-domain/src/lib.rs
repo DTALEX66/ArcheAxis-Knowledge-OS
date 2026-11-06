@@ -27,6 +27,7 @@ pub mod learning;
 pub mod machine;
 pub mod machine_evaluation;
 pub mod object_reference;
+pub mod openmaic_interactive;
 pub mod openmaic_outline;
 pub mod openmaic_quiz;
 pub mod openmaic_quiz_actions;

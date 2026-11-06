@@ -501,3 +501,58 @@ def test_duplicate_outline_ids_are_quarantined_with_the_actual_upstream_output()
     assert result["original_reply"] == raw
     assert [item["id"] for item in result["observed_upstream"]["outlines"]] == ["same", "same"]
     assert {"kind": "DUPLICATE_OUTLINE_ID", "outline_index": 1, "first_outline_index": 0, "id": "same"} in result["differences"]
+
+
+def interactive_outline(**changes) -> dict:
+    base = {"id": "interactive_1", "type": "interactive", "title": "交互示例", "description": "合成",
+            "keyPoints": ["核对"], "order": 1, "widgetType": "diagram",
+            "widgetOutline": {"diagramType": "flowchart", "nodeCount": 4}}
+    base.update(changes)
+    return base
+
+
+def interactive_reply(outline: dict) -> str:
+    return json.dumps({"languageDirective": "中文", "courseTitle": "示例课程", "outlines": [outline]},
+                      ensure_ascii=False)
+
+
+@requires_node
+def test_an_ordinary_interactive_outline_is_admitted_with_its_widget_outline():
+    value = interactive_reply(interactive_outline())
+    data = frame({"kind": "synthetic_response", "value": value})
+    code, result = invoke(data)
+    assert code == 0, result
+    assert result["status"] == "CANDIDATE"
+    admitted = result["data"]["outlines"][0]
+    assert admitted["type"] == "interactive"
+    assert admitted["widgetType"] == "diagram"
+    assert admitted["widgetOutline"] == {"diagramType": "flowchart", "nodeCount": 4}
+
+
+@requires_node
+def test_the_prompt_path_admits_a_caller_supplied_interactive_outline():
+    request, binding = capture_prompt()
+    raw = interactive_reply(interactive_outline(id="prompt_interactive"))
+    code, result = invoke(replay_frame(request, binding, raw))
+    assert code == 0, result
+    assert result["status"] == "CANDIDATE" and result["exact_json_output"] is True
+    assert result["data"]["outlines"][0]["widgetType"] == "diagram"
+
+
+@requires_node
+@pytest.mark.parametrize("outline", [
+    interactive_outline(widgetType="procedural-skill",
+                        widgetOutline={"procedureType": "inspection", "task": "x"}),
+    interactive_outline(widgetType="video"),
+    interactive_outline(widgetOutline={"diagramType": "flowchart", "challenge": "not an admitted field"}),
+    interactive_outline(widgetOutline={"nodes": [{"id": "n1", "label": "node"}]}),
+    interactive_outline(widgetOutline={"nodeCount": 201}),
+    interactive_outline(type="interactive", widgetType=None),
+])
+def test_unsupported_or_unbounded_widget_outlines_are_never_admitted(outline):
+    value = interactive_reply(outline)
+    code, result = invoke(frame({"kind": "synthetic_response", "value": value}))
+    assert code == 2, result
+    assert result["status"] in {"UPSTREAM_RESULT_NOT_ADMITTED", "UNSUPPORTED_OUTPUT"}
+    assert result["data"] is None
+

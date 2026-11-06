@@ -26,7 +26,12 @@ const OPENMAIC_OUTLINE_REQUEST_FIELDS: [&str; 5] = [
     "source_text",
     "reply",
 ];
-const OPENMAIC_OUTLINE_TYPES: [&str; 2] = ["slide", "quiz"];
+const OPENMAIC_OUTLINE_TYPES: [&str; 3] = ["slide", "quiz", "interactive"];
+/// The ordinary interactive widgets this slice admits. `procedural-skill` needs
+/// the donor's explicit allow flag upstream; it is refused here rather than
+/// silently rewritten into a diagram outline.
+const OPENMAIC_OUTLINE_WIDGET_TYPES: [&str; 5] =
+    ["simulation", "diagram", "code", "game", "visualization3d"];
 
 fn invalid(message: &'static str) -> crate::document::Error {
     crate::document::Error::Invalid(message)
@@ -48,6 +53,68 @@ fn bounded_text(value: &Value, max_chars: usize) -> bool {
     value
         .as_str()
         .is_some_and(|text| !text.trim().is_empty() && text.chars().count() <= max_chars)
+}
+
+/// Widget-outline fields the interactive prompt adapter accepts, in the
+/// outline (camelCase) form. Anything else is refused instead of trimmed.
+fn outline_widget_fields(widget: &str) -> Option<&'static [&'static str]> {
+    Some(match widget {
+        "simulation" => &["concept", "keyVariables"],
+        "diagram" => &["diagramType", "nodeCount", "nodes"],
+        "code" => &["language"],
+        "game" => &["gameType"],
+        "visualization3d" => &["visualizationType", "objects", "interactions"],
+        _ => return None,
+    })
+}
+
+fn outline_widget_text(value: &Value) -> bool {
+    value
+        .as_str()
+        .is_some_and(|text| text.len() <= 512 && !text.contains('\0'))
+}
+
+fn outline_widget_strings(value: &Value) -> bool {
+    value
+        .as_array()
+        .is_some_and(|items| items.len() <= 64 && items.iter().all(outline_widget_text))
+}
+
+/// The bounded donor `WidgetOutline` shape for one ordinary widget.
+fn widget_outline_admitted(widget: &str, outline: &Value) -> bool {
+    let Some(fields) = outline_widget_fields(widget) else {
+        return false;
+    };
+    let Some(object) = outline.as_object() else {
+        return false;
+    };
+    object.len() <= fields.len()
+        && object.iter().all(|(key, value)| {
+            fields.contains(&key.as_str())
+                && match key.as_str() {
+                    "nodeCount" => value.as_u64().is_some_and(|count| count <= 200),
+                    "keyVariables" | "nodes" | "objects" | "interactions" => {
+                        outline_widget_strings(value)
+                    }
+                    _ => outline_widget_text(value),
+                }
+        })
+}
+
+/// One outline whose kind this slice admits. A slide/quiz outline carries no
+/// widget fields; an interactive outline carries exactly one ordinary widget
+/// and its bounded widget outline.
+fn outline_type_admitted(outline: &Value) -> bool {
+    match outline["type"].as_str() {
+        Some("slide" | "quiz") => {
+            outline.get("widgetType").is_none() && outline.get("widgetOutline").is_none()
+        }
+        Some("interactive") => outline["widgetType"].as_str().is_some_and(|widget| {
+            OPENMAIC_OUTLINE_WIDGET_TYPES.contains(&widget)
+                && widget_outline_admitted(widget, &outline["widgetOutline"])
+        }),
+        _ => false,
+    }
 }
 
 fn reply_shape(reply: &Value) -> bool {
@@ -197,6 +264,7 @@ fn outlines_admitted(data: &Value) -> Result<(), crate::document::Error> {
         if !outline.is_object()
             || !outline_bounded_id(&outline["id"])
             || !OPENMAIC_OUTLINE_TYPES.contains(&outline["type"].as_str().unwrap_or(""))
+            || !outline_type_admitted(outline)
             || !bounded_text(&outline["title"], 240)
             || outline["description"]
                 .as_str()

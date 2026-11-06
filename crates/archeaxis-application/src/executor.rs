@@ -12,7 +12,7 @@ pub use deeptutor_practice_import::{
 };
 pub use deeptutor_question_turn::QuestionTurnWorkerError;
 pub use deeptutor_teaching_feedback::TeachingFeedbackWorkerError;
-pub use derived::OpenMaicSlideStage;
+pub use derived::{OpenMaicInteractiveStage, OpenMaicSlideStage};
 mod dispatch;
 mod health;
 mod inventory;

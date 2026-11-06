@@ -346,8 +346,16 @@ const OPENMAIC_CONTRACT_SCHEMA: &str = "archeaxis.openmaic-scene-projection/v2";
 const OPENMAIC_RENDER_SCHEMA: &str = "archeaxis.openmaic-scene-render/v1";
 const OPENMAIC_CAPABILITY: &str = "course.openmaic.scene-build";
 const OPENMAIC_MAX_FRAME: usize = 256_000;
-/// Scene kinds the offline slide/quiz slice can actually build and persist.
+/// Scene kinds the direct caller-declared route builds and persists. The
+/// outline-to-scene chains write an `interactive` candidate through the same
+/// writer after the interactive normalize adapter has checked the HTML, so this
+/// list stays the set a caller may post without that stage.
 const OPENMAIC_SCENE_TYPES: [&str; 2] = ["slide", "quiz"];
+/// Content kinds the scene writer accepts from a Core-built chain frame.
+const OPENMAIC_WRITER_SCENE_TYPES: [&str; 3] = ["slide", "quiz", "interactive"];
+/// The ordinary interactive widgets both the prompt and normalize adapters admit.
+const OPENMAIC_WIDGET_TYPES: [&str; 5] =
+    ["simulation", "diagram", "code", "game", "visualization3d"];
 const OPENMAIC_QUESTION_TYPES: [&str; 3] = ["single", "multiple", "short_answer"];
 /// Content fields `buildCompleteScene` copies into each scene kind. Anything else
 /// in the request is a projection loss, and the loss is reported instead of hidden.
@@ -618,6 +626,28 @@ pub fn openmaic_render_contract(scene: &Value) -> Value {
             }
             "openmaic-quiz-objective"
         }
+        "interactive" => {
+            // The candidate stores the normalized HTML, but this backend neither
+            // executes nor serves it. Say that instead of implying a renderer.
+            let html = scene["content"]["html"]
+                .as_str()
+                .filter(|html| !html.trim().is_empty() && html.len() <= 200_000);
+            if html.is_none() {
+                unsupported.push(
+                    json!({"path":"content.html","reason":"interactive HTML is missing or out of bounds"}),
+                );
+            }
+            if !scene["content"]["widgetType"]
+                .as_str()
+                .is_some_and(|widget| OPENMAIC_WIDGET_TYPES.contains(&widget))
+            {
+                unsupported.push(json!({"path":"content.widgetType",
+                    "reason":"widget type is not an admitted ordinary widget"}));
+            }
+            unsupported.push(json!({"path":"content.html",
+                "reason":"interactive HTML is neither executed nor served by this backend"}));
+            ""
+        }
         _ => {
             unsupported.push(json!({"path":"type","reason":"scene type is not playable here"}));
             ""
@@ -697,8 +727,10 @@ fn openmaic_frame(
     {
         return Err(openmaic_invalid("invalid OpenMAIC outline or content"));
     }
-    // Only the offline slide/quiz slice is stored. The request is retained in
-    // full, including fields the upstream scene projection does not carry.
+    // Only the scene kinds the chains can build are stored. An interactive frame
+    // reaches this writer only after Core's normalize adapter admitted its HTML.
+    // The request is retained in full, including fields the upstream scene
+    // projection does not carry.
     let valid_content = match outline["type"].as_str() {
         Some("slide") => request["content"]["elements"]
             .as_array()
@@ -706,9 +738,18 @@ fn openmaic_frame(
         Some("quiz") => request["content"]["questions"]
             .as_array()
             .is_some_and(|items| !items.is_empty() && items.len() <= 200),
+        Some("interactive") => {
+            request["content"]["html"].as_str().is_some_and(|html| {
+                !html.trim().is_empty() && html.len() <= 200_000 && !html.contains('\0')
+            }) && request["content"]["widgetType"]
+                .as_str()
+                .is_some_and(|widget| OPENMAIC_WIDGET_TYPES.contains(&widget))
+        }
         _ => false,
     };
-    if !valid_content {
+    if !valid_content
+        || !OPENMAIC_WRITER_SCENE_TYPES.contains(&outline["type"].as_str().unwrap_or(""))
+    {
         return Err(openmaic_invalid("unsupported OpenMAIC scene"));
     }
     // Defence in depth: [`openmaic_refusal`] names these for the caller, and the
@@ -789,6 +830,11 @@ fn openmaic_check_result(
                 && scene["content"]["canvas"]["background"] == request["content"]["background"]
         }
         Some("quiz") => scene["content"]["questions"] == request["content"]["questions"],
+        Some("interactive") => {
+            scene["content"]["html"] == request["content"]["html"]
+                && scene["content"]["widgetType"] == request["content"]["widgetType"]
+                && scene["content"]["widgetConfig"] == request["content"]["widgetConfig"]
+        }
         _ => false,
     };
     if !content_matches {
