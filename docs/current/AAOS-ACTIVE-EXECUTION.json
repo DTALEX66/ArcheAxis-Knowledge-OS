@@ -470,7 +470,7 @@
           "ci_run": "PENDING",
           "ci_result": "PENDING",
           "what": "prepare_bundle gained --openmaic-node-dir: a Node distribution directory resolves node.exe and LICENSE as one donor and computes the digest, so a build cannot mix values or silently omit the provider. The desktop-fast and desktop-build CI runtime steps pass the runner's Node directory.",
-          "verified": "resolver tests 5 passed; existing bundle/VC tests 20 passed; the real donor resolves to node sha ba4e6d11... plus its LICENSE; classifier 41 passed. Installer contents and installed-chain use are expected to be proven by this PR's desktop-build/installer-lifecycle runs.",
+          "verified": "resolver tests 5 passed; existing bundle/VC tests 20 passed; the real donor resolves to node sha ba4e6d11... plus its LICENSE; classifier 41 passed. The first CI attempt also exposed that PR #301 changed routes.json without regenerating frontend/src/api/generated/capability-package-details.ts, which broke the desktop frontend steps; the projection is regenerated and the full frontend suite passes 229 files / 2511 tests. Installer contents and installed-chain use are expected to be proven by this PR's desktop-build/installer-lifecycle runs.",
           "not_included": "No isolated install journey was rerun locally from this change; release.yml still uses the non-backend-candidate path and is not claimed to include OpenMAIC."
         }
       ],

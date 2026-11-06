@@ -48,7 +48,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "services/python-workers/routes.json",
-      "sha256": "68db5d6e39a35f927d1fa43cc2da17e79f3895c8210028f5bacab0f0cba48902"
+      "sha256": "8b7e1114290f3cc50e4dfa55fe6179404a47e16e1f897d8f9a38cdb497c4529e"
     }
   ],
   "entries": [
