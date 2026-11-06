@@ -496,6 +496,18 @@
           "what": "The first isolated install honored the previous-install registry value left by the 2026-11-04 run instead of /D. After that value was cleared, a quoted /D was still ignored (NSIS accepts only an unquoted final /D=) so the installer fell back to the default currentUser directory and overlaid the 2026-10-08 program files. User data under %LOCALAPPDATA%\\com.archeaxis.workspace was not touched.",
           "verified": "Pre/post hashes of the default installation plus a file inventory of the resulting 20399-file tree; Owner decision KEEP_NEW_VERSION; the retained package then passed the installed chain with the workspace outside the install directory.",
           "not_included": "The 2026-10-08 host 96a1f9d1 and manifest f7ff3bc0 are not recoverable byte-for-byte from this repository; no cleanup of undeclared legacy files was performed."
+        },
+        {
+          "item": "INT-MAIC-05",
+          "slice": "donor interactive widget prompt adapter",
+          "pr": 304,
+          "head_sha": "d25148fe",
+          "merge_commit": "b108dbe9",
+          "ci_run": 42202923614,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_TEST_WORKERS_RUST_A0_AFTER_RERUN",
+          "what": "A private adapter renders the original generation prompts for simulation, diagram, code, game and visualization3d outlines with the donor's own widget variable rules, bounded widget_outline fields, Node/donor identity checks, template-read and import allowlists. procedural-skill stays refused because the donor needs an explicit allow flag. The owned-child runner binds the reply widget type to the request.",
+          "verified": "tests/integrations/test_openmaic_interactive_prompt.py 68 passed with the pinned Node; donor originals plus classifier 113 passed; repository conventions and document authority passed. The first CI attempt cancelled test (3.12) inside the OCR engine install step at the job cap (the same apt download stall as PR #299); --failed rerun made every required gate succeed and the cancellation is retained.",
+          "not_included": "The adapter is unregistered: no Core route, no model call, no HTML, no rendering, no persistence, not in RUNTIME-CLOSURE.json and not staged or installed. Normalize and Core wiring remain."
         }
       ],
       "openmaic_install_surface_20261106": {
@@ -559,7 +571,7 @@
           "probe_changes": "scripts/probes/aaos_openmaic_generation_staged_loop.py gained --installed-runtime (runtime_kind, evidence level and boundary text) and --data-root (workspace outside an installed package), with runtime_kind and data_root in the receipt.",
           "not_included": "No installed Tauri/WebView2 WebDriver UI journey, no same-version upgrade or reinstall lifecycle assertion, no signing, no release publication and no Owner acceptance."
         },
-        "next": "Install-state OpenMAIC generation is qualified; next are interactive/PBL scenes (INT-MAIC-05) and INT-MAIC-01/02 consumer wiring, then the installed renderer lifecycle. The default-directory leftovers and the installer /D quoting limitation stay recorded for a later packaging decision.",
+        "next": "Interactive/PBL is the open shape beyond slide and quiz. The first INT-MAIC-05 slice is an unregistered donor prompt adapter for simulation, diagram, code, game and visualization3d (PR #304); next are its normalize stage (donor post-processor, script validator and URL rewrite), the Core scene route, and closure/installed registration. INT-MAIC-01/02 consumer wiring and the installed renderer lifecycle remain. The default-directory leftovers and the installer /D quoting limitation stay recorded for a later packaging decision.",
         "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; installed receipts openmaic-installed.json and openmaic-default-install.json; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302."
       },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
