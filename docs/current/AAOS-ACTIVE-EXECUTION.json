@@ -472,6 +472,30 @@
           "what": "prepare_bundle gained --openmaic-node-dir: a Node distribution directory resolves node.exe and LICENSE as one donor and computes the digest, so a build cannot mix values or silently omit the provider. The desktop-fast and desktop-build CI runtime steps pass the runner's Node directory.",
           "verified": "resolver tests 5 passed; existing bundle/VC tests 20 passed; the real donor resolves to node sha ba4e6d11... plus its LICENSE; classifier 41 passed. The first CI attempt also exposed that PR #301 changed routes.json without regenerating frontend/src/api/generated/capability-package-details.ts, which broke the desktop frontend steps; the projection is regenerated and the full frontend suite passes 229 files / 2511 tests. In CI run 42173871048 the desktop-fast, desktop-build and installer-lifecycle jobs all succeeded with the OpenMAIC donor, so the installer build and install lifecycle included the provider; the only failing test pinned the old prepare_bundle command and was updated.",
           "not_included": "No isolated install journey was rerun locally from this change; release.yml still uses the non-backend-candidate path and is not claimed to include OpenMAIC."
+        },
+        {
+          "item": "INT-QUAL",
+          "slice": "installed OpenMAIC generation chain",
+          "pr": 303,
+          "head_sha": "622f2f22",
+          "merge_commit": "ec27c193",
+          "ci_run": 42200017243,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_A0",
+          "what": "The staged probe accepts an installed root (--installed-runtime) and an external workspace (--data-root). A locally built NSIS package from HEAD 1dac781b with the staged 2026-11-06 runtime ran the outline, slide and quiz chain from the installed Core, workers and Node.",
+          "verified": "Two installed receipts: openmaic-installed.json (isolated install at .project-local/install-acceptance-20261104/app whose manifest c4b48379 is byte-equal to the staged candidate, 684 OpenMAIC members, node ba4e6d11) and openmaic-default-install.json (the retained default directory after the Owner decision). Both ok true with five loopback model calls, narration CANDIDATE only, action_execution NOT_PERFORMED and a restart replay with worker_invoked false.",
+          "not_included": "Installer unsigned; no installed Tauri/WebView2 WebDriver UI journey; no same-version upgrade or reinstall lifecycle assertion; the default directory keeps 12,122 undeclared files from the overlaid 2026-10-08 installation; not Owner daily-use acceptance and not a release."
+        },
+        {
+          "item": "INT-QUAL",
+          "slice": "installer /D quoting incident and Owner retention",
+          "pr": 303,
+          "head_sha": "622f2f22",
+          "merge_commit": "ec27c193",
+          "ci_run": 42200017243,
+          "ci_result": "SUCCESS_GATEPLAN_LINT_A0",
+          "what": "The first isolated install honored the previous-install registry value left by the 2026-11-04 run instead of /D. After that value was cleared, a quoted /D was still ignored (NSIS accepts only an unquoted final /D=) so the installer fell back to the default currentUser directory and overlaid the 2026-10-08 program files. User data under %LOCALAPPDATA%\\com.archeaxis.workspace was not touched.",
+          "verified": "Pre/post hashes of the default installation plus a file inventory of the resulting 20399-file tree; Owner decision KEEP_NEW_VERSION; the retained package then passed the installed chain with the workspace outside the install directory.",
+          "not_included": "The 2026-10-08 host 96a1f9d1 and manifest f7ff3bc0 are not recoverable byte-for-byte from this repository; no cleanup of undeclared legacy files was performed."
         }
       ],
       "openmaic_install_surface_20261106": {
