@@ -595,3 +595,243 @@ pub(crate) fn grading_question(
     Ok(json!({"question_type":candidate.question.question_type,
         "options":candidate.question.options,"correct_answer":candidate.question.correct_answer}))
 }
+
+// ---------------------------------------------------------------------------
+// Human acceptance of a generated question candidate
+// ---------------------------------------------------------------------------
+
+pub const ACCEPT_RECEIPT_SCHEMA: &str = "archeaxis.deeptutor-question-accept-receipt/v1";
+/// The candidate contract rejects unknown fields, so the acceptance record is
+/// its own namespace beside the question rather than a sibling inside it.
+pub const ACCEPTANCE_NAMESPACE: &str = "archeaxis_deeptutor_question_acceptance";
+pub const QUESTION_TURN_NAMESPACE: &str = "archeaxis_deeptutor_question_turn_candidate";
+pub const QUESTION_TURN_DOCUMENT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-document/v1";
+const MAX_ACCEPT_ANSWER: usize = 20_000;
+const MAX_ACCEPT_TEXT: usize = 128_000;
+
+/// One explicit human decision over a generated candidate. The answer key is
+/// always caller-supplied: a model opinion never becomes the grading key by
+/// itself, and nothing here revalidates the model or the prompt.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct AcceptRequest {
+    pub create_request_id: String,
+    pub candidate: Snapshot,
+    pub correct_answer: String,
+    #[serde(default)]
+    pub explanation: Option<String>,
+    #[serde(default)]
+    pub question_text: Option<String>,
+}
+
+fn accept_text(value: &str, max: usize, nonblank: bool) -> bool {
+    text(value, max, nonblank)
+}
+
+pub fn accept_request_refusal(request: &AcceptRequest) -> Option<&'static str> {
+    if !token(&request.create_request_id)
+        || !grant::valid_snapshot_shape(&request.candidate)
+        || !accept_text(&request.correct_answer, MAX_ACCEPT_ANSWER, true)
+        || request
+            .explanation
+            .as_ref()
+            .is_some_and(|value| !accept_text(value, MAX_ACCEPT_TEXT, false))
+        || request
+            .question_text
+            .as_ref()
+            .is_some_and(|value| !accept_text(value, MAX_ACCEPT_TEXT, true))
+    {
+        return Some("invalid question acceptance request");
+    }
+    None
+}
+
+pub fn accept_request_sha256(request: &AcceptRequest) -> Result<String, Error> {
+    let frame = json!({"create_request_id":request.create_request_id,
+        "candidate":request.candidate,"correct_answer":request.correct_answer,
+        "explanation":request.explanation,"question_text":request.question_text});
+    Ok(sha(&frame))
+}
+
+fn accept_internal(create_request_id: &str) -> String {
+    format!(
+        "deeptutor_question_accept_{}",
+        hex::encode(Sha256::digest(create_request_id.as_bytes()))
+    )
+}
+
+/// The ordinary Core Document this acceptance owns, derived only from its ID.
+pub fn accept_document_id(create_request_id: &str) -> String {
+    format!(
+        "doc_req_{}",
+        hex::encode(Sha256::digest(
+            accept_internal(create_request_id).as_bytes()
+        ))
+    )
+}
+
+fn accept_existing(
+    conn: &Connection,
+    request: &AcceptRequest,
+    request_sha256: &str,
+) -> Result<Option<Value>, Error> {
+    let id = accept_document_id(&request.create_request_id);
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",
+        [&id],
+        |row| row.get(0),
+    )?;
+    if !exists {
+        return Ok(None);
+    }
+    let snapshot = document::read_verified(conn, &id, Some(1))?;
+    let saved = &snapshot["editor_json"]["attrs"][ACCEPTANCE_NAMESPACE];
+    if saved["create_request_id"] != request.create_request_id
+        || saved["request_sha256"].as_str() != Some(request_sha256)
+    {
+        return Err(Error::Conflict(1));
+    }
+    let snap = Snapshot {
+        document_id: id,
+        version: 1,
+        content_sha256: snapshot["content_sha256"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned(),
+    };
+    let mut receipt = accept_receipt(conn, &snap, snapshot);
+    receipt["duplicate"] = json!(true);
+    Ok(Some(receipt))
+}
+
+fn accept_receipt(conn: &Connection, snapshot: &Snapshot, document: Value) -> Value {
+    let view = read_view(conn, snapshot).unwrap_or(Value::Null);
+    let saved = &document["editor_json"]["attrs"][ACCEPTANCE_NAMESPACE];
+    json!({"schema":ACCEPT_RECEIPT_SCHEMA,"question_document":snapshot,
+        "question_view":view,"document":document,
+        "accepted_from":saved["accepted_from"],
+        "origin":"user_import_unverified","provider_identity":"unverified",
+        "independent_mastery":"not_established","human_review_required":true,
+        "active_content_executed":false,"rendering_authorized":false})
+}
+
+/// Turn one generated candidate into an ordinary graded-question Document only
+/// when a human supplies the answer key. Repeated requests read the accepted
+/// Document; different content under the same ID is a conflict.
+pub fn accept_question_candidate(
+    conn: &mut Connection,
+    request: &AcceptRequest,
+) -> Result<Value, Error> {
+    if accept_request_refusal(request).is_some() {
+        return Err(Error::Invalid("invalid question acceptance request"));
+    }
+    let request_sha256 = accept_request_sha256(request)?;
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    if let Some(value) = accept_existing(&tx, request, &request_sha256)? {
+        tx.commit()?;
+        return Ok(value);
+    }
+    // The candidate must still be the current version of a real question-turn
+    // Document; a later edit is a different candidate, not this one.
+    let source = document::read_verified(
+        &tx,
+        &request.candidate.document_id,
+        Some(request.candidate.version),
+    )?;
+    if source["content_sha256"] != request.candidate.content_sha256 {
+        return Err(Error::Conflict(1));
+    }
+    let staged = &source["editor_json"]["attrs"][QUESTION_TURN_NAMESPACE];
+    if staged["schema"].as_str() != Some(QUESTION_TURN_DOCUMENT_SCHEMA) {
+        return Err(Error::Invalid(
+            "candidate is not a DeepTutor question-turn document",
+        ));
+    }
+    let material: Snapshot = serde_json::from_value(staged["material"].clone())
+        .map_err(|_| Error::Invalid("candidate material reference invalid"))?;
+    if !grant::valid_snapshot_shape(&material) {
+        return Err(Error::Invalid("candidate material reference invalid"));
+    }
+    grant::assert_material(&tx, &material)?;
+    let question = &staged["question"];
+    let question_id = question["question_id"]
+        .as_str()
+        .ok_or(Error::Invalid("candidate question identity missing"))?;
+    let question_type = question["question_type"]
+        .as_str()
+        .ok_or(Error::Invalid("candidate question type missing"))?;
+    if question_type != "choice" {
+        return Err(Error::Invalid(
+            "only a choice candidate can be accepted as a graded question",
+        ));
+    }
+    let options: BTreeMap<String, String> = serde_json::from_value(question["options"].clone())
+        .map_err(|_| Error::Invalid("candidate options invalid"))?;
+    if !options.contains_key(&request.correct_answer) {
+        return Err(Error::Invalid(
+            "accepted answer key must be one of the candidate options",
+        ));
+    }
+    let body = request
+        .question_text
+        .as_deref()
+        .or_else(|| question["question"].as_str())
+        .ok_or(Error::Invalid("candidate question text missing"))?;
+    let explanation = request.explanation.clone().unwrap_or_else(|| {
+        question["explanation"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned()
+    });
+    let candidate = json!({"schema":SCHEMA,"source_material":material,
+        "origin":"user_import_unverified",
+        "question":{"question_id":question_id,"question":body,"question_type":question_type,
+            "options":options,"correct_answer":request.correct_answer,
+            "explanation":explanation}});
+    let acceptance = json!({
+        "create_request_id":request.create_request_id,
+        "request_sha256":request_sha256,
+        "accepted_from":{"candidate":request.candidate,
+            "generation_route":staged["generation_route"],
+            "model_reply_sha256":staged["model_reply_sha256"],
+            "capture_binding_sha256":staged["capture_binding"]["prompt_sha256"]},
+        "answer_key_source":"human_declared",
+        "model_answer_used_as_key":false});
+    let editor = json!({"type":"doc","attrs":{(NAMESPACE):candidate,
+        (ACCEPTANCE_NAMESPACE):acceptance},
+        "content":[{"type":"paragraph","content":[{"type":"text","text":body}]}]});
+    if serde_json::to_vec(&editor)
+        .map_err(|_| Error::Invalid("accepted question document unavailable"))?
+        .len()
+        > 512 * 1024
+    {
+        return Err(Error::Invalid("accepted question document exceeds limit"));
+    }
+    let title = format!(
+        "Accepted question · {}",
+        body.chars().take(120).collect::<String>()
+    );
+    let internal = accept_internal(&request.create_request_id);
+    let document = document::create_optional_tx(&tx, None, None, &title, editor, Some(&internal))?;
+    let id = document["document_id"]
+        .as_str()
+        .ok_or(Error::Invalid("accepted question identity unavailable"))?;
+    let snapshot = Snapshot {
+        document_id: id.to_owned(),
+        version: 1,
+        content_sha256: document["content_sha256"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned(),
+    };
+    let verified = document::read_verified(&tx, id, Some(1))?;
+    if verified["content_sha256"] != json!(snapshot.content_sha256) {
+        return Err(Error::Invalid("accepted question identity mismatch"));
+    }
+    // The accepted Document must satisfy the same contract the grading chain
+    // enforces, not a weaker one written for acceptance.
+    read_view(&tx, &snapshot)?;
+    let result = accept_receipt(&tx, &snapshot, verified);
+    tx.commit()?;
+    Ok(result)
+}

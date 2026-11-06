@@ -20,6 +20,7 @@ mod context_refusal;
 mod conversation;
 mod courses;
 mod deeptutor_import;
+mod deeptutor_question_accept;
 mod deeptutor_question_turn;
 mod deeptutor_teaching_feedback;
 mod execution_claim;
@@ -483,6 +484,14 @@ pub fn router(executor: Executor) -> Router {
             "/api/v1/learning/deeptutor/teaching-feedback",
             post(deeptutor_teaching_feedback::teaching_feedback)
                 .layer(axum::extract::DefaultBodyLimit::max(131_072)),
+        )
+        // A generated question becomes a graded question only through this
+        // explicit human acceptance: the caller supplies the answer key, and
+        // Core does not reuse the model's own answer as the key.
+        .route(
+            "/api/v1/learning/deeptutor/question-candidates/accept",
+            post(deeptutor_question_accept::accept_candidate)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
         )
         // Formal DeepTutor grading admission. Core reserves the exact client event and attempt
         // together, then runs the fixed private grader through the owned worker path, so a caller
