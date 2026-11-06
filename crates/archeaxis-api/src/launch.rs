@@ -166,7 +166,9 @@ impl TextWorker {
             // These optional private protocols are checked again immediately
             // before use. A missing or changed provider must not prevent ordinary
             // Core startup or document saving.
-            if capability == "deeptutor.practice.import" || capability == "deeptutor.question.turn"
+            if capability == "deeptutor.practice.import"
+                || capability == "deeptutor.question.turn"
+                || capability == "deeptutor.teaching.feedback"
             {
                 continue;
             }

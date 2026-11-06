@@ -76,9 +76,13 @@ PRACTICE_CAPABILITY = "deeptutor.practice.import"
 # family: Core intercepts this capability and resolves the worker as the
 # practice worker's pinned sibling, so it is never a generic NDJSON route.
 QUESTION_TURN_CAPABILITY = "deeptutor.question.turn"
+# The teaching-feedback route runs the donor's selected teaching rules over a
+# caller-declared profile snapshot. It is the same private one-shot family.
+TEACHING_FEEDBACK_CAPABILITY = "deeptutor.teaching.feedback"
 PRACTICE_DIRECTORY = "workers/deeptutor"
 PRACTICE_SCRIPT = f"{PRACTICE_DIRECTORY}/practice_host_worker.py"
 QUESTION_TURN_SCRIPT = f"{PRACTICE_DIRECTORY}/question_turn_worker.py"
+TEACHING_FEEDBACK_SCRIPT = f"{PRACTICE_DIRECTORY}/teaching_feedback_worker.py"
 PRACTICE_FILES = {
     "practice_host_worker.py": {"bytes": 11888, "sha256": "af186a32b2a98c248f28b447edbf9fb27399c1873fa93bd29bcda557a173b6d1"},
     "practice_candidate_document.py": {"bytes": 17679, "sha256": "219e04721d662198b1fa1169c4be8e3acc63be24e3c7595d3e01847d1c2ead17"},
@@ -101,6 +105,12 @@ PRACTICE_FILES = {
     "upstream/question_pipeline.en.yaml": {"bytes": 25482, "sha256": "148ccde0f60f2d96724e1cbaa3db1f4bc676e87ed086bda1dac1bcdc27f2ae89"},
     "upstream/question_pipeline.zh.yaml": {"bytes": 22946, "sha256": "ef14102e36f9c156528336b48112a3e8336269fdea5a3517119c651707a8ae58"},
     "upstream/question_language.py": {"bytes": 4860, "sha256": "7ef192bca1cc8d91c838a4601847a2b40d09becca704e5f74ed65af855f55ce3"},
+    # The teaching-feedback route executes only the selected donor teaching
+    # rules. Both pinned source modules ship beside it; a missing member makes
+    # that route a named unavailable capability, never a second implementation.
+    "teaching_feedback_worker.py": {"bytes": 17480, "sha256": "5d6ba09ae79fe8a3847dd79e27b562e214965b6ec36e6c521b03bde74abb8163"},
+    "upstream/teaching.py": {"bytes": 8374, "sha256": "79839b2d29c16146ba4ca6eba438941eacdd8cef2920ebca81e8541305013b4b"},
+    "upstream/learning_models.py": {"bytes": 31784, "sha256": "97d4cd701700c31aaf421900fa3b403ac1b5fe334e70d884a5159d998c4b8507"},
 }
 MAX_WORKER_ROUTES_BYTES = 256 * 1024
 
@@ -262,12 +272,15 @@ def practice_routes_payload(source: Path, expected: dict[str, object] | None) ->
         raise ValueError("private practice route is already present in worker source")
     if QUESTION_TURN_CAPABILITY in routes:
         raise ValueError("private question-turn route is already present in worker source")
+    if TEACHING_FEEDBACK_CAPABILITY in routes:
+        raise ValueError("private teaching-feedback route is already present in worker source")
     if any(not isinstance(name, str) or not isinstance(scripts, list) or not scripts
            or any(not isinstance(script, str) for script in scripts)
            for name, scripts in routes.items()):
         return None
     routes[PRACTICE_CAPABILITY] = [PRACTICE_SCRIPT.removeprefix("workers/")]
     routes[QUESTION_TURN_CAPABILITY] = [QUESTION_TURN_SCRIPT.removeprefix("workers/")]
+    routes[TEACHING_FEEDBACK_CAPABILITY] = [TEACHING_FEEDBACK_SCRIPT.removeprefix("workers/")]
     payload = (json.dumps(document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     return payload if len(payload) <= MAX_WORKER_ROUTES_BYTES else None
 
@@ -1445,6 +1458,9 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         declared_routes.append({"capability": PRACTICE_CAPABILITY, "script": PRACTICE_SCRIPT})
         declared_routes.append(
             {"capability": QUESTION_TURN_CAPABILITY, "script": QUESTION_TURN_SCRIPT}
+        )
+        declared_routes.append(
+            {"capability": TEACHING_FEEDBACK_CAPABILITY, "script": TEACHING_FEEDBACK_SCRIPT}
         )
         declared_routes.sort(key=lambda route: route["capability"])
     if any(route["capability"] == "document.detect" for route in declared_routes) != (detector_plan is not None):

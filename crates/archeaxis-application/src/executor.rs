@@ -5,11 +5,13 @@ use crate::attempts;
 mod deeptutor_grade;
 mod deeptutor_practice_import;
 mod deeptutor_question_turn;
+mod deeptutor_teaching_feedback;
 mod derived;
 pub use deeptutor_practice_import::{
     PracticeGradeWorkerError, PracticeImportCancellation, PracticeImportWorkerError,
 };
 pub use deeptutor_question_turn::QuestionTurnWorkerError;
+pub use deeptutor_teaching_feedback::TeachingFeedbackWorkerError;
 pub use derived::OpenMaicSlideStage;
 mod dispatch;
 mod health;
@@ -202,6 +204,7 @@ impl Executor {
             vec![("text.extract".to_string(), default_worker.to_owned(), true)];
         let mut deeptutor_practice_worker = None;
         let mut deeptutor_question_turn_registered = false;
+        let mut deeptutor_teaching_feedback_registered = false;
         for (capability, path) in extra {
             if capability.trim().is_empty() {
                 return Err("route capability must not be empty".into());
@@ -226,6 +229,13 @@ impl Executor {
                     return Err("duplicate DeepTutor question turn worker".into());
                 }
                 deeptutor_question_turn_registered = true;
+                continue;
+            }
+            if *capability == "deeptutor.teaching.feedback" {
+                if deeptutor_teaching_feedback_registered {
+                    return Err("duplicate DeepTutor teaching feedback worker".into());
+                }
+                deeptutor_teaching_feedback_registered = true;
                 continue;
             }
             if *capability == "course.openmaic.scene-build" {

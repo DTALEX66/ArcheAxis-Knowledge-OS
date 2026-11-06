@@ -151,7 +151,8 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
         # These two routes are private, optional Core-controlled processes.
         # Their absence must not prevent the Core or ordinary document saving.
         # Unsafe paths still fail above; other routes keep their existing rule.
-        if capability in ("deeptutor.practice.import", "deeptutor.question.turn"):
+        if capability in ("deeptutor.practice.import", "deeptutor.question.turn",
+                          "deeptutor.teaching.feedback"):
             if not resolved_script.is_file():
                 continue
         require_file(resolved_script, f"worker route script for {capability}")
