@@ -1,12 +1,20 @@
 {
  "files": {
+  "interactive-normalize-worker.mjs": {
+   "bytes": 18586,
+   "sha256": "a59d60c116bb168f184cf737e40f398bc36966e950f5f8d60523744a34f40826"
+  },
+  "interactive-prompt-worker.mjs": {
+   "bytes": 16936,
+   "sha256": "cb9ed8a1ae129e1bf3fa389976adeebd4157c626e12458f05495b28d7711b37d"
+  },
   "outline-prompt-guard.mjs": {
    "bytes": 1110,
    "sha256": "5691dcaaeaa37e2bde624656a711c82663a8afc21a1d579da14194b516b4c584"
   },
   "outline-replay-worker.mjs": {
-   "bytes": 31864,
-   "sha256": "9a2db7e540c41b2c4faac70be38781d2a01c6af91b0dff8c070f0c3608b65ea4"
+   "bytes": 34395,
+   "sha256": "25c1d0f8b9908120cb50fe0dcd3368a9b99344fe3d29ad828d58eef2cd7f60e2"
   },
   "quiz-actions-replay-worker.mjs": {
    "bytes": 30900,
@@ -2749,6 +2757,8 @@
   "slide-normalize-worker.mjs",
   "quiz-replay-worker.mjs",
   "quiz-actions-replay-worker.mjs",
-  "slide-actions-replay-worker.mjs"
+  "slide-actions-replay-worker.mjs",
+  "interactive-prompt-worker.mjs",
+  "interactive-normalize-worker.mjs"
  ]
 }

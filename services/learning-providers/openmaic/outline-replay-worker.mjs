@@ -211,9 +211,50 @@ function promptBase(status, reason, request) {
     upstream_generation: "0.3.28", runtime, data: null };
 }
 
+// The ordinary interactive widgets this adapter admits. `procedural-skill` needs
+// the donor's explicit allow flag upstream; this slice refuses it instead of
+// silently turning it into a diagram outline.
+const INTERACTIVE_WIDGET_FIELDS = {
+  simulation: ["concept", "keyVariables"], diagram: ["diagramType", "nodeCount", "nodes"],
+  code: ["language"], game: ["gameType"],
+  visualization3d: ["visualizationType", "objects", "interactions"],
+};
+const WIDGET_ARRAYS = ["keyVariables", "nodes", "objects", "interactions"];
+
+/// The donor `WidgetOutline` shape, narrowed to the fields the interactive prompt
+/// adapter accepts. The names are the outline (camelCase) form; Core maps them to
+/// the adapter's snake_case prompt frame. Unknown fields and over-budget values
+/// are refused rather than trimmed.
+function widgetOutlineSupported(type, outline) {
+  if (!Object.hasOwn(INTERACTIVE_WIDGET_FIELDS, type) || !object(outline)) return false;
+  for (const key of Object.keys(outline)) {
+    if (!INTERACTIVE_WIDGET_FIELDS[type].includes(key)) return false;
+    const value = outline[key];
+    if (key === "nodeCount") {
+      if (!Number.isInteger(value) || value < 0 || value > 200) return false;
+    } else if (WIDGET_ARRAYS.includes(key)) {
+      if (!Array.isArray(value) || value.length > 64 ||
+          value.some(item => typeof item !== "string" || item.length > 512)) return false;
+    } else if (typeof value !== "string" || value.length > 512) return false;
+  }
+  return true;
+}
+
+/// An `interactive` outline carries exactly one ordinary widget and its outline.
+function interactiveOutlineSupported(outline) {
+  return outline.type === "interactive" && typeof outline.widgetType === "string" &&
+    widgetOutlineSupported(outline.widgetType, outline.widgetOutline);
+}
+
+/// A slide/quiz outline carries no widget fields in this slice.
+function flatOutlineSupported(outline) {
+  return ["slide", "quiz"].includes(outline.type) && !Object.hasOwn(outline, "widgetType") &&
+    !Object.hasOwn(outline, "widgetOutline");
+}
+
 /// Structural checks for a reply the donor already repaired. They mirror the
 /// text-only slice: a candidate is a course title, one language directive and
-/// 1-30 slide/quiz outlines with bounded text and no media references.
+/// 1-30 slide/quiz/interactive outlines with bounded text and no media references.
 function repairedOutlineDifferences(data) {
   if (!object(data) || Object.keys(data).some(k => !["languageDirective", "courseTitle", "outlines"].includes(k)) ||
       !wellFormedText(data.languageDirective, 2_000, true) ||
@@ -225,7 +266,8 @@ function repairedOutlineDifferences(data) {
   const differences = [];
   for (let index = 0; index < outlines.length; index++) {
     const outline = outlines[index];
-    if (!object(outline) || !id(outline.id) || !["slide", "quiz"].includes(outline.type) ||
+    if (!object(outline) || !id(outline.id) ||
+        !(flatOutlineSupported(outline) || interactiveOutlineSupported(outline)) ||
         typeof outline.title !== "string" || !outline.title.trim() || outline.title.length > 240 ||
         typeof outline.description !== "string" || outline.description.length > 16_000 ||
         !Array.isArray(outline.keyPoints) || outline.keyPoints.length > 200 ||
@@ -271,10 +313,13 @@ function inspectPromptOutline(parsed, upstream) {
       continue;
     }
     const allowed = ["id", "type", "title", "description", "keyPoints", "order", "quizConfig",
-      "mediaGenerations", "suggestedImageIds"];
+      "mediaGenerations", "suggestedImageIds"].concat(
+      source.type === "interactive" ? ["widgetType", "widgetOutline"] : []);
     const unknown = Object.keys(source).filter(key => !allowed.includes(key));
     if (unknown.length) differences.push({ kind: "UNKNOWN_OUTLINE_FIELDS", outline_index: index, fields: unknown.sort() });
-    if (!["slide", "quiz"].includes(source.type) || !wellFormedText(source.title, 240, true) ||
+    if (!(source.type === "interactive"
+      ? interactiveOutlineSupported(source)
+      : flatOutlineSupported(source)) || !wellFormedText(source.title, 240, true) ||
         !wellFormedText(source.description, 16_000) || !Array.isArray(source.keyPoints) ||
         source.keyPoints.length > 200 || source.keyPoints.some(p => !wellFormedText(p, 2_000)))
       differences.push({ kind: "OUTLINE_CONTENT_UNSUPPORTED", outline_index: index });
@@ -314,7 +359,9 @@ function inspectPromptOutline(parsed, upstream) {
     }
     if (result.type !== source.type || result.title !== source.title || result.description !== source.description ||
         JSON.stringify(result.keyPoints) !== JSON.stringify(source.keyPoints) ||
-        (Object.hasOwn(source, "quizConfig") && JSON.stringify(result.quizConfig) !== JSON.stringify(source.quizConfig)))
+        (Object.hasOwn(source, "quizConfig") && JSON.stringify(result.quizConfig) !== JSON.stringify(source.quizConfig)) ||
+        (Object.hasOwn(source, "widgetType") && JSON.stringify(result.widgetType) !== JSON.stringify(source.widgetType)) ||
+        (Object.hasOwn(source, "widgetOutline") && JSON.stringify(result.widgetOutline) !== JSON.stringify(source.widgetOutline)))
       differences.push({ kind: "OUTLINE_PROJECTION_MISMATCH", outline_index: index });
   }
   return { differences, transformations };
@@ -453,7 +500,8 @@ async function processFrame(raw) {
   const outlines = upstream.data?.outlines;
   if (!Array.isArray(inputOutlines) || !Array.isArray(outlines) || inputOutlines.length < 1 || inputOutlines.length > 30 ||
       outlines.length !== inputOutlines.length || outlines.some(x => !object(x) || !id(x.id) ||
-        !["slide", "quiz"].includes(x.type) || typeof x.title !== "string" || !x.title.trim() || x.title.length > 240 ||
+        !(flatOutlineSupported(x) || interactiveOutlineSupported(x)) ||
+        typeof x.title !== "string" || !x.title.trim() || x.title.length > 240 ||
         typeof x.description !== "string" || x.description.length > 16_000 || !Array.isArray(x.keyPoints) ||
         x.keyPoints.length > 200 || x.keyPoints.some(p => typeof p !== "string" || p.length > 2_000) ||
         (Array.isArray(x.mediaGenerations) && x.mediaGenerations.length) ||

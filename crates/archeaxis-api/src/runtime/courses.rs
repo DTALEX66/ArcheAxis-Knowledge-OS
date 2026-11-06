@@ -1,7 +1,8 @@
 //! General course candidates: Python validates shape, Core owns canonical bindings and writes.
 use super::*;
-use archeaxis_application::executor::OpenMaicSlideStage;
+use archeaxis_application::executor::{OpenMaicInteractiveStage, OpenMaicSlideStage};
 use archeaxis_domain::course::{self, CourseBinding};
+use archeaxis_domain::openmaic_interactive;
 use archeaxis_domain::openmaic_outline;
 use archeaxis_domain::openmaic_quiz;
 use archeaxis_domain::openmaic_quiz_actions;
@@ -339,7 +340,7 @@ fn openmaic_outline_refusal_response(refusal: &Value) -> Response {
         "message":"this offline outline replay slice cannot accept the declared OpenMAIC request",
         "retryable":false,"refusal":refusal,
         "supported_request_schema":openmaic_outline::OPENMAIC_OUTLINE_REQUEST_SCHEMA,
-        "supported_outline_types":["slide","quiz"]})),
+        "supported_outline_types":["slide","quiz","interactive"]})),
     )
         .into_response()
 }
@@ -537,6 +538,7 @@ fn openmaic_stage_failure(
 fn openmaic_stage_outcome(result: &Value) -> Value {
     let document = &result["document"];
     json!({"status":document["status"],"reason":document["reason"],
+        "error_code":document["error_code"],
         "exit_code":result["exit_code"]})
 }
 
@@ -941,6 +943,82 @@ fn openmaic_quiz_error(failure: archeaxis_domain::document::Error) -> Response {
     }
 }
 
+/// The interactive chain reuses the same response envelope; `scene_route` names
+/// the dispatched chain and the widget/normalize summary replaces the slide stages.
+fn openmaic_interactive_receipt_response(receipt: &Value, worker_invoked: bool) -> Response {
+    Json(
+        json!({"schema":"archeaxis.openmaic-interactive-persistence/v1",
+        "scene_route":"interactive",
+        "worker_invoked":worker_invoked,"document":receipt["document"],
+        "candidate_document_status":receipt["candidate_document_status"],
+        "source_snapshot_status":receipt["source_snapshot_status"],
+        "generation_route":receipt["generation_route"],
+        "model_call":receipt["model_call"],"model":receipt["model"],
+        "model_observed":receipt["model_observed"],
+        "model_reply_sha256":receipt["model_reply_sha256"],
+        "model_finish_reason":receipt["model_finish_reason"],
+        "widget_type":receipt["widget_type"],
+        "prompt_binding":receipt["prompt_binding"],
+        "outline_document_id":receipt["outline_document_id"],
+        "outline_index":receipt["outline_index"],"outline_id":receipt["outline_id"],
+        "normalize":receipt["normalize"],
+        "html_execution":"NOT_PERFORMED",
+        "response_origin":"LOCAL_MODEL_UNVERIFIED",
+        "human_review_required":true,"active_content_executed":false,
+        "rendering_authorized":false,
+        "contract_version":receipt["contract_version"],
+        "projection":receipt["projection"],"render":receipt["render"]}),
+    )
+    .into_response()
+}
+
+/// One named refusal from a domain read or write. A conflict is answered as `409`
+/// and every content refusal as `422`, with the reason kept verbatim.
+fn openmaic_interactive_error(failure: archeaxis_domain::document::Error) -> Response {
+    use archeaxis_domain::document::Error as Failure;
+    match failure {
+        Failure::NotFound => error(
+            StatusCode::NOT_FOUND,
+            "OpenMAIC outline or source document is unavailable",
+        ),
+        Failure::Conflict(_) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC interactive request conflicts with an existing candidate",
+        ),
+        Failure::Invalid(reason) => {
+            let conflict = matches!(
+                reason,
+                "INTERACTIVE_REQUEST_CONFLICT"
+                    | "INTERACTIVE_REQUEST_CHANGED"
+                    | "INTERACTIVE_WORKSPACE_CHANGED"
+                    | "OUTLINE_DOCUMENT_CHANGED"
+                    | "SOURCE_SNAPSHOT_NOT_CURRENT"
+            );
+            let status = if conflict {
+                StatusCode::CONFLICT
+            } else {
+                StatusCode::UNPROCESSABLE_ENTITY
+            };
+            let code = if conflict {
+                "AAK-CON-002"
+            } else {
+                "AAK-VAL-001"
+            };
+            (
+                status,
+                Json(json!({"code":code,
+                    "message":"this outline-interactive route refused the request",
+                    "retryable":false,"refusal":{"reason":reason}})),
+            )
+                .into_response()
+        }
+        Failure::Sql(_) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC interactive store operation failed",
+        ),
+    }
+}
+
 /// The first fixed adapter this chain needs that the launch does not provide.
 fn openmaic_slide_script_gap(runtime: &Runtime) -> Option<&'static str> {
     for (stage, label) in [
@@ -1035,12 +1113,16 @@ pub(super) async fn generate_openmaic_scene_from_outline(
         Some("quiz") => {
             openmaic_quiz_chain(runtime, create_request_id, request, selection, admission).await
         }
+        Some("interactive") => {
+            openmaic_interactive_chain(runtime, create_request_id, request, selection, admission)
+                .await
+        }
         other => (
             StatusCode::UNPROCESSABLE_ENTITY,
             Json(json!({"code":"AAK-VAL-001",
-            "message":"this route builds only slide and quiz outlines",
+            "message":"this route builds only slide, quiz and interactive outlines",
             "retryable":false,"refusal":{"reason":"UNSUPPORTED_OUTLINE_TYPE",
-            "declared":other,"supported":["slide","quiz"]}})),
+            "declared":other,"supported":["slide","quiz","interactive"]}})),
         )
             .into_response(),
     }
@@ -2183,6 +2265,411 @@ async fn openmaic_quiz_chain(
         Err(_) => error(
             StatusCode::SERVICE_UNAVAILABLE,
             "OpenMAIC quiz capability unavailable or withdrawn",
+        ),
+    }
+}
+
+/// The interactive chain needs its prompt and normalize adapters plus the
+/// existing scene builder. A missing adapter names that stage instead of dropping
+/// it silently.
+fn openmaic_interactive_script_gap(runtime: &Runtime) -> Option<&'static str> {
+    for (stage, label) in [
+        (OpenMaicInteractiveStage::Prompt, "interactive_prompt"),
+        (OpenMaicInteractiveStage::Normalize, "interactive_normalize"),
+    ] {
+        if runtime
+            .executor
+            .openmaic_interactive_script(stage)
+            .is_none()
+        {
+            return Some(label);
+        }
+    }
+    if runtime.executor.openmaic_node_paths().is_none() {
+        return Some("scene_build");
+    }
+    None
+}
+
+/// Outline-to-interactive generation: capture the donor widget prompt, call the
+/// declared local model, extract and post-process the model HTML through the
+/// interactive normalize adapter, then build the scene through the existing fixed
+/// builder. Only an admitted normalize result is persisted; the HTML is never
+/// executed, sanitized into trusted content or authorized for rendering here.
+async fn openmaic_interactive_chain(
+    runtime: Runtime,
+    create_request_id: String,
+    request: Value,
+    selection: Value,
+    admission: Result<u64, String>,
+) -> Response {
+    // The shared outline-scene body is versioned per route; this chain's own
+    // schema is what its refusal, preparation and record identity check.
+    let mut request = request;
+    request["schema"] = json!(openmaic_interactive::OPENMAIC_INTERACTIVE_REQUEST_SCHEMA);
+    let (widget, _) = match openmaic_interactive::openmaic_interactive_widget(&selection) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_interactive_error(failure),
+    };
+    let prepare_id = create_request_id.clone();
+    let prepare_request = request.clone();
+    let prepare_selection = selection.clone();
+    let prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            openmaic_interactive::prepare_openmaic_interactive_candidate(
+                conn,
+                &prepare_id,
+                &prepare_request,
+                &prepare_selection,
+            )
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(failure)) => return openmaic_interactive_error(failure),
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC interactive preparation failed",
+            );
+        }
+    };
+    let pending = match prepared {
+        openmaic_interactive::OpenMaicInteractivePreparation::Existing(receipt) => {
+            // A repeated request reads the stored candidate; no prompt, model or
+            // worker runs again.
+            return openmaic_interactive_receipt_response(&receipt, false);
+        }
+        openmaic_interactive::OpenMaicInteractivePreparation::Pending(pending) => pending,
+    };
+    if let Some(stage) = openmaic_interactive_script_gap(&runtime) {
+        return openmaic_stage_failure(
+            StatusCode::SERVICE_UNAVAILABLE,
+            stage,
+            "OpenMAIC interactive chain unavailable: a fixed sibling script is missing",
+            Value::Null,
+        );
+    }
+    let generation = match admission {
+        Ok(value) => value,
+        Err(_) => {
+            return error(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "OpenMAIC provider unavailable or disabled",
+            );
+        }
+    };
+    // Stage 1: the donor widget prompt. It carries no reply, so the worker can
+    // only produce the prompt binding.
+    let prompt_request = match openmaic_interactive::openmaic_interactive_prompt_request(&selection)
+    {
+        Ok(value) => value,
+        Err(failure) => return openmaic_interactive_error(failure),
+    };
+    let prompt = match runtime
+        .executor
+        .openmaic_interactive_with_generation(
+            OpenMaicInteractiveStage::Prompt,
+            generation,
+            prompt_request,
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "interactive_prompt",
+                "OpenMAIC interactive prompt worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let prompt_outcome = openmaic_stage_outcome(&prompt);
+    if prompt["exit_code"] != 0 || prompt["document"]["status"] != "BUILT" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "interactive_prompt",
+            "OpenMAIC interactive prompt did not build the donor prompts",
+            prompt_outcome,
+        );
+    }
+    let binding = match openmaic_interactive::openmaic_interactive_prompt_binding(
+        &prompt["document"],
+        &widget,
+    ) {
+        Ok(value) => value,
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            let mut outcome = prompt_outcome.clone();
+            outcome["receipt_refusal"] = json!(reason);
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "interactive_prompt",
+                "OpenMAIC interactive prompt receipt is inconsistent",
+                outcome,
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "interactive_prompt",
+                "OpenMAIC interactive prompt receipt is inconsistent",
+                prompt_outcome,
+            );
+        }
+    };
+    // Stage 2: the declared local model, through the same capability and worker
+    // as the outline route. An unregistered or disabled capability is named.
+    let model_request =
+        openmaic_interactive::openmaic_interactive_model_request(&binding, &request["model"]);
+    let model = match runtime
+        .executor
+        .derived_json(
+            openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
+            model_request,
+            Duration::from_secs(120),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(reason) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "local_model",
+                &format!("local model capability unavailable: {reason}"),
+                Value::Null,
+            );
+        }
+    };
+    let model_outcome = openmaic_stage_outcome(&model);
+    if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
+        let named = model["document"]["status"].as_str().unwrap_or("");
+        let status = match named {
+            "INVALID_MODEL_OUTPUT" | "MODEL_REJECTED" => StatusCode::UNPROCESSABLE_ENTITY,
+            "MODEL_TIMEOUT" | "NO_FINAL_ANSWER" => StatusCode::GATEWAY_TIMEOUT,
+            _ => StatusCode::SERVICE_UNAVAILABLE,
+        };
+        return openmaic_stage_failure(
+            status,
+            "local_model",
+            "the local model did not produce a usable interactive reply",
+            model_outcome,
+        );
+    }
+    let Some(content) =
+        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+    else {
+        return openmaic_stage_failure(
+            StatusCode::BAD_GATEWAY,
+            "local_model",
+            "local model receipt is inconsistent",
+            model_outcome,
+        );
+    };
+    // Stage 3: the interactive normalize adapter. It extracts one HTML document,
+    // compiles (never runs) the classic inline scripts and applies the donor
+    // post-processor. A rejected reply keeps the worker's own status and reason.
+    let normalize_request_id =
+        openmaic_interactive::openmaic_interactive_normalize_request_id(&create_request_id);
+    let normalize_request = match openmaic_interactive::openmaic_interactive_normalize_request(
+        &create_request_id,
+        &widget,
+        &content,
+    ) {
+        Ok(value) => value,
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            return openmaic_stage_failure(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "interactive_normalize",
+                "the local model reply exceeds the interactive normalize budget",
+                json!({"status":"MODEL_REPLY_EXCEEDS_BOUND","reason":reason,
+                    "exit_code":model["exit_code"]}),
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "interactive_normalize",
+                "the local model reply cannot be replayed",
+                model_outcome,
+            );
+        }
+    };
+    let normalize = match runtime
+        .executor
+        .openmaic_interactive_with_generation(
+            OpenMaicInteractiveStage::Normalize,
+            generation,
+            normalize_request,
+            Duration::from_secs(30),
+        )
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "interactive_normalize",
+                "OpenMAIC interactive normalize worker unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let normalize_outcome = openmaic_stage_outcome(&normalize);
+    let normalized = match openmaic_interactive::openmaic_interactive_normalized(
+        &normalize["document"],
+        &normalize_request_id,
+        &widget,
+        &content,
+    ) {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return openmaic_stage_failure(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "interactive_normalize",
+                "the donor normalize adapter did not admit the model HTML",
+                normalize_outcome,
+            );
+        }
+        Err(archeaxis_domain::document::Error::Invalid(reason)) => {
+            let mut outcome = normalize_outcome.clone();
+            outcome["receipt_refusal"] = json!(reason);
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "interactive_normalize",
+                "OpenMAIC interactive normalize receipt is inconsistent",
+                outcome,
+            );
+        }
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::BAD_GATEWAY,
+                "interactive_normalize",
+                "OpenMAIC interactive normalize receipt is inconsistent",
+                normalize_outcome,
+            );
+        }
+    };
+    // Stage 4: the existing scene builder and the existing v2 candidate writer.
+    let scene_request = match openmaic_interactive::openmaic_interactive_scene_build_request(
+        &create_request_id,
+        &selection,
+        &normalized,
+        &request["source"],
+    ) {
+        Ok(value) => value,
+        Err(failure) => return openmaic_interactive_error(failure),
+    };
+    let scene_prepare_id = create_request_id.clone();
+    let scene_prepare_request = scene_request.clone();
+    let scene_prepared = match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            course::prepare_openmaic_scene(conn, &scene_prepare_id, &scene_prepare_request)
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(archeaxis_domain::document::Error::NotFound)) => {
+            return error(
+                StatusCode::NOT_FOUND,
+                "OpenMAIC source document is unavailable",
+            );
+        }
+        Ok(Err(_)) => {
+            return error(
+                StatusCode::CONFLICT,
+                "OpenMAIC interactive request or source snapshot is invalid or changed",
+            );
+        }
+        _ => {
+            return error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OpenMAIC scene preparation failed",
+            );
+        }
+    };
+    let scene_pending = match scene_prepared {
+        course::OpenMaicPreparation::Existing(_) => {
+            return error(
+                StatusCode::CONFLICT,
+                "this create request ID already owns a scene candidate without the outline-interactive record",
+            );
+        }
+        course::OpenMaicPreparation::Pending(pending) => pending,
+    };
+    let scene_build = match runtime
+        .executor
+        .openmaic_scene_with_generation(generation, scene_request.clone(), Duration::from_secs(30))
+        .await
+    {
+        Ok(value) => value,
+        Err(_) => {
+            return openmaic_stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "scene_build",
+                "OpenMAIC scene builder unavailable",
+                Value::Null,
+            );
+        }
+    };
+    let scene_outcome = openmaic_stage_outcome(&scene_build);
+    if scene_build["exit_code"] != 0 || scene_build["document"]["status"] != "CANDIDATE" {
+        return openmaic_stage_failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "scene_build",
+            "OpenMAIC scene builder did not produce a candidate",
+            scene_outcome,
+        );
+    }
+    let record = openmaic_interactive::openmaic_interactive_record(
+        &create_request_id,
+        &openmaic_interactive::openmaic_interactive_request_sha256(&request, &selection),
+        &selection,
+        &binding,
+        &model["document"],
+        &normalize["document"],
+    );
+    let generation_chain = openmaic_interactive::OpenMaicInteractiveGeneration {
+        scene_request: scene_request.clone(),
+        record,
+    };
+    let commit_id = create_request_id.clone();
+    let commit_request = request.clone();
+    let worker_document = scene_build["document"].clone();
+    let committed = runtime
+        .executor
+        .commit_openmaic_if_current(generation, move |conn| {
+            openmaic_interactive::commit_openmaic_interactive_candidate(
+                conn,
+                &commit_id,
+                &commit_request,
+                &pending,
+                &scene_pending,
+                &worker_document,
+                &generation_chain,
+            )
+        })
+        .await;
+    match committed {
+        Ok(Ok(receipt)) => openmaic_interactive_receipt_response(&receipt, true),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(_)))
+        | Ok(Err(archeaxis_domain::document::Error::Conflict(_)))
+        | Ok(Err(archeaxis_domain::document::Error::NotFound)) => error(
+            StatusCode::CONFLICT,
+            "OpenMAIC interactive request, capability or workspace changed",
+        ),
+        Ok(Err(_)) => error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "OpenMAIC interactive candidate persistence failed",
+        ),
+        Err(_) => error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "OpenMAIC interactive capability unavailable or withdrawn",
         ),
     }
 }

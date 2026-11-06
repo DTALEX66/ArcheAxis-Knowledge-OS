@@ -29,6 +29,8 @@ WORKERS = (
     "quiz-replay-worker.mjs",
     "quiz-actions-replay-worker.mjs",
     "slide-actions-replay-worker.mjs",
+    "interactive-prompt-worker.mjs",
+    "interactive-normalize-worker.mjs",
 )
 
 # The exact donor and locked-dependency closures those adapters import. Only

@@ -211,6 +211,8 @@ enum OpenMaicScript {
     QuizReplay,
     QuizActions,
     SlideActions,
+    InteractivePrompt,
+    InteractiveNormalize,
 }
 
 impl OpenMaicScript {
@@ -225,6 +227,8 @@ impl OpenMaicScript {
             Self::QuizReplay => Some("quiz-replay-worker.mjs"),
             Self::QuizActions => Some("quiz-actions-replay-worker.mjs"),
             Self::SlideActions => Some("slide-actions-replay-worker.mjs"),
+            Self::InteractivePrompt => Some("interactive-prompt-worker.mjs"),
+            Self::InteractiveNormalize => Some("interactive-normalize-worker.mjs"),
         }
     }
 
@@ -239,6 +243,8 @@ impl OpenMaicScript {
             Self::QuizReplay => "quiz_replay",
             Self::QuizActions => "quiz_actions",
             Self::SlideActions => "slide_actions",
+            Self::InteractivePrompt => "interactive_prompt",
+            Self::InteractiveNormalize => "interactive_normalize",
         }
     }
 }
@@ -249,6 +255,22 @@ pub enum OpenMaicSlideStage {
     Prompt,
     Reply,
     Normalize,
+}
+
+/// The two interactive adapters this chain drives.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum OpenMaicInteractiveStage {
+    Prompt,
+    Normalize,
+}
+
+impl From<OpenMaicInteractiveStage> for OpenMaicScript {
+    fn from(value: OpenMaicInteractiveStage) -> Self {
+        match value {
+            OpenMaicInteractiveStage::Prompt => Self::InteractivePrompt,
+            OpenMaicInteractiveStage::Normalize => Self::InteractiveNormalize,
+        }
+    }
 }
 
 impl From<OpenMaicSlideStage> for OpenMaicScript {
@@ -491,6 +513,33 @@ impl Executor {
             .and_then(|node| openmaic_script(&node.script, OpenMaicScript::SlideActions))
     }
 
+    /// The interactive prompt and normalize adapters, dispatched under the shared
+    /// OpenMAIC admission generation. Each stage keeps its own fixed script; a
+    /// missing sibling names that stage instead of falling back to another adapter.
+    pub async fn openmaic_interactive_with_generation(
+        &self,
+        stage: OpenMaicInteractiveStage,
+        expected_generation: u64,
+        request: Value,
+        timeout: Duration,
+    ) -> Result<Value, String> {
+        self.derived_json_checked_script(
+            "course.openmaic.scene-build",
+            request,
+            timeout,
+            Some(expected_generation),
+            stage.into(),
+        )
+        .await
+    }
+
+    /// Whether the configured scene builder has a usable sibling interactive adapter.
+    pub fn openmaic_interactive_script(&self, stage: OpenMaicInteractiveStage) -> Option<PathBuf> {
+        self.openmaic_node
+            .as_ref()
+            .and_then(|node| openmaic_script(&node.script, stage.into()))
+    }
+
     async fn derived_json_checked(
         &self,
         capability: &str,
@@ -715,6 +764,12 @@ impl Executor {
                     }
                     OpenMaicScript::SlideActions => {
                         validate_openmaic_slide_actions_result(&result, &request)?
+                    }
+                    OpenMaicScript::InteractivePrompt => {
+                        validate_openmaic_interactive_prompt_result(&result, &request)?
+                    }
+                    OpenMaicScript::InteractiveNormalize => {
+                        validate_openmaic_interactive_normalize_result(&result, &request)?
                     }
                     other => validate_openmaic_slide_result(&result, other)?,
                 }
@@ -990,9 +1045,59 @@ fn validate_openmaic_outline_prompt_result(result: &Value, request: &Value) -> R
     Ok(())
 }
 
-/// The three donor slide adapters keep their own fixed receipts. This checks the
+/// The two interactive adapters keep their own fixed receipts. This checks the
 /// schema, the declared outcome and the fixed non-authority claims; Core re-checks
 /// every field it consumes before persisting anything.
+fn validate_openmaic_interactive_prompt_result(
+    result: &Value,
+    _request: &Value,
+) -> Result<(), String> {
+    let doc = &result["document"];
+    let status = doc["status"].as_str().unwrap_or("");
+    if doc["schema"] != "archeaxis.openmaic-interactive-prompt-result/v1"
+        || doc["scope"] != "CALLER_SUPPLIED_UNVERIFIED"
+        || doc["operation"] != "UPSTREAM_INTERACTIVE_PROMPT_ONLY"
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["html_output"] != "NOT_PRODUCED"
+        || doc["full_generation"] != "NOT_PERFORMED"
+        || doc["core_authorization"] != "NOT_ESTABLISHED"
+        || result["exit_code"] != 0
+        || !matches!(status, "BUILT" | "REJECTED")
+    {
+        return Err("invalid OpenMAIC interactive prompt receipt".into());
+    }
+    Ok(())
+}
+
+fn validate_openmaic_interactive_normalize_result(
+    result: &Value,
+    request: &Value,
+) -> Result<(), String> {
+    let doc = &result["document"];
+    let status = doc["status"].as_str().unwrap_or("");
+    if doc["schema"] != "archeaxis.openmaic-interactive-normalize/v1"
+        || doc["model_call"] != "NOT_INVOKED"
+        || doc["rendering_authorized"] != false
+        || doc["security_sanitizer"] != false
+        || doc["core_authorization"] != "NOT_ESTABLISHED"
+        || doc["script_validation"] != "CLASSIC_INLINE_COMPILED_NOT_EXECUTED"
+        || result["exit_code"] != 0
+        || !matches!(status, "OBSERVED_CANDIDATE" | "REJECTED")
+    {
+        return Err("invalid OpenMAIC interactive normalize receipt".into());
+    }
+    // A rejected receipt names no request identity, so only an admitted
+    // candidate is bound to the frame Core sent.
+    if status == "OBSERVED_CANDIDATE"
+        && (doc["request_id"] != request["request_id"]
+            || doc["widget_type"] != request["widget_type"])
+    {
+        return Err("OpenMAIC interactive normalize receipt identity mismatch".into());
+    }
+    Ok(())
+}
+
+/// The three donor slide adapters keep their own fixed receipts.
 fn validate_openmaic_slide_result(result: &Value, stage: OpenMaicScript) -> Result<(), String> {
     let doc = &result["document"];
     let expected = match stage {
