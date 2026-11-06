@@ -152,10 +152,12 @@ risk_classes:
       - services/learning-providers/openmaic/interactive-html-rewrite-probe.mjs
       - services/learning-providers/openmaic/interactive-html-rewrite-worker.mjs
       - services/learning-providers/openmaic/interactive-normalize-worker.mjs
+      - services/learning-providers/openmaic/interactive-outline-worker.mjs
       - services/learning-providers/openmaic/interactive-prompt-worker.mjs
       - services/learning-providers/openmaic/interactive-url-map-worker.mjs
       - services/learning-providers/openmaic/interactive_html_rewrite_runner.py
       - services/learning-providers/openmaic/interactive_normalize_runner.py
+      - services/learning-providers/openmaic/interactive_outline_runner.py
       - services/learning-providers/openmaic/interactive_prompt_runner.py
       - services/learning-providers/openmaic/local_model_relay.py
       - services/learning-providers/openmaic/outline-prompt-guard.mjs
@@ -177,6 +179,7 @@ risk_classes:
       - "services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/**"
       - "services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/**"
       - "services/learning-providers/openmaic/vendor/generation-0.3.28-slide-actions/**"
+      - "services/learning-providers/openmaic/vendor/prompts-1.3.0-interactive-outline/**"
       - "services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/**"
       - "services/learning-providers/openmaic/vendor/npm/commander-8.3.0/**"
       - "services/learning-providers/openmaic/vendor/npm/entities-6.0.1/**"
