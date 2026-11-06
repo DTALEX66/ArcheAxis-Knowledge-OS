@@ -162,8 +162,7 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
     };
     let practice_worker =
         python_route("services/learning-providers/deeptutor/practice_host_worker.py");
-    let model_worker =
-        python_route("services/python-workers/openmaic/worker_outline_local_model.py");
+    let model_worker = python_route("services/python-workers/course/worker_outline_local_model.py");
     let text_worker = python_route("services/python-workers/transport/text_ndjson.py");
     let (port, calls) = start_stub(model_content());
     // SAFETY: this binary runs one test; the variables are set once, before any

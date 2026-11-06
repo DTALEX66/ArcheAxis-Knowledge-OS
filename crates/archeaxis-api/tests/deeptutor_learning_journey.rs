@@ -174,7 +174,7 @@ async fn human_journey_imports_answers_grades_and_replays_after_restart() {
         .canonicalize()
         .unwrap();
     let model_worker = repo()
-        .join("services/python-workers/openmaic/worker_outline_local_model.py")
+        .join("services/python-workers/course/worker_outline_local_model.py")
         .canonicalize()
         .unwrap();
     let (port, calls) = start_stub(model_content());

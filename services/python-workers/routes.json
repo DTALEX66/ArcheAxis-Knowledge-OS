@@ -12,7 +12,7 @@
       "course/worker_general_course.py"
     ],
     "course.openmaic.outline-model": [
-      "openmaic/worker_outline_local_model.py"
+      "course/worker_outline_local_model.py"
     ],
     "document.detect": [
       "document/worker_detect.py"
