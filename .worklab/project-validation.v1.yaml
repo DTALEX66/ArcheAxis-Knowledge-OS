@@ -160,6 +160,7 @@ risk_classes:
       - services/learning-providers/openmaic/quiz-replay-worker.mjs
       - services/learning-providers/openmaic/scene-build-worker.mjs
       - services/learning-providers/openmaic/scene-contract-report.mjs
+      - services/learning-providers/openmaic/slide-actions-replay-worker.mjs
       - services/learning-providers/openmaic/slide-normalize-worker.mjs
       - services/learning-providers/openmaic/slide-prompt-worker.mjs
       - services/learning-providers/openmaic/slide-reply-worker.mjs
@@ -171,6 +172,7 @@ risk_classes:
       - "services/learning-providers/openmaic/vendor/generation-0.3.28-outline/**"
       - "services/learning-providers/openmaic/vendor/generation-0.3.28-quiz/**"
       - "services/learning-providers/openmaic/vendor/generation-0.3.28-quiz-actions/**"
+      - "services/learning-providers/openmaic/vendor/generation-0.3.28-slide-actions/**"
       - "services/learning-providers/openmaic/vendor/scene-content-0.3.28-original/**"
       - "services/learning-providers/openmaic/vendor/npm/commander-8.3.0/**"
       - "services/learning-providers/openmaic/vendor/npm/entities-6.0.1/**"
