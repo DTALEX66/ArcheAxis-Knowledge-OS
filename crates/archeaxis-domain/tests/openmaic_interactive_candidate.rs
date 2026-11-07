@@ -483,3 +483,30 @@ fn a_procedural_skill_outline_is_not_an_admitted_widget() {
         "order":0,"widgetType":"procedural-skill","widgetOutline":{"task":"x"}}});
     assert!(openmaic_interactive::openmaic_interactive_widget(&selection).is_err());
 }
+
+#[test]
+fn the_widget_fields_the_donor_prompt_documents_reach_the_frame() {
+    // The vendored interactive-outlines template asks the model for `challenge`
+    // and `playerControls` on a game and `challengeType` on code; the scene
+    // chain must carry them instead of refusing or renaming them.
+    let game = openmaic_interactive::openmaic_interactive_widget(&json!({
+        "outline":{"id":"o1","type":"interactive","title":"SYNTHETIC_GAME_TITLE",
+            "description":"d","keyPoints":[],"order":0,"widgetType":"game",
+            "widgetOutline":{"gameType":"action","challenge":"控制推力使飞船低速着陆",
+                "playerControls":["thrust_slider","angle"]}}}))
+    .expect("a template-conformant game outline is admitted");
+    assert_eq!(game.0, "game");
+    assert_eq!(game.1["game_type"], "action");
+    assert_eq!(game.1["challenge"], "控制推力使飞船低速着陆");
+    assert_eq!(game.1["player_controls"], json!(["thrust_slider", "angle"]));
+    assert!(game.1.get("interactions").is_none());
+
+    let code = openmaic_interactive::openmaic_interactive_widget(&json!({
+        "outline":{"id":"o2","type":"interactive","title":"SYNTHETIC_CODE_TITLE",
+            "description":"d","keyPoints":[],"order":0,"widgetType":"code",
+            "widgetOutline":{"language":"python","challengeType":"function"}}}))
+    .expect("a template-conformant code outline is admitted");
+    assert_eq!(code.1["language"], "python");
+    assert_eq!(code.1["challenge_type"], "function");
+    assert!(code.1.get("interactions").is_none());
+}

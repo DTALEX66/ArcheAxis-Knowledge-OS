@@ -120,9 +120,10 @@ const TEMPLATE_VARIABLES = (requirement, source) => ({ requirement, userProfile:
 
 const WIDGET_FIELDS = {
   simulation: ["concept", "keyVariables"], diagram: ["diagramType", "nodeCount", "nodes"],
-  code: ["language"], game: ["gameType"], visualization3d: ["visualizationType", "objects", "interactions"],
+  code: ["language", "challengeType"], game: ["challenge", "gameType", "playerControls"],
+  visualization3d: ["visualizationType", "objects", "interactions"],
 };
-const WIDGET_ARRAYS = ["keyVariables", "nodes", "objects", "interactions"];
+const WIDGET_ARRAYS = ["keyVariables", "nodes", "objects", "interactions", "playerControls"];
 const ALLOWED_BASE = ["id", "type", "title", "description", "keyPoints", "order"];
 
 function rejectDuplicateKeys(source) {

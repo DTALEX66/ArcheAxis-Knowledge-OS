@@ -61,8 +61,8 @@ fn outline_widget_fields(widget: &str) -> Option<&'static [&'static str]> {
     Some(match widget {
         "simulation" => &["concept", "keyVariables"],
         "diagram" => &["diagramType", "nodeCount", "nodes"],
-        "code" => &["language"],
-        "game" => &["gameType"],
+        "code" => &["language", "challengeType"],
+        "game" => &["challenge", "gameType", "playerControls"],
         "visualization3d" => &["visualizationType", "objects", "interactions"],
         _ => return None,
     })
@@ -93,7 +93,7 @@ fn widget_outline_admitted(widget: &str, outline: &Value) -> bool {
             fields.contains(&key.as_str())
                 && match key.as_str() {
                     "nodeCount" => value.as_u64().is_some_and(|count| count <= 200),
-                    "keyVariables" | "nodes" | "objects" | "interactions" => {
+                    "keyVariables" | "nodes" | "objects" | "interactions" | "playerControls" => {
                         outline_widget_strings(value)
                     }
                     _ => outline_widget_text(value),
