@@ -185,8 +185,8 @@ pub fn openmaic_interactive_widget(selection: &Value) -> Result<(String, Value),
     let outline_fields: &[&str] = match widget {
         "simulation" => &["concept", "keyVariables"],
         "diagram" => &["diagramType", "nodeCount", "nodes"],
-        "code" => &["language"],
-        "game" => &["gameType"],
+        "code" => &["challengeType", "language"],
+        "game" => &["challenge", "gameType", "playerControls"],
         _ => &["visualizationType", "objects", "interactions"],
     };
     let fields = outline["widgetOutline"]
@@ -208,10 +208,16 @@ pub fn openmaic_interactive_widget(selection: &Value) -> Result<(String, Value),
             "nodeCount" => "node_count",
             "nodes" => "nodes",
             "language" => "language",
+            "challengeType" => "challenge_type",
             "gameType" => "game_type",
+            "challenge" => "challenge",
+            "playerControls" => "player_controls",
             "visualizationType" => "visualization_type",
             "objects" => "objects",
-            _ => "interactions",
+            "interactions" => "interactions",
+            // An admitted field with no frame name must fail loudly: defaulting it
+            // to another field's name would send the model a corrupted widget brief.
+            _ => return Err(invalid("INTERACTIVE_OUTLINE_WIDGET_INVALID")),
         };
         mapped.insert(name.to_owned(), value.clone());
     }
@@ -222,7 +228,7 @@ fn widget_field_ok(key: &str, value: &Value) -> bool {
     if key == "nodeCount" {
         return value.as_u64().is_some_and(|count| count <= 200);
     }
-    if ["keyVariables", "nodes", "objects", "interactions"].contains(&key) {
+    if ["keyVariables", "nodes", "objects", "interactions", "playerControls"].contains(&key) {
         return value.as_array().is_some_and(|items| {
             items.len() <= 64
                 && items

@@ -24,7 +24,7 @@ PROMPTS = SERVICE / "vendor/prompts-1.3.0-interactive-outline"
 NODE = os.environ.get("ARCHEAXIS_TEST_NODE")
 requires_node = pytest.mark.skipif(not NODE, reason="explicit preverified ARCHEAXIS_TEST_NODE is required")
 SCHEMA = "archeaxis.openmaic-interactive-outline/v1"
-WORKER_SHA256 = "f8951de94bb50f0e69d444a0ac155a5240ce83dce0e56c1f4afa018ad4adcd83"
+WORKER_SHA256 = "069868efd957b9bfce5e74e7d606c906e3fcffeedca3517272c5486c16af0647"
 PROMPT_ORIGINALS = {
     "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
     "README.md": "39c85ecccdc6d3a534f3d955ea4b1668fcd2ff94a4cade8fb1365ece7f2ff31b",
@@ -116,6 +116,44 @@ def test_replay_admits_a_mixed_interactive_and_slide_outline(runner, captured):
     assert outlines[0]["widgetOutline"] == {"diagramType": "flowchart", "nodeCount": 4}
     assert outlines[1]["type"] == "slide" and "widgetType" not in outlines[1]
     assert [item["order"] for item in outlines] == [1, 2]
+
+
+@requires_node
+def test_the_donor_templates_own_widget_fields_are_admitted_verbatim(runner, captured):
+    """The vendored prompt documents `challenge`/`playerControls` for game and
+    `challengeType` for code, so refusing them would reject a compliant reply."""
+    outlines = [
+        {"id": "g", "type": "interactive", "title": "G", "description": "D",
+         "keyPoints": ["玩"], "order": 1, "widgetType": "game",
+         "widgetOutline": {"gameType": "action", "challenge": "控制推力着陆",
+                           "playerControls": ["thrust_slider", "angle"]}},
+        {"id": "c", "type": "interactive", "title": "C", "description": "D",
+         "keyPoints": ["写"], "order": 2, "widgetType": "code",
+         "widgetOutline": {"language": "python", "challengeType": "function"}},
+    ]
+    value = json.dumps({"languageDirective": "中文", "outlines": outlines})
+    result = runner.run_candidate(encode(replay(captured, value)), node_executable=checked_node())
+    assert result["status"] == "CANDIDATE", result
+    admitted = result["candidate"]["data"]["outlines"]
+    assert admitted[0]["widgetOutline"] == outlines[0]["widgetOutline"]
+    assert admitted[1]["widgetOutline"] == outlines[1]["widgetOutline"]
+
+
+@requires_node
+@pytest.mark.parametrize("widget,widget_outline", [
+    ("game", {"gameType": "action", "scoreBoard": "top"}),
+    ("code", {"language": "python", "runner": "docker"}),
+])
+def test_widget_fields_outside_the_donor_template_stay_refused(
+        runner, captured, widget, widget_outline):
+    value = json.dumps({"languageDirective": "中文", "outlines": [
+        {"id": "w", "type": "interactive", "title": "T", "description": "D",
+         "keyPoints": [], "order": 1, "widgetType": widget,
+         "widgetOutline": widget_outline}]})
+    result = runner.run_candidate(encode(replay(captured, value)), node_executable=checked_node())
+    assert result["status"] == "REJECTED"
+    assert result["error_code"] == "UNSUPPORTED_OUTPUT"
+    assert result["process"]["direct_child"] == "REAPED"
 
 
 @requires_node
