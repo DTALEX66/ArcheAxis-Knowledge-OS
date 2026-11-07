@@ -4505,3 +4505,22 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI：首轮（`42254044847`、`42254802678`）在 lint 失败——新路由未登记契约（157 vs 158）与新增章节缺少 checker；已按既有 Courses 表归档并移除新章节，最终 run `42255357268` 全 required gates success；两次失败保留。
 - 交付：PR **#308** 以 merge commit **`ae034949`** 合并；本地与 `origin/main` 一致。
 - 边界：**未做 staged/安装态 interactive 复验**；真实模型质量未验（合成 loopback stub）；交互 HTML 不执行/不服务；未做 UI 接线；非 Owner 接受。
+
+#### 2026-11-07 INT-MAIC-05 第六片：交互 widget 字段与 donor 提示词对齐（PR #309）
+
+- 缺陷定位：vendored `interactive-outlines` 模板在 system.md 第 123-126 行明确要求 game 给出 `gameType`/`challenge`/`playerControls`、第 105-107 行要求 code 给出 `language`/`challengeType`，而仓库里有**三份独立准入表**只允许 `gameType` 与 `language`：私有适配器 `interactive-outline-worker.mjs` 的 `WIDGET_FIELDS`、大纲切片 `openmaic_outline::outline_widget_fields`、场景切片 `openmaic_interactive`。**模型严格遵守自己的提示词就会被本切片拒绝。** 场景切片还把未登记键静默改名为 `interactions`（`_ =>` 兜底），已改为具名拒绝。
+- 为什么以前看不见：合成夹具只用 `diagram` 且字段恰好落在窄集合内，故适配器 19 例与 gated 运行时测试全绿；同时 422 只带 status/reason（`openmaic_stage_outcome` 丢弃 `differences`），从 API 侧无法判断拒在哪一条。
+- 实测（声明的本地 lane `qwen2.5-vl-7b-instruct` + 127.0.0.1:1234 + pinned Node `ba4e6d11…`，旁路驱动同一份适配器）：修复前三轮 18 次里 **6 次准入**，每次拒绝都在 game 或 code 条目（`OUTLINE_CONTENT_UNSUPPORTED`）；修复后同两段文本 8 次里 **7 次准入**，唯一拒绝是 `UNKNOWN_OUTLINE_FIELDS`（模型自造切片外字段，属应当拒绝）。
+- 边界处理：`playerControls` 与其他列表字段同等有界（≤64 项、每项 ≤512）；vendor 模板字节零改动，故 `ADAPTER_IDENTITY_MISMATCH` 门仍成立。
+- 验证：适配器摘要 `f8951de9…`→`069868ef…`，runner、集成测试与 `RUNTIME-CLOSURE.json` 同步重钉，闭包由 4,117,971 B 变为 **694 文件 / 4,118,039 B / 12 workers / 9 vendor 目录**（成员数不变、审计字节变）；`test_openmaic_interactive_outline.py` **22 passed**（含"文档字段原样准入"与两类模板外键仍拒），闭包+分类器合计 **67 passed**；domain `openmaic_interactive_candidate` **6 passed**、`openmaic_interactive_outline_persistence` **4 passed**、gated 运行时 **1 passed（23.0s）**；`cargo fmt --check` 干净。反证：把 .mjs 复原为修复前字节（校验哈希确为 `f8951de9…`）后，新准入例以 `UNSUPPORTED_OUTPUT` 失败。
+- CI（run `42325947960`，精确 SHA `69904cee`）：`gateplan`/`lint`/`test (3.12)`/`workers-vnext`/`rust-vnext`/`a0-gates` 全部 success。交付：PR **#309** 以 merge commit **`157ee1db`** 合并。
+- 边界：一次生成不等于准入率；未做新摘要下的 staged/安装态复验；不判模型质量；交互 HTML 不执行/不服务；非 UI 接线；非 Owner 接受。
+
+#### 2026-11-07 INT-MAIC-05 第七片：拒绝必须说出违反哪条有界规则（PR #310）
+
+- `openmaic_stage_outcome` 现额外携带 worker 自己的 `differences`（规则名、条目索引、字段名，上限 8 条 / 16 个字段名）与 `transformations` 名；**模型正文一律不出路由**，与既有"不回显回复"边界一致。契约中 5 处 OpenMAIC 失败描述同步说明还会到达什么（DeepTutor 各行用自己的投影，未改）。
+- 新增 env-gated 真实模型测试 `crates/archeaxis-api/tests/openmaic_interactive_real_model_runtime.rs`：断言"两种结局的工程契约"而非指定回复——准入时必须是切片内条目、落一份大纲候选与一份场景候选、重启后两者读回且 `worker_invoked:false`；拒绝时必须具名、带规则名（worker 有应答时）且**不新增任何文档**。场景侧因来源/快照状态失败本就 `404/409` 且不带 `worker_outcome`，故规则名检查只在有 worker 应答时生效，不做"怎么都行"的放宽。
+- 实测同一 lane 的变异性：路由原文在含 #309 的构建上先 **4 次尝试全部大纲阶段 `UNSUPPORTED_OUTPUT`**，随后一次实跑得到 **GENERATED**（大纲候选 `doc_req_0f6cc20e…`、diagram 场景候选 `doc_req_a3c19498…`、`selected_index 1`、重启读回 `[false,false]`、41.72s、`quality: NOT_ASSESSED`）。这正说明"要求唯一回复"的测试会变成抛硬币，而"两种结局都断言"才可留档。
+- 验证：规则名断言在未改动的投影上以 `left: Null` 失败（真反证）；共享该投影的链回归通过——outline generate 1（21.8s）、outline 2（8.7s）、slide generate 1（48.8s）、interactive generate 1（19.9s）、unavailable donor 契约 1；契约维护 38 passed；两个文档门通过；`cargo fmt --check` 干净。
+- CI（run `42329946404`，精确 SHA `bd1eca68`）：首轮 `rust-vnext` 在 8m20s 失败于 `document_cloud_loop::actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports`，失败细节是合成 worker `Timeout (0:00:05)` 与 `reason: invalid_worker_response`，与本片改动面无关；同一 SHA 本地该套件 **8 passed（21.54s）**，重跑该作业后 `rust-vnext` 14m48s 与 `a0-gates` 全绿。两次运行都保留。交付：PR **#310** 以 merge commit **`2e0947c7`** 合并。
+- 边界：一次 GENERATED 不是速率；真实模型质量仍未判（需人工真值/预测对）；未在新摘要下做 staged/安装态复验；不授权渲染；未接 UI；非 Owner 接受。另实测：`tests/test_openmaic_runtime_staging.py` 在当前 main 仍为 **4 failed / 26 passed**（staging 如何选择 Node 闭包这条契约存在实测红），已计入下一步，不当作 PASS。
