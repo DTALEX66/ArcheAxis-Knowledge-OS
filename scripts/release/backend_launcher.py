@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import errno
 import os
 import re
 import secrets
@@ -311,12 +312,24 @@ def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
         return None, "invalid_config"
 
 
-def openmaic_node_worker(root: Path) -> dict | None:
-    """Read only the fixed staged members; an invalid optional provider is disabled.
+def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
+    """Read only the fixed staged members; a disabled optional provider says why.
 
     A same-directory manifest binds the declared bytes, not their provenance or
     installation qualification. Core independently checks the worker before use.
+    The reason is a fixed label because an unusable path is a different finding
+    from bytes that do not match: folding the two together sends an operator to
+    the wrong problem, which is what a 269-character staged member did here.
     """
+    path_errnos = {errno.ENAMETOOLONG, errno.ENOTDIR, errno.EINVAL}
+
+    def classified(error: OSError, missing: str, unreadable: str) -> str:
+        if isinstance(error, FileNotFoundError):
+            return missing
+        if getattr(error, "errno", None) in path_errnos:
+            return "path_invalid"
+        return unreadable
+
     def unique(pairs):
         result = {}
         for key, value in pairs:
@@ -332,78 +345,105 @@ def openmaic_node_worker(root: Path) -> dict | None:
         return value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_nlink
 
     def matches(relative, identity, limit):
+        """(ok, reason); reason is None only when the member equals its claim."""
         if (not isinstance(identity, dict) or set(identity) != {"bytes", "sha256"}
                 or type(identity["bytes"]) is not int or not 0 < identity["bytes"] <= limit
                 or not isinstance(identity["sha256"], str)
                 or not re.fullmatch(r"[a-f0-9]{64}", identity["sha256"])):
-            return False
+            return False, "member_claim_invalid"
         path = safe_path(root, f"{OPENMAIC_DIRECTORY}/{relative}")
-        info = path.stat()
-        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size != identity["bytes"]:
-            return False
+        try:
+            info = path.stat()
+        except OSError as error:
+            return False, classified(error, "member_absent", "member_unreadable")
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            return False, "member_unusable"
+        if info.st_size != identity["bytes"]:
+            return False, "member_identity_mismatch"
         digest = hashlib.sha256()
-        with path.open("rb") as stream:
+        try:
+            stream = path.open("rb")
+        except OSError as error:
+            return False, classified(error, "member_absent", "member_unreadable")
+        with stream:
             before = os.fstat(stream.fileno())
-            if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
-                    or (before.st_dev, before.st_ino, before.st_size) != (info.st_dev, info.st_ino, info.st_size)):
-                return False
+            if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
+                return False, "member_unusable"
+            if (before.st_dev, before.st_ino, before.st_size) != (info.st_dev, info.st_ino, info.st_size):
+                return False, "member_identity_mismatch"
             remaining = identity["bytes"]
             while remaining:
                 chunk = stream.read(min(65536, remaining))
                 if not chunk:
-                    return False
+                    return False, "member_identity_mismatch"
                 remaining -= len(chunk)
                 digest.update(chunk)
             if stream.read(1):
-                return False
+                return False, "member_identity_mismatch"
             after = os.fstat(stream.fileno())
-            if (not stat.S_ISREG(after.st_mode) or after.st_nlink != 1
-                    or (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
-                        after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)):
-                return False
-        return digest.hexdigest() == identity["sha256"]
+            if not stat.S_ISREG(after.st_mode) or after.st_nlink != 1:
+                return False, "member_unusable"
+            if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
+                    after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns):
+                return False, "member_identity_mismatch"
+        if digest.hexdigest() != identity["sha256"]:
+            return False, "member_identity_mismatch"
+        return True, None
 
     try:
         path = safe_path(root, "backend-runtime-manifest.json")
-        info = path.stat()
+        try:
+            info = path.stat()
+        except OSError as error:
+            return None, classified(error, "absent", "manifest_unreadable")
         if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
                 or not 0 < info.st_size <= OPENMAIC_MANIFEST_MAX_BYTES):
-            return None
+            return None, "manifest_unusable"
         with path.open("rb") as stream:
             before = os.fstat(stream.fileno())
             if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
                     or file_identity(before) != file_identity(info)):
-                return None
+                return None, "manifest_unusable"
             raw = stream.read(info.st_size + 1)
             after = os.fstat(stream.fileno())
             current = path.stat()
             if (len(raw) != info.st_size or not stat.S_ISREG(after.st_mode) or not stat.S_ISREG(current.st_mode)
                     or file_identity(after) != file_identity(before) or file_identity(current) != file_identity(before)):
-                return None
+                return None, "manifest_unusable"
         if len(raw) > OPENMAIC_MANIFEST_MAX_BYTES:
-            return None
+            return None, "manifest_unusable"
         document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=reject_nonfinite)
         if not isinstance(document, dict) or document.get("schema") != "archeaxis.backend-runtime/v1":
-            return None
+            return None, "manifest_invalid"
         config, files = document.get("openmaic_scene_build"), document.get("files")
         if (not isinstance(config, dict) or set(config) != {"status", "node_sha256"}
                 or config["status"] != "INCLUDED" or not isinstance(config["node_sha256"], str)
                 or not re.fullmatch(r"[a-f0-9]{64}", config["node_sha256"]) or not isinstance(files, dict)):
-            return None
+            return None, "manifest_invalid"
         for relative, identity in OPENMAIC_FILES.items():
-            if files.get(f"{OPENMAIC_DIRECTORY}/{relative}") != identity or not matches(relative, identity, 1_000_000):
-                return None
+            if files.get(f"{OPENMAIC_DIRECTORY}/{relative}") != identity:
+                return None, "member_claim_invalid"
+            ok, reason = matches(relative, identity, 1_000_000)
+            if not ok:
+                return None, reason
         node = files.get(f"{OPENMAIC_DIRECTORY}/node.exe")
         license_row = files.get(f"{OPENMAIC_DIRECTORY}/NODE-LICENSE")
-        if (not isinstance(node, dict) or node.get("sha256") != config["node_sha256"]
-                or not matches("node.exe", node, OPENMAIC_NODE_MAX_BYTES)
-                or not matches("NODE-LICENSE", license_row, 1_000_000)):
-            return None
+        if not isinstance(node, dict) or node.get("sha256") != config["node_sha256"]:
+            return None, "member_claim_invalid"
+        for relative, identity, limit in (("node.exe", node, OPENMAIC_NODE_MAX_BYTES),
+                                          ("NODE-LICENSE", license_row, 1_000_000)):
+            ok, reason = matches(relative, identity, limit)
+            if not ok:
+                return None, reason
         return {"executable": str(safe_path(root, f"{OPENMAIC_DIRECTORY}/node.exe")),
                 "executable_sha256": config["node_sha256"],
-                "script": str(safe_path(root, f"{OPENMAIC_DIRECTORY}/scene-build-worker.mjs"))}
-    except (OSError, ValueError, TypeError, UnicodeError, RecursionError, LaunchFailure):
-        return None
+                "script": str(safe_path(root, f"{OPENMAIC_DIRECTORY}/scene-build-worker.mjs"))}, None
+    except (ValueError, TypeError, UnicodeError, RecursionError):
+        return None, "manifest_invalid"
+    except LaunchFailure:
+        return None, "manifest_unusable"
+    except OSError as error:
+        return None, classified(error, "absent", "manifest_unreadable")
 
 
 def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
@@ -439,9 +479,12 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
             ]} if profile.get("routes") else {}),
         },
     }
-    openmaic = openmaic_node_worker(ROOT)
+    openmaic, openmaic_reason = openmaic_node_worker(ROOT)
     if openmaic is not None:
         launch["openmaic_node_worker"] = openmaic
+    elif openmaic_reason is not None:
+        # A disabled optional provider is a named state, not an absent one.
+        launch["openmaic_node_worker_error"] = openmaic_reason
     check_config, check_error = document_check_config(data_root)
     if check_config is not None:
         launch["document_check_config"] = check_config

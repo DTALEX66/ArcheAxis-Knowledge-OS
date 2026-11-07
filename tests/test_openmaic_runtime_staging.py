@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import errno
 import json
 import os
 from pathlib import Path
@@ -226,22 +227,24 @@ def test_invalid_optional_manifest_or_staged_bytes_disable_only_node(prepared, m
                      json.dumps({**document, "openmaic_scene_build": {"status": "NOT_INCLUDED", "node_sha256": None}}).encode()]
     for raw in bad_documents:
         manifest_path.write_bytes(raw)
-        assert launcher.openmaic_node_worker(root) is None
+        assert launcher.openmaic_node_worker(root) == (None, "manifest_invalid")
     manifest_path.write_bytes(original)
     node.write_bytes(b"X" * len(node_bytes))
-    assert launcher.openmaic_node_worker(root) is None
-    assert "openmaic_node_worker" not in capture_launch(monkeypatch, root)
+    assert launcher.openmaic_node_worker(root) == (None, "member_identity_mismatch")
+    launch = capture_launch(monkeypatch, root)
+    assert "openmaic_node_worker" not in launch
+    assert launch["openmaic_node_worker_error"] == "member_identity_mismatch"
     node.write_bytes(node_bytes)
     for relative in ("NODE-LICENSE", "scene-build-worker.mjs", "vendor/generation-0.3.28/LICENSE"):
         target = stager.filesystem_path(root / PREFIX / relative)
         original_bytes = target.read_bytes()
         target.write_bytes(bytes([original_bytes[0] ^ 1]) + original_bytes[1:])
-        assert launcher.openmaic_node_worker(root) is None
+        assert launcher.openmaic_node_worker(root) == (None, "member_identity_mismatch")
         target.write_bytes(original_bytes)
     manifest_path.unlink()
-    assert launcher.openmaic_node_worker(root) is None
+    assert launcher.openmaic_node_worker(root) == (None, "absent")
     manifest_path.write_bytes(original)
-    assert launcher.openmaic_node_worker(root) is not None
+    assert launcher.openmaic_node_worker(root)[1] is None
 
 
 def test_oversized_manifest_disables_only_optional_node(prepared, monkeypatch):
@@ -255,10 +258,12 @@ def test_oversized_manifest_disables_only_optional_node(prepared, monkeypatch):
     assert launcher.OPENMAIC_MANIFEST_MAX_BYTES == 16 * 1024 * 1024
     # Keep the fixture tiny while checking both sides of the real size guard.
     monkeypatch.setattr(launcher, "OPENMAIC_MANIFEST_MAX_BYTES", size)
-    assert launcher.openmaic_node_worker(root) is not None
+    assert launcher.openmaic_node_worker(root)[1] is None
     monkeypatch.setattr(launcher, "OPENMAIC_MANIFEST_MAX_BYTES", size - 1)
-    assert launcher.openmaic_node_worker(root) is None
-    assert "openmaic_node_worker" not in capture_launch(monkeypatch, root)
+    assert launcher.openmaic_node_worker(root) == (None, "manifest_unusable")
+    launch = capture_launch(monkeypatch, root)
+    assert "openmaic_node_worker" not in launch
+    assert launch["openmaic_node_worker_error"] == "manifest_unusable"
 
 
 @pytest.mark.parametrize("constant", [float("nan"), float("inf"), float("-inf")])
@@ -271,7 +276,7 @@ def test_nonfinite_manifest_disables_only_optional_node(prepared, monkeypatch, c
     document = json.loads(manifest.read_bytes())
     document["synthetic_nonfinite"] = constant
     manifest.write_text(json.dumps(document), encoding="utf-8")
-    assert launcher.openmaic_node_worker(root) is None
+    assert launcher.openmaic_node_worker(root) == (None, "manifest_invalid")
     assert "openmaic_node_worker" not in capture_launch(monkeypatch, root)
 
 
@@ -292,8 +297,10 @@ def test_linked_manifest_is_not_read_and_does_not_block_core(prepared, monkeypat
 
     monkeypatch.setattr(Path, "open", no_manifest_read)
     try:
-        assert launcher.openmaic_node_worker(root) is None
-        assert "openmaic_node_worker" not in capture_launch(monkeypatch, root)
+        assert launcher.openmaic_node_worker(root) == (None, "manifest_unusable")
+        launch = capture_launch(monkeypatch, root)
+        assert "openmaic_node_worker" not in launch
+        assert launch["openmaic_node_worker_error"] == "manifest_unusable"
     finally:
         stager.filesystem_path(alias).unlink()
 
@@ -316,7 +323,7 @@ def test_node_linked_after_stat_is_rejected_before_read(prepared, monkeypatch):
 
     monkeypatch.setattr(Path, "open", link_before_open)
     try:
-        assert launcher.openmaic_node_worker(root) is None
+        assert launcher.openmaic_node_worker(root) == (None, "member_unusable")
         assert opened == [True]
     finally:
         if stager.filesystem_path(alias).exists():
@@ -341,11 +348,31 @@ def test_manifest_linked_after_stat_is_rejected_before_read(prepared, monkeypatc
 
     monkeypatch.setattr(Path, "open", link_before_open)
     try:
-        assert launcher.openmaic_node_worker(root) is None
+        assert launcher.openmaic_node_worker(root) == (None, "manifest_unusable")
         assert opened == [True]
     finally:
         if stager.filesystem_path(alias).exists():
             stager.filesystem_path(alias).unlink()
+
+
+def test_manifest_path_error_is_named_as_a_path_not_as_bytes(prepared, monkeypatch):
+    case = prepared
+    *_, options = synthetic_provider(case)
+    assert run_stager(case, extra=options) == 0
+    root = case["output"]
+    manifest = root / "backend-runtime-manifest.json"
+    original_stat = Path.stat
+
+    def path_too_long(self, *args, **kwargs):
+        if self == manifest:
+            raise OSError(errno.ENAMETOOLONG, "path exceeds the platform limit")
+        return original_stat(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "stat", path_too_long)
+    assert launcher.openmaic_node_worker(root) == (None, "path_invalid")
+    launch = capture_launch(monkeypatch, root)
+    assert "openmaic_node_worker" not in launch
+    assert launch["openmaic_node_worker_error"] == "path_invalid"
 
 
 def test_prepare_bundle_forwards_explicit_openmaic_through_real_growth_plan(prepared):
