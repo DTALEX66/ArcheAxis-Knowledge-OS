@@ -564,12 +564,55 @@ fn openmaic_stage_failure(
         .into_response()
 }
 
-/// The worker's declared outcome, kept verbatim for the caller.
+/// The bounded rule detail a worker records with a refusal: rule names, the
+/// entry position and the offending field names. Model bytes stay in the worker,
+/// so a caller can act on the reason without the route echoing reply content.
+fn openmaic_stage_rules(values: Option<&Vec<Value>>, limit: usize) -> Vec<Value> {
+    let mut names = Vec::new();
+    if let Some(items) = values {
+        for item in items.iter().take(limit) {
+            if let Some(name) = item.as_str() {
+                names.push(Value::from(name));
+            }
+        }
+    }
+    names
+}
+
+fn openmaic_stage_diagnostics(document: &Value) -> Value {
+    const LIMIT: usize = 8;
+    const FIELD_LIMIT: usize = 16;
+    let differences = document["differences"]
+        .as_array()
+        .map(|items| {
+            items
+                .iter()
+                .take(LIMIT)
+                .map(|item| {
+                    json!({
+                        "kind": item["kind"],
+                        "outline_index": item["outline_index"],
+                        "fields": openmaic_stage_rules(item["fields"].as_array(), FIELD_LIMIT)
+                    })
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    json!({
+        "differences": differences,
+        "transformations": openmaic_stage_rules(document["transformations"].as_array(), LIMIT)
+    })
+}
+
+/// The worker's declared outcome plus the bounded rule names behind it.
 fn openmaic_stage_outcome(result: &Value) -> Value {
     let document = &result["document"];
+    let diagnostics = openmaic_stage_diagnostics(document);
     json!({"status":document["status"],"reason":document["reason"],
         "error_code":document["error_code"],
-        "exit_code":result["exit_code"]})
+        "exit_code":result["exit_code"],
+        "differences":diagnostics["differences"],
+        "transformations":diagnostics["transformations"]})
 }
 
 pub(super) async fn generate_openmaic_outline(
