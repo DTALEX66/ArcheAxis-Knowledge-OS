@@ -93,8 +93,9 @@ fn widget_outline_admitted(widget: &str, outline: &Value) -> bool {
             fields.contains(&key.as_str())
                 && match key.as_str() {
                     "nodeCount" => value.as_u64().is_some_and(|count| count <= 200),
-                    "keyVariables" | "nodes" | "objects" | "interactions"
-                    | "playerControls" => outline_widget_strings(value),
+                    "keyVariables" | "nodes" | "objects" | "interactions" | "playerControls" => {
+                        outline_widget_strings(value)
+                    }
                     _ => outline_widget_text(value),
                 }
         })

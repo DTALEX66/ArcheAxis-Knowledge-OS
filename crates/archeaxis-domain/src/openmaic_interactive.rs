@@ -228,7 +228,15 @@ fn widget_field_ok(key: &str, value: &Value) -> bool {
     if key == "nodeCount" {
         return value.as_u64().is_some_and(|count| count <= 200);
     }
-    if ["keyVariables", "nodes", "objects", "interactions", "playerControls"].contains(&key) {
+    if [
+        "keyVariables",
+        "nodes",
+        "objects",
+        "interactions",
+        "playerControls",
+    ]
+    .contains(&key)
+    {
         return value.as_array().is_some_and(|items| {
             items.len() <= 64
                 && items
