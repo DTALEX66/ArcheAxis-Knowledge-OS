@@ -375,6 +375,30 @@ def test_manifest_path_error_is_named_as_a_path_not_as_bytes(prepared, monkeypat
     assert launch["openmaic_node_worker_error"] == "path_invalid"
 
 
+def test_a_path_beyond_the_platform_limit_is_not_reported_as_a_broken_provider(
+        prepared, monkeypatch):
+    """Windows answers ERROR_PATH_NOT_FOUND for a path it cannot address at all.
+
+    The same long evidence root is a real path condition where the platform caps
+    the length and an honest absence where it does not, so this asserts that
+    neither platform blames the provider's bytes. Patching `os.name` is not an
+    option: pathlib chooses its flavour from it, so the expectation follows the
+    platform the test actually runs on.
+    """
+    case = prepared
+    *_, options = synthetic_provider(case)
+    assert run_stager(case, extra=options) == 0
+    deep_root = case["output"] / ("d" * 120) / ("e" * 120) / ("f" * 120)
+    manifest_length = len(str(stager.filesystem_path(deep_root))) + len(
+        "/backend-runtime-manifest.json")
+    assert manifest_length > 260, manifest_length
+    worker, reason = launcher.openmaic_node_worker(deep_root)
+    expected = "path_invalid" if os.name == "nt" else "absent"
+    assert (worker, reason) == (None, expected)
+    assert reason not in {"manifest_invalid", "manifest_unusable", "member_unusable",
+                          "member_identity_mismatch", "member_claim_invalid"}
+
+
 def test_prepare_bundle_forwards_explicit_openmaic_through_real_growth_plan(prepared):
     case = prepared
     _, node, licence, digest, _ = synthetic_provider(case)

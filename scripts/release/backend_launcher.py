@@ -322,12 +322,17 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
     the wrong problem, which is what a 269-character staged member did here.
     """
     path_errnos = {errno.ENAMETOOLONG, errno.ENOTDIR, errno.EINVAL}
+    # Windows reports a path beyond its own limit as "file not found", so an
+    # absence label there would hide the real condition behind a missing file.
+    windows_path_limit = 260
 
-    def classified(error: OSError, missing: str, unreadable: str) -> str:
-        if isinstance(error, FileNotFoundError):
-            return missing
+    def classified(error: OSError, missing: str, unreadable: str, target) -> str:
         if getattr(error, "errno", None) in path_errnos:
             return "path_invalid"
+        if isinstance(error, FileNotFoundError):
+            if os.name == "nt" and len(str(target)) > windows_path_limit:
+                return "path_invalid"
+            return missing
         return unreadable
 
     def unique(pairs):
@@ -355,7 +360,7 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         try:
             info = path.stat()
         except OSError as error:
-            return False, classified(error, "member_absent", "member_unreadable")
+            return False, classified(error, "member_absent", "member_unreadable", path)
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
             return False, "member_unusable"
         if info.st_size != identity["bytes"]:
@@ -364,7 +369,7 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         try:
             stream = path.open("rb")
         except OSError as error:
-            return False, classified(error, "member_absent", "member_unreadable")
+            return False, classified(error, "member_absent", "member_unreadable", path)
         with stream:
             before = os.fstat(stream.fileno())
             if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
@@ -395,7 +400,7 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         try:
             info = path.stat()
         except OSError as error:
-            return None, classified(error, "absent", "manifest_unreadable")
+            return None, classified(error, "absent", "manifest_unreadable", path)
         if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
                 or not 0 < info.st_size <= OPENMAIC_MANIFEST_MAX_BYTES):
             return None, "manifest_unusable"
@@ -443,7 +448,7 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
     except LaunchFailure:
         return None, "manifest_unusable"
     except OSError as error:
-        return None, classified(error, "absent", "manifest_unreadable")
+        return None, classified(error, "absent", "manifest_unreadable", root)
 
 
 def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
