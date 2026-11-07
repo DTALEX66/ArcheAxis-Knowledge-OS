@@ -374,6 +374,22 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{rejected}");
     assert_eq!(rejected["stage"], "interactive_outline");
     assert_eq!(rejected["worker_outcome"]["status"], "UNSUPPORTED_OUTPUT");
+    // The refusal names the bounded rule it hit, so an operator can act on it
+    // without the route ever echoing the model's bytes.
+    assert_eq!(
+        rejected["worker_outcome"]["differences"][0]["kind"],
+        "UPSTREAM_RESULT_SHAPE_UNSUPPORTED"
+    );
+    assert_eq!(
+        rejected["worker_outcome"]["differences"][0]["fields"],
+        json!([])
+    );
+    assert!(
+        rejected["worker_outcome"]["transformations"]
+            .as_array()
+            .is_some(),
+        "{rejected}"
+    );
     assert_eq!(document_count(&executor).await, 3);
     // An unavailable model lane is a named service error, never fabricating text.
     *stub.lock().unwrap() = StubState::new(500, String::new());
