@@ -11,6 +11,8 @@ use rusqlite::Connection;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+const SYNTHETIC_DONOR_SYSTEM: &str = "SYNTHETIC_SYSTEM prompt\n\n# Output protocol (mandatory — every reply must comply)\nThe final answer requires an action label.\n\n# FINISH JSON schema (strict)\nSYNTHETIC_SCHEMA";
+
 fn digest(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
@@ -64,7 +66,7 @@ fn capture(pending: &turn::QuestionTurnPending) -> Value {
     let frame: Value =
         serde_json::from_slice(&pending.capture_frame()[..pending.capture_frame().len() - 1])
             .unwrap();
-    let system = "SYNTHETIC_SYSTEM prompt";
+    let system = SYNTHETIC_DONOR_SYSTEM;
     let user = "SYNTHETIC_USER prompt with SYNTHETIC_MATERIAL_TEXT";
     json!({"schema":"archeaxis.deeptutor-question-turn-replay/v1","status":"CAPTURED",
         "mode":"capture","request_id":frame["request_id"],
@@ -117,9 +119,12 @@ fn replay(pending: &turn::QuestionTurnPending, captured: &Value) -> Value {
 fn generation(pending: &turn::QuestionTurnPending) -> QuestionTurnGeneration {
     let captured = capture(pending);
     let content = question_content();
+    let captured_binding =
+        turn::capture_binding(captured["request_id"].as_str().unwrap(), &captured).unwrap();
     QuestionTurnGeneration {
         model_reply: model_reply(&content),
         replay_document: replay(pending, &captured),
+        model_prompt_binding: turn::model_prompt_binding(&captured_binding).unwrap(),
         capture_document: captured,
     }
 }
@@ -132,6 +137,111 @@ fn commit(conn: &mut Connection, request: &QuestionTurnRequest) -> Value {
 fn document_count(conn: &Connection) -> i64 {
     conn.query_row("SELECT count(*) FROM documents", [], |row| row.get(0))
         .unwrap()
+}
+
+#[test]
+fn model_prompt_adapter_preserves_both_languages_and_refuses_ambiguous_anchors() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("workspace.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let selected = material(&mut conn);
+    grant(&mut conn, &selected, "granted", "deeptutor");
+    let request = request(&selected, "turn_adapter");
+    let ticket = pending(&mut conn, &request);
+    let original = capture(&ticket);
+    let samples = [
+        (
+            SYNTHETIC_DONOR_SYSTEM,
+            "# Output protocol (mandatory — every reply must comply)",
+            "# FINISH JSON schema (strict)",
+            "# AAOS single-response protocol",
+        ),
+        (
+            "前言\n# 输出协议（强制）\n旧协议\n# FINISH 的 JSON schema（严格）\n模式内容",
+            "# 输出协议（强制）",
+            "# FINISH 的 JSON schema（严格）",
+            "# AAOS 单次输出协议",
+        ),
+    ];
+    for (system, old_start, schema, replacement) in samples {
+        let mut captured = original.clone();
+        captured["messages"][0]["content"] = json!(system);
+        let binding = turn::capture_binding("turn_adapter", &captured).unwrap();
+        let snapshot = binding.clone();
+        let adapted = turn::model_prompt_binding(&binding).unwrap();
+        let sent = adapted["system"].as_str().unwrap();
+        assert!(!sent.contains(old_start));
+        assert!(sent.contains(replacement));
+        assert!(sent.ends_with(system.split_once(schema).unwrap().1));
+        assert!(sent.contains(schema));
+        assert_eq!(adapted["system_sha256"], digest(sent.as_bytes()));
+        assert_eq!(adapted["user_sha256"], binding["user_sha256"]);
+        assert_eq!(binding, snapshot, "the donor capture stays unchanged");
+        let model_request = turn::model_request(&binding, &adapted, &None);
+        assert_eq!(model_request["system"], adapted["system"]);
+        assert_eq!(model_request["user"], binding["user"]);
+    }
+    for invalid in [
+        "no anchor".to_owned(),
+        format!(
+            "{SYNTHETIC_DONOR_SYSTEM}\n# Output protocol (mandatory — every reply must comply)"
+        ),
+        "# FINISH JSON schema (strict)\n# Output protocol (mandatory — every reply must comply)"
+            .to_owned(),
+        format!("{SYNTHETIC_DONOR_SYSTEM}\n# 输出协议（强制）\n# FINISH 的 JSON schema（严格）"),
+        "# 输出协议（强制）\n# FINISH JSON schema (strict)".to_owned(),
+    ] {
+        let mut captured = original.clone();
+        captured["messages"][0]["content"] = json!(invalid);
+        let binding = turn::capture_binding("turn_adapter", &captured).unwrap();
+        assert!(turn::model_prompt_binding(&binding).is_err());
+    }
+}
+
+#[test]
+fn a_legacy_candidate_without_a_model_prompt_binding_remains_readable() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("workspace.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let selected = material(&mut conn);
+    grant(&mut conn, &selected, "granted", "deeptutor");
+    let request = request(&selected, "turn_legacy");
+    let ticket = pending(&mut conn, &request);
+    let mut captured = capture(&ticket);
+    captured["messages"][0]["content"] = json!("SYNTHETIC historical donor prompt");
+    let binding = turn::capture_binding("turn_legacy", &captured).unwrap();
+    let saved = json!({"schema":turn::DOCUMENT_SCHEMA,
+        "create_request_id":request.create_request_id,
+        "generation_request_sha256":turn::request_sha256(&request).unwrap(),
+        "capture_binding":binding,"model_reply":model_reply(&question_content()),
+        "worker_document":replay(&ticket, &captured)});
+    let internal_id = format!(
+        "deeptutor_question_turn_{}",
+        digest(request.create_request_id.as_bytes())
+    );
+    let old = document::create_optional_with_request(
+        &mut conn,
+        None,
+        None,
+        "Synthetic legacy candidate",
+        json!({"type":"doc","content":[],
+            "attrs":{(turn::DOCUMENT_NAMESPACE):saved}}),
+        Some(&internal_id),
+    )
+    .unwrap();
+    let before = conn.total_changes();
+    match turn::prepare_question_turn(&mut conn, &request).unwrap() {
+        QuestionTurnPreparation::Existing(receipt) => {
+            assert_eq!(receipt["document"]["document_id"], old["document_id"]);
+            assert!(receipt["model_prompt_binding"].is_null());
+        }
+        _ => panic!("historical candidate should be read without executing a model"),
+    }
+    assert_eq!(conn.total_changes(), before);
 }
 
 #[test]
@@ -165,7 +275,29 @@ fn a_candidate_is_persisted_once_with_its_prompt_model_and_material_identity() {
     assert_eq!(saved["capture_binding"]["request_id"], "turn_1");
     assert_eq!(
         saved["capture_binding"]["system_sha256"],
-        digest(b"SYNTHETIC_SYSTEM prompt")
+        digest(SYNTHETIC_DONOR_SYSTEM.as_bytes())
+    );
+    let sent = &saved["model_prompt_binding"];
+    assert_eq!(
+        sent["donor_prompt_sha256"],
+        saved["capture_binding"]["prompt_sha256"]
+    );
+    assert_eq!(sent["user_sha256"], saved["capture_binding"]["user_sha256"]);
+    assert_eq!(
+        sent["system_sha256"],
+        digest(sent["system"].as_str().unwrap().as_bytes())
+    );
+    assert!(
+        !sent["system"]
+            .as_str()
+            .unwrap()
+            .contains("# Output protocol (mandatory")
+    );
+    assert!(
+        sent["system"]
+            .as_str()
+            .unwrap()
+            .contains("# FINISH JSON schema (strict)")
     );
     assert_eq!(first["candidate_document_status"], "current");
     assert_eq!(
@@ -308,6 +440,7 @@ fn every_named_failure_stage_is_refused_before_a_document_exists() {
         "question_id",
         "options",
         "prompt",
+        "model_prompt",
     ] {
         let mut bad = generation(&ticket);
         match change {
@@ -316,6 +449,7 @@ fn every_named_failure_stage_is_refused_before_a_document_exists() {
             "origin" => bad.replay_document["origin"] = json!("VERIFIED"),
             "question_id" => bad.replay_document["question"]["question_id"] = json!("other"),
             "options" => bad.replay_document["question"]["options"] = json!({"A":"1","B":"2"}),
+            "model_prompt" => bad.model_prompt_binding["system"] = json!("forged"),
             _ => bad.capture_document["messages"][0]["content"] = json!(""),
         }
         assert!(

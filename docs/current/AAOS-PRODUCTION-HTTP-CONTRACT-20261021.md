@@ -398,6 +398,8 @@ For OpenMAIC and DeepTutor question-turn local-model failures, `worker_outcome.r
 
 When DeepTutor replay returns `REJECTED/INVALID_RESPONSE`, `worker_outcome.response_format` reports one coarse, fixed observation: `PLAIN_JSON_PARSE_FAILED`, `JSON_NOT_OBJECT`, or `JSON_OBJECT_STRICT_REJECTION`. The last value does not identify the rejecting strict rule. This observation contains no response text, does not repair fenced or malformed output, and does not change admission or the original rejection reason.
 
+For a new DeepTutor question-turn, Core retains the original donor `capture_binding` and deterministically replaces the donor's agentic output-protocol section in the system prompt with the AAOS single-response JSON instruction. The donor's JSON schema and captured user message remain unchanged. The candidate's `model_prompt_binding` separately records the versioned adapter, donor prompt digest, actual sent system prompt and its digest, and user-message digest; ambiguous, absent or unsupported section anchors fail before a model call with `question_turn_prompt_adapter_unavailable`. The model response goes unchanged to the pinned strict replay worker. Existing candidates created before this binding remain readable, with a null `model_prompt_binding` in the receipt; this compatibility does not imply that their former model prompt was adapted.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):

@@ -234,13 +234,24 @@ pub(super) async fn question_turn(
             );
         }
     };
+    let model_prompt = match turn::model_prompt_binding(&binding) {
+        Ok(value) => value,
+        Err(_) => {
+            return stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "capture",
+                "question_turn_prompt_adapter_unavailable",
+                worker_outcome(&capture),
+            );
+        }
+    };
     // Stage 2: the one declared local text model, through the same worker and
     // hardened loopback-only transport as the outline route.
     let model = runtime
         .executor
         .derived_json(
             openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
-            turn::model_request(&binding, &request.model),
+            turn::model_request(&binding, &model_prompt, &request.model),
             MODEL_TIMEOUT,
         )
         .await;
@@ -328,6 +339,7 @@ pub(super) async fn question_turn(
     }
     let generation = turn::QuestionTurnGeneration {
         capture_document: capture["document"].clone(),
+        model_prompt_binding: model_prompt,
         model_reply: model["document"].clone(),
         replay_document: replay["document"].clone(),
     };

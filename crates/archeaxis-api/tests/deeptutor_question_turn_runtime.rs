@@ -11,6 +11,7 @@ use axum::{
 };
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{
     io::{BufRead, BufReader, Read, Write},
     net::TcpListener,
@@ -32,7 +33,14 @@ struct StubState {
 
 /// One synthetic loopback model lane. Every request is counted, so a retry that
 /// silently re-ran the model is observable.
-fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>) {
+fn start_stub(
+    content: String,
+) -> (
+    u16,
+    Arc<Mutex<StubState>>,
+    Arc<Mutex<usize>>,
+    Arc<Mutex<Vec<Value>>>,
+) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let port = listener.local_addr().unwrap().port();
     let state = Arc::new(Mutex::new(StubState {
@@ -42,6 +50,8 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
     let counted = calls.clone();
+    let requests = Arc::new(Mutex::new(Vec::new()));
+    let observed = requests.clone();
     thread::spawn(move || {
         for stream in listener.incoming() {
             let Ok(mut stream) = stream else { break };
@@ -63,6 +73,10 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
             }
             let mut body = vec![0_u8; length];
             let _ = reader.read_exact(&mut body);
+            observed
+                .lock()
+                .unwrap()
+                .push(serde_json::from_slice(&body).unwrap());
             *counted.lock().unwrap() += 1;
             let state = shared.lock().unwrap();
             let payload = if state.status == 400 {
@@ -85,7 +99,7 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
             let _ = stream.flush();
         }
     });
-    (port, state, calls)
+    (port, state, calls, requests)
 }
 
 /// The model's final text, which the donor replay step validates strictly.
@@ -180,7 +194,7 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
         python_route("services/learning-providers/deeptutor/practice_host_worker.py");
     let model_worker = python_route("services/python-workers/course/worker_outline_local_model.py");
     let text_worker = python_route("services/python-workers/transport/text_ndjson.py");
-    let (port, stub, calls) = start_stub(model_content());
+    let (port, stub, calls, requests) = start_stub(model_content());
     // SAFETY: this binary runs one test; the variables are set once, before any
     // worker is spawned, so no concurrent reader can observe a partial update.
     unsafe {
@@ -254,6 +268,25 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(first["model"], MODEL);
     assert!(first["capture_binding"]["prompt_sha256"].as_str().is_some());
     assert_eq!(first["capture_binding"]["request_id"], "turn_1");
+    let sent = requests.lock().unwrap()[0].clone();
+    let system = sent["messages"][0]["content"].as_str().unwrap();
+    assert_eq!(system, first["model_prompt_binding"]["system"]);
+    assert_eq!(
+        format!("{:x}", Sha256::digest(system.as_bytes())),
+        first["model_prompt_binding"]["system_sha256"]
+    );
+    assert!(
+        first["capture_binding"]["system"]
+            .as_str()
+            .unwrap()
+            .contains("# Output protocol (mandatory")
+    );
+    assert!(!system.contains("# Output protocol (mandatory"));
+    assert!(system.contains("# FINISH JSON schema (strict)"));
+    assert_eq!(
+        sent["messages"][1]["content"],
+        first["capture_binding"]["user"]
+    );
     assert_eq!(first["material"], json!(snap(&material)));
     let stored =
         &first["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question_turn_candidate"];

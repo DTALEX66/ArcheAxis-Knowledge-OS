@@ -1,9 +1,9 @@
 //! DeepTutor's donor single-question step as a Core-owned candidate route.
 //!
 //! This route captures the donor prompt from a pinned local worker, sends the
-//! captured system/user pair to the already declared local text model, replays
-//! the reply through the same worker and persists only a `CANDIDATE` as an
-//! ordinary Core Document. It writes no activity or attempt, runs no grader and
+//! captured system/user pair through a versioned single-response prompt adapter,
+//! replays the unchanged model reply through the same worker and persists only a
+//! `CANDIDATE` as an ordinary Core Document. It writes no activity or attempt, runs no grader and
 //! establishes no answer secrecy: the body is visible text a human must review.
 use crate::{
     document::{self, Error},
@@ -21,6 +21,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub const DOCUMENT_NAMESPACE: &str = "archeaxis_deeptutor_question_turn_candidate";
 pub const DOCUMENT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-document/v1";
 pub const BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-turn-prompt-binding/v1";
+pub const MODEL_PROMPT_BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-model-prompt/v1";
+const MODEL_PROMPT_ADAPTER: &str = "aaos-direct-json/v1";
 pub const WORKER_SCHEMA: &str = "archeaxis.deeptutor-question-turn-replay/v1";
 pub const RECEIPT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-persistence/v1";
 pub const GENERATION_ROUTE: &str = "deeptutor_question_turn_local_model";
@@ -291,7 +293,8 @@ fn receipt(conn: &Connection, document: Value) -> Value {
         "model_reply_sha256":saved["model_reply_sha256"],
         "model_finish_reason":saved["model_finish_reason"],
         "model_usage":saved["model_usage"],
-        "capture_binding":saved["capture_binding"],"material":saved["material"],
+        "capture_binding":saved["capture_binding"],
+        "model_prompt_binding":saved["model_prompt_binding"],"material":saved["material"],
         "question":saved["question"],"answer_secrecy":saved["answer_secrecy"],
         "response_origin":saved["response_origin"],
         "human_review_required":true,"active_content_executed":false,
@@ -326,6 +329,15 @@ fn existing(
         &saved["model_reply"],
         &saved["worker_document"],
     )?;
+    // Old v1 candidates were created before a model prompt adapter existed.
+    // New records carry a separately inspectable, internally consistent binding.
+    if let Some(model_prompt) = saved.get("model_prompt_binding") {
+        if !model_prompt_binding_shape(&saved["capture_binding"], model_prompt) {
+            return Err(Error::Invalid(
+                "DeepTutor model prompt binding is unsupported",
+            ));
+        }
+    }
     Ok(Some(receipt(conn, document)))
 }
 
@@ -368,8 +380,8 @@ pub fn prepare_question_turn(
     }))
 }
 
-/// The capture receipt's prompt identity, or a named refusal. The binding keeps
-/// the worker's own messages so a later reader can see exactly what was sent.
+/// The capture receipt's prompt identity, or a named refusal. This binding
+/// keeps the donor's original messages; the model-bound prompt is stored separately.
 pub fn capture_binding(create_request_id: &str, capture: &Value) -> Result<Value, Error> {
     if capture["schema"] != WORKER_SCHEMA
         || capture["status"] != "CAPTURED"
@@ -443,11 +455,78 @@ fn binding_shape(binding: &Value, create_request_id: &str) -> bool {
             .is_some_and(|value| value == digest(binding["user"].as_str().unwrap_or("").as_bytes()))
 }
 
-/// The local-model request: the captured pair, an optional model selection and
-/// one bounded budget. The same worker and transport as the outline route.
-pub fn model_request(binding: &Value, model: &Option<String>) -> Value {
+/// Adapt only the donor's agentic output protocol, which conflicts with the
+/// pinned replay worker's strict single-JSON contract. Preserve its schema and
+/// the original captured binding; ambiguous or changed anchors fail closed.
+pub fn model_prompt_binding(binding: &Value) -> Result<Value, Error> {
+    let request_id = binding["request_id"].as_str().unwrap_or("");
+    if !binding_shape(binding, request_id) || !token(request_id) {
+        return Err(Error::Invalid("DeepTutor prompt binding is unsupported"));
+    }
+    let system = binding["system"].as_str().unwrap_or("");
+    let protocols = [
+        (
+            "# 输出协议（强制）",
+            "# FINISH 的 JSON schema（严格）",
+            "# AAOS 单次输出协议\n直接输出一个符合下方 schema 的完整 JSON 对象。不要输出 FINISH、THINK、TOOL 标签、额外说明或 Markdown 代码块；不调用工具。\n\n",
+        ),
+        (
+            "# Output protocol (mandatory — every reply must comply)",
+            "# FINISH JSON schema (strict)",
+            "# AAOS single-response protocol\nReturn exactly one complete JSON object matching the schema below. Do not output FINISH, THINK or TOOL labels, extra prose or Markdown fences; do not call tools.\n\n",
+        ),
+    ];
+    let mut selected = None;
+    for (start, end, replacement) in protocols {
+        let starts: Vec<_> = system.match_indices(start).map(|(i, _)| i).collect();
+        let ends: Vec<_> = system.match_indices(end).map(|(i, _)| i).collect();
+        if starts.is_empty() && ends.is_empty() {
+            continue;
+        }
+        if starts.len() != 1 || ends.len() != 1 || starts[0] >= ends[0] || selected.is_some() {
+            return Err(Error::Invalid(
+                "DeepTutor prompt adapter anchors unsupported",
+            ));
+        }
+        selected = Some((starts[0], ends[0], replacement));
+    }
+    let (start, end, replacement) = selected.ok_or(Error::Invalid(
+        "DeepTutor prompt adapter anchors unsupported",
+    ))?;
+    let adapted = format!("{}{}{}", &system[..start], replacement, &system[end..]);
+    let user = binding["user"].as_str().unwrap_or("");
+    if !bounded_text(&adapted, 200_000, true) || adapted.len() + user.len() > 300_000 {
+        return Err(Error::Invalid(
+            "DeepTutor adapted prompt exceeds the model bound",
+        ));
+    }
+    Ok(
+        json!({"schema":MODEL_PROMPT_BINDING_SCHEMA,"adapter":MODEL_PROMPT_ADAPTER,
+        "donor_prompt_sha256":binding["prompt_sha256"],"system":adapted,
+        "system_sha256":digest(adapted.as_bytes()),"user_sha256":binding["user_sha256"]}),
+    )
+}
+
+fn model_prompt_binding_shape(binding: &Value, model_prompt: &Value) -> bool {
+    model_prompt
+        .as_object()
+        .is_some_and(|object| object.len() == 6)
+        && model_prompt["schema"] == MODEL_PROMPT_BINDING_SCHEMA
+        && model_prompt["adapter"] == MODEL_PROMPT_ADAPTER
+        && model_prompt["donor_prompt_sha256"] == binding["prompt_sha256"]
+        && model_prompt["user_sha256"] == binding["user_sha256"]
+        && model_prompt["system"].as_str().is_some_and(|text| {
+            bounded_text(text, 200_000, true)
+                && model_prompt["system_sha256"] == digest(text.as_bytes())
+                && text.len() + binding["user"].as_str().unwrap_or("").len() <= 300_000
+        })
+}
+
+/// Send the adapted system and the unchanged captured user prompt through the
+/// same bounded local-model transport as the outline route.
+pub fn model_request(binding: &Value, model_prompt: &Value, model: &Option<String>) -> Value {
     let mut request = json!({"schema":openmaic_outline::OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA,
-        "system":binding["system"],"user":binding["user"],"timeout_s":110});
+        "system":model_prompt["system"],"user":binding["user"],"timeout_s":110});
     if let Some(model) = model {
         request["model"] = json!(model);
     }
@@ -530,6 +609,7 @@ fn check_generation(
 #[derive(Clone)]
 pub struct QuestionTurnGeneration {
     pub capture_document: Value,
+    pub model_prompt_binding: Value,
     pub model_reply: Value,
     pub replay_document: Value,
 }
@@ -551,6 +631,9 @@ pub fn commit_question_turn(
         ));
     }
     let binding = capture_binding(&request.create_request_id, &generation.capture_document)?;
+    if model_prompt_binding(&binding)? != generation.model_prompt_binding {
+        return Err(Error::Invalid("DeepTutor model prompt binding mismatch"));
+    }
     if openmaic_outline::openmaic_outline_new_model_content(&generation.model_reply).is_none() {
         return Err(Error::Invalid(
             "DeepTutor model reply was not admitted for replay",
@@ -626,6 +709,7 @@ pub fn commit_question_turn(
         "model_usage":generation.model_reply["usage"],
         "model_reply":generation.model_reply,
         "capture_binding":binding,
+        "model_prompt_binding":generation.model_prompt_binding,
         "worker_document":generation.replay_document,
         "question":question,
         "material":request.material,
