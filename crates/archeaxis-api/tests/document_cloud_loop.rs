@@ -733,18 +733,54 @@ async fn local_only_and_durable_withdrawal_preserve_save_with_or_without_engine(
 
 #[tokio::test]
 async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
-    for (script_body, expected_reason) in [
+    for (script_body, expected_reason, expected_stdout, expected_exit) in [
         (
             "import sys\nsys.stdin.read()\nprint('{}')\n",
             "invalid_worker_response",
+            Some(true),
+            Some(0),
+        ),
+        (
+            "import sys\nsys.stdin.read()\nsys.exit(7)\n",
+            "invalid_worker_response",
+            Some(false),
+            Some(7),
+        ),
+        (
+            "import sys\nsys.stdin.read()\nprint('{\"outcome\":\"failed\"}')\nsys.exit(1)\n",
+            "invalid_worker_response",
+            Some(true),
+            Some(1),
+        ),
+        (
+            "import sys,json\nr=json.load(sys.stdin)\nr.update({'schema':'archeaxis.document-check.response/v1','outcome':'failed','status':'failed','reason':'provider_call_failed','basis':'','raw_response':'','engine_receipt':None,'retrieval_receipts':[],'worker_observation':{'exit_code':999}})\nprint(json.dumps(r))\nsys.exit(1)\n",
+            "provider_call_failed",
+            Some(true),
+            Some(1),
+        ),
+        (
+            "import sys\nsys.stdin.read()\nprint('{\"outcome\":\"failed\"}')\n",
+            "worker_exit_outcome_mismatch",
+            Some(true),
+            Some(0),
         ),
         (
             "import sys\nsys.stdin.read()\nsys.stdout.write('x'*200000)\nsys.stdout.flush()\n",
             "output_exceeds_bound",
+            Some(true),
+            None,
         ),
         (
             "import sys,time\nsys.stdin.read()\ntime.sleep(60)\n",
             "worker_timeout",
+            None,
+            None,
+        ),
+        (
+            "import sys,time\nsys.stdin.read()\nsys.stdout.write('partial')\nsys.stdout.flush()\ntime.sleep(60)\n",
+            "worker_timeout",
+            Some(true),
+            None,
         ),
     ] {
         let dir = tempfile::tempdir().unwrap();
@@ -808,6 +844,27 @@ async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
         assert_eq!(result["status"], "failed");
         assert_eq!(result["reason"], expected_reason);
         assert_eq!(result["execution_verified"], false);
+        let observation = &result["worker_observation"];
+        if let Some(expected_stdout) = expected_stdout {
+            assert_eq!(observation["stdout_bytes_observed"], expected_stdout);
+        } else {
+            // Cleanup may drain the empty pipe to EOF, or cancel the reader
+            // before EOF. Only the former establishes false; the latter is unknown.
+            assert!(
+                observation["stdout_bytes_observed"].is_null()
+                    || observation["stdout_bytes_observed"] == false
+            );
+        }
+        if let Some(exit_code) = expected_exit {
+            assert_eq!(observation["exit_observed"], true);
+            assert_eq!(observation["exit_code"], exit_code);
+            assert!(observation["signal"].is_null());
+        }
+        if expected_reason == "worker_timeout" {
+            assert_eq!(observation["exit_observed"], false);
+            assert!(observation["exit_code"].is_null());
+            assert!(observation["signal"].is_null());
+        }
         assert!(started.elapsed() < std::time::Duration::from_secs(24));
         assert_eq!(
             call(&router, "POST", &format!("{path}/execute"), body, "human")

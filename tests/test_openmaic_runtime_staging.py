@@ -399,6 +399,49 @@ def test_a_path_beyond_the_platform_limit_is_not_reported_as_a_broken_provider(
                           "member_identity_mismatch", "member_claim_invalid"}
 
 
+def test_existing_staged_members_at_short_and_long_paths(prepared, monkeypatch):
+    """Probe a real staged fixture at both depths, not just an absent long path."""
+    case = prepared
+    monkeypatch.setattr(stager, "OPENMAIC_FILES", synthetic_closure())
+    *_, options = synthetic_provider(case)
+    assert run_stager(case, extra=options) == 0
+    short_root = case["output"]
+    short_worker, short_reason = launcher.openmaic_node_worker(short_root)
+    assert short_worker is not None and short_reason is None
+
+    # Keep the manifest below MAX_PATH while an existing provider member is
+    # above it, so the observation concerns the member rather than setup.
+    prefix = case["repo"] / ".project-local" / "long-probe"
+    target_root_length = 215
+    padding = target_root_length - len(str(prefix)) - 1
+    assert 1 <= padding < 255
+    long_root = prefix / ("d" * padding)
+    assert len(str(long_root / "backend-runtime-manifest.json")) < 260
+    assert len(str(long_root / PREFIX / "vendor/generation-0.3.28/scene-builder.ts")) > 260
+    for relative in ["backend-runtime-manifest.json", *(
+            PREFIX + name for name in (*launcher.OPENMAIC_FILES, "node.exe", "NODE-LICENSE"))]:
+        source = stager.filesystem_path(short_root / relative)
+        target = stager.filesystem_path(long_root / relative)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        assert target.read_bytes() == source.read_bytes()
+
+    worker, reason = launcher.openmaic_node_worker(long_root)
+    print(
+        "openmaic_path_probe "
+        f"short_manifest={len(str(short_root / 'backend-runtime-manifest.json'))} "
+        f"long_manifest={len(str(long_root / 'backend-runtime-manifest.json'))} "
+        f"long_member={len(str(long_root / PREFIX / 'vendor/generation-0.3.28/scene-builder.ts'))} "
+        f"result={reason or 'included'}"
+    )
+    if worker is None:
+        assert os.name == "nt" and reason == "path_invalid"
+    else:
+        # Long-path-aware platforms can address these exact members.
+        assert reason is None
+        assert worker["executable_sha256"] == short_worker["executable_sha256"]
+
+
 def test_prepare_bundle_forwards_explicit_openmaic_through_real_growth_plan(prepared):
     case = prepared
     _, node, licence, digest, _ = synthetic_provider(case)

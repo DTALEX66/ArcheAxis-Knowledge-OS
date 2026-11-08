@@ -721,24 +721,40 @@ pub(crate) async fn execute_runtime_check(
         request["original"] = json!({"media_type":archeaxis_application::attempts::media_type_for_name(&name).unwrap_or("application/octet-stream"),"sha256":digest,"content_base64":base64::engine::general_purpose::STANDARD.encode(bytes)});
     }
     let running = attempt.running;
-    let response = if let Some(reason) = preparation_error {
-        document::failed_check_response(&running, reason)
+    let (response, observation) = if let Some(reason) = preparation_error {
+        (document::failed_check_response(&running, reason), None)
     } else {
         match executor.document_check(request).await {
-            Ok(value) => value,
-            Err(reason) => document::failed_check_response(&running, &reason),
+            Ok(output) => (output.response, Some(output.observation)),
+            Err(error) => (
+                document::failed_check_response(&running, &error.reason),
+                error.observation,
+            ),
         }
     };
     let result = executor
         .store()
         .submit_wait(move |conn| {
-            match document::finish_check(conn, &running, &response, &config.provider, &config.model)
-            {
+            match document::finish_check_with_observation(
+                conn,
+                &running,
+                &response,
+                &config.provider,
+                &config.model,
+                observation.as_ref(),
+            ) {
                 Ok(value) => Ok(value),
                 Err(document::Error::Invalid(_)) => {
                     let failed =
                         document::failed_check_response(&running, "invalid_worker_response");
-                    document::finish_check(conn, &running, &failed, &config.provider, &config.model)
+                    document::finish_check_with_observation(
+                        conn,
+                        &running,
+                        &failed,
+                        &config.provider,
+                        &config.model,
+                        observation.as_ref(),
+                    )
                 }
                 Err(error) => Err(error),
             }

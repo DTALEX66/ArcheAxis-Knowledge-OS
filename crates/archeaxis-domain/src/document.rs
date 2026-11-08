@@ -1482,6 +1482,16 @@ fn begin_check_inner(
     }
 }
 
+/// Observations made by the Core executor, never claims supplied by a worker.
+/// A null stdout value means the reader did not establish whether any bytes arrived.
+#[derive(Clone, Debug, serde::Serialize)]
+pub struct CheckWorkerObservation {
+    pub exit_observed: bool,
+    pub exit_code: Option<i32>,
+    pub signal: Option<i32>,
+    pub stdout_bytes_observed: Option<bool>,
+}
+
 /// Terminal append and machine receipt commit together. No document or prior receipt is edited.
 pub fn finish_check(
     conn: &mut Connection,
@@ -1489,6 +1499,18 @@ pub fn finish_check(
     response: &Value,
     provider: &str,
     model: &str,
+) -> Result<Value, Error> {
+    finish_check_with_observation(conn, running, response, provider, model, None)
+}
+
+/// Attach only executor-observed process metadata to a failed terminal receipt.
+pub fn finish_check_with_observation(
+    conn: &mut Connection,
+    running: &Value,
+    response: &Value,
+    provider: &str,
+    model: &str,
+    observation: Option<&CheckWorkerObservation>,
 ) -> Result<Value, Error> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     let raw: Option<String> = tx
@@ -1659,6 +1681,9 @@ pub fn finish_check(
     result["retrieval_receipts"] = response["retrieval_receipts"].clone();
     result["execution_verified"] = json!(success);
     result["execution_state"] = json!(if success { "executed" } else { "failed" });
+    if !success && let Some(observation) = observation {
+        result["worker_observation"] = json!(observation);
+    }
     result["recorded_at"] = tx
         .query_row("SELECT datetime('now')", [], |r| r.get::<_, String>(0))
         .map(Value::String)?;
