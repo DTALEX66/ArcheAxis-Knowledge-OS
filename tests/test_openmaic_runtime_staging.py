@@ -5,6 +5,7 @@ import hashlib
 import errno
 import json
 import os
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -377,14 +378,7 @@ def test_manifest_path_error_is_named_as_a_path_not_as_bytes(prepared, monkeypat
 
 def test_a_path_beyond_the_platform_limit_is_not_reported_as_a_broken_provider(
         prepared, monkeypatch):
-    """Windows answers ERROR_PATH_NOT_FOUND for a path it cannot address at all.
-
-    The same long evidence root is a real path condition where the platform caps
-    the length and an honest absence where it does not, so this asserts that
-    neither platform blames the provider's bytes. Patching `os.name` is not an
-    option: pathlib chooses its flavour from it, so the expectation follows the
-    platform the test actually runs on.
-    """
+    """An actually absent long path stays absent, not a damaged provider."""
     case = prepared
     *_, options = synthetic_provider(case)
     assert run_stager(case, extra=options) == 0
@@ -393,8 +387,7 @@ def test_a_path_beyond_the_platform_limit_is_not_reported_as_a_broken_provider(
         "/backend-runtime-manifest.json")
     assert manifest_length > 260, manifest_length
     worker, reason = launcher.openmaic_node_worker(deep_root)
-    expected = "path_invalid" if os.name == "nt" else "absent"
-    assert (worker, reason) == (None, expected)
+    assert (worker, reason) == (None, "absent")
     assert reason not in {"manifest_invalid", "manifest_unusable", "member_unusable",
                           "member_identity_mismatch", "member_claim_invalid"}
 
@@ -409,37 +402,75 @@ def test_existing_staged_members_at_short_and_long_paths(prepared, monkeypatch):
     short_worker, short_reason = launcher.openmaic_node_worker(short_root)
     assert short_worker is not None and short_reason is None
 
-    # Keep the manifest below MAX_PATH while an existing provider member is
-    # above it, so the observation concerns the member rather than setup.
+    # Exercise both a long existing member and a long existing manifest.
     prefix = case["repo"] / ".project-local" / "long-probe"
-    target_root_length = 215
-    padding = target_root_length - len(str(prefix)) - 1
-    assert 1 <= padding < 255
-    long_root = prefix / ("d" * padding)
-    assert len(str(long_root / "backend-runtime-manifest.json")) < 260
-    assert len(str(long_root / PREFIX / "vendor/generation-0.3.28/scene-builder.ts")) > 260
-    for relative in ["backend-runtime-manifest.json", *(
-            PREFIX + name for name in (*launcher.OPENMAIC_FILES, "node.exe", "NODE-LICENSE"))]:
-        source = stager.filesystem_path(short_root / relative)
-        target = stager.filesystem_path(long_root / relative)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(source.read_bytes())
-        assert target.read_bytes() == source.read_bytes()
+    for target_root_length in (215, 255):
+        padding = target_root_length - len(str(prefix)) - 1
+        assert 1 <= padding < 255
+        long_root = prefix / ("d" * padding)
+        assert len(str(long_root / PREFIX / "vendor/generation-0.3.28/scene-builder.ts")) > 260
+        assert (len(str(long_root / "backend-runtime-manifest.json")) > 260) == (target_root_length == 255)
+        for relative in ["backend-runtime-manifest.json", *(
+                PREFIX + name for name in (*launcher.OPENMAIC_FILES, "node.exe", "NODE-LICENSE"))]:
+            source = stager.filesystem_path(short_root / relative)
+            target = stager.filesystem_path(long_root / relative)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source.read_bytes())
+            assert target.read_bytes() == source.read_bytes()
 
-    worker, reason = launcher.openmaic_node_worker(long_root)
-    print(
-        "openmaic_path_probe "
-        f"short_manifest={len(str(short_root / 'backend-runtime-manifest.json'))} "
-        f"long_manifest={len(str(long_root / 'backend-runtime-manifest.json'))} "
-        f"long_member={len(str(long_root / PREFIX / 'vendor/generation-0.3.28/scene-builder.ts'))} "
-        f"result={reason or 'included'}"
-    )
-    if worker is None:
-        assert os.name == "nt" and reason == "path_invalid"
-    else:
-        # Long-path-aware platforms can address these exact members.
-        assert reason is None
+        worker, reason = launcher.openmaic_node_worker(long_root)
+        print(
+            "openmaic_path_probe "
+            f"short_manifest={len(str(short_root / 'backend-runtime-manifest.json'))} "
+            f"long_manifest={len(str(long_root / 'backend-runtime-manifest.json'))} "
+            f"long_member={len(str(long_root / PREFIX / 'vendor/generation-0.3.28/scene-builder.ts'))} "
+            f"result={reason or 'included'}"
+        )
+        assert worker is not None and reason is None
         assert worker["executable_sha256"] == short_worker["executable_sha256"]
+
+        # A long path must keep the same link-count guard as a short one.
+        member = stager.filesystem_path(long_root / PREFIX / "vendor/generation-0.3.28/scene-builder.ts")
+        alias = stager.filesystem_path(long_root / "member-hardlink")
+        os.link(member, alias)
+        assert launcher.openmaic_node_worker(long_root) == (None, "member_unusable")
+
+
+def test_pinned_node_builds_a_scene_from_a_long_worker_path(tmp_path):
+    node = os.environ.get("ARCHEAXIS_TEST_NODE")
+    expected_sha = os.environ.get("ARCHEAXIS_TEST_NODE_SHA256")
+    if not node or not expected_sha:
+        pytest.skip("pinned Node is required for the real long-path worker test")
+    assert hashlib.sha256(Path(node).read_bytes()).hexdigest() == expected_sha
+    target_length = max(245, len(str(tmp_path)) + 2)
+    padding = target_length - len(str(tmp_path)) - 1
+    assert 0 < padding < 255
+    root = tmp_path / ("d" * padding)
+    for relative, identity in launcher.OPENMAIC_FILES.items():
+        source = SOURCE / relative
+        data = source.read_bytes()
+        assert {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()} == identity
+        target = stager.filesystem_path(root / PREFIX / relative)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    script = root / PREFIX / "scene-build-worker.mjs"
+    assert len(str(script)) > 260
+    request = {"schema": "archeaxis.openmaic-scene-build/v1", "request_id": "long_path",
+               "attempt": 1, "source": {"document_id": "source", "version": 1,
+               "content_sha256": "a" * 64}, "stage_id": "stage", "scene_id": "scene",
+               "outline": {"id": "outline", "type": "slide", "title": "Synthetic",
+                           "description": "Synthetic", "keyPoints": [], "order": 0},
+               "content": {"elements": []}, "actions": []}
+    env = dict(os.environ)
+    env.pop("NODE_OPTIONS", None)
+    env.pop("NODE_PATH", None)
+    result = subprocess.run([node, str(script)], input=json.dumps(request).encode("utf-8"),
+                            capture_output=True, timeout=30, check=False, env=env)
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    document = json.loads(result.stdout)
+    assert document["status"] == "CANDIDATE"
+    assert document["scene"]["id"] == "scene"
+    assert document["rendering_authorized"] is False
 
 
 def test_prepare_bundle_forwards_explicit_openmaic_through_real_growth_plan(prepared):

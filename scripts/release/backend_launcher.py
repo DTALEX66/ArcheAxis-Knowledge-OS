@@ -59,6 +59,15 @@ class LaunchFailure(Exception):  # noqa: N818 - retained public exception contra
     """A named startup failure; the message says which component failed."""
 
 
+def filesystem_path(path: Path) -> Path:
+    """Use the Windows extended form for long local I/O, not launch profiles."""
+    if os.name == "nt":
+        absolute = os.path.abspath(path)
+        if len(absolute) >= 248 and not absolute.startswith("\\\\"):
+            return Path("\\\\?\\" + absolute)
+    return path
+
+
 def safe_path(root: Path, value: str) -> Path:
     spelling = value.replace("\\", "/")
     if not value.strip() or spelling.lower().startswith("e:") or spelling.startswith("//") or ".." in spelling.split("/"):
@@ -69,7 +78,7 @@ def safe_path(root: Path, value: str) -> Path:
         raise LaunchFailure("protected worker profile path")
     for part in (*reversed(path.parents), path):
         try:
-            info = part.lstat()
+            info = filesystem_path(part).lstat()
         except (FileNotFoundError, NotADirectoryError):
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
@@ -322,16 +331,10 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
     the wrong problem, which is what a 269-character staged member did here.
     """
     path_errnos = {errno.ENAMETOOLONG, errno.ENOTDIR, errno.EINVAL}
-    # Windows reports a path beyond its own limit as "file not found", so an
-    # absence label there would hide the real condition behind a missing file.
-    windows_path_limit = 260
-
-    def classified(error: OSError, missing: str, unreadable: str, target) -> str:
-        if getattr(error, "errno", None) in path_errnos:
+    def classified(error: OSError, missing: str, unreadable: str) -> str:
+        if getattr(error, "errno", None) in path_errnos or getattr(error, "winerror", None) in (123, 206):
             return "path_invalid"
         if isinstance(error, FileNotFoundError):
-            if os.name == "nt" and len(str(target)) > windows_path_limit:
-                return "path_invalid"
             return missing
         return unreadable
 
@@ -357,19 +360,20 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
                 or not re.fullmatch(r"[a-f0-9]{64}", identity["sha256"])):
             return False, "member_claim_invalid"
         path = safe_path(root, f"{OPENMAIC_DIRECTORY}/{relative}")
+        io_path = filesystem_path(path)
         try:
-            info = path.stat()
+            info = io_path.stat()
         except OSError as error:
-            return False, classified(error, "member_absent", "member_unreadable", path)
+            return False, classified(error, "member_absent", "member_unreadable")
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
             return False, "member_unusable"
         if info.st_size != identity["bytes"]:
             return False, "member_identity_mismatch"
         digest = hashlib.sha256()
         try:
-            stream = path.open("rb")
+            stream = io_path.open("rb")
         except OSError as error:
-            return False, classified(error, "member_absent", "member_unreadable", path)
+            return False, classified(error, "member_absent", "member_unreadable")
         with stream:
             before = os.fstat(stream.fileno())
             if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
@@ -397,21 +401,22 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
 
     try:
         path = safe_path(root, "backend-runtime-manifest.json")
+        io_path = filesystem_path(path)
         try:
-            info = path.stat()
+            info = io_path.stat()
         except OSError as error:
-            return None, classified(error, "absent", "manifest_unreadable", path)
+            return None, classified(error, "absent", "manifest_unreadable")
         if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
                 or not 0 < info.st_size <= OPENMAIC_MANIFEST_MAX_BYTES):
             return None, "manifest_unusable"
-        with path.open("rb") as stream:
+        with io_path.open("rb") as stream:
             before = os.fstat(stream.fileno())
             if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
                     or file_identity(before) != file_identity(info)):
                 return None, "manifest_unusable"
             raw = stream.read(info.st_size + 1)
             after = os.fstat(stream.fileno())
-            current = path.stat()
+            current = io_path.stat()
             if (len(raw) != info.st_size or not stat.S_ISREG(after.st_mode) or not stat.S_ISREG(current.st_mode)
                     or file_identity(after) != file_identity(before) or file_identity(current) != file_identity(before)):
                 return None, "manifest_unusable"
@@ -448,7 +453,7 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
     except LaunchFailure:
         return None, "manifest_unusable"
     except OSError as error:
-        return None, classified(error, "absent", "manifest_unreadable", root)
+        return None, classified(error, "absent", "manifest_unreadable")
 
 
 def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:

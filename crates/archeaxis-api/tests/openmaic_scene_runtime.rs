@@ -241,11 +241,30 @@ async fn explicit_node_builds_and_persists_an_inert_scene_then_reopens_without_n
         format!("{:x}", Sha256::digest(std::fs::read(&node).unwrap())),
         expected_sha
     );
-    let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../services/learning-providers/openmaic/scene-build-worker.mjs")
-        .canonicalize()
-        .unwrap();
     let dir = tempfile::tempdir().unwrap();
+    // Exercise the Core's own identity checks and Node invocation when the
+    // worker and its imports live beyond the traditional Windows path limit.
+    let provider = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/learning-providers/openmaic");
+    let padding = 245_usize
+        .saturating_sub(dir.path().to_string_lossy().len() + 1)
+        .max(1);
+    assert!(padding < 255);
+    let worker_root = dir
+        .path()
+        .join("w".repeat(padding))
+        .join("workers/openmaic");
+    for relative in [
+        "scene-build-worker.mjs",
+        "vendor/generation-0.3.28/scene-builder.ts",
+        "vendor/generation-0.3.28/nanoid.mjs",
+    ] {
+        let target = worker_root.join(relative);
+        std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+        std::fs::copy(provider.join(relative), target).unwrap();
+    }
+    let worker = worker_root.join("scene-build-worker.mjs");
+    assert!(worker.to_string_lossy().len() > 260);
     let path = dir.path().join("workspace.sqlite");
     let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
     let source = document::create_optional(
