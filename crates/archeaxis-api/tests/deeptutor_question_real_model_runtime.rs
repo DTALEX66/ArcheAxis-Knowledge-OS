@@ -82,6 +82,12 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     }
     let model = std::env::var("ARCHEAXIS_MACHINE_MODEL").expect("declared local model");
     let endpoint = std::env::var("ARCHEAXIS_MACHINE_ENDPOINT").expect("declared local endpoint");
+    let structured = std::env::var("ARCHEAXIS_TEST_DEEPTUTOR_SCHEMA").as_deref() == Ok("1");
+    let requested_output_mode = if structured {
+        "choice_json_schema"
+    } else {
+        "default"
+    };
     let lane = std::env::var("ARCHEAXIS_TEST_MODEL_LANE").unwrap_or_else(|_| "REAL_LOCAL".into());
     assert!(matches!(lane.as_str(), "REAL_LOCAL" | "SYNTHETIC_LOOPBACK"));
     if lane == "SYNTHETIC_LOOPBACK" {
@@ -133,8 +139,11 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     .await
     .unwrap();
     let router = archeaxis_api::runtime::router(executor.clone());
-    let body = json!({"create_request_id":"real_question_turn", "material":snapshot(&material),
+    let mut body = json!({"create_request_id":"real_question_turn", "material":snapshot(&material),
         "requirement":"根据材料出一道单项选择题。", "model":null});
+    if structured {
+        body["output_mode"] = json!("choice_json_schema");
+    }
     let (denied, _) = call(&router, "machine", &body).await;
     assert_eq!(denied, StatusCode::FORBIDDEN);
     assert_eq!(document_count(&executor).await, 2);
@@ -155,7 +164,8 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
         println!(
             "{}",
             json!({"schema":"archeaxis.deeptutor-real-model-receipt/v1",
-            "outcome":"REFUSED", "model_lane":lane, "endpoint":endpoint, "model":model, "status":status.as_u16(),
+            "outcome":"REFUSED", "model_lane":lane, "requested_output_mode":requested_output_mode,
+            "endpoint":endpoint, "model":model, "status":status.as_u16(),
             "stage":result["stage"], "reason":result["reason"],
             "worker_status":result["worker_outcome"]["status"],
             "worker_reason":result["worker_outcome"]["reason"],
@@ -174,6 +184,18 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     assert_eq!(result["answer_secrecy"], "not_established");
     assert_eq!(result["candidate_document_status"], "current");
     assert_eq!(result["model"], model);
+    if structured {
+        assert_eq!(
+            result["model_response_format"]["mode"],
+            "choice_json_schema"
+        );
+        assert_eq!(
+            result["model_response_format"]["sha256"],
+            "753c5addda0233a21cb4aa40af0c9b6ff6dc52956d10178b8b465d1fcdb0b437"
+        );
+    } else {
+        assert!(result["model_response_format"].is_null());
+    }
     assert_eq!(
         result["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question_turn_candidate"]["human_review_required"],
         true
@@ -452,7 +474,8 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     println!(
         "{}",
         json!({"schema":"archeaxis.deeptutor-real-model-receipt/v1",
-        "outcome":"GENERATED", "model_lane":lane, "endpoint":endpoint, "model":model,
+        "outcome":"GENERATED", "model_lane":lane, "requested_output_mode":requested_output_mode,
+        "endpoint":endpoint, "model":model,
         "candidate_document_id":candidate_id, "restart_worker_invoked":false,
         "documents_before_restore":5,"restored_documents_final":documents_after_generation,
         "restore_history_replayed":true,"restored_old_grant_fenced":true,

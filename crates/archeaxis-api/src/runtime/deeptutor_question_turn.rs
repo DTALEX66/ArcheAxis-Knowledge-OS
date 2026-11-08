@@ -251,7 +251,7 @@ pub(super) async fn question_turn(
         .executor
         .derived_json(
             openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
-            turn::model_request(&binding, &model_prompt, &request.model),
+            turn::model_request(&binding, &model_prompt, &request),
             MODEL_TIMEOUT,
         )
         .await;
@@ -290,6 +290,14 @@ pub(super) async fn question_turn(
             model_outcome,
         );
     };
+    if !turn::model_reply_format_matches(&request, &model["document"]) {
+        return stage_failure(
+            StatusCode::BAD_GATEWAY,
+            "local_model",
+            "question_turn_local_model_format_unconfirmed",
+            model_outcome,
+        );
+    }
     let prompt_sha256 = binding["prompt_sha256"]
         .as_str()
         .unwrap_or_default()

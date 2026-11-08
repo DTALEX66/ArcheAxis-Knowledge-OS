@@ -84,6 +84,7 @@ fn request(material: &Value, create_request_id: &str) -> QuestionTurnRequest {
         material: snap(material),
         requirement: "Synthetic requirement about arithmetic".into(),
         model: None,
+        output_mode: None,
     }
 }
 
@@ -217,7 +218,7 @@ fn model_prompt_adapter_preserves_both_languages_and_refuses_ambiguous_anchors()
         assert_eq!(adapted["system_sha256"], digest(sent.as_bytes()));
         assert_eq!(adapted["user_sha256"], binding["user_sha256"]);
         assert_eq!(binding, snapshot, "the donor capture stays unchanged");
-        let model_request = turn::model_request(&binding, &adapted, &None);
+        let model_request = turn::model_request(&binding, &adapted, &request);
         assert_eq!(model_request["system"], adapted["system"]);
         assert_eq!(model_request["user"], binding["user"]);
     }
@@ -236,6 +237,69 @@ fn model_prompt_adapter_preserves_both_languages_and_refuses_ambiguous_anchors()
         let binding = turn::capture_binding("turn_adapter", &captured).unwrap();
         assert!(turn::model_prompt_binding(&binding).is_err());
     }
+}
+
+#[test]
+fn explicit_choice_schema_is_bound_to_request_worker_and_candidate() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("workspace.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let selected = material(&mut conn);
+    grant(&mut conn, &selected, "granted", "deeptutor");
+    let mut req = request(&selected, "turn_choice_schema");
+    let old_frame = json!({"create_request_id":req.create_request_id,"material":req.material,
+        "requirement":req.requirement,"model":req.model});
+    assert_eq!(
+        turn::request_sha256(&req).unwrap(),
+        digest(old_frame.to_string().as_bytes())
+    );
+    let plain_hash = turn::request_sha256(&req).unwrap();
+    req.output_mode = Some("choice_json_schema".into());
+    assert_ne!(turn::request_sha256(&req).unwrap(), plain_hash);
+    let mut unsupported = req.clone();
+    unsupported.output_mode = Some("other_schema".into());
+    assert!(turn::request_refusal(&unsupported).is_some());
+    let schema = turn::choice_response_format();
+    let schema_hash = digest(schema.to_string().as_bytes());
+    assert_eq!(
+        schema_hash,
+        "753c5addda0233a21cb4aa40af0c9b6ff6dc52956d10178b8b465d1fcdb0b437"
+    );
+    let ticket = pending(&mut conn, &req);
+    let mut generated = generation(&ticket);
+    let binding =
+        turn::capture_binding(&req.create_request_id, &generated.capture_document).unwrap();
+    let worker_request = turn::model_request(&binding, &generated.model_prompt_binding, &req);
+    assert_eq!(
+        worker_request["request_kind"],
+        "deeptutor_choice_json_schema"
+    );
+    assert!(
+        turn::commit_question_turn(&mut conn, &req, &ticket, &generated).is_err(),
+        "missing worker format binding"
+    );
+    generated.model_reply["response_format_sha256"] = json!("0".repeat(64));
+    assert!(
+        turn::commit_question_turn(&mut conn, &req, &ticket, &generated).is_err(),
+        "incorrect worker format binding"
+    );
+    assert_eq!(document_count(&conn), 2);
+    generated.model_reply["response_format_sha256"] = json!(schema_hash);
+    let first = turn::commit_question_turn(&mut conn, &req, &ticket, &generated).unwrap();
+    assert_eq!(first["model_response_format"]["mode"], "choice_json_schema");
+    assert_eq!(first["model_response_format"]["response_format"], schema);
+    assert_eq!(first["model_response_format"]["sha256"], schema_hash);
+    assert!(matches!(
+        turn::prepare_question_turn(&mut conn, &req).unwrap(),
+        QuestionTurnPreparation::Existing(_)
+    ));
+    req.output_mode = None;
+    assert!(
+        turn::prepare_question_turn(&mut conn, &req).is_err(),
+        "one request ID cannot switch modes"
+    );
 }
 
 #[test]

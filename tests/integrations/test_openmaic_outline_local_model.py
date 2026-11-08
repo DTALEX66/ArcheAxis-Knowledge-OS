@@ -24,6 +24,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 WORKER = ROOT / "services/python-workers/course/worker_outline_local_model.py"
 SCHEMA = "archeaxis.openmaic-outline-model-request/v1"
+CHOICE_FORMAT_SHA256 = "753c5addda0233a21cb4aa40af0c9b6ff6dc52956d10178b8b465d1fcdb0b437"
 
 
 @contextmanager
@@ -173,12 +174,48 @@ def test_interactive_scene_has_a_separate_bounded_model_budget():
     assert "request_kind" not in sent and "timeout_s" not in sent
 
 
+def test_explicit_deeptutor_choice_schema_is_forwarded_and_bound():
+    content = json.dumps({"question_type": "choice", "question": "SYNTHETIC?",
+                          "options": {"A": "1", "B": "2", "C": "3", "D": "4"},
+                          "correct_answer": "B", "explanation": "SYNTHETIC"})
+    with stub(response(content=content)) as (port, seen):
+        code, result = invoke(frame(port, request_kind="deeptutor_choice_json_schema"), port)
+    assert code == 0 and result["content"] == content
+    assert result["response_format_sha256"] == CHOICE_FORMAT_SHA256
+    assert len(seen) == 1
+    sent = json.loads(seen[0]["body"])
+    format_spec = sent["response_format"]
+    canonical = json.dumps(format_spec, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    assert hashlib.sha256(canonical.encode()).hexdigest() == CHOICE_FORMAT_SHA256
+    schema = format_spec["json_schema"]["schema"]
+    assert set(schema["required"]) == {"question_type", "question", "options", "correct_answer", "explanation"}
+    assert set(schema["properties"]["options"]["required"]) == set("ABCD")
+    assert "request_kind" not in sent
+
+
+def test_deeptutor_choice_schema_refuses_unsupported_protocol_before_network():
+    with stub(b"{}") as (port, seen):
+        code, result = invoke(frame(port, request_kind="deeptutor_choice_json_schema"), port, protocol="ollama")
+    assert code == 2 and result["status"] == "MODEL_REJECTED"
+    assert result["reason"] == "MODEL_STRUCTURED_PROTOCOL_UNSUPPORTED"
+    assert result["network_performed"] is False and seen == []
+
+
+def test_deeptutor_schema_service_refusal_does_not_fallback_or_retry():
+    with stub(b'{"error":{"message":"SYNTHETIC_PRIVATE"}}', status=400) as (port, seen):
+        code, result = invoke(frame(port, request_kind="deeptutor_choice_json_schema"), port)
+    assert code == 2 and result["status"] == "MODEL_REJECTED"
+    assert result["reason"] == "MODEL_HTTP_REJECTED" and len(seen) == 1
+    assert result["content"] is None and "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
 @pytest.mark.parametrize("overrides", [
     {"timeout_s": 121},
     {"request_kind": "interactive_scene", "timeout_s": 201},
     {"request_kind": "other", "timeout_s": 200},
     {"request_kind": None, "timeout_s": 200},
     {"request_kind": "interactive_scene", "timeout_s": True},
+    {"request_kind": "deeptutor_choice_json_schema", "timeout_s": 121},
 ])
 def test_longer_budget_is_refused_outside_its_bounded_kind(overrides):
     with stub(response()) as (port, seen):

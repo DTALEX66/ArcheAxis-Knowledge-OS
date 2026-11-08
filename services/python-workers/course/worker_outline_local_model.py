@@ -52,6 +52,7 @@ MAX_REPLY_BYTES = 120_000
 DEFAULT_TIMEOUT_S = 30
 MAX_TIMEOUT_S = 120
 INTERACTIVE_SCENE_TIMEOUT_S = 200
+DEEPTUTOR_CHOICE_SCHEMA_KIND = "deeptutor_choice_json_schema"
 REQUEST_KEYS = {"schema", "system", "user", "model", "timeout_s", "request_kind"}
 MAX_REJECTION_BYTES = 8192
 
@@ -140,7 +141,8 @@ def _request_valid(request) -> bool:
         return False
     if "model" in request and not _model_selection(request["model"]):
         return False
-    if "request_kind" in request and request["request_kind"] != "interactive_scene":
+    if "request_kind" in request and request["request_kind"] not in (
+            "interactive_scene", DEEPTUTOR_CHOICE_SCHEMA_KIND):
         return False
     if "timeout_s" in request:
         value = request["timeout_s"]
@@ -159,6 +161,23 @@ def _body(protocol: str, model: str, system: str, user: str, max_tokens: int) ->
     # The explicit legacy protocol carries its system prompt in its own field.
     return {"model": model, "prompt": user, "system": system, "stream": False,
             "options": {"num_predict": max_tokens}}
+
+
+def _deeptutor_choice_response_format() -> dict:
+    """One fixed, bounded schema; callers cannot supply arbitrary grammar."""
+    def obj(properties):
+        return {"type": "object", "properties": properties,
+                "required": list(properties), "additionalProperties": False}
+    def string():
+        return {"type": "string"}
+    return {"type": "json_schema", "json_schema": {
+        "name": "archeaxis_response", "strict": True, "schema": obj({
+            "question_type": {"type": "string", "enum": ["choice"]},
+            "question": string(),
+            "options": obj({key: string() for key in "ABCD"}),
+            "correct_answer": {"type": "string", "enum": list("ABCD")},
+            "explanation": string(),
+        })}}
 
 
 def _finish_reason_error(value) -> str | None:
@@ -244,9 +263,23 @@ def process(request) -> dict:
                         elapsed_ms=int((time.monotonic() - started) * 1000),
                         diagnostic={"error_type": type(error).__name__})
     model = request.get("model") or endpoint["model"]
+    response_format = None
+    response_format_sha256 = None
+    if request.get("request_kind") == DEEPTUTOR_CHOICE_SCHEMA_KIND:
+        if endpoint["protocol"] != "openai":
+            return _receipt("MODEL_REJECTED", "MODEL_STRUCTURED_PROTOCOL_UNSUPPORTED",
+                            model=model, requested_model=model,
+                            endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                            network_performed=False)
+        response_format = _deeptutor_choice_response_format()
+        canonical = json.dumps(response_format, ensure_ascii=False, sort_keys=True,
+                               separators=(",", ":")).encode("utf-8")
+        response_format_sha256 = hashlib.sha256(canonical).hexdigest()
     try:
-        body = json.dumps(_body(endpoint["protocol"], model, system, user, max_tokens),
-                          ensure_ascii=False, allow_nan=False).encode("utf-8")
+        body_fields = _body(endpoint["protocol"], model, system, user, max_tokens)
+        if response_format is not None:
+            body_fields["response_format"] = response_format
+        body = json.dumps(body_fields, ensure_ascii=False, allow_nan=False).encode("utf-8")
     except (ValueError, UnicodeError):
         return _receipt("INVALID_MODEL_OUTPUT", "request body could not be encoded")
     path = "/chat/completions" if endpoint["protocol"] == "openai" else "/api/generate"
@@ -370,7 +403,9 @@ def process(request) -> dict:
                     max_tokens=max_tokens, timeout_s=timeout_s,
                     elapsed_ms=int(elapsed * 1000),
                     endpoint=endpoint["base"], protocol=endpoint["protocol"],
-                    network_performed=True)
+                    network_performed=True,
+                    **({"response_format_sha256": response_format_sha256}
+                       if response_format_sha256 is not None else {}))
 
 
 def _bounded(result: dict) -> dict:

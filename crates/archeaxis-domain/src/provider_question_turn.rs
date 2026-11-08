@@ -23,6 +23,8 @@ pub const DOCUMENT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-document/v1
 pub const BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-turn-prompt-binding/v1";
 pub const MODEL_PROMPT_BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-model-prompt/v1";
 const MODEL_PROMPT_ADAPTER: &str = "aaos-direct-json/v2";
+pub const CHOICE_SCHEMA_MODE: &str = "choice_json_schema";
+const CHOICE_SCHEMA_REQUEST_KIND: &str = "deeptutor_choice_json_schema";
 pub const WORKER_SCHEMA: &str = "archeaxis.deeptutor-question-turn-replay/v1";
 pub const RECEIPT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-persistence/v1";
 pub const GENERATION_ROUTE: &str = "deeptutor_question_turn_local_model";
@@ -52,6 +54,8 @@ pub struct QuestionTurnRequest {
     pub requirement: String,
     #[serde(default)]
     pub model: Option<String>,
+    #[serde(default)]
+    pub output_mode: Option<String>,
 }
 
 fn digest(bytes: &[u8]) -> String {
@@ -106,16 +110,27 @@ pub fn request_refusal(request: &QuestionTurnRequest) -> Option<&'static str> {
             .model
             .as_ref()
             .is_some_and(|model| !valid_model(model))
+        || request
+            .output_mode
+            .as_deref()
+            .is_some_and(|mode| mode != CHOICE_SCHEMA_MODE)
     {
         return Some("invalid question turn request");
     }
     None
 }
 
-pub fn request_sha256(request: &QuestionTurnRequest) -> Result<String, Error> {
-    let frame = json!({"create_request_id":request.create_request_id,
+fn request_frame(request: &QuestionTurnRequest) -> Value {
+    let mut frame = json!({"create_request_id":request.create_request_id,
         "material":request.material,"requirement":request.requirement,"model":request.model});
-    Ok(sha(&frame))
+    if let Some(mode) = &request.output_mode {
+        frame["output_mode"] = json!(mode);
+    }
+    frame
+}
+
+pub fn request_sha256(request: &QuestionTurnRequest) -> Result<String, Error> {
+    Ok(sha(&request_frame(request)))
 }
 
 fn internal_request_id(create_request_id: &str) -> String {
@@ -302,7 +317,8 @@ fn receipt(conn: &Connection, document: Value) -> Value {
         "model_finish_reason":saved["model_finish_reason"],
         "model_usage":saved["model_usage"],
         "capture_binding":saved["capture_binding"],
-        "model_prompt_binding":saved["model_prompt_binding"],"material":saved["material"],
+        "model_prompt_binding":saved["model_prompt_binding"],
+        "model_response_format":saved["model_response_format"],"material":saved["material"],
         "question":saved["question"],"answer_secrecy":saved["answer_secrecy"],
         "response_origin":saved["response_origin"],
         "human_review_required":true,"active_content_executed":false,
@@ -343,6 +359,20 @@ fn existing(
         if !model_prompt_binding_shape(&saved["capture_binding"], model_prompt) {
             return Err(Error::Invalid(
                 "DeepTutor model prompt binding is unsupported",
+            ));
+        }
+    }
+    if let Some(format) = saved
+        .get("model_response_format")
+        .filter(|value| !value.is_null())
+    {
+        let expected = choice_response_format_binding();
+        if *format != expected
+            || saved["request_frame"]["output_mode"] != CHOICE_SCHEMA_MODE
+            || saved["model_reply"]["response_format_sha256"] != expected["sha256"]
+        {
+            return Err(Error::Invalid(
+                "DeepTutor model response format binding is unsupported",
             ));
         }
     }
@@ -533,15 +563,64 @@ fn model_prompt_binding_shape(binding: &Value, model_prompt: &Value) -> bool {
         })
 }
 
+/// The fixed OpenAI-compatible grammar used only by explicit choice mode.
+pub fn choice_response_format() -> Value {
+    json!({"type":"json_schema","json_schema":{"name":"archeaxis_response","strict":true,
+    "schema":{"type":"object","additionalProperties":false,
+        "required":["question_type","question","options","correct_answer","explanation"],
+        "properties":{
+            "question_type":{"type":"string","enum":["choice"]},
+            "question":{"type":"string"},
+            "options":{"type":"object","additionalProperties":false,
+                "required":["A","B","C","D"],"properties":{
+                    "A":{"type":"string"},"B":{"type":"string"},
+                    "C":{"type":"string"},"D":{"type":"string"}}},
+            "correct_answer":{"type":"string","enum":["A","B","C","D"]},
+            "explanation":{"type":"string"}
+        }}}})
+}
+
+fn choice_response_format_binding() -> Value {
+    let format = choice_response_format();
+    json!({"mode":CHOICE_SCHEMA_MODE,"response_format":format,"sha256":sha(&format)})
+}
+
+fn response_format_binding(request: &QuestionTurnRequest) -> Value {
+    if request.output_mode.as_deref() == Some(CHOICE_SCHEMA_MODE) {
+        choice_response_format_binding()
+    } else {
+        Value::Null
+    }
+}
+
+/// A format-bound request cannot accept an older or different model worker's
+/// reply without evidence that the fixed format was actually sent.
+pub fn model_reply_format_matches(request: &QuestionTurnRequest, reply: &Value) -> bool {
+    if request.output_mode.as_deref() == Some(CHOICE_SCHEMA_MODE) {
+        reply["response_format_sha256"] == choice_response_format_binding()["sha256"]
+    } else {
+        reply
+            .get("response_format_sha256")
+            .is_none_or(Value::is_null)
+    }
+}
+
 /// Send the adapted system and the unchanged captured user prompt through the
 /// same bounded local-model transport as the outline route.
-pub fn model_request(binding: &Value, model_prompt: &Value, model: &Option<String>) -> Value {
-    let mut request = json!({"schema":openmaic_outline::OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA,
+pub fn model_request(
+    binding: &Value,
+    model_prompt: &Value,
+    request: &QuestionTurnRequest,
+) -> Value {
+    let mut frame = json!({"schema":openmaic_outline::OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA,
         "system":model_prompt["system"],"user":binding["user"],"timeout_s":110});
-    if let Some(model) = model {
-        request["model"] = json!(model);
+    if let Some(model) = &request.model {
+        frame["model"] = json!(model);
     }
-    request
+    if request.output_mode.as_deref() == Some(CHOICE_SCHEMA_MODE) {
+        frame["request_kind"] = json!(CHOICE_SCHEMA_REQUEST_KIND);
+    }
+    frame
 }
 
 fn choices(value: &Value) -> bool {
@@ -645,7 +724,9 @@ pub fn commit_question_turn(
     if model_prompt_binding(&binding)? != generation.model_prompt_binding {
         return Err(Error::Invalid("DeepTutor model prompt binding mismatch"));
     }
-    if openmaic_outline::openmaic_outline_new_model_content(&generation.model_reply).is_none() {
+    if openmaic_outline::openmaic_outline_new_model_content(&generation.model_reply).is_none()
+        || !model_reply_format_matches(request, &generation.model_reply)
+    {
         return Err(Error::Invalid(
             "DeepTutor model reply was not admitted for replay",
         ));
@@ -721,11 +802,11 @@ pub fn commit_question_turn(
         "model_reply":generation.model_reply,
         "capture_binding":binding,
         "model_prompt_binding":generation.model_prompt_binding,
+        "model_response_format":response_format_binding(request),
         "worker_document":generation.replay_document,
         "question":question,
         "material":request.material,
-        "request_frame":{"create_request_id":request.create_request_id,
-            "material":request.material,"requirement":request.requirement,"model":request.model},
+        "request_frame":request_frame(request),
         "capture_frame":capture_frame,
         "replay_frame":replay_frame,
         "response_origin":"LOCAL_MODEL_UNVERIFIED",
@@ -767,6 +848,7 @@ mod tests {
             },
             requirement: "Synthetic requirement".into(),
             model: None,
+            output_mode: None,
         };
         assert_eq!(request_refusal(&base), None);
         let mut extra = base.clone();
@@ -793,6 +875,7 @@ mod tests {
             },
             requirement: "Synthetic requirement".into(),
             model: None,
+            output_mode: None,
         };
         assert_eq!(question_id(&request), question_id(&request.clone()));
         assert!(token(&question_id(&request)));

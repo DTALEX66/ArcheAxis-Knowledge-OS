@@ -269,6 +269,10 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert!(first["capture_binding"]["prompt_sha256"].as_str().is_some());
     assert_eq!(first["capture_binding"]["request_id"], "turn_1");
     let sent = requests.lock().unwrap()[0].clone();
+    assert!(
+        sent.get("response_format").is_none(),
+        "the default stays unstructured"
+    );
     let system = sent["messages"][0]["content"].as_str().unwrap();
     assert_eq!(system, first["model_prompt_binding"]["system"]);
     assert_eq!(
@@ -411,6 +415,73 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     );
     assert!(!rejected.to_string().contains("not a question document"));
     assert_eq!(document_count(&executor).await, 3);
+
+    // Structured output is explicit, preserves the old request identity, and
+    // binds the exact schema actually seen by the synthetic model endpoint.
+    let mut invalid_mode = request_body(&material, "turn_bad_mode");
+    invalid_mode["output_mode"] = json!("unrecognized");
+    let before_calls = *calls.lock().unwrap();
+    let (status, _) = call(&router, "human", &invalid_mode).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(*calls.lock().unwrap(), before_calls);
+    let mut switched = body.clone();
+    switched["output_mode"] = json!("choice_json_schema");
+    let (status, _) = call(&router, "human", &switched).await;
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "one create ID cannot switch modes"
+    );
+    assert_eq!(*calls.lock().unwrap(), before_calls);
+    *stub.lock().unwrap() = StubState {
+        status: 400,
+        content: json!({"error":{"message":"SYNTHETIC_PRIVATE_FORMAT_ERROR"}}).to_string(),
+    };
+    let mut unsupported_schema = request_body(&material, "turn_schema_unsupported");
+    unsupported_schema["output_mode"] = json!("choice_json_schema");
+    let (status, refused) = call(&router, "human", &unsupported_schema).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(refused["stage"], "local_model");
+    assert_eq!(refused["worker_outcome"]["reason"], "MODEL_HTTP_REJECTED");
+    assert_eq!(
+        *calls.lock().unwrap(),
+        before_calls + 1,
+        "no fallback model call"
+    );
+    assert!(
+        !refused
+            .to_string()
+            .contains("SYNTHETIC_PRIVATE_FORMAT_ERROR")
+    );
+    assert_eq!(document_count(&executor).await, 3);
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: model_content(),
+    };
+    let mut structured_body = request_body(&material, "turn_structured");
+    structured_body["output_mode"] = json!("choice_json_schema");
+    let (status, structured) = call(&router, "human", &structured_body).await;
+    assert_eq!(status, StatusCode::CREATED, "{structured}");
+    let actual = requests.lock().unwrap().last().unwrap().clone();
+    let format = &actual["response_format"];
+    assert_eq!(
+        structured["model_response_format"]["mode"],
+        "choice_json_schema"
+    );
+    assert_eq!(
+        structured["model_response_format"]["response_format"],
+        *format
+    );
+    assert_eq!(
+        structured["model_response_format"]["sha256"],
+        format!("{:x}", Sha256::digest(format.to_string().as_bytes()))
+    );
+    assert_eq!(document_count(&executor).await, 4);
+    let calls_after_structured = *calls.lock().unwrap();
+    let (status, schema_duplicate) = call(&router, "human", &structured_body).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(schema_duplicate["worker_invoked"], false);
+    assert_eq!(*calls.lock().unwrap(), calls_after_structured);
     drop(router);
     drop(executor);
 
@@ -429,7 +500,14 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(status, StatusCode::OK, "{read_back}");
     assert_eq!(read_back["worker_invoked"], false);
     assert_eq!(read_back["document"]["document_id"], candidate_id);
-    assert_eq!(document_count(&reopened).await, 3);
+    let (status, schema_read_back) = call(&router, "human", &structured_body).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(schema_read_back["worker_invoked"], false);
+    assert_eq!(
+        schema_read_back["model_response_format"],
+        structured["model_response_format"]
+    );
+    assert_eq!(document_count(&reopened).await, 4);
     drop(router);
     drop(reopened);
 
@@ -449,5 +527,5 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
         call(&router, "human", &request_body(&material, "turn_no_worker")).await;
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{missing}");
     assert_eq!(missing["reason"], "question_turn_worker_unavailable");
-    assert_eq!(document_count(&unregistered).await, 3);
+    assert_eq!(document_count(&unregistered).await, 4);
 }
