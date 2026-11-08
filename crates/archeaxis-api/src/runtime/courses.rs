@@ -608,11 +608,15 @@ fn openmaic_stage_diagnostics(document: &Value) -> Value {
 fn openmaic_stage_outcome(result: &Value) -> Value {
     let document = &result["document"];
     let diagnostics = openmaic_stage_diagnostics(document);
-    json!({"status":document["status"],"reason":document["reason"],
+    let mut outcome = json!({"status":document["status"],"reason":document["reason"],
         "error_code":document["error_code"],
         "exit_code":result["exit_code"],
         "differences":diagnostics["differences"],
-        "transformations":diagnostics["transformations"]})
+        "transformations":diagnostics["transformations"]});
+    if let Some(observation) = super::model_observation::project(document) {
+        outcome["model_observation"] = observation;
+    }
+    outcome
 }
 
 /// An unusable worker receipt must not be recorded as a successful REPLY in

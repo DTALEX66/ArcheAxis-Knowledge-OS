@@ -29,6 +29,7 @@ mod job_journal;
 mod machine_journal;
 mod material_questions;
 mod model_configuration;
+mod model_observation;
 mod public_research;
 pub mod readiness;
 mod semantic;

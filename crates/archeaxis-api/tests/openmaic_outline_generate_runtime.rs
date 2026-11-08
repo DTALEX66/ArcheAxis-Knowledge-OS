@@ -78,11 +78,15 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
                 let _ = stream.flush();
                 continue;
             }
-            let payload = json!({"model": MODEL,
-                "choices":[{"index":0,"finish_reason":state.finish_reason,
-                    "message":{"role":"assistant","content":state.content}}],
-                "usage":{"prompt_tokens":5,"completion_tokens":7}})
-            .to_string();
+            let payload = if state.status == 400 {
+                state.content.clone()
+            } else {
+                json!({"model": MODEL,
+                    "choices":[{"index":0,"finish_reason":state.finish_reason,
+                        "message":{"role":"assistant","content":state.content}}],
+                    "usage":{"prompt_tokens":5,"completion_tokens":7}})
+                .to_string()
+            };
             let response = format!(
                 "HTTP/1.1 {} synthetic\r\nContent-Type: application/json\r\n\
                  Content-Length: {}\r\nConnection: close\r\n\r\n{}",
@@ -306,6 +310,36 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{unavailable}");
     assert_eq!(unavailable["stage"], "local_model");
     assert_eq!(unavailable["worker_outcome"]["status"], "MODEL_UNAVAILABLE");
+    assert_eq!(
+        unavailable["worker_outcome"]["model_observation"]["http_status"],
+        500
+    );
+    assert_eq!(document_count(&executor).await, 1);
+
+    *stub.lock().unwrap() = StubState {
+        status: 400,
+        content: json!({"error":{"message":"SYNTHETIC_PRIVATE_BODY",
+            "n_prompt_tokens":9496,"n_ctx":8192}})
+        .to_string(),
+        truncated_chunk: false,
+        finish_reason: "stop",
+    };
+    let (status, capacity) = call(&router, "human", &generate_body("generate_capacity")).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{capacity}");
+    assert_eq!(capacity["worker_outcome"]["reason"], "MODEL_HTTP_REJECTED");
+    assert_eq!(
+        capacity["worker_outcome"]["model_observation"]["http_status"],
+        400
+    );
+    assert_eq!(
+        capacity["worker_outcome"]["model_observation"]["provider_prompt_tokens"],
+        9496
+    );
+    assert_eq!(
+        capacity["worker_outcome"]["model_observation"]["provider_context_tokens"],
+        8192
+    );
+    assert!(!capacity.to_string().contains("SYNTHETIC_PRIVATE_BODY"));
     assert_eq!(document_count(&executor).await, 1);
 
     // Even syntactically valid outline JSON is not a complete model reply

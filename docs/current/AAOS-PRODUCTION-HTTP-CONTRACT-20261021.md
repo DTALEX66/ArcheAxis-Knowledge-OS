@@ -390,6 +390,8 @@ The OpenMAIC local-model worker distinguishes a timeout awaiting response header
 
 For new local-model generation, an OpenAI-compatible response must declare `finish_reason: stop`; an Ollama response must also declare `done: true` and `done_reason: stop`. Explicit non-stop finishes are `INVALID_MODEL_OUTPUT/MODEL_NONSTOP`; absent completion information, an unfinished Ollama response, and unrecognized finish reasons are respectively named `MODEL_FINISH_REASON_UNKNOWN`, `MODEL_COMPLETION_UNCONFIRMED`, and `MODEL_FINISH_REASON_INVALID`. In these cases the reply text is not emitted or persisted and no automatic retry occurs. Core independently checks normal completion before a new candidate write, while previously stored candidates retain their original readback and recorded finish metadata. Providers that omit these completion fields are therefore not admitted for new generation until they report a supported completion; no provider configuration is changed automatically.
 
+For OpenMAIC and DeepTutor question-turn local-model failures, `worker_outcome.reason` carries the model worker's reason rather than a different worker's reason field. When a compatible loopback-model receipt is present, `worker_outcome.model_observation` contains only bounded `elapsed_ms`, `network_performed`, `http_status`, `provider_prompt_tokens` and `provider_context_tokens`; unavailable or invalid values are null. Token counts are provider-reported, not independently measured, and neither the provider's error body nor prompt/model text is included.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):

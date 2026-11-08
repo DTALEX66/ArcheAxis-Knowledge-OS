@@ -66,6 +66,16 @@ fn worker_outcome(value: &Value) -> Value {
         "exit_code":value["exit_code"]})
 }
 
+fn model_outcome(value: &Value) -> Value {
+    let document = &value["document"];
+    let mut outcome = json!({"status":document["status"],"reason":document["reason"],
+        "exit_code":value["exit_code"]});
+    if let Some(observation) = super::model_observation::project(document) {
+        outcome["model_observation"] = observation;
+    }
+    outcome
+}
+
 /// Map one worker result to the caller's status. Every named non-success keeps
 /// the worker's own status; an exit code outside the declared 0/1/2 is an
 /// unrecognized outcome rather than a candidate.
@@ -213,7 +223,7 @@ pub(super) async fn question_turn(
             );
         }
     };
-    let model_outcome = worker_outcome(&model);
+    let model_outcome = model_outcome(&model);
     if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
         let status = match model["document"]["status"].as_str() {
             Some("MODEL_REJECTED" | "INVALID_MODEL_OUTPUT") => StatusCode::UNPROCESSABLE_ENTITY,
