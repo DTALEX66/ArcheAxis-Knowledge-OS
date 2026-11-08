@@ -402,6 +402,21 @@ For a new DeepTutor question-turn, Core retains the original donor `capture_bind
 
 The caller may explicitly set `output_mode: "choice_json_schema"` to request the fixed, bounded single-choice JSON schema from an OpenAI-compatible loopback endpoint. Omission or null keeps the prior unstructured request and its request-identity digest. No arbitrary caller schema is accepted. The worker sends the fixed `response_format`, records its SHA-256, and Core checks that binding before replay and again before persistence; the candidate stores the mode, schema and digest in `model_response_format`. A matching digest records the requested format, not proof that the provider enforced it; the original strict replay remains mandatory. A different mode under the same create ID conflicts. An unsupported local protocol is refused before network as `MODEL_REJECTED/MODEL_STRUCTURED_PROTOCOL_UNSUPPORTED`; a provider's 4xx remains `MODEL_REJECTED/MODEL_HTTP_REJECTED`. Neither case falls back or retries. A worker that cannot confirm the requested format yields `502 question_turn_local_model_format_unconfirmed`; mixing new Core with an old worker is not a qualified deployment.
 
+The finite desktop-host command contract also exposes these existing Core routes. Each operation accepts exactly `payload: {body: <object>}`; the caller cannot select a transport URL or launch credential. These are host transport commands, not a claim that any UI consumer has been connected.
+
+| Host operation | Fixed Core path | Body limit | Host timeout |
+| --- | --- | ---: | ---: |
+| `learning_deeptutor_question_turn` | `/api/v1/learning/deeptutor/question-turn` | 65,536 B | 270 s |
+| `learning_deeptutor_question_accept` | `/api/v1/learning/deeptutor/question-candidates/accept` | 65,536 B | 30 s |
+| `learning_deeptutor_teaching_feedback` | `/api/v1/learning/deeptutor/teaching-feedback` | 131,072 B | 95 s |
+| `course_openmaic_outline_create` | `/api/v1/courses/openmaic/outlines` | 262,144 B | 60 s |
+| `course_openmaic_outline_generate` | `/api/v1/courses/openmaic/outlines/generate` | 262,144 B | 210 s |
+| `course_openmaic_interactive_outline_generate` | `/api/v1/courses/openmaic/outlines/generate-interactive` | 262,144 B | 210 s |
+| `course_openmaic_scene_generate` | `/api/v1/courses/openmaic/scenes/generate` | 262,144 B | 480 s |
+| `course_openmaic_package_projection` | `/api/v1/courses/openmaic/package-projection` | 65,536 B | 30 s |
+
+Timeouts cover the bounded sequential worker/model stages plus a transport margin; they do not guarantee completion. A disconnected or timed-out client cannot infer that the Core cancelled or failed to commit. Reconcile using the existing request identity and Core readback rules rather than silently launching a new request. For these provider commands, a malformed or non-object Core response is not echoed: an error status is retained with `CORE_PROVIDER_RESPONSE_INVALID`; an invalid success response is refused. Valid object responses remain available to the caller.
+
 If multiple current grant documents name the exact same material snapshot, a new question-turn checks them until one independently satisfies the existing material, expiry, revocation and restore-fence rules. An expired or fenced grant is never itself sufficient and does not hide a separate valid grant. The check is repeated before candidate persistence; if none qualifies, the operation is refused. Historical completed-request reads do not reactivate a restored grant.
 
 For a new question acceptance, Core verifies the candidate's current version and content digest within the same write transaction. A historical version, incorrect digest, or changed request under an already used acceptance ID returns `409` and writes no accepted question; a completed identical acceptance remains readable as a duplicate even if the candidate is edited later. An unsupported question or answer remains a `422` refusal.

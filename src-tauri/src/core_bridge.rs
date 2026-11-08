@@ -78,6 +78,11 @@ pub enum Operation {
     CourseGet,
     CourseList,
     CourseOpenmaicSceneCreate,
+    CourseOpenmaicOutlineCreate,
+    CourseOpenmaicOutlineGenerate,
+    CourseOpenmaicInteractiveOutlineGenerate,
+    CourseOpenmaicSceneGenerate,
+    CourseOpenmaicPackageProjection,
     TeachingList,
     TeachingGet,
     TeachingCreate,
@@ -90,6 +95,9 @@ pub enum Operation {
     LearningState,
     LearningHistory,
     LearningReview,
+    LearningDeeptutorQuestionTurn,
+    LearningDeeptutorQuestionAccept,
+    LearningDeeptutorTeachingFeedback,
     LearningDeeptutorPracticeImport,
     LearningDeeptutorPracticeGrade,
     LearningDeeptutorQuestionView,
@@ -727,6 +735,14 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         CourseOpenmaicSceneCreate
+        | CourseOpenmaicOutlineCreate
+        | CourseOpenmaicOutlineGenerate
+        | CourseOpenmaicInteractiveOutlineGenerate
+        | CourseOpenmaicSceneGenerate
+        | CourseOpenmaicPackageProjection
+        | LearningDeeptutorQuestionTurn
+        | LearningDeeptutorQuestionAccept
+        | LearningDeeptutorTeachingFeedback
         | LearningDeeptutorPracticeImport
         | LearningDeeptutorPracticeGrade
         | LearningDeeptutorQuestionView => {
@@ -740,6 +756,18 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             }
             let path = match request.operation {
                 CourseOpenmaicSceneCreate => "/api/v1/courses/openmaic/scenes",
+                CourseOpenmaicOutlineCreate => "/api/v1/courses/openmaic/outlines",
+                CourseOpenmaicOutlineGenerate => "/api/v1/courses/openmaic/outlines/generate",
+                CourseOpenmaicInteractiveOutlineGenerate => {
+                    "/api/v1/courses/openmaic/outlines/generate-interactive"
+                }
+                CourseOpenmaicSceneGenerate => "/api/v1/courses/openmaic/scenes/generate",
+                CourseOpenmaicPackageProjection => "/api/v1/courses/openmaic/package-projection",
+                LearningDeeptutorQuestionTurn => "/api/v1/learning/deeptutor/question-turn",
+                LearningDeeptutorQuestionAccept => {
+                    "/api/v1/learning/deeptutor/question-candidates/accept"
+                }
+                LearningDeeptutorTeachingFeedback => "/api/v1/learning/deeptutor/teaching-feedback",
                 LearningDeeptutorPracticeImport => "/api/v1/learning/deeptutor/practice-import",
                 LearningDeeptutorPracticeGrade => "/api/v1/learning/deeptutor/practice-grade",
                 LearningDeeptutorQuestionView => "/api/v1/learning/deeptutor/question-view",
@@ -1286,6 +1314,38 @@ mod provider_host_transport_tests {
     fn provider_commands_use_the_owned_loopback_and_return_json() {
         for (operation, path) in [
             (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
+            (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
             ),
@@ -1318,6 +1378,38 @@ mod provider_host_transport_tests {
     fn provider_transport_does_not_echo_a_malformed_private_response() {
         for (operation, path) in [
             (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
+            (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
             ),
@@ -1349,24 +1441,59 @@ mod provider_host_transport_tests {
 
     #[test]
     fn provider_transport_keeps_http_error_status_without_echoing_the_body() {
-        let (port, server) = serve_once(
-            "/api/v1/learning/deeptutor/question-view",
-            422,
-            "SYNTHETIC_PRIVATE_INVALID",
-        );
-        let request: Request = serde_json::from_value(serde_json::json!({
-            "operation":"learning_deeptutor_question_view",
-            "payload":{"body":{"request_id":"synthetic"}}
-        }))
-        .unwrap();
-        let reply = execute(port, "synthetic-host-token", request).unwrap();
-        assert_eq!(reply.status, 422);
-        assert_eq!(
-            reply.body,
-            serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"})
-        );
-        assert!(!reply.body.to_string().contains("SYNTHETIC_PRIVATE_INVALID"));
-        server.join().unwrap();
+        for (operation, path) in [
+            (
+                "learning_deeptutor_question_view",
+                "/api/v1/learning/deeptutor/question-view",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
+            (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+        ] {
+            let (port, server) = serve_once(path, 422, "SYNTHETIC_PRIVATE_INVALID");
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":operation,
+                "payload":{"body":{"request_id":"synthetic"}}
+            }))
+            .unwrap();
+            let reply = execute(port, "synthetic-host-token", request).unwrap();
+            assert_eq!(reply.status, 422);
+            assert_eq!(
+                reply.body,
+                serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"})
+            );
+            assert!(!reply.body.to_string().contains("SYNTHETIC_PRIVATE_INVALID"));
+            server.join().unwrap();
+        }
     }
 }
 
@@ -1537,6 +1664,15 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         Operation::JobExecute => 320,
         Operation::LearningDeeptutorPracticeImport => 95,
         Operation::LearningDeeptutorPracticeGrade => 95,
+        // Capture (60 s), model (120 s), replay (60 s), and a transport margin.
+        Operation::LearningDeeptutorQuestionTurn => 270,
+        Operation::LearningDeeptutorTeachingFeedback => 95,
+        // Outline generation uses capture, model, and replay. Scene generation
+        // can additionally run a second model and several bounded worker stages.
+        Operation::CourseOpenmaicOutlineGenerate
+        | Operation::CourseOpenmaicInteractiveOutlineGenerate => 210,
+        Operation::CourseOpenmaicSceneGenerate => 480,
+        Operation::CourseOpenmaicOutlineCreate => 60,
         Operation::CourseFromKnowledge
         | Operation::CourseRender
         | Operation::CourseOpenmaicSceneCreate => 60,
@@ -1545,15 +1681,28 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 }
 
 fn request_byte_limit(operation: &Operation) -> usize {
-    if matches!(operation, Operation::CourseOpenmaicSceneCreate) {
+    if matches!(
+        operation,
+        Operation::CourseOpenmaicSceneCreate
+            | Operation::CourseOpenmaicOutlineCreate
+            | Operation::CourseOpenmaicOutlineGenerate
+            | Operation::CourseOpenmaicInteractiveOutlineGenerate
+            | Operation::CourseOpenmaicSceneGenerate
+    ) {
         262_144
+    } else if matches!(operation, Operation::LearningDeeptutorTeachingFeedback) {
+        131_072
     } else if matches!(operation, Operation::LearningDeeptutorPracticeGrade) {
         // The Core grading route accepts one bounded answer submission; this is the
         // route's own 32,768-byte body limit, not the larger import envelope.
         32_768
     } else if matches!(
         operation,
-        Operation::LearningDeeptutorPracticeImport | Operation::LearningDeeptutorQuestionView
+        Operation::LearningDeeptutorPracticeImport
+            | Operation::LearningDeeptutorQuestionView
+            | Operation::LearningDeeptutorQuestionTurn
+            | Operation::LearningDeeptutorQuestionAccept
+            | Operation::CourseOpenmaicPackageProjection
     ) {
         65_536
     } else if matches!(
@@ -1642,6 +1791,14 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
     let private_provider_response = matches!(
         request.operation,
         Operation::CourseOpenmaicSceneCreate
+            | Operation::CourseOpenmaicOutlineCreate
+            | Operation::CourseOpenmaicOutlineGenerate
+            | Operation::CourseOpenmaicInteractiveOutlineGenerate
+            | Operation::CourseOpenmaicSceneGenerate
+            | Operation::CourseOpenmaicPackageProjection
+            | Operation::LearningDeeptutorQuestionTurn
+            | Operation::LearningDeeptutorQuestionAccept
+            | Operation::LearningDeeptutorTeachingFeedback
             | Operation::LearningDeeptutorPracticeImport
             | Operation::LearningDeeptutorPracticeGrade
             | Operation::LearningDeeptutorQuestionView
@@ -1670,6 +1827,38 @@ mod tests {
     #[test]
     fn provider_host_routes_are_fixed_and_require_one_object_body() {
         for (operation, expected) in [
+            (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
             (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
@@ -1726,6 +1915,49 @@ mod tests {
             request_byte_limit(&Operation::CourseOpenmaicSceneCreate),
             262_144
         );
+        for operation in [
+            Operation::LearningDeeptutorQuestionTurn,
+            Operation::LearningDeeptutorQuestionAccept,
+            Operation::CourseOpenmaicPackageProjection,
+        ] {
+            assert_eq!(request_byte_limit(&operation), 65_536);
+        }
+        assert_eq!(
+            request_byte_limit(&Operation::LearningDeeptutorTeachingFeedback),
+            131_072
+        );
+        for operation in [
+            Operation::CourseOpenmaicOutlineCreate,
+            Operation::CourseOpenmaicOutlineGenerate,
+            Operation::CourseOpenmaicInteractiveOutlineGenerate,
+            Operation::CourseOpenmaicSceneGenerate,
+        ] {
+            assert_eq!(request_byte_limit(&operation), 262_144);
+        }
+        assert_eq!(
+            transport_timeout(&Operation::LearningDeeptutorQuestionTurn).as_secs(),
+            270
+        );
+        assert_eq!(
+            transport_timeout(&Operation::LearningDeeptutorTeachingFeedback).as_secs(),
+            95
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicOutlineCreate).as_secs(),
+            60
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicOutlineGenerate).as_secs(),
+            210
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicInteractiveOutlineGenerate).as_secs(),
+            210
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicSceneGenerate).as_secs(),
+            480
+        );
         assert!(
             transport_timeout(&Operation::LearningDeeptutorPracticeImport)
                 > std::time::Duration::from_secs(60)
@@ -1738,6 +1970,73 @@ mod tests {
             transport_timeout(&Operation::CourseOpenmaicSceneCreate)
                 > std::time::Duration::from_secs(30)
         );
+    }
+    #[test]
+    fn provider_new_routes_reject_oversized_bodies_before_transport() {
+        for (operation, limit) in [
+            ("learning_deeptutor_question_turn", 65_536),
+            ("learning_deeptutor_question_accept", 65_536),
+            ("learning_deeptutor_teaching_feedback", 131_072),
+            ("course_openmaic_outline_create", 262_144),
+            ("course_openmaic_outline_generate", 262_144),
+            ("course_openmaic_interactive_outline_generate", 262_144),
+            ("course_openmaic_scene_generate", 262_144),
+            ("course_openmaic_package_projection", 65_536),
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation": operation, "payload": {"body": {"input": "x".repeat(limit)}}
+            }))
+            .unwrap();
+            assert_eq!(
+                execute(0, "synthetic-host-token", request).err().as_deref(),
+                Some("CORE_COMMAND_BODY_TOO_LARGE")
+            );
+        }
+    }
+    #[test]
+    #[ignore = "requires an explicitly launched synthetic Core and private launch token"]
+    fn provider_real_core_projection_and_route_admission() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid synthetic Core port required");
+        let token =
+            std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("synthetic Core token required");
+        let request: Request = serde_json::from_value(serde_json::json!({
+            "operation":"course_openmaic_package_projection",
+            "payload":{"body":{"document_ids":["synthetic_missing_scene"]}}
+        }))
+        .unwrap();
+        let reply = execute(port, &token, request).expect("projection transport must succeed");
+        assert_eq!(reply.status, 200);
+        assert_eq!(
+            reply.body["schema"],
+            "archeaxis.openmaic-course-package-projection/v1"
+        );
+        assert_eq!(reply.body["scenes"][0]["status"], "missing");
+        assert_eq!(reply.body["renderer_executed"], false);
+        assert_eq!(reply.body["rendering_authorized"], false);
+
+        for operation in [
+            "learning_deeptutor_question_turn",
+            "learning_deeptutor_question_accept",
+            "learning_deeptutor_teaching_feedback",
+            "course_openmaic_outline_create",
+            "course_openmaic_outline_generate",
+            "course_openmaic_interactive_outline_generate",
+            "course_openmaic_scene_generate",
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation": operation, "payload": {"body": {}}
+            }))
+            .unwrap();
+            let reply = execute(port, &token, request).expect("Core transport must succeed");
+            assert!(
+                matches!(reply.status, 400 | 422),
+                "{operation}: unexpected status {}",
+                reply.status
+            );
+        }
     }
     #[test]
     fn provider_learning_routes_are_finite_and_history_cursor_is_bounded() {
