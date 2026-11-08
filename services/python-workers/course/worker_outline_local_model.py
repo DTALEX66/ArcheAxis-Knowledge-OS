@@ -157,6 +157,23 @@ def _body(protocol: str, model: str, system: str, user: str, max_tokens: int) ->
             "options": {"num_predict": max_tokens}}
 
 
+def _finish_reason_error(value) -> str | None:
+    """A model reply is complete only when the provider says it stopped normally."""
+    if value is None or value == "":
+        return "MODEL_FINISH_REASON_UNKNOWN"
+    if not isinstance(value, str):
+        return "MODEL_FINISH_REASON_INVALID"
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError:
+        return "MODEL_RESPONSE_INVALID"
+    if value == "stop":
+        return None
+    if value in {"length", "content_filter", "tool_calls", "function_call", "error"}:
+        return "MODEL_NONSTOP"
+    return "MODEL_FINISH_REASON_INVALID"
+
+
 def _answer(payload: dict, protocol: str):
     """The final text, finish reason, and independently observed model identity."""
     if protocol == "openai":
@@ -178,8 +195,9 @@ def _answer(payload: dict, protocol: str):
         if reasoning is not None and not isinstance(reasoning, str):
             return None, "MODEL_CONTENT_INVALID", None
         finish = choice.get("finish_reason")
-        if finish is not None and not isinstance(finish, str):
-            return None, "MODEL_FINISH_REASON_INVALID", None
+        finish_error = _finish_reason_error(finish)
+        if finish_error is not None:
+            return None, finish_error, None
         observed = payload.get("model")
         observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
         if not (content or "").strip():
@@ -189,9 +207,12 @@ def _answer(payload: dict, protocol: str):
     text = payload.get("response")
     if not isinstance(text, str):
         return None, "MODEL_RESPONSE_SHAPE", None
+    if payload.get("done") is not True:
+        return None, "MODEL_COMPLETION_UNCONFIRMED", None
     finish = payload.get("done_reason")
-    if finish is not None and not isinstance(finish, str):
-        return None, "MODEL_FINISH_REASON_INVALID", None
+    finish_error = _finish_reason_error(finish)
+    if finish_error is not None:
+        return None, finish_error, None
     observed = payload.get("model")
     observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
     if not text.strip():

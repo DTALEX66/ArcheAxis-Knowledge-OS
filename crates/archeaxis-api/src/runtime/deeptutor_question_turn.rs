@@ -228,7 +228,7 @@ pub(super) async fn question_turn(
         );
     }
     let Some(content) =
-        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
     else {
         return stage_failure(
             StatusCode::BAD_GATEWAY,

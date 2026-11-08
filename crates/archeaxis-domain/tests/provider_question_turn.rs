@@ -297,6 +297,10 @@ fn every_named_failure_stage_is_refused_before_a_document_exists() {
     wrong_sha.model_reply["content_sha256"] = json!("0".repeat(64));
     assert!(turn::commit_question_turn(&mut conn, &request, &ticket, &wrong_sha).is_err());
 
+    let mut unfinished = generation(&ticket);
+    unfinished.model_reply["finish_reason"] = json!("length");
+    assert!(turn::commit_question_turn(&mut conn, &request, &ticket, &unfinished).is_err());
+
     for change in [
         "capture_status",
         "replay_status",

@@ -102,13 +102,13 @@ def free_port() -> int:
 
 
 def invoke(data, port: int, *, model: str | None = "synthetic-requested-model",
-           timeout_s: int | None = None) -> tuple[int, dict]:
+           timeout_s: int | None = None, protocol: str = "openai") -> tuple[int, dict]:
     env = dict(os.environ)
     for key in ("ARCHEAXIS_MACHINE_ENDPOINT", "ARCHEAXIS_MACHINE_MODEL",
                 "ARCHEAXIS_MACHINE_PROTOCOL"):
         env.pop(key, None)
-    env["ARCHEAXIS_MACHINE_ENDPOINT"] = f"http://127.0.0.1:{port}/v1"
-    env["ARCHEAXIS_MACHINE_PROTOCOL"] = "openai"
+    env["ARCHEAXIS_MACHINE_ENDPOINT"] = f"http://127.0.0.1:{port}" + ("/v1" if protocol == "openai" else "")
+    env["ARCHEAXIS_MACHINE_PROTOCOL"] = protocol
     if model is not None:
         env["ARCHEAXIS_MACHINE_MODEL"] = model
     if isinstance(data, dict):
@@ -184,6 +184,49 @@ def test_a_slow_response_body_is_a_timeout_not_invalid_model_output():
     assert result["content"] is None
     assert result["network_performed"] is True
     assert len(seen) == 1, "a body timeout must not retry the model request"
+
+
+@pytest.mark.parametrize("finish,reason", [
+    ("length", "MODEL_NONSTOP"),
+    ("content_filter", "MODEL_NONSTOP"),
+    ("tool_calls", "MODEL_NONSTOP"),
+    ("function_call", "MODEL_NONSTOP"),
+    ("error", "MODEL_NONSTOP"),
+    (None, "MODEL_FINISH_REASON_UNKNOWN"),
+    ("vendor_private_reason", "MODEL_FINISH_REASON_INVALID"),
+])
+def test_unfinished_or_unconfirmed_output_is_not_a_reply(finish, reason):
+    with stub(response(content="SYNTHETIC_PRIVATE", finish=finish)) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == reason
+    assert result["content"] is None and result["network_performed"] is True
+    assert len(seen) == 1
+    assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+    assert "vendor_private_reason" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("done,finish,expected", [
+    (True, "stop", "REPLY"),
+    (True, "length", "MODEL_NONSTOP"),
+    (True, None, "MODEL_FINISH_REASON_UNKNOWN"),
+    (False, "stop", "MODEL_COMPLETION_UNCONFIRMED"),
+    (None, "stop", "MODEL_COMPLETION_UNCONFIRMED"),
+])
+def test_ollama_requires_a_confirmed_normal_completion(done, finish, expected):
+    payload = json.dumps({"model": "synthetic-requested-model", "response": "SYNTHETIC_PRIVATE",
+                          "done": done, "done_reason": finish}).encode("utf-8")
+    with stub(payload) as (port, seen):
+        code, result = invoke(frame(port), port, protocol="ollama")
+    assert len(seen) == 1 and seen[0]["path"] == "/api/generate"
+    assert result["network_performed"] is True
+    if expected == "REPLY":
+        assert code == 0 and result["status"] == "REPLY"
+        assert result["content"] == "SYNTHETIC_PRIVATE"
+    else:
+        assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+        assert result["reason"] == expected and result["content"] is None
+        assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
 
 
 def test_empty_or_reasoning_only_content_is_no_final_answer():

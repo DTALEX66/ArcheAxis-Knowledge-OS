@@ -452,6 +452,9 @@ pub fn commit_openmaic_interactive_outline_generation(
             "OpenMAIC interactive outline request changed after admission",
         ));
     }
+    if openmaic_outline::openmaic_outline_new_model_content(&generation.model_reply).is_none() {
+        return Err(invalid("OpenMAIC model completion was not confirmed"));
+    }
     replay_check(
         request,
         &generation.binding,

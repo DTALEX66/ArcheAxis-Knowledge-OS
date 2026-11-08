@@ -419,7 +419,8 @@ fn a_receipt_that_does_not_describe_the_sent_reply_is_refused_before_a_write() {
             course::OpenMaicPreparation::Pending(value) => value,
             course::OpenMaicPreparation::Existing(_) => panic!("expected a fresh scene"),
         };
-    let mut worker = scene_build_document(&scene_request);
+    let valid_worker = scene_build_document(&scene_request);
+    let mut worker = valid_worker.clone();
     worker["scene"]["content"]["html"] = json!("<html>OTHER</html>");
     let generation = interactive_generation(
         "interactive_1",
@@ -440,6 +441,22 @@ fn a_receipt_that_does_not_describe_the_sent_reply_is_refused_before_a_write() {
         )
         .is_err()
     );
+    let mut unfinished = generation.clone();
+    unfinished.record["model_finish_reason"] = json!("length");
+    assert!(matches!(
+        openmaic_interactive::commit_openmaic_interactive_candidate(
+            &mut conn,
+            "interactive_1",
+            &request,
+            &pending,
+            &scene_pending,
+            &valid_worker,
+            &unfinished,
+        ),
+        Err(archeaxis_domain::document::Error::Invalid(
+            "INTERACTIVE_MODEL_COMPLETION_UNCONFIRMED"
+        ))
+    ));
     assert_eq!(document_count(&conn), 2, "outline and source only");
 }
 

@@ -615,6 +615,43 @@ fn openmaic_stage_outcome(result: &Value) -> Value {
         "transformations":diagnostics["transformations"]})
 }
 
+/// An unusable worker receipt must not be recorded as a successful REPLY in
+/// the optional narration stage, even if the worker claimed that status.
+fn openmaic_unusable_model_outcome(result: &Value) -> (String, Value) {
+    let status = result["document"]["status"]
+        .as_str()
+        .unwrap_or("INVALID_MODEL_OUTPUT");
+    if status == "REPLY" {
+        return (
+            "INVALID_MODEL_OUTPUT".to_owned(),
+            json!("MODEL_RECEIPT_INCONSISTENT"),
+        );
+    }
+    (status.to_owned(), result["document"]["reason"].clone())
+}
+
+#[cfg(test)]
+mod model_outcome_tests {
+    use super::*;
+
+    #[test]
+    fn invalid_reply_claim_does_not_make_optional_actions_look_successful() {
+        let claimed = json!({"document":{"status":"REPLY","reason":null}});
+        assert_eq!(
+            openmaic_unusable_model_outcome(&claimed),
+            (
+                "INVALID_MODEL_OUTPUT".to_owned(),
+                json!("MODEL_RECEIPT_INCONSISTENT")
+            )
+        );
+        let named = json!({"document":{"status":"INVALID_MODEL_OUTPUT","reason":"MODEL_NONSTOP"}});
+        assert_eq!(
+            openmaic_unusable_model_outcome(&named),
+            ("INVALID_MODEL_OUTPUT".to_owned(), json!("MODEL_NONSTOP"))
+        );
+    }
+}
+
 pub(super) async fn generate_openmaic_outline(
     State(runtime): State<Runtime>,
     headers: HeaderMap,
@@ -773,7 +810,7 @@ pub(super) async fn generate_openmaic_outline(
         );
     }
     let Some(content) =
-        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
     else {
         return openmaic_stage_failure(
             StatusCode::BAD_GATEWAY,
@@ -1023,10 +1060,9 @@ pub(super) async fn generate_openmaic_interactive_outline(
             model_outcome,
         );
     }
-    let Some(content) = openmaic_interactive_outline::openmaic_interactive_outline_model_content(
-        &model["document"],
-    )
-    .map(str::to_owned) else {
+    let Some(content) =
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
+    else {
         return openmaic_stage_failure(
             StatusCode::BAD_GATEWAY,
             "local_model",
@@ -1610,7 +1646,7 @@ async fn openmaic_slide_chain(
         );
     }
     let Some(content) =
-        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
     else {
         return openmaic_stage_failure(
             StatusCode::BAD_GATEWAY,
@@ -1813,18 +1849,14 @@ async fn openmaic_slide_chain(
                 let content = if actions_model["exit_code"] == 0
                     && actions_model["document"]["status"] == "REPLY"
                 {
-                    openmaic_outline::openmaic_outline_model_content(&actions_model["document"])
+                    openmaic_outline::openmaic_outline_new_model_content(&actions_model["document"])
                         .map(str::to_owned)
                 } else {
                     None
                 };
                 match content {
                     None => {
-                        let status = actions_model["document"]["status"]
-                            .as_str()
-                            .unwrap_or("INVALID_MODEL_OUTPUT")
-                            .to_owned();
-                        let reason = actions_model["document"]["reason"].clone();
+                        let (status, reason) = openmaic_unusable_model_outcome(&actions_model);
                         (
                             empty_actions.clone(),
                             openmaic_slide_actions::openmaic_slide_actions_stage(
@@ -2212,7 +2244,7 @@ async fn openmaic_quiz_chain(
         );
     }
     let Some(content) =
-        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
     else {
         return openmaic_stage_failure(
             StatusCode::BAD_GATEWAY,
@@ -2355,18 +2387,14 @@ async fn openmaic_quiz_chain(
                 let content = if actions_model["exit_code"] == 0
                     && actions_model["document"]["status"] == "REPLY"
                 {
-                    openmaic_outline::openmaic_outline_model_content(&actions_model["document"])
+                    openmaic_outline::openmaic_outline_new_model_content(&actions_model["document"])
                         .map(str::to_owned)
                 } else {
                     None
                 };
                 match content {
                     None => {
-                        let status = actions_model["document"]["status"]
-                            .as_str()
-                            .unwrap_or("INVALID_MODEL_OUTPUT")
-                            .to_owned();
-                        let reason = actions_model["document"]["reason"].clone();
+                        let (status, reason) = openmaic_unusable_model_outcome(&actions_model);
                         (
                             empty_actions.clone(),
                             openmaic_quiz_actions::openmaic_quiz_actions_stage(
@@ -2788,7 +2816,7 @@ async fn openmaic_interactive_chain(
         );
     }
     let Some(content) =
-        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
     else {
         return openmaic_stage_failure(
             StatusCode::BAD_GATEWAY,

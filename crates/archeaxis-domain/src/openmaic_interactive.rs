@@ -671,6 +671,9 @@ pub fn commit_openmaic_interactive_candidate(
     worker_document: &Value,
     generation: &OpenMaicInteractiveGeneration,
 ) -> Result<Value, Error> {
+    if generation.record["model_finish_reason"] != "stop" {
+        return Err(invalid("INTERACTIVE_MODEL_COMPLETION_UNCONFIRMED"));
+    }
     if create_request_id != pending.create_request_id.as_str()
         || openmaic_interactive_request_sha256(request, &pending.selection)
             != pending.request_sha256

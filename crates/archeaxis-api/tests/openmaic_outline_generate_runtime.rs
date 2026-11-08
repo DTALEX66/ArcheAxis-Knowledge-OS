@@ -28,6 +28,7 @@ struct StubState {
     status: u16,
     content: String,
     truncated_chunk: bool,
+    finish_reason: &'static str,
 }
 
 /// One synthetic loopback model lane. Every request is counted, so a retry that
@@ -39,6 +40,7 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
         status: 200,
         content,
         truncated_chunk: false,
+        finish_reason: "stop",
     }));
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
@@ -77,7 +79,7 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
                 continue;
             }
             let payload = json!({"model": MODEL,
-                "choices":[{"index":0,"finish_reason":"stop",
+                "choices":[{"index":0,"finish_reason":state.finish_reason,
                     "message":{"role":"assistant","content":state.content}}],
                 "usage":{"prompt_tokens":5,"completion_tokens":7}})
             .to_string();
@@ -283,6 +285,7 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
         status: 200,
         content: "   ".into(),
         truncated_chunk: false,
+        finish_reason: "stop",
     };
     let (status, empty) = call(&router, "human", &generate_body("generate_empty")).await;
     assert_eq!(status, StatusCode::GATEWAY_TIMEOUT, "{empty}");
@@ -296,6 +299,7 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
         status: 500,
         content: String::new(),
         truncated_chunk: false,
+        finish_reason: "stop",
     };
     let (status, unavailable) =
         call(&router, "human", &generate_body("generate_unavailable")).await;
@@ -304,12 +308,38 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
     assert_eq!(unavailable["worker_outcome"]["status"], "MODEL_UNAVAILABLE");
     assert_eq!(document_count(&executor).await, 1);
 
+    // Even syntactically valid outline JSON is not a complete model reply
+    // when the provider says it stopped at its output limit.
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: model_content("SYNTHETIC_UNFINISHED_TITLE"),
+        truncated_chunk: false,
+        finish_reason: "length",
+    };
+    let before = *calls.lock().unwrap();
+    let (status, unfinished) = call(&router, "human", &generate_body("generate_unfinished")).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{unfinished}");
+    assert_eq!(unfinished["stage"], "local_model");
+    assert_eq!(
+        unfinished["worker_outcome"]["status"],
+        "INVALID_MODEL_OUTPUT"
+    );
+    assert_eq!(unfinished["worker_outcome"]["reason"], "MODEL_NONSTOP");
+    assert!(
+        !unfinished
+            .to_string()
+            .contains("SYNTHETIC_UNFINISHED_TITLE")
+    );
+    assert_eq!(*calls.lock().unwrap(), before + 1, "no model retry");
+    assert_eq!(document_count(&executor).await, 1, "no partial candidate");
+
     // An interrupted HTTP body is named at the real Core/worker boundary;
     // neither its private fragment nor a partial candidate may be exposed.
     *stub.lock().unwrap() = StubState {
         status: 200,
         content: String::new(),
         truncated_chunk: true,
+        finish_reason: "stop",
     };
     let before = *calls.lock().unwrap();
     let (status, truncated) = call(&router, "human", &generate_body("generate_truncated")).await;
@@ -363,6 +393,7 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
         status: 200,
         content: "not an outline document".into(),
         truncated_chunk: false,
+        finish_reason: "stop",
     };
     let (status, rejected) = call(&router, "human", &generate_body("generate_non_candidate")).await;
     assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{rejected}");

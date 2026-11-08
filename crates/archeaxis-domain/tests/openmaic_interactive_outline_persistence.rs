@@ -103,6 +103,27 @@ fn document_count(conn: &Connection) -> i64 {
 }
 
 #[test]
+fn an_unfinished_model_reply_does_not_create_an_interactive_outline() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let id = "interactive_outline_unfinished";
+    let ticket = pending(&mut conn, id);
+    let mut unfinished = generation(id);
+    unfinished.model_reply["finish_reason"] = json!("length");
+    assert!(
+        openmaic_interactive_outline::commit_openmaic_interactive_outline_generation(
+            &mut conn,
+            id,
+            &request(id),
+            &ticket,
+            &unfinished,
+        )
+        .is_err()
+    );
+    assert_eq!(document_count(&conn), 0);
+}
+
+#[test]
 fn a_generated_candidate_is_persisted_once_and_reads_back_with_its_widgets() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();

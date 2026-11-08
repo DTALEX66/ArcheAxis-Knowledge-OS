@@ -551,7 +551,7 @@ pub fn commit_question_turn(
         ));
     }
     let binding = capture_binding(&request.create_request_id, &generation.capture_document)?;
-    if openmaic_outline::openmaic_outline_model_content(&generation.model_reply).is_none() {
+    if openmaic_outline::openmaic_outline_new_model_content(&generation.model_reply).is_none() {
         return Err(Error::Invalid(
             "DeepTutor model reply was not admitted for replay",
         ));

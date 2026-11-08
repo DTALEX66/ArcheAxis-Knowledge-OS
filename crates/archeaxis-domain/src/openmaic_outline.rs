@@ -738,8 +738,8 @@ pub fn openmaic_outline_capture_binding(
     Ok(capture["binding"].clone())
 }
 
-/// The model's final text, or `None` when the reply is not an admitted one. The
-/// text is kept verbatim; only an empty or over-budget reply is refused.
+/// Validate a stored or live model reply without retroactively changing older
+/// candidates. The text is kept verbatim and bounded.
 pub fn openmaic_outline_model_content(reply: &Value) -> Option<&str> {
     if reply["schema"] != OPENMAIC_OUTLINE_MODEL_REPLY_SCHEMA
         || reply["status"] != "REPLY"
@@ -757,6 +757,15 @@ pub fn openmaic_outline_model_content(reply: &Value) -> Option<&str> {
     reply["content"].as_str().filter(|text| {
         !text.trim().is_empty() && text.as_bytes().len() <= OPENMAIC_OUTLINE_MAX_MODEL_REPLY_BYTES
     })
+}
+
+/// New model work additionally requires an observed normal completion. Keep
+/// this separate from the legacy reader so existing candidates stay readable.
+pub fn openmaic_outline_new_model_content(reply: &Value) -> Option<&str> {
+    if reply["finish_reason"] != "stop" {
+        return None;
+    }
+    openmaic_outline_model_content(reply)
 }
 
 /// The worker's replay result must belong to the frame Core actually built.
@@ -925,6 +934,9 @@ pub fn commit_openmaic_outline_generation(
         || openmaic_outline_generate_request_sha256(request) != pending.request_sha256
     {
         return Err(invalid("OpenMAIC outline request changed after admission"));
+    }
+    if openmaic_outline_new_model_content(&generation.model_reply).is_none() {
+        return Err(invalid("OpenMAIC model completion was not confirmed"));
     }
     generate_check_result(
         request,

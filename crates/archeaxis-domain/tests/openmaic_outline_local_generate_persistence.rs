@@ -125,6 +125,66 @@ fn document_count(conn: &Connection) -> i64 {
 }
 
 #[test]
+fn new_candidates_reject_nonstop_or_unconfirmed_model_completion() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("workspace.sqlite");
+    let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
+    let request = request();
+    let ticket = pending(&mut conn, "client_1", &request);
+    for finish in [json!("length"), Value::Null, json!("error")] {
+        let mut generated = generation(&request);
+        generated.model_reply["finish_reason"] = finish;
+        assert!(
+            openmaic_outline::commit_openmaic_outline_generation(
+                &mut conn, "client_1", &request, &ticket, &generated,
+            )
+            .is_err(),
+            "an unconfirmed model completion must not be persisted"
+        );
+        assert_eq!(document_count(&conn), 0);
+    }
+}
+
+#[test]
+fn a_preexisting_legacy_candidate_with_nonstop_metadata_remains_readable() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("workspace.sqlite");
+    let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
+    let request = request();
+    let mut generated = generation(&request);
+    generated.model_reply["finish_reason"] = json!("length");
+    let saved = json!({
+        "schema":openmaic_outline::OPENMAIC_OUTLINE_GENERATE_DOCUMENT_SCHEMA,
+        "create_request_id":"client_1",
+        "generation_request_sha256":openmaic_outline::openmaic_outline_generate_request_sha256(&request),
+        "request_frame":request,
+        "prompt_binding":generated.binding,
+        "model_reply":generated.model_reply,
+        "worker_document":generated.replay_document,
+        "model_finish_reason":"length",
+    });
+    let editor = json!({"type":"doc","attrs":{(NAMESPACE):saved},"content":[]});
+    let internal_id = openmaic_outline::openmaic_outline_generate_internal_request_id("client_1");
+    document::create_optional_with_request(
+        &mut conn,
+        None,
+        None,
+        "Synthetic legacy",
+        editor,
+        Some(&internal_id),
+    )
+    .unwrap();
+    let outcome =
+        openmaic_outline::prepare_openmaic_outline_generation(&mut conn, "client_1", &request)
+            .unwrap();
+    let OpenMaicOutlineGenerationPreparation::Existing(receipt) = outcome else {
+        panic!("the previous candidate must remain readable")
+    };
+    assert_eq!(receipt["model_finish_reason"], "length");
+    assert_eq!(document_count(&conn), 1);
+}
+
+#[test]
 fn a_generated_candidate_is_persisted_once_with_its_model_and_prompt_identity() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("workspace.sqlite");
