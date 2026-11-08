@@ -70,6 +70,25 @@ def test_real_core_launches_and_answers_from_long_root(tmp_path, monkeypatch):
     finally:
         launcher.stop(child)
 
+    manifest_path = launcher.filesystem_path(root / "backend-runtime-manifest.json")
+    for declaration, reason in (
+        ({"status": "NOT_INCLUDED", "node_sha256": None}, "not_included"),
+        (None, "not_declared"),
+    ):
+        manifest = {"schema": "archeaxis.backend-runtime/v1", "files": {}}
+        if declaration is not None:
+            manifest["openmaic_scene_build"] = declaration
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        child, base, receipt, tokens = launcher.start(data_root, 0)
+        try:
+            assert receipt["openmaic_node_worker_error"] == reason
+            read_status, _ = launcher.call(
+                base, "GET", f"/api/v1/documents/{document_id}", tokens=tokens, role="human"
+            )
+            assert read_status == 200
+        finally:
+            launcher.stop(child)
+
     # A broken optional manifest also leaves ordinary persisted documents usable.
     launcher.filesystem_path(root / "backend-runtime-manifest.json").write_bytes(b"{}")
     child, base, receipt, tokens = launcher.start(data_root, 0)

@@ -428,10 +428,18 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=reject_nonfinite)
         if not isinstance(document, dict) or document.get("schema") != "archeaxis.backend-runtime/v1":
             return None, "manifest_invalid"
-        config, files = document.get("openmaic_scene_build"), document.get("files")
-        if (not isinstance(config, dict) or set(config) != {"status", "node_sha256"}
-                or config["status"] != "INCLUDED" or not isinstance(config["node_sha256"], str)
-                or not re.fullmatch(r"[a-f0-9]{64}", config["node_sha256"]) or not isinstance(files, dict)):
+        files = document.get("files")
+        if not isinstance(files, dict):
+            return None, "manifest_invalid"
+        if "openmaic_scene_build" not in document:
+            return None, "not_declared"
+        config = document["openmaic_scene_build"]
+        if not isinstance(config, dict) or set(config) != {"status", "node_sha256"}:
+            return None, "manifest_invalid"
+        if config["status"] == "NOT_INCLUDED" and config["node_sha256"] is None:
+            return None, "not_included"
+        if (config["status"] != "INCLUDED" or not isinstance(config["node_sha256"], str)
+                or not re.fullmatch(r"[a-f0-9]{64}", config["node_sha256"])):
             return None, "manifest_invalid"
         for relative, identity in OPENMAIC_FILES.items():
             if files.get(f"{OPENMAIC_DIRECTORY}/{relative}") != identity:

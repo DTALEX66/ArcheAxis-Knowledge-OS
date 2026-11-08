@@ -151,7 +151,17 @@ def test_missing_openmaic_options_keep_old_launch_available(prepared, monkeypatc
     assert manifest["openmaic_scene_build"] == {"status": "NOT_INCLUDED", "node_sha256": None}
     runtime_resources.verify_openmaic_contract(manifest, manifest["files"])
     assert not stager.filesystem_path(root / PREFIX).exists()
-    assert "openmaic_node_worker" not in capture_launch(monkeypatch, root)
+    assert launcher.openmaic_node_worker(root) == (None, "not_included")
+    launch = capture_launch(monkeypatch, root)
+    assert "openmaic_node_worker" not in launch
+    assert launch["openmaic_node_worker_error"] == "not_included"
+
+    # Legacy valid manifests predate this optional declaration.
+    manifest.pop("openmaic_scene_build")
+    stager.filesystem_path(root / "backend-runtime-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    assert launcher.openmaic_node_worker(root) == (None, "not_declared")
 
 
 @pytest.mark.parametrize("indices", [(0,), (2,), (4,), (0, 2), (0, 4), (2, 4)])
@@ -225,10 +235,16 @@ def test_invalid_optional_manifest_or_staged_bytes_disable_only_node(prepared, m
     document = json.loads(original)
     bad_documents = [b"{", b'{"schema":"one","schema":"two"}',
                      json.dumps({**document, "openmaic_scene_build": {"status": "INCLUDED", "node_sha256": "x"}}).encode(),
-                     json.dumps({**document, "openmaic_scene_build": {"status": "NOT_INCLUDED", "node_sha256": None}}).encode()]
+                     json.dumps({**document, "openmaic_scene_build": {"status": "NOT_INCLUDED", "node_sha256": "a" * 64}}).encode()]
     for raw in bad_documents:
         manifest_path.write_bytes(raw)
         assert launcher.openmaic_node_worker(root) == (None, "manifest_invalid")
+    # Even if older bytes are listed, the explicit NOT_INCLUDED declaration
+    # means this optional provider stays disabled, not that JSON is broken.
+    omitted = {**document, "openmaic_scene_build": {"status": "NOT_INCLUDED", "node_sha256": None}}
+    runtime_resources.verify_openmaic_contract(omitted, omitted["files"])
+    manifest_path.write_bytes(json.dumps(omitted).encode())
+    assert launcher.openmaic_node_worker(root) == (None, "not_included")
     manifest_path.write_bytes(original)
     node.write_bytes(b"X" * len(node_bytes))
     assert launcher.openmaic_node_worker(root) == (None, "member_identity_mismatch")
