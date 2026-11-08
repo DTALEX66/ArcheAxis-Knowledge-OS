@@ -120,7 +120,7 @@ const TEMPLATE_VARIABLES = (requirement, source) => ({ requirement, userProfile:
 
 const WIDGET_FIELDS = {
   simulation: ["concept", "keyVariables"], diagram: ["diagramType", "nodeCount", "nodes"],
-  code: ["language", "challengeType"], game: ["challenge", "gameType", "playerControls"],
+  code: ["language", "challengeType"], game: ["challenge", "gameType", "playerControls", "physicsConcept"],
   visualization3d: ["visualizationType", "objects", "interactions"],
 };
 const WIDGET_ARRAYS = ["keyVariables", "nodes", "objects", "interactions", "playerControls"];

@@ -33,6 +33,7 @@ struct StubState {
     status: u16,
     queue: Vec<String>,
     cursor: usize,
+    requests: Vec<Value>,
 }
 
 impl StubState {
@@ -41,6 +42,7 @@ impl StubState {
             status,
             queue: vec![content.into()],
             cursor: 0,
+            requests: Vec::new(),
         }
     }
 
@@ -87,6 +89,7 @@ fn start_stub(state: StubState) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>
             *counted.lock().unwrap() += 1;
             let (status, content) = {
                 let mut state = shared.lock().unwrap();
+                state.requests.push(serde_json::from_slice(&body).unwrap());
                 (state.status, state.next_content())
             };
             let payload = json!({"model": MODEL,
@@ -114,8 +117,17 @@ fn outline_content() -> String {
          "description":"SYNTHETIC_INTERACTIVE_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],
          "order":1,"widgetType":"diagram",
          "widgetOutline":{"diagramType":"flowchart","nodeCount":4}},
+        {"id":"game_1","type":"interactive","title":"SYNTHETIC_GAME_TITLE",
+         "description":"SYNTHETIC_GAME_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],
+         "order":2,"widgetType":"game","widgetOutline":{"gameType":"action",
+         "challenge":"SYNTHETIC_GAME_CHALLENGE","playerControls":["SYNTHETIC_THRUST"],
+         "physicsConcept":"SYNTHETIC_PHYSICS"}},
+        {"id":"code_1","type":"interactive","title":"SYNTHETIC_CODE_TITLE",
+         "description":"SYNTHETIC_CODE_DESCRIPTION","keyPoints":["SYNTHETIC_KEY_POINT"],
+         "order":3,"widgetType":"code","widgetOutline":{"language":"python",
+         "challengeType":"SYNTHETIC_CODE_CHALLENGE"}},
         {"id":"slide_1","type":"slide","title":"SYNTHETIC_SLIDE_TITLE","description":"","keyPoints":[],
-         "order":2}]})
+         "order":4}]})
     .to_string()
 }
 
@@ -219,7 +231,12 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     let python: PathBuf = std::env::var_os("ARCHEAXIS_PYTHON")
         .expect("the canonical isolated Python is required")
         .into();
-    let (port, stub, calls) = start_stub(StubState::new(200, outline_content()).then(SCENE_HTML));
+    let (port, stub, calls) = start_stub(
+        StubState::new(200, outline_content())
+            .then(SCENE_HTML)
+            .then(SCENE_HTML)
+            .then(SCENE_HTML),
+    );
     // SAFETY: this binary runs one test; the variables are set once, before any
     // worker is spawned, so no concurrent reader can observe a partial update.
     unsafe {
@@ -272,7 +289,7 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     assert_eq!(first["worker_invoked"], true);
     assert_eq!(first["generation_route"], "local_model_interactive_outline");
     assert_eq!(first["model_call"], "INVOKED");
-    assert_eq!(first["outline_count"], 2);
+    assert_eq!(first["outline_count"], 4);
     assert_eq!(first["outlines"][0]["type"], "interactive");
     assert_eq!(first["rendering_authorized"], false);
     assert_eq!(first["active_content_executed"], false);
@@ -350,16 +367,55 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
         "one outline and one scene model call"
     );
 
+    // Exercise the fields that the outline admitted all the way through the
+    // real prompt adapter and into the stub model's request, not just the frame.
+    let mut extra_scenes = Vec::new();
+    for (index, widget, request_id) in [
+        (1, "game", "interactive_game_1"),
+        (2, "code", "interactive_code_1"),
+    ] {
+        let mut body = scene_body(&outline_id, &source);
+        body["create_request_id"] = json!(request_id);
+        body["outline_index"] = json!(index);
+        let (status, result) = call(&router, SCENE_ROUTE, "human", &body).await;
+        assert_eq!(status, StatusCode::OK, "{result}");
+        assert_eq!(result["widget_type"], widget);
+        assert_eq!(result["html_execution"], "NOT_PERFORMED");
+        assert_eq!(result["rendering_authorized"], false);
+        assert_eq!(result["render"]["report"]["playable"], false);
+        let scene_id = result["document"]["document_id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        extra_scenes.push((body, scene_id));
+    }
+    {
+        let state = stub.lock().unwrap();
+        let game_prompt = state.requests[2].to_string();
+        for detail in [
+            "SYNTHETIC_GAME_CHALLENGE",
+            "SYNTHETIC_THRUST",
+            "SYNTHETIC_PHYSICS",
+        ] {
+            assert!(game_prompt.contains(detail));
+        }
+        assert!(
+            state.requests[3]
+                .to_string()
+                .contains("SYNTHETIC_CODE_CHALLENGE")
+        );
+    }
+
     // Both retries read the same candidates and rerun nothing.
     let (status, scene_duplicate) = call(&router, SCENE_ROUTE, "human", &scene).await;
     assert_eq!(status, StatusCode::OK, "{scene_duplicate}");
     assert_eq!(scene_duplicate["worker_invoked"], false);
     assert_eq!(scene_duplicate["document"]["document_id"], scene_id);
-    assert_eq!(*calls.lock().unwrap(), 2);
+    assert_eq!(*calls.lock().unwrap(), 4);
     assert_eq!(
         document_count(&executor).await,
-        3,
-        "outline, source and scene"
+        5,
+        "outline, source and three scenes"
     );
 
     // A reply the interactive-outline adapter cannot admit keeps its own status.
@@ -390,7 +446,7 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
             .is_some(),
         "{rejected}"
     );
-    assert_eq!(document_count(&executor).await, 3);
+    assert_eq!(document_count(&executor).await, 5);
     // An unavailable model lane is a named service error, never fabricating text.
     *stub.lock().unwrap() = StubState::new(500, String::new());
     let (status, unavailable) = call(
@@ -419,9 +475,15 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     assert_eq!(status, StatusCode::OK, "{scene_read_back}");
     assert_eq!(scene_read_back["worker_invoked"], false);
     assert_eq!(scene_read_back["document"]["document_id"], scene_id);
+    for (body, scene_id) in extra_scenes {
+        let (status, read_back) = call(&router, SCENE_ROUTE, "human", &body).await;
+        assert_eq!(status, StatusCode::OK, "{read_back}");
+        assert_eq!(read_back["worker_invoked"], false);
+        assert_eq!(read_back["document"]["document_id"], scene_id);
+    }
     assert_eq!(
         *calls.lock().unwrap(),
-        4,
-        "two scenes, one rejected and one failed probe"
+        6,
+        "one outline, three scenes, one rejected and one failed probe"
     );
 }

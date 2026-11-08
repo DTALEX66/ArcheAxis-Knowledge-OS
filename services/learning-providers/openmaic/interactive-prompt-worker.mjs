@@ -195,13 +195,14 @@ const stringsOk = (value, count, limit) => Array.isArray(value) && value.length 
 function widgetOutlineOk(widget, outline) {
   if (widget === undefined) return true;
   const keys = { simulation: ['concept', 'key_variables'], diagram: ['diagram_type', 'node_count', 'nodes'],
-    code: ['language'], game: ['game_type'], visualization3d: ['visualization_type', 'objects', 'interactions'] }[outline];
+    code: ['language', 'challenge_type'], game: ['game_type', 'challenge', 'player_controls', 'physics_concept'],
+    visualization3d: ['visualization_type', 'objects', 'interactions'] }[outline];
   if (!object(widget) || Object.keys(widget).some(key => !keys.includes(key))) return false;
   for (const key of Object.keys(widget)) {
     const value = widget[key];
     if (key === 'node_count') {
       if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 200) return false;
-    } else if (key === 'nodes' || key === 'objects' || key === 'interactions' || key === 'key_variables') {
+    } else if (key === 'nodes' || key === 'objects' || key === 'interactions' || key === 'key_variables' || key === 'player_controls') {
       if (!stringsOk(value, 64, 512)) return false;
     } else if (!textOk(value, 512, true)) return false;
   }
@@ -227,6 +228,10 @@ function validate(frame) {
 function variablesFor(outline, languageDirective) {
   const widget = outline.widget_outline ?? {};
   const keyPoints = outline.key_points.join('\n');
+  // The donor templates have no dedicated placeholders for these admitted
+  // details. Carry them into their existing description slot instead of
+  // silently discarding them or changing the byte-preserved templates.
+  const descriptionWith = details => [outline.description, ...details].filter(Boolean).join('\n');
   switch (outline.widget_type) {
     case 'simulation':
       return { conceptName: widget.concept || outline.title, conceptOverview: outline.description,
@@ -240,9 +245,13 @@ function variablesFor(outline, languageDirective) {
     }
     case 'code':
       return { title: outline.title, programmingLanguage: widget.language || 'python',
-        description: outline.description, keyPoints, starterCode: '', testCases: '', hints: '', languageDirective };
+        description: descriptionWith([widget.challenge_type && `Challenge type: ${widget.challenge_type}`]),
+        keyPoints, starterCode: '', testCases: '', hints: '', languageDirective };
     case 'game':
-      return { title: outline.title, gameType: widget.game_type || 'quiz', description: outline.description,
+      return { title: outline.title, gameType: widget.game_type || 'quiz',
+        description: descriptionWith([widget.challenge && `Game challenge: ${widget.challenge}`,
+          widget.player_controls?.length && `Player controls: ${JSON.stringify(widget.player_controls)}`,
+          widget.physics_concept && `Physics concept: ${widget.physics_concept}`]),
         keyPoints, scoring: { correctPoints: 10, speedBonus: 5 }, languageDirective };
     default:
       return { title: outline.title, visualizationType: widget.visualization_type || 'custom',

@@ -382,6 +382,8 @@ A successful model process leaves evaluation `unmeasured`; it does not prove ans
 | R18 | `GET /api/v1/courses/{id}` | any token | Course readback. Each binding reports `stale` plus its `knowledge_state` (`status`, `active`, `currentness`, `superseded_by`, `successor_count`, `valid_to`), so a stale course says which knowledge changed and what replaced it; the historical `knowledge_id` is never rewritten to the successor. |
 | R19 | `POST /api/v1/courses/{id}/render` | any token | Renders the stored course. |
 
+For the interactive scene chain, admitted game `challenge`, `playerControls` and `physicsConcept`, and code `challengeType`, are carried into the donor prompt's description as bounded labeled details. The byte-preserved donor templates are not rewritten. Unsupported widget fields and out-of-bound values remain rejected; this does not authorize execution or rendering of generated HTML.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):

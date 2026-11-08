@@ -24,7 +24,7 @@ PROMPTS = SERVICE / "vendor/prompts-1.3.0-interactive-outline"
 NODE = os.environ.get("ARCHEAXIS_TEST_NODE")
 requires_node = pytest.mark.skipif(not NODE, reason="explicit preverified ARCHEAXIS_TEST_NODE is required")
 SCHEMA = "archeaxis.openmaic-interactive-outline/v1"
-WORKER_SHA256 = "069868efd957b9bfce5e74e7d606c906e3fcffeedca3517272c5486c16af0647"
+WORKER_SHA256 = "4ab17fec95724da4c3e70b27ce3e93dff51f38e35abb2ee2c12cef665c4eae8b"
 PROMPT_ORIGINALS = {
     "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
     "README.md": "39c85ecccdc6d3a534f3d955ea4b1668fcd2ff94a4cade8fb1365ece7f2ff31b",
@@ -126,7 +126,7 @@ def test_the_donor_templates_own_widget_fields_are_admitted_verbatim(runner, cap
         {"id": "g", "type": "interactive", "title": "G", "description": "D",
          "keyPoints": ["玩"], "order": 1, "widgetType": "game",
          "widgetOutline": {"gameType": "action", "challenge": "控制推力着陆",
-                           "playerControls": ["thrust_slider", "angle"]}},
+                           "playerControls": ["thrust_slider", "angle"], "physicsConcept": "F=ma"}},
         {"id": "c", "type": "interactive", "title": "C", "description": "D",
          "keyPoints": ["写"], "order": 2, "widgetType": "code",
          "widgetOutline": {"language": "python", "challengeType": "function"}},

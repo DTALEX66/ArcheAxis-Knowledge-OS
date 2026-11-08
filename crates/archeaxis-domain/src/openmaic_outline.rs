@@ -62,7 +62,7 @@ fn outline_widget_fields(widget: &str) -> Option<&'static [&'static str]> {
         "simulation" => &["concept", "keyVariables"],
         "diagram" => &["diagramType", "nodeCount", "nodes"],
         "code" => &["language", "challengeType"],
-        "game" => &["challenge", "gameType", "playerControls"],
+        "game" => &["challenge", "gameType", "playerControls", "physicsConcept"],
         "visualization3d" => &["visualizationType", "objects", "interactions"],
         _ => return None,
     })

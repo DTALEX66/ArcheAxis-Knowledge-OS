@@ -29,7 +29,7 @@ RUNNER = SERVICE / "interactive_prompt_runner.py"
 NODE = os.environ.get("ARCHEAXIS_TEST_NODE")
 requires_node = pytest.mark.skipif(not NODE, reason="explicit preverified ARCHEAXIS_TEST_NODE is required")
 SCHEMA = "archeaxis.openmaic-interactive-prompt/v1"
-WORKER_SHA256 = "cb9ed8a1ae129e1bf3fa389976adeebd4157c626e12458f05495b28d7711b37d"
+WORKER_SHA256 = "6bbafff1f8b85f47a8f43bc6c9caf864e89547afd080920aee4a271be22a7c9b"
 ORIGINALS = {
     "ORIGINALS.json": "5679a80166d41114448ab35a1e2128a56baca7c9611218af590c81f3889d1ce3",
     "package.json": "5308b268d06dd27e592de00f02d57b046588df0d6e160f4179788388d5a806d1",
@@ -140,6 +140,40 @@ def test_each_widget_builds_its_pinned_prompt(stage, runner, widget):
         assert "弹性碰撞" in doc["private"]["user"] and "质量, 速度" in doc["private"]["user"]
     else:
         assert "合成互动标题" in doc["private"]["user"]
+
+
+@requires_node
+@pytest.mark.parametrize("widget, fields, expected", [
+    ("game", {"game_type": "action", "challenge": "SYNTHETIC_CHALLENGE",
+              "player_controls": ["SYNTHETIC_THRUST", "SYNTHETIC_ANGLE"],
+              "physics_concept": "SYNTHETIC_PHYSICS"},
+     ["SYNTHETIC_CHALLENGE", "SYNTHETIC_THRUST", "SYNTHETIC_ANGLE", "SYNTHETIC_PHYSICS"]),
+    ("code", {"language": "python", "challenge_type": "SYNTHETIC_CHALLENGE_TYPE"},
+     ["SYNTHETIC_CHALLENGE_TYPE"]),
+])
+def test_admitted_widget_details_reach_the_donor_prompt(stage, runner, widget, fields, expected):
+    value = request(widget)
+    value["outline"]["widget_outline"] = fields
+    result = runner.run_candidate(encode(value), node_executable=checked_node(), include_private=True)
+    assert result["status"] == "BUILT", result
+    for text in expected:
+        assert text in result["candidate"]["private"]["user"]
+
+
+@requires_node
+@pytest.mark.parametrize("widget, fields", [
+    ("game", {"player_controls": ["x"] * 65}),
+    ("game", {"player_controls": ["x", None]}),
+    ("game", {"physics_concept": "x" * 513}),
+    ("code", {"challenge_type": "x" * 513}),
+    ("code", {"physics_concept": "SYNTHETIC_PRIVATE"}),
+])
+def test_new_widget_details_remain_bounded_and_widget_specific(stage, widget, fields):
+    value = request(widget)
+    value["outline"]["widget_outline"] = fields
+    code, result, output, _ = raw_call(stage / WORKER.name, frame(encode(value), True))
+    assert code == 0 and result["status"] == "REJECTED" and result["error_code"] == "INVALID_REQUEST"
+    assert b"SYNTHETIC_PRIVATE" not in output
 
 
 @requires_node

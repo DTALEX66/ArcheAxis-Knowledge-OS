@@ -493,12 +493,13 @@ fn the_widget_fields_the_donor_prompt_documents_reach_the_frame() {
         "outline":{"id":"o1","type":"interactive","title":"SYNTHETIC_GAME_TITLE",
             "description":"d","keyPoints":[],"order":0,"widgetType":"game",
             "widgetOutline":{"gameType":"action","challenge":"控制推力使飞船低速着陆",
-                "playerControls":["thrust_slider","angle"]}}}))
+                "playerControls":["thrust_slider","angle"],"physicsConcept":"F=ma"}}}))
     .expect("a template-conformant game outline is admitted");
     assert_eq!(game.0, "game");
     assert_eq!(game.1["game_type"], "action");
     assert_eq!(game.1["challenge"], "控制推力使飞船低速着陆");
     assert_eq!(game.1["player_controls"], json!(["thrust_slider", "angle"]));
+    assert_eq!(game.1["physics_concept"], "F=ma");
     assert!(game.1.get("interactions").is_none());
 
     let code = openmaic_interactive::openmaic_interactive_widget(&json!({
