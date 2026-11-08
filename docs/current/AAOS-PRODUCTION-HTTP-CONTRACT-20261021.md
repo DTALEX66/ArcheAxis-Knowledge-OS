@@ -402,6 +402,8 @@ For a new DeepTutor question-turn, Core retains the original donor `capture_bind
 
 For a new question acceptance, Core verifies the candidate's current version and content digest within the same write transaction. A historical version, incorrect digest, or changed request under an already used acceptance ID returns `409` and writes no accepted question; a completed identical acceptance remains readable as a duplicate even if the candidate is edited later. An unsupported question or answer remains a `422` refusal.
 
+When a new question acceptance omits `explanation`, Core carries the model draft only if its question text, choices and answer exactly match the accepted text, choices and human-declared key. The resulting `explanation_source` is `model_draft_matching_unverified`: this match proves neither accuracy nor human review. If the draft exists but any of those fields differs, the accepted explanation is empty and the source is `model_draft_not_adopted`; an explicit caller explanation remains `human_supplied`, while an unavailable draft is `absent`. Already stored acceptances retain their historical text and source labels on duplicate reads.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):

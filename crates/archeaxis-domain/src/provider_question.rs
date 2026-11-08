@@ -715,15 +715,39 @@ fn accept_receipt(conn: &Connection, snapshot: &Snapshot, document: Value) -> Va
         "active_content_executed":false,"rendering_authorized":false})
 }
 
-/// The model's own explanation text, read from the candidate receipt. The
-/// candidate contract keeps only the visible question, so the explanation has
-/// to come from the stored model reply rather than from the admitted fields.
-fn staged_model_explanation(staged: &Value) -> Option<String> {
-    let content = staged["model_reply"]["content"].as_str()?;
-    let parsed: Value = serde_json::from_str(content).ok()?;
-    let text = parsed["explanation"].as_str()?;
-    (!text.trim().is_empty() && text.len() <= MAX_ACCEPT_TEXT && !text.contains('\0'))
-        .then(|| text.to_owned())
+enum DraftExplanation {
+    Missing,
+    Matching(String),
+    Mismatch,
+}
+
+/// A model explanation belongs to its original question, options and answer.
+/// Matching those fields does not establish explanation quality or review.
+fn staged_model_explanation(
+    staged: &Value,
+    body: &str,
+    options: &BTreeMap<String, String>,
+    human_answer: &str,
+) -> DraftExplanation {
+    let Some(parsed) = staged["model_reply"]["content"]
+        .as_str()
+        .and_then(|content| serde_json::from_str::<Value>(content).ok())
+    else {
+        return DraftExplanation::Missing;
+    };
+    let Some(text) = parsed["explanation"].as_str().filter(|text| {
+        !text.trim().is_empty() && text.len() <= MAX_ACCEPT_TEXT && !text.contains('\0')
+    }) else {
+        return DraftExplanation::Missing;
+    };
+    if parsed["question_type"] != "choice"
+        || parsed["question"].as_str() != Some(body)
+        || parsed["options"] != json!(options)
+        || parsed["correct_answer"].as_str() != Some(human_answer)
+    {
+        return DraftExplanation::Mismatch;
+    }
+    DraftExplanation::Matching(text.to_owned())
 }
 
 /// Turn one generated candidate into an ordinary graded-question Document only
@@ -791,15 +815,10 @@ pub fn accept_question_candidate(
         .ok_or(Error::Invalid("candidate question text missing"))?;
     let (explanation, explanation_source) = match request.explanation.clone() {
         Some(text) => (text, "human_supplied"),
-        None => match staged_model_explanation(staged) {
-            Some(text) => (text, "model_draft_reviewed"),
-            None => (
-                question["explanation"]
-                    .as_str()
-                    .unwrap_or_default()
-                    .to_owned(),
-                "absent",
-            ),
+        None => match staged_model_explanation(staged, body, &options, &request.correct_answer) {
+            DraftExplanation::Matching(text) => (text, "model_draft_matching_unverified"),
+            DraftExplanation::Mismatch => (String::new(), "model_draft_not_adopted"),
+            DraftExplanation::Missing => (String::new(), "absent"),
         },
     };
     let candidate = json!({"schema":SCHEMA,"source_material":material,

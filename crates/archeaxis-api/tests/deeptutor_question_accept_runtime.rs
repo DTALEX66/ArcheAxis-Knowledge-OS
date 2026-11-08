@@ -103,7 +103,7 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<usize>>) {
 fn model_content() -> String {
     json!({"question_type":"choice","question":"What is the synthetic sum?",
         "options":{"A":"3","B":"4","C":"5","D":"6"},
-        "correct_answer":"D","explanation":"Synthetic explanation."})
+        "correct_answer":"D","explanation":"D is the synthetic model's answer."})
     .to_string()
 }
 
@@ -254,21 +254,66 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
     let saved = &accepted["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question"];
     assert_eq!(saved["question"]["correct_answer"], "B");
     assert_eq!(
-        saved["question"]["explanation"], "Synthetic explanation.",
-        "the reviewed model draft supplies the explanation when the caller does not"
+        saved["question"]["explanation"], "",
+        "a model explanation for D cannot silently accompany the human key B"
     );
     let acceptance =
         &accepted["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question_acceptance"];
     assert_eq!(acceptance["answer_key_source"], "human_declared");
     assert_eq!(acceptance["model_answer_used_as_key"], false);
-    assert_eq!(acceptance["explanation_source"], "model_draft_reviewed");
+    assert_eq!(acceptance["explanation_source"], "model_draft_not_adopted");
     assert!(
         !accepted["question_view"]
             .to_string()
-            .contains("Synthetic explanation"),
+            .contains("D is the synthetic model's answer"),
         "the practice view never carries the answer key or explanation"
     );
     let question = snap(&accepted["question_document"]);
+
+    // A matching draft may be carried as unverified; a changed question or a
+    // human-supplied explanation must retain its own honest source.
+    let mut matching = accept.clone();
+    matching["create_request_id"] = json!("accept_matching");
+    matching["correct_answer"] = json!("D");
+    let (status, matched) = call(&router, ACCEPT_ROUTE, "human", &matching).await;
+    assert_eq!(status, StatusCode::CREATED, "{matched}");
+    let matched_attrs = &matched["document"]["editor_json"]["attrs"];
+    assert_eq!(
+        matched_attrs["archeaxis_deeptutor_question"]["question"]["explanation"],
+        "D is the synthetic model's answer."
+    );
+    assert_eq!(
+        matched_attrs["archeaxis_deeptutor_question_acceptance"]["explanation_source"],
+        "model_draft_matching_unverified"
+    );
+    let mut changed_question = matching.clone();
+    changed_question["create_request_id"] = json!("accept_changed_question");
+    changed_question["question_text"] = json!("A changed synthetic question");
+    let (status, changed_question) = call(&router, ACCEPT_ROUTE, "human", &changed_question).await;
+    assert_eq!(status, StatusCode::CREATED, "{changed_question}");
+    let changed_attrs = &changed_question["document"]["editor_json"]["attrs"];
+    assert_eq!(
+        changed_attrs["archeaxis_deeptutor_question"]["question"]["explanation"],
+        ""
+    );
+    assert_eq!(
+        changed_attrs["archeaxis_deeptutor_question_acceptance"]["explanation_source"],
+        "model_draft_not_adopted"
+    );
+    let mut supplied = accept.clone();
+    supplied["create_request_id"] = json!("accept_supplied_explanation");
+    supplied["explanation"] = json!("B is the human-supplied synthetic explanation.");
+    let (status, supplied) = call(&router, ACCEPT_ROUTE, "human", &supplied).await;
+    assert_eq!(status, StatusCode::CREATED, "{supplied}");
+    let supplied_attrs = &supplied["document"]["editor_json"]["attrs"];
+    assert_eq!(
+        supplied_attrs["archeaxis_deeptutor_question"]["question"]["explanation"],
+        "B is the human-supplied synthetic explanation."
+    );
+    assert_eq!(
+        supplied_attrs["archeaxis_deeptutor_question_acceptance"]["explanation_source"],
+        "human_supplied"
+    );
 
     // 5. A repeated acceptance reads the same Document and does not create a
     //    second one.
@@ -332,6 +377,8 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
         .to_owned();
     let mut edited = candidate["document"]["editor_json"].clone();
     edited["content"][0]["content"][0]["text"] = json!("Edited synthetic question");
+    edited["attrs"]["archeaxis_deeptutor_question_turn_candidate"]["question"]["options"]["B"] =
+        json!("Edited option");
     let revision = executor
         .store()
         .submit_wait(move |conn| document::save(conn, &candidate_id, 1, edited))
@@ -391,6 +438,21 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
         .unwrap();
     assert_eq!(count_after_digest, count_before);
 
+    let mut changed_options = matching;
+    changed_options["create_request_id"] = json!("accept_changed_options");
+    changed_options["candidate"] = json!(snap(&revision));
+    let (status, changed_options) = call(&router, ACCEPT_ROUTE, "human", &changed_options).await;
+    assert_eq!(status, StatusCode::CREATED, "{changed_options}");
+    let option_attrs = &changed_options["document"]["editor_json"]["attrs"];
+    assert_eq!(
+        option_attrs["archeaxis_deeptutor_question"]["question"]["explanation"],
+        ""
+    );
+    assert_eq!(
+        option_attrs["archeaxis_deeptutor_question_acceptance"]["explanation_source"],
+        "model_draft_not_adopted"
+    );
+
     // An already completed acceptance remains idempotent after that edit.
     let (status, replay) = call(&router, ACCEPT_ROUTE, "human", &accept).await;
     assert_eq!(status, StatusCode::CREATED, "{replay}");
@@ -399,7 +461,7 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
 
     // The same create ID with a different answer is a conflict, not a shape
     // refusal; the contract distinguishes these cases.
-    let mut changed = accept;
+    let mut changed = accept.clone();
     changed["correct_answer"] = json!("C");
     let (status, _) = call(&router, ACCEPT_ROUTE, "human", &changed).await;
     assert_eq!(
@@ -407,4 +469,28 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
         StatusCode::CONFLICT,
         "changed acceptance ID must conflict"
     );
+
+    // The old accepted snapshot remains readable after restarting without a
+    // model or donor route, even though its source candidate was edited.
+    drop(router);
+    drop(executor);
+    let reopened = Executor::open_routes(
+        &path,
+        &dir.path().join("staging"),
+        &python,
+        &text_worker,
+        &[],
+    )
+    .await
+    .unwrap();
+    let reopened_router = archeaxis_api::runtime::router(reopened);
+    let (status, replayed) = call(&reopened_router, ACCEPT_ROUTE, "human", &accept).await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(replayed["duplicate"], true);
+    assert_eq!(replayed["question_document"], accepted["question_document"]);
+    assert_eq!(
+        replayed["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question_acceptance"]["explanation_source"],
+        "model_draft_not_adopted"
+    );
+    assert_eq!(*calls.lock().unwrap(), 1);
 }
