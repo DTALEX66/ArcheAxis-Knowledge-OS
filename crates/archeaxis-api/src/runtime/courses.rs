@@ -2847,7 +2847,7 @@ async fn openmaic_interactive_chain(
         .derived_json(
             openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
             model_request,
-            Duration::from_secs(120),
+            Duration::from_secs(openmaic_interactive::OPENMAIC_INTERACTIVE_MODEL_PROCESS_TIMEOUT_S),
         )
         .await
     {

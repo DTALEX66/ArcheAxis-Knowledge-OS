@@ -51,7 +51,8 @@ MAX_PROMPT_BYTES = 200_000
 MAX_REPLY_BYTES = 120_000
 DEFAULT_TIMEOUT_S = 30
 MAX_TIMEOUT_S = 120
-REQUEST_KEYS = {"schema", "system", "user", "model", "timeout_s"}
+INTERACTIVE_SCENE_TIMEOUT_S = 200
+REQUEST_KEYS = {"schema", "system", "user", "model", "timeout_s", "request_kind"}
 MAX_REJECTION_BYTES = 8192
 
 
@@ -139,9 +140,12 @@ def _request_valid(request) -> bool:
         return False
     if "model" in request and not _model_selection(request["model"]):
         return False
+    if "request_kind" in request and request["request_kind"] != "interactive_scene":
+        return False
     if "timeout_s" in request:
         value = request["timeout_s"]
-        if type(value) is not int or not 1 <= value <= MAX_TIMEOUT_S:
+        limit = INTERACTIVE_SCENE_TIMEOUT_S if request.get("request_kind") == "interactive_scene" else MAX_TIMEOUT_S
+        if type(value) is not int or not 1 <= value <= limit:
             return False
     return True
 

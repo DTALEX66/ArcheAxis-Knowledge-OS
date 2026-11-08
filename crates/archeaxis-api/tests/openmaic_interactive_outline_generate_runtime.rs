@@ -61,6 +61,9 @@ impl StubState {
 fn start_stub(state: StubState) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let port = listener.local_addr().unwrap().port();
+    // Opt-in only: prove the scene worker survives beyond the former 120 s
+    // process cap without making ordinary regressions or CI wait minutes.
+    let long_scene = std::env::var("ARCHEAXIS_TEST_LONG_SCENE").as_deref() == Ok("1");
     let state = Arc::new(Mutex::new(state));
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
@@ -86,12 +89,19 @@ fn start_stub(state: StubState) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>
             }
             let mut body = vec![0_u8; length];
             let _ = reader.read_exact(&mut body);
-            *counted.lock().unwrap() += 1;
+            let call_number = {
+                let mut count = counted.lock().unwrap();
+                *count += 1;
+                *count
+            };
             let (status, content) = {
                 let mut state = shared.lock().unwrap();
                 state.requests.push(serde_json::from_slice(&body).unwrap());
                 (state.status, state.next_content())
             };
+            if long_scene && call_number == 2 {
+                thread::sleep(std::time::Duration::from_secs(125));
+            }
             let payload = json!({"model": MODEL,
                 "choices":[{"index":0,"finish_reason":"stop",
                     "message":{"role":"assistant","content":content}}],
@@ -345,7 +355,13 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     // The persisted interactive outline drives the existing interactive scene
     // route: widget prompt, model HTML, normalize, scene candidate.
     let scene = scene_body(&outline_id, &source);
+    let scene_started = std::time::Instant::now();
     let (status, scene_first) = call(&router, SCENE_ROUTE, "human", &scene).await;
+    if std::env::var("ARCHEAXIS_TEST_LONG_SCENE").as_deref() == Ok("1") {
+        let elapsed = scene_started.elapsed();
+        assert!(elapsed >= std::time::Duration::from_secs(125));
+        println!("synthetic_long_scene_elapsed_ms={}", elapsed.as_millis());
+    }
     assert_eq!(status, StatusCode::OK, "{scene_first}");
     assert_eq!(scene_first["scene_route"], "interactive");
     assert_eq!(

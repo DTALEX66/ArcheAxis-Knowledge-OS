@@ -8,6 +8,24 @@ const MAX_OUTPUT: usize = 1_000_000;
 const MAX_ERROR: usize = 8192;
 const MAX_OPENMAIC_SOURCE: u64 = 1_000_000;
 
+/// Only the explicitly marked interactive-scene model frame may outlive the
+/// ordinary derived-worker cap. It remains bounded before the child starts.
+fn derived_timeout_cap(capability: &str, request: &Value) -> Duration {
+    use archeaxis_domain::{openmaic_interactive as interactive, openmaic_outline as outline};
+
+    if capability == outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY
+        && request["schema"] == outline::OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA
+        && request["request_kind"] == interactive::OPENMAIC_INTERACTIVE_MODEL_REQUEST_KIND
+        && request["timeout_s"].as_u64().is_some_and(|value| {
+            (1..=interactive::OPENMAIC_INTERACTIVE_MODEL_TIMEOUT_S).contains(&value)
+        })
+    {
+        Duration::from_secs(interactive::OPENMAIC_INTERACTIVE_MODEL_PROCESS_TIMEOUT_S)
+    } else {
+        Duration::from_secs(120)
+    }
+}
+
 pub(super) fn supported(capability: &str) -> bool {
     matches!(
         capability,
@@ -594,7 +612,7 @@ impl Executor {
         expected_generation: Option<u64>,
         script_kind: OpenMaicScript,
     ) -> Result<Value, String> {
-        let deadline = Instant::now() + timeout.min(Duration::from_secs(120));
+        let deadline = Instant::now() + timeout.min(derived_timeout_cap(capability, &request));
         if !supported(capability) {
             return Err("unsupported derived capability".into());
         }
@@ -1778,6 +1796,42 @@ mod openmaic_source_bound_tests {
 #[cfg(test)]
 mod openmaic_receipt_tests {
     use super::*;
+
+    #[test]
+    fn only_the_bounded_interactive_model_frame_gets_the_scene_deadline() {
+        let frame = json!({"schema":"archeaxis.openmaic-outline-model-request/v1",
+            "request_kind":"interactive_scene", "timeout_s":200});
+        assert_eq!(
+            derived_timeout_cap("course.openmaic.outline-model", &frame),
+            Duration::from_secs(210)
+        );
+        assert_eq!(
+            derived_timeout_cap("course.general", &frame),
+            Duration::from_secs(120)
+        );
+        let mut invalid = frame.clone();
+        invalid["timeout_s"] = json!(201);
+        assert_eq!(
+            derived_timeout_cap("course.openmaic.outline-model", &invalid),
+            Duration::from_secs(120)
+        );
+        invalid = frame.clone();
+        invalid["request_kind"] = json!("other");
+        assert_eq!(
+            derived_timeout_cap("course.openmaic.outline-model", &invalid),
+            Duration::from_secs(120)
+        );
+        invalid = frame.clone();
+        invalid["schema"] = json!("wrong");
+        assert_eq!(
+            derived_timeout_cap("course.openmaic.outline-model", &invalid),
+            Duration::from_secs(120)
+        );
+        assert_eq!(
+            derived_timeout_cap("course.openmaic.outline-model", &json!({})),
+            Duration::from_secs(120)
+        );
+    }
 
     fn pair() -> (Value, Value) {
         let request = json!({"request_id":"req", "attempt":1, "source":{"document_id":"doc", "version":1, "content_sha256":"a".repeat(64)},

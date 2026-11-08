@@ -20,6 +20,19 @@ fn digest(bytes: &[u8]) -> String {
 
 const HTML: &str = "<!DOCTYPE html><html><body><p>SYNTHETIC_INTERACTIVE_HTML</p></body></html>";
 
+#[test]
+fn interactive_scene_model_budget_does_not_change_outline_budget() {
+    let binding = json!({"system":"SYNTHETIC_SYSTEM", "user":"SYNTHETIC_USER"});
+    let outline = openmaic_outline::openmaic_outline_model_request(&binding, &Value::Null);
+    let scene = openmaic_interactive::openmaic_interactive_model_request(&binding, &Value::Null);
+    assert_eq!(outline["timeout_s"], 110);
+    assert!(outline.get("request_kind").is_none());
+    assert_eq!(scene["timeout_s"], 200);
+    assert_eq!(scene["request_kind"], "interactive_scene");
+    assert_eq!(scene["system"], outline["system"]);
+    assert_eq!(scene["user"], outline["user"]);
+}
+
 fn outline_generate_request() -> Value {
     json!({"schema":"archeaxis.openmaic-outline-generate/v1","create_request_id":"outline_1",
         "requirement":"Synthetic requirement","source_text":"SYNTHETIC source material",

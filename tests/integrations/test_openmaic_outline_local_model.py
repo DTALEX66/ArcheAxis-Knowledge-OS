@@ -163,6 +163,30 @@ def test_an_explicit_model_selection_overrides_the_lane_model():
     assert json.loads(seen[0]["body"].decode("utf-8"))["model"] == "synthetic-other-model"
 
 
+def test_interactive_scene_has_a_separate_bounded_model_budget():
+    with stub(response()) as (port, seen):
+        code, result = invoke(frame(port, request_kind="interactive_scene", timeout_s=200), port)
+    assert code == 0 and result["status"] == "REPLY"
+    assert result["timeout_s"] == 200
+    assert len(seen) == 1
+    sent = json.loads(seen[0]["body"])
+    assert "request_kind" not in sent and "timeout_s" not in sent
+
+
+@pytest.mark.parametrize("overrides", [
+    {"timeout_s": 121},
+    {"request_kind": "interactive_scene", "timeout_s": 201},
+    {"request_kind": "other", "timeout_s": 200},
+    {"request_kind": None, "timeout_s": 200},
+    {"request_kind": "interactive_scene", "timeout_s": True},
+])
+def test_longer_budget_is_refused_outside_its_bounded_kind(overrides):
+    with stub(response()) as (port, seen):
+        code, result = invoke(frame(port, **overrides), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["network_performed"] is False and seen == []
+
+
 def test_a_slow_lane_is_named_as_a_timeout_without_retrying():
     with stub(response(), delay=3.0) as (port, seen):
         started = time.monotonic()
