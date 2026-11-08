@@ -564,9 +564,7 @@ fn openmaic_stage_failure(
         .into_response()
 }
 
-/// The bounded rule detail a worker records with a refusal: rule names, the
-/// entry position and the offending field names. Model bytes stay in the worker,
-/// so a caller can act on the reason without the route echoing reply content.
+/// A bounded set of rule names produced by the fixed adapter.
 fn openmaic_stage_rules(values: Option<&Vec<Value>>, limit: usize) -> Vec<Value> {
     let mut names = Vec::new();
     if let Some(items) = values {
@@ -577,6 +575,41 @@ fn openmaic_stage_rules(values: Option<&Vec<Value>>, limit: usize) -> Vec<Value>
         }
     }
     names
+}
+
+/// Model-generated object keys can contain arbitrary text. Only the product's
+/// known structural labels are safe to repeat in a failure response.
+fn openmaic_stage_fields(values: Option<&Vec<Value>>, limit: usize) -> Vec<Value> {
+    const STRUCTURAL_FIELDS: &[&str] = &[
+        "id",
+        "type",
+        "title",
+        "description",
+        "keyPoints",
+        "order",
+        "widgetType",
+        "widgetOutline",
+        "languageDirective",
+        "languageNote",
+        "courseTitle",
+        "outlines",
+        "mediaGenerations",
+        "images",
+        "quizConfig",
+    ];
+    values
+        .into_iter()
+        .flatten()
+        .take(limit)
+        .filter_map(Value::as_str)
+        .map(|field| {
+            Value::from(if STRUCTURAL_FIELDS.contains(&field) {
+                field
+            } else {
+                "UNRECOGNIZED_FIELD"
+            })
+        })
+        .collect()
 }
 
 fn openmaic_stage_diagnostics(document: &Value) -> Value {
@@ -592,7 +625,7 @@ fn openmaic_stage_diagnostics(document: &Value) -> Value {
                     json!({
                         "kind": item["kind"],
                         "outline_index": item["outline_index"],
-                        "fields": openmaic_stage_rules(item["fields"].as_array(), FIELD_LIMIT)
+                        "fields": openmaic_stage_fields(item["fields"].as_array(), FIELD_LIMIT)
                     })
                 })
                 .collect::<Vec<_>>()
@@ -652,6 +685,30 @@ mod model_outcome_tests {
         assert_eq!(
             openmaic_unusable_model_outcome(&named),
             ("INVALID_MODEL_OUTPUT".to_owned(), json!("MODEL_NONSTOP"))
+        );
+    }
+
+    #[test]
+    fn unknown_model_field_names_are_bounded_and_not_echoed() {
+        let private = "SYNTHETIC_PRIVATE".repeat(4096);
+        let mut fields = vec![json!("widgetType"), json!(private)];
+        fields.extend((0..30).map(|_| json!("other")));
+        let diagnostics = openmaic_stage_diagnostics(&json!({
+            "differences":[{"kind":"UNKNOWN_OUTLINE_FIELDS", "outline_index":0, "fields":fields}],
+            "transformations":["OUTLINE_ORDER_ASSIGNED"]
+        }));
+        let reported = diagnostics["differences"][0]["fields"].as_array().unwrap();
+        assert_eq!(reported.len(), 16);
+        assert_eq!(reported[0], "widgetType");
+        assert!(
+            reported[1..]
+                .iter()
+                .all(|field| field == "UNRECOGNIZED_FIELD")
+        );
+        assert!(!diagnostics.to_string().contains("SYNTHETIC_PRIVATE"));
+        assert_eq!(
+            diagnostics["transformations"],
+            json!(["OUTLINE_ORDER_ASSIGNED"])
         );
     }
 }

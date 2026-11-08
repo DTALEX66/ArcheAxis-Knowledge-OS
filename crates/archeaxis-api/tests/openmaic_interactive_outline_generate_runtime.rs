@@ -456,6 +456,34 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
         "{rejected}"
     );
     assert_eq!(document_count(&executor).await, 5);
+
+    // Model-generated object keys are content too, even when they look like
+    // diagnostic field names. Known contract labels may still be named.
+    let mut unusual: Value = serde_json::from_str(&outline_content()).unwrap();
+    unusual["outlines"][0]["SYNTHETIC_PRIVATE_FIELD_NAME"] = json!(true);
+    unusual["outlines"][3]["widgetType"] = json!("diagram");
+    *stub.lock().unwrap() = StubState::new(200, unusual.to_string());
+    let (status, rejected_fields) = call(
+        &router,
+        OUTLINE_ROUTE,
+        "human",
+        &generate_body("interactive_unrecognized_field"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert!(
+        !rejected_fields
+            .to_string()
+            .contains("SYNTHETIC_PRIVATE_FIELD_NAME")
+    );
+    let differences = rejected_fields["worker_outcome"]["differences"]
+        .as_array()
+        .unwrap();
+    assert_eq!(differences[0]["kind"], "UNKNOWN_OUTLINE_FIELDS");
+    assert_eq!(differences[0]["fields"], json!(["UNRECOGNIZED_FIELD"]));
+    assert_eq!(differences[1]["fields"], json!(["widgetType"]));
+    assert_eq!(document_count(&executor).await, 5);
+
     // An unavailable model lane is a named service error, never fabricating text.
     *stub.lock().unwrap() = StubState::new(500, String::new());
     let (status, unavailable) = call(
@@ -492,7 +520,7 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     }
     assert_eq!(
         *calls.lock().unwrap(),
-        6,
-        "one outline, three scenes, one rejected and one failed probe"
+        7,
+        "one outline, three scenes, two rejected and one failed probe"
     );
 }
