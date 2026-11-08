@@ -203,11 +203,17 @@ fn model_prompt_adapter_preserves_both_languages_and_refuses_ambiguous_anchors()
         let binding = turn::capture_binding("turn_adapter", &captured).unwrap();
         let snapshot = binding.clone();
         let adapted = turn::model_prompt_binding(&binding).unwrap();
+        assert_eq!(adapted["adapter"], "aaos-direct-json/v2");
         let sent = adapted["system"].as_str().unwrap();
         assert!(!sent.contains(old_start));
         assert!(sent.contains(replacement));
         assert!(sent.ends_with(system.split_once(schema).unwrap().1));
         assert!(sent.contains(schema));
+        assert!(sent.contains(if system.contains("# 输出协议") {
+            "反斜杠"
+        } else {
+            "backslash"
+        }));
         assert_eq!(adapted["system_sha256"], digest(sent.as_bytes()));
         assert_eq!(adapted["user_sha256"], binding["user_sha256"]);
         assert_eq!(binding, snapshot, "the donor capture stays unchanged");
@@ -230,6 +236,55 @@ fn model_prompt_adapter_preserves_both_languages_and_refuses_ambiguous_anchors()
         let binding = turn::capture_binding("turn_adapter", &captured).unwrap();
         assert!(turn::model_prompt_binding(&binding).is_err());
     }
+}
+
+#[test]
+fn a_previous_v1_model_prompt_binding_remains_readable() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("workspace.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let selected = material(&mut conn);
+    grant(&mut conn, &selected, "granted", "deeptutor");
+    let req = request(&selected, "turn_v1_adapter");
+    let ticket = pending(&mut conn, &req);
+    let captured = capture(&ticket);
+    let binding = turn::capture_binding("turn_v1_adapter", &captured).unwrap();
+    let old_system = "SYNTHETIC_SYSTEM prompt\n\n# AAOS single-response protocol\nReturn exactly one complete JSON object matching the schema below. Do not output FINISH, THINK or TOOL labels, extra prose or Markdown fences; do not call tools.\n\n# FINISH JSON schema (strict)\nSYNTHETIC_SCHEMA";
+    let old_model_prompt = json!({"schema":turn::MODEL_PROMPT_BINDING_SCHEMA,
+        "adapter":"aaos-direct-json/v1","donor_prompt_sha256":binding["prompt_sha256"],
+        "system":old_system,"system_sha256":digest(old_system.as_bytes()),
+        "user_sha256":binding["user_sha256"]});
+    let saved = json!({"schema":turn::DOCUMENT_SCHEMA,"create_request_id":req.create_request_id,
+        "generation_request_sha256":turn::request_sha256(&req).unwrap(),
+        "capture_binding":binding,"model_prompt_binding":old_model_prompt,
+        "model_reply":model_reply(&question_content()),"worker_document":replay(&ticket, &captured)});
+    let internal_id = format!(
+        "deeptutor_question_turn_{}",
+        digest(req.create_request_id.as_bytes())
+    );
+    document::create_optional_with_request(
+        &mut conn,
+        None,
+        None,
+        "Synthetic v1 prompt candidate",
+        json!({"type":"doc","content":[],"attrs":{(turn::DOCUMENT_NAMESPACE):saved}}),
+        Some(&internal_id),
+    )
+    .unwrap();
+    let before = conn.total_changes();
+    match turn::prepare_question_turn(&mut conn, &req).unwrap() {
+        QuestionTurnPreparation::Existing(receipt) => {
+            assert_eq!(
+                receipt["model_prompt_binding"]["adapter"],
+                "aaos-direct-json/v1"
+            );
+            assert_eq!(receipt["model_prompt_binding"]["system"], old_system);
+        }
+        _ => panic!("v1 candidate must remain readable"),
+    }
+    assert_eq!(conn.total_changes(), before);
 }
 
 #[test]

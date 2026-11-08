@@ -22,7 +22,7 @@ pub const DOCUMENT_NAMESPACE: &str = "archeaxis_deeptutor_question_turn_candidat
 pub const DOCUMENT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-document/v1";
 pub const BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-turn-prompt-binding/v1";
 pub const MODEL_PROMPT_BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-model-prompt/v1";
-const MODEL_PROMPT_ADAPTER: &str = "aaos-direct-json/v1";
+const MODEL_PROMPT_ADAPTER: &str = "aaos-direct-json/v2";
 pub const WORKER_SCHEMA: &str = "archeaxis.deeptutor-question-turn-replay/v1";
 pub const RECEIPT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-persistence/v1";
 pub const GENERATION_ROUTE: &str = "deeptutor_question_turn_local_model";
@@ -476,12 +476,12 @@ pub fn model_prompt_binding(binding: &Value) -> Result<Value, Error> {
         (
             "# 输出协议（强制）",
             "# FINISH 的 JSON schema（严格）",
-            "# AAOS 单次输出协议\n直接输出一个符合下方 schema 的完整 JSON 对象。不要输出 FINISH、THINK、TOOL 标签、额外说明或 Markdown 代码块；不调用工具。\n\n",
+            "# AAOS 单次输出协议\n直接输出一个符合下方 schema 的完整 JSON 对象。不要输出 FINISH、THINK、TOOL 标签、额外说明或 Markdown 代码块；不调用工具。对象必须且只能包含 question_type、question、options、correct_answer、explanation；question_type 必须是 choice，options 恰好包含 A、B、C、D，correct_answer 必须是其中一个字母。JSON 字符串中的反斜杠、双引号和换行必须按 JSON 规则转义；LaTeX 中的反斜杠也必须写成两个反斜杠。\n\n",
         ),
         (
             "# Output protocol (mandatory — every reply must comply)",
             "# FINISH JSON schema (strict)",
-            "# AAOS single-response protocol\nReturn exactly one complete JSON object matching the schema below. Do not output FINISH, THINK or TOOL labels, extra prose or Markdown fences; do not call tools.\n\n",
+            "# AAOS single-response protocol\nReturn exactly one complete JSON object matching the schema below. Do not output FINISH, THINK or TOOL labels, extra prose or Markdown fences; do not call tools. The object must contain exactly question_type, question, options, correct_answer and explanation; question_type must be choice, options must contain exactly A, B, C and D, and correct_answer must be one of those letters. Escape backslashes, double quotes and line breaks in JSON strings; double every LaTeX backslash as well.\n\n",
         ),
     ];
     let mut selected = None;
@@ -520,7 +520,10 @@ fn model_prompt_binding_shape(binding: &Value, model_prompt: &Value) -> bool {
         .as_object()
         .is_some_and(|object| object.len() == 6)
         && model_prompt["schema"] == MODEL_PROMPT_BINDING_SCHEMA
-        && model_prompt["adapter"] == MODEL_PROMPT_ADAPTER
+        && matches!(
+            model_prompt["adapter"].as_str(),
+            Some("aaos-direct-json/v1" | "aaos-direct-json/v2")
+        )
         && model_prompt["donor_prompt_sha256"] == binding["prompt_sha256"]
         && model_prompt["user_sha256"] == binding["user_sha256"]
         && model_prompt["system"].as_str().is_some_and(|text| {
