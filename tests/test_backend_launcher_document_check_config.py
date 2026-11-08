@@ -2,7 +2,10 @@
 
 import importlib.util
 import json
+import os
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -51,6 +54,28 @@ def test_missing_invalid_and_valid_config_do_not_choose_defaults(tmp_path):
         assert launcher.document_check_config(tmp_path) == (None, "invalid_config")
     path.write_bytes(b" " * (16 * 1024 + 1))
     assert launcher.document_check_config(tmp_path) == (None, "invalid_config")
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended-path regression")
+def test_valid_document_check_config_at_long_path(tmp_path):
+    launcher = load()
+    padding = 245 - len(str(tmp_path)) - 1
+    assert 0 < padding < 255
+    data = tmp_path / ("d" * padding)
+    folder = launcher.filesystem_path(data / "config")
+    folder.mkdir(parents=True)
+    valid = {
+        "provider": "fixture",
+        "model": "fixture/exact-v1",
+        "credential_ref": "aak_cred_" + "a" * 32,
+        "max_tokens": 128,
+        "timeout_seconds": 10,
+        "search_limit": 1,
+    }
+    path = launcher.filesystem_path(data / "config" / "document-check.json")
+    path.write_text(json.dumps(valid), encoding="utf-8")
+    assert len(str(data / "config" / "document-check.json")) > 260
+    assert launcher.document_check_config(data) == (valid, None)
 
 
 def test_owned_windows_parent_junction_is_rejected(tmp_path):

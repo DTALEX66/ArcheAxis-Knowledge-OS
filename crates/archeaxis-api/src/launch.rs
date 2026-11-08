@@ -22,6 +22,10 @@ pub struct Launch {
     /// Optional isolated provider. Missing files make only that capability unavailable.
     #[serde(default)]
     pub openmaic_node_worker: Option<OpenMaicNodeProfile>,
+    /// A launcher-observed failure disables only this optional provider. The
+    /// text is never projected into the API or used to select a worker.
+    #[serde(default)]
+    pub openmaic_node_worker_error: Option<String>,
     pub document_check_config: Option<archeaxis_application::executor::DocumentCheckConfig>,
     pub document_check_config_error: Option<String>,
     #[serde(default, deserialize_with = "present_string")]
@@ -201,6 +205,9 @@ impl Launch {
     /// Invalid configuration is an unavailable optional capability, not a Core
     /// startup or ordinary-save failure.
     pub fn openmaic_node_profile(&self) -> Option<OpenMaicNodeProfile> {
+        if self.openmaic_node_worker_error.is_some() {
+            return None;
+        }
         let profile = self.openmaic_node_worker.clone()?;
         // No E/F drive access is granted by a project launch profile.
         for path in [&profile.executable, &profile.script] {
@@ -458,6 +465,10 @@ mod tests {
         configured["openmaic_node_worker"] = serde_json::json!({"executable":node,"executable_sha256":"a".repeat(64),"script":script});
         let launch: Launch = serde_json::from_value(configured.clone()).unwrap();
         assert!(launch.openmaic_node_profile().is_some());
+        let mut conflicting = configured.clone();
+        conflicting["openmaic_node_worker_error"] = serde_json::json!("path_invalid");
+        let launch: Launch = serde_json::from_value(conflicting).unwrap();
+        assert!(launch.openmaic_node_profile().is_none());
         configured["openmaic_node_worker"]["executable"] = serde_json::json!("node");
         let relative: Launch = serde_json::from_value(configured.clone()).unwrap();
         assert!(relative.openmaic_node_profile().is_none());
@@ -472,6 +483,22 @@ mod tests {
             "c".repeat(64)
         );
         assert!(serde_json::from_str::<Launch>(&duplicate).is_err());
+    }
+
+    #[test]
+    fn a_named_optional_openmaic_failure_is_a_valid_launch() {
+        let base = serde_json::json!({"launch_token":"a".repeat(64), "session_id":"b".repeat(32)});
+        for reason in [
+            "absent",
+            "path_invalid",
+            "manifest_invalid",
+            "member_identity_mismatch",
+        ] {
+            let mut disabled = base.clone();
+            disabled["openmaic_node_worker_error"] = serde_json::json!(reason);
+            let launch: Launch = serde_json::from_value(disabled).unwrap();
+            assert!(launch.openmaic_node_profile().is_none());
+        }
     }
 }
 #[derive(Clone)]

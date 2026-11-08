@@ -59,11 +59,11 @@ class LaunchFailure(Exception):  # noqa: N818 - retained public exception contra
     """A named startup failure; the message says which component failed."""
 
 
-def filesystem_path(path: Path) -> Path:
+def filesystem_path(path: Path, *, force: bool = False) -> Path:
     """Use the Windows extended form for long local I/O, not launch profiles."""
     if os.name == "nt":
         absolute = os.path.abspath(path)
-        if len(absolute) >= 248 and not absolute.startswith("\\\\"):
+        if (force or len(absolute) >= 248) and not absolute.startswith("\\\\"):
             return Path("\\\\?\\" + absolute)
     return path
 
@@ -88,10 +88,11 @@ def safe_path(root: Path, value: str) -> Path:
 
 def load_profile(root: Path, explicit_path: str | None = None) -> dict:
     path = safe_path(root, explicit_path if explicit_path is not None else PROFILE_NAME)
-    if not path.is_file():
+    io_path = filesystem_path(path)
+    if not io_path.is_file():
         raise LaunchFailure(f"worker profile is missing: {path}")
     try:
-        if path.stat().st_size > 16384:
+        if io_path.stat().st_size > 16384:
             raise LaunchFailure("worker profile exceeds limit")
 
         def unique(pairs):
@@ -102,7 +103,7 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
                 document[key] = value
             return document
 
-        document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
+        document = json.loads(io_path.read_text(encoding="utf-8"), object_pairs_hook=unique)
     except (json.JSONDecodeError, UnicodeError, OSError) as error:
         raise LaunchFailure("worker profile is not valid readable JSON") from error
     allowed_fields = (
@@ -163,7 +164,7 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
         # Unsafe paths still fail above; other routes keep their existing rule.
         if capability in ("deeptutor.practice.import", "deeptutor.question.turn",
                           "deeptutor.teaching.feedback"):
-            if not resolved_script.is_file():
+            if not filesystem_path(resolved_script).is_file():
                 continue
         require_file(resolved_script, f"worker route script for {capability}")
         resolved.append({"capability": capability, "script": resolved_script})
@@ -171,7 +172,7 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
 
 
 def require_file(path: Path, what: str) -> Path:
-    if not path.is_file():
+    if not filesystem_path(path).is_file():
         raise LaunchFailure(f"{what} is missing: {path}")
     return path
 
@@ -221,7 +222,9 @@ def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
         return metadata.st_dev, metadata.st_ino, metadata.st_size, metadata.st_mtime_ns
 
     try:
-        root = data_root.resolve(strict=True)
+        # Keep the complete containment/identity comparison in one path form;
+        # a short root can still contain a config file beyond MAX_PATH.
+        root = filesystem_path(data_root, force=True).resolve(strict=True)
         folder = root / "config"
         try:
             parent = folder.stat(follow_symlinks=False)
@@ -468,8 +471,8 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
     data_root = safe_path(ROOT, str(data_root))
     staging = safe_path(data_root, "worker-staging")
     workspace = safe_path(data_root, workspace_name)
-    data_root.mkdir(parents=True, exist_ok=True)
-    staging.mkdir(parents=True, exist_ok=True)
+    filesystem_path(data_root).mkdir(parents=True, exist_ok=True)
+    filesystem_path(staging).mkdir(parents=True, exist_ok=True)
 
     launch = {
         "launch_token": secrets.token_hex(32),
@@ -500,10 +503,21 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
         launch["document_check_config"] = check_config
     if check_error is not None:
         launch["document_check_config_error"] = check_error
+    launch_directory = ROOT
+    if os.name == "nt":
+        # CreateProcess cannot use an overlong current directory even when its
+        # executable is addressed using extended syntax. Do not inherit an
+        # unrelated caller's cwd; use the nearest short runtime ancestor.
+        while len(str(launch_directory)) >= 248:
+            parent = launch_directory.parent
+            if parent == launch_directory:
+                raise LaunchFailure("no usable Core working directory")
+            launch_directory = parent
     child = subprocess.Popen(
-        [str(core), str(workspace), str(port)],
+        [str(filesystem_path(core)), str(workspace), str(port)],
+        executable=str(filesystem_path(core)),
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, encoding="utf-8", cwd=str(ROOT),
+        text=True, encoding="utf-8", cwd=str(launch_directory),
         env=build_environment(ROOT),
     )
     try:
@@ -514,6 +528,8 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
+        if openmaic_reason is not None:
+            receipt["openmaic_node_worker_error"] = openmaic_reason
         tokens = {"human": launch["launch_token"], "machine": launch["machine_token"]}
         return child, base, receipt, tokens
     except BaseException:
