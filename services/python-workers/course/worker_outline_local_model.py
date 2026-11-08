@@ -27,6 +27,7 @@ Exit 0 only for `REPLY`, 2 for every named failure (the Core preserves it).
 from __future__ import annotations
 
 import hashlib
+import http.client
 import importlib.util
 import json
 from pathlib import Path
@@ -63,7 +64,7 @@ def _rejection_diagnostic(error: urllib.error.HTTPError) -> dict:
     diagnostic = {"error_type": "HTTPError", "http_status": int(error.code)}
     try:
         payload = json.loads(error.read(MAX_REJECTION_BYTES).decode("utf-8", "strict"))
-    except (OSError, ValueError, UnicodeError):
+    except (OSError, ValueError, UnicodeError, http.client.HTTPException):
         return diagnostic
     engine = payload.get("error") if isinstance(payload, dict) else None
     if isinstance(engine, str):
@@ -246,11 +247,13 @@ def process(request) -> dict:
                             model=model, requested_model=model,
                             endpoint=endpoint["base"], protocol=endpoint["protocol"],
                             elapsed_ms=int((time.monotonic() - started) * 1000),
+                            network_performed=True,
                             diagnostic={"error_type": "HTTPError", "http_status": int(error.code)})
         return _receipt("MODEL_REJECTED", "MODEL_HTTP_REJECTED",
                         model=model, requested_model=model,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         elapsed_ms=int((time.monotonic() - started) * 1000),
+                        network_performed=True,
                         diagnostic=_rejection_diagnostic(error))
     except Exception as error:  # noqa: BLE001 - unreachable/timed-out lanes stay local failures
         timed_out = isinstance(error, TimeoutError) or (
@@ -263,15 +266,28 @@ def process(request) -> dict:
             model=model, requested_model=model,
             endpoint=endpoint["base"], protocol=endpoint["protocol"],
             elapsed_ms=int((time.monotonic() - started) * 1000),
+            # Before response headers, the transport cannot tell whether the
+            # loopback peer received the request; do not assert it did not.
+            network_performed=None,
             diagnostic={"error_type": type(error).__name__})
     try:
         with response:
             payload = machine.read_model_json(response)
-    except (ValueError, TypeError, UnicodeError, OSError) as error:
+    except TimeoutError as error:
+        # Headers arrived, but the response body did not finish before the
+        # socket deadline. This is a timeout, not evidence of malformed JSON.
+        return _receipt("MODEL_TIMEOUT", "MODEL_RESPONSE_TIMEOUT",
+                        model=model, requested_model=model,
+                        endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        elapsed_ms=int((time.monotonic() - started) * 1000),
+                        network_performed=True,
+                        diagnostic={"error_type": type(error).__name__})
+    except (ValueError, TypeError, UnicodeError, OSError, http.client.HTTPException) as error:
         return _receipt("INVALID_MODEL_OUTPUT", "MODEL_RESPONSE_INVALID",
                         model=model, requested_model=model,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         elapsed_ms=int((time.monotonic() - started) * 1000),
+                        network_performed=True,
                         diagnostic={"error_type": type(error).__name__})
     elapsed = time.monotonic() - started
     if elapsed >= timeout_s:
@@ -279,29 +295,50 @@ def process(request) -> dict:
         return _receipt("MODEL_TIMEOUT", "MODEL_RESPONSE_AFTER_DEADLINE",
                         model=model, requested_model=model,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        network_performed=True,
                         elapsed_ms=int(elapsed * 1000))
     answer, reason, observed = _answer(payload, endpoint["protocol"])
+    try:
+        if answer is None:
+            if observed is not None:
+                observed.encode("utf-8")
+            encoded_content = None
+        else:
+            encoded_content = answer["content"].encode("utf-8")
+            for value in (answer["finish_reason"], answer["observed"]):
+                if value is not None:
+                    value.encode("utf-8")
+    except UnicodeEncodeError:
+        # JSON can contain escaped unpaired surrogates. Do not misreport an
+        # invalid model response as an invalid input or echo its contents.
+        return _receipt("INVALID_MODEL_OUTPUT", "MODEL_RESPONSE_INVALID",
+                        model=model, requested_model=model,
+                        endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        network_performed=True,
+                        elapsed_ms=int((time.monotonic() - started) * 1000))
     if answer is None:
         return _receipt("NO_FINAL_ANSWER" if reason in ("EMPTY_CONTENT", "REASONING_ONLY")
                         else "INVALID_MODEL_OUTPUT", reason,
                         model=model, requested_model=model, observed_model=observed,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         max_tokens=max_tokens, timeout_s=timeout_s,
+                        network_performed=True,
                         elapsed_ms=int(elapsed * 1000))
     content = answer["content"]
-    if len(content.encode("utf-8")) > MAX_REPLY_BYTES:
+    if len(encoded_content) > MAX_REPLY_BYTES:
         # A reply the replay contract cannot carry is refused, never truncated.
         return _receipt("INVALID_MODEL_OUTPUT", "MODEL_REPLY_BUDGET",
                         model=model, requested_model=model, observed_model=answer["observed"],
                         finish_reason=answer["finish_reason"],
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         max_tokens=max_tokens, timeout_s=timeout_s,
+                        network_performed=True,
                         elapsed_ms=int(elapsed * 1000))
     usage = machine.reported_usage(payload, endpoint["protocol"])
     return _receipt("REPLY", None,
                     content=content,
-                    content_sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
-                    content_bytes=len(content.encode("utf-8")),
+                    content_sha256=hashlib.sha256(encoded_content).hexdigest(),
+                    content_bytes=len(encoded_content),
                     model=model, requested_model=model, observed_model=answer["observed"],
                     finish_reason=answer["finish_reason"],
                     usage=usage, usage_status="REPORTED" if usage is not None else "UNKNOWN",

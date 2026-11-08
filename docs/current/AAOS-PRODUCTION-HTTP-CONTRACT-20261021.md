@@ -384,6 +384,8 @@ A successful model process leaves evaluation `unmeasured`; it does not prove ans
 
 For the interactive scene chain, admitted game `challenge`, `playerControls` and `physicsConcept`, and code `challengeType`, are carried into the donor prompt's description as bounded labeled details. The byte-preserved donor templates are not rewritten. Unsupported widget fields and out-of-bound values remain rejected; this does not authorize execution or rendering of generated HTML.
 
+The OpenMAIC local-model worker distinguishes a timeout awaiting response headers (`MODEL_REQUEST_TIMEOUT`) from a timeout while reading an already-started response body (`MODEL_RESPONSE_TIMEOUT`); both have status `MODEL_TIMEOUT` and are not retried automatically. A malformed or interrupted successful HTTP response, including invalid Unicode in emitted model fields, is `INVALID_MODEL_OUTPUT/MODEL_RESPONSE_INVALID`, with no partial body echoed. If a 4xx rejection body is interrupted, the observed `MODEL_REJECTED/MODEL_HTTP_REJECTED` remains available without the body. Its `network_performed` is true after an HTTP response is observed, false when execution was refused before any network attempt, and null when a pre-response transport failure cannot establish whether the peer received the request. No inference is made about model quality or the cause of a timeout.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):

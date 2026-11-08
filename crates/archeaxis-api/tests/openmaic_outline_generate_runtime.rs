@@ -27,6 +27,7 @@ const MODEL: &str = "synthetic-stub-model";
 struct StubState {
     status: u16,
     content: String,
+    truncated_chunk: bool,
 }
 
 /// One synthetic loopback model lane. Every request is counted, so a retry that
@@ -37,6 +38,7 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
     let state = Arc::new(Mutex::new(StubState {
         status: 200,
         content,
+        truncated_chunk: false,
     }));
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
@@ -64,6 +66,16 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
             let _ = reader.read_exact(&mut body);
             *counted.lock().unwrap() += 1;
             let state = shared.lock().unwrap();
+            if state.truncated_chunk {
+                let response = format!(
+                    "HTTP/1.1 {} synthetic\r\nTransfer-Encoding: chunked\r\n\
+                     Connection: close\r\n\r\n20\r\n{{\"private\":\"SYNTHETIC_PRIVATE\"",
+                    state.status
+                );
+                let _ = stream.write_all(response.as_bytes());
+                let _ = stream.flush();
+                continue;
+            }
             let payload = json!({"model": MODEL,
                 "choices":[{"index":0,"finish_reason":"stop",
                     "message":{"role":"assistant","content":state.content}}],
@@ -270,6 +282,7 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
     *stub.lock().unwrap() = StubState {
         status: 200,
         content: "   ".into(),
+        truncated_chunk: false,
     };
     let (status, empty) = call(&router, "human", &generate_body("generate_empty")).await;
     assert_eq!(status, StatusCode::GATEWAY_TIMEOUT, "{empty}");
@@ -282,6 +295,7 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
     *stub.lock().unwrap() = StubState {
         status: 500,
         content: String::new(),
+        truncated_chunk: false,
     };
     let (status, unavailable) =
         call(&router, "human", &generate_body("generate_unavailable")).await;
@@ -290,10 +304,65 @@ async fn a_local_model_generates_a_candidate_and_every_failure_stays_named() {
     assert_eq!(unavailable["worker_outcome"]["status"], "MODEL_UNAVAILABLE");
     assert_eq!(document_count(&executor).await, 1);
 
+    // An interrupted HTTP body is named at the real Core/worker boundary;
+    // neither its private fragment nor a partial candidate may be exposed.
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: String::new(),
+        truncated_chunk: true,
+    };
+    let before = *calls.lock().unwrap();
+    let (status, truncated) = call(&router, "human", &generate_body("generate_truncated")).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{truncated}");
+    assert_eq!(truncated["stage"], "local_model");
+    assert_eq!(
+        truncated["worker_outcome"]["status"],
+        "INVALID_MODEL_OUTPUT"
+    );
+    assert_eq!(
+        truncated["worker_outcome"]["reason"],
+        "MODEL_RESPONSE_INVALID"
+    );
+    assert!(!truncated.to_string().contains("SYNTHETIC_PRIVATE"));
+    assert_eq!(*calls.lock().unwrap(), before + 1, "no model retry");
+    assert_eq!(document_count(&executor).await, 1, "no partial candidate");
+
+    // The same interruption on a 4xx response retains the known rejection.
+    stub.lock().unwrap().status = 400;
+    let before = *calls.lock().unwrap();
+    let (status, truncated_rejection) = call(
+        &router,
+        "human",
+        &generate_body("generate_truncated_rejection"),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "{truncated_rejection}"
+    );
+    assert_eq!(truncated_rejection["stage"], "local_model");
+    assert_eq!(
+        truncated_rejection["worker_outcome"]["status"],
+        "MODEL_REJECTED"
+    );
+    assert_eq!(
+        truncated_rejection["worker_outcome"]["reason"],
+        "MODEL_HTTP_REJECTED"
+    );
+    assert!(
+        !truncated_rejection
+            .to_string()
+            .contains("SYNTHETIC_PRIVATE")
+    );
+    assert_eq!(*calls.lock().unwrap(), before + 1, "no model retry");
+    assert_eq!(document_count(&executor).await, 1, "no partial candidate");
+
     // A reply the replay stage cannot admit keeps the worker's own status.
     *stub.lock().unwrap() = StubState {
         status: 200,
         content: "not an outline document".into(),
+        truncated_chunk: false,
     };
     let (status, rejected) = call(&router, "human", &generate_body("generate_non_candidate")).await;
     assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{rejected}");

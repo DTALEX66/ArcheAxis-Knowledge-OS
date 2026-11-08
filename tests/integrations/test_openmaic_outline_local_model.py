@@ -27,7 +27,8 @@ SCHEMA = "archeaxis.openmaic-outline-model-request/v1"
 
 
 @contextmanager
-def stub(body: bytes, status: int = 200, delay: float = 0.0):
+def stub(body: bytes, status: int = 200, delay: float = 0.0, body_delay: float = 0.0,
+         truncate_chunked: bool = False):
     seen = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -43,9 +44,20 @@ def stub(body: bytes, status: int = 200, delay: float = 0.0):
             try:
                 self.send_response(status)
                 self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
+                if truncate_chunked:
+                    self.send_header("Transfer-Encoding", "chunked")
+                else:
+                    self.send_header("Content-Length", str(len(body)))
                 self.send_header("Connection", "close")
                 self.end_headers()
+                self.wfile.flush()
+                if body_delay:
+                    time.sleep(body_delay)
+                if truncate_chunked:
+                    self.wfile.write(b"20\r\n{\"private\":\"SYNTHETIC_PRIVATE\"")
+                    self.wfile.flush()
+                    self.close_connection = True
+                    return
                 self.wfile.write(body)
                 self.wfile.flush()
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
@@ -159,8 +171,19 @@ def test_a_slow_lane_is_named_as_a_timeout_without_retrying():
     assert code == 2 and result["status"] == "MODEL_TIMEOUT", result
     assert result["reason"] == "MODEL_REQUEST_TIMEOUT"
     assert result["content"] is None
+    assert result["network_performed"] is None
     assert len(seen) == 1, "a timeout never becomes a second attempt"
     assert elapsed < 10
+
+
+def test_a_slow_response_body_is_a_timeout_not_invalid_model_output():
+    with stub(response(), body_delay=3.0) as (port, seen):
+        code, result = invoke(frame(port), port, timeout_s=1)
+    assert code == 2 and result["status"] == "MODEL_TIMEOUT", result
+    assert result["reason"] == "MODEL_RESPONSE_TIMEOUT"
+    assert result["content"] is None
+    assert result["network_performed"] is True
+    assert len(seen) == 1, "a body timeout must not retry the model request"
 
 
 def test_empty_or_reasoning_only_content_is_no_final_answer():
@@ -175,6 +198,7 @@ def test_empty_or_reasoning_only_content_is_no_final_answer():
         assert code == 2 and result["status"] == "NO_FINAL_ANSWER", result
         assert result["reason"] == reason
         assert result["content"] is None
+        assert result["network_performed"] is True
         assert "SYNTHETIC_PRIVATE" not in json.dumps(result, ensure_ascii=False)
 
 
@@ -195,7 +219,63 @@ def test_unusable_provider_bodies_are_invalid_output_not_a_candidate(body, reaso
     assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT", result
     assert result["reason"] == reason
     assert result["content"] is None and len(seen) == 1
+    assert result["network_performed"] is True
     assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+def test_invalid_json_after_response_headers_records_the_observed_loopback_call():
+    with stub(b"{") as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == "MODEL_RESPONSE_INVALID"
+    assert result["network_performed"] is True and len(seen) == 1
+
+
+def test_a_truncated_chunked_response_is_a_named_failure_without_echo():
+    with stub(b"", truncate_chunked=True) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == "MODEL_RESPONSE_INVALID"
+    assert result["network_performed"] is True and len(seen) == 1
+    assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+def test_a_truncated_http_rejection_keeps_the_status_without_echo():
+    with stub(b"", status=400, truncate_chunked=True) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "MODEL_REJECTED"
+    assert result["reason"] == "MODEL_HTTP_REJECTED"
+    assert result["diagnostic"]["http_status"] == 400
+    assert result["network_performed"] is True and len(seen) == 1
+    assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("field", ["content", "finish_reason", "model", "empty_model"])
+def test_unpaired_surrogates_in_emitted_model_fields_are_named_failures(field):
+    payload = {"model": "synthetic-requested-model", "choices": [{"index": 0,
+               "finish_reason": "stop", "message": {"role": "assistant", "content": "ok"}}]}
+    if field == "content":
+        payload["choices"][0]["message"]["content"] = "\ud800"
+    elif field == "finish_reason":
+        payload["choices"][0]["finish_reason"] = "\ud800"
+    else:
+        payload["model"] = "\ud800"
+        if field == "empty_model":
+            payload["choices"][0]["message"]["content"] = " "
+    with stub(json.dumps(payload).encode("ascii")) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == "MODEL_RESPONSE_INVALID"
+    assert result["content"] is None and result["network_performed"] is True
+    assert len(seen) == 1
+
+
+def test_http_server_failure_records_the_observed_loopback_call():
+    with stub(b"{}", status=503) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "MODEL_UNAVAILABLE"
+    assert result["reason"] == "MODEL_ENDPOINT_UNHEALTHY"
+    assert result["network_performed"] is True and len(seen) == 1
 
 
 def test_a_lane_that_refuses_the_request_is_a_named_rejection_without_prompt_text():
@@ -210,6 +290,7 @@ def test_a_lane_that_refuses_the_request_is_a_named_rejection_without_prompt_tex
         code, result = invoke(frame(port), port)
     assert code == 2 and result["status"] == "MODEL_REJECTED", result
     assert result["reason"] == "MODEL_HTTP_REJECTED"
+    assert result["network_performed"] is True
     assert result["diagnostic"]["http_status"] == 400
     assert result["diagnostic"]["n_prompt_tokens"] == 9496
     assert result["diagnostic"]["n_ctx"] == 8192
@@ -224,6 +305,7 @@ def test_a_reply_beyond_the_replay_budget_is_refused_not_truncated():
         code, result = invoke(frame(port), port)
     assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
     assert result["reason"] == "MODEL_REPLY_BUDGET" and result["content"] is None
+    assert result["network_performed"] is True
 
 
 def test_a_non_loopback_endpoint_is_refused_before_any_request():
@@ -248,6 +330,7 @@ def test_no_local_model_is_unavailable_not_a_500():
     assert code == 2 and result["status"] == "MODEL_UNAVAILABLE", result
     assert result["reason"] == "MODEL_ENDPOINT_UNREACHABLE"
     assert result["content"] is None
+    assert result["network_performed"] is None
 
 
 @pytest.mark.parametrize("data", [

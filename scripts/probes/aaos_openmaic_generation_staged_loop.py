@@ -29,6 +29,7 @@ import json
 from pathlib import Path
 import secrets
 import socket
+import subprocess
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -115,7 +116,13 @@ class StubModel(BaseHTTPRequestHandler):
         self.send_header("content-type", "application/json")
         self.send_header("content-length", str(len(payload)))
         self.end_headers()
-        self.wfile.write(payload)
+        self.wfile.flush()
+        if server.body_delay:  # type: ignore[attr-defined]
+            time.sleep(server.body_delay)  # type: ignore[attr-defined]
+        try:
+            self.wfile.write(payload)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass
 
     def log_message(self, *_args) -> None:
         return
@@ -124,12 +131,13 @@ class StubModel(BaseHTTPRequestHandler):
 class StubServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, replies: list[str]) -> None:
+    def __init__(self, replies: list[str], body_delay: float = 0) -> None:
         super().__init__(("127.0.0.1", 0), StubModel)
         self.replies = replies
         self.calls = 0
         self.index = 0
         self.markers = []
+        self.body_delay = body_delay
         self.lock = threading.Lock()
 
 
@@ -422,6 +430,40 @@ def main() -> int:
                 "worker_invoked": False, "document_id": scene_replay["document"]["document_id"]}
         receipt["restart_replay"] = replay
         receipt["model_call_after_restart"] = stub.calls
+
+        # Exercise the staged Python worker itself against a loopback peer that
+        # sends headers and then stalls. This is separate from the scene chain
+        # and records only bounded status metadata, never prompt or reply text.
+        slow = StubServer(["SYNTHETIC_UNUSED"], body_delay=2.5)
+        slow_thread = threading.Thread(target=slow.serve_forever, daemon=True)
+        slow_thread.start()
+        try:
+            env = dict(os.environ)
+            env["ARCHEAXIS_MACHINE_ENDPOINT"] = f"http://127.0.0.1:{slow.server_address[1]}/v1"
+            frame = json.dumps({"schema": "archeaxis.openmaic-outline-model-request/v1",
+                                "system": "SYNTHETIC_SYSTEM", "user": "SYNTHETIC_USER",
+                                "timeout_s": 1}).encode("utf-8")
+            worker = subprocess.run(
+                [str(root / "runtime/python.exe"), "-I", "-B", "-X", "utf8",
+                 str(root / "workers/course/worker_outline_local_model.py")],
+                input=frame, capture_output=True, timeout=10, check=False, env=env,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            observed = json.loads(worker.stdout)
+            receipt["model_body_timeout_probe"] = {
+                "status": observed.get("status"), "reason": observed.get("reason"),
+                "network_performed": observed.get("network_performed"),
+                "calls": slow.calls, "exit_code": worker.returncode,
+            }
+            if (worker.returncode != 2 or worker.stderr or slow.calls != 1
+                    or observed.get("status") != "MODEL_TIMEOUT"
+                    or observed.get("reason") != "MODEL_RESPONSE_TIMEOUT"
+                    or observed.get("network_performed") is not True
+                    or observed.get("content") is not None):
+                raise RuntimeError("staged model worker did not report the response-body timeout")
+        finally:
+            slow.shutdown()
+            slow.server_close()
+            slow_thread.join(timeout=3)
         receipt["ok"] = True
     except Exception as error:  # the receipt keeps the named failure
         receipt["ok"] = False
