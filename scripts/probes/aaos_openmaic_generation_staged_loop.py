@@ -36,6 +36,15 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import time
 
 MODEL = "synthetic-stub-model"
+DEFAULT_HTTP_TIMEOUT_SECONDS = 120
+# Outline generation includes model and adapter stages in one HTTP request.
+OUTLINE_HTTP_TIMEOUT_SECONDS = 240
+# Scene generation includes several bounded adapter stages and, for an
+# interactive scene, a model process that can run for up to 210 seconds.
+SCENE_HTTP_TIMEOUT_SECONDS = 480
+OUTLINE_GENERATE_PATHS = frozenset(("/api/v1/courses/openmaic/outlines/generate",
+                                    "/api/v1/courses/openmaic/outlines/generate-interactive"))
+SCENE_GENERATE_PATH = "/api/v1/courses/openmaic/scenes/generate"
 MODEL_REPLIES = [
     json.dumps({
         "languageDirective": "Use Simplified Chinese.",
@@ -172,15 +181,23 @@ class Core:
         self.child = None
 
     def request(self, method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
-        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=120)
-        payload = None if body is None else json.dumps(body, separators=(",", ":"))
-        connection.request(method, path, body=payload, headers={
-            "content-type": "application/json",
-            "x-archeaxis-launch-token": self.token,
-        })
-        response = connection.getresponse()
-        raw = response.read()
-        connection.close()
+        if method.upper() == "POST" and path == SCENE_GENERATE_PATH:
+            timeout = SCENE_HTTP_TIMEOUT_SECONDS
+        elif method.upper() == "POST" and path in OUTLINE_GENERATE_PATHS:
+            timeout = OUTLINE_HTTP_TIMEOUT_SECONDS
+        else:
+            timeout = DEFAULT_HTTP_TIMEOUT_SECONDS
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=timeout)
+        try:
+            payload = None if body is None else json.dumps(body, separators=(",", ":"))
+            connection.request(method, path, body=payload, headers={
+                "content-type": "application/json",
+                "x-archeaxis-launch-token": self.token,
+            })
+            response = connection.getresponse()
+            raw = response.read()
+        finally:
+            connection.close()
         try:
             parsed = json.loads(raw) if raw else {}
         except json.JSONDecodeError:
