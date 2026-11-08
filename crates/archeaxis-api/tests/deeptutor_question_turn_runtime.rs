@@ -372,6 +372,11 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(rejected["stage"], "replay");
     assert_eq!(rejected["worker_outcome"]["status"], "REJECTED");
     assert_eq!(rejected["worker_outcome"]["reason"], "INVALID_RESPONSE");
+    assert_eq!(
+        rejected["worker_outcome"]["response_format"],
+        "PLAIN_JSON_PARSE_FAILED"
+    );
+    assert!(!rejected.to_string().contains("not a question document"));
     assert_eq!(document_count(&executor).await, 3);
     drop(router);
     drop(executor);

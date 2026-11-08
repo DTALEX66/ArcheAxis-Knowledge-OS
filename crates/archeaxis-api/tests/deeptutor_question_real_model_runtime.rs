@@ -145,6 +145,7 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
             "stage":result["stage"], "reason":result["reason"],
             "worker_status":result["worker_outcome"]["status"],
             "worker_reason":result["worker_outcome"]["reason"],
+            "response_format":result["worker_outcome"]["response_format"],
             "documents":2,"quality":"NOT_ASSESSED"})
         );
         return;

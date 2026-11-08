@@ -396,6 +396,8 @@ For new local-model generation, an OpenAI-compatible response must declare `fini
 
 For OpenMAIC and DeepTutor question-turn local-model failures, `worker_outcome.reason` carries the model worker's reason rather than a different worker's reason field. When a compatible loopback-model receipt is present, `worker_outcome.model_observation` contains only bounded `elapsed_ms`, `network_performed`, `http_status`, `provider_prompt_tokens` and `provider_context_tokens`; unavailable or invalid values are null. Token counts are provider-reported, not independently measured, and neither the provider's error body nor prompt/model text is included.
 
+When DeepTutor replay returns `REJECTED/INVALID_RESPONSE`, `worker_outcome.response_format` reports one coarse, fixed observation: `PLAIN_JSON_PARSE_FAILED`, `JSON_NOT_OBJECT`, or `JSON_OBJECT_STRICT_REJECTION`. The last value does not identify the rejecting strict rule. This observation contains no response text, does not repair fenced or malformed output, and does not change admission or the original rejection reason.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):

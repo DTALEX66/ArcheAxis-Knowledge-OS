@@ -76,6 +76,38 @@ fn model_outcome(value: &Value) -> Value {
     outcome
 }
 
+/// A coarse, text-free observation after the donor rejects a model reply. It
+/// never repairs the response or claims which strict rule rejected an object.
+fn rejected_response_format(content: &str) -> &'static str {
+    match serde_json::from_str::<Value>(content) {
+        Err(_) => "PLAIN_JSON_PARSE_FAILED",
+        Ok(Value::Object(_)) => "JSON_OBJECT_STRICT_REJECTION",
+        Ok(_) => "JSON_NOT_OBJECT",
+    }
+}
+
+#[cfg(test)]
+mod format_diagnostic_tests {
+    use super::*;
+
+    #[test]
+    fn refusal_diagnostic_never_repairs_or_echoes_model_text() {
+        assert_eq!(
+            rejected_response_format("SYNTHETIC_PRIVATE"),
+            "PLAIN_JSON_PARSE_FAILED"
+        );
+        assert_eq!(
+            rejected_response_format("```json\n{}\n```"),
+            "PLAIN_JSON_PARSE_FAILED"
+        );
+        assert_eq!(rejected_response_format("[]"), "JSON_NOT_OBJECT");
+        assert_eq!(
+            rejected_response_format("{\"question\":\"SYNTHETIC_PRIVATE\"}"),
+            "JSON_OBJECT_STRICT_REJECTION"
+        );
+    }
+}
+
 /// Map one worker result to the caller's status. Every named non-success keeps
 /// the worker's own status; an exit code outside the declared 0/1/2 is an
 /// unrecognized outcome rather than a candidate.
@@ -277,12 +309,13 @@ pub(super) async fn question_turn(
         }
     };
     if let Some(status) = worker_status(&replay) {
-        return stage_failure(
-            status,
-            "replay",
-            worker_reason(&replay),
-            worker_outcome(&replay),
-        );
+        let mut outcome = worker_outcome(&replay);
+        if replay["document"]["status"] == "REJECTED"
+            && replay["document"]["reason_code"] == "INVALID_RESPONSE"
+        {
+            outcome["response_format"] = json!(rejected_response_format(&content));
+        }
+        return stage_failure(status, "replay", worker_reason(&replay), outcome);
     }
     if replay["document"]["status"] != "CANDIDATE" {
         // Every named replay outcome keeps its own status and reason.
