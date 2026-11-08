@@ -2160,6 +2160,170 @@ mod tests {
         }
     }
     #[test]
+    #[ignore = "requires a synthetic Core, workers, loopback model, and explicit phase"]
+    fn provider_real_core_deeptutor_synthetic_journey() {
+        use serde_json::{json, Value};
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid Core port");
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let state_path = std::env::var_os("AAOS_SYNTHETIC_JOURNEY_STATE")
+            .expect("synthetic state path required");
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(json!({
+                "operation":operation, "payload":payload
+            }))
+            .expect("valid host request");
+            execute(port, &token, request).expect("host/Core transport must succeed")
+        };
+        let snapshot = |document: &Value| {
+            json!({
+                "document_id": document["document_id"], "version": document["version"],
+                "content_sha256": document["content_sha256"]
+            })
+        };
+        match phase.as_str() {
+            "create" => {
+                let material = invoke(
+                    "document_create",
+                    json!({"body":{
+                        "title":"Synthetic host journey material",
+                        "editor_json":{"type":"doc","content":[{"type":"paragraph",
+                            "content":[{"type":"text","text":"SYNTHETIC: two plus two equals four."}]}]}
+                    }}),
+                );
+                assert_eq!(material.status, 201, "material create");
+                let grant = |title: &str, target: Value| {
+                    let reply = invoke(
+                        "document_create",
+                        json!({"body":{
+                            "title":title,"editor_json":{"type":"doc","content":[],"attrs":{
+                                "archeaxis_provider_material_grant":{
+                                    "schema":"archeaxis.provider-material-grant/v1", "purpose":"practice",
+                                    "consumer":"deeptutor", "operations":["practice"], "material":target,
+                                    "authorization_basis":"SYNTHETIC explicit human authorization",
+                                    "expires_at":null,"state":"granted"}}}
+                        }}),
+                    );
+                    assert_eq!(reply.status, 201, "synthetic grant create");
+                    reply.body
+                };
+                let material_snapshot = snapshot(&material.body);
+                let source_grant =
+                    grant("Synthetic host material grant", material_snapshot.clone());
+                let turn = json!({"create_request_id":"synthetic_host_turn",
+                    "material":material_snapshot,"requirement":"One synthetic arithmetic question",
+                    "model":null,"output_mode":"choice_json_schema"});
+                let candidate = invoke("learning_deeptutor_question_turn", json!({"body":turn}));
+                assert_eq!(candidate.status, 201, "question turn");
+                assert_eq!(candidate.body["worker_invoked"], true);
+                assert_eq!(
+                    candidate.body["model_response_format"]["sha256"],
+                    "753c5addda0233a21cb4aa40af0c9b6ff6dc52956d10178b8b465d1fcdb0b437"
+                );
+                let accept = json!({"create_request_id":"synthetic_host_accept",
+                    "candidate":snapshot(&candidate.body["document"]),"correct_answer":"B",
+                    "question_text":"SYNTHETIC fixture: select B.",
+                    "explanation":"SYNTHETIC human fixture declares B."});
+                let accepted = invoke("learning_deeptutor_question_accept", json!({"body":accept}));
+                assert_eq!(accepted.status, 201, "synthetic human acceptance");
+                let attrs = &accepted.body["document"]["editor_json"]["attrs"]
+                    ["archeaxis_deeptutor_question_acceptance"];
+                assert_eq!(attrs["answer_key_source"], "human_declared");
+                assert_eq!(attrs["model_answer_used_as_key"], false);
+                assert_eq!(attrs["explanation_source"], "human_supplied");
+                let question = snapshot(&accepted.body["question_document"]);
+                let question_grant = grant("Synthetic host question grant", question.clone());
+                let activity = invoke(
+                    "learning_provider_activity_create",
+                    json!({"body":{
+                        "activity_id":"synthetic_host_activity", "material":material_snapshot,
+                        "provider":{"id":"deeptutor","version":"1.7.1"},
+                        "question":{"question_id":accepted.body["question_view"]["question"]["question_id"],
+                            "question_version":accepted.body["question_view"]["question_version"]},
+                        "grant":snapshot(&source_grant)
+                    }}),
+                );
+                assert_eq!(activity.status, 201, "activity create");
+                let attempt = invoke(
+                    "learning_provider_attempt_start",
+                    json!({
+                        "activity_id":"synthetic_host_activity","body":{"attempt_id":"synthetic_host_attempt"}
+                    }),
+                );
+                assert_eq!(attempt.status, 201, "attempt start");
+                let grade = json!({"activity_id":"synthetic_host_activity",
+                    "attempt_id":"synthetic_host_attempt","request":{
+                        "client_event_id":"synthetic_host_grade", "question_document":question,
+                        "question_grant":snapshot(&question_grant),"answer":"B"}});
+                let graded = invoke("learning_deeptutor_practice_grade", json!({"body":grade}));
+                assert_eq!(graded.status, 201, "synthetic grade");
+                assert_eq!(graded.body["provider_correct"], true);
+                assert_eq!(graded.body["independent_mastery"], "not_established");
+                let backup = invoke("workspace_backup", json!({}));
+                assert_eq!(backup.status, 201, "synthetic workspace backup");
+                assert_eq!(backup.body["verified"], true);
+                let state = json!({"turn":turn,"accept":accept,"grade":grade,
+                    "candidate_id":candidate.body["document"]["document_id"],
+                    "accepted_id":accepted.body["document"]["document_id"],
+                    "backup_filename":backup.body["filename"],"backup_sha256":backup.body["sha256"]});
+                std::fs::write(&state_path, state.to_string()).expect("save synthetic state");
+            }
+            "reopen" | "restore" => {
+                let state: Value = serde_json::from_slice(
+                    &std::fs::read(&state_path).expect("read synthetic state"),
+                )
+                .expect("valid synthetic state");
+                let candidate = invoke(
+                    "learning_deeptutor_question_turn",
+                    json!({"body":state["turn"]}),
+                );
+                assert_eq!(candidate.status, 200, "candidate replay");
+                assert_eq!(candidate.body["worker_invoked"], false);
+                assert_eq!(
+                    candidate.body["document"]["document_id"],
+                    state["candidate_id"]
+                );
+                let accepted = invoke(
+                    "learning_deeptutor_question_accept",
+                    json!({"body":state["accept"]}),
+                );
+                assert_eq!(accepted.status, 201, "acceptance replay");
+                assert_eq!(accepted.body["duplicate"], true);
+                assert_eq!(
+                    accepted.body["document"]["document_id"],
+                    state["accepted_id"]
+                );
+                let graded = invoke(
+                    "learning_deeptutor_practice_grade",
+                    json!({"body":state["grade"]}),
+                );
+                assert_eq!(graded.status, 200, "grade replay");
+                assert_eq!(graded.body["duplicate"], true);
+                assert_eq!(graded.body["provider_correct"], true);
+                let history = invoke(
+                    "learning_provider_activity_get",
+                    json!({"activity_id":"synthetic_host_activity"}),
+                );
+                assert_eq!(history.status, 200, "activity readback");
+                assert_eq!(
+                    history.body["attempts"][0]["grade_disposition"]["state"],
+                    "COMPLETED"
+                );
+                if phase == "restore" {
+                    let mut new_turn = state["turn"].clone();
+                    new_turn["create_request_id"] = json!("synthetic_host_restored_new_turn");
+                    let refused =
+                        invoke("learning_deeptutor_question_turn", json!({"body":new_turn}));
+                    assert_eq!(refused.status, 409, "restored grants remain fenced");
+                }
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
     fn provider_learning_routes_are_finite_and_history_cursor_is_bounded() {
         for (operation, path) in [
             (
