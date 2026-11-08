@@ -127,7 +127,7 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
         &text_worker,
         &[
             (IMPORT_CAPABILITY, practice.clone()),
-            (MODEL_CAPABILITY, model_worker),
+            (MODEL_CAPABILITY, model_worker.clone()),
         ],
     )
     .await
@@ -381,31 +381,83 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
     assert_eq!(admitted["reason"], "question_turn_worker_unavailable");
     assert_eq!(document_count(&restored_executor).await, 6);
+    drop(restored_router);
+    drop(restored_executor);
+
+    // Reopen with the fixed workers. This is a new request under the renewed
+    // grant, not a model retry. A strict model refusal remains a valid outcome
+    // but must not create a partial document.
+    let authorized_executor = Executor::open_routes(
+        &restored_path,
+        &dir.path().join("restored-staging"),
+        &python,
+        &text_worker,
+        &[
+            (IMPORT_CAPABILITY, practice),
+            (MODEL_CAPABILITY, model_worker),
+        ],
+    )
+    .await
+    .unwrap();
+    let authorized_router = archeaxis_api::runtime::router(authorized_executor.clone());
+    let (status, regenerated) = call(&authorized_router, "human", &new_turn).await;
+    let (regeneration, documents_after_generation) = if status == StatusCode::CREATED {
+        assert_eq!(regenerated["worker_invoked"], true);
+        assert_eq!(document_count(&authorized_executor).await, 7);
+        let (status, duplicate) = call(&authorized_router, "human", &new_turn).await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(duplicate["worker_invoked"], false);
+        (json!({"outcome":"GENERATED"}), 7)
+    } else {
+        assert!(
+            [
+                StatusCode::UNPROCESSABLE_ENTITY,
+                StatusCode::SERVICE_UNAVAILABLE,
+                StatusCode::GATEWAY_TIMEOUT,
+                StatusCode::BAD_GATEWAY
+            ]
+            .contains(&status)
+        );
+        assert!(regenerated["reason"].as_str().is_some());
+        assert_eq!(document_count(&authorized_executor).await, 6);
+        (
+            json!({"outcome":"REFUSED","status":status.as_u16(),"stage":regenerated["stage"],
+            "reason":regenerated["reason"],"worker_reason":regenerated["worker_outcome"]["reason"]}),
+            6,
+        )
+    };
+    if lane == "SYNTHETIC_LOOPBACK" {
+        assert_eq!(regeneration["outcome"], "GENERATED");
+    }
     let fresh_id = fresh_grant["document_id"].as_str().unwrap().to_owned();
     let mut revoked = fresh_grant["editor_json"].clone();
     revoked["attrs"]["archeaxis_provider_material_grant"]["state"] = json!("revoked");
-    restored_executor
+    authorized_executor
         .store()
         .submit_wait(move |conn| document::save(conn, &fresh_id, 1, revoked))
         .await
         .unwrap()
         .unwrap();
     new_turn["create_request_id"] = json!("restored_after_revoke");
-    let (status, _) = call(&restored_router, "human", &new_turn).await;
+    let (status, _) = call(&authorized_router, "human", &new_turn).await;
     assert_eq!(
         status,
         StatusCode::CONFLICT,
         "revoked new grant cannot authorize"
     );
-    assert_eq!(document_count(&restored_executor).await, 6);
+    assert_eq!(
+        document_count(&authorized_executor).await,
+        documents_after_generation
+    );
     println!(
         "{}",
         json!({"schema":"archeaxis.deeptutor-real-model-receipt/v1",
         "outcome":"GENERATED", "model_lane":lane, "endpoint":endpoint, "model":model,
         "candidate_document_id":candidate_id, "restart_worker_invoked":false,
-        "documents_before_restore":5,"restored_documents_after_new_grant":6,
+        "documents_before_restore":5,"restored_documents_final":documents_after_generation,
         "restore_history_replayed":true,"restored_old_grant_fenced":true,
-        "new_grant_reached_unregistered_worker":true,"new_grant_revoked":true,
+        "new_grant_reached_unregistered_worker":true,"restored_regeneration":regeneration,
+        "new_grant_revoked":true,
         "quality":"NOT_ASSESSED","synthetic_fixture_accepted":true,
         "model_answer_used_as_key":false,"synthetic_fixture_graded":true,
         "owner_acceptance":false})
