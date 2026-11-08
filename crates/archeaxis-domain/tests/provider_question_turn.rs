@@ -46,6 +46,38 @@ fn grant(conn: &mut Connection, material: &Value, state: &str, consumer: &str) -
     }})).unwrap()
 }
 
+fn named_grant(
+    conn: &mut Connection,
+    material: &Value,
+    request_id: &str,
+    expires_at: Option<u64>,
+) -> Value {
+    document::create_optional_with_request(
+        conn,
+        None,
+        None,
+        "SYNTHETIC named grant",
+        json!({"type":"doc","content":[],"attrs":{
+            "archeaxis_provider_material_grant":{"schema":"archeaxis.provider-material-grant/v1",
+                "purpose":"practice","consumer":"deeptutor","operations":["practice"],
+                "material":snap(material),"authorization_basis":"SYNTHETIC human authorization",
+                "expires_at":expires_at,"state":"granted"}
+        }}),
+        Some(request_id),
+    )
+    .unwrap()
+}
+
+fn ordered_grant_ids() -> (&'static str, &'static str) {
+    let first = "synthetic_grant_one";
+    let second = "synthetic_grant_two";
+    if digest(first.as_bytes()) < digest(second.as_bytes()) {
+        (first, second)
+    } else {
+        (second, first)
+    }
+}
+
 fn request(material: &Value, create_request_id: &str) -> QuestionTurnRequest {
     QuestionTurnRequest {
         create_request_id: create_request_id.into(),
@@ -373,6 +405,87 @@ fn a_missing_or_revoked_grant_is_refused_before_any_worker() {
         "a grant for another material cannot authorize this one"
     );
     assert_eq!(document_count(&conn), 4);
+}
+
+#[test]
+fn an_expired_earlier_grant_does_not_hide_a_separate_valid_grant() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("workspace.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let selected = material(&mut conn);
+    let (expired_id, valid_id) = ordered_grant_ids();
+    let expired = named_grant(&mut conn, &selected, expired_id, Some(0));
+    let req = request(&selected, "turn_expired_first");
+    assert!(turn::prepare_question_turn(&mut conn, &req).is_err());
+    let valid = named_grant(&mut conn, &selected, valid_id, None);
+    assert!(expired["document_id"].as_str().unwrap() < valid["document_id"].as_str().unwrap());
+    let ticket = pending(&mut conn, &req);
+    turn::commit_question_turn(&mut conn, &req, &ticket, &generation(&ticket)).unwrap();
+    let mut revoked = valid["editor_json"].clone();
+    revoked["attrs"]["archeaxis_provider_material_grant"]["state"] = json!("revoked");
+    document::save(
+        &mut conn,
+        valid["document_id"].as_str().unwrap(),
+        1,
+        revoked,
+    )
+    .unwrap();
+    let next = request(&selected, "turn_expired_after_revoke");
+    assert!(turn::prepare_question_turn(&mut conn, &next).is_err());
+}
+
+#[test]
+fn after_restore_a_new_grant_works_without_reviving_the_fenced_old_grant() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut original = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("original.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let selected = material(&mut original);
+    let (old_id, new_id) = ordered_grant_ids();
+    let old = named_grant(&mut original, &selected, old_id, None);
+    let backup = dir.path().join("backup.sqlite");
+    archeaxis_domain::backup::backup(&original, backup.to_str().unwrap()).unwrap();
+    drop(original);
+    let mut restored = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("restored.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    assert!(
+        archeaxis_domain::backup::restore_authorized(backup.to_str().unwrap(), &mut restored)
+            .unwrap()
+    );
+    let req = request(&selected, "turn_after_restore");
+    assert!(
+        turn::prepare_question_turn(&mut restored, &req).is_err(),
+        "old grant stays fenced"
+    );
+    let new = named_grant(&mut restored, &selected, new_id, None);
+    assert!(old["document_id"].as_str().unwrap() < new["document_id"].as_str().unwrap());
+    assert!(
+        archeaxis_domain::provider_material_grant::consume(
+            &restored,
+            &snap(&old),
+            &snap(&selected),
+            1
+        )
+        .is_err()
+    );
+    let ticket = pending(&mut restored, &req);
+    turn::commit_question_turn(&mut restored, &req, &ticket, &generation(&ticket)).unwrap();
+    let mut revoked = new["editor_json"].clone();
+    revoked["attrs"]["archeaxis_provider_material_grant"]["state"] = json!("revoked");
+    document::save(
+        &mut restored,
+        new["document_id"].as_str().unwrap(),
+        1,
+        revoked,
+    )
+    .unwrap();
+    let next = request(&selected, "turn_after_restore_revoked");
+    assert!(turn::prepare_question_turn(&mut restored, &next).is_err());
 }
 
 #[test]

@@ -252,6 +252,28 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     assert_eq!(graded["provider_correct"], true);
     assert_eq!(graded["independent_mastery"], "not_established");
     assert_eq!(document_count(&executor).await, 5);
+
+    let (status, backup) =
+        call_uri(&router, "/api/v1/workspace/backups", "human", &json!({})).await;
+    assert_eq!(
+        status,
+        StatusCode::CREATED,
+        "synthetic workspace backup failed"
+    );
+    assert_eq!(backup["verified"], true);
+    let (status, preview) = call_uri(
+        &router,
+        "/api/v2/workspace/restore/preview",
+        "human",
+        &json!({"backup_id":backup["backup_id"],"expected_sha256":backup["sha256"]}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(preview["verified"], true);
+    let backup_path = dir
+        .path()
+        .join("backups")
+        .join(backup["filename"].as_str().unwrap());
     drop(router);
     drop(executor);
 
@@ -277,12 +299,114 @@ async fn real_local_question_turn_is_durable_or_fails_without_a_partial_document
     assert_eq!(grade_replay["duplicate"], true);
     assert_eq!(grade_replay["provider_correct"], true);
     assert_eq!(document_count(&reopened).await, 5);
+    drop(router);
+    drop(reopened);
+
+    // The real maintenance entry restores only into this new synthetic DB.
+    // History is readable; restored grants must not authorize new generation.
+    let restored_path = dir.path().join("restored.sqlite");
+    let restored = std::process::Command::new(env!("CARGO_BIN_EXE_archeaxis-api"))
+        .arg("--maintenance-restore")
+        .arg(&restored_path)
+        .arg(&backup_path)
+        .output()
+        .unwrap();
+    assert!(
+        restored.status.success(),
+        "synthetic maintenance restore failed"
+    );
+    let restore_receipt: Value = serde_json::from_slice(&restored.stdout).unwrap();
+    assert_eq!(restore_receipt["authorization_requires_new_grants"], true);
+    let restored_executor = Executor::open_routes(
+        &restored_path,
+        &dir.path().join("restored-staging"),
+        &python,
+        &text_worker,
+        &[],
+    )
+    .await
+    .unwrap();
+    let restored_router = archeaxis_api::runtime::router(restored_executor.clone());
+    let (status, history_turn) = call(&restored_router, "human", &body).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(history_turn["worker_invoked"], false);
+    assert_eq!(history_turn["document"]["document_id"], candidate_id);
+    let (status, history_accept) =
+        call_uri(&restored_router, ACCEPT_ROUTE, "human", &accept_body).await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(history_accept["duplicate"], true);
+    let (status, history_grade) =
+        call_uri(&restored_router, GRADE_ROUTE, "human", &grade_body).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(history_grade["duplicate"], true);
+    assert_eq!(history_grade["provider_correct"], true);
+    let mut new_turn = body.clone();
+    new_turn["create_request_id"] = json!("restored_new_turn");
+    let (status, _) = call(&restored_router, "human", &new_turn).await;
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "restored grant must stay fenced"
+    );
+    assert_eq!(document_count(&restored_executor).await, 5);
+
+    // A new human fixture grant is independent of the fenced historical one.
+    let fresh_grant = restored_executor
+        .store()
+        .submit_wait({
+            let material = material.clone();
+            move |conn| {
+                document::create_optional_with_request(
+                    conn,
+                    None,
+                    None,
+                    "Synthetic renewed grant",
+                    json!({"type":"doc","content":[],"attrs":{"archeaxis_provider_material_grant":{
+                "schema":"archeaxis.provider-material-grant/v1","purpose":"practice",
+                "consumer":"deeptutor","operations":["practice"],"material":snapshot(&material),
+                "authorization_basis":"SYNTHETIC renewed human authorization",
+                "expires_at":null,"state":"granted"}}}),
+                    Some("synthetic_restored_new_grant"),
+                )
+            }
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(
+        source_grant["document_id"].as_str().unwrap()
+            < fresh_grant["document_id"].as_str().unwrap()
+    );
+    let (status, admitted) = call(&restored_router, "human", &new_turn).await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(admitted["reason"], "question_turn_worker_unavailable");
+    assert_eq!(document_count(&restored_executor).await, 6);
+    let fresh_id = fresh_grant["document_id"].as_str().unwrap().to_owned();
+    let mut revoked = fresh_grant["editor_json"].clone();
+    revoked["attrs"]["archeaxis_provider_material_grant"]["state"] = json!("revoked");
+    restored_executor
+        .store()
+        .submit_wait(move |conn| document::save(conn, &fresh_id, 1, revoked))
+        .await
+        .unwrap()
+        .unwrap();
+    new_turn["create_request_id"] = json!("restored_after_revoke");
+    let (status, _) = call(&restored_router, "human", &new_turn).await;
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "revoked new grant cannot authorize"
+    );
+    assert_eq!(document_count(&restored_executor).await, 6);
     println!(
         "{}",
         json!({"schema":"archeaxis.deeptutor-real-model-receipt/v1",
         "outcome":"GENERATED", "model_lane":lane, "endpoint":endpoint, "model":model,
         "candidate_document_id":candidate_id, "restart_worker_invoked":false,
-        "documents":5,"quality":"NOT_ASSESSED","synthetic_fixture_accepted":true,
+        "documents_before_restore":5,"restored_documents_after_new_grant":6,
+        "restore_history_replayed":true,"restored_old_grant_fenced":true,
+        "new_grant_reached_unregistered_worker":true,"new_grant_revoked":true,
+        "quality":"NOT_ASSESSED","synthetic_fixture_accepted":true,
         "model_answer_used_as_key":false,"synthetic_fixture_graded":true,
         "owner_acceptance":false})
     );

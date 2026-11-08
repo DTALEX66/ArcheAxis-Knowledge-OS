@@ -12,7 +12,7 @@ use crate::{
     ui_state,
 };
 use archeaxis_store_sqlite::authorization_fence;
-use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
+use rusqlite::{Connection, TransactionBehavior, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -159,8 +159,7 @@ fn language(requirement: &str) -> &'static str {
 /// consume it. A missing, revoked, expired, foreign-consumer or non-practice
 /// grant is refused by the same checks an activity admission uses.
 fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<(), Error> {
-    let found: Option<(String, i64, String)> = conn
-        .query_row(
+    let mut statement = conn.prepare(
             "SELECT d.document_id, d.current_version, v.content_sha256 \
              FROM documents d JOIN document_versions v \
                ON v.document_id=d.document_id AND v.version=d.current_version \
@@ -170,25 +169,34 @@ fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<(), 
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.document_id')=?1 \
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.version')=?2 \
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.content_sha256')=?3 \
-             ORDER BY d.document_id LIMIT 1",
-            params![
-                material.document_id,
-                material.version,
-                material.content_sha256,
-                grant::SCHEMA
-            ],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
-        )
-        .optional()?;
-    let (document_id, version, content_sha256) =
-        found.ok_or(Error::Invalid("provider material access not authorized"))?;
-    let grant_ref = Snapshot {
-        document_id,
-        version,
-        content_sha256,
-    };
-    grant::consume(conn, &grant_ref, material, now()?)
-        .map_err(|_| Error::Invalid("provider material access not authorized"))
+             ORDER BY d.document_id")?;
+    let matches = statement.query_map(
+        params![
+            material.document_id,
+            material.version,
+            material.content_sha256,
+            grant::SCHEMA
+        ],
+        |row| {
+            Ok(Snapshot {
+                document_id: row.get(0)?,
+                version: row.get(1)?,
+                content_sha256: row.get(2)?,
+            })
+        },
+    )?;
+    let at = now()?;
+    for candidate in matches {
+        let candidate = candidate?;
+        match grant::consume(conn, &candidate, material, at) {
+            Ok(()) => return Ok(()),
+            // An expired, revoked, malformed or restored grant never grants
+            // access, but must not hide another independently valid grant.
+            Err(Error::Invalid(_) | Error::NotFound | Error::Conflict(_)) => continue,
+            Err(error @ Error::Sql(_)) => return Err(error),
+        }
+    }
+    Err(Error::Invalid("provider material access not authorized"))
 }
 
 fn material_text(conn: &Connection, material: &Snapshot) -> Result<String, Error> {
