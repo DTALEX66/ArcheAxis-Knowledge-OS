@@ -2039,6 +2039,127 @@ mod tests {
         }
     }
     #[test]
+    #[ignore = "requires a synthetic Core, explicit create/reopen phase, and private token"]
+    fn provider_real_core_teaching_feedback_roundtrip() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid synthetic Core port required");
+        let token =
+            std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("synthetic Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let identity_file = std::env::var_os("AAOS_SYNTHETIC_FEEDBACK_ID_FILE")
+            .expect("synthetic identity file required");
+        let body = serde_json::json!({
+            "create_request_id":"synthetic_host_feedback_1",
+            "session_id":"synthetic_session", "turn_id":"synthetic_turn",
+            "profile":null,
+            "current_message":"Please keep the examples short and concrete.",
+            "objective_ids":["objective_basics"],
+            "focus_objective_id":"objective_basics",
+            "updates":[{"kind":"preference","op":"upsert","key":"examples",
+                "text":"Keep examples short","basis":"learner_report",
+                "evidence":"examples short"}],
+            "include_history":false
+        });
+        let invoke = || {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"learning_deeptutor_teaching_feedback", "payload":{"body":body}
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("feedback transport must succeed")
+        };
+        match phase.as_str() {
+            "create" => {
+                let first = invoke();
+                assert_eq!(first.status, 201);
+                assert_eq!(first.body["worker_invoked"], true);
+                assert_eq!(first.body["model_call"], "NOT_INVOKED");
+                assert_eq!(first.body["human_review_required"], true);
+                assert_eq!(first.body["rendering_authorized"], false);
+                let document_id = first.body["document"]["document_id"]
+                    .as_str()
+                    .expect("candidate identity required");
+                std::fs::write(&identity_file, document_id).expect("save synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+            }
+            "reopen" => {
+                let document_id =
+                    std::fs::read_to_string(&identity_file).expect("read synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+                assert_eq!(duplicate.body["candidate_document_status"], "current");
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
+    #[ignore = "requires a synthetic Core, pinned Node for creation, and private token"]
+    fn provider_real_core_openmaic_outline_roundtrip() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid synthetic Core port required");
+        let token =
+            std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("synthetic Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let identity_file = std::env::var_os("AAOS_SYNTHETIC_OUTLINE_ID_FILE")
+            .expect("synthetic identity file required");
+        let reply = serde_json::json!({
+            "languageDirective":"Respond in Simplified Chinese.",
+            "courseTitle":"Synthetic course",
+            "outlines":[{"id":"outline_1","type":"slide","title":"Synthetic title",
+                "description":"Synthetic description","keyPoints":["Synthetic key point"]}]
+        });
+        let body = serde_json::json!({
+            "create_request_id":"synthetic_host_outline_1",
+            "request":{"schema":"archeaxis.openmaic-outline-replay/v1",
+                "request_id":"synthetic_outline_request",
+                "requirement":"Synthetic requirement", "source_text":"Synthetic source",
+                "reply":{"kind":"synthetic_response","value":reply.to_string()}}
+        });
+        let invoke = || {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"course_openmaic_outline_create", "payload":{"body":body}
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("outline transport must succeed")
+        };
+        match phase.as_str() {
+            "create" => {
+                let first = invoke();
+                assert_eq!(first.status, 200);
+                assert_eq!(first.body["worker_invoked"], true);
+                assert_eq!(first.body["outline_count"], 1);
+                assert_eq!(first.body["rendering_authorized"], false);
+                assert_eq!(first.body["active_content_executed"], false);
+                let document_id = first.body["document"]["document_id"]
+                    .as_str()
+                    .expect("candidate identity required");
+                std::fs::write(&identity_file, document_id).expect("save synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+            }
+            "reopen" => {
+                let document_id =
+                    std::fs::read_to_string(&identity_file).expect("read synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+                assert_eq!(duplicate.body["candidate_document_status"], "current");
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
     fn provider_learning_routes_are_finite_and_history_cursor_is_bounded() {
         for (operation, path) in [
             (
