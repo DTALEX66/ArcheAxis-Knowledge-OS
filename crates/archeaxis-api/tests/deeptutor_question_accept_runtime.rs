@@ -377,8 +377,6 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
         .to_owned();
     let mut edited = candidate["document"]["editor_json"].clone();
     edited["content"][0]["content"][0]["text"] = json!("Edited synthetic question");
-    edited["attrs"]["archeaxis_deeptutor_question_turn_candidate"]["question"]["options"]["B"] =
-        json!("Edited option");
     let revision = executor
         .store()
         .submit_wait(move |conn| document::save(conn, &candidate_id, 1, edited))
@@ -438,11 +436,79 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
         .unwrap();
     assert_eq!(count_after_digest, count_before);
 
+    // A current snapshot is not sufficient if its visible blocks and the
+    // hidden question fields disagree: the accepted question must be the one
+    // the human can see.
+    let mut inconsistent_body = matching.clone();
+    inconsistent_body["create_request_id"] = json!("accept_inconsistent_body");
+    inconsistent_body["candidate"] = json!(snap(&revision));
+    let (status, _) = call(&router, ACCEPT_ROUTE, "human", &inconsistent_body).await;
+    assert_eq!(
+        status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "visible body differs"
+    );
+
+    let revision_id = revision["document_id"].as_str().unwrap().to_owned();
+    let mut option_edit = revision["editor_json"].clone();
+    option_edit["attrs"]["archeaxis_deeptutor_question_turn_candidate"]["question"]["question"] =
+        json!("Edited synthetic question");
+    option_edit["attrs"]["archeaxis_deeptutor_question_turn_candidate"]["question"]["options"]["B"] =
+        json!("Edited option");
+    let mismatched_options = executor
+        .store()
+        .submit_wait(move |conn| document::save(conn, &revision_id, 2, option_edit))
+        .await
+        .unwrap()
+        .unwrap();
+    let mut inconsistent_options = matching.clone();
+    inconsistent_options["create_request_id"] = json!("accept_inconsistent_options");
+    inconsistent_options["candidate"] = json!(snap(&mismatched_options));
+    let (status, _) = call(&router, ACCEPT_ROUTE, "human", &inconsistent_options).await;
+    assert_eq!(
+        status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "visible options differ"
+    );
+    let count_after_inconsistent = executor
+        .store()
+        .submit_wait(|conn| {
+            conn.query_row("SELECT count(*) FROM documents", [], |row| {
+                row.get::<_, i64>(0)
+            })
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(count_after_inconsistent, count_before);
+
+    // Once the visible question and its metadata agree, the edited version is
+    // usable. Its old model explanation is not silently carried forward.
+    let revision_id = mismatched_options["document_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let mut consistent = mismatched_options["editor_json"].clone();
+    consistent["content"][2]["content"][0]["text"] = json!("B. Edited option");
+    let consistent = executor
+        .store()
+        .submit_wait(move |conn| document::save(conn, &revision_id, 3, consistent))
+        .await
+        .unwrap()
+        .unwrap();
     let mut changed_options = matching;
     changed_options["create_request_id"] = json!("accept_changed_options");
-    changed_options["candidate"] = json!(snap(&revision));
+    changed_options["candidate"] = json!(snap(&consistent));
     let (status, changed_options) = call(&router, ACCEPT_ROUTE, "human", &changed_options).await;
     assert_eq!(status, StatusCode::CREATED, "{changed_options}");
+    assert_eq!(
+        changed_options["question_view"]["question"]["question"],
+        "Edited synthetic question"
+    );
+    assert_eq!(
+        changed_options["question_view"]["question"]["options"]["B"],
+        "Edited option"
+    );
     let option_attrs = &changed_options["document"]["editor_json"]["attrs"];
     assert_eq!(
         option_attrs["archeaxis_deeptutor_question"]["question"]["explanation"],

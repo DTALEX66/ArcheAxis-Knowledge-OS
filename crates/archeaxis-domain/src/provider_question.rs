@@ -721,6 +721,33 @@ enum DraftExplanation {
     Mismatch,
 }
 
+/// The generated question document uses five paragraph blocks: its question
+/// followed by the four labelled choices. Refuse a later edit that leaves the
+/// verified document text and the question metadata describing different items.
+fn candidate_projection_matches(
+    source: &Value,
+    body: &str,
+    options: &BTreeMap<String, String>,
+) -> bool {
+    let labels = ["A", "B", "C", "D"];
+    let Some(blocks) = source["blocks"].as_array() else {
+        return false;
+    };
+    if blocks.len() != 5
+        || options.len() != labels.len()
+        || blocks[0]["kind"] != "paragraph"
+        || blocks[0]["text_projection"].as_str() != Some(body)
+    {
+        return false;
+    }
+    labels.iter().enumerate().all(|(index, label)| {
+        options.get(*label).is_some_and(|option| {
+            blocks[index + 1]["kind"] == "paragraph"
+                && blocks[index + 1]["text_projection"] == format!("{label}. {option}")
+        })
+    })
+}
+
 /// A model explanation belongs to its original question, options and answer.
 /// Matching those fields does not establish explanation quality or review.
 fn staged_model_explanation(
@@ -803,16 +830,20 @@ pub fn accept_question_candidate(
     }
     let options: BTreeMap<String, String> = serde_json::from_value(question["options"].clone())
         .map_err(|_| Error::Invalid("candidate options invalid"))?;
+    let candidate_body = question["question"]
+        .as_str()
+        .ok_or(Error::Invalid("candidate question text missing"))?;
+    if !candidate_projection_matches(&source, candidate_body, &options) {
+        return Err(Error::Invalid(
+            "candidate text and question fields do not match",
+        ));
+    }
     if !options.contains_key(&request.correct_answer) {
         return Err(Error::Invalid(
             "accepted answer key must be one of the candidate options",
         ));
     }
-    let body = request
-        .question_text
-        .as_deref()
-        .or_else(|| question["question"].as_str())
-        .ok_or(Error::Invalid("candidate question text missing"))?;
+    let body = request.question_text.as_deref().unwrap_or(candidate_body);
     let (explanation, explanation_source) = match request.explanation.clone() {
         Some(text) => (text, "human_supplied"),
         None => match staged_model_explanation(staged, body, &options, &request.correct_answer) {
