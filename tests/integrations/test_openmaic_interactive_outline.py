@@ -24,7 +24,7 @@ PROMPTS = SERVICE / "vendor/prompts-1.3.0-interactive-outline"
 NODE = os.environ.get("ARCHEAXIS_TEST_NODE")
 requires_node = pytest.mark.skipif(not NODE, reason="explicit preverified ARCHEAXIS_TEST_NODE is required")
 SCHEMA = "archeaxis.openmaic-interactive-outline/v1"
-WORKER_SHA256 = "4ab17fec95724da4c3e70b27ce3e93dff51f38e35abb2ee2c12cef665c4eae8b"
+WORKER_SHA256 = "bf4b646a2f17591062819a1436a051676cc4f54d536108faa27d657a2f0cfad0"
 PROMPT_ORIGINALS = {
     "LICENSE": "ba252563743227138231604c9138dd400faca5a10c3cf206b466e5466c565a19",
     "README.md": "39c85ecccdc6d3a534f3d955ea4b1668fcd2ff94a4cade8fb1365ece7f2ff31b",
@@ -35,7 +35,7 @@ PROMPT_ORIGINALS = {
     "snippets/media-safety-guidelines.md": "3affbe74b1621faa3fd4cec7587063fcbca374b07f13e91129c74cac8d4c611c",
 }
 # Render of the fixed capture request below against the pinned template.
-PINNED_SYSTEM = "7794e3fdf53d7588e1f0fd22a9c6d79855631fc17eb4488b4983f9883d37ca78"
+PINNED_SYSTEM = "63123b52575400c763182540664b1c1834a40c6480bc39e21104cc4aa84ce5b0"
 PINNED_USER = "666c7215359c11de76b4810555a223ff30825ca1074bc7635f81ddf3e66835a6"
 CAPTURE = {"schema": SCHEMA, "stage": "capture", "request_id": "request_1",
            "requirement": "用本地材料准备交互课程", "source_text": "合成来源材料"}
@@ -98,6 +98,10 @@ def test_capture_renders_the_donor_interactive_template_with_pinned_digests(runn
     assert digest(binding["user"].encode("utf-8")) == PINNED_USER
     assert "用本地材料准备交互课程" in binding["user"]
     assert "合成来源材料" in binding["user"]
+    assert "AAOS output compatibility contract" in binding["system"]
+    assert 'Scene type must be "slide" or "interactive"' in binding["system"]
+    assert "Never put the widget name in the scene type" in binding["system"]
+    assert "Do not impose a minimum number of simulation or game scenes" in binding["system"]
     # Media instructions were conditional on capabilities this adapter does not have.
     assert "image-instructions" not in binding["system"]
 
@@ -177,6 +181,9 @@ def test_repair_and_assignment_are_reported_as_transformations(runner, captured)
        "widgetType": "procedural-skill", "widgetOutline": {"task": "x"}}], "OUTLINE_CONTENT_UNSUPPORTED"),
     ([{"id": "s", "type": "slide", "title": "T", "description": "D", "keyPoints": [], "order": 1,
        "widgetType": "diagram"}], "UNKNOWN_OUTLINE_FIELDS"),
+    ([{"id": "d", "type": "diagram", "title": "T", "description": "D", "keyPoints": [], "order": 1,
+       "widgetType": "diagram", "widgetOutline": {"diagramType": "flowchart"}}],
+     "OUTLINE_CONTENT_UNSUPPORTED"),
     ([{"id": "d", "type": "interactive", "title": "T", "description": "D", "keyPoints": [], "order": 1,
        "widgetType": "diagram", "widgetOutline": {"nodes": [{"id": "n1", "label": "node"}]}}],
      "OUTLINE_CONTENT_UNSUPPORTED"),
@@ -191,6 +198,9 @@ def test_unsupported_outlines_are_refused_without_text(runner, captured, outline
     assert result["status"] == "REJECTED"
     assert result["error_code"] == "UNSUPPORTED_OUTPUT"
     assert result["process"]["direct_child"] == "REAPED"
+    code, worker_result, _, _ = raw_call(WORKER, encode(replay(captured, value)))
+    assert code == 2 and worker_result["status"] == "UNSUPPORTED_OUTPUT"
+    assert kind in {item["kind"] for item in worker_result["differences"]}
 
 
 @requires_node

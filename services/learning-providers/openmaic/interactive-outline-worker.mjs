@@ -125,6 +125,26 @@ const WIDGET_FIELDS = {
 };
 const WIDGET_ARRAYS = ["keyVariables", "nodes", "objects", "interactions", "playerControls"];
 const ALLOWED_BASE = ["id", "type", "title", "description", "keyPoints", "order"];
+// The unmodified donor asks for fixed widget quotas even for a much shorter
+// user request. State this adapter's admitted shape and user-first scope in a
+// separate, hash-bound host instruction; never rewrite the donor templates.
+const OUTPUT_COMPATIBILITY_CONTRACT = [
+  "## AAOS output compatibility contract",
+  "These rules take precedence over conflicting generic widget distribution rules above or in the user template.",
+  "Honor the user's requested scope and scene count when compatible with the output limits. " +
+    "Do not impose a minimum number of simulation or game scenes, or a maximum of one diagram.",
+  'Scene type must be "slide" or "interactive". Never put the widget name in the scene type.',
+  'For an interactive scene set "type" to "interactive" and put the widget name in "widgetType". ' +
+    'Supply its "widgetOutline" object. Slides must omit both widget fields.',
+  `Scene fields are limited to ${ALLOWED_BASE.join(", ")}, plus widgetType and widgetOutline only for interactive scenes. ` +
+    "Do not add languageNote, media fields, or other scene keys.",
+  "Allowed widgetOutline fields by widgetType:",
+  ...Object.entries(WIDGET_FIELDS).map(([type, fields]) => `- ${type}: ${fields.join(", ")}`),
+  `The fields ${WIDGET_ARRAYS.join(", ")} are arrays of strings; nodeCount is an integer from 0 to 200. ` +
+    "Other widgetOutline values are strings.",
+  "Every scene needs a title, description and keyPoints array. If supplied, IDs must be unique and " +
+    "orders must start at 1 and increase by 1. Return 1 to 30 scenes.",
+].join("\n");
 
 function rejectDuplicateKeys(source) {
   let p = 0;
@@ -302,6 +322,9 @@ async function processFrame(raw) {
   if (!exactKeys(prompt, ["system", "user"]) || typeof prompt.system !== "string" || typeof prompt.user !== "string" ||
       Buffer.byteLength(prompt.system, "utf8") > 200_000 || Buffer.byteLength(prompt.user, "utf8") > 200_000)
     return base("UNEXPECTED_UPSTREAM_RESULT", "prompt shape or budget rejected", request);
+  prompt = { system: `${prompt.system}\n\n${OUTPUT_COMPATIBILITY_CONTRACT}`, user: prompt.user };
+  if (Buffer.byteLength(prompt.system, "utf8") > 200_000)
+    return base("UNEXPECTED_UPSTREAM_RESULT", "host prompt exceeds budget", request);
   const binding = { schema: BINDING, request_id: request.request_id, input_sha256: identity,
     templates_manifest_sha256: PROMPT_MANIFEST_SHA256, worker_sha256: workerIdentity,
     system: prompt.system, user: prompt.user,

@@ -286,6 +286,15 @@ async fn interactive_outlines_and_scenes_run_from_one_local_model_lane() {
     let body = generate_body("interactive_outline_1");
     let (status, first) = call(&router, OUTLINE_ROUTE, "human", &body).await;
     assert_eq!(status, StatusCode::OK, "{first}");
+    {
+        let state = stub.lock().unwrap();
+        let messages = state.requests[0]["messages"].as_array().unwrap();
+        let system = messages[0]["content"].as_str().unwrap();
+        let user = messages[1]["content"].as_str().unwrap();
+        assert!(system.contains("AAOS output compatibility contract"));
+        assert!(system.contains("Never put the widget name in the scene type"));
+        assert!(user.contains("Synthetic interactive outline requirement"));
+    }
     assert_eq!(first["worker_invoked"], true);
     assert_eq!(first["generation_route"], "local_model_interactive_outline");
     assert_eq!(first["model_call"], "INVOKED");
