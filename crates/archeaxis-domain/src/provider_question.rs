@@ -744,13 +744,14 @@ pub fn accept_question_candidate(
     }
     // The candidate must still be the current version of a real question-turn
     // Document; a later edit is a different candidate, not this one.
-    let source = document::read_verified(
-        &tx,
-        &request.candidate.document_id,
-        Some(request.candidate.version),
-    )?;
-    if source["content_sha256"] != request.candidate.content_sha256 {
-        return Err(Error::Conflict(1));
+    let source = document::read_verified(&tx, &request.candidate.document_id, None)?;
+    let current_version = source["version"]
+        .as_i64()
+        .ok_or(Error::Invalid("candidate document version invalid"))?;
+    if current_version != request.candidate.version
+        || source["content_sha256"] != request.candidate.content_sha256
+    {
+        return Err(Error::Conflict(current_version));
     }
     let staged = &source["editor_json"]["attrs"][QUESTION_TURN_NAMESPACE];
     if staged["schema"].as_str() != Some(QUESTION_TURN_DOCUMENT_SCHEMA) {

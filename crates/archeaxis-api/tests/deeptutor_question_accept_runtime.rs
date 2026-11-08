@@ -323,4 +323,88 @@ async fn a_generated_candidate_becomes_a_graded_question_only_by_human_acceptanc
         1,
         "acceptance never calls the model again"
     );
+
+    // A later edit makes the original snapshot historical. A fresh acceptance
+    // must not silently create a graded question from that outdated version.
+    let candidate_id = candidate["document"]["document_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let mut edited = candidate["document"]["editor_json"].clone();
+    edited["content"][0]["content"][0]["text"] = json!("Edited synthetic question");
+    let revision = executor
+        .store()
+        .submit_wait(move |conn| document::save(conn, &candidate_id, 1, edited))
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(revision["version"], 2);
+    let count_before = executor
+        .store()
+        .submit_wait(|conn| {
+            conn.query_row("SELECT count(*) FROM documents", [], |row| {
+                row.get::<_, i64>(0)
+            })
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    let mut stale = accept.clone();
+    stale["create_request_id"] = json!("accept_stale");
+    let (status, _) = call(&router, ACCEPT_ROUTE, "human", &stale).await;
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "stale candidate was not refused"
+    );
+    let count_after = executor
+        .store()
+        .submit_wait(|conn| {
+            conn.query_row("SELECT count(*) FROM documents", [], |row| {
+                row.get::<_, i64>(0)
+            })
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        count_after, count_before,
+        "a stale candidate writes nothing"
+    );
+
+    // The current version with a false digest is also a conflict.
+    let mut wrong_digest = accept.clone();
+    wrong_digest["create_request_id"] = json!("accept_wrong_digest");
+    wrong_digest["candidate"] = json!(snap(&revision));
+    wrong_digest["candidate"]["content_sha256"] = json!("0".repeat(64));
+    let (status, _) = call(&router, ACCEPT_ROUTE, "human", &wrong_digest).await;
+    assert_eq!(status, StatusCode::CONFLICT, "candidate digest must match");
+    let count_after_digest = executor
+        .store()
+        .submit_wait(|conn| {
+            conn.query_row("SELECT count(*) FROM documents", [], |row| {
+                row.get::<_, i64>(0)
+            })
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(count_after_digest, count_before);
+
+    // An already completed acceptance remains idempotent after that edit.
+    let (status, replay) = call(&router, ACCEPT_ROUTE, "human", &accept).await;
+    assert_eq!(status, StatusCode::CREATED, "{replay}");
+    assert_eq!(replay["duplicate"], true);
+    assert_eq!(replay["question_document"], accepted["question_document"]);
+
+    // The same create ID with a different answer is a conflict, not a shape
+    // refusal; the contract distinguishes these cases.
+    let mut changed = accept;
+    changed["correct_answer"] = json!("C");
+    let (status, _) = call(&router, ACCEPT_ROUTE, "human", &changed).await;
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "changed acceptance ID must conflict"
+    );
 }

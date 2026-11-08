@@ -55,10 +55,9 @@ pub(super) async fn accept_candidate(
             failure(StatusCode::NOT_FOUND, "question_candidate_not_found")
         }
         Ok(Err(archeaxis_domain::document::Error::Invalid(message))) => invalid(message),
-        Ok(Err(archeaxis_domain::document::Error::Conflict(_))) => failure(
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "question_candidate_not_acceptable",
-        ),
+        Ok(Err(archeaxis_domain::document::Error::Conflict(_))) => {
+            failure(StatusCode::CONFLICT, "question_candidate_not_acceptable")
+        }
         _ => failure(
             StatusCode::SERVICE_UNAVAILABLE,
             "question_acceptance_failed",

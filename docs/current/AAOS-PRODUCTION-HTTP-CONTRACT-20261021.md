@@ -400,6 +400,8 @@ When DeepTutor replay returns `REJECTED/INVALID_RESPONSE`, `worker_outcome.respo
 
 For a new DeepTutor question-turn, Core retains the original donor `capture_binding` and deterministically replaces the donor's agentic output-protocol section in the system prompt with the AAOS single-response JSON instruction. The donor's JSON schema and captured user message remain unchanged. The candidate's `model_prompt_binding` separately records the versioned adapter, donor prompt digest, actual sent system prompt and its digest, and user-message digest; ambiguous, absent or unsupported section anchors fail before a model call with `question_turn_prompt_adapter_unavailable`. The model response goes unchanged to the pinned strict replay worker. Existing candidates created before this binding remain readable, with a null `model_prompt_binding` in the receipt; this compatibility does not imply that their former model prompt was adapted.
 
+For a new question acceptance, Core verifies the candidate's current version and content digest within the same write transaction. A historical version, incorrect digest, or changed request under an already used acceptance ID returns `409` and writes no accepted question; a completed identical acceptance remains readable as a duplicate even if the candidate is edited later. An unsupported question or answer remains a `422` refusal.
+
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
 Current-source boundary check commands (local execution and exact-SHA CI remain separate evidence):
