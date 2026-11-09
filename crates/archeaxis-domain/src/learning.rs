@@ -453,6 +453,25 @@ pub fn latest_fsrs_state_for_assessment(
     .optional()
 }
 
+/// Read the latest FSRS card and its recorded deadline from the same event.
+pub fn latest_fsrs_snapshot_for_assessment(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+) -> rusqlite::Result<Option<(String, Option<String>)>> {
+    conn.query_row(
+        "SELECT CASE WHEN json_type(outcome,'$.schedule.state')='object'
+                THEN json_extract(outcome,'$.schedule.state') ELSE 'null' END, next_review
+         FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome) THEN
+           json_extract(outcome,'$.schedule.authority')='fsrs'
+           AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END
+         ORDER BY event_id DESC LIMIT 1",
+        rusqlite::params![item_key, assessment_id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )
+    .optional()
+}
+
 /// Recoverable unscheduled observations following the last persisted FSRS card.
 /// Existing events are never rewritten; missing evidence is not inferred.
 pub struct PendingScheduleReview {
@@ -550,19 +569,41 @@ fn has_scheduled_gap_without_replay_evidence(
     Ok(false)
 }
 
-/// Read the same effective timestamp validation used by scheduling and projections.
-/// `None` means the persisted state cannot establish a valid previous review.
+/// Validate a saved card against the same bounds as a new scheduler result.
+/// `None` means its recorded fields cannot establish a trustworthy prior card.
 pub fn previous_fsrs_review_timestamp(
     conn: &Connection,
     raw: &str,
+    recorded_due: Option<&str>,
 ) -> rusqlite::Result<Option<i64>> {
     let value = match parse_fsrs_card(raw) {
         Ok(value) => value,
         Err(_) => return Ok(None),
     };
-    match value["last_review"].as_str() {
-        Some(time) => review_timestamp_micros(conn, time),
-        None => Ok(None),
+    let (Some(last_review), Some(due)) = (value["last_review"].as_str(), recorded_due) else {
+        return Ok(None);
+    };
+    let (Some(last), Some(due_instant)) = (
+        review_timestamp_micros(conn, last_review)?,
+        review_timestamp_micros(conn, due)?,
+    ) else {
+        return Ok(None);
+    };
+    let Some(elapsed) = due_instant.checked_sub(last) else {
+        return Ok(None);
+    };
+    if elapsed < 0 {
+        return Ok(None);
+    }
+    let schedule = ReviewSchedule {
+        schedule_json: serde_json::json!({"authority":"fsrs", "state":value}).to_string(),
+        next_review: Some(due.to_owned()),
+        next_review_days: elapsed / 86_400_000_000,
+    };
+    if review_schedule_is_valid(conn, &schedule)? {
+        Ok(Some(last))
+    } else {
+        Ok(None)
     }
 }
 
@@ -571,7 +612,8 @@ pub fn review_schedule_basis(
     item_key: &str,
     assessment_id: Option<&str>,
 ) -> rusqlite::Result<ReviewScheduleBasis> {
-    let previous_state = latest_fsrs_state_for_assessment(conn, item_key, assessment_id)?;
+    let previous_snapshot = latest_fsrs_snapshot_for_assessment(conn, item_key, assessment_id)?;
+    let previous_state = previous_snapshot.as_ref().map(|(state, _)| state.clone());
     let latest_event_id = latest_review_event_id(conn, item_key, assessment_id)?;
     let last_scheduled_id: Option<i64> = conn.query_row(
         "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
@@ -639,8 +681,9 @@ pub fn review_schedule_basis(
         recovery_issue = Some("scheduled_gap_replay_unverified");
     }
     let mut latest_reviewed_at_micros = None;
-    if let Some(raw) = previous_state.as_deref() {
-        latest_reviewed_at_micros = previous_fsrs_review_timestamp(conn, raw)?;
+    if let Some((raw, recorded_due)) = previous_snapshot.as_ref() {
+        latest_reviewed_at_micros =
+            previous_fsrs_review_timestamp(conn, raw, recorded_due.as_deref())?;
         if latest_reviewed_at_micros.is_none() && recovery_issue.is_none() {
             recovery_issue = Some("invalid_previous_card");
         }

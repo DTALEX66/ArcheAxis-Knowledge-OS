@@ -411,8 +411,13 @@ previously exposed replay-gap reason retains priority. The projection includes l
 placeholder deadlines in the withheld set; raw event history and historical counts remain
 unchanged. A scoped assessment does not inherit other assessments' gaps. A human-declared reset
 can establish a later baseline, but does not reconstruct old evidence. The prior-card quick
-check shares the scheduling path's state parsing and last-review timestamp validation; it is not
-a claim of exhaustive corruption detection.
+check shares the scheduling path's persisted-card validation. The latest saved FSRS card must
+meet the same field and timestamp bounds as a new scheduler result, and its `due` must match
+the event's recorded `next_review`. The elapsed whole days are derived from those stored times
+only to reuse the validator; this does not prove the original worker's independently reported
+interval. Missing or invalid fields produce `invalid_previous_card`, preserve the historical
+event and withhold the current deadline. A historical card outside the current bounds may require
+an explicit new baseline even if an older version previously accepted it.
 
 For a new non-reset review with an otherwise recoverable history, the effective `now` must not
 precede the last evidenced review on that scoped card: the Core returns `400` before invoking the

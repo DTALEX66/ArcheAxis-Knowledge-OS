@@ -1310,11 +1310,9 @@ def test_pre_reset_review_receipt_replays_on_reset_capable_core(tmp_path, monkey
         core.stop()
 
 
-@pytest.mark.parametrize("bad_state", [None, {
-    "state": "review", "step": None, "stability": 5.0, "difficulty": 5.0,
-    "last_review": "not-a-time", "due": "2026-09-10T00:00:00Z",
-}])
-def test_invalid_card_projection_survives_restart_backup_and_reset(tmp_path, monkeypatch, bad_state):
+@pytest.mark.parametrize("damage", ["null", "bad-time", "missing-stability", "negative-stability",
+                                    "high-difficulty", "unknown-state", "different-due"])
+def test_invalid_card_projection_survives_restart_backup_and_reset(tmp_path, monkeypatch, damage):
     item = "synthetic-invalid-card-projection"
     monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
     core = core_for(tmp_path)
@@ -1330,7 +1328,21 @@ def test_invalid_card_projection_survives_restart_backup_and_reset(tmp_path, mon
             (raw,) = conn.execute("SELECT outcome FROM learning_events WHERE event_id=?",
                                   (original["event_id"],)).fetchone()
             outcome = json.loads(raw)
-            outcome["schedule"]["state"] = bad_state
+            state = outcome["schedule"]["state"]
+            if damage == "null":
+                outcome["schedule"]["state"] = None
+            elif damage == "bad-time":
+                state["last_review"] = "not-a-time"
+            elif damage == "missing-stability":
+                state.pop("stability")
+            elif damage == "negative-stability":
+                state["stability"] = -1.0
+            elif damage == "high-difficulty":
+                state["difficulty"] = 11.0
+            elif damage == "unknown-state":
+                state["state"] = "synthetic-invalid"
+            else:
+                state["due"] = "2026-10-01T00:00:00Z"
             conn.execute("UPDATE learning_events SET outcome=? WHERE event_id=?",
                          (json.dumps(outcome), original["event_id"]))
         core.start()
@@ -1353,11 +1365,16 @@ def test_invalid_card_projection_survives_restart_backup_and_reset(tmp_path, mon
         core.start()
         assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == history
         assert_unverified_schedule_projection(core, item, "invalid_previous_card")
+        status, blocked = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "after-invalid-card", "correct": True,
+            "rating": 3, "now": "2026-09-03T00:00:00Z"})
+        assert status == 201 and blocked["schedule_authority"] == "unavailable"
+        assert blocked["schedule_recovery"]["reason"] == "invalid_previous_card"
         status, reset = core.request("POST", "/api/v1/learning/reviews", {
             "item_key": item, "client_event_id": "explicit-invalid-card-reset", "correct": True,
-            "rating": 3, "now": "2026-09-03T00:00:00Z",
+            "rating": 3, "now": "2026-09-04T00:00:00Z",
             "schedule_reset": {"mode": "start_new", "reason": "Synthetic human reset",
-                               "expected_latest_event_id": original["event_id"]}})
+                               "expected_latest_event_id": blocked["event_id"]}})
         assert status == 201 and reset["schedule_authority"] == "fsrs"
         core.stop()
         core.start()

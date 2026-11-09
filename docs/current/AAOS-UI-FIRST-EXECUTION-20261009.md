@@ -4920,3 +4920,15 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 全部为本地有限工程证据；真实用户学习、完整 X2／X8、安装态、当前修复的精确 SHA 云 CI、Owner 接受与 V3 闭环仍未证明，状态保持 PARTIAL。主工作树三项其他会话改动继续保留。
 
 - 文档回写后的 `learning-projection-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范、contracts-vnext、Ruff 和 Rust 格式检查通过。这些检查绑定 `3da4b5d9`、patch `92f5f1edd8cb50cefbf3067ed348cd08b1bfd810e097cd159d2dc11f2eff7ea2`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。
+
+
+#### 2026-11-10 · 历史 FSRS 卡片完整字段校验
+
+- 用已封存 Core `bec23048dc8efca15bada759bb63a61f6798a158b81b22c2f5d90cdb053beb4a` 及隔离合成数据库构造五种旧卡：缺少 `stability`、负 `stability`、`difficulty` 超范围、未知 `state`、卡片 `due` 与事件 `next_review` 不同。`learning-historical-card-field-observation-unique-20261110/` 中五种均先显示旧到期日；其中缺稳定度、难度超范围和不一致到期日各产生了新的 `fsrs`，另两种降为 `scheduler_unavailable`。不能推断真实用户数据存在这些形态。
+- 最初探针 `learning-historical-card-field-observation-20261110/` 复用了全局事件键，除第一项外均返回 **409**；后四项不能用作字段行为证据，保留该记录。修正为每项唯一键后才得到上段观察。独立 API 反例 `learning-historical-card-fields-red-20261110/` 为 **0 passed／1 failed**：缺稳定度未产生 `invalid_previous_card`。
+- Core 现从同一事件读取最近卡片和已存到期日，复用新 FSRS 结果的字段、数值、时间、到期日一致性校验；不符合时只读投影不显示当前到期日，普通新复习保存为未排期并标 `invalid_previous_card`。原事件不重写；经明确人类声明的重置可开始新基线。校验为复用现有规则，依据已存的复习与到期时间计算整天数，**不证明**原 worker 当时另报的间隔。旧版允许但不符合当前字段约束的卡片可能需重置；不推断所有旧库受影响。
+- `learning-historical-card-fields-api-20261110/` **25 passed**，领域 `learning-historical-card-fields-domain-20261110/` **23 passed**；真实 Core `learning-historical-card-fields-real-core-20261110/` **8 passed**，覆盖七类卡片损坏、旧记录、重启、校验备份、独立恢复、普通复习与显式重置。联合学习／跨版本／旧宿主桥／生成客户端 `learning-historical-card-fields-suite-20261110/` **102 passed／1 skipped**；跳过项仍是未提供的指定重置前合成备份，不计通过。旧 Core 的源码身份仍 `ASSERTED_NOT_VERIFIED`。
+- 2,000 个合成项目、每项四次复习、各三次，本机队列中位：无评测 **0.216→0.520 秒**，带评测 **0.257→0.563 秒**；对照 Core 为上一节 `bec23048`，新 Core 为 `299dff67af3ad266b7048f9b28ca0f2cf36a4ec8e530647ab9b58b27084190e5`。这一性能代价需要后续在真实目标负载与产品界面上独立评估，不由本地合成样本推断安装态体验。
+- 所有回执位于 `.project-local/runs/ccc4a08b4a/` 且基线为 `79848d3a`：两次观察 patch `8b3604ab8b8541cf592807dbee472dfd099fade4d6dc59fc5b61a44243872971`，反例 patch `f3d3f3e30f9b07adf167e39d88b4ac4fc12b10ee8f0dae364c484f5d4011f1b4`，API／领域 patch `358fe96a403914fbf54bb11c6d41b5e1b31b05854c0b6a7e49b0e7955227fbc3`，构建／真实 Core／联合测试与性能测量 patch `88cac9222d73925c99a1533af920597d9cd059708a2f92482e865475f9d09eff`，均 `source_consistent:true`。新 Core 按摘要保存在 `learning-historical-card-fields-save-core-20261110/artifacts/core-historical-card-validation.exe`（32,429,056 B），固定存储基线仍 `REVIEW_REQUIRED`。这些是局部合成工程证据，不是本修复的精确 SHA 云 CI、安装态、真实学习或 Owner 接受；全闭环仍为 PARTIAL。
+
+- 文档回写后的 `learning-card-fields-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范、contracts-vnext、Ruff 和 Rust 格式检查通过。检查绑定 `79848d3a`、patch `ee3b6dcae4237e2b0917f701a8ca847da913e0d61e78dddd28fe0f3ba4d7a3e1`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。

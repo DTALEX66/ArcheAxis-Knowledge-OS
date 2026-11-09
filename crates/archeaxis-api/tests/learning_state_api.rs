@@ -1315,3 +1315,45 @@ async fn malformed_legacy_and_bad_timestamps_do_not_expose_a_deadline() {
         assert_unverified_projection(&router, name, expected).await;
     }
 }
+
+#[tokio::test]
+async fn incomplete_or_inconsistent_historical_fsrs_cards_are_not_current_deadlines() {
+    for name in [
+        "missing-stability",
+        "negative-stability",
+        "high-difficulty",
+        "unknown-state",
+        "different-due",
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join(format!("{name}.sqlite"));
+        let due = "2026-09-10T00:00:00Z";
+        {
+            let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+            let mut card = json!({"state":"review","step":null,"stability":5.0,"difficulty":5.0,
+                "last_review":"2026-09-03T00:00:00Z","due":due});
+            match name {
+                "missing-stability" => {
+                    card.as_object_mut().unwrap().remove("stability");
+                }
+                "negative-stability" => card["stability"] = json!(-1.0),
+                "high-difficulty" => card["difficulty"] = json!(11.0),
+                "unknown-state" => card["state"] = json!("synthetic-invalid"),
+                "different-due" => card["due"] = json!("2026-10-01T00:00:00Z"),
+                _ => unreachable!(),
+            }
+            let outcome = json!({"outcome":"correct","schedule":{"authority":"fsrs","state":card}});
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+                rusqlite::params![name, outcome.to_string(), due]).unwrap();
+            let basis =
+                archeaxis_domain::learning::review_schedule_basis(&conn, name, None).unwrap();
+            assert_eq!(
+                basis.recovery_issue,
+                Some("invalid_previous_card"),
+                "{name}"
+            );
+        }
+        let router = app(db.to_str().unwrap()).unwrap();
+        assert_unverified_projection(&router, name, "invalid_previous_card").await;
+    }
+}

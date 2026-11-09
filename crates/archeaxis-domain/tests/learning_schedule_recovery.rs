@@ -4,10 +4,18 @@ use archeaxis_store_sqlite::init_workspace;
 use rusqlite::Connection;
 use serde_json::json;
 
+fn valid_card(last_review: &str) -> serde_json::Value {
+    json!({"state":"review", "step":null, "stability":5.0, "difficulty":5.0,
+        "last_review":last_review, "due":"2026-10-01T00:00:00Z"})
+}
+
 fn insert(conn: &Connection, item: &str, outcome: serde_json::Value) -> i64 {
+    let due = outcome
+        .pointer("/schedule/state/due")
+        .and_then(|value| value.as_str());
     conn.execute(
-        "INSERT INTO learning_events(item_key,kind,outcome) VALUES(?1,'review',?2)",
-        rusqlite::params![item, outcome.to_string()],
+        "INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+        rusqlite::params![item, outcome.to_string(), due],
     )
     .unwrap();
     conn.last_insert_rowid()
@@ -27,7 +35,7 @@ fn pending_reviews_follow_the_last_card_and_the_selected_assessment() {
         "item",
         unavailable(Some("a"), 1, Some("2026-09-01T00:00:00Z")),
     );
-    let card = json!({"state":"review","last_review":"2026-09-02T00:00:00Z"});
+    let card = valid_card("2026-09-02T00:00:00Z");
     insert(
         &conn,
         "item",
@@ -131,7 +139,7 @@ fn legacy_review_gap_is_scoped_and_not_erased_by_a_later_card() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
     insert(&conn, "item", json!({"outcome":"correct"}));
-    let card = json!({"state":"review","last_review":"2026-09-02T00:00:00Z"});
+    let card = valid_card("2026-09-02T00:00:00Z");
     insert(
         &conn,
         "item",
@@ -290,7 +298,7 @@ fn reset_baseline_requires_matching_declaration_and_is_assessment_scoped() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
     let old = insert(&conn, "item", unavailable(Some("a"), 1, None));
-    let card = json!({"state":"review","last_review":"2026-09-02T00:00:00Z"});
+    let card = valid_card("2026-09-02T00:00:00Z");
     let declaration =
         json!({"mode":"start_new","reason":"known gap","expected_latest_event_id":old});
     let reset = insert(
@@ -336,7 +344,7 @@ fn reset_baseline_requires_matching_declaration_and_is_assessment_scoped() {
 fn scheduled_card_cannot_hide_unreplayed_unavailable_reviews() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("gaps.sqlite").to_str().unwrap()).unwrap();
-    let card = json!({"state":"review","last_review":"2026-09-03T00:00:00Z"});
+    let card = valid_card("2026-09-03T00:00:00Z");
     for name in [
         "absent",
         "wrong-count",
@@ -390,7 +398,7 @@ fn scheduled_card_cannot_hide_unreplayed_unavailable_reviews() {
 fn valid_replay_receipts_cover_only_their_own_pending_reviews() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("replays.sqlite").to_str().unwrap()).unwrap();
-    let card = json!({"state":"review","last_review":"2026-09-03T00:00:00Z"});
+    let card = valid_card("2026-09-03T00:00:00Z");
     insert(
         &conn,
         "item",
@@ -420,14 +428,14 @@ fn valid_replay_receipts_cover_only_their_own_pending_reviews() {
         &conn,
         "item",
         json!({"schedule":{"authority":"fsrs",
-        "state":{"state":"review","last_review":"2026-09-05T00:00:00Z"},
+        "state":valid_card("2026-09-05T00:00:00Z"),
         "recovery":{"state":"replayed","count":1,"through_event_id":third}}}),
     );
     insert(
         &conn,
         "item",
         json!({"schedule":{"authority":"fsrs",
-        "state":{"state":"review","last_review":"2026-09-06T00:00:00Z"}}}),
+        "state":valid_card("2026-09-06T00:00:00Z")}}),
     );
     let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
     assert!(basis.recovery_issue.is_none());
@@ -447,7 +455,7 @@ fn explicit_reset_starts_after_an_unreplayed_historical_gap() {
         &conn,
         "item",
         json!({"schedule":{"authority":"fsrs",
-        "state":{"state":"review","last_review":"2026-09-02T00:00:00Z"}}}),
+        "state":valid_card("2026-09-02T00:00:00Z")}}),
     );
     assert_eq!(
         learning::review_schedule_basis(&conn, "item", None)
@@ -460,7 +468,7 @@ fn explicit_reset_starts_after_an_unreplayed_historical_gap() {
         "item",
         json!({"review_evidence":{"schedule_reset":{
         "mode":"start_new", "reason":"synthetic reset", "expected_latest_event_id":later}},
-        "schedule":{"authority":"fsrs", "state":{"state":"review","last_review":"2026-09-03T00:00:00Z"},
+        "schedule":{"authority":"fsrs", "state":valid_card("2026-09-03T00:00:00Z"),
         "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic reset", "excluded_through_event_id":later}}}),
     );
     let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
@@ -482,7 +490,7 @@ fn legacy_issue_does_not_hide_the_independent_replay_gap_flag() {
         &conn,
         "item",
         json!({"schedule":{"authority":"fsrs",
-        "state":{"state":"review","last_review":"2026-09-03T00:00:00Z"}}}),
+        "state":valid_card("2026-09-03T00:00:00Z")}}),
     );
     let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
     assert_eq!(

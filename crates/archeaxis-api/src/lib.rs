@@ -560,7 +560,7 @@ fn schedule_integrity_issue(
 ) -> rusqlite::Result<Option<&'static str>> {
     // An unavailable event or a legacy/unknown review may require a full
     // baseline-aware check. The indexed fast path still validates the latest
-    // FSRS card using the same timestamp rule as review_schedule_basis.
+    // FSRS card using the same complete validation as review_schedule_basis.
     let needs_history: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND CASE
          WHEN json_valid(outcome) THEN
@@ -582,8 +582,10 @@ fn schedule_integrity_issue(
             basis.recovery_issue
         });
     }
-    if let Some(raw) = learning::latest_fsrs_state_for_assessment(conn, item_key, assessment_id)? {
-        if learning::previous_fsrs_review_timestamp(conn, &raw)?.is_none() {
+    if let Some((raw, due)) =
+        learning::latest_fsrs_snapshot_for_assessment(conn, item_key, assessment_id)?
+    {
+        if learning::previous_fsrs_review_timestamp(conn, &raw, due.as_deref())?.is_none() {
             return Ok(Some("invalid_previous_card"));
         }
     }
