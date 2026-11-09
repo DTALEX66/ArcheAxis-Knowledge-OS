@@ -550,6 +550,22 @@ fn has_scheduled_gap_without_replay_evidence(
     Ok(false)
 }
 
+/// Read the same effective timestamp validation used by scheduling and projections.
+/// `None` means the persisted state cannot establish a valid previous review.
+pub fn previous_fsrs_review_timestamp(
+    conn: &Connection,
+    raw: &str,
+) -> rusqlite::Result<Option<i64>> {
+    let value = match parse_fsrs_card(raw) {
+        Ok(value) => value,
+        Err(_) => return Ok(None),
+    };
+    match value["last_review"].as_str() {
+        Some(time) => review_timestamp_micros(conn, time),
+        None => Ok(None),
+    }
+}
+
 pub fn review_schedule_basis(
     conn: &Connection,
     item_key: &str,
@@ -624,14 +640,7 @@ pub fn review_schedule_basis(
     }
     let mut latest_reviewed_at_micros = None;
     if let Some(raw) = previous_state.as_deref() {
-        let previous = parse_fsrs_card(raw).ok();
-        let previous_time = previous
-            .as_ref()
-            .and_then(|value| value["last_review"].as_str());
-        latest_reviewed_at_micros = match previous_time {
-            Some(time) => review_timestamp_micros(conn, time)?,
-            None => None,
-        };
+        latest_reviewed_at_micros = previous_fsrs_review_timestamp(conn, raw)?;
         if latest_reviewed_at_micros.is_none() && recovery_issue.is_none() {
             recovery_issue = Some("invalid_previous_card");
         }

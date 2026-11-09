@@ -401,6 +401,19 @@ review is saved without a due date; the Core neither treats the row as no prior 
 parses a string containing JSON as an authoritative card. A human-declared reset can start a
 new baseline without modifying the damaged record.
 
+The read-only learning queue and scoped learner state also withhold an effective deadline when
+the active baseline has one of these known integrity problems. The optional `schedule_integrity`
+reports `state: unverified` with one of `scheduled_gap_replay_unverified`,
+`legacy_review_evidence_missing_or_invalid`, `invalid_previous_card`,
+`too_many_unscheduled_reviews`, `unscheduled_review_evidence_missing_or_invalid`, or
+`unscheduled_review_time_order_invalid`. When a replay gap coexists with another problem, the
+previously exposed replay-gap reason retains priority. The projection includes legacy
+placeholder deadlines in the withheld set; raw event history and historical counts remain
+unchanged. A scoped assessment does not inherit other assessments' gaps. A human-declared reset
+can establish a later baseline, but does not reconstruct old evidence. The prior-card quick
+check shares the scheduling path's state parsing and last-review timestamp validation; it is not
+a claim of exhaustive corruption detection.
+
 For a new non-reset review with an otherwise recoverable history, the effective `now` must not
 precede the last evidenced review on that scoped card: the Core returns `400` before invoking the
 worker or writing an event, so the caller can correct and resubmit the same key. Historic unscheduled events that are already in reverse time

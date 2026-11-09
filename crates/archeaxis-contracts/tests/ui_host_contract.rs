@@ -63,16 +63,20 @@ fn request_id_is_not_an_execution_receipt_or_grant() {
 
 #[test]
 fn prior_host_digest_is_rejected_after_response_schema_change() {
-    let mut request = valid();
-    request["contract_digest"] =
-        json!("3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb");
-    assert_ne!(request["contract_digest"], CONTRACT_DIGEST);
-    assert_eq!(
-        serde_json::from_value::<Request>(request)
-            .unwrap()
-            .validate(),
-        Err("HOST_VERSION_INCOMPATIBLE")
-    );
+    for prior_digest in [
+        "3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb",
+        "d9d26d3a256dbe08ca69918a6979e1aa84c76fae3e021c68ef32d210cd356504",
+    ] {
+        let mut request = valid();
+        request["contract_digest"] = json!(prior_digest);
+        assert_ne!(request["contract_digest"], CONTRACT_DIGEST);
+        assert_eq!(
+            serde_json::from_value::<Request>(request)
+                .unwrap()
+                .validate(),
+            Err("HOST_VERSION_INCOMPATIBLE")
+        );
+    }
     assert!(
         serde_json::from_value::<Request>(valid())
             .unwrap()

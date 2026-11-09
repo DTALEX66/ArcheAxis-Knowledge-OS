@@ -905,6 +905,17 @@ def test_legacy_review_gap_requires_explicit_new_baseline(tmp_path, monkeypatch,
         core.stop()
 
 
+def assert_unverified_schedule_projection(core, item, reason):
+    status, state = core.request("GET", f"/api/v1/learning/items/{item}/state")
+    assert status == 200 and state["learner"]["next_review"] is None
+    assert state["learner"]["latest_review"]["next_review"] is None
+    assert state["learner"]["schedule_integrity"] == {"state": "unverified", "reason": reason}
+    status, queue = core.request("GET", "/api/v1/learning/items")
+    row = next(value for value in queue["items"] if value["item_key"] == item)
+    assert status == 200 and row["next_review"] is None
+    assert row["schedule_integrity"] == {"state": "unverified", "reason": reason}
+
+
 def test_legacy_gap_before_an_existing_fsrs_card_remains_visible(tmp_path, monkeypatch):
     core = core_for(tmp_path)
     item = "synthetic-legacy-before-card"
@@ -928,6 +939,8 @@ def test_legacy_gap_before_an_existing_fsrs_card_remains_visible(tmp_path, monke
         core.start()
         before = core.request("GET", f"/api/v1/learning/events/{item}")[1]
         assert before["count"] == 2 and before["events"][0]["event_id"] == old["event_id"]
+        assert_unverified_schedule_projection(core, item, "legacy_review_evidence_missing_or_invalid")
+        assert before["events"][-1]["next_review"] == card["next_review"]
         body = {
             "item_key": item, "client_event_id": "after-existing-card", "correct": True, "rating": 3,
             "now": "2026-09-03T00:00:00Z"}
@@ -951,12 +964,24 @@ def test_legacy_gap_before_an_existing_fsrs_card_remains_visible(tmp_path, monke
         core = Core(exe, destination, Path(sys.executable))
         core.start()
         assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == after
+        assert_unverified_schedule_projection(core, item, "legacy_review_evidence_missing_or_invalid")
         status, replay = core.request("POST", "/api/v1/learning/reviews", body)
         assert status == 200 and replay["event_id"] == result["event_id"]
         assert replay["schedule_authority"] == "unavailable"
         status, following = core.request("POST", "/api/v1/learning/reviews", {
             **body, "client_event_id": "after-gap-restore", "now": "2026-09-04T00:00:00Z"})
         assert status == 201 and following["schedule_recovery"]["reason"] == "legacy_review_evidence_missing_or_invalid"
+        status, reset = core.request("POST", "/api/v1/learning/reviews", {
+            **body, "client_event_id": "explicit-legacy-projection-reset", "now": "2026-09-05T00:00:00Z",
+            "schedule_reset": {"mode": "start_new", "reason": "Synthetic human reset",
+                               "expected_latest_event_id": following["event_id"]}})
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        core.stop()
+        core.start()
+        status, state = core.request("GET", f"/api/v1/learning/items/{item}/state")
+        assert status == 200 and state["learner"]["next_review"] == reset["next_review"]
+        assert "schedule_integrity" not in state["learner"]
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][:len(after["events"])] == after["events"]
     finally:
         core.stop()
 
@@ -1281,5 +1306,64 @@ def test_pre_reset_review_receipt_replays_on_reset_capable_core(tmp_path, monkey
         assert core.request("POST", "/api/v1/learning/reviews", {**body, "now": "2026-09-03T00:00:00+00:00"})[0] == 409
         assert core.request("GET", "/api/v1/learning/events/synthetic-stateful-outage")[1]["count"] == 1
         assert hashlib.sha256(backup.read_bytes()).hexdigest() == expected
+    finally:
+        core.stop()
+
+
+@pytest.mark.parametrize("bad_state", [None, {
+    "state": "review", "step": None, "stability": 5.0, "difficulty": 5.0,
+    "last_review": "not-a-time", "due": "2026-09-10T00:00:00Z",
+}])
+def test_invalid_card_projection_survives_restart_backup_and_reset(tmp_path, monkeypatch, bad_state):
+    item = "synthetic-invalid-card-projection"
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    core = core_for(tmp_path)
+    try:
+        core.start()
+        status, original = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "original-card", "correct": True,
+            "rating": 3, "now": "2026-09-02T00:00:00Z"})
+        assert status == 201 and original["schedule_authority"] == "fsrs"
+        core.stop()
+        # Create the damaged historical shape only in this isolated fixture.
+        with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+            (raw,) = conn.execute("SELECT outcome FROM learning_events WHERE event_id=?",
+                                  (original["event_id"],)).fetchone()
+            outcome = json.loads(raw)
+            outcome["schedule"]["state"] = bad_state
+            conn.execute("UPDATE learning_events SET outcome=? WHERE event_id=?",
+                         (json.dumps(outcome), original["event_id"]))
+        core.start()
+        history = core.request("GET", f"/api/v1/learning/events/{item}")[1]
+        assert history["events"][0]["next_review"] == original["next_review"]
+        assert_unverified_schedule_projection(core, item, "invalid_previous_card")
+        status, backup = core.request("POST", "/api/v1/workspace/backups", {})
+        assert status == 201 and backup["verified"] is True
+        artifact = tmp_path / "backups" / backup["filename"]
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == backup["sha256"]
+        exe = core.exe
+        core.stop()
+        destination = tmp_path / "invalid-card-restore"
+        destination.mkdir()
+        restored = subprocess.run([str(exe), "--maintenance-restore", str(destination / "workspace.sqlite"),
+                                   str(artifact)], capture_output=True, text=True, timeout=120, check=False)
+        assert restored.returncode == 0 and json.loads(restored.stdout)["ok"] is True
+        from scripts.ci.real_core_grading_journey import Core
+        core = Core(exe, destination, Path(sys.executable))
+        core.start()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == history
+        assert_unverified_schedule_projection(core, item, "invalid_previous_card")
+        status, reset = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "explicit-invalid-card-reset", "correct": True,
+            "rating": 3, "now": "2026-09-03T00:00:00Z",
+            "schedule_reset": {"mode": "start_new", "reason": "Synthetic human reset",
+                               "expected_latest_event_id": original["event_id"]}})
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        core.stop()
+        core.start()
+        status, state = core.request("GET", f"/api/v1/learning/items/{item}/state")
+        assert status == 200 and state["learner"]["next_review"] == reset["next_review"]
+        assert "schedule_integrity" not in state["learner"]
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][0] == history["events"][0]
     finally:
         core.stop()

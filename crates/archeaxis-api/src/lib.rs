@@ -553,35 +553,49 @@ async fn learning_history(
 }
 
 // Only the effective deadline is withheld: historical event bytes remain unchanged.
-fn schedule_gap_is_unverified(
+fn schedule_integrity_issue(
     conn: &rusqlite::Connection,
     item_key: &str,
     assessment_id: Option<&str>,
-) -> rusqlite::Result<bool> {
-    // A gap cannot exist without at least one unavailable event. This indexed
-    // precheck avoids reconstructing every healthy item on a queue read.
-    let has_unavailable: bool = conn.query_row(
+) -> rusqlite::Result<Option<&'static str>> {
+    // An unavailable event or a legacy/unknown review may require a full
+    // baseline-aware check. The indexed fast path still validates the latest
+    // FSRS card using the same timestamp rule as review_schedule_basis.
+    let needs_history: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND CASE
-         WHEN json_valid(outcome) THEN json_extract(outcome,'$.schedule.authority')='unavailable'
-         ELSE 0 END)",
-        [item_key],
+         WHEN json_valid(outcome) THEN
+           (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
+           AND (json_extract(outcome,'$.schedule.authority')='unavailable'
+             OR (kind='review' AND (json_type(outcome,'$.schedule') IS NOT 'object'
+               OR json_type(outcome,'$.schedule.authority') IS NOT 'text'
+               OR json_extract(outcome,'$.schedule.authority') NOT IN ('fsrs','unavailable'))))
+         ELSE kind='review' AND ?2 IS NULL END)",
+        rusqlite::params![item_key, assessment_id],
         |row| row.get(0),
     )?;
-    if !has_unavailable {
-        return Ok(false);
+    if needs_history {
+        let basis = learning::review_schedule_basis(conn, item_key, assessment_id)?;
+        // Preserve the previously published replay-gap reason if both issues exist.
+        return Ok(if basis.scheduled_gap_replay_unverified {
+            Some("scheduled_gap_replay_unverified")
+        } else {
+            basis.recovery_issue
+        });
     }
-    Ok(
-        learning::review_schedule_basis(conn, item_key, assessment_id)?
-            .scheduled_gap_replay_unverified,
-    )
+    if let Some(raw) = learning::latest_fsrs_state_for_assessment(conn, item_key, assessment_id)? {
+        if learning::previous_fsrs_review_timestamp(conn, &raw)?.is_none() {
+            return Ok(Some("invalid_previous_card"));
+        }
+    }
+    Ok(None)
 }
 
-fn unverified_schedule_integrity() -> serde_json::Value {
-    serde_json::json!({"state":"unverified", "reason":"scheduled_gap_replay_unverified"})
+fn unverified_schedule_integrity(reason: &str) -> serde_json::Value {
+    serde_json::json!({"state":"unverified", "reason":reason})
 }
 
 /// Read-only queue projection for desktop clients. Deadlines come from the latest
-/// event only when the active history has no unverified scheduled replay gap.
+/// event only when the active scheduling history has no known integrity issue.
 async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
     with_store(state, |conn| {
         let rows = learning::item_keys_with_latest_review(conn).and_then(|items| {
@@ -590,7 +604,7 @@ async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
                 .map(|(item_key, next_review)| {
                     let display_title = learning::item_display_title(conn, &item_key)?;
                     let assessment = learning::assessment_for_item_key(conn, &item_key)?;
-                    let gap = schedule_gap_is_unverified(
+                    let integrity_issue = schedule_integrity_issue(
                         conn,
                         &item_key,
                         assessment
@@ -602,9 +616,9 @@ async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
                         "next_review": next_review,
                         "display_title": display_title,
                     });
-                    if gap {
+                    if let Some(reason) = integrity_issue {
                         item["next_review"] = serde_json::Value::Null;
-                        item["schedule_integrity"] = unverified_schedule_integrity();
+                        item["schedule_integrity"] = unverified_schedule_integrity(reason);
                     }
                     Ok(item)
                 })
@@ -705,15 +719,15 @@ async fn item_state(
         };
         let mut latest_review = latest_review_projection(&events);
         let mut scoped_review = latest_review_projection(&scoped_events);
-        let unverified_gap = if !scoped_events.is_empty() {
-            match schedule_gap_is_unverified(conn, &item_key, assessment_id) {
+        let integrity_issue = if !scoped_events.is_empty() {
+            match schedule_integrity_issue(conn, &item_key, assessment_id) {
                 Ok(value) => value,
                 Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
             }
         } else {
-            false
+            None
         };
-        if unverified_gap {
+        if integrity_issue.is_some() {
             let same_event = scoped_review.get("event_id").is_some()
                 && scoped_review.get("event_id") == latest_review.get("event_id");
             scoped_review["next_review"] = serde_json::Value::Null;
@@ -751,8 +765,8 @@ async fn item_state(
                     "note": "machine capability receipts are written by the machine loop; learner progress is never presented as machine competence",
                 },
             });
-        if unverified_gap {
-            result["learner"]["schedule_integrity"] = unverified_schedule_integrity();
+        if let Some(reason) = integrity_issue {
+            result["learner"]["schedule_integrity"] = unverified_schedule_integrity(reason);
         }
         (StatusCode::OK, Json(result)).into_response()
     })

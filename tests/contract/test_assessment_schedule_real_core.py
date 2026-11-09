@@ -243,11 +243,18 @@ function load(path) {
 }
 const core = load(corePath), host = load(hostPath), fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
 for (const value of Object.values(fixture)) assert.equal(core.assertCoreDto("LearningStateDto", value), value);
-const integrity = {state:"unverified",reason:"scheduled_gap_replay_unverified"};
-const flagged = {...fixture.after, learner:{...fixture.after.learner, next_review:null, schedule_integrity:integrity}};
-assert.equal(core.assertCoreDto("LearningStateDto", flagged), flagged);
+const reasons = ["scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid",
+  "invalid_previous_card", "too_many_unscheduled_reviews", "unscheduled_review_evidence_missing_or_invalid",
+  "unscheduled_review_time_order_invalid"];
+for (const reason of reasons) {
+  const integrity = {state:"unverified",reason};
+  const flagged = {...fixture.after, learner:{...fixture.after.learner, next_review:null, schedule_integrity:integrity}};
+  assert.equal(core.assertCoreDto("LearningStateDto", flagged), flagged);
+  const queue = {items:[{item_key:"item", next_review:null, schedule_integrity:integrity}],count:1};
+  assert.equal(core.assertCoreDto("LearningItemsDto", queue), queue);
+}
+const integrity = {state:"unverified",reason:reasons[0]};
 const queue = {items:[{item_key:"item", next_review:null, schedule_integrity:integrity}],count:1};
-assert.equal(core.assertCoreDto("LearningItemsDto", queue), queue);
 assert.throws(() => core.assertCoreDto("LearningItemsDto", {items:[{...queue.items[0], schedule_integrity:{...integrity, reason:"invented"}}],count:1}));
 const legacy = {item_key:"legacy",learner:{event_count:0,correct_streak:0,scheduled_events:0,unscheduled_events:0}};
 assert.equal(core.assertCoreDto("LearningStateDto", legacy), legacy);
@@ -263,7 +270,9 @@ assert.equal(host.UI_HOST_CONTRACT_DIGEST, canonical);
 const hostRequest = {schema:"archeaxis.ui-host-request/v2", contract_digest:host.UI_HOST_CONTRACT_DIGEST,
   request_id:"synthetic", workspace_id:"a".repeat(32), restore_epoch:"initial", operation:"model.inventory.read", input:{}};
 host.assertUiHostRequest(hostRequest);
-assert.throws(() => host.assertUiHostRequest({...hostRequest, contract_digest:"3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb"}));
+for (const prior of ["3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb",
+  "d9d26d3a256dbe08ca69918a6979e1aa84c76fae3e021c68ef32d210cd356504"])
+  assert.throws(() => host.assertUiHostRequest({...hostRequest, contract_digest:prior}));
 """
     result = subprocess.run([os.environ["AAOS_TEST_NODE"], "-e", script, os.environ["AAOS_TEST_TYPESCRIPT"],
         str(ROOT / "frontend/src/api/generated/core-contract.ts"), str(ROOT / "frontend/src/api/generated/ui-host-contract.ts"),
@@ -281,8 +290,12 @@ def test_learning_schedule_integrity_is_optional_but_reason_is_typed():
     state = {"item_key": "item", "learner": {"event_count": 1, "correct_streak": 1,
         "scheduled_events": 1, "unscheduled_events": 0, "next_review": None, "schedule_integrity": integrity}}
     queue = {"items": [{"item_key": "item", "next_review": None, "schedule_integrity": integrity}], "count": 1}
-    assert not list(validate("LearningStateDto").iter_errors(state))
-    assert not list(validate("LearningItemsDto").iter_errors(queue))
+    for reason in ("scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid",
+                   "invalid_previous_card", "too_many_unscheduled_reviews",
+                   "unscheduled_review_evidence_missing_or_invalid", "unscheduled_review_time_order_invalid"):
+        integrity["reason"] = reason
+        assert not list(validate("LearningStateDto").iter_errors(state))
+        assert not list(validate("LearningItemsDto").iter_errors(queue))
     bad = {"state": "unverified", "reason": "invented"}
     assert list(validate("LearningStateDto").iter_errors({**state, "learner": {**state["learner"], "schedule_integrity": bad}}))
     assert list(validate("LearningItemsDto").iter_errors({**queue, "items": [{**queue["items"][0], "schedule_integrity": bad}]}))

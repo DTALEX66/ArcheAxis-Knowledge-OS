@@ -995,14 +995,13 @@ async fn learning_items_display_title_preserves_snapshot_unicode_fallback_and_re
             .unwrap();
         assert_eq!(row["display_title"], title);
         assert!(title.chars().count() <= 80);
-        assert_eq!(
-            row["next_review"],
-            if key == "legacy-event" {
-                json!("2026-09-04T00:10:00+00:00")
-            } else {
-                Value::Null
-            }
-        );
+        assert_eq!(row["next_review"], Value::Null);
+        if key == "legacy-event" {
+            assert_eq!(
+                row["schedule_integrity"]["reason"],
+                "legacy_review_evidence_missing_or_invalid"
+            );
+        }
     }
     assert_eq!(get_items(&router).await.1, queue);
     let after_read: i64 = conn
@@ -1107,4 +1106,212 @@ async fn unverified_gap_withholds_only_the_current_assessment_deadline() {
         .unwrap();
     assert_eq!(item["next_review"], "2026-09-10T00:00:00Z");
     assert!(item.get("schedule_integrity").is_none());
+}
+
+async fn assert_unverified_projection(router: &axum::Router, item_key: &str, reason: &str) {
+    let (status, state) =
+        get_path(router, &format!("/api/v1/learning/items/{item_key}/state")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(state["learner"]["next_review"], Value::Null);
+    assert_eq!(
+        state["learner"]["latest_review"]["next_review"],
+        Value::Null
+    );
+    assert_eq!(
+        state["learner"]["schedule_integrity"]["state"],
+        "unverified"
+    );
+    assert_eq!(state["learner"]["schedule_integrity"]["reason"], reason);
+    let (status, queue) = get_items(router).await;
+    assert_eq!(status, StatusCode::OK);
+    let item = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|value| value["item_key"] == item_key)
+        .unwrap();
+    assert_eq!(item["next_review"], Value::Null);
+    assert_eq!(item["schedule_integrity"]["reason"], reason);
+}
+
+#[tokio::test]
+async fn legacy_review_gap_before_card_withholds_read_only_deadline() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("legacy-gap-projection.sqlite");
+    let item = "synthetic-legacy-projection";
+    let due = "2026-09-10T00:00:00Z";
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        let old = json!({"outcome":"incorrect", "schedule":{"authority":"placeholder_ladder"}});
+        let card = json!({"outcome":"correct", "schedule":{"authority":"fsrs",
+            "state":{"state":"review", "step":null, "stability":5.0, "difficulty":5.0,
+                "last_review":"2026-09-03T00:00:00Z", "due":due}}});
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,NULL)",
+            rusqlite::params![item, old.to_string()]).unwrap();
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+            rusqlite::params![item, card.to_string(), due]).unwrap();
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    assert_unverified_projection(&router, item, "legacy_review_evidence_missing_or_invalid").await;
+    let (_, history) = get_path(&router, &format!("/api/v1/learning/events/{item}")).await;
+    assert_eq!(
+        history["events"][1]["next_review"], due,
+        "raw historical records must remain unchanged"
+    );
+}
+
+#[tokio::test]
+async fn invalid_previous_card_withholds_read_only_deadline() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("invalid-card-projection.sqlite");
+    let item = "synthetic-invalid-card-projection";
+    let due = "2026-09-10T00:00:00Z";
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        let card = json!({"outcome":"correct", "schedule":{"authority":"fsrs", "state":null}});
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+            rusqlite::params![item, card.to_string(), due]).unwrap();
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    assert_unverified_projection(&router, item, "invalid_previous_card").await;
+    let (_, history) = get_path(&router, &format!("/api/v1/learning/events/{item}")).await;
+    assert_eq!(
+        history["events"][0]["next_review"], due,
+        "raw historical records must remain unchanged"
+    );
+}
+
+#[tokio::test]
+async fn legacy_projection_is_assessment_scoped_and_human_reset_restores_deadline() {
+    fn event(
+        conn: &rusqlite::Connection,
+        assessment: &str,
+        legacy: bool,
+        reset_from: Option<i64>,
+    ) -> i64 {
+        let due = "2026-09-10T00:00:00Z";
+        let mut outcome = if legacy {
+            json!({"assessment_id":assessment,"outcome":"incorrect","schedule":{"authority":"placeholder_ladder"}})
+        } else {
+            json!({"assessment_id":assessment,"outcome":"correct", "schedule":{"authority":"fsrs",
+                "state":{"state":"review","step":null,"stability":5.0,"difficulty":5.0,
+                    "last_review":"2026-09-03T00:00:00Z","due":due}}})
+        };
+        if let Some(cursor) = reset_from {
+            outcome["review_evidence"] = json!({"schedule_reset":{"mode":"start_new",
+                "reason":"Synthetic explicit reset","expected_latest_event_id":cursor}});
+            outcome["schedule"]["recovery"] = json!({"mode":"start_new","state":"reset",
+                "reason":"Synthetic explicit reset","excluded_through_event_id":cursor});
+        }
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+            rusqlite::params!["assessment-tie-1", outcome.to_string(), if legacy {None} else {Some(due)}]).unwrap();
+        conn.last_insert_rowid()
+    }
+
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("legacy-projection-assessment.sqlite");
+    let (old, current) = assessment_revision_fixture(&db);
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        event(&conn, &old.assessment_id, true, None);
+        event(&conn, &old.assessment_id, false, None);
+        event(&conn, &current.assessment_id, false, None);
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (_, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(state["learner"]["next_review"], "2026-09-10T00:00:00Z");
+    assert!(state["learner"].get("schedule_integrity").is_none());
+    drop(router);
+    let (current_cursor, historical_latest) = {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        event(&conn, &current.assessment_id, true, None);
+        let current_cursor = event(&conn, &current.assessment_id, false, None);
+        let historical_latest = event(&conn, &old.assessment_id, false, None);
+        (current_cursor, historical_latest)
+    };
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (_, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(state["learner"]["next_review"], Value::Null);
+    assert_eq!(
+        state["learner"]["assessment_progress"]["latest_review"]["next_review"],
+        Value::Null
+    );
+    assert_eq!(
+        state["learner"]["schedule_integrity"]["reason"],
+        "legacy_review_evidence_missing_or_invalid"
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["event_id"],
+        historical_latest
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["next_review"],
+        "2026-09-10T00:00:00Z"
+    );
+    let (_, queue) = get_items(&router).await;
+    let item = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["item_key"] == "assessment-tie-1")
+        .unwrap();
+    assert_eq!(item["next_review"], Value::Null);
+    let (_, history_before) = get_path(&router, "/api/v1/learning/events/assessment-tie-1").await;
+    drop(router);
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        event(&conn, &current.assessment_id, false, Some(current_cursor));
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (_, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(state["learner"]["next_review"], "2026-09-10T00:00:00Z");
+    assert!(state["learner"].get("schedule_integrity").is_none());
+    let (_, history_after) = get_path(&router, "/api/v1/learning/events/assessment-tie-1").await;
+    let before = history_before["events"].as_array().unwrap();
+    let after = history_after["events"].as_array().unwrap();
+    assert_eq!(&after[..before.len()], before.as_slice());
+    assert_eq!(after.len(), before.len() + 1);
+}
+
+#[tokio::test]
+async fn malformed_legacy_and_bad_timestamps_do_not_expose_a_deadline() {
+    for (name, legacy, card, expected) in [
+        (
+            "bad-json",
+            Some("{".to_owned()),
+            json!({"state":"review","step":null,"stability":5.0,
+            "difficulty":5.0,"last_review":"2026-09-03T00:00:00Z","due":"2026-09-10T00:00:00Z"}),
+            "legacy_review_evidence_missing_or_invalid",
+        ),
+        (
+            "bad-time",
+            None,
+            json!({"state":"review","step":null,"stability":5.0,
+            "difficulty":5.0,"last_review":"not-a-time","due":"2026-09-10T00:00:00Z"}),
+            "invalid_previous_card",
+        ),
+        (
+            "bad-number",
+            None,
+            json!({"state":"review","step":null,"stability":"bad",
+            "difficulty":5.0,"last_review":"2026-09-03T00:00:00Z","due":"2026-09-10T00:00:00Z"}),
+            "invalid_previous_card",
+        ),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join(format!("{name}.sqlite"));
+        let due = "2026-09-10T00:00:00Z";
+        {
+            let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+            if let Some(raw) = legacy {
+                conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,NULL)",
+                    rusqlite::params![name, raw]).unwrap();
+            }
+            let outcome = json!({"outcome":"correct","schedule":{"authority":"fsrs","state":card}});
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+                rusqlite::params![name, outcome.to_string(), due]).unwrap();
+        }
+        let router = app(db.to_str().unwrap()).unwrap();
+        assert_unverified_projection(&router, name, expected).await;
+    }
 }
