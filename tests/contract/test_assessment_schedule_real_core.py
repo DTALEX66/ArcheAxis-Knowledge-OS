@@ -35,6 +35,19 @@ def test_learning_state_contract_accepts_legacy_and_checks_optional_assessment_s
     assert list(check.iter_errors({**scoped, "learner": {**scoped["learner"], "assessment_progress": missing_identity}}))
 
 
+def test_review_schema_requires_explicit_bounded_reset_identity_and_reason():
+    schema = json.loads((ROOT / "packages/contracts/learning/v1/review.schema.json").read_text(encoding="utf-8"))
+    check = Draft202012Validator(schema)
+    base = {"item_key": "item", "client_event_id": "key", "correct": True}
+    reset = {"mode": "start_new", "reason": "Known historical gap", "expected_latest_event_id": 17}
+    assert not list(check.iter_errors(base))
+    assert not list(check.iter_errors({**base, "schedule_reset": reset}))
+    for invalid in ({**reset, "mode": "automatic"}, {**reset, "reason": "  "},
+                    {**reset, "expected_latest_event_id": 0}, {**reset, "expected_latest_event_id": 9007199254740992},
+                    {**reset, "extra": True}, {"mode": "start_new", "reason": "missing cursor"}):
+        assert list(check.iter_errors({**base, "schedule_reset": invalid}))
+
+
 @pytest.mark.skipif(not os.environ.get("AAOS_TEST_CORE_EXE"), reason="explicit real Core binary required")
 def test_unbound_review_boundary_survives_restart_and_restore(tmp_path):
     from scripts.ci.real_core_grading_journey import Core

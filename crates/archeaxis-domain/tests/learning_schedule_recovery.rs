@@ -200,3 +200,50 @@ fn due_and_reported_interval_must_match_the_review_instant() {
             .unwrap()
     );
 }
+
+#[test]
+fn reset_baseline_requires_matching_declaration_and_is_assessment_scoped() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let old = insert(&conn, "item", unavailable(Some("a"), 1, None));
+    let card = json!({"state":"review","last_review":"2026-09-02T00:00:00Z"});
+    let declaration =
+        json!({"mode":"start_new","reason":"known gap","expected_latest_event_id":old});
+    let reset = insert(
+        &conn,
+        "item",
+        json!({"assessment_id":"a","outcome":"correct",
+        "schedule":{"authority":"fsrs","state":card,"recovery":{"state":"reset","mode":"start_new",
+            "reason":"known gap","excluded_through_event_id":old}},
+        "review_evidence":{"schedule_reset":declaration}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", Some("a")).unwrap();
+    assert_eq!(basis.baseline_reset_event_id, Some(reset));
+    assert!(basis.recovery_issue.is_none() && basis.pending.is_empty());
+    assert!(
+        learning::review_schedule_basis(&conn, "item", Some("b"))
+            .unwrap()
+            .baseline_reset_event_id
+            .is_none()
+    );
+    let mut forged = json!({"assessment_id":"a","outcome":"correct",
+        "schedule":{"authority":"fsrs","state":card,"recovery":{"state":"reset","mode":"start_new",
+            "reason":"different reason","excluded_through_event_id":reset}},
+        "review_evidence":{"schedule_reset":{"mode":"start_new","reason":"known gap","expected_latest_event_id":reset}}});
+    insert(&conn, "item", forged.clone());
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", Some("a"))
+            .unwrap()
+            .baseline_reset_event_id,
+        Some(reset)
+    );
+    forged["schedule"]["recovery"]["reason"] = json!("known gap");
+    forged["schedule"]["recovery"]["excluded_through_event_id"] = json!(0);
+    insert(&conn, "item", forged);
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", Some("a"))
+            .unwrap()
+            .baseline_reset_event_id,
+        Some(reset)
+    );
+}

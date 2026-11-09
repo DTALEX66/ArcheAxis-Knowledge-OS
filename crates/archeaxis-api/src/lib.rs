@@ -615,7 +615,7 @@ fn latest_review_projection(events: &[(i64, String, String, Option<String>)]) ->
                 .cloned()
                 .unwrap_or(serde_json::Value::Null)
         });
-    serde_json::json!({
+    let mut projection = serde_json::json!({
         "event_id": event_id,
         "kind": kind,
         "next_review": next_review,
@@ -624,7 +624,11 @@ fn latest_review_projection(events: &[(i64, String, String, Option<String>)]) ->
         "schedule_authority": schedule.and_then(|value| value.get("authority")).cloned().unwrap_or(serde_json::Value::Null),
         "schedule_state": state,
         "mastery_projection": projection,
-    })
+    });
+    if let Some(recovery) = schedule.and_then(|value| value.get("recovery")) {
+        projection["schedule_recovery"] = recovery.clone();
+    }
+    projection
 }
 
 async fn item_state(
@@ -880,6 +884,14 @@ fn default_learning_kind() -> String {
 
 /// Stateful FSRS entry. Clients report a review, never the authoritative card.
 /// The legacy /events contract remains available for old keyed receipts.
+#[derive(Clone, Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct ScheduleReset {
+    mode: String,
+    reason: String,
+    expected_latest_event_id: i64,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct StatefulReviewBody {
@@ -888,6 +900,8 @@ struct StatefulReviewBody {
     correct: bool,
     rating: Option<u8>,
     now: Option<String>,
+    #[serde(default)]
+    schedule_reset: Option<ScheduleReset>,
     /// Optional v2 learning evidence. Legacy clients remain valid; newer
     /// clients can bind an answer to the exact question/knowledge exposure.
     answer: Option<String>,
@@ -1213,6 +1227,7 @@ async fn schedule_with_recovery(
     basis: &learning::ReviewScheduleBasis,
     rating: u8,
     instant: &str,
+    reset_requested: bool,
 ) -> (
     Result<
         archeaxis_application::scheduler::Schedule,
@@ -1227,10 +1242,17 @@ async fn schedule_with_recovery(
             Some(reason),
         )
     };
-    if let Some(reason) = basis.recovery_issue {
-        return failure(reason);
+    if !reset_requested {
+        if let Some(reason) = basis.recovery_issue {
+            return failure(reason);
+        }
     }
-    let mut card: serde_json::Value = match basis.previous_state.as_ref() {
+    let base_state = if reset_requested {
+        None
+    } else {
+        basis.previous_state.as_ref()
+    };
+    let mut card: serde_json::Value = match base_state {
         Some(value) => match learning::parse_fsrs_card(value) {
             Ok(value) => value,
             Err(_) => return failure("invalid_previous_card"),
@@ -1242,7 +1264,12 @@ async fn schedule_with_recovery(
         Err(_) => return failure("scheduler_unavailable"),
     };
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
-    for chunk in basis.pending.chunks(128) {
+    let pending = if reset_requested {
+        &[][..]
+    } else {
+        basis.pending.as_slice()
+    };
+    for chunk in pending.chunks(128) {
         if chunk.len() > 1 {
             let (last, replay) = chunk.split_last().expect("nonempty chunk");
             let history: Vec<_> = replay
@@ -1366,6 +1393,18 @@ async fn record_stateful_review(
     {
         return (StatusCode::BAD_REQUEST, "answer must not be empty").into_response();
     }
+    if body.schedule_reset.as_ref().is_some_and(|reset| {
+        reset.mode != "start_new"
+            || reset.reason.trim().is_empty()
+            || reset.reason.chars().count() > 512
+            || !(1..=9_007_199_254_740_991).contains(&reset.expected_latest_event_id)
+    }) {
+        return (
+            StatusCode::BAD_REQUEST,
+            "schedule_reset requires start_new, a nonempty reason and a bounded latest event ID",
+        )
+            .into_response();
+    }
     let assessment_id = body
         .assessment_id
         .clone()
@@ -1380,13 +1419,16 @@ async fn record_stateful_review(
         )
             .into_response();
     }
-    let canonical = serde_json::json!({"item_key":body.item_key,"correct":body.correct,
+    let mut canonical = serde_json::json!({"item_key":body.item_key,"correct":body.correct,
         "rating":rating,"now":body.now,"answer":body.answer,
         "assessment_id":assessment_id,
         "question_version":body.question_version,"knowledge_version":body.knowledge_version,
         "exposure_id":body.exposure_id,"assist_strategy":body.assist_strategy,
-        "rating_version":body.rating_version,"correction_id":body.correction_id})
-    .to_string();
+        "rating_version":body.rating_version,"correction_id":body.correction_id});
+    if let Some(reset) = body.schedule_reset.as_ref() {
+        canonical["schedule_reset"] = serde_json::json!(reset);
+    }
+    let canonical = canonical.to_string();
     // Phase 1 (short writer read): snapshot the FSRS card and the effective review instant, then
     // release the writer. The scheduler may wait up to 20s, and must not hold the single canonical
     // writer while it does, so a slow schedule cannot block document saves or other reads.
@@ -1397,6 +1439,11 @@ async fn record_stateful_review(
     let snapshot_request = canonical.clone();
     let snapshot_correct = body.correct;
     let snapshot_knowledge_version = body.knowledge_version.clone();
+    let reset_requested = body.schedule_reset.is_some();
+    let snapshot_reset_expected = body
+        .schedule_reset
+        .as_ref()
+        .map(|reset| reset.expected_latest_event_id);
     let (basis, instant) = match state
         .clone()
         .submit_wait(move |conn| -> rusqlite::Result<StatefulReviewPreparation> {
@@ -1423,6 +1470,11 @@ async fn record_stateful_review(
                 &snapshot_key,
                 snapshot_assessment.as_deref(),
             )?;
+            if snapshot_reset_expected.is_some() && snapshot_reset_expected != previous.latest_event_id {
+                return Err(rusqlite::Error::InvalidParameterName(
+                    "schedule reset conflict: review history changed".into(),
+                ));
+            }
             let instant = match snapshot_now.as_ref() {
                 Some(now) => now.clone(),
                 None => conn.query_row("SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')", [], |r| {
@@ -1448,7 +1500,7 @@ async fn record_stateful_review(
         Ok(Ok(StatefulReviewPreparation::Replay(receipt))) => return stateful_review_response(receipt),
         Ok(Ok(StatefulReviewPreparation::Invalid(message))) => return (StatusCode::BAD_REQUEST, message).into_response(),
         Ok(Ok(StatefulReviewPreparation::Schedule(previous, instant))) => (previous, instant),
-        Ok(Err(rusqlite::Error::InvalidParameterName(message))) if message.starts_with("event_key conflict:") || message.starts_with("assessment binding conflict:") =>
+        Ok(Err(rusqlite::Error::InvalidParameterName(message))) if message.starts_with("event_key conflict:") || message.starts_with("assessment binding conflict:") || message.starts_with("schedule reset conflict:") =>
             return (StatusCode::CONFLICT, message).into_response(),
         Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         Err(e) => return (StatusCode::SERVICE_UNAVAILABLE, e.to_string()).into_response(),
@@ -1456,13 +1508,30 @@ async fn record_stateful_review(
 
     // Phase 2 (off the writer): reconstruct recoverable outage reviews before
     // scheduling the new observation, without rewriting their receipts.
-    let (schedule_result, recovery_issue) =
-        schedule_with_recovery(&state, &body.item_key, &basis, rating, &instant).await;
+    let (schedule_result, recovery_issue) = schedule_with_recovery(
+        &state,
+        &body.item_key,
+        &basis,
+        rating,
+        &instant,
+        reset_requested,
+    )
+    .await;
     let worker_returned_card = schedule_result.is_ok();
     let previous_fsrs_state = basis.previous_state;
     let previous_event_id = basis.latest_event_id;
-    let recovered_count = basis.pending.len();
-    let recovered_through = basis.pending.last().map(|value| value.event_id);
+    let baseline_reset_event_id = basis.baseline_reset_event_id;
+    let recovered_count = if reset_requested {
+        0
+    } else {
+        basis.pending.len()
+    };
+    let recovered_through = if reset_requested {
+        None
+    } else {
+        basis.pending.last().map(|value| value.event_id)
+    };
+    let reset_declaration = body.schedule_reset.clone();
     let guard_item = body.item_key.clone();
     let guard_assessment = assessment_id.clone();
 
@@ -1511,20 +1580,41 @@ async fn record_stateful_review(
                     ))?;
                     recovery_issue = Some("scheduler_time_mismatch");
                 }
+                if reset_declaration.is_some() && schedule.next_review.is_none() {
+                    return Err(rusqlite::Error::InvalidParameterName(
+                        "schedule reset unavailable: scheduler result is unusable".into(),
+                    ));
+                }
                 let mut details: serde_json::Value = serde_json::from_str(&schedule.schedule_json)
                     .map_err(|_| rusqlite::Error::InvalidParameterName("invalid schedule JSON".into()))?;
                 if let Some(card) = learning::precise_fsrs_state_from_schedule(&schedule.schedule_json) {
                     details["state"] = card;
                 }
-                if schedule.next_review.is_none() {
-                    details["reviewed_at"] = serde_json::json!(instant);
-                    if let Some(reason) = recovery_issue.or(worker_returned_card.then_some("invalid_scheduler_card")) {
-                        details["recovery"] = serde_json::json!({"state":"incomplete", "reason":reason,
-                            "replayable_count":recovered_count});
+                let unavailable_reason = recovery_issue.or(worker_returned_card.then_some("invalid_scheduler_card"));
+                if let Some(reset) = reset_declaration {
+                    details["recovery"] = serde_json::json!({
+                        "state":"reset", "mode":"start_new",
+                        "reason":reset.reason, "excluded_through_event_id":previous_event_id,
+                        "authority":"human_declared_unverified",
+                    });
+                } else {
+                    if schedule.next_review.is_none() {
+                        details["reviewed_at"] = serde_json::json!(instant);
+                        if let Some(reason) = unavailable_reason {
+                            details["recovery"] = serde_json::json!({"state":"incomplete", "reason":reason,
+                                "replayable_count":recovered_count});
+                        }
+                    } else if recovered_count > 0 {
+                        details["recovery"] = serde_json::json!({"state":"replayed", "count":recovered_count,
+                            "through_event_id":recovered_through});
+                    } else if baseline_reset_event_id.is_some() {
+                        details["recovery"] = serde_json::json!({"state":"continued"});
                     }
-                } else if recovered_count > 0 {
-                    details["recovery"] = serde_json::json!({"state":"replayed", "count":recovered_count,
-                        "through_event_id":recovered_through});
+                    if let Some(id) = baseline_reset_event_id {
+                        if details.get("recovery").is_some() {
+                            details["recovery"]["baseline_reset_event_id"] = serde_json::json!(id);
+                        }
+                    }
                 }
                 schedule.schedule_json = details.to_string();
                 Ok(schedule)
@@ -1538,6 +1628,11 @@ async fn record_stateful_review(
                     || message.starts_with("assessment binding conflict:") =>
             {
                 (StatusCode::CONFLICT, message).into_response()
+            }
+            Err(rusqlite::Error::InvalidParameterName(message))
+                if message.starts_with("schedule reset unavailable:") =>
+            {
+                (StatusCode::SERVICE_UNAVAILABLE, message).into_response()
             }
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }

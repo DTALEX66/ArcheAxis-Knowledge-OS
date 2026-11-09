@@ -367,7 +367,8 @@ instant even if the caller omitted `now`; a historical review without that insta
 `now` cannot be reconstructed and is not assigned a guessed time. At most 4,096 pending reviews
 are considered in one request, and all worker calls share a 20-second scheduling budget; an
 over-limit or unresolvable history remains explicitly unscheduled and currently has no separate
-repair endpoint. Compatible workers batch up to 128 observations; a missing or mismatched batch
+automatic exact-repair endpoint. A human may explicitly start a new schedule as described below.
+Compatible workers batch up to 128 observations; a missing or mismatched batch
 receipt is discarded and an older worker is retried one observation at a time within that budget.
 This recovery occurs on a new review request, not in the background or on replay of an existing
 event key. A timezone offset is converted to the same UTC instant for FSRS while the original
@@ -382,6 +383,40 @@ For every new or recovered worker result, the Core also checks that the returned
 is the requested instant, that `due` is not earlier, and that `next_review_days` equals the
 whole-day portion of the elapsed interval. A malformed result is recorded as unavailable with
 no due date; the original review remains available for a later recovery attempt.
+
+An optional human-only `schedule_reset: {mode: "start_new", reason,
+expected_latest_event_id}` on a **new** review explicitly starts a fresh FSRS baseline. The
+reason must be nonblank and at most 512 characters; the expected ID must be the latest event in
+the same item/assessment scope and fit a JavaScript-safe positive integer. A stale ID returns
+`409` before scheduling, and the Core checks the snapshot again before committing. This is an
+explicit caller choice: the old events and observations remain readable and contribute to
+historical counts, but events through that ID are excluded from the **new scheduling baseline**.
+The receipt records the declared reason, excluded ID and `human_declared_unverified` authority;
+later review/state projections reference the reset event. It does not reconstruct missing times
+or establish mastery. If the scheduler is unavailable or its result invalid, the reset is not
+recorded and returns `503`; the caller should retain the input and may retry the same event key.
+The option is absent by default, so older request hashes and committed receipts remain usable.
+An older Core that does not understand `schedule_reset` cannot replay a reset request and may not
+display the reset provenance (inferred from its request contract); an actual downgrade and
+installed-UI behavior remain unqualified.
+
+For an item without an assessment, a caller can obtain the cursor from
+`learner.latest_review.event_id`; for an assessed item use the current assessment's
+`learner.assessment_progress.latest_review.event_id`. A minimal unassessed example is:
+
+```json
+{
+  "item_key": "example-item",
+  "client_event_id": "example-reset-1",
+  "correct": true,
+  "rating": 3,
+  "schedule_reset": {
+    "mode": "start_new",
+    "reason": "The earlier review time is unknown",
+    "expected_latest_event_id": 42
+  }
+}
+```
 
 ### Machine loop
 
@@ -583,7 +618,7 @@ just not doing what the caller meant. This has cost real time on this branch thr
 | `POST /api/v1/learning/items/{item_key}/references` | `knowledge_id` |
 | `POST /api/v1/learning/items/{item_key}/assessment` | `knowledge_id` |
 | `POST /api/v1/learning/events` | `item_key`, `kind`, **`correct`**, `client_event_id?`, `schedule_state?`, `now?` |
-| `POST /api/v1/learning/reviews` | `item_key`, `client_event_id`, `correct`, `rating?`, `now?`, `answer?`, `assessment_id?`, `question_version?`, `knowledge_version?`, `exposure_id?`, `assist_strategy?`, `rating_version?`, `correction_id?` |
+| `POST /api/v1/learning/reviews` | `item_key`, `client_event_id`, `correct`, `rating?`, `now?`, `schedule_reset?`, `answer?`, `assessment_id?`, `question_version?`, `knowledge_version?`, `exposure_id?`, `assist_strategy?`, `rating_version?`, `correction_id?` |
 | `POST /api/v1/machine/tasks` | `task_id`, `conditions`, `model_version`, `scope`, `outcome`, `knowledge_version?`, `method_version?`, `tool_version?`, `failure?`, `retest_of?` |
 | `POST /jobs/{id}/receipts` (out of contract) | `state`, `engine?`, `text?`, `loss_receipt?`, `error?` |
 

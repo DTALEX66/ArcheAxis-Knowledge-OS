@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import sys
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -788,5 +789,237 @@ def test_scheduler_result_must_bind_the_requested_review_instant(tmp_path, monke
             "now": "2026-09-03T00:00:00Z"})
         assert status == 201 and recovered["schedule_authority"] == "fsrs"
         assert recovered["schedule_recovery"]["count"] == 1
+    finally:
+        core.stop()
+
+
+def test_explicit_schedule_reset_preserves_unrecoverable_history(tmp_path, monkeypatch):
+    core = core_for(tmp_path)
+    item = "synthetic-declared-schedule-reset"
+    try:
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", str(tmp_path / "missing-python"))
+        core.start()
+        status, old = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "old-unknown-time", "correct": False, "rating": 1})
+        assert status == 201 and old["schedule_authority"] == "unavailable"
+        core.stop()
+        # Reproduce a legacy event in an isolated synthetic database.
+        with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+            conn.execute("UPDATE learning_events SET outcome=json_remove(outcome,'$.schedule.reviewed_at') WHERE event_id=?",
+                         (old["event_id"],))
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+        core.start()
+        original = core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][0]["outcome"]
+        status, blocked = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "no-reset", "correct": True, "rating": 3,
+            "now": "2026-11-11T00:00:00Z"})
+        assert status == 201 and blocked["schedule_authority"] == "unavailable"
+        body = {"item_key": item, "client_event_id": "declared-reset", "correct": True, "rating": 3,
+            "now": "2026-11-12T00:00:00Z",
+            "schedule_reset": {"mode": "start_new", "reason": "Synthetic historical time is unknown",
+                               "expected_latest_event_id": blocked["event_id"]}}
+        stale = {**body, "schedule_reset": {**body["schedule_reset"], "expected_latest_event_id": old["event_id"]}}
+        assert core.request("POST", "/api/v1/learning/reviews", stale)[0] == 409
+        for invalid in ({**body["schedule_reset"], "reason": " "},
+                        {**body["schedule_reset"], "reason": "x" * 513},
+                        {**body["schedule_reset"], "mode": "automatic"},
+                        {**body["schedule_reset"], "expected_latest_event_id": 0}):
+            assert core.request("POST", "/api/v1/learning/reviews", {**body, "schedule_reset": invalid})[0] == 400
+        assert core.request("POST", "/api/v1/learning/reviews", {
+            **body, "schedule_reset": {**body["schedule_reset"], "unexpected": True}})[0] == 422
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 2
+        status, reset = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        assert core.request("POST", "/api/v1/learning/reviews", body, token=core.machine_token)[0] == 403
+        assert reset["schedule_recovery"]["state"] == "reset"
+        assert reset["schedule_recovery"]["excluded_through_event_id"] == blocked["event_id"]
+        assert reset["schedule_recovery"]["reason"] == body["schedule_reset"]["reason"]
+        assert reset["review_evidence"]["schedule_reset"] == body["schedule_reset"]
+        status, replay = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 200 and replay["duplicate"] is True and replay["event_id"] == reset["event_id"]
+        changed = {**body, "schedule_reset": {**body["schedule_reset"], "reason": "changed reason"}}
+        assert core.request("POST", "/api/v1/learning/reviews", changed)[0] == 409
+        status, later = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "after-declared-reset", "correct": True, "rating": 3,
+            "now": "2026-11-13T00:00:00Z"})
+        assert status == 201 and later["schedule_authority"] == "fsrs"
+        assert later["schedule_recovery"]["baseline_reset_event_id"] == reset["event_id"]
+        history = core.request("GET", f"/api/v1/learning/events/{item}")[1]
+        assert history["count"] == 4 and history["events"][0]["outcome"] == original
+        assert reset["mastery_projection"]["closed"] is False
+        state = core.request("GET", f"/api/v1/learning/items/{item}/state")[1]
+        assert state["learner"]["latest_review"]["schedule_recovery"]["baseline_reset_event_id"] == reset["event_id"]
+        from jsonschema import Draft202012Validator
+        schema = json.loads((ROOT / "packages/contracts/v1/core-document.schema.json").read_text(encoding="utf-8"))
+        assert not list(Draft202012Validator({"$defs": schema["$defs"], "$ref": "#/$defs/LearningStateDto"}).iter_errors(state))
+        core.stop()
+        core.start()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == history
+        status, backup = core.request("POST", "/api/v1/workspace/backups", {})
+        assert status == 201 and backup["verified"] is True
+        artifact = tmp_path / "backups" / backup["filename"]
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == backup["sha256"]
+        exe = core.exe
+        core.stop()
+        destination = tmp_path / "reset-restore"
+        destination.mkdir()
+        restored = subprocess.run([str(exe), "--maintenance-restore", str(destination / "workspace.sqlite"),
+                                   str(artifact)], capture_output=True, text=True, timeout=120, check=False)
+        assert restored.returncode == 0 and json.loads(restored.stdout)["ok"] is True
+        from scripts.ci.real_core_grading_journey import Core
+        core = Core(exe, destination, Path(sys.executable))
+        core.start()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == history
+        status, restored_replay = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 200 and restored_replay["event_id"] == reset["event_id"]
+        status, after_restore = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "reset-after-restore", "correct": True, "rating": 3,
+            "now": "2026-11-14T00:00:00Z"})
+        assert status == 201 and after_restore["schedule_recovery"]["baseline_reset_event_id"] == reset["event_id"]
+    finally:
+        core.stop()
+
+
+@pytest.mark.parametrize("bad_worker", [False, True])
+def test_failed_schedule_reset_does_not_write_and_same_key_can_retry(tmp_path, monkeypatch, bad_worker):
+    core = core_for(tmp_path)
+    item = "synthetic-reset-failure"
+    missing = str(tmp_path / "missing-python")
+    bad = tmp_path / "bad_reset_scheduler.py"
+    bad.write_text("import json\nprint(json.dumps({'authority':'fsrs','next_review_days':-2}))\n", encoding="utf-8")
+    try:
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", missing)
+        core.start()
+        status, first = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "before-reset", "correct": False, "rating": 1,
+            "now": "2026-09-01T00:00:00Z"})
+        assert status == 201 and first["schedule_authority"] == "unavailable"
+        core.stop()
+        if bad_worker:
+            monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+            monkeypatch.setenv("ARCHEAXIS_SCHEDULER_WORKER", str(bad))
+        core.start()
+        body = {"item_key": item, "client_event_id": "retry-reset", "correct": True, "rating": 3,
+            "now": "2026-09-02T00:00:00Z", "schedule_reset": {"mode": "start_new", "reason": "Synthetic reset",
+                "expected_latest_event_id": first["event_id"]}}
+        assert core.request("POST", "/api/v1/learning/reviews", body)[0] == 503
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 1
+        core.stop()
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+        monkeypatch.delenv("ARCHEAXIS_SCHEDULER_WORKER", raising=False)
+        core.start()
+        status, reset = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        assert reset["schedule_recovery"]["state"] == "reset"
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 2
+    finally:
+        core.stop()
+
+
+def test_explicit_schedule_reset_can_leave_oversized_history_intact(tmp_path, monkeypatch):
+    core = core_for(tmp_path)
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    item = "synthetic-reset-oversized"
+    try:
+        core.start()
+        core.stop()
+        row = json.dumps({"outcome": "correct", "assessment_id": None, "schedule": {"authority": "unavailable"},
+                          "review_evidence": {"rating": 3, "now": "2026-09-01T00:00:00Z"}})
+        # The historical rows exist only in this synthetic workspace.
+        with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+            conn.executemany("INSERT INTO learning_events(item_key,kind,outcome) VALUES(?,'review',?)",
+                             [(item, row)] * 4097)
+        core.start()
+        status, blocked = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "oversized-default", "correct": True, "rating": 3,
+            "now": "2026-09-02T00:00:00Z"})
+        assert status == 201 and blocked["schedule_authority"] == "unavailable"
+        assert blocked["schedule_recovery"]["reason"] == "too_many_unscheduled_reviews"
+        status, reset = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "oversized-reset", "correct": True, "rating": 3,
+            "now": "2026-09-03T00:00:00Z", "schedule_reset": {"mode": "start_new",
+                "reason": "Synthetic history exceeds the replay bound", "expected_latest_event_id": blocked["event_id"]}})
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        assert reset["schedule_recovery"]["excluded_through_event_id"] == blocked["event_id"]
+        state = core.request("GET", f"/api/v1/learning/items/{item}/state")[1]["learner"]
+        assert state["event_count"] == 4099
+        assert state["latest_review"]["schedule_recovery"]["state"] == "reset"
+    finally:
+        core.stop()
+
+
+def test_schedule_reset_rechecks_history_after_slow_worker(tmp_path, monkeypatch):
+    core = core_for(tmp_path)
+    started, release = tmp_path / "reset-started", tmp_path / "reset-release"
+    worker = tmp_path / "reset_race_worker.py"
+    worker.write_text(
+        "import io,json,os,runpy,sys,time\n"
+        "raw=sys.stdin.read(); request=json.loads(raw)\n"
+        "if request['rating']==3:\n"
+        "    open(os.environ['AAOS_TEST_RESET_STARTED'],'w').write('started')\n"
+        "    deadline=time.monotonic()+12\n"
+        "    while not os.path.exists(os.environ['AAOS_TEST_RESET_RELEASE']) and time.monotonic()<deadline: time.sleep(.02)\n"
+        "sys.stdin=io.StringIO(raw)\n"
+        "runpy.run_path(os.environ['AAOS_TEST_SCHEDULER_TARGET'],run_name='__main__')\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("TOKIO_WORKER_THREADS", "4")
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    monkeypatch.setenv("ARCHEAXIS_SCHEDULER_WORKER", str(worker))
+    monkeypatch.setenv("AAOS_TEST_RESET_STARTED", str(started))
+    monkeypatch.setenv("AAOS_TEST_RESET_RELEASE", str(release))
+    monkeypatch.setenv("AAOS_TEST_SCHEDULER_TARGET", str(ROOT / "services/python-workers/learning/worker_schedule.py"))
+    item = "synthetic-reset-race"
+    try:
+        core.start()
+        status, first = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "race-first", "correct": True, "rating": 2,
+            "now": "2026-09-01T00:00:00Z"})
+        assert status == 201 and first["schedule_authority"] == "fsrs"
+        reset = {"item_key": item, "client_event_id": "race-reset", "correct": True, "rating": 3,
+            "now": "2026-09-03T00:00:00Z", "schedule_reset": {"mode": "start_new", "reason": "Synthetic race",
+                "expected_latest_event_id": first["event_id"]}}
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(core.request, "POST", "/api/v1/learning/reviews", reset)
+            try:
+                deadline = time.monotonic() + 10
+                while not started.exists() and time.monotonic() < deadline:
+                    time.sleep(.02)
+                assert started.exists()
+                status, intervening = core.request("POST", "/api/v1/learning/reviews", {
+                    "item_key": item, "client_event_id": "race-intervening", "correct": False, "rating": 1,
+                    "now": "2026-09-02T00:00:00Z"})
+                assert status == 201 and intervening["schedule_authority"] == "fsrs"
+            finally:
+                release.write_text("release", encoding="utf-8")
+            assert future.result(timeout=20)[0] == 409
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 2
+        reset["schedule_reset"]["expected_latest_event_id"] = intervening["event_id"]
+        status, accepted = core.request("POST", "/api/v1/learning/reviews", reset)
+        assert status == 201 and accepted["schedule_recovery"]["excluded_through_event_id"] == intervening["event_id"]
+    finally:
+        core.stop()
+
+
+@pytest.mark.skipif(not os.environ.get("AAOS_TEST_PRE_RESET_BACKUP") or not os.environ.get("AAOS_TEST_PRE_RESET_BACKUP_SHA256"),
+                    reason="explicit pre-reset synthetic backup required")
+def test_pre_reset_review_receipt_replays_on_reset_capable_core(tmp_path, monkeypatch):
+    backup = Path(os.environ["AAOS_TEST_PRE_RESET_BACKUP"]).resolve(strict=True)
+    expected = os.environ["AAOS_TEST_PRE_RESET_BACKUP_SHA256"]
+    assert hashlib.sha256(backup.read_bytes()).hexdigest() == expected
+    core = core_for(tmp_path)
+    restored = subprocess.run([str(core.exe), "--maintenance-restore", str(tmp_path / "workspace.sqlite"), str(backup)],
+                              capture_output=True, text=True, timeout=120, check=False)
+    assert restored.returncode == 0 and json.loads(restored.stdout)["ok"] is True
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(tmp_path / "missing-scheduler-python"))
+    body = {**request("synthetic-stateful-outage", "stateful-outage-key"), "rating": 3}
+    try:
+        core.start()
+        status, receipt = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 200 and receipt["duplicate"] is True and receipt["schedule_authority"] == "fsrs"
+        assert "schedule_reset" not in receipt["review_evidence"]
+        assert core.request("POST", "/api/v1/learning/reviews", {**body, "now": "2026-09-03T00:00:00+00:00"})[0] == 409
+        assert core.request("GET", "/api/v1/learning/events/synthetic-stateful-outage")[1]["count"] == 1
+        assert hashlib.sha256(backup.read_bytes()).hexdigest() == expected
     finally:
         core.stop()

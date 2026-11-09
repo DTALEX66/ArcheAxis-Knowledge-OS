@@ -461,6 +461,7 @@ pub struct ReviewScheduleBasis {
     pub previous_state: Option<String>,
     pub latest_event_id: Option<i64>,
     pub latest_reviewed_at_micros: Option<i64>,
+    pub baseline_reset_event_id: Option<i64>,
     pub pending: Vec<PendingScheduleReview>,
     pub recovery_issue: Option<&'static str>,
 }
@@ -494,6 +495,26 @@ pub fn review_schedule_basis(
         "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
          THEN json_extract(outcome,'$.schedule.authority')='fsrs'
           AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END",
+        rusqlite::params![item_key, assessment_id],
+        |r| r.get(0),
+    )?;
+    // A human-declared new baseline is append-only and only exists after a
+    // successful FSRS result. Its metadata remains visible to later consumers.
+    let baseline_reset_event_id: Option<i64> = conn.query_row(
+        "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1 AND event_id>0 AND CASE WHEN json_valid(outcome)
+         THEN (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
+          AND json_extract(outcome,'$.review_evidence.schedule_reset.mode')='start_new'
+          AND json_type(outcome,'$.review_evidence.schedule_reset.reason')='text'
+          AND length(trim(json_extract(outcome,'$.review_evidence.schedule_reset.reason'))) BETWEEN 1 AND 512
+          AND json_extract(outcome,'$.schedule.recovery.mode')='start_new'
+          AND json_extract(outcome,'$.schedule.recovery.reason')=json_extract(outcome,'$.review_evidence.schedule_reset.reason')
+          AND json_type(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id')='integer'
+          AND json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id') BETWEEN 1 AND 9007199254740991
+          AND json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id') < event_id
+          AND json_extract(outcome,'$.schedule.recovery.excluded_through_event_id')=json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id')
+          AND json_extract(outcome,'$.schedule.authority')='fsrs'
+          AND json_extract(outcome,'$.schedule.recovery.state')='reset'
+         ELSE 0 END",
         rusqlite::params![item_key, assessment_id],
         |r| r.get(0),
     )?;
@@ -567,6 +588,7 @@ pub fn review_schedule_basis(
         previous_state,
         latest_event_id,
         latest_reviewed_at_micros,
+        baseline_reset_event_id,
         pending,
         recovery_issue,
     })
@@ -830,6 +852,9 @@ pub fn record_review_with_state_and_answer(
                     key.into(),
                     value.get(key).cloned().unwrap_or(serde_json::Value::Null),
                 );
+            }
+            if let Some(reset) = value.get("schedule_reset") {
+                fields.insert("schedule_reset".into(), reset.clone());
             }
             serde_json::Value::Object(fields)
         })
