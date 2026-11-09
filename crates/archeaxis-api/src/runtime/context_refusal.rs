@@ -134,8 +134,10 @@ mod tests {
         let mut answer = json!({"knowledge_id":"k","question":"q","client_request_id":"client",
             "asset_context_grant":asset.clone()});
         let body: MachineAnswerBody = serde_json::from_value(answer.clone()).unwrap();
-        assert_eq!(withheld::digest(&answer_request(&body).to_string()),
-            archeaxis_domain::ui_state::machine_request_fingerprint("answer", &answer));
+        assert_eq!(
+            withheld::digest(&answer_request(&body).to_string()),
+            archeaxis_domain::ui_state::machine_request_fingerprint("answer", &answer)
+        );
         answer["asset_context_grant"]["reference_observation_mode"] = Value::Null;
         assert!(serde_json::from_value::<MachineAnswerBody>(answer).is_err());
 
@@ -143,8 +145,10 @@ mod tests {
             "asset_context_grant":asset});
         retest["asset_context_grant"]["operation"] = json!("retest");
         let body: RetestBody = serde_json::from_value(retest.clone()).unwrap();
-        assert_eq!(withheld::digest(&retest_request(&body).to_string()),
-            archeaxis_domain::ui_state::machine_request_fingerprint("retest", &retest));
+        assert_eq!(
+            withheld::digest(&retest_request(&body).to_string()),
+            archeaxis_domain::ui_state::machine_request_fingerprint("retest", &retest)
+        );
     }
 }
 

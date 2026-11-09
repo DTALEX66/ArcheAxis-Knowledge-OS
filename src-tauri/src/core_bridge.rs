@@ -555,8 +555,10 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             };
             (
                 "GET",
-                format!("/api/v1/documents/{}/research-references{query}",
-                    reference_id(p, "document_id")?),
+                format!(
+                    "/api/v1/documents/{}/research-references{query}",
+                    reference_id(p, "document_id")?
+                ),
                 None,
             )
         }
@@ -2060,46 +2062,73 @@ mod tests {
     #[test]
     #[ignore = "requires an explicitly launched synthetic Core and private launch token"]
     fn research_reference_real_core_transport() {
-        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT").unwrap().parse().unwrap();
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .unwrap()
+            .parse()
+            .unwrap();
         let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").unwrap();
         let invoke = |operation: &str, payload: Value| {
             let request: Request = serde_json::from_value(serde_json::json!({
                 "operation": operation, "payload": payload
-            })).unwrap();
+            }))
+            .unwrap();
             execute(port, &token, request).expect("synthetic Core transport")
         };
-        let material = invoke("document_create", serde_json::json!({"body":{
-            "title":"synthetic host material","editor_json":{"type":"doc","content":[]}
-        }}));
+        let material = invoke(
+            "document_create",
+            serde_json::json!({"body":{
+                "title":"synthetic host material","editor_json":{"type":"doc","content":[]}
+            }}),
+        );
         assert_eq!(material.status, 201);
         let material_id = material.body["document_id"].as_str().unwrap();
         let reference = serde_json::json!({"kind":"document","document_id":material_id,"version":1,"block_id":null});
-        let research = invoke("document_create", serde_json::json!({"body":{
-            "title":"synthetic host research","editor_json":{"type":"doc","content":[],"attrs":{
-                "archeaxis_research":{"schema":"archeaxis.research/v1","question":"synthetic",
-                    "materials":[{"id":"source","note":"synthetic","reference":reference}],
-                    "hypotheses":[],"methods":[],"experiments":[],"counterevidence":[],
-                    "conclusions":[],"unresolved":[]}}}
-        }}));
+        let research = invoke(
+            "document_create",
+            serde_json::json!({"body":{
+                "title":"synthetic host research","editor_json":{"type":"doc","content":[],"attrs":{
+                    "archeaxis_research":{"schema":"archeaxis.research/v1","question":"synthetic",
+                        "materials":[{"id":"source","note":"synthetic","reference":reference}],
+                        "hypotheses":[],"methods":[],"experiments":[],"counterevidence":[],
+                        "conclusions":[],"unresolved":[]}}}
+            }}),
+        );
         assert_eq!(research.status, 201);
         let research_id = research.body["document_id"].as_str().unwrap();
-        let query = || invoke("document_research_references", serde_json::json!({
-            "document_id":research_id,"version":1
-        }));
+        let query = || {
+            invoke(
+                "document_research_references",
+                serde_json::json!({
+                    "document_id":research_id,"version":1
+                }),
+            )
+        };
         let before = query();
         assert_eq!(before.status, 200);
-        assert_eq!(before.body["references"][0]["object"]["version_relation"], "current");
+        assert_eq!(
+            before.body["references"][0]["object"]["version_relation"],
+            "current"
+        );
         assert_eq!(before.body["references"][0]["version_relation"], "current");
-        let changed = invoke("document_draft", serde_json::json!({"document_id":material_id,"body":{
-            "expected_version":1,"editor_json":{"type":"doc","content":[
-                {"type":"paragraph","content":[{"type":"text","text":"synthetic revision"}]}]}
-        }}));
+        let changed = invoke(
+            "document_draft",
+            serde_json::json!({"document_id":material_id,"body":{
+                "expected_version":1,"editor_json":{"type":"doc","content":[
+                    {"type":"paragraph","content":[{"type":"text","text":"synthetic revision"}]}]}
+            }}),
+        );
         assert_eq!(changed.status, 200);
         let after = query();
         assert_eq!(after.status, 200);
         assert_eq!(after.body["references"][0]["reference"], reference);
-        assert_eq!(after.body["references"][0]["object"]["version_relation"], "historical");
-        assert_eq!(after.body["references"][0]["version_relation"], "historical");
+        assert_eq!(
+            after.body["references"][0]["object"]["version_relation"],
+            "historical"
+        );
+        assert_eq!(
+            after.body["references"][0]["version_relation"],
+            "historical"
+        );
         assert_eq!(after.body["references"][0]["current_version"], 2);
         assert_eq!(after.body["document"], before.body["document"]);
     }
@@ -3189,16 +3218,24 @@ mod teaching_bridge_tests {
         let research = route(&Request {
             operation: Operation::DocumentResearchReferences,
             payload: serde_json::json!({"document_id":"doc.real","version":3}),
-        }).unwrap();
+        })
+        .unwrap();
         assert_eq!(research.0, "GET");
-        assert_eq!(research.1, "/api/v1/documents/doc.real/research-references?version=3");
+        assert_eq!(
+            research.1,
+            "/api/v1/documents/doc.real/research-references?version=3"
+        );
         assert!(research.2.is_none());
         for payload in [
             serde_json::json!({"document_id":"../escape"}),
             serde_json::json!({"document_id":"doc","version":0}),
             serde_json::json!({"document_id":"doc","version":18446744073709551615_u64}),
         ] {
-            assert!(route(&Request { operation: Operation::DocumentResearchReferences, payload }).is_err());
+            assert!(route(&Request {
+                operation: Operation::DocumentResearchReferences,
+                payload
+            })
+            .is_err());
         }
         let collection=route(&Request{operation:Operation::CollectionQuery,payload:serde_json::json!({"document_id":"doc.real","version":2,"view_id":"view.real","offset":20,"limit":10})}).unwrap();
         assert_eq!(collection.0, "GET");

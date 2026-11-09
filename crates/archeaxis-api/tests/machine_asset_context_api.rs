@@ -164,14 +164,28 @@ async fn opted_in_worker_sees_document_versions_and_retest_preserves_frozen_iden
     let context = std::fs::read_to_string(dir.path().join("answer.consumed")).unwrap();
     assert!(context.contains("\"reference_observation_mode\":\"document_versions_v1\""));
     assert!(context.contains("\"version_relation\":\"current\""));
-    assert_eq!(call(&router, "POST", "/api/v1/machine/answers", request.clone()).await.1, first);
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/answers", request.clone())
+            .await
+            .1,
+        first
+    );
     revise_observed_document(&router, &material_id).await;
-    assert_eq!(call(&router, "POST", "/api/v1/machine/answers", request.clone()).await.0, 409);
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/answers", request.clone())
+            .await
+            .0,
+        409
+    );
     request["client_request_id"] = json!("observed-historical-answer");
     request["asset_context_grant"]["request_id"] = json!("observed-historical-asset");
-    let (status, historical) = call(&router, "POST", "/api/v1/machine/answers", request.clone()).await;
+    let (status, historical) =
+        call(&router, "POST", "/api/v1/machine/answers", request.clone()).await;
     assert_eq!(status, 200, "{historical}");
-    assert_ne!(historical["request"]["asset_context"]["packet_sha256"], first["request"]["asset_context"]["packet_sha256"]);
+    assert_ne!(
+        historical["request"]["asset_context"]["packet_sha256"],
+        first["request"]["asset_context"]["packet_sha256"]
+    );
     let context = std::fs::read_to_string(dir.path().join("answer.consumed")).unwrap();
     assert!(context.contains("\"version_relation\":\"historical\""));
     let (status, correction) = call(&router, "POST", "/api/v1/machine/corrections", json!({
@@ -184,10 +198,19 @@ async fn opted_in_worker_sees_document_versions_and_retest_preserves_frozen_iden
     asset["operation"] = json!("retest");
     let retest = json!({"retest_of":correction["failed_task_id"],"knowledge_id":request["knowledge_id"],
         "question":request["question"],"context_grant":request["context_grant"],"asset_context_grant":asset});
-    let (status, first_retest) = call(&router, "POST", "/api/v1/machine/retests", retest.clone()).await;
+    let (status, first_retest) =
+        call(&router, "POST", "/api/v1/machine/retests", retest.clone()).await;
     assert_eq!(status, 200, "{first_retest}");
-    assert_eq!(call(&router, "POST", "/api/v1/machine/retests", retest).await.1, first_retest);
-    assert_eq!(std::fs::read_to_string(dir.path().join("answer.count")).unwrap(), "3");
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/retests", retest)
+            .await
+            .1,
+        first_retest
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "3"
+    );
 }
 
 #[tokio::test]
@@ -196,7 +219,10 @@ async fn document_changes_during_opted_in_worker_withhold_the_answer() {
     let (router, executor, mut request, _) = fixture(dir.path(), None).await;
     let material_id = add_observed_document_asset(&executor, &mut request).await;
     let active = router.clone();
-    let task = tokio::spawn(async move { call(&active, "POST", "/api/v1/machine/answers", request).await });
+    let task =
+        tokio::spawn(
+            async move { call(&active, "POST", "/api/v1/machine/answers", request).await },
+        );
     ready(dir.path()).await;
     let context = std::fs::read_to_string(dir.path().join("answer.consumed")).unwrap();
     assert!(context.contains("\"version_relation\":\"current\""));
@@ -207,7 +233,10 @@ async fn document_changes_during_opted_in_worker_withhold_the_answer() {
     assert_eq!(result["reason_code"], "ASSET_PACKET_CHANGED");
     assert_eq!(result["audit_status"], "RECORDED");
     assert_eq!(result["answer_published"], false);
-    assert_eq!(std::fs::read_to_string(dir.path().join("answer.count")).unwrap(), "1");
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
 }
 #[tokio::test]
 async fn actual_asset_packet_reaches_worker_and_exact_retry_never_runs_again_or_omits_asset() {
