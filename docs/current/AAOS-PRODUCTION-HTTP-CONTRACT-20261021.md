@@ -356,6 +356,24 @@ a token-authentication boundary.
 | 14 | `GET /api/v1/learning/items` | any token | Queue; when an assessment exists, the deadline comes only from its explicitly bound reviews and is null until one is scheduled. Without an assessment, the legacy item-wide deadline remains. |
 | 18 | `GET /api/v1/learning/items/{item_key}/state` | any token | Learner state + a **fixed** `machine` block (§4). `correct_streak` and `next_review` are scoped to the latest assessment when present; `correct_streak_scope` identifies that or `legacy_item`. `assessment_progress` contains the assessment identity, bound-event count, streak and latest bound review, or null without an assessment. `event_count`, scheduled/unscheduled counts and `latest_review` remain item-wide history (`aggregate_scope: item_history`), so the historical review can have a different assessment ID. `learner.references` retains separated identity and `currentness` views. |
 
+For a **new** stateful review, the Core attempts to reapply previously recorded unscheduled
+reviews after the last successful FSRS state, in event order and within the same assessment
+scope. It uses only recorded ratings and exact effective review times, preserves the original
+events and receipts, and rechecks the event cursor before committing. A successful recovery
+adds `schedule_recovery: {state: "replayed", count, through_event_id}`; an incomplete one
+records the new review as `unavailable` with no due date and adds `schedule_recovery` with
+`state: "incomplete"` and a bounded `reason`. New unavailable reviews retain the effective
+instant even if the caller omitted `now`; a historical review without that instant or a supplied
+`now` cannot be reconstructed and is not assigned a guessed time. At most 4,096 pending reviews
+are considered in one request, and all worker calls share a 20-second scheduling budget; an
+over-limit or unresolvable history remains explicitly unscheduled and currently has no separate
+repair endpoint. Compatible workers batch up to 128 observations; a missing or mismatched batch
+receipt is discarded and an older worker is retried one observation at a time within that budget.
+This recovery occurs on a new review request, not in the background or on replay of an existing
+event key. A timezone offset is converted to the same UTC instant for FSRS while the original
+input remains in review evidence. FSRS floating parameters are parsed exactly on the scheduler
+path; historic values already stored with prior rounding are not reconstructed.
+
 ### Machine loop
 
 Current G4 contract updated on 2026-10-03; implementation: `crates/archeaxis-api/src/runtime/colearning.rs`.

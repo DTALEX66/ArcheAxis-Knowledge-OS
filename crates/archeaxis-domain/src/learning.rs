@@ -161,6 +161,77 @@ pub struct ReviewSchedule {
     pub next_review_days: i64,
 }
 
+/// Parse the two FSRS floating parameters through Rust's correctly rounded
+/// f64 parser without changing other JSON or request-identity semantics.
+pub fn parse_fsrs_card(raw: &str) -> Result<serde_json::Value, &'static str> {
+    #[derive(serde::Deserialize)]
+    struct NumericFields<'a> {
+        #[serde(borrow)]
+        stability: Option<&'a serde_json::value::RawValue>,
+        #[serde(borrow)]
+        difficulty: Option<&'a serde_json::value::RawValue>,
+    }
+    let fields: NumericFields = serde_json::from_str(raw).map_err(|_| "invalid FSRS card")?;
+    let mut value: serde_json::Value =
+        serde_json::from_str(raw).map_err(|_| "invalid FSRS card")?;
+    if !value.is_object() {
+        return Err("invalid FSRS card");
+    }
+    for (name, raw_number) in [
+        ("stability", fields.stability),
+        ("difficulty", fields.difficulty),
+    ] {
+        let Some(raw_number) = raw_number else {
+            continue;
+        };
+        let current = &value[name];
+        if !current.is_number() {
+            return Err("invalid FSRS number");
+        }
+        if current.as_i64().is_some() || current.as_u64().is_some() {
+            continue;
+        }
+        let exact: f64 = raw_number
+            .get()
+            .parse()
+            .map_err(|_| "invalid FSRS number")?;
+        value[name] = serde_json::Value::Number(
+            serde_json::Number::from_f64(exact).ok_or("non-finite FSRS number")?,
+        );
+    }
+    Ok(value)
+}
+
+pub fn precise_fsrs_state_from_schedule(raw: &str) -> Option<serde_json::Value> {
+    #[derive(serde::Deserialize)]
+    struct Schedule<'a> {
+        #[serde(borrow)]
+        state: Option<&'a serde_json::value::RawValue>,
+    }
+    let schedule: Schedule<'_> = serde_json::from_str(raw).ok()?;
+    parse_fsrs_card(schedule.state?.get()).ok()
+}
+
+pub fn precise_fsrs_state_from_outcome(raw: &str) -> Option<serde_json::Value> {
+    #[derive(serde::Deserialize)]
+    struct Outcome<'a> {
+        #[serde(borrow)]
+        schedule: Option<&'a serde_json::value::RawValue>,
+    }
+    let outcome: Outcome<'_> = serde_json::from_str(raw).ok()?;
+    precise_fsrs_state_from_schedule(outcome.schedule?.get())
+}
+
+pub fn precise_fsrs_projection_from_outcome(raw: &str) -> Option<serde_json::Value> {
+    #[derive(serde::Deserialize)]
+    struct Outcome<'a> {
+        #[serde(borrow)]
+        mastery_projection: Option<&'a serde_json::value::RawValue>,
+    }
+    let outcome: Outcome<'_> = serde_json::from_str(raw).ok()?;
+    parse_fsrs_card(outcome.mastery_projection?.get()).ok()
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct ReviewReceipt {
     pub event_id: i64,
@@ -215,12 +286,14 @@ fn mastery_projection_json(
 ) -> String {
     let schedule: serde_json::Value =
         serde_json::from_str(schedule_json).unwrap_or_else(|_| serde_json::json!({}));
+    let card = precise_fsrs_state_from_schedule(schedule_json)
+        .unwrap_or_else(|| schedule["state"].clone());
     serde_json::json!({
         "status": "projection",
         "closed": false,
         "basis": "fsrs_review_state_and_learner_observation",
-        "review_state": schedule["state"]["state"],
-        "stability": schedule["state"]["stability"],
+        "review_state": card["state"],
+        "stability": card["stability"],
         "correct_streak": correct_streak,
         // Counts and times the learner can recognise, added so the product can show progress
         // without claiming mastery. They say what happened, never what it means.
@@ -332,6 +405,105 @@ pub fn latest_fsrs_state_for_assessment(
         |r| r.get(0),
     )
     .optional()
+}
+
+/// Recoverable unscheduled observations following the last persisted FSRS card.
+/// Existing events are never rewritten; missing evidence is not inferred.
+pub struct PendingScheduleReview {
+    pub event_id: i64,
+    pub rating: u8,
+    pub reviewed_at: String,
+}
+
+pub struct ReviewScheduleBasis {
+    pub previous_state: Option<String>,
+    pub latest_event_id: Option<i64>,
+    pub pending: Vec<PendingScheduleReview>,
+    pub recovery_issue: Option<&'static str>,
+}
+
+const MAX_PENDING_SCHEDULE_REVIEWS: usize = 4096;
+
+/// The cursor also changes for unavailable reviews, which do not advance the
+/// last successful card state but must still invalidate an in-flight snapshot.
+pub fn latest_review_event_id(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+) -> rusqlite::Result<Option<i64>> {
+    conn.query_row(
+        "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1
+         AND (?2 IS NULL OR CASE WHEN json_valid(outcome)
+              THEN json_extract(outcome,'$.assessment_id')=?2 ELSE 0 END)",
+        rusqlite::params![item_key, assessment_id],
+        |r| r.get(0),
+    )
+}
+
+pub fn review_schedule_basis(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+) -> rusqlite::Result<ReviewScheduleBasis> {
+    let previous_state = latest_fsrs_state_for_assessment(conn, item_key, assessment_id)?;
+    let latest_event_id = latest_review_event_id(conn, item_key, assessment_id)?;
+    let last_scheduled_id: Option<i64> = conn.query_row(
+        "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
+         THEN json_extract(outcome,'$.schedule.authority')='fsrs'
+          AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END",
+        rusqlite::params![item_key, assessment_id],
+        |r| r.get(0),
+    )?;
+    let mut stmt = conn.prepare(
+        "SELECT event_id,outcome FROM learning_events WHERE item_key=?1 AND event_id>COALESCE(?3,0)
+         AND CASE WHEN json_valid(outcome) THEN json_extract(outcome,'$.schedule.authority')='unavailable'
+           AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END
+         ORDER BY event_id LIMIT 4097",
+    )?;
+    let mut rows = stmt.query(rusqlite::params![
+        item_key,
+        assessment_id,
+        last_scheduled_id
+    ])?;
+    let mut pending = Vec::new();
+    let mut recovery_issue = None;
+    while let Some(row) = rows.next()? {
+        if pending.len() == MAX_PENDING_SCHEDULE_REVIEWS {
+            recovery_issue = Some("too_many_unscheduled_reviews");
+            break;
+        }
+        let event_id: i64 = row.get(0)?;
+        let raw: String = row.get(1)?;
+        let value: serde_json::Value = serde_json::from_str(&raw).unwrap_or_default();
+        let rating = value["review_evidence"]["rating"].as_u64();
+        let outcome = value["outcome"].as_str();
+        let time = value["schedule"]["reviewed_at"]
+            .as_str()
+            .or_else(|| value["review_evidence"]["now"].as_str());
+        let valid_rating = matches!(
+            (rating, outcome),
+            (Some(1), Some("incorrect")) | (Some(2..=4), Some("correct"))
+        );
+        let valid_time = match time {
+            Some(time) => valid_review_timestamp(conn, time)?,
+            None => false,
+        };
+        if event_id <= 0 || !valid_rating || !valid_time {
+            recovery_issue = Some("unscheduled_review_evidence_missing_or_invalid");
+            break;
+        }
+        pending.push(PendingScheduleReview {
+            event_id,
+            rating: rating.unwrap() as u8,
+            reviewed_at: time.unwrap().to_owned(),
+        });
+    }
+    Ok(ReviewScheduleBasis {
+        previous_state,
+        latest_event_id,
+        pending,
+        recovery_issue,
+    })
 }
 
 /// Validate worker output before recording an explicit unscheduled fallback.

@@ -29,6 +29,10 @@ Response::
 The response's state/step/stability/difficulty/due/last_review fields are the
 lossless next request state. Display rounding belongs in the UI, never in the
 persisted scheduler parameters. Learning and relearning steps survive restarts.
+Timezone-aware input is converted to the same instant in UTC for py-fsrs.
+An optional ``replay`` list of 1..127 {event_id, rating, now} observations is
+applied in order before the current request. The returned replay receipt binds
+those exact inputs; a caller must reject a missing or mismatched receipt.
 
 Failure is explicit and fail-closed::
 
@@ -41,9 +45,11 @@ caller must record the missing schedule instead of inventing one.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import importlib.util
 import json
 import math
+import struct
 import sys
 from datetime import datetime, timezone
 from functools import lru_cache
@@ -105,7 +111,7 @@ def _parse_time(value: object, field: str) -> datetime | None:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:  # pragma: no cover - defensive
         raise ValueError(f"{field} is not an ISO timestamp") from exc
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc) if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 def parse_state(request: dict) -> dict:
@@ -166,8 +172,8 @@ def _build_card(fields: dict):
     return card
 
 
-def schedule(request: dict) -> dict:
-    """Compute the next review with the reused FSRS scheduler."""
+def _schedule_one(request: dict) -> dict:
+    """Compute one review with the reused FSRS scheduler."""
     if not isinstance(request, dict):
         raise ValueError("request must be an object")
     item_key = request.get("item_key")
@@ -204,6 +210,38 @@ def schedule(request: dict) -> dict:
         "rating": rating_value,
         "reviewed_at": now.isoformat(),
     }
+
+
+def schedule(request: dict) -> dict:
+    """Apply a bounded, explicitly identified replay before the requested review."""
+    if not isinstance(request, dict):
+        raise ValueError("request must be an object")
+    if "replay" not in request:
+        return _schedule_one(request)
+    replay = request["replay"]
+    if not isinstance(replay, list) or not 1 <= len(replay) <= 127:
+        raise ValueError("replay must contain 1..127 prior reviews")
+    digest = hashlib.sha256(b"archeaxis.fsrs-replay/v1\0")
+    state = request.get("state")
+    for entry in replay:
+        if not isinstance(entry, dict) or set(entry) != {"event_id", "rating", "now"}:
+            raise ValueError("invalid replay entry")
+        event_id, rating, now = entry["event_id"], entry["rating"], entry["now"]
+        if isinstance(event_id, bool) or not isinstance(event_id, int) or not 0 < event_id < 2**63:
+            raise ValueError("invalid replay event ID")
+        if isinstance(rating, bool) or not isinstance(rating, int) or not 1 <= rating <= 4:
+            raise ValueError("invalid replay rating")
+        if not isinstance(now, str) or len(now) > 64 or _parse_time(now, "replay.now") is None:
+            raise ValueError("invalid replay timestamp")
+        encoded = now.encode("utf-8")
+        digest.update(struct.pack("<QBI", event_id, rating, len(encoded)))
+        digest.update(encoded)
+        step = _schedule_one({"item_key": request.get("item_key"), "rating": rating, "state": state, "now": now})
+        state = {key: step[key] for key in ("state", "step", "stability", "difficulty", "due", "last_review")}
+    result = _schedule_one({**request, "state": state})
+    result["replay_receipt"] = {"schema": "archeaxis.fsrs-replay/v1", "count": len(replay),
+                                "sha256": digest.hexdigest()}
+    return result
 
 
 def main() -> int:

@@ -596,12 +596,25 @@ async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
 /// written by the machine loop, so until such a receipt exists this view says so
 /// instead of presenting learner progress as machine competence.
 fn latest_review_projection(events: &[(i64, String, String, Option<String>)]) -> serde_json::Value {
-    let Some((event_id, kind, outcome, next_review)) = events.last() else {
+    let Some((event_id, kind, raw_outcome, next_review)) = events.last() else {
         return serde_json::Value::Null;
     };
-    let outcome = serde_json::from_str::<serde_json::Value>(outcome)
+    let outcome = serde_json::from_str::<serde_json::Value>(raw_outcome)
         .unwrap_or_else(|_| serde_json::Value::Object(serde_json::Map::new()));
     let schedule = outcome.get("schedule");
+    let state = learning::precise_fsrs_state_from_outcome(raw_outcome).unwrap_or_else(|| {
+        schedule
+            .and_then(|value| value.get("state"))
+            .cloned()
+            .unwrap_or(serde_json::Value::Null)
+    });
+    let projection =
+        learning::precise_fsrs_projection_from_outcome(raw_outcome).unwrap_or_else(|| {
+            outcome
+                .get("mastery_projection")
+                .cloned()
+                .unwrap_or(serde_json::Value::Null)
+        });
     serde_json::json!({
         "event_id": event_id,
         "kind": kind,
@@ -609,8 +622,8 @@ fn latest_review_projection(events: &[(i64, String, String, Option<String>)]) ->
         "assessment_id": outcome.get("assessment_id").cloned().unwrap_or(serde_json::Value::Null),
         "answer": outcome.get("answer").cloned().unwrap_or(serde_json::Value::Null),
         "schedule_authority": schedule.and_then(|value| value.get("authority")).cloned().unwrap_or(serde_json::Value::Null),
-        "schedule_state": schedule.and_then(|value| value.get("state")).cloned().unwrap_or(serde_json::Value::Null),
-        "mastery_projection": outcome.get("mastery_projection").cloned().unwrap_or(serde_json::Value::Null),
+        "schedule_state": state,
+        "mastery_projection": projection,
     })
 }
 
@@ -938,6 +951,7 @@ mod stateful_schedule_failures {
             state: "learning".into(),
             card_state: serde_json::json!({"state":"learning","step":1,"stability":2.3065,"difficulty":2.1,
                 "due":due,"last_review":"2026-09-02T00:00:00+00:00"}),
+            replay_receipt: None,
         }
     }
 
@@ -1091,7 +1105,7 @@ async fn read_assessment(
 }
 
 fn stateful_review_response(receipt: learning::ReviewReceipt) -> axum::response::Response {
-    let outcome: serde_json::Value = match serde_json::from_str(&receipt.outcome_json) {
+    let mut outcome: serde_json::Value = match serde_json::from_str(&receipt.outcome_json) {
         Ok(value) => value,
         Err(_) => {
             return (
@@ -1101,18 +1115,170 @@ fn stateful_review_response(receipt: learning::ReviewReceipt) -> axum::response:
                 .into_response();
         }
     };
-    (if receipt.duplicate { StatusCode::OK } else { StatusCode::CREATED },
-     Json(serde_json::json!({"event_id":receipt.event_id,"streak_after":receipt.streak_after,
+    if let Some(card) = learning::precise_fsrs_state_from_outcome(&receipt.outcome_json) {
+        outcome["schedule"]["state"] = card;
+    }
+    if let Some(projection) = learning::precise_fsrs_projection_from_outcome(&receipt.outcome_json)
+    {
+        outcome["mastery_projection"] = projection;
+    }
+    let mut response = serde_json::json!({"event_id":receipt.event_id,"streak_after":receipt.streak_after,
         "next_review_days":receipt.next_review_days,"next_review":receipt.next_review,
         "duplicate":receipt.duplicate,"schedule_authority":outcome["schedule"]["authority"],
         "schedule_state":outcome["schedule"]["state"], "answer":outcome["answer"],
-        "review_evidence":outcome["review_evidence"], "mastery_projection":outcome["mastery_projection"]}))).into_response()
+        "review_evidence":outcome["review_evidence"], "mastery_projection":outcome["mastery_projection"]});
+    if let Some(recovery) = outcome["schedule"].get("recovery") {
+        response["schedule_recovery"] = recovery.clone();
+    }
+    (
+        if receipt.duplicate {
+            StatusCode::OK
+        } else {
+            StatusCode::CREATED
+        },
+        Json(response),
+    )
+        .into_response()
 }
 
 enum StatefulReviewPreparation {
     Replay(learning::ReviewReceipt),
     Invalid(&'static str),
-    Schedule(Option<String>, String),
+    Schedule(learning::ReviewScheduleBasis, String),
+}
+
+fn replay_digest(entries: &[learning::PendingScheduleReview]) -> String {
+    use sha2::{Digest, Sha256};
+    let mut digest = Sha256::new();
+    digest.update(b"archeaxis.fsrs-replay/v1\0");
+    for entry in entries {
+        digest.update((entry.event_id as u64).to_le_bytes());
+        digest.update([entry.rating]);
+        digest.update((entry.reviewed_at.len() as u32).to_le_bytes());
+        digest.update(entry.reviewed_at.as_bytes());
+    }
+    format!("{:x}", digest.finalize())
+}
+
+async fn validated_recovery_card(
+    state: &AppState,
+    scheduled: archeaxis_application::scheduler::Schedule,
+) -> Result<serde_json::Value, &'static str> {
+    let card = scheduled.card_state.clone();
+    let checked = state
+        .clone()
+        .submit_wait(move |conn| checked_review_schedule(conn, Ok(scheduled)))
+        .await;
+    let Ok(Ok(checked)) = checked else {
+        return Err("recovery_validation_unavailable");
+    };
+    if checked.next_review.is_none() {
+        return Err("invalid_recovered_card");
+    }
+    Ok(card)
+}
+
+/// Reapply only observations whose rating and exact effective time were retained.
+/// All subprocesses share one 20s budget. A batch is accepted only with the
+/// worker's matching receipt; older workers fall back to single reviews.
+async fn schedule_with_recovery(
+    state: &AppState,
+    item_key: &str,
+    basis: &learning::ReviewScheduleBasis,
+    rating: u8,
+    instant: &str,
+) -> (
+    Result<
+        archeaxis_application::scheduler::Schedule,
+        archeaxis_application::scheduler::SchedulerError,
+    >,
+    Option<&'static str>,
+) {
+    use archeaxis_application::scheduler::{SchedulerClient, SchedulerError};
+    let failure = |reason: &'static str| {
+        (
+            Err(SchedulerError::Unavailable(reason.into())),
+            Some(reason),
+        )
+    };
+    if let Some(reason) = basis.recovery_issue {
+        return failure(reason);
+    }
+    let mut card: serde_json::Value = match basis.previous_state.as_ref() {
+        Some(value) => match learning::parse_fsrs_card(value) {
+            Ok(value) => value,
+            Err(_) => return failure("invalid_previous_card"),
+        },
+        None => serde_json::json!({}),
+    };
+    let client = match SchedulerClient::from_env() {
+        Ok(client) => client,
+        Err(_) => return failure("scheduler_unavailable"),
+    };
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+    for chunk in basis.pending.chunks(128) {
+        if chunk.len() > 1 {
+            let (last, replay) = chunk.split_last().expect("nonempty chunk");
+            let history: Vec<_> = replay
+                .iter()
+                .map(|entry| {
+                    serde_json::json!({
+                "event_id":entry.event_id,"rating":entry.rating,"now":entry.reviewed_at})
+                })
+                .collect();
+            let request = serde_json::json!({"item_key":item_key,"rating":last.rating,
+                "state":card,"now":last.reviewed_at,"replay":history})
+            .to_string();
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                return failure("recovery_time_budget_exhausted");
+            }
+            if let Ok(scheduled) = client.review_with_timeout(&request, remaining) {
+                let receipt_ok = scheduled.replay_receipt.as_ref().is_some_and(|receipt| {
+                    receipt.schema == "archeaxis.fsrs-replay/v1"
+                        && receipt.count == replay.len()
+                        && receipt.sha256 == replay_digest(replay)
+                });
+                if receipt_ok {
+                    card = match validated_recovery_card(state, scheduled).await {
+                        Ok(card) => card,
+                        Err(reason) => return failure(reason),
+                    };
+                    continue;
+                }
+            }
+            // A pre-batch worker may ignore or reject the extension; never use
+            // its unproved result. Recompute this chunk one observation at a time.
+        }
+        for pending in chunk {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                return failure("recovery_time_budget_exhausted");
+            }
+            let request = serde_json::json!({"item_key":item_key,"rating":pending.rating,
+                "state":card,"now":pending.reviewed_at})
+            .to_string();
+            let scheduled = match client.review_with_timeout(&request, remaining) {
+                Ok(value) => value,
+                Err(_) => return failure("scheduler_unavailable_during_recovery"),
+            };
+            card = match validated_recovery_card(state, scheduled).await {
+                Ok(card) => card,
+                Err(reason) => return failure(reason),
+            };
+        }
+    }
+    let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+    if remaining.is_zero() {
+        return failure("recovery_time_budget_exhausted");
+    }
+    let request =
+        serde_json::json!({"item_key":item_key,"rating":rating,"state":card,"now":instant})
+            .to_string();
+    match client.review_with_timeout(&request, remaining) {
+        Ok(schedule) => (Ok(schedule), None),
+        Err(_) => failure("scheduler_unavailable"),
+    }
 }
 
 fn invalid_stateful_review_input(
@@ -1204,7 +1370,7 @@ async fn record_stateful_review(
     let snapshot_request = canonical.clone();
     let snapshot_correct = body.correct;
     let snapshot_knowledge_version = body.knowledge_version.clone();
-    let (previous_fsrs_state, instant) = match state
+    let (basis, instant) = match state
         .clone()
         .submit_wait(move |conn| -> rusqlite::Result<StatefulReviewPreparation> {
             if let Some(receipt) = learning::existing_stateful_review(conn, &snapshot_key, "review",
@@ -1225,7 +1391,7 @@ async fn record_stateful_review(
             )? {
                 return Ok(StatefulReviewPreparation::Invalid(message));
             }
-            let previous = learning::latest_fsrs_state_for_assessment(
+            let previous = learning::review_schedule_basis(
                 conn,
                 &snapshot_key,
                 snapshot_assessment.as_deref(),
@@ -1249,17 +1415,17 @@ async fn record_stateful_review(
         Err(e) => return (StatusCode::SERVICE_UNAVAILABLE, e.to_string()).into_response(),
     };
 
-    // Phase 2 (off the writer): compute the schedule from the snapshot. No DB write lock is held here.
-    let card: serde_json::Value = match previous_fsrs_state.as_ref() {
-        Some(value) => serde_json::from_str(value).unwrap_or_else(|_| serde_json::json!({})),
-        None => serde_json::json!({}),
-    };
-    let schedule_request = serde_json::json!({
-        "item_key": body.item_key.as_str(), "rating": rating, "state": card, "now": instant,
-    })
-    .to_string();
-    let schedule_result = archeaxis_application::scheduler::SchedulerClient::from_env()
-        .and_then(|client| client.review(&schedule_request));
+    // Phase 2 (off the writer): reconstruct recoverable outage reviews before
+    // scheduling the new observation, without rewriting their receipts.
+    let (schedule_result, recovery_issue) =
+        schedule_with_recovery(&state, &body.item_key, &basis, rating, &instant).await;
+    let worker_returned_card = schedule_result.is_ok();
+    let previous_fsrs_state = basis.previous_state;
+    let previous_event_id = basis.latest_event_id;
+    let recovered_count = basis.pending.len();
+    let recovered_through = basis.pending.last().map(|value| value.event_id);
+    let guard_item = body.item_key.clone();
+    let guard_assessment = assessment_id.clone();
 
     // Phase 3 (short writer transaction): validate the request, guard that the card the schedule was
     // computed from is unchanged, and record. Only the fast DB validation of the precomputed
@@ -1286,7 +1452,33 @@ async fn record_stateful_review(
             body.answer.as_deref(),
             assessment_id.as_deref(),
             Some(previous_fsrs_state),
-            move |connection| checked_review_schedule(connection, schedule_result),
+            move |connection| {
+                if learning::latest_review_event_id(connection, &guard_item, guard_assessment.as_deref())?
+                    != previous_event_id
+                {
+                    return Err(rusqlite::Error::InvalidParameterName(
+                        "schedule basis conflict: review history moved during scheduling".into(),
+                    ));
+                }
+                let mut schedule = checked_review_schedule(connection, schedule_result)?;
+                let mut details: serde_json::Value = serde_json::from_str(&schedule.schedule_json)
+                    .map_err(|_| rusqlite::Error::InvalidParameterName("invalid schedule JSON".into()))?;
+                if let Some(card) = learning::precise_fsrs_state_from_schedule(&schedule.schedule_json) {
+                    details["state"] = card;
+                }
+                if schedule.next_review.is_none() {
+                    details["reviewed_at"] = serde_json::json!(instant);
+                    if let Some(reason) = recovery_issue.or(worker_returned_card.then_some("invalid_scheduler_card")) {
+                        details["recovery"] = serde_json::json!({"state":"incomplete", "reason":reason,
+                            "replayable_count":recovered_count});
+                    }
+                } else if recovered_count > 0 {
+                    details["recovery"] = serde_json::json!({"state":"replayed", "count":recovered_count,
+                        "through_event_id":recovered_through});
+                }
+                schedule.schedule_json = details.to_string();
+                Ok(schedule)
+            },
         );
         match result {
             Ok(receipt) => stateful_review_response(receipt),

@@ -8,7 +8,9 @@ request fails closed instead of silently inventing an interval.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import struct
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -42,6 +44,44 @@ MATURE = {
 
 
 class TestFsrsAuthority:
+    def test_timezone_offset_describes_the_same_instant_as_utc(self) -> None:
+        utc = worker.schedule({"item_key": "c", "state": MATURE, "rating": 3,
+                               "now": "2026-09-02T00:00:00+00:00"})
+        offset = worker.schedule({"item_key": "c", "state": MATURE, "rating": 3,
+                                  "now": "2026-09-02T08:00:00+08:00"})
+        assert offset == utc
+
+    def test_bounded_replay_matches_individual_reviews_and_identifies_inputs(self) -> None:
+        fields = ("state", "step", "stability", "difficulty", "due", "last_review")
+        replay = [{"event_id": 7, "rating": 1, "now": "2026-09-03T00:00:00+00:00"},
+                  {"event_id": 8, "rating": 3, "now": "2026-09-04T00:00:00+00:00"}]
+        state = MATURE
+        for entry in replay:
+            result = worker.schedule({"item_key": "c", "state": state,
+                                      "rating": entry["rating"], "now": entry["now"]})
+            state = {key: result[key] for key in fields}
+        expected = worker.schedule({"item_key": "c", "state": state, "rating": 3,
+                                    "now": "2026-09-05T00:00:00+00:00"})
+        actual = worker.schedule({"item_key": "c", "state": MATURE, "rating": 3,
+                                  "now": "2026-09-05T00:00:00+00:00", "replay": replay})
+        assert {key: actual[key] for key in fields} == {key: expected[key] for key in fields}
+        digest = hashlib.sha256(b"archeaxis.fsrs-replay/v1\0")
+        for entry in replay:
+            encoded = entry["now"].encode()
+            digest.update(struct.pack("<QBI", entry["event_id"], entry["rating"], len(encoded)))
+            digest.update(encoded)
+        assert actual["replay_receipt"] == {"schema": "archeaxis.fsrs-replay/v1", "count": 2,
+                                             "sha256": digest.hexdigest()}
+
+    @pytest.mark.parametrize("replay", [[], [{"event_id": True, "rating": 1, "now": "2026-09-03T00:00:00Z"}],
+                                       [{"event_id": 1, "rating": 5, "now": "2026-09-03T00:00:00Z"}],
+                                       [{"event_id": 1, "rating": 1, "now": "bad"}],
+                                       [{"event_id": 1, "rating": 1, "now": "2026-09-03T00:00:00Z"}] * 128])
+    def test_invalid_replay_is_rejected(self, replay) -> None:
+        with pytest.raises(ValueError):
+            worker.schedule({"item_key": "c", "state": MATURE, "rating": 3,
+                             "now": "2026-09-05T00:00:00+00:00", "replay": replay})
+
     def test_packaged_layout_resolves_the_bundled_donor(self, tmp_path) -> None:
         packaged = tmp_path / "candidate"
         worker_path = packaged / "workers" / "learning" / "worker_schedule.py"
