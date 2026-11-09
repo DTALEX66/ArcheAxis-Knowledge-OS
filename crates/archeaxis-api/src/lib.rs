@@ -1481,7 +1481,9 @@ async fn record_stateful_review(
                     r.get::<_, String>(0)
                 })?,
             };
-            if previous.recovery_issue.is_none() {
+            // A declared fresh baseline explicitly excludes the earlier history;
+            // a mistimed old card must not constrain its new review instant.
+            if !reset_requested && previous.recovery_issue.is_none() {
                 let Some(current) = learning::review_timestamp_micros(conn, &instant)? else {
                     return Ok(StatefulReviewPreparation::Invalid(
                         "now must be an ISO timestamp with timezone",

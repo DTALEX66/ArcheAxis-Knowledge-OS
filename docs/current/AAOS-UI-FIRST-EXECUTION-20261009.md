@@ -4801,3 +4801,11 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 合同门禁先在旧字段清单上得到 **1 failed／14 passed**（`learning-explicit-reset-contract-red-20261110/`）；更新现行 HTTP 合同和维护检查，使其指向现行合同而非历史副本后，`learning-explicit-reset-contract-final-20261110/` 为 **15 passed**，绑定同基线、后续文档及测试 patch `90ef7d70d97fdb52a2584e4811940c31e6c862e13a79778a8de5c59ced0dfa74`、`source_consistent:true`。两轮证据不冒充同一 patch。
 - 文档回写后的 `learning-explicit-reset-final-maintenance-20261110/` 为 **249 passed／2 skipped，另2个 subtest passed**；文档权威、仓库规范、Rust 格式及 Ruff 同时通过。上述检查绑定 `a24c31aa`、patch `02e5d0cde0909aedc99b65d1bc5e8eee01c797d20aad33ff58fb49fa55c3f9f6`、`source_consistent:true`；外部资料仍按门禁标记 UNVERIFIED。
 - 上述人工角色和复习资料均为受控夹具，未修改真实用户数据；没有建立安装态、精确 SHA 云端 CI、真实学习改善或 Owner 接受。V3 完整闭环仍为 PARTIAL。
+
+#### 2026-11-10 · 重置基线与历史误填时间隔离
+
+- 本地真实 Core 加合成数据的反例 `learning-reset-earlier-red-20261110/`：先把一次旧复习记为 2030 年，再以 2026 年的新复习显式声明排除该旧事件、开始新基线；普通复习按预期返回 **400**，但显式重置也错误返回 **400**。原因是重置前仍将新时间与即将排除的历史比较。反例绑定 `8b7ef295`、仅新增测试的 patch `68b264ec3394b180e47eaf3d0b4d788ce2e2b28fe4fd260da2d3f0ed71a1775d`、`source_consistent:true`，Core SHA-256 `c1ed88d535ba26a949b18937e5cec184ad5e5b8e709274ef4c30781a03e12132`。
+- 显式重置不再以被排除的旧记录限制新基线时间；仍校验请求时间有效、human 角色、最新事件游标及调度结果，普通复习继续按活动基线限制顺序。新测试分别覆盖旧记录为已调度和未调度两种形态：旧事件原文未改、重启后重放相同重置、早于新基线的普通复习被拒、晚于新基线的复习成功。此举允许不同基线间时间倒序，原因和排除游标留在回执中；它不修正旧记录，也不证明旧时间确实有误。
+- 构建及首轮定向检查 `learning-reset-earlier-core-build-20261110/`、`learning-reset-earlier-target-20261110/` 为 **4 passed**，绑定 `8b7ef295`、patch `3da5522e14b719c1b6ce66090894d6d8cd055a362f91296b1d6b846c5674014e`；新增第二种夹具后，`learning-reset-earlier-real-final-20261110/` 的真实 Core／合成 worker／静态合同组合为 **74 passed／1 skipped**，`learning-reset-earlier-api-final-20261110/` 为 **33 passed**，绑定同基线、patch `66cba965a5313b9511b7e8314658d50378e72d72fea10c6a4f5f18b137b7d3cd`，均 `source_consistent:true`。第二 patch 相比构建增加测试参数，未变更构建源码；实际 debug Core SHA-256 `766db035668510284df1af56a8992f116520bf2ba2e6f76e606b89a5f8b62f88`。Rust 格式和 Ruff 通过；跳过的生成客户端不计通过。
+- 文档回写后的 `learning-reset-earlier-maintenance-20261110/` 为 **249 passed／2 skipped，另2个 subtest passed**，文档权威和仓库规范通过；三项绑定同基线、patch `8a592690fccef7ecd15497eecf73f418a854fa8201e889822dead49594cbc092`、`source_consistent:true`，外部资料仍按门禁标记 UNVERIFIED。
+- 这是隔离合成历史和本地 Core/FSRS 的工程验证，未改真实用户资料；不代表真实学习效果、安装态、精确 SHA 云端 CI、实际降级或 Owner 接受。V3 完整闭环仍为 PARTIAL。

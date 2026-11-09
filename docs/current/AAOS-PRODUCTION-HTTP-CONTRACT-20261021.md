@@ -393,7 +393,9 @@ explicit caller choice: the old events and observations remain readable and cont
 historical counts, but events through that ID are excluded from the **new scheduling baseline**.
 The receipt records the declared reason, excluded ID and `human_declared_unverified` authority;
 later review/state projections reference the reset event. It does not reconstruct missing times
-or establish mastery. If the scheduler is unavailable or its result invalid, the reset is not
+or establish mastery. The new baseline may start before a mistimed prior event, because that event
+is explicitly excluded from its scheduling history; ordinary reviews must still follow the most
+recent instant within the active baseline. If the scheduler is unavailable or its result invalid, the reset is not
 recorded and returns `503`; the caller should retain the input and may retry the same event key.
 The option is absent by default, so older request hashes and committed receipts remain usable.
 An older Core that does not understand `schedule_reset` cannot replay a reset request and may not

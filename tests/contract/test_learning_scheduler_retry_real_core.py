@@ -793,6 +793,49 @@ def test_scheduler_result_must_bind_the_requested_review_instant(tmp_path, monke
         core.stop()
 
 
+@pytest.mark.parametrize("old_scheduled", [True, False])
+def test_explicit_schedule_reset_starts_before_mistimed_old_card(tmp_path, monkeypatch, old_scheduled):
+    core = core_for(tmp_path)
+    item = "synthetic-future-review-reset"
+    good_python = str(Path(sys.executable).resolve())
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", good_python if old_scheduled else str(tmp_path / "missing-python"))
+    try:
+        core.start()
+        status, old = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "mistimed-old", "correct": True, "rating": 3,
+            "now": "2030-09-03T00:00:00Z"})
+        assert status == 201 and old["schedule_authority"] == ("fsrs" if old_scheduled else "unavailable")
+        if not old_scheduled:
+            core.stop()
+            monkeypatch.setenv("ARCHEAXIS_PYTHON", good_python)
+            core.start()
+        original = core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][0]["outcome"]
+        body = {"item_key": item, "client_event_id": "fresh-baseline", "correct": True, "rating": 3,
+                "now": "2026-09-03T00:00:00Z"}
+        assert core.request("POST", "/api/v1/learning/reviews", body)[0] == 400
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 1
+        reset_body = {**body, "schedule_reset": {"mode": "start_new", "reason": "Old time was mistyped",
+                      "expected_latest_event_id": old["event_id"]}}
+        status, reset = core.request("POST", "/api/v1/learning/reviews", reset_body)
+        assert status == 201 and reset["schedule_authority"] == "fsrs", reset
+        assert reset["schedule_recovery"]["excluded_through_event_id"] == old["event_id"]
+        assert reset["schedule_state"]["last_review"].startswith("2026-09-03T00:00:00")
+        core.stop()
+        core.start()
+        assert core.request("POST", "/api/v1/learning/reviews", reset_body)[1]["event_id"] == reset["event_id"]
+        before = {"item_key": item, "client_event_id": "before-fresh-baseline", "correct": True,
+                  "rating": 3, "now": "2026-09-02T23:59:59Z"}
+        assert core.request("POST", "/api/v1/learning/reviews", before)[0] == 400
+        status, after = core.request("POST", "/api/v1/learning/reviews", {
+            **before, "client_event_id": "after-fresh-baseline", "now": "2026-09-04T00:00:00Z"})
+        assert status == 201 and after["schedule_authority"] == "fsrs"
+        assert after["schedule_recovery"]["baseline_reset_event_id"] == reset["event_id"]
+        history = core.request("GET", f"/api/v1/learning/events/{item}")[1]
+        assert history["count"] == 3 and history["events"][0]["outcome"] == original
+    finally:
+        core.stop()
+
+
 def test_explicit_schedule_reset_preserves_unrecoverable_history(tmp_path, monkeypatch):
     core = core_for(tmp_path)
     item = "synthetic-declared-schedule-reset"
