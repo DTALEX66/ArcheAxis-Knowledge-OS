@@ -26,14 +26,15 @@ import hashlib
 import http.client
 import importlib.util
 import json
-from pathlib import Path
 import secrets
 import socket
 import subprocess
 import sys
 import threading
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import time
+from contextlib import suppress
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 MODEL = "synthetic-stub-model"
 DEFAULT_HTTP_TIMEOUT_SECONDS = 120
@@ -128,10 +129,8 @@ class StubModel(BaseHTTPRequestHandler):
         self.wfile.flush()
         if server.body_delay:  # type: ignore[attr-defined]
             time.sleep(server.body_delay)  # type: ignore[attr-defined]
-        try:
+        with suppress(BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
             self.wfile.write(payload)
-        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
-            pass
 
     def log_message(self, *_args) -> None:
         return
@@ -445,6 +444,9 @@ def main() -> int:
                 raise RuntimeError("interactive replay returned a different candidate")
             replay[f"interactive_{widget}"] = {
                 "worker_invoked": False, "document_id": scene_replay["document"]["document_id"]}
+        # Preserve the original single-interactive receipt key as the diagram
+        # alias while reporting all three widget-specific replays.
+        replay["interactive"] = dict(replay["interactive_diagram"])
         receipt["restart_replay"] = replay
         receipt["model_call_after_restart"] = stub.calls
 
