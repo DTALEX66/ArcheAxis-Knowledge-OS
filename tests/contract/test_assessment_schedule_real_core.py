@@ -230,8 +230,8 @@ def test_revision_starts_fresh_schedule_and_survives_restore(tmp_path):
                     reason="explicit Node, TypeScript and actual Core states required")
 def test_generated_client_validates_actual_scoped_state_and_matches_host_digest():
     script = r"""
-const fs = require("node:fs"), assert = require("node:assert/strict");
-const [typescriptPath, corePath, hostPath, rustPath, fixturePath] = process.argv.slice(1);
+const fs = require("node:fs"), assert = require("node:assert/strict"), crypto = require("node:crypto");
+const [typescriptPath, corePath, hostPath, rustPath, fixturePath, hostSchemaPath, coreSchemaPath] = process.argv.slice(1);
 const ts = require(typescriptPath);
 function load(path) {
   const source = fs.readFileSync(path, "utf8");
@@ -258,10 +258,17 @@ assert.throws(() => core.assertCoreDto("LearningStateDto", {...fixture.after, le
 const rust = fs.readFileSync(rustPath, "utf8");
 const digest = rust.match(/pub const CONTRACT_DIGEST: &str = "([a-f0-9]{64})"/);
 assert.ok(digest); assert.equal(host.UI_HOST_CONTRACT_DIGEST, digest[1]);
+const canonical = crypto.createHash("sha256").update(fs.readFileSync(hostSchemaPath)).update(Buffer.from([0])).update(fs.readFileSync(coreSchemaPath)).digest("hex");
+assert.equal(host.UI_HOST_CONTRACT_DIGEST, canonical);
+const hostRequest = {schema:"archeaxis.ui-host-request/v2", contract_digest:host.UI_HOST_CONTRACT_DIGEST,
+  request_id:"synthetic", workspace_id:"a".repeat(32), restore_epoch:"initial", operation:"model.inventory.read", input:{}};
+host.assertUiHostRequest(hostRequest);
+assert.throws(() => host.assertUiHostRequest({...hostRequest, contract_digest:"3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb"}));
 """
     result = subprocess.run([os.environ["AAOS_TEST_NODE"], "-e", script, os.environ["AAOS_TEST_TYPESCRIPT"],
         str(ROOT / "frontend/src/api/generated/core-contract.ts"), str(ROOT / "frontend/src/api/generated/ui-host-contract.ts"),
-        str(ROOT / "crates/archeaxis-contracts/src/generated/ui_host.rs"), os.environ["AAOS_TEST_SCHEDULE_FIXTURE"]],
+        str(ROOT / "crates/archeaxis-contracts/src/generated/ui_host.rs"), os.environ["AAOS_TEST_SCHEDULE_FIXTURE"],
+        str(ROOT / "packages/contracts/v2/ui-host.schema.json"), str(ROOT / "packages/contracts/v1/core-document.schema.json")],
         check=False, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
 

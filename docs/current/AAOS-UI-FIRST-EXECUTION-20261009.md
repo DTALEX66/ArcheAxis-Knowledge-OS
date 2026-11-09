@@ -4879,3 +4879,12 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 最新 Core SHA-256 `690620672d6e6e624f283ecb3cf569842c932c1ae6b98602ce15348dbe0493e7`；`x2-fast-cross-version-20261110/` 为 **4 passed**，覆盖两种评测范围、重启、原因持续显示和重置。最新学习 API **34 passed**，包含当前／旧评测隔离；`x2-fast-real-final-20261110/` 为 **96 passed**，含真实本机 Core、旧 Core、合成数据、宿主桥接、重置前合成备份和生成客户端。Ruff 与 Rust 格式通过；此前领域／SQLite 的 **27／14 passed** 使用上一源码快照，本次只改 API、测试和文档。
 - 构建及上述最新检查绑定 `d4cb81a8`、patch `9d18b238b062cdb46f68167b9233973ba245e6d7ddf4246112b37afd0a5d6d09`、`source_consistent:true`，不是精确提交态。测试是本地有限工程证据；安装态、真实用户数据、首次大型库索引成本、精确 SHA 云 CI 和 Owner 接受未建立。X2 与 V3 闭环仍为 PARTIAL，固定基线存储审查仍为 `REVIEW_REQUIRED`。
 - 文档回写后的 `x2-fast-record-maintenance-20261110/` 为 **249 passed／2 skipped，另 2 个 subtest passed**；文档权威与仓库规范门禁通过。三项均绑定 `d4cb81a8`、patch `0ad41939bf79decc7347537614db17b6d4e02d83901d34562b6175f5128fbe31`、`source_consistent:true`；外部资料仍标记 UNVERIFIED。
+
+#### 2026-11-10 · 宿主合同摘要漂移修复
+
+- 后续核对发现上一提交 `7ea24375` 修改了 Core 响应 Schema，却没有同步由它参与计算的 UI-host 摘要。`x2-host-digest-drift-red-20261110/` 对当时提交执行官方生成器 `--check` 返回 **1**，指出 Rust 和 TypeScript 两份宿主生成文件均漂移；此前两者互相相等并不足以证明与现行 Schema 相符。该中间提交不具备宿主合同资格。
+- 现依当前 Schema 重新生成两份宿主合同：旧摘要 `3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb`，新摘要 `d9d26d3a256dbe08ca69918a6979e1aa84c76fae3e021c68ef32d210cd356504`。Rust 与 TypeScript 测试均检查旧摘要被拒；将生成器 `--check` 接入既有 contracts-vnext 门禁，并在隔离副本中改动响应 Schema，验证漂移能被发现、重生成后恢复。生成客户端测试另按两份实际 Schema 原字节重新计算摘要，避免只比较两份同时过时的生成文件。旧宿主与新客户端或反向混用仍按合同拒绝，部署时须同批更新。
+- 同步后的 Rust 宿主合同 **3 passed**；复用现有依赖隔离编译实际 `ui_host_bridge.rs`，严格核对指定测试数为 **3 passed**，测试程序 SHA-256 `10ebd8fa2787c4157d789ef9f627031a70051f292382306066ba31f1d4eaef89`。合成漂移及客户端合同检查 **2 passed**；Ruff、Rust 格式、生成漂移检查和 contracts-vnext 门禁通过。该桥接编译不是完整 Tauri 构建，也不是安装态 UI 测试。
+- 同步后本地 Core SHA-256 `3652f4355ef50f7d09ea81eea1cb926d4c8a6f2cee3ac00d82fecbc72d711f4a`；重新运行学习／跨版本／既有宿主桥接／生成客户端联合检查 **96 passed**。构建、联合检查、3 项宿主桥接和 3 项 Rust 合同绑定 `7ea24375`、patch `a31d526fcd4e9d60d93555ac8eb0d3155278a01ae1beb6b43222640ce3bce9e2`、`source_consistent:true`，并非精确提交态。上一版 `69062067` Core 按摘要保存在 `x2-host-sync-before-build-20261110/artifacts/core-before-host-contract-sync.exe`；项目本地证据增加了该二进制，固定基线存储复核状态未因此重置。
+- 没有证明完整桌面构建、安装／回退、真实用户学习、精确 SHA 云 CI 或 Owner 接受；旧候选的源码身份仍 `ASSERTED_NOT_VERIFIED`，X2 和 V3 闭环仍为 PARTIAL。
+- 文档回写后的 `x2-host-sync-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威与仓库规范门禁通过。三项绑定 `7ea24375`、patch `1c4570a7e7abc9d68d1dc8af9b80e88135a69aae3c5a4ad67c7e69fa33a5abb7`、`source_consistent:true`；外部资料仍标记 UNVERIFIED。

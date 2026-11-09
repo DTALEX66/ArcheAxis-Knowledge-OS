@@ -58,6 +58,8 @@ def main() -> int:
     failures: list[str] = []
     if subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/contracts/generate_material_question.py'), '--check'], cwd=ROOT).returncode:
         failures.append('material-question generated DTO drift')
+    if subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/contracts/generate_ui_host.py'), '--check'], cwd=ROOT).returncode:
+        failures.append('ui-host generated contract drift')
 
     if not CONTRACTS.is_dir():
         print(f"ERROR: contracts dir missing: {CONTRACTS}")
