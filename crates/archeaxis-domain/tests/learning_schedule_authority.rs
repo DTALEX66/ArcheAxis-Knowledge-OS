@@ -43,6 +43,171 @@ fn scheduler_interval_is_recorded_and_replayed_once() {
 }
 
 #[test]
+fn http_receipt_binds_request_and_rechecks_after_concurrent_scheduling() {
+    let (_dir, mut conn) = workspace();
+    let request = r#"{"item_key":"card-v2","now":"2026-09-02T00:00:00Z"}"#;
+    assert!(
+        learning::existing_http_learning_event(&conn, "card-v2", "review", true, "v2-key", request)
+            .unwrap()
+            .is_none()
+    );
+    let first = learning::record_http_learning_event(
+        &mut conn,
+        "card-v2",
+        "review",
+        true,
+        "v2-key",
+        request,
+        ScheduleSource::Explicit(None),
+    )
+    .unwrap();
+    assert!(!first.duplicate);
+    assert_eq!(first.schedule_authority, "unavailable");
+    assert_eq!(first.next_review_days, SCHEDULE_UNAVAILABLE);
+    assert_eq!(first.idempotency_scope, "full_request");
+    // Another request can have scheduled while the first one committed. Its
+    // result must not replace the original outcome when the key is rechecked.
+    let replay = learning::record_http_learning_event(
+        &mut conn,
+        "card-v2",
+        "review",
+        true,
+        "v2-key",
+        request,
+        ScheduleSource::Explicit(Some(42)),
+    )
+    .unwrap();
+    assert!(replay.duplicate);
+    assert_eq!(replay.event_id, first.event_id);
+    assert_eq!(replay.schedule_authority, "unavailable");
+    assert_eq!(replay.next_review_days, SCHEDULE_UNAVAILABLE);
+    let invalid_late_result = learning::record_http_learning_event(
+        &mut conn,
+        "card-v2",
+        "review",
+        true,
+        "v2-key",
+        request,
+        ScheduleSource::Explicit(Some(-2)),
+    )
+    .unwrap();
+    assert!(invalid_late_result.duplicate);
+    assert_eq!(invalid_late_result.event_id, first.event_id);
+    assert!(
+        learning::record_http_learning_event(
+            &mut conn,
+            "card-v2",
+            "review",
+            true,
+            "new-invalid-key",
+            request,
+            ScheduleSource::Explicit(Some(-2)),
+        )
+        .is_err()
+    );
+    let changed = r#"{"item_key":"card-v2","now":"2026-09-03T00:00:00Z"}"#;
+    assert!(
+        learning::record_http_learning_event(
+            &mut conn,
+            "card-v2",
+            "review",
+            true,
+            "v2-key",
+            changed,
+            ScheduleSource::Explicit(Some(42))
+        )
+        .is_err()
+    );
+    assert_eq!(
+        learning::events_for_item(&conn, "card-v2").unwrap().len(),
+        1
+    );
+    // An older Core using the previous hash format cannot replay this newer
+    // binding; it must fail closed rather than write a second event.
+    assert!(
+        learning::record_review_scheduled(&mut conn, "card-v2", "review", true, "v2-key", Some(42))
+            .is_err()
+    );
+}
+
+#[test]
+fn historical_http_receipts_replay_with_honest_limited_identity() {
+    let (_dir, mut conn) = workspace();
+    let (event, streak, days, _) = learning::record_review_scheduled(
+        &mut conn,
+        "historical",
+        "review",
+        true,
+        "historical-key",
+        Some(37),
+    )
+    .unwrap();
+    let original: (String, String) = conn.query_row(
+        "SELECT k.payload_hash,e.outcome FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id WHERE k.event_key='historical-key'",
+        [], |row| Ok((row.get(0)?, row.get(1)?)),
+    ).unwrap();
+    let replay = learning::existing_http_learning_event(
+        &conn,
+        "historical",
+        "review",
+        true,
+        "historical-key",
+        "newly supplied request cannot be verified",
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(
+        (
+            replay.event_id,
+            replay.streak_after,
+            replay.next_review_days
+        ),
+        (event, streak, days)
+    );
+    assert_eq!(replay.idempotency_scope, "legacy_item_kind_outcome");
+    assert_eq!(replay.schedule_authority, "legacy_unverified");
+    assert!(
+        learning::existing_http_learning_event(
+            &conn,
+            "historical",
+            "review",
+            false,
+            "historical-key",
+            "request",
+        )
+        .is_err()
+    );
+    let unchanged: (String, String) = conn.query_row(
+        "SELECT k.payload_hash,e.outcome FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id WHERE k.event_key='historical-key'",
+        [], |row| Ok((row.get(0)?, row.get(1)?)),
+    ).unwrap();
+    assert_eq!(unchanged, original);
+
+    learning::record_review_scheduled(
+        &mut conn,
+        "historical-offline",
+        "review",
+        true,
+        "offline-key",
+        None,
+    )
+    .unwrap();
+    let unavailable = learning::existing_http_learning_event(
+        &conn,
+        "historical-offline",
+        "review",
+        true,
+        "offline-key",
+        "request",
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(unavailable.schedule_authority, "unavailable");
+    assert_eq!(unavailable.next_review_days, SCHEDULE_UNAVAILABLE);
+    assert_eq!(unavailable.idempotency_scope, "legacy_item_kind_outcome");
+}
+
+#[test]
 fn unavailable_scheduler_records_an_unscheduled_review_not_a_ladder_interval() {
     let (_dir, mut conn) = workspace();
     let (event_id, _streak, days, duplicate) =

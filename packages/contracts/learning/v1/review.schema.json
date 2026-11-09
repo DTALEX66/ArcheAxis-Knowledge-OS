@@ -2,7 +2,7 @@
   "$id": "archeaxis.learning-review/v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Core-owned FSRS review request",
-  "description": "POST /api/v1/learning/reviews. Human identity required. Core loads and appends the card state; callers cannot supply authoritative schedule state. The legacy /learning/events endpoint retains its original receipt contract.",
+  "description": "POST /api/v1/learning/reviews. Human identity required. Core loads and appends the card state; callers cannot supply authoritative schedule state. Committed retries replay their receipt without running the scheduler again. The separate legacy /learning/events path reports its request identity scope explicitly.",
   "type": "object",
   "additionalProperties": false,
   "required": ["item_key", "client_event_id", "correct"],

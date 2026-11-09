@@ -201,6 +201,66 @@ async fn same_client_event_id_is_recorded_only_once() {
 }
 
 #[tokio::test]
+async fn historical_receipts_remain_readable_without_inventing_original_authority() {
+    use archeaxis_domain::learning;
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("historical-event-key.sqlite");
+    let original = {
+        let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        learning::record_review_scheduled(
+            &mut conn,
+            "old-success",
+            "review",
+            true,
+            "old-success-key",
+            Some(37),
+        )
+        .unwrap();
+        learning::record_review_scheduled(
+            &mut conn,
+            "old-unavailable",
+            "review",
+            true,
+            "old-unavailable-key",
+            None,
+        )
+        .unwrap();
+        conn.query_row("SELECT k.payload_hash,e.outcome FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id WHERE k.event_key='old-success-key'",
+            [], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))).unwrap()
+    };
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, success) =
+        post_event_keyed(&router, "old-success", true, Some("old-success-key")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(success["next_review_days"], 37);
+    assert_eq!(success["schedule_authority"], "legacy_unverified");
+    assert_eq!(success["idempotency_scope"], "legacy_item_kind_outcome");
+    let (status, unavailable) = post_event_keyed(
+        &router,
+        "old-unavailable",
+        true,
+        Some("old-unavailable-key"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(unavailable["next_review_days"], -2);
+    assert_eq!(unavailable["schedule_authority"], "unavailable");
+    assert_eq!(unavailable["idempotency_scope"], "legacy_item_kind_outcome");
+    assert_eq!(
+        post_event_keyed(&router, "old-success", false, Some("old-success-key"))
+            .await
+            .0,
+        StatusCode::CONFLICT
+    );
+    let conn = rusqlite::Connection::open(db).unwrap();
+    let unchanged: (String, String) = conn.query_row(
+        "SELECT k.payload_hash,e.outcome FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id WHERE k.event_key='old-success-key'",
+        [], |row| Ok((row.get(0)?, row.get(1)?)),
+    ).unwrap();
+    assert_eq!(unchanged, original);
+}
+
+#[tokio::test]
 async fn history_lists_recorded_events_for_item() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();

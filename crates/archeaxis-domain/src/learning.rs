@@ -412,6 +412,78 @@ pub fn record_review_with_state(
     )
 }
 
+fn stateful_review_hash(kind: &str, correct: bool, canonical_request: &str) -> String {
+    let mut hash = Sha256::new();
+    hash.update(b"archeaxis.learning-state/v1\0");
+    for part in [
+        kind,
+        if correct { "correct" } else { "incorrect" },
+        canonical_request,
+    ] {
+        hash.update((part.len() as u64).to_le_bytes());
+        hash.update(part.as_bytes());
+    }
+    hex::encode(hash.finalize())
+}
+
+/// Read an already committed stateful receipt without invoking a scheduler.
+/// This check is repeated under the write transaction when a new event is
+/// committed, so concurrent requests still cannot create duplicate events.
+pub fn existing_stateful_review(
+    conn: &Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: &str,
+    canonical_request: &str,
+) -> rusqlite::Result<Option<ReviewReceipt>> {
+    let payload_hash = stateful_review_hash(kind, correct, canonical_request);
+    let existing: Option<(String, Option<String>, ReviewReceipt)> = conn
+        .query_row(
+            "SELECT k.item_key, k.payload_hash, e.event_id, k.streak_after,
+                k.next_review_days, e.next_review, e.outcome
+             FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id
+             WHERE k.event_key=?1",
+            [client_event_key],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    ReviewReceipt {
+                        event_id: r.get(2)?,
+                        streak_after: r.get::<_, i64>(3)? as u32,
+                        next_review_days: r
+                            .get::<_, Option<i64>>(4)?
+                            .unwrap_or(SCHEDULE_UNAVAILABLE),
+                        next_review: r.get(5)?,
+                        outcome_json: r.get(6)?,
+                        duplicate: true,
+                    },
+                ))
+            },
+        )
+        .optional()?;
+    if let Some((stored_item, stored_hash, receipt)) = existing {
+        if stored_item != item_key || stored_hash.as_deref() != Some(payload_hash.as_str()) {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "event_key conflict: different item or payload".into(),
+            ));
+        }
+        return Ok(Some(receipt));
+    }
+    let reserved: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
+        [client_event_key],
+        |r| r.get(0),
+    )?;
+    if reserved {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "event_key conflict: incomplete legacy receipt".into(),
+        ));
+    }
+    Ok(None)
+}
+
 /// Record a stateful review and retain the learner's submitted answer in the
 /// append-only receipt. The answer is evidence of what the learner entered;
 /// it does not assert that the answer is true or that mastery was achieved.
@@ -437,57 +509,17 @@ pub fn record_review_with_state_and_answer(
     if assessment_id.is_some_and(|value| value.trim().is_empty()) {
         return Err(invalid("assessment_id must not be empty"));
     }
-    let mut hash = Sha256::new();
-    hash.update(b"archeaxis.learning-state/v1\0");
-    for part in [
-        kind,
-        if correct { "correct" } else { "incorrect" },
-        canonical_request,
-    ] {
-        hash.update((part.len() as u64).to_le_bytes());
-        hash.update(part.as_bytes());
-    }
-    let payload_hash = hex::encode(hash.finalize());
+    let payload_hash = stateful_review_hash(kind, correct, canonical_request);
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let existing: Option<(String, Option<String>, ReviewReceipt)> = tx
-        .query_row(
-            "SELECT k.item_key, k.payload_hash, e.event_id, k.streak_after,
-                k.next_review_days, e.next_review, e.outcome
-         FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id
-         WHERE k.event_key=?1",
-            [client_event_key],
-            |r| {
-                Ok((
-                    r.get(0)?,
-                    r.get(1)?,
-                    ReviewReceipt {
-                        event_id: r.get(2)?,
-                        streak_after: r.get::<_, i64>(3)? as u32,
-                        next_review_days: r
-                            .get::<_, Option<i64>>(4)?
-                            .unwrap_or(SCHEDULE_UNAVAILABLE),
-                        next_review: r.get(5)?,
-                        outcome_json: r.get(6)?,
-                        duplicate: true,
-                    },
-                ))
-            },
-        )
-        .optional()?;
-    if let Some((stored_item, stored_hash, receipt)) = existing {
-        if stored_item != item_key || stored_hash.as_deref() != Some(payload_hash.as_str()) {
-            return Err(invalid("event_key conflict: different item or payload"));
-        }
+    if let Some(receipt) = existing_stateful_review(
+        &tx,
+        item_key,
+        kind,
+        correct,
+        client_event_key,
+        canonical_request,
+    )? {
         return Ok(receipt);
-    }
-    // A legacy key without a complete receipt is not permission to resubmit it.
-    let reserved: bool = tx.query_row(
-        "SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
-        [client_event_key],
-        |r| r.get(0),
-    )?;
-    if reserved {
-        return Err(invalid("event_key conflict: incomplete legacy receipt"));
     }
     // A new schedule-only legacy review cannot name an assessment. Once an
     // assessment exists, accepting it would return a due date that the
@@ -598,6 +630,123 @@ pub fn record_review_with_state_and_answer(
     })
 }
 
+/// Receipt for the legacy HTTP event route. New events bind the complete
+/// accepted request and the original scheduling authority; older keys did
+/// not record those inputs and are explicitly reported as limited evidence.
+#[derive(Debug)]
+pub struct HttpLearningEventReceipt {
+    pub event_id: i64,
+    pub streak_after: u32,
+    pub next_review_days: i64,
+    pub duplicate: bool,
+    pub schedule_authority: &'static str,
+    pub idempotency_scope: &'static str,
+}
+
+fn legacy_event_outcome(correct: bool, unavailable: bool) -> String {
+    let outcome = if correct { "correct" } else { "incorrect" };
+    if unavailable {
+        format!(r#"{{"outcome": "{outcome}", "schedule": "unavailable"}}"#)
+    } else {
+        format!(r#"{{"outcome": "{outcome}"}}"#)
+    }
+}
+
+fn legacy_event_hash(kind: &str, outcome: &str) -> String {
+    let mut hash = Sha256::new();
+    hash.update(format!("{kind}|{outcome}").as_bytes());
+    hex::encode(hash.finalize())
+}
+
+fn http_learning_event_hash(canonical_request: &str) -> String {
+    let mut hash = Sha256::new();
+    hash.update(b"archeaxis.learning-event-http/v2\0");
+    hash.update(canonical_request.as_bytes());
+    hex::encode(hash.finalize())
+}
+
+/// Read an HTTP legacy event receipt before invoking the scheduler. For old
+/// keys only item, kind and outcome can be verified; schedule inputs were not
+/// stored and must not be claimed as verified after an upgrade.
+pub fn existing_http_learning_event(
+    conn: &Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: &str,
+    canonical_request: &str,
+) -> rusqlite::Result<Option<HttpLearningEventReceipt>> {
+    let row: Option<(
+        String,
+        Option<String>,
+        Option<i64>,
+        Option<i64>,
+        Option<i64>,
+    )> = conn
+        .query_row(
+            "SELECT k.item_key,k.payload_hash,k.event_id,k.streak_after,k.next_review_days
+             FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id
+             WHERE k.event_key=?1",
+            [client_event_key],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+        )
+        .optional()?;
+    let Some((stored_item, stored_hash, event_id, streak, stored_days)) = row else {
+        let reserved: bool = conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
+            [client_event_key],
+            |r| r.get(0),
+        )?;
+        if reserved {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "event_key conflict: incomplete legacy receipt".into(),
+            ));
+        }
+        return Ok(None);
+    };
+    let conflict = || {
+        rusqlite::Error::InvalidParameterName(
+            "event_key conflict: key is already bound to a different item or payload".into(),
+        )
+    };
+    if stored_item != item_key {
+        return Err(conflict());
+    }
+    let stored_hash = stored_hash.ok_or_else(conflict)?;
+    let (authority, scope) = if let Some(binding) = stored_hash.strip_prefix("http-event-v2:") {
+        let (authority, hash) = binding.split_once(':').ok_or_else(conflict)?;
+        if hash != http_learning_event_hash(canonical_request) {
+            return Err(conflict());
+        }
+        let authority = match authority {
+            "fsrs" => "fsrs",
+            "unavailable" => "unavailable",
+            "placeholder_ladder" => "placeholder_ladder",
+            _ => return Err(conflict()),
+        };
+        (authority, "full_request")
+    } else if stored_hash == legacy_event_hash(kind, &legacy_event_outcome(correct, true)) {
+        ("unavailable", "legacy_item_kind_outcome")
+    } else if stored_hash == legacy_event_hash(kind, &legacy_event_outcome(correct, false)) {
+        ("legacy_unverified", "legacy_item_kind_outcome")
+    } else {
+        return Err(conflict());
+    };
+    let next_review_days = match (authority, stored_days) {
+        ("unavailable", None) => SCHEDULE_UNAVAILABLE,
+        (_, Some(days)) => days,
+        _ => return Err(conflict()),
+    };
+    Ok(Some(HttpLearningEventReceipt {
+        event_id: event_id.ok_or_else(conflict)?,
+        streak_after: u32::try_from(streak.ok_or_else(conflict)?).map_err(|_| conflict())?,
+        next_review_days,
+        duplicate: true,
+        schedule_authority: authority,
+        idempotency_scope: scope,
+    }))
+}
+
 fn record_review_keyed_impl(
     conn: &mut Connection,
     item_key: &str,
@@ -605,56 +754,71 @@ fn record_review_keyed_impl(
     correct: bool,
     client_event_key: &str,
     schedule: ScheduleSource,
-) -> rusqlite::Result<(i64, u32, i64, bool)> {
+    canonical_request: Option<&str>,
+) -> rusqlite::Result<HttpLearningEventReceipt> {
     if client_event_key.trim().is_empty() {
         return Err(rusqlite::Error::InvalidParameterName(
             "learning events require a persistent event_key; unkeyed submissions are rejected"
                 .into(),
         ));
     }
-    // The marker is part of the keyed payload: an unscheduled review is not
-    // interchangeable with a scheduled one for the same event key.
-    let outcome = if schedule == ScheduleSource::Explicit(None) {
-        format!(
-            r#"{{"outcome": "{}", "schedule": "unavailable"}}"#,
-            if correct { "correct" } else { "incorrect" }
-        )
-    } else {
-        format!(
-            r#"{{"outcome": "{}"}}"#,
-            if correct { "correct" } else { "incorrect" }
-        )
+    let authority = match schedule {
+        ScheduleSource::Ladder => "placeholder_ladder",
+        ScheduleSource::Explicit(Some(_)) => "fsrs",
+        ScheduleSource::Explicit(None) => "unavailable",
     };
-    let mut h = Sha256::new();
-    h.update(format!("{kind}|{outcome}").as_bytes());
-    let payload_hash = hex::encode(h.finalize());
+    let outcome = legacy_event_outcome(correct, schedule == ScheduleSource::Explicit(None));
+    let payload_hash = match canonical_request {
+        Some(request) => format!(
+            "http-event-v2:{authority}:{}",
+            http_learning_event_hash(request)
+        ),
+        None => legacy_event_hash(kind, &outcome),
+    };
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let existing: Option<(
-        Option<i64>,
-        Option<String>,
-        Option<i64>,
-        Option<i64>,
-        String,
-    )> = tx
-        .query_row(
-            "SELECT event_id, payload_hash, streak_after, next_review_days, item_key
+    if let Some(request) = canonical_request {
+        if let Some(receipt) =
+            existing_http_learning_event(&tx, item_key, kind, correct, client_event_key, request)?
+        {
+            return Ok(receipt);
+        }
+    } else {
+        let existing: Option<(
+            Option<i64>,
+            Option<String>,
+            Option<i64>,
+            Option<i64>,
+            String,
+        )> = tx
+            .query_row(
+                "SELECT event_id, payload_hash, streak_after, next_review_days, item_key
              FROM learning_event_keys WHERE event_key=?1",
-            [client_event_key],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
-        )
-        .optional()?;
-    if let Some((event_id, stored_hash, stored_streak, stored_days, stored_item)) = existing {
-        if stored_item == item_key && stored_hash.as_deref() == Some(payload_hash.as_str()) {
-            // Same retry: replay the original receipt, write nothing.
-            return Ok((
-                event_id.unwrap_or(0),
-                stored_streak.unwrap_or(0) as u32,
-                stored_days.unwrap_or(-1),
-                true,
+                [client_event_key],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+            )
+            .optional()?;
+        if let Some((event_id, stored_hash, stored_streak, stored_days, stored_item)) = existing {
+            if stored_item == item_key && stored_hash.as_deref() == Some(payload_hash.as_str()) {
+                // Same retry: replay the original receipt, write nothing.
+                return Ok(HttpLearningEventReceipt {
+                    event_id: event_id.unwrap_or(0),
+                    streak_after: stored_streak.unwrap_or(0) as u32,
+                    next_review_days: stored_days.unwrap_or(-1),
+                    duplicate: true,
+                    schedule_authority: authority,
+                    idempotency_scope: "legacy_internal",
+                });
+            }
+            return Err(rusqlite::Error::InvalidParameterName(
+                "event_key conflict: key is already bound to a different item or payload".into(),
             ));
         }
+    }
+    if canonical_request.is_some()
+        && matches!(schedule, ScheduleSource::Explicit(Some(days)) if days < 0)
+    {
         return Err(rusqlite::Error::InvalidParameterName(
-            "event_key conflict: key is already bound to a different item or payload".into(),
+            "scheduler interval must not be negative".into(),
         ));
     }
     // The legacy events endpoint cannot bind a review to an assessment. Keep
@@ -705,7 +869,41 @@ fn record_review_keyed_impl(
         ],
     )?;
     tx.commit()?;
-    Ok((event_id, streak_after, next_review_days, false))
+    Ok(HttpLearningEventReceipt {
+        event_id,
+        streak_after,
+        next_review_days,
+        duplicate: false,
+        schedule_authority: authority,
+        idempotency_scope: if canonical_request.is_some() {
+            "full_request"
+        } else {
+            "legacy_internal"
+        },
+    })
+}
+
+/// Commit a legacy HTTP event, binding its normalized request and original
+/// scheduler outcome atomically with the event key. A lookup is repeated inside
+/// the transaction because another request can finish while scheduling runs.
+pub fn record_http_learning_event(
+    conn: &mut Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: &str,
+    canonical_request: &str,
+    schedule: ScheduleSource,
+) -> rusqlite::Result<HttpLearningEventReceipt> {
+    record_review_keyed_impl(
+        conn,
+        item_key,
+        kind,
+        correct,
+        client_event_key,
+        schedule,
+        Some(canonical_request),
+    )
 }
 
 /// Record a keyed review whose next interval comes from the reusable scheduler.
@@ -731,7 +929,9 @@ pub fn record_review_scheduled(
         correct,
         client_event_key,
         ScheduleSource::Explicit(next_review_days),
+        None,
     )
+    .map(|r| (r.event_id, r.streak_after, r.next_review_days, r.duplicate))
 }
 
 /// Record a keyed review using the placeholder ladder.
@@ -752,7 +952,9 @@ pub fn record_review_keyed(
         correct,
         client_event_key,
         ScheduleSource::Ladder,
+        None,
     )
+    .map(|r| (r.event_id, r.streak_after, r.next_review_days, r.duplicate))
 }
 
 /// Read the persisted history for one learning item (oldest first).
