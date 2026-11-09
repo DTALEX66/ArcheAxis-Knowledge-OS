@@ -735,6 +735,47 @@
             "correct_streak": {
               "type": "integer"
             },
+            "correct_streak_scope": {
+              "enum": ["assessment", "legacy_item"]
+            },
+            "aggregate_scope": {
+              "const": "item_history"
+            },
+            "next_review": {
+              "type": ["string", "null"]
+            },
+            "assessment_progress": {
+              "anyOf": [
+                {"type": "null"},
+                {
+                  "type": "object",
+                  "properties": {
+                    "assessment_id": {"type": "string", "minLength": 1},
+                    "knowledge_id": {"type": "string", "minLength": 1},
+                    "knowledge_version": {"type": "string", "minLength": 1},
+                    "event_count": {"type": "integer", "minimum": 0},
+                    "correct_streak": {"type": "integer", "minimum": 0},
+                    "latest_review": {
+                      "anyOf": [
+                        {"type": "null"},
+                        {
+                          "type": "object",
+                          "properties": {
+                            "event_id": {"type": "integer"},
+                            "assessment_id": {"type": ["string", "null"]},
+                            "next_review": {"type": ["string", "null"]}
+                          },
+                          "required": ["event_id", "assessment_id", "next_review"],
+                          "additionalProperties": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["assessment_id", "knowledge_id", "knowledge_version", "event_count", "correct_streak", "latest_review"],
+                  "additionalProperties": true
+                }
+              ]
+            },
             "scheduled_events": {
               "type": "integer"
             },

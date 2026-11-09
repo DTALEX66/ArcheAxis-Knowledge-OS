@@ -10,6 +10,30 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def state_validator():
+    schema = json.loads((ROOT / "packages/contracts/v1/core-document.schema.json").read_text(encoding="utf-8"))
+    return Draft202012Validator({"$defs": schema["$defs"], "$ref": "#/$defs/LearningStateDto"})
+
+
+def test_learning_state_contract_accepts_legacy_and_checks_optional_assessment_scope():
+    check = state_validator()
+    legacy = {"item_key": "legacy", "learner": {"event_count": 1, "correct_streak": 1,
+        "scheduled_events": 1, "unscheduled_events": 0}}
+    assert not list(check.iter_errors(legacy))
+    progress = {"assessment_id": "a", "knowledge_id": "k", "knowledge_version": "k",
+        "event_count": 0, "correct_streak": 0, "latest_review": None}
+    scoped = {**legacy, "learner": {**legacy["learner"], "correct_streak_scope": "assessment",
+        "aggregate_scope": "item_history", "next_review": None, "assessment_progress": progress}}
+    assert not list(check.iter_errors(scoped))
+    assert list(check.iter_errors({**scoped, "learner": {**scoped["learner"], "correct_streak_scope": "unknown"}}))
+    assert list(check.iter_errors({**scoped, "learner": {**scoped["learner"], "assessment_progress": {
+        **progress, "event_count": -1}}}))
+    missing_identity = {key: value for key, value in progress.items() if key != "assessment_id"}
+    assert list(check.iter_errors({**scoped, "learner": {**scoped["learner"], "assessment_progress": missing_identity}}))
+
 
 @pytest.mark.skipif(not os.environ.get("AAOS_TEST_CORE_EXE"), reason="explicit real Core binary required")
 def test_revision_starts_fresh_schedule_and_survives_restore(tmp_path):
@@ -18,9 +42,7 @@ def test_revision_starts_fresh_schedule_and_survives_restore(tmp_path):
     core_exe = Path(os.environ["AAOS_TEST_CORE_EXE"]).resolve(strict=True)
     core_sha = hashlib.sha256(core_exe.read_bytes()).hexdigest()
     core = Core(core_exe, tmp_path, Path(sys.executable))
-    schema_path = Path(__file__).resolve().parents[2] / "packages/contracts/v1/core-document.schema.json"
-    definitions = json.loads(schema_path.read_text(encoding="utf-8"))["$defs"]
-    check_state = Draft202012Validator({"$defs": definitions, "$ref": "#/$defs/LearningStateDto"})
+    check_state = state_validator()
     item = "synthetic-revision-card"
     base = f"/api/v1/learning/items/{item}"
 
@@ -93,5 +115,43 @@ def test_revision_starts_fresh_schedule_and_survives_restore(tmp_path):
         assert call("GET", base + "/state") == state
         assert call("GET", f"/api/v1/learning/events/{item}") == history
         assert hashlib.sha256(core_exe.read_bytes()).hexdigest() == core_sha
+        if output := os.environ.get("AAOS_TEST_SCHEDULE_FIXTURE"):
+            with Path(output).open("x", encoding="utf-8") as stream:
+                json.dump({"before": before, "after": state}, stream, ensure_ascii=False)
     finally:
         core.stop()
+
+
+@pytest.mark.skipif(not all(os.environ.get(key) for key in
+                    ("AAOS_TEST_NODE", "AAOS_TEST_TYPESCRIPT", "AAOS_TEST_SCHEDULE_FIXTURE")),
+                    reason="explicit Node, TypeScript and actual Core states required")
+def test_generated_client_validates_actual_scoped_state_and_matches_host_digest():
+    script = r"""
+const fs = require("node:fs"), assert = require("node:assert/strict");
+const [typescriptPath, corePath, hostPath, rustPath, fixturePath] = process.argv.slice(1);
+const ts = require(typescriptPath);
+function load(path) {
+  const source = fs.readFileSync(path, "utf8");
+  const js = ts.transpileModule(source, {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022
+  }}).outputText;
+  const loaded = {exports: {}}; new Function("module", "exports", js)(loaded, loaded.exports);
+  return loaded.exports;
+}
+const core = load(corePath), host = load(hostPath), fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+for (const value of Object.values(fixture)) assert.equal(core.assertCoreDto("LearningStateDto", value), value);
+const legacy = {item_key:"legacy",learner:{event_count:0,correct_streak:0,scheduled_events:0,unscheduled_events:0}};
+assert.equal(core.assertCoreDto("LearningStateDto", legacy), legacy);
+assert.throws(() => core.assertCoreDto("LearningStateDto", {...fixture.before, learner:{...fixture.before.learner, correct_streak_scope:"unknown"}}));
+assert.throws(() => core.assertCoreDto("LearningStateDto", {...fixture.after, learner:{...fixture.after.learner, assessment_progress:{...fixture.after.learner.assessment_progress, event_count:-1}}}));
+const {assessment_id, ...missingIdentity} = fixture.after.learner.assessment_progress;
+assert.throws(() => core.assertCoreDto("LearningStateDto", {...fixture.after, learner:{...fixture.after.learner, assessment_progress:missingIdentity}}));
+const rust = fs.readFileSync(rustPath, "utf8");
+const digest = rust.match(/pub const CONTRACT_DIGEST: &str = "([a-f0-9]{64})"/);
+assert.ok(digest); assert.equal(host.UI_HOST_CONTRACT_DIGEST, digest[1]);
+"""
+    result = subprocess.run([os.environ["AAOS_TEST_NODE"], "-e", script, os.environ["AAOS_TEST_TYPESCRIPT"],
+        str(ROOT / "frontend/src/api/generated/core-contract.ts"), str(ROOT / "frontend/src/api/generated/ui-host-contract.ts"),
+        str(ROOT / "crates/archeaxis-contracts/src/generated/ui_host.rs"), os.environ["AAOS_TEST_SCHEDULE_FIXTURE"]],
+        check=False, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
