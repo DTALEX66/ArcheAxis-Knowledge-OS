@@ -836,6 +836,31 @@ def test_explicit_schedule_reset_starts_before_mistimed_old_card(tmp_path, monke
         core.stop()
 
 
+@pytest.mark.skipif(not os.environ.get("AAOS_TEST_BRIDGE_EXE"), reason="explicit compiled host bridge required")
+def test_host_bridge_schedule_reset_and_restart(tmp_path, monkeypatch):
+    bridge = Path(os.environ["AAOS_TEST_BRIDGE_EXE"]).resolve(strict=True)
+    core = core_for(tmp_path)
+    identity = tmp_path / "synthetic-host-reset.json"
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    try:
+        for phase in ("create", "reopen"):
+            if phase == "reopen":
+                monkeypatch.setenv("ARCHEAXIS_PYTHON", str(tmp_path / "missing-python"))
+            core.start()
+            env = dict(os.environ, AAOS_SYNTHETIC_CORE_PORT=str(core.port),
+                       AAOS_SYNTHETIC_CORE_TOKEN=core.token, AAOS_SYNTHETIC_CORE_PHASE=phase,
+                       AAOS_SYNTHETIC_LEARNING_STATE=str(identity))
+            result = subprocess.run([str(bridge), "learning_schedule_reset_real_core_transport",
+                                     "--ignored", "--test-threads=1"],
+                                    env=env, capture_output=True, text=True, timeout=90, check=False)
+            assert result.returncode == 0, (phase, result.stdout, result.stderr)
+            assert "test tests::learning_schedule_reset_real_core_transport ... ok" in result.stdout
+            assert "1 passed; 0 failed" in result.stdout
+            core.stop()
+    finally:
+        core.stop()
+
+
 def test_explicit_schedule_reset_preserves_unrecoverable_history(tmp_path, monkeypatch):
     core = core_for(tmp_path)
     item = "synthetic-declared-schedule-reset"

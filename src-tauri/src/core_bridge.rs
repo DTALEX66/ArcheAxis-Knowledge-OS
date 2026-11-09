@@ -2060,6 +2060,98 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "requires a synthetic Core, explicit create/reopen phase, and private token"]
+    fn learning_schedule_reset_real_core_transport() {
+        use serde_json::json;
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .unwrap()
+            .parse()
+            .unwrap();
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").unwrap();
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").unwrap();
+        let identity_file = std::env::var_os("AAOS_SYNTHETIC_LEARNING_STATE").unwrap();
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(json!({
+                "operation": operation, "payload": payload
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("synthetic Core transport")
+        };
+        let item = "synthetic-host-reset";
+        if phase == "create" {
+            let old = invoke(
+                "learning_review",
+                json!({"body":{
+                    "item_key":item,"client_event_id":"host-old","correct":true,"rating":3,
+                    "now":"2030-09-03T00:00:00Z"
+                }}),
+            );
+            assert_eq!(old.status, 201);
+            assert_eq!(old.body["schedule_authority"], "fsrs");
+            let state = invoke("learning_state", json!({"item_key":item}));
+            assert_eq!(state.status, 200);
+            let old_id = state.body["learner"]["latest_review"]["event_id"]
+                .as_i64()
+                .unwrap();
+            assert_eq!(old.body["event_id"], old_id);
+            let body = |expected| {
+                json!({"body":{
+                    "item_key":item,"client_event_id":"host-reset","correct":true,"rating":3,
+                    "now":"2026-09-03T00:00:00Z","schedule_reset":{
+                        "mode":"start_new","reason":"Synthetic old time was mistyped",
+                        "expected_latest_event_id":expected
+                    }
+                }})
+            };
+            assert_eq!(invoke("learning_review", body(old_id + 1)).status, 409);
+            let reset = invoke("learning_review", body(old_id));
+            assert_eq!(reset.status, 201);
+            assert_eq!(reset.body["schedule_authority"], "fsrs");
+            assert_eq!(
+                reset.body["schedule_recovery"]["excluded_through_event_id"],
+                old_id
+            );
+            std::fs::write(
+                identity_file,
+                json!({"old_id":old_id,"reset_id":reset.body["event_id"]}).to_string(),
+            )
+            .unwrap();
+        } else if phase == "reopen" {
+            let saved: Value =
+                serde_json::from_slice(&std::fs::read(identity_file).unwrap()).unwrap();
+            let state = invoke("learning_state", json!({"item_key":item}));
+            assert_eq!(state.status, 200);
+            assert_eq!(
+                state.body["learner"]["latest_review"]["event_id"],
+                saved["reset_id"]
+            );
+            assert_eq!(
+                state.body["learner"]["latest_review"]["schedule_recovery"]["state"],
+                "reset"
+            );
+            let replay = invoke(
+                "learning_review",
+                json!({"body":{
+                    "item_key":item,"client_event_id":"host-reset","correct":true,"rating":3,
+                    "now":"2026-09-03T00:00:00Z","schedule_reset":{
+                        "mode":"start_new","reason":"Synthetic old time was mistyped",
+                        "expected_latest_event_id":saved["old_id"]
+                    }
+                }}),
+            );
+            assert_eq!(replay.status, 200);
+            assert_eq!(replay.body["duplicate"], true);
+            assert_eq!(replay.body["event_id"], saved["reset_id"]);
+            let history = invoke("learning_history", json!({"item_key":item}));
+            assert_eq!(history.status, 200);
+            assert_eq!(history.body["count"], 2);
+            assert_eq!(history.body["events"][0]["event_id"], saved["old_id"]);
+        } else {
+            panic!("unknown synthetic phase");
+        }
+    }
+
+    #[test]
     #[ignore = "requires an explicitly launched synthetic Core and private launch token"]
     fn research_reference_real_core_transport() {
         let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
