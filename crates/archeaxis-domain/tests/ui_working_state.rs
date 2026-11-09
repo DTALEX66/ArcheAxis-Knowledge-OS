@@ -888,7 +888,22 @@ fn machine_journal_rejects_malformed_or_wrong_operation_grants_before_persistenc
             basis["state_revision"]
         );
     }
-    ui_state::write(&mut conn, serde_json::from_value(attempt).unwrap()).unwrap();
+    for bad in [json!(null), json!("unknown")] {
+        let mut invalid = attempt.clone();
+        invalid["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]
+            ["reference_observation_mode"] = bad;
+        assert!(ui_state::write(&mut conn, serde_json::from_value(invalid).unwrap()).is_err());
+        assert_eq!(ui_state::read(&mut conn).unwrap()["state_revision"], basis["state_revision"]);
+    }
+    attempt["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]
+        ["reference_observation_mode"] = json!("document_versions_v1");
+    let written = ui_state::write(&mut conn, serde_json::from_value(attempt).unwrap()).unwrap();
+    assert_eq!(written["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]
+        ["reference_observation_mode"], "document_versions_v1");
+    drop(conn);
+    let mut reopened = fixture(&dir.path().join("bounded-machine.sqlite"));
+    assert_eq!(ui_state::read(&mut reopened).unwrap()["state"]["pending_machine"]["bounded"]
+        ["body"]["asset_context_grant"]["reference_observation_mode"], "document_versions_v1");
 }
 
 #[test]

@@ -803,6 +803,9 @@
         },
         "operation": {
           "$ref": "#/$defs/MachineAssetOperation"
+        },
+        "reference_observation_mode": {
+          "const": "document_versions_v1"
         }
       },
       "required": [

@@ -1,7 +1,7 @@
 //! Owned SYNTHETIC asset/rubric material; canonical writer tests after integration.
 use archeaxis_domain::{
     ai_asset::{self, Snapshot},
-    asset_context_grant::{self, Consumer, Operation, PacketRequest},
+    asset_context_grant::{self, Consumer, Operation, PacketRequest, ReferenceObservationMode},
     document, knowledge,
     machine_evaluation::{self, Criterion, Rubric},
 };
@@ -70,7 +70,51 @@ fn request(a: &Value, g: &Value) -> PacketRequest {
         purpose: "owned purpose".into(),
         consumer: Consumer::ManualContextPacket,
         operation: Operation::ReadPacket,
+        reference_observation_mode: None,
     }
+}
+
+#[test]
+fn reference_observation_is_explicit_and_preserves_legacy_request_bytes() {
+    let legacy = json!({"request_id":"legacy-request",
+        "asset":{"document_id":"asset","version":2,"content_sha256":"a".repeat(64)},
+        "grant":{"document_id":"grant","version":1,"content_sha256":"b".repeat(64)},
+        "purpose":"owned purpose","consumer":"manual-context-packet","operation":"read_packet"});
+    let parsed: PacketRequest = serde_json::from_value(legacy.clone()).unwrap();
+    let serialized = serde_json::to_value(parsed).unwrap();
+    assert_eq!(serialized, legacy);
+    assert_eq!(ai_asset::hash(&serialized), "208f36c0274bac11a2b1c26db07b6fcffcaf1e3eced684bbc9efd4d88713b8f2");
+    let mut observed = legacy.clone();
+    observed["reference_observation_mode"] = json!("document_versions_v1");
+    let parsed: PacketRequest = serde_json::from_value(observed.clone()).unwrap();
+    assert_eq!(serde_json::to_value(parsed).unwrap(), observed);
+    for invalid in [json!(null), json!("unknown"), json!(true)] {
+        let mut input = legacy.clone();
+        input["reference_observation_mode"] = invalid;
+        assert!(serde_json::from_value::<PacketRequest>(input).is_err());
+    }
+}
+
+#[test]
+fn document_observation_marks_inconsistent_heads_and_rejects_inexact_client_integers() {
+    let (_dir, mut conn) = workspace();
+    let material = document::create_optional(&mut conn, None, None, "material",
+        json!({"type":"doc","content":[]})).unwrap();
+    let mut raw = asset("rule");
+    raw["scope"] = json!([{"kind":"document","document_id":material["document_id"],"version":1,"block_id":null}]);
+    let adopted = adopt(&mut conn, "observed-rule", "rule", raw);
+    let granted = grant(&mut conn, &adopted, None);
+    let mut input = request(&adopted, &granted);
+    input.reference_observation_mode = Some(ReferenceObservationMode::DocumentVersionsV1);
+    let material_id = material["document_id"].as_str().unwrap();
+    conn.execute("UPDATE documents SET current_version=0 WHERE document_id=?1", [material_id]).unwrap();
+    let packet = asset_context_grant::admit(&conn, &input, Consumer::ManualContextPacket, 1).unwrap();
+    assert_eq!(packet["items"][0]["reference_states"][0]["version_relation"], "unconfirmed");
+    assert_eq!(packet["items"][0]["reference_states"][0]["current_version"], 0);
+    conn.execute("UPDATE documents SET current_version=9007199254740992 WHERE document_id=?1", [material_id]).unwrap();
+    assert!(asset_context_grant::admit(&conn, &input, Consumer::ManualContextPacket, 1).is_err());
+    input.reference_observation_mode = None;
+    assert!(asset_context_grant::admit(&conn, &input, Consumer::ManualContextPacket, 1).is_ok());
 }
 #[test]
 fn five_inert_candidates_save_without_purpose_or_evaluation_and_preserve_unknown_payload() {

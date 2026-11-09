@@ -453,6 +453,9 @@
         },
         "operation": {
           "$ref": "#/$defs/AssetOperation"
+        },
+        "reference_observation_mode": {
+          "const": "document_versions_v1"
         }
       },
       "required": [
@@ -510,6 +513,21 @@
             "currentness": {"const": "not_applicable"}
           },
           "required": ["reference", "readable", "currentness"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reference": {
+              "$ref": "#/$defs/ObjectReference",
+              "properties": {"kind": {"const": "document"}}
+            },
+            "readable": {"const": true},
+            "currentness": {"const": "not_applicable"},
+            "version_relation": {"enum": ["current", "historical", "unconfirmed"]},
+            "current_version": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}
+          },
+          "required": ["reference", "readable", "currentness", "version_relation", "current_version"]
         }
       ]
     },
@@ -622,6 +640,9 @@
         },
         "professional_truth": {
           "const": false
+        },
+        "reference_observation_mode": {
+          "const": "document_versions_v1"
         }
       },
       "required": [
