@@ -245,7 +245,7 @@ const core = load(corePath), host = load(hostPath), fixture = JSON.parse(fs.read
 for (const value of Object.values(fixture)) assert.equal(core.assertCoreDto("LearningStateDto", value), value);
 const reasons = ["scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid",
   "invalid_previous_card", "too_many_unscheduled_reviews", "unscheduled_review_evidence_missing_or_invalid",
-  "unscheduled_review_time_order_invalid"];
+  "unscheduled_review_time_order_invalid", "schedule_reset_evidence_unverified"];
 for (const reason of reasons) {
   const integrity = {state:"unverified",reason};
   const flagged = {...fixture.after, learner:{...fixture.after.learner, next_review:null, schedule_integrity:integrity}};
@@ -271,7 +271,8 @@ const hostRequest = {schema:"archeaxis.ui-host-request/v2", contract_digest:host
   request_id:"synthetic", workspace_id:"a".repeat(32), restore_epoch:"initial", operation:"model.inventory.read", input:{}};
 host.assertUiHostRequest(hostRequest);
 for (const prior of ["3826d07e70d1d8dff5c421d8c6e8f704b5927683e48809ac47019ed996ec82bb",
-  "d9d26d3a256dbe08ca69918a6979e1aa84c76fae3e021c68ef32d210cd356504"])
+  "d9d26d3a256dbe08ca69918a6979e1aa84c76fae3e021c68ef32d210cd356504",
+  "5d187a74d6b6c8e727febd9a01b81d52fac389f09682504ca1d39857724daf5a"])
   assert.throws(() => host.assertUiHostRequest({...hostRequest, contract_digest:prior}));
 """
     result = subprocess.run([os.environ["AAOS_TEST_NODE"], "-e", script, os.environ["AAOS_TEST_TYPESCRIPT"],
@@ -292,7 +293,8 @@ def test_learning_schedule_integrity_is_optional_but_reason_is_typed():
     queue = {"items": [{"item_key": "item", "next_review": None, "schedule_integrity": integrity}], "count": 1}
     for reason in ("scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid",
                    "invalid_previous_card", "too_many_unscheduled_reviews",
-                   "unscheduled_review_evidence_missing_or_invalid", "unscheduled_review_time_order_invalid"):
+                   "unscheduled_review_evidence_missing_or_invalid", "unscheduled_review_time_order_invalid",
+                   "schedule_reset_evidence_unverified"):
         integrity["reason"] = reason
         assert not list(validate("LearningStateDto").iter_errors(state))
         assert not list(validate("LearningItemsDto").iter_errors(queue))

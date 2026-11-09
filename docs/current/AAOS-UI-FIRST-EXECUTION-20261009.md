@@ -4982,3 +4982,16 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 候选与摘要见 `.project-local/runs/ccc4a08b4a/primary-reconciliation-candidate-a8dd-20261110/artifacts/candidate/`。公开分支的自动审批拒绝及其精确提交确认不因本次本地吸收而消失；V3 闭环、当前候选安装态与 Owner 接受仍为 PARTIAL／未执行。
 
 - 隔离吸收后的 `primary-absorption-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威与仓库规范通过。检查绑定 `a8dd5f9e`、patch `b12322a2ed4b15adf16bfb8f8e320fd708bee8a59654e4075228345de1643a05`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。
+
+
+#### 2026-11-10 · 历史重置游标与真实前序事件
+
+- 三条独立合成反例显示旧判断只要求历史重置游标小于重置事件：它可能跳过同一范围的未排期事件、跳过一张有效卡片，或引用其他项目的事件。领域红例 `learning-reset-cursor-history-red-20261110/` 与 `learning-reset-cursor-valid-history-red-20261110/` 各 **0 passed／1 failed**；单事件 API 红例 `learning-reset-cursor-single-api-red-20261110/` **0 passed／1 failed**，错误显示旧到期日。这些是隔离合成数据库，不证明真实历史发生过损坏。
+- 历史重置现须核对所声明的 `expected_latest_event_id` 等于同一项目在重置之前的实际最后事件；指定评测时，事件范围进一步限定于同一评测。游标还须与排除游标一致。未核实的 FSRS 重置标记保留在原事件中，当前范围报告 `schedule_reset_evidence_unverified`、不显示可信到期日，普通新复习保存为未排期；其他既有恢复问题可能优先显示。用户可针对当前准确游标明确声明新的重置，旧事件不改写。
+- `learning-reset-cursor-history-api-20261110/` **28 passed**，领域 `learning-reset-cursor-history-domain-20261110/` **26 passed**；实际 Core／旧 Core 跨版本、异常重置重启、校验备份、独立恢复和再次重置 `learning-reset-cursor-history-real-core-20261110/` **13 passed**。完整学习／恢复／旧宿主桥／生成客户端 `learning-reset-cursor-history-suite-20261110/` **105 passed／1 skipped**，跳过项需要未提供的指定重置前合成备份，不计通过。
+- 响应 Schema、Core TS、UI-host Rust／TS 已同步生成；新宿主摘要 `920755f2c7fbd33e645abac3e5c49d99a230acc7e807969c445646a6484b7f65`，上版 `5d187a74d6b6c8e727febd9a01b81d52fac389f09682504ca1d39857724daf5a` 与更早摘要被拒。Rust 宿主合同 **3 passed**，Node 客户端／Schema／漂移检查 **3 passed**；新旧宿主合同须同批匹配，这不是完整 Tauri 构建或安装态验证。
+- 2,000 项合成队列、每项四张卡、无历史重置、各三次：无评测中位 **0.910→0.945 秒**，带评测 **0.980→1.039 秒**；旧新 Core 分别为 `b73d3bd3` 与 `0f812759`。这是本机小样本，不证明有大量历史重置时的性能或真实用户体验。新 Core SHA-256 `0f8127592ecd96cc53d41c86e2307e015f0d57e392036782687176ab96ba0fd2`，按摘要保存在 `learning-reset-cursor-history-save-core-20261110/artifacts/core-reset-cursor-validation.exe`（32,516,608 B）；固定存储审查仍 `REVIEW_REQUIRED`。
+- 回执位于 `.project-local/runs/ccc4a08b4a/`，基线 `b6001012`：三条红例 patch 依次为 `5dd210c558bfe8257e7a3be97e4fc596e429394960ad61d3aa7ca162714df545`、`8fbccb8d87fe0f4b6723aa5c10e1d5bd6df89e428b4b88b9e68821caeebaba26`、`6d99de7d85174e1b32f9f1576e83b26e4358c7a55aefe53bea53e12c58d7a8bb`；领域／API patch `5239fda05dec853ee9fb0787daa20fd919e30c3f4ac7b5113f754e84c716a2ea`；构建／真实 Core／合同／联合测试及性能对照 patch `78856b03044cb21ac783a90c51baafec643c5aa05a4efd42bd19de32b96250fb`；均 `source_consistent:true`，不是精确提交态构建。旧 Core 源码身份仍 `ASSERTED_NOT_VERIFIED`。
+- 对外待确认审阅更新到 `b6001012ceeea792b80204bcf24974469c9ffa02`、相对 main **77 个提交／117 个最终路径**，本地材料 `public-push-review-b600-20261110/artifacts/`；该快照**不含本节修复**。此前自动审批拒绝公开推送，理由为历史可能含敏感信息、启发式初筛不足以证明安全及对具体范围的授权不明确；现已就更新快照请求明确确认，尚未推送且不绕过。后续修复若需公开须先准备对应精确提交审阅与授权。
+- 本节是合成工程证据；完整 X2／X8、真实用户学习、当前修复的精确 SHA 云 CI、安装态和 Owner 接受均未证明，V3 仍为 PARTIAL。主工作树三处并发未提交文件继续保留。
+- 文档同步后维护回归 `learning-reset-cursor-maintenance-20261110/` **250 passed／2 skipped／2 subtests passed**；文档权威、仓库约定、vNext 合同漂移、Ruff 与 `cargo fmt --check` 均退出码 0。六项回执基线 `b6001012`、源码补丁 `199211bc101c54d4ae2c7db09b1d8eb8a41df3e453acdcc1efdf3f3f4b64a498`、`source_consistent:true`；外部来源未验证项仍为 UNVERIFIED，跳过项不计通过。

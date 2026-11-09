@@ -567,6 +567,11 @@ fn schedule_integrity_issue(
          WHEN json_valid(outcome) THEN
            (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
            AND (json_extract(outcome,'$.schedule.authority')='unavailable'
+             OR (json_extract(outcome,'$.schedule.authority')='fsrs'
+                 AND ((json_type(outcome,'$.review_evidence.schedule_reset') IS NOT NULL
+                       AND json_type(outcome,'$.review_evidence.schedule_reset')!='null')
+                   OR json_extract(outcome,'$.schedule.recovery.mode')='start_new'
+                   OR json_extract(outcome,'$.schedule.recovery.state')='reset'))
              OR (kind='review' AND (json_type(outcome,'$.schedule') IS NOT 'object'
                OR json_type(outcome,'$.schedule.authority') IS NOT 'text'
                OR json_extract(outcome,'$.schedule.authority') NOT IN ('fsrs','unavailable'))))

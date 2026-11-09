@@ -675,6 +675,11 @@ pub fn review_schedule_basis(
           AND json_type(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id')='integer'
           AND json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id') BETWEEN 1 AND 9007199254740991
           AND json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id') < event_id
+          AND json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id')=(
+            SELECT MAX(prior.event_id) FROM learning_events prior
+            WHERE prior.item_key=learning_events.item_key AND prior.event_id<learning_events.event_id
+              AND (?2 IS NULL OR CASE WHEN json_valid(prior.outcome)
+                   THEN json_extract(prior.outcome,'$.assessment_id')=?2 ELSE 0 END))
           AND json_extract(outcome,'$.schedule.recovery.excluded_through_event_id')=json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id')
           AND json_extract(outcome,'$.schedule.authority')='fsrs'
           AND json_extract(outcome,'$.schedule.recovery.state')='reset'
@@ -712,6 +717,19 @@ pub fn review_schedule_basis(
         last_scheduled_id
     ])?;
     let mut pending = Vec::new();
+    // Any later FSRS event that claims a reset but was not accepted as the
+    // latest valid baseline has unverified reset provenance. A later explicit
+    // valid reset supersedes earlier markers without rewriting their history.
+    let reset_marker_unverified: bool = conn.prepare_cached(
+        "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND event_id>COALESCE(?3,0)
+         AND CASE WHEN json_valid(outcome) THEN
+           (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
+           AND json_extract(outcome,'$.schedule.authority')='fsrs'
+           AND ((json_type(outcome,'$.review_evidence.schedule_reset') IS NOT NULL
+                 AND json_type(outcome,'$.review_evidence.schedule_reset')!='null')
+             OR json_extract(outcome,'$.schedule.recovery.mode')='start_new'
+             OR json_extract(outcome,'$.schedule.recovery.state')='reset')
+         ELSE 0 END)")?.query_row(rusqlite::params![item_key, assessment_id, baseline_reset_event_id], |row| row.get(0))?;
     let mut recovery_issue = legacy_gap.then_some("legacy_review_evidence_missing_or_invalid");
     let scheduled_gap_replay_unverified = has_scheduled_gap_without_replay_evidence(
         conn,
@@ -722,6 +740,9 @@ pub fn review_schedule_basis(
     )?;
     if recovery_issue.is_none() && scheduled_gap_replay_unverified {
         recovery_issue = Some("scheduled_gap_replay_unverified");
+    }
+    if recovery_issue.is_none() && reset_marker_unverified {
+        recovery_issue = Some("schedule_reset_evidence_unverified");
     }
     let mut latest_reviewed_at_micros = None;
     if let Some((raw, recorded_due)) = previous_snapshot.as_ref() {

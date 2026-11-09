@@ -405,9 +405,10 @@ The read-only learning queue and scoped learner state also withhold an effective
 the active baseline has one of these known integrity problems. The optional `schedule_integrity`
 reports `state: unverified` with one of `scheduled_gap_replay_unverified`,
 `legacy_review_evidence_missing_or_invalid`, `invalid_previous_card`,
-`too_many_unscheduled_reviews`, `unscheduled_review_evidence_missing_or_invalid`, or
-`unscheduled_review_time_order_invalid`. When a replay gap coexists with another problem, the
-previously exposed replay-gap reason retains priority. The projection includes legacy
+`too_many_unscheduled_reviews`, `unscheduled_review_evidence_missing_or_invalid`,
+`unscheduled_review_time_order_invalid`, or `schedule_reset_evidence_unverified`. If several
+problems coexist, the reported reason follows the Core's recovery checks and is not an
+exhaustive diagnosis. The projection includes legacy
 placeholder deadlines in the withheld set; raw event history and historical counts remain
 unchanged. A scoped assessment does not inherit other assessments' gaps. A human-declared reset
 can establish a later baseline, but does not reconstruct old evidence. The prior-card quick
@@ -436,7 +437,11 @@ An optional human-only `schedule_reset: {mode: "start_new", reason,
 expected_latest_event_id}` on a **new** review explicitly starts a fresh FSRS baseline. The
 reason must be nonblank and at most 512 characters; the expected ID must be the latest event in
 the same item/assessment scope and fit a JavaScript-safe positive integer. A stale ID returns
-`409` before scheduling, and the Core checks the snapshot again before committing. This is an
+`409` before scheduling, and the Core checks the snapshot again before committing. On later
+readback, a historical reset is a valid baseline only if its declared cursor equals the
+immediately preceding event for the same item, restricted to the assessment when one is specified.
+A later FSRS reset marker that cannot be verified is retained as history but prevents a trusted deadline and new scheduling;
+an explicit valid reset can establish a subsequent baseline. This is an
 explicit caller choice: the old events and observations remain readable and contribute to
 historical counts, but events through that ID are excluded from the **new scheduling baseline**.
 The receipt records the declared reason, excluded ID and `human_declared_unverified` authority;

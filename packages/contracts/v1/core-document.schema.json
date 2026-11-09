@@ -684,7 +684,7 @@
       "type": "object",
       "properties": {
         "state": {"const": "unverified"},
-        "reason": {"enum": ["scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid", "invalid_previous_card", "too_many_unscheduled_reviews", "unscheduled_review_evidence_missing_or_invalid", "unscheduled_review_time_order_invalid"]}
+        "reason": {"enum": ["scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid", "invalid_previous_card", "too_many_unscheduled_reviews", "unscheduled_review_evidence_missing_or_invalid", "unscheduled_review_time_order_invalid", "schedule_reset_evidence_unverified"]}
       },
       "required": ["state", "reason"],
       "additionalProperties": false

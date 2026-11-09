@@ -583,3 +583,114 @@ fn previous_card_validation_matches_scheduler_bounds_at_time_and_field_edges() {
             .is_some()
     );
 }
+
+#[test]
+fn reset_history_requires_the_actual_previous_cursor_in_its_scope() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(
+        temp.path()
+            .join("reset-history-cursor.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    for assessment in [None, Some("a")] {
+        let item = if assessment.is_some() {
+            "assessed"
+        } else {
+            "unassessed"
+        };
+        let first = insert(
+            &conn,
+            item,
+            json!({"assessment_id":assessment,
+            "schedule":{"authority":"fsrs", "state":valid_card("2026-09-01T00:00:00Z")}}),
+        );
+        let omitted = insert(
+            &conn,
+            item,
+            unavailable(assessment, 1, Some("2026-09-02T00:00:00Z")),
+        );
+        if assessment.is_some() {
+            insert(
+                &conn,
+                item,
+                unavailable(Some("b"), 1, Some("2026-09-02T00:00:00Z")),
+            );
+        }
+        let stale_reset = insert(
+            &conn,
+            item,
+            json!({"assessment_id":assessment,
+            "review_evidence":{"schedule_reset":{"mode":"start_new", "reason":"synthetic cursor",
+                "expected_latest_event_id":first}},
+            "schedule":{"authority":"fsrs", "state":valid_card("2026-09-03T00:00:00Z"),
+                "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic cursor",
+                    "excluded_through_event_id":first}}}),
+        );
+        assert!(omitted > first && stale_reset > omitted);
+        let basis = learning::review_schedule_basis(&conn, item, assessment).unwrap();
+        assert_ne!(
+            basis.baseline_reset_event_id,
+            Some(stale_reset),
+            "stale cursor must not reset history"
+        );
+        assert_eq!(
+            basis.recovery_issue,
+            Some("scheduled_gap_replay_unverified")
+        );
+        let valid_reset = insert(
+            &conn,
+            item,
+            json!({"assessment_id":assessment,
+            "review_evidence":{"schedule_reset":{"mode":"start_new", "reason":"synthetic valid cursor",
+                "expected_latest_event_id":stale_reset}},
+            "schedule":{"authority":"fsrs", "state":valid_card("2026-09-04T00:00:00Z"),
+                "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic valid cursor",
+                    "excluded_through_event_id":stale_reset}}}),
+        );
+        let basis = learning::review_schedule_basis(&conn, item, assessment).unwrap();
+        assert_eq!(basis.baseline_reset_event_id, Some(valid_reset));
+        assert!(basis.recovery_issue.is_none());
+    }
+}
+
+#[test]
+fn a_stale_reset_cannot_skip_an_otherwise_valid_card() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(
+        temp.path()
+            .join("reset-valid-history.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let first = insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-01T00:00:00Z")}}),
+    );
+    let second = insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-02T00:00:00Z")}}),
+    );
+    let reset = insert(
+        &conn,
+        "item",
+        json!({"review_evidence":{"schedule_reset":{"mode":"start_new",
+        "reason":"synthetic stale cursor","expected_latest_event_id":first}},
+        "schedule":{"authority":"fsrs","state":valid_card("2026-09-03T00:00:00Z"),
+            "recovery":{"mode":"start_new","state":"reset","reason":"synthetic stale cursor",
+                "excluded_through_event_id":first}}}),
+    );
+    assert!(first < second && second < reset);
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_ne!(basis.baseline_reset_event_id, Some(reset));
+    assert_eq!(
+        basis.recovery_issue,
+        Some("schedule_reset_evidence_unverified")
+    );
+}

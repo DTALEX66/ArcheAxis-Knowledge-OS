@@ -1456,3 +1456,74 @@ def test_earlier_invalid_card_survives_later_card_restart_restore_and_reset(tmp_
         assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][:3] == history["events"]
     finally:
         core.stop()
+
+
+def test_stale_reset_cursor_is_unverified_after_restart_and_restore(tmp_path, monkeypatch):
+    item = "synthetic-stale-reset-cursor"
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    core = core_for(tmp_path)
+    try:
+        core.start()
+        status, first = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "first", "correct": True,
+            "rating": 3, "now": "2026-09-01T00:00:00Z"})
+        assert status == 201 and first["schedule_authority"] == "fsrs"
+        status, second = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "second", "correct": True,
+            "rating": 3, "now": "2026-09-02T00:00:00Z"})
+        assert status == 201 and second["schedule_authority"] == "fsrs"
+        status, reset = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "reset", "correct": True,
+            "rating": 3, "now": "2026-09-03T00:00:00Z",
+            "schedule_reset": {"mode": "start_new", "reason": "Synthetic initial reset",
+                               "expected_latest_event_id": second["event_id"]}})
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        core.stop()
+        # Simulate inconsistent historical metadata only in this isolated fixture.
+        with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+            (raw,) = conn.execute("SELECT outcome FROM learning_events WHERE event_id=?",
+                                  (reset["event_id"],)).fetchone()
+            outcome = json.loads(raw)
+            outcome["review_evidence"]["schedule_reset"]["expected_latest_event_id"] = first["event_id"]
+            outcome["schedule"]["recovery"]["excluded_through_event_id"] = first["event_id"]
+            conn.execute("UPDATE learning_events SET outcome=? WHERE event_id=?",
+                         (json.dumps(outcome), reset["event_id"]))
+        core.start()
+        history = core.request("GET", f"/api/v1/learning/events/{item}")[1]
+        assert len(history["events"]) == 3 and history["events"][-1]["next_review"] == reset["next_review"]
+        assert_unverified_schedule_projection(core, item, "schedule_reset_evidence_unverified")
+        status, backup = core.request("POST", "/api/v1/workspace/backups", {})
+        assert status == 201 and backup["verified"] is True
+        artifact = tmp_path / "backups" / backup["filename"]
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == backup["sha256"]
+        exe = core.exe
+        core.stop()
+        destination = tmp_path / "stale-reset-restore"
+        destination.mkdir()
+        restored = subprocess.run([str(exe), "--maintenance-restore", str(destination / "workspace.sqlite"),
+                                   str(artifact)], capture_output=True, text=True, timeout=120, check=False)
+        assert restored.returncode == 0 and json.loads(restored.stdout)["ok"] is True
+        from scripts.ci.real_core_grading_journey import Core
+        core = Core(exe, destination, Path(sys.executable))
+        core.start()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == history
+        assert_unverified_schedule_projection(core, item, "schedule_reset_evidence_unverified")
+        status, blocked = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "after-stale-reset", "correct": True,
+            "rating": 3, "now": "2026-09-04T00:00:00Z"})
+        assert status == 201 and blocked["schedule_authority"] == "unavailable"
+        assert blocked["schedule_recovery"]["reason"] == "schedule_reset_evidence_unverified"
+        status, recovered = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "new-confirmed-reset", "correct": True,
+            "rating": 3, "now": "2026-09-05T00:00:00Z",
+            "schedule_reset": {"mode": "start_new", "reason": "Synthetic human reset",
+                               "expected_latest_event_id": blocked["event_id"]}})
+        assert status == 201 and recovered["schedule_authority"] == "fsrs"
+        core.stop()
+        core.start()
+        status, state = core.request("GET", f"/api/v1/learning/items/{item}/state")
+        assert status == 200 and state["learner"]["next_review"] == recovered["next_review"]
+        assert "schedule_integrity" not in state["learner"]
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][:3] == history["events"]
+    finally:
+        core.stop()

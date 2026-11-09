@@ -1482,3 +1482,28 @@ async fn earlier_invalid_fsrs_cards_are_scoped_to_the_current_assessment() {
         "invalid_previous_card"
     );
 }
+
+#[tokio::test]
+async fn reset_marker_without_same_item_predecessor_is_not_a_valid_baseline() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("reset-no-predecessor.sqlite");
+    let item = "synthetic-reset-no-predecessor";
+    let due = "2026-09-10T00:00:00Z";
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome) VALUES('different-item','review','{}')", []).unwrap();
+        let other_item_cursor = conn.last_insert_rowid();
+        let reset = json!({"outcome":"correct", "review_evidence":{"schedule_reset":{"mode":"start_new",
+            "reason":"synthetic wrong item","expected_latest_event_id":other_item_cursor}},
+            "schedule":{"authority":"fsrs","state":{"state":"review","step":null,"stability":5.0,
+                "difficulty":5.0,"last_review":"2026-09-03T00:00:00Z","due":due},
+                "recovery":{"mode":"start_new","state":"reset","reason":"synthetic wrong item",
+                    "excluded_through_event_id":other_item_cursor}}});
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+            rusqlite::params![item, reset.to_string(), due]).unwrap();
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    assert_unverified_projection(&router, item, "schedule_reset_evidence_unverified").await;
+    let (_, history) = get_path(&router, &format!("/api/v1/learning/events/{item}")).await;
+    assert_eq!(history["events"][0]["next_review"], due);
+}
