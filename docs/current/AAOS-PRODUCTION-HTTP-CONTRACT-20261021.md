@@ -374,9 +374,18 @@ This recovery occurs on a new review request, not in the background or on replay
 event key. A timezone offset is converted to the same UTC instant for FSRS while the original
 input remains in review evidence. FSRS floating parameters are parsed exactly on the scheduler
 path; historic values already stored with prior rounding are not reconstructed.
-The effective `now` for a new review must not precede the last evidenced review on that scoped
-card: the Core returns `400` before invoking the worker or writing an event, so the caller can
-correct and resubmit the same key. Historic unscheduled events that are already in reverse time
+
+Legacy `kind:review` events that lack a stateful schedule object or have an unknown scheduling
+authority do not establish the exact rating, effective time and FSRS card needed for automatic
+replay. If such an event is within the current scheduling baseline, a new stateful review is
+saved as unavailable with `legacy_review_evidence_missing_or_invalid`; it is not silently skipped,
+even if a later historical FSRS card already exists. An assessment-bound review does not inherit
+unbound legacy history. The explicit human-declared reset below can start a new baseline while
+retaining the old records; it does not reconstruct them.
+
+For a new non-reset review with an otherwise recoverable history, the effective `now` must not
+precede the last evidenced review on that scoped card: the Core returns `400` before invoking the
+worker or writing an event, so the caller can correct and resubmit the same key. Historic unscheduled events that are already in reverse time
 order are preserved and produce `unscheduled_review_time_order_invalid`, not an invented due
 date. Ordering compares UTC instants to microsecond precision, including timezone offsets.
 For every new or recovered worker result, the Core also checks that the returned `last_review`

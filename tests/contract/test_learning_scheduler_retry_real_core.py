@@ -793,6 +793,113 @@ def test_scheduler_result_must_bind_the_requested_review_instant(tmp_path, monke
         core.stop()
 
 
+@pytest.mark.parametrize("legacy_authority", ["placeholder_ladder", "fsrs", "unavailable"])
+@pytest.mark.parametrize("prior_fsrs", [False, True])
+def test_legacy_review_gap_requires_explicit_new_baseline(tmp_path, monkeypatch, legacy_authority, prior_fsrs):
+    core = core_for(tmp_path)
+    item = "synthetic-legacy-review-gap"
+    good_python = str(Path(sys.executable).resolve())
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", good_python)
+    try:
+        core.start()
+        if prior_fsrs:
+            status, first = core.request("POST", "/api/v1/learning/reviews", {
+                "item_key": item, "client_event_id": "prior-stateful", "correct": True, "rating": 3,
+                "now": "2026-09-01T00:00:00Z"})
+            assert status == 201 and first["schedule_authority"] == "fsrs"
+        if legacy_authority == "unavailable":
+            core.stop()
+            monkeypatch.setenv("ARCHEAXIS_PYTHON", str(tmp_path / "missing-python"))
+            core.start()
+        legacy = {"item_key": item, "kind": "review", "client_event_id": "old-legacy",
+                  "correct": True, "now": "2026-09-02T00:00:00Z"}
+        if legacy_authority != "placeholder_ladder":
+            legacy["schedule_state"] = legacy_request()["schedule_state"]
+        status, old = core.request("POST", "/api/v1/learning/events", legacy)
+        assert status == 201 and old["schedule_authority"] == legacy_authority
+        original = core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"][-1]["outcome"]
+        core.stop()
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", good_python)
+        core.start()
+        body = {"item_key": item, "client_event_id": "after-legacy", "correct": True, "rating": 3,
+                "now": "2026-09-03T00:00:00Z"}
+        status, blocked = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 201 and blocked["schedule_authority"] == "unavailable", blocked
+        assert blocked["next_review"] is None
+        assert blocked["schedule_recovery"]["reason"] == "legacy_review_evidence_missing_or_invalid"
+        reset_body = {**body, "client_event_id": "explicit-legacy-reset", "schedule_reset": {
+            "mode": "start_new", "reason": "Legacy review lacks a recoverable card and time",
+            "expected_latest_event_id": blocked["event_id"]}}
+        status, reset = core.request("POST", "/api/v1/learning/reviews", reset_body)
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        status, after = core.request("POST", "/api/v1/learning/reviews", {
+            **body, "client_event_id": "after-legacy-reset", "now": "2026-09-04T00:00:00Z"})
+        assert status == 201 and after["schedule_recovery"]["baseline_reset_event_id"] == reset["event_id"]
+        history = core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"]
+        assert next(event for event in history if event["event_id"] == old["event_id"])["outcome"] == original
+        status, replay = core.request("POST", "/api/v1/learning/events", legacy)
+        assert status == 200 and replay["event_id"] == old["event_id"]
+        assert replay["schedule_authority"] == legacy_authority
+    finally:
+        core.stop()
+
+
+def test_legacy_gap_before_an_existing_fsrs_card_remains_visible(tmp_path, monkeypatch):
+    core = core_for(tmp_path)
+    item = "synthetic-legacy-before-card"
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    try:
+        core.start()
+        status, old = core.request("POST", "/api/v1/learning/events", {
+            "item_key": item, "client_event_id": "legacy-first", "correct": True})
+        assert status == 201
+        status, card = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": "synthetic-card-donor", "client_event_id": "separate-card", "correct": True,
+            "rating": 3, "now": "2026-09-02T00:00:00Z"})
+        assert status == 201 and card["schedule_authority"] == "fsrs"
+        core.stop()
+        # Build the historical shape in an isolated test database: a prior
+        # Core had saved an FSRS card after silently skipping a legacy review.
+        with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) "
+                         "SELECT ?,kind,outcome,next_review FROM learning_events WHERE event_id=?",
+                         (item, card["event_id"]))
+        core.start()
+        before = core.request("GET", f"/api/v1/learning/events/{item}")[1]
+        assert before["count"] == 2 and before["events"][0]["event_id"] == old["event_id"]
+        body = {
+            "item_key": item, "client_event_id": "after-existing-card", "correct": True, "rating": 3,
+            "now": "2026-09-03T00:00:00Z"}
+        status, result = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 201 and result["schedule_authority"] == "unavailable"
+        assert result["schedule_recovery"]["reason"] == "legacy_review_evidence_missing_or_invalid"
+        after = core.request("GET", f"/api/v1/learning/events/{item}")[1]
+        assert after["events"][:2] == before["events"]
+        status, backup = core.request("POST", "/api/v1/workspace/backups", {})
+        assert status == 201 and backup["verified"] is True
+        artifact = tmp_path / "backups" / backup["filename"]
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == backup["sha256"]
+        exe = core.exe
+        core.stop()
+        destination = tmp_path / "legacy-gap-restore"
+        destination.mkdir()
+        restored = subprocess.run([str(exe), "--maintenance-restore", str(destination / "workspace.sqlite"),
+                                   str(artifact)], capture_output=True, text=True, timeout=120, check=False)
+        assert restored.returncode == 0 and json.loads(restored.stdout)["ok"] is True
+        from scripts.ci.real_core_grading_journey import Core
+        core = Core(exe, destination, Path(sys.executable))
+        core.start()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1] == after
+        status, replay = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 200 and replay["event_id"] == result["event_id"]
+        assert replay["schedule_authority"] == "unavailable"
+        status, following = core.request("POST", "/api/v1/learning/reviews", {
+            **body, "client_event_id": "after-gap-restore", "now": "2026-09-04T00:00:00Z"})
+        assert status == 201 and following["schedule_recovery"]["reason"] == "legacy_review_evidence_missing_or_invalid"
+    finally:
+        core.stop()
+
+
 @pytest.mark.parametrize("old_scheduled", [True, False])
 def test_explicit_schedule_reset_starts_before_mistimed_old_card(tmp_path, monkeypatch, old_scheduled):
     core = core_for(tmp_path)

@@ -96,6 +96,59 @@ fn missing_or_inconsistent_evidence_fails_closed_without_inventing_time() {
 }
 
 #[test]
+fn legacy_review_gap_is_scoped_and_not_erased_by_a_later_card() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    insert(&conn, "item", json!({"outcome":"correct"}));
+    let card = json!({"state":"review","last_review":"2026-09-02T00:00:00Z"});
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs","state":card}}),
+    );
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", None)
+            .unwrap()
+            .recovery_issue,
+        Some("legacy_review_evidence_missing_or_invalid")
+    );
+    assert!(
+        learning::review_schedule_basis(&conn, "item", Some("a"))
+            .unwrap()
+            .recovery_issue
+            .is_none()
+    );
+    conn.execute(
+        "INSERT INTO learning_events(item_key,kind,outcome) VALUES('activity','teach_back','not JSON')",
+        [],
+    )
+    .unwrap();
+    assert!(
+        learning::review_schedule_basis(&conn, "activity", None)
+            .unwrap()
+            .recovery_issue
+            .is_none()
+    );
+    conn.execute(
+        "INSERT INTO learning_events(item_key,kind,outcome) VALUES('malformed','review','not JSON')",
+        [],
+    )
+    .unwrap();
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "malformed", None)
+            .unwrap()
+            .recovery_issue,
+        Some("legacy_review_evidence_missing_or_invalid")
+    );
+    assert!(
+        learning::review_schedule_basis(&conn, "malformed", Some("a"))
+            .unwrap()
+            .recovery_issue
+            .is_none()
+    );
+}
+
+#[test]
 fn recovery_has_a_named_bound_instead_of_truncating_history() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();

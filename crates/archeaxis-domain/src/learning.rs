@@ -518,6 +518,21 @@ pub fn review_schedule_basis(
         rusqlite::params![item_key, assessment_id],
         |r| r.get(0),
     )?;
+    // Legacy review events can preserve the outcome while lacking the exact
+    // time, rating and FSRS card needed to include them in a stateful history.
+    // Look back to the last explicit baseline, not just the last FSRS card:
+    // an older Core may already have produced that card while skipping a gap.
+    let legacy_gap: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND kind='review'
+         AND event_id>COALESCE(?3,0) AND CASE WHEN json_valid(outcome) THEN
+           (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
+           AND (json_type(outcome,'$.schedule') IS NOT 'object'
+                OR json_type(outcome,'$.schedule.authority') IS NOT 'text'
+                OR json_extract(outcome,'$.schedule.authority') NOT IN ('fsrs','unavailable'))
+         ELSE ?2 IS NULL END)",
+        rusqlite::params![item_key, assessment_id, baseline_reset_event_id],
+        |r| r.get(0),
+    )?;
     let mut stmt = conn.prepare(
         "SELECT event_id,outcome FROM learning_events WHERE item_key=?1 AND event_id>COALESCE(?3,0)
          AND CASE WHEN json_valid(outcome) THEN json_extract(outcome,'$.schedule.authority')='unavailable'
@@ -530,7 +545,7 @@ pub fn review_schedule_basis(
         last_scheduled_id
     ])?;
     let mut pending = Vec::new();
-    let mut recovery_issue = None;
+    let mut recovery_issue = legacy_gap.then_some("legacy_review_evidence_missing_or_invalid");
     let mut latest_reviewed_at_micros = None;
     if let Some(raw) = previous_state.as_deref() {
         let previous = parse_fsrs_card(raw).ok();
@@ -541,7 +556,7 @@ pub fn review_schedule_basis(
             Some(time) => review_timestamp_micros(conn, time)?,
             None => None,
         };
-        if latest_reviewed_at_micros.is_none() {
+        if latest_reviewed_at_micros.is_none() && recovery_issue.is_none() {
             recovery_issue = Some("invalid_previous_card");
         }
     }
