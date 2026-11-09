@@ -369,6 +369,48 @@ pub fn valid_review_timestamp(conn: &Connection, value: &str) -> rusqlite::Resul
         [value], |r| r.get(0))
 }
 
+/// Preserve microsecond ordering and timezone offsets without using SQLite's
+/// millisecond-rounded Julian-day representation. The calendar is validated
+/// by the same rule as the HTTP request before parsing the bounded suffix.
+pub fn review_timestamp_micros(conn: &Connection, value: &str) -> rusqlite::Result<Option<i64>> {
+    if !valid_review_timestamp(conn, value)? {
+        return Ok(None);
+    }
+    let seconds: Option<i64> = conn.query_row(
+        "SELECT CAST(strftime('%s',substr(?1,1,19)) AS INTEGER)",
+        [value],
+        |row| row.get(0),
+    )?;
+    let Some(seconds) = seconds else {
+        return Ok(None);
+    };
+    let mut zone = &value[19..];
+    let mut micros = 0_i64;
+    if let Some(fraction) = zone.strip_prefix('.') {
+        let digits = fraction.bytes().take_while(u8::is_ascii_digit).count();
+        let Some(parsed) = fraction[..digits].parse::<i64>().ok() else {
+            return Ok(None);
+        };
+        micros = parsed * 10_i64.pow((6 - digits) as u32);
+        zone = &fraction[digits..];
+    }
+    let offset = if zone == "Z" {
+        0
+    } else {
+        let (Some(hour), Some(minute)) = (
+            zone[1..3].parse::<i64>().ok(),
+            zone[4..6].parse::<i64>().ok(),
+        ) else {
+            return Ok(None);
+        };
+        (hour * 60 + minute) * 60 * if zone.as_bytes()[0] == b'+' { 1 } else { -1 }
+    };
+    Ok(seconds
+        .checked_sub(offset)
+        .and_then(|s| s.checked_mul(1_000_000))
+        .and_then(|s| s.checked_add(micros)))
+}
+
 /// Last successful FSRS state. An unscheduled event never erases it.
 pub fn latest_fsrs_state_json(
     conn: &Connection,
@@ -418,6 +460,7 @@ pub struct PendingScheduleReview {
 pub struct ReviewScheduleBasis {
     pub previous_state: Option<String>,
     pub latest_event_id: Option<i64>,
+    pub latest_reviewed_at_micros: Option<i64>,
     pub pending: Vec<PendingScheduleReview>,
     pub recovery_issue: Option<&'static str>,
 }
@@ -467,7 +510,24 @@ pub fn review_schedule_basis(
     ])?;
     let mut pending = Vec::new();
     let mut recovery_issue = None;
+    let mut latest_reviewed_at_micros = None;
+    if let Some(raw) = previous_state.as_deref() {
+        let previous = parse_fsrs_card(raw).ok();
+        let previous_time = previous
+            .as_ref()
+            .and_then(|value| value["last_review"].as_str());
+        latest_reviewed_at_micros = match previous_time {
+            Some(time) => review_timestamp_micros(conn, time)?,
+            None => None,
+        };
+        if latest_reviewed_at_micros.is_none() {
+            recovery_issue = Some("invalid_previous_card");
+        }
+    }
     while let Some(row) = rows.next()? {
+        if recovery_issue.is_some() {
+            break;
+        }
         if pending.len() == MAX_PENDING_SCHEDULE_REVIEWS {
             recovery_issue = Some("too_many_unscheduled_reviews");
             break;
@@ -484,14 +544,19 @@ pub fn review_schedule_basis(
             (rating, outcome),
             (Some(1), Some("incorrect")) | (Some(2..=4), Some("correct"))
         );
-        let valid_time = match time {
-            Some(time) => valid_review_timestamp(conn, time)?,
-            None => false,
+        let instant = match time {
+            Some(time) => review_timestamp_micros(conn, time)?,
+            None => None,
         };
-        if event_id <= 0 || !valid_rating || !valid_time {
+        if event_id <= 0 || !valid_rating || instant.is_none() {
             recovery_issue = Some("unscheduled_review_evidence_missing_or_invalid");
             break;
         }
+        if latest_reviewed_at_micros.is_some_and(|previous| instant.unwrap() < previous) {
+            recovery_issue = Some("unscheduled_review_time_order_invalid");
+            break;
+        }
+        latest_reviewed_at_micros = instant;
         pending.push(PendingScheduleReview {
             event_id,
             rating: rating.unwrap() as u8,
@@ -501,6 +566,7 @@ pub fn review_schedule_basis(
     Ok(ReviewScheduleBasis {
         previous_state,
         latest_event_id,
+        latest_reviewed_at_micros,
         pending,
         recovery_issue,
     })

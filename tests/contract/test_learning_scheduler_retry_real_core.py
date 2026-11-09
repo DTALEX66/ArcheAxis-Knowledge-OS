@@ -133,15 +133,18 @@ def test_negative_worker_interval_is_unavailable_and_replayable(tmp_path, monkey
 @pytest.mark.parametrize("legacy", [False, True])
 def test_simultaneous_identical_requests_commit_only_one_event(tmp_path, monkeypatch, legacy):
     core = core_for(tmp_path)
-    marker = tmp_path / "concurrent-scheduler-calls.txt"
+    # Force enough Core runtime threads for both workers to reach the barrier.
+    monkeypatch.setenv("TOKIO_WORKER_THREADS", "4")
+    marker = tmp_path / "concurrent-scheduler-calls"
+    marker.mkdir()
     worker = tmp_path / "synchronized_scheduler.py"
     worker.write_text(
-        "import os, runpy, time\n"
+        "import os, runpy, time, uuid\n"
         "marker=os.environ['AAOS_TEST_SCHEDULER_MARKER']\n"
-        "with open(marker, 'a', encoding='utf-8') as out: out.write('call\\n')\n"
+        "with open(os.path.join(marker, str(os.getpid())+'-'+uuid.uuid4().hex+'.call'), 'x', encoding='utf-8') as out: out.write('call')\n"
         "deadline=time.monotonic()+8\n"
         "while time.monotonic()<deadline:\n"
-        "    with open(marker, encoding='utf-8') as source: count=len(source.readlines())\n"
+        "    count=len([name for name in os.listdir(marker) if name.endswith('.call')])\n"
         "    if count>=2: break\n"
         "    time.sleep(0.02)\n"
         "runpy.run_path(os.environ['AAOS_TEST_SCHEDULER_TARGET'], run_name='__main__')\n",
@@ -167,7 +170,7 @@ def test_simultaneous_identical_requests_commit_only_one_event(tmp_path, monkeyp
         assert sorted(status for status, _ in results) == [200, 201], results
         assert results[0][1]["event_id"] == results[1][1]["event_id"]
         assert sorted(result["duplicate"] for _, result in results) == [False, True]
-        assert marker.read_text(encoding="utf-8").splitlines() == ["call", "call"]
+        assert len(list(marker.glob("*.call"))) == 2
         status, history = core.request("GET", f"/api/v1/learning/events/{body['item_key']}")
         assert status == 200 and history["count"] == 1
     finally:
@@ -464,18 +467,20 @@ def test_invalid_recovery_card_remains_unscheduled_and_can_recover_later(tmp_pat
 
 def test_concurrent_unscheduled_review_invalidates_successful_snapshot(tmp_path, monkeypatch):
     core = core_for(tmp_path)
-    marker = tmp_path / "recovery-race-calls.txt"
+    monkeypatch.setenv("TOKIO_WORKER_THREADS", "4")
+    marker = tmp_path / "recovery-race-calls"
+    marker.mkdir()
     worker = tmp_path / "recovery_race_scheduler.py"
     worker.write_text(
-        "import io,json,os,runpy,sys,time\n"
+        "import io,json,os,runpy,sys,time,uuid\n"
         "raw=sys.stdin.read(); rating=json.loads(raw)['rating']\n"
         "marker=os.environ['AAOS_TEST_SCHEDULER_MARKER']\n"
-        "with open(marker,'a',encoding='utf-8') as out: out.write('call\\n')\n"
-        "with open(marker,encoding='utf-8') as source: count=len(source.readlines())\n"
+        "with open(os.path.join(marker,str(os.getpid())+'-'+uuid.uuid4().hex+'.call'),'x',encoding='utf-8') as out: out.write('call')\n"
+        "count=len([name for name in os.listdir(marker) if name.endswith('.call')])\n"
         "if count<=2:\n"
         "    deadline=time.monotonic()+8\n"
         "    while time.monotonic()<deadline:\n"
-        "        with open(marker,encoding='utf-8') as source: total=len(source.readlines())\n"
+        "        total=len([name for name in os.listdir(marker) if name.endswith('.call')])\n"
         "        if total>=2: break\n"
         "        time.sleep(.02)\n"
         "    if rating==1:\n"
@@ -510,7 +515,7 @@ def test_concurrent_unscheduled_review_invalidates_successful_snapshot(tmp_path,
         status, retried = core.request("POST", "/api/v1/learning/reviews", success)
         assert status == 201 and retried["schedule_authority"] == "fsrs"
         assert retried["schedule_recovery"]["count"] == 1
-        assert len(marker.read_text(encoding="utf-8").splitlines()) == 4
+        assert len(list(marker.glob("*.call"))) == 4
         assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 2
     finally:
         core.stop()
@@ -657,5 +662,93 @@ def test_fsrs_float_state_is_exact_across_core_restart_and_restore(tmp_path, mon
         assert all(state["learner"]["latest_review"]["schedule_state"][key] == value
                    for key, value in expected.items())
         assert core.request("POST", "/api/v1/learning/reviews", second_body)[1]["schedule_state"] == second["schedule_state"]
+    finally:
+        core.stop()
+
+
+@pytest.mark.parametrize("historical", [False, True])
+def test_out_of_order_review_time_never_produces_a_schedule(tmp_path, monkeypatch, historical):
+    core = core_for(tmp_path)
+    marker = tmp_path / "time-order-calls.txt"
+    worker = tmp_path / "time_order_scheduler.py"
+    worker.write_text(
+        "import os,runpy\n"
+        "with open(os.environ['AAOS_TEST_SCHEDULER_MARKER'],'a',encoding='utf-8') as out: out.write('call\\n')\n"
+        "runpy.run_path(os.environ['AAOS_TEST_SCHEDULER_TARGET'],run_name='__main__')\n",
+        encoding="utf-8",
+    )
+    item = "synthetic-time-order"
+    later = "2026-09-03T08:00:00.000002+08:00"
+    earlier = "2026-09-03T00:00:00.000001Z"
+    try:
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", str(tmp_path / "missing-python"))
+        core.start()
+        status, first = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "record-later", "correct": False, "rating": 1, "now": later})
+        assert status == 201 and first["schedule_authority"] == "unavailable"
+        if historical:
+            # Simulate previously accepted historical evidence; the production path must not rewrite it.
+            core.stop()
+            with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+                row = json.dumps({"outcome": "correct", "assessment_id": None,
+                    "schedule": {"authority": "unavailable"}, "review_evidence": {"rating": 3, "now": earlier}})
+                conn.execute("INSERT INTO learning_events(item_key,kind,outcome) VALUES(?,'review',?)", (item, row))
+        else:
+            core.stop()
+        monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+        monkeypatch.setenv("ARCHEAXIS_SCHEDULER_WORKER", str(worker))
+        monkeypatch.setenv("AAOS_TEST_SCHEDULER_MARKER", str(marker))
+        monkeypatch.setenv("AAOS_TEST_SCHEDULER_TARGET", str(ROOT / "services/python-workers/learning/worker_schedule.py"))
+        core.start()
+        body = {"item_key": item, "client_event_id": "new-review", "correct": True, "rating": 3,
+                "now": "2026-09-04T00:00:00Z" if historical else earlier}
+        status, result = core.request("POST", "/api/v1/learning/reviews", body)
+        if historical:
+            assert status == 201 and result["schedule_authority"] == "unavailable" and result["next_review"] is None
+            assert result["schedule_recovery"]["reason"] == "unscheduled_review_time_order_invalid"
+            assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 3
+        else:
+            assert status == 400
+            assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 1
+        assert not marker.exists()
+        if not historical:
+            status, corrected = core.request("POST", "/api/v1/learning/reviews", {
+                **body, "now": "2026-09-04T00:00:00Z"})
+            assert status == 201 and corrected["schedule_authority"] == "fsrs"
+            assert corrected["schedule_recovery"]["count"] == 1
+    finally:
+        core.stop()
+
+
+def test_new_review_cannot_predate_last_successful_card(tmp_path, monkeypatch):
+    core = core_for(tmp_path)
+    marker = tmp_path / "time-order-success-calls.txt"
+    worker = tmp_path / "time_order_success_scheduler.py"
+    worker.write_text(
+        "import os,runpy\n"
+        "with open(os.environ['AAOS_TEST_SCHEDULER_MARKER'],'a',encoding='utf-8') as out: out.write('call\\n')\n"
+        "runpy.run_path(os.environ['AAOS_TEST_SCHEDULER_TARGET'],run_name='__main__')\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    monkeypatch.setenv("ARCHEAXIS_SCHEDULER_WORKER", str(worker))
+    monkeypatch.setenv("AAOS_TEST_SCHEDULER_MARKER", str(marker))
+    monkeypatch.setenv("AAOS_TEST_SCHEDULER_TARGET", str(ROOT / "services/python-workers/learning/worker_schedule.py"))
+    item = "synthetic-time-after-success"
+    try:
+        core.start()
+        status, first = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "later-first", "correct": True, "rating": 3,
+            "now": "2026-09-03T08:00:00.000002+08:00"})
+        assert status == 201 and first["schedule_authority"] == "fsrs"
+        body = {"item_key": item, "client_event_id": "earlier-next", "correct": False, "rating": 1,
+                "now": "2026-09-03T00:00:00.000001Z"}
+        assert core.request("POST", "/api/v1/learning/reviews", body)[0] == 400
+        assert marker.read_text(encoding="utf-8").splitlines() == ["call"]
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 1
+        status, corrected = core.request("POST", "/api/v1/learning/reviews", {
+            **body, "now": "2026-09-04T00:00:00Z"})
+        assert status == 201 and corrected["schedule_authority"] == "fsrs"
+        assert marker.read_text(encoding="utf-8").splitlines() == ["call", "call"]
     finally:
         core.stop()

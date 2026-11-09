@@ -1402,6 +1402,18 @@ async fn record_stateful_review(
                     r.get::<_, String>(0)
                 })?,
             };
+            if previous.recovery_issue.is_none() {
+                let Some(current) = learning::review_timestamp_micros(conn, &instant)? else {
+                    return Ok(StatefulReviewPreparation::Invalid(
+                        "now must be an ISO timestamp with timezone",
+                    ));
+                };
+                if previous.latest_reviewed_at_micros.is_some_and(|previous| current < previous) {
+                    return Ok(StatefulReviewPreparation::Invalid(
+                        "now must not precede the prior review",
+                    ));
+                }
+            }
             Ok(StatefulReviewPreparation::Schedule(previous, instant))
         })
         .await

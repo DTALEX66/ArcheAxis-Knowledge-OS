@@ -112,3 +112,57 @@ fn recovery_has_a_named_bound_instead_of_truncating_history() {
     assert_eq!(basis.pending.len(), 4096);
     assert_eq!(basis.recovery_issue, Some("too_many_unscheduled_reviews"));
 }
+
+#[test]
+fn review_times_compare_exact_microseconds_and_offsets() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let time = |s| {
+        learning::review_timestamp_micros(&conn, s)
+            .unwrap()
+            .unwrap()
+    };
+    assert_eq!(
+        time("2026-09-03T08:00:00.000002+08:00"),
+        time("2026-09-03T00:00:00.000002Z")
+    );
+    assert_eq!(
+        time("2026-09-03T08:00:00.000002+08:00") - time("2026-09-03T00:00:00.000001Z"),
+        1
+    );
+    assert_eq!(
+        time("2026-09-02T19:00:00-05:00"),
+        time("2026-09-03T00:00:00Z")
+    );
+    assert_eq!(
+        time("2024-02-29T00:00:00.1Z") - time("2024-02-29T00:00:00Z"),
+        100_000
+    );
+    assert!(
+        learning::review_timestamp_micros(&conn, "2025-02-29T00:00:00Z")
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[test]
+fn inverted_historical_events_are_not_reordered_or_replayed() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-03T08:00:00.000002+08:00")),
+    );
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 3, Some("2026-09-03T00:00:00.000001Z")),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_eq!(
+        basis.recovery_issue,
+        Some("unscheduled_review_time_order_invalid")
+    );
+    assert_eq!(basis.pending.len(), 1);
+}

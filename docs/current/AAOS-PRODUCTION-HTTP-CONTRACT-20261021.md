@@ -373,6 +373,11 @@ This recovery occurs on a new review request, not in the background or on replay
 event key. A timezone offset is converted to the same UTC instant for FSRS while the original
 input remains in review evidence. FSRS floating parameters are parsed exactly on the scheduler
 path; historic values already stored with prior rounding are not reconstructed.
+The effective `now` for a new review must not precede the last evidenced review on that scoped
+card: the Core returns `400` before invoking the worker or writing an event, so the caller can
+correct and resubmit the same key. Historic unscheduled events that are already in reverse time
+order are preserved and produce `unscheduled_review_time_order_invalid`, not an invented due
+date. Ordering compares UTC instants to microsecond precision, including timezone offsets.
 
 ### Machine loop
 
