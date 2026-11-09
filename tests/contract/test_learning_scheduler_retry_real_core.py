@@ -224,3 +224,47 @@ def test_stateful_replay_does_not_rerun_scheduler(tmp_path, monkeypatch):
                     "first_requests_scheduler_calls": 2}, stream)
     finally:
         core.stop()
+
+
+def test_invalid_stateful_review_does_not_start_scheduler(tmp_path, monkeypatch):
+    core = core_for(tmp_path)
+    worker = tmp_path / "counting_scheduler.py"
+    marker = tmp_path / "scheduler-calls.txt"
+    worker.write_text(
+        "import os, runpy\n"
+        "with open(os.environ['AAOS_TEST_SCHEDULER_MARKER'], 'a', encoding='utf-8') as out: out.write('call\\n')\n"
+        "runpy.run_path(os.environ['AAOS_TEST_SCHEDULER_TARGET'], run_name='__main__')\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    monkeypatch.setenv("ARCHEAXIS_SCHEDULER_WORKER", str(worker))
+    monkeypatch.setenv("AAOS_TEST_SCHEDULER_MARKER", str(marker))
+    monkeypatch.setenv("AAOS_TEST_SCHEDULER_TARGET", str(ROOT / "services/python-workers/learning/worker_schedule.py"))
+    try:
+        core.start()
+        status, knowledge = core.request("POST", "/api/v1/knowledge-items", {"knowledge_type": "FACTUAL_CLAIM",
+            "body": "Synthetic assessment", "status": "accepted", "created_by": "fixture"})
+        assert status == 201
+        item = "synthetic-invalid-review"
+        base = f"/api/v1/learning/items/{item}"
+        assert core.request("POST", base + "/references", {"knowledge_id": knowledge["knowledge_id"]})[0] == 201
+        status, assessment = core.request("POST", base + "/assessment", {"knowledge_id": knowledge["knowledge_id"]})
+        assert status == 201
+        body = {**request(item, "invalid-time-key"), "rating": 3,
+                "assessment_id": assessment["assessment_id"], "knowledge_version": assessment["knowledge_version"]}
+        cases = [
+            {**body, "now": "not-a-timestamp"},
+            {**body, "client_event_id": "invalid-assessment-key", "assessment_id": "missing-assessment"},
+            {**body, "client_event_id": "invalid-version-key", "knowledge_version": "wrong-version"},
+        ]
+        assert [core.request("POST", "/api/v1/learning/reviews", case)[0] for case in cases] == [400, 400, 400]
+        assert not marker.exists() or not marker.read_text(encoding="utf-8").splitlines()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 0
+        status, first = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 201 and first["schedule_authority"] == "fsrs"
+        assert marker.read_text(encoding="utf-8").splitlines() == ["call"]
+        status, replay = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 200 and replay["event_id"] == first["event_id"] and replay["duplicate"] is True
+        assert marker.read_text(encoding="utf-8").splitlines() == ["call"]
+    finally:
+        core.stop()

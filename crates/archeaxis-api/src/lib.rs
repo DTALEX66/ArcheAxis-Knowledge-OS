@@ -1111,7 +1111,31 @@ fn stateful_review_response(receipt: learning::ReviewReceipt) -> axum::response:
 
 enum StatefulReviewPreparation {
     Replay(learning::ReviewReceipt),
+    Invalid(&'static str),
     Schedule(Option<String>, String),
+}
+
+fn invalid_stateful_review_input(
+    conn: &Connection,
+    item_key: &str,
+    now: Option<&str>,
+    assessment_id: Option<&str>,
+    knowledge_version: Option<&str>,
+) -> rusqlite::Result<Option<&'static str>> {
+    if let Some(now) = now {
+        if !learning::valid_review_timestamp(conn, now)? {
+            return Ok(Some("now must be an ISO timestamp with timezone"));
+        }
+    }
+    if let Some(assessment_id) = assessment_id {
+        let Some(assessment) = learning::assessment_for_item(conn, assessment_id, item_key)? else {
+            return Ok(Some("assessment does not match item"));
+        };
+        if knowledge_version.is_some_and(|v| v != assessment.knowledge_version) {
+            return Ok(Some("knowledge_version does not match assessment"));
+        }
+    }
+    Ok(None)
 }
 
 async fn record_stateful_review(
@@ -1179,6 +1203,7 @@ async fn record_stateful_review(
     let snapshot_event = body.client_event_id.clone();
     let snapshot_request = canonical.clone();
     let snapshot_correct = body.correct;
+    let snapshot_knowledge_version = body.knowledge_version.clone();
     let (previous_fsrs_state, instant) = match state
         .clone()
         .submit_wait(move |conn| -> rusqlite::Result<StatefulReviewPreparation> {
@@ -1190,6 +1215,15 @@ async fn record_stateful_review(
                 return Err(rusqlite::Error::InvalidParameterName(
                     "assessment binding conflict: this item requires an assessment_id for a new review".into(),
                 ));
+            }
+            if let Some(message) = invalid_stateful_review_input(
+                conn,
+                &snapshot_key,
+                snapshot_now.as_deref(),
+                snapshot_assessment.as_deref(),
+                snapshot_knowledge_version.as_deref(),
+            )? {
+                return Ok(StatefulReviewPreparation::Invalid(message));
             }
             let previous = learning::latest_fsrs_state_for_assessment(
                 conn,
@@ -1207,6 +1241,7 @@ async fn record_stateful_review(
         .await
     {
         Ok(Ok(StatefulReviewPreparation::Replay(receipt))) => return stateful_review_response(receipt),
+        Ok(Ok(StatefulReviewPreparation::Invalid(message))) => return (StatusCode::BAD_REQUEST, message).into_response(),
         Ok(Ok(StatefulReviewPreparation::Schedule(previous, instant))) => (previous, instant),
         Ok(Err(rusqlite::Error::InvalidParameterName(message))) if message.starts_with("event_key conflict:") || message.starts_with("assessment binding conflict:") =>
             return (StatusCode::CONFLICT, message).into_response(),
@@ -1230,44 +1265,16 @@ async fn record_stateful_review(
     // computed from is unchanged, and record. Only the fast DB validation of the precomputed
     // schedule happens here; the slow FSRS subprocess already completed outside the writer.
     with_store(state, move |conn| {
-        if let Some(now) = body.now.as_deref() {
-            match learning::valid_review_timestamp(conn, now) {
-                Ok(true) => {}
-                Ok(false) => {
-                    return (
-                        StatusCode::BAD_REQUEST,
-                        "now must be an ISO timestamp with timezone",
-                    )
-                        .into_response();
-                }
-                Err(e) => {
-                    return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
-                }
-            }
-        }
-        if let Some(assessment_id) = assessment_id.as_deref() {
-            let assessment =
-                match learning::assessment_for_item(conn, assessment_id, &body.item_key) {
-                    Ok(Some(value)) => value,
-                    Ok(None) => {
-                        return (StatusCode::BAD_REQUEST, "assessment does not match item")
-                            .into_response();
-                    }
-                    Err(e) => {
-                        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
-                    }
-                };
-            if body
-                .knowledge_version
-                .as_deref()
-                .is_some_and(|v| v != assessment.knowledge_version)
-            {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    "knowledge_version does not match assessment",
-                )
-                    .into_response();
-            }
+        match invalid_stateful_review_input(
+            conn,
+            &body.item_key,
+            body.now.as_deref(),
+            assessment_id.as_deref(),
+            body.knowledge_version.as_deref(),
+        ) {
+            Ok(None) => {}
+            Ok(Some(message)) => return (StatusCode::BAD_REQUEST, message).into_response(),
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
         let result = learning::record_review_with_state_and_answer(
             conn,

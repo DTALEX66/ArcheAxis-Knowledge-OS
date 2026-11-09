@@ -350,7 +350,7 @@ a token-authentication boundary.
 | 15 | `POST /api/v1/learning/items/{item_key}/references` | any token | Links an accepted knowledge id. **No actor guard** — a machine principal may call it. |
 | 17 | `POST /api/v1/learning/items/{item_key}/assessment` | any token | Body `{knowledge_id}`. **No actor guard.** Returns `assessment_id` + `knowledge_version`. |
 | 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Most recently created assessment in the Core's append order, even when creation timestamps share a second. It carries `knowledge_state` (the separated `status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to` view of the revision it bound) beside `knowledge_id`/`knowledge_version`, because an assessment binding is not evidence that the revision is still current. Existing historical assessments and their review identities are not rewritten. |
-| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and an explicitly supplied `knowledge_version` must equal the assessment's version or the Core answers `400`. An assessment-bound review uses only FSRS state and observations bound to that same assessment; older or unbound item events remain history and do not seed its schedule. A new schedule-only review without `assessment_id` is accepted only while the item has no assessment; after one exists it returns `409` instead of reporting a due date outside the current assessment. `client_event_id` is the idempotency identity — an identical previously committed request replays its receipt without invoking the scheduler. The transaction rechecks the identity when concurrently scheduled requests finish. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
+| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and an explicitly supplied `knowledge_version` must equal the assessment's version or the Core answers `400`. An assessment-bound review uses only FSRS state and observations bound to that same assessment; older or unbound item events remain history and do not seed its schedule. A new schedule-only review without `assessment_id` is accepted only while the item has no assessment; after one exists it returns `409` instead of reporting a due date outside the current assessment. `client_event_id` is the idempotency identity — an identical previously committed request replays its receipt without invoking the scheduler. For a new request, invalid `now`, mismatched assessment/item or mismatched knowledge version returns `400` before the scheduler starts; the Core checks those inputs again before committing. The transaction rechecks the identity and scheduling basis when concurrently scheduled requests finish. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
 | 11 | `POST /api/v1/learning/events` | **human only** | Legacy keyed path cannot bind an assessment. After an assessment exists, a new `kind:review` (the default kind) returns `409`; an identical previously committed event still replays. Other event kinds remain item history and cannot update an assessment-scoped queue. With no `schedule_state`, authority is `placeholder_ladder` and the returned `next_review_days` is a placeholder hint; the response does not include an exact `next_review`. With `schedule_state`, the reused FSRS worker decides; a negative interval is reported as `unavailable`. New events bind a hash of all normalized accepted request fields and retain the original scheduling authority; `idempotency_scope:full_request` identifies this and changed inputs return `409`. Known older receipt hashes can verify only item, kind and outcome (`idempotency_scope:legacy_item_kind_outcome`); when the original authority was not recorded it is `legacy_unverified`, rather than inferred from the current scheduler. Committed retries do not invoke the scheduler. A Core predating this tagged key format cannot replay new-format keys and fails closed; rollback must account for that compatibility limit. Machine → `403`. |
 | 13 | `GET /api/v1/learning/events/{item_key}` | any token | Event history. Each `references` row reports the revision the item was built from as an immutable identity plus `active`, `status`, `currentness` (`current`/`superseded`/`not_current`/`unavailable`), `superseded_by`, `successor_count` and `valid_to`; a superseded revision stays named and is never rewritten to the successor. |
 | 14 | `GET /api/v1/learning/items` | any token | Queue; when an assessment exists, the deadline comes only from its explicitly bound reviews and is null until one is scheduled. Without an assessment, the legacy item-wide deadline remains. |
@@ -637,23 +637,22 @@ UI owns it.
 
 ### What a review costs, and why the UI should not block its own thread on it
 
-`POST /learning/reviews` waits for the FSRS worker **inside** the single-writer callback
-(`crates/archeaxis-api/src/lib.rs` → `with_store`, recorded as a known limitation in
-`docs/architecture/CURRENT_ARCHITECTURE.md`). Measured on this host, five reviews each way:
+An earlier implementation of `POST /learning/reviews` waited for the FSRS worker inside the
+single-writer callback. The following historical measurements used that implementation and are
+not current latency measurements; they remain useful as an observation that a subprocess call
+can take longer than an in-process read. Five reviews each way on that host:
 
 | Launch | `schedule_authority` | `POST /learning/reviews` median | a projection read, for scale |
 | --- | --- | --- | --- |
 | no usable scheduler interpreter | `unavailable` | **3.0 ms** | 14.7 ms |
 | interpreter with `fsrs` | `fsrs` | **83.1 ms** | 15.0 ms |
 
-The 83 ms is the subprocess round trip; the 3 ms case does not spawn one. Two consequences for the
-UI: a review is roughly **6× a projection read** when scheduling is real, and because the wait
-happens inside the writer, the one writer is occupied for that whole time — so reviews are the
-serialisation point, not the reads. The UI should keep review submissions off its render thread and
-expect a noticeable pause, rather than treating this route as a fast call.
-
-Numbers are from a debug build with an empty workspace, so treat them as a shape (fast read, slow
-write that holds the writer) rather than as production timings.
+In the current implementation the Core snapshots input and card state, waits for the scheduler
+outside the writer, then rechecks the scheduling basis and commits on the writer; a concurrent
+change can return a conflict. A committed retry and the documented invalid inputs do not launch
+the scheduler. The UI should still submit asynchronously and show progress: the worker may take
+time or be unavailable. The historical debug-build numbers do not establish current or production
+latency.
 
 ### Search query semantics
 
