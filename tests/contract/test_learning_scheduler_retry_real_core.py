@@ -1005,19 +1005,43 @@ def test_explicit_schedule_reset_starts_before_mistimed_old_card(tmp_path, monke
 
 
 @pytest.mark.skipif(not os.environ.get("AAOS_TEST_BRIDGE_EXE"), reason="explicit compiled host bridge required")
-def test_host_bridge_schedule_reset_and_restart(tmp_path, monkeypatch):
+@pytest.mark.parametrize("assessed", [False, True])
+def test_host_bridge_schedule_reset_and_restart(tmp_path, monkeypatch, assessed):
     bridge = Path(os.environ["AAOS_TEST_BRIDGE_EXE"]).resolve(strict=True)
     core = core_for(tmp_path)
     identity = tmp_path / "synthetic-host-reset.json"
     monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
     try:
-        for phase in ("create", "reopen"):
-            if phase == "reopen":
+        for phase in ("create", "reopen", "restore"):
+            if phase != "create":
                 monkeypatch.setenv("ARCHEAXIS_PYTHON", str(tmp_path / "missing-python"))
+            if phase == "restore":
+                saved = json.loads(identity.read_text(encoding="utf-8"))
+                filename = saved["backup_filename"]
+                assert isinstance(filename, str) and Path(filename).name == filename
+                artifact = tmp_path / "backups" / filename
+                assert hashlib.sha256(artifact.read_bytes()).hexdigest() == saved["backup_sha256"]
+                destination = tmp_path / "host-reset-restore"
+                destination.mkdir()
+                restored = subprocess.run([str(core.exe), "--maintenance-restore", str(destination / "workspace.sqlite"),
+                                           str(artifact)], capture_output=True, text=True, timeout=120, check=False)
+                result = json.loads(restored.stdout) if restored.stdout else {}
+                assert restored.returncode == 0 and result.get("ok") is True
+                assert result.get("authorization_requires_new_grants") is True
+                from scripts.ci.real_core_grading_journey import Core
+                core = Core(core.exe, destination, Path(sys.executable))
             core.start()
             env = dict(os.environ, AAOS_SYNTHETIC_CORE_PORT=str(core.port),
                        AAOS_SYNTHETIC_CORE_TOKEN=core.token, AAOS_SYNTHETIC_CORE_PHASE=phase,
-                       AAOS_SYNTHETIC_LEARNING_STATE=str(identity))
+                       AAOS_SYNTHETIC_LEARNING_STATE=str(identity), AAOS_SYNTHETIC_ASSESSED="1" if assessed else "0")
+            if phase == "create" and assessed:
+                for label, key in (("previous", "AAOS_SYNTHETIC_PREVIOUS_KNOWLEDGE_ID"),
+                                   ("current", "AAOS_SYNTHETIC_KNOWLEDGE_ID")):
+                    status, knowledge = core.request("POST", "/api/v1/knowledge-items", {
+                        "knowledge_type": "FACTUAL_CLAIM", "body": f"Synthetic {label} host assessment",
+                        "status": "accepted", "created_by": "fixture"})
+                    assert status == 201
+                    env[key] = knowledge["knowledge_id"]
             result = subprocess.run([str(bridge), "learning_schedule_reset_real_core_transport",
                                      "--ignored", "--test-threads=1"],
                                     env=env, capture_output=True, text=True, timeout=90, check=False)

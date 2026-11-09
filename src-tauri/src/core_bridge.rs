@@ -2078,33 +2078,102 @@ mod tests {
             execute(port, &token, request).expect("synthetic Core transport")
         };
         let item = "synthetic-host-reset";
+        let assessed = std::env::var("AAOS_SYNTHETIC_ASSESSED").as_deref() == Ok("1");
         if phase == "create" {
-            let old = invoke(
-                "learning_review",
-                json!({"body":{
-                    "item_key":item,"client_event_id":"host-old","correct":true,"rating":3,
-                    "now":"2030-09-03T00:00:00Z"
-                }}),
-            );
+            let create_binding = |knowledge: String| {
+                let reference = invoke(
+                    "learning_reference",
+                    json!({
+                        "item_key":item,"body":{"knowledge_id":knowledge}
+                    }),
+                );
+                assert_eq!(reference.status, 201);
+                let assessment = invoke(
+                    "assessment_create",
+                    json!({
+                        "item_key":item,"body":{"knowledge_id":knowledge}
+                    }),
+                );
+                assert_eq!(assessment.status, 201);
+                (
+                    assessment.body["assessment_id"].clone(),
+                    assessment.body["knowledge_version"].clone(),
+                )
+            };
+            let (binding, historical_binding) = if assessed {
+                let previous =
+                    create_binding(std::env::var("AAOS_SYNTHETIC_PREVIOUS_KNOWLEDGE_ID").unwrap());
+                let prior = invoke(
+                    "learning_review",
+                    json!({"body":{
+                        "item_key":item,"client_event_id":"host-previous-assessment","correct":true,"rating":3,
+                        "now":"2026-08-31T00:00:00Z","assessment_id":previous.0,"knowledge_version":previous.1
+                    }}),
+                );
+                assert_eq!(prior.status, 201);
+                let current = create_binding(std::env::var("AAOS_SYNTHETIC_KNOWLEDGE_ID").unwrap());
+                (Some(current), Some(previous))
+            } else {
+                (None, None)
+            };
+            let mut old_body = json!({"item_key":item,"client_event_id":"host-old","correct":true,
+                "rating":3,"now":"2030-09-03T00:00:00Z"});
+            if let Some((assessment_id, version)) = &binding {
+                old_body["assessment_id"] = assessment_id.clone();
+                old_body["knowledge_version"] = version.clone();
+            }
+            let old = invoke("learning_review", json!({"body":old_body}));
             assert_eq!(old.status, 201);
             assert_eq!(old.body["schedule_authority"], "fsrs");
+            if let Some((assessment_id, version)) = &historical_binding {
+                let historical = invoke(
+                    "learning_review",
+                    json!({"body":{
+                        "item_key":item,"client_event_id":"host-late-previous-assessment","correct":true,"rating":3,
+                        "now":"2026-09-01T00:00:00Z","assessment_id":assessment_id,"knowledge_version":version
+                    }}),
+                );
+                assert_eq!(historical.status, 201);
+            }
             let state = invoke("learning_state", json!({"item_key":item}));
             assert_eq!(state.status, 200);
-            let old_id = state.body["learner"]["latest_review"]["event_id"]
+            let latest = if assessed {
+                &state.body["learner"]["assessment_progress"]["latest_review"]
+            } else {
+                &state.body["learner"]["latest_review"]
+            };
+            let old_id = latest["event_id"].as_i64().unwrap();
+            assert_eq!(old.body["event_id"], old_id);
+            let item_latest = state.body["learner"]["latest_review"]["event_id"]
                 .as_i64()
                 .unwrap();
-            assert_eq!(old.body["event_id"], old_id);
+            if assessed {
+                assert!(item_latest > old_id);
+            }
             let body = |expected| {
-                json!({"body":{
+                let mut value = json!({
                     "item_key":item,"client_event_id":"host-reset","correct":true,"rating":3,
                     "now":"2026-09-03T00:00:00Z","schedule_reset":{
                         "mode":"start_new","reason":"Synthetic old time was mistyped",
                         "expected_latest_event_id":expected
                     }
-                }})
+                });
+                if let Some((assessment_id, version)) = &binding {
+                    value["assessment_id"] = assessment_id.clone();
+                    value["knowledge_version"] = version.clone();
+                }
+                value
             };
-            assert_eq!(invoke("learning_review", body(old_id + 1)).status, 409);
-            let reset = invoke("learning_review", body(old_id));
+            assert_eq!(
+                invoke(
+                    "learning_review",
+                    json!({"body":body(if assessed {item_latest} else {old_id + 1})})
+                )
+                .status,
+                409
+            );
+            let reset_body = body(old_id);
+            let reset = invoke("learning_review", json!({"body":reset_body}));
             assert_eq!(reset.status, 201);
             assert_eq!(reset.body["schedule_authority"], "fsrs");
             assert_eq!(
@@ -2113,39 +2182,42 @@ mod tests {
             );
             std::fs::write(
                 identity_file,
-                json!({"old_id":old_id,"reset_id":reset.body["event_id"]}).to_string(),
+                json!({"old_id":old_id,"reset_id":reset.body["event_id"],"reset_body":reset_body})
+                    .to_string(),
             )
             .unwrap();
-        } else if phase == "reopen" {
-            let saved: Value =
-                serde_json::from_slice(&std::fs::read(identity_file).unwrap()).unwrap();
+        } else if phase == "reopen" || phase == "restore" {
+            let mut saved: Value =
+                serde_json::from_slice(&std::fs::read(&identity_file).unwrap()).unwrap();
             let state = invoke("learning_state", json!({"item_key":item}));
             assert_eq!(state.status, 200);
-            assert_eq!(
-                state.body["learner"]["latest_review"]["event_id"],
-                saved["reset_id"]
-            );
-            assert_eq!(
-                state.body["learner"]["latest_review"]["schedule_recovery"]["state"],
-                "reset"
-            );
-            let replay = invoke(
-                "learning_review",
-                json!({"body":{
-                    "item_key":item,"client_event_id":"host-reset","correct":true,"rating":3,
-                    "now":"2026-09-03T00:00:00Z","schedule_reset":{
-                        "mode":"start_new","reason":"Synthetic old time was mistyped",
-                        "expected_latest_event_id":saved["old_id"]
-                    }
-                }}),
-            );
+            let latest = if assessed {
+                &state.body["learner"]["assessment_progress"]["latest_review"]
+            } else {
+                &state.body["learner"]["latest_review"]
+            };
+            assert_eq!(latest["event_id"], saved["reset_id"]);
+            assert_eq!(latest["schedule_recovery"]["state"], "reset");
+            let replay = invoke("learning_review", json!({"body":saved["reset_body"]}));
             assert_eq!(replay.status, 200);
             assert_eq!(replay.body["duplicate"], true);
             assert_eq!(replay.body["event_id"], saved["reset_id"]);
             let history = invoke("learning_history", json!({"item_key":item}));
             assert_eq!(history.status, 200);
-            assert_eq!(history.body["count"], 2);
-            assert_eq!(history.body["events"][0]["event_id"], saved["old_id"]);
+            assert_eq!(history.body["count"], if assessed { 4 } else { 2 });
+            assert!(history.body["events"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|event| event["event_id"] == saved["old_id"]));
+            if phase == "reopen" {
+                let backup = invoke("workspace_backup", json!({}));
+                assert_eq!(backup.status, 201);
+                assert_eq!(backup.body["verified"], true);
+                saved["backup_filename"] = backup.body["filename"].clone();
+                saved["backup_sha256"] = backup.body["sha256"].clone();
+                std::fs::write(identity_file, saved.to_string()).unwrap();
+            }
         } else {
             panic!("unknown synthetic phase");
         }
