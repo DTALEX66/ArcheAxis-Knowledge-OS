@@ -1226,7 +1226,7 @@ async fn record_stateful_review(
                     "review_evidence":outcome["review_evidence"],
                     "mastery_projection":outcome["mastery_projection"]}))).into_response()
             },
-            Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("event_key conflict:") || message.starts_with("schedule basis conflict:") =>
+            Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("event_key conflict:") || message.starts_with("schedule basis conflict:") || message.starts_with("assessment binding conflict:") =>
                 (StatusCode::CONFLICT, message).into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
@@ -1321,6 +1321,8 @@ async fn record_learning_event(
             )
                 .into_response()
         }
+        Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("event_key conflict:") || message.starts_with("assessment binding conflict:") =>
+            (StatusCode::CONFLICT, message).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     })
     .await

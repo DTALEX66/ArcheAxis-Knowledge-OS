@@ -489,6 +489,16 @@ pub fn record_review_with_state_and_answer(
     if reserved {
         return Err(invalid("event_key conflict: incomplete legacy receipt"));
     }
+    // A new schedule-only legacy review cannot name an assessment. Once an
+    // assessment exists, accepting it would return a due date that the
+    // assessment-scoped queue cannot use. Check inside the write transaction,
+    // after duplicate replay, so a concurrently created assessment is seen
+    // and an already committed legacy receipt stays replayable.
+    if assessment_id.is_none() && assessment_for_item_key(&tx, item_key)?.is_some() {
+        return Err(invalid(
+            "assessment binding conflict: this item requires an assessment_id for a new review",
+        ));
+    }
     // When the caller scheduled outside the writer, its schedule was computed from a card snapshot.
     // Confirm that snapshot is still current before recording it, so a review that moved the card in
     // the interim cannot be silently overwritten by a stale schedule.
@@ -645,6 +655,15 @@ fn record_review_keyed_impl(
         }
         return Err(rusqlite::Error::InvalidParameterName(
             "event_key conflict: key is already bound to a different item or payload".into(),
+        ));
+    }
+    // The legacy events endpoint cannot bind a review to an assessment. Keep
+    // historical retries replayable, but refuse a new review once an
+    // assessment exists instead of reporting a deadline the queue ignores.
+    // Other event kinds continue to be stored as item history.
+    if kind == "review" && assessment_for_item_key(&tx, item_key)?.is_some() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "assessment binding conflict: use the assessment-bound reviews endpoint".into(),
         ));
     }
     let prior = correct_streak(&tx, item_key)?;

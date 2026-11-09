@@ -261,6 +261,78 @@ fn request(key: &str, instant: &str) -> Value {
 }
 
 #[tokio::test]
+async fn legacy_review_replays_but_new_unbound_review_cannot_bypass_assessment() {
+    use archeaxis_domain::{knowledge, learning};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("legacy-assessment-boundary.sqlite");
+    let first_request = request("legacy-before", "2026-10-01T00:00:00+00:00");
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, first) = post(&router, first_request.clone(), "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{first}");
+    assert_eq!(first["schedule_authority"], "fsrs");
+    drop(router);
+
+    let assessment = {
+        let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        let knowledge_id = knowledge::create_knowledge(
+            &mut conn,
+            "FACTUAL_CLAIM",
+            "Synthetic assessed fact",
+            "accepted",
+            None,
+            None,
+            "fixture",
+        )
+        .unwrap();
+        learning::record_card_reference(&mut conn, "restart-card", &knowledge_id, None).unwrap();
+        learning::create_assessment(&mut conn, "restart-card", &knowledge_id).unwrap()
+    };
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (_, before) = get_path(&router, "/api/v1/learning/items/restart-card/state").await;
+    assert_eq!(
+        before["learner"]["assessment"]["assessment_id"],
+        assessment.assessment_id
+    );
+    assert_eq!(before["learner"]["event_count"], 1);
+    assert!(before["learner"]["next_review"].is_null());
+
+    let (status, replay) = post(&router, first_request.clone(), "human").await;
+    assert_eq!(status, StatusCode::OK, "{replay}");
+    assert_eq!(replay["event_id"], first["event_id"]);
+    assert_eq!(replay["next_review"], first["next_review"]);
+    assert_eq!(replay["duplicate"], true);
+
+    let (status, refused) = post(
+        &router,
+        request("legacy-after", "2026-10-01T00:10:00+00:00"),
+        "human",
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT, "{refused}");
+    let (_, after) = get_path(&router, "/api/v1/learning/items/restart-card/state").await;
+    assert_eq!(after, before);
+    let (_, history) = get_path(&router, "/api/v1/learning/events/restart-card").await;
+    assert_eq!(history["count"], 1);
+
+    let mut conflicting = first_request;
+    conflicting["rating"] = json!(4);
+    assert_eq!(
+        post(&router, conflicting, "human").await.0,
+        StatusCode::CONFLICT
+    );
+    // A refusal wrote no key: the caller can attach the assessment and retry
+    // the same pending event instead of losing or duplicating the review.
+    let mut bound = request("legacy-after", "2026-10-01T00:10:00+00:00");
+    bound["assessment_id"] = json!(assessment.assessment_id);
+    bound["knowledge_version"] = json!(assessment.knowledge_version);
+    let (status, accepted) = post(&router, bound, "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{accepted}");
+    assert_eq!(accepted["schedule_authority"], "fsrs");
+    assert_eq!(accepted["streak_after"], 1);
+    assert_eq!(accepted["next_review"], "2026-10-01T00:20:00+00:00");
+}
+
+#[tokio::test]
 async fn core_persists_real_worker_state_and_continues_after_reopen() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("learning.sqlite");

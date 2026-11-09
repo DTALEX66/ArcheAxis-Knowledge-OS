@@ -36,6 +36,96 @@ def test_learning_state_contract_accepts_legacy_and_checks_optional_assessment_s
 
 
 @pytest.mark.skipif(not os.environ.get("AAOS_TEST_CORE_EXE"), reason="explicit real Core binary required")
+def test_unbound_review_boundary_survives_restart_and_restore(tmp_path):
+    from scripts.ci.real_core_grading_journey import Core
+
+    exe = Path(os.environ["AAOS_TEST_CORE_EXE"]).resolve(strict=True)
+    core_sha = hashlib.sha256(exe.read_bytes()).hexdigest()
+    core = Core(exe, tmp_path, Path(sys.executable))
+    item = "synthetic-legacy-to-assessment"
+    base = f"/api/v1/learning/items/{item}"
+    legacy = {"item_key": item, "client_event_id": "legacy-before-assessment", "correct": True,
+              "rating": 3, "now": "2026-10-01T00:00:00+00:00"}
+    unbound = {**legacy, "client_event_id": "unbound-after-assessment", "now": "2026-10-01T00:10:00+00:00"}
+    later_unbound = {**unbound, "client_event_id": "later-unbound"}
+    event_item = "synthetic-legacy-event"
+    old_event = {"item_key": event_item, "client_event_id": "legacy-event-before", "correct": True}
+    new_event = {**old_event, "client_event_id": "legacy-event-after"}
+
+    def call(method, path, body=None, expected=200):
+        status, value = core.request(method, path, body)
+        assert status == expected, (method, path, status, value)
+        return value
+
+    try:
+        core.start()
+        first = call("POST", "/api/v1/learning/reviews", legacy, expected=201)
+        assert first["schedule_authority"] == "fsrs" and first["next_review"] == "2026-10-01T00:10:00+00:00"
+        first_event = call("POST", "/api/v1/learning/events", old_event, expected=201)
+        knowledge = call("POST", "/api/v1/knowledge-items", {"knowledge_type": "FACTUAL_CLAIM",
+            "body": "Synthetic assessed fact", "status": "accepted", "created_by": "fixture"}, expected=201)
+        call("POST", base + "/references", {"knowledge_id": knowledge["knowledge_id"]}, expected=201)
+        assessment = call("POST", base + "/assessment", {"knowledge_id": knowledge["knowledge_id"]}, expected=201)
+        event_base = f"/api/v1/learning/items/{event_item}"
+        call("POST", event_base + "/references", {"knowledge_id": knowledge["knowledge_id"]}, expected=201)
+        call("POST", event_base + "/assessment", {"knowledge_id": knowledge["knowledge_id"]}, expected=201)
+        assert call("POST", "/api/v1/learning/events", old_event)["event_id"] == first_event["event_id"]
+        assert "assessment binding conflict" in call("POST", "/api/v1/learning/events", new_event, expected=409)["raw"]
+        replay = call("POST", "/api/v1/learning/reviews", legacy)
+        assert replay["duplicate"] is True and replay["event_id"] == first["event_id"]
+        refusal = call("POST", "/api/v1/learning/reviews", unbound, expected=409)
+        assert "assessment binding conflict" in refusal["raw"]
+        pending = call("GET", base + "/state")
+        assert pending["learner"]["event_count"] == 1
+        assert pending["learner"]["assessment_progress"]["event_count"] == 0
+        assert pending["learner"]["next_review"] is None
+        bound = {**unbound, "assessment_id": assessment["assessment_id"], "knowledge_version": assessment["knowledge_version"]}
+        accepted = call("POST", "/api/v1/learning/reviews", bound, expected=201)
+        assert accepted["schedule_authority"] == "fsrs" and accepted["streak_after"] == 1
+        assert accepted["next_review"] == "2026-10-01T00:20:00+00:00"
+        state = call("GET", base + "/state")
+        history = call("GET", f"/api/v1/learning/events/{item}")
+        outcomes = [json.loads(row["outcome"]) for row in history["events"]]
+        assert [row["assessment_id"] for row in outcomes] == [None, assessment["assessment_id"]]
+        core.stop()
+        core.start()
+        assert call("GET", base + "/state") == state
+        assert call("POST", "/api/v1/learning/reviews", legacy)["event_id"] == first["event_id"]
+        assert "event_key conflict" in call("POST", "/api/v1/learning/reviews", unbound, expected=409)["raw"]
+        assert call("POST", "/api/v1/learning/reviews", later_unbound, expected=409)["raw"] == refusal["raw"]
+        backup = call("POST", "/api/v1/workspace/backups", {}, expected=201)
+        assert backup["verified"] is True and Path(backup["filename"]).name == backup["filename"]
+        artifact = tmp_path / "backups" / backup["filename"]
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == backup["sha256"]
+        core.stop()
+        destination = tmp_path / "independent-restore"
+        destination.mkdir()
+        result = subprocess.run([str(exe), "--maintenance-restore", str(destination / "workspace.sqlite"),
+            str(artifact)], capture_output=True, text=True, timeout=120, check=False)
+        restored = json.loads(result.stdout) if result.stdout else {}
+        assert result.returncode == 0 and restored.get("ok") is True
+        assert restored.get("authorization_requires_new_grants") is True
+        core = Core(exe, destination, Path(sys.executable))
+        core.start()
+        assert call("GET", base + "/state") == state
+        assert call("GET", f"/api/v1/learning/events/{item}") == history
+        assert call("POST", "/api/v1/learning/reviews", legacy)["event_id"] == first["event_id"]
+        assert call("POST", "/api/v1/learning/reviews", later_unbound, expected=409)["raw"] == refusal["raw"]
+        assert call("POST", "/api/v1/learning/reviews", bound)["event_id"] == accepted["event_id"]
+        assert call("POST", "/api/v1/learning/events", old_event)["event_id"] == first_event["event_id"]
+        assert "assessment binding conflict" in call("POST", "/api/v1/learning/events", new_event, expected=409)["raw"]
+        assert hashlib.sha256(exe.read_bytes()).hexdigest() == core_sha
+        if output := os.environ.get("AAOS_TEST_UNBOUND_REVIEW_OUTPUT"):
+            with Path(output).open("x", encoding="utf-8") as stream:
+                json.dump({"synthetic": True, "core_sha256": core_sha, "legacy_replayed": True,
+                    "new_unbound_refused": True, "legacy_event_refused": True,
+                    "bound_review_fresh": True, "restarted": True,
+                    "backup_verified": True, "independent_restore": True, "human_learning": "NOT_ESTABLISHED"}, stream)
+    finally:
+        core.stop()
+
+
+@pytest.mark.skipif(not os.environ.get("AAOS_TEST_CORE_EXE"), reason="explicit real Core binary required")
 def test_revision_starts_fresh_schedule_and_survives_restore(tmp_path):
     from scripts.ci.real_core_grading_journey import Core
 

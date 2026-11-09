@@ -91,6 +91,9 @@ fn unbound_legacy_review_remains_history_but_is_not_assigned_to_new_assessment()
         |_| Ok(fsrs_schedule()),
     )
     .unwrap();
+    // A caller may snapshot the unbound card before an assessment is created
+    // while its scheduler is running outside the writer transaction.
+    let prior_card = learning::latest_fsrs_state_for_assessment(&conn, item, None).unwrap();
     assert_eq!(
         learning::item_keys_with_latest_review(&conn).unwrap(),
         vec![(item.to_string(), Some("2026-10-02T00:00:00+00:00".into()))]
@@ -107,6 +110,38 @@ fn unbound_legacy_review_remains_history_but_is_not_assigned_to_new_assessment()
     .unwrap();
     learning::record_card_reference(&mut conn, item, &knowledge_id, None).unwrap();
     let assessment = learning::create_assessment(&mut conn, item, &knowledge_id).unwrap();
+    let replay = learning::record_review_with_state_and_answer(
+        &mut conn,
+        item,
+        "review",
+        true,
+        "legacy-event",
+        "legacy",
+        None,
+        None,
+        None,
+        |_| panic!("a committed legacy receipt must replay without rescheduling"),
+    )
+    .unwrap();
+    assert!(replay.duplicate);
+    let stale_unbound = learning::record_review_with_state_and_answer(
+        &mut conn,
+        item,
+        "review",
+        true,
+        "new-unbound-event",
+        "new legacy request",
+        None,
+        None,
+        Some(prior_card),
+        |_| panic!("an unbound review must not be scheduled after assessment creation"),
+    )
+    .unwrap_err();
+    assert!(
+        stale_unbound
+            .to_string()
+            .contains("assessment binding conflict")
+    );
     assert_eq!(
         learning::item_keys_with_latest_review(&conn).unwrap(),
         vec![(item.to_string(), None)]

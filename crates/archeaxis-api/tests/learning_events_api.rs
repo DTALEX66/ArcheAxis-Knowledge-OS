@@ -106,6 +106,68 @@ async fn post_event_keyed(
 }
 
 #[tokio::test]
+async fn legacy_review_replays_but_new_legacy_review_requires_assessment_route() {
+    use archeaxis_domain::{knowledge, learning};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("legacy-event-assessment.sqlite");
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, first) = post_event_keyed(&router, "card-x", true, Some("old-event")).await;
+    assert_eq!(status, StatusCode::CREATED);
+    drop(router);
+    {
+        let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        let id = knowledge::create_knowledge(
+            &mut conn,
+            "FACTUAL_CLAIM",
+            "Synthetic fact",
+            "accepted",
+            None,
+            None,
+            "fixture",
+        )
+        .unwrap();
+        learning::record_card_reference(&mut conn, "card-x", &id, None).unwrap();
+        learning::create_assessment(&mut conn, "card-x", &id).unwrap();
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, replay) = post_event_keyed(&router, "card-x", true, Some("old-event")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(replay["event_id"], first["event_id"]);
+    assert_eq!(replay["duplicate"], true);
+    let (status, refused) = post_event_keyed(&router, "card-x", true, Some("new-event")).await;
+    assert_eq!(status, StatusCode::CONFLICT, "{refused}");
+    let conn = rusqlite::Connection::open(db).unwrap();
+    let count: i64 = conn
+        .query_row("SELECT count(*) FROM learning_events", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, 1);
+    drop(conn);
+    // A non-review activity remains available as item history; it must not
+    // change the current assessment's queue or progress.
+    let response = router.clone().oneshot(
+        Request::post("/api/v1/learning/events")
+            .header("content-type", "application/json")
+            .body(Body::from(r#"{"item_key":"card-x","kind":"teach_back","correct":true,"client_event_id":"activity"}"#))
+            .unwrap(),
+    ).await.unwrap();
+    assert_eq!(response.status(), StatusCode::CREATED);
+    let response = router
+        .oneshot(
+            Request::get("/api/v1/learning/items/card-x/state")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let state: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(state["learner"]["event_count"], 2);
+    assert_eq!(state["learner"]["assessment_progress"]["event_count"], 0);
+    assert!(state["learner"]["next_review"].is_null());
+}
+
+#[tokio::test]
 async fn same_client_event_id_is_recorded_only_once() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("api.sqlite");
@@ -169,10 +231,10 @@ async fn same_key_different_payload_conflicts_and_missing_key_rejected() {
     assert_eq!(s1, StatusCode::CREATED);
     // same key, different outcome payload -> conflict
     let (s2, _) = post_event_keyed(&router, "card-c", false, Some("evt-c1")).await;
-    assert_eq!(s2, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(s2, StatusCode::CONFLICT);
     // same key, different item -> conflict
     let (s3, _) = post_event_keyed(&router, "card-d", true, Some("evt-c1")).await;
-    assert_eq!(s3, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(s3, StatusCode::CONFLICT);
     // missing/empty key -> rejected, nothing accumulates
     let (s4, _) = post_event_keyed(&router, "card-c", true, None).await;
     assert_eq!(s4, StatusCode::BAD_REQUEST);
