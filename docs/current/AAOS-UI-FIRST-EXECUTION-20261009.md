@@ -4679,3 +4679,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 - 活动指针此前仍以“百科不可达、仅两类成功”概括 2026-11-04 初次运行，与其内后续三类全部成功的实测相矛盾。只读复核该日 `03d213570808` 与三个 `public-research-fallback*` 原始回执，四次均记录 Wikipedia／Stack Exchange／OpenAlex `complete`；早期超时与后续成功同时保留，只说明当日可达性不稳定，**当前网络状态未复测**。DBpedia 在独立 worker 有真实回退观察，后三次 Core 运行未触发该回退；恢复仍未执行。
 - 四份回执记录的探针 SHA-256 均为 `b1cd9296053f79b24a8a7a043a84c6aca1212637657c5135c1df6572cfe703ba`，与当前 `scripts/probes/aaos_public_research_runtime_loop.py` 一致；该脚本自动选择研究材料并以人工角色提交接纳，不能据其字段 `reviewer: owner` 推断 Owner 实际审阅。活动指针现区分脚本夹具接纳、真实网络与真实人力判断；未发新网络请求，也不将旧 staged 候选样本升级为当前候选、安装态或 Owner 验收。
+
+#### 2026-11-09 · 三类公开检索历史备份的独立恢复
+
+- 对 `03d213570808` 的公开测试数据进行只读身份核对：历史三通道回执 sha256 `5831ae57d0b4f6745721d2d9f2a00fa98d96787347a5ddec2bbcfdf7d7d04153`，当时备份 sha256 `41c77164c2fb62b5d2bd107af6507a977940d9bb2b2fd6db78d637f6015c84f8`，6 份来源原件均与登记摘要相符。新增显式指定 Core 与回执摘要的 `tests/contract/test_public_research_historical_restore.py`，将该备份以当前 debug Core `ecb3be72…` 恢复到独立工作区。
+- 未注册公开检索 worker，也未发新网络请求。恢复后和再次重启后，3 类来源的原始与派生字节、3 个定位解析，以及研究文档、资料包、Markdown 导出和脚本接纳的知识均与原回执相同；旧 restore epoch 被拒，使用新 epoch 可只读历史检索结果，输入备份和 6 个原件恢复前后摘要不变。该样本跨越旧 staged 候选与当前 debug Core，只证明历史公开测试数据的恢复兼容，不是同一候选实时 J2、DBpedia Core 回退、真实人力审阅、安装态或 Owner 接受。
+- `.project-local/runs/ccc4a08b4a/j2-historical-restore-first-20261109/` 为 **1 passed**、`source_consistent:true`，绑定 `d5c23a46`、patch `f242cfc11bcb8dbb16eaef841abd0fd799a2c8aa9904de44407f3dff3d68531f`；范围说明回执 sha256 `455dfaf80c09dcf2aac5e91e01fafc9f9656658acbb50bf3b486307939c571ea`。补充核验 Core 与输入回执在整个运行前后的摘要一致后，`j2-historical-restore-identity-final-20261109/` 再次 **1 passed**，绑定同基线、patch `7464d8d42a6e7b2fdd18232865f92678eeae6c93b3467e62498b1d750b7f7c92`、`source_consistent:true`；新范围回执 sha256 `2746e7141f837f643a57e3c69376e6111617937e35c4ecf812ce9b98e829d178`。
