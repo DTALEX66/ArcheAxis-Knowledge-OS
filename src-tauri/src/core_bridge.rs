@@ -2324,6 +2324,112 @@ mod tests {
         }
     }
     #[test]
+    #[ignore = "requires synthetic Core, pinned Node, loopback model, and explicit phase"]
+    fn provider_real_core_openmaic_synthetic_generation_journey() {
+        use serde_json::{json, Value};
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid Core port");
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let state_path = std::env::var_os("AAOS_SYNTHETIC_JOURNEY_STATE")
+            .expect("synthetic state path required");
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(json!({
+                "operation":operation,"payload":payload
+            }))
+            .expect("valid host request");
+            execute(port, &token, request).expect("host/Core transport must succeed")
+        };
+        match phase.as_str() {
+            "create" => {
+                let source = invoke(
+                    "document_create",
+                    json!({"body":{
+                        "title":"Synthetic interactive material",
+                        "editor_json":{"type":"doc","content":[{"type":"paragraph",
+                            "content":[{"type":"text","text":"SYNTHETIC diagram material"}]}]}
+                    }}),
+                );
+                assert_eq!(source.status, 201, "source create");
+                let outline_body = json!({"create_request_id":"synthetic_host_interactive_outline",
+                    "requirement":"Create an interactive diagram for the synthetic material.",
+                    "source_text":"SYNTHETIC diagram material","model":null});
+                let outline = invoke(
+                    "course_openmaic_interactive_outline_generate",
+                    json!({"body":outline_body}),
+                );
+                assert_eq!(outline.status, 200, "interactive outline generate");
+                assert_eq!(outline.body["worker_invoked"], true);
+                let outlines = outline.body["outlines"]
+                    .as_array()
+                    .expect("outlines required");
+                let selected = outlines
+                    .iter()
+                    .position(|entry| entry["type"] == "interactive")
+                    .expect("an interactive outline is required for this journey");
+                let widget_type = outlines[selected]["widgetType"]
+                    .as_str()
+                    .expect("widget required");
+                assert_eq!(outline.body["rendering_authorized"], false);
+                let scene_body = json!({"create_request_id":"synthetic_host_interactive_scene",
+                    "outline_document_id":outline.body["document"]["document_id"],"outline_index":selected,
+                    "source":{"document_id":source.body["document_id"],"version":source.body["version"],
+                        "content_sha256":source.body["content_sha256"]},"model":null});
+                let scene = invoke("course_openmaic_scene_generate", json!({"body":scene_body}));
+                assert_eq!(scene.status, 200, "interactive scene generate");
+                assert_eq!(scene.body["scene_route"], "interactive");
+                assert_eq!(scene.body["widget_type"], widget_type);
+                assert_eq!(scene.body["html_execution"], "NOT_PERFORMED");
+                assert_eq!(scene.body["rendering_authorized"], false);
+                assert_eq!(scene.body["render"]["report"]["playable"], false);
+                let scene_id = scene.body["document"]["document_id"].clone();
+                let projection = invoke(
+                    "course_openmaic_package_projection",
+                    json!({"body":{
+                    "document_ids":[scene_id]}}),
+                );
+                assert_eq!(projection.status, 200, "package projection");
+                assert_eq!(projection.body["scene_count"], 1);
+                assert_eq!(projection.body["renderer_executed"], false);
+                assert_eq!(projection.body["all_playable"], false);
+                let state = json!({"outline_body":outline_body,"scene_body":scene_body,
+                    "outline_id":outline.body["document"]["document_id"],"scene_id":scene_id});
+                std::fs::write(&state_path, state.to_string()).expect("save synthetic state");
+            }
+            "reopen" => {
+                let state: Value = serde_json::from_slice(
+                    &std::fs::read(&state_path).expect("read synthetic state"),
+                )
+                .expect("valid synthetic state");
+                let outline = invoke(
+                    "course_openmaic_interactive_outline_generate",
+                    json!({"body":state["outline_body"]}),
+                );
+                assert_eq!(outline.status, 200, "outline replay");
+                assert_eq!(outline.body["worker_invoked"], false);
+                assert_eq!(outline.body["document"]["document_id"], state["outline_id"]);
+                let scene = invoke(
+                    "course_openmaic_scene_generate",
+                    json!({"body":state["scene_body"]}),
+                );
+                assert_eq!(scene.status, 200, "scene replay");
+                assert_eq!(scene.body["worker_invoked"], false);
+                assert_eq!(scene.body["document"]["document_id"], state["scene_id"]);
+                let projection = invoke(
+                    "course_openmaic_package_projection",
+                    json!({"body":{
+                    "document_ids":[state["scene_id"]]}}),
+                );
+                assert_eq!(projection.status, 200, "package readback");
+                assert_eq!(projection.body["renderer_executed"], false);
+                assert_eq!(projection.body["all_playable"], false);
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
     fn provider_learning_routes_are_finite_and_history_cursor_is_bounded() {
         for (operation, path) in [
             (
