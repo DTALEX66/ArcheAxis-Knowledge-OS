@@ -35,6 +35,9 @@ fn add_node(conn: &Connection, reference: &Reference, nodes: &mut BTreeMap<Strin
             if let Some(currentness) = node["object"].get("currentness").cloned() {
                 node["currentness"] = currentness;
             }
+            if let Some(version_relation) = node["object"].get("version_relation").cloned() {
+                node["version_relation"] = version_relation;
+            }
             node
         }
         Err(_) => json!({"key":key,"reference":reference,"status":"unavailable","object":null}),

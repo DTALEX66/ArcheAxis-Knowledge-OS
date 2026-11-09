@@ -144,3 +144,81 @@ async fn relation_query_and_authored_research_use_one_writer_and_restart() {
     .await;
     assert_eq!(material_read, material);
 }
+
+#[tokio::test]
+async fn pinned_document_relation_reports_history_after_update_and_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("versioned-relations.sqlite");
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (status, material) = call(
+        &app,
+        "POST",
+        "/api/v1/documents",
+        json!({
+            "title":"synthetic material", "editor_json":{"type":"doc","content":[
+                {"type":"paragraph","content":[{"type":"text","text":"first version"}]}]}
+        }),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 201);
+    let material_id = material["document_id"].as_str().unwrap();
+    let reference =
+        json!({"kind":"document","document_id":material_id,"version":1,"block_id":null});
+    let (status, research) = call(
+        &app,
+        "POST",
+        "/api/v1/documents",
+        json!({
+            "title":"synthetic research", "editor_json":{"type":"doc","content":[],"attrs":{
+                "archeaxis_relations":{"schema":"archeaxis.relations/v1","relations":[
+                    {"id":"source","kind":"supports","label":"source","target":reference}]}}}
+        }),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 201);
+    let path = format!(
+        "/api/v1/documents/{}/relations?version=1",
+        research["document_id"].as_str().unwrap()
+    );
+    let (status, before) = call(&app, "GET", &path, json!(null), "human").await;
+    assert_eq!(status, 200);
+    let find_target = |graph: &Value| {
+        graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|node| node["reference"] == reference)
+            .unwrap()
+            .clone()
+    };
+    assert_eq!(find_target(&before)["version_relation"], "current");
+    let (status, updated) = call(
+        &app,
+        "PUT",
+        &format!("/api/v1/documents/{material_id}/draft"),
+        json!({
+            "expected_version":1,"editor_json":{"type":"doc","content":[
+                {"type":"paragraph","content":[{"type":"text","text":"second version"}]}]}
+        }),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(updated["version"], 2);
+    let (status, after) = call(&app, "GET", &path, json!(null), "human").await;
+    assert_eq!(status, 200);
+    let node = find_target(&after);
+    assert_eq!(node["status"], "resolved");
+    assert_eq!(node["version_relation"], "historical");
+    assert_eq!(node["object"]["current_version"], 2);
+    assert_eq!(node["object"]["content_sha256"], material["content_sha256"]);
+    assert_eq!(after["edges"][0]["relation"]["target"], reference);
+    drop(app);
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (status, reopened) = call(&app, "GET", &path, json!(null), "human").await;
+    assert_eq!(status, 200);
+    assert_eq!(find_target(&reopened), node);
+    assert_eq!(reopened["edges"][0]["relation"]["target"], reference);
+}

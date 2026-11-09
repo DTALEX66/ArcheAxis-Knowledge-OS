@@ -1650,6 +1650,20 @@
             "unavailable"
           ]
         },
+        "currentness": {
+          "enum": [
+            "current",
+            "superseded",
+            "not_current"
+          ]
+        },
+        "version_relation": {
+          "enum": [
+            "current",
+            "historical",
+            "unconfirmed"
+          ]
+        },
         "object": {
           "type": [
             "object",
