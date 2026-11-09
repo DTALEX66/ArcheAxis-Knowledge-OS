@@ -4942,3 +4942,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 以上运行均绑定 `35a34bef`、patch `800341ef4f1f8fbda8cd8e0268c18a651597966a302ab2c0bef4a43dacf384f4`、`source_consistent:true`；不是精确提交态构建。新增本地 Core 保存副本未改变固定存储基线的 `REVIEW_REQUIRED`。完整 X2／X8、真实学习、安装态、精确 SHA 云 CI 和 Owner 接受仍未证明；V3 闭环仍为 PARTIAL。
 
 - 文档回写后的 `learning-card-timestamp-opt-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范和 Rust 格式检查通过。检查绑定 `35a34bef`、patch `29f7ac0ae3fe36ba863c91e93d77f56ccc1d23bd867aa88cc8085bfa676479d7`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。
+
+
+#### 2026-11-10 · 时间边界与原始间隔对照
+
+- `learning-card-timestamp-edge-matrix-20261110/` 以隔离合成状态对照持久化旧卡校验与现有新结果校验：带时区偏移的同一时刻、微秒、有效／无效闰日、时间倒序、相同时刻但原字符串不同的记录到期日、缺到期日、负稳定度及缺稳定度。所列情况的接受／拒绝一致；事件没有独立保存的原始整天间隔不能由旧卡本身证明，测试单独保留这个区别。
+- 领域恢复测试 **14 passed**，基线 `e75bb866`、patch `564c50853b8522f47c714f23c5e23b7611b61cf80487e911655cc2762697c6d1`、`source_consistent:true`。这是有限合成领域证据，不是安装态、真实学习、精确 SHA 云 CI 或 Owner 接受；V3 闭环仍为 PARTIAL。

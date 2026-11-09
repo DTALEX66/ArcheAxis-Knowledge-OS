@@ -499,3 +499,87 @@ fn legacy_issue_does_not_hide_the_independent_replay_gap_flag() {
     );
     assert!(basis.scheduled_gap_replay_unverified);
 }
+
+#[test]
+fn previous_card_validation_matches_scheduler_bounds_at_time_and_field_edges() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(
+        temp.path()
+            .join("previous-card-matrix.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let make = |last: &str, due: &str| {
+        json!({"state":"review","step":null,"stability":5.0,
+        "difficulty":5.0,"last_review":last,"due":due})
+    };
+    let last = "2026-09-03T08:00:00.000002+08:00";
+    let due = "2026-09-04T00:00:00.000002Z";
+    let mut bad_stability = make(last, due);
+    bad_stability["stability"] = json!(-1.0);
+    let mut missing_field = make(last, due);
+    missing_field.as_object_mut().unwrap().remove("stability");
+    let cases = vec![
+        ("offset-microseconds", make(last, due), Some(due), 1, true),
+        (
+            "leap-day",
+            make("2024-02-29T00:00:00Z", "2024-03-01T00:00:00Z"),
+            Some("2024-03-01T00:00:00Z"),
+            1,
+            true,
+        ),
+        (
+            "invalid-leap-day",
+            make("2025-02-29T00:00:00Z", "2025-03-01T00:00:00Z"),
+            Some("2025-03-01T00:00:00Z"),
+            0,
+            false,
+        ),
+        ("reverse-time", make(due, last), Some(last), 0, false),
+        (
+            "equivalent-but-different-recorded-due",
+            make(last, due),
+            Some("2026-09-04T08:00:00.000002+08:00"),
+            1,
+            false,
+        ),
+        ("missing-due", make(last, due), None, 1, false),
+        ("negative-stability", bad_stability, Some(due), 1, false),
+        ("missing-stability", missing_field, Some(due), 1, false),
+    ];
+    for (name, state, recorded_due, days, expected) in cases {
+        let raw = state.to_string();
+        let schedule = learning::ReviewSchedule {
+            schedule_json: json!({"authority":"fsrs", "state":state}).to_string(),
+            next_review: recorded_due.map(str::to_owned),
+            next_review_days: days,
+        };
+        assert_eq!(
+            learning::review_schedule_is_valid(&conn, &schedule).unwrap(),
+            expected,
+            "{name}: output"
+        );
+        assert_eq!(
+            learning::previous_fsrs_review_timestamp(&conn, &raw, recorded_due)
+                .unwrap()
+                .is_some(),
+            expected,
+            "{name}: persisted card"
+        );
+    }
+    // A saved event has no independently recorded day count in the card; a
+    // valid prior card must not be presented as proof of that missing claim.
+    let raw = make(last, due).to_string();
+    let wrong_reported_days = learning::ReviewSchedule {
+        schedule_json: json!({"authority":"fsrs", "state":make(last, due)}).to_string(),
+        next_review: Some(due.to_owned()),
+        next_review_days: 2,
+    };
+    assert!(!learning::review_schedule_is_valid(&conn, &wrong_reported_days).unwrap());
+    assert!(
+        learning::previous_fsrs_review_timestamp(&conn, &raw, Some(due))
+            .unwrap()
+            .is_some()
+    );
+}
