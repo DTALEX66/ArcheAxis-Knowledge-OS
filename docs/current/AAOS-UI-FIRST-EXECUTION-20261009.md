@@ -4948,3 +4948,15 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 - `learning-card-timestamp-edge-matrix-20261110/` 以隔离合成状态对照持久化旧卡校验与现有新结果校验：带时区偏移的同一时刻、微秒、有效／无效闰日、时间倒序、相同时刻但原字符串不同的记录到期日、缺到期日、负稳定度及缺稳定度。所列情况的接受／拒绝一致；事件没有独立保存的原始整天间隔不能由旧卡本身证明，测试单独保留这个区别。
 - 领域恢复测试 **14 passed**，基线 `e75bb866`、patch `564c50853b8522f47c714f23c5e23b7611b61cf80487e911655cc2762697c6d1`、`source_consistent:true`。这是有限合成领域证据，不是安装态、真实学习、精确 SHA 云 CI 或 Owner 接受；V3 闭环仍为 PARTIAL。
+
+
+#### 2026-11-10 · 活动基线内更早损坏卡片
+
+- 只读复制此前的隔离合成旧卡实验后，用 `689b15df4b5a959ca11a34f95b2ee693ac45fc0a7a1a733970966582c06eccc0` Core 复查：缺稳定度、超范围难度或卡片到期日不一致的旧卡后已有新卡时，三个项目均显示当前到期日，后续新复习亦都得到 `fsrs`。观察回执 `learning-prior-invalid-card-observation-20261110/`；源合成库没有被改写。`learning-prior-invalid-card-red-20261110/` 的独立 API 反例为 **0 passed／1 failed**，早期缺稳定度未被识别。这些不证明真实用户库存在此形态。
+- Core 现检查当前评测范围和最近显式重置基线内更早的 FSRS 卡片；重置事件本身也纳入，以免损坏重置卡被后续卡掩盖。不符合既有完整卡规则时，当前投影标 `invalid_previous_card` 且不显示有效到期日，普通新复习保持未排期；不同评测独立，用户明确重置后才从新基线继续。原事件和原回执不改写，不推断损坏的成因或还原当时卡片。
+- `learning-prior-invalid-full-cache-api-20261110/` **27 passed**，领域 `learning-prior-invalid-full-cache-domain-20261110/` **24 passed**；真实 Core／旧 Core 跨版本、重启、校验备份、独立恢复和显式重置 `learning-prior-invalid-full-cache-real-core-20261110/` **12 passed**；学习／恢复／宿主桥／生成客户端联合回归 `learning-prior-invalid-full-cache-suite-20261110/` **104 passed／1 skipped**，跳过项需要未提供的指定重置前合成备份，不计通过。新 Core SHA-256 `b73d3bd3bf5f2d7db47bb328ffd20d646365f488d0367020e40fe16f5b886560`，按摘要保存在 `learning-prior-invalid-full-cache-save-core-20261110/artifacts/core-prior-invalid-full-cache.exe`（32,513,024 B）。旧 Core 的源码身份仍仅为 `ASSERTED_NOT_VERIFIED`。
+- 2,000 个合成项目、每项四张卡、各三次，本机队列中位：增加历史检查前后，无评测 **0.476→2.545 秒**、带评测 **0.517→2.807 秒**；复用既有固定 SQLite 校验语句后为 **2.553→1.203 秒**、**2.730→1.249 秒**，再复用每项固定查询为 **1.198→0.937 秒**、**1.262→0.963 秒**。三组分别是独立前后对照，非同一次基准；查询文本和判断条件保持不变。当前仍高于只检查最新卡片版本、且随活动历史长度增长；不能外推真实用户体验，性能余项保留。
+- 回执均在 `.project-local/runs/ccc4a08b4a/`，基线 `345cddf1`：独立观察 patch `8b3604ab8b8541cf592807dbee472dfd099fade4d6dc59fc5b61a44243872971`，红例 patch `550d3f26722d4995103cd416ee786bb61cb52efb3ed5f65021a312cf372a698a`，最终 API／领域／构建／真实 Core／联合回归及最终性能对照 patch `10e47c6677dce1134db9e8349492b27f01d525216105e3a58d6de766c7277cf5`，均 `source_consistent:true`，不是精确提交态构建。中间对照 Core `b0f0ba70` 与 `30a998a8` 也各保留在对应 `learning-prior-invalid-card-save-core-20261110/`、`learning-prior-invalid-cache-save-core-20261110/`；新增本地证据占用不改变固定存储审查 `REVIEW_REQUIRED`。
+- 本节为合成工作区的局部工程证据；真实用户学习、完整 X2／X8、安装态、当前修复的精确 SHA 云 CI 和 Owner 接受均未证明，V3 仍为 PARTIAL。公开分支的自动审批拒绝与精确提交确认仍按前述记录处理，不绕过。
+
+- 文档回写后的 `learning-prior-invalid-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范、contracts-vnext、Ruff 与 Rust 格式检查通过。检查绑定 `345cddf1`、patch `314f0484a708a3cd434a598b2d4aaf4e1854885e2145b6e32a715f437a2a2b03`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。

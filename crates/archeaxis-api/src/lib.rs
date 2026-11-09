@@ -561,8 +561,9 @@ fn schedule_integrity_issue(
     // An unavailable event or a legacy/unknown review may require a full
     // baseline-aware check. The indexed fast path still validates the latest
     // FSRS card using the same complete validation as review_schedule_basis.
-    let needs_history: bool = conn.query_row(
-        "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND CASE
+    let needs_history: bool = conn
+        .prepare_cached(
+            "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND CASE
          WHEN json_valid(outcome) THEN
            (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
            AND (json_extract(outcome,'$.schedule.authority')='unavailable'
@@ -570,10 +571,18 @@ fn schedule_integrity_issue(
                OR json_type(outcome,'$.schedule.authority') IS NOT 'text'
                OR json_extract(outcome,'$.schedule.authority') NOT IN ('fsrs','unavailable'))))
          ELSE kind='review' AND ?2 IS NULL END)",
+        )?
+        .query_row(rusqlite::params![item_key, assessment_id], |row| row.get(0))?;
+    // A later well-formed card does not prove that an earlier card was valid.
+    // Only the active assessment's events can make its schedule unverified.
+    let multiple_cards: bool = conn.prepare_cached(
+        "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
+         THEN json_extract(outcome,'$.schedule.authority')='fsrs'
+           AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END LIMIT 1 OFFSET 1)")?.query_row(
         rusqlite::params![item_key, assessment_id],
         |row| row.get(0),
     )?;
-    if needs_history {
+    if needs_history || multiple_cards {
         let basis = learning::review_schedule_basis(conn, item_key, assessment_id)?;
         // Preserve the previously published replay-gap reason if both issues exist.
         return Ok(if basis.scheduled_gap_replay_unverified {

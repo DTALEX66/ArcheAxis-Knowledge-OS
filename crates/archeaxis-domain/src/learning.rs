@@ -365,8 +365,8 @@ pub fn valid_review_timestamp(conn: &Connection, value: &str) -> rusqlite::Resul
     if !schedule_timestamp_shape(value) {
         return Ok(false);
     }
-    conn.query_row("SELECT COALESCE(strftime('%Y-%m-%dT%H:%M:%S',substr(?1,1,19),'+0 seconds')=substr(?1,1,19),0)",
-        [value], |r| r.get(0))
+    conn.prepare_cached("SELECT COALESCE(strftime('%Y-%m-%dT%H:%M:%S',substr(?1,1,19),'+0 seconds')=substr(?1,1,19),0)")?
+        .query_row([value], |r| r.get(0))
 }
 
 /// Preserve microsecond ordering and timezone offsets without using SQLite's
@@ -376,11 +376,9 @@ pub fn review_timestamp_micros(conn: &Connection, value: &str) -> rusqlite::Resu
     if !valid_review_timestamp(conn, value)? {
         return Ok(None);
     }
-    let seconds: Option<i64> = conn.query_row(
-        "SELECT CAST(strftime('%s',substr(?1,1,19)) AS INTEGER)",
-        [value],
-        |row| row.get(0),
-    )?;
+    let seconds: Option<i64> = conn
+        .prepare_cached("SELECT CAST(strftime('%s',substr(?1,1,19)) AS INTEGER)")?
+        .query_row([value], |row| row.get(0))?;
     let Some(seconds) = seconds else {
         return Ok(None);
     };
@@ -459,16 +457,17 @@ pub fn latest_fsrs_snapshot_for_assessment(
     item_key: &str,
     assessment_id: Option<&str>,
 ) -> rusqlite::Result<Option<(String, Option<String>)>> {
-    conn.query_row(
+    conn.prepare_cached(
         "SELECT CASE WHEN json_type(outcome,'$.schedule.state')='object'
                 THEN json_extract(outcome,'$.schedule.state') ELSE 'null' END, next_review
          FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome) THEN
            json_extract(outcome,'$.schedule.authority')='fsrs'
            AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END
          ORDER BY event_id DESC LIMIT 1",
-        rusqlite::params![item_key, assessment_id],
-        |row| Ok((row.get(0)?, row.get(1)?)),
-    )
+    )?
+    .query_row(rusqlite::params![item_key, assessment_id], |row| {
+        Ok((row.get(0)?, row.get(1)?))
+    })
     .optional()
 }
 
@@ -499,13 +498,12 @@ pub fn latest_review_event_id(
     item_key: &str,
     assessment_id: Option<&str>,
 ) -> rusqlite::Result<Option<i64>> {
-    conn.query_row(
+    conn.prepare_cached(
         "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1
          AND (?2 IS NULL OR CASE WHEN json_valid(outcome)
               THEN json_extract(outcome,'$.assessment_id')=?2 ELSE 0 END)",
-        rusqlite::params![item_key, assessment_id],
-        |r| r.get(0),
-    )
+    )?
+    .query_row(rusqlite::params![item_key, assessment_id], |r| r.get(0))
 }
 
 /// A later FSRS card does not prove earlier unavailable reviews were replayed.
@@ -611,6 +609,44 @@ pub fn previous_fsrs_review_timestamp(
     }
 }
 
+// An older invalid FSRS card can taint a later card produced by an older Core.
+// Include the active reset event itself: a corrupted reset is not proof of a
+// sound baseline merely because a later card happens to look well formed.
+fn has_invalid_prior_fsrs_card(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+    baseline_reset_event_id: Option<i64>,
+    latest_scheduled_id: Option<i64>,
+) -> rusqlite::Result<bool> {
+    let Some(latest) = latest_scheduled_id else {
+        return Ok(false);
+    };
+    let mut stmt = conn.prepare(
+        "SELECT CASE WHEN json_type(outcome,'$.schedule.state')='object'
+                THEN json_extract(outcome,'$.schedule.state') ELSE 'null' END, next_review
+         FROM learning_events WHERE item_key=?1 AND event_id>=COALESCE(?3,1) AND event_id<?4
+         AND CASE WHEN json_valid(outcome) THEN
+           json_extract(outcome,'$.schedule.authority')='fsrs'
+           AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END
+         ORDER BY event_id",
+    )?;
+    let mut rows = stmt.query(rusqlite::params![
+        item_key,
+        assessment_id,
+        baseline_reset_event_id,
+        latest
+    ])?;
+    while let Some(row) = rows.next()? {
+        let state: String = row.get(0)?;
+        let due: Option<String> = row.get(1)?;
+        if previous_fsrs_review_timestamp(conn, &state, due.as_deref())?.is_none() {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 pub fn review_schedule_basis(
     conn: &Connection,
     item_key: &str,
@@ -619,16 +655,16 @@ pub fn review_schedule_basis(
     let previous_snapshot = latest_fsrs_snapshot_for_assessment(conn, item_key, assessment_id)?;
     let previous_state = previous_snapshot.as_ref().map(|(state, _)| state.clone());
     let latest_event_id = latest_review_event_id(conn, item_key, assessment_id)?;
-    let last_scheduled_id: Option<i64> = conn.query_row(
+    let last_scheduled_id: Option<i64> = conn.prepare_cached(
         "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
          THEN json_extract(outcome,'$.schedule.authority')='fsrs'
-          AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END",
+          AND (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2) ELSE 0 END")?.query_row(
         rusqlite::params![item_key, assessment_id],
         |r| r.get(0),
     )?;
     // A human-declared new baseline is append-only and only exists after a
     // successful FSRS result. Its metadata remains visible to later consumers.
-    let baseline_reset_event_id: Option<i64> = conn.query_row(
+    let baseline_reset_event_id: Option<i64> = conn.prepare_cached(
         "SELECT MAX(event_id) FROM learning_events WHERE item_key=?1 AND event_id>0 AND CASE WHEN json_valid(outcome)
          THEN (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
           AND json_extract(outcome,'$.review_evidence.schedule_reset.mode')='start_new'
@@ -642,7 +678,7 @@ pub fn review_schedule_basis(
           AND json_extract(outcome,'$.schedule.recovery.excluded_through_event_id')=json_extract(outcome,'$.review_evidence.schedule_reset.expected_latest_event_id')
           AND json_extract(outcome,'$.schedule.authority')='fsrs'
           AND json_extract(outcome,'$.schedule.recovery.state')='reset'
-         ELSE 0 END",
+         ELSE 0 END")?.query_row(
         rusqlite::params![item_key, assessment_id],
         |r| r.get(0),
     )?;
@@ -650,17 +686,20 @@ pub fn review_schedule_basis(
     // time, rating and FSRS card needed to include them in a stateful history.
     // Look back to the last explicit baseline, not just the last FSRS card:
     // an older Core may already have produced that card while skipping a gap.
-    let legacy_gap: bool = conn.query_row(
-        "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND kind='review'
+    let legacy_gap: bool = conn
+        .prepare_cached(
+            "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND kind='review'
          AND event_id>COALESCE(?3,0) AND CASE WHEN json_valid(outcome) THEN
            (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
            AND (json_type(outcome,'$.schedule') IS NOT 'object'
                 OR json_type(outcome,'$.schedule.authority') IS NOT 'text'
                 OR json_extract(outcome,'$.schedule.authority') NOT IN ('fsrs','unavailable'))
          ELSE ?2 IS NULL END)",
-        rusqlite::params![item_key, assessment_id, baseline_reset_event_id],
-        |r| r.get(0),
-    )?;
+        )?
+        .query_row(
+            rusqlite::params![item_key, assessment_id, baseline_reset_event_id],
+            |r| r.get(0),
+        )?;
     let mut stmt = conn.prepare(
         "SELECT event_id,outcome FROM learning_events WHERE item_key=?1 AND event_id>COALESCE(?3,0)
          AND CASE WHEN json_valid(outcome) THEN json_extract(outcome,'$.schedule.authority')='unavailable'
@@ -691,6 +730,17 @@ pub fn review_schedule_basis(
         if latest_reviewed_at_micros.is_none() && recovery_issue.is_none() {
             recovery_issue = Some("invalid_previous_card");
         }
+    }
+    if recovery_issue.is_none()
+        && has_invalid_prior_fsrs_card(
+            conn,
+            item_key,
+            assessment_id,
+            baseline_reset_event_id,
+            last_scheduled_id,
+        )?
+    {
+        recovery_issue = Some("invalid_previous_card");
     }
     while let Some(row) = rows.next()? {
         if recovery_issue.is_some() {
@@ -757,14 +807,13 @@ fn review_schedule_is_valid_with_prevalidated_instants(
     schedule: &ReviewSchedule,
     instants: Option<(i64, i64)>,
 ) -> rusqlite::Result<bool> {
-    let valid_json: bool =
-        conn.query_row("SELECT json_valid(?1)", [&schedule.schedule_json], |r| {
-            r.get(0)
-        })?;
+    let valid_json: bool = conn
+        .prepare_cached("SELECT json_valid(?1)")?
+        .query_row([&schedule.schedule_json], |r| r.get(0))?;
     if !valid_json {
         return Ok(false);
     }
-    let valid: bool = conn.query_row(
+    let valid: bool = conn.prepare_cached(
         "SELECT COALESCE(json_type(?1)='object' AND (
           (json_extract(?1,'$.authority')='unavailable' AND ?2 IS NULL AND ?3=-2)
           OR (json_extract(?1,'$.authority')='fsrs' AND ?3>=0
@@ -779,19 +828,16 @@ fn review_schedule_is_valid_with_prevalidated_instants(
               AND json_type(?1,'$.state.stability') IN ('real','integer')
               AND json_type(?1,'$.state.difficulty') IN ('real','integer')
               AND json_extract(?1,'$.state.stability')>0
-              AND json_extract(?1,'$.state.difficulty') BETWEEN 1 AND 10)), 0)",
-        rusqlite::params![schedule.schedule_json, schedule.next_review, schedule.next_review_days], |r| r.get(0),
-    )?;
+              AND json_extract(?1,'$.state.difficulty') BETWEEN 1 AND 10)), 0)")?
+        .query_row(rusqlite::params![schedule.schedule_json, schedule.next_review, schedule.next_review_days], |r| r.get(0))?;
     if !valid {
         return Ok(false);
     }
     if let Some(due) = schedule.next_review.as_deref() {
-        let (last_review, stability, difficulty): (String, f64, f64) = conn.query_row(
+        let (last_review, stability, difficulty): (String, f64, f64) = conn.prepare_cached(
             "SELECT json_extract(?1,'$.state.last_review'), json_extract(?1,'$.state.stability'),
-                    json_extract(?1,'$.state.difficulty')",
-            [&schedule.schedule_json],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
-        )?;
+                    json_extract(?1,'$.state.difficulty')")?
+            .query_row([&schedule.schedule_json], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?;
         if !schedule_timestamp_shape(due)
             || !schedule_timestamp_shape(&last_review)
             || !stability.is_finite()

@@ -411,13 +411,16 @@ previously exposed replay-gap reason retains priority. The projection includes l
 placeholder deadlines in the withheld set; raw event history and historical counts remain
 unchanged. A scoped assessment does not inherit other assessments' gaps. A human-declared reset
 can establish a later baseline, but does not reconstruct old evidence. The prior-card quick
-check shares the scheduling path's persisted-card validation. The latest saved FSRS card must
-meet the same field and timestamp bounds as a new scheduler result, and its `due` must match
-the event's recorded `next_review`. The elapsed whole days are derived from those stored times
-only to reuse the validator; this does not prove the original worker's independently reported
-interval. Missing or invalid fields produce `invalid_previous_card`, preserve the historical
-event and withhold the current deadline. A historical card outside the current bounds may require
-an explicit new baseline even if an older version previously accepted it.
+check shares the scheduling path's persisted-card validation. Each saved FSRS card within the
+active assessment and scheduling baseline, including the reset event itself, must meet the same
+field and timestamp bounds as a new scheduler result; its `due` must match that event's recorded
+`next_review`. A later well-formed card does not establish that an earlier invalid card was
+handled correctly. The elapsed whole days are derived from stored times only to reuse the
+validator; this does not prove the original worker's independently reported interval. Missing or
+invalid fields produce `invalid_previous_card`, preserve historical events and withhold the
+current deadline. A human-declared later reset establishes a new baseline and excludes earlier
+cards; a historical card outside current bounds may require this reset even if an older version
+previously accepted it. The history check grows with the number of cards in the active baseline.
 
 For a new non-reset review with an otherwise recoverable history, the effective `now` must not
 precede the last evidenced review on that scoped card: the Core returns `400` before invoking the

@@ -1357,3 +1357,128 @@ async fn incomplete_or_inconsistent_historical_fsrs_cards_are_not_current_deadli
         assert_unverified_projection(&router, name, "invalid_previous_card").await;
     }
 }
+
+#[tokio::test]
+async fn an_invalid_historical_fsrs_card_cannot_be_hidden_by_a_later_card() {
+    for invalid_reset in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir
+            .path()
+            .join(format!("prior-invalid-{invalid_reset}.sqlite"));
+        let item = "synthetic-prior-invalid";
+        let due = "2026-09-10T00:00:00Z";
+        let good = json!({"state":"review","step":null,"stability":5.0,"difficulty":5.0,
+            "last_review":"2026-09-03T00:00:00Z","due":due});
+        let cursor = {
+            let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+            let initial = json!({"outcome":"correct","schedule":{"authority":"fsrs","state":good}});
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+                rusqlite::params![item, initial.to_string(), due]).unwrap();
+            let initial_id = conn.last_insert_rowid();
+            let bad = json!({"state":"review","step":null,"difficulty":5.0,
+                "last_review":"2026-09-03T00:00:00Z","due":due});
+            let mut invalid =
+                json!({"outcome":"correct","schedule":{"authority":"fsrs","state":bad}});
+            if invalid_reset {
+                invalid["review_evidence"] = json!({"schedule_reset":{"mode":"start_new",
+                    "reason":"synthetic reset","expected_latest_event_id":initial_id}});
+                invalid["schedule"]["recovery"] = json!({"mode":"start_new","state":"reset",
+                    "reason":"synthetic reset","excluded_through_event_id":initial_id});
+            }
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+                rusqlite::params![item, invalid.to_string(), due]).unwrap();
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+                rusqlite::params![item, initial.to_string(), due]).unwrap();
+            let cursor = conn.last_insert_rowid();
+            let basis =
+                archeaxis_domain::learning::review_schedule_basis(&conn, item, None).unwrap();
+            assert_eq!(
+                basis.recovery_issue,
+                Some("invalid_previous_card"),
+                "invalid_reset={invalid_reset}"
+            );
+            cursor
+        };
+        let router = app(db.to_str().unwrap()).unwrap();
+        assert_unverified_projection(&router, item, "invalid_previous_card").await;
+        let (_, before) = get_path(&router, &format!("/api/v1/learning/events/{item}")).await;
+        drop(router);
+        {
+            let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+            let reset = json!({"outcome":"correct", "review_evidence":{"schedule_reset":{"mode":"start_new",
+                "reason":"new synthetic baseline","expected_latest_event_id":cursor}},
+                "schedule":{"authority":"fsrs","state":good,"recovery":{"mode":"start_new","state":"reset",
+                    "reason":"new synthetic baseline","excluded_through_event_id":cursor}}});
+            conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+                rusqlite::params![item, reset.to_string(), due]).unwrap();
+        }
+        let router = app(db.to_str().unwrap()).unwrap();
+        let (_, state) = get_path(&router, &format!("/api/v1/learning/items/{item}/state")).await;
+        assert_eq!(state["learner"]["next_review"], due);
+        assert!(state["learner"].get("schedule_integrity").is_none());
+        let (_, after) = get_path(&router, &format!("/api/v1/learning/events/{item}")).await;
+        let old = before["events"].as_array().unwrap();
+        assert_eq!(
+            &after["events"].as_array().unwrap()[..old.len()],
+            old.as_slice()
+        );
+    }
+}
+
+#[tokio::test]
+async fn earlier_invalid_fsrs_cards_are_scoped_to_the_current_assessment() {
+    fn event(conn: &rusqlite::Connection, assessment: &str, invalid: bool) {
+        let due = "2026-09-10T00:00:00Z";
+        let mut card = json!({"state":"review","step":null,"stability":5.0,"difficulty":5.0,
+            "last_review":"2026-09-03T00:00:00Z","due":due});
+        if invalid {
+            card.as_object_mut().unwrap().remove("stability");
+        }
+        let outcome = json!({"assessment_id":assessment,"outcome":"correct",
+            "schedule":{"authority":"fsrs","state":card}});
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+            rusqlite::params!["assessment-tie-1",outcome.to_string(),due]).unwrap();
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("prior-invalid-assessment.sqlite");
+    let (old, current) = assessment_revision_fixture(&db);
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        event(&conn, &old.assessment_id, true);
+        event(&conn, &old.assessment_id, false);
+        event(&conn, &current.assessment_id, false);
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (_, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(state["learner"]["next_review"], "2026-09-10T00:00:00Z");
+    assert!(state["learner"].get("schedule_integrity").is_none());
+    drop(router);
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        event(&conn, &current.assessment_id, true);
+        event(&conn, &current.assessment_id, false);
+    }
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (_, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(state["learner"]["next_review"], Value::Null);
+    assert_eq!(
+        state["learner"]["assessment_progress"]["latest_review"]["next_review"],
+        Value::Null
+    );
+    assert_eq!(
+        state["learner"]["schedule_integrity"]["reason"],
+        "invalid_previous_card"
+    );
+    let (_, queue) = get_items(&router).await;
+    let item = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["item_key"] == "assessment-tie-1")
+        .unwrap();
+    assert_eq!(item["next_review"], Value::Null);
+    assert_eq!(
+        item["schedule_integrity"]["reason"],
+        "invalid_previous_card"
+    );
+}
