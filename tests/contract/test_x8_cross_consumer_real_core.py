@@ -34,6 +34,7 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
     from scripts.probes.aaos_ai_reference_observation_smoke import request as bounded_request
 
     real_model = os.environ.get("AAOS_TEST_X8_REAL_MODEL") == "1"
+    scoped_learning = os.environ.get("AAOS_TEST_X8_SCOPED_LEARNING") == "1"
 
     class TestCore(Core):
         with_machine = real_model
@@ -57,7 +58,9 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
         with opener.open(BASE + "/models", timeout=5) as response:
             inventory = json.load(response)
         assert MODEL in {row.get("id") for row in inventory.get("data", []) if isinstance(row, dict)}
-    core = TestCore(Path(os.environ["AAOS_TEST_CORE_EXE"]), tmp_path, Path(sys.executable))
+    core_exe = Path(os.environ["AAOS_TEST_CORE_EXE"]).resolve(strict=True)
+    core_sha = hashlib.sha256(core_exe.read_bytes()).hexdigest()
+    core = TestCore(core_exe, tmp_path, Path(sys.executable))
 
     def snapshot(value):
         return {key: value[key] for key in ("document_id", "version", "content_sha256")}
@@ -76,6 +79,19 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
             "body": "Synthetic knowledge before correction", "status": "accepted", "created_by": "synthetic owner"}, expected=201)
         kid = knowledge["knowledge_id"]
         knowledge_ref = {"kind": "knowledge", "knowledge_id": kid}
+        learning_path = "/api/v1/learning/items/x8_revision_card"
+        old_assessment = None
+        learning_state = None
+        learning_history = None
+        if scoped_learning:
+            call("POST", learning_path + "/references", {"knowledge_id": kid}, expected=201)
+            old_assessment = call("POST", learning_path + "/assessment", {"knowledge_id": kid}, expected=201)
+            old_review = call("POST", "/api/v1/learning/reviews", {
+                "item_key": "x8_revision_card", "client_event_id": "x8_old_review", "correct": True,
+                "rating": 3, "now": "2026-10-01T00:00:00+00:00", "answer": "synthetic old answer",
+                "assessment_id": old_assessment["assessment_id"], "knowledge_version": kid}, expected=201)
+            assert old_review["schedule_authority"] == "fsrs"
+            assert old_review["next_review"] == "2026-10-01T00:10:00+00:00"
         research = call("POST", "/api/v1/documents", {"title": "Synthetic research",
             "editor_json": {"type": "doc", "content": [], "attrs": {"archeaxis_research": {
                 "schema": "archeaxis.research/v1", "question": "Synthetic question",
@@ -164,11 +180,36 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
 
         answer = None
         answer_request = None
-        if real_model:
-            purpose = packet_request["purpose"]
+        if real_model or scoped_learning:
             accepted = call("POST", f"/api/v1/knowledge-items/{successor['knowledge_id']}/review-decisions", {
                 "action": "accepted", "reviewer": "synthetic owner"})
             assert accepted["knowledge_id"] == successor["knowledge_id"]
+        if scoped_learning:
+            successor_id = successor["knowledge_id"]
+            call("POST", learning_path + "/references", {"knowledge_id": successor_id}, expected=201)
+            new_assessment = call("POST", learning_path + "/assessment", {"knowledge_id": successor_id}, expected=201)
+            assert new_assessment["assessment_id"] != old_assessment["assessment_id"]
+            pending = call("GET", learning_path + "/state")
+            check_schema("packages/contracts/v1/core-document.schema.json", "LearningStateDto", pending)
+            assert pending["learner"]["assessment_progress"]["event_count"] == 0
+            assert pending["learner"]["correct_streak"] == 0 and pending["learner"]["next_review"] is None
+            assert pending["learner"]["latest_review"]["assessment_id"] == old_assessment["assessment_id"]
+            new_review = call("POST", "/api/v1/learning/reviews", {
+                "item_key": "x8_revision_card", "client_event_id": "x8_new_review", "correct": True,
+                "rating": 3, "now": "2026-10-01T00:10:00+00:00", "answer": "synthetic new answer",
+                "assessment_id": new_assessment["assessment_id"], "knowledge_version": successor_id}, expected=201)
+            assert new_review["schedule_authority"] == "fsrs"
+            assert new_review["next_review"] == "2026-10-01T00:20:00+00:00"
+            assert new_review["streak_after"] == new_review["mastery_projection"]["attempts"] == 1
+            learning_state = call("GET", learning_path + "/state")
+            learning_history = call("GET", "/api/v1/learning/events/x8_revision_card")
+            outcomes = [json.loads(row["outcome"]) for row in learning_history["events"]]
+            assert [value["assessment_id"] for value in outcomes] == [old_assessment["assessment_id"],
+                                                                         new_assessment["assessment_id"]]
+            assert learning_state["learner"]["assessment_progress"]["event_count"] == 1
+            check_schema("packages/contracts/v1/core-document.schema.json", "LearningStateDto", learning_state)
+        if real_model:
+            purpose = packet_request["purpose"]
             knowledge_grant = {"schema": "archeaxis.context-grant/v1", "purpose": purpose,
                 "consumer": "local-machine", "operations": ["answer"], "knowledge_id": successor["knowledge_id"],
                 "provenance": [], "authorization_basis": "synthetic fixture grant", "expires_at": None, "state": "granted"}
@@ -202,6 +243,9 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
         assert reopened[3]["duplicate"] is True
         assert reopened[3]["packet_sha256"] == after[3]["packet_sha256"]
         assert reopened[3]["packet"] == after[3]["packet"]
+        if scoped_learning:
+            assert call("GET", learning_path + "/state") == learning_state
+            assert call("GET", "/api/v1/learning/events/x8_revision_card") == learning_history
         if real_model:
             assert core.request("GET", "/api/v1/capabilities/machine.answer")[0] == 404
             assert call("POST", "/api/v1/machine/answers", answer_request) == answer
@@ -223,12 +267,15 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
         restored_receipt = json.loads(result.stdout) if result.stdout else {}
         assert result.returncode == 0 and restored_receipt.get("ok") is True
         assert restored_receipt.get("authorization_requires_new_grants") is True
-        core = TestCore(Path(os.environ["AAOS_TEST_CORE_EXE"]), restored_dir, Path(sys.executable))
+        core = TestCore(core_exe, restored_dir, Path(sys.executable))
         core.with_machine = False
         core.start()
         assert call("GET", knowledge_path) == after[0]
         assert call("GET", research_path) == after[1]
         assert call("GET", teaching_path) == after[2]
+        if scoped_learning:
+            assert call("GET", learning_path + "/state") == learning_state
+            assert call("GET", "/api/v1/learning/events/x8_revision_card") == learning_history
         assert core.request("POST", "/api/v1/ai/context-packets", revised_request)[0] == 403
         if real_model:
             assert call("GET", f"/api/v1/machine/tasks/{answer['answer_id']}") == saved_answer
@@ -241,9 +288,14 @@ def test_one_revision_reaches_four_consumers_and_survives_restart(tmp_path):
         assert restored_states[0]["version_relation"] == "historical"
         assert restored_states[1]["reference"] == knowledge_ref and restored_states[1]["currentness"] == "superseded"
         check_schema("packages/contracts/v2/ai-asset.schema.json", "AssetPacketResponse", restored_packet)
+        assert hashlib.sha256(core_exe.read_bytes()).hexdigest() == core_sha
         if output := os.environ.get("AAOS_TEST_X8_OUTPUT"):
             receipt = {"synthetic": True, "knowledge_revision": "superseded", "document_relation": "historical",
-                "four_consumer_projections": "observed", "learning_score": "not_scored",
+                "four_consumer_projections": "observed", "teaching_observation_score": "not_scored",
+                "learning_score": "SYNTHETIC_SELF_REPORTED" if scoped_learning else "not_scored",
+                "independent_mastery": "NOT_ESTABLISHED",
+                "separate_assessment_reviews": scoped_learning, "fsrs": "local_worker" if scoped_learning else None,
+                "core_sha256": core_sha, "core_identity_unchanged": True,
                 "restarted": True, "backup_verified": True, "independent_restore": True,
                 "old_grants_fenced": True, "machine_model": MODEL if real_model else None,
                 "machine_max_tokens": 4096 if real_model else None,
