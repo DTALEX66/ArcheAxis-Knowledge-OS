@@ -4932,3 +4932,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 所有回执位于 `.project-local/runs/ccc4a08b4a/` 且基线为 `79848d3a`：两次观察 patch `8b3604ab8b8541cf592807dbee472dfd099fade4d6dc59fc5b61a44243872971`，反例 patch `f3d3f3e30f9b07adf167e39d88b4ac4fc12b10ee8f0dae364c484f5d4011f1b4`，API／领域 patch `358fe96a403914fbf54bb11c6d41b5e1b31b05854c0b6a7e49b0e7955227fbc3`，构建／真实 Core／联合测试与性能测量 patch `88cac9222d73925c99a1533af920597d9cd059708a2f92482e865475f9d09eff`，均 `source_consistent:true`。新 Core 按摘要保存在 `learning-historical-card-fields-save-core-20261110/artifacts/core-historical-card-validation.exe`（32,429,056 B），固定存储基线仍 `REVIEW_REQUIRED`。这些是局部合成工程证据，不是本修复的精确 SHA 云 CI、安装态、真实学习或 Owner 接受；全闭环仍为 PARTIAL。
 
 - 文档回写后的 `learning-card-fields-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范、contracts-vnext、Ruff 和 Rust 格式检查通过。检查绑定 `79848d3a`、patch `ee3b6dcae4237e2b0917f701a8ca847da913e0d61e78dddd28fe0f3ba4d7a3e1`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。
+
+
+#### 2026-11-10 · 旧卡校验的时间查询复用
+
+- 上一节完整旧卡校验在取得已验证的 `last_review`／`due` 时刻后，又由同一校验器重复查询两次。现仅在旧卡调用链内部传递刚通过 `review_timestamp_micros` 的两个时刻；JSON、卡片字段、日期形状、数值范围、到期日一致性和间隔核对仍执行。一般新 worker 输出继续走原有公开校验入口，不接受外部提供的预校验时刻。
+- `learning-card-timestamp-opt-api-20261110/` **25 passed**，领域 `learning-card-timestamp-opt-domain-20261110/` **23 passed**；真实 Core 的七种损坏卡片、旧记录、恢复／重置与旧 Core 跨版本 `learning-card-timestamp-opt-real-core-20261110/` **11 passed**。Core SHA-256 `689b15df4b5a959ca11a34f95b2ee693ac45fc0a7a1a733970966582c06eccc0`，按摘要封存于 `learning-card-timestamp-opt-save-core-20261110/artifacts/core-timestamp-optimized.exe`（32,429,056 B）；旧 Core 身份仍为既有 `ASSERTED_NOT_VERIFIED`，无安装态含义。
+- 2,000 个合成项目、各三次，本机队列中位：无评测 **0.543→0.473 秒**，带评测 **0.568→0.495 秒**；对照二进制分别为上一节 `299dff67` 与本节 `689b15df`。仅本机合成小样本，仍高于加入完整性检查前约 **0.10–0.14 秒**；真实目标负载、安装态体验及进一步优化均未验证。回执 `learning-card-timestamp-opt-perf-plain-20261110/`、`learning-card-timestamp-opt-perf-assessed-20261110/`。
+- 以上运行均绑定 `35a34bef`、patch `800341ef4f1f8fbda8cd8e0268c18a651597966a302ab2c0bef4a43dacf384f4`、`source_consistent:true`；不是精确提交态构建。新增本地 Core 保存副本未改变固定存储基线的 `REVIEW_REQUIRED`。完整 X2／X8、真实学习、安装态、精确 SHA 云 CI 和 Owner 接受仍未证明；V3 闭环仍为 PARTIAL。
+
+- 文档回写后的 `learning-card-timestamp-opt-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范和 Rust 格式检查通过。检查绑定 `35a34bef`、patch `29f7ac0ae3fe36ba863c91e93d77f56ccc1d23bd867aa88cc8085bfa676479d7`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。

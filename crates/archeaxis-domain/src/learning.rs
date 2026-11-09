@@ -600,7 +600,11 @@ pub fn previous_fsrs_review_timestamp(
         next_review: Some(due.to_owned()),
         next_review_days: elapsed / 86_400_000_000,
     };
-    if review_schedule_is_valid(conn, &schedule)? {
+    if review_schedule_is_valid_with_prevalidated_instants(
+        conn,
+        &schedule,
+        Some((due_instant, last)),
+    )? {
         Ok(Some(last))
     } else {
         Ok(None)
@@ -743,6 +747,16 @@ pub fn review_schedule_is_valid(
     conn: &Connection,
     schedule: &ReviewSchedule,
 ) -> rusqlite::Result<bool> {
+    review_schedule_is_valid_with_prevalidated_instants(conn, schedule, None)
+}
+
+// Only the previous-card caller may pass timestamps it just validated with
+// review_timestamp_micros; worker outputs always take the public validation path.
+fn review_schedule_is_valid_with_prevalidated_instants(
+    conn: &Connection,
+    schedule: &ReviewSchedule,
+    instants: Option<(i64, i64)>,
+) -> rusqlite::Result<bool> {
     let valid_json: bool =
         conn.query_row("SELECT json_valid(?1)", [&schedule.schedule_json], |r| {
             r.get(0)
@@ -785,11 +799,15 @@ pub fn review_schedule_is_valid(
         {
             return Ok(false);
         }
-        let (Some(due_instant), Some(review_instant)) = (
-            review_timestamp_micros(conn, due)?,
-            review_timestamp_micros(conn, &last_review)?,
-        ) else {
-            return Ok(false);
+        let (due_instant, review_instant) = match instants {
+            Some(values) => values,
+            None => match (
+                review_timestamp_micros(conn, due)?,
+                review_timestamp_micros(conn, &last_review)?,
+            ) {
+                (Some(due), Some(review)) => (due, review),
+                _ => return Ok(false),
+            },
         };
         let Some(elapsed) = due_instant.checked_sub(review_instant) else {
             return Ok(false);
