@@ -59,13 +59,15 @@ async fn get_path(router: &axum::Router, path: &str) -> (StatusCode, Value) {
     )
 }
 
-#[tokio::test]
-async fn assessment_and_learning_state_keep_newest_snapshot_and_old_review_separate() {
+fn assessment_revision_fixture(
+    db: &std::path::Path,
+) -> (
+    archeaxis_domain::learning::AssessmentRecord,
+    archeaxis_domain::learning::AssessmentRecord,
+) {
     use archeaxis_domain::{knowledge, learning};
-    let dir = tempfile::tempdir().unwrap();
-    let db = dir.path().join("assessment-order-api.sqlite");
     let item = "assessment-tie-1";
-    let (old, revised) = {
+    {
         let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
         let old_id = knowledge::create_knowledge(
             &mut conn,
@@ -104,7 +106,15 @@ async fn assessment_and_learning_state_keep_newest_snapshot_and_old_review_separ
         )
         .unwrap();
         (old, revised)
-    };
+    }
+}
+
+#[tokio::test]
+async fn assessment_and_learning_state_keep_newest_snapshot_and_old_review_separate() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("assessment-order-api.sqlite");
+    let item = "assessment-tie-1";
+    let (old, revised) = assessment_revision_fixture(&db);
     for _ in 0..2 {
         let router = app(db.to_str().unwrap()).unwrap();
         let (status, assessment) = get_path(
@@ -129,6 +139,120 @@ async fn assessment_and_learning_state_keep_newest_snapshot_and_old_review_separ
         );
         assert_eq!(state["learner"]["event_count"], 1);
     }
+}
+
+#[tokio::test]
+async fn revised_assessment_starts_its_own_review_history_and_schedule() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("assessment-review-isolation.sqlite");
+    let (old, revised) = assessment_revision_fixture(&db);
+    let router = app(db.to_str().unwrap()).unwrap();
+    let body = json!({"item_key":"assessment-tie-1", "client_event_id":"revised-review",
+        "correct":true, "rating":3, "now":"2026-10-02T00:00:00+00:00",
+        "answer":"synthetic revised answer", "assessment_id":revised.assessment_id,
+        "knowledge_version":revised.knowledge_version});
+    let (status, response) = post(&router, body.clone(), "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{response}");
+    assert_eq!(response["schedule_authority"], "fsrs", "{response}");
+    assert_eq!(
+        response["schedule_state"]["state"], "learning",
+        "{response}"
+    );
+    assert_eq!(response["schedule_state"]["step"], 1, "{response}");
+    assert_eq!(
+        response["next_review"], "2026-10-02T00:10:00+00:00",
+        "{response}"
+    );
+    assert_eq!(response["streak_after"], 1, "{response}");
+    assert_eq!(response["mastery_projection"]["attempts"], 1, "{response}");
+    let (_, history) = get_path(&router, "/api/v1/learning/events/assessment-tie-1").await;
+    assert_eq!(history["count"], 2);
+    let first: Value =
+        serde_json::from_str(history["events"][0]["outcome"].as_str().unwrap()).unwrap();
+    let second: Value =
+        serde_json::from_str(history["events"][1]["outcome"].as_str().unwrap()).unwrap();
+    assert_eq!(first["assessment_id"], old.assessment_id);
+    assert_eq!(second["assessment_id"], revised.assessment_id);
+    let (status, replay) = post(&router, body.clone(), "human").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(replay["event_id"], response["event_id"]);
+    assert_eq!(replay["schedule_state"], response["schedule_state"]);
+    assert_eq!(replay["mastery_projection"], response["mastery_projection"]);
+
+    let mut next = body.clone();
+    next["client_event_id"] = json!("revised-review-next");
+    next["now"] = json!("2026-10-02T00:10:00+00:00");
+    let (status, continued) = post(&router, next, "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{continued}");
+    assert_eq!(continued["streak_after"], 2);
+    assert_eq!(continued["mastery_projection"]["attempts"], 2);
+    assert_eq!(continued["next_review"], "2026-10-04T00:10:00+00:00");
+
+    // A later historical-version review must not replace the new version's
+    // deadline or streak, though it remains the newest item-level event.
+    let mut historical = body;
+    historical["client_event_id"] = json!("old-review-later");
+    historical["assessment_id"] = json!(old.assessment_id);
+    historical["knowledge_version"] = json!(old.knowledge_version);
+    historical["correct"] = json!(false);
+    historical["rating"] = json!(1);
+    let (status, old_later) = post(&router, historical, "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{old_later}");
+    let (_, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(
+        state["learner"]["latest_review"]["assessment_id"],
+        old.assessment_id
+    );
+    assert_eq!(
+        state["learner"]["assessment_progress"]["latest_review"]["event_id"],
+        continued["event_id"]
+    );
+    assert_eq!(state["learner"]["assessment_progress"]["event_count"], 2);
+    assert_eq!(state["learner"]["correct_streak"], 2);
+    assert_eq!(state["learner"]["next_review"], continued["next_review"]);
+    let (_, queue) = get_items(&router).await;
+    let entry = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["item_key"] == "assessment-tie-1")
+        .unwrap();
+    assert_eq!(entry["next_review"], continued["next_review"]);
+}
+
+#[tokio::test]
+async fn revised_assessment_does_not_display_the_old_assessment_due_or_streak() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("assessment-queue-isolation.sqlite");
+    let (old, revised) = assessment_revision_fixture(&db);
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        state["learner"]["assessment"]["assessment_id"],
+        revised.assessment_id
+    );
+    assert_eq!(state["learner"]["correct_streak"], 0, "{state}");
+    assert!(state["learner"]["next_review"].is_null(), "{state}");
+    assert_eq!(
+        state["learner"]["assessment_progress"]["event_count"], 0,
+        "{state}"
+    );
+    assert!(state["learner"]["assessment_progress"]["latest_review"].is_null());
+    // The old review stays visible as historical item activity, with its original identity.
+    assert_eq!(
+        state["learner"]["latest_review"]["assessment_id"],
+        old.assessment_id
+    );
+    assert_eq!(state["learner"]["event_count"], 1);
+    let (_, queue) = get_items(&router).await;
+    let entry = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["item_key"] == "assessment-tie-1")
+        .unwrap();
+    assert!(entry["next_review"].is_null(), "{entry}");
 }
 
 fn request(key: &str, instant: &str) -> Value {

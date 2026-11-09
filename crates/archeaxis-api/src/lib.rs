@@ -623,10 +623,6 @@ async fn item_state(
             Ok(rows) => rows,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
-        let streak = match learning::correct_streak(conn, &item_key) {
-            Ok(value) => value,
-            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        };
         let references = match learning::references_for_card(conn, &item_key) {
             Ok(found) => found
                 .into_iter()
@@ -635,11 +631,30 @@ async fn item_state(
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
         let assessment = match learning::assessment_for_item_key(conn, &item_key) {
-            Ok(Some(value)) => assessment_json(conn, &value),
-            Ok(None) => serde_json::Value::Null,
+            Ok(value) => value,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
+        let assessment_id = assessment.as_ref().map(|value| value.assessment_id.as_str());
+        let streak = match learning::correct_streak_for_assessment(conn, &item_key, assessment_id) {
+            Ok(value) => value,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        };
+        let scoped_events = match assessment_id {
+            Some(id) => match learning::events_for_assessment(conn, &item_key, id) {
+                Ok(value) => value,
+                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            },
+            None => events.clone(),
+        };
         let latest_review = latest_review_projection(&events);
+        let scoped_review = latest_review_projection(&scoped_events);
+        let assessment_progress = assessment.as_ref().map(|value| serde_json::json!({
+            "assessment_id": value.assessment_id, "knowledge_id": value.knowledge_id,
+            "knowledge_version": value.knowledge_version, "event_count": scoped_events.len(),
+            "correct_streak": streak, "latest_review": scoped_review,
+        })).unwrap_or(serde_json::Value::Null);
+        let assessment = assessment.as_ref().map(|value| assessment_json(conn, value))
+            .unwrap_or(serde_json::Value::Null);
         let unscheduled = events.iter().filter(|(_, _, _, next)| next.is_none()).count();
         let scheduled = events.len() - unscheduled;
         (
@@ -649,10 +664,13 @@ async fn item_state(
                 "learner": {
                     "event_count": events.len(),
                     "correct_streak": streak,
+                    "correct_streak_scope": if assessment_id.is_some() { "assessment" } else { "legacy_item" },
+                    "aggregate_scope": "item_history",
                     "scheduled_events": scheduled,
                     "unscheduled_events": unscheduled,
-                    "next_review": latest_review.get("next_review").cloned().unwrap_or(serde_json::Value::Null),
+                    "next_review": scoped_review.get("next_review").cloned().unwrap_or(serde_json::Value::Null),
                     "assessment": assessment,
+                    "assessment_progress": assessment_progress,
                     "latest_review": latest_review,
                     "references": references,
                     "recording": "a human records learning outcomes through the learning-events endpoint; an unavailable schedule is stored as unscheduled rather than invented",
@@ -1133,10 +1151,15 @@ async fn record_stateful_review(
     // writer while it does, so a slow schedule cannot block document saves or other reads.
     let snapshot_key = body.item_key.clone();
     let snapshot_now = body.now.clone();
+    let snapshot_assessment = assessment_id.clone();
     let (previous_fsrs_state, instant) = match state
         .clone()
         .submit_wait(move |conn| -> rusqlite::Result<(Option<String>, String)> {
-            let previous = learning::latest_fsrs_state_json(conn, &snapshot_key)?;
+            let previous = learning::latest_fsrs_state_for_assessment(
+                conn,
+                &snapshot_key,
+                snapshot_assessment.as_deref(),
+            )?;
             let instant = match snapshot_now.as_ref() {
                 Some(now) => now.clone(),
                 None => conn.query_row("SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')", [], |r| {

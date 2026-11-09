@@ -69,6 +69,36 @@ pub fn correct_streak(conn: &Connection, item_key: &str) -> rusqlite::Result<u32
     Ok(streak)
 }
 
+/// Assessment-bound reviews use only observations for that immutable assessment.
+/// Unbound legacy reviews retain the existing item-wide behavior.
+pub fn correct_streak_for_assessment(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+) -> rusqlite::Result<u32> {
+    let Some(assessment_id) = assessment_id else {
+        return correct_streak(conn, item_key);
+    };
+    let mut stmt = conn.prepare(
+        "SELECT COALESCE(json_extract(outcome, '$.outcome') = 'correct',
+                         json_type(outcome, '$.correct') = 'true', 0)
+         FROM learning_events WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
+         THEN json_extract(outcome, '$.assessment_id')=?2 ELSE 0 END ORDER BY event_id DESC",
+    )?;
+    let rows = stmt.query_map(rusqlite::params![item_key, assessment_id], |r| {
+        r.get::<_, bool>(0)
+    })?;
+    let mut streak = 0u32;
+    for row in rows {
+        if row? {
+            streak += 1;
+        } else {
+            break;
+        }
+    }
+    Ok(streak)
+}
+
 /// Record one human review outcome and persist the next-review hint.
 /// correct -> interval grows with the streak; incorrect resets to 1 day.
 pub fn record_review(
@@ -151,6 +181,7 @@ pub struct ReviewReceipt {
 fn learner_observation(
     conn: &Connection,
     item_key: &str,
+    assessment_id: Option<&str>,
 ) -> rusqlite::Result<(u32, u32, Option<String>)> {
     conn.query_row(
         "SELECT
@@ -162,8 +193,9 @@ fn learner_observation(
                                     json_type(outcome, '$.correct') = 'true', 0)
                       THEN created_at END)
          FROM learning_events
-         WHERE item_key = ?1 AND json_valid(outcome)",
-        [item_key],
+         WHERE item_key = ?1 AND json_valid(outcome)
+           AND (?2 IS NULL OR json_extract(outcome, '$.assessment_id') = ?2)",
+        rusqlite::params![item_key, assessment_id],
         |r| {
             let attempts: i64 = r.get(0)?;
             let days: i64 = r.get(1)?;
@@ -275,6 +307,28 @@ pub fn latest_fsrs_state_json(
          THEN json_extract(outcome, '$.schedule.authority') = 'fsrs' ELSE 0 END
          ORDER BY event_id DESC LIMIT 1",
         [item_key],
+        |r| r.get(0),
+    )
+    .optional()
+}
+
+/// Read only the FSRS state bound to this assessment. Unknown/legacy outcomes
+/// cannot be inferred to belong to a later assessment of the same item.
+pub fn latest_fsrs_state_for_assessment(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+) -> rusqlite::Result<Option<String>> {
+    let Some(assessment_id) = assessment_id else {
+        return latest_fsrs_state_json(conn, item_key);
+    };
+    conn.query_row(
+        "SELECT json_extract(outcome, '$.schedule.state') FROM learning_events
+         WHERE item_key=?1 AND CASE WHEN json_valid(outcome) THEN
+           json_extract(outcome, '$.schedule.authority')='fsrs'
+           AND json_extract(outcome, '$.assessment_id')=?2 ELSE 0 END
+         ORDER BY event_id DESC LIMIT 1",
+        rusqlite::params![item_key, assessment_id],
         |r| r.get(0),
     )
     .optional()
@@ -439,7 +493,7 @@ pub fn record_review_with_state_and_answer(
     // Confirm that snapshot is still current before recording it, so a review that moved the card in
     // the interim cannot be silently overwritten by a stale schedule.
     if let Some(expected_basis) = expected_previous_fsrs_state {
-        if latest_fsrs_state_json(&tx, item_key)? != expected_basis {
+        if latest_fsrs_state_for_assessment(&tx, item_key, assessment_id)? != expected_basis {
             return Err(invalid(
                 "schedule basis conflict: review state moved during scheduling",
             ));
@@ -450,7 +504,7 @@ pub fn record_review_with_state_and_answer(
         return Err(invalid("schedule state or exact due date is inconsistent"));
     }
     let streak_after = if correct {
-        correct_streak(&tx, item_key)? + 1
+        correct_streak_for_assessment(&tx, item_key, assessment_id)? + 1
     } else {
         0
     };
@@ -499,7 +553,8 @@ pub fn record_review_with_state_and_answer(
         rusqlite::params![item_key, kind, outcome_json, schedule.next_review],
     )?;
     let event_id = tx.last_insert_rowid();
-    let (attempts, distinct_correct_days, last_correct_at) = learner_observation(&tx, item_key)?;
+    let (attempts, distinct_correct_days, last_correct_at) =
+        learner_observation(&tx, item_key, assessment_id)?;
     let mastery_projection = mastery_projection_json(
         &schedule.schedule_json,
         streak_after,
@@ -696,10 +751,26 @@ pub fn events_for_item(
     rows.collect()
 }
 
-/// Return each referenced learning item once with its latest persisted review
-/// deadline. A referenced item with no review is a valid first-use queue entry
-/// and has a null deadline. This read projection never infers mastery or writes
-/// a review event.
+/// Read only review events explicitly bound to one immutable assessment.
+pub fn events_for_assessment(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: &str,
+) -> rusqlite::Result<Vec<(i64, String, String, Option<String>)>> {
+    let mut stmt = conn.prepare(
+        "SELECT event_id, kind, outcome, next_review FROM learning_events
+         WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
+         THEN json_extract(outcome, '$.assessment_id')=?2 ELSE 0 END ORDER BY event_id ASC",
+    )?;
+    let rows = stmt.query_map(rusqlite::params![item_key, assessment_id], |row| {
+        Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+    })?;
+    rows.collect()
+}
+
+/// Return each referenced item once. With an assessment, its deadline comes
+/// only from a review explicitly bound to the latest assessment. Unbound legacy
+/// items retain their item-wide deadline. No review or mastery is inferred.
 pub fn item_keys_with_latest_review(
     conn: &Connection,
 ) -> rusqlite::Result<Vec<(String, Option<String>)>> {
@@ -715,8 +786,15 @@ pub fn item_keys_with_latest_review(
          ) items
          LEFT JOIN learning_events latest
            ON latest.event_id = (
-               SELECT MAX(event_id) FROM learning_events
-               WHERE item_key=items.item_key
+               SELECT MAX(event_id) FROM learning_events e
+               WHERE e.item_key=items.item_key AND (
+                   NOT EXISTS (SELECT 1 FROM learning_assessments a WHERE a.item_key=items.item_key)
+                   OR CASE WHEN json_valid(e.outcome) THEN
+                       json_extract(e.outcome, '$.assessment_id') = (
+                           SELECT a.assessment_id FROM learning_assessments a
+                           WHERE a.item_key=items.item_key ORDER BY a.rowid DESC LIMIT 1
+                       ) ELSE 0 END
+               )
            )
          ORDER BY items.item_key ASC",
     )?;

@@ -68,6 +68,77 @@ fn assessment_rejects_non_current_or_unaccepted_knowledge() {
 }
 
 #[test]
+fn unbound_legacy_review_remains_history_but_is_not_assigned_to_new_assessment() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(
+        dir.path()
+            .join("legacy-assessment.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let item = "legacy-before-assessment";
+    learning::record_review_with_state_and_answer(
+        &mut conn,
+        item,
+        "review",
+        true,
+        "legacy-event",
+        "legacy",
+        None,
+        None,
+        None,
+        |_| Ok(fsrs_schedule()),
+    )
+    .unwrap();
+    assert_eq!(
+        learning::item_keys_with_latest_review(&conn).unwrap(),
+        vec![(item.to_string(), Some("2026-10-02T00:00:00+00:00".into()))]
+    );
+    let knowledge_id = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "Synthetic new assessment",
+        "accepted",
+        None,
+        None,
+        "fixture",
+    )
+    .unwrap();
+    learning::record_card_reference(&mut conn, item, &knowledge_id, None).unwrap();
+    let assessment = learning::create_assessment(&mut conn, item, &knowledge_id).unwrap();
+    assert_eq!(
+        learning::item_keys_with_latest_review(&conn).unwrap(),
+        vec![(item.to_string(), None)]
+    );
+    assert!(
+        learning::latest_fsrs_state_for_assessment(&conn, item, None)
+            .unwrap()
+            .is_some()
+    );
+    assert_eq!(
+        learning::latest_fsrs_state_for_assessment(&conn, item, Some(&assessment.assessment_id))
+            .unwrap(),
+        None
+    );
+    assert_eq!(
+        learning::correct_streak_for_assessment(&conn, item, None).unwrap(),
+        1
+    );
+    assert_eq!(
+        learning::correct_streak_for_assessment(&conn, item, Some(&assessment.assessment_id))
+            .unwrap(),
+        0
+    );
+    assert_eq!(learning::events_for_item(&conn, item).unwrap().len(), 1);
+    assert!(
+        learning::events_for_assessment(&conn, item, &assessment.assessment_id)
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
 fn newest_assessment_wins_same_second_without_reassigning_the_old_review() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("assessment-order.sqlite");

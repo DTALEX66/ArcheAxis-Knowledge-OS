@@ -350,11 +350,11 @@ a token-authentication boundary.
 | 15 | `POST /api/v1/learning/items/{item_key}/references` | any token | Links an accepted knowledge id. **No actor guard** — a machine principal may call it. |
 | 17 | `POST /api/v1/learning/items/{item_key}/assessment` | any token | Body `{knowledge_id}`. **No actor guard.** Returns `assessment_id` + `knowledge_version`. |
 | 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Most recently created assessment in the Core's append order, even when creation timestamps share a second. It carries `knowledge_state` (the separated `status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to` view of the revision it bound) beside `knowledge_id`/`knowledge_version`, because an assessment binding is not evidence that the revision is still current. Existing historical assessments and their review identities are not rewritten. |
-| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and `knowledge_version` must equal the one the assessment reports or the Core answers `400`. `client_event_id` is the idempotency identity — retry replays the original receipt. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
+| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and an explicitly supplied `knowledge_version` must equal the assessment's version or the Core answers `400`. An assessment-bound review uses only FSRS state and observations bound to that same assessment; older or unbound item events remain history and do not seed its schedule. Without an assessment, legacy item-wide scheduling remains. `client_event_id` is the idempotency identity — retry replays the original receipt. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
 | 11 | `POST /api/v1/learning/events` | **human only** | Legacy keyed path. With no `schedule_state`, authority is `placeholder_ladder` and `next_review` is `null`. With `schedule_state`, the reused FSRS worker decides. Machine → `403`. |
 | 13 | `GET /api/v1/learning/events/{item_key}` | any token | Event history. Each `references` row reports the revision the item was built from as an immutable identity plus `active`, `status`, `currentness` (`current`/`superseded`/`not_current`/`unavailable`), `superseded_by`, `successor_count` and `valid_to`; a superseded revision stays named and is never rewritten to the successor. |
-| 14 | `GET /api/v1/learning/items` | any token | Queue; one latest deadline per item. |
-| 18 | `GET /api/v1/learning/items/{item_key}/state` | any token | Learner state + a **fixed** `machine` block (§4). Its `learner.references` rows carry the same separated identity/`currentness` view as the event history. |
+| 14 | `GET /api/v1/learning/items` | any token | Queue; when an assessment exists, the deadline comes only from its explicitly bound reviews and is null until one is scheduled. Without an assessment, the legacy item-wide deadline remains. |
+| 18 | `GET /api/v1/learning/items/{item_key}/state` | any token | Learner state + a **fixed** `machine` block (§4). `correct_streak` and `next_review` are scoped to the latest assessment when present; `correct_streak_scope` identifies that or `legacy_item`. `assessment_progress` contains the assessment identity, bound-event count, streak and latest bound review, or null without an assessment. `event_count`, scheduled/unscheduled counts and `latest_review` remain item-wide history (`aggregate_scope: item_history`), so the historical review can have a different assessment ID. `learner.references` retains separated identity and `currentness` views. |
 
 ### Machine loop
 
@@ -504,14 +504,12 @@ The UI must not render these as measured values.
   source members. The notes at those three routes are asserted to be present by
   `crates/archeaxis-api/tests/contract_constant_fields.rs`.
 * `mastery_projection.closed` is a **constant `false`** and `mastery_projection.status` is the
-  constant `"projection"` — mastery is deliberately an open projection, never a closed claim, and
-  the projection is not Knowledge Truth. The projection's keys are exactly
-  `basis`, `closed`, `correct_streak`, `review_state`, `stability`, `status`. `correct_streak` is
-  re-derived on every read. **Where to
-  find it:** the projection travels with a `POST /learning/reviews` response and reaches
-  `GET /learning/items/{item_key}/state` under `learner.latest_review.mastery_projection` —
-  **not** at the response's top level, which is `null` until a review exists. The same test
-  checks that `correct_streak` equals the correct events on record.
+  constant `"projection"`; neither establishes mastery or Knowledge Truth. A new assessment-bound
+  review derives its FSRS state, streak, attempts, correct-day count and latest correct time from
+  that assessment's events only; an unbound legacy review remains item-scoped. Existing persisted
+  projections and idempotent replay are not rewritten. The response carries the projection;
+  `learner.latest_review` is item history, while `learner.assessment_progress.latest_review`
+  identifies the latest review of the current assessment.
 * An event's `outcome` in `GET /learning/events/{item_key}` is a **JSON document carried as a
   string** (`"{\"outcome\": \"correct\"}"`), not a bare word. A UI that compares it to
   `"correct"` directly will see every event as unknown.
