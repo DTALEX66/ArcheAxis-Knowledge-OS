@@ -464,6 +464,55 @@
         "operation"
       ]
     },
+    "AssetReferenceState": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reference": {
+              "$ref": "#/$defs/ObjectReference",
+              "properties": {"kind": {"const": "knowledge"}}
+            },
+            "readable": {"const": true},
+            "status": {"type": "string"},
+            "currentness": {"enum": ["current", "superseded", "not_current"]},
+            "active": {"type": "boolean"},
+            "superseded_by": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            "successor_count": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+            "valid_to": {"anyOf": [{"type": "string"}, {"type": "null"}]}
+          },
+          "required": ["reference", "readable", "status", "currentness", "active", "superseded_by", "successor_count", "valid_to"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reference": {
+              "$ref": "#/$defs/ObjectReference",
+              "properties": {"kind": {"const": "knowledge"}}
+            },
+            "readable": {"const": false},
+            "status": {"enum": ["missing", "unknown"]},
+            "currentness": {"const": "unavailable"}
+          },
+          "required": ["reference", "readable", "status", "currentness"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reference": {
+              "$ref": "#/$defs/ObjectReference",
+              "properties": {"kind": {"enum": ["document", "source"]}}
+            },
+            "readable": {"const": true},
+            "currentness": {"const": "not_applicable"}
+          },
+          "required": ["reference", "readable", "currentness"]
+        }
+      ]
+    },
     "AssetPacketItem": {
       "type": "object",
       "additionalProperties": false,
@@ -493,6 +542,13 @@
             "$ref": "#/$defs/ObjectReference"
           },
           "maxItems": 32
+        },
+        "reference_states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetReferenceState"
+          },
+          "maxItems": 64
         },
         "engine_execution": {
           "const": "NOT_EXECUTED"
