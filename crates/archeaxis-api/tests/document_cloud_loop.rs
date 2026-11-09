@@ -122,8 +122,15 @@ sys.modules['litellm']=SimpleNamespace(completion=completion)
 original_execute=worker.execute
 
 def prepared_execute(request):
-    prepare_real_retrieval_parsers()
-    return original_execute(request)
+    try:
+        prepare_real_retrieval_parsers()
+        result = original_execute(request)
+        Path(__file__).with_suffix('.response').write_text(json.dumps(result), encoding='utf8')
+        return result
+    except Exception:
+        import traceback
+        Path(__file__).with_suffix('.exception').write_text(traceback.format_exc(), encoding='utf8')
+        raise
 worker.execute=prepared_execute
 raise SystemExit(worker.main())
 "#,
@@ -175,8 +182,10 @@ raise SystemExit(worker.main())
         assert_eq!(status, 201, "{result}");
         let diagnostics = || {
             format!(
-                "tamper={tamper}; synthetic check result: {result}; synthetic worker stack: {}",
-                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+                "tamper={tamper}; synthetic check result: {result}; synthetic worker stack: {}; response: {}; exception: {}",
+                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default(),
+                std::fs::read_to_string(script.with_extension("response")).unwrap_or_default(),
+                std::fs::read_to_string(script.with_extension("exception")).unwrap_or_default()
             )
         };
         // HTTP 201 also persists failed attempts. Assert the expected outcome
