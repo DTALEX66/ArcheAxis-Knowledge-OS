@@ -793,11 +793,8 @@ pub fn item_display_title(conn: &Connection, item_key: &str) -> rusqlite::Result
 }
 
 /// R09: the table that links a learning item (card/question) to the knowledge
-/// revision it was created from. Created on demand like the FTS indexes, so no
-/// schema-version bump and no archive-layout change is needed.
-///
-/// Note (recorded limitation): because it is created on demand it is not part of
-/// EXPORT_TABLES, so archives do not carry card references yet.
+/// revision it was created from. Current workspaces initialize and archive it;
+/// the idempotent creation also supports older compatible databases.
 fn ensure_card_references(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS card_references(
@@ -1002,6 +999,9 @@ pub fn assessment_for_item(
     Ok(assessment.filter(|value| value.item_key == item_key))
 }
 
+/// Return the most recently created assessment, rather than ordering equal
+/// second-resolution timestamps by an unrelated content-derived identifier.
+/// The Core appends these rows; its archive export/import also preserves row order.
 pub fn assessment_for_item_key(
     conn: &Connection,
     item_key: &str,
@@ -1010,7 +1010,7 @@ pub fn assessment_for_item_key(
         "SELECT assessment_id, item_key, knowledge_id, knowledge_version,
                 question, content, source_id, anchor_id, created_at
          FROM learning_assessments WHERE item_key=?1
-         ORDER BY created_at DESC, assessment_id DESC LIMIT 1",
+         ORDER BY rowid DESC LIMIT 1",
         [item_key],
         assessment_from_row,
     )

@@ -183,3 +183,68 @@ fn the_previously_omitted_rows_survive_a_round_trip() {
         .unwrap();
     assert_eq!(referenced, knowledge_id);
 }
+
+#[test]
+fn same_second_assessment_creation_order_survives_archive_roundtrip() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("assessment-order.sqlite");
+    let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let old_id = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "Synthetic original fact",
+        "accepted",
+        None,
+        None,
+        "fixture",
+    )
+    .unwrap();
+    let item = "assessment-tie-1";
+    learning::record_card_reference(&mut conn, item, &old_id, None).unwrap();
+    let old = learning::create_assessment(&mut conn, item, &old_id).unwrap();
+    let new_id = knowledge::review(
+        &mut conn,
+        &old_id,
+        "modified",
+        "fixture",
+        None,
+        Some("Synthetic revised fact"),
+    )
+    .unwrap();
+    knowledge::review(&mut conn, &new_id, "accepted", "fixture", None, None).unwrap();
+    learning::record_card_reference(&mut conn, item, &new_id, None).unwrap();
+    let revised = learning::create_assessment(&mut conn, item, &new_id).unwrap();
+    assert!(old.assessment_id > revised.assessment_id);
+    conn.execute(
+        "UPDATE learning_assessments SET created_at='2026-11-09 00:00:00' WHERE item_key=?1",
+        [item],
+    )
+    .unwrap();
+    assert_eq!(
+        learning::assessment_for_item_key(&conn, item)
+            .unwrap()
+            .unwrap()
+            .assessment_id,
+        revised.assessment_id
+    );
+    drop(conn);
+
+    let archive = dir.path().join("archive");
+    export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
+    let target = dir.path().join("restored.sqlite");
+    restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap()).unwrap();
+    let restored =
+        Connection::open_with_flags(&target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    assert_eq!(
+        learning::assessment_for_item_key(&restored, item)
+            .unwrap()
+            .unwrap()
+            .assessment_id,
+        revised.assessment_id
+    );
+    assert!(
+        learning::assessment_by_id(&restored, &old.assessment_id)
+            .unwrap()
+            .is_some()
+    );
+}

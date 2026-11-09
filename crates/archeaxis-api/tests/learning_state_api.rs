@@ -45,6 +45,92 @@ async fn get_items(router: &axum::Router) -> (StatusCode, Value) {
     )
 }
 
+async fn get_path(router: &axum::Router, path: &str) -> (StatusCode, Value) {
+    let response = router
+        .clone()
+        .oneshot(Request::get(path).body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
+}
+
+#[tokio::test]
+async fn assessment_and_learning_state_keep_newest_snapshot_and_old_review_separate() {
+    use archeaxis_domain::{knowledge, learning};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("assessment-order-api.sqlite");
+    let item = "assessment-tie-1";
+    let (old, revised) = {
+        let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        let old_id = knowledge::create_knowledge(
+            &mut conn,
+            "FACTUAL_CLAIM",
+            "Synthetic original fact",
+            "accepted",
+            None,
+            None,
+            "fixture",
+        )
+        .unwrap();
+        learning::record_card_reference(&mut conn, item, &old_id, None).unwrap();
+        let old = learning::create_assessment(&mut conn, item, &old_id).unwrap();
+        learning::record_review_with_state_and_answer(&mut conn, item, "review", true,
+            "synthetic-old-review", "synthetic", Some("synthetic answer"), Some(&old.assessment_id), None,
+            |_| Ok(learning::ReviewSchedule {
+                schedule_json: r#"{"authority":"fsrs","state":{"state":"review","step":null,"stability":30.0,"difficulty":3.0,"last_review":"2026-09-02T00:00:00+00:00","due":"2026-10-02T00:00:00+00:00"}}"#.into(),
+                next_review: Some("2026-10-02T00:00:00+00:00".into()), next_review_days: 30,
+            })).unwrap();
+        let new_id = knowledge::review(
+            &mut conn,
+            &old_id,
+            "modified",
+            "fixture",
+            None,
+            Some("Synthetic revised fact"),
+        )
+        .unwrap();
+        knowledge::review(&mut conn, &new_id, "accepted", "fixture", None, None).unwrap();
+        learning::record_card_reference(&mut conn, item, &new_id, None).unwrap();
+        let revised = learning::create_assessment(&mut conn, item, &new_id).unwrap();
+        assert!(old.assessment_id > revised.assessment_id);
+        conn.execute(
+            "UPDATE learning_assessments SET created_at='2026-11-09 00:00:00' WHERE item_key=?1",
+            [item],
+        )
+        .unwrap();
+        (old, revised)
+    };
+    for _ in 0..2 {
+        let router = app(db.to_str().unwrap()).unwrap();
+        let (status, assessment) = get_path(
+            &router,
+            &format!("/api/v1/learning/items/{item}/assessment"),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(assessment["assessment_id"], revised.assessment_id);
+        assert_eq!(assessment["knowledge_id"], revised.knowledge_id);
+        assert_eq!(assessment["knowledge_state"]["currentness"], "current");
+        let (status, state) =
+            get_path(&router, &format!("/api/v1/learning/items/{item}/state")).await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(
+            state["learner"]["assessment"]["assessment_id"],
+            revised.assessment_id
+        );
+        assert_eq!(
+            state["learner"]["latest_review"]["assessment_id"],
+            old.assessment_id
+        );
+        assert_eq!(state["learner"]["event_count"], 1);
+    }
+}
+
 fn request(key: &str, instant: &str) -> Value {
     json!({"item_key":"restart-card", "client_event_id":key, "correct":true,
            "rating":3, "now":instant})

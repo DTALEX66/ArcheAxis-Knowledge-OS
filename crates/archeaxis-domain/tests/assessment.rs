@@ -68,6 +68,111 @@ fn assessment_rejects_non_current_or_unaccepted_knowledge() {
 }
 
 #[test]
+fn newest_assessment_wins_same_second_without_reassigning_the_old_review() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("assessment-order.sqlite");
+    let (old, revised) = {
+        let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+        let old_id = knowledge::create_knowledge(
+            &mut conn,
+            "FACTUAL_CLAIM",
+            "Synthetic original fact",
+            "accepted",
+            None,
+            None,
+            "fixture",
+        )
+        .unwrap();
+        let item = "assessment-tie-1";
+        learning::record_card_reference(&mut conn, item, &old_id, None).unwrap();
+        let mut old = learning::create_assessment(&mut conn, item, &old_id).unwrap();
+        learning::record_review_with_state_and_answer(
+            &mut conn,
+            item,
+            "review",
+            true,
+            "assessment-old-review",
+            "synthetic-old-review",
+            Some("synthetic old answer"),
+            Some(&old.assessment_id),
+            None,
+            |_| Ok(fsrs_schedule()),
+        )
+        .unwrap();
+        let new_id = knowledge::review(
+            &mut conn,
+            &old_id,
+            "modified",
+            "fixture",
+            None,
+            Some("Synthetic revised fact"),
+        )
+        .unwrap();
+        knowledge::review(&mut conn, &new_id, "accepted", "fixture", None, None).unwrap();
+        learning::record_card_reference(&mut conn, item, &new_id, None).unwrap();
+        let mut revised = learning::create_assessment(&mut conn, item, &new_id).unwrap();
+        // Both ordinary SQLite defaults can have exactly the same second. The
+        // fixed IDs make the older digest sort after the newer one, so a digest
+        // tie-breaker deterministically exposes the wrong "latest" result.
+        assert!(old.assessment_id > revised.assessment_id);
+        conn.execute(
+            "UPDATE learning_assessments SET created_at='2026-11-09 00:00:00' WHERE item_key=?1",
+            [item],
+        )
+        .unwrap();
+        old.created_at = "2026-11-09 00:00:00".into();
+        revised.created_at = old.created_at.clone();
+        assert_eq!(
+            learning::assessment_for_item_key(&conn, item).unwrap(),
+            Some(revised.clone())
+        );
+        assert_eq!(
+            learning::assessment_by_id(&conn, &old.assessment_id).unwrap(),
+            Some(old.clone())
+        );
+        let events = learning::events_for_item(&conn, item).unwrap();
+        assert_eq!(events.len(), 1);
+        let outcome: serde_json::Value = serde_json::from_str(&events[0].2).unwrap();
+        assert_eq!(outcome["assessment_id"], old.assessment_id);
+        assert_ne!(outcome["assessment_id"], revised.assessment_id);
+        assert_eq!(
+            learning::create_assessment(&mut conn, item, &new_id).unwrap(),
+            revised
+        );
+        (old, revised)
+    };
+    let conn = init_workspace(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        learning::assessment_for_item_key(&conn, "assessment-tie-1").unwrap(),
+        Some(revised.clone())
+    );
+    assert_eq!(
+        learning::assessment_by_id(&conn, &old.assessment_id).unwrap(),
+        Some(old.clone())
+    );
+    let snapshot = dir.path().join("assessment-backup.sqlite");
+    archeaxis_domain::backup::backup(&conn, snapshot.to_str().unwrap()).unwrap();
+    let mut restored =
+        init_workspace(dir.path().join("restored.sqlite").to_str().unwrap()).unwrap();
+    assert!(
+        archeaxis_domain::backup::restore_authorized(snapshot.to_str().unwrap(), &mut restored)
+            .unwrap()
+    );
+    assert_eq!(
+        learning::assessment_for_item_key(&restored, "assessment-tie-1").unwrap(),
+        Some(revised)
+    );
+    assert_eq!(
+        learning::assessment_by_id(&restored, &old.assessment_id).unwrap(),
+        Some(old.clone())
+    );
+    let events = learning::events_for_item(&restored, "assessment-tie-1").unwrap();
+    assert_eq!(events.len(), 1);
+    let outcome: serde_json::Value = serde_json::from_str(&events[0].2).unwrap();
+    assert_eq!(outcome["assessment_id"], old.assessment_id);
+}
+
+#[test]
 fn answered_assessment_persists_fsrs_and_explicitly_open_mastery_projection() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("assessment.sqlite");
