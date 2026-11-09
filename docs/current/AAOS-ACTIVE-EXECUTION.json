@@ -681,14 +681,14 @@
           "x8_scoped_assessment_local_sample_20261109": "A new synthetic four-consumer workspace also recorded a review on the old assessment, revised the same knowledge, and recorded a separate first review on the successor assessment with an empty prior schedule and streak. The real Core and local FSRS worker preserved both bound histories, four consumer observations and the authorized packet through restart and independent restore. In one separate run the existing qwen3.5-4b local worker returned a candidate; acceptance and review correctness were scripted. This is not independent mastery, model-quality, UI, installed runtime, exact-SHA CI or Owner acceptance and does not establish complete X8. The earlier sample and its 2048-token failure remain unchanged; see the sole execution record for receipt wording and identities.",
           "assessment_unbound_review_boundary_20261109": "After an item gains an assessment, a new unbound stateful review or default legacy review now returns 409 rather than a due date omitted from the assessment queue. The Core checks inside its write transaction after recognizing old duplicates, so existing legacy receipts remain replayable and a rejected pending stateful review can be retried with the same key and its assessment identity. Other legacy activity kinds remain item history. A legacy key bound to different content now returns 409 instead of 500. At this checkpoint the scheduler could still be invoked before a duplicate or refusal was recognized; the later learning_retry_identity_20261110 entry records its subsequent fix. No installed runtime, exact-SHA CI or Owner acceptance is established.",
           "learning_retry_identity_20261110": "Both learning review routes now check committed event keys before invoking the scheduler and recheck them inside the write transaction. New legacy HTTP events bind their normalized accepted request and original scheduling authority; identical retries preserve the original receipt across scheduler outage or recovery, while changed inputs conflict. Recognizable older keys remain readable without rewriting, explicitly limited to the recorded item/kind/outcome identity; an unrecorded original authority is legacy_unverified. Concurrent first requests may each run the scheduler but only one event commits. Synthetic real-Core, local FSRS, simultaneous requests, restart, independent backup restore, open archive, API and maintenance checks passed; a Core predating the new tagged key format cannot replay new keys and fails closed. These local engineering checks do not establish installed runtime, exact-SHA CI, real learning or Owner acceptance; see the sole execution record.",
-      "learning_invalid_review_preflight_20261110": "For a new stateful review the Core now rejects invalid timestamps, nonmatching assessment/item and nonmatching knowledge versions before starting FSRS, then repeats the validation before committing. A real debug-Core counterexample observed three invalid requests launching three scheduler subprocesses before their 400 responses; the fixed run observed none and a corrected request with the same key scheduled and replayed once. Related real-Core and API tests passed. The earlier HTTP and architecture descriptions that placed the scheduler wait on the writer were corrected to match current source. This is local backend evidence, not installed runtime, exact-SHA CI or Owner acceptance; see the sole execution record.",
-      "learning_outage_recovery_20261110": "A real-Core counterexample showed that an unavailable review could be omitted from the next successful FSRS card. New stateful reviews now reapply evidenced unscheduled observations in order without rewriting prior events, fence concurrent history changes, and return an explicit incomplete reason instead of guessing missing evidence. Bounded batch receipts support compatible workers; old workers fall back to individual replay within the same time budget. The worker normalizes timezone offsets to UTC, and the scheduler path preserves FSRS float values without changing repository-wide JSON identity. Historical events lacking exact review time and histories over 4096 cannot be exactly reconstructed automatically; a later explicit human-declared reset can start a new baseline while retaining those events. Recovery is triggered by a new review, not a background retry. Local real-Core, worker, Rust and backup/restore checks passed; installed runtime, exact-SHA CI, real learning improvement and Owner acceptance remain unestablished. See the sole execution record.",
-      "learning_review_time_order_20261110": "The Core compares scoped review instants to microsecond precision after applying their timezone offsets. A new review earlier than the last evidenced review is rejected before scheduling or writing; already stored reversed unscheduled history remains unmodified and explicitly incomplete. Synthetic real-Core counterexamples, old-worker replay and concurrency checks are tracked in the sole execution record. This is local backend evidence, not installed runtime, exact-SHA CI or Owner acceptance.",
-      "learning_scheduler_time_binding_20261110": "A real-Core synthetic counterexample showed that a plausible worker card could claim a different review instant, a due time before the review, or a whole-day interval inconsistent with its timestamps. The Core now checks each new and recovered card against the requested instant and checks due/interval arithmetic; invalid outputs preserve the review as unavailable with a named reason and can be recovered later. Cross-timezone and microsecond boundaries, real local FSRS, injected failures, restart and independent restore were tested locally. Installed runtime, exact-SHA CI, real learning improvement and Owner acceptance remain unestablished; see the sole execution record.",
-      "learning_explicit_schedule_reset_20261110": "When a human explicitly supplies start_new, a reason and the exact latest scoped event ID on a new review, Core can start a fresh FSRS baseline without rewriting older observations. A stale snapshot is rejected, a failed scheduler leaves no reset event and allows the same key to retry, and later projections identify the reset baseline. A new baseline can begin before an excluded mistimed old review; subsequent ordinary reviews must follow the new baseline. Local synthetic checks include missing timestamps, 4097 prior events, future-dated old reviews, concurrent history changes, restart, independent restore and a pre-reset backup receipt replay. This does not reconstruct old evidence or establish installed UI, downgrade compatibility, exact-SHA CI, real learning improvement or Owner acceptance; see the sole execution record.",
-      "learning_reset_host_transport_20261110": "A locally compiled actual host bridge and the explicit debug Core exercised synthetic unassessed and assessed reviews: scoped state cursor readback, stale reset conflict, fresh baseline, restart without a scheduler, duplicate receipt replay, verified backup and independent restore. A later historical-assessment event did not replace the current assessment's cursor. Synthetic knowledge was created through a separate Core fixture; the bridge handled the subsequent learning routes. This does not establish an installed host, UI workflow, actual downgrade, real learning or Owner acceptance; see the sole execution record.",
-      "learning_legacy_review_gap_20261110": "A real-Core counterexample showed legacy review events with no recoverable stateful schedule being silently omitted from later FSRS schedules, including when an earlier valid card existed. Within the active baseline, Core now records new reviews as unavailable with legacy_review_evidence_missing_or_invalid when such legacy review evidence is insufficient; this also detects a gap before a later historical FSRS card. Existing events and receipts remain unchanged, assessment-bound histories stay separate, and an explicit human-declared reset can start a fresh baseline. Synthetic real-Core, local FSRS, restart, old-receipt, domain and API checks passed. UI, actual learning improvement, installed runtime, exact-SHA CI and Owner acceptance remain unestablished; see the sole execution record.",
-      "learning_damaged_card_20261110": "For a latest FSRS row with missing, null or non-object card state, the Core now records new ordinary reviews as unavailable with invalid_previous_card instead of a SQL type 500 or accepting a string that merely encodes JSON as a card. A human-declared reset starts a fresh baseline without rewriting the damaged row. Synthetic assessed and unassessed real-Core tests, restart, idempotent reset replay, domain and API regressions passed. This does not establish actual user-data repair, UI, installed runtime, exact-SHA CI or Owner acceptance; see the sole execution record.",
+          "learning_invalid_review_preflight_20261110": "For a new stateful review the Core now rejects invalid timestamps, nonmatching assessment/item and nonmatching knowledge versions before starting FSRS, then repeats the validation before committing. A real debug-Core counterexample observed three invalid requests launching three scheduler subprocesses before their 400 responses; the fixed run observed none and a corrected request with the same key scheduled and replayed once. Related real-Core and API tests passed. The earlier HTTP and architecture descriptions that placed the scheduler wait on the writer were corrected to match current source. This is local backend evidence, not installed runtime, exact-SHA CI or Owner acceptance; see the sole execution record.",
+          "learning_outage_recovery_20261110": "A real-Core counterexample showed that an unavailable review could be omitted from the next successful FSRS card. New stateful reviews now reapply evidenced unscheduled observations in order without rewriting prior events, fence concurrent history changes, and return an explicit incomplete reason instead of guessing missing evidence. Bounded batch receipts support compatible workers; old workers fall back to individual replay within the same time budget. The worker normalizes timezone offsets to UTC, and the scheduler path preserves FSRS float values without changing repository-wide JSON identity. Historical events lacking exact review time and histories over 4096 cannot be exactly reconstructed automatically; a later explicit human-declared reset can start a new baseline while retaining those events. Recovery is triggered by a new review, not a background retry. Local real-Core, worker, Rust and backup/restore checks passed; installed runtime, exact-SHA CI, real learning improvement and Owner acceptance remain unestablished. See the sole execution record.",
+          "learning_review_time_order_20261110": "The Core compares scoped review instants to microsecond precision after applying their timezone offsets. A new review earlier than the last evidenced review is rejected before scheduling or writing; already stored reversed unscheduled history remains unmodified and explicitly incomplete. Synthetic real-Core counterexamples, old-worker replay and concurrency checks are tracked in the sole execution record. This is local backend evidence, not installed runtime, exact-SHA CI or Owner acceptance.",
+          "learning_scheduler_time_binding_20261110": "A real-Core synthetic counterexample showed that a plausible worker card could claim a different review instant, a due time before the review, or a whole-day interval inconsistent with its timestamps. The Core now checks each new and recovered card against the requested instant and checks due/interval arithmetic; invalid outputs preserve the review as unavailable with a named reason and can be recovered later. Cross-timezone and microsecond boundaries, real local FSRS, injected failures, restart and independent restore were tested locally. Installed runtime, exact-SHA CI, real learning improvement and Owner acceptance remain unestablished; see the sole execution record.",
+          "learning_explicit_schedule_reset_20261110": "When a human explicitly supplies start_new, a reason and the exact latest scoped event ID on a new review, Core can start a fresh FSRS baseline without rewriting older observations. A stale snapshot is rejected, a failed scheduler leaves no reset event and allows the same key to retry, and later projections identify the reset baseline. A new baseline can begin before an excluded mistimed old review; subsequent ordinary reviews must follow the new baseline. Local synthetic checks include missing timestamps, 4097 prior events, future-dated old reviews, concurrent history changes, restart, independent restore and a pre-reset backup receipt replay. This does not reconstruct old evidence or establish installed UI, downgrade compatibility, exact-SHA CI, real learning improvement or Owner acceptance; see the sole execution record.",
+          "learning_reset_host_transport_20261110": "A locally compiled actual host bridge and the explicit debug Core exercised synthetic unassessed and assessed reviews: scoped state cursor readback, stale reset conflict, fresh baseline, restart without a scheduler, duplicate receipt replay, verified backup and independent restore. A later historical-assessment event did not replace the current assessment's cursor. Synthetic knowledge was created through a separate Core fixture; the bridge handled the subsequent learning routes. This does not establish an installed host, UI workflow, actual downgrade, real learning or Owner acceptance; see the sole execution record.",
+          "learning_legacy_review_gap_20261110": "A real-Core counterexample showed legacy review events with no recoverable stateful schedule being silently omitted from later FSRS schedules, including when an earlier valid card existed. Within the active baseline, Core now records new reviews as unavailable with legacy_review_evidence_missing_or_invalid when such legacy review evidence is insufficient; this also detects a gap before a later historical FSRS card. Existing events and receipts remain unchanged, assessment-bound histories stay separate, and an explicit human-declared reset can start a fresh baseline. Synthetic real-Core, local FSRS, restart, old-receipt, domain and API checks passed. UI, actual learning improvement, installed runtime, exact-SHA CI and Owner acceptance remain unestablished; see the sole execution record.",
+          "learning_damaged_card_20261110": "For a latest FSRS row with missing, null or non-object card state, the Core now records new ordinary reviews as unavailable with invalid_previous_card instead of a SQL type 500 or accepting a string that merely encodes JSON as a card. A human-declared reset starts a fresh baseline without rewriting the damaged row. Synthetic assessed and unassessed real-Core tests, restart, idempotent reset replay, domain and API regressions passed. This does not establish actual user-data repair, UI, installed runtime, exact-SHA CI or Owner acceptance; see the sole execution record.",
           "deeptutor_real_model_observation_20261109": "A gated real-Core question-turn test with synthetic material and the existing local qwen2.5-vl-7b-instruct lane reached donor replay but returned 422 REJECTED/INVALID_RESPONSE, preserving only the source and explicit synthetic grant. A second run through a local diagnostic proxy also refused; the model output in that separate sample was neither directly parseable JSON nor a complete fenced JSON block. Raw text was neither saved nor repaired, and the second sample does not establish the first sample's exact defect. No question was accepted, no model quality or installed qualification was established.",
           "deeptutor_format_diagnostic_20261109": "A replay rejection previously exposed only INVALID_RESPONSE. Core now adds a fixed, text-free parse-shape observation without modifying the reply or weakening the donor's strict acceptance; JSON_OBJECT_STRICT_REJECTION remains deliberately unclassified. A synthetic real-Core/worker/loopback route test and a focused unit test passed. A further direct real-local-model sample was refused with PLAIN_JSON_PARSE_FAILED, without a partial question; its passing test asserts safe refusal, not question generation or model quality.",
           "deeptutor_prompt_protocol_diagnostic_20261109": "The retained donor prompt requires an action label such as FINISH, while the frozen replay contract requires the entire response to be plain JSON. One synthetic baseline sample used the FINISH first line and was refused; an appended hint alone produced three refusals. In a separate standalone experiment, replacing only the conflicting donor action-protocol section in the model-bound prompt led to three unmodified replies admitted by the original strict worker. This is exploratory synthetic local-model evidence only: no product prompt, donor bytes, response text or Core persistence changed, and no quality or success-rate claim follows.",
@@ -727,7 +727,66 @@
           "source_of_detail": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-11-09-后端续做进程失败记录与长路径实测"
         },
         "next": "Continue unfinished backend work and qualify the new schedule projection against the same candidate. Preserve the dirty primary worktree and reconcile its probe and records without overwrite. Public push of exact local 3da4b5d9 was rejected by automatic approval review; review material is local and explicit owner confirmation is pending. Do not bypass the rejection. UI consumer wiring, installed renderer, model quality, signing, release and Owner acceptance remain separate and unproven.",
-        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; installed receipts openmaic-installed.json and openmaic-default-install.json; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302; interactive prompt adapter in PR #304, normalize in PR #305, scene chain in PR #306 (merge b42900ed), interactive-outline adapter in PR #307 (merge a2098dbd) and its Core chain in PR #308 (merge ae034949)."
+        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipts openmaic-staged.json (20261106 and 20261107); installed receipts openmaic-installed.json, openmaic-default-install.json and openmaic-installed.json (20261107); frontend receipt for the 20261107 installer; registry-before.json; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302; interactive prompt adapter in PR #304, normalize in PR #305, scene chain in PR #306 (merge b42900ed), interactive-outline adapter in PR #307 (merge a2098dbd) and its Core chain in PR #308 (merge ae034949).",
+        "staged_qualification_20261107": {
+          "candidate": ".project-local/rt/staged-20261107-interactive",
+          "version": "0.6.15",
+          "manifest_sha256": "2f3c77c4884f2f936e402de90fe8c096071ee1410bf0d37fd5fc4151b7b50fe4",
+          "files": 8289,
+          "core_sha256": "c569b40a92399033da2600b7d01d4bdf50f387e7ca718d8c93158f5e4c2a46fb",
+          "core_bytes": 22592512,
+          "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+          "openmaic_members": 696,
+          "source_commit": "140cfb42889be2050ce83ead5aa528211007c32e",
+          "source_tree": "12930ca2ac1de90d07fd03b06660aa947a2f95cb",
+          "receipt": ".project-local/runs/be268a2d33/openmaic-staged-20261107/artifacts/openmaic-staged.json",
+          "result": "Started through the candidate's own start-backend.py. Slide and quiz scenes were admitted with narration; the interactive outline route produced one diagram outline and the scene route persisted an interactive candidate with normalize OBSERVED_CANDIDATE, html_execution NOT_PERFORMED, rendering_authorized false and render.playable false. Seven loopback model calls; after a process restart the slide, quiz, interactive outline and interactive scene candidates all read back with worker_invoked false and no extra model call.",
+          "boundary": "Staged runtime, synthetic material and a loopback stub model. Not an installed package, not real model quality and not Owner acceptance."
+        },
+        "installed_qualification_20261107": {
+          "installer": {
+            "name": "ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+            "bytes": 166205246,
+            "sha256": "ff791fa9b36f1a778a8cab49c6f41b419882f2561f2cf49f6e5ca799b3545b73",
+            "host": "ArcheAxis.exe",
+            "host_bytes": 50048512,
+            "host_sha256": "fba7a62db2c73457384be2b1a7b7b8637ba63325134140f7e0be5f254e35f0f8",
+            "built_from": "140cfb42889be2050ce83ead5aa528211007c32e",
+            "runtime_candidate": ".project-local/rt/staged-20261107-interactive",
+            "manifest_sha256": "2f3c77c4884f2f936e402de90fe8c096071ee1410bf0d37fd5fc4151b7b50fe4",
+            "frontend_receipt": ".project-local/runs/be268a2d33/install-acceptance-20261107/artifacts/frontend-build.json",
+            "unsigned": true
+          },
+          "isolated_install": {
+            "root": ".project-local/install-acceptance-20261107/app",
+            "method": "The previous-install registry value was pointed at the isolated directory before the silent install, so no /D argument was used and the default directory was not touched.",
+            "manifest_sha256_matches_staged": true,
+            "core_sha256": "c569b40a92399033da2600b7d01d4bdf50f387e7ca718d8c93158f5e4c2a46fb",
+            "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+            "openmaic_members": 696,
+            "default_directory_before_and_after": "manifest c4b48379f0ea727dfaed960e51163d6b2d14e45d5f8d6aeaaf5bbe96f9eaa9a1 and 20399 files, unchanged"
+          },
+          "installed_chain": {
+            "receipt": ".project-local/install-acceptance-20261107/openmaic-installed.json",
+            "data_root": ".project-local/install-acceptance-20261107/workspace",
+            "evidence_level": "INSTALLED_RUNTIME_REAL_CORE_REAL_NODE_SYNTHETIC_LOOPBACK_MODEL",
+            "result": "The installed start-backend.py launched the real Core; outline generation produced slide and quiz; slide narration has two actions and quiz one; the interactive outline route produced one diagram outline and the scene route persisted an interactive candidate with html_execution NOT_PERFORMED, rendering_authorized false and render.playable false; seven loopback model calls; after a restart the interactive outline and scene read back with worker_invoked false and no extra call."
+          },
+          "cleanup": {
+            "uninstall_exit": 0,
+            "isolated_files_remaining": 0,
+            "registry_restored_from": ".project-local/install-acceptance-20261107/registry-before.json"
+          },
+          "probe_change": "The staged probe gained the interactive outline and interactive scene steps plus restart readback for both, so the same script now qualifies the staged and installed runtimes with seven loopback model calls.",
+          "not_included": "No installed Tauri/WebView2 WebDriver UI journey, no same-version upgrade or reinstall lifecycle assertion, no signing, no release publication and no Owner acceptance."
+        },
+        "primary_reported_next_20261107": "The interactive chain is now qualified on a staged runtime and on an isolated installed package built from the 696-member OpenMAIC closure. Remaining backend gaps: real local-model quality for interactive outlines and widget HTML, INT-MAIC-01/02 consumer wiring, the installed Tauri/WebView2 renderer lifecycle and a signed release. The default-directory leftovers and the installer /D quoting limitation stay recorded for a later packaging decision; no staged or installed PASS replaces Owner acceptance.",
+        "primary_evidence_reconciliation_20261110": {
+          "status": "HISTORICAL_PRIMARY_REPORT_RECEIPTS_READ_NOT_REEXECUTED",
+          "boundary": "The primary worktree report is preserved. Only two receipt files were read back; no installed flow, uninstall, registry restoration, UI or Owner acceptance was rerun.",
+          "staged_receipt_sha256": "8c49632b84f0d919d94479253eaa71a999a52b8cc73225627f9cfd8c15b97ef7",
+          "installed_receipt_sha256": "cd0f20cbd321742997d38be495e12f6a7ee8b3e84913f370776aa1331dbe3474"
+        }
       },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
@@ -749,7 +808,11 @@
         "reachability_note": "Wikimedia directs are intermittent on this host: the same day produced both TCP timeouts and this successful Core run, so this run is not proof of stable reachability."
       },
       "repeats_20261104": {
-        "runs": ["public-research-fallback-20261104", "public-research-fallback2-20261104", "public-research-fallback3-20261104"],
+        "runs": [
+          "public-research-fallback-20261104",
+          "public-research-fallback2-20261104",
+          "public-research-fallback3-20261104"
+        ],
         "result": "Three consecutive three-family runs on staged-20261104b returned every primary channel complete (stackexchange, wikipedia, openalex), each with originals, fixed references, anchors and resolve, research draft, package and Markdown manifest, scripted fixture knowledge admission, equal restart readback and a verified backup; the receipts mark restore NOT_EXECUTED. Real human assessment, installation and Owner acceptance were not established.",
         "fallback_note": "curl returned 000 for en.wikipedia.org during these runs, but the Core worker still received wikipedia complete each time, so the DBpedia fallback was not triggered through Core; its evidence stays the worker-level offline-to-dbpedia observation plus worker and domain rejection cases."
       },
@@ -893,7 +956,10 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "owner_backend_first_after_platform_reuse_20261101": {
-      "owner_instructions": ["优先完美复刻复制复用这两款软件", "先做后端所有任务 包括这两款软件  前端我还要思考下"],
+      "owner_instructions": [
+        "优先完美复刻复制复用这两款软件",
+        "先做后端所有任务 包括这两款软件  前端我还要思考下"
+      ],
       "execution_followup": "全部授权  静默执行",
       "scope": "Prioritize existing unfinished backend work and faithful, legally reviewed reuse of DeepTutor 1.7.1 and OpenMAIC 1.3.0 backend capabilities, with the existing Rust Core as canonical writer and isolated replaceable providers/workers",
       "frontend": "At that point PAUSED_PENDING_OWNER_DIRECTION; preserve existing in-flight frontend edits and evidence. Later design-research instructions are recorded separately; they do not establish implementation or acceptance.",
@@ -901,7 +967,11 @@
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
     "owner_ui_research_and_delivery_20261102": {
-      "ui_instructions": ["同时思考下界面到底怎么做？怎么展现？可以全部重构，也可以在现有基础上进行", "重新设计，在思考分析下，优先去调研全网搜索", "也可以参考那两个合并的项目可以看下 它们的界面是怎么样的"],
+      "ui_instructions": [
+        "同时思考下界面到底怎么做？怎么展现？可以全部重构，也可以在现有基础上进行",
+        "重新设计，在思考分析下，优先去调研全网搜索",
+        "也可以参考那两个合并的项目可以看下 它们的界面是怎么样的"
+      ],
       "ui_scope": "Research and redesign exploration with public references and synthetic concept images. Owner later clarified that the reference concerns repository branches; a historically linked pair is examined in the research, without claiming it is the only possible pair. No product implementation, installation or acceptance is implied.",
       "research_ref": "docs/design/20261102-ui-research/界面调研与重设计方案.md",
       "delivery_instruction": "先全部上传  双端仓库保持一致   该合并的合并",
@@ -1017,7 +1087,10 @@
         "second_measurement": "NO_NEW_GROWTH_TRIGGER with new_out_of_layout_count=0; delta_readable_bytes=1,116,391,733 (~1.04 GiB), below the 2,147,483,648 growth-review line; measurement_status=PARTIAL; over_budget_classes=[runs/] with a small over_budget_class_delta (13,081,816 B) and growing_over_budget_classes=[]; deletion_authorized=false; exit 1 because 158 pre-existing OUT-OF-LAYOUT entries still need decisions.",
         "left_for_decision": "The 158 pre-existing out-of-layout entries (root .screenshots/, UI preview files, bundles, acceptance/appdata/audit dirs, 30 wrongly shaped runs entries, 20 identity run roots whose checkout is gone) are reported, not silently deleted. They need the existing S01/layout taxonomy decisions.",
         "baseline_status": "OBSERVATION_ONLY: the pinned v2 checkpoint was read for growth review and is not rolled or replaced; deletion_authorized=false and no gate was loosened.",
-        "receipts": [".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-vs-pinned.json", ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-scratch.json"],
+        "receipts": [
+          ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-vs-pinned.json",
+          ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-scratch.json"
+        ],
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
       "real_core_process_journey_20261103": {
@@ -1082,7 +1155,11 @@
         "table_result": "92 entries classified: 56 REFERENCED, 29 RUNS_LAYOUT, 5 UNREFERENCED_CANDIDATE, 1 PROTECTED_OR_GENERIC, 1 UNREADABLE (fulltest-final-20260913, PermissionError). The table is in the receipt below.",
         "action": "The five UNREFERENCED_CANDIDATE entries (logo-candidates, the 2026-10-27 cloud audit screenshot tree with 1565 files / 242,714,540 B, and three UI audit receipt JSON files) were renamed into .project-local/archives/legacy-layout-20261103/ with MANIFEST-decision-20261103.json; all destinations were re-checked and no bytes were deleted.",
         "measurement_after": "storage_report against the same pinned v2 checkpoint: OUT-OF-LAYOUT 92 -> 87 (57 .project-local entries + 30 runs entries, root zero); new_out_of_layout_count=0; NO_NEW_GROWTH_TRIGGER with delta_readable_bytes=1,563,804,691 (~1.46 GiB, below the 2 GiB review line); measurement_status=PARTIAL; runs/ still over its 2.0 GB budget; deletion_authorized=false.",
-        "receipts": [".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/layout-decision-table-20261103.json", ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-decision-archive.json", ".project-local/archives/legacy-layout-20261103/MANIFEST-decision-20261103.json"],
+        "receipts": [
+          ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/layout-decision-table-20261103.json",
+          ".project-local/runs/be268a2d33/storage-observation-20261103/artifacts/storage-growth-after-decision-archive.json",
+          ".project-local/archives/legacy-layout-20261103/MANIFEST-decision-20261103.json"
+        ],
         "baseline_status": "OBSERVATION_ONLY: the pinned checkpoint is read for review and neither rolled nor replaced; no gate was loosened.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
@@ -1128,12 +1205,21 @@
         "state": "FULL_JOURNEY_PASSED_ON_EXTRACTED_INSTALL_LAYOUT",
         "source_head": "296eb8051b8c74e9ccf6175dfc7c3b14c2655ac3",
         "setup": "Rebuilt the current release core (49.86s), the Tauri host (1m23s) and the unsigned NSIS installer with the local NSIS tool cache, then extracted the installer with 7z only - nothing was installed and no registry entry was written.",
-        "installer": {"bytes": 421745043, "sha256": "647b6bab72e475dabcbce472f9342c8bf0f75b2b32e6331ea3aec10f6d0af90e"},
+        "installer": {
+          "bytes": 421745043,
+          "sha256": "647b6bab72e475dabcbce472f9342c8bf0f75b2b32e6331ea3aec10f6d0af90e"
+        },
         "layout": "Extracted payload: ArcheAxis.exe, core/archeaxis-api.exe, runtime/ (python + webview2), shared/, workers/, worker-profile.json. The core binary was replaced with the current release build (20,529,664 B, sha256 631ed1bbcc46f10fbfe8bfad98944c51a9afef644ec1f4728c3fc8035549e706) because the bundle's own runtime snapshot records source_commit c4531c1b and is stale.",
-        "runtime_python": {"bytes": 91648, "sha256": "081786173866d86cda1b06aa671848217fa0d635edb6dcd2218644466f4229cd"},
+        "runtime_python": {
+          "bytes": 91648,
+          "sha256": "081786173866d86cda1b06aa671848217fa0d635edb6dcd2218644466f4229cd"
+        },
         "journey": "The tracked command ran with --core-exe <extracted>/core/archeaxis-api.exe and --python <extracted>/runtime/python.exe: all 22 steps passed, exit 0, no leftover process - production actor guards, material, real private practice import (executed by the installed runtime interpreter), grants, activity/attempt, formal grade with the pinned upstream digest, COMPLETED disposition, duplicate replay, stale-dispatch finalization to UNKNOWN, live backup, backup list across restart, restore preview, maintenance restore and the restored Core serving the material.",
         "workers_note": "The launch profile pointed at repository worker scripts because the installer's bundled workers belong to the stale c453 snapshot; the installed runtime interpreter executed them successfully.",
-        "receipts": [".project-local/runs/be268a2d33/installed-layout-journey-20261103/artifacts/install-layout-receipt.json", ".project-local/runs/be268a2d33/installed-layout-journey-20261103/artifacts/journey-receipt.json"],
+        "receipts": [
+          ".project-local/runs/be268a2d33/installed-layout-journey-20261103/artifacts/install-layout-receipt.json",
+          ".project-local/runs/be268a2d33/installed-layout-journey-20261103/artifacts/journey-receipt.json"
+        ],
         "cleanup": "After recording the hashes, the extracted payload (1.31 GiB), the installer and the regenerable release/debug build outputs and staged runtime copy were retired; .project-local returned to about 24.48 GiB and growth review to NO_NEW_GROWTH_TRIGGER (delta 1,530,099,620 B, about 1.42 GiB, below the 2 GiB line; OUT-OF-LAYOUT 87; deletion_authorized=false; checkpoint not rolled).",
         "boundary": "Install-layout journey, not an installed application: the payload was extracted rather than installed, the core was replaced with the current release build, and the workers came from the repository. Not the CI candidate identity, not Green, not Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
@@ -1149,7 +1235,10 @@
         "prepared_sources": "Current release core rebuilt from HEAD in 51.34s (sha256 e7241f1f...); workers from the current tracked services/python-workers; portable runtime from cppcand1 with the pinned C++ cohort. Only the governed staging path is missing.",
         "next": "Run staging through scripts/runtime/dev.py so the large copy lands in a canonical allocated run artifact directory and use the exact fixed WebView2 distribution CI downloads; then rebundle, extract and run the tracked journey from the clean payload.",
         "cleanup": "The empty failed staging output directory and the regenerable release cargo deps/build outputs from the attempt were retired; .project-local is about 24.57 GiB; growth review NO_NEW_GROWTH_TRIGGER with delta_readable_bytes=1,622,731,021 (~1.51 GiB, below the 2 GiB line), OUT-OF-LAYOUT 87, deletion_authorized=false.",
-        "receipts": [".project-local/runs/be268a2d33/installed-staging-blockers-20261103/artifacts/staging-blockers-receipt.json", ".project-local/runs/be268a2d33/installed-staging-blockers-20261103/artifacts/cleanup-receipt-round16.json"],
+        "receipts": [
+          ".project-local/runs/be268a2d33/installed-staging-blockers-20261103/artifacts/staging-blockers-receipt.json",
+          ".project-local/runs/be268a2d33/installed-staging-blockers-20261103/artifacts/cleanup-receipt-round16.json"
+        ],
         "boundary": "No staging output was produced and nothing was installed; this is a tooling blocker record, not a runtime failure and not installed acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
@@ -1157,11 +1246,17 @@
         "state": "FULL_JOURNEY_PASSED_ON_CLEAN_CURRENT_RUNTIME_PAYLOAD",
         "source_head": "b086a6b587c8060bd20fc5311ef7db2a7334e490",
         "how": "After retiring the stale c453 staged root and the regenerable debug artifacts, the current runtime was staged through the governed canonical run artifacts (run stagecur4-20261103, 19,501 files, manifest sha256 58c456e8...), the Tauri host was built with .project-local/rt temporarily restored as a directory junction to that staged runtime so the checked-in resources resolve, and an unsigned NSIS installer was bundled with the local NSIS tool cache.",
-        "installer": {"bytes": 192212874, "sha256": "1c1ada3394c3ce88bb4a8efecda18ffeb372c5b99abf8bad83b64a92852aed24"},
+        "installer": {
+          "bytes": 192212874,
+          "sha256": "1c1ada3394c3ce88bb4a8efecda18ffeb372c5b99abf8bad83b64a92852aed24"
+        },
         "clean_payload": "7z extracted the installer without installing it; no core patching followed. Extracted identities: core/archeaxis-api.exe 20,529,664 B sha256 e7241f1f... (the current release build), runtime/python.exe 91,648 B sha256 08178617..., workers/deeptutor/practice_host_worker.py sha256 af186a32... (pinned).",
         "journey": "The tracked command ran with --core-exe <payload>/core/archeaxis-api.exe, --python <payload>/runtime/python.exe and the new --worker-root <payload>/workers: all 22 steps passed, exit 0, no leftover process - guards, material, real private practice import from the payload's own workers, grants, formal grade with the pinned upstream digest, COMPLETED disposition, duplicate replay, stale-dispatch finalization to UNKNOWN, live backup, cross-restart backup list, restore preview, maintenance restore and the restored Core serving the material.",
         "worker_root_option": "scripts/ci/real_core_grading_journey.py gained --worker-root so an installed layout's workers/ directory (transport/ and deeptutor/) can be used directly; the default repository layout is unchanged, and the option validates both worker scripts before starting Core.",
-        "receipts": [".project-local/runs/be268a2d33/installed-clean-journey-20261103/artifacts/clean-install-receipt.json", ".project-local/runs/be268a2d33/installed-clean-journey-20261103/artifacts/journey-receipt.json"],
+        "receipts": [
+          ".project-local/runs/be268a2d33/installed-clean-journey-20261103/artifacts/clean-install-receipt.json",
+          ".project-local/runs/be268a2d33/installed-clean-journey-20261103/artifacts/journey-receipt.json"
+        ],
         "cleanup": "The extracted payload, the installer, the staged runtime, the donor runtime, the temporary rt junction and the regenerable release outputs were retired after the receipts were written; .project-local is about 22.40 GiB and growth review is NO_NEW_GROWTH_TRIGGER with a negative delta (-700,984,990 B), OUT-OF-LAYOUT 87, deletion_authorized=false.",
         "boundary": "Clean extracted payload of a locally built unsigned installer with the CURRENT runtime: not installed (no registry entry, no Owner-account installation), not the CI candidate identity, not Green, not Owner acceptance.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
@@ -1190,8 +1285,16 @@
       "openmaic_node_scene_qualification_20261103": {
         "state": "LOCAL_ONLY_REAL_NODE_WORKER_PASS",
         "why": "The ignored test explicit_node_builds_and_persists_an_inert_scene_then_reopens_without_node needs an explicit Node identity, so CI never runs it and the OpenMAIC real-worker path had no local run on record for the current tree.",
-        "node": {"path": "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe", "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"},
-        "worker": {"path": "services/learning-providers/openmaic/scene-build-worker.mjs", "bytes": 7315, "sha256": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9", "matches_pinned": true},
+        "node": {
+          "path": "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+          "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+        },
+        "worker": {
+          "path": "services/learning-providers/openmaic/scene-build-worker.mjs",
+          "bytes": 7315,
+          "sha256": "c4a2dad9c96ebd13aa20827410227d2650cda0dac80e3a3927968d1e024779e9",
+          "matches_pinned": true
+        },
         "result": "With ARCHEAXIS_TEST_NODE and ARCHEAXIS_TEST_NODE_SHA256 set, the test passed: 1 passed / 0 failed in 4.81s. A real local Node process executed the pinned OpenMAIC 1.3.0 scene-build worker for a slide scene, the inert candidate persisted with the full request frame and donor output, and a reopened Core without Node read the persisted version instead of rerunning the worker.",
         "receipt": ".project-local/runs/be268a2d33/openmaic-node-scene-20261103/artifacts/qualification-receipt.json",
         "cleanup": "The regenerable debug build outputs from this qualification were retired; .project-local is about 22.41 GiB and growth review stays NO_NEW_GROWTH_TRIGGER with a negative delta (-696,632,065 B), OUT-OF-LAYOUT 87, deletion_authorized=false.",
@@ -1200,11 +1303,20 @@
       },
       "full_qualification_028f1afd_20261103": {
         "state": "EXACT_SHA_FULL_QUALIFICATION_SUCCESS_INCLUDING_INSTALLED_JOURNEY",
-        "run": {"url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41562889858", "conclusion": "success", "event": "workflow_dispatch", "force_full": true, "head_sha": "028f1afd80a711375671fb9e07748787b94e477d", "duration": "01:55:47Z -> 03:00:51Z"},
+        "run": {
+          "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/41562889858",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "force_full": true,
+          "head_sha": "028f1afd80a711375671fb9e07748787b94e477d",
+          "duration": "01:55:47Z -> 03:00:51Z"
+        },
         "gate_verdict": "All required gates succeeded, including installer-lifecycle, desktop-fast and desktop-build; the a0-gates log ends with 'ci-verdict: all required gates success' and INSTALLER_RESULT: success.",
         "installed_evidence": "installer-lifecycle ran 9m55s and uploaded installed-native-journey-028f1afd...-1 (2,802,087 B). Its receipts contain three installed WebDriver journeys whose requested_product_exits are all ack CONFIRMED with shared_exit_budget_seconds=15, wait_timeout_seconds at most 14.99 and wait_result RETURNED - the native exit budget is respected and the spurious float overrun did not recur in the installed path.",
         "cancellation_note": "The first scheduling of this dispatch was cancelled while desktop-fast was running (administrative cancellation, not a source failure); rerunning the failed/cancelled jobs at the same SHA completed desktop-fast and a0-gates successfully, after which the run concluded success.",
-        "receipts": [".project-local/runs/be268a2d33/ci-full-qual-028f1afd-20261103/ (downloaded installed journey receipts, driver and native-driver logs, screenshots)"],
+        "receipts": [
+          ".project-local/runs/be268a2d33/ci-full-qual-028f1afd-20261103/ (downloaded installed journey receipts, driver and native-driver logs, screenshots)"
+        ],
         "boundary": "CI-runner installed journey on synthetic data, not an Owner-machine installation, not real user data and not Owner acceptance; the locally built unpinned installers remain outside this qualification.",
         "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
       },
@@ -2389,7 +2501,12 @@
       "source_and_selection": "workspace/intake/20261101-project-archiving-reconciliation/README.md",
       "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十七统一归档对账与顶层防漂移2026-11-01",
       "current_entry": "PROJECT_CURRENT.md",
-      "selected_product_baseline": ["AUTHORITY.md", "docs/history/owner-dialogue-20261101-current-goals/README.md", "docs/truth/PRODUCT_IDENTITY_V2.md", "docs/truth/CLOSED_LOOP_DEFINITION.md"],
+      "selected_product_baseline": [
+        "AUTHORITY.md",
+        "docs/history/owner-dialogue-20261101-current-goals/README.md",
+        "docs/truth/PRODUCT_IDENTITY_V2.md",
+        "docs/truth/CLOSED_LOOP_DEFINITION.md"
+      ],
       "owner_latest_clarification": "Latest baseline remains the just-completed AUTHORITY / 13-group recent dialogue crosswalk / product identity V2.3 / sole loop V3; all other materials are historical and supplemental. Archive reconciliation does not select replacement product goals.",
       "repository_local_sources": "workspace/intake/20261101-project-archiving-reconciliation/LOCAL-SOURCES.json",
       "independence_owner_followup": "Owner requires all project source material to reside independently inside this repository. Reuse exact local bytes, preserve missing selected originals in ignored project-local archives, verify only repo-relative locators; external archive paths are provenance only. Git clone excludes ignored originals; no upload granted by this followup.",
@@ -2409,7 +2526,7 @@
       "handoff": "workspace/intake/20261101-learning-platform-integration/新会话完整执行提示词.txt",
       "workbreakdown": "workspace/intake/20261101-learning-platform-integration/FOLLOWUP-WORKBREAKDOWN.md",
       "selected_implementation": "DeepTutor 1.7.1 and OpenMAIC 1.3.0 applicable capabilities under existing V2.3/V3 and CL/J/X: formal Rust Core writer, isolated replaceable SDK/worker/provider, existing learning consumers and all inherited unfinished work",
-    "state": "OWNER_SELECTED; PARTIAL_BACKEND_SOURCE_INTEGRATION_IN_PROGRESS; QUALIFICATION_AND_REMAINING_SCOPE_IN_SOLE_EXECUTION_RECORD",
+      "state": "OWNER_SELECTED; PARTIAL_BACKEND_SOURCE_INTEGRATION_IN_PROGRESS; QUALIFICATION_AND_REMAINING_SCOPE_IN_SOLE_EXECUTION_RECORD",
       "boundary": "Prior archive-only turn does not forbid this newly selected implementation. Preserve dirty work, v1 course compatibility, raw local-only archives and exact donor versions; no wholesale donor site/database replacement, global provider changes, automatic UI layout/monitor/resume/release/Green or real-data overwrite",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     }

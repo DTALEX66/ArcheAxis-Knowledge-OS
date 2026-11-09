@@ -4505,6 +4505,18 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI：首轮（`42254044847`、`42254802678`）在 lint 失败——新路由未登记契约（157 vs 158）与新增章节缺少 checker；已按既有 Courses 表归档并移除新章节，最终 run `42255357268` 全 required gates success；两次失败保留。
 - 交付：PR **#308** 以 merge commit **`ae034949`** 合并；本地与 `origin/main` 一致。
 - 边界：**未做 staged/安装态 interactive 复验**；真实模型质量未验（合成 loopback stub）；交互 HTML 不执行/不服务；未做 UI 接线；非 Owner 接受。
+> 以下 2026-11-07 为主工作树其他会话留下的历史记录；本轮仅读回两份回执的状态与摘要，未重新执行安装、卸载或其余验收。
+
+#### 2026-11-07 OpenMAIC interactive 链的 staged 与安装态复验（INT-MAIC-05 第六片）
+
+- staged 候选：从当前 HEAD `140cfb42`（tree `12930ca2`）构建 release Core（sha `c569b40a…`、22,592,512 B），用 `stage_backend_runtime.py` 生成 `.project-local/rt/staged-20261107-interactive`：version `0.6.15`、manifest `2f3c77c4…`、**8,289 文件**、`workers/openmaic` **696 成员**（694 闭包 + `node.exe` + `NODE-LICENSE`）、Node sha `ba4e6d11…`、`openmaic_scene_build: INCLUDED`。
+- 探针扩展：`scripts/probes/aaos_openmaic_generation_staged_loop.py` 新增 interactive 步骤：`/outlines/generate-interactive`（合成 loopback 回复为 1 条 `diagram` 交互大纲）→ 用该文档调 `/scenes/generate`（第二次模型回复为合成 HTML）→ 校验 `scene_route=interactive`、`widget_type=diagram`、`normalize OBSERVED_CANDIDATE`、`html_execution=NOT_PERFORMED`、`rendering_authorized=false`、`render.playable=false`；重启后交互大纲与交互场景各读回同一候选，`worker_invoked=false` 且模型调用数不增。
+- staged 结果（**PASS**）：回执 `.project-local/runs/be268a2d33/openmaic-staged-20261107/artifacts/openmaic-staged.json`，`ok: true`；slide 2 条讲解、quiz 1 条、interactive `diagram` 场景；共 **7 次** loopback 模型调用，重启后仍 **7 次**。
+- 安装器：把 `.project-local/rt` 的资源 junction/hardlink 指向新候选后，用 `scripts/runtime/frontend.mjs tauri --separate-bundle` 构建（frontend receipt `source_consistent: true`、source commit `140cfb42`）；NSIS 安装器 `ArcheAxis Knowledge_0.6.14_x64-setup.exe` **166,205,246 B / sha256 `ff791fa9…`**，宿主 `ArcheAxis.exe` **50,048,512 B / sha256 `fba7a62d…`**。
+- 隔离安装：先把 `HKCU\Software\archeaxis\ArcheAxis Knowledge` 的 previous-install 值指向隔离目录，再 `/S` 安装，安装器落到 `.project-local/install-acceptance-20261107/app`（不使用 `/D`，避开上次“带引号 `/D` 被 NSIS 忽略”的问题）。安装态 manifest `2f3c77c4…`、core `c569b40a…`、node `ba4e6d11…`、`workers/openmaic` 696 成员；默认目录（`%LOCALAPPDATA%\ArcheAxis Knowledge`）保持原样：manifest 仍 `c4b48379…`、20,399 文件。
+- 安装态链（**PASS**）：`--installed-runtime --data-root .project-local/install-acceptance-20261107/workspace`，回执 `openmaic-installed.json`：`evidence_level INSTALLED_RUNTIME_REAL_CORE_REAL_NODE_SYNTHETIC_LOOPBACK_MODEL`、7 次模型调用、interactive 候选 `html_execution NOT_PERFORMED`/`playable false`、重启回放 0 次额外调用。
+- 清理与恢复：`uninstall.exe /S` exit 0，隔离目录剩余 0 文件；`HKCU` 的 previous-install 值与 Uninstall 子键按安装前快照（`.project-local/install-acceptance-20261107/registry-before.json`）恢复为默认目录身份。
+- 边界：安装器**未签名**；只运行安装态 Core 业务链，未运行 Tauri/WebView2 WebDriver UI 旅程；材料为合成、模型为 loopback stub（**非真实模型质量**）；interactive HTML 不执行、不服务、不授权渲染；未做 UI 接线与 INT-MAIC-01/02 消费者接线；**非 Owner 接受、非发布**。
 
 #### 2026-11-07 INT-MAIC-05 第六片：交互 widget 字段与 donor 提示词对齐（PR #309）
 
@@ -4960,3 +4972,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 本节为合成工作区的局部工程证据；真实用户学习、完整 X2／X8、安装态、当前修复的精确 SHA 云 CI 和 Owner 接受均未证明，V3 仍为 PARTIAL。公开分支的自动审批拒绝与精确提交确认仍按前述记录处理，不绕过。
 
 - 文档回写后的 `learning-prior-invalid-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威、仓库规范、contracts-vnext、Ruff 与 Rust 格式检查通过。检查绑定 `345cddf1`、patch `314f0484a708a3cd434a598b2d4aaf4e1854885e2145b6e32a715f437a2a2b03`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。
+
+
+#### 2026-11-10 · 主工作树并发记录的隔离吸收
+
+- 以主工作树 `157ee1db401bc4c101ad73309159eca7d09abc9a` 的三处未提交文件与独立分支 `a8dd5f9e4c68e1840a4a2ed45e2208a195792420` 作三方预览；前后逐文件摘要一致。原字节、共同基线、独立分支字节与冲突预览保存在 `.project-local/runs/ccc4a08b4a/primary-reconciliation-a8dd-20261110/artifacts/primary-reconciliation/`。活动指针／执行记录各一个文本冲突，探针四个。
+- 主树 2026-11-07 staged／安装态历史小节原文已保留于本记录更早的对应位置，并标为其他会话历史报告；活动指针保全对应两组结构化记录、原 `next` 与更新后的证据字段，当前 `next` 仍按本分支后续任务。仅读回 staged 回执 `openmaic-staged.json` 的 `ok:true`／`STAGED_BACKEND_RUNTIME_REAL_CORE_REAL_NODE_WORKERS_SYNTHETIC_LOOPBACK_MODEL`（SHA-256 `8c49632b84f0d919d94479253eaa71a999a52b8cc73225627f9cfd8c15b97ef7`）和安装态回执 `openmaic-installed.json` 的 `ok:true`／`INSTALLED_RUNTIME_REAL_CORE_REAL_NODE_SYNTHETIC_LOOPBACK_MODEL`（SHA-256 `cd0f20cbd321742997d38be495e12f6a7ee8b3e84913f370776aa1331dbe3474`）；未重新执行安装、卸载、注册表操作、原生 UI 或 Owner 验收，也不将历史回执转移到当前候选。
+- 探针四处冲突逐项对照后，包含 diagram／game／code 的候选与独立分支现有探针**字节一致**，并通过 Python 编译；这是源码吸收核对，不是新 staged 或安装态运行。主工作树仍停在 `157ee1db`，三处原 dirty 文件原样保留，没有快进、stash、重置或写回；本节只是将可保全内容吸收到隔离分支，双端／主工作树对齐仍未完成。
+- 候选与摘要见 `.project-local/runs/ccc4a08b4a/primary-reconciliation-candidate-a8dd-20261110/artifacts/candidate/`。公开分支的自动审批拒绝及其精确提交确认不因本次本地吸收而消失；V3 闭环、当前候选安装态与 Owner 接受仍为 PARTIAL／未执行。
+
+- 隔离吸收后的 `primary-absorption-record-maintenance-20261110/` 为 **250 passed／2 skipped，另 2 个 subtest passed**；文档权威与仓库规范通过。检查绑定 `a8dd5f9e`、patch `b12322a2ed4b15adf16bfb8f8e320fd708bee8a59654e4075228345de1643a05`、`source_consistent:true`；外部来源按门禁仍标 UNVERIFIED。
