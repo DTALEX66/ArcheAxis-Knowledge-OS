@@ -680,6 +680,15 @@
       ],
       "additionalProperties": true
     },
+    "LearningScheduleIntegrityDto": {
+      "type": "object",
+      "properties": {
+        "state": {"const": "unverified"},
+        "reason": {"const": "scheduled_gap_replay_unverified"}
+      },
+      "required": ["state", "reason"],
+      "additionalProperties": false
+    },
     "LearningItemsDto": {
       "type": "object",
       "properties": {
@@ -701,7 +710,8 @@
                   "string",
                   "null"
                 ]
-              }
+              },
+              "schedule_integrity": {"$ref": "#/$defs/LearningScheduleIntegrityDto"}
             },
             "required": [
               "item_key",
@@ -744,6 +754,7 @@
             "next_review": {
               "type": ["string", "null"]
             },
+            "schedule_integrity": {"$ref": "#/$defs/LearningScheduleIntegrityDto"},
             "assessment_progress": {
               "anyOf": [
                 {"type": "null"},

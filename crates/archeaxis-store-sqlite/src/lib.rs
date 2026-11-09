@@ -221,6 +221,7 @@ CREATE TABLE IF NOT EXISTS learning_events (
     next_review TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS learning_events_item_event_idx ON learning_events(item_key, event_id);
 CREATE TABLE IF NOT EXISTS learning_assessments (
     assessment_id TEXT PRIMARY KEY,
     item_key TEXT NOT NULL,

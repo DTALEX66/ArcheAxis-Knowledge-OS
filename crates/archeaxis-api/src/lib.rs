@@ -552,9 +552,36 @@ async fn learning_history(
     .await
 }
 
-/// Read-only queue projection for desktop clients. The latest event is the
-/// only source for each item's deadline; no learner or machine status is
-/// inferred here.
+// Only the effective deadline is withheld: historical event bytes remain unchanged.
+fn schedule_gap_is_unverified(
+    conn: &rusqlite::Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+) -> rusqlite::Result<bool> {
+    // A gap cannot exist without at least one unavailable event. This indexed
+    // precheck avoids reconstructing every healthy item on a queue read.
+    let has_unavailable: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM learning_events WHERE item_key=?1 AND CASE
+         WHEN json_valid(outcome) THEN json_extract(outcome,'$.schedule.authority')='unavailable'
+         ELSE 0 END)",
+        [item_key],
+        |row| row.get(0),
+    )?;
+    if !has_unavailable {
+        return Ok(false);
+    }
+    Ok(
+        learning::review_schedule_basis(conn, item_key, assessment_id)?
+            .scheduled_gap_replay_unverified,
+    )
+}
+
+fn unverified_schedule_integrity() -> serde_json::Value {
+    serde_json::json!({"state":"unverified", "reason":"scheduled_gap_replay_unverified"})
+}
+
+/// Read-only queue projection for desktop clients. Deadlines come from the latest
+/// event only when the active history has no unverified scheduled replay gap.
 async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
     with_store(state, |conn| {
         let rows = learning::item_keys_with_latest_review(conn).and_then(|items| {
@@ -562,11 +589,24 @@ async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
                 .into_iter()
                 .map(|(item_key, next_review)| {
                     let display_title = learning::item_display_title(conn, &item_key)?;
-                    Ok(serde_json::json!({
+                    let assessment = learning::assessment_for_item_key(conn, &item_key)?;
+                    let gap = schedule_gap_is_unverified(
+                        conn,
+                        &item_key,
+                        assessment
+                            .as_ref()
+                            .map(|value| value.assessment_id.as_str()),
+                    )?;
+                    let mut item = serde_json::json!({
                         "item_key": item_key,
                         "next_review": next_review,
                         "display_title": display_title,
-                    }))
+                    });
+                    if gap {
+                        item["next_review"] = serde_json::Value::Null;
+                        item["schedule_integrity"] = unverified_schedule_integrity();
+                    }
+                    Ok(item)
                 })
                 .collect::<rusqlite::Result<Vec<serde_json::Value>>>()
         });
@@ -663,8 +703,24 @@ async fn item_state(
             },
             None => events.clone(),
         };
-        let latest_review = latest_review_projection(&events);
-        let scoped_review = latest_review_projection(&scoped_events);
+        let mut latest_review = latest_review_projection(&events);
+        let mut scoped_review = latest_review_projection(&scoped_events);
+        let unverified_gap = if !scoped_events.is_empty() {
+            match schedule_gap_is_unverified(conn, &item_key, assessment_id) {
+                Ok(value) => value,
+                Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            }
+        } else {
+            false
+        };
+        if unverified_gap {
+            let same_event = scoped_review.get("event_id").is_some()
+                && scoped_review.get("event_id") == latest_review.get("event_id");
+            scoped_review["next_review"] = serde_json::Value::Null;
+            if same_event {
+                latest_review["next_review"] = serde_json::Value::Null;
+            }
+        }
         let assessment_progress = assessment.as_ref().map(|value| serde_json::json!({
             "assessment_id": value.assessment_id, "knowledge_id": value.knowledge_id,
             "knowledge_version": value.knowledge_version, "event_count": scoped_events.len(),
@@ -674,9 +730,7 @@ async fn item_state(
             .unwrap_or(serde_json::Value::Null);
         let unscheduled = events.iter().filter(|(_, _, _, next)| next.is_none()).count();
         let scheduled = events.len() - unscheduled;
-        (
-            StatusCode::OK,
-            Json(serde_json::json!({
+        let mut result = serde_json::json!({
                 "item_key": item_key,
                 "learner": {
                     "event_count": events.len(),
@@ -696,9 +750,11 @@ async fn item_state(
                     "status": "not_recorded",
                     "note": "machine capability receipts are written by the machine loop; learner progress is never presented as machine competence",
                 },
-            })),
-        )
-            .into_response()
+            });
+        if unverified_gap {
+            result["learner"]["schedule_integrity"] = unverified_schedule_integrity();
+        }
+        (StatusCode::OK, Json(result)).into_response()
     })
     .await
 }

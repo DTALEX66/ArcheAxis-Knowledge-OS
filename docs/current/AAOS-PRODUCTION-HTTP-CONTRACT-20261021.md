@@ -375,6 +375,18 @@ event key. A timezone offset is converted to the same UTC instant for FSRS while
 input remains in review evidence. FSRS floating parameters are parsed exactly on the scheduler
 path; historic values already stored with prior rounding are not reconstructed.
 
+If an unavailable review is followed by an FSRS card inside the active scheduling baseline,
+the first later card must have recorded a `replayed` recovery with the matching count and last
+event ID for the intervening unavailable reviews. Otherwise the replay is **unverified**; this
+does not establish whether a historical worker really did or did not replay it. When such a gap
+affects the active scoped history, the queue item and learner state expose
+`schedule_integrity: {state: "unverified", reason: "scheduled_gap_replay_unverified"}` and set
+the effective `next_review` to null. The current assessment's latest-review projection also
+withholds that deadline. Item-wide latest review can instead be a different historical assessment;
+raw event history remains unchanged and readable. A new ordinary review is recorded unavailable
+when this is the first blocking issue; an explicit human reset can start a new baseline without
+rewriting prior observations.
+
 Legacy `kind:review` events that lack a stateful schedule object or have an unknown scheduling
 authority do not establish the exact rating, effective time and FSRS card needed for automatic
 replay. If such an event is within the current scheduling baseline, a new stateful review is
@@ -413,9 +425,10 @@ is explicitly excluded from its scheduling history; ordinary reviews must still 
 recent instant within the active baseline. If the scheduler is unavailable or its result invalid, the reset is not
 recorded and returns `503`; the caller should retain the input and may retry the same event key.
 The option is absent by default, so older request hashes and committed receipts remain usable.
-An older Core that does not understand `schedule_reset` cannot replay a reset request and may not
-display the reset provenance (inferred from its request contract); an actual downgrade and
-installed-UI behavior remain unqualified.
+One pinned older Core rejected a reset replay with `422` and did not display the reset provenance
+in a synthetic independent restore; its staged runtime source identity is asserted, not verified.
+The same older binary could write a card while skipping an unavailable review, so it is not
+generally downgrade-safe. An installed downgrade and installed-UI behavior remain unqualified.
 
 For an item without an assessment, a caller can obtain the cursor from
 `learner.latest_review.event_id`; for an assessed item use the current assessment's

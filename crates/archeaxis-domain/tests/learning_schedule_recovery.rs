@@ -22,7 +22,7 @@ fn unavailable(assessment: Option<&str>, rating: u8, now: Option<&str>) -> serde
 fn pending_reviews_follow_the_last_card_and_the_selected_assessment() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
-    insert(
+    let initial_pending = insert(
         &conn,
         "item",
         unavailable(Some("a"), 1, Some("2026-09-01T00:00:00Z")),
@@ -31,7 +31,7 @@ fn pending_reviews_follow_the_last_card_and_the_selected_assessment() {
     insert(
         &conn,
         "item",
-        json!({"assessment_id":"a","schedule":{"authority":"fsrs","state":card}}),
+        json!({"assessment_id":"a","schedule":{"authority":"fsrs","state":card,"recovery":{"state":"replayed","count":1,"through_event_id":initial_pending}}}),
     );
     let first = insert(
         &conn,
@@ -330,4 +330,164 @@ fn reset_baseline_requires_matching_declaration_and_is_assessment_scoped() {
             .baseline_reset_event_id,
         Some(reset)
     );
+}
+
+#[test]
+fn scheduled_card_cannot_hide_unreplayed_unavailable_reviews() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("gaps.sqlite").to_str().unwrap()).unwrap();
+    let card = json!({"state":"review","last_review":"2026-09-03T00:00:00Z"});
+    for name in [
+        "absent",
+        "wrong-count",
+        "wrong-cursor",
+        "wrong-state",
+        "wrong-type",
+    ] {
+        let missed = insert(
+            &conn,
+            name,
+            unavailable(Some("a"), 1, Some("2026-09-02T00:00:00Z")),
+        );
+        let recovery = match name {
+            "absent" => json!(null),
+            "wrong-count" => json!({"state":"replayed","count":2,"through_event_id":missed}),
+            "wrong-cursor" => json!({"state":"replayed","count":1,"through_event_id":missed + 99}),
+            "wrong-state" => json!({"state":"continued","count":1,"through_event_id":missed}),
+            _ => json!({"state":"replayed","count":"1","through_event_id":missed}),
+        };
+        insert(
+            &conn,
+            name,
+            json!({"assessment_id":"a", "schedule":{
+            "authority":"fsrs", "state":card, "recovery":recovery}}),
+        );
+        // A later plausible replay marker must not retroactively validate the first bad card.
+        insert(
+            &conn,
+            name,
+            json!({"assessment_id":"a", "schedule":{
+            "authority":"fsrs", "state":card,
+            "recovery":{"state":"replayed","count":1,"through_event_id":missed}}}),
+        );
+        assert_eq!(
+            learning::review_schedule_basis(&conn, name, Some("a"))
+                .unwrap()
+                .recovery_issue,
+            Some("scheduled_gap_replay_unverified"),
+            "{name}"
+        );
+        assert!(
+            learning::review_schedule_basis(&conn, name, Some("b"))
+                .unwrap()
+                .recovery_issue
+                .is_none()
+        );
+    }
+}
+
+#[test]
+fn valid_replay_receipts_cover_only_their_own_pending_reviews() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("replays.sqlite").to_str().unwrap()).unwrap();
+    let card = json!({"state":"review","last_review":"2026-09-03T00:00:00Z"});
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-01T00:00:00Z")),
+    );
+    let second = insert(
+        &conn,
+        "item",
+        unavailable(None, 3, Some("2026-09-02T00:00:00Z")),
+    );
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs","state":card,
+        "recovery":{"state":"replayed","count":2,"through_event_id":second}}}),
+    );
+    let third = insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-04T00:00:00Z")),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert!(basis.recovery_issue.is_none());
+    assert_eq!(basis.pending.len(), 1);
+    assert_eq!(basis.pending[0].event_id, third);
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":{"state":"review","last_review":"2026-09-05T00:00:00Z"},
+        "recovery":{"state":"replayed","count":1,"through_event_id":third}}}),
+    );
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":{"state":"review","last_review":"2026-09-06T00:00:00Z"}}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert!(basis.recovery_issue.is_none());
+    assert!(basis.pending.is_empty());
+}
+
+#[test]
+fn explicit_reset_starts_after_an_unreplayed_historical_gap() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("reset.sqlite").to_str().unwrap()).unwrap();
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-01T00:00:00Z")),
+    );
+    let later = insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":{"state":"review","last_review":"2026-09-02T00:00:00Z"}}}),
+    );
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", None)
+            .unwrap()
+            .recovery_issue,
+        Some("scheduled_gap_replay_unverified")
+    );
+    let reset = insert(
+        &conn,
+        "item",
+        json!({"review_evidence":{"schedule_reset":{
+        "mode":"start_new", "reason":"synthetic reset", "expected_latest_event_id":later}},
+        "schedule":{"authority":"fsrs", "state":{"state":"review","last_review":"2026-09-03T00:00:00Z"},
+        "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic reset", "excluded_through_event_id":later}}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_eq!(basis.baseline_reset_event_id, Some(reset));
+    assert!(basis.recovery_issue.is_none());
+}
+
+#[test]
+fn legacy_issue_does_not_hide_the_independent_replay_gap_flag() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("mixed.sqlite").to_str().unwrap()).unwrap();
+    insert(&conn, "item", json!({"outcome":"correct"}));
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-02T00:00:00Z")),
+    );
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":{"state":"review","last_review":"2026-09-03T00:00:00Z"}}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_eq!(
+        basis.recovery_issue,
+        Some("legacy_review_evidence_missing_or_invalid")
+    );
+    assert!(basis.scheduled_gap_replay_unverified);
 }

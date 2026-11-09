@@ -1026,3 +1026,85 @@ async fn learning_items_display_title_preserves_snapshot_unicode_fallback_and_re
     let reopened = app(db.to_str().unwrap()).unwrap();
     assert_eq!(get_items(&reopened).await.1, queue);
 }
+
+#[tokio::test]
+async fn unverified_gap_withholds_only_the_current_assessment_deadline() {
+    fn event(conn: &rusqlite::Connection, assessment_id: &str, scheduled: bool) -> i64 {
+        let due = "2026-09-10T00:00:00Z";
+        let schedule = if scheduled {
+            json!({"authority":"fsrs", "state":{"state":"review", "step":null,
+                "stability":5.0, "difficulty":5.0, "last_review":"2026-09-03T00:00:00Z", "due":due}})
+        } else {
+            json!({"authority":"unavailable", "reviewed_at":"2026-09-02T00:00:00Z"})
+        };
+        let outcome = json!({"assessment_id":assessment_id, "outcome":if scheduled {"correct"} else {"incorrect"},
+            "schedule":schedule, "review_evidence":{"rating":if scheduled {3} else {1}, "now":"2026-09-02T00:00:00Z"}});
+        conn.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+            rusqlite::params!["assessment-tie-1", outcome.to_string(), if scheduled {Some(due)} else {None}]).unwrap();
+        conn.last_insert_rowid()
+    }
+
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("current-gap.sqlite");
+    let (old, current) = assessment_revision_fixture(&db);
+    let historical_latest = {
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        event(&conn, &current.assessment_id, false);
+        event(&conn, &current.assessment_id, true);
+        event(&conn, &old.assessment_id, true)
+    };
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, state) = get_path(&router, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(state["learner"]["next_review"], Value::Null);
+    assert_eq!(
+        state["learner"]["assessment_progress"]["latest_review"]["next_review"],
+        Value::Null
+    );
+    assert_eq!(
+        state["learner"]["schedule_integrity"]["reason"],
+        "scheduled_gap_replay_unverified"
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["event_id"],
+        historical_latest
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["next_review"],
+        "2026-09-10T00:00:00Z"
+    );
+    let (_, queue) = get_items(&router).await;
+    let item = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["item_key"] == "assessment-tie-1")
+        .unwrap();
+    assert_eq!(item["next_review"], Value::Null);
+    assert_eq!(
+        item["schedule_integrity"]["reason"],
+        "scheduled_gap_replay_unverified"
+    );
+
+    let clean_db = dir.path().join("historical-gap.sqlite");
+    let (old, current) = assessment_revision_fixture(&clean_db);
+    {
+        let conn = archeaxis_store_sqlite::init_workspace(clean_db.to_str().unwrap()).unwrap();
+        event(&conn, &old.assessment_id, false);
+        event(&conn, &old.assessment_id, true);
+        event(&conn, &current.assessment_id, true);
+    }
+    let clean = app(clean_db.to_str().unwrap()).unwrap();
+    let (_, state) = get_path(&clean, "/api/v1/learning/items/assessment-tie-1/state").await;
+    assert_eq!(state["learner"]["next_review"], "2026-09-10T00:00:00Z");
+    assert!(state["learner"].get("schedule_integrity").is_none());
+    let (_, queue) = get_items(&clean).await;
+    let item = queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["item_key"] == "assessment-tie-1")
+        .unwrap();
+    assert_eq!(item["next_review"], "2026-09-10T00:00:00Z");
+    assert!(item.get("schedule_integrity").is_none());
+}

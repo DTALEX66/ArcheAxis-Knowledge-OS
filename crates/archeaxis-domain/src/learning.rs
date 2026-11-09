@@ -466,6 +466,7 @@ pub struct ReviewScheduleBasis {
     pub latest_event_id: Option<i64>,
     pub latest_reviewed_at_micros: Option<i64>,
     pub baseline_reset_event_id: Option<i64>,
+    pub scheduled_gap_replay_unverified: bool,
     pub pending: Vec<PendingScheduleReview>,
     pub recovery_issue: Option<&'static str>,
 }
@@ -486,6 +487,67 @@ pub fn latest_review_event_id(
         rusqlite::params![item_key, assessment_id],
         |r| r.get(0),
     )
+}
+
+/// A later FSRS card does not prove earlier unavailable reviews were replayed.
+/// Check each gap against the first subsequent card's recorded replay receipt;
+/// older Core versions could write that card without consuming the gap.
+fn has_scheduled_gap_without_replay_evidence(
+    conn: &Connection,
+    item_key: &str,
+    assessment_id: Option<&str>,
+    baseline_reset_event_id: Option<i64>,
+    last_scheduled_id: Option<i64>,
+) -> rusqlite::Result<bool> {
+    let Some(last_scheduled_id) = last_scheduled_id else {
+        return Ok(false);
+    };
+    let mut stmt = conn.prepare(
+        "SELECT event_id,json_extract(outcome,'$.schedule.authority'),
+           CASE WHEN json_type(outcome,'$.schedule.recovery.state')='text'
+                THEN json_extract(outcome,'$.schedule.recovery.state') END,
+           CASE WHEN typeof(json_extract(outcome,'$.schedule.recovery.count'))='integer'
+                THEN json_extract(outcome,'$.schedule.recovery.count') END,
+           CASE WHEN typeof(json_extract(outcome,'$.schedule.recovery.through_event_id'))='integer'
+                THEN json_extract(outcome,'$.schedule.recovery.through_event_id') END
+         FROM learning_events WHERE item_key=?1 AND event_id>COALESCE(?3,0) AND event_id<=?4
+         AND CASE WHEN json_valid(outcome) THEN
+           (?2 IS NULL OR json_extract(outcome,'$.assessment_id')=?2)
+           AND json_extract(outcome,'$.schedule.authority') IN ('fsrs','unavailable')
+         ELSE 0 END ORDER BY event_id",
+    )?;
+    let mut rows = stmt.query(rusqlite::params![
+        item_key,
+        assessment_id,
+        baseline_reset_event_id,
+        last_scheduled_id
+    ])?;
+    let mut pending_count = 0_i64;
+    let mut last_pending_id = None;
+    while let Some(row) = rows.next()? {
+        let event_id: i64 = row.get(0)?;
+        let authority: String = row.get(1)?;
+        if authority == "unavailable" {
+            let Some(count) = pending_count.checked_add(1) else {
+                return Ok(true);
+            };
+            pending_count = count;
+            last_pending_id = Some(event_id);
+        } else if pending_count > 0 {
+            let state: Option<String> = row.get(2)?;
+            let count: Option<i64> = row.get(3)?;
+            let through: Option<i64> = row.get(4)?;
+            if state.as_deref() != Some("replayed")
+                || count != Some(pending_count)
+                || through != last_pending_id
+            {
+                return Ok(true);
+            }
+            pending_count = 0;
+            last_pending_id = None;
+        }
+    }
+    Ok(false)
 }
 
 pub fn review_schedule_basis(
@@ -550,6 +612,16 @@ pub fn review_schedule_basis(
     ])?;
     let mut pending = Vec::new();
     let mut recovery_issue = legacy_gap.then_some("legacy_review_evidence_missing_or_invalid");
+    let scheduled_gap_replay_unverified = has_scheduled_gap_without_replay_evidence(
+        conn,
+        item_key,
+        assessment_id,
+        baseline_reset_event_id,
+        last_scheduled_id,
+    )?;
+    if recovery_issue.is_none() && scheduled_gap_replay_unverified {
+        recovery_issue = Some("scheduled_gap_replay_unverified");
+    }
     let mut latest_reviewed_at_micros = None;
     if let Some(raw) = previous_state.as_deref() {
         let previous = parse_fsrs_card(raw).ok();
@@ -608,6 +680,7 @@ pub fn review_schedule_basis(
         latest_event_id,
         latest_reviewed_at_micros,
         baseline_reset_event_id,
+        scheduled_gap_replay_unverified,
         pending,
         recovery_issue,
     })
