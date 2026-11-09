@@ -383,6 +383,12 @@ even if a later historical FSRS card already exists. An assessment-bound review 
 unbound legacy history. The explicit human-declared reset below can start a new baseline while
 retaining the old records; it does not reconstruct them.
 
+If the latest recorded FSRS schedule claims an absent, null or non-object card state, the Core
+retains that invalid prior state as a named `invalid_previous_card` condition. A new ordinary
+review is saved without a due date; the Core neither treats the row as no prior history nor
+parses a string containing JSON as an authoritative card. A human-declared reset can start a
+new baseline without modifying the damaged record.
+
 For a new non-reset review with an otherwise recoverable history, the effective `now` must not
 precede the last evidenced review on that scoped card: the Core returns `400` before invoking the
 worker or writing an event, so the caller can correct and resubmit the same key. Historic unscheduled events that are already in reverse time

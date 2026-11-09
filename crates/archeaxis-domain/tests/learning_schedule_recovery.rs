@@ -96,6 +96,37 @@ fn missing_or_inconsistent_evidence_fails_closed_without_inventing_time() {
 }
 
 #[test]
+fn malformed_fsrs_state_remains_present_and_invalid() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    for (item, state) in [
+        ("null-card", serde_json::Value::Null),
+        ("number-card", json!(7)),
+        (
+            "string-card",
+            json!("{\"last_review\":\"2026-09-02T00:00:00Z\"}"),
+        ),
+    ] {
+        insert(
+            &conn,
+            item,
+            json!({"assessment_id":"a","schedule":{"authority":"fsrs","state":state}}),
+        );
+        for assessment in [None, Some("a")] {
+            let basis = learning::review_schedule_basis(&conn, item, assessment).unwrap();
+            assert_eq!(basis.previous_state.as_deref(), Some("null"));
+            assert_eq!(basis.recovery_issue, Some("invalid_previous_card"));
+        }
+    }
+    assert!(
+        learning::review_schedule_basis(&conn, "missing-item", None)
+            .unwrap()
+            .previous_state
+            .is_none()
+    );
+}
+
+#[test]
 fn legacy_review_gap_is_scoped_and_not_erased_by_a_later_card() {
     let temp = tempfile::tempdir().unwrap();
     let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();

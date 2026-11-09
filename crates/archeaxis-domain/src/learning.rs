@@ -411,13 +411,16 @@ pub fn review_timestamp_micros(conn: &Connection, value: &str) -> rusqlite::Resu
         .and_then(|s| s.checked_add(micros)))
 }
 
-/// Last successful FSRS state. An unscheduled event never erases it.
+/// Last successful FSRS state. An unscheduled event never erases it. A row
+/// claiming FSRS but lacking an object state stays present as invalid `null`,
+/// rather than being mistaken for no history or causing a SQL type error.
 pub fn latest_fsrs_state_json(
     conn: &Connection,
     item_key: &str,
 ) -> rusqlite::Result<Option<String>> {
     conn.query_row(
-        "SELECT json_extract(outcome, '$.schedule.state') FROM learning_events
+        "SELECT CASE WHEN json_type(outcome, '$.schedule.state')='object'
+                THEN json_extract(outcome, '$.schedule.state') ELSE 'null' END FROM learning_events
          WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
          THEN json_extract(outcome, '$.schedule.authority') = 'fsrs' ELSE 0 END
          ORDER BY event_id DESC LIMIT 1",
@@ -438,7 +441,8 @@ pub fn latest_fsrs_state_for_assessment(
         return latest_fsrs_state_json(conn, item_key);
     };
     conn.query_row(
-        "SELECT json_extract(outcome, '$.schedule.state') FROM learning_events
+        "SELECT CASE WHEN json_type(outcome, '$.schedule.state')='object'
+                THEN json_extract(outcome, '$.schedule.state') ELSE 'null' END FROM learning_events
          WHERE item_key=?1 AND CASE WHEN json_valid(outcome) THEN
            json_extract(outcome, '$.schedule.authority')='fsrs'
            AND json_extract(outcome, '$.assessment_id')=?2 ELSE 0 END

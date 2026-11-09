@@ -793,6 +793,67 @@ def test_scheduler_result_must_bind_the_requested_review_instant(tmp_path, monke
         core.stop()
 
 
+@pytest.mark.parametrize("bad_state", ["missing", "null", "number", "encoded_object"])
+@pytest.mark.parametrize("assessed", [False, True])
+def test_damaged_historical_fsrs_card_stays_unscheduled_until_reset(tmp_path, monkeypatch, bad_state, assessed):
+    core = core_for(tmp_path)
+    item = "synthetic-damaged-fsrs-card"
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    binding = {}
+    try:
+        core.start()
+        if assessed:
+            status, knowledge = core.request("POST", "/api/v1/knowledge-items", {
+                "knowledge_type": "FACTUAL_CLAIM", "body": "Synthetic fact", "status": "accepted",
+                "created_by": "fixture"})
+            assert status == 201
+            base = f"/api/v1/learning/items/{item}"
+            assert core.request("POST", base + "/references", {"knowledge_id": knowledge["knowledge_id"]})[0] == 201
+            status, assessment = core.request("POST", base + "/assessment", {"knowledge_id": knowledge["knowledge_id"]})
+            assert status == 201
+            binding = {"assessment_id": assessment["assessment_id"], "knowledge_version": assessment["knowledge_version"]}
+        status, old = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "valid-before-damage", "correct": True, "rating": 3,
+            "now": "2026-09-02T00:00:00Z", **binding})
+        assert status == 201 and old["schedule_authority"] == "fsrs"
+        core.stop()
+        # Create damaged historical shapes only in this isolated fixture database.
+        with sqlite3.connect(tmp_path / "workspace.sqlite") as conn:
+            raw = conn.execute("SELECT outcome FROM learning_events WHERE event_id=?", (old["event_id"],)).fetchone()[0]
+            outcome = json.loads(raw)
+            card = outcome["schedule"]["state"]
+            if bad_state == "missing":
+                del outcome["schedule"]["state"]
+            else:
+                outcome["schedule"]["state"] = {"null": None, "number": 7,
+                                                "encoded_object": json.dumps(card)}[bad_state]
+            damaged = json.dumps(outcome, ensure_ascii=False)
+            conn.execute("UPDATE learning_events SET outcome=? WHERE event_id=?", (damaged, old["event_id"]))
+        core.start()
+        body = {"item_key": item, "client_event_id": "after-damaged-card", "correct": True, "rating": 3,
+                "now": "2026-09-03T00:00:00Z", **binding}
+        status, blocked = core.request("POST", "/api/v1/learning/reviews", body)
+        assert status == 201 and blocked["schedule_authority"] == "unavailable", (status, blocked)
+        assert blocked["next_review"] is None and blocked["schedule_recovery"]["reason"] == "invalid_previous_card"
+        reset_body = {**body, "client_event_id": "reset-damaged-card", "schedule_reset": {
+            "mode": "start_new", "reason": "Synthetic prior card is damaged",
+            "expected_latest_event_id": blocked["event_id"]}}
+        status, reset = core.request("POST", "/api/v1/learning/reviews", reset_body)
+        assert status == 201 and reset["schedule_authority"] == "fsrs"
+        status, after = core.request("POST", "/api/v1/learning/reviews", {
+            **body, "client_event_id": "after-damaged-reset", "now": "2026-09-04T00:00:00Z"})
+        assert status == 201 and after["schedule_recovery"]["baseline_reset_event_id"] == reset["event_id"]
+        history = core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"]
+        assert history[0]["outcome"] == damaged
+        core.stop()
+        core.start()
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["events"] == history
+        status, replay = core.request("POST", "/api/v1/learning/reviews", reset_body)
+        assert status == 200 and replay["duplicate"] is True and replay["event_id"] == reset["event_id"]
+    finally:
+        core.stop()
+
+
 @pytest.mark.parametrize("legacy_authority", ["placeholder_ladder", "fsrs", "unavailable"])
 @pytest.mark.parametrize("prior_fsrs", [False, True])
 def test_legacy_review_gap_requires_explicit_new_baseline(tmp_path, monkeypatch, legacy_authority, prior_fsrs):
