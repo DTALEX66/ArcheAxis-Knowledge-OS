@@ -25,6 +25,7 @@
         "document_create",
         "document_get",
         "document_graph",
+        "document_research_references",
         "collection_query",
         "document_draft",
         "document_version",

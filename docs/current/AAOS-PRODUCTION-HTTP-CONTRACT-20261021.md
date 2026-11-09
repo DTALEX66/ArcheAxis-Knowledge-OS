@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (158 pairs in a `text_worker` launch)
+## 3. Route inventory (159 pairs in a `text_worker` launch)
 
 `PROD` identifies a route mounted in the current source for the specified production launch shape.
 Whether the UI can rely on it also depends on the applicable capability/provider availability,
@@ -1092,3 +1092,12 @@ Malformed JSON syntax returns 400; launch authentication failure 401; a nonhuman
 The bounded record lives in `workspace_meta`, independently of working-state CAS, draft budgets and saved documents. Saved metadata survives Store reopen and is included in workspace backups; restored entries retain their earlier epoch, while new operations must use the current epoch. Manually opened raw diagnostic payloads remain session-local. Source contract and controlled SQLite/HTTP checks do not qualify a packaged application, installed runtime or Owner acceptance.
 
 Directed offline check: `cargo test -p archeaxis-api --test operation_failure_log_api --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. Sources: `crates/archeaxis-api/src/failure_log.rs` and `crates/archeaxis-domain/src/failure_log.rs`; frontend persistence races are covered separately in `frontend/src/__tests__/FailureLogPersistence.test.tsx`. These are check entry points, not a claim that this documentation update ran them.
+
+
+## 24. Research reference observation (2026-11-09)
+
+| # | Method + path | Authorization | Contract |
+| --- | --- | --- | --- |
+| 234 | `GET /api/v1/documents/{document_id}/research-references` | Existing launch token and document-read guard | Optional positive `version` pins the research Document snapshot. Within one SQLite read snapshot, returns up to 256 references with their research entry and field, pinned identity, availability and observed target state. Metadata is explicitly `supported`, `absent` or `unsupported`; unsupported historical bytes are left intact. Missing or invalid targets are `unavailable`; Store errors remain errors. The document digest binds the stored research snapshot, not later target state, truth or integrity verification. Unknown query fields and nonpositive versions are rejected. The v1 finite host command is `document_research_references`; its schema, generated DTO and host digest must be deployed together. |
+
+This projection observes stored material, hypothesis, method, experiment, counterevidence, conclusion and unresolved references without changing the original document, relation graph, AI packet or evaluations. It does not replace a pinned target with its successor. Local synthetic Core/host checks do not establish UI wiring, installed runtime, exact-SHA CI, four-consumer acceptance or Owner acceptance.

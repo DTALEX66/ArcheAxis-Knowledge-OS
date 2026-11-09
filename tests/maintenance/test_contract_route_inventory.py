@@ -129,6 +129,7 @@ def test_handoff_reads_openapi_bind_strict_context_and_exact_response_schemas():
     """New local-human read mounts must expose their actual bounded DTO, not a generic POST."""
     import copy
     import json
+
     import yaml
     from jsonschema import Draft202012Validator
     from referencing import Registry, Resource
@@ -222,6 +223,7 @@ def test_problem_history_openapi_preserves_strict_scope_optional_metadata_and_re
     """The three human-only routes expose actual Rust Option inputs and one bounded DTO."""
     import copy
     import json
+
     import yaml
     from jsonschema import Draft202012Validator
     from referencing import Registry, Resource
@@ -290,3 +292,22 @@ def test_problem_history_openapi_preserves_strict_scope_optional_metadata_and_re
         assert {"400", "401", "403", "409", "413", "422", "503"} <= set(operation["responses"])
         assert "syntax" in operation["responses"]["400"]["description"]
         assert "unknown fields" in operation["responses"]["422"]["description"]
+
+
+def test_research_reference_read_exposes_the_bounded_projection_contract():
+    import yaml
+
+    outline = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    path = "/api/v1/documents/{document_id}/research-references"
+    operation = outline["paths"][path]["get"]
+    assert operation["x-core-operation"] == "document_research_references"
+    params = {item["name"]: item for item in operation["parameters"]}
+    assert params["document_id"]["required"] is True
+    assert params["version"]["required"] is False
+    assert params["version"]["schema"]["minimum"] == 1
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "./core-document.schema.json#/$defs/ResearchReferenceProjectionDto"
+    }
+    assert {"400", "401", "403", "404", "500"} <= set(operation["responses"])
+    assert ("GET", normalise(path)) in served_routes()[0]
+    assert ("GET", normalise(path)) in documented_routes()

@@ -222,6 +222,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             get(documents::relations),
         )
         .route(
+            "/api/v1/documents/:document_id/research-references",
+            get(documents::research_references),
+        )
+        .route(
             "/api/v1/documents/:document_id/collection",
             get(documents::collection),
         )

@@ -28,6 +28,36 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/documents/{document_id}/research-references:
+    get:
+      summary: Observe references in a pinned research document without changing it
+      description: >
+        Observes the stored research snapshot and its bounded references in one
+        database read snapshot. Target availability and currentness are separate
+        from the immutable document digest and do not verify source content or
+        factual correctness. Unsupported historical metadata is preserved and
+        explicitly reported rather than interpreted or rewritten.
+      x-core-operation: document_research_references
+      parameters:
+        - in: path
+          name: document_id
+          required: true
+          schema: {type: string}
+        - in: query
+          name: version
+          required: false
+          schema: {type: integer, minimum: 1, maximum: 9223372036854775807}
+      responses:
+        "200":
+          description: Bounded reference observation with supported, absent or unsupported metadata status
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/ResearchReferenceProjectionDto'}
+        "400": {description: Invalid version or query parameters}
+        "401": {description: Invalid launch credential}
+        "403": {description: Browser Origin refused}
+        "404": {description: Document or requested version not found}
+        "500": {description: Store read failed}
   /api/v1/search/semantic:
     post:
       summary: Explicit bounded query-time ranking of current Core-owned accepted knowledge

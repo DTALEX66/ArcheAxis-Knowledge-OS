@@ -227,6 +227,27 @@ pub(crate) struct RelationsQuery {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+pub(crate) struct ResearchReferencesQuery {
+    version: Option<i64>,
+}
+
+pub(crate) async fn research_references(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Query(query): Query<ResearchReferencesQuery>,
+) -> Response {
+    if query.version.is_some_and(|v| v < 1) {
+        return failure(document::Error::Invalid("research version must be positive"));
+    }
+    crate::with_store(state, move |conn| {
+        match archeaxis_domain::research::reference_projection(conn, &id, query.version) {
+            Ok(value) => Json(value).into_response(),
+            Err(error) => failure(error),
+        }
+    }).await
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct CollectionQuery {
     view_id: String,
     version: Option<i64>,

@@ -1679,6 +1679,36 @@
       ],
       "additionalProperties": false
     },
+    "ResearchReferenceDto": {
+      "type": "object",
+      "properties": {
+        "entry_kind": {
+          "enum": ["material", "hypothesis", "method", "experiment", "counterevidence", "conclusion", "unresolved"]
+        },
+        "entry_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "field": {"enum": ["reference", "references", "sources", "basis"]},
+        "index": {"type": "integer", "minimum": 0, "maximum": 255},
+        "reference": {"$ref": "#/$defs/ObjectReferenceDto"},
+        "status": {"enum": ["resolved", "unavailable"]},
+        "object": {"type": ["object", "null"]},
+        "version_relation": {"enum": ["current", "historical", "unconfirmed"]},
+        "current_version": {"type": "integer", "minimum": 0},
+        "currentness": {"enum": ["current", "superseded", "not_current"]}
+      },
+      "required": ["entry_kind", "entry_id", "field", "index", "reference", "status", "object"],
+      "additionalProperties": false
+    },
+    "ResearchReferenceProjectionDto": {
+      "type": "object",
+      "properties": {
+        "schema": {"const": "archeaxis.research-reference-projection/v1"},
+        "document": {"$ref": "#/$defs/DocumentSnapshotDto"},
+        "metadata_status": {"enum": ["supported", "absent", "unsupported"]},
+        "references": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/ResearchReferenceDto"}}
+      },
+      "required": ["schema", "document", "metadata_status", "references"],
+      "additionalProperties": false
+    },
     "RelationEdgeDto": {
       "type": "object",
       "properties": {
