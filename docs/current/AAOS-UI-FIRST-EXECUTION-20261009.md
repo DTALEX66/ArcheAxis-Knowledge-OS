@@ -4649,3 +4649,9 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 新增可复跑探针 `scripts/probes/aaos_ai_reference_observation_smoke.py`：经 `scripts/runtime/dev.py` 在独立合成工作区启动调用者指定的 Core，只接受现有机器 worker 声明的本机默认端点／模型，不更改全局配置。合成原文 v1 被更新至 v2 后，合成审核和明确授权的资产仍引用 v1；请求显式选择 `document_versions_v1`。实际 Core 和生产机器 worker 调用本地 `qwen3.5-4b` 返回候选，requested／observed 模型身份一致、`finish_reason: stop`、未截断。根据 Core 回执中资产包及 worker 上下文摘要与独立重建值相符，确认已绑定 `historical`、当前版本 2 的合成引用；生产 worker 源码将该上下文用于模型请求，模型端出站请求正文未独立抓包，不能把推断写成抓包观察。
 - 关闭 Core 并在不注册机器 worker 的条件下重启，能力查询返回 404，同一冻结请求读回完全相同的候选；没有借该重读证明新的推理。三次合成工程运行是探针完善与身份复核，不用于估计成功率。人工审核是合成夹具，未测事实准确性、学习改善或泛化，也不是 UI／安装态、精确 SHA CI、四消费者 X8 或 Owner 接受。
 - 最终回执 `.project-local/runs/ccc4a08b4a/ai-reference-real-local-identity-final-20261109/artifacts/ai-document-observation-receipt.json` SHA-256 `96f66007301c255188e6abd6b02fb64356db49f1c263e7a4c56f7fa14d9e29e5`；运行绑定 `c3331161`、dirty patch `de99eef4b83dacf392a1efea3ae3f634e9f9e8ab6ef301d879de51632abc9691`、`source_consistent:true`，Core exe `196bd386…`，生产 worker `3169d947…`。先前两次完整结果分别保存在 `ai-reference-real-local-sample-20261109/` 和 `ai-reference-real-local-sample-final-20261109/`；独立只读检查确认第二次的请求模型、服务返回模型和端点一致。
+
+#### 2026-11-09 · 学习记录知识状态合同修复
+
+- 真实 Core 合成反例：教学／学习记录 `RecordView` 已返回 `knowledge_state`，但 `teaching.schema.json` 与借用同一结构的 `ui-working-state.schema.json` 均以严格附加字段限制拒绝它，创建回执、列表和记录读取可能因此被客户端判为无效。现同步两份合同与各自生成的 TypeScript 校验器：状态有界、对历史记录可选，未知字段／未知当前性拒绝；未改变 Core、记录内容、已有内容摘要或评分。
+- 真实 Core 合成工作区验证 **2 passed**：创建回执和列表通过标准 Schema；知识修订前为 current、修订后原记录指向原知识并为 superseded，记录及摘要不变，重启后相同；旧记录形状仍可验证。两个实际生成校验器对真实回执、列表、旧格式和反例通过，TypeScript 编译及生成漂移检查通过。该结果是合同与局部 Core 证据，不代表真实学习效果、UI、安装态、精确 SHA CI 或 Owner 接受。
+- 红例 `teaching-knowledge-contract-red-20261109/` 绑定 `993a55cd`、patch `b9a62d73ab55f5bf151850641e501126884c1616881fb915d16f95b63bb17481`；通过回执 `teaching-knowledge-contract-green-20261109/` 绑定同提交、patch `40d1493e7c2500051111276b614c910467ebfb58401616c9f3c6f51f41b13aa7`，两者 `source_consistent:true`；Core 沿用 `196bd386…`。
