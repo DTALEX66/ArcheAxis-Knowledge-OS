@@ -166,3 +166,37 @@ fn inverted_historical_events_are_not_reordered_or_replayed() {
     );
     assert_eq!(basis.pending.len(), 1);
 }
+
+#[test]
+fn due_and_reported_interval_must_match_the_review_instant() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let make = |last: &str, due: &str, days: i64| learning::ReviewSchedule {
+        schedule_json: json!({"authority":"fsrs","state":{"state":"review","step":null,
+            "stability":3.0,"difficulty":5.0,"last_review":last,"due":due}})
+        .to_string(),
+        next_review: Some(due.to_owned()),
+        next_review_days: days,
+    };
+    let last = "2026-09-02T08:00:00.000002+08:00";
+    assert!(
+        learning::review_schedule_is_valid(&conn, &make(last, "2026-09-02T00:00:00.000002Z", 0))
+            .unwrap()
+    );
+    assert!(
+        learning::review_schedule_is_valid(&conn, &make(last, "2026-09-03T00:00:00.000001Z", 0))
+            .unwrap()
+    );
+    assert!(
+        learning::review_schedule_is_valid(&conn, &make(last, "2026-09-03T00:00:00.000002Z", 1))
+            .unwrap()
+    );
+    assert!(
+        !learning::review_schedule_is_valid(&conn, &make(last, "2026-09-02T00:00:00.000001Z", 0))
+            .unwrap()
+    );
+    assert!(
+        !learning::review_schedule_is_valid(&conn, &make(last, "2026-09-03T00:00:00.000002Z", 2))
+            .unwrap()
+    );
+}

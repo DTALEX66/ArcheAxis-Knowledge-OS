@@ -937,6 +937,23 @@ fn checked_review_schedule(
     )
 }
 
+fn schedule_matches_review_instant(
+    conn: &Connection,
+    schedule: &learning::ReviewSchedule,
+    expected: &str,
+) -> rusqlite::Result<bool> {
+    let card = learning::precise_fsrs_state_from_schedule(&schedule.schedule_json);
+    let actual = card
+        .as_ref()
+        .and_then(|value| value["last_review"].as_str());
+    let Some(actual) = actual else {
+        return Ok(false);
+    };
+    let expected = learning::review_timestamp_micros(conn, expected)?;
+    let actual = learning::review_timestamp_micros(conn, actual)?;
+    Ok(expected.is_some() && expected == actual)
+}
+
 #[cfg(test)]
 mod stateful_schedule_failures {
     use super::*;
@@ -1163,17 +1180,26 @@ fn replay_digest(entries: &[learning::PendingScheduleReview]) -> String {
 async fn validated_recovery_card(
     state: &AppState,
     scheduled: archeaxis_application::scheduler::Schedule,
+    expected_time: &str,
 ) -> Result<serde_json::Value, &'static str> {
     let card = scheduled.card_state.clone();
+    let expected_time = expected_time.to_owned();
     let checked = state
         .clone()
-        .submit_wait(move |conn| checked_review_schedule(conn, Ok(scheduled)))
+        .submit_wait(move |conn| -> rusqlite::Result<_> {
+            let schedule = checked_review_schedule(conn, Ok(scheduled))?;
+            let matches = schedule_matches_review_instant(conn, &schedule, &expected_time)?;
+            Ok((schedule, matches))
+        })
         .await;
-    let Ok(Ok(checked)) = checked else {
+    let Ok(Ok((checked, matches))) = checked else {
         return Err("recovery_validation_unavailable");
     };
     if checked.next_review.is_none() {
         return Err("invalid_recovered_card");
+    }
+    if !matches {
+        return Err("scheduler_time_mismatch");
     }
     Ok(card)
 }
@@ -1240,7 +1266,8 @@ async fn schedule_with_recovery(
                         && receipt.sha256 == replay_digest(replay)
                 });
                 if receipt_ok {
-                    card = match validated_recovery_card(state, scheduled).await {
+                    card = match validated_recovery_card(state, scheduled, &last.reviewed_at).await
+                    {
                         Ok(card) => card,
                         Err(reason) => return failure(reason),
                     };
@@ -1262,7 +1289,7 @@ async fn schedule_with_recovery(
                 Ok(value) => value,
                 Err(_) => return failure("scheduler_unavailable_during_recovery"),
             };
-            card = match validated_recovery_card(state, scheduled).await {
+            card = match validated_recovery_card(state, scheduled, &pending.reviewed_at).await {
                 Ok(card) => card,
                 Err(reason) => return failure(reason),
             };
@@ -1473,6 +1500,17 @@ async fn record_stateful_review(
                     ));
                 }
                 let mut schedule = checked_review_schedule(connection, schedule_result)?;
+                let mut recovery_issue = recovery_issue;
+                if schedule.next_review.is_some()
+                    && !schedule_matches_review_instant(connection, &schedule, &instant)?
+                {
+                    schedule = checked_review_schedule(connection, Err(
+                        archeaxis_application::scheduler::SchedulerError::Unavailable(
+                            "scheduler time does not match request".into(),
+                        ),
+                    ))?;
+                    recovery_issue = Some("scheduler_time_mismatch");
+                }
                 let mut details: serde_json::Value = serde_json::from_str(&schedule.schedule_json)
                     .map_err(|_| rusqlite::Error::InvalidParameterName("invalid schedule JSON".into()))?;
                 if let Some(card) = learning::precise_fsrs_state_from_schedule(&schedule.schedule_json) {

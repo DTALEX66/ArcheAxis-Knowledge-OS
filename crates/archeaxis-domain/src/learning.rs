@@ -619,6 +619,18 @@ pub fn review_schedule_is_valid(
         {
             return Ok(false);
         }
+        let (Some(due_instant), Some(review_instant)) = (
+            review_timestamp_micros(conn, due)?,
+            review_timestamp_micros(conn, &last_review)?,
+        ) else {
+            return Ok(false);
+        };
+        let Some(elapsed) = due_instant.checked_sub(review_instant) else {
+            return Ok(false);
+        };
+        if elapsed < 0 || elapsed / 86_400_000_000 != schedule.next_review_days {
+            return Ok(false);
+        }
     }
     Ok(true)
 }

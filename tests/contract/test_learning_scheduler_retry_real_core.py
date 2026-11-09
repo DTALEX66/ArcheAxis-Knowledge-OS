@@ -426,13 +426,15 @@ def test_old_unscheduled_review_without_time_is_not_guessed(tmp_path, monkeypatc
         core.stop()
 
 
-def test_invalid_recovery_card_remains_unscheduled_and_can_recover_later(tmp_path, monkeypatch):
+@pytest.mark.parametrize("wrong_time", [False, True])
+def test_invalid_recovery_card_remains_unscheduled_and_can_recover_later(tmp_path, monkeypatch, wrong_time):
     core = core_for(tmp_path)
     worker = tmp_path / "invalid_recovery_scheduler.py"
     worker.write_text(
         "import json\n"
-        "print(json.dumps({'authority':'fsrs','next_review_days':1,'due':'2026-10-02T00:00:00Z',"
-        "'state':'review','step':None,'stability':None,'difficulty':5.0,'last_review':'2026-09-02T00:00:00Z'}))\n",
+        "print(json.dumps({'authority':'fsrs','next_review_days':1,'due':'2026-09-03T00:00:00Z',"
+        "'state':'review','step':None,'stability':" + ("3.0" if wrong_time else "None") +
+        ",'difficulty':5.0,'last_review':'2026-09-02T00:00:00Z'}))\n",
         encoding="utf-8",
     )
     item = "synthetic-invalid-recovery"
@@ -451,7 +453,7 @@ def test_invalid_recovery_card_remains_unscheduled_and_can_recover_later(tmp_pat
             "item_key": item, "client_event_id": "bad-recovery", "correct": True, "rating": 3,
             "now": "2026-09-02T00:00:00Z"})
         assert status == 201 and second["schedule_authority"] == "unavailable" and second["next_review"] is None
-        assert second["schedule_recovery"]["reason"] == "invalid_recovered_card"
+        assert second["schedule_recovery"]["reason"] == ("scheduler_time_mismatch" if wrong_time else "invalid_recovered_card")
         core.stop()
         monkeypatch.delenv("ARCHEAXIS_SCHEDULER_WORKER")
         core.start()
@@ -613,10 +615,12 @@ def test_fsrs_float_state_is_exact_across_core_restart_and_restore(tmp_path, mon
     marker = tmp_path / "precision-inputs.jsonl"
     worker.write_text(
         "import json,os,sys\n"
+        "from datetime import datetime,timedelta\n"
         "request=json.load(sys.stdin)\n"
         "with open(os.environ['AAOS_TEST_SCHEDULER_MARKER'],'a',encoding='utf-8') as out:\n"
         "    out.write(json.dumps(request['state'])+'\\n')\n"
-        "print(json.dumps({'authority':'fsrs','next_review_days':1,'due':'2026-10-02T00:00:00+00:00',"
+        "due=(datetime.fromisoformat(request['now'].replace('Z','+00:00'))+timedelta(days=1)).isoformat()\n"
+        "print(json.dumps({'authority':'fsrs','next_review_days':1,'due':due,"
         "'state':'review','step':None,'stability':51.248178375505404,'difficulty':7.382336607835277,"
         "'last_review':request['now']}))\n",
         encoding="utf-8",
@@ -750,5 +754,39 @@ def test_new_review_cannot_predate_last_successful_card(tmp_path, monkeypatch):
             **body, "now": "2026-09-04T00:00:00Z"})
         assert status == 201 and corrected["schedule_authority"] == "fsrs"
         assert marker.read_text(encoding="utf-8").splitlines() == ["call", "call"]
+    finally:
+        core.stop()
+
+
+@pytest.mark.parametrize("bad_result", ["instant", "past_due", "wrong_interval"])
+def test_scheduler_result_must_bind_the_requested_review_instant(tmp_path, monkeypatch, bad_result):
+    core = core_for(tmp_path)
+    worker = tmp_path / "wrong_time_scheduler.py"
+    payload = {"authority": "fsrs", "next_review_days": 17 if bad_result == "wrong_interval" else 1,
+        "due": ("2026-09-01T00:00:00Z" if bad_result == "past_due" else
+                "2026-09-03T00:00:01Z" if bad_result == "instant" else "2026-09-03T00:00:00Z"),
+        "state": "review", "step": None, "stability": 3.0, "difficulty": 5.0,
+        "last_review": "2026-09-02T00:00:01Z" if bad_result == "instant" else "2026-09-02T00:00:00Z"}
+    worker.write_text("import json\nprint(json.dumps(" + repr(payload) + "))\n", encoding="utf-8")
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", str(Path(sys.executable).resolve()))
+    monkeypatch.setenv("ARCHEAXIS_SCHEDULER_WORKER", str(worker))
+    item = "synthetic-wrong-scheduler-time"
+    try:
+        core.start()
+        status, receipt = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "wrong-time", "correct": True, "rating": 3,
+            "now": "2026-09-02T08:00:00+08:00"})
+        assert status == 201 and receipt["schedule_authority"] == "unavailable" and receipt["next_review"] is None
+        assert receipt["schedule_recovery"]["reason"] == (
+            "scheduler_time_mismatch" if bad_result == "instant" else "invalid_scheduler_card")
+        assert core.request("GET", f"/api/v1/learning/events/{item}")[1]["count"] == 1
+        core.stop()
+        monkeypatch.delenv("ARCHEAXIS_SCHEDULER_WORKER")
+        core.start()
+        status, recovered = core.request("POST", "/api/v1/learning/reviews", {
+            "item_key": item, "client_event_id": "after-wrong-time", "correct": True, "rating": 3,
+            "now": "2026-09-03T00:00:00Z"})
+        assert status == 201 and recovered["schedule_authority"] == "fsrs"
+        assert recovered["schedule_recovery"]["count"] == 1
     finally:
         core.stop()

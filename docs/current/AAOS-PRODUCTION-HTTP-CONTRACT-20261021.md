@@ -378,6 +378,10 @@ card: the Core returns `400` before invoking the worker or writing an event, so 
 correct and resubmit the same key. Historic unscheduled events that are already in reverse time
 order are preserved and produce `unscheduled_review_time_order_invalid`, not an invented due
 date. Ordering compares UTC instants to microsecond precision, including timezone offsets.
+For every new or recovered worker result, the Core also checks that the returned `last_review`
+is the requested instant, that `due` is not earlier, and that `next_review_days` equals the
+whole-day portion of the elapsed interval. A malformed result is recorded as unavailable with
+no due date; the original review remains available for a later recovery attempt.
 
 ### Machine loop
 
