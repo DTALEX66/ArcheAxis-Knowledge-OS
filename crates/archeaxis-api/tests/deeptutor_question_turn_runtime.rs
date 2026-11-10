@@ -11,6 +11,7 @@ use axum::{
 };
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{
     io::{BufRead, BufReader, Read, Write},
     net::TcpListener,
@@ -32,7 +33,14 @@ struct StubState {
 
 /// One synthetic loopback model lane. Every request is counted, so a retry that
 /// silently re-ran the model is observable.
-fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>) {
+fn start_stub(
+    content: String,
+) -> (
+    u16,
+    Arc<Mutex<StubState>>,
+    Arc<Mutex<usize>>,
+    Arc<Mutex<Vec<Value>>>,
+) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let port = listener.local_addr().unwrap().port();
     let state = Arc::new(Mutex::new(StubState {
@@ -42,6 +50,8 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
     let calls = Arc::new(Mutex::new(0_usize));
     let shared = state.clone();
     let counted = calls.clone();
+    let requests = Arc::new(Mutex::new(Vec::new()));
+    let observed = requests.clone();
     thread::spawn(move || {
         for stream in listener.incoming() {
             let Ok(mut stream) = stream else { break };
@@ -63,13 +73,21 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
             }
             let mut body = vec![0_u8; length];
             let _ = reader.read_exact(&mut body);
+            observed
+                .lock()
+                .unwrap()
+                .push(serde_json::from_slice(&body).unwrap());
             *counted.lock().unwrap() += 1;
             let state = shared.lock().unwrap();
-            let payload = json!({"model": MODEL,
-                "choices":[{"index":0,"finish_reason":"stop",
-                    "message":{"role":"assistant","content":state.content}}],
-                "usage":{"prompt_tokens":5,"completion_tokens":7}})
-            .to_string();
+            let payload = if state.status == 400 {
+                state.content.clone()
+            } else {
+                json!({"model": MODEL,
+                    "choices":[{"index":0,"finish_reason":"stop",
+                        "message":{"role":"assistant","content":state.content}}],
+                    "usage":{"prompt_tokens":5,"completion_tokens":7}})
+                .to_string()
+            };
             let response = format!(
                 "HTTP/1.1 {} synthetic\r\nContent-Type: application/json\r\n\
                  Content-Length: {}\r\nConnection: close\r\n\r\n{}",
@@ -81,7 +99,7 @@ fn start_stub(content: String) -> (u16, Arc<Mutex<StubState>>, Arc<Mutex<usize>>
             let _ = stream.flush();
         }
     });
-    (port, state, calls)
+    (port, state, calls, requests)
 }
 
 /// The model's final text, which the donor replay step validates strictly.
@@ -176,7 +194,7 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
         python_route("services/learning-providers/deeptutor/practice_host_worker.py");
     let model_worker = python_route("services/python-workers/course/worker_outline_local_model.py");
     let text_worker = python_route("services/python-workers/transport/text_ndjson.py");
-    let (port, stub, calls) = start_stub(model_content());
+    let (port, stub, calls, requests) = start_stub(model_content());
     // SAFETY: this binary runs one test; the variables are set once, before any
     // worker is spawned, so no concurrent reader can observe a partial update.
     unsafe {
@@ -250,6 +268,29 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(first["model"], MODEL);
     assert!(first["capture_binding"]["prompt_sha256"].as_str().is_some());
     assert_eq!(first["capture_binding"]["request_id"], "turn_1");
+    let sent = requests.lock().unwrap()[0].clone();
+    assert!(
+        sent.get("response_format").is_none(),
+        "the default stays unstructured"
+    );
+    let system = sent["messages"][0]["content"].as_str().unwrap();
+    assert_eq!(system, first["model_prompt_binding"]["system"]);
+    assert_eq!(
+        format!("{:x}", Sha256::digest(system.as_bytes())),
+        first["model_prompt_binding"]["system_sha256"]
+    );
+    assert!(
+        first["capture_binding"]["system"]
+            .as_str()
+            .unwrap()
+            .contains("# Output protocol (mandatory")
+    );
+    assert!(!system.contains("# Output protocol (mandatory"));
+    assert!(system.contains("# FINISH JSON schema (strict)"));
+    assert_eq!(
+        sent["messages"][1]["content"],
+        first["capture_binding"]["user"]
+    );
     assert_eq!(first["material"], json!(snap(&material)));
     let stored =
         &first["document"]["editor_json"]["attrs"]["archeaxis_deeptutor_question_turn_candidate"];
@@ -304,6 +345,18 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{unavailable}");
     assert_eq!(unavailable["stage"], "local_model");
     assert_eq!(unavailable["worker_outcome"]["status"], "MODEL_UNAVAILABLE");
+    assert_eq!(
+        unavailable["worker_outcome"]["reason"],
+        "MODEL_ENDPOINT_UNHEALTHY"
+    );
+    assert_eq!(
+        unavailable["worker_outcome"]["model_observation"]["http_status"],
+        500
+    );
+    assert_eq!(
+        unavailable["worker_outcome"]["model_observation"]["network_performed"],
+        true
+    );
     assert_eq!(document_count(&executor).await, 3);
 
     // An empty model body is a named no-final-answer.
@@ -315,6 +368,34 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(status, StatusCode::GATEWAY_TIMEOUT, "{empty}");
     assert_eq!(empty["stage"], "local_model");
     assert_eq!(empty["worker_outcome"]["status"], "NO_FINAL_ANSWER");
+    assert_eq!(empty["worker_outcome"]["reason"], "EMPTY_CONTENT");
+    assert_eq!(document_count(&executor).await, 3);
+
+    // Capacity details are numbers supplied by the provider. Its body may
+    // quote private prompt text, which must never appear in the route reply.
+    *stub.lock().unwrap() = StubState {
+        status: 400,
+        content: json!({"error":{"message":"SYNTHETIC_PRIVATE_BODY",
+            "n_prompt_tokens":9496,"n_ctx":8192}})
+        .to_string(),
+    };
+    let (status, capacity) =
+        call(&router, "human", &request_body(&material, "turn_capacity")).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{capacity}");
+    assert_eq!(capacity["worker_outcome"]["reason"], "MODEL_HTTP_REJECTED");
+    assert_eq!(
+        capacity["worker_outcome"]["model_observation"]["http_status"],
+        400
+    );
+    assert_eq!(
+        capacity["worker_outcome"]["model_observation"]["provider_prompt_tokens"],
+        9496
+    );
+    assert_eq!(
+        capacity["worker_outcome"]["model_observation"]["provider_context_tokens"],
+        8192
+    );
+    assert!(!capacity.to_string().contains("SYNTHETIC_PRIVATE_BODY"));
     assert_eq!(document_count(&executor).await, 3);
 
     // A reply the replay stage cannot admit keeps the worker's own status.
@@ -328,7 +409,79 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(rejected["stage"], "replay");
     assert_eq!(rejected["worker_outcome"]["status"], "REJECTED");
     assert_eq!(rejected["worker_outcome"]["reason"], "INVALID_RESPONSE");
+    assert_eq!(
+        rejected["worker_outcome"]["response_format"],
+        "PLAIN_JSON_PARSE_FAILED"
+    );
+    assert!(!rejected.to_string().contains("not a question document"));
     assert_eq!(document_count(&executor).await, 3);
+
+    // Structured output is explicit, preserves the old request identity, and
+    // binds the exact schema actually seen by the synthetic model endpoint.
+    let mut invalid_mode = request_body(&material, "turn_bad_mode");
+    invalid_mode["output_mode"] = json!("unrecognized");
+    let before_calls = *calls.lock().unwrap();
+    let (status, _) = call(&router, "human", &invalid_mode).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(*calls.lock().unwrap(), before_calls);
+    let mut switched = body.clone();
+    switched["output_mode"] = json!("choice_json_schema");
+    let (status, _) = call(&router, "human", &switched).await;
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "one create ID cannot switch modes"
+    );
+    assert_eq!(*calls.lock().unwrap(), before_calls);
+    *stub.lock().unwrap() = StubState {
+        status: 400,
+        content: json!({"error":{"message":"SYNTHETIC_PRIVATE_FORMAT_ERROR"}}).to_string(),
+    };
+    let mut unsupported_schema = request_body(&material, "turn_schema_unsupported");
+    unsupported_schema["output_mode"] = json!("choice_json_schema");
+    let (status, refused) = call(&router, "human", &unsupported_schema).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(refused["stage"], "local_model");
+    assert_eq!(refused["worker_outcome"]["reason"], "MODEL_HTTP_REJECTED");
+    assert_eq!(
+        *calls.lock().unwrap(),
+        before_calls + 1,
+        "no fallback model call"
+    );
+    assert!(
+        !refused
+            .to_string()
+            .contains("SYNTHETIC_PRIVATE_FORMAT_ERROR")
+    );
+    assert_eq!(document_count(&executor).await, 3);
+    *stub.lock().unwrap() = StubState {
+        status: 200,
+        content: model_content(),
+    };
+    let mut structured_body = request_body(&material, "turn_structured");
+    structured_body["output_mode"] = json!("choice_json_schema");
+    let (status, structured) = call(&router, "human", &structured_body).await;
+    assert_eq!(status, StatusCode::CREATED, "{structured}");
+    let actual = requests.lock().unwrap().last().unwrap().clone();
+    let format = &actual["response_format"];
+    assert_eq!(
+        structured["model_response_format"]["mode"],
+        "choice_json_schema"
+    );
+    assert_eq!(
+        structured["model_response_format"]["response_format"],
+        *format
+    );
+    assert_eq!(
+        structured["model_response_format"]["sha256"],
+        format!("{:x}", Sha256::digest(format.to_string().as_bytes()))
+    );
+    assert_eq!(document_count(&executor).await, 4);
+    let calls_after_structured = *calls.lock().unwrap();
+    let (status, schema_duplicate) = call(&router, "human", &structured_body).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(schema_duplicate["worker_invoked"], false);
+    assert_eq!(*calls.lock().unwrap(), calls_after_structured);
     drop(router);
     drop(executor);
 
@@ -347,7 +500,14 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
     assert_eq!(status, StatusCode::OK, "{read_back}");
     assert_eq!(read_back["worker_invoked"], false);
     assert_eq!(read_back["document"]["document_id"], candidate_id);
-    assert_eq!(document_count(&reopened).await, 3);
+    let (status, schema_read_back) = call(&router, "human", &structured_body).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(schema_read_back["worker_invoked"], false);
+    assert_eq!(
+        schema_read_back["model_response_format"],
+        structured["model_response_format"]
+    );
+    assert_eq!(document_count(&reopened).await, 4);
     drop(router);
     drop(reopened);
 
@@ -367,5 +527,5 @@ async fn a_local_model_produces_one_candidate_and_every_failure_stays_named() {
         call(&router, "human", &request_body(&material, "turn_no_worker")).await;
     assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{missing}");
     assert_eq!(missing["reason"], "question_turn_worker_unavailable");
-    assert_eq!(document_count(&unregistered).await, 3);
+    assert_eq!(document_count(&unregistered).await, 4);
 }

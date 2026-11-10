@@ -5,12 +5,12 @@
    "sha256": "a59d60c116bb168f184cf737e40f398bc36966e950f5f8d60523744a34f40826"
   },
   "interactive-outline-worker.mjs": {
-   "bytes": 21544,
-   "sha256": "069868efd957b9bfce5e74e7d606c906e3fcffeedca3517272c5486c16af0647"
+   "bytes": 23384,
+   "sha256": "bf4b646a2f17591062819a1436a051676cc4f54d536108faa27d657a2f0cfad0"
   },
   "interactive-prompt-worker.mjs": {
-   "bytes": 16936,
-   "sha256": "cb9ed8a1ae129e1bf3fa389976adeebd4157c626e12458f05495b28d7711b37d"
+   "bytes": 17685,
+   "sha256": "6bbafff1f8b85f47a8f43bc6c9caf864e89547afd080920aee4a271be22a7c9b"
   },
   "outline-prompt-guard.mjs": {
    "bytes": 1110,

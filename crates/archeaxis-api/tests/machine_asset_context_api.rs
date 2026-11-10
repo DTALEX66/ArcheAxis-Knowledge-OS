@@ -122,6 +122,122 @@ async fn ready(dir: &Path) {
     .await
     .unwrap();
 }
+
+async fn add_observed_document_asset(executor: &Executor, request: &mut Value) -> String {
+    let (material_id, asset, grant) = executor.store().submit(|c| {
+        let material = document::create_optional(c, None, None, "synthetic referenced document",
+            json!({"type":"doc","content":[]})).unwrap();
+        let mut metadata = base_asset("rule", json!([]));
+        metadata["scope"] = json!([{"kind":"document","document_id":material["document_id"],
+            "version":1,"block_id":null}]);
+        let asset = adopt(c, "observed-asset", metadata);
+        let grant = document::create_optional(c, None, None, "synthetic observed grant", json!({
+            "type":"doc","content":[],"attrs":{"archeaxis_asset_context_grant":{
+                "schema":"archeaxis.asset-context-grant/v1","asset":ai_asset::snapshot(&asset).unwrap(),
+                "purpose":"owned answer test","consumer":"local-machine","operations":["answer","retest"],
+                "authorization_basis":"explicit SYNTHETIC asset permission","expires_at":null,"state":"granted"}}})).unwrap();
+        (material["document_id"].as_str().unwrap().to_owned(),
+         ai_asset::snapshot(&asset).unwrap(), ai_asset::snapshot(&grant).unwrap())
+    }).await.unwrap();
+    request["asset_context_grant"]["asset"] = json!(asset);
+    request["asset_context_grant"]["grant"] = json!(grant);
+    request["asset_context_grant"]["reference_observation_mode"] = json!("document_versions_v1");
+    material_id
+}
+
+async fn revise_observed_document(router: &Router, material_id: &str) {
+    let (status, updated) = call(router, "PUT", &format!("/api/v1/documents/{material_id}/draft"), json!({
+        "expected_version":1,"editor_json":{"type":"doc","content":[
+            {"type":"paragraph","content":[{"type":"text","text":"synthetic changed material"}]}]}
+    })).await;
+    assert_eq!(status, 200, "{updated}");
+}
+
+#[tokio::test]
+async fn opted_in_worker_sees_document_versions_and_retest_preserves_frozen_identity() {
+    let dir = tempfile::tempdir().unwrap();
+    let (router, executor, mut request, _) = fixture(dir.path(), None).await;
+    let material_id = add_observed_document_asset(&executor, &mut request).await;
+    std::fs::write(dir.path().join("answer.release"), "release").unwrap();
+    let (status, first) = call(&router, "POST", "/api/v1/machine/answers", request.clone()).await;
+    assert_eq!(status, 200, "{first}");
+    let context = std::fs::read_to_string(dir.path().join("answer.consumed")).unwrap();
+    assert!(context.contains("\"reference_observation_mode\":\"document_versions_v1\""));
+    assert!(context.contains("\"version_relation\":\"current\""));
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/answers", request.clone())
+            .await
+            .1,
+        first
+    );
+    revise_observed_document(&router, &material_id).await;
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/answers", request.clone())
+            .await
+            .0,
+        409
+    );
+    request["client_request_id"] = json!("observed-historical-answer");
+    request["asset_context_grant"]["request_id"] = json!("observed-historical-asset");
+    let (status, historical) =
+        call(&router, "POST", "/api/v1/machine/answers", request.clone()).await;
+    assert_eq!(status, 200, "{historical}");
+    assert_ne!(
+        historical["request"]["asset_context"]["packet_sha256"],
+        first["request"]["asset_context"]["packet_sha256"]
+    );
+    let context = std::fs::read_to_string(dir.path().join("answer.consumed")).unwrap();
+    assert!(context.contains("\"version_relation\":\"historical\""));
+    let (status, correction) = call(&router, "POST", "/api/v1/machine/corrections", json!({
+        "answer_id":historical["answer_id"],"knowledge_id":request["knowledge_id"],"question":request["question"],
+        "machine_answer":historical["answer"]["answer"],"corrected_answer":"synthetic correction",
+        "error_note":"synthetic error","reviewer":"owner"})).await;
+    assert_eq!(status, 200, "{correction}");
+    let mut asset = request["asset_context_grant"].clone();
+    asset["request_id"] = json!("observed-retest-asset");
+    asset["operation"] = json!("retest");
+    let retest = json!({"retest_of":correction["failed_task_id"],"knowledge_id":request["knowledge_id"],
+        "question":request["question"],"context_grant":request["context_grant"],"asset_context_grant":asset});
+    let (status, first_retest) =
+        call(&router, "POST", "/api/v1/machine/retests", retest.clone()).await;
+    assert_eq!(status, 200, "{first_retest}");
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/retests", retest)
+            .await
+            .1,
+        first_retest
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "3"
+    );
+}
+
+#[tokio::test]
+async fn document_changes_during_opted_in_worker_withhold_the_answer() {
+    let dir = tempfile::tempdir().unwrap();
+    let (router, executor, mut request, _) = fixture(dir.path(), None).await;
+    let material_id = add_observed_document_asset(&executor, &mut request).await;
+    let active = router.clone();
+    let task =
+        tokio::spawn(
+            async move { call(&active, "POST", "/api/v1/machine/answers", request).await },
+        );
+    ready(dir.path()).await;
+    let context = std::fs::read_to_string(dir.path().join("answer.consumed")).unwrap();
+    assert!(context.contains("\"version_relation\":\"current\""));
+    revise_observed_document(&router, &material_id).await;
+    std::fs::write(dir.path().join("answer.release"), "release").unwrap();
+    let (status, result) = task.await.unwrap();
+    assert_eq!(status, 403, "{result}");
+    assert_eq!(result["reason_code"], "ASSET_PACKET_CHANGED");
+    assert_eq!(result["audit_status"], "RECORDED");
+    assert_eq!(result["answer_published"], false);
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+}
 #[tokio::test]
 async fn actual_asset_packet_reaches_worker_and_exact_retry_never_runs_again_or_omits_asset() {
     let dir = tempfile::tempdir().unwrap();

@@ -19,7 +19,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 LIB = REPO / "crates/archeaxis-api/src/lib.rs"
-CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
+CONTRACT = REPO / "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md"
 
 # struct -> the fields the contract must list, with `?` marking an Option field.
 EXPECTED: dict[str, tuple[str, ...]] = {
@@ -35,7 +35,7 @@ EXPECTED: dict[str, tuple[str, ...]] = {
     "AssessmentBody": ("knowledge_id",),
     "LearningEventBody": ("item_key", "kind", "correct", "client_event_id?", "schedule_state?",
                           "now?"),
-    "StatefulReviewBody": ("item_key", "client_event_id", "correct", "rating?", "now?", "answer?",
+    "StatefulReviewBody": ("item_key", "client_event_id", "correct", "rating?", "now?", "schedule_reset?", "answer?",
                            "assessment_id?", "question_version?", "knowledge_version?",
                            "exposure_id?", "assist_strategy?", "rating_version?", "correction_id?"),
     "MachineTaskBody": ("task_id", "conditions", "model_version", "scope", "outcome",

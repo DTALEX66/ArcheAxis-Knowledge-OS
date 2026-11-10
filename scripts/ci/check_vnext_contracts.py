@@ -5,6 +5,8 @@ Deterministic checks that run on every change touching packages/contracts/**:
 
 - every *.schema.json parses and declares $schema/$id;
 - YAML contract files (OpenAPI outline, error catalog) parse;
+- the builtin capability declaration and generated details bind current source bytes;
+  this is declaration consistency, not runtime qualification;
 - compatibility policy exists;
 - schema vocabulary files referenced by the worker-protocol are present;
 - the semantic cross-language part: `scripts/check_language_boundaries.py` checks
@@ -58,6 +60,10 @@ def main() -> int:
     failures: list[str] = []
     if subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/contracts/generate_material_question.py'), '--check'], cwd=ROOT).returncode:
         failures.append('material-question generated DTO drift')
+    if subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/contracts/generate_ui_host.py'), '--check'], cwd=ROOT).returncode:
+        failures.append('ui-host generated contract drift')
+    if subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/contracts/generate_capability_package_details.py'), '--check'], cwd=ROOT).returncode:
+        failures.append('capability-package declaration or generated details drift')
 
     if not CONTRACTS.is_dir():
         print(f"ERROR: contracts dir missing: {CONTRACTS}")

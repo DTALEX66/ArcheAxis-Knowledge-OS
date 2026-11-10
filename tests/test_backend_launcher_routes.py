@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -75,6 +76,65 @@ def test_a_profile_with_routes_resolves_each_script(tmp_path):
 
     resolved = launcher.load_profile(tmp_path)
     assert resolved["routes"] == [{"capability": "pdf.extract", "script": worker.resolve()}]
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended-path regression")
+def test_existing_long_profile_and_required_and_optional_routes_load(tmp_path, monkeypatch):
+    """Existing files past MAX_PATH must not be misreported as missing."""
+    padding = 245 - len(str(tmp_path)) - 1
+    assert 0 < padding < 255
+    root = tmp_path / ("r" * padding)
+    document = base_document()
+    document["routes"] = [
+        {"capability": "pdf.extract", "script": "workers/document/worker_pdf.py"},
+        {"capability": "deeptutor.question.turn", "script": "workers/learning/question.py"},
+    ]
+    files = {
+        "worker-profile.json": json.dumps(document).encode("utf-8"),
+        "runtime/python.exe": b"stub",
+        "core/archeaxis-api.exe": b"stub",
+        "workers/transport/text_ndjson.py": b"stub",
+        "workers/document/worker_pdf.py": b"stub",
+        "workers/learning/question.py": b"stub",
+    }
+    for relative, content in files.items():
+        target = launcher.filesystem_path(root / relative)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+    assert len(str(root / "worker-profile.json")) > 260
+    assert len(str(root / "workers/document/worker_pdf.py")) > 260
+
+    resolved = launcher.load_profile(root)
+    assert resolved["script"] == root / "workers/transport/text_ndjson.py"
+    assert [route["capability"] for route in resolved["routes"]] == [
+        "pdf.extract", "deeptutor.question.turn"
+    ]
+    assert launcher.require_file(root / "workers/document/worker_pdf.py", "worker")
+
+    seen = {}
+
+    class CapturingStdin:
+        def write(self, text):
+            seen.update(json.loads(text))
+
+        def flush(self):
+            pass
+
+        def close(self):
+            pass
+
+    class FakeChild:
+        stdin = CapturingStdin()
+
+    monkeypatch.setattr(launcher, "ROOT", root)
+    monkeypatch.setattr(launcher.subprocess, "Popen", lambda *a, **k: FakeChild())
+    monkeypatch.setattr(launcher, "wait_for_readiness", lambda *a: "http://127.0.0.1:1234")
+    monkeypatch.setattr(launcher, "document_check_config", lambda _: (None, None))
+    data_root = root / "synthetic-data-directory"
+    assert len(str(data_root)) > 260
+    launcher.start(data_root, 1234)
+    assert launcher.filesystem_path(data_root / "worker-staging").is_dir()
+    assert seen["text_worker"]["script"] == str(root / "workers/transport/text_ndjson.py")
 
 
 def test_an_empty_routes_list_is_accepted_and_means_the_text_route_only(tmp_path):

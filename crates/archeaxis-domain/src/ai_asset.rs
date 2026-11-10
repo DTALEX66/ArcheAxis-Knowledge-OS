@@ -403,3 +403,41 @@ pub fn packet_items(conn: &Connection, root: &Snapshot, now: u64) -> Result<Vec<
     }
     Ok(out)
 }
+
+/// Explicitly requested observation for a new packet identity. The legacy
+/// packet remains byte-for-byte unchanged when this function is not called.
+pub fn observe_document_versions(conn: &Connection, items: &mut [Value]) -> Result<(), Error> {
+    for item in items {
+        let states = item["reference_states"]
+            .as_array_mut()
+            .ok_or(invalid("asset reference states are unavailable"))?;
+        for state in states {
+            if state["reference"]["kind"] != "document" {
+                continue;
+            }
+            let reference: Reference = serde_json::from_value(state["reference"].clone())
+                .map_err(|_| invalid("asset document reference is invalid"))?;
+            if matches!(&reference, Reference::Document { version, .. } if *version > 9_007_199_254_740_991)
+            {
+                return Err(invalid(
+                    "document version exceeds exact client integer range",
+                ));
+            }
+            let resolved = object_reference::resolve(conn, &reference)?;
+            let relation = resolved
+                .get("version_relation")
+                .ok_or(invalid("document version relation is unavailable"))?
+                .clone();
+            let current = resolved
+                .get("current_version")
+                .and_then(Value::as_i64)
+                .filter(|version| (0..=9_007_199_254_740_991).contains(version))
+                .ok_or(invalid(
+                    "document current version is unavailable or not exact for clients",
+                ))?;
+            state["version_relation"] = relation;
+            state["current_version"] = json!(current);
+        }
+    }
+    Ok(())
+}

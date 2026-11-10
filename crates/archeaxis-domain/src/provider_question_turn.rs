@@ -1,9 +1,9 @@
 //! DeepTutor's donor single-question step as a Core-owned candidate route.
 //!
 //! This route captures the donor prompt from a pinned local worker, sends the
-//! captured system/user pair to the already declared local text model, replays
-//! the reply through the same worker and persists only a `CANDIDATE` as an
-//! ordinary Core Document. It writes no activity or attempt, runs no grader and
+//! captured system/user pair through a versioned single-response prompt adapter,
+//! replays the unchanged model reply through the same worker and persists only a
+//! `CANDIDATE` as an ordinary Core Document. It writes no activity or attempt, runs no grader and
 //! establishes no answer secrecy: the body is visible text a human must review.
 use crate::{
     document::{self, Error},
@@ -12,7 +12,7 @@ use crate::{
     ui_state,
 };
 use archeaxis_store_sqlite::authorization_fence;
-use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
+use rusqlite::{Connection, TransactionBehavior, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -21,6 +21,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub const DOCUMENT_NAMESPACE: &str = "archeaxis_deeptutor_question_turn_candidate";
 pub const DOCUMENT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-document/v1";
 pub const BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-turn-prompt-binding/v1";
+pub const MODEL_PROMPT_BINDING_SCHEMA: &str = "archeaxis.deeptutor-question-model-prompt/v1";
+const MODEL_PROMPT_ADAPTER: &str = "aaos-direct-json/v2";
+pub const CHOICE_SCHEMA_MODE: &str = "choice_json_schema";
+const CHOICE_SCHEMA_REQUEST_KIND: &str = "deeptutor_choice_json_schema";
 pub const WORKER_SCHEMA: &str = "archeaxis.deeptutor-question-turn-replay/v1";
 pub const RECEIPT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-persistence/v1";
 pub const GENERATION_ROUTE: &str = "deeptutor_question_turn_local_model";
@@ -50,6 +54,8 @@ pub struct QuestionTurnRequest {
     pub requirement: String,
     #[serde(default)]
     pub model: Option<String>,
+    #[serde(default)]
+    pub output_mode: Option<String>,
 }
 
 fn digest(bytes: &[u8]) -> String {
@@ -104,16 +110,27 @@ pub fn request_refusal(request: &QuestionTurnRequest) -> Option<&'static str> {
             .model
             .as_ref()
             .is_some_and(|model| !valid_model(model))
+        || request
+            .output_mode
+            .as_deref()
+            .is_some_and(|mode| mode != CHOICE_SCHEMA_MODE)
     {
         return Some("invalid question turn request");
     }
     None
 }
 
-pub fn request_sha256(request: &QuestionTurnRequest) -> Result<String, Error> {
-    let frame = json!({"create_request_id":request.create_request_id,
+fn request_frame(request: &QuestionTurnRequest) -> Value {
+    let mut frame = json!({"create_request_id":request.create_request_id,
         "material":request.material,"requirement":request.requirement,"model":request.model});
-    Ok(sha(&frame))
+    if let Some(mode) = &request.output_mode {
+        frame["output_mode"] = json!(mode);
+    }
+    frame
+}
+
+pub fn request_sha256(request: &QuestionTurnRequest) -> Result<String, Error> {
+    Ok(sha(&request_frame(request)))
 }
 
 fn internal_request_id(create_request_id: &str) -> String {
@@ -157,8 +174,7 @@ fn language(requirement: &str) -> &'static str {
 /// consume it. A missing, revoked, expired, foreign-consumer or non-practice
 /// grant is refused by the same checks an activity admission uses.
 fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<(), Error> {
-    let found: Option<(String, i64, String)> = conn
-        .query_row(
+    let mut statement = conn.prepare(
             "SELECT d.document_id, d.current_version, v.content_sha256 \
              FROM documents d JOIN document_versions v \
                ON v.document_id=d.document_id AND v.version=d.current_version \
@@ -168,25 +184,34 @@ fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<(), 
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.document_id')=?1 \
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.version')=?2 \
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.content_sha256')=?3 \
-             ORDER BY d.document_id LIMIT 1",
-            params![
-                material.document_id,
-                material.version,
-                material.content_sha256,
-                grant::SCHEMA
-            ],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
-        )
-        .optional()?;
-    let (document_id, version, content_sha256) =
-        found.ok_or(Error::Invalid("provider material access not authorized"))?;
-    let grant_ref = Snapshot {
-        document_id,
-        version,
-        content_sha256,
-    };
-    grant::consume(conn, &grant_ref, material, now()?)
-        .map_err(|_| Error::Invalid("provider material access not authorized"))
+             ORDER BY d.document_id")?;
+    let matches = statement.query_map(
+        params![
+            material.document_id,
+            material.version,
+            material.content_sha256,
+            grant::SCHEMA
+        ],
+        |row| {
+            Ok(Snapshot {
+                document_id: row.get(0)?,
+                version: row.get(1)?,
+                content_sha256: row.get(2)?,
+            })
+        },
+    )?;
+    let at = now()?;
+    for candidate in matches {
+        let candidate = candidate?;
+        match grant::consume(conn, &candidate, material, at) {
+            Ok(()) => return Ok(()),
+            // An expired, revoked, malformed or restored grant never grants
+            // access, but must not hide another independently valid grant.
+            Err(Error::Invalid(_) | Error::NotFound | Error::Conflict(_)) => continue,
+            Err(error @ Error::Sql(_)) => return Err(error),
+        }
+    }
+    Err(Error::Invalid("provider material access not authorized"))
 }
 
 fn material_text(conn: &Connection, material: &Snapshot) -> Result<String, Error> {
@@ -291,7 +316,9 @@ fn receipt(conn: &Connection, document: Value) -> Value {
         "model_reply_sha256":saved["model_reply_sha256"],
         "model_finish_reason":saved["model_finish_reason"],
         "model_usage":saved["model_usage"],
-        "capture_binding":saved["capture_binding"],"material":saved["material"],
+        "capture_binding":saved["capture_binding"],
+        "model_prompt_binding":saved["model_prompt_binding"],
+        "model_response_format":saved["model_response_format"],"material":saved["material"],
         "question":saved["question"],"answer_secrecy":saved["answer_secrecy"],
         "response_origin":saved["response_origin"],
         "human_review_required":true,"active_content_executed":false,
@@ -326,6 +353,29 @@ fn existing(
         &saved["model_reply"],
         &saved["worker_document"],
     )?;
+    // Old v1 candidates were created before a model prompt adapter existed.
+    // New records carry a separately inspectable, internally consistent binding.
+    if let Some(model_prompt) = saved.get("model_prompt_binding") {
+        if !model_prompt_binding_shape(&saved["capture_binding"], model_prompt) {
+            return Err(Error::Invalid(
+                "DeepTutor model prompt binding is unsupported",
+            ));
+        }
+    }
+    if let Some(format) = saved
+        .get("model_response_format")
+        .filter(|value| !value.is_null())
+    {
+        let expected = choice_response_format_binding();
+        if *format != expected
+            || saved["request_frame"]["output_mode"] != CHOICE_SCHEMA_MODE
+            || saved["model_reply"]["response_format_sha256"] != expected["sha256"]
+        {
+            return Err(Error::Invalid(
+                "DeepTutor model response format binding is unsupported",
+            ));
+        }
+    }
     Ok(Some(receipt(conn, document)))
 }
 
@@ -368,8 +418,8 @@ pub fn prepare_question_turn(
     }))
 }
 
-/// The capture receipt's prompt identity, or a named refusal. The binding keeps
-/// the worker's own messages so a later reader can see exactly what was sent.
+/// The capture receipt's prompt identity, or a named refusal. This binding
+/// keeps the donor's original messages; the model-bound prompt is stored separately.
 pub fn capture_binding(create_request_id: &str, capture: &Value) -> Result<Value, Error> {
     if capture["schema"] != WORKER_SCHEMA
         || capture["status"] != "CAPTURED"
@@ -443,15 +493,134 @@ fn binding_shape(binding: &Value, create_request_id: &str) -> bool {
             .is_some_and(|value| value == digest(binding["user"].as_str().unwrap_or("").as_bytes()))
 }
 
-/// The local-model request: the captured pair, an optional model selection and
-/// one bounded budget. The same worker and transport as the outline route.
-pub fn model_request(binding: &Value, model: &Option<String>) -> Value {
-    let mut request = json!({"schema":openmaic_outline::OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA,
-        "system":binding["system"],"user":binding["user"],"timeout_s":110});
-    if let Some(model) = model {
-        request["model"] = json!(model);
+/// Adapt only the donor's agentic output protocol, which conflicts with the
+/// pinned replay worker's strict single-JSON contract. Preserve its schema and
+/// the original captured binding; ambiguous or changed anchors fail closed.
+pub fn model_prompt_binding(binding: &Value) -> Result<Value, Error> {
+    let request_id = binding["request_id"].as_str().unwrap_or("");
+    if !binding_shape(binding, request_id) || !token(request_id) {
+        return Err(Error::Invalid("DeepTutor prompt binding is unsupported"));
     }
-    request
+    let system = binding["system"].as_str().unwrap_or("");
+    let protocols = [
+        (
+            "# 输出协议（强制）",
+            "# FINISH 的 JSON schema（严格）",
+            "# AAOS 单次输出协议\n直接输出一个符合下方 schema 的完整 JSON 对象。不要输出 FINISH、THINK、TOOL 标签、额外说明或 Markdown 代码块；不调用工具。对象必须且只能包含 question_type、question、options、correct_answer、explanation；question_type 必须是 choice，options 恰好包含 A、B、C、D，correct_answer 必须是其中一个字母。JSON 字符串中的反斜杠、双引号和换行必须按 JSON 规则转义；LaTeX 中的反斜杠也必须写成两个反斜杠。\n\n",
+        ),
+        (
+            "# Output protocol (mandatory — every reply must comply)",
+            "# FINISH JSON schema (strict)",
+            "# AAOS single-response protocol\nReturn exactly one complete JSON object matching the schema below. Do not output FINISH, THINK or TOOL labels, extra prose or Markdown fences; do not call tools. The object must contain exactly question_type, question, options, correct_answer and explanation; question_type must be choice, options must contain exactly A, B, C and D, and correct_answer must be one of those letters. Escape backslashes, double quotes and line breaks in JSON strings; double every LaTeX backslash as well.\n\n",
+        ),
+    ];
+    let mut selected = None;
+    for (start, end, replacement) in protocols {
+        let starts: Vec<_> = system.match_indices(start).map(|(i, _)| i).collect();
+        let ends: Vec<_> = system.match_indices(end).map(|(i, _)| i).collect();
+        if starts.is_empty() && ends.is_empty() {
+            continue;
+        }
+        if starts.len() != 1 || ends.len() != 1 || starts[0] >= ends[0] || selected.is_some() {
+            return Err(Error::Invalid(
+                "DeepTutor prompt adapter anchors unsupported",
+            ));
+        }
+        selected = Some((starts[0], ends[0], replacement));
+    }
+    let (start, end, replacement) = selected.ok_or(Error::Invalid(
+        "DeepTutor prompt adapter anchors unsupported",
+    ))?;
+    let adapted = format!("{}{}{}", &system[..start], replacement, &system[end..]);
+    let user = binding["user"].as_str().unwrap_or("");
+    if !bounded_text(&adapted, 200_000, true) || adapted.len() + user.len() > 300_000 {
+        return Err(Error::Invalid(
+            "DeepTutor adapted prompt exceeds the model bound",
+        ));
+    }
+    Ok(
+        json!({"schema":MODEL_PROMPT_BINDING_SCHEMA,"adapter":MODEL_PROMPT_ADAPTER,
+        "donor_prompt_sha256":binding["prompt_sha256"],"system":adapted,
+        "system_sha256":digest(adapted.as_bytes()),"user_sha256":binding["user_sha256"]}),
+    )
+}
+
+fn model_prompt_binding_shape(binding: &Value, model_prompt: &Value) -> bool {
+    model_prompt
+        .as_object()
+        .is_some_and(|object| object.len() == 6)
+        && model_prompt["schema"] == MODEL_PROMPT_BINDING_SCHEMA
+        && matches!(
+            model_prompt["adapter"].as_str(),
+            Some("aaos-direct-json/v1" | "aaos-direct-json/v2")
+        )
+        && model_prompt["donor_prompt_sha256"] == binding["prompt_sha256"]
+        && model_prompt["user_sha256"] == binding["user_sha256"]
+        && model_prompt["system"].as_str().is_some_and(|text| {
+            bounded_text(text, 200_000, true)
+                && model_prompt["system_sha256"] == digest(text.as_bytes())
+                && text.len() + binding["user"].as_str().unwrap_or("").len() <= 300_000
+        })
+}
+
+/// The fixed OpenAI-compatible grammar used only by explicit choice mode.
+pub fn choice_response_format() -> Value {
+    json!({"type":"json_schema","json_schema":{"name":"archeaxis_response","strict":true,
+    "schema":{"type":"object","additionalProperties":false,
+        "required":["question_type","question","options","correct_answer","explanation"],
+        "properties":{
+            "question_type":{"type":"string","enum":["choice"]},
+            "question":{"type":"string"},
+            "options":{"type":"object","additionalProperties":false,
+                "required":["A","B","C","D"],"properties":{
+                    "A":{"type":"string"},"B":{"type":"string"},
+                    "C":{"type":"string"},"D":{"type":"string"}}},
+            "correct_answer":{"type":"string","enum":["A","B","C","D"]},
+            "explanation":{"type":"string"}
+        }}}})
+}
+
+fn choice_response_format_binding() -> Value {
+    let format = choice_response_format();
+    json!({"mode":CHOICE_SCHEMA_MODE,"response_format":format,"sha256":sha(&format)})
+}
+
+fn response_format_binding(request: &QuestionTurnRequest) -> Value {
+    if request.output_mode.as_deref() == Some(CHOICE_SCHEMA_MODE) {
+        choice_response_format_binding()
+    } else {
+        Value::Null
+    }
+}
+
+/// A format-bound request cannot accept an older or different model worker's
+/// reply without evidence that the fixed format was actually sent.
+pub fn model_reply_format_matches(request: &QuestionTurnRequest, reply: &Value) -> bool {
+    if request.output_mode.as_deref() == Some(CHOICE_SCHEMA_MODE) {
+        reply["response_format_sha256"] == choice_response_format_binding()["sha256"]
+    } else {
+        reply
+            .get("response_format_sha256")
+            .is_none_or(Value::is_null)
+    }
+}
+
+/// Send the adapted system and the unchanged captured user prompt through the
+/// same bounded local-model transport as the outline route.
+pub fn model_request(
+    binding: &Value,
+    model_prompt: &Value,
+    request: &QuestionTurnRequest,
+) -> Value {
+    let mut frame = json!({"schema":openmaic_outline::OPENMAIC_OUTLINE_MODEL_REQUEST_SCHEMA,
+        "system":model_prompt["system"],"user":binding["user"],"timeout_s":110});
+    if let Some(model) = &request.model {
+        frame["model"] = json!(model);
+    }
+    if request.output_mode.as_deref() == Some(CHOICE_SCHEMA_MODE) {
+        frame["request_kind"] = json!(CHOICE_SCHEMA_REQUEST_KIND);
+    }
+    frame
 }
 
 fn choices(value: &Value) -> bool {
@@ -530,6 +699,7 @@ fn check_generation(
 #[derive(Clone)]
 pub struct QuestionTurnGeneration {
     pub capture_document: Value,
+    pub model_prompt_binding: Value,
     pub model_reply: Value,
     pub replay_document: Value,
 }
@@ -551,7 +721,12 @@ pub fn commit_question_turn(
         ));
     }
     let binding = capture_binding(&request.create_request_id, &generation.capture_document)?;
-    if openmaic_outline::openmaic_outline_model_content(&generation.model_reply).is_none() {
+    if model_prompt_binding(&binding)? != generation.model_prompt_binding {
+        return Err(Error::Invalid("DeepTutor model prompt binding mismatch"));
+    }
+    if openmaic_outline::openmaic_outline_new_model_content(&generation.model_reply).is_none()
+        || !model_reply_format_matches(request, &generation.model_reply)
+    {
         return Err(Error::Invalid(
             "DeepTutor model reply was not admitted for replay",
         ));
@@ -626,11 +801,12 @@ pub fn commit_question_turn(
         "model_usage":generation.model_reply["usage"],
         "model_reply":generation.model_reply,
         "capture_binding":binding,
+        "model_prompt_binding":generation.model_prompt_binding,
+        "model_response_format":response_format_binding(request),
         "worker_document":generation.replay_document,
         "question":question,
         "material":request.material,
-        "request_frame":{"create_request_id":request.create_request_id,
-            "material":request.material,"requirement":request.requirement,"model":request.model},
+        "request_frame":request_frame(request),
         "capture_frame":capture_frame,
         "replay_frame":replay_frame,
         "response_origin":"LOCAL_MODEL_UNVERIFIED",
@@ -672,6 +848,7 @@ mod tests {
             },
             requirement: "Synthetic requirement".into(),
             model: None,
+            output_mode: None,
         };
         assert_eq!(request_refusal(&base), None);
         let mut extra = base.clone();
@@ -698,6 +875,7 @@ mod tests {
             },
             requirement: "Synthetic requirement".into(),
             model: None,
+            output_mode: None,
         };
         assert_eq!(question_id(&request), question_id(&request.clone()));
         assert!(token(&question_id(&request)));

@@ -66,6 +66,48 @@ fn worker_outcome(value: &Value) -> Value {
         "exit_code":value["exit_code"]})
 }
 
+fn model_outcome(value: &Value) -> Value {
+    let document = &value["document"];
+    let mut outcome = json!({"status":document["status"],"reason":document["reason"],
+        "exit_code":value["exit_code"]});
+    if let Some(observation) = super::model_observation::project(document) {
+        outcome["model_observation"] = observation;
+    }
+    outcome
+}
+
+/// A coarse, text-free observation after the donor rejects a model reply. It
+/// never repairs the response or claims which strict rule rejected an object.
+fn rejected_response_format(content: &str) -> &'static str {
+    match serde_json::from_str::<Value>(content) {
+        Err(_) => "PLAIN_JSON_PARSE_FAILED",
+        Ok(Value::Object(_)) => "JSON_OBJECT_STRICT_REJECTION",
+        Ok(_) => "JSON_NOT_OBJECT",
+    }
+}
+
+#[cfg(test)]
+mod format_diagnostic_tests {
+    use super::*;
+
+    #[test]
+    fn refusal_diagnostic_never_repairs_or_echoes_model_text() {
+        assert_eq!(
+            rejected_response_format("SYNTHETIC_PRIVATE"),
+            "PLAIN_JSON_PARSE_FAILED"
+        );
+        assert_eq!(
+            rejected_response_format("```json\n{}\n```"),
+            "PLAIN_JSON_PARSE_FAILED"
+        );
+        assert_eq!(rejected_response_format("[]"), "JSON_NOT_OBJECT");
+        assert_eq!(
+            rejected_response_format("{\"question\":\"SYNTHETIC_PRIVATE\"}"),
+            "JSON_OBJECT_STRICT_REJECTION"
+        );
+    }
+}
+
 /// Map one worker result to the caller's status. Every named non-success keeps
 /// the worker's own status; an exit code outside the declared 0/1/2 is an
 /// unrecognized outcome rather than a candidate.
@@ -192,13 +234,24 @@ pub(super) async fn question_turn(
             );
         }
     };
+    let model_prompt = match turn::model_prompt_binding(&binding) {
+        Ok(value) => value,
+        Err(_) => {
+            return stage_failure(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "capture",
+                "question_turn_prompt_adapter_unavailable",
+                worker_outcome(&capture),
+            );
+        }
+    };
     // Stage 2: the one declared local text model, through the same worker and
     // hardened loopback-only transport as the outline route.
     let model = runtime
         .executor
         .derived_json(
             openmaic_outline::OPENMAIC_OUTLINE_MODEL_CAPABILITY,
-            turn::model_request(&binding, &request.model),
+            turn::model_request(&binding, &model_prompt, &request),
             MODEL_TIMEOUT,
         )
         .await;
@@ -213,7 +266,7 @@ pub(super) async fn question_turn(
             );
         }
     };
-    let model_outcome = worker_outcome(&model);
+    let model_outcome = model_outcome(&model);
     if model["exit_code"] != 0 || model["document"]["status"] != "REPLY" {
         let status = match model["document"]["status"].as_str() {
             Some("MODEL_REJECTED" | "INVALID_MODEL_OUTPUT") => StatusCode::UNPROCESSABLE_ENTITY,
@@ -228,7 +281,7 @@ pub(super) async fn question_turn(
         );
     }
     let Some(content) =
-        openmaic_outline::openmaic_outline_model_content(&model["document"]).map(str::to_owned)
+        openmaic_outline::openmaic_outline_new_model_content(&model["document"]).map(str::to_owned)
     else {
         return stage_failure(
             StatusCode::BAD_GATEWAY,
@@ -237,6 +290,14 @@ pub(super) async fn question_turn(
             model_outcome,
         );
     };
+    if !turn::model_reply_format_matches(&request, &model["document"]) {
+        return stage_failure(
+            StatusCode::BAD_GATEWAY,
+            "local_model",
+            "question_turn_local_model_format_unconfirmed",
+            model_outcome,
+        );
+    }
     let prompt_sha256 = binding["prompt_sha256"]
         .as_str()
         .unwrap_or_default()
@@ -267,12 +328,13 @@ pub(super) async fn question_turn(
         }
     };
     if let Some(status) = worker_status(&replay) {
-        return stage_failure(
-            status,
-            "replay",
-            worker_reason(&replay),
-            worker_outcome(&replay),
-        );
+        let mut outcome = worker_outcome(&replay);
+        if replay["document"]["status"] == "REJECTED"
+            && replay["document"]["reason_code"] == "INVALID_RESPONSE"
+        {
+            outcome["response_format"] = json!(rejected_response_format(&content));
+        }
+        return stage_failure(status, "replay", worker_reason(&replay), outcome);
     }
     if replay["document"]["status"] != "CANDIDATE" {
         // Every named replay outcome keeps its own status and reason.
@@ -285,6 +347,7 @@ pub(super) async fn question_turn(
     }
     let generation = turn::QuestionTurnGeneration {
         capture_document: capture["document"].clone(),
+        model_prompt_binding: model_prompt,
         model_reply: model["document"].clone(),
         replay_document: replay["document"].clone(),
     };

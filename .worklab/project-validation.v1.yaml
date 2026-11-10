@@ -79,6 +79,33 @@ risk_classes:
       - ".github/workflows/release.yml"
     gates: [release-verify]
 
+  # Exact paths must precede generic ci-policy and vnext-contracts: the classifier
+  # selects the first matching class for each path, not every matching class.
+  - id: vnext-ai-asset-retest-contract
+    description: Actual Core asset correction/retest contract retains both Rust and contract checks
+    paths:
+      - "tests/contract/test_ai_asset_formal_retest_real_core.py"
+    gates: [static, lint, rust-vnext, contracts-vnext]
+
+  - id: vnext-ai-asset-retest-helpers
+    description: Helpers consumed by the actual Core asset correction/retest regression
+    paths:
+      - "scripts/ci/real_core_grading_journey.py"
+      - "scripts/probes/aaos_ai_reference_observation_smoke.py"
+    gates: [static, lint, rust-vnext]
+
+  - id: vnext-capability-package-declaration
+    description: Exact builtin capability declaration retains config and contract checks
+    paths:
+      - "config/capability-packages/pdf-extract.manifest.json"
+    gates: [static, lint, py-primary, contracts-vnext]
+
+  - id: vnext-capability-package-details
+    description: Generated capability detail preserves UI and source-binding checks
+    paths:
+      - "frontend/src/api/generated/capability-package-details.ts"
+    gates: [static, lint, browser-smoke, contracts-vnext]
+
   - id: ci-policy
     description: CI workflow, classifier, gate registry, release scripts, secret-scan policy
     paths:

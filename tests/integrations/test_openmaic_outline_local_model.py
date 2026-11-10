@@ -24,10 +24,12 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 WORKER = ROOT / "services/python-workers/course/worker_outline_local_model.py"
 SCHEMA = "archeaxis.openmaic-outline-model-request/v1"
+CHOICE_FORMAT_SHA256 = "753c5addda0233a21cb4aa40af0c9b6ff6dc52956d10178b8b465d1fcdb0b437"
 
 
 @contextmanager
-def stub(body: bytes, status: int = 200, delay: float = 0.0):
+def stub(body: bytes, status: int = 200, delay: float = 0.0, body_delay: float = 0.0,
+         truncate_chunked: bool = False):
     seen = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -43,9 +45,20 @@ def stub(body: bytes, status: int = 200, delay: float = 0.0):
             try:
                 self.send_response(status)
                 self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
+                if truncate_chunked:
+                    self.send_header("Transfer-Encoding", "chunked")
+                else:
+                    self.send_header("Content-Length", str(len(body)))
                 self.send_header("Connection", "close")
                 self.end_headers()
+                self.wfile.flush()
+                if body_delay:
+                    time.sleep(body_delay)
+                if truncate_chunked:
+                    self.wfile.write(b"20\r\n{\"private\":\"SYNTHETIC_PRIVATE\"")
+                    self.wfile.flush()
+                    self.close_connection = True
+                    return
                 self.wfile.write(body)
                 self.wfile.flush()
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
@@ -90,13 +103,13 @@ def free_port() -> int:
 
 
 def invoke(data, port: int, *, model: str | None = "synthetic-requested-model",
-           timeout_s: int | None = None) -> tuple[int, dict]:
+           timeout_s: int | None = None, protocol: str = "openai") -> tuple[int, dict]:
     env = dict(os.environ)
     for key in ("ARCHEAXIS_MACHINE_ENDPOINT", "ARCHEAXIS_MACHINE_MODEL",
                 "ARCHEAXIS_MACHINE_PROTOCOL"):
         env.pop(key, None)
-    env["ARCHEAXIS_MACHINE_ENDPOINT"] = f"http://127.0.0.1:{port}/v1"
-    env["ARCHEAXIS_MACHINE_PROTOCOL"] = "openai"
+    env["ARCHEAXIS_MACHINE_ENDPOINT"] = f"http://127.0.0.1:{port}" + ("/v1" if protocol == "openai" else "")
+    env["ARCHEAXIS_MACHINE_PROTOCOL"] = protocol
     if model is not None:
         env["ARCHEAXIS_MACHINE_MODEL"] = model
     if isinstance(data, dict):
@@ -151,6 +164,66 @@ def test_an_explicit_model_selection_overrides_the_lane_model():
     assert json.loads(seen[0]["body"].decode("utf-8"))["model"] == "synthetic-other-model"
 
 
+def test_interactive_scene_has_a_separate_bounded_model_budget():
+    with stub(response()) as (port, seen):
+        code, result = invoke(frame(port, request_kind="interactive_scene", timeout_s=200), port)
+    assert code == 0 and result["status"] == "REPLY"
+    assert result["timeout_s"] == 200
+    assert len(seen) == 1
+    sent = json.loads(seen[0]["body"])
+    assert "request_kind" not in sent and "timeout_s" not in sent
+
+
+def test_explicit_deeptutor_choice_schema_is_forwarded_and_bound():
+    content = json.dumps({"question_type": "choice", "question": "SYNTHETIC?",
+                          "options": {"A": "1", "B": "2", "C": "3", "D": "4"},
+                          "correct_answer": "B", "explanation": "SYNTHETIC"})
+    with stub(response(content=content)) as (port, seen):
+        code, result = invoke(frame(port, request_kind="deeptutor_choice_json_schema"), port)
+    assert code == 0 and result["content"] == content
+    assert result["response_format_sha256"] == CHOICE_FORMAT_SHA256
+    assert len(seen) == 1
+    sent = json.loads(seen[0]["body"])
+    format_spec = sent["response_format"]
+    canonical = json.dumps(format_spec, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    assert hashlib.sha256(canonical.encode()).hexdigest() == CHOICE_FORMAT_SHA256
+    schema = format_spec["json_schema"]["schema"]
+    assert set(schema["required"]) == {"question_type", "question", "options", "correct_answer", "explanation"}
+    assert set(schema["properties"]["options"]["required"]) == set("ABCD")
+    assert "request_kind" not in sent
+
+
+def test_deeptutor_choice_schema_refuses_unsupported_protocol_before_network():
+    with stub(b"{}") as (port, seen):
+        code, result = invoke(frame(port, request_kind="deeptutor_choice_json_schema"), port, protocol="ollama")
+    assert code == 2 and result["status"] == "MODEL_REJECTED"
+    assert result["reason"] == "MODEL_STRUCTURED_PROTOCOL_UNSUPPORTED"
+    assert result["network_performed"] is False and seen == []
+
+
+def test_deeptutor_schema_service_refusal_does_not_fallback_or_retry():
+    with stub(b'{"error":{"message":"SYNTHETIC_PRIVATE"}}', status=400) as (port, seen):
+        code, result = invoke(frame(port, request_kind="deeptutor_choice_json_schema"), port)
+    assert code == 2 and result["status"] == "MODEL_REJECTED"
+    assert result["reason"] == "MODEL_HTTP_REJECTED" and len(seen) == 1
+    assert result["content"] is None and "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("overrides", [
+    {"timeout_s": 121},
+    {"request_kind": "interactive_scene", "timeout_s": 201},
+    {"request_kind": "other", "timeout_s": 200},
+    {"request_kind": None, "timeout_s": 200},
+    {"request_kind": "interactive_scene", "timeout_s": True},
+    {"request_kind": "deeptutor_choice_json_schema", "timeout_s": 121},
+])
+def test_longer_budget_is_refused_outside_its_bounded_kind(overrides):
+    with stub(response()) as (port, seen):
+        code, result = invoke(frame(port, **overrides), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["network_performed"] is False and seen == []
+
+
 def test_a_slow_lane_is_named_as_a_timeout_without_retrying():
     with stub(response(), delay=3.0) as (port, seen):
         started = time.monotonic()
@@ -159,8 +232,62 @@ def test_a_slow_lane_is_named_as_a_timeout_without_retrying():
     assert code == 2 and result["status"] == "MODEL_TIMEOUT", result
     assert result["reason"] == "MODEL_REQUEST_TIMEOUT"
     assert result["content"] is None
+    assert result["network_performed"] is None
     assert len(seen) == 1, "a timeout never becomes a second attempt"
     assert elapsed < 10
+
+
+def test_a_slow_response_body_is_a_timeout_not_invalid_model_output():
+    with stub(response(), body_delay=3.0) as (port, seen):
+        code, result = invoke(frame(port), port, timeout_s=1)
+    assert code == 2 and result["status"] == "MODEL_TIMEOUT", result
+    assert result["reason"] == "MODEL_RESPONSE_TIMEOUT"
+    assert result["content"] is None
+    assert result["network_performed"] is True
+    assert len(seen) == 1, "a body timeout must not retry the model request"
+
+
+@pytest.mark.parametrize("finish,reason", [
+    ("length", "MODEL_NONSTOP"),
+    ("content_filter", "MODEL_NONSTOP"),
+    ("tool_calls", "MODEL_NONSTOP"),
+    ("function_call", "MODEL_NONSTOP"),
+    ("error", "MODEL_NONSTOP"),
+    (None, "MODEL_FINISH_REASON_UNKNOWN"),
+    ("vendor_private_reason", "MODEL_FINISH_REASON_INVALID"),
+])
+def test_unfinished_or_unconfirmed_output_is_not_a_reply(finish, reason):
+    with stub(response(content="SYNTHETIC_PRIVATE", finish=finish)) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == reason
+    assert result["content"] is None and result["network_performed"] is True
+    assert len(seen) == 1
+    assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+    assert "vendor_private_reason" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("done,finish,expected", [
+    (True, "stop", "REPLY"),
+    (True, "length", "MODEL_NONSTOP"),
+    (True, None, "MODEL_FINISH_REASON_UNKNOWN"),
+    (False, "stop", "MODEL_COMPLETION_UNCONFIRMED"),
+    (None, "stop", "MODEL_COMPLETION_UNCONFIRMED"),
+])
+def test_ollama_requires_a_confirmed_normal_completion(done, finish, expected):
+    payload = json.dumps({"model": "synthetic-requested-model", "response": "SYNTHETIC_PRIVATE",
+                          "done": done, "done_reason": finish}).encode("utf-8")
+    with stub(payload) as (port, seen):
+        code, result = invoke(frame(port), port, protocol="ollama")
+    assert len(seen) == 1 and seen[0]["path"] == "/api/generate"
+    assert result["network_performed"] is True
+    if expected == "REPLY":
+        assert code == 0 and result["status"] == "REPLY"
+        assert result["content"] == "SYNTHETIC_PRIVATE"
+    else:
+        assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+        assert result["reason"] == expected and result["content"] is None
+        assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
 
 
 def test_empty_or_reasoning_only_content_is_no_final_answer():
@@ -175,6 +302,7 @@ def test_empty_or_reasoning_only_content_is_no_final_answer():
         assert code == 2 and result["status"] == "NO_FINAL_ANSWER", result
         assert result["reason"] == reason
         assert result["content"] is None
+        assert result["network_performed"] is True
         assert "SYNTHETIC_PRIVATE" not in json.dumps(result, ensure_ascii=False)
 
 
@@ -195,7 +323,63 @@ def test_unusable_provider_bodies_are_invalid_output_not_a_candidate(body, reaso
     assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT", result
     assert result["reason"] == reason
     assert result["content"] is None and len(seen) == 1
+    assert result["network_performed"] is True
     assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+def test_invalid_json_after_response_headers_records_the_observed_loopback_call():
+    with stub(b"{") as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == "MODEL_RESPONSE_INVALID"
+    assert result["network_performed"] is True and len(seen) == 1
+
+
+def test_a_truncated_chunked_response_is_a_named_failure_without_echo():
+    with stub(b"", truncate_chunked=True) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == "MODEL_RESPONSE_INVALID"
+    assert result["network_performed"] is True and len(seen) == 1
+    assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+def test_a_truncated_http_rejection_keeps_the_status_without_echo():
+    with stub(b"", status=400, truncate_chunked=True) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "MODEL_REJECTED"
+    assert result["reason"] == "MODEL_HTTP_REJECTED"
+    assert result["diagnostic"]["http_status"] == 400
+    assert result["network_performed"] is True and len(seen) == 1
+    assert "SYNTHETIC_PRIVATE" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("field", ["content", "finish_reason", "model", "empty_model"])
+def test_unpaired_surrogates_in_emitted_model_fields_are_named_failures(field):
+    payload = {"model": "synthetic-requested-model", "choices": [{"index": 0,
+               "finish_reason": "stop", "message": {"role": "assistant", "content": "ok"}}]}
+    if field == "content":
+        payload["choices"][0]["message"]["content"] = "\ud800"
+    elif field == "finish_reason":
+        payload["choices"][0]["finish_reason"] = "\ud800"
+    else:
+        payload["model"] = "\ud800"
+        if field == "empty_model":
+            payload["choices"][0]["message"]["content"] = " "
+    with stub(json.dumps(payload).encode("ascii")) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
+    assert result["reason"] == "MODEL_RESPONSE_INVALID"
+    assert result["content"] is None and result["network_performed"] is True
+    assert len(seen) == 1
+
+
+def test_http_server_failure_records_the_observed_loopback_call():
+    with stub(b"{}", status=503) as (port, seen):
+        code, result = invoke(frame(port), port)
+    assert code == 2 and result["status"] == "MODEL_UNAVAILABLE"
+    assert result["reason"] == "MODEL_ENDPOINT_UNHEALTHY"
+    assert result["network_performed"] is True and len(seen) == 1
 
 
 def test_a_lane_that_refuses_the_request_is_a_named_rejection_without_prompt_text():
@@ -210,6 +394,7 @@ def test_a_lane_that_refuses_the_request_is_a_named_rejection_without_prompt_tex
         code, result = invoke(frame(port), port)
     assert code == 2 and result["status"] == "MODEL_REJECTED", result
     assert result["reason"] == "MODEL_HTTP_REJECTED"
+    assert result["network_performed"] is True
     assert result["diagnostic"]["http_status"] == 400
     assert result["diagnostic"]["n_prompt_tokens"] == 9496
     assert result["diagnostic"]["n_ctx"] == 8192
@@ -224,6 +409,7 @@ def test_a_reply_beyond_the_replay_budget_is_refused_not_truncated():
         code, result = invoke(frame(port), port)
     assert code == 2 and result["status"] == "INVALID_MODEL_OUTPUT"
     assert result["reason"] == "MODEL_REPLY_BUDGET" and result["content"] is None
+    assert result["network_performed"] is True
 
 
 def test_a_non_loopback_endpoint_is_refused_before_any_request():
@@ -248,6 +434,7 @@ def test_no_local_model_is_unavailable_not_a_500():
     assert code == 2 and result["status"] == "MODEL_UNAVAILABLE", result
     assert result["reason"] == "MODEL_ENDPOINT_UNREACHABLE"
     assert result["content"] is None
+    assert result["network_performed"] is None
 
 
 @pytest.mark.parametrize("data", [

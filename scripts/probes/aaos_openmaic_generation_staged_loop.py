@@ -5,8 +5,10 @@ executable, the staged `workers/openmaic` closure, the staged Python capability
 routes and the manifest-declared Node identity are exactly what an installation
 would launch. It then creates one synthetic source document, generates an
 outline through the declared local model, builds one slide scene and one quiz
-scene (each with its narration stage), restarts the same workspace and reads
-both candidates back without rerunning a worker or the model.
+scene (each with its narration stage), generates a second interactive outline
+through the interactive-outlines adapter, builds diagram, game and code scenes through
+the widget prompt/normalize adapters, restarts the same workspace and reads
+every candidate back without rerunning a worker or the model.
 
 The model is a loopback stub with a fixed reply queue; this is not real model
 quality evidence and not Owner acceptance. The staged root is a candidate
@@ -24,15 +26,26 @@ import hashlib
 import http.client
 import importlib.util
 import json
-from pathlib import Path
 import secrets
 import socket
+import subprocess
 import sys
 import threading
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import time
+from contextlib import suppress
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 MODEL = "synthetic-stub-model"
+DEFAULT_HTTP_TIMEOUT_SECONDS = 120
+# Outline generation includes model and adapter stages in one HTTP request.
+OUTLINE_HTTP_TIMEOUT_SECONDS = 240
+# Scene generation includes several bounded adapter stages and, for an
+# interactive scene, a model process that can run for up to 210 seconds.
+SCENE_HTTP_TIMEOUT_SECONDS = 480
+OUTLINE_GENERATE_PATHS = frozenset(("/api/v1/courses/openmaic/outlines/generate",
+                                    "/api/v1/courses/openmaic/outlines/generate-interactive"))
+SCENE_GENERATE_PATH = "/api/v1/courses/openmaic/scenes/generate"
 MODEL_REPLIES = [
     json.dumps({
         "languageDirective": "Use Simplified Chinese.",
@@ -58,17 +71,42 @@ MODEL_REPLIES = [
                  "answer": ["A"], "analysis": "SYNTHETIC_ANALYSIS", "points": 5}],
                ensure_ascii=False),
     json.dumps([{"type": "text", "content": "SYNTHETIC_QUIZ_OPENING"}], ensure_ascii=False),
+    json.dumps({
+        "languageDirective": "Use Simplified Chinese.",
+        "courseTitle": "Synthetic interactive course",
+        "outlines": [
+            {"id": "io1", "type": "interactive", "title": "SYNTHETIC_INTERACTIVE_TITLE",
+             "description": "SYNTHETIC_INTERACTIVE_DESCRIPTION",
+             "keyPoints": ["SYNTHETIC_INTERACTIVE_KEY_POINT"], "order": 1,
+             "widgetType": "diagram",
+             "widgetOutline": {"diagramType": "flowchart", "nodeCount": 4}},
+            {"id": "io2", "type": "interactive", "title": "SYNTHETIC_GAME_TITLE",
+             "description": "SYNTHETIC_GAME_DESCRIPTION", "keyPoints": ["SYNTHETIC_GAME_POINT"],
+             "order": 2, "widgetType": "game",
+             "widgetOutline": {"gameType": "action", "challenge": "SYNTHETIC_GAME_CHALLENGE",
+                               "playerControls": ["SYNTHETIC_THRUST"], "physicsConcept": "SYNTHETIC_PHYSICS"}},
+            {"id": "io3", "type": "interactive", "title": "SYNTHETIC_CODE_TITLE",
+             "description": "SYNTHETIC_CODE_DESCRIPTION", "keyPoints": ["SYNTHETIC_CODE_POINT"],
+             "order": 3, "widgetType": "code",
+             "widgetOutline": {"language": "python", "challengeType": "SYNTHETIC_CODE_CHALLENGE"}},
+        ]}, ensure_ascii=False),
+    "<!DOCTYPE html><html><body><main>SYNTHETIC_INTERACTIVE_HTML</main>"
+    "<script>const syntheticValue = 1;</script></body></html>",
+    "<!DOCTYPE html><html><body><main>SYNTHETIC_GAME_HTML</main></body></html>",
+    "<!DOCTYPE html><html><body><main>SYNTHETIC_CODE_HTML</main></body></html>",
 ]
 
 
 class StubModel(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 - stdlib handler name
         length = int(self.headers.get("content-length", "0") or 0)
-        if length:
-            self.rfile.read(length)
+        request_bytes = self.rfile.read(length) if length else b""
         server = self.server
         with server.lock:  # type: ignore[attr-defined]
             server.calls += 1  # type: ignore[attr-defined]
+            server.markers.append({name: name.encode("ascii") in request_bytes for name in (  # type: ignore[attr-defined]
+                "SYNTHETIC_GAME_CHALLENGE", "SYNTHETIC_THRUST", "SYNTHETIC_PHYSICS",
+                "SYNTHETIC_CODE_CHALLENGE")})
             index = server.index  # type: ignore[attr-defined]
             if index >= len(server.replies):  # type: ignore[attr-defined]
                 self.send_response(500)
@@ -88,7 +126,11 @@ class StubModel(BaseHTTPRequestHandler):
         self.send_header("content-type", "application/json")
         self.send_header("content-length", str(len(payload)))
         self.end_headers()
-        self.wfile.write(payload)
+        self.wfile.flush()
+        if server.body_delay:  # type: ignore[attr-defined]
+            time.sleep(server.body_delay)  # type: ignore[attr-defined]
+        with suppress(BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            self.wfile.write(payload)
 
     def log_message(self, *_args) -> None:
         return
@@ -97,11 +139,13 @@ class StubModel(BaseHTTPRequestHandler):
 class StubServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, replies: list[str]) -> None:
+    def __init__(self, replies: list[str], body_delay: float = 0) -> None:
         super().__init__(("127.0.0.1", 0), StubModel)
         self.replies = replies
         self.calls = 0
         self.index = 0
+        self.markers = []
+        self.body_delay = body_delay
         self.lock = threading.Lock()
 
 
@@ -136,15 +180,23 @@ class Core:
         self.child = None
 
     def request(self, method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
-        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=120)
-        payload = None if body is None else json.dumps(body, separators=(",", ":"))
-        connection.request(method, path, body=payload, headers={
-            "content-type": "application/json",
-            "x-archeaxis-launch-token": self.token,
-        })
-        response = connection.getresponse()
-        raw = response.read()
-        connection.close()
+        if method.upper() == "POST" and path == SCENE_GENERATE_PATH:
+            timeout = SCENE_HTTP_TIMEOUT_SECONDS
+        elif method.upper() == "POST" and path in OUTLINE_GENERATE_PATHS:
+            timeout = OUTLINE_HTTP_TIMEOUT_SECONDS
+        else:
+            timeout = DEFAULT_HTTP_TIMEOUT_SECONDS
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=timeout)
+        try:
+            payload = None if body is None else json.dumps(body, separators=(",", ":"))
+            connection.request(method, path, body=payload, headers={
+                "content-type": "application/json",
+                "x-archeaxis-launch-token": self.token,
+            })
+            response = connection.getresponse()
+            raw = response.read()
+        finally:
+            connection.close()
         try:
             parsed = json.loads(raw) if raw else {}
         except json.JSONDecodeError:
@@ -182,6 +234,28 @@ def scene_receipt(response: dict, route: str) -> dict:
         "scene_actions": [{"type": a.get("type"), "elementId": a.get("elementId"),
                            "text": a.get("text")} for a in scene.get("actions", [])],
         "scene_type": scene.get("type"),
+        "outline_id": stored["derived_metadata"]["outline_id"],
+    }
+
+
+def interactive_scene_receipt(response: dict) -> dict:
+    stored = response["document"]["editor_json"]["attrs"]["archeaxis_openmaic_scene_candidate"]
+    scene = stored["worker_document"]["scene"]
+    normalize = response.get("normalize") or {}
+    return {
+        "scene_route": response["scene_route"],
+        "document_id": response["document"]["document_id"],
+        "generation_route": response["generation_route"],
+        "model_call": response["model_call"],
+        "widget_type": response["widget_type"],
+        "html_execution": response["html_execution"],
+        "rendering_authorized": response["rendering_authorized"],
+        "normalize_status": normalize.get("status"),
+        "extraction_strategy": normalize.get("extraction_strategy"),
+        "katex_injected": normalize.get("katex_injected"),
+        "render_playable": ((response.get("render") or {}).get("report") or {}).get("playable"),
+        "scene_type": scene.get("type"),
+        "scene_widget_type": (scene.get("content") or {}).get("widgetType"),
         "outline_id": stored["derived_metadata"]["outline_id"],
     }
 
@@ -284,6 +358,55 @@ def main() -> int:
             scenes[label] = scene
             receipt.setdefault("steps", []).append({"step": f"{label}_scene", **scene})
         receipt["scenes"] = scenes
+
+        interactive_outline = expect("generate interactive outline", *core.request(
+            "POST", "/api/v1/courses/openmaic/outlines/generate-interactive",
+            {"create_request_id": f"probe-int-outline-{args.run_id}",
+             "requirement": "Synthetic interactive requirement",
+             "source_text": "SYNTHETIC interactive source material", "model": None}), 200)
+        interactive_outline_id = interactive_outline["document"]["document_id"]
+        receipt["interactive_outline"] = {
+            "document_id": interactive_outline_id,
+            "generation_route": interactive_outline.get("generation_route"),
+            "model_call": interactive_outline.get("model_call"),
+            "outline_count": interactive_outline.get("outline_count"),
+            "types": [item.get("type") for item in interactive_outline.get("outlines", [])],
+        }
+        if interactive_outline.get("generation_route") != "local_model_interactive_outline":
+            raise RuntimeError(f"interactive outline route mismatch: {interactive_outline}")
+        if [item.get("type") for item in interactive_outline.get("outlines", [])] != ["interactive"] * 3:
+            raise RuntimeError(f"interactive outline admission mismatch: {interactive_outline}")
+
+        interactive_widgets, interactive_bodies = {}, {}
+        for index, widget in enumerate(("diagram", "game", "code")):
+            body = {"create_request_id": f"probe-interactive-{widget}-{args.run_id}",
+                    "outline_document_id": interactive_outline_id, "outline_index": index,
+                    "source": source, "model": None}
+            interactive = interactive_scene_receipt(expect(f"{widget} scene", *core.request(
+                "POST", "/api/v1/courses/openmaic/scenes/generate", body), 200))
+            if interactive["scene_route"] != "interactive":
+                raise RuntimeError(f"interactive route mismatch: {interactive}")
+            if interactive["widget_type"] != widget or interactive["scene_widget_type"] != widget:
+                raise RuntimeError(f"interactive widget was not carried through: {interactive}")
+            if interactive["html_execution"] != "NOT_PERFORMED":
+                raise RuntimeError(f"interactive chain claims HTML execution: {interactive}")
+            if interactive["rendering_authorized"] is not False or interactive["render_playable"] is not False:
+                raise RuntimeError(f"interactive chain claims rendering authorization: {interactive}")
+            if interactive["normalize_status"] != "OBSERVED_CANDIDATE":
+                raise RuntimeError(f"interactive normalize did not run: {interactive}")
+            interactive_widgets[widget], interactive_bodies[widget] = interactive, body
+            receipt["steps"].append({"step": f"interactive_{widget}_scene", **interactive})
+        receipt["interactive"] = interactive_widgets["diagram"]
+        receipt["interactive_widgets"] = interactive_widgets
+        game_markers, code_markers = stub.markers[7], stub.markers[8]
+        receipt["widget_prompt_details_observed"] = {
+            "game_challenge": game_markers["SYNTHETIC_GAME_CHALLENGE"],
+            "game_controls": game_markers["SYNTHETIC_THRUST"],
+            "game_physics": game_markers["SYNTHETIC_PHYSICS"],
+            "code_challenge": code_markers["SYNTHETIC_CODE_CHALLENGE"],
+        }
+        if not all(receipt["widget_prompt_details_observed"].values()):
+            raise RuntimeError("admitted widget details did not reach the loopback model prompt")
         receipt["model_call_count"] = stub.calls
 
         core.stop()
@@ -301,8 +424,65 @@ def main() -> int:
                 raise RuntimeError(f"{label} replay returned a different candidate")
             replay[label] = {"worker_invoked": False,
                              "document_id": response["document"]["document_id"]}
+        outline_replay = expect("interactive outline replay", *core.request(
+            "POST", "/api/v1/courses/openmaic/outlines/generate-interactive",
+            {"create_request_id": f"probe-int-outline-{args.run_id}",
+             "requirement": "Synthetic interactive requirement",
+             "source_text": "SYNTHETIC interactive source material", "model": None}), 200)
+        if outline_replay.get("worker_invoked") is not False:
+            raise RuntimeError(f"interactive outline replay reran work: {outline_replay}")
+        if outline_replay["document"]["document_id"] != interactive_outline_id:
+            raise RuntimeError("interactive outline replay returned a different candidate")
+        replay["interactive_outline"] = {
+            "worker_invoked": False, "document_id": outline_replay["document"]["document_id"]}
+        for widget, body in interactive_bodies.items():
+            scene_replay = expect(f"interactive {widget} replay", *core.request(
+                "POST", "/api/v1/courses/openmaic/scenes/generate", body), 200)
+            if scene_replay.get("worker_invoked") is not False:
+                raise RuntimeError(f"interactive replay reran work: {scene_replay}")
+            if scene_replay["document"]["document_id"] != interactive_widgets[widget]["document_id"]:
+                raise RuntimeError("interactive replay returned a different candidate")
+            replay[f"interactive_{widget}"] = {
+                "worker_invoked": False, "document_id": scene_replay["document"]["document_id"]}
+        # Preserve the original single-interactive receipt key as the diagram
+        # alias while reporting all three widget-specific replays.
+        replay["interactive"] = dict(replay["interactive_diagram"])
         receipt["restart_replay"] = replay
         receipt["model_call_after_restart"] = stub.calls
+
+        # Exercise the staged Python worker itself against a loopback peer that
+        # sends headers and then stalls. This is separate from the scene chain
+        # and records only bounded status metadata, never prompt or reply text.
+        slow = StubServer(["SYNTHETIC_UNUSED"], body_delay=2.5)
+        slow_thread = threading.Thread(target=slow.serve_forever, daemon=True)
+        slow_thread.start()
+        try:
+            env = dict(os.environ)
+            env["ARCHEAXIS_MACHINE_ENDPOINT"] = f"http://127.0.0.1:{slow.server_address[1]}/v1"
+            frame = json.dumps({"schema": "archeaxis.openmaic-outline-model-request/v1",
+                                "system": "SYNTHETIC_SYSTEM", "user": "SYNTHETIC_USER",
+                                "timeout_s": 1}).encode("utf-8")
+            worker = subprocess.run(
+                [str(root / "runtime/python.exe"), "-I", "-B", "-X", "utf8",
+                 str(root / "workers/course/worker_outline_local_model.py")],
+                input=frame, capture_output=True, timeout=10, check=False, env=env,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            observed = json.loads(worker.stdout)
+            receipt["model_body_timeout_probe"] = {
+                "status": observed.get("status"), "reason": observed.get("reason"),
+                "network_performed": observed.get("network_performed"),
+                "calls": slow.calls, "exit_code": worker.returncode,
+            }
+            if (worker.returncode != 2 or worker.stderr or slow.calls != 1
+                    or observed.get("status") != "MODEL_TIMEOUT"
+                    or observed.get("reason") != "MODEL_RESPONSE_TIMEOUT"
+                    or observed.get("network_performed") is not True
+                    or observed.get("content") is not None):
+                raise RuntimeError("staged model worker did not report the response-body timeout")
+        finally:
+            slow.shutdown()
+            slow.server_close()
+            slow_thread.join(timeout=3)
         receipt["ok"] = True
     except Exception as error:  # the receipt keeps the named failure
         receipt["ok"] = False

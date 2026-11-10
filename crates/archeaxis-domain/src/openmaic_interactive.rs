@@ -186,7 +186,7 @@ pub fn openmaic_interactive_widget(selection: &Value) -> Result<(String, Value),
         "simulation" => &["concept", "keyVariables"],
         "diagram" => &["diagramType", "nodeCount", "nodes"],
         "code" => &["challengeType", "language"],
-        "game" => &["challenge", "gameType", "playerControls"],
+        "game" => &["challenge", "gameType", "playerControls", "physicsConcept"],
         _ => &["visualizationType", "objects", "interactions"],
     };
     let fields = outline["widgetOutline"]
@@ -212,6 +212,7 @@ pub fn openmaic_interactive_widget(selection: &Value) -> Result<(String, Value),
             "gameType" => "game_type",
             "challenge" => "challenge",
             "playerControls" => "player_controls",
+            "physicsConcept" => "physics_concept",
             "visualizationType" => "visualization_type",
             "objects" => "objects",
             "interactions" => "interactions",
@@ -670,6 +671,9 @@ pub fn commit_openmaic_interactive_candidate(
     worker_document: &Value,
     generation: &OpenMaicInteractiveGeneration,
 ) -> Result<Value, Error> {
+    if generation.record["model_finish_reason"] != "stop" {
+        return Err(invalid("INTERACTIVE_MODEL_COMPLETION_UNCONFIRMED"));
+    }
     if create_request_id != pending.create_request_id.as_str()
         || openmaic_interactive_request_sha256(request, &pending.selection)
             != pending.request_sha256
@@ -700,8 +704,18 @@ pub fn commit_openmaic_interactive_candidate(
     Ok(interactive_receipt(receipt))
 }
 
-/// The local-model request reuses the outline route's own model frame: only the
-/// two captured prompts, an optional model selection and one bounded budget.
+/// Interactive HTML can take longer than an outline on an ordinary local model.
+/// These are per-scene bounds; other model routes keep their existing budget.
+pub const OPENMAIC_INTERACTIVE_MODEL_REQUEST_KIND: &str = "interactive_scene";
+pub const OPENMAIC_INTERACTIVE_MODEL_TIMEOUT_S: u64 = 200;
+pub const OPENMAIC_INTERACTIVE_MODEL_PROCESS_TIMEOUT_S: u64 =
+    OPENMAIC_INTERACTIVE_MODEL_TIMEOUT_S + 10;
+
+/// The local-model request reuses the outline frame with an explicitly scoped
+/// scene budget. Only the two captured prompts go to the model provider.
 pub fn openmaic_interactive_model_request(binding: &Value, model: &Value) -> Value {
-    openmaic_outline::openmaic_outline_model_request(binding, model)
+    let mut request = openmaic_outline::openmaic_outline_model_request(binding, model);
+    request["request_kind"] = json!(OPENMAIC_INTERACTIVE_MODEL_REQUEST_KIND);
+    request["timeout_s"] = json!(OPENMAIC_INTERACTIVE_MODEL_TIMEOUT_S);
+    request
 }

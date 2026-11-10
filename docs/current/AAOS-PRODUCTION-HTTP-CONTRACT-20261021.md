@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (158 pairs in a `text_worker` launch)
+## 3. Route inventory (159 pairs in a `text_worker` launch)
 
 `PROD` identifies a route mounted in the current source for the specified production launch shape.
 Whether the UI can rely on it also depends on the applicable capability/provider availability,
@@ -308,7 +308,7 @@ These additions reflect the current Rust handlers and generated `core-document.s
 | 39 | `POST /api/v1/workspace/backups` | **human only** | No caller path; creates a consistent product-owned backup and returns its manifest. Independent restore/readback remains a separate assertion. |
 | 40 | `GET /api/v1/documents/{document_id}/checks?version=&offset=` | any token | Actual version/hash bound records, 1000-row pages with next_offset. Current versions do not inherit old conclusions. |
 | 41 | `POST /api/v1/documents/{document_id}/checks` | **human only** | Independent recognition_fidelity / professional_basis. Manual reports are explicit; cloud request is pending/not_executed until a real authorized worker executes. |
-| 42 | `POST /api/v1/documents/{document_id}/checks/execute` | **human only** | Explicit version/hash-bound attempt, separate from pending application and save. Body check_id, expected_content_sha256, optional retry_of_task_id; no arbitrary model/provider. Unconfigured execution returns 201 durable failed/not_configured with execution_verified=false and execution_state=not_executed. A text-worker launch accepts owner-selected document_check_config from the fixed data-root config/document-check.json; invalid configuration remains a durable failed attempt and ordinary save remains available. Configured execution uses the same product Python and server-selected bounded provider/model, persists actual engine/retrieval receipts, and retries reference the latest failed attempt. Material preparation failures persist without invoking the worker; version/SHA and permission failures reject before claiming. Fidelity originals currently support bounded UTF-8 text only; real configured cloud acceptance is not established by transport fixtures. |
+| 42 | `POST /api/v1/documents/{document_id}/checks/execute` | **human only** | Explicit version/hash-bound attempt, separate from pending application and save. Body check_id, expected_content_sha256, optional retry_of_task_id; no arbitrary model/provider. Unconfigured execution returns 201 durable failed/not_configured with execution_verified=false and execution_state=not_executed. A text-worker launch accepts owner-selected document_check_config from the fixed data-root config/document-check.json; invalid configuration remains a durable failed attempt and ordinary save remains available. Configured execution uses the same product Python and server-selected bounded provider/model, persists actual engine/retrieval receipts, and retries reference the latest failed attempt. For failures after a worker starts, Core persists its own `worker_observation`: whether an exit was observed before cleanup, its exit code or Unix signal when known, and whether any stdout bytes were observed. `stdout_bytes_observed: false` means EOF established an empty stream; null means unknown. Cleanup-induced termination is not reported as the worker's observed exit. No worker stdout or stderr is copied into this observation; independent failure reason codes remain unchanged. Material preparation failures persist without invoking the worker; version/SHA and permission failures reject before claiming. Fidelity originals currently support bounded UTF-8 text only; real configured cloud acceptance is not established by transport fixtures. |
 
 `AnchorBody` is `{revision, position, checksum?}`. For a UTF-8 text locator, `start`/`end` are byte offsets and `checksum` identifies the selected slice; Core validates the bytes and boundaries. A source revision alone is not proof of a located page or text range.
 
@@ -341,7 +341,7 @@ a token-authentication boundary.
 | 238 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts/{attempt_id}/submit` | **human only** | Records a caller-declared answer, `provider_correct`, self-report and optional rating. The ordinary submit does not invoke the provider grader or establish independent mastery; it is not an FSRS review. |
 | 239 | `POST /api/v1/learning/provider-activities/{activity_id}/attempts/{attempt_id}/cancel` | **human only** | Records cancellation by `client_cancel_id`; the returned provider stop state is `unknown`, not proof that a provider process stopped. |
 | 240 | `POST /api/v1/learning/deeptutor/practice-import` | **human only** | Text-worker launch only; request body at most 65,536 bytes. Core prepares from an existing source and material snapshot, invokes the private practice worker, and rechecks the bound request and cancellation at commit before returning a limited view. Ordinary local import does not require a provider grant; this route is not automatic grading or a model call. |
-| 245 | `POST /api/v1/learning/deeptutor/question-turn` | **human only** | Text-worker launch only; request body at most 65,536 bytes. Body `{create_request_id, material:{document_id,version,content_sha256}, requirement, model?}`. Core consumes a current deeptutor material grant for exactly that snapshot, captures DeepTutor 1.7.1's single-question prompt through the pinned private worker, calls the declared loopback-only local text model (`course.openmaic.outline-model`, `timeout_s` 110 with a 120 s Core ceiling), and replays the reply through the same worker. Only a `CANDIDATE` is persisted, as an ordinary candidate Document whose attributes record `generation_route: deeptutor_question_turn_local_model`, `model_call: INVOKED`, the model identity and reply digest, the capture prompt digest, the material snapshot, `response_origin: LOCAL_MODEL_UNVERIFIED`, `human_review_required: true`, `active_content_executed: false`, `rendering_authorized: false` and `answer_secrecy: not_established`. A repeated `create_request_id` reads the stored candidate without rerunning the model or worker; different content under the same ID answers `409`. Model failures stay named: `MODEL_UNAVAILABLE`→`503`, `MODEL_TIMEOUT`/`NO_FINAL_ANSWER`→`504`, `MODEL_REJECTED`/`INVALID_MODEL_OUTPUT`→`422`; worker `UNAVAILABLE`→`503`, `INVALID_REQUEST`/`REJECTED`→`422`, and no failure writes a partial candidate. It does not grade, start an activity/attempt or establish answer secrecy. |
+| 245 | `POST /api/v1/learning/deeptutor/question-turn` | **human only** | Text-worker launch only; request body at most 65,536 bytes. Body `{create_request_id, material:{document_id,version,content_sha256}, requirement, model?, output_mode?}`. Core consumes a current deeptutor material grant for exactly that snapshot, captures DeepTutor 1.7.1's single-question prompt through the pinned private worker, calls the declared loopback-only local text model (`course.openmaic.outline-model`, `timeout_s` 110 with a 120 s Core ceiling), and replays the reply through the same worker. Only a `CANDIDATE` is persisted, as an ordinary candidate Document whose attributes record `generation_route: deeptutor_question_turn_local_model`, `model_call: INVOKED`, the model identity and reply digest, the capture prompt digest, the material snapshot, `response_origin: LOCAL_MODEL_UNVERIFIED`, `human_review_required: true`, `active_content_executed: false`, `rendering_authorized: false` and `answer_secrecy: not_established`. A repeated `create_request_id` reads the stored candidate without rerunning the model or worker; different content under the same ID answers `409`. Model failures stay named: `MODEL_UNAVAILABLE`→`503`, `MODEL_TIMEOUT`/`NO_FINAL_ANSWER`→`504`, `MODEL_REJECTED`/`INVALID_MODEL_OUTPUT`→`422`; worker `UNAVAILABLE`→`503`, `INVALID_REQUEST`/`REJECTED`→`422`, and no failure writes a partial candidate. It does not grade, start an activity/attempt or establish answer secrecy. |
 | 247 | `POST /api/v1/learning/deeptutor/question-candidates/accept` | **human only** | Text-worker launch only; request body at most 65,536 bytes. Body `{create_request_id, candidate:{document_id,version,content_sha256}, correct_answer, explanation?, question_text?}`. Core reads one current question-turn candidate and turns it into an ordinary graded-question Document only when the caller supplies the answer key: `correct_answer` must be one of the candidate's options, the model's own answer is never reused as the key, and the acceptance record (`archeaxis_deeptutor_question_acceptance`) keeps the candidate snapshot, generation route and model reply digest. The new Document carries the ordinary `archeaxis_deeptutor_question` contract and is revalidated through the same read path the grading chain uses, so a `question_view` hides the key and explanation. A repeated `create_request_id` answers `201` with `duplicate: true` and the same Document; a changed candidate or content answers `409`, an unaccepting shape `422`, a missing candidate `404`. It does not grade, start an activity or establish provider identity or mastery. |
 | 246 | `POST /api/v1/learning/deeptutor/teaching-feedback` | **human only** | Text-worker launch only; request body at most 131,072 bytes (the donor worker's own 128 KiB input bound). Body `{create_request_id, session_id, turn_id, profile?:{document_id,version,content_sha256}, current_message, objective_ids, focus_objective_id, updates, include_history}`. Core reads the named candidate Document as the base profile snapshot (no profile means the donor's empty default), runs the pinned DeepTutor 1.7.1 teaching-rules worker exactly once, and persists the resulting profile and guidance as an ordinary candidate Document whose attributes record `generation_route: deeptutor_teaching_feedback_donor_rules`, `model_call: NOT_INVOKED`, `response_origin: DONOR_RULES_UNVERIFIED`, the base snapshot, the worker document verbatim, `human_review_required: true`, `active_content_executed: false`, `rendering_authorized: false` and `independent_mastery: not_established`. A repeated `create_request_id` reads the stored candidate without rerunning the worker; different content under the same ID, or a stale base snapshot, answers `409`. Worker failures stay named: `UNAVAILABLE`→`503`, `INVALID_REQUEST`→`422`, and no failure writes a partial candidate. It writes no activity, attempt, review or mastery and establishes no evidence authentication; the profile is a reviewable candidate, not a validated learner state. |
 | 242 | `POST /api/v1/learning/deeptutor/practice-grade` | **human only** | Text-worker launch only; request body at most 32,768 bytes. Core reserves the exact client event and attempt together, rechecks both material grants, attempt state and restore epoch, runs the fixed private DeepTutor 1.7.1 grader, and persists an observed result — including `provider_correct = null` as an unscored terminal observation — or refuses. Interrupted or indeterminate worker outcomes are recorded `UNKNOWN` and are never retried automatically. A retry of the same event after the recorded dispatch second plus the 60-second grading budget and a 30-second margin finalizes a stale `DISPATCHED` claim as `UNKNOWN` before admission; it is never relaunched, and a claim without a recorded dispatch second is not proven stale and is left unchanged. Additionally, Core startup finalizes `DISPATCHED` claims whose recorded second is older than the 150-second maximum budget plus margin once, because a restarted process has no live bridge from the previous one; younger dispatches and damaged or trust-unproven metadata are left untouched, and this never relaunches a worker. A duplicate event with a committed receipt replays its stored receipt. This is an observed provider result, not an independent mastery or learning-improvement claim. |
@@ -349,12 +349,130 @@ a token-authentication boundary.
 | 244 | `POST /api/v1/courses/openmaic/package-projection` | **human only** | Read-only projection over already persisted OpenMAIC scene candidate Documents; body `{document_ids}` at most 65,536 bytes with 1–64 unique bounded IDs. It reports `scene_count`, `by_scene_type`, `playable_scene_count`/`not_playable_scene_count`/`unknown_scene_count` and `all_playable`, per-scene recorded `lossless`/`omitted_field_count`/`unsupported_count`, plus fixed `server_validation: NONE`, `renderer_executed: false`, `rendering_authorized: false`. Quotes only the recorded projection and render reports, rechecked against the persisted scene: a legacy v1 candidate, an edited report, a non-candidate Document or a missing ID is reported as playability unknown rather than guessed. It parses no course payload, renders nothing, rejects no course and writes nothing. The response (`archeaxis.openmaic-course-package-projection/v1`) is not a claim that a multi-scene course is complete or runnable. |
 | 15 | `POST /api/v1/learning/items/{item_key}/references` | any token | Links an accepted knowledge id. **No actor guard** — a machine principal may call it. |
 | 17 | `POST /api/v1/learning/items/{item_key}/assessment` | any token | Body `{knowledge_id}`. **No actor guard.** Returns `assessment_id` + `knowledge_version`. |
-| 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Latest assessment. It carries `knowledge_state` (the separated `status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to` view of the revision it bound) beside `knowledge_id`/`knowledge_version`, because an assessment binding is not evidence that the revision is still current. |
-| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and `knowledge_version` must equal the one the assessment reports or the Core answers `400`. `client_event_id` is the idempotency identity — retry replays the original receipt. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
-| 11 | `POST /api/v1/learning/events` | **human only** | Legacy keyed path. With no `schedule_state`, authority is `placeholder_ladder` and `next_review` is `null`. With `schedule_state`, the reused FSRS worker decides. Machine → `403`. |
+| 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Most recently created assessment in the Core's append order, even when creation timestamps share a second. It carries `knowledge_state` (the separated `status`/`active`/`currentness`/`superseded_by`/`successor_count`/`valid_to` view of the revision it bound) beside `knowledge_id`/`knowledge_version`, because an assessment binding is not evidence that the revision is still current. Existing historical assessments and their review identities are not rewritten. |
+| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and an explicitly supplied `knowledge_version` must equal the assessment's version or the Core answers `400`. An assessment-bound review uses only FSRS state and observations bound to that same assessment; older or unbound item events remain history and do not seed its schedule. A new schedule-only review without `assessment_id` is accepted only while the item has no assessment; after one exists it returns `409` instead of reporting a due date outside the current assessment. `client_event_id` is the idempotency identity — an identical previously committed request replays its receipt without invoking the scheduler. For a new request, invalid `now`, mismatched assessment/item or mismatched knowledge version returns `400` before the scheduler starts; the Core checks those inputs again before committing. The transaction rechecks the identity and scheduling basis when concurrently scheduled requests finish. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
+| 11 | `POST /api/v1/learning/events` | **human only** | Legacy keyed path cannot bind an assessment. After an assessment exists, a new `kind:review` (the default kind) returns `409`; an identical previously committed event still replays. Other event kinds remain item history and cannot update an assessment-scoped queue. With no `schedule_state`, authority is `placeholder_ladder` and the returned `next_review_days` is a placeholder hint; the response does not include an exact `next_review`. With `schedule_state`, the reused FSRS worker decides; a negative interval is reported as `unavailable`. New events bind a hash of all normalized accepted request fields and retain the original scheduling authority; `idempotency_scope:full_request` identifies this and changed inputs return `409`. Known older receipt hashes can verify only item, kind and outcome (`idempotency_scope:legacy_item_kind_outcome`); when the original authority was not recorded it is `legacy_unverified`, rather than inferred from the current scheduler. Committed retries do not invoke the scheduler. A Core predating this tagged key format cannot replay new-format keys and fails closed; rollback must account for that compatibility limit. Machine → `403`. |
 | 13 | `GET /api/v1/learning/events/{item_key}` | any token | Event history. Each `references` row reports the revision the item was built from as an immutable identity plus `active`, `status`, `currentness` (`current`/`superseded`/`not_current`/`unavailable`), `superseded_by`, `successor_count` and `valid_to`; a superseded revision stays named and is never rewritten to the successor. |
-| 14 | `GET /api/v1/learning/items` | any token | Queue; one latest deadline per item. |
-| 18 | `GET /api/v1/learning/items/{item_key}/state` | any token | Learner state + a **fixed** `machine` block (§4). Its `learner.references` rows carry the same separated identity/`currentness` view as the event history. |
+| 14 | `GET /api/v1/learning/items` | any token | Queue; when an assessment exists, the deadline comes only from its explicitly bound reviews and is null until one is scheduled. Without an assessment, the legacy item-wide deadline remains. |
+| 18 | `GET /api/v1/learning/items/{item_key}/state` | any token | Learner state + a **fixed** `machine` block (§4). `correct_streak` and `next_review` are scoped to the latest assessment when present; `correct_streak_scope` identifies that or `legacy_item`. `assessment_progress` contains the assessment identity, bound-event count, streak and latest bound review, or null without an assessment. `event_count`, scheduled/unscheduled counts and `latest_review` remain item-wide history (`aggregate_scope: item_history`), so the historical review can have a different assessment ID. `learner.references` retains separated identity and `currentness` views. |
+
+For a **new** stateful review, the Core attempts to reapply previously recorded unscheduled
+reviews after the last successful FSRS state, in event order and within the same assessment
+scope. It uses only recorded ratings and exact effective review times, preserves the original
+events and receipts, and rechecks the event cursor before committing. A successful recovery
+adds `schedule_recovery: {state: "replayed", count, through_event_id}`; an incomplete one
+records the new review as `unavailable` with no due date and adds `schedule_recovery` with
+`state: "incomplete"` and a bounded `reason`. New unavailable reviews retain the effective
+instant even if the caller omitted `now`; a historical review without that instant or a supplied
+`now` cannot be reconstructed and is not assigned a guessed time. At most 4,096 pending reviews
+are considered in one request, and all worker calls share a 20-second scheduling budget; an
+over-limit or unresolvable history remains explicitly unscheduled and currently has no separate
+automatic exact-repair endpoint. A human may explicitly start a new schedule as described below.
+Compatible workers batch up to 128 observations; a missing or mismatched batch
+receipt is discarded and an older worker is retried one observation at a time within that budget.
+This recovery occurs on a new review request, not in the background or on replay of an existing
+event key. A timezone offset is converted to the same UTC instant for FSRS while the original
+input remains in review evidence. FSRS floating parameters are parsed exactly on the scheduler
+path; historic values already stored with prior rounding are not reconstructed.
+
+If an unavailable review is followed by an FSRS card inside the active scheduling baseline,
+the first later card must have recorded a `replayed` recovery with the matching count and last
+event ID for the intervening unavailable reviews. Otherwise the replay is **unverified**; this
+does not establish whether a historical worker really did or did not replay it. When such a gap
+affects the active scoped history, the queue item and learner state expose
+`schedule_integrity: {state: "unverified", reason: "scheduled_gap_replay_unverified"}` and set
+the effective `next_review` to null. The current assessment's latest-review projection also
+withholds that deadline. Item-wide latest review can instead be a different historical assessment;
+raw event history remains unchanged and readable. A new ordinary review is recorded unavailable
+when this is the first blocking issue; an explicit human reset can start a new baseline without
+rewriting prior observations.
+
+Legacy `kind:review` events that lack a stateful schedule object or have an unknown scheduling
+authority do not establish the exact rating, effective time and FSRS card needed for automatic
+replay. If such an event is within the current scheduling baseline, a new stateful review is
+saved as unavailable with `legacy_review_evidence_missing_or_invalid`; it is not silently skipped,
+even if a later historical FSRS card already exists. An assessment-bound review does not inherit
+unbound legacy history. The explicit human-declared reset below can start a new baseline while
+retaining the old records; it does not reconstruct them.
+
+If the latest recorded FSRS schedule claims an absent, null or non-object card state, the Core
+retains that invalid prior state as a named `invalid_previous_card` condition. A new ordinary
+review is saved without a due date; the Core neither treats the row as no prior history nor
+parses a string containing JSON as an authoritative card. A human-declared reset can start a
+new baseline without modifying the damaged record.
+
+The read-only learning queue and scoped learner state also withhold an effective deadline when
+the active baseline has one of these known integrity problems. The optional `schedule_integrity`
+reports `state: unverified` with one of `scheduled_gap_replay_unverified`,
+`legacy_review_evidence_missing_or_invalid`, `invalid_previous_card`,
+`too_many_unscheduled_reviews`, `unscheduled_review_evidence_missing_or_invalid`,
+`unscheduled_review_time_order_invalid`, or `schedule_reset_evidence_unverified`. If several
+problems coexist, the reported reason follows the Core's recovery checks and is not an
+exhaustive diagnosis. The projection includes legacy
+placeholder deadlines in the withheld set; raw event history and historical counts remain
+unchanged. A scoped assessment does not inherit other assessments' gaps. A human-declared reset
+can establish a later baseline, but does not reconstruct old evidence. The prior-card quick
+check shares the scheduling path's persisted-card validation. Each saved FSRS card within the
+active assessment and scheduling baseline, including the reset event itself, must meet the same
+field and timestamp bounds as a new scheduler result; its `due` must match that event's recorded
+`next_review`. A later well-formed card does not establish that an earlier invalid card was
+handled correctly. The elapsed whole days are derived from stored times only to reuse the
+validator; this does not prove the original worker's independently reported interval. Missing or
+invalid fields produce `invalid_previous_card`, preserve historical events and withhold the
+current deadline. A human-declared later reset establishes a new baseline and excludes earlier
+cards; a historical card outside current bounds may require this reset even if an older version
+previously accepted it. The history check grows with the number of cards in the active baseline.
+
+For a new non-reset review with an otherwise recoverable history, the effective `now` must not
+precede the last evidenced review on that scoped card: the Core returns `400` before invoking the
+worker or writing an event, so the caller can correct and resubmit the same key. Historic unscheduled events that are already in reverse time
+order are preserved and produce `unscheduled_review_time_order_invalid`, not an invented due
+date. Ordering compares UTC instants to microsecond precision, including timezone offsets.
+For every new or recovered worker result, the Core also checks that the returned `last_review`
+is the requested instant, that `due` is not earlier, and that `next_review_days` equals the
+whole-day portion of the elapsed interval. A malformed result is recorded as unavailable with
+no due date; the original review remains available for a later recovery attempt.
+
+An optional human-only `schedule_reset: {mode: "start_new", reason,
+expected_latest_event_id}` on a **new** review explicitly starts a fresh FSRS baseline. The
+reason must be nonblank and at most 512 characters; the expected ID must be the latest event in
+the same item/assessment scope and fit a JavaScript-safe positive integer. A stale ID returns
+`409` before scheduling, and the Core checks the snapshot again before committing. On later
+readback, a historical reset is a valid baseline only if its declared cursor equals the
+immediately preceding event for the same item, restricted to the assessment when one is specified.
+A later FSRS reset marker that cannot be verified is retained as history but prevents a trusted deadline and new scheduling;
+an explicit valid reset can establish a subsequent baseline. This is an
+explicit caller choice: the old events and observations remain readable and contribute to
+historical counts, but events through that ID are excluded from the **new scheduling baseline**.
+The receipt records the declared reason, excluded ID and `human_declared_unverified` authority;
+later review/state projections reference the reset event. It does not reconstruct missing times
+or establish mastery. The new baseline may start before a mistimed prior event, because that event
+is explicitly excluded from its scheduling history; ordinary reviews must still follow the most
+recent instant within the active baseline. If the scheduler is unavailable or its result invalid, the reset is not
+recorded and returns `503`; the caller should retain the input and may retry the same event key.
+The option is absent by default, so older request hashes and committed receipts remain usable.
+One pinned older Core rejected a reset replay with `422` and did not display the reset provenance
+in a synthetic independent restore; its staged runtime source identity is asserted, not verified.
+The same older binary could write a card while skipping an unavailable review, so it is not
+generally downgrade-safe. An installed downgrade and installed-UI behavior remain unqualified.
+
+For an item without an assessment, a caller can obtain the cursor from
+`learner.latest_review.event_id`; for an assessed item use the current assessment's
+`learner.assessment_progress.latest_review.event_id`. A minimal unassessed example is:
+
+```json
+{
+  "item_key": "example-item",
+  "client_event_id": "example-reset-1",
+  "correct": true,
+  "rating": 3,
+  "schedule_reset": {
+    "mode": "start_new",
+    "reason": "The earlier review time is unknown",
+    "expected_latest_event_id": 42
+  }
+}
+```
 
 ### Machine loop
 
@@ -381,6 +499,49 @@ A successful model process leaves evaluation `unmeasured`; it does not prove ans
 | R17 | `POST /api/v1/courses/from-knowledge` | **human only** | Builds a candidate course from **active accepted** canonical knowledge that carries an anchor. The Core re-checks the worker's manifest against the canonical knowledge and answers `502` when the worker rewrote the body, id or title, so a tampered lesson never reaches the store. Knowledge without an anchor is refused rather than guessed. Asserted by `contract_general_course.rs`. |
 | R18 | `GET /api/v1/courses/{id}` | any token | Course readback. Each binding reports `stale` plus its `knowledge_state` (`status`, `active`, `currentness`, `superseded_by`, `successor_count`, `valid_to`), so a stale course says which knowledge changed and what replaced it; the historical `knowledge_id` is never rewritten to the successor. |
 | R19 | `POST /api/v1/courses/{id}/render` | any token | Renders the stored course. |
+
+For the interactive scene chain, admitted game `challenge`, `playerControls` and `physicsConcept`, and code `challengeType`, are carried into the donor prompt's description as bounded labeled details. The byte-preserved donor templates are not rewritten. Unsupported widget fields and out-of-bound values remain rejected; this does not authorize execution or rendering of generated HTML.
+
+For interactive scene generation only, the internal model-worker request is tagged `request_kind: interactive_scene` and has a 200-second model deadline inside a 210-second Core process bound. Other outline and model calls retain their existing budgets. This is an operation-specific execution limit, not a change to the selected provider or global model settings. The HTTP operation is synchronous and also includes other bounded stages, so callers must allow for the whole chain rather than assuming a 120-second response. A client disconnect is not evidence that an already-started worker was cancelled. This request shape requires a matching Core and model worker; an older worker may reject it.
+
+For interactive outline capture, the adapter appends an AAOS-owned output compatibility instruction to the donor system prompt, and the prompt binding hashes the complete text actually sent to the model. It describes the admitted `slide`/`interactive` scene shape and widget fields and follows the user's requested scene scope instead of imposing the donor's generic simulation/game minimums. The original donor templates remain byte-preserved. This instruction does not automatically repair a mismatched scene type, weaken replay validation, or guarantee a model will comply.
+
+Failure diagnostics report at most 16 field labels per difference. Only fixed, known structural labels are repeated; any other model-generated object key is represented as `UNRECOGNIZED_FIELD`, so arbitrary key text does not cross this failure projection.
+
+The OpenMAIC local-model worker distinguishes a timeout awaiting response headers (`MODEL_REQUEST_TIMEOUT`) from a timeout while reading an already-started response body (`MODEL_RESPONSE_TIMEOUT`); both have status `MODEL_TIMEOUT` and are not retried automatically. A malformed or interrupted successful HTTP response, including invalid Unicode in emitted model fields, is `INVALID_MODEL_OUTPUT/MODEL_RESPONSE_INVALID`, with no partial body echoed. If a 4xx rejection body is interrupted, the observed `MODEL_REJECTED/MODEL_HTTP_REJECTED` remains available without the body. Its `network_performed` is true after an HTTP response is observed, false when execution was refused before any network attempt, and null when a pre-response transport failure cannot establish whether the peer received the request. No inference is made about model quality or the cause of a timeout.
+
+For new local-model generation, an OpenAI-compatible response must declare `finish_reason: stop`; an Ollama response must also declare `done: true` and `done_reason: stop`. Explicit non-stop finishes are `INVALID_MODEL_OUTPUT/MODEL_NONSTOP`; absent completion information, an unfinished Ollama response, and unrecognized finish reasons are respectively named `MODEL_FINISH_REASON_UNKNOWN`, `MODEL_COMPLETION_UNCONFIRMED`, and `MODEL_FINISH_REASON_INVALID`. In these cases the reply text is not emitted or persisted and no automatic retry occurs. Core independently checks normal completion before a new candidate write, while previously stored candidates retain their original readback and recorded finish metadata. Providers that omit these completion fields are therefore not admitted for new generation until they report a supported completion; no provider configuration is changed automatically.
+
+For OpenMAIC and DeepTutor question-turn local-model failures, `worker_outcome.reason` carries the model worker's reason rather than a different worker's reason field. When a compatible loopback-model receipt is present, `worker_outcome.model_observation` contains only bounded `elapsed_ms`, `network_performed`, `http_status`, `provider_prompt_tokens` and `provider_context_tokens`; unavailable or invalid values are null. Token counts are provider-reported, not independently measured, and neither the provider's error body nor prompt/model text is included.
+
+When DeepTutor replay returns `REJECTED/INVALID_RESPONSE`, `worker_outcome.response_format` reports one coarse, fixed observation: `PLAIN_JSON_PARSE_FAILED`, `JSON_NOT_OBJECT`, or `JSON_OBJECT_STRICT_REJECTION`. The last value does not identify the rejecting strict rule. This observation contains no response text, does not repair fenced or malformed output, and does not change admission or the original rejection reason.
+
+For a new DeepTutor question-turn, Core retains the original donor `capture_binding` and deterministically replaces the donor's agentic output-protocol section in the system prompt with the AAOS single-response JSON instruction. Adapter `aaos-direct-json/v2` also states the fixed choice fields and JSON string/LaTeX escaping requirements. The donor's JSON schema and captured user message remain unchanged. The candidate's `model_prompt_binding` separately records the versioned adapter, donor prompt digest, actual sent system prompt and its digest, and user-message digest; ambiguous, absent or unsupported section anchors fail before a model call with `question_turn_prompt_adapter_unavailable`. The model response goes unchanged to the pinned strict replay worker. Existing `aaos-direct-json/v1` candidates remain readable with their original prompt binding; older candidates without this binding remain readable with a null `model_prompt_binding` in the receipt. Neither compatibility rule implies their former model prompt was v2.
+
+The caller may explicitly set `output_mode: "choice_json_schema"` to request the fixed, bounded single-choice JSON schema from an OpenAI-compatible loopback endpoint. Omission or null keeps the prior unstructured request and its request-identity digest. No arbitrary caller schema is accepted. The worker sends the fixed `response_format`, records its SHA-256, and Core checks that binding before replay and again before persistence; the candidate stores the mode, schema and digest in `model_response_format`. A matching digest records the requested format, not proof that the provider enforced it; the original strict replay remains mandatory. A different mode under the same create ID conflicts. An unsupported local protocol is refused before network as `MODEL_REJECTED/MODEL_STRUCTURED_PROTOCOL_UNSUPPORTED`; a provider's 4xx remains `MODEL_REJECTED/MODEL_HTTP_REJECTED`. Neither case falls back or retries. A worker that cannot confirm the requested format yields `502 question_turn_local_model_format_unconfirmed`; mixing new Core with an old worker is not a qualified deployment.
+
+The finite desktop-host command contract also exposes these existing Core routes. Each operation accepts exactly `payload: {body: <object>}`; the caller cannot select a transport URL or launch credential. These are host transport commands, not a claim that any UI consumer has been connected.
+
+| Host operation | Fixed Core path | Body limit | Host timeout |
+| --- | --- | ---: | ---: |
+| `learning_deeptutor_question_turn` | `/api/v1/learning/deeptutor/question-turn` | 65,536 B | 270 s |
+| `learning_deeptutor_question_accept` | `/api/v1/learning/deeptutor/question-candidates/accept` | 65,536 B | 30 s |
+| `learning_deeptutor_teaching_feedback` | `/api/v1/learning/deeptutor/teaching-feedback` | 131,072 B | 95 s |
+| `course_openmaic_outline_create` | `/api/v1/courses/openmaic/outlines` | 262,144 B | 60 s |
+| `course_openmaic_outline_generate` | `/api/v1/courses/openmaic/outlines/generate` | 262,144 B | 210 s |
+| `course_openmaic_interactive_outline_generate` | `/api/v1/courses/openmaic/outlines/generate-interactive` | 262,144 B | 210 s |
+| `course_openmaic_scene_generate` | `/api/v1/courses/openmaic/scenes/generate` | 262,144 B | 480 s |
+| `course_openmaic_package_projection` | `/api/v1/courses/openmaic/package-projection` | 65,536 B | 30 s |
+
+Timeouts cover the bounded sequential worker/model stages plus a transport margin; they do not guarantee completion. A disconnected or timed-out client cannot infer that the Core cancelled or failed to commit. Reconcile using the existing request identity and Core readback rules rather than silently launching a new request. For these provider commands, a malformed or non-object Core response is not echoed: an error status is retained with `CORE_PROVIDER_RESPONSE_INVALID`; an invalid success response is refused. Valid object responses remain available to the caller.
+
+If multiple current grant documents name the exact same material snapshot, a new question-turn checks them until one independently satisfies the existing material, expiry, revocation and restore-fence rules. An expired or fenced grant is never itself sufficient and does not hide a separate valid grant. The check is repeated before candidate persistence; if none qualifies, the operation is refused. Historical completed-request reads do not reactivate a restored grant.
+
+For a new question acceptance, Core verifies the candidate's current version and content digest within the same write transaction. A historical version, incorrect digest, or changed request under an already used acceptance ID returns `409` and writes no accepted question; a completed identical acceptance remains readable as a duplicate even if the candidate is edited later. An unsupported question or answer remains a `422` refusal.
+
+The candidate's verified Core projection must still consist of the generated question paragraph and exactly four labelled choice paragraphs, in A–D order, with text matching the stored question and option fields. An edit that leaves these representations inconsistent or changes the supported block structure is refused with `422` before a new acceptance; an edited version whose projections and fields agree may be accepted. A caller may still provide an explicit `question_text` override in the acceptance request. This is a Core text-consistency check, not proof of native UI rendering or of model accuracy.
+
+When a new question acceptance omits `explanation`, Core carries the model draft only if its question text, choices and answer exactly match the accepted text, choices and human-declared key. The resulting `explanation_source` is `model_draft_matching_unverified`: this match proves neither accuracy nor human review. If the draft exists but any of those fields differs, the accepted explanation is empty and the source is `model_draft_not_adopted`; an explicit caller explanation remains `human_supplied`, while an unavailable draft is `absent`. Already stored acceptances retain their historical text and source labels on duplicate reads.
 
 ### 3.1. 2026-10-21 successor: durable folder batches and explicit public research
 
@@ -461,14 +622,12 @@ The UI must not render these as measured values.
   source members. The notes at those three routes are asserted to be present by
   `crates/archeaxis-api/tests/contract_constant_fields.rs`.
 * `mastery_projection.closed` is a **constant `false`** and `mastery_projection.status` is the
-  constant `"projection"` — mastery is deliberately an open projection, never a closed claim, and
-  the projection is not Knowledge Truth. The projection's keys are exactly
-  `basis`, `closed`, `correct_streak`, `review_state`, `stability`, `status`. `correct_streak` is
-  re-derived on every read. **Where to
-  find it:** the projection travels with a `POST /learning/reviews` response and reaches
-  `GET /learning/items/{item_key}/state` under `learner.latest_review.mastery_projection` —
-  **not** at the response's top level, which is `null` until a review exists. The same test
-  checks that `correct_streak` equals the correct events on record.
+  constant `"projection"`; neither establishes mastery or Knowledge Truth. A new assessment-bound
+  review derives its FSRS state, streak, attempts, correct-day count and latest correct time from
+  that assessment's events only; an unbound legacy review remains item-scoped. Existing persisted
+  projections and idempotent replay are not rewritten. The response carries the projection;
+  `learner.latest_review` is item history, while `learner.assessment_progress.latest_review`
+  identifies the latest review of the current assessment.
 * An event's `outcome` in `GET /learning/events/{item_key}` is a **JSON document carried as a
   string** (`"{\"outcome\": \"correct\"}"`), not a bare word. A UI that compares it to
   `"correct"` directly will see every event as unknown.
@@ -515,7 +674,7 @@ just not doing what the caller meant. This has cost real time on this branch thr
 | `POST /api/v1/learning/items/{item_key}/references` | `knowledge_id` |
 | `POST /api/v1/learning/items/{item_key}/assessment` | `knowledge_id` |
 | `POST /api/v1/learning/events` | `item_key`, `kind`, **`correct`**, `client_event_id?`, `schedule_state?`, `now?` |
-| `POST /api/v1/learning/reviews` | `item_key`, `client_event_id`, `correct`, `rating?`, `now?`, `answer?`, `assessment_id?`, `question_version?`, `knowledge_version?`, `exposure_id?`, `assist_strategy?`, `rating_version?`, `correction_id?` |
+| `POST /api/v1/learning/reviews` | `item_key`, `client_event_id`, `correct`, `rating?`, `now?`, `schedule_reset?`, `answer?`, `assessment_id?`, `question_version?`, `knowledge_version?`, `exposure_id?`, `assist_strategy?`, `rating_version?`, `correction_id?` |
 | `POST /api/v1/machine/tasks` | `task_id`, `conditions`, `model_version`, `scope`, `outcome`, `knowledge_version?`, `method_version?`, `tool_version?`, `failure?`, `retest_of?` |
 | `POST /jobs/{id}/receipts` (out of contract) | `state`, `engine?`, `text?`, `loss_receipt?`, `error?` |
 
@@ -596,23 +755,22 @@ UI owns it.
 
 ### What a review costs, and why the UI should not block its own thread on it
 
-`POST /learning/reviews` waits for the FSRS worker **inside** the single-writer callback
-(`crates/archeaxis-api/src/lib.rs` → `with_store`, recorded as a known limitation in
-`docs/architecture/CURRENT_ARCHITECTURE.md`). Measured on this host, five reviews each way:
+An earlier implementation of `POST /learning/reviews` waited for the FSRS worker inside the
+single-writer callback. The following historical measurements used that implementation and are
+not current latency measurements; they remain useful as an observation that a subprocess call
+can take longer than an in-process read. Five reviews each way on that host:
 
 | Launch | `schedule_authority` | `POST /learning/reviews` median | a projection read, for scale |
 | --- | --- | --- | --- |
 | no usable scheduler interpreter | `unavailable` | **3.0 ms** | 14.7 ms |
 | interpreter with `fsrs` | `fsrs` | **83.1 ms** | 15.0 ms |
 
-The 83 ms is the subprocess round trip; the 3 ms case does not spawn one. Two consequences for the
-UI: a review is roughly **6× a projection read** when scheduling is real, and because the wait
-happens inside the writer, the one writer is occupied for that whole time — so reviews are the
-serialisation point, not the reads. The UI should keep review submissions off its render thread and
-expect a noticeable pause, rather than treating this route as a fast call.
-
-Numbers are from a debug build with an empty workspace, so treat them as a shape (fast read, slow
-write that holds the writer) rather than as production timings.
+In the current implementation the Core snapshots input and card state, waits for the scheduler
+outside the writer, then rechecks the scheduling basis and commits on the writer; a concurrent
+change can return a conflict. A committed retry and the documented invalid inputs do not launch
+the scheduler. The UI should still submit asynchronously and show progress: the worker may take
+time or be unavailable. The historical debug-build numbers do not establish current or production
+latency.
 
 ### Search query semantics
 
@@ -636,8 +794,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 94 addresses: 93 projection method/path pairs (81 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 158 addresses (92 base projection method/path pairs + 65 runtime method/path pairs on 62 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **no** `text_worker` | 95 addresses: 94 projection method/path pairs (82 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue and bounded problem-history metadata are present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 159 addresses (93 base projection method/path pairs + 65 runtime method/path pairs on 62 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
 The runtime builder carries **62** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -856,7 +1014,7 @@ The 27 additional method/path pairs below are registered in the current router s
 | 100 | `GET /api/v1/ai/assets` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 101 | `GET /api/v1/courses` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 102 | `GET /api/v1/documents/{id}/collection` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
-| 103 | `GET /api/v1/documents/{id}/relations` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 103 | `GET /api/v1/documents/{id}/relations` | Existing handler guard; no inferred role permission | The bounded relation graph keeps each pinned Document reference and separately reports `version_relation` (`current`, `historical`, `unconfirmed`) and the observed `object.current_version`. Knowledge nodes retain their own `currentness` (`current`, `superseded`, `not_current`). A resolved reference remains distinct from currentness and from factual or integrity verification. Older nodes without these optional fields remain schema-valid. Local synthetic Core/contract checks do not establish installed or Owner acceptance. |
 | 104 | `GET /api/v1/jobs/{id}/execution-status` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 105 | `GET /api/v1/machine/answers/{id}/snapshot` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 106 | `GET /api/v1/machine/contexts` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
@@ -864,9 +1022,9 @@ The 27 additional method/path pairs below are registered in the current router s
 | 108 | `GET /api/v1/machine/rubrics` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 109 | `GET /api/v1/machine/tasks` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 110 | `GET /api/v2/teaching/records` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
-| 111 | `GET /api/v2/teaching/records/{id}` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. The returned view carries `knowledge_state` (`knowledge_id`, `status`, `active`, `currentness`, `superseded_by`, `successor_count`, `valid_to`) for the knowledge revision the record was built from, so a recorded teaching artifact is not read as a current basis by implication. |
+| 111 | `GET /api/v2/teaching/records/{id}` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. The returned view carries `knowledge_state` (`knowledge_id`, `status`, `active`, `currentness`, `superseded_by`, `successor_count`, `valid_to`) for the knowledge revision the record was built from, so a recorded teaching artifact is not read as a current basis by implication. The strict teaching and working-state DTOs accept this bounded, optional observation; historical views without it remain valid. The observation is separate from the record checksum and does not score learning or verify truth. |
 | 112 | `GET /api/v2/teaching/records/{id}/export` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
-| 113 | `POST /api/v1/ai/context-packets` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. Each packet item carries `scope`/`provenance` descriptors plus `reference_states`, where a knowledge reference reports its own `readable`/`status`/`currentness`/`superseded_by`/`successor_count`/`valid_to` and a version-pinned document/source reference reports `currentness: not_applicable`: an adopted asset version is not evidence that the knowledge it cites is still current. |
+| 113 | `POST /api/v1/ai/context-packets` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. Each packet item carries `scope`/`provenance` descriptors plus `reference_states`, where a knowledge reference reports its own `readable`/`status`/`currentness`/`superseded_by`/`successor_count`/`valid_to` and a version-pinned document/source reference reports `currentness: not_applicable`: an adopted asset version is not evidence that the knowledge it cites is still current. The schema keeps `reference_states` optional for earlier packets. An explicit `reference_observation_mode: document_versions_v1` adds a pinned Document reference’s observed `version_relation` and `current_version` to a new packet identity; omitted mode preserves legacy packet/request hashes. A changed observation cannot reuse an earlier frozen request identity, and a change during machine inference causes the existing postcheck to withhold the answer. This adds no grant, factual verification or source freshness claim. |
 | 114 | `POST /api/v1/machine/evaluations` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 115 | `POST /api/v1/machine/rubrics` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 116 | `POST /api/v2/teaching/imports` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
@@ -881,6 +1039,10 @@ The 27 additional method/path pairs below are registered in the current router s
 | 124 | `POST /api/v1/workspace/ui-state/clear-saved` | Human-only | Core verifies saved Document version and exact draft digest before conditional deletion. Runtime acceptance UNVERIFIED. |
 | 125 | `POST /api/v1/workspace/ui-state/recover` | Human-only | Explicit preserve/discard of restore-quarantined working-state candidates. Runtime acceptance UNVERIFIED. |
 | 126 | `POST /api/v1/workspace/ui-state/clear-job` | Human-only | Body binds workspace_id, restore_epoch, state_revision and request_id; action is terminal or abandon_unadmitted. Admission/active guards and the canonical Store transaction verify the exact frozen request and terminal or unadmitted status before journal CAS clearance; abandonment retains a bounded tombstone. Never cancels a worker. Runtime acceptance UNVERIFIED. |
+
+Relation-graph `version_relation` compares the pinned version with the document head observed during that read; `unconfirmed` means the stored head is inconsistent with the requested version. It does not rewrite a reference or claim its contents are correct. The existing `snapshot_sha256` binds the center content and scanned source-version list, not every dynamic target-use state; clients needing currentness must reread it. This projection change does not alter the separate AI context-packet reference-state contract or its stored packet hashes.
+
+The v2 UI-host contract digest covers the complete Core response schema, so this schema update also changes that digest. Its generated Rust host and TypeScript consumer must be delivered together; a mixed old/new pair fails the existing version check instead of silently interpreting a different contract.
 
 ## 11. 2026-10-12 current-source machine inventory refresh
 
@@ -1045,3 +1207,14 @@ Malformed JSON syntax returns 400; launch authentication failure 401; a nonhuman
 The bounded record lives in `workspace_meta`, independently of working-state CAS, draft budgets and saved documents. Saved metadata survives Store reopen and is included in workspace backups; restored entries retain their earlier epoch, while new operations must use the current epoch. Manually opened raw diagnostic payloads remain session-local. Source contract and controlled SQLite/HTTP checks do not qualify a packaged application, installed runtime or Owner acceptance.
 
 Directed offline check: `cargo test -p archeaxis-api --test operation_failure_log_api --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. Sources: `crates/archeaxis-api/src/failure_log.rs` and `crates/archeaxis-domain/src/failure_log.rs`; frontend persistence races are covered separately in `frontend/src/__tests__/FailureLogPersistence.test.tsx`. These are check entry points, not a claim that this documentation update ran them.
+
+
+## 24. Research reference observation (2026-11-09)
+
+| # | Method + path | Authorization | Contract |
+| --- | --- | --- | --- |
+| 234 | `GET /api/v1/documents/{document_id}/research-references` | Existing launch token and document-read guard | Optional positive `version` pins the research Document snapshot. Within one SQLite read snapshot, returns up to 256 references with their research entry and field, pinned identity, availability and observed target state. Metadata is explicitly `supported`, `absent` or `unsupported`; unsupported historical bytes are left intact. Missing or invalid targets are `unavailable`; Store errors remain errors. The document digest binds the stored research snapshot, not later target state, truth or integrity verification. Unknown query fields and nonpositive versions are rejected. The v1 finite host command is `document_research_references`; its schema, generated DTO and host digest must be deployed together. |
+
+This projection observes stored material, hypothesis, method, experiment, counterevidence, conclusion and unresolved references without changing the original document, relation graph, AI packet or evaluations. It does not replace a pinned target with its successor. Local synthetic Core/host checks do not establish UI wiring, installed runtime, exact-SHA CI, four-consumer acceptance or Owner acceptance.
+
+Directed checks: `cargo test -p archeaxis-api --test research_state_api --offline --locked`; `cargo test -p archeaxis-domain --test research_reference_projection --offline --locked`. The actual Core and generated-client checks require explicit synthetic fixtures and remain separate from installed qualification.

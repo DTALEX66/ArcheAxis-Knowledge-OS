@@ -9,11 +9,11 @@
 //!   ARCHEAXIS_PYTHON                                   (worker interpreter)
 //!
 //! A real model is not a fixture, so this asserts the engineering contract for
-//! BOTH outcomes instead of demanding one reply. An admitted reply must stay
-//! inside the bounded slice and be durable across a reopen; a refused reply must
-//! arrive named and must leave no document behind. Anything else fails here,
-//! including a silent partial write. Whether the course is any good is a separate
-//! judgement this cannot make: quality needs human truth/prediction pairs.
+//! outcomes instead of demanding one reply. An admitted reply must stay inside
+//! the bounded slice and be durable across a reopen; a refused or unavailable
+//! stage must arrive named and must leave no partial document behind. A valid
+//! outline without an interactive entry is recorded separately. Whether the course
+//! is any good is a separate judgement: quality needs human truth/prediction pairs.
 use archeaxis_api::runtime;
 use archeaxis_application::executor::Executor;
 use archeaxis_domain::document;
@@ -182,20 +182,35 @@ async fn the_declared_local_model_either_generates_or_refuses_without_a_partial_
     let request = outline_body("rm_io_outline");
     let (status, outline) = call(&router, OUTLINE_ROUTE, "human", &request).await;
     if status != StatusCode::OK {
-        // The outline route answers a model refusal itself: the stage and the
-        // rule names must be there, and nothing may be persisted.
-        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{outline}");
-        assert_eq!(outline["stage"], "interactive_outline", "{outline}");
-        assert!(
-            !outline["worker_outcome"].is_null(),
-            "the outline route must report the worker's own refusal: {outline}"
-        );
+        // A replay refusal is 422; model failure or an unavailable adapter is
+        // a distinct outcome, not a successful outline or a shape refusal.
+        let outcome = match outline["stage"].as_str() {
+            Some("interactive_outline") if status == StatusCode::UNPROCESSABLE_ENTITY => {
+                assert!(!outline["worker_outcome"].is_null(), "{outline}");
+                "OUTLINE_REFUSED"
+            }
+            Some("interactive_outline")
+                if status == StatusCode::SERVICE_UNAVAILABLE
+                    || status == StatusCode::BAD_GATEWAY =>
+            {
+                "OUTLINE_PROVIDER_UNAVAILABLE"
+            }
+            Some("local_model")
+                if status == StatusCode::UNPROCESSABLE_ENTITY
+                    || status == StatusCode::SERVICE_UNAVAILABLE
+                    || status == StatusCode::GATEWAY_TIMEOUT =>
+            {
+                "OUTLINE_MODEL_FAILURE"
+            }
+            _ => panic!("unexpected outline failure: {status} {outline}"),
+        };
         named_refusal(&outline);
         assert_eq!(document_count(&executor).await, stored, "{outline}");
         println!(
             "{}",
             json!({"schema":"archeaxis.openmaic-interactive-real-model-receipt/v1",
-                "outcome":"OUTLINE_REFUSED","endpoint":endpoint,"model":model,
+                "outcome":outcome,"endpoint":endpoint,"model":model,
+                "status":status.as_u16(),"stage":outline["stage"],
                 "detail":outline["worker_outcome"],"documents":stored,
                 "quality":"NOT_ASSESSED"})
         );
@@ -247,10 +262,19 @@ async fn the_declared_local_model_either_generates_or_refuses_without_a_partial_
     assert_eq!(repeat["document"]["document_id"], outline_id);
     assert_eq!(document_count(&executor).await, after_outline);
 
-    let selected = outlines
+    let Some(selected) = outlines
         .iter()
         .position(|entry| entry["type"] == "interactive")
-        .expect("an admitted interactive outline is present");
+    else {
+        println!(
+            "{}",
+            json!({"schema":"archeaxis.openmaic-interactive-real-model-receipt/v1",
+                "outcome":"NO_INTERACTIVE_SCENE","endpoint":endpoint,"model":model,
+                "outline_document_id":outline_id,"documents":after_outline,
+                "quality":"NOT_ASSESSED"})
+        );
+        return;
+    };
     let body = scene_body("rm_io_scene", &outline_id, selected, &source);
     let (scene_status, built) = call(&router, SCENE_ROUTE, "human", &body).await;
     if scene_status != StatusCode::OK {
@@ -267,6 +291,7 @@ async fn the_declared_local_model_either_generates_or_refuses_without_a_partial_
                 "status":scene_status.as_u16(),"stage":built["stage"],
                 "detail":built["worker_outcome"],"refusal":built["refusal"],
                 "outline_document_id":outline_id,"selected_index":selected,
+                "widget_type":outlines[selected]["widgetType"],
                 "documents":after_outline,"quality":"NOT_ASSESSED"})
         );
         return;

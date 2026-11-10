@@ -1,0 +1,696 @@
+//! Recovery selects only recorded, assessment-scoped observations with usable evidence.
+use archeaxis_domain::learning;
+use archeaxis_store_sqlite::init_workspace;
+use rusqlite::Connection;
+use serde_json::json;
+
+fn valid_card(last_review: &str) -> serde_json::Value {
+    json!({"state":"review", "step":null, "stability":5.0, "difficulty":5.0,
+        "last_review":last_review, "due":"2026-10-01T00:00:00Z"})
+}
+
+fn insert(conn: &Connection, item: &str, outcome: serde_json::Value) -> i64 {
+    let due = outcome
+        .pointer("/schedule/state/due")
+        .and_then(|value| value.as_str());
+    conn.execute(
+        "INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,'review',?2,?3)",
+        rusqlite::params![item, outcome.to_string(), due],
+    )
+    .unwrap();
+    conn.last_insert_rowid()
+}
+
+fn unavailable(assessment: Option<&str>, rating: u8, now: Option<&str>) -> serde_json::Value {
+    json!({"assessment_id":assessment,"outcome":if rating==1 {"incorrect"} else {"correct"},
+        "schedule":{"authority":"unavailable"},"review_evidence":{"rating":rating,"now":now}})
+}
+
+#[test]
+fn pending_reviews_follow_the_last_card_and_the_selected_assessment() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let initial_pending = insert(
+        &conn,
+        "item",
+        unavailable(Some("a"), 1, Some("2026-09-01T00:00:00Z")),
+    );
+    let card = valid_card("2026-09-02T00:00:00Z");
+    insert(
+        &conn,
+        "item",
+        json!({"assessment_id":"a","schedule":{"authority":"fsrs","state":card,"recovery":{"state":"replayed","count":1,"through_event_id":initial_pending}}}),
+    );
+    let first = insert(
+        &conn,
+        "item",
+        unavailable(Some("a"), 1, Some("2026-09-03T00:00:00Z")),
+    );
+    insert(
+        &conn,
+        "item",
+        unavailable(Some("b"), 1, Some("2026-09-04T00:00:00Z")),
+    );
+    let second = insert(
+        &conn,
+        "item",
+        unavailable(Some("a"), 3, Some("2026-09-05T00:00:00Z")),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", Some("a")).unwrap();
+    assert_eq!(basis.previous_state.unwrap(), card.to_string());
+    assert_eq!(basis.latest_event_id, Some(second));
+    assert!(basis.recovery_issue.is_none());
+    assert_eq!(
+        basis
+            .pending
+            .iter()
+            .map(|e| (e.event_id, e.rating))
+            .collect::<Vec<_>>(),
+        [(first, 1), (second, 3)]
+    );
+    assert_eq!(basis.pending[0].reviewed_at, "2026-09-03T00:00:00Z");
+}
+
+#[test]
+fn missing_or_inconsistent_evidence_fails_closed_without_inventing_time() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    insert(&conn, "missing", unavailable(None, 1, None));
+    let basis = learning::review_schedule_basis(&conn, "missing", None).unwrap();
+    assert_eq!(
+        basis.recovery_issue,
+        Some("unscheduled_review_evidence_missing_or_invalid")
+    );
+    assert!(basis.pending.is_empty());
+    let mut effective = unavailable(None, 1, None);
+    effective["schedule"]["reviewed_at"] = json!("2026-09-03T00:00:00Z");
+    insert(&conn, "effective", effective);
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "effective", None)
+            .unwrap()
+            .pending[0]
+            .reviewed_at,
+        "2026-09-03T00:00:00Z"
+    );
+    let mut conflicting = unavailable(None, 1, Some("2026-09-03T00:00:00Z"));
+    conflicting["outcome"] = json!("correct");
+    insert(&conn, "conflicting", conflicting);
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "conflicting", None)
+            .unwrap()
+            .recovery_issue,
+        Some("unscheduled_review_evidence_missing_or_invalid")
+    );
+}
+
+#[test]
+fn malformed_fsrs_state_remains_present_and_invalid() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    for (item, state) in [
+        ("null-card", serde_json::Value::Null),
+        ("number-card", json!(7)),
+        (
+            "string-card",
+            json!("{\"last_review\":\"2026-09-02T00:00:00Z\"}"),
+        ),
+    ] {
+        insert(
+            &conn,
+            item,
+            json!({"assessment_id":"a","schedule":{"authority":"fsrs","state":state}}),
+        );
+        for assessment in [None, Some("a")] {
+            let basis = learning::review_schedule_basis(&conn, item, assessment).unwrap();
+            assert_eq!(basis.previous_state.as_deref(), Some("null"));
+            assert_eq!(basis.recovery_issue, Some("invalid_previous_card"));
+        }
+    }
+    assert!(
+        learning::review_schedule_basis(&conn, "missing-item", None)
+            .unwrap()
+            .previous_state
+            .is_none()
+    );
+}
+
+#[test]
+fn legacy_review_gap_is_scoped_and_not_erased_by_a_later_card() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    insert(&conn, "item", json!({"outcome":"correct"}));
+    let card = valid_card("2026-09-02T00:00:00Z");
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs","state":card}}),
+    );
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", None)
+            .unwrap()
+            .recovery_issue,
+        Some("legacy_review_evidence_missing_or_invalid")
+    );
+    assert!(
+        learning::review_schedule_basis(&conn, "item", Some("a"))
+            .unwrap()
+            .recovery_issue
+            .is_none()
+    );
+    conn.execute(
+        "INSERT INTO learning_events(item_key,kind,outcome) VALUES('activity','teach_back','not JSON')",
+        [],
+    )
+    .unwrap();
+    assert!(
+        learning::review_schedule_basis(&conn, "activity", None)
+            .unwrap()
+            .recovery_issue
+            .is_none()
+    );
+    conn.execute(
+        "INSERT INTO learning_events(item_key,kind,outcome) VALUES('malformed','review','not JSON')",
+        [],
+    )
+    .unwrap();
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "malformed", None)
+            .unwrap()
+            .recovery_issue,
+        Some("legacy_review_evidence_missing_or_invalid")
+    );
+    assert!(
+        learning::review_schedule_basis(&conn, "malformed", Some("a"))
+            .unwrap()
+            .recovery_issue
+            .is_none()
+    );
+}
+
+#[test]
+fn recovery_has_a_named_bound_instead_of_truncating_history() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    conn.execute_batch("BEGIN").unwrap();
+    for _ in 0..4097 {
+        insert(
+            &conn,
+            "many",
+            unavailable(None, 1, Some("2026-09-03T00:00:00Z")),
+        );
+    }
+    conn.execute_batch("COMMIT").unwrap();
+    let basis = learning::review_schedule_basis(&conn, "many", None).unwrap();
+    assert_eq!(basis.pending.len(), 4096);
+    assert_eq!(basis.recovery_issue, Some("too_many_unscheduled_reviews"));
+}
+
+#[test]
+fn review_times_compare_exact_microseconds_and_offsets() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let time = |s| {
+        learning::review_timestamp_micros(&conn, s)
+            .unwrap()
+            .unwrap()
+    };
+    assert_eq!(
+        time("2026-09-03T08:00:00.000002+08:00"),
+        time("2026-09-03T00:00:00.000002Z")
+    );
+    assert_eq!(
+        time("2026-09-03T08:00:00.000002+08:00") - time("2026-09-03T00:00:00.000001Z"),
+        1
+    );
+    assert_eq!(
+        time("2026-09-02T19:00:00-05:00"),
+        time("2026-09-03T00:00:00Z")
+    );
+    assert_eq!(
+        time("2024-02-29T00:00:00.1Z") - time("2024-02-29T00:00:00Z"),
+        100_000
+    );
+    assert!(
+        learning::review_timestamp_micros(&conn, "2025-02-29T00:00:00Z")
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[test]
+fn inverted_historical_events_are_not_reordered_or_replayed() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-03T08:00:00.000002+08:00")),
+    );
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 3, Some("2026-09-03T00:00:00.000001Z")),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_eq!(
+        basis.recovery_issue,
+        Some("unscheduled_review_time_order_invalid")
+    );
+    assert_eq!(basis.pending.len(), 1);
+}
+
+#[test]
+fn due_and_reported_interval_must_match_the_review_instant() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let make = |last: &str, due: &str, days: i64| learning::ReviewSchedule {
+        schedule_json: json!({"authority":"fsrs","state":{"state":"review","step":null,
+            "stability":3.0,"difficulty":5.0,"last_review":last,"due":due}})
+        .to_string(),
+        next_review: Some(due.to_owned()),
+        next_review_days: days,
+    };
+    let last = "2026-09-02T08:00:00.000002+08:00";
+    assert!(
+        learning::review_schedule_is_valid(&conn, &make(last, "2026-09-02T00:00:00.000002Z", 0))
+            .unwrap()
+    );
+    assert!(
+        learning::review_schedule_is_valid(&conn, &make(last, "2026-09-03T00:00:00.000001Z", 0))
+            .unwrap()
+    );
+    assert!(
+        learning::review_schedule_is_valid(&conn, &make(last, "2026-09-03T00:00:00.000002Z", 1))
+            .unwrap()
+    );
+    assert!(
+        !learning::review_schedule_is_valid(&conn, &make(last, "2026-09-02T00:00:00.000001Z", 0))
+            .unwrap()
+    );
+    assert!(
+        !learning::review_schedule_is_valid(&conn, &make(last, "2026-09-03T00:00:00.000002Z", 2))
+            .unwrap()
+    );
+}
+
+#[test]
+fn reset_baseline_requires_matching_declaration_and_is_assessment_scoped() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("recovery.sqlite").to_str().unwrap()).unwrap();
+    let old = insert(&conn, "item", unavailable(Some("a"), 1, None));
+    let card = valid_card("2026-09-02T00:00:00Z");
+    let declaration =
+        json!({"mode":"start_new","reason":"known gap","expected_latest_event_id":old});
+    let reset = insert(
+        &conn,
+        "item",
+        json!({"assessment_id":"a","outcome":"correct",
+        "schedule":{"authority":"fsrs","state":card,"recovery":{"state":"reset","mode":"start_new",
+            "reason":"known gap","excluded_through_event_id":old}},
+        "review_evidence":{"schedule_reset":declaration}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", Some("a")).unwrap();
+    assert_eq!(basis.baseline_reset_event_id, Some(reset));
+    assert!(basis.recovery_issue.is_none() && basis.pending.is_empty());
+    assert!(
+        learning::review_schedule_basis(&conn, "item", Some("b"))
+            .unwrap()
+            .baseline_reset_event_id
+            .is_none()
+    );
+    let mut forged = json!({"assessment_id":"a","outcome":"correct",
+        "schedule":{"authority":"fsrs","state":card,"recovery":{"state":"reset","mode":"start_new",
+            "reason":"different reason","excluded_through_event_id":reset}},
+        "review_evidence":{"schedule_reset":{"mode":"start_new","reason":"known gap","expected_latest_event_id":reset}}});
+    insert(&conn, "item", forged.clone());
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", Some("a"))
+            .unwrap()
+            .baseline_reset_event_id,
+        Some(reset)
+    );
+    forged["schedule"]["recovery"]["reason"] = json!("known gap");
+    forged["schedule"]["recovery"]["excluded_through_event_id"] = json!(0);
+    insert(&conn, "item", forged);
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", Some("a"))
+            .unwrap()
+            .baseline_reset_event_id,
+        Some(reset)
+    );
+}
+
+#[test]
+fn scheduled_card_cannot_hide_unreplayed_unavailable_reviews() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("gaps.sqlite").to_str().unwrap()).unwrap();
+    let card = valid_card("2026-09-03T00:00:00Z");
+    for name in [
+        "absent",
+        "wrong-count",
+        "wrong-cursor",
+        "wrong-state",
+        "wrong-type",
+    ] {
+        let missed = insert(
+            &conn,
+            name,
+            unavailable(Some("a"), 1, Some("2026-09-02T00:00:00Z")),
+        );
+        let recovery = match name {
+            "absent" => json!(null),
+            "wrong-count" => json!({"state":"replayed","count":2,"through_event_id":missed}),
+            "wrong-cursor" => json!({"state":"replayed","count":1,"through_event_id":missed + 99}),
+            "wrong-state" => json!({"state":"continued","count":1,"through_event_id":missed}),
+            _ => json!({"state":"replayed","count":"1","through_event_id":missed}),
+        };
+        insert(
+            &conn,
+            name,
+            json!({"assessment_id":"a", "schedule":{
+            "authority":"fsrs", "state":card, "recovery":recovery}}),
+        );
+        // A later plausible replay marker must not retroactively validate the first bad card.
+        insert(
+            &conn,
+            name,
+            json!({"assessment_id":"a", "schedule":{
+            "authority":"fsrs", "state":card,
+            "recovery":{"state":"replayed","count":1,"through_event_id":missed}}}),
+        );
+        assert_eq!(
+            learning::review_schedule_basis(&conn, name, Some("a"))
+                .unwrap()
+                .recovery_issue,
+            Some("scheduled_gap_replay_unverified"),
+            "{name}"
+        );
+        assert!(
+            learning::review_schedule_basis(&conn, name, Some("b"))
+                .unwrap()
+                .recovery_issue
+                .is_none()
+        );
+    }
+}
+
+#[test]
+fn valid_replay_receipts_cover_only_their_own_pending_reviews() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("replays.sqlite").to_str().unwrap()).unwrap();
+    let card = valid_card("2026-09-03T00:00:00Z");
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-01T00:00:00Z")),
+    );
+    let second = insert(
+        &conn,
+        "item",
+        unavailable(None, 3, Some("2026-09-02T00:00:00Z")),
+    );
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs","state":card,
+        "recovery":{"state":"replayed","count":2,"through_event_id":second}}}),
+    );
+    let third = insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-04T00:00:00Z")),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert!(basis.recovery_issue.is_none());
+    assert_eq!(basis.pending.len(), 1);
+    assert_eq!(basis.pending[0].event_id, third);
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-05T00:00:00Z"),
+        "recovery":{"state":"replayed","count":1,"through_event_id":third}}}),
+    );
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-06T00:00:00Z")}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert!(basis.recovery_issue.is_none());
+    assert!(basis.pending.is_empty());
+}
+
+#[test]
+fn explicit_reset_starts_after_an_unreplayed_historical_gap() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("reset.sqlite").to_str().unwrap()).unwrap();
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-01T00:00:00Z")),
+    );
+    let later = insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-02T00:00:00Z")}}),
+    );
+    assert_eq!(
+        learning::review_schedule_basis(&conn, "item", None)
+            .unwrap()
+            .recovery_issue,
+        Some("scheduled_gap_replay_unverified")
+    );
+    let reset = insert(
+        &conn,
+        "item",
+        json!({"review_evidence":{"schedule_reset":{
+        "mode":"start_new", "reason":"synthetic reset", "expected_latest_event_id":later}},
+        "schedule":{"authority":"fsrs", "state":valid_card("2026-09-03T00:00:00Z"),
+        "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic reset", "excluded_through_event_id":later}}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_eq!(basis.baseline_reset_event_id, Some(reset));
+    assert!(basis.recovery_issue.is_none());
+}
+
+#[test]
+fn legacy_issue_does_not_hide_the_independent_replay_gap_flag() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(temp.path().join("mixed.sqlite").to_str().unwrap()).unwrap();
+    insert(&conn, "item", json!({"outcome":"correct"}));
+    insert(
+        &conn,
+        "item",
+        unavailable(None, 1, Some("2026-09-02T00:00:00Z")),
+    );
+    insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-03T00:00:00Z")}}),
+    );
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_eq!(
+        basis.recovery_issue,
+        Some("legacy_review_evidence_missing_or_invalid")
+    );
+    assert!(basis.scheduled_gap_replay_unverified);
+}
+
+#[test]
+fn previous_card_validation_matches_scheduler_bounds_at_time_and_field_edges() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(
+        temp.path()
+            .join("previous-card-matrix.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let make = |last: &str, due: &str| {
+        json!({"state":"review","step":null,"stability":5.0,
+        "difficulty":5.0,"last_review":last,"due":due})
+    };
+    let last = "2026-09-03T08:00:00.000002+08:00";
+    let due = "2026-09-04T00:00:00.000002Z";
+    let mut bad_stability = make(last, due);
+    bad_stability["stability"] = json!(-1.0);
+    let mut missing_field = make(last, due);
+    missing_field.as_object_mut().unwrap().remove("stability");
+    let cases = vec![
+        ("offset-microseconds", make(last, due), Some(due), 1, true),
+        (
+            "leap-day",
+            make("2024-02-29T00:00:00Z", "2024-03-01T00:00:00Z"),
+            Some("2024-03-01T00:00:00Z"),
+            1,
+            true,
+        ),
+        (
+            "invalid-leap-day",
+            make("2025-02-29T00:00:00Z", "2025-03-01T00:00:00Z"),
+            Some("2025-03-01T00:00:00Z"),
+            0,
+            false,
+        ),
+        ("reverse-time", make(due, last), Some(last), 0, false),
+        (
+            "equivalent-but-different-recorded-due",
+            make(last, due),
+            Some("2026-09-04T08:00:00.000002+08:00"),
+            1,
+            false,
+        ),
+        ("missing-due", make(last, due), None, 1, false),
+        ("negative-stability", bad_stability, Some(due), 1, false),
+        ("missing-stability", missing_field, Some(due), 1, false),
+    ];
+    for (name, state, recorded_due, days, expected) in cases {
+        let raw = state.to_string();
+        let schedule = learning::ReviewSchedule {
+            schedule_json: json!({"authority":"fsrs", "state":state}).to_string(),
+            next_review: recorded_due.map(str::to_owned),
+            next_review_days: days,
+        };
+        assert_eq!(
+            learning::review_schedule_is_valid(&conn, &schedule).unwrap(),
+            expected,
+            "{name}: output"
+        );
+        assert_eq!(
+            learning::previous_fsrs_review_timestamp(&conn, &raw, recorded_due)
+                .unwrap()
+                .is_some(),
+            expected,
+            "{name}: persisted card"
+        );
+    }
+    // A saved event has no independently recorded day count in the card; a
+    // valid prior card must not be presented as proof of that missing claim.
+    let raw = make(last, due).to_string();
+    let wrong_reported_days = learning::ReviewSchedule {
+        schedule_json: json!({"authority":"fsrs", "state":make(last, due)}).to_string(),
+        next_review: Some(due.to_owned()),
+        next_review_days: 2,
+    };
+    assert!(!learning::review_schedule_is_valid(&conn, &wrong_reported_days).unwrap());
+    assert!(
+        learning::previous_fsrs_review_timestamp(&conn, &raw, Some(due))
+            .unwrap()
+            .is_some()
+    );
+}
+
+#[test]
+fn reset_history_requires_the_actual_previous_cursor_in_its_scope() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(
+        temp.path()
+            .join("reset-history-cursor.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    for assessment in [None, Some("a")] {
+        let item = if assessment.is_some() {
+            "assessed"
+        } else {
+            "unassessed"
+        };
+        let first = insert(
+            &conn,
+            item,
+            json!({"assessment_id":assessment,
+            "schedule":{"authority":"fsrs", "state":valid_card("2026-09-01T00:00:00Z")}}),
+        );
+        let omitted = insert(
+            &conn,
+            item,
+            unavailable(assessment, 1, Some("2026-09-02T00:00:00Z")),
+        );
+        if assessment.is_some() {
+            insert(
+                &conn,
+                item,
+                unavailable(Some("b"), 1, Some("2026-09-02T00:00:00Z")),
+            );
+        }
+        let stale_reset = insert(
+            &conn,
+            item,
+            json!({"assessment_id":assessment,
+            "review_evidence":{"schedule_reset":{"mode":"start_new", "reason":"synthetic cursor",
+                "expected_latest_event_id":first}},
+            "schedule":{"authority":"fsrs", "state":valid_card("2026-09-03T00:00:00Z"),
+                "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic cursor",
+                    "excluded_through_event_id":first}}}),
+        );
+        assert!(omitted > first && stale_reset > omitted);
+        let basis = learning::review_schedule_basis(&conn, item, assessment).unwrap();
+        assert_ne!(
+            basis.baseline_reset_event_id,
+            Some(stale_reset),
+            "stale cursor must not reset history"
+        );
+        assert_eq!(
+            basis.recovery_issue,
+            Some("scheduled_gap_replay_unverified")
+        );
+        let valid_reset = insert(
+            &conn,
+            item,
+            json!({"assessment_id":assessment,
+            "review_evidence":{"schedule_reset":{"mode":"start_new", "reason":"synthetic valid cursor",
+                "expected_latest_event_id":stale_reset}},
+            "schedule":{"authority":"fsrs", "state":valid_card("2026-09-04T00:00:00Z"),
+                "recovery":{"state":"reset", "mode":"start_new", "reason":"synthetic valid cursor",
+                    "excluded_through_event_id":stale_reset}}}),
+        );
+        let basis = learning::review_schedule_basis(&conn, item, assessment).unwrap();
+        assert_eq!(basis.baseline_reset_event_id, Some(valid_reset));
+        assert!(basis.recovery_issue.is_none());
+    }
+}
+
+#[test]
+fn a_stale_reset_cannot_skip_an_otherwise_valid_card() {
+    let temp = tempfile::tempdir().unwrap();
+    let conn = init_workspace(
+        temp.path()
+            .join("reset-valid-history.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let first = insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-01T00:00:00Z")}}),
+    );
+    let second = insert(
+        &conn,
+        "item",
+        json!({"schedule":{"authority":"fsrs",
+        "state":valid_card("2026-09-02T00:00:00Z")}}),
+    );
+    let reset = insert(
+        &conn,
+        "item",
+        json!({"review_evidence":{"schedule_reset":{"mode":"start_new",
+        "reason":"synthetic stale cursor","expected_latest_event_id":first}},
+        "schedule":{"authority":"fsrs","state":valid_card("2026-09-03T00:00:00Z"),
+            "recovery":{"mode":"start_new","state":"reset","reason":"synthetic stale cursor",
+                "excluded_through_event_id":first}}}),
+    );
+    assert!(first < second && second < reset);
+    let basis = learning::review_schedule_basis(&conn, "item", None).unwrap();
+    assert_ne!(basis.baseline_reset_event_id, Some(reset));
+    assert_eq!(
+        basis.recovery_issue,
+        Some("schedule_reset_evidence_unverified")
+    );
+}

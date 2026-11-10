@@ -20,7 +20,7 @@
     "contract_refs": [
       {
         "path": "packages/contracts/v1/core-document.schema.json",
-        "sha256": "f0cad161f3ed65092d75ae0f95bfda614916bf867a695c4a823c556a4fcee69d"
+        "sha256": "77e68db5c07a818f713146ddf67bcb16aeea5c42de61c5e1ab3f5af1a7cd15f6"
       }
     ]
   },
@@ -59,7 +59,7 @@
       "kind": "raw_asset_reference",
       "contract": {
         "path": "packages/contracts/v1/core-document.schema.json",
-        "sha256": "f0cad161f3ed65092d75ae0f95bfda614916bf867a695c4a823c556a4fcee69d"
+        "sha256": "77e68db5c07a818f713146ddf67bcb16aeea5c42de61c5e1ab3f5af1a7cd15f6"
       },
       "max_bytes": 1048576
     }
@@ -69,7 +69,7 @@
       "kind": "document_reference",
       "contract": {
         "path": "packages/contracts/v1/core-document.schema.json",
-        "sha256": "f0cad161f3ed65092d75ae0f95bfda614916bf867a695c4a823c556a4fcee69d"
+        "sha256": "77e68db5c07a818f713146ddf67bcb16aeea5c42de61c5e1ab3f5af1a7cd15f6"
       },
       "max_bytes": 1048576
     }

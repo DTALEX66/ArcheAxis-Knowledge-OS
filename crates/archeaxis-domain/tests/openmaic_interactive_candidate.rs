@@ -20,6 +20,19 @@ fn digest(bytes: &[u8]) -> String {
 
 const HTML: &str = "<!DOCTYPE html><html><body><p>SYNTHETIC_INTERACTIVE_HTML</p></body></html>";
 
+#[test]
+fn interactive_scene_model_budget_does_not_change_outline_budget() {
+    let binding = json!({"system":"SYNTHETIC_SYSTEM", "user":"SYNTHETIC_USER"});
+    let outline = openmaic_outline::openmaic_outline_model_request(&binding, &Value::Null);
+    let scene = openmaic_interactive::openmaic_interactive_model_request(&binding, &Value::Null);
+    assert_eq!(outline["timeout_s"], 110);
+    assert!(outline.get("request_kind").is_none());
+    assert_eq!(scene["timeout_s"], 200);
+    assert_eq!(scene["request_kind"], "interactive_scene");
+    assert_eq!(scene["system"], outline["system"]);
+    assert_eq!(scene["user"], outline["user"]);
+}
+
 fn outline_generate_request() -> Value {
     json!({"schema":"archeaxis.openmaic-outline-generate/v1","create_request_id":"outline_1",
         "requirement":"Synthetic requirement","source_text":"SYNTHETIC source material",
@@ -419,7 +432,8 @@ fn a_receipt_that_does_not_describe_the_sent_reply_is_refused_before_a_write() {
             course::OpenMaicPreparation::Pending(value) => value,
             course::OpenMaicPreparation::Existing(_) => panic!("expected a fresh scene"),
         };
-    let mut worker = scene_build_document(&scene_request);
+    let valid_worker = scene_build_document(&scene_request);
+    let mut worker = valid_worker.clone();
     worker["scene"]["content"]["html"] = json!("<html>OTHER</html>");
     let generation = interactive_generation(
         "interactive_1",
@@ -440,6 +454,22 @@ fn a_receipt_that_does_not_describe_the_sent_reply_is_refused_before_a_write() {
         )
         .is_err()
     );
+    let mut unfinished = generation.clone();
+    unfinished.record["model_finish_reason"] = json!("length");
+    assert!(matches!(
+        openmaic_interactive::commit_openmaic_interactive_candidate(
+            &mut conn,
+            "interactive_1",
+            &request,
+            &pending,
+            &scene_pending,
+            &valid_worker,
+            &unfinished,
+        ),
+        Err(archeaxis_domain::document::Error::Invalid(
+            "INTERACTIVE_MODEL_COMPLETION_UNCONFIRMED"
+        ))
+    ));
     assert_eq!(document_count(&conn), 2, "outline and source only");
 }
 
@@ -493,12 +523,13 @@ fn the_widget_fields_the_donor_prompt_documents_reach_the_frame() {
         "outline":{"id":"o1","type":"interactive","title":"SYNTHETIC_GAME_TITLE",
             "description":"d","keyPoints":[],"order":0,"widgetType":"game",
             "widgetOutline":{"gameType":"action","challenge":"控制推力使飞船低速着陆",
-                "playerControls":["thrust_slider","angle"]}}}))
+                "playerControls":["thrust_slider","angle"],"physicsConcept":"F=ma"}}}))
     .expect("a template-conformant game outline is admitted");
     assert_eq!(game.0, "game");
     assert_eq!(game.1["game_type"], "action");
     assert_eq!(game.1["challenge"], "控制推力使飞船低速着陆");
     assert_eq!(game.1["player_controls"], json!(["thrust_slider", "angle"]));
+    assert_eq!(game.1["physics_concept"], "F=ma");
     assert!(game.1.get("interactions").is_none());
 
     let code = openmaic_interactive::openmaic_interactive_widget(&json!({

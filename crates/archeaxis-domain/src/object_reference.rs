@@ -92,9 +92,30 @@ pub fn resolve(conn: &Connection, reference: &Reference) -> Result<Value, Error>
                     ));
                 }
             }
-            Ok(
-                json!({"reference":reference,"title":snapshot["title"],"content_sha256":snapshot["content_sha256"],"source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"]}),
-            )
+            // A pinned snapshot stays readable even after the document changes.
+            // Report its relationship to the observed head separately from
+            // resolution and from any claim about the truth of its contents.
+            let current_version: i64 = conn
+                .query_row(
+                    "SELECT current_version FROM documents WHERE document_id=?1",
+                    [document_id],
+                    |row| row.get(0),
+                )
+                .optional()?
+                .ok_or(Error::NotFound)?;
+            let version_relation = if *version == current_version {
+                "current"
+            } else if *version < current_version {
+                "historical"
+            } else {
+                // An inconsistent head cannot prove how this snapshot relates
+                // to current content. Never silently call it current.
+                "unconfirmed"
+            };
+            Ok(json!({"reference":reference,"title":snapshot["title"],
+                "content_sha256":snapshot["content_sha256"],"source_id":snapshot["source_id"],
+                "source_revision":snapshot["source_revision"],
+                "version_relation":version_relation,"current_version":current_version}))
         }
         Reference::Source { source_id, sha256 } => {
             let record: Option<(String, String)> = conn

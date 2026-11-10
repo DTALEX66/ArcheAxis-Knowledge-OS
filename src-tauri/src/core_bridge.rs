@@ -53,6 +53,7 @@ pub enum Operation {
     DocumentCreate,
     DocumentGet,
     DocumentGraph,
+    DocumentResearchReferences,
     CollectionQuery,
     DocumentDraft,
     DocumentVersion,
@@ -78,6 +79,11 @@ pub enum Operation {
     CourseGet,
     CourseList,
     CourseOpenmaicSceneCreate,
+    CourseOpenmaicOutlineCreate,
+    CourseOpenmaicOutlineGenerate,
+    CourseOpenmaicInteractiveOutlineGenerate,
+    CourseOpenmaicSceneGenerate,
+    CourseOpenmaicPackageProjection,
     TeachingList,
     TeachingGet,
     TeachingCreate,
@@ -90,6 +96,9 @@ pub enum Operation {
     LearningState,
     LearningHistory,
     LearningReview,
+    LearningDeeptutorQuestionTurn,
+    LearningDeeptutorQuestionAccept,
+    LearningDeeptutorTeachingFeedback,
     LearningDeeptutorPracticeImport,
     LearningDeeptutorPracticeGrade,
     LearningDeeptutorQuestionView,
@@ -534,6 +543,25 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
                 None,
             )
         }
+        DocumentResearchReferences => {
+            let query = if let Some(value) = p.get("version") {
+                let version = value
+                    .as_u64()
+                    .filter(|v| *v > 0 && *v <= i64::MAX as u64)
+                    .ok_or("CORE_COMMAND_VERSION_INVALID")?;
+                format!("?version={version}")
+            } else {
+                String::new()
+            };
+            (
+                "GET",
+                format!(
+                    "/api/v1/documents/{}/research-references{query}",
+                    reference_id(p, "document_id")?
+                ),
+                None,
+            )
+        }
         CollectionQuery => {
             let mut query = vec![format!("view_id={}", teaching_id(p, "view_id")?)];
             if let Some(value) = p.get("version") {
@@ -727,6 +755,14 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         CourseOpenmaicSceneCreate
+        | CourseOpenmaicOutlineCreate
+        | CourseOpenmaicOutlineGenerate
+        | CourseOpenmaicInteractiveOutlineGenerate
+        | CourseOpenmaicSceneGenerate
+        | CourseOpenmaicPackageProjection
+        | LearningDeeptutorQuestionTurn
+        | LearningDeeptutorQuestionAccept
+        | LearningDeeptutorTeachingFeedback
         | LearningDeeptutorPracticeImport
         | LearningDeeptutorPracticeGrade
         | LearningDeeptutorQuestionView => {
@@ -740,6 +776,18 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             }
             let path = match request.operation {
                 CourseOpenmaicSceneCreate => "/api/v1/courses/openmaic/scenes",
+                CourseOpenmaicOutlineCreate => "/api/v1/courses/openmaic/outlines",
+                CourseOpenmaicOutlineGenerate => "/api/v1/courses/openmaic/outlines/generate",
+                CourseOpenmaicInteractiveOutlineGenerate => {
+                    "/api/v1/courses/openmaic/outlines/generate-interactive"
+                }
+                CourseOpenmaicSceneGenerate => "/api/v1/courses/openmaic/scenes/generate",
+                CourseOpenmaicPackageProjection => "/api/v1/courses/openmaic/package-projection",
+                LearningDeeptutorQuestionTurn => "/api/v1/learning/deeptutor/question-turn",
+                LearningDeeptutorQuestionAccept => {
+                    "/api/v1/learning/deeptutor/question-candidates/accept"
+                }
+                LearningDeeptutorTeachingFeedback => "/api/v1/learning/deeptutor/teaching-feedback",
                 LearningDeeptutorPracticeImport => "/api/v1/learning/deeptutor/practice-import",
                 LearningDeeptutorPracticeGrade => "/api/v1/learning/deeptutor/practice-grade",
                 LearningDeeptutorQuestionView => "/api/v1/learning/deeptutor/question-view",
@@ -1286,6 +1334,38 @@ mod provider_host_transport_tests {
     fn provider_commands_use_the_owned_loopback_and_return_json() {
         for (operation, path) in [
             (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
+            (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
             ),
@@ -1318,6 +1398,38 @@ mod provider_host_transport_tests {
     fn provider_transport_does_not_echo_a_malformed_private_response() {
         for (operation, path) in [
             (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
+            (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
             ),
@@ -1349,24 +1461,59 @@ mod provider_host_transport_tests {
 
     #[test]
     fn provider_transport_keeps_http_error_status_without_echoing_the_body() {
-        let (port, server) = serve_once(
-            "/api/v1/learning/deeptutor/question-view",
-            422,
-            "SYNTHETIC_PRIVATE_INVALID",
-        );
-        let request: Request = serde_json::from_value(serde_json::json!({
-            "operation":"learning_deeptutor_question_view",
-            "payload":{"body":{"request_id":"synthetic"}}
-        }))
-        .unwrap();
-        let reply = execute(port, "synthetic-host-token", request).unwrap();
-        assert_eq!(reply.status, 422);
-        assert_eq!(
-            reply.body,
-            serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"})
-        );
-        assert!(!reply.body.to_string().contains("SYNTHETIC_PRIVATE_INVALID"));
-        server.join().unwrap();
+        for (operation, path) in [
+            (
+                "learning_deeptutor_question_view",
+                "/api/v1/learning/deeptutor/question-view",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
+            (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+        ] {
+            let (port, server) = serve_once(path, 422, "SYNTHETIC_PRIVATE_INVALID");
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":operation,
+                "payload":{"body":{"request_id":"synthetic"}}
+            }))
+            .unwrap();
+            let reply = execute(port, "synthetic-host-token", request).unwrap();
+            assert_eq!(reply.status, 422);
+            assert_eq!(
+                reply.body,
+                serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"})
+            );
+            assert!(!reply.body.to_string().contains("SYNTHETIC_PRIVATE_INVALID"));
+            server.join().unwrap();
+        }
     }
 }
 
@@ -1537,6 +1684,15 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         Operation::JobExecute => 320,
         Operation::LearningDeeptutorPracticeImport => 95,
         Operation::LearningDeeptutorPracticeGrade => 95,
+        // Capture (60 s), model (120 s), replay (60 s), and a transport margin.
+        Operation::LearningDeeptutorQuestionTurn => 270,
+        Operation::LearningDeeptutorTeachingFeedback => 95,
+        // Outline generation uses capture, model, and replay. Scene generation
+        // can additionally run a second model and several bounded worker stages.
+        Operation::CourseOpenmaicOutlineGenerate
+        | Operation::CourseOpenmaicInteractiveOutlineGenerate => 210,
+        Operation::CourseOpenmaicSceneGenerate => 480,
+        Operation::CourseOpenmaicOutlineCreate => 60,
         Operation::CourseFromKnowledge
         | Operation::CourseRender
         | Operation::CourseOpenmaicSceneCreate => 60,
@@ -1545,15 +1701,28 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 }
 
 fn request_byte_limit(operation: &Operation) -> usize {
-    if matches!(operation, Operation::CourseOpenmaicSceneCreate) {
+    if matches!(
+        operation,
+        Operation::CourseOpenmaicSceneCreate
+            | Operation::CourseOpenmaicOutlineCreate
+            | Operation::CourseOpenmaicOutlineGenerate
+            | Operation::CourseOpenmaicInteractiveOutlineGenerate
+            | Operation::CourseOpenmaicSceneGenerate
+    ) {
         262_144
+    } else if matches!(operation, Operation::LearningDeeptutorTeachingFeedback) {
+        131_072
     } else if matches!(operation, Operation::LearningDeeptutorPracticeGrade) {
         // The Core grading route accepts one bounded answer submission; this is the
         // route's own 32,768-byte body limit, not the larger import envelope.
         32_768
     } else if matches!(
         operation,
-        Operation::LearningDeeptutorPracticeImport | Operation::LearningDeeptutorQuestionView
+        Operation::LearningDeeptutorPracticeImport
+            | Operation::LearningDeeptutorQuestionView
+            | Operation::LearningDeeptutorQuestionTurn
+            | Operation::LearningDeeptutorQuestionAccept
+            | Operation::CourseOpenmaicPackageProjection
     ) {
         65_536
     } else if matches!(
@@ -1642,6 +1811,14 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
     let private_provider_response = matches!(
         request.operation,
         Operation::CourseOpenmaicSceneCreate
+            | Operation::CourseOpenmaicOutlineCreate
+            | Operation::CourseOpenmaicOutlineGenerate
+            | Operation::CourseOpenmaicInteractiveOutlineGenerate
+            | Operation::CourseOpenmaicSceneGenerate
+            | Operation::CourseOpenmaicPackageProjection
+            | Operation::LearningDeeptutorQuestionTurn
+            | Operation::LearningDeeptutorQuestionAccept
+            | Operation::LearningDeeptutorTeachingFeedback
             | Operation::LearningDeeptutorPracticeImport
             | Operation::LearningDeeptutorPracticeGrade
             | Operation::LearningDeeptutorQuestionView
@@ -1670,6 +1847,38 @@ mod tests {
     #[test]
     fn provider_host_routes_are_fixed_and_require_one_object_body() {
         for (operation, expected) in [
+            (
+                "course_openmaic_outline_create",
+                "/api/v1/courses/openmaic/outlines",
+            ),
+            (
+                "course_openmaic_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate",
+            ),
+            (
+                "course_openmaic_interactive_outline_generate",
+                "/api/v1/courses/openmaic/outlines/generate-interactive",
+            ),
+            (
+                "course_openmaic_scene_generate",
+                "/api/v1/courses/openmaic/scenes/generate",
+            ),
+            (
+                "course_openmaic_package_projection",
+                "/api/v1/courses/openmaic/package-projection",
+            ),
+            (
+                "learning_deeptutor_question_turn",
+                "/api/v1/learning/deeptutor/question-turn",
+            ),
+            (
+                "learning_deeptutor_question_accept",
+                "/api/v1/learning/deeptutor/question-candidates/accept",
+            ),
+            (
+                "learning_deeptutor_teaching_feedback",
+                "/api/v1/learning/deeptutor/teaching-feedback",
+            ),
             (
                 "learning_deeptutor_practice_import",
                 "/api/v1/learning/deeptutor/practice-import",
@@ -1726,6 +1935,49 @@ mod tests {
             request_byte_limit(&Operation::CourseOpenmaicSceneCreate),
             262_144
         );
+        for operation in [
+            Operation::LearningDeeptutorQuestionTurn,
+            Operation::LearningDeeptutorQuestionAccept,
+            Operation::CourseOpenmaicPackageProjection,
+        ] {
+            assert_eq!(request_byte_limit(&operation), 65_536);
+        }
+        assert_eq!(
+            request_byte_limit(&Operation::LearningDeeptutorTeachingFeedback),
+            131_072
+        );
+        for operation in [
+            Operation::CourseOpenmaicOutlineCreate,
+            Operation::CourseOpenmaicOutlineGenerate,
+            Operation::CourseOpenmaicInteractiveOutlineGenerate,
+            Operation::CourseOpenmaicSceneGenerate,
+        ] {
+            assert_eq!(request_byte_limit(&operation), 262_144);
+        }
+        assert_eq!(
+            transport_timeout(&Operation::LearningDeeptutorQuestionTurn).as_secs(),
+            270
+        );
+        assert_eq!(
+            transport_timeout(&Operation::LearningDeeptutorTeachingFeedback).as_secs(),
+            95
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicOutlineCreate).as_secs(),
+            60
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicOutlineGenerate).as_secs(),
+            210
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicInteractiveOutlineGenerate).as_secs(),
+            210
+        );
+        assert_eq!(
+            transport_timeout(&Operation::CourseOpenmaicSceneGenerate).as_secs(),
+            480
+        );
         assert!(
             transport_timeout(&Operation::LearningDeeptutorPracticeImport)
                 > std::time::Duration::from_secs(60)
@@ -1738,6 +1990,702 @@ mod tests {
             transport_timeout(&Operation::CourseOpenmaicSceneCreate)
                 > std::time::Duration::from_secs(30)
         );
+    }
+    #[test]
+    fn provider_new_routes_reject_oversized_bodies_before_transport() {
+        for (operation, limit) in [
+            ("learning_deeptutor_question_turn", 65_536),
+            ("learning_deeptutor_question_accept", 65_536),
+            ("learning_deeptutor_teaching_feedback", 131_072),
+            ("course_openmaic_outline_create", 262_144),
+            ("course_openmaic_outline_generate", 262_144),
+            ("course_openmaic_interactive_outline_generate", 262_144),
+            ("course_openmaic_scene_generate", 262_144),
+            ("course_openmaic_package_projection", 65_536),
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation": operation, "payload": {"body": {"input": "x".repeat(limit)}}
+            }))
+            .unwrap();
+            assert_eq!(
+                execute(0, "synthetic-host-token", request).err().as_deref(),
+                Some("CORE_COMMAND_BODY_TOO_LARGE")
+            );
+        }
+    }
+    #[test]
+    #[ignore = "requires an explicitly launched synthetic Core and private launch token"]
+    fn provider_real_core_projection_and_route_admission() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid synthetic Core port required");
+        let token =
+            std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("synthetic Core token required");
+        let request: Request = serde_json::from_value(serde_json::json!({
+            "operation":"course_openmaic_package_projection",
+            "payload":{"body":{"document_ids":["synthetic_missing_scene"]}}
+        }))
+        .unwrap();
+        let reply = execute(port, &token, request).expect("projection transport must succeed");
+        assert_eq!(reply.status, 200);
+        assert_eq!(
+            reply.body["schema"],
+            "archeaxis.openmaic-course-package-projection/v1"
+        );
+        assert_eq!(reply.body["scenes"][0]["status"], "missing");
+        assert_eq!(reply.body["renderer_executed"], false);
+        assert_eq!(reply.body["rendering_authorized"], false);
+
+        for operation in [
+            "learning_deeptutor_question_turn",
+            "learning_deeptutor_question_accept",
+            "learning_deeptutor_teaching_feedback",
+            "course_openmaic_outline_create",
+            "course_openmaic_outline_generate",
+            "course_openmaic_interactive_outline_generate",
+            "course_openmaic_scene_generate",
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation": operation, "payload": {"body": {}}
+            }))
+            .unwrap();
+            let reply = execute(port, &token, request).expect("Core transport must succeed");
+            assert!(
+                matches!(reply.status, 400 | 422),
+                "{operation}: unexpected status {}",
+                reply.status
+            );
+        }
+    }
+
+    #[test]
+    #[ignore = "requires a synthetic Core, explicit create/reopen phase, and private token"]
+    fn learning_schedule_reset_real_core_transport() {
+        use serde_json::json;
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .unwrap()
+            .parse()
+            .unwrap();
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").unwrap();
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").unwrap();
+        let identity_file = std::env::var_os("AAOS_SYNTHETIC_LEARNING_STATE").unwrap();
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(json!({
+                "operation": operation, "payload": payload
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("synthetic Core transport")
+        };
+        let item = "synthetic-host-reset";
+        let assessed = std::env::var("AAOS_SYNTHETIC_ASSESSED").as_deref() == Ok("1");
+        if phase == "create" {
+            let create_binding = |knowledge: String| {
+                let reference = invoke(
+                    "learning_reference",
+                    json!({
+                        "item_key":item,"body":{"knowledge_id":knowledge}
+                    }),
+                );
+                assert_eq!(reference.status, 201);
+                let assessment = invoke(
+                    "assessment_create",
+                    json!({
+                        "item_key":item,"body":{"knowledge_id":knowledge}
+                    }),
+                );
+                assert_eq!(assessment.status, 201);
+                (
+                    assessment.body["assessment_id"].clone(),
+                    assessment.body["knowledge_version"].clone(),
+                )
+            };
+            let (binding, historical_binding) = if assessed {
+                let previous =
+                    create_binding(std::env::var("AAOS_SYNTHETIC_PREVIOUS_KNOWLEDGE_ID").unwrap());
+                let prior = invoke(
+                    "learning_review",
+                    json!({"body":{
+                        "item_key":item,"client_event_id":"host-previous-assessment","correct":true,"rating":3,
+                        "now":"2026-08-31T00:00:00Z","assessment_id":previous.0,"knowledge_version":previous.1
+                    }}),
+                );
+                assert_eq!(prior.status, 201);
+                let current = create_binding(std::env::var("AAOS_SYNTHETIC_KNOWLEDGE_ID").unwrap());
+                (Some(current), Some(previous))
+            } else {
+                (None, None)
+            };
+            let mut old_body = json!({"item_key":item,"client_event_id":"host-old","correct":true,
+                "rating":3,"now":"2030-09-03T00:00:00Z"});
+            if let Some((assessment_id, version)) = &binding {
+                old_body["assessment_id"] = assessment_id.clone();
+                old_body["knowledge_version"] = version.clone();
+            }
+            let old = invoke("learning_review", json!({"body":old_body}));
+            assert_eq!(old.status, 201);
+            assert_eq!(old.body["schedule_authority"], "fsrs");
+            if let Some((assessment_id, version)) = &historical_binding {
+                let historical = invoke(
+                    "learning_review",
+                    json!({"body":{
+                        "item_key":item,"client_event_id":"host-late-previous-assessment","correct":true,"rating":3,
+                        "now":"2026-09-01T00:00:00Z","assessment_id":assessment_id,"knowledge_version":version
+                    }}),
+                );
+                assert_eq!(historical.status, 201);
+            }
+            let state = invoke("learning_state", json!({"item_key":item}));
+            assert_eq!(state.status, 200);
+            let latest = if assessed {
+                &state.body["learner"]["assessment_progress"]["latest_review"]
+            } else {
+                &state.body["learner"]["latest_review"]
+            };
+            let old_id = latest["event_id"].as_i64().unwrap();
+            assert_eq!(old.body["event_id"], old_id);
+            let item_latest = state.body["learner"]["latest_review"]["event_id"]
+                .as_i64()
+                .unwrap();
+            if assessed {
+                assert!(item_latest > old_id);
+            }
+            let body = |expected| {
+                let mut value = json!({
+                    "item_key":item,"client_event_id":"host-reset","correct":true,"rating":3,
+                    "now":"2026-09-03T00:00:00Z","schedule_reset":{
+                        "mode":"start_new","reason":"Synthetic old time was mistyped",
+                        "expected_latest_event_id":expected
+                    }
+                });
+                if let Some((assessment_id, version)) = &binding {
+                    value["assessment_id"] = assessment_id.clone();
+                    value["knowledge_version"] = version.clone();
+                }
+                value
+            };
+            assert_eq!(
+                invoke(
+                    "learning_review",
+                    json!({"body":body(if assessed {item_latest} else {old_id + 1})})
+                )
+                .status,
+                409
+            );
+            let reset_body = body(old_id);
+            let reset = invoke("learning_review", json!({"body":reset_body}));
+            assert_eq!(reset.status, 201);
+            assert_eq!(reset.body["schedule_authority"], "fsrs");
+            assert_eq!(
+                reset.body["schedule_recovery"]["excluded_through_event_id"],
+                old_id
+            );
+            std::fs::write(
+                identity_file,
+                json!({"old_id":old_id,"reset_id":reset.body["event_id"],"reset_body":reset_body})
+                    .to_string(),
+            )
+            .unwrap();
+        } else if phase == "reopen" || phase == "restore" {
+            let mut saved: Value =
+                serde_json::from_slice(&std::fs::read(&identity_file).unwrap()).unwrap();
+            let state = invoke("learning_state", json!({"item_key":item}));
+            assert_eq!(state.status, 200);
+            let latest = if assessed {
+                &state.body["learner"]["assessment_progress"]["latest_review"]
+            } else {
+                &state.body["learner"]["latest_review"]
+            };
+            assert_eq!(latest["event_id"], saved["reset_id"]);
+            assert_eq!(latest["schedule_recovery"]["state"], "reset");
+            let replay = invoke("learning_review", json!({"body":saved["reset_body"]}));
+            assert_eq!(replay.status, 200);
+            assert_eq!(replay.body["duplicate"], true);
+            assert_eq!(replay.body["event_id"], saved["reset_id"]);
+            let history = invoke("learning_history", json!({"item_key":item}));
+            assert_eq!(history.status, 200);
+            assert_eq!(history.body["count"], if assessed { 4 } else { 2 });
+            assert!(history.body["events"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|event| event["event_id"] == saved["old_id"]));
+            if phase == "reopen" {
+                let backup = invoke("workspace_backup", json!({}));
+                assert_eq!(backup.status, 201);
+                assert_eq!(backup.body["verified"], true);
+                saved["backup_filename"] = backup.body["filename"].clone();
+                saved["backup_sha256"] = backup.body["sha256"].clone();
+                std::fs::write(identity_file, saved.to_string()).unwrap();
+            }
+        } else {
+            panic!("unknown synthetic phase");
+        }
+    }
+
+    #[test]
+    #[ignore = "requires an explicitly launched synthetic Core and private launch token"]
+    fn research_reference_real_core_transport() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .unwrap()
+            .parse()
+            .unwrap();
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").unwrap();
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation": operation, "payload": payload
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("synthetic Core transport")
+        };
+        let material = invoke(
+            "document_create",
+            serde_json::json!({"body":{
+                "title":"synthetic host material","editor_json":{"type":"doc","content":[]}
+            }}),
+        );
+        assert_eq!(material.status, 201);
+        let material_id = material.body["document_id"].as_str().unwrap();
+        let reference = serde_json::json!({"kind":"document","document_id":material_id,"version":1,"block_id":null});
+        let research = invoke(
+            "document_create",
+            serde_json::json!({"body":{
+                "title":"synthetic host research","editor_json":{"type":"doc","content":[],"attrs":{
+                    "archeaxis_research":{"schema":"archeaxis.research/v1","question":"synthetic",
+                        "materials":[{"id":"source","note":"synthetic","reference":reference}],
+                        "hypotheses":[],"methods":[],"experiments":[],"counterevidence":[],
+                        "conclusions":[],"unresolved":[]}}}
+            }}),
+        );
+        assert_eq!(research.status, 201);
+        let research_id = research.body["document_id"].as_str().unwrap();
+        let query = || {
+            invoke(
+                "document_research_references",
+                serde_json::json!({
+                    "document_id":research_id,"version":1
+                }),
+            )
+        };
+        let before = query();
+        assert_eq!(before.status, 200);
+        assert_eq!(
+            before.body["references"][0]["object"]["version_relation"],
+            "current"
+        );
+        assert_eq!(before.body["references"][0]["version_relation"], "current");
+        let changed = invoke(
+            "document_draft",
+            serde_json::json!({"document_id":material_id,"body":{
+                "expected_version":1,"editor_json":{"type":"doc","content":[
+                    {"type":"paragraph","content":[{"type":"text","text":"synthetic revision"}]}]}
+            }}),
+        );
+        assert_eq!(changed.status, 200);
+        let after = query();
+        assert_eq!(after.status, 200);
+        assert_eq!(after.body["references"][0]["reference"], reference);
+        assert_eq!(
+            after.body["references"][0]["object"]["version_relation"],
+            "historical"
+        );
+        assert_eq!(
+            after.body["references"][0]["version_relation"],
+            "historical"
+        );
+        assert_eq!(after.body["references"][0]["current_version"], 2);
+        assert_eq!(after.body["document"], before.body["document"]);
+    }
+    #[test]
+    #[ignore = "requires a synthetic Core, explicit create/reopen phase, and private token"]
+    fn provider_real_core_teaching_feedback_roundtrip() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid synthetic Core port required");
+        let token =
+            std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("synthetic Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let identity_file = std::env::var_os("AAOS_SYNTHETIC_FEEDBACK_ID_FILE")
+            .expect("synthetic identity file required");
+        let body = serde_json::json!({
+            "create_request_id":"synthetic_host_feedback_1",
+            "session_id":"synthetic_session", "turn_id":"synthetic_turn",
+            "profile":null,
+            "current_message":"Please keep the examples short and concrete.",
+            "objective_ids":["objective_basics"],
+            "focus_objective_id":"objective_basics",
+            "updates":[{"kind":"preference","op":"upsert","key":"examples",
+                "text":"Keep examples short","basis":"learner_report",
+                "evidence":"examples short"}],
+            "include_history":false
+        });
+        let invoke = || {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"learning_deeptutor_teaching_feedback", "payload":{"body":body}
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("feedback transport must succeed")
+        };
+        match phase.as_str() {
+            "create" => {
+                let first = invoke();
+                assert_eq!(first.status, 201);
+                assert_eq!(first.body["worker_invoked"], true);
+                assert_eq!(first.body["model_call"], "NOT_INVOKED");
+                assert_eq!(first.body["human_review_required"], true);
+                assert_eq!(first.body["rendering_authorized"], false);
+                let document_id = first.body["document"]["document_id"]
+                    .as_str()
+                    .expect("candidate identity required");
+                std::fs::write(&identity_file, document_id).expect("save synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+            }
+            "reopen" => {
+                let document_id =
+                    std::fs::read_to_string(&identity_file).expect("read synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+                assert_eq!(duplicate.body["candidate_document_status"], "current");
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
+    #[ignore = "requires a synthetic Core, pinned Node for creation, and private token"]
+    fn provider_real_core_openmaic_outline_roundtrip() {
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid synthetic Core port required");
+        let token =
+            std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("synthetic Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let identity_file = std::env::var_os("AAOS_SYNTHETIC_OUTLINE_ID_FILE")
+            .expect("synthetic identity file required");
+        let reply = serde_json::json!({
+            "languageDirective":"Respond in Simplified Chinese.",
+            "courseTitle":"Synthetic course",
+            "outlines":[{"id":"outline_1","type":"slide","title":"Synthetic title",
+                "description":"Synthetic description","keyPoints":["Synthetic key point"]}]
+        });
+        let body = serde_json::json!({
+            "create_request_id":"synthetic_host_outline_1",
+            "request":{"schema":"archeaxis.openmaic-outline-replay/v1",
+                "request_id":"synthetic_outline_request",
+                "requirement":"Synthetic requirement", "source_text":"Synthetic source",
+                "reply":{"kind":"synthetic_response","value":reply.to_string()}}
+        });
+        let invoke = || {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"course_openmaic_outline_create", "payload":{"body":body}
+            }))
+            .unwrap();
+            execute(port, &token, request).expect("outline transport must succeed")
+        };
+        match phase.as_str() {
+            "create" => {
+                let first = invoke();
+                assert_eq!(first.status, 200);
+                assert_eq!(first.body["worker_invoked"], true);
+                assert_eq!(first.body["outline_count"], 1);
+                assert_eq!(first.body["rendering_authorized"], false);
+                assert_eq!(first.body["active_content_executed"], false);
+                let document_id = first.body["document"]["document_id"]
+                    .as_str()
+                    .expect("candidate identity required");
+                std::fs::write(&identity_file, document_id).expect("save synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+            }
+            "reopen" => {
+                let document_id =
+                    std::fs::read_to_string(&identity_file).expect("read synthetic identity");
+                let duplicate = invoke();
+                assert_eq!(duplicate.status, 200);
+                assert_eq!(duplicate.body["worker_invoked"], false);
+                assert_eq!(duplicate.body["document"]["document_id"], document_id);
+                assert_eq!(duplicate.body["candidate_document_status"], "current");
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
+    #[ignore = "requires a synthetic Core, workers, loopback model, and explicit phase"]
+    fn provider_real_core_deeptutor_synthetic_journey() {
+        use serde_json::{json, Value};
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid Core port");
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let state_path = std::env::var_os("AAOS_SYNTHETIC_JOURNEY_STATE")
+            .expect("synthetic state path required");
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(json!({
+                "operation":operation, "payload":payload
+            }))
+            .expect("valid host request");
+            execute(port, &token, request).expect("host/Core transport must succeed")
+        };
+        let snapshot = |document: &Value| {
+            json!({
+                "document_id": document["document_id"], "version": document["version"],
+                "content_sha256": document["content_sha256"]
+            })
+        };
+        match phase.as_str() {
+            "create" => {
+                let material = invoke(
+                    "document_create",
+                    json!({"body":{
+                        "title":"Synthetic host journey material",
+                        "editor_json":{"type":"doc","content":[{"type":"paragraph",
+                            "content":[{"type":"text","text":"SYNTHETIC: two plus two equals four."}]}]}
+                    }}),
+                );
+                assert_eq!(material.status, 201, "material create");
+                let grant = |title: &str, target: Value| {
+                    let reply = invoke(
+                        "document_create",
+                        json!({"body":{
+                            "title":title,"editor_json":{"type":"doc","content":[],"attrs":{
+                                "archeaxis_provider_material_grant":{
+                                    "schema":"archeaxis.provider-material-grant/v1", "purpose":"practice",
+                                    "consumer":"deeptutor", "operations":["practice"], "material":target,
+                                    "authorization_basis":"SYNTHETIC explicit human authorization",
+                                    "expires_at":null,"state":"granted"}}}
+                        }}),
+                    );
+                    assert_eq!(reply.status, 201, "synthetic grant create");
+                    reply.body
+                };
+                let material_snapshot = snapshot(&material.body);
+                let source_grant =
+                    grant("Synthetic host material grant", material_snapshot.clone());
+                let turn = json!({"create_request_id":"synthetic_host_turn",
+                    "material":material_snapshot,"requirement":"One synthetic arithmetic question",
+                    "model":null,"output_mode":"choice_json_schema"});
+                let candidate = invoke("learning_deeptutor_question_turn", json!({"body":turn}));
+                assert_eq!(candidate.status, 201, "question turn");
+                assert_eq!(candidate.body["worker_invoked"], true);
+                assert_eq!(
+                    candidate.body["model_response_format"]["sha256"],
+                    "753c5addda0233a21cb4aa40af0c9b6ff6dc52956d10178b8b465d1fcdb0b437"
+                );
+                let accept = json!({"create_request_id":"synthetic_host_accept",
+                    "candidate":snapshot(&candidate.body["document"]),"correct_answer":"B",
+                    "question_text":"SYNTHETIC fixture: select B.",
+                    "explanation":"SYNTHETIC human fixture declares B."});
+                let accepted = invoke("learning_deeptutor_question_accept", json!({"body":accept}));
+                assert_eq!(accepted.status, 201, "synthetic human acceptance");
+                let attrs = &accepted.body["document"]["editor_json"]["attrs"]
+                    ["archeaxis_deeptutor_question_acceptance"];
+                assert_eq!(attrs["answer_key_source"], "human_declared");
+                assert_eq!(attrs["model_answer_used_as_key"], false);
+                assert_eq!(attrs["explanation_source"], "human_supplied");
+                let question = snapshot(&accepted.body["question_document"]);
+                let question_grant = grant("Synthetic host question grant", question.clone());
+                let activity = invoke(
+                    "learning_provider_activity_create",
+                    json!({"body":{
+                        "activity_id":"synthetic_host_activity", "material":material_snapshot,
+                        "provider":{"id":"deeptutor","version":"1.7.1"},
+                        "question":{"question_id":accepted.body["question_view"]["question"]["question_id"],
+                            "question_version":accepted.body["question_view"]["question_version"]},
+                        "grant":snapshot(&source_grant)
+                    }}),
+                );
+                assert_eq!(activity.status, 201, "activity create");
+                let attempt = invoke(
+                    "learning_provider_attempt_start",
+                    json!({
+                        "activity_id":"synthetic_host_activity","body":{"attempt_id":"synthetic_host_attempt"}
+                    }),
+                );
+                assert_eq!(attempt.status, 201, "attempt start");
+                let grade = json!({"activity_id":"synthetic_host_activity",
+                    "attempt_id":"synthetic_host_attempt","request":{
+                        "client_event_id":"synthetic_host_grade", "question_document":question,
+                        "question_grant":snapshot(&question_grant),"answer":"B"}});
+                let graded = invoke("learning_deeptutor_practice_grade", json!({"body":grade}));
+                assert_eq!(graded.status, 201, "synthetic grade");
+                assert_eq!(graded.body["provider_correct"], true);
+                assert_eq!(graded.body["independent_mastery"], "not_established");
+                let backup = invoke("workspace_backup", json!({}));
+                assert_eq!(backup.status, 201, "synthetic workspace backup");
+                assert_eq!(backup.body["verified"], true);
+                let state = json!({"turn":turn,"accept":accept,"grade":grade,
+                    "candidate_id":candidate.body["document"]["document_id"],
+                    "accepted_id":accepted.body["document"]["document_id"],
+                    "backup_filename":backup.body["filename"],"backup_sha256":backup.body["sha256"]});
+                std::fs::write(&state_path, state.to_string()).expect("save synthetic state");
+            }
+            "reopen" | "restore" => {
+                let state: Value = serde_json::from_slice(
+                    &std::fs::read(&state_path).expect("read synthetic state"),
+                )
+                .expect("valid synthetic state");
+                let candidate = invoke(
+                    "learning_deeptutor_question_turn",
+                    json!({"body":state["turn"]}),
+                );
+                assert_eq!(candidate.status, 200, "candidate replay");
+                assert_eq!(candidate.body["worker_invoked"], false);
+                assert_eq!(
+                    candidate.body["document"]["document_id"],
+                    state["candidate_id"]
+                );
+                let accepted = invoke(
+                    "learning_deeptutor_question_accept",
+                    json!({"body":state["accept"]}),
+                );
+                assert_eq!(accepted.status, 201, "acceptance replay");
+                assert_eq!(accepted.body["duplicate"], true);
+                assert_eq!(
+                    accepted.body["document"]["document_id"],
+                    state["accepted_id"]
+                );
+                let graded = invoke(
+                    "learning_deeptutor_practice_grade",
+                    json!({"body":state["grade"]}),
+                );
+                assert_eq!(graded.status, 200, "grade replay");
+                assert_eq!(graded.body["duplicate"], true);
+                assert_eq!(graded.body["provider_correct"], true);
+                let history = invoke(
+                    "learning_provider_activity_get",
+                    json!({"activity_id":"synthetic_host_activity"}),
+                );
+                assert_eq!(history.status, 200, "activity readback");
+                assert_eq!(
+                    history.body["attempts"][0]["grade_disposition"]["state"],
+                    "COMPLETED"
+                );
+                if phase == "restore" {
+                    let mut new_turn = state["turn"].clone();
+                    new_turn["create_request_id"] = json!("synthetic_host_restored_new_turn");
+                    let refused =
+                        invoke("learning_deeptutor_question_turn", json!({"body":new_turn}));
+                    assert_eq!(refused.status, 409, "restored grants remain fenced");
+                }
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
+    }
+    #[test]
+    #[ignore = "requires synthetic Core, pinned Node, loopback model, and explicit phase"]
+    fn provider_real_core_openmaic_synthetic_generation_journey() {
+        use serde_json::{json, Value};
+        let port: u16 = std::env::var("AAOS_SYNTHETIC_CORE_PORT")
+            .expect("synthetic Core port required")
+            .parse()
+            .expect("valid Core port");
+        let token = std::env::var("AAOS_SYNTHETIC_CORE_TOKEN").expect("Core token required");
+        let phase = std::env::var("AAOS_SYNTHETIC_CORE_PHASE").expect("phase required");
+        let state_path = std::env::var_os("AAOS_SYNTHETIC_JOURNEY_STATE")
+            .expect("synthetic state path required");
+        let invoke = |operation: &str, payload: Value| {
+            let request: Request = serde_json::from_value(json!({
+                "operation":operation,"payload":payload
+            }))
+            .expect("valid host request");
+            execute(port, &token, request).expect("host/Core transport must succeed")
+        };
+        match phase.as_str() {
+            "create" => {
+                let source = invoke(
+                    "document_create",
+                    json!({"body":{
+                        "title":"Synthetic interactive material",
+                        "editor_json":{"type":"doc","content":[{"type":"paragraph",
+                            "content":[{"type":"text","text":"SYNTHETIC diagram material"}]}]}
+                    }}),
+                );
+                assert_eq!(source.status, 201, "source create");
+                let outline_body = json!({"create_request_id":"synthetic_host_interactive_outline",
+                    "requirement":"Create an interactive diagram for the synthetic material.",
+                    "source_text":"SYNTHETIC diagram material","model":null});
+                let outline = invoke(
+                    "course_openmaic_interactive_outline_generate",
+                    json!({"body":outline_body}),
+                );
+                assert_eq!(outline.status, 200, "interactive outline generate");
+                assert_eq!(outline.body["worker_invoked"], true);
+                let outlines = outline.body["outlines"]
+                    .as_array()
+                    .expect("outlines required");
+                let selected = outlines
+                    .iter()
+                    .position(|entry| entry["type"] == "interactive")
+                    .expect("an interactive outline is required for this journey");
+                let widget_type = outlines[selected]["widgetType"]
+                    .as_str()
+                    .expect("widget required");
+                assert_eq!(outline.body["rendering_authorized"], false);
+                let scene_body = json!({"create_request_id":"synthetic_host_interactive_scene",
+                    "outline_document_id":outline.body["document"]["document_id"],"outline_index":selected,
+                    "source":{"document_id":source.body["document_id"],"version":source.body["version"],
+                        "content_sha256":source.body["content_sha256"]},"model":null});
+                let scene = invoke("course_openmaic_scene_generate", json!({"body":scene_body}));
+                assert_eq!(scene.status, 200, "interactive scene generate");
+                assert_eq!(scene.body["scene_route"], "interactive");
+                assert_eq!(scene.body["widget_type"], widget_type);
+                assert_eq!(scene.body["html_execution"], "NOT_PERFORMED");
+                assert_eq!(scene.body["rendering_authorized"], false);
+                assert_eq!(scene.body["render"]["report"]["playable"], false);
+                let scene_id = scene.body["document"]["document_id"].clone();
+                let projection = invoke(
+                    "course_openmaic_package_projection",
+                    json!({"body":{
+                    "document_ids":[scene_id]}}),
+                );
+                assert_eq!(projection.status, 200, "package projection");
+                assert_eq!(projection.body["scene_count"], 1);
+                assert_eq!(projection.body["renderer_executed"], false);
+                assert_eq!(projection.body["all_playable"], false);
+                let state = json!({"outline_body":outline_body,"scene_body":scene_body,
+                    "outline_id":outline.body["document"]["document_id"],"scene_id":scene_id});
+                std::fs::write(&state_path, state.to_string()).expect("save synthetic state");
+            }
+            "reopen" => {
+                let state: Value = serde_json::from_slice(
+                    &std::fs::read(&state_path).expect("read synthetic state"),
+                )
+                .expect("valid synthetic state");
+                let outline = invoke(
+                    "course_openmaic_interactive_outline_generate",
+                    json!({"body":state["outline_body"]}),
+                );
+                assert_eq!(outline.status, 200, "outline replay");
+                assert_eq!(outline.body["worker_invoked"], false);
+                assert_eq!(outline.body["document"]["document_id"], state["outline_id"]);
+                let scene = invoke(
+                    "course_openmaic_scene_generate",
+                    json!({"body":state["scene_body"]}),
+                );
+                assert_eq!(scene.status, 200, "scene replay");
+                assert_eq!(scene.body["worker_invoked"], false);
+                assert_eq!(scene.body["document"]["document_id"], state["scene_id"]);
+                let projection = invoke(
+                    "course_openmaic_package_projection",
+                    json!({"body":{
+                    "document_ids":[state["scene_id"]]}}),
+                );
+                assert_eq!(projection.status, 200, "package readback");
+                assert_eq!(projection.body["renderer_executed"], false);
+                assert_eq!(projection.body["all_playable"], false);
+            }
+            _ => panic!("unknown synthetic Core phase"),
+        }
     }
     #[test]
     fn provider_learning_routes_are_finite_and_history_cursor_is_bounded() {
@@ -2431,6 +3379,28 @@ mod teaching_bridge_tests {
             "/api/v1/documents/doc.real/relations?version=3&cursor=doc.cursor"
         );
         assert!(graph.2.is_none());
+        let research = route(&Request {
+            operation: Operation::DocumentResearchReferences,
+            payload: serde_json::json!({"document_id":"doc.real","version":3}),
+        })
+        .unwrap();
+        assert_eq!(research.0, "GET");
+        assert_eq!(
+            research.1,
+            "/api/v1/documents/doc.real/research-references?version=3"
+        );
+        assert!(research.2.is_none());
+        for payload in [
+            serde_json::json!({"document_id":"../escape"}),
+            serde_json::json!({"document_id":"doc","version":0}),
+            serde_json::json!({"document_id":"doc","version":18446744073709551615_u64}),
+        ] {
+            assert!(route(&Request {
+                operation: Operation::DocumentResearchReferences,
+                payload
+            })
+            .is_err());
+        }
         let collection=route(&Request{operation:Operation::CollectionQuery,payload:serde_json::json!({"document_id":"doc.real","version":2,"view_id":"view.real","offset":20,"limit":10})}).unwrap();
         assert_eq!(collection.0, "GET");
         assert_eq!(

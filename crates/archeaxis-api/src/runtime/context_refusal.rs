@@ -123,6 +123,33 @@ mod tests {
         );
         assert_eq!(answer_request(&selected)["request"]["model"], "m1");
     }
+
+    #[test]
+    fn document_observation_mode_matches_the_working_state_fingerprint() {
+        let asset = json!({"request_id":"asset-request",
+            "asset":{"document_id":"asset","version":1,"content_sha256":"a".repeat(64)},
+            "grant":{"document_id":"grant","version":1,"content_sha256":"b".repeat(64)},
+            "purpose":"synthetic","consumer":"local-machine","operation":"answer",
+            "reference_observation_mode":"document_versions_v1"});
+        let mut answer = json!({"knowledge_id":"k","question":"q","client_request_id":"client",
+            "asset_context_grant":asset.clone()});
+        let body: MachineAnswerBody = serde_json::from_value(answer.clone()).unwrap();
+        assert_eq!(
+            withheld::digest(&answer_request(&body).to_string()),
+            archeaxis_domain::ui_state::machine_request_fingerprint("answer", &answer)
+        );
+        answer["asset_context_grant"]["reference_observation_mode"] = Value::Null;
+        assert!(serde_json::from_value::<MachineAnswerBody>(answer).is_err());
+
+        let mut retest = json!({"knowledge_id":"k","question":"q","retest_of":"old",
+            "asset_context_grant":asset});
+        retest["asset_context_grant"]["operation"] = json!("retest");
+        let body: RetestBody = serde_json::from_value(retest.clone()).unwrap();
+        assert_eq!(
+            withheld::digest(&retest_request(&body).to_string()),
+            archeaxis_domain::ui_state::machine_request_fingerprint("retest", &retest)
+        );
+    }
 }
 
 #[cfg(test)]

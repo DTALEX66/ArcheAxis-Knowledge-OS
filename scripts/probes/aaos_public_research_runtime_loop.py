@@ -1,8 +1,11 @@
 """J2 Core probe using an explicit public query and an isolated candidate workspace.
 
-Run through scripts/runtime/dev.py. No database access, fixtures, knowledge
-admission, provider changes or installed-desktop qualification. Network execution
-requires --public-network; --help and importing this module never launch Core.
+Run through scripts/runtime/dev.py. Canonical workspace writes use Core routes
+or the explicit maintenance-restore operation; exported projections are saved in
+the isolated probe folder. Knowledge admission uses a scripted human-principal
+fixture, not an actual person's judgment. No provider settings are changed and
+this is not installed-desktop qualification. Network execution requires
+--public-network; --help and importing this module never launch Core.
 """
 
 from __future__ import annotations
@@ -13,11 +16,13 @@ import hashlib
 import importlib.util
 import json
 import os
-from pathlib import Path
 import re
+import secrets
+import subprocess
 import sys
 import time
 import uuid
+from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 FAMILIES = ("encyclopedia", "community", "research")
@@ -74,6 +79,26 @@ def checked_original(original, reference):
     return raw
 
 
+def admission_material(materials):
+    """Choose a selected derived source without assuming all families ran."""
+    derived = [item for item in materials if item.get("id") in FAMILIES]
+    require(derived, "no selected family is available for the admission fixture")
+    selected = next((item for item in derived if item["id"] == "research"), derived[0])
+    reference = selected.get("reference", {})
+    require(reference.get("kind") == "source" and reference.get("source_id"),
+            "admission fixture has no source identity")
+    return selected["id"], reference["source_id"]
+
+
+def verify_backup_objects(backup_file, object_dir, object_hashes, expected_sha256, filesystem_path):
+    """Verify saved bytes using the launcher's Windows long-path I/O rules."""
+    require(sha(filesystem_path(backup_file).read_bytes()) == expected_sha256, "backup bytes changed")
+    for digest in object_hashes:
+        require(re.fullmatch(r"[a-f0-9]{64}", digest), "unsafe backup object identity")
+        require(sha(filesystem_path(object_dir / digest).read_bytes()) == digest,
+                "backup source bytes changed")
+
+
 def hidden_start(office, candidate, work, launcher):
     """Reuse the canonical launch handshake with Windows window suppression."""
     original = office.subprocess
@@ -82,7 +107,7 @@ def hidden_start(office, candidate, work, launcher):
         PIPE = original.PIPE
 
         @staticmethod
-        def Popen(*args, **kwargs):
+        def Popen(*args, **kwargs):  # noqa: N802 - mirrors subprocess.Popen for the launcher
             kwargs["creationflags"] = kwargs.get("creationflags", 0) | getattr(
                 original, "CREATE_NO_WINDOW", 0
             )
@@ -93,6 +118,42 @@ def hidden_start(office, candidate, work, launcher):
         return office.start(candidate, work, launcher)
     finally:
         office.subprocess = original
+
+
+def source_core_start(core_exe, work, launcher):
+    """Launch an explicit Core with repository workers and no staged runtime."""
+    staging = work / "worker-staging"
+    launcher.filesystem_path(staging).mkdir(exist_ok=True)
+    python = Path(sys.executable).resolve(strict=True)
+    worker = {
+        "python": str(python),
+        "script": str((REPO / "services/python-workers/transport/text_ndjson.py").resolve(strict=True)),
+        "staging": str(staging.absolute()),
+        "routes": [{"capability": "research.public",
+                    "script": str((REPO / "services/python-workers/machine/worker_machine_answer.py").resolve(strict=True))}],
+    }
+    token = secrets.token_hex(32)
+    machine_token = secrets.token_hex(32)
+    while machine_token == token:
+        machine_token = secrets.token_hex(32)
+    launch = {"launch_token": token, "machine_token": machine_token,
+              "session_id": secrets.token_hex(16), "actor": "human",
+              "protocol": launcher.LAUNCH_PROTOCOL, "text_worker": worker}
+    environment = launcher.build_environment(REPO)
+    environment["ARCHEAXIS_PYTHON"] = str(python)
+    environment["ARCHEAXIS_SCHEDULER_WORKER"] = str(REPO / "services/python-workers/learning/worker_schedule.py")
+    child = subprocess.Popen([str(core_exe), str(work / "workspace.sqlite"), "0"],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             text=True, encoding="utf-8", cwd=REPO, env=environment,
+                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    try:
+        child.stdin.write(json.dumps(launch) + "\n")
+        child.stdin.close()
+        base = launcher.wait_for_readiness(child, 0, 30)
+        return child, base, token, worker
+    except BaseException:
+        launcher.stop(child)
+        raise
 
 
 def stop_owned(child, launcher, records):
@@ -138,15 +199,20 @@ def stop_owned(child, launcher, records):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--candidate", type=Path, required=True)
+    runtime = parser.add_mutually_exclusive_group(required=True)
+    runtime.add_argument("--candidate", type=Path, help="Existing staged candidate under project development root")
+    runtime.add_argument("--core-exe", type=Path, help="Explicit Core executable with repository workers; not a staged candidate")
     parser.add_argument("--public-query", required=True, help="Public text sent to all three providers")
     parser.add_argument("--public-network", action="store_true", help="Explicitly enable public requests")
     parser.add_argument("--backup", action="store_true", help="Also require Core backup creation")
+    parser.add_argument("--restore", action="store_true", help="Restore the verified backup to a separate workspace")
     parser.add_argument("--families", nargs="+", choices=FAMILIES, default=list(FAMILIES),
                         help="Measured families; a subset records the rest as not measured, never as passed")
     args = parser.parse_args()
     if not args.public_network:
         parser.error("execution requires --public-network; no request has been sent")
+    if args.restore and not args.backup:
+        parser.error("--restore requires --backup")
     if not args.public_query.strip() or len(args.public_query.encode("utf-8")) > 512:
         parser.error("public-query must contain 1-512 UTF-8 bytes")
     families = sorted(set(args.families))
@@ -161,22 +227,30 @@ def main():
     run = dev.safe_path(Path(inherited_run))
     paths = dev.layout(REPO, run.name)
     require(run == paths["run"], "run ownership does not match this checkout")
-    candidate = dev.safe_path(args.candidate)
-    candidate.relative_to(paths["dev"])
+    candidate = dev.safe_path(args.candidate) if args.candidate else None
+    core_exe = dev.safe_path(args.core_exe) if args.core_exe else None
+    if candidate is not None:
+        candidate.relative_to(paths["dev"])
+        core_exe = candidate / "core/archeaxis-api.exe"
+    else:
+        require(core_exe.is_file(), "explicit Core executable is missing")
     work = dev.safe_path(paths["artifacts"] / "public-research-workspace")
     work.mkdir(exist_ok=False)
     output = paths["artifacts"] / "public-research-receipt.json"
     require(not output.exists(), "receipt already exists; choose a new run ID")
     receipt = {
         "ok": False, "status": "RUNNING", "evidence_level": "NOT_EXECUTED",
-        "candidate": str(candidate), "workspace": str(work), "query": args.public_query,
+        "candidate": str(candidate) if candidate else None,
+        "runtime_kind": "STAGED_CANDIDATE" if candidate else "EXPLICIT_CORE_EXE",
+        "core_exe": str(core_exe), "workspace": str(work), "query": args.public_query,
         "steps": [], "knowledge_admission": "NOT_EXECUTED",
         "limitations": [
             "Core integration only; no installed Tauri/UI acceptance",
             "Draft support/opposition labels are questions, not verified semantic conclusions",
             "Text anchors address selected derived snapshots, not upstream HTTP byte offsets",
             "Package checks fixed source bytes only; other document/knowledge dependencies are not rebuilt",
-            "Workspace restore and restore-epoch recovery are NOT_EXECUTED",
+            "Knowledge admission is a scripted fixture, not actual human review or truth verification",
+            *([] if args.restore else ["Workspace restore and restore-epoch recovery are NOT_EXECUTED"]),
             "Restart uses process terminate/wait with optional kill; normal host graceful exit awaits native verification",
         ],
         "backup": "NOT_EXECUTED", "restore": "NOT_EXECUTED",
@@ -217,12 +291,25 @@ def main():
                 "patch_sha256": patch, "changes": office.source_changes(dev)}
 
     def candidate_identity():
-        profile = launcher.load_profile(candidate)
-        files = {candidate / "backend-runtime-manifest.json", candidate / "worker-profile.json",
-                 candidate / "core/archeaxis-api.exe", profile["python"], profile["script"]}
-        files.update(route["script"] for route in profile["routes"])
-        files.update((candidate / "workers").rglob("*.py"))
+        if candidate:
+            profile = launcher.load_profile(candidate)
+            files = {candidate / "backend-runtime-manifest.json", candidate / "worker-profile.json",
+                     core_exe, profile["python"], profile["script"]}
+            files.update(route["script"] for route in profile["routes"])
+            files.update((candidate / "workers").rglob("*.py"))
+        else:
+            files = {core_exe, Path(sys.executable).resolve(strict=True),
+                     REPO / "services/python-workers/transport/text_ndjson.py",
+                     REPO / "services/python-workers/machine/worker_machine_answer.py",
+                     REPO / "services/python-workers/machine/public_research.py",
+                     REPO / "services/python-workers/machine/public_research_proxy.py",
+                     REPO / "shared/safe_http.py"}
         return [office.identity(dev.safe_path(path)) for path in sorted(files)]
+
+    def start_runtime(target_work):
+        if candidate:
+            return hidden_start(office, candidate, target_work, launcher)
+        return source_core_start(core_exe, target_work, launcher)
 
     def original(reference, label):
         source_id = reference["source_id"]
@@ -241,7 +328,7 @@ def main():
             receipt["limitations"].append(
                 "Only the requested families were measured; the remaining public channels are NOT_EXECUTED "
                 "in this run and are not reported as passed")
-        child, base, token, worker = hidden_start(office, candidate, work, launcher)
+        child, base, token, worker = start_runtime(work)
         receipt.update({"pid": child.pid, "launch_worker": worker})
         call("version", "GET", "/api/v1/system/version")
         state = call("workspace", "GET", "/api/v1/workspace/ui-state")
@@ -253,11 +340,12 @@ def main():
                       timeout=180)
         receipt["evidence_level"] = "REAL_CORE_PUBLIC_NETWORK"
         require(search.get("request_id") == request_id, "search receipt identity mismatch")
-        channels = checked_channels(search, families)
         receipt["channel_statuses"] = [
             {"family": c["family"], "provider": c["provider"], "status": c["status"],
              "error_code": c.get("error_code")}
             for c in search.get("channels", [])]
+        checkpoint()
+        channels = checked_channels(search, families)
         materials, selected, anchors = [], [], []
         for channel in channels:
             family, hit = channel["family"], channel["hits"][0]
@@ -351,11 +439,9 @@ def main():
         for name, content in files.items():
             (work / name).write_text(content, encoding="utf-8")
         (work / "research-package.json").write_text(json.dumps(package, ensure_ascii=False), encoding="utf-8")
-        # The human-selected research snapshot becomes an accepted, source-bound
-        # knowledge item through the ordinary text-job and review path, so J2 ends
-        # in knowledge rather than only a draft.
-        admission_source = next(
-            material["reference"]["source_id"] for material in materials if material["id"] == "research")
+        # A scripted human-principal fixture selects the research snapshot and
+        # exercises the ordinary text-job and review path. It is not human review.
+        admission_family, admission_source = admission_material(materials)
         job_id = "j2-admission"
         call("admission_enqueue", "POST", "/api/v1/jobs",
              {"job_id": job_id, "kind": "text", "input_ref": admission_source}, expected=202)
@@ -381,15 +467,15 @@ def main():
         knowledge_id = created.get("knowledge_id") or created.get("id")
         require(isinstance(knowledge_id, str) and knowledge_id, "knowledge identity missing")
         call("admission_review", "POST", f"/api/v1/knowledge-items/{knowledge_id}/review-decisions",
-             {"action": "accepted", "reviewer": "owner"}, expected=(200, 201))
+             {"action": "accepted", "reviewer": "synthetic-fixture"}, expected=(200, 201))
         knowledge_before = call("admission_read", "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3")
         receipt["knowledge_admission"] = {
             "state": "ACCEPTED", "knowledge_id": knowledge_id, "source_id": admission_source,
-            "job_id": job_id, "transform_id": transform["transform_id"],
-            "quote_sha256": sha(content.encode("utf-8")),
+            "family": admission_family, "job_id": job_id, "transform_id": transform["transform_id"],
+            "quote_sha256": sha(content.encode("utf-8")), "reviewer_kind": "synthetic_fixture",
         }
         stop()
-        child, base, token, _ = hidden_start(office, candidate, work, launcher)
+        child, base, token, _ = start_runtime(work)
         receipt["restart_pid"] = child.pid
         restarted = call("restart_workspace", "GET", "/api/v1/workspace/ui-state")
         require({key: restarted[key] for key in scope} == scope, "restart changed workspace basis")
@@ -421,14 +507,75 @@ def main():
                            {"backup_id": backup["backup_id"], "expected_sha256": backup["sha256"]})
             require(preview.get("verified") is True and preview.get("compatible") is True,
                     "backup restore preflight failed")
+        if args.restore:
+            filename = backup.get("filename", "")
+            require(isinstance(filename, str) and re.fullmatch(r"[a-f0-9]{32}\.sqlite", filename),
+                    "unsafe backup filename")
+            backup_file = dev.safe_path(work / "backups" / filename)
+            object_dir = dev.safe_path(Path(str(backup_file) + ".objects"))
+            object_hashes = backup["source_sha_list"]
+
+            def verify_backup():
+                verify_backup_objects(backup_file, object_dir, object_hashes, backup["sha256"],
+                                      launcher.filesystem_path)
+
+            verify_backup()
+            stop()
+            restored_work = dev.safe_path(work / "independent-restore")
+            launcher.filesystem_path(restored_work).mkdir(exist_ok=False)
+            receipt["restore"] = {"state": "STARTED", "destination": str(restored_work)}
+            checkpoint()
+            restored = subprocess.run(
+                [str(core_exe), "--maintenance-restore", str(restored_work / "workspace.sqlite"), str(backup_file)],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0), check=False,
+            )
+            restore_result = json.loads(restored.stdout) if restored.stdout else {}
+            require(restored.returncode == 0 and restore_result.get("ok") is True,
+                    "independent maintenance restore failed")
+            require(restore_result.get("authorization_requires_new_grants") is True,
+                    "restore did not require new authorization")
+            child, base, token, _ = start_runtime(restored_work)
+            restored_state = call("restore_workspace", "GET", "/api/v1/workspace/ui-state")
+            require(restored_state["workspace_id"] == scope["workspace_id"]
+                    and restored_state["restore_epoch"] != scope["restore_epoch"],
+                    "restore workspace identity or epoch is invalid")
+            call("restore_old_epoch_refused", "POST", "/api/v1/research/public/read", target, expected=409)
+            restored_target = {**target, "restore_epoch": restored_state["restore_epoch"]}
+            require(call("restore_research_receipt", "POST", "/api/v1/research/public/read", restored_target) == search,
+                    "restored research receipt differs")
+            for index, (raw_ref, raw_before, ref, before) in enumerate(selected):
+                require(original(raw_ref, f"restore_raw_{index}")[0] == raw_before, "restored raw original differs")
+                require(original(ref, f"restore_selected_{index}")[0] == before, "restored derived original differs")
+            for index, (path, before) in enumerate(anchors):
+                require(call(f"restore_anchor_{index}", "GET", path) == before, "restored anchor differs")
+            for name, path, before in (
+                ("document", doc_path, document), ("package", doc_path + "/package", package),
+                ("export", doc_path + "/export?format=markdown", exported),
+                ("knowledge", f"/api/v1/knowledge-items/{knowledge_id}/v3", knowledge_before),
+            ):
+                require(call("restore_" + name, "GET", path) == before, name + " differs after restore")
+            stop()
+            child, base, token, _ = start_runtime(restored_work)
+            require(call("restore_restart_receipt", "POST", "/api/v1/research/public/read", restored_target) == search,
+                    "restored receipt changed after restart")
+            require(call("restore_restart_knowledge", "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3")
+                    == knowledge_before, "restored knowledge changed after restart")
+            verify_backup()
+            receipt["restore"] = {"state": "VERIFIED", "destination": str(restored_work),
+                                  "old_epoch_refused": True, "new_epoch_readback": True,
+                                  "source_objects_verified": len(object_hashes), "restart_verified": True,
+                                  "authorization_requires_new_grants": True}
         receipt.update({"ok": True, "status": "PARTIAL", "verified_subset": [
             f"{len(families)} live public channel(s) of {len(FAMILIES)}", "raw and derived original hashes",
             "fixed source references",
             "derived text anchors and original readback", "research draft save",
-            "human-accepted source-bound knowledge", "restart equal readback",
+            "scripted-fixture-accepted source-bound knowledge", "restart equal readback",
             "document package and Markdown manifest",
             "per-channel statuses recorded; a failed primary channel stays failed and is not renamed as success",
         ]})
+        if args.restore:
+            receipt["verified_subset"].append("independent backup restore, epoch fencing and restart")
     except Exception as error:
         receipt.update({"status": "FAIL", "error": f"{type(error).__name__}: {error}"})
     finally:

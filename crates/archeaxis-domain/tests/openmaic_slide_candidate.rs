@@ -489,6 +489,22 @@ fn a_failed_or_mismatched_chain_writes_nothing() {
         )
         .is_err()
     );
+    let mut unfinished = slide_generation("slide_1", &request, &selection, scene_request);
+    unfinished.record["model_finish_reason"] = json!("length");
+    assert!(matches!(
+        openmaic_slide::commit_openmaic_slide_candidate(
+            &mut conn,
+            "slide_1",
+            &request,
+            &pending,
+            &scene_pending,
+            &worker,
+            &unfinished,
+        ),
+        Err(archeaxis_domain::document::Error::Invalid(
+            "SLIDE_MODEL_COMPLETION_UNCONFIRMED"
+        ))
+    ));
     assert_eq!(document_count(&conn), 2, "no partial candidate");
 }
 

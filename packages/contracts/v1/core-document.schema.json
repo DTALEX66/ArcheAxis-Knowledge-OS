@@ -680,6 +680,15 @@
       ],
       "additionalProperties": true
     },
+    "LearningScheduleIntegrityDto": {
+      "type": "object",
+      "properties": {
+        "state": {"const": "unverified"},
+        "reason": {"enum": ["scheduled_gap_replay_unverified", "legacy_review_evidence_missing_or_invalid", "invalid_previous_card", "too_many_unscheduled_reviews", "unscheduled_review_evidence_missing_or_invalid", "unscheduled_review_time_order_invalid", "schedule_reset_evidence_unverified"]}
+      },
+      "required": ["state", "reason"],
+      "additionalProperties": false
+    },
     "LearningItemsDto": {
       "type": "object",
       "properties": {
@@ -701,7 +710,8 @@
                   "string",
                   "null"
                 ]
-              }
+              },
+              "schedule_integrity": {"$ref": "#/$defs/LearningScheduleIntegrityDto"}
             },
             "required": [
               "item_key",
@@ -734,6 +744,48 @@
             },
             "correct_streak": {
               "type": "integer"
+            },
+            "correct_streak_scope": {
+              "enum": ["assessment", "legacy_item"]
+            },
+            "aggregate_scope": {
+              "const": "item_history"
+            },
+            "next_review": {
+              "type": ["string", "null"]
+            },
+            "schedule_integrity": {"$ref": "#/$defs/LearningScheduleIntegrityDto"},
+            "assessment_progress": {
+              "anyOf": [
+                {"type": "null"},
+                {
+                  "type": "object",
+                  "properties": {
+                    "assessment_id": {"type": "string", "minLength": 1},
+                    "knowledge_id": {"type": "string", "minLength": 1},
+                    "knowledge_version": {"type": "string", "minLength": 1},
+                    "event_count": {"type": "integer", "minimum": 0},
+                    "correct_streak": {"type": "integer", "minimum": 0},
+                    "latest_review": {
+                      "anyOf": [
+                        {"type": "null"},
+                        {
+                          "type": "object",
+                          "properties": {
+                            "event_id": {"type": "integer"},
+                            "assessment_id": {"type": ["string", "null"]},
+                            "next_review": {"type": ["string", "null"]}
+                          },
+                          "required": ["event_id", "assessment_id", "next_review"],
+                          "additionalProperties": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["assessment_id", "knowledge_id", "knowledge_version", "event_count", "correct_streak", "latest_review"],
+                  "additionalProperties": true
+                }
+              ]
             },
             "scheduled_events": {
               "type": "integer"
@@ -1650,6 +1702,20 @@
             "unavailable"
           ]
         },
+        "currentness": {
+          "enum": [
+            "current",
+            "superseded",
+            "not_current"
+          ]
+        },
+        "version_relation": {
+          "enum": [
+            "current",
+            "historical",
+            "unconfirmed"
+          ]
+        },
         "object": {
           "type": [
             "object",
@@ -1663,6 +1729,36 @@
         "status",
         "object"
       ],
+      "additionalProperties": false
+    },
+    "ResearchReferenceDto": {
+      "type": "object",
+      "properties": {
+        "entry_kind": {
+          "enum": ["material", "hypothesis", "method", "experiment", "counterevidence", "conclusion", "unresolved"]
+        },
+        "entry_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "field": {"enum": ["reference", "references", "sources", "basis"]},
+        "index": {"type": "integer", "minimum": 0, "maximum": 255},
+        "reference": {"$ref": "#/$defs/ObjectReferenceDto"},
+        "status": {"enum": ["resolved", "unavailable"]},
+        "object": {"type": ["object", "null"]},
+        "version_relation": {"enum": ["current", "historical", "unconfirmed"]},
+        "current_version": {"type": "integer", "minimum": 0},
+        "currentness": {"enum": ["current", "superseded", "not_current"]}
+      },
+      "required": ["entry_kind", "entry_id", "field", "index", "reference", "status", "object"],
+      "additionalProperties": false
+    },
+    "ResearchReferenceProjectionDto": {
+      "type": "object",
+      "properties": {
+        "schema": {"const": "archeaxis.research-reference-projection/v1"},
+        "document": {"$ref": "#/$defs/DocumentSnapshotDto"},
+        "metadata_status": {"enum": ["supported", "absent", "unsupported"]},
+        "references": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/ResearchReferenceDto"}}
+      },
+      "required": ["schema", "document", "metadata_status", "references"],
       "additionalProperties": false
     },
     "RelationEdgeDto": {

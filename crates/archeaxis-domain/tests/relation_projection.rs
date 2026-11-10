@@ -29,6 +29,13 @@ fn graph_and_list_share_pinned_versions_after_relation_removal_and_restart() {
     .unwrap();
     let sid = source["document_id"].as_str().unwrap();
     let graph = relation_projection::query(&c, tid, Some(1), None).unwrap();
+    let target_node = graph["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|node| node["reference"] == ref1)
+        .unwrap();
+    assert_eq!(target_node["version_relation"], "current");
     assert_eq!(graph["edges"].as_array().unwrap().len(), 1);
     assert_eq!(graph["edges"][0]["direction"], "backlink");
     assert_eq!(
@@ -58,6 +65,19 @@ fn graph_and_list_share_pinned_versions_after_relation_removal_and_restart() {
     let historical = relation_projection::query(&c, sid, Some(1), None).unwrap();
     assert_eq!(historical["edges"][0]["direction"], "outgoing");
     assert_eq!(historical["edges"][0]["relation"]["target"]["version"], 1);
+    let target_node = historical["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|node| node["reference"] == ref1)
+        .unwrap();
+    assert_eq!(target_node["status"], "resolved");
+    assert_eq!(target_node["version_relation"], "historical");
+    assert_eq!(target_node["object"]["current_version"], 2);
+    assert_eq!(
+        target_node["object"]["content_sha256"],
+        target["content_sha256"]
+    );
     assert_eq!(document::read(&c, sid, Some(1)).unwrap(), source);
 }
 #[test]

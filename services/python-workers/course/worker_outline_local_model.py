@@ -27,6 +27,7 @@ Exit 0 only for `REPLY`, 2 for every named failure (the Core preserves it).
 from __future__ import annotations
 
 import hashlib
+import http.client
 import importlib.util
 import json
 from pathlib import Path
@@ -50,7 +51,9 @@ MAX_PROMPT_BYTES = 200_000
 MAX_REPLY_BYTES = 120_000
 DEFAULT_TIMEOUT_S = 30
 MAX_TIMEOUT_S = 120
-REQUEST_KEYS = {"schema", "system", "user", "model", "timeout_s"}
+INTERACTIVE_SCENE_TIMEOUT_S = 200
+DEEPTUTOR_CHOICE_SCHEMA_KIND = "deeptutor_choice_json_schema"
+REQUEST_KEYS = {"schema", "system", "user", "model", "timeout_s", "request_kind"}
 MAX_REJECTION_BYTES = 8192
 
 
@@ -63,7 +66,7 @@ def _rejection_diagnostic(error: urllib.error.HTTPError) -> dict:
     diagnostic = {"error_type": "HTTPError", "http_status": int(error.code)}
     try:
         payload = json.loads(error.read(MAX_REJECTION_BYTES).decode("utf-8", "strict"))
-    except (OSError, ValueError, UnicodeError):
+    except (OSError, ValueError, UnicodeError, http.client.HTTPException):
         return diagnostic
     engine = payload.get("error") if isinstance(payload, dict) else None
     if isinstance(engine, str):
@@ -138,9 +141,13 @@ def _request_valid(request) -> bool:
         return False
     if "model" in request and not _model_selection(request["model"]):
         return False
+    if "request_kind" in request and request["request_kind"] not in (
+            "interactive_scene", DEEPTUTOR_CHOICE_SCHEMA_KIND):
+        return False
     if "timeout_s" in request:
         value = request["timeout_s"]
-        if type(value) is not int or not 1 <= value <= MAX_TIMEOUT_S:
+        limit = INTERACTIVE_SCENE_TIMEOUT_S if request.get("request_kind") == "interactive_scene" else MAX_TIMEOUT_S
+        if type(value) is not int or not 1 <= value <= limit:
             return False
     return True
 
@@ -154,6 +161,40 @@ def _body(protocol: str, model: str, system: str, user: str, max_tokens: int) ->
     # The explicit legacy protocol carries its system prompt in its own field.
     return {"model": model, "prompt": user, "system": system, "stream": False,
             "options": {"num_predict": max_tokens}}
+
+
+def _deeptutor_choice_response_format() -> dict:
+    """One fixed, bounded schema; callers cannot supply arbitrary grammar."""
+    def obj(properties):
+        return {"type": "object", "properties": properties,
+                "required": list(properties), "additionalProperties": False}
+    def string():
+        return {"type": "string"}
+    return {"type": "json_schema", "json_schema": {
+        "name": "archeaxis_response", "strict": True, "schema": obj({
+            "question_type": {"type": "string", "enum": ["choice"]},
+            "question": string(),
+            "options": obj({key: string() for key in "ABCD"}),
+            "correct_answer": {"type": "string", "enum": list("ABCD")},
+            "explanation": string(),
+        })}}
+
+
+def _finish_reason_error(value) -> str | None:
+    """A model reply is complete only when the provider says it stopped normally."""
+    if value is None or value == "":
+        return "MODEL_FINISH_REASON_UNKNOWN"
+    if not isinstance(value, str):
+        return "MODEL_FINISH_REASON_INVALID"
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError:
+        return "MODEL_RESPONSE_INVALID"
+    if value == "stop":
+        return None
+    if value in {"length", "content_filter", "tool_calls", "function_call", "error"}:
+        return "MODEL_NONSTOP"
+    return "MODEL_FINISH_REASON_INVALID"
 
 
 def _answer(payload: dict, protocol: str):
@@ -177,8 +218,9 @@ def _answer(payload: dict, protocol: str):
         if reasoning is not None and not isinstance(reasoning, str):
             return None, "MODEL_CONTENT_INVALID", None
         finish = choice.get("finish_reason")
-        if finish is not None and not isinstance(finish, str):
-            return None, "MODEL_FINISH_REASON_INVALID", None
+        finish_error = _finish_reason_error(finish)
+        if finish_error is not None:
+            return None, finish_error, None
         observed = payload.get("model")
         observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
         if not (content or "").strip():
@@ -188,9 +230,12 @@ def _answer(payload: dict, protocol: str):
     text = payload.get("response")
     if not isinstance(text, str):
         return None, "MODEL_RESPONSE_SHAPE", None
+    if payload.get("done") is not True:
+        return None, "MODEL_COMPLETION_UNCONFIRMED", None
     finish = payload.get("done_reason")
-    if finish is not None and not isinstance(finish, str):
-        return None, "MODEL_FINISH_REASON_INVALID", None
+    finish_error = _finish_reason_error(finish)
+    if finish_error is not None:
+        return None, finish_error, None
     observed = payload.get("model")
     observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
     if not text.strip():
@@ -218,9 +263,23 @@ def process(request) -> dict:
                         elapsed_ms=int((time.monotonic() - started) * 1000),
                         diagnostic={"error_type": type(error).__name__})
     model = request.get("model") or endpoint["model"]
+    response_format = None
+    response_format_sha256 = None
+    if request.get("request_kind") == DEEPTUTOR_CHOICE_SCHEMA_KIND:
+        if endpoint["protocol"] != "openai":
+            return _receipt("MODEL_REJECTED", "MODEL_STRUCTURED_PROTOCOL_UNSUPPORTED",
+                            model=model, requested_model=model,
+                            endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                            network_performed=False)
+        response_format = _deeptutor_choice_response_format()
+        canonical = json.dumps(response_format, ensure_ascii=False, sort_keys=True,
+                               separators=(",", ":")).encode("utf-8")
+        response_format_sha256 = hashlib.sha256(canonical).hexdigest()
     try:
-        body = json.dumps(_body(endpoint["protocol"], model, system, user, max_tokens),
-                          ensure_ascii=False, allow_nan=False).encode("utf-8")
+        body_fields = _body(endpoint["protocol"], model, system, user, max_tokens)
+        if response_format is not None:
+            body_fields["response_format"] = response_format
+        body = json.dumps(body_fields, ensure_ascii=False, allow_nan=False).encode("utf-8")
     except (ValueError, UnicodeError):
         return _receipt("INVALID_MODEL_OUTPUT", "request body could not be encoded")
     path = "/chat/completions" if endpoint["protocol"] == "openai" else "/api/generate"
@@ -246,11 +305,13 @@ def process(request) -> dict:
                             model=model, requested_model=model,
                             endpoint=endpoint["base"], protocol=endpoint["protocol"],
                             elapsed_ms=int((time.monotonic() - started) * 1000),
+                            network_performed=True,
                             diagnostic={"error_type": "HTTPError", "http_status": int(error.code)})
         return _receipt("MODEL_REJECTED", "MODEL_HTTP_REJECTED",
                         model=model, requested_model=model,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         elapsed_ms=int((time.monotonic() - started) * 1000),
+                        network_performed=True,
                         diagnostic=_rejection_diagnostic(error))
     except Exception as error:  # noqa: BLE001 - unreachable/timed-out lanes stay local failures
         timed_out = isinstance(error, TimeoutError) or (
@@ -263,15 +324,28 @@ def process(request) -> dict:
             model=model, requested_model=model,
             endpoint=endpoint["base"], protocol=endpoint["protocol"],
             elapsed_ms=int((time.monotonic() - started) * 1000),
+            # Before response headers, the transport cannot tell whether the
+            # loopback peer received the request; do not assert it did not.
+            network_performed=None,
             diagnostic={"error_type": type(error).__name__})
     try:
         with response:
             payload = machine.read_model_json(response)
-    except (ValueError, TypeError, UnicodeError, OSError) as error:
+    except TimeoutError as error:
+        # Headers arrived, but the response body did not finish before the
+        # socket deadline. This is a timeout, not evidence of malformed JSON.
+        return _receipt("MODEL_TIMEOUT", "MODEL_RESPONSE_TIMEOUT",
+                        model=model, requested_model=model,
+                        endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        elapsed_ms=int((time.monotonic() - started) * 1000),
+                        network_performed=True,
+                        diagnostic={"error_type": type(error).__name__})
+    except (ValueError, TypeError, UnicodeError, OSError, http.client.HTTPException) as error:
         return _receipt("INVALID_MODEL_OUTPUT", "MODEL_RESPONSE_INVALID",
                         model=model, requested_model=model,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         elapsed_ms=int((time.monotonic() - started) * 1000),
+                        network_performed=True,
                         diagnostic={"error_type": type(error).__name__})
     elapsed = time.monotonic() - started
     if elapsed >= timeout_s:
@@ -279,36 +353,59 @@ def process(request) -> dict:
         return _receipt("MODEL_TIMEOUT", "MODEL_RESPONSE_AFTER_DEADLINE",
                         model=model, requested_model=model,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        network_performed=True,
                         elapsed_ms=int(elapsed * 1000))
     answer, reason, observed = _answer(payload, endpoint["protocol"])
+    try:
+        if answer is None:
+            if observed is not None:
+                observed.encode("utf-8")
+            encoded_content = None
+        else:
+            encoded_content = answer["content"].encode("utf-8")
+            for value in (answer["finish_reason"], answer["observed"]):
+                if value is not None:
+                    value.encode("utf-8")
+    except UnicodeEncodeError:
+        # JSON can contain escaped unpaired surrogates. Do not misreport an
+        # invalid model response as an invalid input or echo its contents.
+        return _receipt("INVALID_MODEL_OUTPUT", "MODEL_RESPONSE_INVALID",
+                        model=model, requested_model=model,
+                        endpoint=endpoint["base"], protocol=endpoint["protocol"],
+                        network_performed=True,
+                        elapsed_ms=int((time.monotonic() - started) * 1000))
     if answer is None:
         return _receipt("NO_FINAL_ANSWER" if reason in ("EMPTY_CONTENT", "REASONING_ONLY")
                         else "INVALID_MODEL_OUTPUT", reason,
                         model=model, requested_model=model, observed_model=observed,
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         max_tokens=max_tokens, timeout_s=timeout_s,
+                        network_performed=True,
                         elapsed_ms=int(elapsed * 1000))
     content = answer["content"]
-    if len(content.encode("utf-8")) > MAX_REPLY_BYTES:
+    if len(encoded_content) > MAX_REPLY_BYTES:
         # A reply the replay contract cannot carry is refused, never truncated.
         return _receipt("INVALID_MODEL_OUTPUT", "MODEL_REPLY_BUDGET",
                         model=model, requested_model=model, observed_model=answer["observed"],
                         finish_reason=answer["finish_reason"],
                         endpoint=endpoint["base"], protocol=endpoint["protocol"],
                         max_tokens=max_tokens, timeout_s=timeout_s,
+                        network_performed=True,
                         elapsed_ms=int(elapsed * 1000))
     usage = machine.reported_usage(payload, endpoint["protocol"])
     return _receipt("REPLY", None,
                     content=content,
-                    content_sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
-                    content_bytes=len(content.encode("utf-8")),
+                    content_sha256=hashlib.sha256(encoded_content).hexdigest(),
+                    content_bytes=len(encoded_content),
                     model=model, requested_model=model, observed_model=answer["observed"],
                     finish_reason=answer["finish_reason"],
                     usage=usage, usage_status="REPORTED" if usage is not None else "UNKNOWN",
                     max_tokens=max_tokens, timeout_s=timeout_s,
                     elapsed_ms=int(elapsed * 1000),
                     endpoint=endpoint["base"], protocol=endpoint["protocol"],
-                    network_performed=True)
+                    network_performed=True,
+                    **({"response_format_sha256": response_format_sha256}
+                       if response_format_sha256 is not None else {}))
 
 
 def _bounded(result: dict) -> dict:

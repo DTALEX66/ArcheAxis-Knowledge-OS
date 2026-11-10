@@ -59,6 +59,15 @@ class LaunchFailure(Exception):  # noqa: N818 - retained public exception contra
     """A named startup failure; the message says which component failed."""
 
 
+def filesystem_path(path: Path, *, force: bool = False) -> Path:
+    """Use the Windows extended form for long local I/O, not launch profiles."""
+    if os.name == "nt":
+        absolute = os.path.abspath(path)
+        if (force or len(absolute) >= 248) and not absolute.startswith("\\\\"):
+            return Path("\\\\?\\" + absolute)
+    return path
+
+
 def safe_path(root: Path, value: str) -> Path:
     spelling = value.replace("\\", "/")
     if not value.strip() or spelling.lower().startswith("e:") or spelling.startswith("//") or ".." in spelling.split("/"):
@@ -69,7 +78,7 @@ def safe_path(root: Path, value: str) -> Path:
         raise LaunchFailure("protected worker profile path")
     for part in (*reversed(path.parents), path):
         try:
-            info = part.lstat()
+            info = filesystem_path(part).lstat()
         except (FileNotFoundError, NotADirectoryError):
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
@@ -79,10 +88,11 @@ def safe_path(root: Path, value: str) -> Path:
 
 def load_profile(root: Path, explicit_path: str | None = None) -> dict:
     path = safe_path(root, explicit_path if explicit_path is not None else PROFILE_NAME)
-    if not path.is_file():
+    io_path = filesystem_path(path)
+    if not io_path.is_file():
         raise LaunchFailure(f"worker profile is missing: {path}")
     try:
-        if path.stat().st_size > 16384:
+        if io_path.stat().st_size > 16384:
             raise LaunchFailure("worker profile exceeds limit")
 
         def unique(pairs):
@@ -93,7 +103,7 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
                 document[key] = value
             return document
 
-        document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
+        document = json.loads(io_path.read_text(encoding="utf-8"), object_pairs_hook=unique)
     except (json.JSONDecodeError, UnicodeError, OSError) as error:
         raise LaunchFailure("worker profile is not valid readable JSON") from error
     allowed_fields = (
@@ -154,7 +164,7 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
         # Unsafe paths still fail above; other routes keep their existing rule.
         if capability in ("deeptutor.practice.import", "deeptutor.question.turn",
                           "deeptutor.teaching.feedback"):
-            if not resolved_script.is_file():
+            if not filesystem_path(resolved_script).is_file():
                 continue
         require_file(resolved_script, f"worker route script for {capability}")
         resolved.append({"capability": capability, "script": resolved_script})
@@ -162,7 +172,7 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
 
 
 def require_file(path: Path, what: str) -> Path:
-    if not path.is_file():
+    if not filesystem_path(path).is_file():
         raise LaunchFailure(f"{what} is missing: {path}")
     return path
 
@@ -212,7 +222,9 @@ def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
         return metadata.st_dev, metadata.st_ino, metadata.st_size, metadata.st_mtime_ns
 
     try:
-        root = data_root.resolve(strict=True)
+        # Keep the complete containment/identity comparison in one path form;
+        # a short root can still contain a config file beyond MAX_PATH.
+        root = filesystem_path(data_root, force=True).resolve(strict=True)
         folder = root / "config"
         try:
             parent = folder.stat(follow_symlinks=False)
@@ -322,16 +334,10 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
     the wrong problem, which is what a 269-character staged member did here.
     """
     path_errnos = {errno.ENAMETOOLONG, errno.ENOTDIR, errno.EINVAL}
-    # Windows reports a path beyond its own limit as "file not found", so an
-    # absence label there would hide the real condition behind a missing file.
-    windows_path_limit = 260
-
-    def classified(error: OSError, missing: str, unreadable: str, target) -> str:
-        if getattr(error, "errno", None) in path_errnos:
+    def classified(error: OSError, missing: str, unreadable: str) -> str:
+        if getattr(error, "errno", None) in path_errnos or getattr(error, "winerror", None) in (123, 206):
             return "path_invalid"
         if isinstance(error, FileNotFoundError):
-            if os.name == "nt" and len(str(target)) > windows_path_limit:
-                return "path_invalid"
             return missing
         return unreadable
 
@@ -357,19 +363,20 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
                 or not re.fullmatch(r"[a-f0-9]{64}", identity["sha256"])):
             return False, "member_claim_invalid"
         path = safe_path(root, f"{OPENMAIC_DIRECTORY}/{relative}")
+        io_path = filesystem_path(path)
         try:
-            info = path.stat()
+            info = io_path.stat()
         except OSError as error:
-            return False, classified(error, "member_absent", "member_unreadable", path)
+            return False, classified(error, "member_absent", "member_unreadable")
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
             return False, "member_unusable"
         if info.st_size != identity["bytes"]:
             return False, "member_identity_mismatch"
         digest = hashlib.sha256()
         try:
-            stream = path.open("rb")
+            stream = io_path.open("rb")
         except OSError as error:
-            return False, classified(error, "member_absent", "member_unreadable", path)
+            return False, classified(error, "member_absent", "member_unreadable")
         with stream:
             before = os.fstat(stream.fileno())
             if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
@@ -397,21 +404,22 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
 
     try:
         path = safe_path(root, "backend-runtime-manifest.json")
+        io_path = filesystem_path(path)
         try:
-            info = path.stat()
+            info = io_path.stat()
         except OSError as error:
-            return None, classified(error, "absent", "manifest_unreadable", path)
+            return None, classified(error, "absent", "manifest_unreadable")
         if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
                 or not 0 < info.st_size <= OPENMAIC_MANIFEST_MAX_BYTES):
             return None, "manifest_unusable"
-        with path.open("rb") as stream:
+        with io_path.open("rb") as stream:
             before = os.fstat(stream.fileno())
             if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
                     or file_identity(before) != file_identity(info)):
                 return None, "manifest_unusable"
             raw = stream.read(info.st_size + 1)
             after = os.fstat(stream.fileno())
-            current = path.stat()
+            current = io_path.stat()
             if (len(raw) != info.st_size or not stat.S_ISREG(after.st_mode) or not stat.S_ISREG(current.st_mode)
                     or file_identity(after) != file_identity(before) or file_identity(current) != file_identity(before)):
                 return None, "manifest_unusable"
@@ -420,10 +428,18 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=reject_nonfinite)
         if not isinstance(document, dict) or document.get("schema") != "archeaxis.backend-runtime/v1":
             return None, "manifest_invalid"
-        config, files = document.get("openmaic_scene_build"), document.get("files")
-        if (not isinstance(config, dict) or set(config) != {"status", "node_sha256"}
-                or config["status"] != "INCLUDED" or not isinstance(config["node_sha256"], str)
-                or not re.fullmatch(r"[a-f0-9]{64}", config["node_sha256"]) or not isinstance(files, dict)):
+        files = document.get("files")
+        if not isinstance(files, dict):
+            return None, "manifest_invalid"
+        if "openmaic_scene_build" not in document:
+            return None, "not_declared"
+        config = document["openmaic_scene_build"]
+        if not isinstance(config, dict) or set(config) != {"status", "node_sha256"}:
+            return None, "manifest_invalid"
+        if config["status"] == "NOT_INCLUDED" and config["node_sha256"] is None:
+            return None, "not_included"
+        if (config["status"] != "INCLUDED" or not isinstance(config["node_sha256"], str)
+                or not re.fullmatch(r"[a-f0-9]{64}", config["node_sha256"])):
             return None, "manifest_invalid"
         for relative, identity in OPENMAIC_FILES.items():
             if files.get(f"{OPENMAIC_DIRECTORY}/{relative}") != identity:
@@ -448,7 +464,7 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
     except LaunchFailure:
         return None, "manifest_unusable"
     except OSError as error:
-        return None, classified(error, "absent", "manifest_unreadable", root)
+        return None, classified(error, "absent", "manifest_unreadable")
 
 
 def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
@@ -463,8 +479,8 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
     data_root = safe_path(ROOT, str(data_root))
     staging = safe_path(data_root, "worker-staging")
     workspace = safe_path(data_root, workspace_name)
-    data_root.mkdir(parents=True, exist_ok=True)
-    staging.mkdir(parents=True, exist_ok=True)
+    filesystem_path(data_root).mkdir(parents=True, exist_ok=True)
+    filesystem_path(staging).mkdir(parents=True, exist_ok=True)
 
     launch = {
         "launch_token": secrets.token_hex(32),
@@ -495,10 +511,21 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
         launch["document_check_config"] = check_config
     if check_error is not None:
         launch["document_check_config_error"] = check_error
+    launch_directory = ROOT
+    if os.name == "nt":
+        # CreateProcess cannot use an overlong current directory even when its
+        # executable is addressed using extended syntax. Do not inherit an
+        # unrelated caller's cwd; use the nearest short runtime ancestor.
+        while len(str(launch_directory)) >= 248:
+            parent = launch_directory.parent
+            if parent == launch_directory:
+                raise LaunchFailure("no usable Core working directory")
+            launch_directory = parent
     child = subprocess.Popen(
-        [str(core), str(workspace), str(port)],
+        [str(filesystem_path(core)), str(workspace), str(port)],
+        executable=str(filesystem_path(core)),
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, encoding="utf-8", cwd=str(ROOT),
+        text=True, encoding="utf-8", cwd=str(launch_directory),
         env=build_environment(ROOT),
     )
     try:
@@ -509,6 +536,8 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
+        if openmaic_reason is not None:
+            receipt["openmaic_node_worker_error"] = openmaic_reason
         tokens = {"human": launch["launch_token"], "machine": launch["machine_token"]}
         return child, base, receipt, tokens
     except BaseException:

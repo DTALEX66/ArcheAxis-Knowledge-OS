@@ -679,6 +679,9 @@ pub fn commit_openmaic_quiz_candidate(
     worker_document: &Value,
     generation: &OpenMaicQuizGeneration,
 ) -> Result<Value, Error> {
+    if generation.record["model_finish_reason"] != "stop" {
+        return Err(invalid("QUIZ_MODEL_COMPLETION_UNCONFIRMED"));
+    }
     if create_request_id != pending.create_request_id.as_str()
         || openmaic_slide::openmaic_slide_request_sha256(request, &pending.selection)
             != pending.request_sha256

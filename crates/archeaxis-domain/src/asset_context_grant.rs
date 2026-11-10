@@ -29,6 +29,21 @@ pub enum State {
     Granted,
     Revoked,
 }
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ReferenceObservationMode {
+    #[serde(rename = "document_versions_v1")]
+    DocumentVersionsV1,
+}
+
+fn explicit_observation_mode<'de, D>(
+    deserializer: D,
+) -> Result<Option<ReferenceObservationMode>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    ReferenceObservationMode::deserialize(deserializer).map(Some)
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AssetContextGrant {
@@ -50,6 +65,14 @@ pub struct PacketRequest {
     pub purpose: String,
     pub consumer: Consumer,
     pub operation: Operation,
+    // An omitted mode must keep old request and packet hashes byte-for-byte.
+    // Explicit null is rejected so typed requests and journal fingerprints agree.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "explicit_observation_mode"
+    )]
+    pub reference_observation_mode: Option<ReferenceObservationMode>,
 }
 fn invalid(s: &'static str) -> Error {
     Error::Invalid(s)
@@ -150,11 +173,17 @@ pub fn admit(
             "asset packet exceeds current consumer/purpose/operation/version/expiry grant",
         ));
     }
-    let items = ai_asset::packet_items(conn, &g.asset, now)?;
-    let packet = json!({"schema":"archeaxis.ai-context-packet/v1","asset":g.asset,"consumer":actual_consumer,
+    let mut items = ai_asset::packet_items(conn, &g.asset, now)?;
+    if request.reference_observation_mode == Some(ReferenceObservationMode::DocumentVersionsV1) {
+        ai_asset::observe_document_versions(conn, &mut items)?;
+    }
+    let mut packet = json!({"schema":"archeaxis.ai-context-packet/v1","asset":g.asset,"consumer":actual_consumer,
         "purpose":g.purpose,"operation":request.operation,"items":items,
         "grant":request.grant,"reference_only_sources":true,"private_session_access":false,
         "tool_execution":"NOT_EXECUTED","machine_qualification":false,"human_mastery":false,"professional_truth":false});
+    if let Some(mode) = &request.reference_observation_mode {
+        packet["reference_observation_mode"] = json!(mode);
+    }
     if packet.to_string().len() > 128000 {
         return Err(invalid("full context packet exceeds bounded output"));
     }

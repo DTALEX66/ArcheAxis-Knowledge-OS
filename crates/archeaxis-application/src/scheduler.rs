@@ -325,6 +325,19 @@ mod tests {
     }
 
     #[test]
+    fn scheduler_state_float_roundtrips_without_a_one_ulp_change() {
+        for expected in [5.342381004990874_f64, 51.248178375505404, 97.45365320034685] {
+            let encoded = serde_json::json!({"stability": expected, "difficulty": 2.1}).to_string();
+            let decoded = archeaxis_domain::learning::parse_fsrs_card(&encoded).unwrap();
+            assert_eq!(
+                decoded["stability"].as_f64().unwrap().to_bits(),
+                expected.to_bits(),
+                "{encoded}"
+            );
+        }
+    }
+
+    #[test]
     fn profile_requires_an_object_root() {
         let sequence = serde_json::json!([
             WORKER_PROFILE_SCHEMA,
@@ -612,6 +625,14 @@ impl std::fmt::Display for SchedulerError {
 impl std::error::Error for SchedulerError {}
 
 /// A scheduling answer produced by the reused scheduler.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReplayReceipt {
+    pub schema: String,
+    pub count: usize,
+    pub sha256: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Schedule {
     pub authority: String,
@@ -619,6 +640,7 @@ pub struct Schedule {
     pub due: String,
     pub state: String,
     pub card_state: serde_json::Value,
+    pub replay_receipt: Option<ReplayReceipt>,
 }
 
 pub struct SchedulerClient {
@@ -819,7 +841,9 @@ impl SchedulerClient {
                 .map_err(|_| SchedulerError::Unavailable("worker I/O thread panicked".into()))?;
         }
         let (line, status) = result?;
-        let parsed: serde_json::Value = serde_json::from_slice(&line).map_err(|e| {
+        let text = std::str::from_utf8(&line)
+            .map_err(|_| SchedulerError::Unavailable("scheduler response is not UTF-8".into()))?;
+        let parsed = archeaxis_domain::learning::parse_fsrs_card(text).map_err(|e| {
             SchedulerError::Unavailable(format!("unparsable scheduler response: {e}"))
         })?;
         if let Some(error) = parsed.get("error").and_then(|v| v.as_str()) {
@@ -876,6 +900,9 @@ impl SchedulerClient {
             due,
             state,
             card_state: card_state.into(),
+            replay_receipt: parsed
+                .get("replay_receipt")
+                .and_then(|value| serde_json::from_value(value.clone()).ok()),
         })
     }
 }

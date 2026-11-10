@@ -88,3 +88,74 @@ fn unguarded_callers_keep_their_previous_behaviour() {
     .expect("unguarded callers are unaffected by the new basis parameter");
     assert_eq!(result.next_review_days, SCHEDULE_UNAVAILABLE);
 }
+
+#[test]
+fn assessment_scoped_basis_ignores_other_versions_but_rejects_its_own_stale_state() {
+    let (_dir, mut conn) = workspace();
+    let fsrs = || {
+        ReviewSchedule {
+        schedule_json: r#"{"authority":"fsrs","state":{"state":"review","step":null,"stability":30.0,"difficulty":3.0,"last_review":"2026-09-02T00:00:00+00:00","due":"2026-10-02T00:00:00+00:00"}}"#.into(),
+        next_review: Some("2026-10-02T00:00:00+00:00".into()),
+        next_review_days: 30,
+    }
+    };
+    learning::record_review_with_state_and_answer(
+        &mut conn,
+        "card",
+        "review",
+        true,
+        "old-version",
+        "old",
+        Some("old"),
+        Some("assessment-old"),
+        Some(None),
+        |_| Ok(fsrs()),
+    )
+    .unwrap();
+    assert!(
+        learning::latest_fsrs_state_for_assessment(&conn, "card", Some("assessment-old"))
+            .unwrap()
+            .is_some()
+    );
+    assert_eq!(
+        learning::latest_fsrs_state_for_assessment(&conn, "card", Some("assessment-new")).unwrap(),
+        None
+    );
+    let new = learning::record_review_with_state_and_answer(
+        &mut conn,
+        "card",
+        "review",
+        true,
+        "new-version",
+        "new",
+        Some("new"),
+        Some("assessment-new"),
+        Some(None),
+        |_| Ok(fsrs()),
+    )
+    .unwrap();
+    assert_eq!(new.streak_after, 1);
+    let projection: serde_json::Value = serde_json::from_str(&new.outcome_json).unwrap();
+    assert_eq!(projection["mastery_projection"]["attempts"], 1);
+    assert_eq!(learning::correct_streak(&conn, "card").unwrap(), 2); // legacy item history
+    assert_eq!(
+        learning::correct_streak_for_assessment(&conn, "card", Some("assessment-new")).unwrap(),
+        1
+    );
+    let stale = learning::record_review_with_state_and_answer(
+        &mut conn,
+        "card",
+        "review",
+        true,
+        "new-stale",
+        "new-stale",
+        None,
+        Some("assessment-new"),
+        Some(None),
+        |_| panic!("stale assessment basis must not schedule"),
+    );
+    assert!(
+        matches!(stale, Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("schedule basis conflict"))
+    );
+    assert_eq!(learning::events_for_item(&conn, "card").unwrap().len(), 2);
+}

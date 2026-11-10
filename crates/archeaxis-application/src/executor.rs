@@ -1589,6 +1589,36 @@ pub struct DocumentCheckConfig {
     pub timeout_seconds: u64,
     pub search_limit: u64,
 }
+
+pub struct DocumentCheckOutput {
+    pub response: serde_json::Value,
+    pub observation: archeaxis_domain::document::CheckWorkerObservation,
+}
+
+#[derive(Debug)]
+pub struct DocumentCheckError {
+    pub reason: String,
+    pub observation: Option<archeaxis_domain::document::CheckWorkerObservation>,
+}
+
+impl From<&str> for DocumentCheckError {
+    fn from(reason: &str) -> Self {
+        Self {
+            reason: reason.to_owned(),
+            observation: None,
+        }
+    }
+}
+
+impl From<String> for DocumentCheckError {
+    fn from(reason: String) -> Self {
+        Self {
+            reason,
+            observation: None,
+        }
+    }
+}
+
 impl DocumentCheckConfig {
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.provider.is_empty()
@@ -1670,7 +1700,7 @@ impl Executor {
     pub async fn document_check(
         &self,
         request: serde_json::Value,
-    ) -> Result<serde_json::Value, String> {
+    ) -> Result<DocumentCheckOutput, DocumentCheckError> {
         let config = self.document_check_config().ok_or("not_configured")?;
         config.validate().map_err(str::to_owned)?;
         if request["config"] != serde_json::to_value(&config).map_err(|_| "invalid_config")? {
@@ -1769,13 +1799,32 @@ impl Executor {
             let mut output = child.0.stdout.take().ok_or("worker_stdout_missing")?;
             let mut errors = child.0.stderr.take().ok_or("worker_stderr_missing")?;
             let (send, receive) = mpsc::channel();
+            let stdout_seen = Arc::new(AtomicBool::new(false));
+            let stdout_eof = Arc::new(AtomicBool::new(false));
+            let reader_seen = stdout_seen.clone();
+            let reader_eof = stdout_eof.clone();
             let reader = thread::spawn(move || {
                 let mut bytes = Vec::new();
-                let result = output
-                    .by_ref()
-                    .take(128001)
-                    .read_to_end(&mut bytes)
-                    .map_err(|_| "worker_read_failed");
+                let result = (|| {
+                    let mut buffer = [0_u8; 8192];
+                    while bytes.len() < 128001 {
+                        let limit = buffer.len().min(128001 - bytes.len());
+                        let count = match output.read(&mut buffer[..limit]) {
+                            Ok(count) => count,
+                            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {
+                                continue;
+                            }
+                            Err(_) => return Err("worker_read_failed"),
+                        };
+                        if count == 0 {
+                            reader_eof.store(true, Ordering::Release);
+                            break;
+                        }
+                        reader_seen.store(true, Ordering::Release);
+                        bytes.extend_from_slice(&buffer[..count]);
+                    }
+                    Ok(())
+                })();
                 let _ = send.send(result.map(|_| bytes));
             });
             // Drain without logging secret-bearing SDK stderr; no unbounded allocation.
@@ -1891,7 +1940,18 @@ impl Executor {
                 Ok(value)
             })();
             ready_cancelled.store(true, Ordering::Release);
-            if child.0.try_wait().ok().flatten().is_none() {
+            // If stdout closed just before the process exited, allow a short,
+            // deadline-bounded interval to observe its real status before cleanup.
+            let observation_deadline = (Instant::now() + Duration::from_secs(1)).min(deadline);
+            let mut exit_status = child.0.try_wait().ok().flatten();
+            while exit_status.is_none()
+                && stdout_eof.load(Ordering::Acquire)
+                && Instant::now() < observation_deadline
+            {
+                thread::sleep(Duration::from_millis(10));
+                exit_status = child.0.try_wait().ok().flatten();
+            }
+            if exit_status.is_none() {
                 let _ = child.0.kill();
                 let _ = child.0.wait();
             }
@@ -1925,11 +1985,41 @@ impl Executor {
                     let _ = task.join();
                 }
             }
+            #[cfg(unix)]
+            let signal = {
+                use std::os::unix::process::ExitStatusExt;
+                exit_status.as_ref().and_then(ExitStatusExt::signal)
+            };
+            #[cfg(not(unix))]
+            let signal = None;
+            let observation = archeaxis_domain::document::CheckWorkerObservation {
+                exit_observed: exit_status.is_some(),
+                exit_code: exit_status.as_ref().and_then(|status| status.code()),
+                signal,
+                stdout_bytes_observed: if stdout_seen.load(Ordering::Acquire) {
+                    Some(true)
+                } else if stdout_eof.load(Ordering::Acquire) {
+                    Some(false)
+                } else {
+                    None
+                },
+            };
             if incomplete {
-                return Err("worker_cleanup_incomplete".into());
+                return Err(DocumentCheckError {
+                    reason: "worker_cleanup_incomplete".into(),
+                    observation: Some(observation),
+                });
             }
-
-            result
+            match result {
+                Ok(response) => Ok(DocumentCheckOutput {
+                    response,
+                    observation,
+                }),
+                Err(reason) => Err(DocumentCheckError {
+                    reason,
+                    observation: Some(observation),
+                }),
+            }
         })
         .await
         .map_err(|_| "worker_task_failed".to_string())?

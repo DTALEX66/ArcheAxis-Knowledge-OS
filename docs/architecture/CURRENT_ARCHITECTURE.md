@@ -30,7 +30,7 @@ React/TypeScript/Vite UI -> finite Tauri 2 / Rust host bridge
 ## 写入和计算
 
 - [API](../../crates/archeaxis-api/src/lib.rs) 提供路由，`archeaxis-application` 编排，`archeaxis-domain` 承载领域逻辑。
-- [Store / WriterActor](../../crates/archeaxis-store-sqlite/src/writer.rs) 持有工作区锁，由单线程拥有 SQLite 连接、有界队列串行处理数据库操作。能力 Executor 的 worker transport 在外部编排；不能据此声称所有子进程等待都已移出写线程。当前 review 路由在 `with_store` / `record_review_with_state_and_answer` 回调内同步等待 FSRS 子进程，仍会占用 writer，是已知的并发/延迟限制。维护和迁移使用各自的受控入口。
+- [Store / WriterActor](../../crates/archeaxis-store-sqlite/src/writer.rs) 持有工作区锁，由单线程拥有 SQLite 连接、有界队列串行处理数据库操作。能力 Executor 的 worker transport 在外部编排；不能据此声称所有子进程等待都已移出写线程。当前 `/learning/reviews` 在写线程内短暂读取复习身份、输入和 FSRS 状态快照，在写线程外等待调度子进程，再回到写事务校验身份与状态后提交；快照过期可能返回冲突。维护和迁移使用各自的受控入口。
 - [能力执行器](../../crates/archeaxis-application/src/executor.rs) 与 [worker 消息验证](../../crates/archeaxis-sidecar-protocol/src/worker.rs) 限制进程与消息边界；Rust 校验响应和输出后提交状态。Python workers 不持有主库写入权，也不能授予人工审批。
 - [FSRS 适配器](../../crates/archeaxis-application/src/scheduler.rs) 调用 [worker_schedule.py](../../services/python-workers/learning/worker_schedule.py) 的单请求 JSON stdin/stdout 协议；缺失 worker 时明确报错，不以临时间隔算法冒充成功。
 - [跨语言合同](../../packages/contracts/) 约束实际输入输出。Schema 不替代身份、权限、路径或跨字段校验；进程与协议隔离也不等于 OS sandbox。

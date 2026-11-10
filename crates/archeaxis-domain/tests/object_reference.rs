@@ -17,11 +17,28 @@ fn document_and_block_references_pin_history_after_restart() {
         version: 1,
         block_id: Some("original".into()),
     };
+    let current = object_reference::resolve(&conn, &reference).unwrap();
+    assert_eq!(current["version_relation"], "current");
+    assert_eq!(current["current_version"], 1);
     document::save(&mut conn, &id, 1, json!({"type":"doc","content":[]})).unwrap();
     drop(conn);
     let conn = init_workspace(db.to_str().unwrap()).unwrap();
     let resolved = object_reference::resolve(&conn, &reference).unwrap();
     assert_eq!(resolved["content_sha256"], first["content_sha256"]);
+    assert_eq!(resolved["reference"]["version"], 1);
+    assert_eq!(resolved["version_relation"], "historical");
+    assert_eq!(resolved["current_version"], 2);
+    let newest = object_reference::resolve(
+        &conn,
+        &Reference::Document {
+            document_id: id.clone(),
+            version: 2,
+            block_id: None,
+        },
+    )
+    .unwrap();
+    assert_eq!(newest["version_relation"], "current");
+    assert_eq!(newest["current_version"], 2);
     assert!(
         object_reference::validate(
             &conn,
@@ -37,13 +54,23 @@ fn document_and_block_references_pin_history_after_restart() {
         object_reference::validate(
             &conn,
             &Reference::Document {
-                document_id: id,
+                document_id: id.clone(),
                 version: 99,
                 block_id: None
             }
         )
         .is_err()
     );
+    // Simulate an inconsistent stored head in this disposable fixture: a
+    // readable future version must not be advertised as current or historical.
+    conn.execute(
+        "UPDATE documents SET current_version=0 WHERE document_id=?1",
+        [&id],
+    )
+    .unwrap();
+    let unconfirmed = object_reference::resolve(&conn, &reference).unwrap();
+    assert_eq!(unconfirmed["version_relation"], "unconfirmed");
+    assert_eq!(unconfirmed["current_version"], 0);
 }
 #[test]
 fn knowledge_reference_reports_currentness_beside_the_immutable_identity() {
