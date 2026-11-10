@@ -52,6 +52,21 @@ def _classify(paths: list[str], force_full: bool = False) -> dict:
     return json.loads(result.stdout)
 
 
+def test_formal_asset_retest_paths_require_actual_core_gate() -> None:
+    test_path = "tests/contract/test_ai_asset_formal_retest_real_core.py"
+    test_plan = _classify([test_path])
+    assert {"rust-vnext", "contracts-vnext", "static", "lint"} <= set(test_plan["required_gates"])
+    assert test_plan["unknown_paths"] == []
+    for path in ("scripts/ci/real_core_grading_journey.py",
+                 "scripts/probes/aaos_ai_reference_observation_smoke.py"):
+        plan = _classify([path])
+        assert {"rust-vnext", "static", "lint"} <= set(plan["required_gates"]), path
+        assert plan["unknown_paths"] == [], path
+    unrelated = _classify(["tests/contract/test_ai_asset_packet_contract.py"])
+    assert "contracts-vnext" in unrelated["required_gates"]
+    assert "rust-vnext" not in unrelated["required_gates"]
+
+
 def test_docs_only_classifies_static() -> None:
     plan = _classify(["docs/history/notes.md", "README.md"])
     assert plan["required_gates"] == ["ci-verdict", "static"]
