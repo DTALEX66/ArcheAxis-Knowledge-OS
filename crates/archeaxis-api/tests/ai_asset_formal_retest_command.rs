@@ -46,5 +46,7 @@ fn synthetic_asset_formal_retest_uses_current_core_and_survives_restore() {
     assert_eq!(result["restart_cached_without_worker"], true);
     assert_eq!(result["independent_restore"], true);
     assert_eq!(result["restored_old_grants_fenced"], true);
+    assert_eq!(result["old_asset_grant_independently_fenced"], true);
+    assert_eq!(result["old_knowledge_grant_independently_fenced"], true);
     assert_eq!(result["fresh_retest_after_restore"], true);
 }

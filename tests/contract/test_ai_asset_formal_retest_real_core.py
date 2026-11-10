@@ -274,6 +274,17 @@ def test_asset_correction_formal_retest_and_restore(tmp_path):
         assert restored_states[2]["reference"] == corrected_ref and restored_states[2]["currentness"] == "current"
         restored_knowledge_grant = knowledge_grant(corrected_id, ["retest"])
         restored_machine_grant = asset_grant(corrected_asset, "local-machine", ["retest"])
+        old_asset_only = {**retest_request,
+            "context_grant": {**snapshot(restored_knowledge_grant), "purpose": purpose},
+            "asset_context_grant": asset_request("formal_retest_fenced_old_asset", corrected_asset,
+                                                  new_machine_grant, "local-machine", "retest")}
+        old_knowledge_only = {**retest_request,
+            "asset_context_grant": asset_request("formal_retest_fenced_old_knowledge", corrected_asset,
+                                                  restored_machine_grant, "local-machine", "retest")}
+        call("POST", "/api/v1/machine/retests", old_asset_only, expected=403)
+        call("POST", "/api/v1/machine/retests", old_knowledge_only, expected=403)
+        if not real_model:
+            assert len(fake_calls()) == 2
         fresh_retest_request = {**retest_request,
             "context_grant": {**snapshot(restored_knowledge_grant), "purpose": purpose},
             "asset_context_grant": asset_request("formal_retest_restored_asset", corrected_asset,
@@ -308,7 +319,9 @@ def test_asset_correction_formal_retest_and_restore(tmp_path):
                 "retest_context_sha256": execution["context_sha256"],
                 "retest_asset_packet_sha256": execution["asset_context"]["packet_sha256"],
                 "restart_cached_without_worker": True, "backup_verified": True, "independent_restore": True,
-                "restored_old_grants_fenced": True, "new_manual_grant": True, "fresh_retest_after_restore": True,
+                "restored_old_grants_fenced": True, "old_asset_grant_independently_fenced": True,
+                "old_knowledge_grant_independently_fenced": True, "new_manual_grant": True,
+                "fresh_retest_after_restore": True,
                 "real_provider_http_body_independently_captured": False if real_model else None}
             with Path(output).open("x", encoding="utf-8") as stream:
                 json.dump(receipt, stream)
