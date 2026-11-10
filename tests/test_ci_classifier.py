@@ -52,6 +52,17 @@ def _classify(paths: list[str], force_full: bool = False) -> dict:
     return json.loads(result.stdout)
 
 
+def test_capability_package_bindings_keep_contract_and_existing_gates() -> None:
+    manifest = _classify(["config/capability-packages/pdf-extract.manifest.json"])
+    assert {"static", "lint", "py-primary", "contracts-vnext"} <= set(manifest["required_gates"])
+    assert manifest["unknown_paths"] == []
+    generated = _classify(["frontend/src/api/generated/capability-package-details.ts"])
+    assert {"static", "lint", "browser-smoke", "contracts-vnext"} <= set(generated["required_gates"])
+    assert generated["unknown_paths"] == []
+    schema = _classify(["packages/contracts/v1/core-document.schema.json"])
+    assert "contracts-vnext" in schema["required_gates"]
+
+
 def test_formal_asset_retest_paths_require_actual_core_gate() -> None:
     test_path = "tests/contract/test_ai_asset_formal_retest_real_core.py"
     test_plan = _classify([test_path])

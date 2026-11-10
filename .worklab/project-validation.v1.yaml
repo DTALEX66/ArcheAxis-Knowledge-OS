@@ -94,6 +94,18 @@ risk_classes:
       - "scripts/probes/aaos_ai_reference_observation_smoke.py"
     gates: [static, lint, rust-vnext]
 
+  - id: vnext-capability-package-declaration
+    description: Exact builtin capability declaration retains config and contract checks
+    paths:
+      - "config/capability-packages/pdf-extract.manifest.json"
+    gates: [static, lint, py-primary, contracts-vnext]
+
+  - id: vnext-capability-package-details
+    description: Generated capability detail preserves UI and source-binding checks
+    paths:
+      - "frontend/src/api/generated/capability-package-details.ts"
+    gates: [static, lint, browser-smoke, contracts-vnext]
+
   - id: ci-policy
     description: CI workflow, classifier, gate registry, release scripts, secret-scan policy
     paths:
