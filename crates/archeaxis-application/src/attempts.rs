@@ -31,6 +31,8 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-canvas", "0.1.1"),
     ("python-worker-subtitles", "0.1.0"),
     ("python-worker-html", "0.1.0"),
+    // Additive bounded MHTML MIME decoding; retain historical HTML receipts.
+    ("python-worker-html", "0.1.1"),
     ("python-worker-caption", "0.1.0"),
     // The ASR engine. It was real and verified - 3,362 characters from a real Chinese
     // recording - but no route named it, so no job could reach it. A receipt may not report
@@ -199,7 +201,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ),
     ("canvas.structure", &["application/json"]),
     ("subtitles.structure", &["application/x-subrip", "text/vtt"]),
-    ("html.structure", &["text/html", "application/xhtml+xml"]),
+    ("html.structure", &["text/html", "application/xhtml+xml", "multipart/related"]),
     (
         "image.caption",
         &[
@@ -320,6 +322,7 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // R15/F02: a saved page is HTML; the route reads the snapshot, it never fetches
         "html" | "htm" => "text/html",
         "xhtml" => "application/xhtml+xml",
+        "mht" | "mhtml" => "multipart/related",
         // a saved mail message is text (RFC 822) with its own structure, which the
         // worker reports as facts. A binary .msg container is deliberately NOT named:
         // no route can read it, so it is refused instead of decoded into noise.

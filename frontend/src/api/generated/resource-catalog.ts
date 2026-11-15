@@ -19,7 +19,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
-      "sha256": "0c0af2b7ef98a2f81fd15a95964d29bc56e9fd4e3694110f0ebb774b3d5d3d81"
+      "sha256": "16520288aa2fc8416e1f95f8992c38334faf863879d9dfdc17e3c857dc4c097c"
     },
     {
       "path": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json",
@@ -924,7 +924,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "services/python-workers/document/worker_office.py",
         "evidence": "Bound as a declared external engine on this host, not merely probed. Two entries were added to `config/environment/capability-requirements.yaml` and regenerated into `config/environment/external-resources-index.json` with `exists: true` for both: `antiword` -> `D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe` (284448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`, byte-identical to the Git-for-Windows copy at `C:\\Program Files\\Git\\mingw64\\bin\\antiword.exe`, 284448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`), and `antiword-mappings` -> `D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword` (30 `*.txt` tables, 306272 bytes, UTF-8 table present: true). The second entry is not decoration and is the reason this row changed at all: antiword looks for its character mapping only in `$HOME/.antiword` and `/usr/share/antiword`, a mapping named by absolute path is truncated to the engine's buffer and its default table is used instead (measured), and a copy outside the install tree fails with \"I can't open your mapping file (UTF-8.txt)\" - exit 1, zero output - so the tables directory must be declared and its parent handed to the process as HOME. `worker_office._antiword_mapping_home()` does exactly that and records `mapping_home` in the loss receipt; with nothing declared it leaves the environment untouched, which is what keeps an in-place install working and keeps CI honest. Measured through the real reader: tests/workers/test_doc_engine.py 18 passed on this host, including the declared-pair case and the two end-to-end cases that call `_doc_text` on the real Word file while the declaration is what resolves. The binary is still not bundled and still not installed by this repository; `probe` for it is the generic registry prober appending `--version`, which antiword answers with its usage text and exit 1, so the inventory shows `available: true, probe: probe_failed` for this engine - stated here because a passing resolution and a failing generic probe are both true at once.",
         "decision": "Isolated, removable sidecar for `.doc` only, now bound by declaration to the external tool root instead of resolved by PATH luck. Not a core dependency, not bundled, not installed by this repository and not relicensed by it; it never replaces the main conversion chain. The copy under `10-toolchains/antiword/` is a local placement of the Git-for-Windows binary: if that package updates, the placed copy does not follow it, and the row's sha256 is the identity to compare against before trusting either. `.ppt` stays unprovided: the JVM-backed candidate cannot be qualified without a system-level runtime install, which the current boundary forbids.",
-        "upstream_note": "Upstream stated by the package index: http://www.winfield.demon.nl/ (not fetched from this run; the packaging repository above is the source of record here). Repositories carrying the package: clang64, clangarm64, ucrt64 - note the Git-for-Windows copy measured here is from its mingw64 bundle."
+        "upstream_note": "Upstream stated by the package index: http://www.winfield.demon.nl/ (not fetched from this run; the packaging repository above is the source of record here). Repositories carrying the package: clang64, clangarm64, ucrt64 - note the Git-for-Windows copy measured here is from its mingw64 bundle.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "antiword",
@@ -1181,7 +1189,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "upstream_note": "1000+ formats claimed upstream; only the `.ppt` text path is asserted here, and only because a real legacy presentation was read through it on this host.",
         "version": "4.1.0 (tika-app distribution)",
         "product_path": "services/python-workers/document/worker_office.py",
-        "evidence": "Installed and exercised on this host, not merely catalogued. The official Apache distribution `tika-app-4.1.0.zip` (55,617,982 bytes, sha512 `e8ffd4b85f08b2c96790cbb8c7679ec29c41f10e4add8a72ca2047ca56b450e198c0671ca0517c977c00d3a95a9c08dc0b026ee9379e67d35e92425487c8745d` as published beside it) was placed under the declared external tool root and verified byte-for-byte before use; the runnable jar inside it is `10-toolchains/tika/4.1.0/tika-app-4.1.0.jar`, 122724 bytes, sha256 `4344806e966fef4d0d75f4f977b17ff745cf935e8138de7f5ed845ee2de76bd5`, with `lib/` and `plugins/` beside it and its own `LICENSE` read as Apache-2.0 rather than assumed. `java -jar … --version` answers `Apache Tika 4.1.0`, and the worker's own declared lane read a genuine PowerPoint 97 file (`tests/fixtures/golden/golden-ppt-anchor.ppt`, 16,384 bytes, sha256 `499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7`, the Apache Tika microsoft-module test document at the pinned release tag 3.3.2, whose commit is recorded in tests/fixtures/golden/manifest.json) into the projection `Sample Powerpoint Slide / Created with Microsoft Powerpoint X for Mac Service Release 1`. tests/workers/test_ppt_engine.py 12 passed on this host, and its real-engine case skips with the resolver's own reason where the pair is absent - a statement about the host, not a pass. Measured trap that shapes the code: Tika's CLI writes its startup notice to stderr and the document text to stdout, so a projection built from both streams would be noise; the notice also says single-file CLI mode turns on several non-default features (TIKA-2374, TIKA-4017, TIKA-4354, TIKA-4472), which is stated in the loss receipt instead of hidden."
+        "evidence": "Installed and exercised on this host, not merely catalogued. The official Apache distribution `tika-app-4.1.0.zip` (55,617,982 bytes, sha512 `e8ffd4b85f08b2c96790cbb8c7679ec29c41f10e4add8a72ca2047ca56b450e198c0671ca0517c977c00d3a95a9c08dc0b026ee9379e67d35e92425487c8745d` as published beside it) was placed under the declared external tool root and verified byte-for-byte before use; the runnable jar inside it is `10-toolchains/tika/4.1.0/tika-app-4.1.0.jar`, 122724 bytes, sha256 `4344806e966fef4d0d75f4f977b17ff745cf935e8138de7f5ed845ee2de76bd5`, with `lib/` and `plugins/` beside it and its own `LICENSE` read as Apache-2.0 rather than assumed. `java -jar … --version` answers `Apache Tika 4.1.0`, and the worker's own declared lane read a genuine PowerPoint 97 file (`tests/fixtures/golden/golden-ppt-anchor.ppt`, 16,384 bytes, sha256 `499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7`, the Apache Tika microsoft-module test document at the pinned release tag 3.3.2, whose commit is recorded in tests/fixtures/golden/manifest.json) into the projection `Sample Powerpoint Slide / Created with Microsoft Powerpoint X for Mac Service Release 1`. tests/workers/test_ppt_engine.py 12 passed on this host, and its real-engine case skips with the resolver's own reason where the pair is absent - a statement about the host, not a pass. Measured trap that shapes the code: Tika's CLI writes its startup notice to stderr and the document text to stdout, so a projection built from both streams would be noise; the notice also says single-file CLI mode turns on several non-default features (TIKA-2374, TIKA-4017, TIKA-4354, TIKA-4472), which is stated in the loss receipt instead of hidden.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "apachetika",
@@ -1428,7 +1444,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "Runtime scheduler",
         "evidence": "Scheduling in use",
         "decision": "Retain existing narrow responsibility. Do not expand into workflow-orchestration territory (Temporal/Prefect/Airflow deferred).",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "apscheduler",
@@ -1869,7 +1893,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "services/python-workers/document/worker_office.py",
         "evidence": "Placed under the declared external tool root as `10-toolchains/java/zulu-jre-21.0.12.1/` (50624-byte launcher, sha256 `3dd3b8ca1b9402119060e1085a5aec44b00e600e61944ead36057c4f7f4da29f`) after verifying the download against Azul's own metadata API - package `zulu21.52.203-ca-jre21.0.12.1-win_x64.zip`, 49,264,410 bytes, sha256 `37ad372b04da388c326f0507abec38b8e1d11e3bddf6128b215c8f0a06ff8177`, fetched 2026-10-07. `java -version` exits 0 and self-reports `openjdk version \"21.0.12.1\" 2026-08-18 LTS`; the worker asks that question before handing over a document, so a file that exists but cannot state what it is is refused. Temurin was the first choice and its API publishes the same checksum field, but its download host is unreachable from this machine, so the runtime came from a second publisher whose CDN answers; the record names which, because 'a JVM' is not a supply-chain statement.",
         "decision": "Removable local runtime for the `.ppt` sidecar only. Not bundled, not a system install, not registered anywhere outside the external tool root, and never substituted for another JVM by the product. If Tika is ever dropped, this row goes with it.",
-        "upstream_note": "Azul states Zulu Community builds are GPLv2 with the Classpath Exception; the text in this distribution (legal/java.base/LICENSE and ASSEMBLY_EXCEPTION) is what the row relies on rather than that statement alone. The distribution also carries a DISCLAIMER from Azul."
+        "upstream_note": "Azul states Zulu Community builds are GPLv2 with the Classpath Exception; the text in this distribution (legal/java.base/LICENSE and ASSEMBLY_EXCEPTION) is what the row relies on rather than that statement alone. The distribution also carries a DISCLAIMER from Azul.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "azulzulucommunityjre21",
@@ -2313,7 +2345,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "services/python-workers/web/worker_webpage.py",
         "evidence": "Used by the F03 render lane, so it is recorded here rather than left as a test-only tool. Measured on this host: `D:/All projects/OS External Configuration/10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe` 4059648 bytes, sha256 `b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1`, declared in `config/environment/capability-requirements.yaml` as the `external_paths` of the pre-existing `playwright-chromium` entry, which until now carried a name and no location - the same class of gap as the antiword row: present on disk is not declared, and declared by name is not resolvable. The `playwright` Python package itself is a locked first-party dependency (`playwright>=1.61,<1.62` in `pyproject.toml`), not an added one; this row is about the browser binary the product launches. Resolution order in `services/python-workers/web/worker_webpage.py` is `ARCHEAXIS_CHROMIUM_CMD`, then the declared path, then Playwright's own registry, and a configured path that fails is reported as that failure rather than answered with the declared browser - no substitution. Two host traps shaped the code: a session can redirect `PLAYWRIGHT_BROWSERS_PATH` to a project-local cache that holds no build (which is why the real render test skipped before this row existed), and the declared path carries the build number `chromium-1228`, so a Playwright upgrade invalidates this one entry instead of silently pointing the render at some other browser. Verified through the sanctioned runner with no browser environment variable set: tests/workers/test_webpage_render.py plus the manifest and index workflow tests reported 20 passed / 0 skipped, and the full `tests` suite moved from 4284 passed / 31 skipped to 4286 passed / 30 skipped - the +2 / -1 being the new no-substitution test and the real browser test that the declaration stopped skipping.",
         "decision": "Isolated, removable sidecar for the dynamic-page render lane. Not bundled, not installed by this repository, and not relicensed by it; the repository never assumes the browser exists and a host without it gets a named refusal that writes nothing. Advancing this row's qualification further (an `release`-grade claim) would need a per-page human acceptance on real targets, which this round does not have; screenshots, interaction-gated content and lazy content past the scroll budget remain open in the F03 row.",
-        "upstream_note": "Chromium is upstream for the engine; the build measured here was placed on this host by Playwright's own browser download, and the manifest names the same source URL. No copy was made by this repository: the declared path is the build already under `10-toolchains/playwright/`."
+        "upstream_note": "Chromium is upstream for the engine; the build measured here was placed on this host by Playwright's own browser download, and the manifest names the same source URL. No copy was made by this repository: the declared path is the build already under `10-toolchains/playwright/`.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "chromium",
@@ -2730,7 +2770,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "shared-contracts/adapters/crawlers/crawl4ai_adapter.py",
         "evidence": "Integration test; optional sidecar",
         "decision": "Dynamic page sidecar ONLY. Never a default always-on crawler. SSRF/sandbox/snapshot/prompt-injection gates required before any automated use. Does not grant external content 'truth' identity.",
-        "upstream_note": "Apache-2.0."
+        "upstream_note": "Apache-2.0.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "crawl4ai",
@@ -2949,7 +2997,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Alternative dynamic page sidecar to Crawl4AI. Used only when static extraction is insufficient and user has authorized. Not a default always-on crawler.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "crawleepython",
@@ -3183,7 +3239,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "DOI/author/title/journal metadata. Public/polite pool. Read rate/concurrency headers; 429 backoff.",
-        "upstream_note": "API, not a library."
+        "upstream_note": "API, not a library.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "crossrefrest",
@@ -3416,7 +3480,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "DataCite DOI and dataset metadata. Open metadata; preserve provenance.",
-        "upstream_note": "API, not a library."
+        "upstream_note": "API, not a library.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "dataciterest",
@@ -3659,26 +3731,65 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "ledger": {
         "id": "C013",
         "name": "DeepTutor",
-        "version": "v1.5.17",
+        "version": "1.7.1 (Owner archive and upstream SOURCE-MANIFEST)",
         "canonical_url": "https://github.com/HKUDS/DeepTutor",
         "capability": "downstream-learning-product-shell",
         "code_license": "Apache-2.0",
         "model_license": "provider/model specific; no model weights vendored",
-        "disposition": "SIDECAR",
+        "disposition": "CURRENT",
         "qualification": [
-          "source",
-          "runtime-installed",
-          "loopback-http-200",
-          "browser-shell-200"
+          "source"
         ],
         "runtime_status": "PARTIAL_MODEL_CONFIGURATION_REQUIRED",
         "archive_sha256": "95f6519174069c73f91bc694cfb9e661e8d8d44239003ba9916b450ee77a4ac3",
-        "product_path": "external source/venv body; project data under .hermes/task-runtime/deeptutor-home; authority adapter under app/adapters/deeptutor",
+        "product_path": "services/learning-providers/deeptutor; crates/archeaxis-domain/src; frontend/src/spaces/CanonicalLearningSpace.tsx",
         "upstream_tag_object": "2e522f754c61be7760392151fd22939d570941b8",
         "upstream_commit": "bd80a4d28a2093347ef080f98ae7cf8e3eee488e",
         "tag_signature": "unsigned",
-        "decision": "Keep as an optional replaceable learning sidecar behind the authority bridge. The formal product shell is ArcheAxis C#/Avalonia; DeepTutor does not own product navigation. Its KB, memory, users, sessions and indexes are projections only and cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
-        "upstream_note": "Release v1.5.17 published 2026-08-24; Windows fixes included. Golden workflow and restart/rebuild evidence remain required before installed/release qualification."
+        "decision": "Preserve fixed 1.7.1 modules and Core ownership; fuse teaching/context/feedback consumers, do not run a second DeepTutor product or restore legacy Python DB bridge.",
+        "upstream_note": "Observed v1.7.2 release 2026-11-06; selective backport candidate only. Apache-2.0 at local 1.7.1 and upstream v1.7.2; model/provider/media terms separate.",
+        "history": [
+          {
+            "recorded_at": "2026-11-12",
+            "reason": "Source reconciliation against 157ee1db; prior decision and qualification retained as dated evidence. No runtime test rerun.",
+            "original_record": {
+              "id": "C013",
+              "name": "DeepTutor",
+              "version": "v1.5.17",
+              "canonical_url": "https://github.com/HKUDS/DeepTutor",
+              "capability": "downstream-learning-product-shell",
+              "code_license": "Apache-2.0",
+              "model_license": "provider/model specific; no model weights vendored",
+              "disposition": "SIDECAR",
+              "qualification": [
+                "source",
+                "runtime-installed",
+                "loopback-http-200",
+                "browser-shell-200"
+              ],
+              "runtime_status": "PARTIAL_MODEL_CONFIGURATION_REQUIRED",
+              "archive_sha256": "95f6519174069c73f91bc694cfb9e661e8d8d44239003ba9916b450ee77a4ac3",
+              "product_path": "external source/venv body; project data under .hermes/task-runtime/deeptutor-home; authority adapter under app/adapters/deeptutor",
+              "upstream_tag_object": "2e522f754c61be7760392151fd22939d570941b8",
+              "upstream_commit": "bd80a4d28a2093347ef080f98ae7cf8e3eee488e",
+              "tag_signature": "unsigned",
+              "decision": "Keep as an optional replaceable learning sidecar behind the authority bridge. The formal product shell is ArcheAxis C#/Avalonia; DeepTutor does not own product navigation. Its KB, memory, users, sessions and indexes are projections only and cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
+              "upstream_note": "Release v1.5.17 published 2026-08-24; Windows fixes included. Golden workflow and restart/rebuild evidence remain required before installed/release qualification."
+            }
+          }
+        ],
+        "evidence": "Full 1.7.1 source retained; bounded grading, question, practice import, response recovery and teaching-feedback modules exist. Core/UI and installed evidence are qualified separately in the 20261112 audit, not inferred from this tier.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "v1.7.2",
+          "upstream_maintenance": "Official release/document accessible; not an independent maintenance-quality verdict",
+          "qualification_effect": "NONE; source and historical receipt scopes only",
+          "release_date": "2026-11-06",
+          "version_source": "https://github.com/HKUDS/DeepTutor/releases/tag/v1.7.2",
+          "license_source": "https://raw.githubusercontent.com/HKUDS/DeepTutor/v1.7.2/LICENSE"
+        }
       },
       "qualification": {
         "stable_key": "deeptutor",
@@ -3905,7 +4016,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Complex document pages only (tables, formulas, multi-column). Code MIT; models licensed independently. Pass model SBOM + Windows qualification before use. NOT a default all-document engine.",
-        "upstream_note": "Per-model license audit required."
+        "upstream_note": "Per-model license audit required.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "v2.150.0",
+          "upstream_maintenance": "Official release/document accessible; not an independent maintenance-quality verdict",
+          "qualification_effect": "NONE; source and historical receipt scopes only",
+          "release_date": "2026-11-10",
+          "version_source": "https://github.com/docling-project/docling/releases/tag/v2.150.0",
+          "license_source": "https://raw.githubusercontent.com/docling-project/docling/v2.150.0/LICENSE"
+        }
       },
       "qualification": {
         "stable_key": "docling",
@@ -4112,7 +4234,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Bake-off candidate. Compare against Tesseract/PaddleOCR/RapidOCR on fixed fixtures. Do not select by reputation alone.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "easyocr",
@@ -4370,13 +4500,43 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "canonical_url": "https://github.com/SYSTRAN/faster-whisper",
         "capability": "asr-batch",
         "code_license": "MIT",
-        "model_license": "MIT (Whisper weights)",
-        "disposition": "ADOPT",
+        "model_license": "Selected model revision and converted weights require separate identity/terms; not covered merely by faster-whisper MIT.",
+        "disposition": "CURRENT",
         "qualification": [
           "source"
         ],
-        "decision": "Primary local ASR candidate. CTranslate2-based, quantized, no API key. Compare WER/RAM/latency against whisper.cpp on fixed Chinese/English corpus.",
-        "upstream_note": "Code MIT; Whisper weights MIT. Separate qualification from other ASR candidates."
+        "decision": "Retain existing batch ASR primary and shared model reference. Do not rerun old media journeys or add a parallel ASR default without a specific measured gap.",
+        "upstream_note": "Code MIT; Whisper weights MIT. Separate qualification from other ASR candidates.",
+        "history": [
+          {
+            "recorded_at": "2026-11-12",
+            "reason": "Source reconciliation against 157ee1db; prior decision and qualification retained as dated evidence. No runtime test rerun.",
+            "original_record": {
+              "id": "A005",
+              "name": "faster-whisper",
+              "canonical_url": "https://github.com/SYSTRAN/faster-whisper",
+              "capability": "asr-batch",
+              "code_license": "MIT",
+              "model_license": "MIT (Whisper weights)",
+              "disposition": "ADOPT",
+              "qualification": [
+                "source"
+              ],
+              "decision": "Primary local ASR candidate. CTranslate2-based, quantized, no API key. Compare WER/RAM/latency against whisper.cpp on fixed Chinese/English corpus.",
+              "upstream_note": "Code MIT; Whisper weights MIT. Separate qualification from other ASR candidates."
+            }
+          }
+        ],
+        "product_path": "services/python-workers/media/worker_transcribe.py",
+        "evidence": "Real faster_whisper import/WhisperModel consumer at lines 218,325,433. 2026-11-04 local wav/mp3/mp4 run is inherited only under its recorded candidate; transcript accuracy remains unmeasured.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "fasterwhisper",
@@ -4787,7 +4947,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REVIEW-BLOCK",
         "decision": "Main service is AGPL-3.0. SDK/UI portions may be MIT — component-level review required. NOT a default embedded dependency. Remote service or AGPL sidecar only.",
-        "upstream_note": "AGPL main; some SDK/UI MIT. Do not summarize as one license."
+        "upstream_note": "AGPL main; some SDK/UI MIT. Do not summarize as one license.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "firecrawl",
@@ -5048,7 +5216,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "qualification": [
           "source"
         ],
-        "decision": "Existing py-fsrs path remains the single review scheduler; scheduling is not proof of practical mastery. No second learning-state database.",
+        "decision": "Retain py-fsrs 6.3.2 and historical state semantics. Consider fsrs-rs only after demonstrating equivalent parameter/state transitions and reducing actual lifecycle cost.",
         "upstream_note": "Task distribution MIT LICENSE SHA256 021bff58ad2685d7e5b30d307429bc7cfdca108ad620ce889abb38d7acd89ace. Installed desktop/release qualification NOT_RUN.",
         "history": [
           {
@@ -5068,11 +5236,41 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "decision": "Interval/scheduling for learning cards. Each card must point back to an EvidenceAnchor. H4 target.",
               "upstream_note": null
             }
+          },
+          {
+            "recorded_at": "2026-11-12",
+            "reason": "Source reconciliation against 157ee1db; prior decision and qualification retained as dated evidence. No runtime test rerun.",
+            "original_record": {
+              "id": "A015",
+              "name": "py-fsrs",
+              "canonical_url": "https://github.com/open-spaced-repetition/py-fsrs",
+              "capability": "spaced-repetition",
+              "code_license": "MIT",
+              "model_license": null,
+              "disposition": "ADOPT",
+              "qualification": [
+                "source"
+              ],
+              "decision": "Existing py-fsrs path remains the single review scheduler; scheduling is not proof of practical mastery. No second learning-state database.",
+              "upstream_note": "Task distribution MIT LICENSE SHA256 021bff58ad2685d7e5b30d307429bc7cfdca108ad620ce889abb38d7acd89ace. Installed desktop/release qualification NOT_RUN.",
+              "version": "6.3.2 (uv.lock and task environment metadata)",
+              "evidence": "Rust scheduler -> services/python-workers/learning/worker_schedule.py -> shared/learning_scheduler.py independent of routes.json. Core learning_state_api and learning_events_api pass save/reopen and retry deduplication tests on 2026-10-08.",
+              "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
+            }
           }
         ],
         "version": "6.3.2 (uv.lock and task environment metadata)",
-        "evidence": "Rust scheduler -> services/python-workers/learning/worker_schedule.py -> shared/learning_scheduler.py independent of routes.json. Core learning_state_api and learning_events_api pass save/reopen and retry deduplication tests on 2026-10-08.",
-        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "evidence": "Formal worker imports py-fsrs and returns proposed schedule; Core persists learner events/state. This is scheduling, not mastery.",
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
+        "product_path": "services/python-workers/learning/worker_schedule.py; shared/learning_scheduler.py",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "fsrs",
@@ -5293,7 +5491,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": "custom-modifiable",
         "disposition": "REVIEW-BLOCK",
         "decision": "Code MIT. MODEL license has behavioral clauses, auto-revision terms, and undefined jurisdiction. Not a default component. Review per specific model.",
-        "upstream_note": "Separate code vs model license — model terms are the blocker."
+        "upstream_note": "Separate code vs model license — model terms are the blocker.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "funasr",
@@ -5518,7 +5724,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "adopted_kind": "CI tool (release asset verified by sha256 before use)",
         "adopted_asset": "gitleaks_8.30.1_linux_x64.tar.gz",
         "adopted_asset_sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
-        "adopted_wired_at": ".github/workflows/ci.yml test job; enforcing since 2026-10-06 - continue-on-error removed after a clean run, scan runs with --config .gitleaks.toml"
+        "adopted_wired_at": ".github/workflows/ci.yml test job; enforcing since 2026-10-06 - continue-on-error removed after a clean run, scan runs with --config .gitleaks.toml",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "gitleaks",
@@ -5897,7 +6111,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REVIEW-BLOCK",
         "decision": "GPL-3.0 (due to HTML Purifier dependency). Old 'core MIT' conclusion is WRONG. Content types licensed individually. Copyleft sidecar or content exchange only.",
-        "upstream_note": "Corrects historical MIT assumption."
+        "upstream_note": "Corrects historical MIT assumption.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "h5pphplibrary",
@@ -6137,7 +6359,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Transparent CER/WER computation. ONLY compute when truth/prediction pairs exist. Never report CER/WER from engine confidence alone.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "jiwer",
@@ -6395,7 +6625,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Open file format, not a library dependency. Unknown fields preserved on roundtrip. H3 target.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "jsoncanvas",
@@ -6810,7 +7048,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REJECT-CORE",
         "decision": "Upstream archived 2025-10-10 (read-only). Must not be selected as primary graph component. Remove from active candidate list.",
-        "upstream_note": "ARCHIVED."
+        "upstream_note": "ARCHIVED.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "kuzu",
@@ -7045,7 +7291,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "shared-contracts/adapters/observability/langfuse_adapter.py",
         "evidence": "Adapter test; local fallback",
         "decision": "Payload-safe local fallback required. EE/ directory is separately licensed. Redact secrets and PII before any trace export.",
-        "upstream_note": "Core MIT; ee/ dir separately licensed. NOT overall MIT."
+        "upstream_note": "Core MIT; ee/ dir separately licensed. NOT overall MIT.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "langfuse",
@@ -7665,7 +7919,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "shared-contracts/adapters/llm/litellm_adapter.py",
         "evidence": "Integration test",
         "decision": "Thin provider adapter only. Core MIT; enterprise/ directory is separately licensed. Must not own business objects, data model, or auth state. Replaceable.",
-        "upstream_note": "Default branch != stable release; lock to exact release tag. Enterprise dir is NOT MIT."
+        "upstream_note": "Default branch != stable release; lock to exact release tag. Enterprise dir is NOT MIT.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "litellm",
@@ -7918,7 +8180,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "shared/logging.py; app/ingestion/multi_format.py",
         "evidence": "Log paths active",
         "decision": "Retain. Logs must never contain secret plaintext, credentials, internal absolute paths. Converge with structlog to avoid dual-framework duplication.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "loguru",
@@ -8233,7 +8503,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Route-only; not a security proof. Small local model, 200+ types. Bake-off against existing stdlib/libmagic.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "magika",
@@ -8492,7 +8770,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": "modified OpenRAIL-M (weights)",
         "disposition": "REVIEW-BLOCK",
         "decision": "CODE is Apache-2.0 (CORRECTED from old GPL-3.0 conclusion). WEIGHTS are modified OpenRAIL-M — separate review required. Do not select as default. Corrects historical 'code GPL' error.",
-        "upstream_note": "code/weight license split; old GPL-3.0 record is WRONG."
+        "upstream_note": "code/weight license split; old GPL-3.0 record is WRONG.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "marker",
@@ -8799,7 +9085,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             }
           }
         ],
-        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "markitdown",
@@ -9194,7 +9488,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": "custom",
         "disposition": "REVIEW-BLOCK",
         "decision": "Apache-2.0 + additional MAU/revenue threshold and online-service identification obligations. NOT equal to plain Apache-2.0. Default disabled until owner/legal review.",
-        "upstream_note": "Custom conditions in LICENSE.md — do NOT describe as 'Apache-2.0'."
+        "upstream_note": "Custom conditions in LICENSE.md — do NOT describe as 'Apache-2.0'.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "mineru",
@@ -9442,7 +9744,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Second-result fallback when Trafilatura fails or produces high-difference output. Output must still be sanitized (HTML is untrusted).",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "mozillareadability",
@@ -9704,7 +10014,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "app/memory/graph_db.py; shared/graph_rag.py",
         "evidence": "Graph computation paths",
         "decision": "Derived local graph projection only. Not a second truth layer. Kùzu archived — not a replacement candidate.",
-        "upstream_note": "Kùzu upstream archived 2025-10-10; do not select as primary."
+        "upstream_note": "Kùzu upstream archived 2025-10-10; do not select as primary.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "networkx",
@@ -9945,7 +10263,17 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Academic entity/citation graph. Freemium — free daily allowance, record service-side cost/caching. API key required.",
-        "upstream_note": "API; cost model changes — monitor."
+        "upstream_note": "API; cost model changes — monitor.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only",
+          "version_source": "https://help.openalex.org/api/authentication/",
+          "service_terms": "Basic keyless queries available; free key needed for cursor pagination; quota is finite. No key created and no product network probe rerun."
+        }
       },
       "qualification": {
         "stable_key": "openalex",
@@ -10716,7 +11044,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Strongest Chinese/mixed candidate. Bake-off against Tesseract/EasyOCR/RapidOCR on fixed Chinese/English scanned corpus. VLM (PP-OCRv5) NOT default.",
-        "upstream_note": "Code Apache-2.0; model weights recorded per-model."
+        "upstream_note": "Code Apache-2.0; model weights recorded per-model.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "v3.7.0",
+          "upstream_maintenance": "Official release/document accessible; not an independent maintenance-quality verdict",
+          "qualification_effect": "NONE; source and historical receipt scopes only",
+          "release_date": "UNKNOWN",
+          "version_source": "https://github.com/PaddlePaddle/PaddleOCR/releases/tag/v3.7.0",
+          "license_source": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/LICENSE"
+        }
       },
       "qualification": {
         "stable_key": "paddleocr",
@@ -10993,7 +11332,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             }
           }
         ],
-        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "pdfjs",
@@ -11191,7 +11538,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REVIEW-BLOCK",
         "decision": "Elastic License 2.0 — source-available, NOT open-source. Do not list as default OSS dependency. Reference only or independent deployment for evaluation.",
-        "upstream_note": "Do not write as 'OSS'. ELv2."
+        "upstream_note": "Do not write as 'OSS'. ELv2.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "phoenix",
@@ -11410,7 +11765,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "upstream_note": null,
         "adopted_revision": "2.10.1",
         "adopted_kind": "CI tool (pinned via uv tool run --from pip-audit==2.10.1)",
-        "adopted_wired_at": ".github/workflows/ci.yml test job; report-only until a run is clean"
+        "adopted_wired_at": ".github/workflows/ci.yml test job; report-only until a run is clean",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "pipaudit",
@@ -12139,7 +12502,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REVIEW-BLOCK",
         "decision": "AGPL-3.0. Must explicitly accept AGPL combination obligations or purchase commercial license before any use.",
-        "upstream_note": "Do not use under 'personal/non-profit exemption' assumption."
+        "upstream_note": "Do not use under 'personal/non-profit exemption' assumption.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "pymupdf4llm",
@@ -12457,10 +12828,42 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source",
           "installed"
         ],
-        "product_path": "app/ingestion/multi_format.py (_via_image_ocr, MFX-010)",
+        "product_path": "services/python-workers/document/worker_pdf.py; services/python-workers/vision/worker_ocr.py; app/ingestion/multi_format.py",
         "evidence": "Real-image gate; honest unavailable when Tesseract absent",
-        "decision": "Baseline OCR. Language packs and Windows binary qualified separately. Not a complete H2 conversion loop yet — EvidenceAnchor per page/block still needed.",
-        "upstream_note": "100+ languages via tessdata. Windows packageable."
+        "decision": "Retain existing OCR route as baseline; Chinese quality and table/formula structure remain separate. RapidOCR is the first lightweight alternative to investigate only for a demonstrated gap.",
+        "upstream_note": "100+ languages via tessdata. Windows packageable.",
+        "history": [
+          {
+            "recorded_at": "2026-11-12",
+            "reason": "Source reconciliation against 157ee1db; prior decision and qualification retained as dated evidence. No runtime test rerun.",
+            "original_record": {
+              "id": "C004",
+              "name": "pytesseract + Tesseract-OCR",
+              "version": "system binary",
+              "canonical_url": "https://github.com/tesseract-ocr/tesseract",
+              "capability": "ocr-image",
+              "code_license": "Apache-2.0",
+              "model_license": "tessdata Apache-2.0",
+              "disposition": "CURRENT",
+              "qualification": [
+                "source",
+                "installed"
+              ],
+              "product_path": "app/ingestion/multi_format.py (_via_image_ocr, MFX-010)",
+              "evidence": "Real-image gate; honest unavailable when Tesseract absent",
+              "decision": "Baseline OCR. Language packs and Windows binary qualified separately. Not a complete H2 conversion loop yet — EvidenceAnchor per page/block still needed.",
+              "upstream_note": "100+ languages via tessdata. Windows packageable."
+            }
+          }
+        ],
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "pytesseracttesseractocr",
@@ -12895,7 +13298,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Candidate text alignment and difference localization. Does NOT arbitrate factual correctness. Used to locate DisagreementSpan positions.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "rapidfuzz",
@@ -13176,7 +13587,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Windows/CPU/ONNX potential. Model hash and derivation chain must pass review before selection.",
-        "upstream_note": "Derived models — verify right chain."
+        "upstream_note": "Derived models — verify right chain.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "v3.10.0",
+          "upstream_maintenance": "Official release/document accessible; not an independent maintenance-quality verdict",
+          "qualification_effect": "NONE; source and historical receipt scopes only",
+          "release_date": "UNKNOWN",
+          "version_source": "https://github.com/RapidAI/RapidOCR/releases/tag/v3.10.0",
+          "license_source": "https://raw.githubusercontent.com/RapidAI/RapidOCR/v3.10.0/LICENSE"
+        }
       },
       "qualification": {
         "stable_key": "rapidocr",
@@ -13374,7 +13796,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REVIEW-BLOCK",
         "decision": "AGPL-3.0. Optional sidecar for self-hosted search discovery. Cannot embed and claim permissive license.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "searxng",
@@ -13689,7 +14119,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Multi-platform/offline streaming ASR. Evaluate for specific language/streaming scenarios. Each model registered individually.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "sherpaonnx",
@@ -13987,7 +14425,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Local small model. Reduces silent-segment inference and hallucination. Retain timeline for EvidenceAnchor.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "silerovad",
@@ -14252,7 +14698,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "app/memory/vector_db.py",
         "evidence": "Vector search tests",
         "decision": "Optional derived index. FTS5 always available as independent fallback. Vector index can be deleted and rebuilt. Only switch to LanceDB if scale/corpus proves FTS5+sqlite-vec insufficient.",
-        "upstream_note": "Dual-license files; verify exact grant."
+        "upstream_note": "Dual-license files; verify exact grant.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "sqlitevec",
@@ -14483,7 +14937,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "Direct dependency",
         "evidence": "Structured log foundation",
         "decision": "Converge responsibilities with Loguru — avoid maintaining two active log frameworks. One should be deprecated or scoped.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "structlog",
@@ -14727,7 +15189,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "SBOM generation. Bound to build artifact. H5 release qualification.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "syft",
@@ -15340,7 +15810,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "model_license": null,
         "disposition": "REVIEW-BLOCK",
         "decision": "License requires a key for production use. NOT an open-source default component. Defer to H7+ as a commercial option.",
-        "upstream_note": "Dev environment OK; production requires license key. Do not treat as OSS."
+        "upstream_note": "Dev environment OK; production requires license key. Do not treat as OSS.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "tldraw",
@@ -15619,7 +16097,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             }
           }
         ],
-        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "trafilatura",
@@ -16056,7 +16542,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "CPU/quantized/offline ASR alternative. Independent implementation from faster-whisper — use as bake-off partner and low-resource fallback.",
-        "upstream_note": "GGML models — each model's license recorded separately."
+        "upstream_note": "GGML models — each model's license recorded separately.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "whispercpp",
@@ -16299,7 +16793,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Public entity/identifier/relationship queries. Narrow queries only. User-Agent/429/Retry-After. No fuzzy full-text verification.",
-        "upstream_note": "SPARQL/wbgetentities. NOT for full-text search."
+        "upstream_note": "SPARQL/wbgetentities. NOT for full-text search.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "wikidata",
@@ -16539,7 +17041,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "product_path": "services/python-workers/document/worker_office.py",
         "evidence": "declared in the ci-adapters group and pinned in uv.lock; reads the committed project-authored fixture tests/fixtures/golden/golden-xls-anchor.xls through office.structure on this host, and converts each sheet to a declared CSV member the Core imports (crates/archeaxis-application/tests/xls_member_chain.rs). Licence file 3,771 bytes sha256 b5a5dbce60265e305a815a6cb83ed07f24519d8ba644f2a307994488bced8815. FMT-21 real-sample acceptance is NOT_RUN: the fixture is self-authored, not Excel-authored. Qualified to the source and installed tiers only: it is declared in uv.lock, installed in the declared worker environment on this host, and exercised by committed tests; no release artefact contains it, because no release is being made.",
         "decision": "Absorbed as the reader for the BIFF .xls family only; xlrd 2.x cannot read .xlsx, which already has openpyxl. .doc and .ppt stay unnamed in the Core because no reader exists for them here.",
-        "upstream_note": "xlrd 2.0.2 supports BIFF versions 2.0 through 8 and accepts either an OLE2 compound document or a raw BIFF stream."
+        "upstream_note": "xlrd 2.0.2 supports BIFF versions 2.0 through 8 and accepts either an OLE2 compound document or a raw BIFF stream.",
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "UNKNOWN_NOT_REFRESHED",
+          "upstream_maintenance": "UNKNOWN_NOT_REFRESHED",
+          "qualification_effect": "NONE; source and historical receipt scopes only"
+        }
       },
       "qualification": {
         "stable_key": "xlrd",
@@ -16741,7 +17251,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "source"
         ],
         "decision": "Canvas/Graph visualization. MIT license. File truth remains JSON Canvas. H3 target.",
-        "upstream_note": null
+        "upstream_note": null,
+        "audit_20261112": {
+          "observed_at": "2026-11-12",
+          "report": "reports/AAOS-AUDIT-20261112-OSS.md",
+          "decision_authority": "AUDIT_PROPOSAL; existing approvals and runtime controls unchanged",
+          "upstream_version": "@xyflow/react 12.12.1 main package",
+          "upstream_maintenance": "Official release/document accessible; not an independent maintenance-quality verdict",
+          "qualification_effect": "NONE; source and historical receipt scopes only",
+          "release_date": "UNKNOWN",
+          "version_source": "https://raw.githubusercontent.com/xyflow/xyflow/main/packages/react/package.json",
+          "license_source": "https://raw.githubusercontent.com/xyflow/xyflow/main/LICENSE"
+        }
       },
       "qualification": {
         "stable_key": "xyflow",

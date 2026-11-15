@@ -24,7 +24,7 @@ function empty(value: unknown, path: string, array: boolean) {
   if (array ? !Array.isArray(value) || value.length !== 0 : Object.keys(record(value, path)).length !== 0)
     fail(path, "首批不支持该内容；可另行仅保全原件");
 }
-function question(input: unknown, path: string): ImportedQuestion {
+export function parseOpenMaicQuestion(input: unknown, path = "question"): ImportedQuestion {
   const q = record(input, path);
   fields(q, ["id", "type", "question", "options", "answer", "analysis", "commentPrompt", "hasAnswer", "points"], path);
   text(q.id, `${path}.id`, 128); text(q.question, `${path}.question`);
@@ -84,7 +84,7 @@ export function parseOpenMaicCourse(bytes: Uint8Array): CourseImportDraft {
     }
     const content = record(s.content, `${path}.content`); fields(content, ["type", "questions"], `${path}.content`);
     if (content.type !== "quiz") fail(`${path}.content.type`, "场景与内容类型不匹配");
-    const questions = list(content.questions, `${path}.content.questions`, 200, 1).map((q, j) => question(q, `${path}.content.questions[${j}]`));
+    const questions = list(content.questions, `${path}.content.questions`, 200, 1).map((q, j) => parseOpenMaicQuestion(q, `${path}.content.questions[${j}]`));
     total += questions.length;
     if (total > 200 || new Set(questions.map(q => q.id)).size !== questions.length) fail(`${path}.content.questions`, "总题数超过 200 或同场景题 ID 重复");
     return { title: sceneTitle, order: s.order as number, questions };

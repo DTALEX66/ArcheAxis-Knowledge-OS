@@ -19,6 +19,11 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  learning_deeptutor_question_turn: "DeepTutorQuestionTurnReceiptDto",
+  learning_deeptutor_question_turn_status: "DeepTutorQuestionTurnStatusDto",
+  learning_deeptutor_question_turn_cancel: "DeepTutorQuestionTurnCancelDto",
+  learning_deeptutor_question_accept: "DeepTutorQuestionAcceptReceiptDto",
+  learning_deeptutor_teaching_feedback: "DeepTutorTeachingFeedbackReceiptDto",
   workspace_backups: "BackupsListDto",
   operation_failure_log_read:"FailureLogSnapshot",operation_failure_log_append:"FailureLogSnapshot",operation_failure_log_clear:"FailureLogSnapshot",
   ingest_batch_register:"IngestBatchDto",ingest_batch_get:"IngestBatchDto",ingest_batches_list:"IngestBatchesDto",
@@ -93,6 +98,17 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
 }
 
 async function executeCoreCommand<T>(operation: CoreOperation, payload: Record<string, unknown>): Promise<T> {
+  const teachingInput: Partial<Record<CoreOperation,string>> = {
+    learning_deeptutor_question_turn:"DeepTutorQuestionTurnRequestDto",
+    learning_deeptutor_question_turn_status:"DeepTutorQuestionTurnRequestDto",
+      learning_deeptutor_question_turn_cancel:"DeepTutorQuestionTurnRequestDto",
+    learning_deeptutor_question_accept:"DeepTutorQuestionAcceptRequestDto",
+    learning_deeptutor_teaching_feedback:"DeepTutorTeachingFeedbackRequestDto",
+  };
+  if(teachingInput[operation]) {
+    try { if(Object.keys(payload).length!==1||!("body" in payload))throw new Error("invalid wrapper");assertCoreDto(teachingInput[operation]!,payload.body); }
+    catch { throw new ApiError(422,"教学请求格式无效；没有发送生成、接纳或反馈操作。","incompatible"); }
+  }
   if (operation === "semantic_search") {
     try {
       if (Object.keys(payload).length !== 1 || !("body" in payload)) throw new Error("invalid payload");
@@ -130,6 +146,20 @@ async function executeCoreCommand<T>(operation: CoreOperation, payload: Record<s
       if (admission) throw new ApiError(409, "能力已禁用，原请求未受理；启用后可显式同请求重试。", "unavailable", undefined, admission);
     }
     const refusal = response.body as Record<string,unknown> | null;
+    if (["learning_deeptutor_question_turn", "learning_deeptutor_question_turn_status", "learning_deeptutor_question_turn_cancel"].includes(operation)
+      && response.status === 409 && refusal?.code === "DEEPTUTOR_QUESTION_TURN" && refusal.retryable === false
+      && refusal.prior_execution === "UNVERIFIED") {
+      const invocation = refusal.current_invocation as Record<string, unknown> | undefined;
+      const reason = refusal.reason;
+      if (invocation?.worker_invoked === false && invocation.model_invoked === false
+        && (reason === "question_turn_execution_outcome_unresolved" || reason === "question_turn_request_id_conflict")) {
+        const error = new ApiError(409, reason === "question_turn_request_id_conflict"
+          ? "此请求编号与已保存请求不一致；请保留原记录，未重新生成。"
+          : "原请求的结果尚未确认；请查询并保留恢复记录，未重新生成。");
+        error.deeptutorReason = reason;
+        throw error;
+      }
+    }
     if (["machine_answer","machine_retest"].includes(operation) && response.status === 503
       && refusal?.schema === "archeaxis.machine-call-failure/v1"
       && refusal.operation === (operation === "machine_answer" ? "answer" : "retest")

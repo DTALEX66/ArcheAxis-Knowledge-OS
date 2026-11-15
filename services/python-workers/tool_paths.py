@@ -203,6 +203,20 @@ def sibling_roots(root: Path, manifest: Path) -> dict[str, Path]:
     return resolved
 
 
+def _present(path: Path) -> bool:
+    """Existence without letting an untraversable mount point abort discovery.
+
+    Windows returns `WinError 448` (untrusted mount point) for a reparse point this
+    process may not walk, even when its target exists. A declared location the
+    process cannot reach is absent for that process; the resource's own consumer
+    still refuses it by name instead of every reader failing during discovery.
+    """
+    try:
+        return path.is_file() or path.is_dir()
+    except OSError:
+        return False
+
+
 def _candidates(name: str, manifest: Path, root: Path | None = None) -> list[Path]:
     # The declaration is read first, always. An absent external root means nothing can resolve, but
     # it must not mean the manifest goes unread: a manifest that exists and cannot be parsed is a
@@ -233,7 +247,7 @@ def _candidates(name: str, manifest: Path, root: Path | None = None) -> list[Pat
             if relative.is_absolute() or ".." in relative.parts:
                 continue
             path = base / relative
-            if path.is_file() or path.is_dir():
+            if _present(path):
                 found.append(path)
     return found
 
@@ -250,7 +264,7 @@ def tool_path(name: str, *, guess_on_path: bool = False) -> str:
         raw = os.environ.get(variable, "").strip()
         if raw:
             path = Path(raw)
-            if path.is_file() or path.is_dir():
+            if _present(path):
                 return str(path)
             raise ToolNotFound(
                 f"{name}: {variable} names a path that does not exist: {raw}")
@@ -393,7 +407,7 @@ def required_environment(name: str, *, only_existing: bool = True,
         if path is None:
             raise ManifestUnreadable(
                 f"{name}: required_env {variable} must stay inside the declared root, not {location!r}")
-        if only_existing and not (path.is_file() or path.is_dir()):
+        if only_existing and not _present(path):
             continue
         found[variable] = str(path)
     return found

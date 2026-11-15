@@ -5,6 +5,7 @@ import type { ObjectReference } from "../api/generated/research-contract";
 import { MediaReader } from "./MediaReader";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { failureMessage } from "../presentation/labels";
+import { KnowledgeCurrentnessNotice } from "./KnowledgeCurrentnessNotice";
 const PdfReader = lazy(() => import("./PdfReader").then(m => ({ default: m.PdfReader })));
 type Original = { dto: OriginalDto; bytes: Uint8Array; text: string | null };
 function OriginalView({ value }: { value: Original }) {
@@ -87,7 +88,7 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference, expe
       {document.source_id && document.source_revision?<button type="button" disabled={!onOpenReference} onClick={()=>onOpenReference?.({kind:"source",source_id:document.source_id!,sha256:document.source_revision!})}>读取此版本的来源原件</button>:<p>此版本为独立文档，无来源原件绑定。</p>}
       {!embedded && <RawReceiptButton label={`固定文档 ${document.document_id} v${document.version}`} payload={document}/>}
     </>:null}
-    {knowledge?<><h3>知识 {knowledge.knowledge_id}</h3><p>不可变身份 · {knowledge.version} · {knowledge.status}</p><pre>{knowledge.body}</pre><p>来源：{knowledge.source_id??"无来源绑定"}；锚点：{knowledge.anchor_id??"无锚点"}</p>
+    {knowledge?<><h3>知识 {knowledge.knowledge_id}</h3><p>不可变身份 · {knowledge.version} · {knowledge.status}</p><KnowledgeCurrentnessNotice knowledgeId={knowledge.knowledge_id} onOpenReference={onOpenReference}/><pre>{knowledge.body}</pre><p>来源：{knowledge.source_id??"无来源绑定"}；锚点：{knowledge.anchor_id??"无锚点"}</p>
       {knowledge.source_id && <button type="button" disabled={sourceBusy || !onOpenReference} onClick={()=>void openKnowledgeSource()}>读取知识绑定的来源原件</button>}
       {sourceBusy && <p role="status">正在核对知识来源身份…</p>}{sourceError && <><p role="alert">{sourceError}</p><RawReceiptButton label="引用来源读取错误详细信息" category="data" payload={sourceErrorDetail}/></>}
     </>:null}

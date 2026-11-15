@@ -373,6 +373,9 @@ def compatibility_fixture(monkeypatch, tmp_path):
     fixture_seed = "seed.json"
     (tmp_path / fixture_seed).write_bytes((REPO / seed).read_bytes())
     matrix["source_seed"]["path"] = fixture_seed
+    scope = matrix["source_scope"]["path"]
+    (tmp_path / "scope.csv").write_bytes((REPO / scope).read_bytes())
+    matrix["source_scope"]["path"] = "scope.csv"
     (tmp_path / name).write_text(json.dumps(matrix), encoding="utf-8")
     pointer_path = tmp_path / gate.ACTIVE_EXECUTION
     pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
@@ -407,6 +410,65 @@ def test_compatibility_detects_changed_frozen_seed(monkeypatch, tmp_path):
     path = tmp_path / matrix["source_seed"]["path"]
     path.write_bytes(path.read_bytes() + b"\n")
     assert any("seed hash mismatch" in p for p in gate.check_knowledge_compatibility())
+
+
+def test_compatibility_scope_rejects_missing_identity_or_platform(monkeypatch, tmp_path):
+    import copy
+    gate, path, original = compatibility_fixture(monkeypatch, tmp_path)
+    assert gate.check_knowledge_compatibility() == []
+    for field, key, value, reason in (
+        ("source_identity_mapping", "source_identity", "JSON Canvas", "scope identity omitted"),
+        ("platforms", "platform_key", "json_canvas", "scope platform omitted"),
+    ):
+        matrix = copy.deepcopy(original)
+        matrix[field] = [entry for entry in matrix[field] if entry[key] != value]
+        path.write_text(json.dumps(matrix), encoding="utf-8")
+        assert any(reason in p for p in gate.check_knowledge_compatibility())
+
+
+def test_compatibility_scope_rejects_duplicate_identity_or_target(monkeypatch, tmp_path):
+    import copy
+    gate, path, original = compatibility_fixture(monkeypatch, tmp_path)
+    for field, reason in (("source_identity", "scope identity omitted or duplicated"),
+                          ("platform_key", "scope target duplicated")):
+        matrix = copy.deepcopy(original)
+        # Keep the row count unchanged: identity coverage, not a count, must fail.
+        rows = matrix["source_identity_mapping"]
+        rows[0][field] = rows[1][field]
+        path.write_text(json.dumps(matrix), encoding="utf-8")
+        assert any(reason in p for p in gate.check_knowledge_compatibility())
+
+
+def test_compatibility_scope_rejects_logseq_profile_collapse(monkeypatch, tmp_path):
+    import copy
+    gate, path, original = compatibility_fixture(monkeypatch, tmp_path)
+    for mutation in ("target", "mapping_profile", "platform_profile", "inherited_partition"):
+        matrix = copy.deepcopy(original)
+        db = next(entry for entry in matrix["source_identity_mapping"] if entry["source_identity"] == "LogseqDB版")
+        file_platform = next(entry for entry in matrix["platforms"] if entry["platform_key"] == "logseq")
+        if mutation == "target":
+            db["platform_key"] = "logseq"
+        elif mutation == "mapping_profile":
+            db["profile"] = "file_graph"
+        elif mutation == "platform_profile":
+            file_platform["current_profile"] = "db_graph"
+        else:
+            file_platform["scope_partition"]["db_graph"] = "logseq"
+        path.write_text(json.dumps(matrix), encoding="utf-8")
+        problems = gate.check_knowledge_compatibility()
+        assert any("collapsed" in p or "partition lost" in p for p in problems), mutation
+
+
+def test_compatibility_scope_detects_frozen_source_drift(monkeypatch, tmp_path):
+    import hashlib
+    gate, path, matrix = compatibility_fixture(monkeypatch, tmp_path)
+    source = tmp_path / matrix["source_scope"]["path"]
+    source.write_bytes(source.read_bytes() + b"\n")
+    assert any("scope source hash mismatch" in p for p in gate.check_knowledge_compatibility())
+    # Updating the declared checksum must not replace the selected frozen scope.
+    matrix["source_scope"]["sha256"] = hashlib.sha256(source.read_bytes()).hexdigest()
+    path.write_text(json.dumps(matrix), encoding="utf-8")
+    assert any("scope source hash mismatch" in p for p in gate.check_knowledge_compatibility())
 
 
 @pytest.mark.parametrize("root_entry", ["README.md", "AGENTS.md"])

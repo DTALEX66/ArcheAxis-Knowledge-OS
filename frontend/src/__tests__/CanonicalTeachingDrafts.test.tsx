@@ -81,16 +81,16 @@ it("isolates the same teaching page by the original learning item without copyin
   fireEvent.change(screen.getByLabelText("内容"),{target:{value:"belongs to B"}});first.rerender(component(f.session,"11","course:a"));expect(screen.getByLabelText("内容")).toHaveValue("belongs to A");
   expect(Object.keys(f.session.getSnapshot().state.teaching_drafts??{})).toEqual(["11:course:a","11:course:b"]);
 });
-it("retries a cold-reopened frozen teaching identity and clears only its exact draft after matching ACK and get",async()=>{
+it("reads a cold-reopened frozen teaching identity without redispatch and clears only its exact draft",async()=>{
   const f=fixture(),entry=freeze(draft("08")),other=draft("12");f.server().state.teaching_drafts={"08:":entry,"12:":other};await f.session.load();
-  let attempts=0;call.mockImplementation(async(op:string,payload:any)=>{
+  let reads=0;call.mockImplementation(async(op:string)=>{
     if(op==="teaching_list")return {items:[],next_cursor:null};
-    if(op==="teaching_create"){if(++attempts===1)throw new Error("lost receipt after write");return {item:view(payload.body),duplicate:true};}
-    if(op==="teaching_get")return view(entry.pending_record!);throw new Error(`Unexpected ${op}`);
+    if(op==="teaching_get"){if(++reads===1)throw new Error("lookup unavailable");return view(entry.pending_record!);}throw new Error(`Unexpected ${op}`);
   });
   const first=render(component(f.session,"08"));expect(screen.getByLabelText("内容")).toBeDisabled();fireEvent.click(screen.getByRole("button",{name:"重试同一记录"}));await screen.findByText(/操作未确认完成/);first.unmount();
   const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(component(reopened,"08"));fireEvent.click(screen.getByRole("button",{name:"重试同一记录"}));await screen.findByText("已读回同一客户端记录，未重复创建。");
-  const sent=call.mock.calls.filter(([op])=>op==="teaching_create");expect(sent).toHaveLength(2);expect(sent[0][1]).toEqual(sent[1][1]);expect(sent[0][1].body).toEqual(entry.pending_record);
+  expect(call.mock.calls.some(([op])=>op==="teaching_create")).toBe(false);
+  const read=call.mock.calls.filter(([op])=>op==="teaching_get");expect(read).toHaveLength(2);expect(read[0][1]).toEqual({record_id:entry.pending_record!.record_id});expect(read[1][1]).toEqual(read[0][1]);
   expect(reopened.getSnapshot().state.teaching_drafts).toEqual({"12:":other});expect(f.server().state.teaching_drafts).toEqual({"12:":other});
 });
 it.each(["ack","readback"])("retains a frozen draft when %s has the same ID but changed body",async target=>{

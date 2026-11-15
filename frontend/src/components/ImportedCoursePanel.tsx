@@ -25,13 +25,17 @@ const materialLabels: Record<MaterialStatus, string> = {
   current: "课件绑定的版本仍是当前版本。", historical: "课件绑定的是历史版本，记录不会转移到新版本。",
   unavailable: "课件当前版本暂无法核对；记录仍绑定原版本。",
 };
-function Question({ question, group, stored, order }: { question: ImportedQuestion; group: string; stored?: StoredCourseImport; order?: number }) {
+export function Question({ question, group, stored, order, onDirtyChange }: { question: ImportedQuestion; group: string; stored?: Pick<StoredCourseImport, "document">; order?: number; onDirtyChange?: (dirty: boolean) => void }) {
   const [selected, setSelected] = useState<string[]>([]), [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<string>();
   const [phase, setPhase] = useState<"idle" | "starting" | "pending" | "submitting" | "saved" | "cancelling" | "cancelled">("idle");
   const [busy, setBusy] = useState(false), [saveMessage, setSaveMessage] = useState(""), [saveError, setSaveError] = useState("");
   const [history, setHistory] = useState<CourseHistoryRow[] | null>(null), [cursor, setCursor] = useState<string | null>(null);
   const attempt = useRef<CourseAttempt>(), lock = useRef(false), epoch = useRef(0), seenCursors = useRef(new Set<string>());
+  const dirtyCallback = useRef(onDirtyChange); dirtyCallback.current = onDirtyChange;
+  useEffect(() => { dirtyCallback.current?.(busy || ["starting", "pending", "submitting", "cancelling"].includes(phase)
+    || phase === "idle" && (answer.length > 0 || selected.length > 0)); }, [answer, selected, phase, busy]);
+  useEffect(() => () => { dirtyCallback.current?.(false); }, []);
   useEffect(() => () => { epoch.current++; }, []);
   async function action(work: (current: () => boolean) => Promise<void>) {
     if (lock.current) return;
@@ -136,15 +140,16 @@ function CoursePreview({ course, identity, stored }: { course: CourseImportDraft
       {scene.questions.map(q => <Question key={`${identity}:${scene.order}:${q.id}`} group={`${identity}:${scene.order}:${q.id}`} question={q} />)}</section>)}
   </article>;
 }
-function TextSlide({ slide }: { slide: ImportedTextSlide }) {
+export function TextSlide({ slide, focusElement }: { slide: ImportedTextSlide; focusElement?: string }) {
   const background = slide.background as Record<string, unknown> | undefined;
   const backgroundColor = typeof background?.color === "string" ? background.color : String(slide.theme.backgroundColor);
   const height = slide.viewportSize * slide.viewportRatio;
   return <div className="imported-course-slide" aria-label="文本幻灯片" style={{ aspectRatio: `${1 / slide.viewportRatio}`, backgroundColor }}>
-    {slide.elements.map(element => <div key={element.id} className="imported-course-slide-text" style={{
+    {slide.elements.map(element => <div key={element.id} className="imported-course-slide-text" data-focused={element.id === focusElement ? "true" : undefined} style={{
       left: `${element.left / slide.viewportSize * 100}%`, top: `${element.top / height * 100}%`,
       width: `${element.width / slide.viewportSize * 100}%`, height: `${element.height / height * 100}%`,
       transform: `rotate(${element.rotate}deg)`, color: element.defaultColor,
+      outline: element.id === focusElement ? "3px solid currentColor" : undefined,
     }}>{slideText(element.content)}</div>)}
   </div>;
 }

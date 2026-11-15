@@ -4,6 +4,30 @@ import { verifiedJobOutput } from "../presentation/jobContentExecution";
 import { utf8Sha256 } from "./TranscriptionCues";
 import type { AnchorDto } from "../api/generated/core-contract";
 
+// Copy only identity fields the existing workers report. A UI ordinal is not a
+// persisted locator, and equal text is not enough to choose between two records.
+const LOCATION_DISCRIMINATORS=["record","position","name","line","symbol_kind","sheet","row","column","coordinate","column_name","level"] as const;
+function nativeWhere(entries:unknown[],node:Record<string,unknown>):Record<string,string|number>|undefined {
+ const matches=entries.filter((entry):entry is Record<string,unknown>=>Boolean(entry)&&typeof entry==="object"&&!Array.isArray(entry)
+  &&(entry as Record<string,unknown>).kind===node.kind&&(entry as Record<string,unknown>).path===node.path);
+ if(matches.length===1)return undefined;
+ const where:Record<string,string|number>={};
+ for(const field of LOCATION_DISCRIMINATORS){
+  const value=node[field];
+  if(typeof value==="string"&&value.length>0||typeof value==="number"&&Number.isSafeInteger(value))where[field]=value;
+ }
+ const narrowed=matches.filter(entry=>Object.entries(where).every(([field,value])=>entry[field]===value));
+ if(narrowed.length!==1||narrowed[0]!==node)throw new Error("native location remains ambiguous");
+ return where;
+}
+function sameNativeWhere(actual:unknown,expected:unknown):boolean {
+ if(!actual||!expected||typeof actual!=="object"||typeof expected!=="object"||Array.isArray(actual)||Array.isArray(expected))return false;
+ const received=actual as Record<string,unknown>,wanted=expected as Record<string,unknown>;
+ const keys=Object.keys(wanted);
+ return Object.keys(received).length===keys.length&&keys.every(key=>Object.hasOwn(received,key)
+  &&(typeof wanted[key]==="string"||typeof wanted[key]==="number")&&received[key]===wanted[key]);
+}
+
 export function StructureCitations({sourceId, revision, jobId, kind, onAnchor}:{sourceId:string;revision:string;jobId:string;kind:"worker_structure"|"pdf_line"|"ocr_line"|"format_location";onAnchor?:(anchor:AnchorDto)=>void}) {
  const [busy,setBusy]=useState(false),[message,setMessage]=useState("");const epoch=useRef(0);
  const [ordinal,setOrdinal]=useState("1");
@@ -23,19 +47,22 @@ export function StructureCitations({sourceId, revision, jobId, kind, onAnchor}:{
    const index=Number(ordinal)-1;if(!Number.isSafeInteger(index)||index<0)throw new Error("invalid selection");
    const node=valid[index];
    if(!node)throw new Error("locatable content missing");
+   const where=kind==="format_location"?nativeWhere(entries,node):undefined;
+   if(kind==="format_location"&&!text.content.includes(node.value))throw new Error("native value missing from projection");
    const checksum=await utf8Sha256(kind==="format_location"?node.value:chars.slice(node.char_start,node.char_end).join(""));
    const position:Record<string,unknown>={type:kind,job_id:jobId,attempt:state.attempt,kind:node.kind,path:node.path};
+   if(where)position.where=where;
    if(kind==="pdf_line"||kind==="ocr_line")Object.assign(position,{char_start:node.char_start,char_end:node.char_end,result_sha256:structure.metadata.sha256});
    if(kind==="ocr_line")position.loss_sha256=loss.metadata.sha256;
    if(current!==epoch.current)return;
-   const binding=JSON.stringify({position,checksum});
+   const binding=JSON.stringify({sourceId,revision,position,checksum,text_sha256:text.metadata.sha256,structure_sha256:structure.metadata.sha256,loss_sha256:loss.metadata.sha256});
    if(previewOnly){setPreview({path:Array.isArray(node.path)?node.path.join(" / "):node.path,content:kind==="format_location"?node.value:chars.slice(node.char_start,node.char_end).join(""),binding});setMessage("所选位置已读取，尚未保存引用。");return;}
    if(preview&&preview.binding!==binding)throw new Error("preview changed");
    const anchor=await coreCommand<AnchorDto>("anchor_create",{source_id:sourceId,body:{revision,position:JSON.stringify(position),checksum}});
    if(current!==epoch.current)return;
    const saved=JSON.parse(anchor.position);
    if(!anchor.anchor_id||anchor.source_id!==sourceId||anchor.source_revision!==revision||anchor.location_status!=="located"
-    ||saved.checksum!==checksum||Object.entries(position).some(([key,value])=>JSON.stringify(saved[key])!==JSON.stringify(value)))throw new Error("anchor identity");
+    ||saved.checksum!==checksum||Object.entries(position).some(([key,value])=>key==="where"?!sameNativeWhere(saved[key],value):JSON.stringify(saved[key])!==JSON.stringify(value)))throw new Error("anchor identity");
    const resolved=await coreCommand<Record<string,unknown>>("anchor_resolve",{source_id:sourceId,anchor_id:anchor.anchor_id});
    if(current!==epoch.current)return;
    if(resolved.status!=="CURRENT"||resolved.scope!=="locator_provenance_only"||resolved.source_id!==sourceId||resolved.anchor_id!==anchor.anchor_id||resolved.source_revision!==revision||resolved.current_source_revision!==revision)throw new Error("resolution unverified");

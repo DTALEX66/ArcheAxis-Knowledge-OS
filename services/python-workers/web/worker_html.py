@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ArcheAxis vNext web worker: static HTML snapshot extraction (F02 partial).
+"""ArcheAxis vNext web worker: static HTML/MHTML snapshot extraction (F02 partial).
 
 Reads a saved HTML snapshot file and deterministically extracts title,
 main text, links and paragraph anchors. Explicit article/main pages use the
@@ -7,24 +7,29 @@ locked Trafilatura donor; fragments and unavailable/empty/failed extraction
 use html.parser with a recorded fallback. Network fetching and dynamic rendering are Core-side
 concerns (F02/F03 full slices); this worker consumes a local snapshot and
 never executes scripts. Derived text offsets are not original DOM locations.
+MHTML selects one bounded MIME HTML root; resources stay inert in the original.
 
 Usage:
-    python worker_html.py <snapshot.html>
+    python worker_html.py <snapshot.html|snapshot.mhtml>
 Output: {"engine","engine_version","text","title","links","structure","loss_receipt"}
 """
 
 from __future__ import annotations
 
+import base64
+import email.policy
 import hashlib
 import json
+import quopri
 import re
 import sys
 from html.parser import HTMLParser
+from email.parser import BytesParser
 from importlib.metadata import version
 from pathlib import Path
 
 ENGINE = "python-worker-html"
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.1.1"
 # R15/F02: the identity advertised in the sidecar handshake. This worker existed since an
 # earlier slice with no route pointing at it; the sidecar mode below is that wiring.
 WORKER_IDENTITY = "python-worker-html-ndjson"
@@ -38,6 +43,128 @@ _BLOCK_TAGS = {
     "p", "div", "section", "article", "li", "h1", "h2", "h3", "h4", "h5",
     "h6", "blockquote", "pre", "table", "tr", "br", "ul", "ol",
 }
+MHTML_MAX_BYTES = 16 * 1024 * 1024
+MHTML_MAX_PARTS = 128
+MHTML_MAX_DEPTH = 32
+
+
+def _mhtml_root(raw: bytes) -> tuple[str, str, dict]:
+    """Decode one MIME root, never resolve its URLs or materialise resources.
+
+    RFC 2387 sections 3.1/3.2 select a direct root by start/Content-ID or the
+    first part. RFC 2557 Content-Location remains an untrusted declaration.
+    Python's stdlib email parser owns MIME parsing; no mail route is changed.
+    https://docs.python.org/3.12/library/email.parser.html
+    https://www.rfc-editor.org/rfc/rfc2387
+    https://www.rfc-editor.org/rfc/rfc2557
+    """
+    if len(raw) > MHTML_MAX_BYTES:
+        raise ValueError("MHTML original exceeds 16 MiB")
+    message = BytesParser(policy=email.policy.default.clone(raise_on_defect=True)).parsebytes(raw)
+    if message.get_content_type() != "multipart/related" or not message.is_multipart():
+        raise ValueError("MHTML requires a multipart/related envelope")
+
+    def header(part, name):
+        values = part.get_all(name, [])
+        if len(values) > 1 or any(getattr(value, "defects", ()) for value in values):
+            raise ValueError("MHTML duplicate MIME identity/encoding header")
+        value = str(values[0]).strip() if values else None
+        if value is not None and (not value or len(value) > 4096 or any(ord(c) < 32 for c in value)):
+            raise ValueError("MHTML invalid MIME identity/encoding header")
+        return value
+
+    parts, identities, locations = [], set(), set()
+    stack = [(message, [], 0)]
+    while stack:
+        part, path, depth = stack.pop()
+        if depth > MHTML_MAX_DEPTH or len(parts) >= MHTML_MAX_PARTS:
+            raise ValueError("MHTML MIME part/depth budget exceeded")
+        if part.defects:
+            raise ValueError("MHTML malformed MIME part")
+        metadata = {key: header(part, key) for key in
+                    ("Content-Type", "Content-ID", "Content-Location", "Content-Transfer-Encoding")}
+        params = part.get_params() or []
+        keys = [key.lower() for key, _ in params[1:]]
+        if len(keys) != len(set(keys)):
+            raise ValueError("MHTML duplicate MIME parameter")
+        cid, location = metadata["Content-ID"], metadata["Content-Location"]
+        if cid:
+            if not re.fullmatch(r"<[^<>\s]+>", cid) or cid in identities:
+                raise ValueError("MHTML duplicate or invalid Content-ID")
+            identities.add(cid)
+        if location:
+            if location in locations:
+                raise ValueError("MHTML ambiguous Content-Location")
+            locations.add(location)
+        parts.append((part, path, metadata))
+        if part.is_multipart():
+            children = list(part.iter_parts())
+            stack.extend((child, path + [index], depth + 1)
+                         for index, child in reversed(list(enumerate(children, 1))))
+
+    children = list(message.iter_parts())
+    if not children:
+        raise ValueError("MHTML root part is missing")
+    start = message.get_param("start")
+    if start is not None:
+        if not isinstance(start, str) or not re.fullmatch(r"<[^<>\s]+>", start):
+            raise ValueError("MHTML start is not a Content-ID")
+        roots = [part for part in children if header(part, "Content-ID") == start]
+        if len(roots) != 1:
+            raise ValueError("MHTML start root is missing or ambiguous")
+        root = roots[0]
+    else:
+        root = children[0]
+    declared_type = message.get_param("type")
+    if (root.is_multipart() or root.get_content_type() not in {"text/html", "application/xhtml+xml"}
+            or not isinstance(declared_type, str) or declared_type.lower() != root.get_content_type()):
+        raise ValueError("MHTML selected root is not the declared HTML type")
+
+    resources, root_bytes, root_info, total = [], None, None, 0
+    for part, path, metadata in parts:
+        if part.is_multipart():
+            continue
+        encoding = (metadata["Content-Transfer-Encoding"] or "7bit").lower()
+        payload = part.get_payload(decode=True)
+        if not isinstance(payload, bytes) or part.defects:
+            raise ValueError("MHTML invalid encoded MIME payload")
+        # email accepts some malformed transfers for mail readers. A fixed archive
+        # projection must reject those instead of silently repairing its root.
+        if encoding in {"base64", "quoted-printable"}:
+            wire = part.get_payload(decode=False).encode("ascii", "strict")
+            if encoding == "base64":
+                payload = base64.b64decode(re.sub(rb"[ \t\r\n]", b"", wire), validate=True)
+            else:
+                if re.search(rb"=(?![a-fA-F0-9]{2}|\r?\n)", wire):
+                    raise ValueError("MHTML invalid quoted-printable payload")
+                payload = quopri.decodestring(wire)
+        elif encoding == "7bit":
+            payload.decode("ascii", "strict")
+        elif encoding not in {"8bit", "binary"}:
+            raise ValueError("MHTML unsupported transfer encoding")
+        total += len(payload)
+        if total > MHTML_MAX_BYTES:
+            raise ValueError("MHTML decoded resources exceed 16 MiB")
+        info = {"path": [f"mime-part-{index}" for index in path],
+                "content_id": metadata["Content-ID"], "content_location": metadata["Content-Location"],
+                "media_type": part.get_content_type(), "transfer_encoding": encoding,
+                "decoded_bytes": len(payload), "decoded_sha256": hashlib.sha256(payload).hexdigest()}
+        if part is root:
+            root_bytes, root_info = payload, info
+        else:
+            resources.append(info)
+    if root_bytes is None or root_info is None:
+        raise ValueError("MHTML root payload missing")
+    charset = root.get_content_charset() or "us-ascii"
+    html = root_bytes.decode(charset, "strict")
+    root_info["charset"] = charset
+    return html, charset, {
+        "schema": "archeaxis.mhtml-projection/v1", "format": "mhtml", "root": root_info,
+        "root_selection": "start-content-id" if start is not None else "first-body-part",
+        "part_count": len(parts) - 1, "resource_count": len(resources), "resources": resources,
+        "reference_policy": "DECLARATIONS_ONLY; no URL, cid or file resolution and no resource files written",
+        "location_model": "MIME root path plus offsets in derived HTML text; not original archive byte offsets or browser DOM coordinates",
+    }
 
 
 class _Extractor(HTMLParser):
@@ -94,7 +221,7 @@ class _Extractor(HTMLParser):
         self._text_parts = []
 
 
-def _format_execution_receipt(raw: bytes, path: str, blocks: list[str], anchors: list[dict]) -> dict:
+def _format_execution_receipt(raw: bytes, path: str, blocks: list[str], anchors: list[dict], original_format="html") -> dict:
     """Bind this HTML execution to the retained bytes and its actual projection.
 
     The unified worker protocol still stores the receipt as a loss-report parameter,
@@ -111,18 +238,18 @@ def _format_execution_receipt(raw: bytes, path: str, blocks: list[str], anchors:
     )
     return {
         "schema": "archeaxis.format-execution-receipt/v1",
-        "receipt_id": f"html-execution-{source_sha256}",
+        "receipt_id": f"{original_format}-execution-{source_sha256}",
         "status": "partial" if block_count else "unsupported",
         "original": {
             "sha256": source_sha256,
             "name": Path(path).name or "snapshot.html",
-            "format": "html",
+            "format": original_format,
             "retained": True,
         },
         "transform": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "derived_document_id": f"html-document-{source_sha256}",
+            "derived_document_id": f"{original_format}-document-{source_sha256}",
         },
         "loss": {
             "status": "partial" if block_count else "unknown",
@@ -157,21 +284,22 @@ def _failed_execution_receipt(raw: bytes, path: str, error: BaseException) -> di
     type, and deliberately leaves the projection empty.
     """
     source_sha256 = hashlib.sha256(raw).hexdigest()
+    original_format = "mhtml" if Path(path).suffix.lower() in {".mht", ".mhtml"} else "html"
     error_type = type(error).__name__ or "ExecutionError"
     return {
         "schema": "archeaxis.format-execution-receipt/v1",
-        "receipt_id": f"html-execution-{source_sha256}",
+        "receipt_id": f"{original_format}-execution-{source_sha256}",
         "status": "failed",
         "original": {
             "sha256": source_sha256,
             "name": Path(path).name or "snapshot.html",
-            "format": "html",
+            "format": original_format,
             "retained": True,
         },
         "transform": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "derived_document_id": f"html-document-{source_sha256}",
+            "derived_document_id": f"{original_format}-document-{source_sha256}",
         },
         "loss": {
             "status": "unknown",
@@ -207,13 +335,20 @@ def _article_text(html: str) -> tuple[str | None, str]:
 
 
 def extract(path: str) -> dict:
-    raw = Path(path).read_bytes()
-    try:
-        html_text = raw.decode("utf-8-sig")
-        encoding = "utf-8-sig"
-    except UnicodeDecodeError:
-        html_text = raw.decode("utf-8", errors="replace")
-        encoding = "utf-8-replace"
+    is_mhtml = Path(path).suffix.lower() in {".mht", ".mhtml"}
+    if is_mhtml:
+        with Path(path).open("rb") as source:
+            raw = source.read(MHTML_MAX_BYTES + 1)
+        html_text, encoding, mhtml = _mhtml_root(raw)
+    else:
+        raw = Path(path).read_bytes()
+        mhtml = None
+        try:
+            html_text = raw.decode("utf-8-sig")
+            encoding = "utf-8-sig"
+        except UnicodeDecodeError:
+            html_text = raw.decode("utf-8", errors="replace")
+            encoding = "utf-8-replace"
     parser = _Extractor()
     parser.feed(html_text)
     parser.close()
@@ -255,12 +390,17 @@ def extract(path: str) -> dict:
         start = projection.find(block, offset)
         if start < 0:
             start = offset
-        anchors.append(
-            {"kind": "block", "path": [f"block-{index}"], "char_start": start, "char_end": start + len(block)}
-        )
+        anchors.append({"kind": "mhtml_block" if mhtml else "block",
+                        "path": (mhtml["root"]["path"] if mhtml else []) + [f"block-{index}"],
+                        "char_start": start, "char_end": start + len(block)})
         offset = start + len(block)
 
-    execution_receipt = _format_execution_receipt(raw, path, blocks, anchors)
+    execution_receipt = _format_execution_receipt(raw, path, blocks, anchors, "mhtml" if mhtml else "html")
+    mhtml_loss = ("MHTML only projects the selected decoded HTML root; MIME resources and Content-Location "
+                  "remain declarations in retained original bytes; no scripts, resource resolution or "
+                  "browser layout; positions address derived text, never archive byte offsets")
+    if mhtml:
+        execution_receipt["loss"]["notes"].append(mhtml_loss)
     execution_receipt["quality_facts"][2]["value"] = len(parser.links)
     execution_receipt["fallback"] = {
         "used": fallback_used, "attempted_engines": [item["engine"] for item in attempts],
@@ -280,12 +420,15 @@ def extract(path: str) -> dict:
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "params": {"encoding": encoding, "skip_tags": sorted(_SKIP_TAGS),
-                       "extraction": extraction, "source_sha256": hashlib.sha256(raw).hexdigest()},
+                       "extraction": extraction, "source_sha256": hashlib.sha256(raw).hexdigest(),
+                       **({"mhtml": mhtml} if mhtml else {})},
+            "losses": [mhtml_loss] if mhtml else [],
             "loss_note": (
                 "saved snapshot only; no fetching or script execution; article extraction is "
                 "a heuristic, not semantic-fidelity evidence; anchors address the derived text; "
                 "original link inventory retained separately"
                 + ("; the marked-up page carries no text blocks at all" if not blocks else "")
+                + ("; " + mhtml_loss if mhtml else "")
             ),
         },
     }
@@ -335,7 +478,8 @@ def main() -> int:
             # A present source, including a zero-byte source, has enough retained
             # bytes to produce a path-free failed execution receipt.  Missing or
             # unreadable inputs retain the existing structured error behavior.
-            if source.is_file():
+            if source.is_file() and (source.suffix.lower() not in {".mht", ".mhtml"}
+                                     or source.stat().st_size <= MHTML_MAX_BYTES):
                 raw = source.read_bytes()
                 failure["format_execution_receipt"] = _failed_execution_receipt(raw, str(source), exc)
         except OSError:

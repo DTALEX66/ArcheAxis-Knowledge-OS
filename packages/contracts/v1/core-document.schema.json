@@ -2,34 +2,765 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/core-document/v1",
   "$defs": {
-    "FailureLogOperation": {"enum": ["sources_list", "source_get", "source_original", "documents_list", "document_get", "document_create", "document_draft", "document_restore", "search", "learning_items", "learning_state", "learning_review", "machine_answer", "machine_retest", "machine_tasks_list", "job_execute", "job_execution_status", "job_execution_cancel", "model_configuration_get", "model_configuration_put", "workspace_backups", "ui_state_read", "ui_state_write", "local_request", "local_write", "unknown_operation"]},
-    "FailureLogCode": {"enum": ["offline", "backend_starting", "migrating", "incompatible", "unauthorized", "unavailable", "unknown"]},
-    "FailureLogReason": {"enum": ["unknown_result", "offline", "starting", "migrating", "conflict", "permission", "missing", "busy", "incompatible", "not_admitted", "restored_authorization", "withheld", "model_unconfirmed"]},
-    "FailureLogEntry": {
-      "type": "object", "additionalProperties": false,
-      "required": ["entry_id", "operation", "status", "code", "reason", "restore_epoch", "first_at", "at", "count"],
+    "DeepTutorMaterialSnapshotDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ],
       "properties": {
-        "entry_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
-        "operation": {"$ref": "#/$defs/FailureLogOperation"},
-        "status": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0, "maximum": 599}]},
-        "code": {"$ref": "#/$defs/FailureLogCode"},
-        "reason": {"$ref": "#/$defs/FailureLogReason"},
-        "restore_epoch": {"type": "string", "pattern": "^(initial|[a-f0-9]{32})$"},
-        "first_at": {"type": "string", "format": "date-time"},
-        "at": {"type": "string", "format": "date-time"},
-        "count": {"type": "integer", "minimum": 1, "maximum": 1000000}
+        "document_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "DeepTutorQuestionDto": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "question_id",
+        "question",
+        "question_type",
+        "options"
+      ],
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "question": {
+          "type": "string",
+          "maxLength": 80000,
+          "minLength": 1
+        },
+        "question_type": {
+          "const": "choice"
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "properties": {
+            "A": {
+              "type": "string",
+              "maxLength": 20000,
+              "minLength": 1
+            },
+            "B": {
+              "type": "string",
+              "maxLength": 20000,
+              "minLength": 1
+            },
+            "C": {
+              "type": "string",
+              "maxLength": 20000,
+              "minLength": 1
+            },
+            "D": {
+              "type": "string",
+              "maxLength": 20000,
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "DeepTutorQuestionTurnRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "create_request_id",
+        "material",
+        "requirement"
+      ],
+      "properties": {
+        "create_request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "material": {
+          "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+        },
+        "requirement": {
+          "type": "string",
+          "maxLength": 8000,
+          "minLength": 1
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "DeepTutorQuestionTurnReceiptDto": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "document",
+        "candidate_document_status",
+        "generation_route",
+        "material",
+        "question",
+        "answer_secrecy",
+        "response_origin",
+        "human_review_required",
+        "active_content_executed",
+        "rendering_authorized"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.deeptutor-question-turn-persistence/v1"
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "candidate_document_status": {
+          "enum": [
+            "current",
+            "historical",
+            "unavailable"
+          ]
+        },
+        "generation_route": {
+          "const": "deeptutor_question_turn_local_model"
+        },
+        "material": {
+          "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+        },
+        "question": {
+          "$ref": "#/$defs/DeepTutorQuestionDto"
+        },
+        "answer_secrecy": {
+          "const": "not_established"
+        },
+        "response_origin": {
+          "const": "LOCAL_MODEL_UNVERIFIED"
+        },
+        "human_review_required": {
+          "const": true
+        },
+        "active_content_executed": {
+          "const": false
+        },
+        "rendering_authorized": {
+          "const": false
+        }
+      }
+    },
+    "DeepTutorQuestionAcceptRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "create_request_id",
+        "candidate",
+        "correct_answer"
+      ],
+      "properties": {
+        "create_request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "candidate": {
+          "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+        },
+        "correct_answer": {
+          "type": "string",
+          "maxLength": 20000,
+          "minLength": 1
+        },
+        "explanation": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "question_text": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128000,
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "DeepTutorQuestionAcceptReceiptDto": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "document",
+        "question_document",
+        "question_view",
+        "accepted_from",
+        "origin",
+        "provider_identity",
+        "independent_mastery",
+        "human_review_required",
+        "active_content_executed",
+        "rendering_authorized"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.deeptutor-question-accept-receipt/v1"
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "question_document": {
+          "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+        },
+        "question_view": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accepted_from": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "candidate",
+            "generation_route",
+            "model_reply_sha256",
+            "capture_binding_sha256"
+          ],
+          "properties": {
+            "candidate": {
+              "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+            },
+            "generation_route": {
+              "const": "deeptutor_question_turn_local_model"
+            },
+            "model_reply_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "capture_binding_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "origin": {
+          "const": "user_import_unverified"
+        },
+        "provider_identity": {
+          "const": "unverified"
+        },
+        "independent_mastery": {
+          "const": "not_established"
+        },
+        "human_review_required": {
+          "const": true
+        },
+        "active_content_executed": {
+          "const": false
+        },
+        "rendering_authorized": {
+          "const": false
+        }
+      }
+    },
+    "DeepTutorTeachingUpdateDto": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "op",
+            "key"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "preference",
+                "observation"
+              ]
+            },
+            "op": {
+              "const": "remove"
+            },
+            "key": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "maxLength": 64,
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "op",
+            "key",
+            "text",
+            "basis",
+            "evidence"
+          ],
+          "properties": {
+            "kind": {
+              "const": "preference"
+            },
+            "op": {
+              "const": "upsert"
+            },
+            "key": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 400,
+              "minLength": 1
+            },
+            "basis": {
+              "const": "learner_report"
+            },
+            "evidence": {
+              "type": "string",
+              "maxLength": 300,
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "op",
+            "key",
+            "knowledge_point_id",
+            "text"
+          ],
+          "properties": {
+            "kind": {
+              "const": "observation"
+            },
+            "op": {
+              "const": "upsert"
+            },
+            "key": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "knowledge_point_id": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 400,
+              "minLength": 1
+            },
+            "basis": {
+              "enum": [
+                "learner_report",
+                "tentative"
+              ]
+            },
+            "strategy": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "outcome": {
+              "enum": [
+                "unknown",
+                "helped",
+                "not_helped"
+              ]
+            },
+            "evidence": {
+              "type": "string",
+              "maxLength": 300
+            }
+          }
+        }
+      ]
+    },
+    "DeepTutorTeachingFeedbackRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "create_request_id",
+        "session_id",
+        "turn_id",
+        "current_message",
+        "objective_ids",
+        "focus_objective_id",
+        "updates",
+        "include_history"
+      ],
+      "properties": {
+        "create_request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "turn_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_message": {
+          "type": "string",
+          "maxLength": 16384,
+          "minLength": 1
+        },
+        "objective_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          }
+        },
+        "focus_objective_id": {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "updates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/DeepTutorTeachingUpdateDto"
+          }
+        },
+        "include_history": {
+          "type": "boolean"
+        }
+      }
+    },
+    "DeepTutorTeachingFeedbackReceiptDto": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "document",
+        "candidate_document_status",
+        "generation_route",
+        "status",
+        "changed_fields",
+        "result_profile",
+        "guidance",
+        "profile_source",
+        "response_origin",
+        "independent_mastery",
+        "persistence",
+        "model_call",
+        "human_review_required",
+        "active_content_executed",
+        "rendering_authorized"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.deeptutor-teaching-feedback-persistence/v1"
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "candidate_document_status": {
+          "enum": [
+            "current",
+            "historical",
+            "unavailable"
+          ]
+        },
+        "generation_route": {
+          "const": "deeptutor_teaching_feedback_donor_rules"
+        },
+        "status": {
+          "enum": [
+            "UPDATED",
+            "UNCHANGED"
+          ]
+        },
+        "changed_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "result_profile": {
+          "type": "object"
+        },
+        "guidance": {
+          "type": "object"
+        },
+        "profile_source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeepTutorMaterialSnapshotDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "response_origin": {
+          "const": "DONOR_RULES_UNVERIFIED"
+        },
+        "independent_mastery": {
+          "const": "not_established"
+        },
+        "persistence": {
+          "const": "CORE_DOCUMENT"
+        },
+        "model_call": {
+          "const": "NOT_INVOKED"
+        },
+        "human_review_required": {
+          "const": true
+        },
+        "active_content_executed": {
+          "const": false
+        },
+        "rendering_authorized": {
+          "const": false
+        }
+      }
+    },
+    "FailureLogOperation": {
+      "enum": [
+        "sources_list",
+        "source_get",
+        "source_original",
+        "documents_list",
+        "document_get",
+        "document_create",
+        "document_draft",
+        "document_restore",
+        "search",
+        "learning_items",
+        "learning_state",
+        "learning_review",
+        "machine_answer",
+        "machine_retest",
+        "machine_tasks_list",
+        "job_execute",
+        "job_execution_status",
+        "job_execution_cancel",
+        "model_configuration_get",
+        "model_configuration_put",
+        "workspace_backups",
+        "ui_state_read",
+        "ui_state_write",
+        "local_request",
+        "local_write",
+        "unknown_operation"
+      ]
+    },
+    "FailureLogCode": {
+      "enum": [
+        "offline",
+        "backend_starting",
+        "migrating",
+        "incompatible",
+        "unauthorized",
+        "unavailable",
+        "unknown"
+      ]
+    },
+    "FailureLogReason": {
+      "enum": [
+        "unknown_result",
+        "offline",
+        "starting",
+        "migrating",
+        "conflict",
+        "permission",
+        "missing",
+        "busy",
+        "incompatible",
+        "not_admitted",
+        "restored_authorization",
+        "withheld",
+        "model_unconfirmed"
+      ]
+    },
+    "FailureLogEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entry_id",
+        "operation",
+        "status",
+        "code",
+        "reason",
+        "restore_epoch",
+        "first_at",
+        "at",
+        "count"
+      ],
+      "properties": {
+        "entry_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "operation": {
+          "$ref": "#/$defs/FailureLogOperation"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 599
+            }
+          ]
+        },
+        "code": {
+          "$ref": "#/$defs/FailureLogCode"
+        },
+        "reason": {
+          "$ref": "#/$defs/FailureLogReason"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "first_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        }
       }
     },
     "FailureLogSnapshot": {
-      "type": "object", "additionalProperties": false,
-      "required": ["schema", "workspace_id", "restore_epoch", "log_generation", "entries", "corrupt", "limit"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "log_generation",
+        "entries",
+        "corrupt",
+        "limit"
+      ],
       "properties": {
-        "schema": {"const": "archeaxis.operation-failure-log/v1"},
-        "workspace_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
-        "restore_epoch": {"type": "string", "pattern": "^(initial|[a-f0-9]{32})$"},
-        "log_generation": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-f0-9]{32}$"}]},
-        "entries": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/FailureLogEntry"}},
-        "corrupt": {"type": "boolean"}, "limit": {"const": 50}
+        "schema": {
+          "const": "archeaxis.operation-failure-log/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "log_generation": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/FailureLogEntry"
+          }
+        },
+        "corrupt": {
+          "type": "boolean"
+        },
+        "limit": {
+          "const": 50
+        }
       }
     },
     "DocumentPackageDto": {
@@ -817,65 +1548,14 @@
       "additionalProperties": true
     },
     "DocumentExportDto": {
-      "type": "object",
-      "properties": {
-        "document_id": {
-          "type": "string"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MarkdownDocumentExportDto"
         },
-        "version": {
-          "type": "integer"
-        },
-        "format": {
-          "enum": [
-            "markdown",
-            "obsidian"
-          ]
-        },
-        "source_revision": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "projection_sha256": {
-          "type": "string"
-        },
-        "files": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "path": {
-                "enum": [
-                  "document.md",
-                  "manifest.json"
-                ]
-              },
-              "media_type": {
-                "type": "string"
-              },
-              "content": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "path",
-              "media_type",
-              "content"
-            ],
-            "additionalProperties": true
-          }
+        {
+          "$ref": "#/$defs/CanvasDocumentExportDto"
         }
-      },
-      "required": [
-        "document_id",
-        "version",
-        "format",
-        "source_revision",
-        "projection_sha256",
-        "files"
-      ],
-      "additionalProperties": true
+      ]
     },
     "DocumentSummaryDto": {
       "type": "object",
@@ -978,12 +1658,26 @@
     "UnavailableBackupDto": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["backup_id", "filename", "code", "message"],
+      "required": [
+        "backup_id",
+        "filename",
+        "code",
+        "message"
+      ],
       "properties": {
-        "backup_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
-        "filename": { "type": "string" },
-        "code": { "const": "AAK-BACKUP-INVALID" },
-        "message": { "type": "string" }
+        "backup_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "code": {
+          "const": "AAK-BACKUP-INVALID"
+        },
+        "message": {
+          "type": "string"
+        }
       }
     },
     "BackupsListDto": {
@@ -997,7 +1691,9 @@
         },
         "unavailable_backups": {
           "type": "array",
-          "items": { "$ref": "#/$defs/UnavailableBackupDto" }
+          "items": {
+            "$ref": "#/$defs/UnavailableBackupDto"
+          }
         }
       },
       "required": [
@@ -5190,6 +5886,295 @@
         "index_persisted"
       ],
       "additionalProperties": false
+    },
+    "DeepTutorQuestionTurnStatusDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "request_sha256",
+        "state",
+        "result_document_id",
+        "result_version",
+        "result_content_sha256",
+        "current_invocation"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "enum": [
+            "NOT_FOUND",
+            "DISPATCHED",
+            "FAILED",
+            "UNKNOWN",
+            "COMPLETED"
+          ]
+        },
+        "result_document_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_version": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_content_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_invocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "worker_invoked",
+            "model_invoked"
+          ],
+          "properties": {
+            "worker_invoked": {
+              "const": false
+            },
+            "model_invoked": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "DeepTutorQuestionTurnCancelDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "request_sha256",
+        "state",
+        "result_document_id",
+        "result_version",
+        "result_content_sha256",
+        "current_invocation",
+        "cancel_requested",
+        "provider_stop_state"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "enum": [
+            "NOT_FOUND",
+            "DISPATCHED",
+            "FAILED",
+            "UNKNOWN",
+            "COMPLETED"
+          ]
+        },
+        "result_document_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_version": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_content_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_invocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "worker_invoked",
+            "model_invoked"
+          ],
+          "properties": {
+            "worker_invoked": {
+              "const": false
+            },
+            "model_invoked": {
+              "const": false
+            }
+          }
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        }
+      }
+    },
+    "MarkdownDocumentExportDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "format": {
+          "enum": [
+            "markdown",
+            "obsidian"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "projection_sha256": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "enum": [
+                  "document.md",
+                  "manifest.json"
+                ]
+              },
+              "media_type": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "media_type",
+              "content"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "format",
+        "source_revision",
+        "projection_sha256",
+        "files"
+      ],
+      "additionalProperties": true
+    },
+    "CanvasDocumentExportDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "format": {
+          "const": "canvas"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "enum": [
+                  "document.canvas",
+                  "manifest.json"
+                ]
+              },
+              "media_type": {
+                "const": "application/json"
+              },
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "media_type",
+              "content"
+            ],
+            "additionalProperties": true
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "format",
+        "source_revision",
+        "files"
+      ],
+      "additionalProperties": true
     }
   }
 }

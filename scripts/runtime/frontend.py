@@ -18,6 +18,66 @@ else:
     from build_timing import BuildTimings
 
 ROOT = Path(__file__).absolute().parents[2]
+RUNTIME_ENV = ("ARCHEAXIS_FRONTEND_RUNTIME_ROOT", "ARCHEAXIS_FRONTEND_RUNTIME_MANIFEST_SHA256",
+               "ARCHEAXIS_FRONTEND_CORE_BUILD_RECEIPT")
+
+
+def runtime_overlay(paths: dict[str, Path], env: dict[str, str]) -> dict:
+    """Reconstruct the only admitted physical-stage overlay, including in hooks.
+
+    The environment identifies inputs, not an authorization token. Reopen the
+    pinned manifest and qualified Core before accepting the resource mapping.
+    Full member verification belongs to the parent before and after compilation.
+    """
+    overlay = dev.tauri_overlay(paths)
+    if not any(name in env for name in RUNTIME_ENV):
+        return overlay
+    if not all(env.get(name) for name in RUNTIME_ENV):
+        raise ValueError("incomplete physical runtime binding")
+    staged = runtime_resources.checked(Path(env[RUNTIME_ENV[0]]))
+    stage_run = staged.parent.parent
+    if (staged.parent.name != "artifacts" or stage_run.parent != paths["run"].parent
+            or stage_run != dev.layout(paths["root"], stage_run.name)["run"] or not staged.is_dir()):
+        raise ValueError("physical runtime must be a direct artifact of this worktree's canonical run")
+    pin = env[RUNTIME_ENV[1]]
+    if not runtime_resources.SHA.fullmatch(pin):
+        raise ValueError("invalid runtime manifest SHA-256")
+    manifest_path = runtime_resources.regular(staged / "backend-runtime-manifest.json")
+    if (manifest_path.stat().st_size > runtime_resources.MAX_OPENMAIC_MANIFEST_BYTES
+            or runtime_resources.digest(manifest_path) != pin):
+        raise ValueError("physical runtime manifest differs from its pin")
+    manifest = runtime_resources.parse_backend_manifest(manifest_path.read_bytes())
+    core_input = dev.read_core_build(Path(env[RUNTIME_ENV[2]]), paths, env)
+    core = dev.build_file_identity(runtime_resources.regular(staged / "core/archeaxis-api.exe"))
+    if (manifest.get("schema") != "archeaxis.backend-runtime/v1"
+            or not isinstance(manifest.get("files"), dict)
+            or manifest["files"].get("core/archeaxis-api.exe") != {key: core[key] for key in ("bytes", "sha256")}
+            or any(core[key] != core_input[key] for key in ("bytes", "sha256"))):
+        raise ValueError("physical runtime Core differs from its manifest or qualified build")
+    base = json.loads(dev.safe_path(paths["root"] / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    old = base.get("bundle", {}).get("resources")
+    if (not isinstance(old, dict) or len(old) != len(runtime_resources.RESOURCES)
+            or set(old.values()) != runtime_resources.RESOURCES):
+        raise ValueError("formal resource map changed; update the adapter explicitly")
+    mapped = {}
+    for name in sorted(runtime_resources.RESOURCES):
+        member = runtime_resources.checked(staged / name)
+        if name in {"core", "runtime", "workers", "shared"}:
+            if not member.is_dir():
+                raise ValueError("physical runtime directory is missing")
+        else:
+            runtime_resources.regular(member)
+        mapped[str(member)] = name
+    # CLI 2.12.3 uses JSON Merge Patch: omitted map entries survive, null removes
+    # them. Keep beforeBuildCommand and every unrelated base setting intact.
+    overlay["bundle"] = {"resources": {**dict.fromkeys(old), **mapped}}
+    return overlay
+
+
+def validate_overlay(paths: dict[str, Path], env: dict[str, str]) -> None:
+    overlay = json.loads(dev.safe_path(paths["tauri_config"]).read_text(encoding="utf-8"))
+    if overlay != runtime_overlay(paths, env):
+        raise ValueError("frontend overlay mismatch")
 
 
 def msvc_environment(env: dict[str, str], paths: dict[str, Path], node: str | None = None) -> dict[str, str]:
@@ -126,17 +186,23 @@ def tauri_commands(node, cli, arguments, overlay, separate_bundle):
 
 
 def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path | None = None, separate_bundle: bool = False,
-          core_build_receipt: Path | None = None) -> int:
+          core_build_receipt: Path | None = None, runtime_root: Path | None = None,
+          runtime_manifest_sha256: str | None = None) -> int:
     root = dev.safe_path(root)
     validate_inherited(root)
     nested = os.environ.get("ARCHEAXIS_FRONTEND_BUILD_CONTEXT")
+    physical_runtime = runtime_root is not None or runtime_manifest_sha256 is not None
+    if physical_runtime and (runtime_root is None or not runtime_manifest_sha256 or core_build_receipt is None
+                             or nested or mode != "tauri" or separate_bundle
+                             or arguments != ["build", "--no-bundle", "--", "--offline", "--locked"]):
+        raise ValueError("physical runtime requires paired root/pin and the qualified canonical release command")
+    if not nested and any(name in os.environ for name in RUNTIME_ENV):
+        raise ValueError("physical runtime binding requires explicit parent build arguments")
     if nested:
         if mode != "build" or nested != os.environ.get("ARCHEAXIS_RUN_ROOT"):
             raise ValueError("invalid nested frontend build context")
         paths = dev.layout(root, Path(nested).name)
-        overlay = json.loads(paths["tauri_config"].read_text(encoding="utf-8"))
-        if overlay != dev.tauri_overlay(paths):
-            raise ValueError("frontend overlay mismatch")
+        validate_overlay(paths, dict(os.environ))
         env = dict(os.environ)
     else:
         if mode == "build" and os.environ.get("TAURI_CONFIG"):
@@ -183,7 +249,15 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
                     or dev.safe_path(Path(env["CARGO_TARGET_DIR"])) != paths["tauri_build"]):
                 raise ValueError("portable qualification requires the canonical offline locked native release command")
             core_input = dev.read_core_build(core_build_receipt, paths, env)
-            staged = root / ".project-local/rt"
+            staged = dev.safe_path(runtime_root) if physical_runtime else root / ".project-local/rt"
+            if physical_runtime:
+                env.update(dict(zip(RUNTIME_ENV, (str(staged), runtime_manifest_sha256,
+                                                  str(dev.safe_path(core_build_receipt))))))
+                overlay = runtime_overlay(paths, env)
+                runtime_resources.verify_runtime_resources(staged, runtime_resources.RESOURCES)
+                runtime_resources.verify_fixed_webview2(staged)
+                paths["tauri_config"].write_text(json.dumps(overlay) + "\n", encoding="utf-8")
+                env["TAURI_CONFIG"] = paths["tauri_config"].read_text(encoding="utf-8")
             staged_core = dev.build_file_identity(staged / "core/archeaxis-api.exe")
             if any(staged_core[key] != core_input[key] for key in ("bytes", "sha256")):
                 raise ValueError("staged Core differs from qualified Core build")
@@ -215,6 +289,9 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
                     or any(actual_core[key] != core_input[key] for key in ("bytes", "sha256"))
                     or actual_manifest["sha256"] != staged_manifest["sha256"]):
                 raise ValueError("runtime input changed or stale Tauri resources were copied")
+            if physical_runtime:
+                validate_overlay(paths, env)
+                runtime_resources.verify_runtime_resources(staged, runtime_resources.RESOURCES)
             configured_resources = set(json.loads((root / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))["bundle"]["resources"].values())
             # Tauri may retain old resource files in its build cache. Matching the
             # Core/manifest pair does not establish every copied member or closure.
@@ -231,6 +308,8 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
                 "backend_manifest_sha256": actual_manifest["sha256"],
                 "core_build_receipt": core_receipt_identity,
                 "build_timings": dev.build_file_identity(timings.path),
+                **({"runtime_input": {"root": str(staged), "manifest": staged_manifest,
+                                       "resource_mapping": "PINNED_PHYSICAL_STAGE"}} if physical_runtime else {}),
             }
             _, after = dev.worktree_identity(root)
             if after != env["ARCHEAXIS_SOURCE_PATCH_SHA256"] or dev.git(root, "rev-parse", "HEAD") != env["ARCHEAXIS_SOURCE_COMMIT"]:
@@ -268,20 +347,24 @@ def main() -> int:
     parser.add_argument("--separate-bundle", action="store_true")
     parser.add_argument("--core-build-receipt", type=Path,
                         help="dev.py --qualify-core-build execution.json; use tauri -- build --no-bundle -- --offline --locked")
+    parser.add_argument("--runtime-root", type=Path,
+                        help="physical runtime staged in this worktree's canonical run/artifacts")
+    parser.add_argument("--runtime-manifest-sha256", help="pinned backend-runtime-manifest.json SHA-256; requires --runtime-root")
     args, arguments = parser.parse_known_args()
     if arguments[:1] == ["--"]:
         arguments = arguments[1:]
     try:
         if args.mode == "verify":
+            if args.runtime_root is not None or args.runtime_manifest_sha256 is not None or args.core_build_receipt is not None:
+                raise ValueError("verify consumes only its inherited canonical build binding")
             for name in ("ARCHEAXIS_WORKTREE_ROOT", "ARCHEAXIS_RUN_ROOT", "ARCHEAXIS_FRONTEND_DIST", "ARCHEAXIS_TAURI_CONFIG"):
                 if not os.environ.get(name):
                     raise ValueError(f"missing canonical frontend environment: {name}")
             validate_inherited(dev.safe_path(ROOT))
-            overlay = json.loads(dev.safe_path(Path(os.environ["ARCHEAXIS_TAURI_CONFIG"])).read_text(encoding="utf-8"))
-            if overlay != dev.tauri_overlay(dev.layout(ROOT, Path(os.environ["ARCHEAXIS_RUN_ROOT"]).name)):
-                raise ValueError("frontend overlay mismatch")
+            validate_overlay(dev.layout(ROOT, Path(os.environ["ARCHEAXIS_RUN_ROOT"]).name), dict(os.environ))
             return 0
-        return build(ROOT, args.node, args.mode, arguments, args.receipt, args.separate_bundle, args.core_build_receipt)
+        return build(ROOT, args.node, args.mode, arguments, args.receipt, args.separate_bundle, args.core_build_receipt,
+                     args.runtime_root, args.runtime_manifest_sha256)
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print(f"[frontend] {error}", file=sys.stderr)
         return 2

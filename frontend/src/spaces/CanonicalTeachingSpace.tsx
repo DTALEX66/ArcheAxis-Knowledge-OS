@@ -12,6 +12,8 @@ import { assertTeachingDto } from "../api/generated/teaching-contract";
 import { coreFailureReason } from "../presentation/labels";
 import { KnowledgeCoursePanel } from "../components/KnowledgeCoursePanel";
 import { TeachingStageWorkspace } from "../components/TeachingStageWorkspace";
+import { ExternalPracticeActions } from "../components/ExternalPracticeActions";
+import { practiceActions,practiceDraft,teachingParents as parents,teachingParentRequired,usableTeachingSource,type PracticeAction } from "../presentation/externalPractice";
 import { CanonicalLearningSpace } from "./CanonicalLearningSpace";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
@@ -32,7 +34,6 @@ const kinds: Record<string, Kind[]> = { "08": ["observation", "requirement"], "0
 const names: Record<Kind, string> = { observation:"观察", requirement:"需求", proposal:"表达方案", delivery:"交付", teach_back:"Teach-back", feedback:"反馈", revision:"修订" };
 const feedbackClasses = ["professional_basis", "evidence_fidelity", "recognition_quality", "expression_fit", "operation_fault", "mastery", "ai_qualification"] as const;
 const feedbackLabels: Record<typeof feedbackClasses[number], string> = { professional_basis:"专业依据", evidence_fidelity:"来源内容一致性", recognition_quality:"文字识别质量", expression_fit:"表达是否合适", operation_fault:"操作问题", mastery:"理解与掌握", ai_qualification:"AI 学习评估" };
-const parents: Partial<Record<Kind, Kind[]>> = { requirement:["observation"], proposal:["requirement"], delivery:["proposal","revision"], teach_back:["delivery"], feedback:["delivery"], revision:["feedback"] };
 function object(value: unknown): Record<string, unknown> { if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid teaching response"); return value as Record<string, unknown>; }
 function view(value: unknown): RecordView {
   return assertTeachingDto<RecordView>("RecordView",value);
@@ -86,6 +87,7 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   const [selected,setSelected]=useState<RecordView|null>(null), [draft,setDraft]=useState(()=>retained?.form??blank(kinds[pageId]?.[0] ?? "observation"));
   const [knowledge,setKnowledge]=useState<Knowledge|null>(()=>retained?.knowledge_id?{knowledge_id:retained.knowledge_id,head:`保留的来源 ${retained.knowledge_id}`}:null), [query,setQuery]=useState(""), [results,setResults]=useState<Knowledge[]>([]);
   const [courses,setCourses]=useState<Course[]>([]), [courseId,setCourseId]=useState<string|null>(retained?.course_id??null), [itemKey,setItemKey]=useState<string|null>(retained?.item_key??null), [assessmentId,setAssessmentId]=useState<string|null>(retained?.assessment_id??null);
+  const [courseMessage,setCourseMessage]=useState("课程可选，文字计划和实践记录无需课程或外部连接。");
   const [preparation,setPreparation]=useState<{document_id:string;version:number;title:string}|null>(retained?.preparation??null), [savedPreparation,setSavedPreparation]=useState(retained?.saved_preparation??"");
   const [preparationRows,setPreparationRows]=useState<DocumentSummaryDto[]>([]), [preparationCursor,setPreparationCursor]=useState<string|null>(null), [preparationListed,setPreparationListed]=useState(false);
   const documentLease=useDocumentWriteLease(preparation?.document_id);
@@ -123,7 +125,7 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   useEffect(()=>{const dirty=JSON.stringify({purpose:draft.purpose,content:draft.content})!==savedPreparation&&(!!draft.content||!!draft.purpose)||pending;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty}}));},[draft.content,draft.purpose,pending,savedPreparation,dirtyOwner]);
   useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}}));},[dirtyOwner]);
   useEffect(()=>{onTrail?.(selected?[{id:`teaching:${selected.record.record_id}`,label:names[selected.record.kind],region:"teaching"}]:[]);},[selected,onTrail]);
-  async function run(task:(request:number)=>Promise<void>) {if(lock.current)return;lock.current=true;setBusy(true);setFailure(null);const request=epoch.current;try{await task(request);}catch(error){if(request===epoch.current){setMessage("操作未确认完成，请保留文字并重试；不会显示为成功。");setFailure(coreFailureReason(error));}}finally{lock.current=false;setBusy(false);}}
+  async function run(task:(request:number)=>Promise<void>) {if(lock.current)return;lock.current=true;setBusy(true);setMessage("");setFailure(null);const request=epoch.current;try{await task(request);}catch(error){if(request===epoch.current){setMessage("操作未确认完成，请保留文字并重试；不会显示为成功。");setFailure(coreFailureReason(error));}}finally{lock.current=false;setBusy(false);}}
   function changeSelection() {epoch.current++;setSelected(null);currentSelection.current=null;setAssessmentId(null);setPractice(false);withdrawalAttempt.current=null;setWithdrawDialog(false);}
   async function open(row:RecordView) {
     if(lock.current||pending)return;changeSelection();const request=epoch.current;currentSelection.current=row.record.record_id;
@@ -134,8 +136,36 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
     const allowed=parents[draft.kind];if(row.withdrawn || !allowed?.includes(row.record.kind)){note("此记录不能作为当前类型的父记录。请保留真实父关系，撤回记录不能继续派生。");return;}
     changeSelection();setParent(row);setKnowledge({knowledge_id:row.record.knowledge_id,head:`父记录绑定知识 ${row.record.knowledge_id}`});setCourseId(row.record.course_id);setItemKey(null);setAssessmentId(null);note("已选择实际父记录并保留其知识、课程版本；尚未保存新记录。");
   }
+  async function preparePractice(action:PracticeAction,basis:RecordView|null) {
+    if(lock.current||pending||preparationAttempt.current)return;
+    if((draft.purpose||draft.content)&&JSON.stringify({purpose:draft.purpose,content:draft.content})!==savedPreparation){note("当前文字尚未保存；请先保存准备正文或当前记录，再准备其他实践步骤。");return;}
+    const allowed:readonly string[]=practiceActions[action].parents;
+    if(allowed.length&&(!basis||basis.withdrawn||!allowed.includes(basis.record.kind))){note("请先选择此实践步骤对应的已保存记录。");return;}
+    await run(async request=>{
+      let confirmed:RecordView|null=null;
+      if(basis){confirmed=view(await coreCommand("teaching_get",{record_id:basis.record.record_id}));
+        if(confirmed.withdrawn||!sameValue(confirmed.record,basis.record)||confirmed.content_sha256!==basis.content_sha256)throw new Error("实践依据与所选固定记录不同；原输入保留。");}
+      if(request!==epoch.current)return;
+      const content=practiceDraft(action);setDraft({...blank(content.kind),...content,feedback_class:content.kind==="feedback"?"expression_fit":null});
+      setParent(confirmed);if(confirmed)setKnowledge({knowledge_id:confirmed.record.knowledge_id,head:`实践依据 ${confirmed.record.knowledge_id}`});
+      setCourseId(confirmed?.record.course_id??null);setItemKey(null);setAssessmentId(null);setPreparation(null);setSavedPreparation("");
+      setSelected(null);currentSelection.current=null;setPractice(false);
+      note("已准备实践文字草稿；请写入实际决定、过程或反馈再保存。没有执行教程，也没有登记成绩。");
+    });
+  }
   async function search() {await run(async request=>{const value=object(await coreCommand("search",{q:query,active_only:true}));if(!Array.isArray(value.items))throw new Error("invalid knowledge search");const found=value.items.map(object);if(found.some(row=>typeof row.knowledge_id!=="string"||typeof row.head!=="string"))throw new Error("invalid knowledge identity");if(request===epoch.current){setResults(found as Knowledge[]);note(found.length?"请选择并核对来源知识。":"没有匹配的来源知识。");}});}
-  async function chooseKnowledge(row:Knowledge) {if(pending||lock.current)return;changeSelection();await run(async request=>{const saved=object(await coreCommand("knowledge_get",{id:row.knowledge_id}));if(saved.knowledge_id!==row.knowledge_id||saved.status!=="accepted")throw new Error("teaching source knowledge is not accepted");const catalog=object(await coreCommand("course_list",{}));if(!Array.isArray(catalog.items))throw new Error("invalid course catalog");const catalogRows=catalog.items.map(object);if(catalogRows.some(row=>typeof row.manifest_id!=="string"||typeof row.title!=="string"||typeof row.stale!=="boolean"))throw new Error("invalid course catalog identity");if(request===epoch.current){setKnowledge(row);setParent(null);setCourseId(null);setItemKey(null);setCourses(catalogRows as Course[]);note("已核对接受状态与不可变知识身份。课程仍需选择后独立核对绑定。");}});}
+  async function chooseKnowledge(row:Knowledge) {if(pending||lock.current)return;changeSelection();await run(async request=>{
+    const saved=object(await coreCommand("knowledge_get",{id:row.knowledge_id}));
+    if(saved.knowledge_id!==row.knowledge_id||!usableTeachingSource(draft.kind,saved))throw new Error("此知识状态不适用于当前记录类型；交付仍需 Core 核对当前接受状态。");
+    if(request===epoch.current){setKnowledge(row);setParent(null);setCourseId(null);setItemKey(null);setCourses([]);setCourseMessage("课程可选，尚未读取；不影响文字记录。");
+      note(saved.status==="candidate"?"已绑定未接纳的知识候选。可记录需求、计划与文字反馈；不代表内容已核验或允许正式交付。":"已核对不可变知识身份；课程可另行选择，保存不代表掌握。");}
+  });}
+  async function loadCourses(){if(!knowledge||pending||lock.current)return;await run(async request=>{
+    try{const catalog=object(await coreCommand("course_list",{}));if(!Array.isArray(catalog.items))throw new Error("invalid course catalog");
+      const rows=catalog.items.map(object);if(rows.some(row=>typeof row.manifest_id!=="string"||typeof row.title!=="string"||typeof row.stale!=="boolean"))throw new Error("invalid course catalog identity");
+      if(request===epoch.current){setCourses(rows as Course[]);setCourseMessage("已读取可选课程；选择后仍核对固定知识绑定。");}}
+    catch{if(request===epoch.current){setCourses([]);setCourseMessage("可选课程暂时无法读取；原知识和文字草稿保留，仍可保存无课程的实践记录。");}}
+  });}
   async function chooseCourse(id:string) {if(pending||lock.current)return;setAssessmentId(null);setItemKey(null);if(!id){setCourseId(null);return;}await run(async request=>{const saved=object(await coreCommand("course_get",{course_id:id})),manifest=object(saved.manifest);if(saved.stale!==false||manifest.manifest_id!==id||!Array.isArray(saved.bindings)||!Array.isArray(manifest.artifacts))throw new Error("invalid course binding");const bindings=saved.bindings.map(object);if(!knowledge||!bindings.some(row=>row.knowledge_id===knowledge.knowledge_id&&row.knowledge_version===knowledge.knowledge_id))throw new Error("course is bound to different knowledge");const artifact=manifest.artifacts.map(object).find(row=>row.artifact_type==="lesson"&&row.renderer==="native-lesson");if(!artifact||typeof artifact.artifact_id!=="string")throw new Error("no native lesson");if(request===epoch.current){setCourseId(id);setItemKey(`course:${id}:artifact:${artifact.artifact_id}`);note("课程与知识版本已核对。尚未声明学习成绩。");}});}
   async function readAssessment() {if(!itemKey)return;await run(async request=>{const saved=object(await coreCommand("assessment_get",{item_key:itemKey}));if(typeof saved.assessment_id!=="string"||saved.knowledge_id!==knowledge?.knowledge_id||saved.knowledge_version!==knowledge?.knowledge_id)throw new Error("assessment knowledge mismatch");if(request===epoch.current){setAssessmentId(saved.assessment_id);note("已读取真实学习问题身份；Teach-back记录仍不计分。");}});}
   async function savePreparation() {try{await documentLease.write(savePreparationDocument);}catch(error){setFailure(error instanceof Error?error.message:"此文档视图只读");}}
@@ -210,10 +240,22 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
     await run(async request=>{
       if(preparationAttempt.current)throw new Error("准备正文保存尚未确认；请先重试同一准备请求。");
       let record=createAttempt.current;
+      const readOnly=record!==null;
       if(!record){if(!knowledge||!draft.purpose.trim()||draft.purpose.length>512||!draft.content.trim()||draft.content.length>65536)throw new Error("knowledge, bounded purpose and content required");
-        if(parents[draft.kind] && draft.kind!=="requirement" && !parent)throw new Error("parent required");
+        const practiceEntry=Object.values(practiceActions).find(action=>draft.purpose===`外部实践 · ${action.label}`);
+        if(practiceEntry){
+          if(draft.content===practiceEntry.outline)throw new Error("请先补充本人的实际决定、过程或反馈；空白提纲可保存为准备正文。");
+          const allowed:readonly string[]=practiceEntry.parents;
+          if(draft.kind!==practiceEntry.kind||allowed.length&&(!parent||!allowed.includes(parent.record.kind)))throw new Error("此实践步骤需要原计划或文字记录；请重新选择固定依据，不把它当作无父项记录。");
+        }
+        if(teachingParentRequired(draft.kind) && !parent)throw new Error("parent required");
         if(parent && (!parents[draft.kind]?.includes(parent.record.kind)||parent.withdrawn))throw new Error("invalid parent kind");
         if(draft.kind==="feedback"&&!draft.feedback_class)throw new Error("feedback class required");
+        if(draft.kind==="delivery"){
+          const source=object(await coreCommand("knowledge_get",{id:knowledge.knowledge_id}));
+          if(source.knowledge_id!==knowledge.knowledge_id||!usableTeachingSource("delivery",source))throw new Error("知识候选不能直接作为正式交付；文字实践记录仍可保存。");
+          if(request!==epoch.current)return;
+        }
         record={schema:"archeaxis.teaching-record/v2",record_id:boundedId("teaching"),kind:draft.kind,knowledge_id:knowledge.knowledge_id,knowledge_version:knowledge.knowledge_id,course_id:courseId,parent_id:parent?.record.record_id??null,purpose:draft.purpose.trim(),scope:draft.scope,privacy:draft.privacy,content:draft.content,feedback_class:draft.kind==="feedback"?draft.feedback_class:null,assessment_id:draft.kind==="teach_back"?assessmentId:null,rubric_version:draft.rubric_version.trim()||null,assisted:draft.assisted,producer_kind:draft.producer_kind};
       }
       assertTeachingDto("TeachingRecord",record);
@@ -221,13 +263,15 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
       if(working)working.session.rememberTeachingDraft(draftKey,journal);
       createAttempt.current=record;setPending(true);
       if(working){const ack=await working.session.flush();if(!sameValue(ack.state.teaching_drafts?.[draftKey],journal))throw new Error("teaching draft journal not acknowledged");}
-      const receipt=object(await coreCommand<WriteReceipt>("teaching_create",{body:record}));const saved=view(receipt.item);
-      if(!sameValue(saved.record,record)||typeof receipt.duplicate!=="boolean")throw new Error("create identity or body changed");
+      if(request!==epoch.current)return; // A persisted draft is not authority to dispatch after its workspace/view changed.
+      let saved:RecordView|null=null,duplicate=readOnly;
+      if(!readOnly){const receipt=object(await coreCommand<WriteReceipt>("teaching_create",{body:record}));saved=view(receipt.item);
+        if(!sameValue(saved.record,record)||typeof receipt.duplicate!=="boolean")throw new Error("create identity or body changed");duplicate=receipt.duplicate;}
       const readback=view(await coreCommand("teaching_get",{record_id:record.record_id}));
-      if(!sameValue(readback.record,record)||readback.content_sha256!==saved.content_sha256||readback.scoring_status!=="not_scored")throw new Error("teaching saved readback mismatch");
+      if(!sameValue(readback.record,record)||saved&&readback.content_sha256!==saved.content_sha256||readback.scoring_status!=="not_scored")throw new Error("teaching saved readback mismatch");
       if(request!==epoch.current)return;
       if(working&&!await working.session.finishTeachingDraft(draftKey,journal))throw new Error("teaching draft changed after save; retained");
-      if(request===epoch.current){merge(readback);setSelected(readback);currentSelection.current=readback.record.record_id;const cleared={...journal,form:blank(record.kind),parent:null,pending_record:null};journalBaseline.current=JSON.stringify(cleared);setDraft(cleared.form);setParent(null);createAttempt.current=null;setPending(false);note(receipt.duplicate?"已读回同一客户端记录，未重复创建。":"教学记录已保存；仍为不计分的人工作业记录。");}
+      if(request===epoch.current){merge(readback);setSelected(readback);currentSelection.current=readback.record.record_id;const cleared={...journal,form:blank(record.kind),parent:null,pending_record:null};journalBaseline.current=JSON.stringify(cleared);setDraft(cleared.form);setParent(null);createAttempt.current=null;setPending(false);note(duplicate?"已读回同一客户端记录，未重复创建。":"教学记录已保存；仍为不计分的人工作业记录。");}
     });
   }
   async function releasePending() {
@@ -246,7 +290,7 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   async function previewImport() {const target=currentBundle.current;if(!target)return;const fileRequest=fileEpoch.current;await run(async()=>{const result=object(await coreCommand("teaching_import_preview",{body:target}));if(result.valid!==true||!Number.isInteger(result.record_count)||!Number.isInteger(result.duplicate_count)||result.package_sha256!==target.package_sha256)throw new Error("invalid exchange preview");if(fileRequest===fileEpoch.current&&currentBundle.current===target){setPreview(result as {record_count:number;duplicate_count:number;package_sha256:string});setExchangeDialog(true);note("Core只读校验已通过；请审阅内容来源与数量后确认人工导入。");}});}
   async function importBundle() {const target=currentBundle.current;if(!target||!preview||target.package_sha256!==preview.package_sha256)return;const fileRequest=fileEpoch.current;await run(async()=>{const result=object(await coreCommand<ImportReceipt>("teaching_import",{body:target}));if(!Array.isArray(result.items)||!Number.isInteger(result.duplicate_count)||result.package_sha256!==target.package_sha256)throw new Error("invalid import receipt");const imported=result.items.map(view);if(fileRequest===fileEpoch.current&&currentBundle.current===target){for(const item of imported)merge(item);setExchangeDialog(false);setPreview(null);note(`人工导入已读回 ${imported.length} 条，重复 ${result.duplicate_count} 条。外部材料未执行，未写入掌握或AI资格。`);}});}
   async function withdraw() {if(!selected||!withdrawReason.trim())return;const target=selected;await run(async request=>{const body=withdrawalAttempt.current??{schema:"archeaxis.teaching-withdrawal/v2" as const,withdrawal_id:boundedId("withdrawal"),record_id:target.record.record_id,reason:withdrawReason.trim()};withdrawalAttempt.current=body;await coreCommand<WithdrawalReceipt>("teaching_withdraw",{body});const saved=view(await coreCommand("teaching_get",{record_id:target.record.record_id}));if(saved.record.record_id!==target.record.record_id||!saved.withdrawn)throw new Error("withdrawal not read back");if(request===epoch.current){merge(saved);setSelected(saved);setWithdrawDialog(false);withdrawalAttempt.current=null;setWithdrawReason("");note("撤回已读回；保留历史记录与版本，没有删除原知识或课程。");void load();}});}
-  const pageKinds=kinds[pageId]??[], visible=pageId==="16"?items:items.filter(row=>pageKinds.includes(row.record.kind));
+  const pageKinds=kinds[pageId]??[],formKinds=[...new Set([...pageKinds,draft.kind])], visible=pageId==="16"?items:items.filter(row=>pageKinds.includes(row.record.kind));
   const eligible=items.filter(row=>!row.withdrawn&&parents[draft.kind]?.includes(row.record.kind));
   const learningWorkspace=<div className="stitch-teaching-learning">{initialItemKey&&["11","12"].includes(pageId)?<section aria-label="同对象练习与复习"><h3>{learningTitle(journey?.display_title, "学习项目（标题尚未核对）")}</h3>{journey?<><RawReceiptButton label="同对象学习身份" category="data" payload={journey} /><CanonicalLearningSpace key={journey.item_key} initialItemKey={journey.item_key} expectedJourney={journey} onReturnCourse={journey.course?returnCourse:undefined} onTrail={onTrail}/></>:journeyFailure?<p role="alert">同对象学习身份未核对，不能提交结果。{journeyFailure}</p>:<p role="status">正在核对原学习项目、知识与问题身份…</p>}</section>:null}
     {returnedCourse?.course?<section aria-label="原课程与绑定版本"><h3>当前学习问题绑定的原课程</h3><p>仅阅读本题绑定的知识修订 {returnedCourse.knowledge_version}；不创建或升级课程、问题和复习记录。</p><button type="button" onClick={()=>setReturnedCourse(undefined)}>关闭课程并继续编辑</button><KnowledgeCoursePanel key={courseRead} readOnly courseId={returnedCourse.course.id} knowledgeId={returnedCourse.knowledge_id} expectedItemKey={returnedCourse.item_key} expectedCourse={returnedCourse.course}/></section>:null}
@@ -257,7 +301,8 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
     {message?<p className="stitch-teaching-message" role="status">{message}</p>:null}{failure?<p className="stitch-teaching-failure" role="alert">{failure}</p>:null}
     <details className="stitch-teaching-rules"><summary>记录规则与资格说明</summary><p>手工记录保存实际父关系、知识和课程版本；所有教学记录均不计分。人工反馈不会自动改变学习掌握状态或 AI 使用资格。保存时会再次检查权限。</p></details>
     {learningWorkspace}
-    <TeachingStageWorkspace pageId={pageId} parent={parent?.record??null} purpose={draft.purpose} content={draft.content} disabled={busy||pending} onOutline={content=>setDraft(previous=>({...previous,content}))}/>
+    {pageId!=="16"?<ExternalPracticeActions items={items} disabled={busy||pending||!!preparationAttempt.current} onPrepare={(action,basis)=>void preparePractice(action,basis)}/>:null}
+    {!draft.purpose.startsWith("外部实践 · ")?<TeachingStageWorkspace pageId={pageId} parent={parent?.record??null} purpose={draft.purpose} content={draft.content} disabled={busy||pending} onOutline={content=>setDraft(previous=>({...previous,content}))}/>:<p>当前是本人实践文字草稿，按所选固定父记录保存为{names[draft.kind]}；可先保存不完整的准备正文。</p>}
     <div className="stitch-teaching-layout">
       <div className="stitch-teaching-current">
         <div className="stitch-teaching-selected">{selected?<article aria-label="已保存教学记录"><h3>{names[selected.record.kind]} · {selected.record.purpose}</h3><p style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{selected.record.content}</p><p>关联知识版本：{selected.record.knowledge_version}；{selected.record.assisted ? "使用了辅助" : "未声明辅助"}；{selected.withdrawn ? "记录已撤回，仅供查看" : "记录有效，不计分"}。</p><RawReceiptButton label="教学记录与关联详细信息" category="data" payload={selected}/>
@@ -268,19 +313,20 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
           {pageId!=="16"?<form onSubmit={event=>{event.preventDefault();void save();}} aria-label="创建教学记录">
         <fieldset disabled={busy||pending}><legend>先写正文，随时保存本地准备草稿</legend>
           <label className="stitch-teaching-purpose">用途<input maxLength={512} value={draft.purpose} onChange={event=>setDraft(previous=>({...previous,purpose:event.target.value}))}/></label><label className="stitch-teaching-body">内容<textarea maxLength={65536} rows={12} value={draft.content} onChange={event=>setDraft(previous=>({...previous,content:event.target.value}))}/></label>
-          <details className="stitch-teaching-properties"><summary>记录属性与关联</summary><div><label>记录类型<select value={draft.kind} onChange={event=>{setDraft(previous=>({...previous,kind:event.target.value as Kind}));setParent(null);}}>{pageKinds.map(kind=><option key={kind} value={kind}>{names[kind]}</option>)}</select></label>
+          <details className="stitch-teaching-properties"><summary>记录属性与关联</summary><div><label>记录类型<select value={draft.kind} onChange={event=>{setDraft(previous=>({...previous,kind:event.target.value as Kind}));setParent(null);}}>{formKinds.map(kind=><option key={kind} value={kind}>{names[kind]}</option>)}</select></label>
           <label>父记录<select value={parent?.record.record_id??""} onChange={event=>{const row=eligible.find(item=>item.record.record_id===event.target.value);if(row)beginChild(row);else setParent(null);}}><option value="">请选择真实父记录</option>{eligible.map(row=><option key={row.record.record_id} value={row.record.record_id}>{names[row.record.kind]} · {row.record.purpose}</option>)}</select></label>
           <label>范围<select value={draft.scope} onChange={event=>setDraft(previous=>({...previous,scope:event.target.value as TeachingRecord["scope"]}))}><option value="personal">个人记录</option><option value="manual_exchange">人工交换</option></select></label><label>隐私<select value={draft.privacy} onChange={event=>setDraft(previous=>({...previous,privacy:event.target.value as TeachingRecord["privacy"]}))}><option value="local_only">仅本地</option><option value="authorized_export">授权导出</option></select></label>
           <label className="stitch-teaching-checkbox"><input type="checkbox" checked={draft.assisted} onChange={event=>setDraft(previous=>({...previous,assisted:event.target.checked}))}/>使用了辅助（不自动判定行为者）</label><label>内容来源声明（不授予行为者权限）<select value={draft.producer_kind} onChange={event=>setDraft(previous=>({...previous,producer_kind:event.target.value as TeachingRecord["producer_kind"]}))}><option value="human_authored">人工撰写</option><option value="external_material">外部材料</option><option value="machine_generated">机器生成</option></select></label><label>评测准则版本<input value={draft.rubric_version} onChange={event=>setDraft(previous=>({...previous,rubric_version:event.target.value}))}/></label>
           {draft.kind==="feedback"?<label>反馈分类<select value={draft.feedback_class??""} onChange={event=>setDraft(previous=>({...previous,feedback_class:event.target.value as TeachingRecord["feedback_class"]}))}><option value="">请选择</option>{feedbackClasses.map(value=><option key={value} value={value}>{feedbackLabels[value]}</option>)}</select></label>:null}
           </div></details>
         </fieldset><p>来源选择：知识{knowledge ? "已选择" : "尚未选择"}、课程{courseId ? "已关联" : "未关联"}、学习问题{assessmentId ? "已关联" : "未关联"}。</p><RawReceiptButton label="教学来源详细信息" category="data" payload={{knowledge_id:knowledge?.knowledge_id,course_id:courseId,assessment_id:assessmentId}}/>
-        <button disabled={busy||pending||!documentLease.canWrite} type="button" onClick={()=>void savePreparation()}>保存准备正文草稿</button>{preparation?<button disabled={busy||pending} type="button" onClick={newPreparation}>作为新准备草稿</button>:null}<p>普通准备正文可先保存，不要求完整需求、父记录或知识绑定。{preparation?`已保存文档第 ${preparation.version} 版`:"尚未保存准备正文"}。首次用途作为文档标题；后续正文保存保留该标题。需要新标题可作为新准备草稿保存。</p>{preparation?<RawReceiptButton label="准备草稿文档详细信息" category="data" payload={preparation}/>:null}<button disabled={busy} type="submit">{pending?"重试同一记录":"保存教学记录"}</button>{pending?<><p role="status">上次写入尚未确认；重试保持相同客户端身份和原内容，编辑暂时锁定。</p>{working?<><button type="button" disabled={busy} onClick={()=>void releasePending()}>检查结果并恢复编辑</button><p>若记录尚未保存，正文会保留并可恢复编辑；若已保存，请重试同一次操作检查结果。</p></>:null}</>:null}
+        <button disabled={busy||pending||!documentLease.canWrite} type="button" onClick={()=>void savePreparation()}>保存准备正文草稿</button>{preparation?<button disabled={busy||pending} type="button" onClick={newPreparation}>作为新准备草稿</button>:null}<p>普通准备正文可先保存，不要求完整需求、父记录或知识绑定。{preparation?`已保存文档第 ${preparation.version} 版`:"尚未保存准备正文"}。首次用途作为文档标题；后续正文保存保留该标题。需要新标题可作为新准备草稿保存。</p>{preparation?<RawReceiptButton label="准备草稿文档详细信息" category="data" payload={preparation}/>:null}<button disabled={busy} type="submit">{pending?"重试同一记录":"保存教学记录"}</button>{pending?<><p role="status">上次写入尚未确认；重试只读取同一记录，不再提交。原身份与正文保留，编辑暂时锁定。</p>{working?<><button type="button" disabled={busy} onClick={()=>void releasePending()}>检查结果并恢复编辑</button><p>Core 确认原身份未登记并停用它后才恢复编辑；若已保存，请先查询原记录。</p></>:null}</>:null}
       </form>:<section aria-label="人工交换导入"><h3>选择人工交换文件，检查内容后确认导入</h3><input aria-label="选择人工交换 JSON" type="file" accept="application/json,.json" disabled={busy} onChange={event=>void chooseFile(event.target.files?.[0])}/><AaosDialog role="alertdialog" title="确认人工交换导入" description="先检查内容，只有你确认后才导入。" open={exchangeDialog} onOpenChange={open=>{if(!open&&!busy)setExchangeDialog(false);}} trigger={<button disabled={busy||!bundle} onClick={()=>void previewImport()}>检查交换文件</button>}>{preview?<><p>文件包含 {preview.record_count} 条记录，其中 {preview.duplicate_count} 条已存在。导入不会发送到其他设备或执行文件内容。</p><RawReceiptButton label="交换文件核对详细信息" category="data" payload={preview}/><button disabled={busy} onClick={()=>void importBundle()}>确认人工导入</button><button disabled={busy} onClick={()=>setExchangeDialog(false)}>取消导入</button></>:null}</AaosDialog>{originalExchange?<><button type="button" onClick={downloadOriginalExchange}>下载所选原始交换文件</button><p>原件：{originalExchange.name} · {originalExchange.size} 字节。下载保留原文件，即使内容无法导入。</p></>:null}<p>没有文件路径权限、不自动运行外部材料。文件损坏、记录冲突或权限不足时会拒绝导入；重复文件以检查结果为准。</p></section>}
         </section>
       </div>
       <aside className="stitch-teaching-support" aria-label="教学历史与来源">
         <section className="stitch-teaching-card stitch-teaching-source" aria-label="真实教学来源"><h3>选择实际来源</h3><form onSubmit={event=>{event.preventDefault();void search();}}><label>查找来源知识<input value={query} disabled={busy||pending} onChange={event=>setQuery(event.target.value)}/></label><button disabled={busy||pending}>搜索来源知识</button></form><ul>{results.map(row=><li key={row.knowledge_id}><button disabled={busy||pending} onClick={()=>void chooseKnowledge(row)}>{row.head}</button></li>)}</ul>
+      <button type="button" disabled={busy||pending||!knowledge} onClick={()=>void loadCourses()}>读取可选课程</button><p>{courseMessage}</p>
       <label>绑定实际课程<select disabled={busy||pending||!knowledge||!!parent} value={courseId??""} onChange={event=>void chooseCourse(event.target.value)}><option value="">不绑定课程</option>{courses.map(row=><option disabled={row.stale} key={row.manifest_id} value={row.manifest_id}>{row.title}{row.stale?" · 来源失效":""}</option>)}</select></label>
       {parent&&courseId?<button disabled={busy} onClick={()=>void chooseCourse(courseId)}>核对父课程并读取练习入口</button>:null}
       {pageId==="11"?<><button disabled={busy||!itemKey||pending} onClick={()=>void readAssessment()}>读取绑定的真实学习问题</button><button disabled={busy||!itemKey} onClick={()=>setPractice(value=>!value)}>打开真实练习队列</button>{!itemKey?<p className="muted">请先绑定真实学习项目，才能读取学习问题并打开练习队列。</p>:null}<p>独立作答与成绩记录由真实学习流程承接；Teach-back 只是手工记录，不调用旧 Python 评分。</p></>:null}

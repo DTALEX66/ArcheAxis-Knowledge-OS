@@ -3,6 +3,8 @@ use super::*;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+mod local_model_cancel;
+
 const MAX_INPUT: usize = 256_000;
 const MAX_OUTPUT: usize = 1_000_000;
 const MAX_ERROR: usize = 8192;
@@ -370,6 +372,33 @@ impl Executor {
             .await
     }
 
+    /// One request-owned local-model call. Cancelling or dropping this future
+    /// stops only its private transport worker; provider-side stop stays unknown.
+    pub async fn local_model_json_cancellable(
+        &self,
+        request: Value,
+        timeout: Duration,
+        cancel: Cancellation,
+    ) -> Result<Value, String> {
+        let mut lease = local_model_cancel::Lease::new(cancel.clone());
+        if timeout.is_zero() || timeout > Duration::from_secs(120) {
+            lease.disarm();
+            return Err("invalid local model request budget".into());
+        }
+        let result = self
+            .derived_json_checked_script_cancel(
+                "course.openmaic.outline-model",
+                request,
+                timeout,
+                None,
+                OpenMaicScript::Scene,
+                Some(cancel),
+            )
+            .await;
+        lease.disarm();
+        result
+    }
+
     /// Dispatch against the same admission generation captured by the caller
     /// before preparing persistence. A disable/re-enable must not allow an old
     /// request to send material under a newly captured generation.
@@ -594,6 +623,27 @@ impl Executor {
         expected_generation: Option<u64>,
         script_kind: OpenMaicScript,
     ) -> Result<Value, String> {
+        self.derived_json_checked_script_cancel(
+            capability,
+            request,
+            timeout,
+            expected_generation,
+            script_kind,
+            None,
+        )
+        .await
+    }
+
+    async fn derived_json_checked_script_cancel(
+        &self,
+        capability: &str,
+        request: Value,
+        timeout: Duration,
+        expected_generation: Option<u64>,
+        script_kind: OpenMaicScript,
+        cancel: Option<Cancellation>,
+    ) -> Result<Value, String> {
+        local_model_cancel::check(&cancel)?;
         let deadline = Instant::now() + timeout.min(Duration::from_secs(120));
         if !supported(capability) {
             return Err("unsupported derived capability".into());
@@ -624,12 +674,15 @@ impl Executor {
         } else {
             None
         };
-        let disabled = self
-            .store
-            .submit_wait(|conn| capability_settings::disabled_capabilities(conn))
-            .await
-            .map_err(|_| "capability settings unavailable")?
-            .map_err(|_| "capability settings unavailable")?;
+        let disabled = local_model_cancel::wait(
+            &cancel,
+            deadline,
+            self.store
+                .submit_wait(|conn| capability_settings::disabled_capabilities(conn)),
+        )
+        .await?
+        .map_err(|_| "capability settings unavailable")?
+        .map_err(|_| "capability settings unavailable")?;
         if disabled.iter().any(|name| name == capability) {
             return Err("derived capability is disabled".into());
         }
@@ -639,17 +692,24 @@ impl Executor {
             return Err("derived input exceeds bound".into());
         }
         let timeout = deadline.saturating_duration_since(Instant::now());
-        let permit = tokio::time::timeout(timeout, self.derived_slots.clone().acquire_owned())
-            .await
-            .map_err(|_| "derived worker admission timed out")?
-            .map_err(|_| "derived worker unavailable")?;
+        let permit = local_model_cancel::wait(
+            &cancel,
+            deadline,
+            tokio::time::timeout(timeout, self.derived_slots.clone().acquire_owned()),
+        )
+        .await?
+        .map_err(|_| "derived worker admission timed out")?
+        .map_err(|_| "derived worker unavailable")?;
         // Settings may change while all four process slots are occupied.
-        let disabled = self
-            .store
-            .submit_wait(|conn| capability_settings::disabled_capabilities(conn))
-            .await
-            .map_err(|_| "capability settings unavailable")?
-            .map_err(|_| "capability settings unavailable")?;
+        let disabled = local_model_cancel::wait(
+            &cancel,
+            deadline,
+            self.store
+                .submit_wait(|conn| capability_settings::disabled_capabilities(conn)),
+        )
+        .await?
+        .map_err(|_| "capability settings unavailable")?
+        .map_err(|_| "capability settings unavailable")?;
         if disabled.iter().any(|name| name == capability) {
             return Err("derived capability was disabled while queued".into());
         }
@@ -672,26 +732,30 @@ impl Executor {
         let admission = self.openmaic_admission.clone();
         let capability = capability.to_owned();
         let runtime = tokio::runtime::Handle::current();
-        tokio::task::spawn_blocking(move || {
+        let join_cancel = cancel.clone();
+        let task = tokio::task::spawn_blocking(move || {
             let _permit = permit;
+            local_model_cancel::check(&cancel)?;
             // The blocking pool can queue after semaphore admission. Recheck
             // through the same SQLite owner before creating any process.
             let check_capability = capability.clone();
-            let enabled = runtime.block_on(async {
-                tokio::time::timeout(
-                    deadline.saturating_duration_since(Instant::now()),
-                    store.submit_wait(move |conn| {
-                        capability_settings::is_enabled(conn, &check_capability)
-                    }),
-                )
-                .await
-                .map_err(|_| "derived worker timed out before spawn")?
-                .map_err(|_| "capability settings unavailable")?
-                .map_err(|_| "capability settings unavailable")
-            })?;
+            let enabled =
+                runtime.block_on(local_model_cancel::wait(&cancel, deadline, async {
+                    tokio::time::timeout(
+                        deadline.saturating_duration_since(Instant::now()),
+                        store.submit_wait(move |conn| {
+                            capability_settings::is_enabled(conn, &check_capability)
+                        }),
+                    )
+                    .await
+                    .map_err(|_| "derived worker timed out before spawn")?
+                    .map_err(|_| "capability settings unavailable")?
+                    .map_err(|_| "capability settings unavailable")
+                }))??;
             if !enabled {
                 return Err("derived capability was disabled before spawn".into());
             }
+            local_model_cancel::check(&cancel)?;
             let timeout = deadline.saturating_duration_since(Instant::now());
             if timeout.is_zero() {
                 return Err("derived worker timed out before spawn".into());
@@ -750,7 +814,13 @@ impl Executor {
                 // The local-model route is the one derived route whose operator
                 // endpoint override must reach the worker; every other derived
                 // route keeps the cleared environment.
-                run_local_model(&staging, &program, &worker, site, Some(bytes), timeout)?
+                if let Some(cancel) = &cancel {
+                    local_model_cancel::run(
+                        &staging, &program, &worker, site, bytes, deadline, cancel,
+                    )?
+                } else {
+                    run_local_model(&staging, &program, &worker, site, Some(bytes), timeout)?
+                }
             } else {
                 run(&staging, &program, &worker, site, Some(bytes), timeout)?
             };
@@ -807,9 +877,8 @@ impl Executor {
                 }
             }
             Ok(result)
-        })
-        .await
-        .map_err(|_| "derived worker task failed")?
+        });
+        local_model_cancel::join(task, join_cancel, deadline).await
     }
 }
 

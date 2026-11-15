@@ -5,7 +5,7 @@
 export const EXTENSION_TO_KIND: Record<string, string> = {
   xlsx: "office", pptx: "office", docx: "office",
   xls: "office", ppt: "office", doc: "office",
-  html: "html", htm: "html", xhtml: "html",
+  html: "html", htm: "html", xhtml: "html", mht: "html", mhtml: "html",
   pdf: "pdf",
   png: "image", jpg: "image", jpeg: "image", tif: "image", tiff: "image", webp: "image", bmp: "image",
   zip: "archive", tar: "archive",

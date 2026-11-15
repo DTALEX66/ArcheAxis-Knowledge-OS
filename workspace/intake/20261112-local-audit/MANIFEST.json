@@ -1,0 +1,180 @@
+{
+  "schema": "archeaxis.intake-archive/v1",
+  "date": "2026-11-12",
+  "timezone": "Asia/Shanghai",
+  "purpose": "Immutable local audit source/results/evidence snapshot before Owner-authorized implementation",
+  "source_original_provenance": "C:\\Users\\ALEX\\Desktop\\AAOS_Codex_Local_Audit_Prompt_20261112.md",
+  "effective_source": "source/AAOS_Codex_Local_Audit_Prompt_20261112.md",
+  "source_sha256": "2f6d93d4c8b51c939957018171b15b5c4cc47a0d8182236e9905b0e460913474",
+  "head": "157ee1db401bc4c101ad73309159eca7d09abc9a",
+  "members": [
+    {
+      "path": ".project-local/install-acceptance-20261104/journey-receipt.json",
+      "bytes": 3772,
+      "sha256": "cd7ecc00eef4a91bbb87973892025520420ceef77041fc9a9a3bced2e48e811f"
+    },
+    {
+      "path": ".project-local/install-acceptance-20261107/openmaic-installed.json",
+      "bytes": 5698,
+      "sha256": "cd0f20cbd321742997d38be495e12f6a7ee8b3e84913f370776aa1331dbe3474"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/03d213570808/artifacts/public-research-receipt.json",
+      "bytes": 2080649,
+      "sha256": "5831ae57d0b4f6745721d2d9f2a00fa98d96787347a5ddec2bbcfdf7d7d04153"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/238c39f40b46/artifacts/common-chinese-ocr.json",
+      "bytes": 6340915,
+      "sha256": "752a76fa79607dc42d8b6cb3c58ffd37199e70ba8895dd9437f38c9f4f75798d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/4bb6fceb953b/artifacts/colearning-real-model/5d9879350562467fbd2892cd7930a9cd/receipt.json",
+      "bytes": 19934,
+      "sha256": "d4fb513bdbfd887a09b167cc984c2b126586995e3ba16329f51cf84c2f727a56"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/6d833f3811f1/artifacts/j1-batch-folder.json",
+      "bytes": 18604,
+      "sha256": "5d7280ff1cc0b1b472c70d40bfaf465a39cd1bdb27dafad807bf36c08dac7beb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/90f135494810/artifacts/common-speech.json",
+      "bytes": 780675,
+      "sha256": "e4d95b65b1a7c657911572de03b48dc88bedd674a69aa70d885e6ffd29d6f877"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/audit-20261112/artifacts/baseline.json",
+      "bytes": 635,
+      "sha256": "a4ba23186252af9042c96ad110d7ea19531813d7707c03525d4d3d3497c49a62"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/audit-20261112/artifacts/receipt-readback.json",
+      "bytes": 11260,
+      "sha256": "f3b447eaafe3666f758aabd41893f0600d477c0eee5ae531b535fbc8b1c84867"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/audit-20261112/artifacts/static-check.json",
+      "bytes": 661,
+      "sha256": "6185b1ae7f100af47f7be6c4e9a66524202211c919ea3bdbeed96d89df817101"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/openmaic-staged-20261107/artifacts/openmaic-staged.json",
+      "bytes": 5725,
+      "sha256": "8c49632b84f0d919d94479253eaa71a999a52b8cc73225627f9cfd8c15b97ef7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/oss-audit-20261112-setup2/artifacts/OSS-REUSE-CROSSWALK-20261008.csv",
+      "bytes": 319390,
+      "sha256": "e2f137f9a05d40eabccc8a044b016988ba20c0e39ef365e9cd5283e822b4b31c"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/oss-audit-20261112-setup2/artifacts/OSS-REUSE-CROSSWALK-20261008.json",
+      "bytes": 1116182,
+      "sha256": "a8c05ed2d9586e40cb86ab1aacbbb254ce3bbb64b3d9d59e811993addd3846e4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/oss-audit-20261112-setup2/artifacts/audit-delta-static-check.json",
+      "bytes": 372,
+      "sha256": "a8aad8900b570751135dafd2286e8a36552acc0f754cc1a84bae50bb92a0c7fb"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/oss-audit-20261112-setup2/artifacts/execution.json",
+      "bytes": 1261,
+      "sha256": "b0d11e4ee2894bb6a9e3d8270b1dc32e7e7fe3bb795eb0f4fb7c19f071463353"
+    },
+    {
+      "path": ".project-local/task-runtime/aaos01-fault/7f62231394c14ae3b3ceb3b9f016023a/receipt.json",
+      "bytes": 8006,
+      "sha256": "face8d47293467cfd7f5dede6d2bb85cef543d4c695953a42b98df3a508a1e3e"
+    },
+    {
+      "path": "baseline/identity.json",
+      "bytes": 725,
+      "sha256": "a85900acc99d46a13701ab0b523309cffa4bed98dba7a15f1b479b1561ccd692"
+    },
+    {
+      "path": "baseline/working-tree.patch",
+      "bytes": 232520,
+      "sha256": "b9cfd5aea06af660eeb1cd7b1481d72d5f8e246bc4abdc0af682d6ea2ab8cfa4"
+    },
+    {
+      "path": "config/provenance/oss-reuse-crosswalk.json",
+      "bytes": 9409,
+      "sha256": "d8ef6d87bdaffb59ad1b70e4d01a080b7f5cc27ae7a4178cc484140f14b97186"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 349127,
+      "sha256": "36b5bc0c9c0f8b803381ad391bba759d871dc7c376ed0ec3c337f09962a51dd8"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "bytes": 1188840,
+      "sha256": "09344360d9daa060db8ea4517d55500cad0d73cff289aa2c36ade091ea6212d2"
+    },
+    {
+      "path": "docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml",
+      "bytes": 16477,
+      "sha256": "4fc30ad27f0fd88de0bb37984a3b3c9dcf80316f90ec02384597e174f3606272"
+    },
+    {
+      "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+      "bytes": 117042,
+      "sha256": "16520288aa2fc8416e1f95f8992c38334faf863879d9dfdc17e3c857dc4c097c"
+    },
+    {
+      "path": "frontend/src/api/generated/resource-catalog.ts",
+      "bytes": 729341,
+      "sha256": "6b5b170edc78dc6083ccaad2b959bb2de8549ec58c060fbb4731e83451593195"
+    },
+    {
+      "path": "reports/AAOS-AUDIT-20261112-BACKEND.md",
+      "bytes": 30639,
+      "sha256": "49f4f5fc151dbf55133ba875c3c97f909f186d989e8dc6c26677f0ab499c3361"
+    },
+    {
+      "path": "reports/AAOS-AUDIT-20261112-COVERAGE.csv",
+      "bytes": 202163,
+      "sha256": "5aaff3b426c0a22a055d946c048c508ee0c8d4c52f18d79790035bfee34c3148"
+    },
+    {
+      "path": "reports/AAOS-AUDIT-20261112-EVIDENCE.md",
+      "bytes": 7782,
+      "sha256": "315ba56168a9d44ddf848bdb7ff3d9772c2071ac41466e0e36805e6a90fa64f0"
+    },
+    {
+      "path": "reports/AAOS-AUDIT-20261112-FRONTEND.md",
+      "bytes": 30014,
+      "sha256": "36913dcd8746f2b7f7e6588e14d8ece7d166213bd0b0a3a13f7a6b1b2ebe58a5"
+    },
+    {
+      "path": "reports/AAOS-AUDIT-20261112-OSS.md",
+      "bytes": 23880,
+      "sha256": "7950376af834025026474257eab8472c2644da74cf13c9ddac524755e5ae4dd6"
+    },
+    {
+      "path": "reports/AAOS-AUDIT-20261112.md",
+      "bytes": 33056,
+      "sha256": "8dd349702c1e156d7dadb13607a65c9f52bbc9f5c8d67bdbb69eaab0e0dc5434"
+    },
+    {
+      "path": "scripts/probes/aaos_openmaic_generation_staged_loop.py",
+      "bytes": 20988,
+      "sha256": "0c5c6157f06e8fff66ad386e5e3b7ffef27b7259b04bd41a5b84c204841e8a0b"
+    },
+    {
+      "path": "source/AAOS_Codex_Local_Audit_Prompt_20261112.md",
+      "bytes": 46518,
+      "sha256": "2f6d93d4c8b51c939957018171b15b5c4cc47a0d8182236e9905b0e460913474"
+    }
+  ],
+  "boundary": "LOCAL_ONLY_IGNORED_ARCHIVE; no product PASS, no upload, no cross-project move or deletion",
+  "archive_path": ".project-local/archives/local-audit-20261112/AAOS-local-audit-20261112.zip",
+  "archive_bytes": 1695296,
+  "archive_sha256": "e6f7bc78fb773186b430ca76f38b4e032bef5bb41c03d08cf6f0af578848b4b1",
+  "archive_members_including_manifest": 33,
+  "verification": "ALL_MEMBERS_BYTES_SHA256_AND_ZIP_CRC_READBACK_PASS",
+  "current_reports": "reports/AAOS-AUDIT-20261112.md",
+  "effective_paths_rule": "All effective material is repo-local or a member of this repo-local archive; Desktop path is provenance only"
+}

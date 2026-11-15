@@ -104,6 +104,20 @@
       "observed_on": "2026-10-22",
       "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
       "execution": "NOT_EXECUTED"
+    },
+    "json_canvas_1_0": {
+      "url": "https://jsoncanvas.org/spec/1.0/",
+      "boundary": "JSON Canvas 1.0 specification dated 2024-03-11; public document read on 2026-11-12. Format structure only; no exporting client version, renderer, attachment access or external roundtrip observed.",
+      "observed_on": "2026-11-12",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "logseq_db_2_0_2_release": {
+      "url": "https://github.com/logseq/logseq/releases/tag/2.0.2",
+      "boundary": "Upstream Desktop APP 2.0.2 Beta release explicitly describes DB mode and file-to-DB import. Public release document read on 2026-11-12; installed client, graph schema/export revision and actual conversion remain UNKNOWN. No install, login, graph opening or probe.",
+      "observed_on": "2026-11-12",
+      "evidence_kind": "OFFICIAL_RELEASE_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
     }
   },
   "aaos_observations": [
@@ -739,7 +753,13 @@
         }
       },
       "overall_parity": "UNVERIFIED",
-      "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+      "scope_change": "NONE; no inherited platform or personal feature removed or deferred",
+      "current_profile": "file_graph",
+      "scope_partition": {
+        "file_graph": "logseq",
+        "db_graph": "logseq_db"
+      },
+      "profile_boundary": "The historical Logseq name, route and feature families are retained. This row owns the selected file-graph identity; the separate logseq_db row owns DB-graph discovery. Evidence never crosses profiles automatically."
     },
     {
       "platform_key": "zotero",
@@ -3058,6 +3078,359 @@
       },
       "overall_parity": "UNVERIFIED",
       "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
+    },
+    {
+      "platform_key": "json_canvas",
+      "name": "JSON Canvas",
+      "current_profile": "canvas_format",
+      "scope_origin": "source_scope / source_identity_mapping; additive identity reconciliation, not replacement of the inherited seed",
+      "discovery_sources": [
+        "json_canvas_1_0"
+      ],
+      "route_qualification": "UNVERIFIED; documentation and local authored/mock checks do not demonstrate external compatibility",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": "JSON Canvas 1.0 (2024-03-11)",
+        "version_basis": "OFFICIAL_DOCUMENTATION_ONLY; actual installed client and interchange execution NOT_OBSERVED"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "nodes_edges_and_order",
+          "axis": "canvas",
+          "official_sources": [
+            "json_canvas_1_0"
+          ],
+          "requirement": "按 1.0 分别验收文本、文件、链接、分组节点，边端点、层叠顺序和几何；未知扩展字段独立保全并报告损失。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "declared_references_and_exchange",
+          "axis": "exchange",
+          "official_sources": [
+            "json_canvas_1_0"
+          ],
+          "requirement": "文件、subpath、URL 和背景引用仅是原件声明；需分别验收资源解析和双向往返，不能从文本映射或只读示意图推导附件、坐标编辑或外部应用兼容。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "ADDITIVE_SOURCE_IDENTITY; no inherited identity, feature family or acceptance evidence removed or promoted",
+      "donor_reference": {
+        "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+        "stable_key": "jsoncanvas",
+        "ledger_path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+        "ledger_id": "A016",
+        "boundary": "Resource donor identity jsoncanvas is distinct from acceptance platform_key json_canvas; no qualification inheritance."
+      }
+    },
+    {
+      "platform_key": "logseq_db",
+      "name": "Logseq DB",
+      "current_profile": "db_graph",
+      "scope_origin": "source_scope / source_identity_mapping; additive identity reconciliation, not replacement of the inherited seed",
+      "discovery_sources": [
+        "logseq_db_2_0_2_release"
+      ],
+      "route_qualification": "UNVERIFIED; documentation and local authored/mock checks do not demonstrate external compatibility",
+      "source_version": {
+        "application_version": null,
+        "application_observation": "UNVERIFIED",
+        "format_or_api_version": null,
+        "version_basis": "OFFICIAL_DOCUMENTATION_ONLY; actual installed client and interchange execution NOT_OBSERVED",
+        "upstream_release_reference": "2.0.2 Beta; documentation only, not an observed installed version"
+      },
+      "target_version": {
+        "application": "ArcheAxis Knowledge",
+        "release_label": "0.6.14",
+        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+      },
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
+      "remaining_discovery_axes": [
+        "content",
+        "files",
+        "tags",
+        "links",
+        "collections",
+        "canvas",
+        "search",
+        "capture",
+        "templates",
+        "learning",
+        "history",
+        "exchange",
+        "sync",
+        "ai"
+      ],
+      "documented_features": [
+        {
+          "feature_key": "db_node_property_identity",
+          "axis": "links",
+          "official_sources": [
+            "logseq_db_2_0_2_release"
+          ],
+          "requirement": "DB 块、页面、属性和值的身份分别验收；不得沿用文件版的导入或块引用证据。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        },
+        {
+          "feature_key": "file_to_db_conversion",
+          "axis": "exchange",
+          "official_sources": [
+            "logseq_db_2_0_2_release"
+          ],
+          "requirement": "固定实际客户端与图谱版本后核对文件到 DB 的导入、附件引用及损失，再分别核验正反向往返与增量冲突；上游修复说明不等于本产品验收。",
+          "aaos_parity": "UNVERIFIED",
+          "acceptance_evidence": []
+        }
+      ],
+      "direction_results": {
+        "import": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "export": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "external_aaos_external": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "aaos_external_aaos": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        },
+        "incremental_sync": {
+          "state": "NOT_EXECUTED",
+          "evidence": [],
+          "losses": "UNKNOWN"
+        }
+      },
+      "overall_parity": "UNVERIFIED",
+      "scope_change": "ADDITIVE_SOURCE_IDENTITY; no inherited identity, feature family or acceptance evidence removed or promoted",
+      "donor_reference": {
+        "ledger_path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+        "ledger_id": "A069",
+        "boundary": "Shared upstream project identity does not merge file-graph and DB-graph compatibility evidence."
+      }
+    }
+  ],
+  "source_scope": {
+    "path": "workspace/intake/20261101-cloud-integration-v3-1-review/source/originals/06-interop-results-template.csv",
+    "sha256": "c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213",
+    "identity_column": "平台",
+    "intake_manifest": "workspace/intake/20261101-cloud-integration-v3-1-review/MANIFEST.json",
+    "role": "Owner-selected source identity scope; NOT_RUN template cells are historical input, not current product results"
+  },
+  "identity_reconciled_on": "2026-11-12",
+  "identity_reconciliation_boundary": "Preserve all inherited seed identities and evidence. Source identity coverage does not complete feature discovery, demonstrate compatibility or promote any direction. Logseq file and DB profiles require separate evidence; JSON Canvas is a format identity, not all Obsidian features.",
+  "source_identity_mapping": [
+    {
+      "source_identity": "Markdown",
+      "platform_key": "markdown"
+    },
+    {
+      "source_identity": "Obsidian",
+      "platform_key": "obsidian"
+    },
+    {
+      "source_identity": "JSON Canvas",
+      "platform_key": "json_canvas",
+      "profile": "canvas_format"
+    },
+    {
+      "source_identity": "思源",
+      "platform_key": "siyuan"
+    },
+    {
+      "source_identity": "Joplin",
+      "platform_key": "joplin"
+    },
+    {
+      "source_identity": "Logseq文件版",
+      "platform_key": "logseq",
+      "profile": "file_graph"
+    },
+    {
+      "source_identity": "LogseqDB版",
+      "platform_key": "logseq_db",
+      "profile": "db_graph"
+    },
+    {
+      "source_identity": "Zotero",
+      "platform_key": "zotero"
+    },
+    {
+      "source_identity": "Anki",
+      "platform_key": "anki"
+    },
+    {
+      "source_identity": "Trilium",
+      "platform_key": "trilium"
+    },
+    {
+      "source_identity": "Notion",
+      "platform_key": "notion"
+    },
+    {
+      "source_identity": "AFFiNE",
+      "platform_key": "affine"
+    },
+    {
+      "source_identity": "AppFlowy",
+      "platform_key": "appflowy"
+    },
+    {
+      "source_identity": "Outline",
+      "platform_key": "outline"
+    },
+    {
+      "source_identity": "Docmost",
+      "platform_key": "docmost"
+    },
+    {
+      "source_identity": "Wiki.js",
+      "platform_key": "wikijs"
+    },
+    {
+      "source_identity": "BookStack",
+      "platform_key": "bookstack"
+    },
+    {
+      "source_identity": "Anytype",
+      "platform_key": "anytype"
+    },
+    {
+      "source_identity": "Evernote",
+      "platform_key": "evernote"
+    },
+    {
+      "source_identity": "OneNote",
+      "platform_key": "onenote"
+    },
+    {
+      "source_identity": "语雀",
+      "platform_key": "yuque"
+    },
+    {
+      "source_identity": "飞书",
+      "platform_key": "feishu"
+    },
+    {
+      "source_identity": "Confluence",
+      "platform_key": "confluence"
+    },
+    {
+      "source_identity": "Apple Notes",
+      "platform_key": "apple_notes"
+    },
+    {
+      "source_identity": "Bear",
+      "platform_key": "bear"
+    },
+    {
+      "source_identity": "Craft",
+      "platform_key": "craft"
+    },
+    {
+      "source_identity": "Heptabase",
+      "platform_key": "heptabase"
+    },
+    {
+      "source_identity": "Tana",
+      "platform_key": "tana"
+    },
+    {
+      "source_identity": "Capacities",
+      "platform_key": "capacities"
+    },
+    {
+      "source_identity": "RemNote",
+      "platform_key": "remnote"
+    },
+    {
+      "source_identity": "Roam",
+      "platform_key": "roam"
+    },
+    {
+      "source_identity": "RAGFlow",
+      "platform_key": "ragflow"
+    },
+    {
+      "source_identity": "FastGPT",
+      "platform_key": "fastgpt"
+    },
+    {
+      "source_identity": "MaxKB",
+      "platform_key": "maxkb"
+    },
+    {
+      "source_identity": "Dify",
+      "platform_key": "dify"
+    },
+    {
+      "source_identity": "WeKnora",
+      "platform_key": "weknora"
+    },
+    {
+      "source_identity": "Git/研发资料",
+      "platform_key": "git"
     }
   ]
 }

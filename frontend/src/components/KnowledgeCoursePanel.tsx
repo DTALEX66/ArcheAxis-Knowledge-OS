@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { coreFailureReason } from "../presentation/labels";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { KnowledgeCurrentnessNotice } from "./KnowledgeCurrentnessNotice";
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid course response");
@@ -133,6 +134,7 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, expectedItemKey, e
       <h6>知识要点</h6>{course.components.map((component, index) => <div key={index}><strong>{component.title}</strong><p className="course-statement">{component.statement}</p></div>)}
       <h6>学习目标</h6><ul>{course.objectives.map((objective, index) => <li key={index}>{objective}</li>)}</ul>
       <p>绑定知识版本：{course.knowledgeId} · 来源修订：{course.sourceRevision}</p>
+      <KnowledgeCurrentnessNotice knowledgeId={course.knowledgeId}/>
       {lesson ? <RawReceiptButton label="课程课时渲染回执" payload={lesson} /> : null}
       {!readOnly && !course.stale && lesson ? <button disabled={busy} onClick={() => void study()}>由课程课时建立学习问题</button> : null}</article> : null}
     {message ? <p role="status">{message}</p> : null}{failure ? <p className="state-reason">{failure}</p> : null}

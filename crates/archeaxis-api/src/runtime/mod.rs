@@ -117,6 +117,7 @@ mod machine_cancel_registry_tests {
             admission: Arc::new(Mutex::new(())),
             colearning_admission: Arc::new(Mutex::new(())),
             machine_active: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            question_turn_active: Default::default(),
         };
         (dir, runtime)
     }
@@ -338,6 +339,7 @@ struct Runtime {
     admission: Arc<Mutex<()>>,
     colearning_admission: Arc<Mutex<()>>,
     machine_active: Arc<std::sync::Mutex<HashMap<String, MachineActive>>>,
+    question_turn_active: deeptutor_question_turn::Registry,
 }
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
@@ -477,6 +479,16 @@ pub fn router(executor: Executor) -> Router {
             post(deeptutor_question_turn::question_turn)
                 .layer(axum::extract::DefaultBodyLimit::max(65_536)),
         )
+        .route(
+            "/api/v1/learning/deeptutor/question-turn/status",
+            post(deeptutor_question_turn::status)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
+        .route(
+            "/api/v1/learning/deeptutor/question-turn/cancel",
+            post(deeptutor_question_turn::cancel)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
         // DeepTutor's teaching-feedback step: run the pinned donor rules once
         // over a caller-declared profile snapshot and persist one inert
         // candidate Document. No model, activity, review or mastery is written.
@@ -571,6 +583,7 @@ pub fn router(executor: Executor) -> Router {
             admission: Arc::new(Mutex::new(())),
             colearning_admission: Arc::new(Mutex::new(())),
             machine_active: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            question_turn_active: Default::default(),
         })
         .merge(projections)
 }
@@ -1422,6 +1435,7 @@ mod cancel_terminal_tests {
             admission: Arc::new(Mutex::new(())),
             colearning_admission: Arc::new(Mutex::new(())),
             machine_active: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            question_turn_active: Default::default(),
         };
         (dir, runtime, token)
     }

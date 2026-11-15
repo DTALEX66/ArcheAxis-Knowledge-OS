@@ -19,6 +19,7 @@
 | 最近对话和所有包在哪里 | **[近两日对话决定与任务包总对照](docs/history/owner-dialogue-20261101-current-goals/README.md)**集中保存可见原话摘录、R2→R5→R6、v3→v3.1→日志补件及本地ZCODE来源；不再逐个猜目录。 |
 | 软件规则、内容规则与事实有什么区别 | 执行边界读[AGENTS.md](AGENTS.md)，普通保存/来源用途读[项目合同content_policy](PROJECT_CONTRACT.yaml)。软件规范的权威不代表资料陈述具有唯一事实权威。 |
 | 当前做什么、做到哪里 | 范围/顺序/暂停/权限只读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)；实际结果与未完成项只读其`active_progress`指向的[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)，接续读[当前交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)。历史“只审计”、PASS或旧暂停不冒充后继状态。 |
+| 2026-11-12审计后的执行选择 | Owner要求先归档再执行，随后明确完成现行闭环定义目标；持续补齐前后端与必要验收，不以局部切片代替完成。读[归档与来源](workspace/intake/20261112-local-audit/README.md)、[Owner决定第三十节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#三十本地审计归档与首批实施2026-11-12)和SUP-035；保留身份V2.3、闭环V3、SUP-034及原稳定ID，具体进度仍归唯一执行记录。 |
 
 **更新约定**：新的Owner定位或定义决定，须同步相应唯一规范、本页入口、活动指针、决定/替代关系与来源映射；不只追加一份交接摘要。接手与讨论项目方向时先读本节及所指规范，再按需查看包内原文。原包不改字节、不重复展开，历史证据不改签。
 

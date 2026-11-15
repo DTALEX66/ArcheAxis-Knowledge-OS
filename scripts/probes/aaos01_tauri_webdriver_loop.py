@@ -1798,11 +1798,27 @@ def main():
         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
     )
     independent_modes = parser.add_mutually_exclusive_group()
+    independent_modes.add_argument("--v3-consumer-loop", action="store_true", help="Independent incremental DeepTutor/OpenMAIC/Canvas/L0/X8 trusted native UI journey with owned synthetic loopback model; never the inherited grouped/format loops")
+    parser.add_argument("--v3-seed-receipt", type=Path, help="Explicit project-owned native-seed.json from the same candidate; restored only through Core maintenance")
+    parser.add_argument("--v3-seed-receipt-sha256", help="Exact SHA-256 of --v3-seed-receipt; both options required together")
     independent_modes.add_argument("--material-companion-recovery-loop", action="store_true", help="Independent actual material/companion, cold and backup recovery on fresh synthetic data; no answer/retest qualification")
     independent_modes.add_argument("--material-companion-cancel-loop", action="store_true", help="Independent admitted material/companion UI cancel and cold recovery; no prior successful generation or provider-stop claim")
     parser.add_argument("--material-companion-actual-model", action="store_true", help="Explicit actual model opt-in only for an independent material/companion mode")
     parser.add_argument("--material-companion-model", help="Explicit authorized local model for independent material/companion; no global provider changes")
     args = parser.parse_args()
+    if bool(args.v3_seed_receipt) != bool(args.v3_seed_receipt_sha256):
+        parser.error("V3 seed receipt and its explicit SHA-256 are required together")
+    if args.v3_seed_receipt and not args.v3_consumer_loop:
+        parser.error("V3 seed restore requires --v3-consumer-loop")
+    if args.v3_consumer_loop:
+        common = {"host", "driver", "native_driver", "build_receipt", "session_timeout", "installer",
+                  "v3_consumer_loop", "v3_seed_receipt", "v3_seed_receipt_sha256"}
+        if any(value for key, value in vars(args).items() if key not in common):
+            parser.error("V3 consumers cannot mix any inherited journey or model-selection options")
+        if not args.build_receipt:
+            parser.error("V3 consumers require an exact candidate --build-receipt")
+        if any(os.environ.get(key) == "1" for key in ("AAOS01_TEACHING_DRAFT_ONLY", "AAOS01_LEARNING_DRAFT_ONLY")):
+            parser.error("V3 consumers cannot mix inherited draft isolation modes")
     material_mode = independent_material_mode(parser, args)
     assert not args.ui_original_text_citations or args.ui_import_manifest is not None, "Original text citations require synthetic import manifest"
     assert not args.ui_format_citations or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI citations require explicit synthetic import and conversion"
@@ -1935,6 +1951,7 @@ def main():
     owned_host_records = []
     attach_ports = []
     owned_tree_collection_verified = False
+    v3_model = None
     log = (work / "driver.log").open("wb")
 
     driver_transport = OwnedWebDriverTransport(port)
@@ -2146,9 +2163,14 @@ def main():
         navigation_evidence = receipt.setdefault("navigation_entry", [])
         launch_controls = launch_navigation.GroupedUI(js, wait, ui_element,
             lambda element_id, action, body: trusted_grouped_element_command(request, session, element_id, action, body), navigation_evidence)
-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode or args.v3_consumer_loop:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
-            launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence, fresh_profile=True)
+            if args.v3_consumer_loop:
+                recovery = confirm_restored_working_state(bridge, ui_click, wait, js,
+                    prepare_navigation=lambda: launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence, fresh_profile=True))
+                receipt.setdefault("launch_working_state_recovery", []).append(recovery)
+            else:
+                launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence, fresh_profile=True)
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
             # Restored-state confirmation can defer the guide's auto-open. Pause
@@ -2198,6 +2220,16 @@ def main():
         owned_host = None
 
     try:
+        if args.v3_consumer_loop:
+            v3 = load("v3_consumer_native", REPO / "scripts/probes/aaos_v3_consumer_native.py")
+            v3_seed = v3.load_seed(args.v3_seed_receipt, args.v3_seed_receipt_sha256, REPO,
+                host.parent / "core/archeaxis-api.exe",
+                {"commit": env["ARCHEAXIS_SOURCE_COMMIT"], "patch_sha256": env["ARCHEAXIS_SOURCE_PATCH_SHA256"]}) if args.v3_seed_receipt else None
+            v3_model = v3.ControlledModel()
+            # Owned child launch environment only; global product/provider settings stay intact.
+            env.update(v3_model.start())
+            receipt["v3_model_scope"] = {"route": "OWNED_LOOPBACK_SYNTHETIC", "global_environment_mutated": False,
+                "model": v3.MODEL, "owner_acceptance": False}
         process = subprocess.Popen(
             [
                 str(driver),
@@ -2255,6 +2287,38 @@ def main():
                     initialization["initializer_exit"] = {"method": "EXISTING_OWNED_LAUNCHER_TERMINATE_REAP", "exit_code": init_code, "stopped": init_child.poll() is not None, "graceful_exit": "NOT_CLAIMED"}
                     assert init_child.poll() is not None, "Initialization Core remained live"
         launch()
+        if args.v3_consumer_loop:
+            grouped = load("v3_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            section = receipt["v3_consumers"] = {"ui_actions": []}
+            def v3_command(element_id, action, body):
+                return trusted_grouped_element_command(request, session, element_id, action, body)
+            def v3_close():
+                previous_ports = list(attach_ports)
+                close_session()
+                # Same-creation ownership only, no broad process-name cleanup.
+                drained = wait_owned_descendant_drain(owned_host_records, timeout=8)
+                section.setdefault("between_launch_cleanup", []).append(drained)
+                assert not drained["remaining"], "Owned host descendants survived normal shutdown"
+                assert not tcp_listener_rows(ports=previous_ports), "Owned host CDP port remained live"
+            def v3_restart():
+                old_pid, old_session = owned_host.pid, session
+                v3_close()
+                shutdown = receipt["host_shutdowns"][-1]
+                launch()
+                return {"old_pid": old_pid, "new_pid": owned_host.pid, "old_session": old_session,
+                    "new_session": session, "normal_exit": shutdown["exited"], "exit_code": shutdown["exit_code"],
+                    "portable_root": str(work / "data")}
+            controls = grouped.GroupedUI(js, wait, ui_element, v3_command, section["ui_actions"],
+                lambda: accept_native_alert(request, session, section["ui_actions"]))
+            if v3_seed:
+                v3.restore_seed(v3_seed, read=bridge, close=v3_close, launch=launch,
+                    core=host.parent / "core/archeaxis-api.exe", work=work, env=env, report=section)
+            v3.run(ui=controls, bridge=bridge, js=js, wait=wait, restart=v3_restart,
+                screenshot=screenshot, work=work, report=section, model=v3_model, seed=v3_seed)
+            receipt["steps"].append("Incremental V3 native consumers only; seed writes separately recorded; no inherited grouped/18-format loop or Owner acceptance")
+            v3_close()
+            receipt["ok"] = section["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
         if args.installed_draft_conflict_loop:
             grouped = load("conflict_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             evidence = initialization.setdefault("ui_actions", [])
@@ -2797,10 +2861,19 @@ def main():
                 receipt["diagnostic_error"] = type(diagnostic_error).__name__
         if session:
             try:
+                if args.v3_consumer_loop:
+                    receipt.setdefault("v3_consumers", {})["failure_ui_operation_receipts"] = js("return window.__v3NativeObserver??[]")
                 screenshot("failure.png")
             except BaseException as capture_error:
                 receipt["screenshot_error"] = str(capture_error)
     finally:
+        if v3_model is not None:
+            try:
+                v3_model.close()
+                receipt["v3_model_cleanup"] = {"stopped": True, "calls": v3_model.calls}
+            except BaseException as error:
+                receipt["ok"] = False
+                receipt["v3_model_cleanup"] = {"stopped": False, "error": type(error).__name__}
         if owned_host is not None:
             try:
                 close_session()

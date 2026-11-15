@@ -1,5 +1,7 @@
 # AAOS 当前接续导航：人类＋AI＋双侧连接
 
+**2026-11-12后继入口：** Owner已要求“完成我的闭环定义目标”。[统一归档与审计实施来源](../../workspace/intake/20261112-local-audit/README.md) → 活动指针`execution_control.owner_local_audit_execution_20261112` → 唯一执行记录同日末段。V3全部必备项为目标，前后端与必要验收继续；下方旧暂停和后端优先只说明历史时点。局部实现、同候选验证、真实质量及Owner接受仍分层，原归档不改写。
+
 本入口只保存接续顺序、合同和历史导航。当前授权、执行／监控控制、源码、候选、CI、实际失败与下一步，读取[活动指针](AAOS-ACTIVE-EXECUTION.json)和[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)，不复制第二份可变进度。日期快照中的“当前／最新／暂停”只说明当时，不能覆盖活动指针选中的后继Owner决定。
 
 **Git交付覆盖：** Owner要求总结未完成任务、合并合格分支并保持双端一致，2026-11-02再次要求上传和必要合并。先读活动指针`execution_control.owner_delivery_20261101`、`execution_control.owner_ui_research_and_delivery_20261102`及唯一执行记录末段；允许公开源码、任务记录和已选设计成果的推送及合格合并。ignored原件、完整会话、运行数据、数据库、缓存及Agent私有材料不上传；不追认历史云编码外发或自动发布、替换Green及覆盖真实库。界面调研与设计概念不代表已实现或验收。

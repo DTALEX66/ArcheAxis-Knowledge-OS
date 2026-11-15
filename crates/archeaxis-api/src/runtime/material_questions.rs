@@ -662,6 +662,7 @@ mod async_publication_tests {
             admission: Arc::new(Mutex::new(())),
             colearning_admission: Arc::new(Mutex::new(())),
             machine_active: registry.clone(),
+            question_turn_active: Default::default(),
         };
         let lease = super::super::MachineLease {
             registry,

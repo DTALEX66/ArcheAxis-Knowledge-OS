@@ -11,6 +11,7 @@ import "./stitch-learning.css";
 type CourseRow = { manifest_id: string; title: string; stale: boolean; status: "candidate"; human_review_required: true };
 type KnowledgeRow = { knowledge_id: string; head: string };
 const ImportedCoursePanel = lazy(() => import("../components/ImportedCoursePanel").then(module => ({ default: module.ImportedCoursePanel })));
+const OpenMaicScenePanel = lazy(() => import("../components/OpenMaicScenePanel").then(module => ({ default: module.OpenMaicScenePanel })));
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid learning projection");
   return value as Record<string, unknown>;
@@ -151,7 +152,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
         {searched && !results.length ? <p>没有匹配的知识。可先去知识库保存内容，再独立整理课程来源。</p> : null}
         <ul className="stitch-learning-course-list" aria-label="课程来源搜索结果">{results.map(row => <li key={row.knowledge_id}><button disabled={searching} onClick={() => void chooseKnowledge(row)}>{row.head}</button></li>)}</ul>
       </section>
-      <section tabIndex={-1} hidden={learningPane !== "imports"} className="stitch-learning-stage stitch-learning-glass" aria-label="外部课程内容槽"><h3>外部课程与测验</h3><details onToggle={event => setExternalCourseOpen(event.currentTarget.open)}><summary>外部课程与测验</summary>{externalCourseOpen ? <Suspense fallback={<p role="status">正在打开课程导入…</p>}><ImportedCoursePanel /></Suspense> : null}</details></section>
+      <section tabIndex={-1} hidden={learningPane !== "imports"} className="stitch-learning-stage stitch-learning-glass" aria-label="外部课程内容槽"><h3>课件与测验</h3><details onToggle={event => setExternalCourseOpen(event.currentTarget.open)}><summary>已生成课件与外部课程</summary>{externalCourseOpen ? <Suspense fallback={<p role="status">正在打开课程…</p>}><OpenMaicScenePanel /><ImportedCoursePanel /></Suspense> : null}</details></section>
       <section tabIndex={-1} hidden={learningPane !== "context"} className="stitch-learning-stage stitch-learning-glass" aria-label="学习边界与后续能力"><h3>学习计划与能力</h3><p>当前先完成已有课程、课时和复习事件的真实路径。没有模型或证据的项目明确保留为后续缺口。</p>
         <ol className="stitch-learning-steps" aria-label="学习旅程"><li>选择知识或课程</li><li>阅读绑定版本与学习目标</li><li>独立作答和核对</li><li>记录反馈，按真实安排复习</li></ol>
         <details><summary>诊断、先修与负荷计划</summary><p>知识诊断、跨课程先修检查和自动计划尚不可用，因此这里不推测你的学习情况或进度。</p></details>

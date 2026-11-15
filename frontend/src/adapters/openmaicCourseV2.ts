@@ -41,7 +41,7 @@ export function isOpenMaic13Manifest(bytes: Uint8Array): boolean {
 }
 function encoded(value: unknown): Uint8Array { return new TextEncoder().encode(JSON.stringify(value)); }
 
-function slide(value: unknown, path: string): ImportedTextSlide {
+export function parseOpenMaicTextCanvas(value: unknown, path = "canvas"): ImportedTextSlide {
   const canvas = record(value, path);
   const allowed = ["id", "viewportSize", "viewportRatio", "theme", "elements", "background", "animations", "turningMode", "sectionTag", "type", "script"];
   for (const key of Object.keys(canvas)) if (!allowed.includes(key)) fail(`${path}.${key}`, "未知画布字段；可单独保全原件");
@@ -113,7 +113,7 @@ export function parseOpenMaicCourseV2(bytes: Uint8Array): CourseImportDraft {
       fail(`${path}.content.schemaVersion`, "未知幻灯片版本；可单独保全原件");
     const checked = parseOpenMaicCourse(encoded({ ...root, scenes: [{ ...row, type: "quiz", content: dummyQuiz.content }] }));
     return { title: checked.scenes[0].title, order: checked.scenes[0].order, kind: "slide" as const,
-      questions: [], slide: slide(content.canvas, `${path}.content.canvas`) };
+      questions: [], slide: parseOpenMaicTextCanvas(content.canvas, `${path}.content.canvas`) };
   });
   if (new Set(converted.map(scene => scene.order)).size !== converted.length) fail("$.scenes.order", "场景顺序重复");
   return { title: base.title, scenes: converted, report: [

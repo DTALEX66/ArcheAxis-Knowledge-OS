@@ -661,7 +661,7 @@ describe("canonical content sample", () => {
     const user=userEvent.setup();
     await user.click(await screen.findByRole("button",{name:"样板.txt"}));
     await user.click(await screen.findByRole("button",{name:"Markdown 导出到产品资料目录"}));
-    await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_export_save",{document_id:"doc_test",format:"markdown"}));
+    await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_export_save",{document_id:"doc_test",format:"markdown",expected_version:doc.version,expected_content_sha256:doc.content_sha256}));
     expect(await screen.findByText(/已导出到产品资料目录/)).toHaveTextContent("外部应用读取仍需单独验证");
   });
   it("refuses an export whose save receipt does not agree with the export it just proved", async () => {

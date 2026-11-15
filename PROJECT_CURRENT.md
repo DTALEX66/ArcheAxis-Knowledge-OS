@@ -4,6 +4,8 @@
 
 ## 当前有效决定与范围
 
+- **2026-11-12后继执行：** Owner在归档及首批实施后明确“完成我的闭环定义目标”。按唯一闭环V3持续补齐全部必备项，前后端及必要验收均继续；范围与独立授权边界读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.owner_local_audit_execution_20261112`，来源读[本轮归档入口](workspace/intake/20261112-local-audit/README.md)，实际结果只记[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
+- **2026-11-14恢复执行：** Owner明确“执行任务 完成闭环定义目标”，按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.owner_resume_20261114`恢复此前暂停的V3闭环工作，沿用SUP-035与原完成范围，不改产品定义、任务队列或进度账本；同日暂停与更早RUNNING/PAUSED字段只说明各自时点。产品整体仍PARTIAL，监控暂停、权限恢复与产品完成分开，实际结果只记[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
 - **执行控制提示：** 2026-11-01本次接手时官方额度读回触及Owner既定的剩余≤10%停止阈值，随后Owner知情明确要求“继续”；当前状态及既有规则以[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)为准，封存、失败与未完项见[唯一执行记录末段](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
 - **本轮优先级：** Owner先要求推进全部后端任务与两平台真实源码复用，后又要求先联网调研并重新思考界面、上传公开项目成果并合并合格分支。前端[调研与设计概念](docs/design/20261102-ui-research/界面调研与重设计方案.md)不代表产品实现或验收；具体授权和实际进度分别读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)与[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
 - 两个核心：通用知识底座、人类与AI双向学习。人类侧贯通知识、研究、学习、表达、实践记录与复习；AI侧将**任何领域**AI工作中可转化的成果、问题、方法、流程、规范与更新提炼为知识，治理、使用、反馈、纠正和复测。原始跨项目完整会话/工具轨迹留在外部系统。

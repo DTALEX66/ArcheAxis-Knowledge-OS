@@ -129,6 +129,35 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
+    "owner_local_audit_execution_20261112": {
+      "id": "OWNER-LOCAL-AUDIT-EXECUTION-20261112",
+      "instruction": "开始执行，先统一归档到项目里",
+      "continuation_instruction": "继续执行",
+      "completion_instruction": "完成我的闭环定义目标",
+      "completion_scope": "Continue all required CL-01 through CL-07, J1-J6 and X1-X8 under the existing sole V3 definition, including frontend/backend product implementation and necessary qualification. Bounded slices are checkpoints, not completion. Preserve inherited evidence without redundant reruns; quality, installed same-candidate behavior and Owner acceptance remain separate. Historical narrow first-slice/frontend-pause wording does not prevent this resumed work. No new product definition, general runtime or automatic release/Green/real-data overwrite; separate existing delivery and isolated-install grants retain their exact scope.",
+      "continued_scope": "Continue the audit's mapped first batch after T1. The next bounded T3 slice adds durable DeepTutor question-turn execution exclusion, exact grant and request recovery binding; no general scheduler or UI layout change.",
+      "supersession": "SUP-035",
+      "source_and_archive": "workspace/intake/20261112-local-audit/README.md",
+      "manifest": "workspace/intake/20261112-local-audit/MANIFEST.json",
+      "decision": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#三十本地审计归档与首批实施2026-11-12",
+      "scope": "Archive the completed audit before local first-batch implementation. Start the T1 material teaching consumer inside existing React/Tauri and Rust Core, mapped to existing INT-DT/UF/CL/J/X. Audit T0-T7 is an implementation reference, not a replacement queue.",
+      "evidence_policy": "Inherit previous receipts without repeating old tests or experiments; run only necessary new-behavior and changed-contract checks. Mock transport, native-host unit checks, real Core/model, installed state and Owner acceptance remain separate.",
+      "boundary": "Preserve dirty work and raw archives. No new database, whole donor runtime, dependency upgrade, global model change or automatic remote delivery/release/Green/real-data overwrite. Broader candidate and visual recommendations are not blanket product acceptance.",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    "owner_resume_20261114": {
+      "id": "OWNER-RESUME-CLOSED-LOOP-20261114",
+      "instruction": "执行任务 完成闭环定义目标",
+      "source_handoff": ".project-local/runs/be268a2d33/handoff-20261114/artifacts/AAOS-完整交接提示词-20261114.md",
+      "state": "RESUMED_BY_OWNER",
+      "previous_state": "PAUSED_BY_OWNER_ON_20261114",
+      "scope": "Resume the paused audit-after-implementation work under the unchanged owner_local_audit_execution_20261112 completion scope and the sole V3 definition. Historical PAUSED/RUNNING_BY_OWNER fields describe their own dates only; this Owner instruction is the current execution control. Inherited isolated-install permission keeps its exact scope. No automatic commit, push, release, Green replacement, real-data overwrite, external toolchain write or bulk deletion.",
+      "supersession": "SUP-035_UNCHANGED_NO_NEW_QUEUE_OR_LEDGER",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "monitor": "PAUSED_UNCHANGED",
+      "overall": "PARTIAL",
+      "note": "Permission recovery, monitor state and product completion remain separate."
+    },
     "owner_delivery_20261101": {
       "instruction": "总结好内容和对话 未完成任务 合并分支，能合并的全部合并，过时的删除掉 双端仓库一致",
       "scope": "Summarize this dialogue and remaining work; consolidate qualifying project branches, delete absorbed obsolete branches, publish public source/task records and verify corresponding local/remote refs.",
@@ -644,7 +673,59 @@
           "not_included": "No installed Tauri/WebView2 WebDriver UI journey, no same-version upgrade or reinstall lifecycle assertion, no signing, no release publication and no Owner acceptance."
         },
         "next": "The local model generates interactive outlines (PR #308), the slice now admits exactly what the vendored prompt documents (PR #309) and a refusal names the rule it hit (PR #310); one declared-lane pass carried the chain from a real outline to a persisted diagram scene and back after a reopen. Still outstanding: repeat the gated real-model run enough times to state the lane's admitted rate instead of one sample; re-stage from the current closure (4,118,039 B) and run the staged and installed probes for the interactive chain, including restart readback, because the earlier staged layout on this machine holds the pre-#309 adapter digest; extend the staged probe with the interactive steps; and correct the staging claim: the four tests/test_openmaic_runtime_staging.py failures appear only under the deep sanctioned evidence root (deepest staged member 269 characters, past the 260 limit), while the file passes 30 of 30 from a short basetemp, so the staging contract that selects the Node closure holds and what remains is to keep the staged layout inside the path limit and to make the launcher report a path error as itself instead of folding ENAMETOOLONG into a disabled optional provider. INT-MAIC-01/02 consumer wiring, the installed Tauri/WebView2 renderer lifecycle and a signed release remain outside this lane. The default-directory leftovers and the installer /D quoting limitation stay recorded for a later packaging decision.",
-        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; installed receipts openmaic-installed.json and openmaic-default-install.json; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302; interactive prompt adapter in PR #304, normalize in PR #305, scene chain in PR #306 (merge b42900ed), interactive-outline adapter in PR #307 (merge a2098dbd) and its Core chain in PR #308 (merge ae034949)."
+        "evidence": "tests/test_openmaic_runtime_closure.py 4 passed; staged probe receipt above; installed receipts openmaic-installed.json and openmaic-default-install.json; quiz-action narration landed in PR #299 (merge 0fefa553), slide narration in PR #300 (merge e55b1a04), staging collision fix in PR #301 (merge c52b8d8a), installer build donor in PR #302; interactive prompt adapter in PR #304, normalize in PR #305, scene chain in PR #306 (merge b42900ed), interactive-outline adapter in PR #307 (merge a2098dbd) and its Core chain in PR #308 (merge ae034949).",
+        "staged_qualification_20261107": {
+          "candidate": ".project-local/rt/staged-20261107-interactive",
+          "version": "0.6.15",
+          "manifest_sha256": "2f3c77c4884f2f936e402de90fe8c096071ee1410bf0d37fd5fc4151b7b50fe4",
+          "files": 8289,
+          "core_sha256": "c569b40a92399033da2600b7d01d4bdf50f387e7ca718d8c93158f5e4c2a46fb",
+          "core_bytes": 22592512,
+          "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+          "openmaic_members": 696,
+          "source_commit": "140cfb42889be2050ce83ead5aa528211007c32e",
+          "source_tree": "12930ca2ac1de90d07fd03b06660aa947a2f95cb",
+          "receipt": ".project-local/runs/be268a2d33/openmaic-staged-20261107/artifacts/openmaic-staged.json",
+          "result": "Started through the candidate's own start-backend.py. Slide and quiz scenes were admitted with narration; the interactive outline route produced one diagram outline and the scene route persisted an interactive candidate with normalize OBSERVED_CANDIDATE, html_execution NOT_PERFORMED, rendering_authorized false and render.playable false. Seven loopback model calls; after a process restart the slide, quiz, interactive outline and interactive scene candidates all read back with worker_invoked false and no extra model call.",
+          "boundary": "Staged runtime, synthetic material and a loopback stub model. Not an installed package, not real model quality and not Owner acceptance."
+        },
+        "installed_qualification_20261107": {
+          "installer": {
+            "name": "ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+            "bytes": 166205246,
+            "sha256": "ff791fa9b36f1a778a8cab49c6f41b419882f2561f2cf49f6e5ca799b3545b73",
+            "host": "ArcheAxis.exe",
+            "host_bytes": 50048512,
+            "host_sha256": "fba7a62db2c73457384be2b1a7b7b8637ba63325134140f7e0be5f254e35f0f8",
+            "built_from": "140cfb42889be2050ce83ead5aa528211007c32e",
+            "runtime_candidate": ".project-local/rt/staged-20261107-interactive",
+            "manifest_sha256": "2f3c77c4884f2f936e402de90fe8c096071ee1410bf0d37fd5fc4151b7b50fe4",
+            "frontend_receipt": ".project-local/runs/be268a2d33/install-acceptance-20261107/artifacts/frontend-build.json",
+            "unsigned": true
+          },
+          "isolated_install": {
+            "root": ".project-local/install-acceptance-20261107/app",
+            "method": "The previous-install registry value was pointed at the isolated directory before the silent install, so no /D argument was used and the default directory was not touched.",
+            "manifest_sha256_matches_staged": true,
+            "core_sha256": "c569b40a92399033da2600b7d01d4bdf50f387e7ca718d8c93158f5e4c2a46fb",
+            "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+            "openmaic_members": 696,
+            "default_directory_before_and_after": "manifest c4b48379f0ea727dfaed960e51163d6b2d14e45d5f8d6aeaaf5bbe96f9eaa9a1 and 20399 files, unchanged"
+          },
+          "installed_chain": {
+            "receipt": ".project-local/install-acceptance-20261107/openmaic-installed.json",
+            "data_root": ".project-local/install-acceptance-20261107/workspace",
+            "evidence_level": "INSTALLED_RUNTIME_REAL_CORE_REAL_NODE_SYNTHETIC_LOOPBACK_MODEL",
+            "result": "The installed start-backend.py launched the real Core; outline generation produced slide and quiz; slide narration has two actions and quiz one; the interactive outline route produced one diagram outline and the scene route persisted an interactive candidate with html_execution NOT_PERFORMED, rendering_authorized false and render.playable false; seven loopback model calls; after a restart the interactive outline and scene read back with worker_invoked false and no extra call."
+          },
+          "cleanup": {
+            "uninstall_exit": 0,
+            "isolated_files_remaining": 0,
+            "registry_restored_from": ".project-local/install-acceptance-20261107/registry-before.json"
+          },
+          "probe_change": "The staged probe gained the interactive outline and interactive scene steps plus restart readback for both, so the same script now qualifies the staged and installed runtimes with seven loopback model calls.",
+          "not_included": "No installed Tauri/WebView2 WebDriver UI journey, no same-version upgrade or reinstall lifecycle assertion, no signing, no release publication and no Owner acceptance."
+        }
       },
       "pending": "Functional integration per INT-DT-01 to 03, INT-MAIC-01 to 05 and INT-QUAL, each with real Core, worker, installed and Owner-acceptance evidence levels recorded separately.",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
@@ -1194,12 +1275,17 @@
       "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
       "operator_storage_checkpoint": {
         "schema": "aaos.operator-storage-checkpoint/v1",
-        "path": ".project-local/runs/be268a2d33/finalall-867c104b/artifacts/storage-after.json",
-        "bytes": 509805,
-        "sha256": "c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6",
+          "path": ".project-local/runs/be268a2d33/host-20261115/artifacts/storage-post-retirement.json",
+          "bytes": 490053,
+          "sha256": "c8d5f9acb4ad1544d5ab2bf630858f4c23636709b0e08fa8a8964f5b2d352163",
+          "previous_checkpoint": {
+            "path": ".project-local/runs/be268a2d33/v3-integration-20261112/artifacts/storage-after.json",
+            "bytes": 490436,
+            "sha256": "d8c9ddf1081ef25e35f59836d19b062045b2a097bad37daad9f6447c3489f26b"
+          },
         "report_schema": "aaos.storage-footprint/v2",
-        "recorded_by": "Codex explicit governance checkpoint after Owner latest-only cleanup; not a new Owner statement or per-package rolling baseline",
-        "measurement_scope": "After Owner renewed deep cleanup including confirmed-disposable test profile state and old preimages: normal UAC read-only 28352993453B, 351032 files, zero read errors, 243 private exclusions, 581 layout entries; PARTIAL. Actual/wrapper1, e1052d3f + document dirty patch663bd53d, source consistent. Previous snapshots preserved; no per-package rolling, full-budget or product PASS."
+          "recorded_by": "20261115 second exact governance batch: one reviewed 424330150-byte duplicate NSIS installer was retired with a hash-identical retained replacement, five preserved original proofs and an Owner-approved single-file action; post-governance readback independently reviewed. Fixed checkpoint advances once for actual governance, not per package; this is not a new Owner statement, a budget PASS or a product PASS.",
+          "measurement_scope": "Readable lower bound 90485699269B/1023135 files; PARTIAL, 674 read-error rows and 43 out-of-layout entries preserved. Exact single-file retirement logical bytes 424330150; physical disk release NOT_MEASURED; recovery by copying the retained cnprep3 installer to the original exact filename and rechecking SHA. Prior checkpoint and all original receipts preserved; no bulk deletion, no ACL change, no rolling per-package baseline."
       },
       "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",
@@ -2233,6 +2319,7 @@
     "boundary": "This readback is saved in a follow-up documentation commit. Resolve its final SHA from Git/native ref; no self-referential SHA is invented."
   },
   "owner_scope_current": {
+    "latest_execution_overlay": "execution_control.owner_local_audit_execution_20261112",
     "date": "2026-10-23",
     "id": "OWNER-HUMAN-AI-DUAL-LOOP-20261023",
     "owner_statements": [

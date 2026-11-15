@@ -11,6 +11,47 @@ use sha2::{Digest, Sha256};
 
 const NAMESPACE: &str = "archeaxis_openmaic_scene_candidate";
 
+#[test]
+fn package_projection_binds_the_exact_document_revision_for_a_later_reader() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("workspace.sqlite").to_str().unwrap()).unwrap();
+    let source = material(&mut conn);
+    let request = request(&source, "slide");
+    let ticket = pending(&mut conn, "projection_identity", &request);
+    let created = course::commit_openmaic_scene(
+        &mut conn,
+        "projection_identity",
+        &request,
+        &ticket,
+        &result(&request, "canvas"),
+    )
+    .unwrap();
+    let doc = &created["document"];
+    let id = doc["document_id"].as_str().unwrap();
+    let old_report = course::openmaic_package_projection(&conn, &[id.to_owned()]).unwrap();
+    let mut updated = doc["editor_json"].clone();
+    updated["content"][0]["content"][0]["text"] =
+        json!("An edited human note, same candidate attrs");
+    let changed = document::save(&mut conn, id, 1, updated).unwrap();
+    let new_report = course::openmaic_package_projection(&conn, &[id.to_owned()]).unwrap();
+    assert_eq!(old_report["scenes"][0]["document_version"], 1);
+    assert_eq!(
+        old_report["scenes"][0]["document_content_sha256"],
+        doc["content_sha256"]
+    );
+    assert_eq!(new_report["scenes"][0]["document_version"], 2);
+    assert_eq!(
+        new_report["scenes"][0]["document_content_sha256"],
+        changed["content_sha256"]
+    );
+    let pinned = document::read(&conn, id, Some(1)).unwrap();
+    assert_eq!(
+        pinned["content_sha256"],
+        old_report["scenes"][0]["document_content_sha256"]
+    );
+    assert_eq!(old_report["renderer_executed"], false);
+}
+
 fn editor(text: &str) -> Value {
     json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":text}]}]})
 }

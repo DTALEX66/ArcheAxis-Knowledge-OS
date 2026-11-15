@@ -14,6 +14,7 @@ import type { SourceJourneyTarget } from "../presentation/sourceJourney";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import type { DocumentDto, DocumentsListDto, DocumentSummaryDto, SourcesListDto, SourceDto, OriginalDto, SearchDto, DocumentExportDto, AnchorDto, AnchorResolutionDto } from "../api/generated/core-contract";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
+import { KnowledgeCurrentnessNotice } from "../components/KnowledgeCurrentnessNotice";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { focusVisibleTarget } from "../presentation/focus";
 import type { ObjectTrailLevel } from "../components/NavTrail";
@@ -242,7 +243,7 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onRead
         {observation&&observation.state!=="reading"?<RawReceiptButton label="引文定位核验记录" payload={{reference:ref,citation:captured,result:observation.result??null,observed_at:observation.observed_at,outcome:observation.state}} category="data"/>:null}
       </div></aside>;
   }
-  function showRefs(refs:ResearchReference[],remove?:(index:number)=>void){return <ul className="research-reference-list">{refs.map((ref,i)=><li key={`${JSON.stringify(ref)}-${i}`}><span className="research-reference-name">{refName(ref)}</span><RawReceiptButton label={`研究引用 ${i+1} 的原始身份`} payload={ref} category="data"/>{ref.kind!=="knowledge"||onOpenReference?<button type="button" onClick={()=>navigateRef(ref)}>{ref.kind==="source"?"读取校验原件":ref.kind==="knowledge"?"打开不变知识版本":"打开固定版本"}</button>:<span>作者引用；不表示知识已接受或AI资格</span>}{remove?<button type="button" onClick={()=>remove(i)} aria-label={`删除引用 ${i+1}`}>删除引用</button>:null}</li>)}</ul>;}
+  function showRefs(refs:ResearchReference[],remove?:(index:number)=>void){return <ul className="research-reference-list">{refs.map((ref,i)=><li key={`${JSON.stringify(ref)}-${i}`}><span className="research-reference-name">{refName(ref)}</span><RawReceiptButton label={`研究引用 ${i+1} 的原始身份`} payload={ref} category="data"/>{ref.kind!=="knowledge"||onOpenReference?<button type="button" onClick={()=>navigateRef(ref)}>{ref.kind==="source"?"读取校验原件":ref.kind==="knowledge"?"打开不变知识版本":"打开固定版本"}</button>:<span>作者引用；不表示知识已接受或AI资格</span>}{ref.kind==="knowledge"?<KnowledgeCurrentnessNotice knowledgeId={ref.knowledge_id} onOpenReference={onOpenReference}/>:null}{remove?<button type="button" onClick={()=>remove(i)} aria-label={`删除引用 ${i+1}`}>删除引用</button>:null}</li>)}</ul>;}
   const readonly=!!history||!!unsupported||!documentLease.canWrite;const shown=history??unsupported;const shownValue=shown?decode(shown):null;
   function keepPublicMaterial(selection:PublicResearchSelectionDto):boolean {
     if(readonly||busy||b.attempt||pending.current||saving.current)return false;

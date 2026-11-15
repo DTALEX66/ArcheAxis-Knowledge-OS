@@ -1286,6 +1286,8 @@ pub fn openmaic_package_projection(
         scenes.push(json!({
             "document_id":document_id,
             "status":"recorded",
+            "document_version":current["version"],
+            "document_content_sha256":current["content_sha256"],
             "playability":if is_playable {"playable"} else {"not_playable"},
             "contract_version":OPENMAIC_DOCUMENT_SCHEMA_V2,
             "scene_type":scene_type,

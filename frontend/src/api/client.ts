@@ -42,6 +42,8 @@ export type JobAdmissionRefusal = {
   enabled: false; same_request_retry_allowed: true;
 };
 export class ApiError extends Error {
+  /** Finite public reason only; never retain the provider response or prompt. */
+  public deeptutorReason?: "question_turn_execution_outcome_unresolved" | "question_turn_request_id_conflict";
   constructor(
     public status: number,
     message: string,

@@ -4525,3 +4525,175 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - CI（run `42329946404`，精确 SHA `bd1eca68`）：首轮 `rust-vnext` 在 8m20s 失败于 `document_cloud_loop::actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports`，失败细节是合成 worker `Timeout (0:00:05)` 与 `reason: invalid_worker_response`，与本片改动面无关；同一 SHA 本地该套件 **8 passed（21.54s）**，重跑该作业后 `rust-vnext` 14m48s 与 `a0-gates` 全绿。两次运行都保留。交付：PR **#310** 以 merge commit **`2e0947c7`** 合并。
 - 边界：一次 GENERATED 不是速率；真实模型质量仍未判（需人工真值/预测对）；未在新摘要下做 staged/安装态复验；不授权渲染；未接 UI；非 Owner 接受。
 - 更正一条被本轮早前文本写错的判断：`tests/test_openmaic_runtime_staging.py` 记为"当前 main 上 4 failed / 26 passed"的结论**不成立**。用项目默认 basetemp 确实 4 例失败（`launch["openmaic_node_worker"]` KeyError），但换成短 basetemp（`D:/tmpstage4`）后同一分支、同一环境为 **30 passed / 86.74s**；量到的最深 staged 成员路径 **269 字符 > 260**，而 `backend_launcher.openmaic_node_worker` 把 `OSError` 一律当作"可选 provider 关闭"返回 None，于是路径长度限制被伪装成装配缺陷。结论：staging 选择 Node 闭包这条契约本身通过；遗留的是两处真实问题——证据根目录布局可把 staged 成员顶出 MAX_PATH，以及解析器不把 `ENAMETOOLONG/ENOENT` 与"字节非法"区分开（与 #310 同类：失败必须能说出原因）。
+#### 2026-11-07 OpenMAIC interactive 链的 staged 与安装态复验（INT-MAIC-05 第六片）
+
+- staged 候选：从当前 HEAD `140cfb42`（tree `12930ca2`）构建 release Core（sha `c569b40a…`、22,592,512 B），用 `stage_backend_runtime.py` 生成 `.project-local/rt/staged-20261107-interactive`：version `0.6.15`、manifest `2f3c77c4…`、**8,289 文件**、`workers/openmaic` **696 成员**（694 闭包 + `node.exe` + `NODE-LICENSE`）、Node sha `ba4e6d11…`、`openmaic_scene_build: INCLUDED`。
+- 探针扩展：`scripts/probes/aaos_openmaic_generation_staged_loop.py` 新增 interactive 步骤：`/outlines/generate-interactive`（合成 loopback 回复为 1 条 `diagram` 交互大纲）→ 用该文档调 `/scenes/generate`（第二次模型回复为合成 HTML）→ 校验 `scene_route=interactive`、`widget_type=diagram`、`normalize OBSERVED_CANDIDATE`、`html_execution=NOT_PERFORMED`、`rendering_authorized=false`、`render.playable=false`；重启后交互大纲与交互场景各读回同一候选，`worker_invoked=false` 且模型调用数不增。
+- staged 结果（**PASS**）：回执 `.project-local/runs/be268a2d33/openmaic-staged-20261107/artifacts/openmaic-staged.json`，`ok: true`；slide 2 条讲解、quiz 1 条、interactive `diagram` 场景；共 **7 次** loopback 模型调用，重启后仍 **7 次**。
+- 安装器：把 `.project-local/rt` 的资源 junction/hardlink 指向新候选后，用 `scripts/runtime/frontend.mjs tauri --separate-bundle` 构建（frontend receipt `source_consistent: true`、source commit `140cfb42`）；NSIS 安装器 `ArcheAxis Knowledge_0.6.14_x64-setup.exe` **166,205,246 B / sha256 `ff791fa9…`**，宿主 `ArcheAxis.exe` **50,048,512 B / sha256 `fba7a62d…`**。
+- 隔离安装：先把 `HKCU\Software\archeaxis\ArcheAxis Knowledge` 的 previous-install 值指向隔离目录，再 `/S` 安装，安装器落到 `.project-local/install-acceptance-20261107/app`（不使用 `/D`，避开上次“带引号 `/D` 被 NSIS 忽略”的问题）。安装态 manifest `2f3c77c4…`、core `c569b40a…`、node `ba4e6d11…`、`workers/openmaic` 696 成员；默认目录（`%LOCALAPPDATA%\ArcheAxis Knowledge`）保持原样：manifest 仍 `c4b48379…`、20,399 文件。
+- 安装态链（**PASS**）：`--installed-runtime --data-root .project-local/install-acceptance-20261107/workspace`，回执 `openmaic-installed.json`：`evidence_level INSTALLED_RUNTIME_REAL_CORE_REAL_NODE_SYNTHETIC_LOOPBACK_MODEL`、7 次模型调用、interactive 候选 `html_execution NOT_PERFORMED`/`playable false`、重启回放 0 次额外调用。
+- 清理与恢复：`uninstall.exe /S` exit 0，隔离目录剩余 0 文件；`HKCU` 的 previous-install 值与 Uninstall 子键按安装前快照（`.project-local/install-acceptance-20261107/registry-before.json`）恢复为默认目录身份。
+- 边界：安装器**未签名**；只运行安装态 Core 业务链，未运行 Tauri/WebView2 WebDriver UI 旅程；材料为合成、模型为 loopback stub（**非真实模型质量**）；interactive HTML 不执行、不服务、不授权渲染；未做 UI 接线与 INT-MAIC-01/02 消费者接线；**非 Owner 接受、非发布**。
+
+#### 2026-11-12 本地审计归档与T1首批实施
+
+- 来源：Owner完成审计请求后明确“开始执行，先统一归档到项目里”；后继范围归`execution_control.owner_local_audit_execution_20261112`、Owner决定第三十节及SUP-035。审计报告T0—T7映射原UF/INT/CL/J/X，不替换本记录。
+- **归档先行，已完成**：`.project-local/archives/local-audit-20261112/AAOS-local-audit-20261112.zip`，33成员、1,695,296字节、SHA-256 `e6f7bc78fb773186b430ca76f38b4e032bef5bb41c03d08cf6f0af578848b4b1`。完整附件529行（正文/附录A—D）、六份审计交付、四份登记/投影、九份既有原始回执、原三处修改及实施前diff均已保全；逐成员原字节/SHA与ZIP CRC读回通过。Desktop原件未改；有效读取已独立于外部目录，见`workspace/intake/20261112-local-audit/MANIFEST.json`及同目录README。回执：`.project-local/runs/be268a2d33/audit-execution-20261112/artifacts/archive-receipt.json`。
+- 归档前基线HEAD `157ee1db401bc4c101ad73309159eca7d09abc9a`；保留原活动指针/执行记录和`aaos_openmaic_generation_staged_loop.py`修改。本轮仅定点补活动指针及本末段，不重写旧来源。审计期开源池79项、CAP稳定ID及729行crosswalk已封存；候选没有安装/升级。
+- 首片实现范围：T1/INT-DT现有阅读页内的材料练习。三个固定native操作接现有question-turn/accept/teaching-feedback；JSON Schema生成DTO与请求/回执验证；材料与题目分别授权，人工答案键、原活动/attempt评分、本人反馈与教学策略；普通Document承接有界引用日志及结果未知恢复，不新增DB/调度器，不自动重发未知请求。已见答案的练习明确不算独立掌握。
+- 本轮不重跑原九类实验/产品旅程、旧全量测试、安装或真实模型；只运行新增行为与受影响合同检查。测试前已发现并修正新增schema使能力说明contract SHA漂移，按原生成器同步manifest与派生投影，不放宽检查。
+- 定向验证与最终边界将在本节续记；此处不预先宣布产品可用、T1全量完成或V3闭环完成。
+
+本片结果：**LOCAL_SOURCE_AND_TARGETED_PASS；整体仍PARTIAL**。
+
+- 已落源码：`DeepTutorLearningPanel.tsx`与`deepTutorJourney.ts`挂到既有`CanonicalLibrarySpace`阅读区；`core.ts`和生成合同提供三操作输入/回执检查，`core_bridge.rs`提供固定路由、严格body包装、字节预算、有限超时及错误脱敏。无依赖新增、模型/worker升级或业务库迁移。`pdf-extract.manifest.json`及其生成详情仅同步合同SHA。
+- 独立只读审查发现并修正：草稿提升生命周期状态、WorkingRead整对象扩散、恢复纪元与记录身份冲突、旧异步操作使新面板卡住、逐次保存与草稿清理版本不符、新一轮undefined序列化差异、超长反馈在派发前拦截，以及保存结果未知时冲突读回覆盖输入。本人反馈与供体静态教学策略分别展示，不将原文回声称为新解释或掌握证据。
+- 新合同测试先观察到缺失DTO的3例RED（`audit-execution-schema-red-20261112`）；新UI恢复边界先观察到4失败/3通过的RED（`aaos-t1-frontend-red3-20261112`）。首轮UI启动器因解释器缺PyYAML、次轮因新合同SHA尚未同步而未进入测试；均保留原失败日志，不算行为RED。
+- 冻结源码后新增前端合同/API/UI/JSON传输测试 **15 passed**；回执`.project-local/runs/be268a2d33/aaos-t1-frontend-green-20261112/artifacts/execution.json`。包含完整点击、双授权、ACK丢失不重派、恢复纪元、源版本漂移、冲突保留输入、300字符反馈边界与精确V+1草稿清理；模拟传输不等于真实Core/模型/UI集成验收。
+- 新Rust宿主测试 **3 passed，140 filtered out**；回执`.project-local/runs/be268a2d33/aaos-t1-native-green-20261112/artifacts/execution.json`及`native-test-result.json`。仅synthetic owned-loopback，测试binary准备55.24秒、测试0.06秒；没有启动Core/worker/模型/产品应用。这三个测试没有先前RED运行，只有缺操作的静态基线，不伪称RED→GREEN。
+- 前端与宿主上述两回执均`source_consistent=true`，dirty工作树、HEAD `157ee1db401bc4c101ad73309159eca7d09abc9a`，patch `9d18dea369ee5bf19e22f6d64cc80a45ae5bd2746d85dc2a76748d07960209ed`。类型检查首次仅新测试的`includes(undefined)`类型表达式失败；改成等义`some(value=>value===undefined)`后，仅复跑失败的`tsc --noEmit`通过：`aaos-t1-typecheck-fix-20261112/artifacts/execution.json`，`source_consistent=true`，patch `8ddc706f3b540ee9406c5d02894c3f5a378804362d07857ce92d1e914fc76b4b`。已通过的15项未重跑；此后只补交付记录。
+- 受影响文档既有门禁`python -B scripts/ci/check_document_authority.py`通过；输入哈希7已核，4外部/私有仍UNVERIFIED，未将其改签。差分检查通过；新覆盖以本轮回执为准。另独立对归档前内容核验：活动指针原内容在移除本次两个增量后完全相同，执行记录原正文完整保留，既有probe字节一致，六份审计报告未改。
+- 总回执与本片文件哈希：`.project-local/runs/be268a2d33/audit-execution-20261112/artifacts/implementation-receipt.json`。归档ZIP保持实施前快照，后继代码保存在正常源码目录；无提交、推送、云CI、发布、Green更新或真实库写入。
+- 未验与接续：本片没有新原生WebView/安装态/真实Core与真实模型的端到端UI回执，未验证教学质量或真实学习改善，不能将旧后端回执移签给新UI。T1其余课程/练习统一消费者及T0、T2—T7仍按审计映射和原任务继续；OpenMAIC可信课程渲染、生成并发claim、引用/Canvas/X8体验与AI资产产品化均未因本片完成。回退应只撤本片明确写集，按实施前归档保留原修改，不能用整树reset/restore覆盖已有成果。
+
+#### 2026-11-12 接续T3：DeepTutor生成占用与精确恢复绑定
+
+- Owner在首片交付后要求“继续执行”。按既有SUP-035/审计T3和INT-DT继续，活动指针仅补接续范围。基线`.project-local/runs/be268a2d33/audit-t3-20261112/artifacts/baseline.json`绑定首片文件和本轮后端原字节；原归档与首片回执不改签，不重跑旧18项。
+- 新反例证实：prepare仅查完成Document会使同ID运行中重入；prepare/commit各自重新选择grant会使新授权承接旧被撤销授权的结果；恢复后的旧grant可遮蔽新的合法grant；T1恢复仅校验ID/材料会接纳异payload结果。分别补持久占用、固定grant、有限有效grant选择和三类请求规范SHA校验。
+- 实现范围：`provider_question_turn.rs`及其私有`claim.rs`复用既有workspace_meta，不加表/迁移/通用队列。短事务先构造帧并写DISPATCHED意图，保存摘要、opaque token、workspace/restore、材料与实际grant快照；不存材料或prompt正文。同ID未完/失败/未知/损坏均拒绝再派发，旧完成Document仍只读兼容。候选与COMPLETED同事务写入；Failed/Unknown为不可重派终态，迟到finish不能降级Completed。扫描最多64候选，耗尽有独立拒绝原因，不当作没有授权。
+- Runtime捕获/模型/回放各阶段前重核原授权，最终提交与HTTP Drop共享发布锁；Drop只取消本次capture/replay并尽力写Unknown，写失败/进程消失时持久占用仍保留。所有失败`retryable:false`；同步201完成/200回读保留，未完或冲突409，不引入202候选缺失响应。DISPATCHED只是派发意图与完成未确认，不冒充当前仍活跃；本次未执行与前次未知分别陈述。
+- 恢复只修改数据校验：generate完整request_frame+摘要，accept/feedback各自Rust规范请求摘要，核验通过后才更新生命周期引用；UI布局、供体与模型配置不变。旧11例mock仅补真实保存字段，不重跑、不改旧回执；前后端中文/换行/null摘要向量已有双语言对照。
+- RED记录：`aaos-t3-recovery-binding-red-20261112`新13例为9失败/4通过；`aaos-t3-domain-red2-20261112`新8例为6失败/2通过；`aaos-t3-runtime-red2-20261112`新真实Core/pinned worker/合成模型反例因运行中重复请求未及时拒绝而失败。首次domain夹具调用private函数、首次runtime Windows启动解析失败均未进入行为测试，保留日志但不算RED。
+- 安全与证据边界：未接通用model worker取消令牌；排队之后、真正发送之前仍有授权检查到I/O的窗口，撤权后本地计算可能继续，最终发布会拒绝。模型已停止、清理严格在120秒内结束、真实模型质量或原生UI已接受均未建立；不能因占用保护通过而宣称整个T3完成。
+
+本片结果：**LOCAL_SOURCE_AND_TARGETED_PASS；T3及整体仍PARTIAL**。
+
+- 新前端恢复校验 **13 passed**，类型检查通过：`aaos-t3-recovery-binding-green-20261112`、`aaos-t3-typecheck-20261112`；两份回执均`source_consistent=true`，patch `8e1c79254b4c8457b4958366f0ab9ab7f9c11cb0450618f93edcf6e198a26fcd`。覆盖异payload、缺失证明、三类正确恢复以及中文/换行/null摘要；既有18项与原九类实验没有重跑。
+- 首次后端GREEN因新增SQL限额参数使用`usize`而编译失败（当前rusqlite不实现其`ToSql`），未进入测试。仅将两个常量绑定改为`i64`后，新增domain测试 **16 passed**、新增runtime测试 **1 passed**；运行分别为`aaos-t3-domain-green2-20261112`、`aaos-t3-runtime-green2-20261112`。两份回执均`source_consistent=true`，patch `b6237c2ebee17590be218e35e64841796cd2d1de3554d29c9f3a9fd2692d07a7`，HEAD仍`157ee1db401bc4c101ad73309159eca7d09abc9a`。已通过的前端测试未因Rust类型修正重跑。
+- 共新增 **30 passed**。domain覆盖跨连接重开、异payload、grant替换/restore fencing、损坏与超额claim、64条扫描边界、opaque token、原子回滚及终态不降级。runtime证据等级为`INPROCESS_CORE_PINNED_WORKER_SYNTHETIC_LOOPBACK_MODEL`：同ID运行中第二请求及时409，普通Document保存不被生成占用阻塞；首请求完成后只读回放，模型调用仍为1；另一请求取消后仍409且迟到结果不写候选，累计模型调用为2，无重复派发。它不是已安装产品或真实模型质量验收。
+- 最终回执及精确写集：`.project-local/runs/be268a2d33/audit-t3-20261112/artifacts/implementation-receipt.json`；各运行的原始回执均为`.project-local/runs/be268a2d33/<上述run>/artifacts/execution.json`。行为验证后仅续写本节；受影响文档门禁、差分检查与既有成果保全比较结果见总回执。不改签此前归档与测试。
+- 后继优先补T3用户可见的未完成/未知状态及明确恢复入口，并处理model lane取消与有界清理；本片不提供自动解锁/超时重发。再接T1其余消费者和T2可信课程渲染等原审计映射。无提交、推送、云CI、安装、发布、Green替换或真实用户库写入；回退只按本片精确写集审阅撤销，保留归档、原probe修改及此前T1成果，不能整树reset/restore。
+
+#### 2026-11-12 Owner要求完成唯一V3闭环：持续实施与验收
+
+- Owner明确“完成我的闭环定义目标”。执行控制已将本轮从首批检查点接续到全部本期CL-01—07/J1—J6/X1—X8；V2.3/V3及原稳定ID不变，不另立任务包或完成定义。入口、决定第三十节、活动指针与本轮intake已同步。建立持续目标，局部切片只是检查点；历史前端暂停不再限制本次必要消费者工作，发布/Green/真实库仍各自按授权。原归档及先前两份实施回执只继承，不改签。
+- 定向对账：已有J1混合导入/保存/备份、J2三族真实网络、选中OCR/ASR、本地模型通路及旧安装Core证据保持原边界，不重复泛化实验。仍须补新消费者、实际资产授权消费/纠正/独立新题、人的学习/实践、同候选安装增量、X1/X2替换升降与损失、22格式各操作和37平台特色。当前兼容登记实际35项（6项PARTIAL_DOCUMENTED、29项REQUIRED_NOT_STARTED），与原37身份差额是JSON Canvas缺独立项及Logseq文件/DB合并，不能靠改计数签完成。真实学习改善与Owner接受仍须真实观察。
+- 本批源码：T3精确请求只读status经有限native操作接UI，UNKNOWN/NOT_FOUND/冲突不换ID重派；确认FAILED后显式结束并留原记录。历史candidate/feedback按固定snapshot重开，切候选清人工确认。模型request-drop向独立local-model入口传取消，复用注册/endpoint/worker规则；有界等待不能保证共享模型服务停止或全部OS资源回收，未确认清理保留UNKNOWN和私有staging，显式用户取消入口尚待接。
+- X8复用既有knowledge_qualification，向资料固定引用、研究、课程、AI资产加入同一当前性提示；身份失败或字段矛盾保持未知，旧引用及评价不改绑，后继修订仅显式导航。当前性不是内容核验或使用许可。
+- T2复用既有文本画布/测验/活动组件，新增已存Core scene候选读视图；package-projection行带固定Document版本/SHA，后续读取精确版本。支持原有限text/quiz、讲解文字和静态聚焦，位置存普通Document并CAS读回，原子保存未知不盲重发。非支持画布/互动HTML保持明确退路、不执行；音频、图片/图形及完整互动renderer尚未因此完成。新增场景切换与关闭保护覆盖未保存作答，位置故障不阻基本阅读。
+- 交叉复核修正了文档列表items/documents误用、位置保存expected_version、位置错误阻断课件、只读导航被dirty锁住、切换期间作答丢失与人工复核跨候选沿用。合同生成首轮因manifest两个输入/输出SHA仍旧而拒绝；已同步三处既有引用并重生投影，原失败不算行为测试。
+- 本批新增测试和受影响检查即将统一冻结运行，尚不预记通过。入口基线和后继证据放`.project-local/runs/be268a2d33/v3-closure-20261112/artifacts/`，前两批18及30项、旧全量实验不重跑；后继运行结果与范围在本节续记。整体仍PARTIAL，目标继续。
+
+本批检查点：**LOCAL_SOURCE_AND_TARGETED_PASS；V3目标继续，整体仍PARTIAL**。
+
+- 新增前端共 **47项通过**：`v3-front-green2-20261112`的43项，加首轮`v3-front-green-20261112`已通过且未重跑的4项实际消费者组件测试。四消费者测试使用真实组件和模拟传输，非安装态或同Core集成。初轮7失败/38通过保留：API测试用了当前Vitest不支持的matcher；测试hook返回mock导致无参cleanup；恢复UI还确有初读尚未结束即可查询的时序缺陷。已修产品initialReading互斥并新增“延迟初读/初读失败后可查询”两例；未知请求不重派断言未放宽。类型检查仅修新增测试表达式，`v3-tsc-green2-20261112`通过。
+- 后端与宿主新增共 **18项通过**：domain状态4（`v3-domain-status-20261112`）、私有model transport取消7（`v3-app-cancel-20261112`已通过6项；仅失败队列例在`v3-app-queue-green2-20261112`重验1项）、取消内部竞态2（`v3-app-cancel-unit-20261112`）、只读status路由2（`v3-api-status-20261112`）、request-drop实际私有worker/合成loopback模型1（`v3-api-model-cancel-20261112`）、课程固定版本投影1（`v3-scene-snapshot-20261112`）、固定native读取桥1（`v3-native-read-20261112`）。原18/30及旧实验未重跑。
+- 取消边界：正常完成分支曾将`CLEANUP_UNKNOWN`覆盖为Cancelled，已优先保留UNKNOWN；确定性新例验证并发取消下未知清理不降级。最初队列测试错误要求占满blocking pool时1秒内确认Cancelled；按当前Tokio实际语义修正为3秒清理观察，最多4秒测试观察窗，未确认则UNKNOWN。确定性队列例先证明线程占用/排队，再取消，释放后FIFO观察确认任务未迟到执行；另一integration允许admission先取消或排队UNKNOWN两种真实结果。生产3秒上限未放宽。私有transport连接断开不等于共享LM Studio停止或全部系统资源已回收。
+- 受影响HTTP合同 **10项通过**：`v3-http-contracts-green2-20261112`。首轮子测试通过但源码指纹前后不一致，保留`INVALIDATED`回执，不当有效PASS；变动来源未定，不伪称产品测试失败。之后将Vitest运行与其他启动分开，冻结重验回执一致。上述第二轮前端/tsc/HTTP/native回执均绑定patch `562ae2ee08494495d99a27b6aaec27a6da4e8d3cb1708e783c7d82dcb57098af`，后续Rust反例仅补测试、单独绑定其实际指纹；没有事后改签。
+- 合计 **65个新增行为用例与10个受影响合同检查**，不以数量替代闭环。所有有效运行均按各自`execution.json`的源码指纹与证据等级使用；合成worker/model、模拟UI传输、真正Core/SQLite和原生桥单测分别保留。没有启动本批安装态Tauri/WebView2，没有新真实模型质量、人类学习效果或Owner接受证据。
+- 保全核对：原审计ZIP SHA仍`e6f7bc78fb773186b430ca76f38b4e032bef5bb41c03d08cf6f0af578848b4b1`，六份审计报告与原probe共7文件逐项匹配归档来源。回执`v3-closure-20261112/artifacts/preservation-check.json`；后继总回执归同目录。新增源码与检查记录保留在当前工作树，无提交/推送/发布/Green替换/真实用户库写入。
+- 后继按原目标继续补明确用户取消、现有teaching链的L0计划/文字实践消费者、保留节点身份的JSON Canvas接入与导出，以及37平台来源映射；随后补同候选真实集成/安装增量及其余CL/J/X缺口。尚不把纯文字/静态聚焦说成全OpenMAIC renderer，也不把有限Canvas重建说成全面平台兼容。
+
+本轮接续（取消、文字实践与Canvas，验证前状态）：
+
+- DeepTutor增加独立显式取消命令，绑定原请求完整摘要；持久UNKNOWN与最终发布共用Core写入序列及发布锁。取消先到则不再发布，提交先到则保留固定完成结果；恢复后无进程句柄仍可保留禁止重派的持久状态。模型服务是否停止仍为UNKNOWN，绝不把“已接受取消”写成共享模型已停止。前端在生成等待中可取消，迟到/换工作区回执不接入新会话，不换编号重发。
+- 外部实践L0复用teaching原记录：需求、计划、调整、跳过/替换教程、本人开始/过程/自报完成、文字反馈；不要求课程、连接或成果文件。开始/完成/反馈均保留人工自报与未评分，不自动提升掌握；未知ACK只查固定原记录。工作状态落盘期间卸载或切换工作区，派发前拒绝旧请求并保留pending。
+- Canvas在原件、Document与既有Canvas导出上接有限消费者：原文本节点映射保留节点ID及空文本，原件扩展字段、附件/链接声明和几何仍在CAS；只读位置示意与文本编辑，不执行引用目标或互动代码，不宣称坐标编辑/附件打包/外部软件往返。8MiB原件投影及256KiB工作草稿限制明确拒绝而不截断。未知创建只读固定v1，不重POST。
+- 宿主导出在第二次Core读取后、任何文件落盘前核对用户选定版本/SHA；Canvas另核实际第二响应字节SHA，三格式均使用固定文件名/媒体类型和既有目录边界。宿主显式依赖已锁定的sha2 0.10.9，不升级或下载依赖。新合同按既有生成器同步，HTTP路由新增取消共160项。
+- 本批只跑新增行为和两个语义已改变的旧断言，再做受影响类型/HTTP/文档门禁；未运行即不预记通过。证据归`.project-local/runs/be268a2d33/v3-continuation-20261112/artifacts/`；上一检查点回执原字节保留。其后继续同候选真实链和安装增量，整体仍PARTIAL。
+
+本批结果：**63个新增行为用例通过，2个受影响旧用例及10项HTTP检查通过；V3仍PARTIAL，继续执行**。
+
+- 新前端47项：显式取消11、API取消/Canvas合同2、外部实践15、Canvas19。首次`v3b-front-new-20261112`为40通过/7失败；失败分别为工作状态fixture使用非法restore_epoch、DOM matcher不支持非精确value、Canvas创建后缓存已销毁的旧编辑器DOM。修正为合同允许身份、直接核实际textarea值、等待完成后查询当前attached editor；不放宽产品校验。仅7个失败名称在`v3b-front-fix-20261112`重验通过，其余40项未重复。
+- 两个受影响既有用例在`v3b-front-affected-20261112`精确执行通过，其余67项过滤不算PASS：重开冻结teaching请求改为只读核对；原Markdown导出断言增加选定版本与SHA。已通过的早先18、30、65项及原九类实验没有重跑。
+- 新后端/宿主16项：持久取消8（`v3b-domain-cancel-20261112`）、显式取消Runtime2（`v3b-runtime-cancel-20261112`）、有界注册与精确删除2（`v3b-registry-cancel-20261112`）、有限native取消/落盘前导出检查4（`v3b-native-20261112`）。Runtime采用真实Core/SQLite、pinned worker与受控合成loopback提供方，观察对应transport断开但共享提供方仍在；不是LM Studio真实停止或安装窗口验收。宿主检查没有启动产品应用。
+- 受影响HTTP合同10项在`v3b-http-20261112`通过。首轮`v3b-tsc-20261112`发现Canvas自定义never箭头函数未被TS控制流识别，导致两个已校验数组仍unknown；仅改为显式function声明，保留原guard与运行语义。`v3b-tsc-fix-20261112`通过，不加any或放宽合同。
+- 初轮所有回执（含FAIL）`source_consistent=true`，绑定patch `c588d982e24c90612f114387fde669aa554270a6cee18ea92427b9f14428a58e`。后续仅上述两测试文件及mapper类型声明改变，修复运行各自保留实际指纹，不回填初轮回执。最终文档门禁、精确文件身份和保全比较归总回执。
+- 已核实本地现成FixedWebView2/EdgeDriver同为156.0.4314.42、tauri-driver登记2.1.0；未启动或下载。后继新增同候选旅程，直接消费新OpenMAIC Core场景面板，不能以旧manifest导入槽代签；合成learner只能证明工程集成。AI侧采用明确合成规则v1→v2的真实授权消费/独立新题，不伪造模型错误、学习改善或Owner接受。37项源身份映射、其余格式/提供方替换/升降与安装验收继续，当前没有提交、推送、发布或Green替换。
+
+本轮同候选接续（MHTML、原37项身份与真实模型/原生恢复连接，验证前状态）：
+
+- 兼容矩阵补齐原37表的身份映射：保留旧35项的稳定key、历史来源与未验状态，将Logseq文件图谱和DB图谱分开，JSON Canvas独立登记；供体注册`jsoncanvas`与平台`json_canvas`不是同一身份。原CSV SHA为`c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213`。当前8项PARTIAL_DOCUMENTED、29项REQUIRED_NOT_STARTED，各方向仍未执行；新增官方文档阅读不能签平台兼容PASS。
+- MHTML复用现有`html.structure`与Python标准库MIME解析，不新建调度器、业务库或格式注册器。只接顶层multipart/related的确定HTML根；Content-ID/start、编码、大小、深度与数量均受限，歧义或损坏明确失败。正文、MIME根路径、派生文字偏移、资源声明与损失绑定完整原件SHA；不将偏移冒充整个MIME字节位置，不联网解析cid/URL，不落附件或执行网页。HTML worker新身份0.1.1，保留旧0.1.0回执可读；其余格式不据此升级。
+- 格式对账另发现UI仅向CSV/JSON显示已有`format_location`引用入口，其他已有合法位置产物的轻格式无法从阅读页使用。沿原`StructureCitations`补接已确认的扩展名，位置仍须从真实成功任务的已校验产物重新读取，经Core创建/解析；无位置、位置变化或原件错配继续拒绝，不给旧Office虚构页面坐标。新增消费者验证后才登记可用范围。
+- 继承原22格式证据：`u18v10d`原生回执SHA`00e1574c2be82ebf5a365e0c05a02db4d7adb7d86438189bc8f1e833b8c9a0ca`及其旧构建回执仍可读，原18项UI导入/转换和其他有限bridge样例按各自范围使用，未重跑。其原便携manifest现路径缺失，不能移签当前候选或据文件头媒体例宣称内容转写。紧凑读回归`v3-integration-20261112/artifacts/historical-format-readback.json`；旧Office、ODF及每操作缺口继续明示。
+- 新真实模型探针固定合成图书馆规则v1→v2和两道不同题，最多两次本地推理。沿实际原件/transform/anchor、knowledge review、AiAsset候选/采用、独立knowledge/asset grant、完整context packet与评测快照，再正式备份、正常退出、重启读回。工程链、回答正确性、学习改善与Owner接受分列，规则变化不伪称模型犯错。预检时既有qwen3.5-4b下载库存存在但未驻留，仅embedding驻留；必要时沿现有fast-local显式加载与配置读回，使用同权重aaos-fast-4b实例，不改全局/provider/保存绑定，不加smoke推理。
+- 新原生旅程只选择本批DeepTutor、OpenMAIC已存scene、Canvas、L0和X8消费者；不重放继承全旅程。可接新探针的精确SHA seed，严格同源码/Core，先正常退出再经Core `--maintenance-restore`恢复，读回原真实回答/评测/来源/锚点，旧授权失效后另授新权。合成loopback只限定该owned候选子进程；seed初始化写入与实际UI点击写入分列，合成评分/自报不算学习质量。X8对同一次修订在冷重启前后检查四消费者旧引用保持。
+- 本批新增测试、Core/Host构建、真实模型及原生/安装观察均尚未运行，不预记PASS。证据归`.project-local/runs/be268a2d33/v3-integration-20261112/artifacts/`；源树冻结后先运行新增/直接受影响检查，再作同候选资格。原九类实验与前批有效用例继续继承；V3仍PARTIAL，目标保持执行。
+
+本批首轮定向结果与构建前治理：
+
+- 新增前端26项、Python72项、真实Core/worker MHTML3项，以及兼容矩阵4个新增/3个直接受影响既有用例均通过；类型检查通过。对应`v3c-front-formats-20261112`、`v3c-python-new-20261112`、`v3c-mhtml-core-20261112`、`v3c-compat-scope-20261112`、`v3c-types-20261112`，全部child/wrapper 0、`source_consistent=true`，patch `0d0bf0dac7ccddee379a3ff524c41cd3ff6753ed44d19b6fb96a73d615a643c2`。Python72为真实模型探针证明检查20、原生探针边界30、MHTML22；这些是探针/组件/worker验证，没有启动真实模型或原生窗口。兼容53项过滤不算PASS。pyreadline析构stderr保留，未影响子进程退出或断言。
+- 核对中另确认：JSONL/ODF/Python可能有相同path的多条位置，现Core支持`where`消歧，但原UI未发送；数值/布尔位置也不能用字符串强转冒充现行文字引用合同。后继先接既有where并定向验证；这些新发现未由上述通过掩盖，不改签旧回执。
+- 本批实际容量复核：旧固定基线为`finalall-867c104b/artifacts/storage-after.json`，509805字节/SHA `c186f168a3ba3eedcdb98bc9c5fcc4c568d2a7fd6d875ed76b3dcc588ecdd0f6`。本次before可读96714759469字节，累计增长68361766016字节。依既有latest-only/连续治理授权，经两次独立范围复核，只退役`.project-local/build/cargo/debug/incremental`下API/application/domain三组的38个旧直接子目录；计划SHA `a64fc3692d635fc513d55526c929716935fb3bfd317f13b57543ba36d63862c1`。每项删除前重核绝对范围、无reparse、大小/文件数/mtime、Cargo/rustc/rustdoc空闲、锁与工具链；最新组和当天缓存保留，未更改ACL或杀进程。
+- 实际38/38退役、6638文件、7257289155逻辑字节，退役回执SHA `bd81a2c2ac1f163709acdc3dba58eddeea49f1ca17a50a9cd0519ea90f90a0c4`；latest3、debug顶层文件及deps/release元信息、未选缓存名集合前后相等。逻辑删除不等于物理释放，后者NOT_MEASURED。原源码快照首次因并发文档/TS修改被自加过严guard拒绝，尚未删除；原context保留，随后仅将全public patch改为时点观察，真正锁/工具链/占用/38目标校验未放宽。
+- after可读89458671641字节/1012539文件，实测可读减量7256087828，另有1201327字节净增长；相对旧基线仍累计增长61105678188字节（build债50494814280、runs债6336260450）。before/after均674条读取错误、43个规范外路径，错误路径/类型集合相同；“10未读”摘要不符合原始数组，不使用。全部未读、未知归属、规范外及原始资料保留，计量仍PARTIAL，原after命令exit2/REVIEW_REQUIRED。
+- 根Agent独立复核`retained-growth-review.json`（SHA `842273e570e6893b4755b2aa60b1f76dc682d452c384ca80260de8b4870a502d`）后，按目录权威索引的“实际治理批次后登记”规则，一次更新活动指针固定checkpoint到本次490436字节/SHA `d8c9ddf1081ef25e35f59836d19b062045b2a097bad37daad9f6447c3489f26b` 的after报告。原基线、原增长和剩余债完整继承，不逐包滚动、不豁免后继pre/projected/post门禁、不将PARTIAL改成预算或产品PASS。原归档ZIP和此前报告/回执未改。
+- `where`后片14个新增用例及本批20例中的单一受影响例通过（`v3c-format-where-20261112`，其余19过滤未重跑）。同path由既有record/position/name/line等实际字段消歧，整组产物必须唯一匹配；ACK按严格键集合/类型/值比较，兼容Rust对象键排序。预览绑定原件、任务、位置、checksum和三产物SHA，位置/产物漂移或迟到结果拒绝采用。数值/布尔及某些转义文本尚不满足现Core文字包含合同，继续明示，未通过UI强转或弱化Core掩盖。
+- 真实模型探针交叉复核未发现确定DTO阻断；补上重启时直接读回两份answer snapshot，而不只读task/evaluation。旧资产与旧授权组合的403只标旧绑定拒绝，不单独归因撤权；恢复后的旧授权实际消费拒绝尚未运行。后续源码在构建、模型、原生和打包全过程保持固定，所有成果以实际候选回执另记，当前不宣称V3完成。
+
+同候选资格接线的后继实测：
+
+- 真实模型探针已改为只消费明确指定的正式stage，整树核对manifest，再绑定实际Core、Python、profile、machine worker、transport与launcher；正式launcher直接启动独立运行数据目录。模型seed与后继原生消费者还核对同一manifest及关键运行成员，不能用开发虚拟环境的通过代签产品运行时。此处仍是接线实现，不是已执行真实推理。
+- 新绑定检查首轮`v3-stage-model-binding-20261112`为2通过、4失败、7夹具错误；11处均在267/271字符的Windows夹具路径写入时失败，尚未进入产品校验。保留原回执（patch `b4fe10e53d4abc3751c572ee47ed261a66fe1b7d9477c362a77ffe32e0bbc40d`），只缩短隔离夹具目录及新run名，不改系统设置/跳过断言。`v3sb2`仅重跑这11项全部通过；原2项CLI缺参通过继承。两回执均`source_consistent=true`，后者patch `36504b553d954ae9137bfdb17a334e5b9c0e578b449fdb0fca52082473d85c0c`。这13项含12个新增和1个受影响成功路径，旧探针20/30项其余范围未重跑。
+- `v3-core-20261112`实际完成canonical offline/locked release Core构建，child/wrapper 0、`source_consistent=true`，同patch `36504b553d954ae9137bfdb17a334e5b9c0e578b449fdb0fca52082473d85c0c`。产物22736896字节，SHA `b53cfd5dde3629edda330f4b89ce0ce1351c9f930fb8b242ef9f6d68d9db406d`；构建不等于产品或模型闭环通过。
+- Host实启前只读核查发现既有qualification硬编码`.project-local/rt/core`，但本机该目录是junction，`dev.safe_path`会拒绝其reparse祖先；不能因旧别名存在而假定已支持。后继先补明确物理stage的有限构建接线及定向检查，保留路径拒绝和全成员校验。资格接线变化后将重新记录当前源码的Core构建资格，不事后改签本轮已完成回执、不重跑无关行为测试。尚未stage/启动模型/原生窗口/安装；完整V3继续执行。
+
+## 2026-11-14 Owner明确恢复：现场对账、环境修复与近端阻断
+
+- **恢复与授权**：Owner以“执行任务 完成闭环定义目标”明确恢复；交接来源为 ignored 目录 handoff-20261114/artifacts/AAOS-完整交接提示词-20261114.md。同日此前的PAUSED及目标工具读回是该时点事实；历史 `owner_scope_current.state=PAUSED_BY_OWNER`、`execution_control.state=RUNNING_BY_OWNER`、`current_execution.state=RUNNING_BY_OWNER` 都不覆盖本次最新恢复。活动指针新增 `execution_control.owner_resume_20261114` 记录当前控制，沿用SUP-035和 `owner_local_audit_execution_20261112.completion_scope`，不新建任务队列、第二进度账本或新替代编号。产品整体仍PARTIAL；监控暂停不变，权限恢复、产品完成与Owner接受分别记账。
+- **现场核对**：分支 main、HEAD `157ee1db401bc4c101ad73309159eca7d09abc9a`，`git status --short` 104条/展开105文件，public patch 仍 `43c1c360e52763fc5eba41cddf0b04229c2e0741f20172861fc79b1031ab4510`，与交接证据一致。两正式probe和受影响测试的原哈希与交接登记一致；新guard测试文件此前确实不存在。v3model原回执保持FAIL、0模型请求、0绑定回答、仅GET /system/version、`ValueError: protected drive or UNC development root`、forced cleanup；原失败DB/WAL/SHM与回执未覆盖。
+- **对账补正**：`v3c2` 为本批当前源码Core资格（Core 22,736,896B、SHA `b53cfd5dde3629edda330f4b89ce0ce1351c9f930fb8b242ef9f6d68d9db406d`、receipt `a519e174c65d3b61d9d18ab94b089a5dea517e7a3f49cd6981db2bb002019c2b`）；物理stage已实际生成并有 `STAGED_STATIC_IDENTITY_VERIFIED` 资格（manifest 1,503,004B、8,552成员、SHA `6f31249d8e24032d14a41a9c0a392ea5ae6ee502581ec4c8bac30c12a047816c`）；`v3hr` Host物理stage接线14通过/1夹具失败、`v3hr2` 仅重验该例通过。新canonical Host的 `RUNS/v3host` 仍不存在，Nov7旧 ArcheAxis.exe 不能代签。上文末段“尚未stage/启动模型……”是当时事实，不改写，按本段续记。
+- **新现场环境阻断一**：项目 `.venv/Scripts/python.exe` 是uv trampoline，其 base junction 指向已不存在的 cpython-3.13.14 目录，无法启动。已把原 trampoline 与 pyvenv.cfg 备份到 ignored 目录 env-repair-20261114/，并把venv的home指向本机既有同版本CPython 3.13.14、放入对应python.exe；依赖未升级（pytest 9.1.1、PyYAML 6.0.3、requests 2.34.2 读回可用）。这是Git忽略的环境修复，不是产品资格。
+- **新现场环境阻断二**：Windows本轮对所有scoop `current` mount point 跟随返回WinError 448（11/12同类运行可行、本轮不可），dev.py与pytest conftest的工具链解析因此失败。未改外部工具链、未改tracked声明：在ignored修复目录生成 `capability-requirements.pinned.yaml`（6个current别名替换为同一物理版本目录，身份回执 pinned-manifest.json）与 `activate-env.ps1`（仅本次运行设置 ARCHEAXIS_CAPABILITY_MANIFEST、TESSDATA_PREFIX 及PATH中current项）。`safe_path`、`owned_path`、全成员校验与路径拒绝边界均未放宽。
+- **近端阻断修复**：新增 scripts/probes/workspace_path_report.py；两个正式probe改为只接受本次启动的精确普通owned路径或其精确Windows verbatim表示，并把已知普通路径交原守卫。model绑定 output/data/workspace.sqlite 及launcher实际workspace，native绑定 work/data/archeaxis.sqlite 并同样核实maintenance返回的database。没有全局放开dev.safe_path、没有盲剥前缀，32hex备份文件名边界不变；ignored instrument v2只保留准备证据，不作为执行入口。
+- **有限验证**：`v3path2-20261114` 定向91项中90通过、1失败（静态接合断言与源码换行写法不匹配）；`v3path3-20261114` 仅重验该1例通过。新增guard覆盖plain/verbatim精确接受、UNC/其它盘符/其它文件名/其它run/斜杠与大小写变化/重复前缀/空值/非字符串/非法expected/repo归属，以及“原dev.safe_path仍拒绝verbatim”和两个正式probe接线；受影响旧例改用固定archeaxis.sqlite并补三条伪造报告guard。ruff E9/F63/F7/F82与compileall通过。失败与重验分别保留，不回填原回执；前批18/30/65/63、72/26等按交接继承，未重跑。
+- **仍未完成**：真实本地模型链尚未运行（0调用失败未消除）；当前新patch的Core资格需重记；新Host、native窗口、X1/X2、容量复核后的安装交付及CL-01—07/J1—6/X1—8逐项验收均未完成。本段不把局部路径修复写成V3闭环完成。
+
+### 2026-11-14 恢复后的实测续记（模型链、X2接缝、容量阻塞）
+
+- **Core与stage复用**：`v3core-20261114`、预算调整后 `v3core-budget-20261114` 均 `LOCAL_PASS`、child/wrapper 0、`source_consistent=true`，产物仍22,736,896B、SHA `b53cfd5dde3629edda330f4b89ce0ce1351c9f930fb8b242ef9f6d68d9db406d`；各回执只绑定各自时点patch，不事后改签。正式 `bind_staged_runtime` 不要求producer patch等于当前，只验全成员、manifest SHA、staged Core与qualified Core字节及当前machine worker，因此本批probe/测试/文档变化下复用原物理stage成立，没有再复制1.4GB。
+- **本地模型库存**：LM Studio服务在1234在线但无已加载实例；`v3lminspect-20261114` 为READ_VERIFIED，`v3lmload2-20261114` 用原有fast-local配置把既有权重 `qwen3.5-4b` 加载为 `aaos-fast-4b`（PASS_LOAD_READBACK）。未下载权重、未改全局设置、未加无必要的smoke推理。
+- **真实模型链首跑**：`v3model2-20261114` 已越过原Windows路径阻断，v1真实回答CORRECT；v2的 `POST /api/v1/machine/answers` 返回503，响应体为 `NO_FINAL_ANSWER`、`finish_reason=length`、`output_tokens=2048=max_tokens`、`answer_source=reasoning_content`，即reasoning模型把生成预算全部用于思考而未给最终结构化答案。2请求/1绑定回答、forced cleanup，原失败回执保留，不写成模型质量结论或工程成功。
+- **有依据的有限调整**：按该实测证据只把生成预算 `max_tokens` 从2048提到2900（Core允许128..=4096，worker自身注释要求“提高预算而非上报截断”），`timeout_s`、两问上限、严格JSON评分、EXPECTED、授权/撤权/复测、备份与重启流程均未改；直接受影响fixture改为绑定BUDGET常量。`v3budget-20261114` 46项定向通过。
+- **真实模型链完整通过**：`v3model3-20261114` exit 0、`CORE_REVISION_AND_RESTART_OBSERVED`、v1/v2均CORRECT、2请求/2绑定回答、两次正常shutdown（exit 0、forced=false）、正式备份verified、重启读回相等、原回答/任务/评测固定读回。receipt SHA `0439e50a18fa9bc0a66c010ea891a18a8791b0e17fae10bde4952a1415c2b7c4`，native-seed SHA `f53d130d34aa89203a388e1200819f71ee301b4669313be49b9b7338624a3aff`（synthetic、owner_acceptance=false、learning_improvement NOT_ESTABLISHED）。这是J4本地真实模型工程链，不等于学习改善、内容事实独立验收或Owner接受。
+- **X2资格接缝已落盘**：准备脚本新增显式 `--source-equivalence-receipt`/SHA 与 `verify_source_equivalence`；严格分支仍要求旧patch相等和原Core回执文件身份，等价分支则逐项核对producer/consumer patch、commit/tree、stage回执与manifest、Core字节与新资格回执、consumer-only变更白名单及逐成员运行时身份，并保留全成员校验。29项纯函数/静态反例自检PASS（`x2-equivalence-selfcheck.json`）。X2本身依赖成功的新native receipt，仍未执行；这不是X2三作业通过。
+- **只读容量复核**：`storage-pre-20261114.json` 可读90,908,356,358B / 1,023,135文件，相对固定checkpoint增量1,449,684,717B；`NO_NEW_GROWTH_TRIGGER` 但 `measurement_status=PARTIAL`、`deletion_authorized=false`、43项out-of-layout、`build/`与`runs/`均为超预算类别。按现行门禁，Host预计新增约2.3GB会越过2GiB复核线，必须停下复核。本批未退役、未删除任何字节，未启动新Host、native窗口、安装、Green替换或发布。
+- **明确阻塞与边界**：容量结论不是预算PASS；没有Owner对精确目标的授权，不得清除已具名的424MB重复安装器或1.35GB cppcand1 payload。因此新Host→native→X2实际运行→同候选安装交付链本轮不可完成；X1真实替代provider、X2三作业、X3—X8完整场景、云端专业接口、22格式/37平台逐项操作及Owner独立质量验收均保留为未完成，CL-01—07/J1—6/X1—8整体仍PARTIAL。最终冻结后如再改公开源码，需重记Core资格并在最终patch下重跑模型链生成同候选native seed；本批没有提交、推送、合并或发布。
+
+### 2026-11-15 目标模式：容量治理、X3依赖闭包与同候选native链
+
+- **恢复指令**：Owner要求“开启目标模式 完成所有你能完成的 实现闭环定义目标”；沿用SUP-035、V3唯一闭环和 `owner_resume_20261114`，不新建队列或账本。
+- **精确容量治理**：按既有精确清理授权与21项只读前置核验（独占句柄、逐祖先非reparse、两端同SHA独立文件、五份证据保全、消费者绑定），经单独审批只unlink了一个424,330,150B重复NSIS安装器；保留件与证据未变，可原样复制恢复。回执 `retirement-result-20261115.json` SHA `93ba284d…`。post delta从1,449,684,717B降到1,027,027,628B。没有批量删除、ACL改动或checkpoint按包滚动。
+- **新Host资格**：修复上轮venv环境修复的后遗症（Tauri精简PATH缺 `python313.dll`，退出码0xC0000135），以项目内DLL副本解决后，`frontend.py` 物理stage no-bundle构建连续取得 `PASS` 内层资格；Core/manifest/FixedWebView2 156.0.4314.42与 `PINNED_PHYSICAL_STAGE` 均绑定，新Host与旧Nov7宿主不同。
+- **native三轮真实窗口**：第一轮WebDriver、maintenance restore与固定历史读回成立，暴露 `seed_history` 把Core的 `knowledge_version`（`k_xxx@v1`）与 `knowledge_id` 相等比较；按真实DB证据修正并按合同绑定，64项定向通过。第二轮 `course_from_knowledge` 返回503 `UNAVAILABLE/required course donor/dependency unavailable`。第三轮已越过课程构造，推进到“历史机器回答”UI，截图证实产品已正确渲染 `{"loan_days": 7}`，但probe的中文aria-label用 `json.dumps` 默认 `\uXXXX` 生成CSS属性选择器，CSS不认该转义导致超时。
+- **X3依赖闭包显式修复**：物理stage缺 `app/contracts/courseware_v1.py` 等五个donor且stage Python缺 `pydantic`/`typing_inspection`。按正式stage构造器的 `--dep` 闭包思路，把donor与依赖包登记到 `runtime/Lib/site-packages`，更新 `backend-runtime-manifest.json` 并生成新身份 `c92eecb0…`、8702成员（+150文件/7,621,628B）；全成员校验、FixedWebView2、Core字节未变、donor实导入均通过。原stage资格回执与baseline manifest原字节保留，可精确回滚；没有重复制1.4GB、没有静默补未登记文件、没有改公共产品源码。
+- **容量治理登记**：按目录权威索引“实际治理批次后登记一次”的规则，把固定checkpoint从11/12的 `storage-after.json` 推进到退役后复核报告 `storage-post-retirement.json`（490053B，SHA `c8d5f9ac…`），活动指针保留previous_checkpoint；不是新Owner声明、不是预算或产品PASS、PARTIAL与43项out-of-layout保留。所有后续容量判断须使用这个新基线。
+- **一次性公共源码收敛**：修正两处中文CSS属性选择器（`text()` 与x8 scope），新增中文Unicode回归guard；连同活动指针checkpoint与本段记录一次性改完，之后只做唯一一次同候选重跑，不再改公开文档，避免反复改签。
+- **仍待验证与未完成**：最终patch下的Core/Host/模型链/native全链结果以本批 ignored implementation receipt 为准；X1真实替代provider、X2三作业、22格式/37平台逐项、云端专业接口、同候选portable/NSIS安装与回退、IME/可访问性、性能与Owner独立质量验收均未完成，CL-01—07/J1—6/X1—8整体仍PARTIAL。本批没有提交、推送、合并、发布、Green替换、真实数据覆盖或批量删除。
+- **追加最小产品修复（同日）**：最终重跑的native真实窗口已越过历史回答UI与课程构造，推进到DeepTutor人工复核作答；发现 `DeepTutorLearningPanel` 两个选择控件的 `<option>` 只有文本、没有显式 `value`，而原生验收按 `@value='B'` 定位真实控件。按无障碍与可自动化契约补上 `value={key}`，不改语义或行为；相应前端单测与静态检查继承。因这是新发现的真实产品缺陷，再作一次最小公开源码修复并在最终patch下重记Core/Host/模型链、重跑native；本段之后不再改公开文档，最终结果以 ignored implementation receipt 为准。
+
+### 2026-11-15 任务4收口：环境修复、同候选链重试与容量复核（PARTIAL）
+
+- **外部环境缺陷（非产品能力）**：`dev.py` 的环境发现因 Windows `WinError 448 不受信任的装入点` 中止——`...\scoop\apps\tesseract-languages\current` 与 `...\tesseract\current\tesseract.exe` 在本机不可遍历（PowerShell 与 .NET 同样拒绝）。修复 `services/python-workers/tool_paths.py`：新增 `_present()`，候选扫描、显式覆盖与 `required_env` 存在性检查都把不可遍历位置视为“不存在”，资源自身消费者仍按名报缺失，未放宽任何存在性断言。`tests/workflow/test_worker_tool_paths.py` 与 `tests/workflow/test_tool_paths_manifest_failure.py` 12项PASS。该修复只影响发现流程；OCR 工具在本机仍因该装入点不可用。
+- **Canvas 阻断根因与合同修正**：上一轮 `v3native-last-20261115`（80s，FAIL）停在 `//input[@type='file'][@aria-label='导入原件']`；失败截图显示页面16停在“文档导出”tab。此前已读文档使 `CanonicalExchangeSpace` 以 `initialDocumentId` 默认打开文档导出，`原件与转换` 区域带 `hidden`，探针的 VISIBLE 正确排除了它。修正 `scripts/probes/aaos_v3_consumer_native.py`：先按真实 UI 点击 `nav[@aria-label='导入导出区域']` 内的“原件与转换”，再把文件输入限定在该区域；未放宽 hidden 守卫。
+- **同候选链重记（HEAD 157ee1db，patch 833bb70f）**：Core 资格 `v3core-final-20261115c` 为 `LOCAL_PASS`（artifact `b53cfd5d…`，22,736,896B，release 0.11s 复用）；Host `v3host-final2-20261115` 以 `frontend.py tauri -- build --no-bundle -- --offline --locked` `PASS`（typecheck 15.788s、vite 8.318s、tauri 90.78s；host `01b637a0…`，manifest 仍 `c92eecb0…`）；模型链 `v3model-final6-20261115` 为 `LOCAL_PASS`（v1/v2 `CORRECT`，2请求/2绑定回答，seed `96d938c3…`）。三者与 native seed 的 patch、Core 与 manifest 身份一致。
+- **native 仍在 DeepTutor 复核处失败（具名断点）**：`v3native-final-20261115`（56.2s，FAIL）在“你确认的正确选项”的 `option[@value='B']` 等待超时；`model_calls=0`，界面显示的是 seed 恢复的既有候选（“合成 Lumen v2 政策”），不是本次生成的题目，说明 `journey(material,"candidate")` 把历史候选当成了本次结果，且该状态下复核 select 的 option 未被探针定位。失败回执、截图与 data_root 原样保留，未重放；未取得完整成功 native receipt。
+- **X2 未执行**：X2 三作业（0.1.0→0.1.1→0.1.0、拒绝非法路由、只读回退）仍要求同一 patch 下 `ok=true`、正常关闭且 `owned_ports_released` 的 native workspace 回执；本轮不具备。既有 source-equivalence 接缝与29项自检保持，不据此宣称 X2 通过。
+- **容量复核**：构建前 `storage-pre-build-20261115.json` 相对固定 checkpoint 的 delta 为 537,535B；本轮结束 `storage-post-native-20261115.json` delta 48,303,140B（主要为本轮 runs/build 增量），`NO_NEW_GROWTH_TRIGGER`（2GiB 线未触发），`new_out_of_layout_count=0`；`measurement_status=PARTIAL`、`deletion_authorized=false`、43项既有 out-of-layout 保留。临时诊断目录已清理，两份容量证据移入 `host-20261115/artifacts/`。
+- **边界**：X1 真实替代 provider、X2 三作业、22格式/37平台逐项、云端专业接口、同候选安装与回退、IME/可访问性、性能与 Owner 验收仍未完成；CL-01—07/J1—6/X1—8 整体仍 PARTIAL。本轮无提交、推送、合并、发布、Green 替换、真实数据覆盖或批量删除。
+- **本地合同前置检查（preflight）**：修复 `scripts/ci/preflight_contracts.py` 在 GBK 控制台打印 UTF-8 替换字符时的 `UnicodeEncodeError` 崩溃，现在会显示真实失败行。重跑结果：release manifest、requirements sync、OSS reuse manifest、document authority 均 `ok`；`external resource index` 5 failed / 11 passed，因本机 scoop `current` 装入点不可遍历（与上条同源，未放宽测试断言）；`resource catalog` 因既有 `src-tauri/Cargo.lock` 资格哈希漂移失败（该文件在本轮之前已含 `sha2` 一行，而 qualification 未重签）。两者均未在本轮擅改资格记录或测试断言。
+
+### 2026-11-15 任务4续：块身份断裂修复与 native 断点推进（PARTIAL）
+
+- **产品缺陷（已定位并修复）**：编辑正文后保存，Core 为每个块重新生成 `block_id`，且画布节点的 `canvas_node_id` 直接丢失。块身份是引用定位、修订检查（`revision_basis.position.block_id`）与画布映射的键，因此一次普通编辑就会让这些关系全部脱钩。
+  - 根因一：tiptap 的 `BlockIdentity` 扩展在整体重写正文时无法通过 ProseMirror mapping 把旧块映射到新块，于是给新块分配新的 UUID。
+  - 根因二：编辑器只保留 schema 内声明的属性，编辑器侧未注册的 `canvas_node_id` 在往返中丢失。
+  - 修复：新增 `frontend/src/presentation/blockIdentity.ts` 的 `preserveBlockIdentities`，在 `CanonicalLibrarySpace` 的保存路径上把上一版本的块身份与画布节点身份带回被重写的块——先按文本匹配，再按文档位置；只有当本轮保存没有任何块保住旧身份（整体重写）时才接管，保留住旧身份的场景交还编辑器，因为编辑器仍能区分复制体与原件。扩展原有的 `preserved` 守卫（不得占用未知保留节点的身份）保持不变。
+  - 定向验证：`frontend/src/__tests__/blockIdentity.test.ts` 7 项、`CanonicalLibrarySpace.test.tsx` 52 项、`CanvasDocumentConsumer.test.tsx` 19 项通过；native `v3native-final8-20261115` 实测画布草稿保存后 `block_id` 与 `canvas_node_id` 与导入原件一致（`e034933d-b925-4983-a276-43e229ded8a2`），正文为编辑后文本。
+- **native 新断点（未收口）**：画布场景推进到“Canvas 已保存版导出到产品资料目录”，`document_export_save` 响应体的 `directory` 不是绝对路径，探针 `owned_path` 因此拒绝（`An explicit absolute owned path is required`）。`crates/` 中未检索到 `document_export` 实现，下一轮需先定位该命令的实现，再判定是 Core 契约缺少绝对路径承诺，还是探针应按 data root 解析相对路径；未擅自放宽探针的路径与重解析点守卫。
+- **既有失败（与本轮无关）**：`DeepTutorLearningPanel` 与 `DocumentEditor` 的“copy is pasted before it”用例仍失败：未知保留节点的身份未被换新，`preserved` 集合未覆盖该路径。两处均在未改动的既有代码上，本轮未借改测试断言掩盖。
+- **X2 仍未执行**：三作业需要同一 patch 下 `ok=true`、正常关闭且 `owned_ports_released` 的 native workspace 回执；本轮仍缺成功 native receipt，既有 source-equivalence 接缝与29项自检保持，不据此宣称通过。
+- **同候选链（patch `4c700c39…`）**：Core 资格 `v3core-final8-20261115` `LOCAL_PASS`；Host `v3host-final8-20261115` no-bundle `PASS`（typecheck 16.353s、vite 8.601s、tauri 93.444s）；模型链 `v3model-final11-20261115` `LOCAL_PASS`（v1/v2 `CORRECT`，seed `78791e19…`）；native `v3native-final8-20261115` 63.1s FAIL（上述导出路径断点）。
+- **边界**：X1 真实替代 provider、22格式/37平台逐项、云端专业接口、同候选安装与回退、IME/可访问性、性能与 Owner 验收仍未完成；CL-01—07/J1—6/X1—8 整体仍 PARTIAL。本轮无 Green 替换、真实数据覆盖或批量删除。

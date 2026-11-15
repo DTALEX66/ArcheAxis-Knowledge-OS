@@ -109,7 +109,7 @@ fn is_attachment(name: &str) -> bool {
         // documents, the pdf and office routes
         "pdf", "docx", "doc", "xlsx", "xls", "pptx", "ppt", "odt", "ods", "odp",
         // archive and web
-        "zip", "tar", "gz", "7z", "rar", "html", "htm", "mhtml",
+        "zip", "tar", "gz", "7z", "rar", "html", "htm", "mht", "mhtml",
         // media, the probe and transcribe routes
         "mp3", "wav", "m4a", "flac", "ogg", "mp4", "mov", "mkv", "webm", "avi",
         // subtitles

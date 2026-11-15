@@ -12,11 +12,25 @@ use crate::{
     ui_state,
 };
 use archeaxis_store_sqlite::authorization_fence;
-use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
+use rusqlite::{Connection, TransactionBehavior, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+mod claim;
+
+/// An existing dispatch intent has no confirmed replay permission. It is not a live-worker claim.
+pub const QUESTION_TURN_EXECUTION_UNRESOLVED: &str = "question turn execution outcome unresolved";
+/// Admission inspected its finite candidate window; authorization beyond it was not evaluated.
+pub const QUESTION_TURN_GRANT_SCAN_EXHAUSTED: &str = "question turn grant scan budget exhausted";
+const MAX_GRANT_CANDIDATES: usize = 64;
+
+#[derive(Clone, Copy)]
+pub enum QuestionTurnFailure {
+    Failed,
+    Unknown,
+}
 
 pub const DOCUMENT_NAMESPACE: &str = "archeaxis_deeptutor_question_turn_candidate";
 pub const DOCUMENT_SCHEMA: &str = "archeaxis.deeptutor-question-turn-document/v1";
@@ -156,9 +170,8 @@ fn language(requirement: &str) -> &'static str {
 /// Locate the one current grant a human wrote for exactly this material and
 /// consume it. A missing, revoked, expired, foreign-consumer or non-practice
 /// grant is refused by the same checks an activity admission uses.
-fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<(), Error> {
-    let found: Option<(String, i64, String)> = conn
-        .query_row(
+fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<Snapshot, Error> {
+    let mut statement = conn.prepare(
             "SELECT d.document_id, d.current_version, v.content_sha256 \
              FROM documents d JOIN document_versions v \
                ON v.document_id=d.document_id AND v.version=d.current_version \
@@ -168,25 +181,37 @@ fn consume_material_grant(conn: &Connection, material: &Snapshot) -> Result<(), 
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.document_id')=?1 \
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.version')=?2 \
                AND json_extract(v.editor_json,'$.attrs.archeaxis_provider_material_grant.material.content_sha256')=?3 \
-             ORDER BY d.document_id LIMIT 1",
-            params![
-                material.document_id,
-                material.version,
-                material.content_sha256,
-                grant::SCHEMA
-            ],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
-        )
-        .optional()?;
-    let (document_id, version, content_sha256) =
-        found.ok_or(Error::Invalid("provider material access not authorized"))?;
-    let grant_ref = Snapshot {
-        document_id,
-        version,
-        content_sha256,
-    };
-    grant::consume(conn, &grant_ref, material, now()?)
-        .map_err(|_| Error::Invalid("provider material access not authorized"))
+             ORDER BY d.document_id LIMIT ?5")?;
+    let found = statement.query_map(
+        params![
+            material.document_id,
+            material.version,
+            material.content_sha256,
+            grant::SCHEMA,
+            MAX_GRANT_CANDIDATES as i64 + 1
+        ],
+        |row| {
+            Ok(Snapshot {
+                document_id: row.get(0)?,
+                version: row.get(1)?,
+                content_sha256: row.get(2)?,
+            })
+        },
+    )?;
+    let at = now()?;
+    for (index, grant_ref) in found.enumerate() {
+        let grant_ref = grant_ref?;
+        if index == MAX_GRANT_CANDIDATES {
+            return Err(Error::Invalid(QUESTION_TURN_GRANT_SCAN_EXHAUSTED));
+        }
+        match grant::consume(conn, &grant_ref, material, at) {
+            Ok(()) => return Ok(grant_ref),
+            Err(Error::Sql(error)) => return Err(Error::Sql(error)),
+            // A restored, expired or malformed lower-ID grant does not shadow a later valid grant.
+            Err(_) => continue,
+        }
+    }
+    Err(Error::Invalid("provider material access not authorized"))
 }
 
 fn material_text(conn: &Connection, material: &Snapshot) -> Result<String, Error> {
@@ -231,6 +256,9 @@ pub struct QuestionTurnPending {
     request_sha256: String,
     restore_epoch: Option<String>,
     workspace_id: String,
+    material: Snapshot,
+    material_grant: Snapshot,
+    claim: claim::Claim,
     base: Value,
     question_id: String,
     capture_frame: Vec<u8>,
@@ -264,6 +292,85 @@ pub enum QuestionTurnPreparation {
     /// A committed candidate is a history read, never a second execution.
     Existing(Value),
     Pending(QuestionTurnPending),
+}
+
+/// Reconcile the exact request without granting access or dispatching anything.
+/// A historical candidate stays readable after grant withdrawal or restore.
+pub fn question_turn_status(
+    conn: &Connection,
+    request: &QuestionTurnRequest,
+) -> Result<Value, Error> {
+    if request_refusal(request).is_some() {
+        return Err(Error::Invalid("invalid question turn request"));
+    }
+    let request_sha256 = request_sha256(request)?;
+    let completed = existing(conn, &request.create_request_id, &request_sha256)?;
+    let (state, document) = if let Some(receipt) = completed {
+        ("COMPLETED", receipt["document"].clone())
+    } else {
+        (
+            claim::disposition(conn, &request.create_request_id, &request_sha256)?
+                .unwrap_or("NOT_FOUND"),
+            Value::Null,
+        )
+    };
+    Ok(status_projection(
+        request,
+        &request_sha256,
+        state,
+        &document,
+    ))
+}
+
+fn status_projection(
+    request: &QuestionTurnRequest,
+    request_sha256: &str,
+    state: &str,
+    document: &Value,
+) -> Value {
+    json!({"request_id":request.create_request_id,"request_sha256":request_sha256,"state":state,
+        "result_document_id":document["document_id"],"result_version":document["version"],
+        "result_content_sha256":document["content_sha256"],
+        "current_invocation":{"worker_invoked":false,"model_invoked":false}})
+}
+
+/// Persist an explicit cancellation barrier for this exact frozen request.
+/// `cancel_requested` acknowledges prevention of future publication, never
+/// provider-side stop or cleanup. No new grant is consumed and no ID is released.
+pub fn cancel_question_turn(
+    conn: &mut Connection,
+    request: &QuestionTurnRequest,
+    expected: Option<&QuestionTurnPending>,
+) -> Result<Value, Error> {
+    if request_refusal(request).is_some() {
+        return Err(Error::Invalid("invalid question turn request"));
+    }
+    let request_sha256 = request_sha256(request)?;
+    if expected.is_some_and(|pending| {
+        pending.create_request_id != request.create_request_id
+            || pending.request_sha256 != request_sha256
+    }) {
+        return Err(Error::Conflict(1));
+    }
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let (state, document, cancel_requested) =
+        if let Some(receipt) = existing(&tx, &request.create_request_id, &request_sha256)? {
+            ("COMPLETED", receipt["document"].clone(), false)
+        } else {
+            let (state, requested) = claim::cancel(
+                &tx,
+                &request.create_request_id,
+                &request_sha256,
+                &request.material,
+                expected.map(|pending| &pending.claim),
+            )?;
+            (state, Value::Null, requested)
+        };
+    let mut response = status_projection(request, &request_sha256, state, &document);
+    response["cancel_requested"] = json!(cancel_requested);
+    response["provider_stop_state"] = json!("UNKNOWN");
+    tx.commit()?;
+    Ok(response)
 }
 
 fn candidate_status(conn: &Connection, document: &Value) -> &'static str {
@@ -344,28 +451,87 @@ pub fn prepare_question_turn(
         tx.commit()?;
         return Ok(QuestionTurnPreparation::Existing(value));
     }
+    claim::refuse_existing(&tx, &request.create_request_id, &request_sha256)?;
     grant::assert_material(&tx, &request.material)?;
-    consume_material_grant(&tx, &request.material)?;
+    let material_grant = consume_material_grant(&tx, &request.material)?;
     let restore_epoch = authorization_fence::authorization_epoch(&tx)?;
     let workspace_id = ui_state::workspace_id(&tx)
         .map_err(|_| Error::Invalid("question turn workspace identity unavailable"))?;
     let text = material_text(&tx, &request.material)?;
-    tx.commit()?;
-
     let id = question_id(request);
     let base = pending_base(request, &text, &id);
     let mut capture = base.clone();
     capture["mode"] = json!("capture");
     let capture_frame = worker_frame(&capture)?;
+    // Construct every fallible input before inserting the barrier. A bad frame
+    // rolls back this whole transaction, including any new workspace identity.
+    let claim = claim::reserve(
+        &tx,
+        request,
+        &request_sha256,
+        material_grant.clone(),
+        &workspace_id,
+        &restore_epoch,
+        &capture_frame,
+    )?;
+    tx.commit()?;
     Ok(QuestionTurnPreparation::Pending(QuestionTurnPending {
         create_request_id: request.create_request_id.clone(),
         request_sha256,
         restore_epoch,
         workspace_id,
+        material: request.material.clone(),
+        material_grant,
+        claim,
         base,
         question_id: id,
         capture_frame,
     }))
+}
+
+fn assert_pending_authorized(
+    conn: &Connection,
+    pending: &QuestionTurnPending,
+) -> Result<(), Error> {
+    claim::assert_dispatched(conn, &pending.claim)?;
+    let epoch = authorization_fence::authorization_epoch(conn)?;
+    let workspace_id = ui_state::existing_workspace_id(conn)
+        .map_err(|_| Error::Invalid("question turn workspace identity unavailable"))?;
+    if epoch != pending.restore_epoch
+        || workspace_id.as_deref() != Some(pending.workspace_id.as_str())
+    {
+        return Err(Error::Invalid(
+            "question turn workspace or restore epoch changed",
+        ));
+    }
+    grant::assert_material(conn, &pending.material)?;
+    grant::consume(conn, &pending.material_grant, &pending.material, now()?)
+        .map_err(|_| Error::Invalid("question turn admitted grant is no longer current"))
+}
+
+/// Revalidate the same dispatch identity and frozen authorization before each stage.
+/// No writer lock is held over process I/O; revocation after this check can only
+/// prevent a later stage/publication, not retract bytes already sent.
+pub fn assert_question_turn_dispatch(
+    conn: &mut Connection,
+    pending: &QuestionTurnPending,
+) -> Result<(), Error> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    assert_pending_authorized(&tx, pending)?;
+    tx.commit()?;
+    Ok(())
+}
+
+/// A failure never releases the same ID. Repeated terminal callbacks are read-only.
+pub fn finish_question_turn_failure(
+    conn: &mut Connection,
+    pending: &QuestionTurnPending,
+    outcome: QuestionTurnFailure,
+) -> Result<(), Error> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    claim::finish_failure(&tx, &pending.claim, outcome)?;
+    tx.commit()?;
+    Ok(())
 }
 
 /// The capture receipt's prompt identity, or a named refusal. The binding keeps
@@ -580,24 +746,12 @@ pub fn commit_question_turn(
         String::from_utf8(replay_frame).map_err(|_| Error::Invalid("replay frame is not text"))?;
 
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
-    let epoch = authorization_fence::authorization_epoch(&tx)?;
-    let workspace_id = ui_state::existing_workspace_id(&tx)
-        .map_err(|_| Error::Invalid("question turn workspace identity unavailable"))?;
-    if epoch != pending.restore_epoch
-        || workspace_id.as_deref() != Some(pending.workspace_id.as_str())
-    {
-        return Err(Error::Invalid(
-            "question turn workspace or restore epoch changed",
-        ));
-    }
-    grant::assert_material(&tx, &request.material)?;
-    consume_material_grant(&tx, &request.material)?;
-    // Two concurrent requests may have passed preparation. Never replace the
-    // first candidate with a second run's text.
+    // A saved candidate remains a read-only history, including pre-claim documents.
     if let Some(existing) = existing(&tx, &request.create_request_id, &pending.request_sha256)? {
         tx.commit()?;
         return Ok(existing);
     }
+    assert_pending_authorized(&tx, pending)?;
     let body = question["question"].as_str().unwrap_or_default();
     let title = format!(
         "DeepTutor question candidate · {}",
@@ -629,6 +783,7 @@ pub fn commit_question_turn(
         "worker_document":generation.replay_document,
         "question":question,
         "material":request.material,
+        "material_grant":pending.material_grant,
         "request_frame":{"create_request_id":request.create_request_id,
             "material":request.material,"requirement":request.requirement,"model":request.model},
         "capture_frame":capture_frame,
@@ -653,6 +808,23 @@ pub fn commit_question_turn(
         return Err(Error::Invalid("created question identity mismatch"));
     }
     let result = receipt(&tx, verified);
+    claim::complete(
+        &tx,
+        &pending.claim,
+        Snapshot {
+            document_id: result["document"]["document_id"]
+                .as_str()
+                .ok_or(Error::Invalid("created question identity unavailable"))?
+                .into(),
+            version: result["document"]["version"]
+                .as_i64()
+                .ok_or(Error::Invalid("created question version unavailable"))?,
+            content_sha256: result["document"]["content_sha256"]
+                .as_str()
+                .ok_or(Error::Invalid("created question digest unavailable"))?
+                .into(),
+        },
+    )?;
     tx.commit()?;
     Ok(result)
 }

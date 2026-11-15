@@ -52,7 +52,7 @@ KIND_BY_EXTENSION = {
     "doc": "office", "xls": "office", "ppt": "office",
     "canvas": "canvas",
     "srt": "subtitles", "vtt": "subtitles",
-    "html": "html", "htm": "html", "xhtml": "html",
+    "html": "html", "htm": "html", "xhtml": "html", "mht": "html", "mhtml": "html",
 }
 
 # Directories that are never part of a user's document folder. Skipped, and counted, so the

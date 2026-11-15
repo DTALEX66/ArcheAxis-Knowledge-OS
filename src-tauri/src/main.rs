@@ -838,6 +838,7 @@ async fn core_command(
             request.operation,
             core_bridge::Operation::DocumentExportSave
         );
+        let export_binding = save_export.then(|| request.payload.clone());
         // Keep an export bound to the same workspace through both fetch and publication.
         let (port, token) = {
             let backend = state
@@ -868,7 +869,11 @@ async fn core_command(
         }
         if save_export {
             let runtime = current_runtime(&state)?.ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;
-            let body = core_bridge::save_export(&runtime.data_dir, &reply)?;
+            let body = core_bridge::save_export_for_request(
+                &runtime.data_dir,
+                &reply,
+                export_binding.as_ref().unwrap(),
+            )?;
             Ok(core_bridge::Reply { status: 200, body })
         } else {
             Ok(reply)

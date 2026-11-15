@@ -78,6 +78,7 @@ pub enum Operation {
     CourseGet,
     CourseList,
     CourseOpenmaicSceneCreate,
+    CourseOpenmaicPackageProjection,
     TeachingList,
     TeachingGet,
     TeachingCreate,
@@ -93,6 +94,11 @@ pub enum Operation {
     LearningDeeptutorPracticeImport,
     LearningDeeptutorPracticeGrade,
     LearningDeeptutorQuestionView,
+    LearningDeeptutorQuestionTurn,
+    LearningDeeptutorQuestionTurnStatus,
+    LearningDeeptutorQuestionTurnCancel,
+    LearningDeeptutorQuestionAccept,
+    LearningDeeptutorTeachingFeedback,
     LearningProviderActivityCreate,
     LearningProviderActivityGet,
     LearningProviderAttemptStart,
@@ -598,10 +604,13 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(p.clone()),
         ),
         DocumentExport | DocumentExportSave => {
+            if matches!(request.operation, DocumentExportSave) {
+                validate_export_binding(p)?;
+            }
             let format = p
                 .get("format")
                 .and_then(Value::as_str)
-                .filter(|v| matches!(*v, "markdown" | "obsidian"))
+                .filter(|v| matches!(*v, "markdown" | "obsidian" | "canvas"))
                 .ok_or("CORE_EXPORT_FORMAT_INVALID")?;
             (
                 "GET",
@@ -727,9 +736,15 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         CourseOpenmaicSceneCreate
+        | CourseOpenmaicPackageProjection
         | LearningDeeptutorPracticeImport
         | LearningDeeptutorPracticeGrade
-        | LearningDeeptutorQuestionView => {
+        | LearningDeeptutorQuestionView
+        | LearningDeeptutorQuestionTurn
+        | LearningDeeptutorQuestionTurnStatus
+        | LearningDeeptutorQuestionTurnCancel
+        | LearningDeeptutorQuestionAccept
+        | LearningDeeptutorTeachingFeedback => {
             // Only fixed, human-session Core routes are exposed. The selected
             // body contains provider data and must not become a generic URL,
             // job payload, or transport log.
@@ -740,9 +755,21 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             }
             let path = match request.operation {
                 CourseOpenmaicSceneCreate => "/api/v1/courses/openmaic/scenes",
+                CourseOpenmaicPackageProjection => "/api/v1/courses/openmaic/package-projection",
                 LearningDeeptutorPracticeImport => "/api/v1/learning/deeptutor/practice-import",
                 LearningDeeptutorPracticeGrade => "/api/v1/learning/deeptutor/practice-grade",
                 LearningDeeptutorQuestionView => "/api/v1/learning/deeptutor/question-view",
+                LearningDeeptutorQuestionTurn => "/api/v1/learning/deeptutor/question-turn",
+                LearningDeeptutorQuestionTurnStatus => {
+                    "/api/v1/learning/deeptutor/question-turn/status"
+                }
+                LearningDeeptutorQuestionTurnCancel => {
+                    "/api/v1/learning/deeptutor/question-turn/cancel"
+                }
+                LearningDeeptutorQuestionAccept => {
+                    "/api/v1/learning/deeptutor/question-candidates/accept"
+                }
+                LearningDeeptutorTeachingFeedback => "/api/v1/learning/deeptutor/teaching-feedback",
                 _ => unreachable!(),
             };
             ("POST", path.into(), Some(body()?))
@@ -1438,14 +1465,109 @@ mod ingest_batch_routes {
     }
 }
 
-pub fn save_export(root: &std::path::Path, reply: &Reply) -> Result<Value, String> {
+fn validate_export_binding(payload: &Value) -> Result<(), String> {
+    let values = payload.as_object().ok_or("CORE_EXPORT_BINDING_INVALID")?;
+    if values.keys().any(|key| {
+        !matches!(
+            key.as_str(),
+            "document_id" | "format" | "expected_version" | "expected_content_sha256"
+        )
+    }) {
+        return Err("CORE_EXPORT_BINDING_INVALID".into());
+    }
+    id(payload, "document_id")?;
+    let version = payload["expected_version"]
+        .as_u64()
+        .filter(|v| *v > 0 && *v <= 9_007_199_254_740_991);
+    let sha = payload["expected_content_sha256"].as_str().filter(|s| {
+        s.len() == 64
+            && s.bytes()
+                .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+    });
+    if version.is_none()
+        || sha.is_none()
+        || !matches!(
+            payload["format"].as_str(),
+            Some("markdown" | "obsidian" | "canvas")
+        )
+    {
+        return Err("CORE_EXPORT_BINDING_INVALID".into());
+    }
+    Ok(())
+}
+
+/// The second Core read must still match the user's selected snapshot before any disk write.
+pub fn save_export_for_request(
+    root: &std::path::Path,
+    reply: &Reply,
+    payload: &Value,
+) -> Result<Value, String> {
+    validate_export_binding(payload)?;
+    if reply.status != 200 {
+        return Err("CORE_EXPORT_UNAVAILABLE".into());
+    }
+    let files = reply.body["files"]
+        .as_array()
+        .ok_or("CORE_EXPORT_INVALID")?;
+    let manifests: Vec<_> = files
+        .iter()
+        .filter(|f| f["path"] == "manifest.json")
+        .collect();
+    if manifests.len() != 1 {
+        return Err("CORE_EXPORT_INVALID".into());
+    }
+    let manifest: Value = serde_json::from_str(
+        manifests[0]["content"]
+            .as_str()
+            .ok_or("CORE_EXPORT_INVALID")?,
+    )
+    .map_err(|_| "CORE_EXPORT_INVALID")?;
+    let selected = &manifest["document"];
+    let schema = if payload["format"] == "canvas" {
+        "archeaxis-canvas-export/v1"
+    } else {
+        "archeaxis-document-export-1"
+    };
+    if manifest["schema"] != schema
+        || !selected.is_object()
+        || reply.body["document_id"] != payload["document_id"]
+        || selected["document_id"] != payload["document_id"]
+        || reply.body["version"] != payload["expected_version"]
+        || selected["version"] != payload["expected_version"]
+        || selected["content_sha256"] != payload["expected_content_sha256"]
+        || reply.body["format"] != payload["format"]
+        || reply.body["source_revision"] != selected["source_revision"]
+    {
+        return Err("CORE_EXPORT_SNAPSHOT_CHANGED".into());
+    }
+    if payload["format"] == "canvas" {
+        use sha2::{Digest, Sha256};
+        let content: Vec<_> = files
+            .iter()
+            .filter(|file| file["path"] == "document.canvas")
+            .collect();
+        if content.len() != 1 {
+            return Err("CORE_EXPORT_INVALID".into());
+        }
+        let bytes = content[0]["content"]
+            .as_str()
+            .ok_or("CORE_EXPORT_INVALID")?
+            .as_bytes();
+        if manifest["canvas_sha256"] != format!("{:x}", Sha256::digest(bytes)) {
+            return Err("CORE_EXPORT_CONTENT_CHANGED".into());
+        }
+    }
+    save_export(root, reply)
+}
+
+fn save_export(root: &std::path::Path, reply: &Reply) -> Result<Value, String> {
     if reply.status != 200 {
         return Err("CORE_EXPORT_UNAVAILABLE".into());
     }
     let document = id(&reply.body, "document_id")?;
     let format = reply.body["format"]
         .as_str()
-        .filter(|v| matches!(*v, "markdown" | "obsidian"))
+        .filter(|v| matches!(*v, "markdown" | "obsidian" | "canvas"))
         .ok_or("CORE_EXPORT_INVALID")?;
     let version = reply.body["version"]
         .as_u64()
@@ -1455,12 +1577,25 @@ pub fn save_export(root: &std::path::Path, reply: &Reply) -> Result<Value, Strin
         .as_array()
         .filter(|v| v.len() == 2)
         .ok_or("CORE_EXPORT_INVALID")?;
-    for name in ["document.md", "manifest.json"] {
+    let content_name = if format == "canvas" {
+        "document.canvas"
+    } else {
+        "document.md"
+    };
+    for name in [content_name, "manifest.json"] {
         if files.iter().filter(|file| file["path"] == name).count() != 1 {
             return Err("CORE_EXPORT_INVALID".into());
         }
     }
     for file in files {
+        let media = if file["path"] == "document.md" {
+            "text/markdown"
+        } else {
+            "application/json"
+        };
+        if file["media_type"] != media {
+            return Err("CORE_EXPORT_INVALID".into());
+        }
         if file["content"]
             .as_str()
             .is_none_or(|v| v.len() > 24 * 1024 * 1024)
@@ -1495,7 +1630,7 @@ pub fn save_export(root: &std::path::Path, reply: &Reply) -> Result<Value, Strin
             .map_err(|_| "CORE_EXPORT_WRITE_FAILED")?;
     }
     Ok(
-        serde_json::json!({"directory":relative,"files":["document.md","manifest.json"],"document_id":document,"version":version,"format":format}),
+        serde_json::json!({"directory":relative,"files":[content_name,"manifest.json"],"document_id":document,"version":version,"format":format}),
     )
 }
 
@@ -1537,6 +1672,10 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         Operation::JobExecute => 320,
         Operation::LearningDeeptutorPracticeImport => 95,
         Operation::LearningDeeptutorPracticeGrade => 95,
+        // Capture, local-model response and replay are separately bounded by
+        // the Core at 60 + 120 + 60 seconds; allow finite persistence margin.
+        Operation::LearningDeeptutorQuestionTurn => 300,
+        Operation::LearningDeeptutorTeachingFeedback => 95,
         Operation::CourseFromKnowledge
         | Operation::CourseRender
         | Operation::CourseOpenmaicSceneCreate => 60,
@@ -1551,9 +1690,18 @@ fn request_byte_limit(operation: &Operation) -> usize {
         // The Core grading route accepts one bounded answer submission; this is the
         // route's own 32,768-byte body limit, not the larger import envelope.
         32_768
+    } else if matches!(operation, Operation::LearningDeeptutorTeachingFeedback) {
+        // Match the Core and donor worker's 128 KiB request envelope.
+        131_072
     } else if matches!(
         operation,
-        Operation::LearningDeeptutorPracticeImport | Operation::LearningDeeptutorQuestionView
+        Operation::LearningDeeptutorPracticeImport
+            | Operation::LearningDeeptutorQuestionView
+            | Operation::LearningDeeptutorQuestionTurn
+            | Operation::LearningDeeptutorQuestionTurnStatus
+            | Operation::LearningDeeptutorQuestionTurnCancel
+            | Operation::CourseOpenmaicPackageProjection
+            | Operation::LearningDeeptutorQuestionAccept
     ) {
         65_536
     } else if matches!(
@@ -1645,6 +1793,12 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
             | Operation::LearningDeeptutorPracticeImport
             | Operation::LearningDeeptutorPracticeGrade
             | Operation::LearningDeeptutorQuestionView
+            | Operation::LearningDeeptutorQuestionTurn
+            | Operation::LearningDeeptutorQuestionTurnStatus
+            | Operation::LearningDeeptutorQuestionTurnCancel
+            | Operation::CourseOpenmaicPackageProjection
+            | Operation::LearningDeeptutorQuestionAccept
+            | Operation::LearningDeeptutorTeachingFeedback
     );
     let body = if bytes.is_empty() && !private_provider_response {
         Value::Null
@@ -1662,6 +1816,312 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
             .unwrap_or_else(|_| serde_json::json!({"message":String::from_utf8_lossy(&bytes)}))
     };
     Ok(Reply { status, body })
+}
+
+#[cfg(test)]
+mod v3_cancel_and_canvas_native {
+    use super::*;
+    use serde_json::json;
+
+    fn binding(format: &str) -> Value {
+        json!({"document_id":"doc_canvas_native","format":format,"expected_version":2,"expected_content_sha256":"a".repeat(64)})
+    }
+    fn export(format: &str) -> Reply {
+        let canvas = format == "canvas";
+        let document = json!({"document_id":"doc_canvas_native","version":2,"content_sha256":"a".repeat(64),"source_revision":"b".repeat(64)});
+        use sha2::{Digest, Sha256};
+        let manifest = json!({"schema":if canvas {"archeaxis-canvas-export/v1"} else {"archeaxis-document-export-1"},"document":document,
+            "canvas_sha256":format!("{:x}",Sha256::digest(b"{\"nodes\":[],\"edges\":[]}"))});
+        Reply {
+            status: 200,
+            body: json!({"document_id":"doc_canvas_native","version":2,"format":format,"source_revision":"b".repeat(64),
+            "files":[{"path":if canvas {"document.canvas"} else {"document.md"},"media_type":if canvas {"application/json"} else {"text/markdown"},"content":if canvas {"{\"nodes\":[],\"edges\":[]}"} else {"synthetic export"}},
+            {"path":"manifest.json","media_type":"application/json","content":manifest.to_string()}]}),
+        }
+    }
+    #[test]
+    fn explicit_cancel_has_its_own_bounded_fixed_route_and_never_accepts_transport_overrides() {
+        let request = |payload| Request {
+            operation: Operation::LearningDeeptutorQuestionTurnCancel,
+            payload,
+        };
+        let body = json!({"create_request_id":"original_request"});
+        let command = request(json!({"body":body}));
+        assert_eq!(
+            route(&command).unwrap(),
+            (
+                "POST",
+                "/api/v1/learning/deeptutor/question-turn/cancel".to_owned(),
+                Some(body)
+            )
+        );
+        assert_eq!(transport_timeout(&command.operation).as_secs(), 30);
+        assert_eq!(request_byte_limit(&command.operation), 65_536);
+        for invalid in [
+            json!({}),
+            json!({"body":null}),
+            json!({"body":{},"url":"https://example.invalid"}),
+            json!({"body":{},"actor":"machine"}),
+        ] {
+            assert!(route(&request(invalid)).is_err());
+        }
+        assert!(
+            matches!(execute(0,"unused-synthetic",request(json!({"body":{"padding":"x".repeat(65_536)}}))),Err(reason) if reason=="CORE_COMMAND_BODY_TOO_LARGE")
+        );
+    }
+    #[test]
+    fn export_snapshot_mismatch_refuses_before_any_disk_output_for_all_formats() {
+        for format in ["markdown", "obsidian", "canvas"] {
+            for field in [
+                "document_id",
+                "expected_version",
+                "expected_content_sha256",
+                "format",
+            ] {
+                let root = tempfile::tempdir().unwrap();
+                let mut selected = binding(format);
+                selected[field] = match field {
+                    "expected_version" => json!(1),
+                    "expected_content_sha256" => json!("c".repeat(64)),
+                    "format" => json!(if format == "canvas" {
+                        "markdown"
+                    } else {
+                        "canvas"
+                    }),
+                    _ => json!("doc_other"),
+                };
+                assert_eq!(
+                    save_export_for_request(root.path(), &export(format), &selected).unwrap_err(),
+                    "CORE_EXPORT_SNAPSHOT_CHANGED"
+                );
+                assert!(!root.path().join("exports").exists());
+            }
+            let command = Request {
+                operation: Operation::DocumentExportSave,
+                payload: binding(format),
+            };
+            assert!(route(&command)
+                .unwrap()
+                .1
+                .ends_with(&format!("?format={format}")));
+            assert!(route(&Request {
+                operation: Operation::DocumentExportSave,
+                payload: json!({"document_id":"doc_canvas_native","format":format})
+            })
+            .is_err());
+        }
+    }
+    #[test]
+    fn canvas_export_writes_only_its_two_files_and_rejects_mixed_paths_or_media_before_writing() {
+        let root = tempfile::tempdir().unwrap();
+        let receipt =
+            save_export_for_request(root.path(), &export("canvas"), &binding("canvas")).unwrap();
+        assert_eq!(
+            receipt["files"],
+            json!(["document.canvas", "manifest.json"])
+        );
+        let directory = root.path().join(receipt["directory"].as_str().unwrap());
+        assert_eq!(
+            std::fs::read_to_string(directory.join("document.canvas")).unwrap(),
+            "{\"nodes\":[],\"edges\":[]}"
+        );
+        assert_eq!(std::fs::read_dir(&directory).unwrap().count(), 2);
+        for (field, value) in [
+            ("path", "../outside"),
+            ("path", "document.md"),
+            ("path", "manifest.json"),
+            ("media_type", "text/html"),
+        ] {
+            let root = tempfile::tempdir().unwrap();
+            let mut reply = export("canvas");
+            reply.body["files"][0][field] = json!(value);
+            assert!(save_export_for_request(root.path(), &reply, &binding("canvas")).is_err());
+            assert!(!root.path().join("exports").exists());
+        }
+    }
+    #[test]
+    fn a_changed_second_canvas_response_is_rejected_before_disk_even_with_the_selected_version() {
+        let root = tempfile::tempdir().unwrap();
+        let mut reply = export("canvas");
+        reply.body["files"][0]["content"] = json!("{\"nodes\":[],\"changed\":true}");
+        assert_eq!(
+            save_export_for_request(root.path(), &reply, &binding("canvas")).unwrap_err(),
+            "CORE_EXPORT_CONTENT_CHANGED"
+        );
+        assert!(!root.path().join("exports").exists());
+    }
+}
+
+#[cfg(test)]
+mod deeptutor_generation_native_contract {
+    use super::*;
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::time::{Duration, Instant};
+
+    const OPERATIONS: [(&str, &str, usize, u64); 3] = [
+        (
+            "learning_deeptutor_question_turn",
+            "/api/v1/learning/deeptutor/question-turn",
+            65_536,
+            300,
+        ),
+        (
+            "learning_deeptutor_question_accept",
+            "/api/v1/learning/deeptutor/question-candidates/accept",
+            65_536,
+            30,
+        ),
+        (
+            "learning_deeptutor_teaching_feedback",
+            "/api/v1/learning/deeptutor/teaching-feedback",
+            131_072,
+            95,
+        ),
+    ];
+
+    fn request(operation: &str, payload: Value) -> Request {
+        serde_json::from_value(serde_json::json!({"operation":operation,"payload":payload}))
+            .unwrap()
+    }
+
+    #[test]
+    fn deeptutor_generation_routes_require_a_single_body_and_match_core_budgets() {
+        let body = serde_json::json!({"create_request_id":"synthetic-generation-request"});
+        for (operation, expected_path, limit, timeout_s) in OPERATIONS {
+            let command = request(operation, serde_json::json!({"body":body}));
+            let (method, path, forwarded) = route(&command).unwrap();
+            assert_eq!(method, "POST");
+            assert_eq!(path, expected_path);
+            assert_eq!(forwarded, Some(body.clone()));
+            assert_eq!(request_byte_limit(&command.operation), limit);
+            assert_eq!(
+                transport_timeout(&command.operation),
+                Duration::from_secs(timeout_s)
+            );
+            for invalid in [
+                serde_json::json!({}),
+                serde_json::json!({"body":null}),
+                serde_json::json!({"body":[]}),
+                serde_json::json!({"body":{},"url":"https://invalid.example/override"}),
+                serde_json::json!({"body":{},"actor":"agent"}),
+                serde_json::json!({"body":{},"token":"synthetic-override"}),
+            ] {
+                assert_eq!(
+                    route(&request(operation, invalid)).unwrap_err(),
+                    "CORE_COMMAND_PROVIDER_PAYLOAD_INVALID"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn deeptutor_generation_oversized_body_is_rejected_before_transport() {
+        for (operation, _, limit, _) in OPERATIONS {
+            let command = request(
+                operation,
+                serde_json::json!({"body":{"padding":"x".repeat(limit)}}),
+            );
+            assert!(matches!(
+                execute(0, "synthetic-unused-token", command),
+                Err(error) if error == "CORE_COMMAND_BODY_TOO_LARGE"
+            ));
+        }
+    }
+
+    // SYNTHETIC owned loopback transport only: no Core, worker, model or real credentials.
+    fn exchange(operation: &str, path: &str, status: u16, response: &str) -> Result<Reply, String> {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let path = path.to_owned();
+        let response = response.to_owned();
+        let body = serde_json::json!({"create_request_id":"synthetic-generation-request"});
+        let expected_body = body.clone();
+        let server = std::thread::spawn(move || {
+            let until = Instant::now() + Duration::from_secs(5);
+            let mut socket = loop {
+                match listener.accept() {
+                    Ok((socket, _)) => break socket,
+                    Err(error)
+                        if error.kind() == std::io::ErrorKind::WouldBlock
+                            && Instant::now() < until =>
+                    {
+                        std::thread::sleep(Duration::from_millis(5));
+                    }
+                    Err(error) => panic!("owned generation fixture accept: {error}"),
+                }
+            };
+            // Accepted Windows sockets can inherit the listener's nonblocking mode.
+            socket.set_nonblocking(false).unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut bytes = Vec::new();
+            let mut buffer = [0; 1024];
+            loop {
+                let count = socket.read(&mut buffer).unwrap();
+                assert!(count > 0);
+                bytes.extend_from_slice(&buffer[..count]);
+                assert!(bytes.len() < 16_384);
+                let Some(header_end) = bytes.windows(4).position(|part| part == b"\r\n\r\n") else {
+                    continue;
+                };
+                let headers = String::from_utf8(bytes[..header_end].to_vec()).unwrap();
+                let lower = headers.to_ascii_lowercase();
+                let length = lower
+                    .lines()
+                    .find_map(|line| {
+                        line.strip_prefix("content-length:")
+                            .map(|value| value.trim().parse::<usize>().unwrap())
+                    })
+                    .unwrap();
+                if bytes.len() < header_end + 4 + length {
+                    continue;
+                }
+                assert!(headers.starts_with(&format!("POST {path} HTTP/1.1\r\n")));
+                assert!(lower
+                    .lines()
+                    .any(|line| line == "x-archeaxis-launch-token: synthetic-owned-generation"));
+                let received: Value =
+                    serde_json::from_slice(&bytes[header_end + 4..header_end + 4 + length])
+                        .unwrap();
+                assert_eq!(received, expected_body);
+                break;
+            }
+            let response = format!(
+                "HTTP/1.1 {status} Fixture\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{response}",
+                response.len()
+            );
+            socket.write_all(response.as_bytes()).unwrap();
+        });
+        let result = execute(
+            port,
+            "synthetic-owned-generation",
+            request(operation, serde_json::json!({"body":body})),
+        );
+        server.join().unwrap();
+        result
+    }
+
+    #[test]
+    fn deeptutor_generation_native_transport_preserves_status_and_redacts_malformed_responses() {
+        for (operation, path, _, _) in OPERATIONS {
+            let reply = exchange(operation, path, 409, r#"{"code":"SYNTHETIC_CONFLICT"}"#).unwrap();
+            assert_eq!(reply.status, 409);
+            assert_eq!(reply.body, serde_json::json!({"code":"SYNTHETIC_CONFLICT"}));
+            let reply = exchange(operation, path, 422, "synthetic private worker text").unwrap();
+            assert_eq!(reply.status, 422);
+            assert_eq!(
+                reply.body,
+                serde_json::json!({"code":"CORE_PROVIDER_RESPONSE_INVALID"})
+            );
+            assert!(matches!(
+                exchange(operation, path, 201, "synthetic private worker text"),
+                Err(error) if error == "CORE_PROVIDER_RESPONSE_INVALID"
+            ));
+        }
+    }
 }
 
 #[cfg(test)]
@@ -2757,6 +3217,54 @@ mod single_source_identity_route {
             let request: Request = serde_json::from_value(
                 serde_json::json!({"operation":"source_get","payload":{"source_id":value}}),
             )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+    }
+}
+
+#[cfg(test)]
+mod deeptutor_status_bridge {
+    use super::*;
+    #[test]
+    fn status_is_a_bounded_fixed_read_route_without_generation_timeout() {
+        let payload = serde_json::json!({"body":{"create_request_id":"query_only"}});
+        let request: Request = serde_json::from_value(serde_json::json!({
+            "operation":"learning_deeptutor_question_turn_status", "payload":payload
+        }))
+        .unwrap();
+        let routed = route(&request).unwrap();
+        assert_eq!(routed.0, "POST");
+        assert_eq!(routed.1, "/api/v1/learning/deeptutor/question-turn/status");
+        assert_eq!(routed.2, Some(payload["body"].clone()));
+        assert_eq!(request_byte_limit(&request.operation), 65_536);
+        assert_eq!(
+            transport_timeout(&request.operation),
+            std::time::Duration::from_secs(30)
+        );
+        let projection: Request = serde_json::from_value(serde_json::json!({
+            "operation":"course_openmaic_package_projection", "payload":{"body":{"document_ids":["scene_1"]}}
+        })).unwrap();
+        let projection_route = super::route(&projection).unwrap();
+        assert_eq!(projection_route.0, "POST");
+        assert_eq!(
+            projection_route.1,
+            "/api/v1/courses/openmaic/package-projection"
+        );
+        assert_eq!(request_byte_limit(&projection.operation), 65_536);
+        assert_eq!(
+            transport_timeout(&projection.operation),
+            std::time::Duration::from_secs(30)
+        );
+        for invalid in [
+            serde_json::json!({}),
+            serde_json::json!({"body":[]}),
+            serde_json::json!({"body":{},"actor":"machine"}),
+            serde_json::json!({"body":{},"url":"https://external.invalid"}),
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"learning_deeptutor_question_turn_status", "payload":invalid
+            }))
             .unwrap();
             assert!(route(&request).is_err());
         }

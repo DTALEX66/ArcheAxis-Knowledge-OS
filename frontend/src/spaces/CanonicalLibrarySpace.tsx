@@ -1,4 +1,5 @@
 import {MaterialQuestionPanel} from "../components/MaterialQuestionPanel";
+import {DeepTutorLearningPanel} from "../components/DeepTutorLearningPanel";
 import {ConversationPanel} from "../components/ConversationPanel";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import { useDocumentWriteLease } from "../workspace/documentSessions";
@@ -8,7 +9,10 @@ import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentati
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
 import { confirmedImport } from "../presentation/importReceipt";
-import { sha256 } from "../presentation/exchangeProof";
+import { sameValue, sha256 } from "../presentation/exchangeProof";
+import { assertCanvasBudget, assertCanvasOriginalSize, confirmCanvasDocument, isCanvasEditor, isCanvasSource, mappedCanvasTexts, prepareCanvasDocument, verifiedCanvas, verifyCanvasExport } from "../presentation/canvasDocument";
+import { preserveBlockIdentities } from "../presentation/blockIdentity";
+import { CanvasDocumentPanel } from "../components/CanvasDocumentPanel";
 import { lazy, Suspense, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
@@ -55,6 +59,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   // Core working-state persistence belongs to the verified formal desktop host.
   // Browser presentation fixtures do not obtain a native persistence receipt.
   const working=window.__TAURI__?.core?.invoke?workingContext:null;
+  const workingNow=useRef(working);workingNow.current=working;
   const savedJournalPending=useRef(new Map<string,{sent:WorkingDraft;version:number}>());
   const [documentSearch,setDocumentSearch] = useState("");
   const [selectedTag,setSelectedTag] = useState("");
@@ -94,6 +99,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [documentOriginal, setDocumentOriginal] = useState<OriginalDto | null>(null);
   const [documentBytes, setDocumentBytes] = useState<Uint8Array | null>(null);
   const [document, setDocument] = useState<DocumentDto | null>(null);
+  const [learningPanelMounted,setLearningPanelMounted] = useState(false);
   const documentLease=useDocumentWriteLease(document?.document_id);
   const dirtyOwner=useDraftOwner("library");
   const [documentDrafts, setDocumentDrafts] = useState<Record<string, {content:JSONContent;baseVersion:number}>>(()=>Object.fromEntries(Object.entries(working?.state.drafts??{}).map(([id,draft])=>[id,{content:structuredClone(draft.editor_json),baseVersion:draft.base_version}])));
@@ -103,6 +109,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [xiaoqiOpen, setXiaoqiOpen] = useState(false);
   // const [xiaoqiState, setXiaoqiState] = useState<XiaoqiState>('idle');
   const noteAttempt=useRef<OriginalNoteAttempt|null>(null);
+  // Only a newly prepared, never-dispatched Canvas request may POST. Restored or
+  // uncertain requests use fixed-version readback, even from the generic retry UI.
+  const canvasMayCreate=useRef<string|null>(null);
   const [noteUncertain,setNoteUncertain]=useState(false);
   const [anchors, setAnchors] = useState<AnchorDto[]>([]);
   const [page, setPage] = useState(1);
@@ -341,7 +350,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       if (epoch !== generation.current || editingEpoch !== editGeneration.current) return "stale";
       readStage="原件版本核对";
       if (asset.source_id!==selected.source_id||asset.sha256 !== selected.sha256) throw new Error("source identity mismatch");
+      assertCanvasOriginalSize(selected,asset);
       const decoded = Uint8Array.from(atob(asset.content_base64), (character) => character.charCodeAt(0));
+      assertCanvasOriginalSize(selected,asset,decoded);
       readStage="原件字节核验";
       const actualHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", decoded))).map((value) => value.toString(16).padStart(2, "0")).join("");
       if (actualHash !== selected.sha256) throw new Error("source bytes mismatch");
@@ -407,7 +418,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
             coreCommand<OriginalDto>("source_original", { source_id: linked.source_id }),
             coreCommand<{anchors: AnchorDto[]}>("anchors_list", { source_id: linked.source_id }),
           ]);
+          assertCanvasOriginalSize(linked,asset);
           const decoded = Uint8Array.from(atob(asset.content_base64), char => char.charCodeAt(0));
+          assertCanvasOriginalSize(linked,asset,decoded);
           const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", decoded))).map(value => value.toString(16).padStart(2,"0")).join("");
           if (asset.source_id !== linked.source_id || asset.sha256 !== linked.sha256 || active.source_revision !== linked.source_revision || active.source_id !== linked.source_id || digest !== linked.sha256) throw new Error("source mismatch");
           if (epoch === generation.current) { setSource(linked); setOriginal(asset); setBytes(decoded); setAnchors(evidence.anchors); setPage(1); setDocumentSource(linked); setDocumentOriginal(asset); setDocumentBytes(decoded); }
@@ -419,11 +432,28 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     const epoch=++generation.current;
     const editingEpoch=editGeneration.current;
     try {
-      if(!noteAttempt.current)noteAttempt.current=await prepareOriginalNote();
+      if(!noteAttempt.current) {
+        const pending=working?.state.pending_original;
+        noteAttempt.current=pending?{id:await documentRequestIdentity(pending.create_request_id),body:structuredClone(pending)}:await prepareOriginalNote();
+      }
       setNoteUncertain(true);publishDirtyState();
       const attempt=noteAttempt.current;
+      const canvas=isCanvasEditor(attempt.body.editor_json);
+      const canvasBasis=canvas&&working?.server?{workspace:working.server.workspace_id,epoch:working.server.restore_epoch}:null;
+      const assertCanvasWorkspace=()=>{
+        if(!canvas)return;
+        const latest=workingNow.current?.session.getSnapshot();
+        if(!libraryMounted.current||workingNow.current?.session!==working?.session||!canvasBasis||!latest?.server||latest.status!=="ready"||latest.server.recovery_requires_confirmation||latest.server.workspace_id!==canvasBasis.workspace||latest.server.restore_epoch!==canvasBasis.epoch)throw new Error("页面、工作区或恢复状态已变化；画布请求保留，未继续提交或清理。");
+      };
+      if(canvas) {
+        if(!working||working.status!=="ready"||working.server?.recovery_requires_confirmation)throw new Error("先核对工作区与恢复状态，再保存画布映射。");
+        assertCanvasBudget(attempt.body.editor_json,working.state,attempt.body as PendingOriginal);
+      }
       await working?.session.stageOriginal(attempt.body as PendingOriginal);
-      const created = await confirmOriginalNote(attempt,readOnly);
+      assertCanvasWorkspace();
+      const canvasReadOnly=readOnly||canvasMayCreate.current!==attempt.body.create_request_id;
+      const created = canvas ? await confirmCanvasDocument(attempt,canvasReadOnly,()=>{assertCanvasWorkspace();canvasMayCreate.current=null;}) : await confirmOriginalNote(attempt,readOnly);
+      assertCanvasWorkspace();
       await working?.session.finishOriginal(attempt.body as PendingOriginal);
       noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
       if(!libraryMounted.current)return;
@@ -464,6 +494,16 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     // Share the durable frozen create journal, including source identity. A
     // lost ACK must never regenerate the request or substitute a newer source.
     if(!noteAttempt.current) {
+      if(isCanvasSource(source)) {
+        if(!working||working.status!=="ready"||working.server?.recovery_requires_confirmation){setFailure(true);setMessage("请先核对工作区，画布原件仍可只读查看。");return;}
+        const navigation=generation.current,editing=editGeneration.current;
+        try {
+          const attempt=await prepareCanvasDocument(source,original,bytes);
+          assertCanvasBudget(attempt.body.editor_json,working.state,attempt.body as PendingOriginal);
+          if(navigation!==generation.current||editing!==editGeneration.current)return;
+          noteAttempt.current=attempt;canvasMayCreate.current=attempt.body.create_request_id;
+        } catch(error){setFailure(true);setMessage(error instanceof Error?error.message:"画布映射未建立，原件仍保留。");return;}
+      } else {
       const attempt=await prepareOriginalNote();
       const plain=original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"";
       attempt.body.source_id=source.source_id;attempt.body.source_revision=source.source_revision;
@@ -471,6 +511,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       if(plain)attempt.body.editor_json.content![0].content=[{type:"text",text:plain}];
       if(/\.(md|markdown)$/i.test(source.original_name))attempt.body.editor_json.attrs={...attempt.body.editor_json.attrs,archeaxis_markup:"markdown"};
       noteAttempt.current=attempt;
+      }
     }
     await createOriginal();
   }
@@ -479,12 +520,31 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   }
   async function saveDraft(content: JSONContent, expectedVersion: number) {
     if (!document) throw new Error("document not loaded");
+    // The editor keeps only schema-declared attributes, so a rewritten body
+    // arrives without block or canvas node IDs. Carry the previous version's
+    // identities back before anything is written or journalled.
+    let payload: JSONContent = content;
+    try { payload = preserveBlockIdentities(typeof document.editor_json==="object"&&document.editor_json?document.editor_json as JSONContent:undefined, content); }
+    catch(error){ throw new Error("正文块身份保留失败，未提交保存：" + (error instanceof Error?error.message:String(error))); }
+    const ownerSession=working?.session,writeScope=ownerSession?.getSnapshot().server;
+    const assertWriteScope=()=>{
+      const actual=workingNow.current?.session,latest=actual?.getSnapshot();
+      if(!libraryMounted.current||actual!==ownerSession||(ownerSession&&(!writeScope||!latest?.server||latest.server.workspace_id!==writeScope.workspace_id||latest.server.restore_epoch!==writeScope.restore_epoch||latest.server.recovery_requires_confirmation||["blocked","recovery","loading"].includes(latest.status))))throw new Error("页面或工作区身份已变化；草稿仍保留，未继续提交或清理正文。");
+    };
     const requestedDocumentId = document.document_id;
     const sentBasis = revisionBasis.current;
-    const sent:WorkingDraft={base_version:expectedVersion,editor_json:structuredClone(content) as WorkingEditor};
+    const sent:WorkingDraft={base_version:expectedVersion,editor_json:structuredClone(payload) as WorkingEditor};
+    if(isCanvasEditor(document.editor_json))assertCanvasBudget(payload,working?.state,undefined,{id:requestedDocumentId,baseVersion:expectedVersion});
     if(working){working.session.rememberDraft(requestedDocumentId,sent.editor_json,expectedVersion);try{await working.session.flush();}catch(error){throw new DocumentJournalError(error);}}
-    const saved = await coreCommand<DocumentDto>("document_draft", { document_id: requestedDocumentId, body: { expected_version: expectedVersion, editor_json: content, ...(sentBasis ? {revision_basis:sentBasis} : {}) } });
+    assertWriteScope();
+    const saved = await coreCommand<DocumentDto>("document_draft", { document_id: requestedDocumentId, body: { expected_version: expectedVersion, editor_json: payload, ...(sentBasis ? {revision_basis:sentBasis} : {}) } });
     if (saved.document_id !== requestedDocumentId || saved.version!==expectedVersion+1) throw new Error("document identity or version mismatch");
+    if(isCanvasEditor(document.editor_json)) {
+      if(saved.source_id!==document.source_id||saved.source_revision!==document.source_revision||!sameValue(saved.editor_json,payload)||!/^[a-f0-9]{64}$/.test(saved.content_sha256))throw new Error("画布正文保存回执不一致；草稿仍保留。");
+      const read=await coreCommand<DocumentDto>("document_version",{document_id:requestedDocumentId,version:saved.version});
+      if(!sameValue(read,saved))throw new Error("画布正文版本读回不一致；草稿仍保留。");
+    }
+    assertWriteScope();
     if (revisionBasis.current === sentBasis && currentDocument.current?.document_id === requestedDocumentId) revisionBasis.current = null;
     if(currentDocument.current?.document_id===saved.document_id) setDocument(saved);
     setDocuments((previous) => previous.map((item) => item.document_id === saved.document_id ? saved : item));
@@ -640,17 +700,23 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       }
     }
   }
-  async function exportDocument(format: "markdown"|"obsidian") {
+  async function exportDocument(format: "markdown"|"obsidian"|"canvas") {
     if (!document) return;
+    const selected=document;
     const epoch = generation.current;
     try {
-      const proof = await coreCommand<DocumentExportDto>("document_export", {document_id:document.document_id,format});
+      if(format==="canvas") {
+        if(!documentSource||!documentOriginal||!documentBytes)throw new Error("先核对固定画布原件，再导出已保存版本。");
+        mappedCanvasTexts(await verifiedCanvas(documentSource,documentOriginal,documentBytes),documentSource,selected);
+      }
+      const proof = await coreCommand<DocumentExportDto>("document_export", {document_id:selected.document_id,format});
+      if(format==="canvas")await verifyCanvasExport(selected,proof);
       if (epoch !== generation.current) return;
       setExportProof(proof);
-      const saved = await coreCommand<unknown>("document_export_save", {document_id:document.document_id,format});
+      const saved = await coreCommand<unknown>("document_export_save", {document_id:selected.document_id,format,expected_version:selected.version,expected_content_sha256:selected.content_sha256});
       if (!saved || typeof saved !== "object" || !("directory" in saved) || typeof saved.directory !== "string" || !("version" in saved) || saved.version !== proof.version) throw new Error("invalid export receipt");
       if (epoch === generation.current) {setMessage(`已导出到产品资料目录 ${saved.directory}。外部应用读取仍需单独验证。`);setFailure(false);}
-    } catch {setMessage("导出未确认；原件与草稿仍保留。");setFailure(true);}
+    } catch(error) {setMessage(format==="canvas"&&error instanceof Error?`画布导出未确认：${error.message} 原件与普通文档仍保留。`:"导出未确认；原件与草稿仍保留。");setFailure(true);}
   }
   function closeDocumentTab(id: string) {
     if (dirtyDocumentIds.current.has(id) && !window.confirm(working?"此文档有未保存更改。关闭标签后独立工作草稿仍保留，确定关闭吗？":"此文档有未保存更改。关闭标签将丢弃仅保存在内存中的草稿，确定关闭吗？")) return;
@@ -682,7 +748,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
               {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
                 <p>来源：{documentSource.original_name} · 文档第 {document.version} 版</p><RawReceiptButton label="关联原件身份" category="data" payload={{source_id:documentSource.source_id,source_revision:documentSource.source_revision,sha256:documentOriginal.sha256}}/>
-                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /><PdfPageRecognition key={`pages:${documentSource.source_id}:${documentSource.source_revision}`} sourceId={documentSource.source_id} onPageSelect={setPage} currentPage={page}/></></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <OcrImageReader key={`${documentSource.source_id}:${documentSource.source_revision}`} sourceId={documentSource.source_id} revision={documentSource.source_revision} name={documentSource.original_name} original={documentOriginal} anchors={anchors} seek={ocrSeek}/> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>暂不支持并排预览此格式。原件已保存在本地，可从原件列表打开。</p>}
+                 {isCanvasSource(documentSource) ? <CanvasDocumentPanel source={documentSource} original={documentOriginal} bytes={documentBytes}/> : linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /><PdfPageRecognition key={`pages:${documentSource.source_id}:${documentSource.source_revision}`} sourceId={documentSource.source_id} onPageSelect={setPage} currentPage={page}/></></Suspense> : documentOriginal.media_type==="multipart/related" ? <p>MHTML 网页归档原件已保全。正文与 MIME 根部件位置请在同源转换结果中读取；此处不加载脚本、图片或外部地址。</p> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <OcrImageReader key={`${documentSource.source_id}:${documentSource.source_revision}`} sourceId={documentSource.source_id} revision={documentSource.source_revision} name={documentSource.original_name} original={documentOriginal} anchors={anchors} seek={ocrSeek}/> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>暂不支持并排预览此格式。原件已保存在本地，可从原件列表打开。</p>}
               </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
             </article> : null;
   const savedCollection = (saved: DocumentDto) => {
@@ -692,6 +758,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     if (!attrs || typeof attrs !== "object" || Array.isArray(attrs) || !Object.hasOwn(attrs, "archeaxis_collection")) return null;
     return <CollectionPanel key={`collection:${saved.document_id}:${saved.version}:${saved.content_sha256}`} document={saved} value={(attrs as Record<string, unknown>).archeaxis_collection} presentation="reader" onChange={()=>{}} onOpenReference={onOpenReference}/>;
   };
+  const savedCanvas=document&&documentSource&&documentOriginal&&documentBytes&&isCanvasSource(documentSource)?<CanvasDocumentPanel source={documentSource} original={documentOriginal} bytes={documentBytes} document={document}/>:null;
+  const canvasExportAction=document&&(isCanvasEditor(document.editor_json)||isCanvasSource(documentSource))?<button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("canvas"))}>Canvas 已保存版导出到产品资料目录</button>:null;
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy||!documentLease.canWrite} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><SavedDocumentMetadata document={historicalDocument} onTag={setSelectedTag}/><pre>{historicalDocument.text_projection}</pre><DocumentEmbeds key={`${historicalDocument.document_id}:${historicalDocument.version}:${historicalDocument.content_sha256}`} editor={historicalDocument.editor_json} onOpenReference={onOpenReference}/>{savedCollection(historicalDocument)}{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
   const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认；先检查结果，再重试同一次操作。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failure&&importFailure?.summary===message?<RawReceiptButton label="原件导入错误详细信息" category="data" payload={importFailure.detail}/>:null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
@@ -753,8 +821,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   </section>;
   // open() publishes these bytes only after checking the selected source identity and SHA.
   // An original can be read before it has any editable Document.
-  const sourcePreview=source&&original&&bytes ? isPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><><PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest}/><PdfPageRecognition key={`pages:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} onPageSelect={setPage} currentPage={page}/></></Suspense>
+  const sourcePreview=source&&original&&bytes ? isCanvasSource(source) ? <CanvasDocumentPanel source={source} original={original} bytes={bytes}/> : isPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><><PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest}/><PdfPageRecognition key={`pages:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} onPageSelect={setPage} currentPage={page}/></></Suspense>
     : original.media_type.startsWith("image/") ? <OcrImageReader key={`${source.source_id}:${source.source_revision}`} sourceId={source.source_id} revision={source.source_revision} name={source.original_name} original={original} anchors={anchors} seek={ocrSeek}/>
+    : original.media_type==="multipart/related" ? <div className="reader-format-handoff"><p>MHTML 网页归档原件已保全。通过转换读取正文、根部件位置和损失说明；不加载脚本、图片或外部地址。</p>{purpose==="reader"?<button onClick={()=>setCandidateEditing(true)}>读取 MHTML 正文与位置</button>:null}</div>
     : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={purpose==="reader"?0:-1} aria-label={purpose==="reader"?"并排原件正文":"原件正文"}>{new TextDecoder().decode(bytes)}</pre>
     : original.media_type.startsWith("audio/")||original.media_type.startsWith("video/") ? <MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>
     : <div className="reader-format-handoff"><p>原文件已核对。此格式暂不能在这里直接预览，可查看同一来源已提取的文字，或保留原件写笔记。</p>{purpose==="reader"?<button onClick={()=>setCandidateEditing(true)}>查看此原件的转换内容</button>:null}</div> : null;
@@ -771,7 +840,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       <div className="stitch-reader-workspace"><div className="stitch-reader-spread" role="region" aria-label="正文与原件滚动区" tabIndex={0} data-original-open={showSource}>
         <article className="stitch-reader-document" aria-label="文档正文与编辑">{purpose==="history"?<header><h3>当前保存正文</h3><small>只读显示；历史版本从版本工具单独读取。</small></header>:null}
           {purpose!=="history" ? documentEditor : <pre className="stitch-history-text">{document.text_projection}</pre>}
-          <DocumentEmbeds key={`${document.document_id}:${document.version}:${document.content_sha256}`} editor={document.editor_json} onOpenReference={onOpenReference}/>{savedCollection(document)}
+          <DocumentEmbeds key={`${document.document_id}:${document.version}:${document.content_sha256}`} editor={document.editor_json} onOpenReference={onOpenReference}/>{savedCollection(document)}{savedCanvas}
+          {purpose==="reader"?<details className="reader-material-tools" onToggle={event=>{if(event.currentTarget.open)setLearningPanelMounted(true);}}><summary>围绕此材料学习与练习</summary>{learningPanelMounted?<DeepTutorLearningPanel key={`dt:${document.document_id}:${document.version}:${document.content_sha256}`} document={document} onDirtyChange={value=>{const key=`deeptutor:${document.document_id}`;if(value)dirtyDocumentIds.current.add(key);else dirtyDocumentIds.current.delete(key);publishDirtyState();}}/>:null}</details>:null}
         </article>
         {showSource ? <section className="stitch-reader-original" aria-label="关联原件阅读">{document.source_id ? originalPane : <p>此原创笔记没有绑定来源原件。</p>}</section> : null}
         {readerSourceTools?<details className="reader-source-tools" open={Boolean(initialSourceTarget)||undefined}><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
@@ -783,7 +853,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
         <RawReceiptButton label="文档与来源详细信息" visibleLabel="文档与来源详细信息" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
         <details><summary>依据与修订记录</summary><CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}}/></details>
         {showVersions||purpose==="history" ? <section aria-label="版本与影响">{versionControls}</section> : <button type="button" onClick={()=>setShowVersions(true)}>查看历史版本</button>}
-        <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof}/>:null}</details>
+        <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{canvasExportAction}{exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof}/>:null}</details>
         <details className="reader-material-tools"><summary>围绕此文档提问</summary><MaterialQuestionPanel key={`material:${document.document_id}:${document.version}`} material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}} text={document.text_projection} materialTitle={document.title}/><ConversationPanel materialTitle={document.title} slot="reader" material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}}/></details>
       </aside>
       </div>
@@ -853,9 +923,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
            {documentEditor}
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
           </>}
-          <DocumentEmbeds key={`${document.document_id}:${document.version}:${document.content_sha256}`} editor={document.editor_json} onOpenReference={onOpenReference}/>{savedCollection(document)}
+          <DocumentEmbeds key={`${document.document_id}:${document.version}:${document.content_sha256}`} editor={document.editor_json} onOpenReference={onOpenReference}/>{savedCollection(document)}{savedCanvas}
           {versionControls}
-          <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
+          <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{canvasExportAction}</div>
           {exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof} />:null}
         </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failure&&importFailure?.summary===message?<RawReceiptButton label="原件导入错误详细信息" category="data" payload={importFailure.detail}/>:null}

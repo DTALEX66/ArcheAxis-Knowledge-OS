@@ -393,8 +393,10 @@ ROUTES = {
     "html.structure": {
         "version": "1",
         "worker": "services/python-workers/web/worker_html.py",
-        "media_types": {"text/html", "application/xhtml+xml"},
+        "media_types": {"text/html", "application/xhtml+xml", "multipart/related"},
         "call": "path",
+        "suffix_by_media": {"text/html": ".html", "application/xhtml+xml": ".xhtml",
+                            "multipart/related": ".mhtml"},
         "contract_adapter": True,
     },
     # R15/F04: a figure description is model output; the route exists so the description

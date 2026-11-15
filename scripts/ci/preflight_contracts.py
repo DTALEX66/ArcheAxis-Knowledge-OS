@@ -52,6 +52,12 @@ CHECKS = [
 
 
 def main() -> int:
+    # Child output is decoded as UTF-8 with replacement characters. A GBK console cannot
+    # encode U+FFFD, so echoing a failing check used to abort this preflight with
+    # UnicodeEncodeError and hide the real failure line.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     failures: list[str] = []
     for name, command in CHECKS:
         print(f"[preflight] {name}: {' '.join(command)}", flush=True)

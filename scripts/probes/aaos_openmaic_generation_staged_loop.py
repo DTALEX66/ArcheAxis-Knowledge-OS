@@ -5,8 +5,10 @@ executable, the staged `workers/openmaic` closure, the staged Python capability
 routes and the manifest-declared Node identity are exactly what an installation
 would launch. It then creates one synthetic source document, generates an
 outline through the declared local model, builds one slide scene and one quiz
-scene (each with its narration stage), restarts the same workspace and reads
-both candidates back without rerunning a worker or the model.
+scene (each with its narration stage), generates a second interactive outline
+through the interactive-outlines adapter, builds one interactive scene through
+the widget prompt/normalize adapters, restarts the same workspace and reads
+every candidate back without rerunning a worker or the model.
 
 The model is a loopback stub with a fixed reply queue; this is not real model
 quality evidence and not Owner acceptance. The staged root is a candidate
@@ -58,6 +60,18 @@ MODEL_REPLIES = [
                  "answer": ["A"], "analysis": "SYNTHETIC_ANALYSIS", "points": 5}],
                ensure_ascii=False),
     json.dumps([{"type": "text", "content": "SYNTHETIC_QUIZ_OPENING"}], ensure_ascii=False),
+    json.dumps({
+        "languageDirective": "Use Simplified Chinese.",
+        "courseTitle": "Synthetic interactive course",
+        "outlines": [
+            {"id": "io1", "type": "interactive", "title": "SYNTHETIC_INTERACTIVE_TITLE",
+             "description": "SYNTHETIC_INTERACTIVE_DESCRIPTION",
+             "keyPoints": ["SYNTHETIC_INTERACTIVE_KEY_POINT"], "order": 1,
+             "widgetType": "diagram",
+             "widgetOutline": {"diagramType": "flowchart", "nodeCount": 4}},
+        ]}, ensure_ascii=False),
+    "<!DOCTYPE html><html><body><main>SYNTHETIC_INTERACTIVE_HTML</main>"
+    "<script>const syntheticValue = 1;</script></body></html>",
 ]
 
 
@@ -186,6 +200,28 @@ def scene_receipt(response: dict, route: str) -> dict:
     }
 
 
+def interactive_scene_receipt(response: dict) -> dict:
+    stored = response["document"]["editor_json"]["attrs"]["archeaxis_openmaic_scene_candidate"]
+    scene = stored["worker_document"]["scene"]
+    normalize = response.get("normalize") or {}
+    return {
+        "scene_route": response["scene_route"],
+        "document_id": response["document"]["document_id"],
+        "generation_route": response["generation_route"],
+        "model_call": response["model_call"],
+        "widget_type": response["widget_type"],
+        "html_execution": response["html_execution"],
+        "rendering_authorized": response["rendering_authorized"],
+        "normalize_status": normalize.get("status"),
+        "extraction_strategy": normalize.get("extraction_strategy"),
+        "katex_injected": normalize.get("katex_injected"),
+        "render_playable": ((response.get("render") or {}).get("report") or {}).get("playable"),
+        "scene_type": scene.get("type"),
+        "scene_widget_type": (scene.get("content") or {}).get("widgetType"),
+        "outline_id": stored["derived_metadata"]["outline_id"],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
@@ -284,6 +320,45 @@ def main() -> int:
             scenes[label] = scene
             receipt.setdefault("steps", []).append({"step": f"{label}_scene", **scene})
         receipt["scenes"] = scenes
+
+        interactive_outline = expect("generate interactive outline", *core.request(
+            "POST", "/api/v1/courses/openmaic/outlines/generate-interactive",
+            {"create_request_id": f"probe-int-outline-{args.run_id}",
+             "requirement": "Synthetic interactive requirement",
+             "source_text": "SYNTHETIC interactive source material", "model": None}), 200)
+        interactive_outline_id = interactive_outline["document"]["document_id"]
+        receipt["interactive_outline"] = {
+            "document_id": interactive_outline_id,
+            "generation_route": interactive_outline.get("generation_route"),
+            "model_call": interactive_outline.get("model_call"),
+            "outline_count": interactive_outline.get("outline_count"),
+            "types": [item.get("type") for item in interactive_outline.get("outlines", [])],
+        }
+        if interactive_outline.get("generation_route") != "local_model_interactive_outline":
+            raise RuntimeError(f"interactive outline route mismatch: {interactive_outline}")
+        if [item.get("type") for item in interactive_outline.get("outlines", [])] != ["interactive"]:
+            raise RuntimeError(f"interactive outline admission mismatch: {interactive_outline}")
+
+        interactive_body = {
+            "create_request_id": f"probe-interactive-{args.run_id}",
+            "outline_document_id": interactive_outline_id, "outline_index": 0,
+            "source": source, "model": None}
+        interactive = interactive_scene_receipt(expect("interactive scene", *core.request(
+            "POST", "/api/v1/courses/openmaic/scenes/generate", interactive_body), 200))
+        if interactive["scene_route"] != "interactive":
+            raise RuntimeError(f"interactive route mismatch: {interactive}")
+        if interactive["widget_type"] != "diagram" or interactive["scene_widget_type"] != "diagram":
+            raise RuntimeError(f"interactive widget was not carried through: {interactive}")
+        if interactive["html_execution"] != "NOT_PERFORMED":
+            raise RuntimeError(f"interactive chain claims HTML execution: {interactive}")
+        if interactive["rendering_authorized"] is not False:
+            raise RuntimeError(f"interactive chain claims rendering authorization: {interactive}")
+        if interactive["render_playable"] is not False:
+            raise RuntimeError(f"interactive render contract claims playable: {interactive}")
+        if interactive["normalize_status"] != "OBSERVED_CANDIDATE":
+            raise RuntimeError(f"interactive normalize did not run: {interactive}")
+        receipt["interactive"] = interactive
+        receipt["steps"].append({"step": "interactive_scene", **interactive})
         receipt["model_call_count"] = stub.calls
 
         core.stop()
@@ -301,6 +376,25 @@ def main() -> int:
                 raise RuntimeError(f"{label} replay returned a different candidate")
             replay[label] = {"worker_invoked": False,
                              "document_id": response["document"]["document_id"]}
+        outline_replay = expect("interactive outline replay", *core.request(
+            "POST", "/api/v1/courses/openmaic/outlines/generate-interactive",
+            {"create_request_id": f"probe-int-outline-{args.run_id}",
+             "requirement": "Synthetic interactive requirement",
+             "source_text": "SYNTHETIC interactive source material", "model": None}), 200)
+        if outline_replay.get("worker_invoked") is not False:
+            raise RuntimeError(f"interactive outline replay reran work: {outline_replay}")
+        if outline_replay["document"]["document_id"] != interactive_outline_id:
+            raise RuntimeError("interactive outline replay returned a different candidate")
+        replay["interactive_outline"] = {
+            "worker_invoked": False, "document_id": outline_replay["document"]["document_id"]}
+        scene_replay = expect("interactive replay", *core.request(
+            "POST", "/api/v1/courses/openmaic/scenes/generate", interactive_body), 200)
+        if scene_replay.get("worker_invoked") is not False:
+            raise RuntimeError(f"interactive replay reran work: {scene_replay}")
+        if scene_replay["document"]["document_id"] != interactive["document_id"]:
+            raise RuntimeError("interactive replay returned a different candidate")
+        replay["interactive"] = {
+            "worker_invoked": False, "document_id": scene_replay["document"]["document_id"]}
         receipt["restart_replay"] = replay
         receipt["model_call_after_restart"] = stub.calls
         receipt["ok"] = True

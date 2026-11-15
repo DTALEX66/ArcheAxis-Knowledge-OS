@@ -25,7 +25,9 @@ Reused rather than duplicated: generated-file drift is already covered by
 
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 import re
 import stat
@@ -478,6 +480,47 @@ def check_owner_dialogue_archive() -> list[str]:
     return []
 
 
+def _check_compatibility_scope(matrix: dict, platforms: list[dict]) -> int:
+    """Reconcile selected source identities, independently of platform acceptance."""
+    scope = matrix["source_scope"]
+    original = _project_path(scope["path"]).read_bytes()
+    # Pin the Owner-selected original bytes, not just a mutable declared checksum.
+    frozen = "c33fa9c6c34bf22a2171bd07df751754c7851c0c57977d6fe93076a82a7ce213"
+    if scope["sha256"] != frozen or hashlib.sha256(original).hexdigest() != frozen:
+        raise ValueError("compatibility scope source hash mismatch")
+    rows = csv.DictReader(io.StringIO(original.decode("utf-8-sig")))
+    if scope["identity_column"] != "平台" or "平台" not in (rows.fieldnames or []):
+        raise ValueError("compatibility scope identity column changed")
+    identities = [row["平台"] for row in rows]
+    mappings = matrix["source_identity_mapping"]
+    mapped = [entry["source_identity"] for entry in mappings]
+    if (not all(identities) or len(set(identities)) != len(identities)
+            or len(mapped) != len(identities) or set(mapped) != set(identities)):
+        raise ValueError("compatibility scope identity omitted or duplicated")
+    by_source = {entry["source_identity"]: entry for entry in mappings}
+    # These are separate selected identities, not aliases for one tested route.
+    profiles = {"JSON Canvas": ("json_canvas", "canvas_format"),
+                "Logseq文件版": ("logseq", "file_graph"),
+                "LogseqDB版": ("logseq_db", "db_graph")}
+    for label, (key, profile) in profiles.items():
+        if (by_source[label]["platform_key"], by_source[label].get("profile")) != (key, profile):
+            raise ValueError("compatibility scope profile identity changed or collapsed")
+    targets = [entry["platform_key"] for entry in mappings]
+    if len(set(targets)) != len(targets):
+        raise ValueError("compatibility scope target duplicated")
+    by_key = {platform["platform_key"]: platform for platform in platforms}
+    if any(key not in by_key for key in targets):
+        raise ValueError("compatibility scope platform omitted")
+    for entry in mappings:
+        if "profile" in entry and by_key[entry["platform_key"]].get("current_profile") != entry["profile"]:
+            raise ValueError("compatibility scope platform profile changed or collapsed")
+    if by_key["logseq"].get("scope_partition") != {"file_graph": "logseq", "db_graph": "logseq_db"}:
+        raise ValueError("compatibility Logseq inherited scope partition lost")
+    if by_key["json_canvas"].get("donor_reference", {}).get("stable_key") != "jsoncanvas":
+        raise ValueError("compatibility Canvas platform and donor identities conflated")
+    return len(identities)
+
+
 def check_knowledge_compatibility() -> list[str]:
     """Keep the inherited inventory and prevent documentation/fixtures becoming parity.
 
@@ -504,6 +547,7 @@ def check_knowledge_compatibility() -> list[str]:
                 or not {p["platform_key"] for p in inherited}.issubset({p["platform_key"] for p in platforms})):
             raise ValueError("compatibility platform omitted or duplicated")
         lookup = {p["platform_key"]: p for p in inherited}
+        selected_identities = _check_compatibility_scope(matrix, platforms)
         directions = {"import", "export", "external_aaos_external", "aaos_external_aaos", "incremental_sync"}
         if set(matrix["directions"]) != directions:
             raise ValueError("compatibility direction omitted")
@@ -566,9 +610,10 @@ def check_knowledge_compatibility() -> list[str]:
                 raise ValueError("local compatibility observation hash mismatch")
             else:
                 verified += 1
-        print(f"compatibility inventory: {len(platforms)} inherited platforms retained; "
+        print(f"compatibility inventory: {len(inherited)} inherited platforms retained; "
+              f"{selected_identities} selected source identities mapped; "
               f"local authored receipts verified {verified}, unavailable/UNVERIFIED {unavailable}; no external parity inferred")
-    except (OSError, ValueError, KeyError, TypeError) as error:
+    except (OSError, ValueError, KeyError, TypeError, csv.Error) as error:
         return [f"knowledge compatibility: {error}"]
     return []
 

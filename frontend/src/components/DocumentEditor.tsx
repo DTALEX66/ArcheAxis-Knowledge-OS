@@ -65,6 +65,10 @@ const BlockIdentity = Extension.create({
       current.doc.descendants((node, position) => {
         if (!blockTypes.includes(node.type.name)) return;
         const id = node.attrs.block_id;
+        // A block that still owns its own identity keeps it, unless that identity
+        // belongs to an unknown preserved node. Rewriting a body must not renumber
+        // every block, because references, revision checks and canvas mapping are
+        // keyed by these IDs.
         if (typeof id === "string" && id && owners.get(id) === position && !preserved.has(id)) return;
         let replacement: string;
         do { replacement = crypto.randomUUID(); } while (occupied.has(replacement));
