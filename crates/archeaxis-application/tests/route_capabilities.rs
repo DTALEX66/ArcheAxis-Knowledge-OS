@@ -233,7 +233,16 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
         attempts::accepted_media_types("pdf.extract"),
         ["application/pdf"]
     );
-    assert_eq!(attempts::accepted_media_types("text.extract").len(), 18);
+    assert_eq!(attempts::accepted_media_types("text.extract").len(), 19);
+    assert_eq!(
+        attempts::resolve_media_type("text", "note.SY").unwrap(),
+        "application/x-siyuan"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("text", "note.json").unwrap(),
+        "application/json"
+    );
+    assert!(attempts::resolve_media_type("office", "note.SY").is_err());
     // R15/F13: the ODF families and RTF are named only because a reader exists for them here
     for (name, media) in [
         ("notes.odt", "application/vnd.oasis.opendocument.text"),

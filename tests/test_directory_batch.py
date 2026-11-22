@@ -241,6 +241,51 @@ def test_a_third_run_still_skips(tmp_path):
     assert decidable["notes.md"]["status"] == "enqueued", "the decision must read the last real attempt"
 
 
+@pytest.mark.parametrize("verify_first", [True, False])
+def test_existing_siyuan_original_is_resumed_once_after_route_is_added(tmp_path, monkeypatch, verify_first):
+    root = tmp_path / "folder"
+    root.mkdir()
+    source = root / "原件.SY"
+    source.write_text("native fixture", encoding="utf-8")
+    (root / "readme.md").write_text("# Existing job", encoding="utf-8")
+    (root / "unknown.xyz").write_text("custody only", encoding="utf-8")
+    manifest = tmp_path / "old.jsonl"
+    with monkeypatch.context() as older:
+        older.delitem(batch.KIND_BY_EXTENSION, "sy")
+        before = batch.run_batch(root, core_call=FakeCore(), manifest_path=manifest)
+    old = next(row for row in before["entries"] if row["path"] == source.name)
+    assert old["status"] == "imported_no_job" and old["kind"] is None
+    expected_job = f"batch-{old['sha256'][:12]}"
+    source_route = "/api/v1/sources/" + old["source_id"]
+    requests = []
+
+    def run(verified):
+        def call(method, route, body):
+            requests.append((method, route, body))
+            if (method, route) == ("GET", source_route):
+                return 200, {"source_id": old["source_id"], "sha256": old["sha256"] if verified else "0" * 64,
+                             "original_name": source.name}
+            assert (method, route, body) == ("POST", "/api/v1/jobs",
+                                            {"job_id": expected_job, "input_ref": old["source_id"], "kind": "text"})
+            return 202, {"job_id": expected_job}
+        return batch.run_batch(root, core_call=call, manifest_path=manifest)
+
+    if not verify_first:
+        refused = run(False)
+        assert refused["counts"]["refused"] == 1
+        assert "could not be confirmed" in next(row["detail"] for row in refused["entries"] if row["status"] == "refused")
+        assert requests == [("GET", source_route, None)]
+        requests.clear()
+    accepted = run(True)
+    assert accepted["counts"]["enqueued"] == 1 and accepted["counts"]["skipped_unchanged"] == 2
+    entry = next(row for row in accepted["entries"] if row["status"] == "enqueued")
+    assert entry["source_id"] == old["source_id"] and entry["job_id"] == expected_job
+    assert [method for method, _, _ in requests] == ["GET", "POST"]
+    requests.clear()
+    assert run(True)["counts"]["skipped_unchanged"] == 3
+    assert not requests
+
+
 def test_changed_content_is_processed_again(tmp_path):
     root = _folder(tmp_path)
     manifest = tmp_path / "manifest.jsonl"
@@ -367,6 +412,14 @@ def test_every_mapped_kind_is_a_route_kind():
     kinds = set(re.findall(r'\(\s*"([a-z]+)"\s*,', routes))
     assert kinds, "could not parse the route kinds out of the Core"
     assert set(batch.KIND_BY_EXTENSION.values()) <= kinds, set(batch.KIND_BY_EXTENSION.values()) - kinds
+
+
+def test_siyuan_source_maps_to_the_same_text_route_as_the_core():
+    source = ATTEMPTS_RS.read_text(encoding="utf-8")
+    assert batch.KIND_BY_EXTENSION["sy"] == "text"
+    assert '"sy" => "application/x-siyuan"' in source
+    routes = source[source.index("pub const ROUTE_MEDIA_TYPES"):source.index('    ("pdf.extract",')]
+    assert '"text.extract"' in routes and '"application/x-siyuan"' in routes
 
 
 def test_legacy_office_mapping_uses_existing_core_media_and_office_route():

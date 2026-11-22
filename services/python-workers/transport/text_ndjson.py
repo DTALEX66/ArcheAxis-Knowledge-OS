@@ -235,6 +235,7 @@ ROUTES = {
             "text/csv",
             "text/tab-separated-values",
             "application/json",
+            "application/x-siyuan",
             "application/xml",
             "text/xml",
             "application/x-ndjson",

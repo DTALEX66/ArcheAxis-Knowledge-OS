@@ -13,6 +13,7 @@ import zipfile
 from datetime import date, datetime, time
 from email.parser import BytesParser
 from html.parser import HTMLParser
+from urllib.parse import unquote
 from xml.etree import ElementTree as ET
 
 MAX_BYTES = 16 * 1024 * 1024
@@ -557,11 +558,240 @@ def python_source(raw):
         "not interpreted, and anchors stay line based"]
 
 
+def _siyuan_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate SiYuan JSON field")
+        result[key] = value
+    return result
+
+
+def _reject_siyuan_constant(_value):
+    raise ValueError("non-finite SiYuan JSON value")
+
+
+class _SiYuanMediaSources(HTMLParser):
+    def __init__(self, tag):
+        super().__init__()
+        self.tag = tag
+        self.depth = 0
+        self.sources = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == self.tag:
+            self.depth += 1
+        elif tag != "source" or not self.depth:
+            return
+        self.sources.extend(value for name, value in attrs if name == "src" and value is not None)
+
+    def handle_endtag(self, tag):
+        if tag == self.tag and self.depth:
+            self.depth -= 1
+
+
+def siyuan(raw):
+    """Project one Spec 2 or 3 document without resolving assets."""
+    try:
+        root = json.loads(raw.decode("utf-8-sig"), object_pairs_hook=_siyuan_object,
+                          parse_constant=_reject_siyuan_constant)
+    except RecursionError as error:
+        raise ValueError("SiYuan JSON depth exceeds the reader budget") from error
+    if not isinstance(root, dict) or root.get("Type") != "NodeDocument" or root.get("Spec") not in ("2", "3"):
+        raise ValueError("expected a SiYuan Spec 2 or 3 NodeDocument")
+    spec = root["Spec"]
+    properties = root.get("Properties")
+    if not isinstance(properties, dict) or not isinstance(properties.get("title"), str):
+        raise ValueError("SiYuan document title is missing")
+
+    id_pattern = re.compile(r"[0-9]{14}-[a-z0-9]{7}")
+    kind_pattern = re.compile(r"Node[A-Za-z0-9]{1,63}")
+    block_kinds = {
+        "NodeDocument", "NodeParagraph", "NodeHeading", "NodeThematicBreak", "NodeHTMLBlock",
+        "NodeCodeBlock", "NodeMathBlock", "NodeTable", "NodeBlockQueryEmbed", "NodeAttributeView",
+        "NodeIFrame", "NodeVideo", "NodeAudio", "NodeWidget", "NodeCustomBlock",
+        "NodeList", "NodeListItem", "NodeBlockquote", "NodeCallout", "NodeSuperBlock", "NodeTabs", "NodeTabItem",
+    }
+    inline_kinds = {
+        "NodeText", "NodeTextMark", "NodeImage", "NodeKramdownSpanIAL", "NodeSoftBreak", "NodeBr",
+        "NodeBackslash", "NodeBackslashContent", "NodeHeadingC8hMarker", "NodeBlockquoteMarker",
+        "NodeTaskListItemMarker", "NodeBang", "NodeOpenBracket", "NodeCloseBracket", "NodeOpenParen",
+        "NodeCloseParen", "NodeLinkText", "NodeLinkDest", "NodeLinkSpace", "NodeLinkTitle",
+        "NodeCodeBlockCode", "NodeCodeBlockFenceOpenMarker", "NodeCodeBlockFenceInfoMarker",
+        "NodeCodeBlockFenceCloseMarker", "NodeMathBlockContent", "NodeMathBlockOpenMarker",
+        "NodeMathBlockCloseMarker", "NodeSuperBlockOpenMarker", "NodeSuperBlockLayoutMarker",
+        "NodeSuperBlockCloseMarker", "NodeOpenBrace", "NodeCloseBrace", "NodeBlockQueryEmbedScript",
+        "NodeTableHead", "NodeTableRow", "NodeTableCell",
+    }
+    blocks = {}
+    parts = {}
+    references = []
+    attachments = []
+    memos = []
+    omitted_types = set()
+    omitted_subtrees = 0
+    ignored_mark_fields = 0
+    total_nodes = 0
+    text_fields = {"NodeText": "Data", "NodeTextMark": "TextMarkTextContent",
+                   "NodeLinkText": "Data", "NodeCodeBlockCode": "Data", "NodeMathBlockContent": "Data",
+                   "NodeBackslashContent": "Data", "NodeTabItem": "TabItemTitle", "NodeCallout": "CalloutTitle"}
+    link_fields = {"NodeTextMark": "TextMarkAHref", "NodeLinkDest": "Data"}
+    media_tags = {"NodeAudio": "audio", "NodeVideo": "video"}
+    table_children = {
+        "NodeTable": ({"NodeTableHead", "NodeTableRow"}, "\n"),
+        "NodeTableHead": ({"NodeTableRow"}, "\n"),
+        "NodeTableRow": ({"NodeTableCell"}, "\t"),
+    }
+    mark_fields = {"block-ref": "TextMarkBlockRefID", "a": "TextMarkAHref",
+                   "inline-math": "TextMarkInlineMathContent", "inline-memo": "TextMarkInlineMemoContent"}
+
+    def record_attachment(owner, href):
+        if not isinstance(href, str) or not href.startswith("assets/"):
+            return
+        decoded = unquote(href)
+        unsafe = ("\\" in decoded or ":" in decoded or any(ord(c) < 32 for c in decoded)
+                  or any(part in {"", ".", ".."} for part in decoded.split("/")))
+        attachments.append({"source_block_id": owner, "relative_path": href,
+                            "resolution": "invalid_path" if unsafe else "unbound"})
+
+    def visit(node, owner, parent_kind, depth):
+        nonlocal total_nodes, omitted_subtrees, ignored_mark_fields
+        total_nodes += 1
+        if depth > MAX_DEPTH or total_nodes > 10000:
+            raise ValueError("SiYuan node/depth budget exceeded")
+        if not isinstance(node, dict) or not isinstance(node.get("Type"), str):
+            raise ValueError("invalid SiYuan node")
+        kind = node["Type"]
+        if not kind_pattern.fullmatch(kind) or (kind == "NodeDocument" and depth != 0):
+            raise ValueError("invalid SiYuan node type")
+        children = node.get("Children", [])
+        if not isinstance(children, list):
+            raise ValueError("invalid SiYuan children")
+        if kind in {"NodeTabs", "NodeTabItem"} and spec != "3":
+            raise ValueError("SiYuan tabs require Spec 3")
+        if (parent_kind == "NodeTabs") != (kind == "NodeTabItem") or (kind in {"NodeTabs", "NodeTabItem"} and not children):
+            raise ValueError("invalid SiYuan tabs hierarchy")
+        if kind not in block_kinds and kind not in inline_kinds:
+            if len(omitted_types) < 32:
+                omitted_types.add(kind)
+            omitted_subtrees += 1
+            return
+        if kind in block_kinds:
+            node_id = node.get("ID")
+            if not isinstance(node_id, str) or not id_pattern.fullmatch(node_id) or node_id in blocks:
+                raise ValueError("invalid or duplicate SiYuan block ID")
+            if len(blocks) >= MAX_LOCATIONS:
+                raise ValueError("SiYuan block budget exceeded")
+            props = node.get("Properties", {})
+            if not isinstance(props, dict) or props.get("id", node_id) != node_id:
+                raise ValueError("SiYuan block property ID differs from its node ID")
+            block = {"id": node_id, "parent_id": owner, "node_type": kind}
+            if kind == "NodeHeading":
+                level = node.get("HeadingLevel")
+                if type(level) is not int or not 1 <= level <= 6:
+                    raise ValueError("invalid SiYuan heading level")
+                block["heading_level"] = level
+            blocks[node_id] = block
+            parts[node_id] = []
+            owner = node_id
+
+        marks = ()
+        if kind == "NodeTextMark":
+            mark = node.get("TextMarkType", "")
+            if not isinstance(mark, str):
+                raise ValueError("invalid SiYuan text mark")
+            marks = mark.split()
+            ignored_mark_fields += sum(field in node and name not in marks for name, field in mark_fields.items())
+
+        if kind in text_fields:
+            field = mark_fields["inline-math"] if "inline-math" in marks else text_fields[kind]
+            value = node.get(field, "")
+            if not isinstance(value, str):
+                raise ValueError("invalid SiYuan text node")
+            parts[owner].append(value)
+        elif kind in {"NodeSoftBreak", "NodeBr"}:
+            parts[owner].append("\n")
+
+        if "block-ref" in marks:
+            target = node.get(mark_fields["block-ref"])
+            if not isinstance(target, str) or not id_pattern.fullmatch(target):
+                raise ValueError("invalid SiYuan block reference")
+            references.append({"source_block_id": owner, "target_block_id": target})
+        if "inline-memo" in marks:
+            memo = node.get(mark_fields["inline-memo"])
+            if not isinstance(memo, str):
+                raise ValueError("invalid SiYuan inline memo")
+            memos.append({"source_block_id": owner, "content": memo})
+        href = node.get(link_fields[kind]) if kind == "NodeLinkDest" or "a" in marks else None
+        record_attachment(owner, href)
+        if kind in media_tags:
+            markup = node.get("Data", "")
+            if not isinstance(markup, str):
+                raise ValueError("invalid SiYuan media markup")
+            parser = _SiYuanMediaSources(media_tags[kind])
+            parser.feed(markup)
+            parser.close()
+            for href in parser.sources:
+                record_attachment(owner, href)
+
+        if kind == "NodeTableCell" and parent_kind != "NodeTableRow":
+            raise ValueError("invalid SiYuan table cell parent")
+        cell_start = len(parts[owner]) if kind == "NodeTableCell" else None
+        table_rule = table_children.get(kind)
+        for index, child in enumerate(children):
+            if table_rule is not None:
+                allowed, separator = table_rule
+                child_kind = child.get("Type") if isinstance(child, dict) else None
+                if not isinstance(child_kind, str) or child_kind not in allowed:
+                    raise ValueError("invalid SiYuan table hierarchy")
+                if index:
+                    parts[owner].append(separator)
+            visit(child, owner, kind, depth + 1)
+        if cell_start is not None:
+            cell = "".join(parts[owner][cell_start:])
+            escaped = cell.replace("\\", "\\\\").replace("\t", r"\t").replace("\r", r"\r").replace("\n", r"\n")
+            parts[owner][cell_start:] = [escaped]
+
+    visit(root, None, None, 0)
+    root_id = root["ID"]
+    parts[root_id].insert(0, properties["title"])
+    document = []
+    offset = 0
+    for block_id, block in blocks.items():
+        content = "".join(parts[block_id])
+        if not content.strip() and (block["node_type"] != "NodeTable" or not content):
+            continue
+        block.update(char_start=offset, char_end=offset + len(content))
+        document.append(content)
+        offset += len(content) + 1
+    for ref in references:
+        ref["resolution"] = "present_in_document" if ref["target_block_id"] in blocks else "unbound"
+    losses = [
+        "Read-only projection of one SiYuan document; rich formatting, visual layout and dynamic content are not rendered",
+        "Block references are recorded without creating links; targets outside this file are unbound",
+        "Only local assets/ paths are recorded, without opening or importing assets",
+    ]
+    if any(block["node_type"] == "NodeTabs" for block in blocks.values()):
+        losses.append("Tab titles and bodies are linearized in source order; tab selection and task settings are not applied")
+    if any(block["node_type"] == "NodeTable" for block in blocks.values()):
+        losses.append("Tables use tab-separated cells and newline-separated rows; embedded tabs, breaks and backslashes are escaped")
+    if omitted_subtrees:
+        losses.append(f"Omitted {omitted_subtrees} SiYuan subtrees with unsupported types from the projection; original bytes retain them")
+    if ignored_mark_fields:
+        losses.append(f"Omitted {ignored_mark_fields} fields without the corresponding declared SiYuan text mark; original bytes retain them")
+    return "\n".join(document), {
+        "format": "siyuan", "parsed": True, "spec": spec, "document_id": root_id,
+        "blocks": list(blocks.values()), "block_references": references, "attachment_paths": attachments,
+        "inline_memos": memos, "ignored_text_mark_field_count": ignored_mark_fields,
+        "omitted_subtrees": omitted_subtrees, "omitted_type_examples": sorted(omitted_types),
+    }, losses
+
+
 def parse(raw, media):
     if media not in {"application/epub+zip", "message/rfc822", "text/csv",
                      "text/tab-separated-values", "application/x-ndjson", "application/yaml",
                      "text/x-yaml", "application/toml", "application/json", "application/xml", "text/xml",
-                     "text/x-python", *ODF_MEDIA, "application/rtf"}:
+                     "text/x-python", *ODF_MEDIA, "application/rtf", "application/x-siyuan"}:
         return None
     if len(raw) > MAX_BYTES:
         raise ValueError("light format input exceeds byte budget")
@@ -575,6 +805,8 @@ def parse(raw, media):
         return rtf(raw)
     if media == "text/x-python":
         return python_source(raw)
+    if media == "application/x-siyuan":
+        return siyuan(raw)
     text = raw.decode("utf-8-sig", "strict")
     if media in ("text/csv", "text/tab-separated-values"):
         rows = list(csv.reader(io.StringIO(text), delimiter="\t" if media.endswith("values") else ","))

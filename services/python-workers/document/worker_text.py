@@ -679,6 +679,9 @@ def extract(path: str, media_type: str = "text/plain", member_dir: str | None = 
                  "application/vnd.oasis.opendocument.presentation"}:
         structured_raw = raw
         text, decode_note = "", {"encoding": "MIME/container charset", "loss_note": ""}
+    elif media == "application/x-siyuan":
+        structured_raw = raw
+        text, decode_note = "", {"encoding": "UTF-8", "loss_note": ""}
     else:
         declared_charset = _declared_plain_charset(media_type)
         text, decode_note = (_decode_declared_plain(raw, declared_charset) if declared_charset is not None
@@ -706,6 +709,7 @@ def extract(path: str, media_type: str = "text/plain", member_dir: str | None = 
         text, native_facts, native_losses = parsed
     else:
         if media in {"application/epub+zip", "message/rfc822", "application/rtf", "text/x-python",
+                     "application/x-siyuan",
                  "application/vnd.oasis.opendocument.text",
                  "application/vnd.oasis.opendocument.spreadsheet",
                  "application/vnd.oasis.opendocument.presentation"}:
