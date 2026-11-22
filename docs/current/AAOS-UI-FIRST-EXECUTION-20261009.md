@@ -4913,3 +4913,19 @@ Owner 选择将源码安装最低版本从 Python 3.11.0 提至 3.11.5。这个�
 用 0.1.00 对应清单中的解释器和原网页核验脚本，加上独立目录中的修复成员实测。Windows 目标共需 21 个发行包，已有 `lxml` 和 `typing-extensions`，补入另外 19 个。两份固定 HTML 分别模拟搜索响应和文章响应。实际核验脚本选出一条链接、抽取正文，并生成搜索和文章两条回执。该轮使用本地响应样本，云端模型调用为 0。成员共 3,044 项、41,789,109 字节。实测回执 `web-doc-parse/artifacts/document-web.json` 的 SHA-256 为 `4bae67fec4514a93b1362f0763d44f8443fe3288eb644da8c31b24e7c029e1e9`。下载草稿中原安装包的内容以其原始清单为准。
 
 原安装包在提交正文给模型时还缺 LiteLLM。把网页读取和 SDK 合并核对后，锁定依赖合计 65 个，原包具备 20 个，另外 45 个包含 8,052 项、112,850,254 字节。原包解释器和原核验脚本从独立目录加载这些成员，依次读取两个网页样本、通过真实 LiteLLM/OpenAI SDK 生成请求，并解析模拟服务返回的模型名、结束原因和用量。模拟传输收到一次含预期正文的请求，核验返回 `succeeded`。外部网络及付费模型调用为 0。回执 `doc-sdk-donor/artifacts/document-check.json` 的 SHA-256 为 `61c45e1f05a8a8983872172c67be981e2414081821b51e988ad7a1c34cf22d72`。
+
+<a id="backend-web-rebuild"></a>
+
+### 2026-11-22 网页核验后端重建与旧包恢复
+
+Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件，共 1,230,754,120 逻辑字节。`doc-check-full-stage/artifacts/old-backend-expanded-recovery-options.json` 中的 `option_requiring_extra_independent_unpacked_source_on_every_member` 逐项登记了原路径、ZIP 成员、另一份本机文件、长度和 SHA-256。清单 SHA-256 为 `832a61a2b1dfea3d47d5e2f058ee859dbaa347c69a982e0333f14db885135bed`。清理后这 161 个路径均已缺席，保留 ZIP、原安装器、原清单和 161 个本机恢复文件均通过哈希复核。使用旧展开后端前需按清单恢复成员。清理回执 `old-backend-dual-apply2-20261122/artifacts/retirement.json` 的 SHA-256 为 `1e5640417c1ae71779ad0ae9c57994aa9f9011423f595f5bae59058deccc35d4`。
+
+22:32 的容量后测记录了 93,236,182,422 个可读字节，较上一检查点增加 633,619,535 字节。计量仍有原来的 674 个读取错误和 43 个布局条目，报告状态为 `PARTIAL`，进程退出 1，增长判断为 `NO_NEW_GROWTH_TRIGGER`。实际磁盘释放量未经测量。正式报告见活动指针的操作员存储检查点。
+
+<a id="installed-study-review"></a>
+
+### 2026-11-22 原安装包中的纠错与跨版本再练习
+
+断网 Windows Sandbox 全新安装 `0.1.00` 后，已安装 Core 在独立的合成学习库中接收 16 次业务请求。资料 v6 的首次作答记录为 `1975`、自评 `again`；纠错笔记指向这次作答及对应的资料版本。随包 OpenMAIC 工作进程生成 v7 的练习，新的作答记录为 `1957`、自评 `good`。冷重开后两次作答与各自的版本一致，纠错笔记可读回和导出。重复提交同一事件保留一条记录，篡改同一事件返回 HTTP 409。两次 Core 会话均正常退出。源学习库及 11 个原件的哈希复核一致。
+
+两次作答由脚本提交，模型调用为 0，真人独立掌握尚待验证。首轮探针把场景生成接口的成功码写成 201，原始回执保留于 `n100g6`。按该接口的 200 成功码复核后通过，见 `n100g7/artifacts/output/study-review.json`（SHA-256 `24750b3c3ff3474ac7811f9681d40a504dafa5c13fd1be4b02f7e4984d28f5bb`）和 `n100g7/artifacts/guest-run.json`。

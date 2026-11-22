@@ -150,6 +150,8 @@
       "standalone_backend_candidate_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122",
       "source_install_python_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115",
       "packaged_document_web_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#packaged-document-web-readers",
+      "backend_web_rebuild_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild",
+      "installed_study_review_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review",
       "local_installer_selection_20261122": {
         "owner_version_label": "0.1.00",
         "desktop_semver": "0.1.0",
@@ -1308,18 +1310,18 @@
       "cleanup": "Explicit project cleanup authorization; exact reviewed path manifest, ownership, regenerability or retained hash-identical replacement, idleness, protected inputs and postcondition required. No blanket deletion or cross-project cleanup.",
       "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
       "previous_checkpoint": {
-        "path": ".project-local/runs/be268a2d33/backend-full-after-retirement-20261122/artifacts/portable-storage-pre.json",
-        "bytes": 480305,
-        "sha256": "a3e949b6dd378862b780890ea56ed43a76a36236100a5c63c857b0b5909c7ddc"
+        "path": ".project-local/runs/be268a2d33/native-media-post-governance-20261122/artifacts/storage.json",
+        "bytes": 490055,
+        "sha256": "01790bec9e5c9aab3e774febce4699b6bb4bce49ebcd5373807a9263e7f65ca3"
       },
       "operator_storage_checkpoint": {
         "schema": "aaos.operator-storage-checkpoint/v1",
-        "path": ".project-local/runs/be268a2d33/native-media-post-governance-20261122/artifacts/storage.json",
-        "bytes": 490055,
-        "sha256": "01790bec9e5c9aab3e774febce4699b6bb4bce49ebcd5373807a9263e7f65ca3",
+        "path": ".project-local/runs/be268a2d33/old-backend-dual-post-governance-20261122/artifacts/storage.json",
+        "bytes": 490052,
+        "sha256": "4c592f70a06a60c080775dfb0a4c7806f0634a124733f96c33ca9adb570a7ad2",
         "report_schema": "aaos.storage-footprint/v2",
-        "recorded_by": "After the separately approved 35-file media-library retirement finished at 09:53:26 +08:00, the operator recorded its post-governance inventory before building the newly selected desktop version. The previous checkpoint and the failed installer projection remain available.",
-        "measurement_scope": "92602562887 readable bytes, PARTIAL with 674 measurement errors and 43 out-of-layout entries. Relative to the preceding checkpoint the readable total grew by 1357537017 bytes, including the completed standalone backend. The 35 files removed represented 130918912 logical bytes. Twelve distinct retained files were verified after removal."
+        "recorded_by": "Measured at 22:32:25 +08:00 after the Owner-approved retirement of 161 named files from the old expanded backend. The original ZIP and an independent unpacked copy of every affected member were verified after removal. See the backend-web-rebuild execution record.",
+        "measurement_scope": "93236182422 readable bytes across 1099025 files, PARTIAL with 674 measurement errors and 43 out-of-layout entries. Relative to the preceding checkpoint the readable total grew by 633619535 bytes. The retired files represented 1230754120 logical bytes. Physical disk reclamation was not measured."
       },
       "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",

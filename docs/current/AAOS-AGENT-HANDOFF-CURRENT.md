@@ -2,6 +2,8 @@
 
 源码安装现要求 Python 3.11.5 及以上，依据见[Owner 决定与依赖修复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。接续 Windows 包内网页核验见[随包解释器和两份固定网页的验证](AAOS-UI-FIRST-EXECUTION-20261009.md#packaged-document-web-readers)。
 
+重建新版独立后端时沿[已执行的 161 项清理与恢复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取用容量基线。安装态学习验收已补入[纠错、再练习和重开实测](AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。
+
 2026-11-22 Owner 已选择本地安装候选的版本名。十月清单的第一项版本选择按[后继决定和构建记录](AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)接续，安装与资料保全沿[隔离 Windows 实测](AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return)继续。
 
 **2026-11-12后继入口：** Owner已要求“完成我的闭环定义目标”。[统一归档与审计实施来源](../../workspace/intake/20261112-local-audit/README.md) → 活动指针`execution_control.owner_local_audit_execution_20261112` → 唯一执行记录同日末段。V3全部必备项为目标，前后端与必要验收继续；下方旧暂停和后端优先只说明历史时点。局部实现、同候选验证、真实质量及Owner接受仍分层，原归档不改写。
