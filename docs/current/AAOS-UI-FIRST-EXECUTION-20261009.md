@@ -4951,3 +4951,15 @@ Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件
 功能源码提交 `f1854cc801f46211f9e8209f7e68ec49e5f01dfa` 的 GitHub CI 结论为成功。Python 3.12 主测试 8,659 项通过，598 项跳过，另有 612 项子测试通过；知识库测试 38 项通过，集成测试 47 项通过。此后 `0b014775` 的提交差异为容量治理和安装态学习记录。[该提交的云端作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45032546848)
 
 上述新 ZIP、安装器及 `AAOS-0.1.00-verification-0b014775.zip` 均已放入 GitHub 草稿。验收附件包含摘要、下载文件校验值、归档工具和已安装版本升降的公开回执；SHA-256 为 `b968d260fa87e4d8d2ee5d0711bb43cc312c349ce9502c5fbd3d6cac50845b80`。原六份附件均保留，三份新附件均已由独立的 GitHub 资产接口回读摘要。[对应 PR](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/315)
+
+<a id="siyuan-native-read"></a>
+
+### 2026-11-22 J1 / J3 / X6 · 思源原生块文档
+
+在 `0b014775` 安装候选所用后端上，思源官方中文指南的 `.sy` 原件可入库并重开取回，转换作业执行时返回 HTTP 409、`AAK-CON-003`。缺口在 Core 的文件类型选择与 `text.extract` 受理表。官方 Markdown API 示例可读回正文及通用行位置。两种输入的实测见 `x6-siyuan-official-guide-20261122/artifacts/siyuan-guided-import.json`。
+
+提交 `e863ae114dee1e6fe8e85bcf24673f2a89bea583` 在原读取入口接入单个明文 Spec 2/3 文档，保留正文、原块 ID 与父子关系、块引用、行内批注和本地附件路径。表格保留行列边界，标签页按源顺序展开。无法读取的子树和未绑定的引用列入损失回执。共享前端转换入口和目录批处理均识别 `.sy`。见[后端合同 §38](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#38-reading-a-siyuan-block-document)及[上游格式规范](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)。
+
+从该提交离线编译的 Core（SHA-256 `96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1`）配同提交 worker 和上次安装包的解释器，处理了固定上游提交中的两份正式样本。《请从这里开始》含 189 个块和 73 个引用，《内容块类型》含 132 个块、12 个引用和 20 条附件路径。两份文档都经正式接口完成转换、保存，两个 Core 会话正常退出。冷重开后原文件名、MIME、原件字节、文档正文及块和引用记录均符合。附件路径只定位。写回思源、同步、更高 Spec 和安装介质实际运行仍待后续验证。
+
+旧驱动先将 Spec 2 原件存为 `imported_no_job`。新版显式续做只验证原 source 并补入队 `batch-1a7a89017c1a`，既有原件 ID 保留，再续做发出 0 次请求。业务回执 `x6-siyuan-core-reopen-20261122/artifacts/siyuan-core-reopen-business.json` 的 SHA-256 为 `e6144b26e216376c711fa77218be1572abb3157a4d90d5e634520a7c8734fc8a`。包含网页核验修复的已发安装器仍使用 `0b014775`。

@@ -104,6 +104,7 @@ _COMPATIBILITY_MATRIX = "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json"
 _HTTP_CONTRACT = "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md"
 # Reviewed upstream revisions and the surfaces that cite them as source material.
 _UPSTREAM_PINS = (
+    ("siyuan-note/siyuan", "e6794a0c44976269591c2e1633c29dc44ca379e4", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE, _HTTP_CONTRACT}),
     ("obsidianmd/jsoncanvas", "456f843cb293df4f4ab1763e22ccb46a80b307c8", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE}),
     ("kepano/kepano-obsidian", "473697347a0eaac790a6596229c741b3915f3b77", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE}),
     ("AppFlowy-IO/AppFlowy-Collab", "be5aa89b4aeafd4e7159e92b86784c02caaa85ce", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE}),

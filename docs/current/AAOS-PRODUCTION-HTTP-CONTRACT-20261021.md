@@ -1257,3 +1257,11 @@ git archive --format=zip --output=snapshot.zip COMMIT -- README.md docs
 The saved document binds the original ZIP source revision to the declared commit, each separately retained repository-relative path and its Core source digest. The optional `--commit` compares the supplied full object name with the comment before the operation. A caller seeking repository provenance can compare the returned bytes with `git show COMMIT:path` in the source repository. Omit `--member` to export the original ZIP. Existing destination files are preserved. Archive extraction limits still apply to individually accessible files. Editing a Git working tree, writing commits and synchronization have separate qualification.
 
 The focused check runs with `python -m pytest tests/test_git_snapshot_exchange.py -q`.
+
+## 38. Reading a SiYuan block document
+
+Import a UTF-8 `.sy` file through the ordinary source or folder entry and choose the reading conversion. The existing `text` job resolves the file as `application/x-siyuan`. Its `text` output contains the readable projection. The `loss_report` output exposes source block IDs, parent IDs, text spans, block references, local attachment paths and inline memos in `params.format`.
+
+The reader handles Spec 2 and Spec 3 documents. It presents tab content in source order and marks references outside the file as unbound. Local asset paths are locators. Unimplemented node types are reported among the omitted subtrees. The source original can be returned unchanged through `GET /api/v1/sources/{id}/original`. Native notebook archives, encrypted documents, other spec versions, visual layouts, sync and writing back to SiYuan have separate requirements. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)
+
+When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
