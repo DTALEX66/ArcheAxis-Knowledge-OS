@@ -227,7 +227,12 @@ fn handshake(
     }
     drop(child);
     let _ = reader.join();
-    dir.close()
-        .map_err(|e| format!("worker health staging cleanup unverified: {e}"))?;
+    if let Err(error) = dir.close() {
+        let cleanup = format!("worker health staging cleanup unverified: {error}");
+        return Err(match result {
+            Ok(_) => cleanup,
+            Err(reason) => format!("{reason}; {cleanup}"),
+        });
+    }
     result
 }
