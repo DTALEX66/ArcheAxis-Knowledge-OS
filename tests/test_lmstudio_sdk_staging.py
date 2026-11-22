@@ -12,8 +12,8 @@ from tests.test_backend_in_place import prepared  # noqa: F401 - shared fixture
 from tests.test_openmaic_runtime_staging import synthetic_provider
 
 
-def test_sdk_candidate(prepared, tmp_path, monkeypatch):
-    case = prepared
+def test_sdk_candidate(request, tmp_path, monkeypatch):
+    case = request.getfixturevalue("prepared")
     _, node, license_file, node_sha, _ = synthetic_provider(case)
     resources = stager.runtime_resources
     donor = tmp_path / "sdk"

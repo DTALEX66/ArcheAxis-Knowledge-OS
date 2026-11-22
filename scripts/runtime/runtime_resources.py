@@ -10,6 +10,7 @@ import os
 import re
 import stat
 import sys
+from contextlib import suppress
 from pathlib import Path, PurePosixPath
 
 if __package__:
@@ -76,10 +77,8 @@ def regular(path: Path, *, cargo_host: bool = False) -> Path:
     cargo_pair = False
     if cargo_host and info.st_nlink == 2 and path.parent.name == "release":
         alias = checked(path.parent / "deps" / path.name)
-        try:
+        with suppress(FileNotFoundError):
             cargo_pair = os.path.samestat(info, os.lstat(native(alias)))
-        except FileNotFoundError:
-            pass
     if not stat.S_ISREG(info.st_mode) or (info.st_nlink != 1 and not cargo_pair):
         raise ValueError(f"Expected an independent regular file: {path}")
     return path

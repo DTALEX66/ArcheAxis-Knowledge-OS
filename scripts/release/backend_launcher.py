@@ -594,7 +594,7 @@ def start(
     if machine_profile is not None:
         if machine_profile_root is not None:
             supplement = safe_path(Path.cwd(), str(machine_profile_root))
-        elif ROOT != root and (ROOT / FAST_LOCAL_PROFILE_MANIFEST).exists():
+        elif root != ROOT and (ROOT / FAST_LOCAL_PROFILE_MANIFEST).exists():
             # Only a launcher shipped in a supplement can implicitly select that
             # supplement. Neither the workspace nor the environment is searched.
             supplement = safe_path(Path.cwd(), str(ROOT))

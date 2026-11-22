@@ -1203,11 +1203,11 @@ def lmstudio_sdk_plan(donor: Path) -> dict:
     config = Path(__file__).resolve().parents[2] / "config/model-profiles/lm-studio-sdk"
     lock = json.loads((config / "package-lock.json").read_bytes())["packages"]
     files = {}
-    for package, metadata in lock.items():
+    for package, locked in lock.items():
         if not package:
             continue
         info = json.loads(filesystem_path(donor / package / "package.json").read_bytes())
-        if info["name"] != package.removeprefix("node_modules/") or info["version"] != metadata["version"]:
+        if info["name"] != package.removeprefix("node_modules/") or info["version"] != locked["version"]:
             raise ValueError(f"LM Studio SDK dependency version mismatch: {package}")
     for path in filesystem_path(modules).rglob("*"):
         if not path.is_file():
@@ -1783,9 +1783,10 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
         files[relative] = {"bytes": filesystem_path(path).stat().st_size, "sha256": sha256(path)}
-    if detector_plan is not None:
-        if detector_source_rows() != detector_plan or any(files.get(name) != row for name, row in detector_plan.items()):
-            raise ValueError("detector inputs or staged manifest inventory changed")
+    if detector_plan is not None and (
+        detector_source_rows() != detector_plan or any(files.get(name) != row for name, row in detector_plan.items())
+    ):
+        raise ValueError("detector inputs or staged manifest inventory changed")
     if practice_plan is not None:
         routes_payload = practice_plan["routes_payload"]
         routes_identity = {"bytes": len(routes_payload), "sha256": hashlib.sha256(routes_payload).hexdigest()}
