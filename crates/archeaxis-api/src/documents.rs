@@ -59,6 +59,85 @@ pub(crate) async fn package_import(
     .await
 }
 
+/// Only the original search receipt can supply a public hit URL. The selected
+/// source's registered origin also binds the hit to its raw API response.
+fn research_hit(
+    conn: &rusqlite::Connection,
+    source_id: &str,
+    sha256: &str,
+) -> rusqlite::Result<Option<(String, Option<String>)>> {
+    let name: Option<String> = conn
+        .query_row(
+            "SELECT original_name FROM sources WHERE source_id=?1 AND sha256=?2",
+            [source_id, sha256],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let request = name
+        .as_deref()
+        .and_then(|name| name.strip_prefix("public-research-"))
+        .and_then(|name| name.strip_suffix(".txt"))
+        .and_then(|name| name.rsplit_once('-'));
+    let Some((request_id, _)) = request else {
+        return Ok(None);
+    };
+    conn.query_row(
+        "SELECT hit.value ->> '$.url', hit.value ->> '$.locator'
+         FROM public_research_runs AS run,
+              json_each(run.receipt_json, '$.channels') AS channel,
+              json_each(channel.value, '$.hits') AS hit
+         WHERE run.request_id=?1 AND run.state IN ('complete','partial')
+           AND EXISTS (SELECT 1 FROM source_origins AS origin
+               WHERE origin.source_id=?2 AND origin.origin_kind='import'
+                 AND origin.origin_ref='public-research:' || (channel.value ->> '$.raw_source.source_id')
+                     || ':' || (channel.value ->> '$.raw_source.sha256')
+                     || ':' || (channel.value ->> '$.family') || ':' || (hit.value ->> '$.id'))",
+        [request_id, source_id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    ).optional()
+}
+
+fn research_records(
+    conn: &rusqlite::Connection,
+    materials: &[Value],
+    markdown: &mut String,
+) -> rusqlite::Result<()> {
+    for material in materials {
+        let reference = &material["reference"];
+        let mut record = json!({"material_id":material["id"],"reference":reference});
+        if let (Some(id), Some(hash)) = (
+            reference["source_id"].as_str(),
+            reference["sha256"].as_str(),
+        ) {
+            if let Some(citation) = material.get("citation").filter(|c| !c.is_null()) {
+                record["citation"] = citation.clone();
+                if let Some(anchor) = citation["anchor_id"].as_str()
+                    && let Some((source, revision, position)) =
+                        archeaxis_domain::anchor::get_anchor(conn, anchor)?
+                    && source == id
+                    && revision == hash
+                {
+                    record["position"] = serde_json::from_str(&position).unwrap_or(Value::Null);
+                }
+            }
+            if let Some((url, locator)) = research_hit(conn, id, hash)? {
+                record["upstream_locator"] = json!(locator);
+                // CommonMark autolinks must stay within one pair of angle brackets.
+                if url.starts_with("https://")
+                    && !url.chars().any(|c| {
+                        c.is_whitespace() || c.is_control() || matches!(c, '<' | '>' | '\\')
+                    })
+                {
+                    markdown.push_str(&format!("\n<{}>\n", url));
+                    record["upstream_url"] = json!(url);
+                }
+            }
+        }
+        markdown.push_str(&format!("\n    {record}\n"));
+    }
+    Ok(())
+}
+
 pub(crate) async fn export(
     State(state): State<AppState>,
     Path(id): Path<String>,
@@ -90,10 +169,18 @@ pub(crate) async fn export(
             || projection.trim_start_matches('\u{feff}').starts_with("---\r\n");
         let mut markdown=if query.format=="obsidian" && !has_frontmatter {format!("---\narcheaxis_document: {}\narcheaxis_version: {}\narcheaxis_source_revision: {}\n---\n\n",serde_json::to_string(&id).unwrap(),snapshot["version"],snapshot["source_revision"])} else {String::new()};
         markdown.push_str(projection);
-        let source_record=json!({"source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"]});
+        let materials = snapshot["editor_json"]["attrs"]["archeaxis_research"]["materials"]
+            .as_array().filter(|items| query.format == "markdown" && !items.is_empty());
+        let source_record=if materials.is_some() && snapshot["source_id"].is_null() {
+            json!({"document_id":id,"version":snapshot["version"],"content_sha256":snapshot["content_sha256"]})
+        } else { json!({"source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"]}) };
         markdown.push_str(&format!("\n\n## Source identity\n\n    {}\n\n## Evidence records\n",serde_json::to_string(&source_record).unwrap()));
         for anchor in &anchors { markdown.push_str(&format!("\n    {}\n",serde_json::to_string(anchor).unwrap())); }
         let mut loss=json!([{"code":"markdown_projection","message":"Markdown contains a text projection; structured and unknown nodes are preserved in manifest.json"},{"code":"external_navigation_unavailable","message":"Source identity, revision and anchor positions are preserved as metadata; no external navigation handler is registered, so these records do not provide clickable navigation to original sources"}]);
+        if let Some(materials) = materials {
+            if let Err(error) = research_records(conn, materials, &mut markdown) { return failure(error.into()); }
+            loss[1] = json!({"code":"research_navigation_limits","message":"Registered public links open upstream resources. Source hashes, captured quotes and local anchors identify the saved evidence; local anchors are not public URLs."});
+        }
         loss.as_array_mut().unwrap().push(json!({"code":"metadata_projection_limits","message":"Original leading Markdown frontmatter remains first. Rich-text code/links and unsupported nodes may lose tag context in the text projection; exact editor JSON and derived metadata remain in manifest.json. This is not an external application roundtrip qualification.","status":snapshot["metadata_status"],"issues":snapshot["metadata_issues"]}));
         let expression = snapshot["editor_json"]["attrs"].get("archeaxis_expression");
         if expression.is_some() {

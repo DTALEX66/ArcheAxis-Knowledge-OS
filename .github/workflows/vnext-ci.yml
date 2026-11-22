@@ -18,6 +18,7 @@ on:
           - siyuan-block-attachment
           - siyuan-guide-reader
           - windows-release-core
+          - windows-research-export
           - frontend-dist
 
 concurrency:
@@ -192,7 +193,7 @@ jobs:
           }
 
   windows-release-core:
-    if: ${{ inputs.suite == 'windows-release-core' }}
+    if: ${{ inputs.suite == 'windows-release-core' || inputs.suite == 'windows-research-export' }}
     runs-on: windows-2022
     timeout-minutes: 35
     permissions:
@@ -210,6 +211,15 @@ jobs:
         run: |
           cargo build --locked --release -p archeaxis-api --bin archeaxis-api
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check research source links on the release build
+        if: ${{ inputs.suite == 'windows-research-export' }}
+        shell: pwsh
+        run: |
+          $result = @(cargo test --locked --release -p archeaxis-api --test research_state_api research_markdown_exports_registered_hit_and_pinned_materials -- --exact)
+          $code = $LASTEXITCODE
+          $result | Write-Output
+          if ($code -ne 0) { exit $code }
+          if (!($result -match 'test result: ok\. 1 passed;')) { throw 'The selected research export regression did not run.' }
       - name: Record the exact source and executable digests
         shell: pwsh
         run: |
