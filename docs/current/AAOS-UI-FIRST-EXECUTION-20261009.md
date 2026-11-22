@@ -5035,3 +5035,10 @@ Windows 草稿附件 `AAOS-0.1.00-Local-Structured-Answers-Windows.zip` 共 1,64
 定向集成用例使用真实文本 worker、新建 SQLite 工作区和合成思源文档。该用例沿正式批次导入和转换路径，关闭后重开数据库，再从所选原块读取 PNG 原件。目前下载的 `0b014775` 安装器仍使用原 Core。
 
 Windows 实际运行的源码提交为 `010ad48fdf401110b8a2a2f54e87cb14a4f16774`。唯一选中的 `native_siyuan_block_resolves_only_its_imported_batch_asset_after_reopen` 通过，日志为 1 passed、0 failed、0 ignored。同一原块能用中文空格文件名及其编码形式找到相同 PNG，原件字节和 SHA 均符合预期。尚未导入、缺失、路径冲突的目标有各自状态。SQLite 重开后仍能读取原图。用例采用合成资料，桌面点击和思源原生写回须分别验收。本地摘要 `siyuan-block-exact-source/artifacts/windows-block-assets.json` 的 SHA-256 为 `3d88bc49799ff53b5016f11cc8ca11c886a3ad9daa7c470f9c5285f509fb601a`。 [Windows 定向作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45050837063/job/137295373632)
+
+<a id="bundled-default-machine"></a>
+### 2026-11-23 · 整包默认本地模型入口
+
+正式打包程序在选入锁定的 LM Studio SDK 2.0.0 和 Node 时，为桌面与独立后端生成一致的 `machine.answer` 路由。对指定的本机 `aaos-fast-4b` 结构化请求，普通启动使用 SDK 的逐请求思考预算。其他模型、端点、普通文本，以及操作者显式选择 worker 的行为见[后端合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
+
+5 项定向 worker 测试通过，覆盖自动与显式模式以及普通 HTTP 请求分流。4 项打包测试通过，涵盖整包单独选择 SDK、同时选择 DeepTutor、旧声明及原有补充包。两组均使用测试输入，回执的源码指纹一致，子进程退出码均为 0。回执分别为 `default-sdk-worker-contract-1123-v3/artifacts/execution.json`（SHA-256 `ce9091bc0b0da2aa822ba49cdb6969c3b9e57adab47c3e25bd738b5a8313c9e5`）和 `bundled-sdk-stage-v1/artifacts/execution.json`（`ba47b42d76869881d6800d8d7d06eedc2d4e8fd3e22df8d09dc2cb201f094999`）。之前公开登记的两次模型结果分别留在原验收记录里。

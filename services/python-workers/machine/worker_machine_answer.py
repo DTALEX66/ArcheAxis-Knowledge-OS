@@ -504,17 +504,19 @@ def read_response_format(path, context_path):
 
 
 def _structured_sdk(endpoint, model, prompt, timeout_s, max_tokens, response_format):
-    """Use a packaged profile or the existing explicit staged worker."""
+    """Use SDK prediction only on the registered local lane with its selected model."""
     config = Path(__file__).with_name("lmstudio-structured-runtime.json")
     packaged = globals().get("PACKAGED_FAST_LOCAL", False)
+    if endpoint["base"].rstrip("/") != OPENAI_BASE:
+        if packaged is True and model == "aaos-fast-4b":
+            raise ValueError("fast-local requires the local LM Studio endpoint")
+        return None
     if packaged:
         if model != "aaos-fast-4b":
             return None
-        if endpoint["base"].rstrip("/") != OPENAI_BASE:
-            raise ValueError("fast-local requires the local LM Studio endpoint")
         node = Path(sys.executable).resolve().parent.parent / "workers/openmaic/node.exe"
     else:
-        if endpoint["base"].rstrip("/") != OPENAI_BASE or not config.is_file():
+        if not config.is_file():
             return None
         runtime = json.loads(config.read_text(encoding="utf-8"))
         if runtime.get("schema") != "archeaxis.lmstudio-structured-runtime/v1":
