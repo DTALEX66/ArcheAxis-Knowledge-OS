@@ -5033,3 +5033,5 @@ Windows 草稿附件 `AAOS-0.1.00-Local-Structured-Answers-Windows.zip` 共 1,64
 源码在既有批次上提供按原生块 ID 查找附件的只读入口。调用者从完成的转换中选中块，读回同批已入库目标的 Source ID、修订摘要和原件读取地址。缺失、未导入或歧义的附件保留各自状态。回执中的定位取自原始思源文档。批次选中文件的清单和 SQLite/CAS 由 Core 原有写入流程保存。[后端接口与返回字段](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#38-reading-a-siyuan-block-document)
 
 定向集成用例使用真实文本 worker、新建 SQLite 工作区和合成思源文档。该用例沿正式批次导入和转换路径，关闭后重开数据库，再从所选原块读取 PNG 原件。目前下载的 `0b014775` 安装器仍使用原 Core。
+
+Windows 实际运行的源码提交为 `010ad48fdf401110b8a2a2f54e87cb14a4f16774`。唯一选中的 `native_siyuan_block_resolves_only_its_imported_batch_asset_after_reopen` 通过，日志为 1 passed、0 failed、0 ignored。同一原块能用中文空格文件名及其编码形式找到相同 PNG，原件字节和 SHA 均符合预期。尚未导入、缺失、路径冲突的目标有各自状态。SQLite 重开后仍能读取原图。用例采用合成资料，桌面点击和思源原生写回须分别验收。本地摘要 `siyuan-block-exact-source/artifacts/windows-block-assets.json` 的 SHA-256 为 `3d88bc49799ff53b5016f11cc8ca11c886a3ad9daa7c470f9c5285f509fb601a`。 [Windows 定向作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45050837063/job/137295373632)
