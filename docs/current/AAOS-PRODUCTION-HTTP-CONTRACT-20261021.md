@@ -1265,3 +1265,20 @@ Import a UTF-8 `.sy` file through the ordinary source or folder entry and choose
 The reader handles Spec 2 and Spec 3 documents. It presents tab content in source order and marks references outside the file as unbound. Local asset paths are locators. Unimplemented node types are reported among the omitted subtrees. The source original can be returned unchanged through `GET /api/v1/sources/{id}/original`. Native notebook archives, encrypted documents, other spec versions, visual layouts, sync and writing back to SiYuan have separate requirements. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)
 
 When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
+
+## 39. Windows image OCR providers
+
+The released 0.1.00 package runs the `image.ocr` job with its bundled Python 3.13.14. To use Tesseract on a Windows computer, install or unpack Tesseract 5.5.0.20241111 and place the English and simplified Chinese traineddata files in one directory. The tested releases and SHA-256 values for the installer and both language files are in the [project OCR lock](../../scripts/ci/windows_ocr.lock.json). [Tesseract Windows release](https://github.com/tesseract-ocr/tesseract/releases/tag/5.5.0) · [tessdata_fast 4.1.0](https://github.com/tesseract-ocr/tessdata_fast/tree/4.1.0)
+
+From the standalone backend directory, the following PowerShell example selects OCR for the current session. Set the two paths to your installation. The desktop executable can also be started from the same shell.
+
+```powershell
+$env:TESSERACT_CMD = 'C:\OCR\tesseract.exe'
+$env:TESSDATA_PREFIX = 'C:\OCR\tessdata'
+$env:ARCHEAXIS_OCR_TESSDATA = $env:TESSDATA_PREFIX
+$env:ARCHEAXIS_OCR_LANG = 'chi_sim+eng'
+$env:ARCHEAXIS_OCR_ENGINE = 'tesseract'
+.\start-backend.cmd
+```
+
+The subsequent source worker also supports the registered local RapidOCR provider. Choose `rapidocr` in `ARCHEAXIS_OCR_ENGINE` to use it directly. With `auto`, Tesseract is tried first. If the worker interpreter lacks the RapidOCR package, the worker invokes the declared compatible Python in isolation and sends the image through standard input. It loads the three existing model files selected in the capability registry. The job's loss receipt includes the actual engine, runtime, Python version and input digest. When the registered runtime or a model is missing, the job reports the unavailable resource. The 0.1.00 download has the earlier worker. [RapidOCR 1.4.4 distribution and Python support](https://pypi.org/project/rapidocr-onnxruntime/1.4.4/)

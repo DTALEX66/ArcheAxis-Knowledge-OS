@@ -1,5 +1,7 @@
 # AAOS 当前接续导航：人类＋AI＋双侧连接
 
+安装版补装 Tesseract 和后续源码调用登记的 RapidOCR 均已实测。按[OCR 操作合同 §39](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#39-windows-image-ocr-providers)配置，沿[两次业务实测](AAOS-UI-FIRST-EXECUTION-20261009.md#windows-ocr-providers)核对运行环境。
+
 当前 Windows 安装器和独立后端使用提交 `0b014775` 的后端。下载摘要、随包网页核验、同版本保资料换装及真实窗口回读见[当前候选实测](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。源码安装的 Python 最低版本和依据见[Owner 决定与依赖修复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。
 
 重建新版独立后端时沿[已执行的 161 项清理与恢复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取用容量基线。安装态学习验收已补入[纠错、再练习和重开实测](AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。

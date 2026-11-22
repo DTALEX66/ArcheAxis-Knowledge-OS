@@ -1,5 +1,7 @@
 # AAOS 当前状态与执行入口
 
+扫描图片可在当前安装版配置本地 Tesseract，后续源码另支持登记的 RapidOCR 解释器。中英文扫描件的识别、保存及重开结果见[OCR 安装与读取记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#windows-ocr-providers)。
+
 修复版 Windows 安装器使用 Owner 指定的版本名 `0.1.00`。安装器和独立后端 ZIP 的文件名、SHA-256、包内网页核验、同版本换装和原生窗口回读见[当前候选与下载核对](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。从源码安装仍要求 [Python 3.11.5 及以上](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。
 
 本地桌面候选使用 Owner 指定的版本名 `0.1.00`。安装器及独立后端对既有资料的验证见[构建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)，Windows 两版实装、回退时保留资料的步骤及原生窗口验收见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return)。

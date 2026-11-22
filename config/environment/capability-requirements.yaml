@@ -565,7 +565,7 @@ capabilities:
     - name: rapidocr
       resource_id: ext.engines.rapidocr
       type: engine
-      purpose: "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）；Python 3.12 安装包随包携带，Tesseract 缺失时 worker_ocr 自动回退（中英）"
+      purpose: "用本地 ONNX 模型识别简体中文和英语。worker 优先使用自身解释器安装的 RapidOCR，缺少该包时可调用登记的兼容解释器。"
       version_range: ">=1.4"
       version_identification: "ci-venv 的 python 用 importlib.metadata.version('rapidocr-onnxruntime') 读取（该包不提供 __version__）"
       platform: windows-x64
@@ -640,14 +640,14 @@ capabilities:
     - name: rapidocr-ppocr-onnx
       resource_id: ext.models.rapidocr-ppocr-onnx
       type: model
-      purpose: "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）"
+      purpose: "RapidOCR 1.4.4 wheel 提供的检测、识别和方向分类模型。登记的引擎直接读取本地三枚权重。"
       version_range: "latest"
       version_identification: "三枚 .onnx 文件存在性（det/rec/cls 齐全才算这一条可用）"
       platform: windows-x64
       license: "Apache-2.0 (RapidOCR code licence; the weights are the same upstream project's published ONNX models)"
       asset_license: "PP-OCR ONNX weights redistributed by RapidOCR under Apache-2.0; no separate model-card terms recorded on this host"
       source_url: "https://github.com/RapidAI/RapidOCR"
-      install_method: 自动下载
+      install_method: uv
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx", "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx", "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx"]
       project_entry: "tool_paths.tool_path(\"rapidocr-ppocr-onnx\")"
       writability: shared_writable_by_project

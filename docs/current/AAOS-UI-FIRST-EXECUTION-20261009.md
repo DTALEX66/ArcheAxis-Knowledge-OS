@@ -4963,3 +4963,19 @@ Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件
 从该提交离线编译的 Core（SHA-256 `96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1`）配同提交 worker 和上次安装包的解释器，处理了固定上游提交中的两份正式样本。《请从这里开始》含 189 个块和 73 个引用，《内容块类型》含 132 个块、12 个引用和 20 条附件路径。两份文档都经正式接口完成转换、保存，两个 Core 会话正常退出。冷重开后原文件名、MIME、原件字节、文档正文及块和引用记录均符合。附件路径只定位。写回思源、同步、更高 Spec 和安装介质实际运行仍待后续验证。
 
 旧驱动先将 Spec 2 原件存为 `imported_no_job`。新版显式续做只验证原 source 并补入队 `batch-1a7a89017c1a`，既有原件 ID 保留，再续做发出 0 次请求。业务回执 `x6-siyuan-core-reopen-20261122/artifacts/siyuan-core-reopen-business.json` 的 SHA-256 为 `e6144b26e216376c711fa77218be1572abb3157a4d90d5e634520a7c8734fc8a`。包含网页核验修复的已发安装器仍使用 `0b014775`。
+
+<a id="windows-ocr-providers"></a>
+
+### 2026-11-22 X1 · 已安装 Windows 的中英扫描件和登记的 RapidOCR
+
+修复版 `0.1.00` 的后端清单 `d3fb02ef` 使用 Python 3.13.14，包内没有 Tesseract 可执行文件、训练数据或 RapidOCR。该包在本机通过了外部 Tesseract 的就绪探测。RapidOCR 1.4.4 要求 Python 低于 3.13，原 worker 只在自身解释器查找该包。登记的外部 Python 3.12.13、引擎及三枚 ONNX 模型均存在，模型字节与发行包的 RECORD 匹配。详见 `x1-shipped-ocr-and-external/artifacts/ocr-release-and-external.json`（SHA-256 `823cbfd484bdc8d7916b365315f2162b8744c4a63038a2c3b9e4b2033cf748eb`）。[上游版本元数据](https://pypi.org/project/rapidocr-onnxruntime/1.4.4/)
+
+全新断网 Windows Sandbox 实装修复版后，单独配置了锁定的 Tesseract 5.5.0.20241111 和 `chi_sim+eng` 语言文件。59 个外部文件均与项目锁的 SHA-256 一致。库中只执行一个 `image.ocr` 作业，从原有的 16,352 字节中英测试图读出两行正文 `OCR PAGE ONE 6371` 和「扫描中文页一」。保存并冷重开后，原图字节、三项作业产物、转换和文档 v1 均可读回，两个 Core 会话正常退出 0。此验证只覆盖已配置的引擎与该样本。见 `tess-supplement-installed-20261122/artifacts/optional-tesseract-installed-public.json`（SHA-256 `abf4fe8e72944c4f653f350cf87649e120b78950f9348dc6d1ed2d897166cdcf`）。[给现有安装配置 OCR](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#39-windows-image-ocr-providers)
+
+后续源码 worker 在当前解释器找不到 RapidOCR 主包时，通过登记的兼容解释器读取本地模型。识别实测使用已交付 Core、随包 Python 3.13.14 和声明文件，仅将 OCR worker 换成 SHA-256 为 `0689ffdf485843708ee5f42653f44d4f6ad79d20784e2e3af7f676288ad59495` 的源码版本。旧合成库的同一原件新增并派发一个 `image.ocr` 作业，由已登记的 Python 3.12.13 与 RapidOCR 1.4.4 从标准输入接收 11,754 字节并读出 `LUMEN LIBRARY 2026`。冷重开后保有新旧三个作业、三份已保存文档和原图。旧作业重派 0 次，原件重新导入 0 次。原库、原件和已发包的 16,909 个成员前后校验一致。两次 Core 均正常退出。首次验证脚本在 Windows 长路径预检阶段结束，修正遍历后完成唯一的新作业。公开回执为 `x1-rcr2/artifacts/registered-rapidocr-core.json`（SHA-256 `53a36022c18708bb7d7cfa7f11c657e70c7464dd0df893fdcba9191b1b97272e`）。该 worker 的 7 项定向回归通过，带该改动的 Windows 安装器尚待构建。
+
+安装器对应的 [PR #315 末次 CI](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45037604358) 对提交 `baf5964b950f0b8eb9d20669897f55db6b15313d` 报告 13 个作业成功、7 个按条件跳过。后续源码提交 `03f1f221` 的 [Windows 诊断](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45038916834) 通过了 DeepTutor、OpenMAIC 的两项合成旅程，在 Rust 工作进程的健康检查断言处失败。云端原日志未打印当时的具体错误文本。本地在 Windows 锁住临时目录的一个文件，重现了清理失败会覆盖工作进程返回的实际错误。修复保留两条原因，能力不匹配和启动静默各有独立断言。后继 Windows 诊断的提交与结果沿[源码 PR #316](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/316)核对。
+
+补用最终 worker（SHA-256 `24df847989803fef0baf7e50bfd344efc70397697e4d3c832ae095920427cfc2`）检验了同一张中英测试图的自动回退。该验证进程只声明登记的 RapidOCR 资源，无法启动 Tesseract。正式 `image.ocr` 作业在 `auto` 模式首次尝试完成，回执记录 Tesseract 缺席，实际运行 RapidOCR 1.4.4。模型读出相同的两行中英文，保有两个行位置及三份产物各自的摘要。见 `x1-auto-mixed-final/artifacts/auto-mixed-core.json`（SHA-256 `1a7f6499e143b4281413c1eb4dac9a2e244c4d451754fd6b5134d7131ffc8619`）。已发安装器可配合的 `AAOS-0.1.00-Windows-Tesseract-Offline-Launcher.zip` 含双击启动器、中文使用说明和安装态回执，5,195 字节，SHA-256 为 `7b465581068f41d86be0bc8927c99bf5023d5ad1776d7b05fedf94562f479bc8`。GitHub 草稿已追加该附件，编号 `779590365`，共十份。引擎和两份字库从说明所列的上游版本另行取得。
+
+修复后的 Rust 握手代码与现有协议库在本机 Windows 运行了四种组合。能力匹配与不匹配分别在目录可清理、文件被占用时返回对应状态和诊断。源码实测见 `vnext-win-health-source-slice-20261122/artifacts/capability-health-narrow-rustc.json`（SHA-256 `2cb09bd2798768f3ceafb549188a3dd133bdceb5332baa0fada23ca372e916ab`）。本机完整 Cargo 重编在容量复核前停止。

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
+import io
+import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -197,3 +200,81 @@ def test_rapidocr_preserves_the_engine_sequence_and_reports_it(
     assert order["columns"] is None, "preserving engine order does not measure columns"
     for region in out["loss_receipt"]["params"]["regions"]:
         assert out["text"][region["char_start"]:region["char_end"]] == region["text"]
+
+
+def test_missing_local_rapidocr_sends_image_bytes_to_registered_python(isolated, monkeypatch, tmp_path):
+    sample = tmp_path / "sample.png"
+    sample.write_bytes(b"exact synthetic input")
+    python = tmp_path / "registered python.exe"
+    python.touch()
+
+    def missing(_):
+        raise isolated._RapidOCRMissingError("rapidocr-onnxruntime not installed")
+
+    def run(command, *, input, capture_output, timeout):
+        assert command == [str(python), "-I", "-B", str(WORKER), "--registered-rapidocr", "recognize"]
+        assert input == sample.read_bytes() and capture_output and timeout > 0
+        reply = {"words": [], "text": "", "version": "1.4.4", "runtime": "archeaxis-ci-venv", "python_version": "3.12.13"}
+        return subprocess.CompletedProcess(command, 0, json.dumps(reply).encode(), b"")
+
+    monkeypatch.setattr(isolated, "_rapidocr_words", missing)
+    monkeypatch.setattr(isolated, "_declared_path", lambda name: str(python) if name == "archeaxis-ci-venv" else None)
+    monkeypatch.setattr(isolated, "_run", run)
+    params = isolated.extract(sample, "eng", engine="rapidocr")["loss_receipt"]["params"]
+    assert (params["runtime"], params["input_transport"]) == ("archeaxis-ci-venv", "stdin")
+    monkeypatch.setattr(isolated, "_declared_path", lambda _: None)
+    with pytest.raises(RuntimeError, match="registered archeaxis-ci-venv unavailable"):
+        isolated.extract(sample, "eng", engine="rapidocr")
+
+
+def test_local_dependency_failure_does_not_select_external_rapidocr(isolated, monkeypatch, tmp_path):
+    from builtins import __import__ as original_import
+
+    def broken(name, *args, **kwargs):
+        if name == "rapidocr_onnxruntime":
+            raise ModuleNotFoundError("missing cv2", name="cv2")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr("builtins.__import__", broken)
+    monkeypatch.setattr(isolated, "_external_rapidocr", lambda _: pytest.fail("local dependency failure was masked"))
+    sample = tmp_path / "sample.png"
+    sample.write_bytes(b"fixture")
+    with pytest.raises(ModuleNotFoundError, match="cv2"):
+        isolated.extract(sample, "eng", engine="rapidocr")
+
+
+def test_registered_probe_advertises_only_supported_languages(isolated, monkeypatch):
+    def missing():
+        raise isolated._RapidOCRMissingError("missing")
+
+    def external(image):
+        assert image is None
+        return {"runtime": "archeaxis-ci-venv", "version": "1.4.4", "models": sorted(isolated._REGISTERED_MODELS)}
+
+    monkeypatch.setattr(isolated, "_rapidocr_engine", missing)
+    monkeypatch.setattr(isolated, "_external_rapidocr", external)
+    for lang, supported in [("eng", True), ("deu", False)]:
+        result = isolated.probe(lang)
+        assert result["fallback"]["runtime"] == "archeaxis-ci-venv"
+        assert result["fallback"]["supports_requested_language"] is supported
+        assert result["capability_any"] is supported
+
+
+def test_registered_child_refuses_incomplete_models_and_oversize_stdin(isolated, monkeypatch, tmp_path, capsys):
+    paths = [tmp_path / name for name in list(isolated._REGISTERED_MODELS)[:2]]
+    for path in paths:
+        path.touch()
+    registry = SimpleNamespace(declared_path=lambda _: str(tmp_path), _manifest_path=lambda: None,
+                               _candidates=lambda *args: paths)
+    monkeypatch.setattr(isolated, "_tool_registry", lambda: registry)
+    streams = SimpleNamespace(version_info=(3, 11, 5), stdin=SimpleNamespace(buffer=io.BytesIO(b"12345")))
+    monkeypatch.setattr(isolated, "sys", streams)
+    monkeypatch.setattr(isolated, "MAX_IMAGE_BYTES", 4)
+    assert isolated._registered_rapidocr_stdio("recognize") == 1
+    assert "exceeds" in json.loads(capsys.readouterr().out)["error"]
+    assert isolated._registered_rapidocr_stdio("probe") == 1
+    message = json.loads(capsys.readouterr().out)["error"]
+    assert "det, rec and cls models" in message and str(tmp_path) not in message
+    streams.version_info = (3, 13, 0)
+    assert isolated._registered_rapidocr_stdio("probe") == 1
+    assert "requires Python" in json.loads(capsys.readouterr().out)["error"]
