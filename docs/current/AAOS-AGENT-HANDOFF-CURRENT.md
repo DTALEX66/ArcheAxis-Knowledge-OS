@@ -1,5 +1,7 @@
 # AAOS 当前接续导航：人类＋AI＋双侧连接
 
+独立后端使用本地模型时，可沿[配套补充包与 Office 跨库验收](AAOS-UI-FIRST-EXECUTION-20261009.md#portable-fast-local-office)核对下载字节、真实模型评分和已恢复的位置。操作方法见[结构化回答合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
+
 安装版补装 Tesseract 和后续源码调用登记的 RapidOCR 均已实测。按[OCR 操作合同 §39](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#39-windows-image-ocr-providers)配置，沿[图片识别实测](AAOS-UI-FIRST-EXECUTION-20261009.md#windows-ocr-providers)与[双页扫描 PDF 的还原回读](AAOS-UI-FIRST-EXECUTION-20261009.md#scanned-pdf-independent-restore)核对运行环境。
 
 当前 Windows 安装器和独立后端使用提交 `0b014775` 的后端。下载摘要、随包网页核验、同版本保资料换装及真实窗口回读见[当前候选实测](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。点回原始题录、对照修订知识的固定版本，见[已交付后端资料实测](AAOS-UI-FIRST-EXECUTION-20261009.md#repaired-backend-source-readback)。源码安装的 Python 最低版本和依据见[Owner 决定与依赖修复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。

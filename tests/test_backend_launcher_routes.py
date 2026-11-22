@@ -13,6 +13,7 @@ absolute paths. A profile without routes must keep working byte for byte.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -113,6 +114,144 @@ def test_session_worker_uses_selected_backend_and_preserves_other_routes(tmp_pat
     assert worker["routes"] == [{"capability": "machine.answer", "script": str(selected)},
                                 {"capability": "research.public", "script": str(kit / script)}]
     assert profile.read_bytes() == original
+
+
+def build_fast_local_runtime(root: Path):
+    machine = "workers/machine/worker_machine_answer.py"
+    document = base_document()
+    document["routes"] = [{"capability": name, "script": machine}
+                          for name in ("machine.answer", "research.public")]
+    profile = build_profile(root, document)
+    files = {}
+    for name in (
+        machine, launcher.FAST_LOCAL_WORKER, "workers/machine/lmstudio_structured.mjs",
+        "workers/transport/text_ndjson.py", "runtime/python.exe",
+        launcher.FAST_LOCAL_NODE, "workers/openmaic/NODE-LICENSE",
+        f"{launcher.FAST_LOCAL_SDK}/package.json", f"{launcher.FAST_LOCAL_SDK}/dist/index.mjs",
+    ):
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        content = name.encode("utf-8")
+        path.write_bytes(content)
+        files[name] = {"bytes": len(content), "sha256": hashlib.sha256(content).hexdigest()}
+    (root / "backend-runtime-manifest.json").write_text(json.dumps({
+        "schema": "archeaxis.backend-runtime/v1", "files": files,
+        "lmstudio_sdk": {"status": "included", "version": "2.0.0",
+                         "sdk_root": launcher.FAST_LOCAL_SDK, "node": launcher.FAST_LOCAL_NODE},
+    }), encoding="utf-8")
+    return profile, machine
+
+
+def test_fast_local_cli_selects_answer_only(tmp_path, monkeypatch, capsys):
+    kit = tmp_path / "kit dir"
+    profile, default_machine = build_fast_local_runtime(kit)
+    original_profile = profile.read_bytes()
+    child = MagicMock()
+    child.wait.return_value = 0
+    popen = MagicMock(return_value=child)
+    monkeypatch.setattr(launcher.subprocess, "Popen", popen)
+    monkeypatch.setattr(launcher, "wait_for_readiness", lambda *args: "http://127.0.0.1:1234")
+    monkeypatch.setattr(sys, "argv", ["start-backend.py", "--backend-root", str(kit),
+                                      "--machine-profile", "fast-local", "--port", "1234"])
+
+    assert launcher.main() == 0
+    receipt = json.loads(capsys.readouterr().out)
+    routes = json.loads(child.stdin.write.call_args.args[0])["text_worker"]["routes"]
+    assert receipt["machine_profile"] == "fast-local"
+    assert routes == [{"capability": "machine.answer", "script": str(kit / launcher.FAST_LOCAL_WORKER)},
+                      {"capability": "research.public", "script": str(kit / default_machine)}]
+    assert profile.read_bytes() == original_profile
+    launcher.start(tmp_path / "ordinary", 1234, backend_root=kit)
+    ordinary = json.loads(child.stdin.write.call_args.args[0])["text_worker"]["routes"]
+    assert all(route["script"] == str(kit / default_machine) for route in ordinary)
+
+
+def test_fast_local_missing_sdk(tmp_path, monkeypatch):
+    build_fast_local_runtime(tmp_path)
+    manifest = tmp_path / "backend-runtime-manifest.json"
+    value = json.loads(manifest.read_text(encoding="utf-8"))
+    value["lmstudio_sdk"] = {"status": "not_included"}
+    manifest.write_text(json.dumps(value), encoding="utf-8")
+    popen = MagicMock()
+    monkeypatch.setattr(launcher.subprocess, "Popen", popen)
+    with pytest.raises(launcher.LaunchFailure, match="LM Studio SDK bundled"):
+        launcher.start(Path("unused"), 1234, backend_root=tmp_path, machine_profile="fast-local")
+    popen.assert_not_called()
+    assert not (tmp_path / "unused").exists()
+
+
+@pytest.mark.parametrize("change", ["replace", "extra"])
+def test_fast_local_sdk_drift(tmp_path, change):
+    build_fast_local_runtime(tmp_path)
+    sdk = tmp_path / launcher.FAST_LOCAL_SDK
+    if change == "replace":
+        (sdk / "dist/index.mjs").write_bytes(b"changed")
+    else:
+        (sdk / "unlisted.mjs").touch()
+    with pytest.raises(launcher.LaunchFailure, match="packaged (member changed|SDK contains unlisted files)"):
+        launcher.fast_local_worker(tmp_path, python=tmp_path / "runtime/python.exe")
+
+
+def build_fast_local_supplement(kit: Path, supplement: Path):
+    build_fast_local_runtime(kit)
+    backend = kit / "backend-runtime-manifest.json"
+    document = json.loads(backend.read_text(encoding="utf-8"))
+    selection = document["lmstudio_sdk"]
+    component_files = {}
+    for name in tuple(document["files"]):
+        if not name.startswith(("workers/machine/", "workers/transport/")):
+            continue
+        source, target = kit / name, supplement / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        source.unlink()
+        component_files[name] = document["files"].pop(name)
+    # The old package still supplies its ordinary machine worker and transport.
+    for ordinary in ("workers/machine/worker_machine_answer.py", "workers/transport/text_ndjson.py"):
+        (kit / ordinary).write_bytes((supplement / ordinary).read_bytes())
+        document["files"][ordinary] = component_files[ordinary]
+    document.pop("lmstudio_sdk")
+    backend.write_text(json.dumps(document), encoding="utf-8")
+    launcher_file = b"launcher"
+    (supplement / "start-backend.py").write_bytes(launcher_file)
+    component_files["start-backend.py"] = {"bytes": len(launcher_file),
+                                         "sha256": hashlib.sha256(launcher_file).hexdigest()}
+    manifest = supplement / launcher.FAST_LOCAL_PROFILE_MANIFEST
+    manifest.write_text(json.dumps({
+        "schema": "archeaxis.fast-local-supplement/v1", "profile": "fast-local",
+        "backend_manifest_sha256": hashlib.sha256(backend.read_bytes()).hexdigest(),
+        "lmstudio_sdk": selection, "files": component_files,
+    }), encoding="utf-8")
+    return backend
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_fast_local_split_root(tmp_path, monkeypatch, explicit):
+    kit, supplement = tmp_path / "kit", tmp_path / "add"
+    backend = build_fast_local_supplement(kit, supplement)
+    before = backend.read_bytes()
+    child = MagicMock()
+    monkeypatch.setattr(launcher.subprocess, "Popen", MagicMock(return_value=child))
+    monkeypatch.setattr(launcher, "wait_for_readiness", lambda *args: "http://127.0.0.1:1234")
+    if not explicit:
+        monkeypatch.setattr(launcher, "ROOT", supplement)
+    _, _, receipt, _ = launcher.start(
+        tmp_path / "own-data", 1234, backend_root=kit, machine_profile="fast-local",
+        machine_profile_root=supplement if explicit else None,
+    )
+    launch = json.loads(child.stdin.write.call_args.args[0])
+    assert launch["text_worker"]["python"] == str(kit / "runtime/python.exe")
+    assert launch["text_worker"]["routes"][0]["script"] == str(supplement / launcher.FAST_LOCAL_WORKER)
+    assert receipt["machine_profile_source"] == "supplement" and receipt["machine_profile_root"] == str(supplement)
+    assert backend.read_bytes() == before
+
+
+def test_fast_local_split_binding(tmp_path):
+    kit, supplement = tmp_path / "kit", tmp_path / "add"
+    backend = build_fast_local_supplement(kit, supplement)
+    backend.write_bytes(backend.read_bytes() + b"\n")
+    with pytest.raises(launcher.LaunchFailure, match="does not match the selected backend manifest"):
+        launcher.fast_local_worker(kit, python=kit / "runtime/python.exe", supplement=supplement)
 
 
 def test_a_routes_script_that_does_not_exist_is_refused_by_name(tmp_path):

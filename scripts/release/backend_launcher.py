@@ -5,7 +5,9 @@ beside this launcher supplies the Core and the profile that declares the worker
 interpreter and scripts. An operator can also select an existing backend root
 and substitute its machine.answer worker for the current session.
 
-    runtime/python.exe start-backend.py [--backend-root <kit>] [--machine-worker <script>]
+    runtime/python.exe start-backend.py [--backend-root <kit>]
+                                       [--machine-profile fast-local | --machine-worker <script>]
+                                       [--machine-profile-root <supplement>]
                                        [--data-root <dir>] [--port N] [--smoke]
 
 `--smoke` performs the first exchange, reports health, and shuts the Core down.
@@ -55,6 +57,12 @@ OPENMAIC_FILES = {
 }
 OPENMAIC_NODE_MAX_BYTES = 512 * 1024 * 1024
 OPENMAIC_MANIFEST_MAX_BYTES = 16 * 1024 * 1024
+FAST_LOCAL_WORKER = "workers/machine/worker_machine_fast_local.py"
+FAST_LOCAL_PROFILE_MANIFEST = "fast-local-profile.json"
+FAST_LOCAL_SDK_DIRECTORY = "workers/machine/lmstudio-sdk"
+FAST_LOCAL_SDK = f"{FAST_LOCAL_SDK_DIRECTORY}/node_modules/@lmstudio/sdk"
+FAST_LOCAL_NODE = f"{OPENMAIC_DIRECTORY}/node.exe"
+FAST_LOCAL_SDK_MAX_BYTES = 32 * 1024 * 1024
 
 
 class LaunchFailure(Exception):  # noqa: N818 - retained public exception contract
@@ -452,21 +460,150 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         return None, classified(error, "absent", "manifest_unreadable", root)
 
 
+def _fast_local_manifest(root: Path, filename: str, schema: str) -> tuple[dict, str]:
+    path = safe_path(root, filename)
+    try:
+        with path.open("rb") as stream:
+            raw = stream.read(OPENMAIC_MANIFEST_MAX_BYTES + 1)
+        if len(raw) > OPENMAIC_MANIFEST_MAX_BYTES:
+            raise LaunchFailure("fast-local manifest exceeds size limit")
+        manifest = json.loads(raw)
+    except (OSError, ValueError, RecursionError) as error:
+        raise LaunchFailure(f"fast-local manifest is missing or invalid: {filename}") from error
+    if not isinstance(manifest, dict) or manifest.get("schema") != schema:
+        raise LaunchFailure(f"fast-local manifest is invalid: {filename}")
+    if not isinstance(manifest.get("files"), dict):
+        raise LaunchFailure(f"fast-local file inventory is invalid: {filename}")
+    return manifest, hashlib.sha256(raw).hexdigest()
+
+
+def _fast_local_member(root: Path, name: str, identity: dict | None, limit: int) -> int:
+    path = safe_path(root, name)
+    if (not isinstance(identity, dict) or type(identity.get("bytes")) is not int
+            or not 0 <= identity["bytes"] <= limit
+            or not re.fullmatch(r"[0-9a-f]{64}", str(identity.get("sha256")))):
+        raise LaunchFailure(f"fast-local invalid packaged member identity: {name}")
+    try:
+        info = path.stat()
+        if not stat.S_ISREG(info.st_mode) or info.st_size != identity["bytes"]:
+            raise LaunchFailure(f"fast-local packaged member changed: {name}")
+        with path.open("rb") as stream:
+            actual = hashlib.file_digest(stream, "sha256").hexdigest()
+    except OSError as error:
+        raise LaunchFailure(f"fast-local packaged member is unreadable: {name}") from error
+    if actual != identity["sha256"]:
+        raise LaunchFailure(f"fast-local packaged member changed: {name}")
+    return identity["bytes"]
+
+
+def _fast_local_files(root: Path, relative: str) -> set[str]:
+    def deny_unreadable(error: OSError) -> None:
+        raise error
+
+    result = set()
+    try:
+        for directory, directories, filenames in os.walk(
+            safe_path(root, relative), onerror=deny_unreadable,
+        ):
+            for child in directories:
+                safe_path(root, (Path(directory) / child).relative_to(root).as_posix())
+            for child in filenames:
+                result.add((Path(directory) / child).relative_to(root).as_posix())
+                if len(result) > 4_096:
+                    raise LaunchFailure("fast-local directory exceeds file limit")
+    except OSError as error:
+        raise LaunchFailure("fast-local packaged SDK directory is unreadable") from error
+    return result
+
+
+def fast_local_worker(root: Path, *, python: Path, supplement: Path | None = None) -> Path:
+    """Use the selected backend's Node and an included or expressly selected SDK."""
+    backend, backend_sha256 = _fast_local_manifest(
+        root, "backend-runtime-manifest.json", "archeaxis.backend-runtime/v1",
+    )
+    resources = root
+    profile = backend
+    if supplement is not None:
+        resources = supplement
+        profile, _ = _fast_local_manifest(resources, FAST_LOCAL_PROFILE_MANIFEST, "archeaxis.fast-local-supplement/v1")
+        if profile.get("profile") != "fast-local" or profile.get("backend_manifest_sha256") != backend_sha256:
+            raise LaunchFailure("fast-local supplement does not match the selected backend manifest")
+    selection = profile.get("lmstudio_sdk")
+    if not isinstance(selection, dict) or selection.get("status") != "included":
+        raise LaunchFailure("fast-local machine profile requires a backend or supplement with the LM Studio SDK bundled")
+    if (selection.get("version"), selection.get("sdk_root"), selection.get("node")) != (
+        "2.0.0", FAST_LOCAL_SDK, FAST_LOCAL_NODE,
+    ):
+        raise LaunchFailure("fast-local packaged SDK or Node declaration is invalid")
+
+    if python != safe_path(root, "runtime/python.exe"):
+        raise LaunchFailure("fast-local requires the selected backend's packaged Python")
+    for name, limit in (
+        ("runtime/python.exe", FAST_LOCAL_SDK_MAX_BYTES),
+        (FAST_LOCAL_NODE, OPENMAIC_NODE_MAX_BYTES),
+        (f"{OPENMAIC_DIRECTORY}/NODE-LICENSE", FAST_LOCAL_SDK_MAX_BYTES),
+    ):
+        _fast_local_member(root, name, backend["files"].get(name), limit)
+
+    files = profile["files"]
+    sdk_prefix = f"{FAST_LOCAL_SDK_DIRECTORY}/"
+    sdk_members = {key for key in files if key.startswith(sdk_prefix)}
+    sdk_required = {f"{FAST_LOCAL_SDK}/package.json", f"{FAST_LOCAL_SDK}/dist/index.mjs"}
+    support = {
+        FAST_LOCAL_WORKER, "workers/machine/worker_machine_answer.py",
+        "workers/machine/lmstudio_structured.mjs", "workers/transport/text_ndjson.py",
+    }
+    members = sdk_members | support
+    if supplement is not None:
+        support.add("start-backend.py")
+        members = set(files)
+    if not sdk_required <= sdk_members or not support <= files.keys() or len(members) > 4_096:
+        raise LaunchFailure("fast-local packaged SDK file inventory is incomplete")
+    total = 0
+    for name in sorted(members):
+        if "\\" in name or ":" in name or name.startswith("/"):
+            raise LaunchFailure("fast-local manifest members must be package-relative")
+        total += _fast_local_member(resources, name, files[name], FAST_LOCAL_SDK_MAX_BYTES)
+        if total > FAST_LOCAL_SDK_MAX_BYTES:
+            raise LaunchFailure("fast-local packaged SDK exceeds size limit")
+    if _fast_local_files(resources, FAST_LOCAL_SDK_DIRECTORY) != sdk_members:
+        raise LaunchFailure("fast-local packaged SDK contains unlisted files")
+    if supplement is not None:
+        worker_members = {name for name in members if name.startswith("workers/")}
+        if _fast_local_files(resources, "workers") != worker_members:
+            raise LaunchFailure("fast-local supplement contains unlisted worker files")
+    return safe_path(resources, FAST_LOCAL_WORKER)
+
+
 def start(
     data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite",
     backend_root: Path | None = None, machine_worker: Path | None = None,
+    machine_profile: str | None = None, machine_profile_root: Path | None = None,
 ) -> tuple[subprocess.Popen, str, dict, dict]:
     """Launch a session, optionally reopening the product host's workspace file."""
+    if machine_profile not in (None, "fast-local") or (machine_profile and machine_worker is not None):
+        raise LaunchFailure("choose either the fast-local machine profile or an explicit machine worker")
+    if machine_profile_root is not None and machine_profile != "fast-local":
+        raise LaunchFailure("a supplement requires the fast-local machine profile")
     if not workspace_name.strip() or any(character in workspace_name for character in "\\/:") or workspace_name in {".", ".."}:
         raise LaunchFailure("unsafe workspace filename")
     root = ROOT if backend_root is None else safe_path(Path.cwd(), str(backend_root))
     core = require_file(safe_path(root, str(CORE_RELATIVE)), "Core executable")
     profile = load_profile(root)
-    if machine_worker is not None:
+    supplement = None
+    if machine_profile is not None:
+        if machine_profile_root is not None:
+            supplement = safe_path(Path.cwd(), str(machine_profile_root))
+        elif root != ROOT and (ROOT / FAST_LOCAL_PROFILE_MANIFEST).exists():
+            # Only a launcher shipped in a supplement can implicitly select that
+            # supplement. Neither the workspace nor the environment is searched.
+            supplement = safe_path(Path.cwd(), str(ROOT))
+    if machine_profile is not None or machine_worker is not None:
         route = next((item for item in profile["routes"] if item["capability"] == "machine.answer"), None)
         if route is None:
             raise LaunchFailure("machine.answer is not registered in the selected backend")
-        route["script"] = require_file(safe_path(Path.cwd(), str(machine_worker)), "selected machine.answer worker")
+        route["script"] = (fast_local_worker(root, python=profile["python"], supplement=supplement) if machine_profile is not None else
+                           require_file(safe_path(Path.cwd(), str(machine_worker)), "selected machine.answer worker"))
     require_file(profile["python"], "scheduler interpreter (from worker profile)")
     require_file(profile["script"], "text worker script (from worker profile)")
 
@@ -523,6 +660,10 @@ def start(
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
+        if machine_profile is not None:
+            receipt["machine_profile"] = machine_profile
+            receipt["machine_profile_source"] = "supplement" if supplement is not None else "bundled"
+            receipt["machine_profile_root"] = str(supplement or root)
         tokens = {"human": launch["launch_token"], "machine": launch["machine_token"],
                   "session_id": launch["session_id"]}
         return child, base, receipt, tokens
@@ -710,8 +851,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--backend-root", type=Path,
                         help="use an existing packaged Core, runtime and worker profile")
-    parser.add_argument("--machine-worker", type=Path,
-                        help="select the staged machine.answer script for this session")
+    machine = parser.add_mutually_exclusive_group()
+    machine.add_argument("--machine-worker", type=Path,
+                         help="select the staged machine.answer script for this session")
+    machine.add_argument("--machine-profile", choices=["fast-local"],
+                         help="select the fast-local LM Studio SDK for this session")
+    parser.add_argument("--machine-profile-root", type=Path,
+                        help="select a read-only fast-local supplement for the backend")
     parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument("--port", type=int, default=0,
                         help="0 (default) lets the OS choose a free port")
@@ -722,7 +868,8 @@ def main() -> int:
     port = args.port or free_port()
     try:
         child, base, receipt, tokens = start(args.data_root, port, backend_root=args.backend_root,
-                                             machine_worker=args.machine_worker)
+                                             machine_worker=args.machine_worker, machine_profile=args.machine_profile,
+                                             machine_profile_root=args.machine_profile_root)
     except (LaunchFailure, OSError) as error:
         print(json.dumps({"ok": False, "failure": str(error)}, ensure_ascii=False, indent=2))
         return 2
@@ -730,7 +877,8 @@ def main() -> int:
     receipt["base_url"] = base
     if args.smoke:
         interrupted = False
-        selected_worker_ready = args.machine_worker is None
+        has_selected_worker = args.machine_worker is not None or args.machine_profile is not None
+        selected_worker_ready = not has_selected_worker
         try:
             status, version = call(base, "GET", "/api/v1/system/version",
                                    tokens=tokens, role="human")
@@ -738,7 +886,7 @@ def main() -> int:
             status, info = call(base, "GET", "/api/v1/workspaces/info",
                                 tokens=tokens, role="human")
             receipt["workspaces_info"] = {"status": status, "body": info}
-            if args.machine_worker is not None:
+            if has_selected_worker:
                 status, body = call(base, "GET", "/api/v1/capabilities/machine.answer",
                                     tokens=tokens, role="human")
                 record = body.get("capability", {}) if isinstance(body, dict) else {}

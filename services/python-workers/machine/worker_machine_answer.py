@@ -504,22 +504,33 @@ def read_response_format(path, context_path):
 
 
 def _structured_sdk(endpoint, model, prompt, timeout_s, max_tokens, response_format):
-    """A locally staged SDK worker is selected by its existing machine.answer route."""
+    """Use a packaged profile or the existing explicit staged worker."""
     config = Path(__file__).with_name("lmstudio-structured-runtime.json")
-    if endpoint["base"].rstrip("/") != OPENAI_BASE or not config.is_file():
-        return None
-    runtime = json.loads(config.read_text(encoding="utf-8"))
-    if runtime.get("schema") != "archeaxis.lmstudio-structured-runtime/v1":
-        raise ValueError("invalid LM Studio structured worker configuration")
-    if model != runtime["model"]:
-        return None
-    node = Path(runtime["node"])
+    packaged = globals().get("PACKAGED_FAST_LOCAL", False)
+    if packaged:
+        if model != "aaos-fast-4b":
+            return None
+        if endpoint["base"].rstrip("/") != OPENAI_BASE:
+            raise ValueError("fast-local requires the local LM Studio endpoint")
+        node = Path(sys.executable).resolve().parent.parent / "workers/openmaic/node.exe"
+    else:
+        if endpoint["base"].rstrip("/") != OPENAI_BASE or not config.is_file():
+            return None
+        runtime = json.loads(config.read_text(encoding="utf-8"))
+        if runtime.get("schema") != "archeaxis.lmstudio-structured-runtime/v1":
+            raise ValueError("invalid LM Studio structured worker configuration")
+        if model != runtime["model"]:
+            return None
+        node = Path(runtime["node"])
     if not node.is_absolute() or not node.is_file():
         raise ValueError("configured Node runtime is unavailable")
     data = {"model": model, "prompt": prompt, "schema": response_format["json_schema"]["schema"],
             "max_tokens": max_tokens, "timeout_ms": max(1, int(timeout_s * 1000) - 300)}
+    arguments = [str(node), str(config.with_name("lmstudio_structured.mjs"))]
+    if packaged:
+        arguments.append("--packaged-fast-local")
     try:
-        command = subprocess.run([str(node), str(config.with_name("lmstudio_structured.mjs"))],
+        command = subprocess.run(arguments,
                                  input=json.dumps(data).encode("utf-8"), stdout=subprocess.PIPE,
                                  stderr=subprocess.DEVNULL, timeout=timeout_s, check=True,
                                  creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))

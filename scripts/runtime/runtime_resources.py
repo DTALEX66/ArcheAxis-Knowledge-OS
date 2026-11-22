@@ -10,6 +10,7 @@ import os
 import re
 import stat
 import sys
+from contextlib import suppress
 from pathlib import Path, PurePosixPath
 
 if __package__:
@@ -21,6 +22,10 @@ RESOURCES = {"runtime", "core", "workers", "shared", "worker-profile.json",
              "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json",
              "vcruntime140.dll", "vcruntime140_1.dll"}
 SHA = re.compile(r"[0-9a-f]{64}\Z")
+LMSTUDIO_DIRECTORY = "workers/machine/lmstudio-sdk"
+# Digest of sorted UTF-8 member names, NUL and binary SHA-256 for the
+# 12 official npm tarballs pinned by config/model-profiles/lm-studio-sdk.
+LMSTUDIO_NPM_TREE = "7b89b325f03a5b322ec738b84a1ebdf112937788b0e3d6581aa31e8b1b2af4a6"
 MAX_OPENMAIC_MANIFEST_BYTES = 16 * 1024 * 1024
 FIXED_WEBVIEW2_MANIFEST_SHA256 = "d465623969d3ba9ac271deb6fb81865007261e20c93dd723ff65c38144bc89f7"
 # Public file shipped by the already qualified locked FastAPI distribution.
@@ -72,10 +77,8 @@ def regular(path: Path, *, cargo_host: bool = False) -> Path:
     cargo_pair = False
     if cargo_host and info.st_nlink == 2 and path.parent.name == "release":
         alias = checked(path.parent / "deps" / path.name)
-        try:
+        with suppress(FileNotFoundError):
             cargo_pair = os.path.samestat(info, os.lstat(native(alias)))
-        except FileNotFoundError:
-            pass
     if not stat.S_ISREG(info.st_mode) or (info.st_nlink != 1 and not cargo_pair):
         raise ValueError(f"Expected an independent regular file: {path}")
     return path
@@ -271,6 +274,42 @@ def verify_worker_contract(root: Path, members: dict) -> None:
         raise ValueError("Native/profile routes differ or worker input absent")
 
 
+def npm_tree_digest(rows: dict) -> str:
+    digest = hashlib.sha256()
+    for name, row in sorted(rows.items()):
+        digest.update(name.encode("utf-8") + b"\0" + bytes.fromhex(row["sha256"]))
+    return digest.hexdigest()
+
+
+def lmstudio_sdk_manifest(included: bool) -> dict:
+    if not included:
+        return {"status": "not_included"}
+    return {"status": "included", "version": "2.0.0", "node": "workers/openmaic/node.exe",
+            "sdk_root": f"{LMSTUDIO_DIRECTORY}/node_modules/@lmstudio/sdk",
+            "npm_lock": f"{LMSTUDIO_DIRECTORY}/package-lock.json", "npm_tree_sha256": LMSTUDIO_NPM_TREE}
+
+
+def verify_lmstudio_sdk_contract(backend: dict, members: dict) -> None:
+    prefix = LMSTUDIO_DIRECTORY + "/"
+    sdk = {name[len(prefix):]: row for name, row in members.items() if name.startswith(prefix)}
+    claim = backend.get("lmstudio_sdk")
+    if not sdk:
+        if "lmstudio_sdk" in backend and claim != lmstudio_sdk_manifest(False):
+            raise ValueError("LM Studio SDK claim without SDK files")
+        return
+    if claim != lmstudio_sdk_manifest(True):
+        raise ValueError("LM Studio SDK manifest does not identify the bundled npm closure")
+    for name in ("package-lock.json", "package.json"):
+        if sdk.pop(name, None) is None:
+            raise ValueError("LM Studio SDK npm provenance missing")
+    required = (claim["node"], "workers/machine/worker_machine_answer.py",
+                "workers/machine/worker_machine_fast_local.py", "workers/machine/lmstudio_structured.mjs")
+    if (not all(name in members for name in required)
+            or backend.get("openmaic_scene_build", {}).get("status") != "INCLUDED"
+            or npm_tree_digest(sdk) != LMSTUDIO_NPM_TREE):
+        raise ValueError("Incomplete or modified LM Studio SDK runtime")
+
+
 def verify_openmaic_contract(backend: dict, members: dict) -> None:
     """Check the optional fixed closure identities before reading member bytes.
 
@@ -376,6 +415,7 @@ def verify_runtime_resources(root: Path, configured_resources: set[str]) -> dict
         if PurePosixPath(name).parts[0] not in RESOURCES:
             raise ValueError("Backend member outside declared runtime resources")
     verify_openmaic_contract(backend, members)
+    verify_lmstudio_sdk_contract(backend, members)
     verify_members(root, members)
     verify_worker_contract(root, members)
     expected = set(members) | {"backend-runtime-manifest.json"}

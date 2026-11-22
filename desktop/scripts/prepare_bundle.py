@@ -73,7 +73,7 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
                               asr_model: Path | None = None, vc_runtime: Path | None = None,
                               openmaic_node_dir: Path | None = None,
                               openmaic_node: Path | None = None, openmaic_node_sha256: str | None = None,
-                              openmaic_node_license: Path | None = None,
+                              openmaic_node_license: Path | None = None, lmstudio_sdk_dir: Path | None = None,
                               storage_context=None, storage_generated_bytes=None) -> Path:
     """Prepare locked Python directly in the authoritative fresh backend root."""
     resolved = resolve_openmaic_donor(openmaic_node_dir, openmaic_node,
@@ -108,6 +108,8 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
     if openmaic_node is not None:
         command += ["--openmaic-node", str(openmaic_node), "--openmaic-node-sha256", openmaic_node_sha256,
                     "--openmaic-node-license", str(openmaic_node_license)]
+    if lmstudio_sdk_dir is not None:
+        command += ["--lmstudio-sdk-dir", str(runtime_paths.safe_path(lmstudio_sdk_dir))]
     if storage_generated_bytes is not None:
         command += ["--storage-generated-bytes", str(storage_generated_bytes)]
     if storage_context is not None:
@@ -479,6 +481,8 @@ def main() -> int:
     parser.add_argument("--openmaic-node", type=Path, help="explicit local Node executable for OpenMAIC")
     parser.add_argument("--openmaic-node-sha256", help="expected lowercase SHA-256 of that Node executable")
     parser.add_argument("--openmaic-node-license", type=Path, help="explicit Node license file")
+    parser.add_argument("--lmstudio-sdk-dir", type=Path,
+                        help="prepared locked LM Studio SDK installation to include with the app-local Node runtime")
     parser.add_argument("--run-id")
     parser.add_argument("--storage-purpose")
     parser.add_argument("--storage-sharing")
@@ -490,6 +494,8 @@ def main() -> int:
     args = parser.parse_args()
     openmaic = (args.openmaic_node_dir, args.openmaic_node, args.openmaic_node_sha256,
                 args.openmaic_node_license)
+    if args.lmstudio_sdk_dir is not None and not (args.backend_candidate and any(openmaic)):
+        parser.error("--lmstudio-sdk-dir requires a backend candidate with an OpenMAIC Node donor")
     if any(value is not None for value in openmaic):
         if not args.backend_candidate:
             parser.error("OpenMAIC inputs require --backend-candidate")
@@ -525,6 +531,7 @@ def main() -> int:
             openmaic_node_dir=args.openmaic_node_dir,
             openmaic_node=args.openmaic_node, openmaic_node_sha256=args.openmaic_node_sha256,
             openmaic_node_license=args.openmaic_node_license,
+            lmstudio_sdk_dir=args.lmstudio_sdk_dir,
             storage_context=context, storage_generated_bytes=args.storage_generated_bytes,
             asr_model=args.asr_model or declared_asr_model(args.repository)))
         return 0

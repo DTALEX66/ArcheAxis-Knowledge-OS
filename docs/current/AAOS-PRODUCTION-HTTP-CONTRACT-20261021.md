@@ -1226,6 +1226,10 @@ Source files under pages, journals, assets, whiteboards and draws, plus logseq/c
 
 ## 36. Local structured model answers
 
+The standalone Windows backend distributed with desktop 0.1.00 can run the portable `fast-local` supplement. Extract it to its own directory and open `start-fast-local.cmd`. Select the original backend's `start-backend.cmd` if prompted. A second command-line argument selects a workspace. The shortcut uses a separate workspace in the current user's LocalAppData by default. Load the `aaos-fast-4b` instance in local LM Studio before requesting a prediction. [Windows instructions](../../scripts/release/fast_local_profile/README.zh-CN.md)
+
+An integrating host may start the supplement's `start-backend.py` using the original `runtime/python.exe` with `--backend-root <backend> --machine-profile fast-local --data-root <workspace>`. The launcher can discover its adjacent `fast-local-profile.json` or accept an explicit `--machine-profile-root <supplement>`. It uses the SDK in the supplement and the interpreter, Node and Core in the selected backend. Future bundles can include this option at build time through `--lmstudio-sdk-dir` with the corresponding app-local OpenMAIC Node distribution. The desktop shortcut and existing launch modes retain their own configuration. [Download, runtime and quality results](AAOS-UI-FIRST-EXECUTION-20261009.md#portable-fast-local-office)
+
 An operator can select the LM Studio SDK for structured answers on the existing local `fast-local` profile. Use the project Node runtime and its installed `@lmstudio/sdk` version from `config/model-profiles/lm-studio.json`. Prepare the worker using the project development launcher.
 
 ```powershell

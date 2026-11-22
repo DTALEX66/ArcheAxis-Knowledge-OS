@@ -63,6 +63,8 @@ _openmaic_closure_spec.loader.exec_module(openmaic_closure)
 
 PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
+runtime_resources = growth.portable.runtime_resources
+LMSTUDIO_DIRECTORY = runtime_resources.LMSTUDIO_DIRECTORY
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
 ANKI_DONORS = ("shared/compat/__init__.py", "shared/compat/anki_package.py",
@@ -1193,6 +1195,44 @@ def expected_model_members(model: Path, name: str | None) -> dict:
     return rows
 
 
+def lmstudio_sdk_plan(donor: Path) -> dict:
+    """Validate the offline npm installation against the published tarball members."""
+    donor = growth.safe(donor)
+    modules = donor / "node_modules"
+    validate_tree(modules)
+    config = Path(__file__).resolve().parents[2] / "config/model-profiles/lm-studio-sdk"
+    lock = json.loads((config / "package-lock.json").read_bytes())["packages"]
+    files = {}
+    for package, locked in lock.items():
+        if not package:
+            continue
+        info = json.loads(filesystem_path(donor / package / "package.json").read_bytes())
+        if info["name"] != package.removeprefix("node_modules/") or info["version"] != locked["version"]:
+            raise ValueError(f"LM Studio SDK dependency version mismatch: {package}")
+    for path in filesystem_path(modules).rglob("*"):
+        if not path.is_file():
+            continue
+        source = ordinary_path(path)
+        name = source.relative_to(donor).as_posix()
+        if name != "node_modules/.package-lock.json":  # npm's machine-generated inventory
+            files[name] = (source, growth.row(source))
+    rows = {name: row for name, (_, row) in files.items()}
+    if runtime_resources.npm_tree_digest(rows) != runtime_resources.LMSTUDIO_NPM_TREE:
+        raise ValueError("LM Studio SDK files differ from the locked npm tarballs")
+    for name in ("package.json", "package-lock.json"):
+        files[name] = (config / name, growth.row(config / name))
+    return files
+
+
+def stage_lmstudio_sdk(root: Path, files: dict) -> None:
+    target = root / LMSTUDIO_DIRECTORY
+    filesystem_path(target).mkdir(parents=True, exist_ok=False)
+    for name, (source, expected) in files.items():
+        destination = target / name
+        filesystem_path(destination.parent).mkdir(parents=True, exist_ok=True)
+        growth.copy2(source, destination, identity=expected)
+
+
 def runtime_copy_plan(args, in_place=False, *, repository=None):
     """Enumerate only actual selected donors, never an entire dependency source."""
     inputs = {}
@@ -1348,6 +1388,19 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
                 raise ValueError(f"OpenMAIC input identity mismatch: {relative}")
             selected[relative] = {"source": growth.plain(source), "identity": identity}
         args._openmaic_plan = {"files": selected, "node_sha256": node_sha}
+    args._lmstudio_plan = None
+    if getattr(args, "lmstudio_sdk_dir", None) is not None:
+        if args._openmaic_plan is None:
+            raise ValueError("LM Studio SDK requires the selected app-local OpenMAIC Node runtime")
+        for name in ("worker_machine_answer.py", "worker_machine_fast_local.py", "lmstudio_structured.mjs"):
+            if not (args.workers / "machine" / name).is_file():
+                raise ValueError(f"LM Studio SDK requires the machine worker member {name}")
+        if (args.workers / "machine/lmstudio-sdk").exists():
+            raise ValueError("LM Studio SDK output conflicts with the worker donor")
+        args._lmstudio_plan = lmstudio_sdk_plan(args.lmstudio_sdk_dir)
+        for source, identity in args._lmstudio_plan.values():
+            inputs[growth.plain(source)] = identity
+            total += identity["bytes"]
     args._detector_plan = detector_source_rows() if present_worker_script(args.workers, "document.detect") else None
     if args._detector_plan is not None:
         for relative, identity in args._detector_plan.items():
@@ -1436,6 +1489,8 @@ def main(argv: list[str] | None = None, *, _runtime_preparer=None, _runtime_envi
                         help="directory name under the ASR model root; defaults to the donor's own name")
     parser.add_argument("--asr-model-license",
                         help="licence text asserted for a donor whose upstream terms are not recognised by name")
+    parser.add_argument("--lmstudio-sdk-dir", type=Path,
+                        help="offline installation of the locked LM Studio JS SDK; reuses the selected OpenMAIC Node")
     parser.add_argument("--openmaic-node", type=Path,
                         help="explicit local Node executable for the optional OpenMAIC worker")
     parser.add_argument("--openmaic-node-sha256",
@@ -1585,6 +1640,9 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         stage_practice_provider(root, practice_plan)
     if openmaic_plan is not None:
         stage_openmaic_provider(root, openmaic_plan)
+    lmstudio_plan = getattr(args, "_lmstudio_plan", None)
+    if lmstudio_plan is not None:
+        stage_lmstudio_sdk(root, lmstudio_plan)
     capability_manifest = stage_capability_manifest(root, args.external_root)
     # The transcript model travels with the runtime, which is already a bundle resource: an
     # installed machine needs no shared model library and no first-run download. When no donor
@@ -1725,9 +1783,10 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
         files[relative] = {"bytes": filesystem_path(path).stat().st_size, "sha256": sha256(path)}
-    if detector_plan is not None:
-        if detector_source_rows() != detector_plan or any(files.get(name) != row for name, row in detector_plan.items()):
-            raise ValueError("detector inputs or staged manifest inventory changed")
+    if detector_plan is not None and (
+        detector_source_rows() != detector_plan or any(files.get(name) != row for name, row in detector_plan.items())
+    ):
+        raise ValueError("detector inputs or staged manifest inventory changed")
     if practice_plan is not None:
         routes_payload = practice_plan["routes_payload"]
         routes_identity = {"bytes": len(routes_payload), "sha256": hashlib.sha256(routes_payload).hexdigest()}
@@ -1742,9 +1801,15 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         if any(files.get(f"{OPENMAIC_DIRECTORY}/{name}") != item["identity"]
                for name, item in openmaic_plan["files"].items()):
             raise ValueError("OpenMAIC staged manifest inventory changed")
+    if lmstudio_plan is not None and any(
+        files.get(f"{LMSTUDIO_DIRECTORY}/{name}") != identity
+        for name, (_, identity) in lmstudio_plan.items()
+    ):
+        raise ValueError("LM Studio SDK staged manifest inventory changed")
 
     manifest = {
         "schema": MANIFEST_SCHEMA,
+        "lmstudio_sdk": runtime_resources.lmstudio_sdk_manifest(lmstudio_plan is not None),
         "version": args.version,
         # Two identities, kept apart on purpose. The staging tool decides which
         # components exist, where they sit and which dependencies are copied, so
@@ -1836,6 +1901,7 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
             "interpreter_binding": args._interpreter_binding,
             "run_root": _runtime_environment["ARCHEAXIS_RUN_ROOT"],
             "host_runtime_tree_copies": 1, "intermediate_runtime_tree_copies": 0}
+    runtime_resources.verify_lmstudio_sdk_contract(manifest, files)
     manifest_path = root / "backend-runtime-manifest.json"
     filesystem_path(manifest_path).write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                                               encoding="utf-8", newline="\n")

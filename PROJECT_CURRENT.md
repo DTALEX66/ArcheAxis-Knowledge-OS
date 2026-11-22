@@ -12,7 +12,7 @@
 
 后续源码已用思源两份原生中文文档实测读取、保存及冷重开，包括旧目录中已存原件的续做。范围与安装包版本见[思源读取记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-read)。
 
-独立后端可在启动时用 `--machine-worker` 为本次会话选择本地结构化回答，并用 `--backend-root` 复用现有运行目录。启动方法、推理预算和回执字段见[本地结构化回答合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
+独立后端可解压本地模型补充包，双击 `start-fast-local.cmd` 启用结构化回答。启动、选库与模型准备见[中文使用说明](scripts/release/fast_local_profile/README.zh-CN.md)。下载文件、模型回答的实际评分，以及同版后端恢复 Office 资料的结果见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#portable-fast-local-office)。
 
 入口角色：navigation-only。项目身份：**ArcheAxis-Knowledge-OS（AAOS／星环知识系统）**。本页是醒目的薄入口；产品定义由[AUTHORITY总纲](AUTHORITY.md)、[产品身份V2.3](docs/truth/PRODUCT_IDENTITY_V2.md)与[唯一闭环V3](docs/truth/CLOSED_LOOP_DEFINITION.md)承载，控制和进度仍各只有一个来源。
 

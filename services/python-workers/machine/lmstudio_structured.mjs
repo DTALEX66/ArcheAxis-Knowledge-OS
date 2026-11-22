@@ -1,10 +1,17 @@
 /** One prediction on an already loaded local instance. Only final content leaves this process. */
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 
 async function predict() {
-  const runtime = JSON.parse(readFileSync(new URL('./lmstudio-structured-runtime.json', import.meta.url), 'utf8'));
+  const runtime = process.argv[2] === '--packaged-fast-local' ? {
+    sdk: fileURLToPath(new URL('./lmstudio-sdk/node_modules/@lmstudio/sdk', import.meta.url)),
+    sdk_version: '2.0.0',
+    endpoint: 'ws://127.0.0.1:1234',
+    model: 'aaos-fast-4b',
+    model_key: 'qwen3.5-4b',
+    reasoning_tokens: 1536,
+  } : JSON.parse(readFileSync(new URL('./lmstudio-structured-runtime.json', import.meta.url), 'utf8'));
   const request = JSON.parse(readFileSync(0, 'utf8'));
   if (runtime.endpoint !== 'ws://127.0.0.1:1234' || runtime.model !== request.model
       || !path.isAbsolute(runtime.sdk) || !Number.isSafeInteger(runtime.reasoning_tokens)
