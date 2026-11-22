@@ -16,6 +16,8 @@
 
 后续源码在整包自带 LM Studio SDK 时，桌面及独立后端均能自动为指定本机模型选用结构化回答。适用的请求与候选验收进度见[整包默认模型入口](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#bundled-default-machine)。
 
+已发布的后端能分别找回 WPS 修改前后的同一张表格、同一行。原件、另存副本与重启后的定位见[WPS 表格往返](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#wps-xlsx-file-return)。
+
 入口角色：navigation-only。项目身份：**ArcheAxis-Knowledge-OS（AAOS／星环知识系统）**。本页是醒目的薄入口；产品定义由[AUTHORITY总纲](AUTHORITY.md)、[产品身份V2.3](docs/truth/PRODUCT_IDENTITY_V2.md)与[唯一闭环V3](docs/truth/CLOSED_LOOP_DEFINITION.md)承载，控制和进度仍各只有一个来源。
 
 ## 当前有效决定与范围

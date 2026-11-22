@@ -73,7 +73,8 @@ def test_sdk_candidate(request, tmp_path, monkeypatch, private_practice):
                                                  if k != claim["default_machine_worker"]})
     with pytest.raises(ValueError, match="differs from SDK declaration"):
         resources.verify_worker_contract(case["output"], manifest["files"], old)
-    assert (case["output"] / claim["npm_lock"]).read_bytes() == (config / "package-lock.json").read_bytes()
+    staged_lock = stager.filesystem_path(case["output"] / claim["npm_lock"])
+    assert staged_lock.read_bytes() == (config / "package-lock.json").read_bytes()
     resources.verify_lmstudio_sdk_contract(manifest, manifest["files"])
     del manifest["files"][claim["sdk_root"] + "/package.json"]
     with pytest.raises(ValueError, match="Incomplete or modified"):

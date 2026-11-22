@@ -5036,9 +5036,28 @@ Windows 草稿附件 `AAOS-0.1.00-Local-Structured-Answers-Windows.zip` 共 1,64
 
 Windows 实际运行的源码提交为 `010ad48fdf401110b8a2a2f54e87cb14a4f16774`。唯一选中的 `native_siyuan_block_resolves_only_its_imported_batch_asset_after_reopen` 通过，日志为 1 passed、0 failed、0 ignored。同一原块能用中文空格文件名及其编码形式找到相同 PNG，原件字节和 SHA 均符合预期。尚未导入、缺失、路径冲突的目标有各自状态。SQLite 重开后仍能读取原图。用例采用合成资料，桌面点击和思源原生写回须分别验收。本地摘要 `siyuan-block-exact-source/artifacts/windows-block-assets.json` 的 SHA-256 为 `3d88bc49799ff53b5016f11cc8ca11c886a3ad9daa7c470f9c5285f509fb601a`。 [Windows 定向作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45050837063/job/137295373632)
 
+随后用 Windows Release Core `9629ce5d` 处理了思源官方指南中的原始 55,033 字节文档和 1,589 字节 PNG，两件均与上游固定提交的 Git blob 相符。文档所属块 `20210512171633-u3iy2xx` 在图片尚未入库时返回未绑定，同批导入图片后从原块读取到目标。冷重开再读到相同的原始 PNG，SHA-256 为 `788c154262194a126b433b1055fbddcf5ada066e0d1f565a54e5550125675075`。首次调度缺少幂等键，返回 422；保留原批次与作业后补充请求头，首次实际转换通过。此次复用已交付的 Python 和与新候选一致的 worker，图片关联由 Core 自动解析。回执 `syblock962-resume/artifacts/official-siyuan-block.json`（SHA-256 `86a06fb35ffc7d72b80f96ff586d6dcb4f239bc8529c537c45f7f947c4e3e824`）。[思源指南原文](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/app/guide/20210808180117-czj9bvb/20200812220555-lj3enxa/20210808180321-hbvl5c2/20200915214115-42b8zma.sy)
+
 <a id="bundled-default-machine"></a>
 ### 2026-11-23 · 整包默认本地模型入口
 
 正式打包程序在选入锁定的 LM Studio SDK 2.0.0 和 Node 时，为桌面与独立后端生成一致的 `machine.answer` 路由。对指定的本机 `aaos-fast-4b` 结构化请求，普通启动使用 SDK 的逐请求思考预算。其他模型、端点、普通文本，以及操作者显式选择 worker 的行为见[后端合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
 
 5 项定向 worker 测试通过，覆盖自动与显式模式以及普通 HTTP 请求分流。4 项打包测试通过，涵盖整包单独选择 SDK、同时选择 DeepTutor、旧声明及原有补充包。两组均使用测试输入，回执的源码指纹一致，子进程退出码均为 0。回执分别为 `default-sdk-worker-contract-1123-v3/artifacts/execution.json`（SHA-256 `ce9091bc0b0da2aa822ba49cdb6969c3b9e57adab47c3e25bd738b5a8313c9e5`）和 `bundled-sdk-stage-v1/artifacts/execution.json`（`ba47b42d76869881d6800d8d7d06eedc2d4e8fd3e22df8d09dc2cb201f094999`）。之前公开登记的两次模型结果分别留在原验收记录里。
+
+源码 `9629ce5d883dbafac1fa184efd4549f33e8f3b1b` 在 Windows x64 成功构建 Release Core 和正式前端。两次作业分别产出了带 Git 提交与树身份的二进制及前端资源附件。相同源码的裁剪包定向用例通过，验证了缺席脚本、备选顺序和 DeepTutor 路由，回执 `r96a/artifacts/execution.json`（SHA-256 `6f5764b2c9150d36e29ddff398f1bfa2cf7aadf078fb44756523aa700e119cc2`）。测试侧另修正了 Windows 上读取 260 字符路径的方式，在原路径长度复验通过，回执 `bundled-sdk-trimmed-9629ce6/artifacts/execution.json`（`a21b2bc99bdb36eddbb26ad83a8c83e570414c38b5ca0b9a829312751e829d64`）。[Windows Core 作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45053168865) · [前端资源作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45053167535)
+
+新版组件用本机 Qwen 对一份新建的博物馆交接 ZIP 实际回答一次。在 509 字节 ZIP 上预先运行正式 Core 归档转换，冻结三个成员的「识别为 Finder 元数据」与「单独导入」共六个判断。模型答对全部三个单独导入判断，元数据判断答对两个。对于只有 AppleDouble 文件头却没有对应正文的孤立文件，模型误判为元数据。按事先冻结的标准，实际评分为 **5/6，未通过**。模型收到 1,453 个输入 token，产生 1,606 个输出 token，正常结束。新进程读回原回答、评分和相关资料共七项。该验证通过已交付的 Core 显式选择新版组件，使用隔离的合成工作区。首次组件启动检查因缺少传输文件在推理前退出，补齐后才派发业务请求。回执 `default-sdk-museum-heldout/artifacts/transport-corrected/sdk-museum-archive.json`（SHA-256 `8f3ea63084f9cd7bf88332278bc6231e601a2abff0d29e94e4b6c7029a9f955e`）。
+
+从同一提交构建的 Windows Release Core（SHA-256 `8eef9ead80ece402d52584254e3c570fdb1875a51244ef8b0ad616dcb0989d79`）实际打开了上述旧工作区的副本，读取先前的回答、冻结标准、5/6 评分与 ZIP 原件，并保存了一份带来源和版本的普通学习笔记。第二个 Core 进程冷开后读回笔记与四项旧证据。原 SQLite 和 19 个对象的摘要均一致，新增推理请求为 0。两次均通过正式启动协议运行，复用了已交付版的解释器。回执 `museum962-live/artifacts/continuation.json`（SHA-256 `c74a72dc9ebdc7c526a32ee51c3db60498e26cc0fb43b644ba0a71f8211c8082`）。
+
+候选后端清单绑定 17,805 个文件、1,500,595,961 字节载荷及上述 Windows Core；清单 SHA-256 为 `34eb3b44a916dd8ab5dbc092d0c7969cbadf6bea541dc936b5534847384b838a`。Windows 云端前端构建的 36 个文件与本机正式构建的同一前端逐文件同摘要，共 43,383,059 字节。清单、Windows 构建与跨版本业务回执分别记录，整包产出及隔离安装的状态另行登记。
+
+GitHub 既有草稿保存了这次构建的 Windows Core、前端资源和两份原始清单。附件 ID `780011420`，46,605,866 字节，SHA-256 `67879c5eb154848bc1db525d5c1c580ecab21d1f56b6685d3d3b0addf78efb56`，已重新下载比对。安装桌面程序仍使用对应版本的安装器。[下载构建输入](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Windows-Build-Inputs-9629ce5d.zip)
+
+同一草稿的验收摘要包含模型评分、跨版本笔记、思源原图和 WPS 表格结果。附件 ID `780037086`，5,587 字节，重新下载后 SHA-256 为 `18a5c81c15591d5bb81ea0b21dab74fd8c78ee84bdc49beb15eaf15601ea8643`。草稿现有 15 项。新版独立 ZIP 与 0.1.00 安装器尚待生产；此轮预检时项目可读数据相对固定基线净增约 2.25 GB，触及 2 GiB 复核线。上次批准的 161 个文件已在原批次处理。本轮新增整包的保留预算待 Owner 决定。[下载验收摘要](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Windows-Backend-Verification-9629ce5d.json)
+
+<a id="wps-xlsx-file-return"></a>
+### 2026-11-23 · WPS 修改表格后在后端找回同一行
+
+WPS 表格 12.1.0.29690 在一份合成 XLSX 副本上打开「第二页」A1，把「第二页中文」改为 `WPS native edit - museum inventory 73`，另存并重开读回新值。已交付的 Windows 独立后端分别导入两版，实际转换后，各自在 `sheet-第二页/row-1` 定位到相应的值。关闭并重开 Core 后，两件原件、两个转换、定位和损失报告可读，原件摘要仍为 `6fab69b1…`，另存件为 `b0bf3f14…`。WPS 使用独立进程，操作范围为项目合成工作簿。当前候选与原后端的 Office worker 字节相同。其他 Office 应用与格式须按产品及文件分别实测。回执 `j1-wps-xlsx-native/artifacts/roundtrip-authenticated.json`（SHA-256 `d69f5219c8caf2b4c9599683a5b50c7bcec6bce44a4639bafef9dfd450235d64`）。
