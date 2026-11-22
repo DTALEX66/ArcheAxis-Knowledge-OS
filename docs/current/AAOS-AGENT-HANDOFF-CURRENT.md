@@ -1,6 +1,6 @@
 # AAOS 当前接续导航：人类＋AI＋双侧连接
 
-源码安装现要求 Python 3.11.5 及以上，依据见[Owner 决定与依赖修复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。接续 Windows 包内网页核验见[随包解释器和两份固定网页的验证](AAOS-UI-FIRST-EXECUTION-20261009.md#packaged-document-web-readers)。
+当前 Windows 安装器和独立后端使用提交 `0b014775` 的后端。下载摘要、随包网页核验、同版本保资料换装及真实窗口回读见[当前候选实测](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。源码安装的 Python 最低版本和依据见[Owner 决定与依赖修复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。
 
 重建新版独立后端时沿[已执行的 161 项清理与恢复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取用容量基线。安装态学习验收已补入[纠错、再练习和重开实测](AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。
 

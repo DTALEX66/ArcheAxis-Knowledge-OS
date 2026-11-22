@@ -4929,3 +4929,25 @@ Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件
 断网 Windows Sandbox 全新安装 `0.1.00` 后，已安装 Core 在独立的合成学习库中接收 16 次业务请求。资料 v6 的首次作答记录为 `1975`、自评 `again`；纠错笔记指向这次作答及对应的资料版本。随包 OpenMAIC 工作进程生成 v7 的练习，新的作答记录为 `1957`、自评 `good`。冷重开后两次作答与各自的版本一致，纠错笔记可读回和导出。重复提交同一事件保留一条记录，篡改同一事件返回 HTTP 409。两次 Core 会话均正常退出。源学习库及 11 个原件的哈希复核一致。
 
 两次作答由脚本提交，模型调用为 0，真人独立掌握尚待验证。首轮探针把场景生成接口的成功码写成 201，原始回执保留于 `n100g6`。按该接口的 200 成功码复核后通过，见 `n100g7/artifacts/output/study-review.json`（SHA-256 `24750b3c3ff3474ac7811f9681d40a504dafa5c13fd1be4b02f7e4984d28f5bb`）和 `n100g7/artifacts/guest-run.json`。
+
+<a id="backend-web-candidate-0b014775"></a>
+
+### 2026-11-22 带网页核验修复的独立后端和 0.1.00 安装器
+
+从干净提交 `0b01477524f0999ed7fc9e4a4c376d3eaeadebbd` 锁定离线编译 Rust Core，SHA-256 为 `664a54f1c2235dcadfe4cdde63dc9f7ff0d73dc7d194fd8a1768661b0c40ca2f`。正式打包器使用同一提交的 worker 和随包 Python 3.13.14。清单共 16,909 个成员、1,494,515,289 字节，清单自身另计，SHA-256 为 `d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5`。相对前版增加 8,052 个文件，移除 0 个，另有 6 个更新。编译、打包回执均退出 0，源码一致。见 `doc-repair-core-161/artifacts/execution.json` 和 `doc-check-backend-161/artifacts/portable-storage-receipt.json`。
+
+从包内直接运行隔离解释器、网页核验 worker、LiteLLM 和 OpenAI SDK。两份固定网页分别提供搜索结果和正文，模拟服务收到一次含所选正文的请求。worker 读回模型回执，返回 `succeeded`；外部网页请求和模型请求均为 0。随后用包内真实 Core 导入 HTML 和 MHTML，正常关闭两次；重开后原文件名、API 的 MIME、原件 SHA-256 和字节完全一致。首次探针仅允许解释器的 runtime 子目录，漏掉 SDK 导入后合法出现的包根，原回执保留于 `doc-repair-backend-qual-161`。复核 7 个模块均来自包内 site-packages，最终回执 `doc-repair-backend-qual-v2-161/artifacts/standalone-document-repair.json` 的 SHA-256 为 `275d5d6981431ec016f9db306c46a6404d30c5c750cc072ebb47bed5ad018ab6`。
+
+在内存中生成标准 DEFLATE ZIP，再逐个解压核验全部成员，得到可独立恢复的 `AAOS-Backend-0.6.14-Windows-x64-0b014775.zip`，685,783,088 字节，SHA-256 为 `ccd6f2d0fcad7afa73ac244164c206fe705e69ae5e074b2c280288e769daf5ab`。GitHub 草稿附件 ID 为 `779387953`，远端大小和摘要均匹配。见 `upload-web-backend-161/artifacts/upload.json`。
+
+在断网 Windows Sandbox 中，沿用 0.1.00 Host、Tauri 模板和已核对的 NSIS 原生工具，按当前清单生成对应的安装与卸载文件表。实装后 16,909 个后端成员均逐字节相符。已安装的解释器可加载网页读取组件和模型 SDK，Core 健康接口返回 HTTP 200，正常退出 0。新版 `ArcheAxis.Knowledge_0.1.00_x64-setup-0b014775.exe` 为 550,812,829 字节，Windows 产品版本为 `0.1.0`，SHA-256 为 `8c9fe1f9b5e0e52f5f334f054132633a1cc08ae0c065d2964c9f8dd63cadff6c`。GitHub 草稿附件 ID 为 `779430874`，实装、安装器生产和远端回读见 `n100ns-repair1/artifacts/return/terminal.json`、`n100ns-repair1/artifacts/installer.json` 和 `upload-repaired-installer-161/artifacts/upload.json`。
+
+主机直接复用了只读输入，只接收一份安装器成品及校验回执。以实际大小再次预测后才从客体复制，封存后主机可读净增 2,054,864,533 字节，距既定复核线余 92,619,115 字节。前测、预测、后测均为 `NO_NEW_GROWTH_TRIGGER`，整体计量仍为 `PARTIAL`。旧 ZIP 和旧安装器继续按原摘要恢复。
+
+另一台断网 Windows Sandbox 先装原 `0.1.00` 并保存一份合成文档，卸载程序时保留工作区，再安装修复版 `0.1.00`。两个安装器和原版卸载器均退出 0，三个时点的工作区数据库 SHA-256 一致，修复版按原 ID 和版本读回同一文档。两份安装器的 Windows 数值版本均为 `0.1.0`。
+
+在同一安装工作区，同一份 HTML 先后交给实际 `0.1.0 → 0.1.1 → 0.1.0` 的 HTML worker，三个独立作业均成功，冷重开后保留三次结果。历史 worker 通过 Core 的受信会话协议选择。非法路由在启动时被拒绝；四个 API 会话正常关闭。安装后的 Tauri 窗口通过 `document_get` 读回这份文档 v1、正文和原件摘要，Host 及对应的 Core 均正常退出。前两轮分别修正了探针的块 ID 与 Windows 字符编码预期，原始回执保留。综合公开回执为 `x2-installed-probe-r3-20261122/artifacts/installed-html-history-public.json`，SHA-256 为 `00525c34506c6f0adb98616442f94e4abfe69884dcfb1c8e8d1edcfc1821d1c4`。
+
+功能源码提交 `f1854cc801f46211f9e8209f7e68ec49e5f01dfa` 的 GitHub CI 结论为成功。Python 3.12 主测试 8,659 项通过，598 项跳过，另有 612 项子测试通过；知识库测试 38 项通过，集成测试 47 项通过。此后 `0b014775` 的提交差异为容量治理和安装态学习记录。[该提交的云端作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45032546848)
+
+上述新 ZIP、安装器及 `AAOS-0.1.00-verification-0b014775.zip` 均已放入 GitHub 草稿。验收附件包含摘要、下载文件校验值、归档工具和已安装版本升降的公开回执；SHA-256 为 `b968d260fa87e4d8d2ee5d0711bb43cc312c349ce9502c5fbd3d6cac50845b80`。原六份附件均保留，三份新附件均已由独立的 GitHub 资产接口回读摘要。[对应 PR](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/315)

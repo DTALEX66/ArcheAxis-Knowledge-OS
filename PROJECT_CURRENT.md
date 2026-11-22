@@ -1,10 +1,10 @@
 # AAOS 当前状态与执行入口
 
-从源码安装时的 Python 最低版本及依赖变更见[源码安装记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。0.1.00 随包网页资料核验的缺口和修复验证见[包内正文提取记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#packaged-document-web-readers)。
+修复版 Windows 安装器使用 Owner 指定的版本名 `0.1.00`。安装器和独立后端 ZIP 的文件名、SHA-256、包内网页核验、同版本换装和原生窗口回读见[当前候选与下载核对](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。从源码安装仍要求 [Python 3.11.5 及以上](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。
 
 本地桌面候选使用 Owner 指定的版本名 `0.1.00`。安装器及独立后端对既有资料的验证见[构建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)，Windows 两版实装、回退时保留资料的步骤及原生窗口验收见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return)。
 
-完整 Windows 后端候选的目录、启动实测和旧副本恢复索引见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122)。
+原 Windows 后端候选的目录、启动实测和旧副本恢复索引见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122)。
 
 旧展开后端的 161 个文件可按[恢复清单与重建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取回。已安装桌面对应的学习后端完成了[纠错与跨版本再练习](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。
 
