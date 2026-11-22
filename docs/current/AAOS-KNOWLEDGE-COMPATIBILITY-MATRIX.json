@@ -628,6 +628,27 @@
       "receipt": ".project-local/runs/be268a2d33/syblock962-resume/artifacts/official-siyuan-block.json",
       "sha256": "86a06fb35ffc7d72b80f96ff586d6dcb4f239bc8529c537c45f7f947c4e3e824",
       "qualification": "The Windows release Core from 9629ce5d resumed the registered batch for an official SiYuan Spec 2 guide note. Its native block resolved the original PNG after import at the notebook-relative path. A second Core process reopened the same block and returned the same 1,589 bytes."
+    },
+    {
+      "id": "siyuan_spec2_native_text_copy",
+      "kind": "SIYUAN_NATIVE_PLAIN_TEXT_COPY_AFTER_COLD_CORE_READBACK",
+      "receipt": ".project-local/runs/be268a2d33/sy-return-export/artifacts/native-return.json",
+      "sha256": "6084a6278d2f183f845a97e51b1849cf138e19f745a37cc7c114bdb31db8093f",
+      "qualification": "One official Spec 2 note exported from an ordinary v2 document. The remaining source bytes and the PNG locator matched the original. The verifier copied the PNG separately."
+    },
+    {
+      "id": "siyuan_native_copy_upstream_readback",
+      "kind": "SIYUAN_DATAPARSER_AND_LUTE_READ_NATIVE_COPY",
+      "receipt": ".project-local/runs/be268a2d33/siyuan-upstream-reader-20261123/artifacts/native-return-receipt.json",
+      "sha256": "fb80e69cca711c6bd310c93395ec01e04c950efc1b57e68365b1a6f5e4f1ec00",
+      "qualification": "The Windows reader built at 794ce48a used the pinned SiYuan dataparser and Lute libraries. It recovered the exported paragraph and image block from the single returned note and resolved the verifier-supplied notebook PNG."
+    },
+    {
+      "id": "siyuan_native_copy_returned_to_aaos",
+      "kind": "SIYUAN_RETURNED_COPY_NEW_CORE_SOURCE_AND_COLD_NATIVE_BLOCK_READ",
+      "receipt": ".project-local/runs/be268a2d33/sy-return-reimport-live/artifacts/reimport.json",
+      "sha256": "7ff6ad9a2f94f3b2f23130c8b5487a8d1e2407f862ab7c62d7710fc63a412c1f",
+      "qualification": "The returned native file was imported, converted and saved to a distinct AAOS Document. The revised native block reopened after restart and the original document's first version remained readable."
     }
   ],
   "promotion_rule": "An AAOS authored/synthetic/local result or official documentation cannot promote an external platform direction or feature to PASS; require exact source/target versions, authorized material, mapping/losses, same-candidate consumer/restart/export evidence. NOT_APPLICABLE or deferral needs a referenced approved decision. UNKNOWN is not zero or supported.",
@@ -1684,7 +1705,7 @@
       "inherited_stage": "K3",
       "inherited_route": "官方导出/数据格式/API 待版本核验",
       "inherited_source_refs": [],
-      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace. In the later Windows source observation siyuan_native_block_assets_windows, a native block resolved the selected batch-root PNG and its original bytes after the workspace reopened. The 9629ce5d Windows release Core also resolved an official guide block to its PNG using the original notebook paths and returned identical bytes after a cold restart.",
+      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace. In the later Windows source observation siyuan_native_block_assets_windows, a native block resolved the selected batch-root PNG and its original bytes after the workspace reopened. The 9629ce5d Windows release Core also resolved an official guide block to its PNG using the original notebook paths and returned identical bytes after a cold restart. A later local client exported a native copy of one Spec 2 note after a versioned edit to its plain-text paragraph. The pinned upstream parser and BlockDOM renderer recovered the changed paragraph and original image locator from the returned note. Returning the same copy to AAOS created a distinct Source and Document with the original native IDs and revised paragraph.",
       "source_version": {
         "application_version": null,
         "application_observation": "UNVERIFIED",
@@ -1694,7 +1715,7 @@
       "target_version": {
         "application": "ArcheAxis Knowledge",
         "release_label": "0.6.14",
-        "qualification": "The 0.6.14 backend manifest identifies the reused Python interpreter. Core and text workers were built or loaded separately from the pinned source revision. The installation package for this combination was not tested."
+        "qualification": "The 0.6.14 backend manifest identifies the reused Python interpreter. Core and text workers were built or loaded separately from the pinned source revision. The installation package for this combination was not tested. The native-copy observation names the staged client and Core hashes separately."
       },
       "feature_inventory_status": "PARTIAL_DOCUMENTED",
       "remaining_discovery_axes": [
@@ -1779,6 +1800,33 @@
               "loss_report": "Coverage is limited to this guide note and its batch-root asset. SiYuan native write-back, SiYuan client behavior and installed AAOS desktop behavior remain unverified."
             }
           ]
+        },
+        {
+          "feature_key": "native_plain_text_copy",
+          "axis": "exchange",
+          "official_sources": [
+            "siyuan_native_document_spec_2_3",
+            "siyuan_guide_spec2_image_note",
+            "siyuan_guide_image_original"
+          ],
+          "requirement": "按原生块 ID 修改普通文档中的纯文本段落或标题，使用文档原 ID 另存 .sy 副本，保留其他原生数据及附件路径。",
+          "aaos_parity": "PARTIAL",
+          "acceptance_evidence": [
+            {
+              "observation_id": "siyuan_spec2_native_text_copy",
+              "source_version": "Spec 2 guide 20200915214115-42b8zma.sy from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4. Original SHA-256 585f1b003f8d86560c4512099e3c1b4ddeec89d2991af7000e5ec04ce8c144aa.",
+              "target_source_commit": "6f1f9c083bb18cde8e7e5c96a0da6199115f709c",
+              "target_source_patch_sha256": "f9d70e1e71a31d828989a62bab19755836f8a34ccf6c43af291131d624c436dc",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Python interpreter donor only. The test staged an exchange client from the local checkout and used the Windows release Core from 9629ce5d. The patch hash identifies the export test checkout.",
+              "core_override_sha256": "8eef9ead80ece402d52584254e3c570fdb1875a51244ef8b0ad616dcb0989d79",
+              "exchange_client_sha256": "8a701746689a457845a896524312de7b34ce02fcf3eb724d4b6cd4eb7fd2971e",
+              "consumer": "A completed folder conversion provided an ordinary v1 document. Editing native paragraph 20210104091255-8s7avcx to 思源资源校订 AAOS-SY-24 saved v2.",
+              "restart": "A separate Core session reopened v2 and the same native block. The original workspace and both original objects retained their recorded hashes.",
+              "export": "Native copy 7c8a8eaeb42f0b1a3677ddb501bdfac47dcd3b5a797b96ec11f41a37c7a95b65 retained the document filename and native IDs. Only the selected text and three updated timestamps changed. All other bytes matched.",
+              "loss_report": "One plaintext Spec 2 note. The note retained the PNG locator. The verifier copied the PNG into the output notebook separately. Rich-content editing, live SiYuan desktop, installed AAOS and incremental notebook sync remain unverified."
+            }
+          ]
         }
       ],
       "direction_results": {
@@ -1815,19 +1863,67 @@
           "losses": "Native paths remain unbound. One explicitly selected attachment was verified through an AAOS document-level relation. Automatic matches, native block targets, live SiYuan behavior and tab selection remain unverified."
         },
         "export": {
-          "state": "NOT_EXECUTED",
-          "evidence": [],
-          "losses": "UNKNOWN"
+          "state": "PARTIAL",
+          "evidence": [
+            {
+              "observation_id": "siyuan_spec2_native_text_copy",
+              "source_version": "Spec 2 guide 20200915214115-42b8zma.sy from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4. Original SHA-256 585f1b003f8d86560c4512099e3c1b4ddeec89d2991af7000e5ec04ce8c144aa.",
+              "target_source_commit": "6f1f9c083bb18cde8e7e5c96a0da6199115f709c",
+              "target_source_patch_sha256": "f9d70e1e71a31d828989a62bab19755836f8a34ccf6c43af291131d624c436dc",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Python interpreter donor only. The test staged an exchange client from the local checkout and used the Windows release Core from 9629ce5d. The patch hash identifies the export test checkout.",
+              "core_override_sha256": "8eef9ead80ece402d52584254e3c570fdb1875a51244ef8b0ad616dcb0989d79",
+              "exchange_client_sha256": "8a701746689a457845a896524312de7b34ce02fcf3eb724d4b6cd4eb7fd2971e",
+              "consumer": "A completed folder conversion provided an ordinary v1 document. Editing native paragraph 20210104091255-8s7avcx to 思源资源校订 AAOS-SY-24 saved v2.",
+              "restart": "A separate Core session reopened v2 and the same native block. The original workspace and both original objects retained their recorded hashes.",
+              "export": "Native copy 7c8a8eaeb42f0b1a3677ddb501bdfac47dcd3b5a797b96ec11f41a37c7a95b65 retained the document filename and native IDs. Only the selected text and three updated timestamps changed. All other bytes matched.",
+              "loss_report": "One plaintext Spec 2 note. The note retained the PNG locator. The verifier copied the PNG into the output notebook separately. Rich-content editing, live SiYuan desktop, installed AAOS and incremental notebook sync remain unverified."
+            }
+          ],
+          "losses": "One plaintext Spec 2 note. The note retained the PNG locator. The verifier copied the PNG into the output notebook separately. Rich-content editing, live SiYuan desktop, installed AAOS and incremental notebook sync remain unverified."
         },
         "external_aaos_external": {
-          "state": "NOT_EXECUTED",
-          "evidence": [],
-          "losses": "UNKNOWN"
+          "state": "PARTIAL",
+          "evidence": [
+            {
+              "observation_id": "siyuan_native_copy_upstream_readback",
+              "source_version": "Spec 2 guide 20200915214115-42b8zma.sy from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4. Original SHA-256 585f1b003f8d86560c4512099e3c1b4ddeec89d2991af7000e5ec04ce8c144aa.",
+              "target_source_commit": "6f1f9c083bb18cde8e7e5c96a0da6199115f709c",
+              "target_source_patch_sha256": "f9d70e1e71a31d828989a62bab19755836f8a34ccf6c43af291131d624c436dc",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Python interpreter donor only. The test staged an exchange client from the local checkout and used the Windows release Core from 9629ce5d. The patch hash identifies the export test checkout.",
+              "core_override_sha256": "8eef9ead80ece402d52584254e3c570fdb1875a51244ef8b0ad616dcb0989d79",
+              "exchange_client_sha256": "8a701746689a457845a896524312de7b34ce02fcf3eb724d4b6cd4eb7fd2971e",
+              "consumer": "SiYuan dataparser b57cb8bc7c17 and Lute 61eb27b6d434 read the returned Spec 2 file with the original document ID and 96 blocks. The paragraph text 思源资源校订 AAOS-SY-24 matched in the parsed block and rendered BlockDOM.",
+              "restart": "A separate Core session reopened v2 and the same native block. The original workspace and both original objects retained their recorded hashes.",
+              "export": "Rendered image block 20210512171633-u3iy2xx retained assets/siyuan-128-20210604092205-djd749a.png. The separately supplied 1,589-byte PNG matched the upstream original. Both note and PNG hashes were unchanged after reading.",
+              "loss_report": "One plaintext Spec 2 note. The note retained the PNG locator. The verifier copied the PNG into the output notebook separately. Rich-content editing, live SiYuan desktop, installed AAOS and incremental notebook sync remain unverified.",
+              "export_observation_id": "siyuan_spec2_native_text_copy",
+              "reader_source_commit": "794ce48a7a71e3d99d72d9ed1a13b7dfcb2fa73e",
+              "reader_exe_sha256": "adf8e96cb095ffcd19f858b41d9645abcbde80f10eca84ae391f17f21b92c029"
+            }
+          ],
+          "losses": "One plaintext Spec 2 note. The note retained the PNG locator. The verifier copied the PNG into the output notebook separately. Rich-content editing, live SiYuan desktop, installed AAOS and incremental notebook sync remain unverified."
         },
         "aaos_external_aaos": {
-          "state": "NOT_EXECUTED",
-          "evidence": [],
-          "losses": "UNKNOWN"
+          "state": "PARTIAL",
+          "evidence": [
+            {
+              "observation_id": "siyuan_native_copy_returned_to_aaos",
+              "source_version": "Exported Spec 2 guide copy, SHA-256 7c8a8eaeb42f0b1a3677ddb501bdfac47dcd3b5a797b96ec11f41a37c7a95b65, from the upstream reader observation siyuan_native_copy_upstream_readback.",
+              "target_source_commit": "794ce48a7a71e3d99d72d9ed1a13b7dfcb2fa73e",
+              "target_source_patch_sha256": "43f12b0b6d74c354a4e630d8159f1da0eaa988727ca377e92c469347ad8db5b6",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Interpreter donor only. The reimport receipt records the four worker file hashes, separate Core and staged client identities.",
+              "core_override_sha256": "8eef9ead80ece402d52584254e3c570fdb1875a51244ef8b0ad616dcb0989d79",
+              "exchange_client_sha256": "739ee132445293d0b7f28578c2798233ed6335d00637392fb54a9c75eb21d6f5",
+              "consumer": "Ordinary Core import accepted the returned file as a distinct Source. Its text conversion succeeded on attempt 1 and saved a separate v1 Document. Both sources and the original v1 Document remained readable.",
+              "restart": "A fresh session recovered 思源资源校订 AAOS-SY-24 from original block ID 20210104091255-8s7avcx. The native document ID remained 20200915214115-42b8zma.",
+              "export": "The input was the native .sy copy exported from AAOS and read by the upstream libraries. The new AAOS Source and Document retained the returned file's own revision.",
+              "loss_report": "Single plaintext note, read unchanged by the upstream libraries. This return did not exercise an external editor change, fresh attachment import, notebook sync or a desktop interaction."
+            }
+          ],
+          "losses": "Single plaintext note, read unchanged by the upstream libraries. This return did not exercise an external editor change, fresh attachment import, notebook sync or a desktop interaction."
         },
         "incremental_sync": {
           "state": "NOT_EXECUTED",

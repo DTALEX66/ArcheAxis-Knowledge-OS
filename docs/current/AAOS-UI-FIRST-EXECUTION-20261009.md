@@ -5061,3 +5061,19 @@ GitHub 既有草稿保存了这次构建的 Windows Core、前端资源和两份
 ### 2026-11-23 · WPS 修改表格后在后端找回同一行
 
 WPS 表格 12.1.0.29690 在一份合成 XLSX 副本上打开「第二页」A1，把「第二页中文」改为 `WPS native edit - museum inventory 73`，另存并重开读回新值。已交付的 Windows 独立后端分别导入两版，实际转换后，各自在 `sheet-第二页/row-1` 定位到相应的值。关闭并重开 Core 后，两件原件、两个转换、定位和损失报告可读，原件摘要仍为 `6fab69b1…`，另存件为 `b0bf3f14…`。WPS 使用独立进程，操作范围为项目合成工作簿。当前候选与原后端的 Office worker 字节相同。其他 Office 应用与格式须按产品及文件分别实测。回执 `j1-wps-xlsx-native/artifacts/roundtrip-authenticated.json`（SHA-256 `d69f5219c8caf2b4c9599683a5b50c7bcec6bce44a4639bafef9dfd450235d64`）。
+
+<a id="siyuan-native-copy-return"></a>
+
+### 2026-11-23 · 思源笔记往返与模型错答待审核候选
+
+支持思源转换的 `9629ce5d` Windows Release Core 从已完成的公开指南转换保存文档，按原生 ID 编辑段落，再次启动后读回第 2 版。第一次运行发现作业详情没有客户端读取的 `kind` 字段，在原库副本上修正后继续。导出的 Spec 2 文档沿用原文件名，只有该段正文和三个更新时间发生变化。其余原始 JSON 字节均一致。项目工作区中的原件保留。实现和适用范围见[交换操作合同](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#editing-a-siyuan-copy)和[源码 PR #320](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/320)。
+
+| 实际消费者 | 观察与回执 |
+| --- | --- |
+| 思源官方 dataparser 与 Lute，在 Windows 本机运行 | 用思源内核登记的两个上游库读取返回文件的 96 个块，目标块显示「思源资源校订 AAOS-SY-24」。图片块保留原相对路径，验收程序单独放回笔记本根的 1,589 字节 PNG 与上游原图同摘要。解析器报告无需内存修正。回执 `siyuan-upstream-reader-20261123/artifacts/native-return-receipt.json`，SHA-256 `fb80e69cca711c6bd310c93395ec01e04c950efc1b57e68365b1a6f5e4f1ec00`。[读回工具构建](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45057290241/job/137315227990) |
+| AAOS 重新导入返回件 | 新文件 SHA-256 为 `7c8a8eaeb42f0b1a3677ddb501bdfac47dcd3b5a797b96ec11f41a37c7a95b65`。Core 创建新来源，转换首次执行成功。新进程从原生块 ID 读回修改后的正文，同一隔离工作区的旧文档第 1 版仍可读。回执 `sy-return-reimport-live/artifacts/reimport.json`，SHA-256 `7ff6ad9a2f94f3b2f23130c8b5487a8d1e2407f862ab7c62d7710fc63a412c1f`。 |
+| 已上传的 `0b014775` 独立后端与单独下载的交换客户端 | 解压版客户端由已发布后端自带的 Python 启动 Core，从已有文档副本读取第 2 版的中文段落后正常关闭。分发启动器使用和正式入口一致的 `-X utf8`，可将中文结果重定向为 UTF-8 JSON。该旧包验证覆盖已有文档。对新原件的转换与返程使用上行所述新版 Core 和思源 worker。 |
+
+原生库渲染、完整思源桌面、整库同步及新版 AAOS 安装器分别登记。本轮覆盖单文档副本，附件布局由验收程序恢复。约 102 KiB 的交换客户端含中文使用说明和验收摘要，已追加至既有草稿。附件 ID `780112610`，104,348 字节，重新下载的 SHA-256 为 `2d971ff07c61b647ff1e9b00f398d1633f1fbf787c77521c61ab885c5c6d6489`，草稿共 16 项。[下载 Windows 交换客户端](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-SiYuan-Exchange-794ce48a.zip)
+
+同一 Windows Core 用机器身份将博物馆归档的 `C_known` 错答登记为待人工审核候选 `k_415fdb2c190ce8516cb6084e`。重启后搜索 `AppleDouble` 能找回该候选，原答、归档、冻结标准、评分和笔记五项引证均按哈希读回。已发表的评分保留 5/6，新增模型请求为 0。真人登记纠错及其后的独立复测仍待执行。回执 `museum-review-machine/artifacts/candidate.json`，SHA-256 `88b6d8035c390a202bea33e52221ab99ffe9a3f3f1be6986a56df4a3613e62d2`。

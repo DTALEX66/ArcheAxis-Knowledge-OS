@@ -1199,7 +1199,7 @@ Ordinary file import also accepts the ZIP through Core's archive conversion. It 
 
 ## 34. Packaged knowledge exchange
 
-The full backend configuration stages eight exchange clients inside the existing `shared` resource. From a Windows terminal, select the workspace database and use the format actions described in §§24, 27–30, 32, 33, 35 and 37. The exchange launcher also accepts `--backend-root` before the format name to use an existing backend installation with this client. The following command imports an offline Notion export.
+The full backend configuration stages nine exchange clients inside the existing `shared` resource. From a Windows terminal, select the workspace database and use the format actions described in §§24, 27–30, 32, 33, 35, 37 and 38. The exchange launcher also accepts `--backend-root` before the format name to use an existing backend installation with this client. The following command imports an offline Notion export.
 
 ~~~bat
 start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" notion import "D:\Exports\Projects.zip"
@@ -1278,7 +1278,20 @@ The reader handles Spec 2 and Spec 3 documents. It presents tab content in sourc
 
 A user may select an attachment as a separate ordinary Source through `POST /api/v1/imports`. On the saved document, append a `related` target with `kind=source`, its Source ID and original SHA-256 to `editor_json.attrs.archeaxis_relations`. Preserve the editor content and save through `PUT /api/v1/documents/{id}/draft` with the expected version. Read the target through `GET /api/v1/sources/{id}/original` and check the returned bytes against the pinned digest. This document-level relation leaves the native block locator unbound.
 
-For one official Spec 2 note and PNG, the v2 relation reopened after a cold restart. The existing AAOS portable Document export and import endpoints transferred both originals to an empty AAOS workspace. The restored v1 relation opened the same PNG through the importer's Source mapping. Both content-derived IDs kept the same values. Automatic attachment binding, desktop clicks and native SiYuan write-back remain unverified.
+For one official Spec 2 note and PNG, the v2 relation reopened after a cold restart. The existing AAOS portable Document export and import endpoints transferred both originals to an empty AAOS workspace. The restored v1 relation opened the same PNG through the importer's Source mapping. Both content-derived IDs kept the same values. The native block lookup above and the native-file return below have independent receipts.
+
+### Editing a SiYuan copy
+
+The exchange client uses the fixed Source revision and the ordinary AAOS Document versions. Use `save` with an existing successful SiYuan text job to get a Document ID, or select a previously saved Document whose editor blocks carry the native IDs. Use `blocks` to list its editable paragraphs and headings. The following example changes one plain-text block. For the standalone exchange client, run `exchange.cmd` in place of `start-backend.cmd exchange` from the unpacked backend directory.
+
+~~~bat
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan save JOB_ID
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan blocks --document DOCUMENT_ID
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan block --document DOCUMENT_ID BLOCK_ID --text "Revised paragraph"
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan export --document DOCUMENT_ID --output "D:\Returned\20200915214115-42b8zma.sy"
+~~~
+
+Choose an existing destination directory and the original native filename. The destination file must be new. With a supported text change, the export updates the selected text and the timestamps for the selected block, its block ancestors, enclosing heading sections and the document root. An unchanged projection returns the original bytes. This operation covers Spec 2 and 3 paragraphs and headings with a single text node and valid timestamps. Preserve the notebook-relative layout when placing existing attachments beside the returned note. The client exports the note file. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md) · [Download and Windows evidence](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return)
 
 When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
 
