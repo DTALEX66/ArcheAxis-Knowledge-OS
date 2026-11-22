@@ -10,7 +10,7 @@
 
 旧展开后端的 161 个文件可按[恢复清单与重建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取回。已安装桌面对应的学习后端完成了[纠错与跨版本再练习](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。
 
-后续源码已用思源两份原生中文文档实测读取、保存及冷重开，包括旧目录中已存原件的续做。范围与安装包版本见[思源读取记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-read)。
+后续源码已用思源两份原生中文文档实测读取、保存及冷重开，包括旧目录中已存原件的续做。范围与安装包版本见[思源读取记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-read)。同批资料按思源原块查找附件的后端入口见[原块附件记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-block-assets)。
 
 独立后端可解压本地模型补充包，双击 `start-fast-local.cmd` 启用结构化回答。启动、选库与模型准备见[中文使用说明](scripts/release/fast_local_profile/README.zh-CN.md)。下载文件、模型回答的实际评分，以及同版后端恢复 Office 资料的结果见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#portable-fast-local-office)。
 

@@ -25,6 +25,7 @@ pub mod project_observer;
 mod provider_learning;
 pub mod runtime;
 pub mod session_shutdown;
+mod siyuan_assets;
 mod teaching;
 mod ui_state;
 mod workspace_backup;
@@ -154,6 +155,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route(
             "/api/v1/ingest-batches/:batch_id/jobs",
             post(ingest_batches::enqueue),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/members/:ordinal/siyuan-blocks/:block/assets",
+            get(siyuan_assets::read),
         )
         .route(
             "/api/v1/ingest-batches/:batch_id/members/:ordinal/relations",

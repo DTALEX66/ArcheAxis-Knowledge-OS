@@ -1266,6 +1266,10 @@ The focused check runs with `python -m pytest tests/test_git_snapshot_exchange.p
 
 ## 38. Reading a SiYuan block document
 
+For a converted `.sy` file in a registered folder import, a host can request `GET /api/v1/ingest-batches/{batch_id}/members/{ordinal}/siyuan-blocks/{native_block_id}/assets`. Use the SiYuan block ID listed in the file's completed conversion. The reply pins the original note's Source ID and SHA-256 and identifies the conversion attempt. Each resolved attachment includes the imported target Source ID, SHA-256 and an `original_url` that returns its bytes. The lookup uses that folder's selected members. A missing or ambiguous member carries its own `unbound` reason. A known block with no recorded assets returns an empty list.
+
+This lookup concerns the original SiYuan block and a batch-root `assets/` member. Creating an editable AAOS block, transferring the batch to another workspace, and writing back to SiYuan are separate operations. The [current source and Windows check](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-block-assets) identify the version containing the read endpoint.
+
 Import a UTF-8 `.sy` file through the ordinary source or folder entry and choose the reading conversion. The existing `text` job resolves the file as `application/x-siyuan`. Its `text` output contains the readable projection. The `loss_report` output exposes source block IDs, parent IDs, text spans, block references, local attachment paths and inline memos in `params.format`.
 
 The reader handles Spec 2 and Spec 3 documents. It presents tab content in source order and marks references outside the file as unbound. Local asset paths are locators. Unimplemented node types are reported among the omitted subtrees. The source original can be returned unchanged through `GET /api/v1/sources/{id}/original`. Native notebook archives, encrypted documents, other spec versions, visual layouts, sync and writing back to SiYuan have separate requirements. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)
