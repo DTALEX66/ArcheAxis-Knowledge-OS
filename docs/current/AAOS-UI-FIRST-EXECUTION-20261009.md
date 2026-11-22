@@ -4902,3 +4902,14 @@ Owner 选择将源码安装最低版本从 Python 3.11.0 提至 3.11.5。这个�
 提交 `c7ac5ca0` 的 GitHub CI 在锁定的 Soup Sieve 2.10 上报出三条公告。上游提供的修复版本要求 Python 3.11.5 或以上。源码依赖现要求 `soupsieve>=4.0`，锁定到 `4.1.3`，其余第三方包版本逐项相同。见[原 CI 作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45026979375/job/137222496382)和[上游包信息](https://pypi.org/project/soupsieve/4.1.3/)。
 
 在隔离目录装入锁定哈希对应的发行包，与 Beautiful Soup 4.15.0 一起运行。使用固定 HTML 的网页资料核验、检索结果读取以及版本与清单检查共 7 项通过，见 `upl-soup-affected/artifacts/dependency-check.json`。0.1.00 采用的独立后端解释器是 Python 3.13.14；以其隔离模式检查时，网页核验脚本依赖的 `bs4`、`soupsieve`、`trafilatura` 均不可导入。该包的网页核验能力仍有运行时依赖缺口。
+
+提交 `8fbd908ba39576660f9dd144c9be59f5038a3e33` 的 GitHub 依赖审计和 3.11、3.13 兼容作业通过。[对应云端作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45029149557/job/137229088613)
+
+<a id="packaged-document-web-readers"></a>
+### 2026-11-22 随包解释器读取搜索结果和网页正文
+
+正式后端打包器对带 `machine/document_check.py` 的预制解释器，使用 uv 从项目锁解析 Beautiful Soup、Trafilatura 和 LiteLLM 在目标 Windows/Python 上的依赖，包括各自需要的可选功能。已装且版本相符的组件复用，缺件从所选 `--dep-source` 复制并纳入清单。打包器随后用随包解释器执行 CSS 选择、正文提取及模型客户端加载。由 uv 直接生成解释器的打包路径也执行这一步。终端用户无需另装 uv。
+
+用 0.1.00 对应清单中的解释器和原网页核验脚本，加上独立目录中的修复成员实测。Windows 目标共需 21 个发行包，已有 `lxml` 和 `typing-extensions`，补入另外 19 个。两份固定 HTML 分别模拟搜索响应和文章响应。实际核验脚本选出一条链接、抽取正文，并生成搜索和文章两条回执。该轮使用本地响应样本，云端模型调用为 0。成员共 3,044 项、41,789,109 字节。实测回执 `web-doc-parse/artifacts/document-web.json` 的 SHA-256 为 `4bae67fec4514a93b1362f0763d44f8443fe3288eb644da8c31b24e7c029e1e9`。下载草稿中原安装包的内容以其原始清单为准。
+
+原安装包在提交正文给模型时还缺 LiteLLM。把网页读取和 SDK 合并核对后，锁定依赖合计 65 个，原包具备 20 个，另外 45 个包含 8,052 项、112,850,254 字节。原包解释器和原核验脚本从独立目录加载这些成员，依次读取两个网页样本、通过真实 LiteLLM/OpenAI SDK 生成请求，并解析模拟服务返回的模型名、结束原因和用量。模拟传输收到一次含预期正文的请求，核验返回 `succeeded`。外部网络及付费模型调用为 0。回执 `doc-sdk-donor/artifacts/document-check.json` 的 SHA-256 为 `61c45e1f05a8a8983872172c67be981e2414081821b51e988ad7a1c34cf22d72`。

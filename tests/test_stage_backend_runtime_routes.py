@@ -275,6 +275,29 @@ def test_prebuilt_text_stage_can_supply_its_commonmark_reader(tmp_path, monkeypa
     assert check.stdout.strip() == "h1"
 
 
+def test_prebuilt_document_check_uses_locked_reader_dependencies(tmp_path):
+    runtime, source = tmp_path / "runtime", tmp_path / "wheel-input"
+    site = runtime / "Lib/site-packages"
+
+    def distribution(root, name, version):
+        info = root / f"{name}-{version}.dist-info"
+        info.mkdir(parents=True)
+        (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: {version}\n", encoding="utf-8")
+        (info / "RECORD").write_text(f"{name}.py,,\n", encoding="utf-8")
+        (root / f"{name}.py").write_bytes(b"")
+
+    locked = {"beautifulsoup4": "4.15.0", "soupsieve": "4.1.3", "trafilatura": "2.1.0"}
+    distribution(site, "beautifulsoup4", locked["beautifulsoup4"])
+    distribution(source, "trafilatura", locked["trafilatura"])
+    with pytest.raises(ValueError, match="soupsieve==4.1.3.*--dep-source"):
+        stager.document_check_additions(locked, runtime, source, [])
+    distribution(source, "soupsieve", locked["soupsieve"])
+    assert stager.document_check_additions(locked, runtime, source, ["trafilatura"]) == ["soupsieve"]
+    distribution(site, "soupsieve", "2.10")
+    with pytest.raises(ValueError, match="clean runtime.*soupsieve==4.1.3"):
+        stager.document_check_additions(locked, runtime, source, [])
+
+
 @pytest.mark.parametrize("bad", ["missing", "changed", "directory"])
 def test_app_local_donor_refusal_precedes_output(tmp_path, monkeypatch, bad):
     runtime = tmp_path / "runtime"

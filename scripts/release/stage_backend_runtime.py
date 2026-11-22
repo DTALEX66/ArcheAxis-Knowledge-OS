@@ -37,6 +37,7 @@ import stat
 import subprocess
 import sys
 import zipfile
+from importlib import metadata
 from pathlib import Path, PurePosixPath
 
 if "scripts.release.runtime_growth" in sys.modules:
@@ -75,6 +76,20 @@ COURSE_DONORS = ("app/contracts/courseware_v1.py", "app/contracts/general_learni
 # from the same explicit --dep-source used by the other packaged workers.
 COURSE_DISTRIBUTIONS = ("pydantic", "pydantic-core", "annotated-types",
                         "typing-extensions", "typing-inspection")
+
+DOCUMENT_CHECK_SCRIPT = "machine/document_check.py"
+DOCUMENT_CHECK_PACKAGES = ("beautifulsoup4", "trafilatura", "litellm")
+DOCUMENT_CHECK_PROBE = """import os
+os.environ['LITELLM_LOCAL_MODEL_COST_MAP'] = 'True'
+from litellm import completion
+from bs4 import BeautifulSoup
+from trafilatura import extract
+text = 'Packaged article text is available for document checking. ' * 8
+html = '<html><body><main><article><p>' + text + '</p></article></main></body></html>'
+link = BeautifulSoup('<a class="result-link" href="/article">Article</a>', 'html.parser').select_one('a.result-link')
+if link is None or link.get('href') != '/article' or 'Packaged article text' not in (extract(html) or ''):
+    raise RuntimeError('search-result selector or article extraction failed')
+"""
 
 # A directory application loaded by the bundled interpreter. Its namespace and
 # private dependencies stay out of the Core worker interpreter's import path.
@@ -964,6 +979,51 @@ def exchange_dependencies(runtime: Path, runtime_additions) -> list[str]:
             if name not in selected and distribution_files(name, site) is None]
 
 
+def locked_document_check_packages(repository: Path, runtime: Path) -> dict[str, str]:
+    """Let the build's uv resolve extras and Windows markers from the existing lock."""
+    python_version = subprocess.check_output(
+        [str(runtime / "python.exe"), "-I", "-B", "-c", "import platform; print(platform.python_version())"],
+        text=True, timeout=30,
+    ).strip()
+    command = ["uv", "tree", "--frozen", "--offline", "--no-python-downloads", "--no-default-groups",
+               "--python-platform", "x86_64-pc-windows-msvc", "--python-version", python_version,
+               "--format", "json"]
+    for name in DOCUMENT_CHECK_PACKAGES:
+        command.extend(("--package", name))
+    graph = json.loads(subprocess.check_output(command, cwd=repository, timeout=60))
+    locked = {node["name"]: node["version"] for node in graph["resolution"].values() if node["kind"] == "package"}
+    if not set(DOCUMENT_CHECK_PACKAGES).issubset(locked):
+        raise ValueError("project lock does not include the document check dependencies")
+    return locked
+
+
+def document_check_additions(locked: dict[str, str], runtime: Path, source: Path | None, selected) -> list[str]:
+    """Reuse matching bundled packages and copy missing ones from the chosen donor."""
+    def versions(site):
+        found = {}
+        if site is not None:
+            for dist in metadata.distributions(path=[str(site)]):
+                name = canonical_distribution_name(dist.metadata.get("Name", ""))
+                if name in locked:
+                    found.setdefault(name, set()).add(dist.version)
+        return found
+
+    installed = versions(runtime / "Lib/site-packages")
+    donors = versions(source)
+    selected = {canonical_distribution_name(name) for name in selected}
+    additions = []
+    for name, version in locked.items():
+        if name in installed and installed[name] != {version}:
+            raise ValueError(f"document check needs a clean runtime or one with {name}=={version}; "
+                             f"found {sorted(installed[name])}")
+        if name in selected or name not in installed:
+            if donors.get(name) != {version} or distribution_files(name, source) is None:
+                raise ValueError(f"document check needs {name}=={version} with a RECORD in --dep-source")
+            if name not in selected:
+                additions.append(name)
+    return additions
+
+
 def stage_exchange_client(root: Path, sources: dict[str, Path], dependencies: list[str], dep_source: Path | None):
     target = root / "shared/exchange"
     filesystem_path(target).mkdir(parents=True)
@@ -1170,6 +1230,9 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
     tree(source, validate=reject_reparse if in_place else None,
          interpreter_binding=args._interpreter_binding if in_place else None)
     tree(args.workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    if not in_place and (args.workers / DOCUMENT_CHECK_SCRIPT).is_file():
+        locked = locked_document_check_packages(repository or DETECTOR_SOURCE, args.runtime)
+        args.dep.extend(document_check_additions(locked, args.runtime, args.dep_source, args.dep))
     if (args.workers / "document/worker_text.py").is_file() and args.dep_source is not None and not in_place:
         # Minimal older interpreters can still project text. Add the CommonMark reader
         # when the selected dependency source and target together supply its closure.
@@ -1575,6 +1638,12 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
             raise ValueError("--dep requires --dep-source")
         for name in args.dep:
             dependencies.append(copy_distribution(name, args.dep_source, site_packages))
+
+    if (root / "workers" / DOCUMENT_CHECK_SCRIPT).is_file():
+        check = subprocess.run([str(root / "runtime/python.exe"), "-I", "-B", "-c", DOCUMENT_CHECK_PROBE],
+                               cwd=root, capture_output=True, text=True, timeout=45)
+        if check.returncode:
+            raise ValueError("Bundled document check cannot load its readers and model client: " + check.stderr.strip()[-600:])
 
     exchange_packages = []
     if args._exchange_sources:
