@@ -160,7 +160,9 @@ async fn explicit_cancel_runtime_closes_only_matching_request_without_stopping_p
         .parent()
         .unwrap()
         .to_owned();
-    let python = root.join(".venv/Scripts/python.exe");
+    let python = std::env::var_os("ARCHEAXIS_PYTHON")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| root.join(".venv/Scripts/python.exe"));
     assert!(
         python.is_file(),
         "pinned existing Python required; absence is not a pass"

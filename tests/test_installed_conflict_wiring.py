@@ -108,11 +108,25 @@ def test_transport_failure_not_swallowed():
 
 def test_initializer_correct_db_before_host_and_mandatory_nsis_call():
     # Structural entry checks supplement behavior contracts; not runtime evidence.
-    text=HARNESS.read_text(encoding='utf-8-sig')
-    assert 'workspace_name="archeaxis.sqlite"' in text
-    assert 'EXISTING_OWNED_LAUNCHER_TERMINATE_REAP' in text
-    assert 'assert init_child.poll() is not None' in text
-    assert text.index('fixture = conflict.initialize_fixture') < text.index('        launch()\n        if args.installed_draft_conflict_loop:')
+    source = HARNESS.read_text(encoding='utf-8-sig')
+    main = next(node for node in TREE.body if isinstance(node, ast.FunctionDef) and node.name == 'main')
+    journey = next(node for node in main.body if isinstance(node, ast.Try) and any(
+        isinstance(statement, ast.Expr) and ast.unparse(statement) == 'launch()'
+        for statement in node.body
+    ))
+    first_launch = next(index for index, statement in enumerate(journey.body)
+                        if isinstance(statement, ast.Expr) and ast.unparse(statement) == 'launch()')
+    initialization, conflict_ui = [
+        index for index, statement in enumerate(journey.body)
+        if isinstance(statement, ast.If) and ast.unparse(statement.test) == 'args.installed_draft_conflict_loop'
+    ]
+    assert initialization < first_launch < conflict_ui
+    initializer = ast.get_source_segment(source, journey.body[initialization])
+    assert 'workspace_name="archeaxis.sqlite"' in initializer
+    assert 'fixture = conflict.initialize_fixture' in initializer
+    assert 'EXISTING_OWNED_LAUNCHER_TERMINATE_REAP' in initializer
+    assert 'assert init_child.poll() is not None' in initializer
+    assert 'conflict.run_ui(fixture,' in ast.get_source_segment(source, journey.body[conflict_ui])
     script=(ROOT/'desktop/scripts/verify_nsis_install.ps1').read_text(encoding='utf-8-sig')
     assert '--installed-draft-conflict-loop' in script
     assert 'actual installed document conflict recovery journey failed' in script

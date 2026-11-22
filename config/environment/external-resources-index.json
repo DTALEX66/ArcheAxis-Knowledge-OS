@@ -4,8 +4,8 @@
   "probed": true,
   "probe_workdir": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\zc1extidx-20261030\\tmp\\resource-probe",
   "manifest": "config/environment/capability-requirements.yaml",
-  "manifest_sha256": "40c60cf1fc5119a00081bac9334621084c46b3a49ec42c679d277cf699596580",
-  "manifest_updated": "2026-10-25",
+  "manifest_sha256": "54c508b4a6eb3ba7e41fd38fd95297131b3370f83123e1b34b64d62e1bf7ae62",
+  "manifest_updated": "2026-11-22",
   "roots_declared_by": [
     "ARCHEAXIS_EXTERNAL_ROOT",
     "OS_EXTERNAL_CONFIG"
@@ -36,7 +36,7 @@
       "purpose": "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）",
       "platform": "windows-x64",
       "host_platform": "windows-x64",
-      "version_range": ">=3.11,<3.15",
+      "version_range": ">=3.11.5,<3.15",
       "version_identification": "python --version 第一行",
       "pinned_version_observed": "Python 3.14.6",
       "resolvable_location": "10-toolchains/scoop/apps/python/current/python.exe",
@@ -52,7 +52,7 @@
         "ci",
         "tests"
       ],
-      "healthcheck_command": "python --version",
+      "healthcheck_command": "python -I -B -c \"import sys; print('Python', sys.version.split()[0]); sys.exit(not (3, 11, 5) <= sys.version_info[:3] < (3, 15))\"",
       "detection": {
         "kind": "command",
         "ceiling": "VERSION_PROBED",
@@ -61,7 +61,10 @@
             {
               "command": [
                 "python.exe",
-                "--version"
+                "-I",
+                "-B",
+                "-c",
+                "import sys; print('Python', sys.version.split()[0]); sys.exit(not (3, 11, 5) <= sys.version_info[:3] < (3, 15))"
               ],
               "returncode": 0,
               "matched": "Python 3.14.6"
@@ -550,7 +553,7 @@
       "purpose": "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）；引擎探针用它**自己的** python 跑，不再借 uv 顶替",
       "platform": "windows-x64",
       "host_platform": "windows-x64",
-      "version_range": "python>=3.11",
+      "version_range": "python>=3.11.5",
       "version_identification": "<ci-venv>/Scripts/python.exe --version 第一行",
       "pinned_version_observed": "Python 3.12.13",
       "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
@@ -565,7 +568,7 @@
         "ci",
         "tests"
       ],
-      "healthcheck_command": "<ci-venv>/Scripts/python.exe --version",
+      "healthcheck_command": "<ci-venv>/Scripts/python.exe -I -B -c \"import sys; print('Python', sys.version.split()[0]); sys.exit(sys.version_info[:3] < (3, 11, 5))\"",
       "detection": {
         "kind": "command",
         "ceiling": "VERSION_PROBED",
@@ -574,7 +577,10 @@
             {
               "command": [
                 "python.exe",
-                "--version"
+                "-I",
+                "-B",
+                "-c",
+                "import sys; print('Python', sys.version.split()[0]); sys.exit(sys.version_info[:3] < (3, 11, 5))"
               ],
               "returncode": 0,
               "matched": "Python 3.12.13"

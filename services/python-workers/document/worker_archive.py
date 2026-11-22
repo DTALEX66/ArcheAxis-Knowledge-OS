@@ -28,6 +28,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import stat
 import sys
 import tarfile
@@ -35,12 +36,15 @@ import zipfile
 from pathlib import Path
 
 ENGINE = "python-worker-archive"
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.3.1"
 # R08: identity advertised in the sidecar handshake for this route.
 WORKER_IDENTITY = "python-worker-archive-ndjson"
 MEMBER_CAP = 5000
 LISTED_CAP = 2000
 NESTED_SUFFIXES = (
+    ".apkg",
+    ".colpkg",
+    ".jex",
     ".tar",
     ".tar.gz",
     ".tgz",
@@ -215,7 +219,29 @@ def _read_declared_member(container, info) -> bytes:
     return bytes(payload)
 
 
-def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dict], list[str]]:
+def _finder_metadata(container, info, names):
+    """Identify Finder records by name and header, paired to their file when applicable."""
+    leaf = info.filename.rsplit("/", 1)[-1]
+    if leaf == ".DS_Store":
+        kind, header = "finder_store", b"\x00\x00\x00\x01Bud1"
+    elif leaf.startswith("._") and len(leaf) > 2:
+        relative = info.filename.removeprefix("__MACOSX/")
+        folder, sep, _ = relative.rpartition("/")
+        if folder + sep + leaf[2:] not in names:
+            return None
+        kind, header = "appledouble_v2", b"\x00\x05\x16\x07\x00\x02\x00\x00"
+    else:
+        return None
+    try:
+        with container.open(info) as member:
+            if member.read(len(header)) == header:
+                return kind
+    except Exception:  # The ordinary reader records decompression and integrity errors.
+        pass
+    return None
+
+
+def _extract_members(members, container, out_dir: Path | None, *, finder_records=None) -> tuple[list[dict], list[str]]:
     """Write the members the Core may import, and declare each one by digest.
 
     The worker cannot enqueue anything (it holds no database handle), so it does the
@@ -233,6 +259,7 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
     reserved_bytes = 0
     attempts = 0
     files = [info for info in members if not info.is_dir()]
+    names = {info.filename.rstrip("/") for info in members} if finder_records is not None else set()
     for index, info in enumerate(files, start=1):
         if attempts >= MEMBER_JOB_CAP:
             problems.append(
@@ -242,6 +269,11 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
         if isinstance(info.file_size, bool) or not isinstance(info.file_size, int) or info.file_size < 0:
             problems.append(f"member {info.filename!r} has an invalid declared size")
             continue
+        if finder_records is not None and index <= MEMBER_CAP and not (info.flag_bits & 0x1):
+            kind = _finder_metadata(container, info, names)
+            if kind:
+                finder_records.append({"name": info.filename, "kind": kind})
+                continue
         if reserved_bytes + info.file_size > MEMBER_BYTES_CAP:
             problems.append(
                 f"member byte budget of {MEMBER_BYTES_CAP} reached; later members were not attempted"
@@ -371,9 +403,198 @@ def _open_container(path):
         raise ValueError(f"unreadable archive: {type(error).__name__}") from error
 
 
-def extract(path: str, member_dir: Path | None = None) -> dict:
+_JOPLIN_ID = r"[0-9a-f]{32}"
+_JOPLIN_ITEM = re.compile(rf"({_JOPLIN_ID})\.md")
+_JOPLIN_RESOURCE = re.compile(rf"resources/({_JOPLIN_ID})(?:\.[^/]+)?")
+_JOPLIN_REFERENCE = re.compile(rf":/({_JOPLIN_ID})(?![0-9a-fA-F])")
+_JOPLIN_KINDS = {"1": "notes", "2": "notebooks", "4": "resources", "5": "tags", "6": "note_tags"}
+
+
+def _joplin_record(raw: bytes, expected_id: str) -> tuple[dict, str]:
+    # Joplin BaseItem.serialize places the properties after the last blank line.
+    # Scanning backwards keeps colon-containing lines and blank paragraphs in the actual note.
+    lines = raw.decode("utf-8-sig").replace("\r\n", "\n").rstrip("\n").split("\n")
+    start = len(lines)
+    fields = {}
+    while start and lines[start - 1].strip():
+        start -= 1
+        key, colon, value = lines[start].partition(":")
+        if not colon or not key.strip() or key.strip() in fields:
+            raise ValueError("invalid terminal item properties")
+        fields[key.strip()] = value.strip()
+    if fields.get("id") != expected_id or not fields.get("type_"):
+        raise ValueError("missing item type or ID does not match the member name")
+    header = lines[:start - 1] if start else []
+    fields["title"] = header[0] if header else ""
+    return fields, "\n".join(header[2:])
+
+
+def _joplin_projection(container, members, extracted):
+    """Resolve the exchange graph by Joplin IDs, independently of archive order and display names."""
+    graph = {kind: [] for kind in _JOPLIN_KINDS.values()}
+    records = {}
+    bodies = {}
+    payloads = {}
+    offered = {entry["name"]: entry for entry in extracted}
+    losses = []
+    for info in members:
+        if info.is_dir():
+            continue
+        name = info.filename.removeprefix("./")
+        payload_id = _JOPLIN_RESOURCE.fullmatch(name)
+        if payload_id:
+            rid = payload_id.group(1)
+            if rid in payloads:
+                payloads[rid] = None
+                losses.append(f"multiple resource payloads for {rid}")
+                continue
+            entry = offered.get(info.filename)
+            digest = entry["sha256"] if entry else hashlib.sha256(_read_declared_member(container, info)).hexdigest()
+            payloads[rid] = {"payload_member": info.filename, "payload_sha256": digest, "payload_bytes": info.file_size}
+            continue
+        item_id = _JOPLIN_ITEM.fullmatch(name)
+        if not item_id:
+            losses.append(f"unmapped JEX member: {info.filename}")
+            continue
+        rid = item_id.group(1)
+        if rid in records:
+            raise ValueError(f"duplicate Joplin item ID: {rid}")
+        try:
+            fields, body = _joplin_record(_read_declared_member(container, info), rid)
+        except ValueError as exc:
+            losses.append(f"{info.filename}: {exc}")
+            continue
+        kind = _JOPLIN_KINDS.get(fields["type_"])
+        if not kind or fields.get("encryption_applied", "0") != "0":
+            losses.append(f"{info.filename}: unsupported type {fields['type_']} or encrypted metadata; original retained")
+            continue
+        # Other native properties remain in the byte-preserved member. Only these fields
+        # participate in this projection; never put an entire body or ciphertext in a loss receipt.
+        item = {key: fields[key] for key in (
+            "id", "title", "parent_id", "created_time", "updated_time", "user_created_time", "user_updated_time",
+            "note_id", "tag_id", "mime", "filename", "file_extension", "size", "markup_language",
+            "is_todo", "todo_due", "todo_completed", "source_url", "encryption_blob_encrypted",
+        ) if key in fields}
+        item["member"] = info.filename
+        graph[kind].append(item)
+        records[rid] = kind
+        if kind == "notes":
+            bodies[rid] = body
+    if not records:
+        raise ValueError("JEX contains no readable Joplin item records")
+
+    notebooks = {item["id"]: item for item in graph["notebooks"]}
+    tags = {item["id"]: item["title"] for item in graph["tags"]}
+    note_tags = {}
+    for edge in graph["note_tags"]:
+        note, tag = edge.get("note_id"), edge.get("tag_id")
+        if note in bodies and tag in tags:
+            note_tags.setdefault(note, set()).add(tag)
+        else:
+            losses.append(f"unresolved note/tag relation {edge['id']}: {note}, {tag}")
+    for item in graph["resources"]:
+        rid = item["id"]
+        payload = payloads.pop(rid, None)
+        if not payload:
+            losses.append(f"resource {rid} has no unique payload")
+            continue
+        item.update(payload)
+        if item.get("encryption_blob_encrypted", "0") != "0":
+            losses.append(f"resource {rid} retains encrypted bytes")
+        if item.get("size") and item["size"] != str(item["payload_bytes"]):
+            losses.append(f"resource {rid} metadata size differs from archived bytes")
+    losses.extend(f"payload {rid} has no readable resource metadata" for rid in payloads)
+
+    chunks = []
+    offset = 0
+    for item in graph["notes"]:
+        rid = item["id"]
+        names = []
+        seen = set()
+        parent = item.get("parent_id")
+        while parent:
+            if parent not in notebooks or parent in seen:
+                losses.append(f"note {rid} has an incomplete notebook path at {parent}")
+                break
+            seen.add(parent)
+            names.append(notebooks[parent]["title"])
+            parent = notebooks[parent].get("parent_id")
+        item["notebook_path"] = names[::-1]
+        item["tag_ids"] = sorted(note_tags.get(rid, ()))
+        body = bodies[rid]
+        item["reference_ids"] = list(dict.fromkeys(_JOPLIN_REFERENCE.findall(body)))
+        for target in item["reference_ids"]:
+            if records.get(target) not in {"notes", "resources"}:
+                losses.append(f"note {rid} references unavailable item {target}")
+        heading = " / ".join([*item["notebook_path"], item["title"]])
+        labels = ", ".join(tags[tag] for tag in item["tag_ids"])
+        prefix = f"# {heading}\n" + (f"Tags: {labels}\n" if labels else "") + "\n"
+        chunks.extend([prefix, body, "\n\n"])
+        item["body_start"] = offset + len(prefix)
+        item["body_end"] = item["body_start"] + len(body)
+        offset = item["body_end"] + 2
+    return "".join(chunks), graph, losses
+
+
+def _anki_kernel():
+    package_name = "_aaos_archive_compat"
+    if package_name not in sys.modules:
+        location = Path(__file__).resolve()
+        for root in (location.parents[2], location.parents[3]):
+            folder = root / "shared/compat"
+            if (folder / "import_session.py").is_file():
+                spec = importlib.util.spec_from_file_location(
+                    package_name, folder / "__init__.py", submodule_search_locations=[str(folder)])
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[package_name] = module
+                spec.loader.exec_module(module)
+                break
+        else:
+            raise ValueError("Anki collection reader missing from the worker runtime")
+    return importlib.import_module(package_name + ".import_session")
+
+
+def _anki_projection(container, member_dir, collection_backup):
+    kernel = _anki_kernel()
+    package = kernel.anki_package
+    version, collection, data = package.collection_bytes(container, MEMBER_BYTES_CAP)
+    graph = kernel.read_anki_collection(data, review_limit=MEMBER_CAP)
+    entries = package.media_entries(container, version, MEMBER_BYTES_CAP)
+    indexed = {}
+    for entry in entries:
+        _, name, size, _ = entry
+        info = zipfile.ZipInfo(name)
+        info.file_size = size
+        indexed[info] = entry
+    media = package.MediaSource(container, version, indexed, MEMBER_BYTES_CAP)
+    extracted, problems = _extract_members(list(indexed), media, member_dir)
+    graph.update(package_version=version, collection_member=collection, aaos_operation="read_only_projection",
+                 native_import_semantics="replace_collection" if collection_backup else "merge_deck",
+                 media=[{"slot": slot, "name": name, "bytes": size} for slot, name, size, _ in entries],
+                 scheduling_origin="imported_from_source")
+    chunks = []
+    offset = 0
+    for note in graph["notes"]:
+        labels = graph["note_types"].get(note["note_type_id"], {}).get("fields", {})
+        lines = [f"{note['note_type']} · {note['guid']}"]
+        for index, field in enumerate(note["fields"]):
+            lines.extend((labels.get(index, f"Field {index + 1}"), field))
+        body = "\n".join(lines) + "\n\n"
+        note["text_start"], note["text_end"] = offset, offset + len(body)
+        offset += len(body)
+        chunks.append(body)
+    return "".join(chunks), graph, extracted, problems
+
+
+def extract(path: str, member_dir: Path | None = None, *, media_type: str | None = None) -> dict:
+    finder_records = []
+    jex = media_type == "application/x-joplin-jex" if media_type else Path(path).suffix.lower() == ".jex"
+    name = Path(path).name.lower()
+    collection_backup = (media_type == "application/x-anki-collection" if media_type else
+                         name.endswith(".colpkg") or name == "collection.apkg")
+    anki = collection_backup or (media_type == "application/x-anki-package" if media_type else name.endswith(".apkg"))
     try:
-        with _open_container(path) as container:
+        with (_TarContainer(path) if jex else _open_container(path)) as container:
             members = container.infolist()
             listing = [
                 (
@@ -387,7 +608,15 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
             ]
             encrypted = [info.filename for info in members if info.flag_bits & 0x1]
             methods = sorted({info.compress_type for info in members})
-            extracted, extraction_problems = _extract_members(members, container, member_dir)
+            if anki:
+                note_text, graph, extracted, extraction_problems = _anki_projection(container, member_dir, collection_backup)
+            else:
+                extracted, extraction_problems = _extract_members(
+                    members, container, member_dir,
+                    finder_records=finder_records if isinstance(container, zipfile.ZipFile) else None,
+                )
+            if jex:
+                note_text, graph, jex_losses = _joplin_projection(container, members, extracted)
     except zipfile.BadZipFile as error:
         # a corrupt container must fail loudly; an empty success would be a lie
         raise ValueError(f"unreadable archive: {error}") from error
@@ -400,9 +629,11 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
     # The projection: the inventory as text, one member per line, deterministically
     # ordered exactly as the container lists them.
     text = "".join(f"{name}\t{size}\n" for name, size, *_ in listing[:LISTED_CAP])
+    if (jex or anki) and note_text:
+        text = note_text
     structure = _line_anchors(text)
     losses: list[str] = []
-    if len(listing) > LISTED_CAP:
+    if not ((jex or anki) and note_text) and len(listing) > LISTED_CAP:
         losses.append(
             f"only the first {LISTED_CAP} members are projected; the container lists {len(listing)}"
         )
@@ -417,6 +648,17 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
         )
     if extraction_problems:
         losses.append("member extraction: " + "; ".join(extraction_problems))
+    if jex:
+        losses.extend(jex_losses)
+    if anki:
+        losses.append("Deck options, card styling and template bodies are retained in the original package only.")
+        history = graph["source_review_history"]
+        if not history["available"]:
+            losses.append("The source collection has no review history table.")
+        elif history["total"] > len(history["events"]):
+            losses.append(f"Only the latest {len(history['events'])} of {history['total']} native reviews are projected.")
+    if (jex or anki) and len(text.splitlines(keepends=True)) > len(structure):
+        losses.append("note text is complete; line anchors capped at 5000")
     loss_receipt = {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -488,6 +730,28 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
         "coverage": 1.0,
         "loss_note": "; ".join(losses) if losses else "no transform applied",
     }
+    if finder_records:
+        params = loss_receipt["params"]
+        params["structure"]["member_extraction"]["container_metadata"] = {
+            "total": len(finder_records), "members": finder_records, "disposition": "preserved_in_original_zip",
+        }
+        params["projection_note"] += f". {len(finder_records)} Finder metadata member(s) were retained in the original ZIP."
+    if jex:
+        params = loss_receipt["params"]
+        params.update(container_profile="joplin-jex", projection="Joplin notes" if note_text else "Joplin item inventory",
+                      projection_note="Note text offsets refer to the projection; original item files and resources retain their native bytes.",
+                      coverage_unit="line anchors over projected text")
+        params["structure"]["joplin"] = graph
+        loss_receipt["coverage"] = len(structure) / loss_receipt["total"] if loss_receipt["total"] else 1.0
+        if not losses:
+            loss_receipt["loss_note"] = "Joplin item projection; original metadata is retained in member sources"
+    if anki:
+        params = loss_receipt["params"]
+        params.update(container_profile="anki-package", projection="Anki note fields" if note_text else "Anki package inventory",
+                      projection_note="Field HTML and source scheduling are preserved. Media sources use native names and decoded bytes.",
+                      coverage_unit="line anchors over projected text")
+        params["structure"]["anki"] = graph
+        loss_receipt["coverage"] = len(structure) / loss_receipt["total"] if loss_receipt["total"] else 1.0
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -498,6 +762,10 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
 
 
 def main() -> int:
+    if sys.argv[1:] == ["--check-anki-runtime"]:
+        _anki_kernel().anki_package.zstd_module()
+        print("Anki reader ready")
+        return 0
     # R08: the same sidecar stdio loop every route uses, with this route's own
     # identity and capability, so a container reaches the Core through the same
     # job/attempt/error machinery instead of a private CLI path.

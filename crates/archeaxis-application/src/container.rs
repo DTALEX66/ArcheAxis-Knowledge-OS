@@ -158,7 +158,7 @@ fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
         "html" | "htm" | "xhtml" => Some("html"),
         "canvas" => Some("canvas"),
         "srt" | "vtt" => Some("subtitles"),
-        "zip" | "tar" => Some("archive"),
+        "zip" | "tar" | "jex" | "apkg" | "colpkg" => Some("archive"),
         _ => None,
     };
     if let Some(kind) = preferred {

@@ -866,7 +866,7 @@ The 27 additional method/path pairs below are registered in the current router s
 | 108 | `GET /api/v1/machine/rubrics` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 109 | `GET /api/v1/machine/tasks` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 110 | `GET /api/v2/teaching/records` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
-| 111 | `GET /api/v2/teaching/records/{id}` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. The returned view carries `knowledge_state` (`knowledge_id`, `status`, `active`, `currentness`, `superseded_by`, `successor_count`, `valid_to`) for the knowledge revision the record was built from, so a recorded teaching artifact is not read as a current basis by implication. |
+| 111 | `GET /api/v2/teaching/records/{id}` | Existing handler guard; no inferred role permission | The teaching and working-state contracts accept an optional `knowledge_state` with `knowledge_id`, `status`, `active`, `currentness`, `superseded_by`, `successor_count` and `valid_to`. A knowledge revision updates that projection independently of the saved text, checksum and scoring status. Older record views can omit the projection. For local Core observations see the 2026-11-21 entry in the current execution record. |
 | 112 | `GET /api/v2/teaching/records/{id}/export` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
 | 113 | `POST /api/v1/ai/context-packets` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. Each packet item carries `scope`/`provenance` descriptors plus `reference_states`, where a knowledge reference reports its own `readable`/`status`/`currentness`/`superseded_by`/`successor_count`/`valid_to` and a version-pinned document/source reference reports `currentness: not_applicable`: an adopted asset version is not evidence that the knowledge it cites is still current. |
 | 114 | `POST /api/v1/machine/evaluations` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
@@ -1002,7 +1002,9 @@ The folder source opener binds this row to the selected member SHA before openin
 
 This fixed native control route is installed in both launch shapes before launch authentication wraps the router. Bootstrap stdin remains EOF-delimited v2/v3, with no second stdin protocol. Unknown body fields are rejected; wrong session is 409, wrong credentials 401, machine/observer 403. Once closing begins, new business requests on existing connections are 503 and cannot write. Axum drains admitted HTTP responses, then the sole Store waits for existing Runtime/Executor holders, drains queued callbacks and checks the actual writer-thread result. Writer panic/join failure exits nonzero; an unfinished background owner cannot be reported as exit0.
 
-The native host retains its 8-second graceful budget and 1-second forced-reap fallback. The explicit `exit_application` command stays responsive while waiting off-thread for the owned Core result. WM_CLOSE/OS exit retains the native fallback from 0b633a619bf47e3a2d00f7f174c563d1ce939224; that path is not graceful-qualified. When its write succeeds, `core-shutdown-result.json` contains PID, method, ACK, forced attempt, actual exit code and reap state, without credentials or content. `GRACEFUL` requires a complete matching ACK and observed exit0 without force; `FORCED`, `ERROR`, `ALREADY_EXITED`, and `UNKNOWN` are distinct. An unavailable operation owner is UNKNOWN, not graceful. No model service or unrelated process is stopped, no accepted job is silently cancelled, and 202 work is not declared successful without its durable terminal result. Native packaged/window qualification remains separate from source and controlled-process tests.
+The native host applies an eight-second graceful budget and a one-second forced-reap fallback. The window close button, Alt+F4 and the menu exit command enter the same draft-confirmation path. After confirmation the host waits off the event thread for its owned Core before calling `app.exit`. A direct OS exit can still enter the native cleanup fallback. When written, `core-shutdown-result.json` carries the PID, method, ACK, forced attempt, actual exit code and reap state. `GRACEFUL` requires a matching ACK and observed exit code 0 without force. Other outcomes include `FORCED`, `ERROR`, `ALREADY_EXITED` and `UNKNOWN`. Accepted background work has its own durable terminal result. Current-candidate native window and installed qualification are recorded separately.
+
+The standalone backend launcher uses the same session shutdown API after its health check and on terminal Ctrl+C. It owns the console interrupt while Core drains. Run `start-backend.cmd --data-root <workspace-directory> --smoke` to check the packaged backend. Its JSON reports both health statuses, the shutdown acknowledgement, the termination method and the actual Core exit code. Smoke acceptance requires both HTTP 200 responses and a graceful close. An interrupted interactive launch retains the conventional exit status 130 and prints its Core shutdown result separately. The launcher regressions run with `python -m pytest tests/test_backend_runtime_safety.py -k smoke_requires_a_matching_shutdown -q`.
 
 Checks: `cargo test -p archeaxis-api --test session_shutdown_process --offline`; `cargo test -p archeaxis-api --lib session_shutdown --offline`; `cargo test -p archeaxis-store-sqlite --test writer --offline`. The native backend's explicit-Core-path test is opt-in and is not an installed-runtime claim.
 
@@ -1047,3 +1049,211 @@ Malformed JSON syntax returns 400; launch authentication failure 401; a nonhuman
 The bounded record lives in `workspace_meta`, independently of working-state CAS, draft budgets and saved documents. Saved metadata survives Store reopen and is included in workspace backups; restored entries retain their earlier epoch, while new operations must use the current epoch. Manually opened raw diagnostic payloads remain session-local. Source contract and controlled SQLite/HTTP checks do not qualify a packaged application, installed runtime or Owner acceptance.
 
 Directed offline check: `cargo test -p archeaxis-api --test operation_failure_log_api --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. Sources: `crates/archeaxis-api/src/failure_log.rs` and `crates/archeaxis-domain/src/failure_log.rs`; frontend persistence races are covered separately in `frontend/src/__tests__/FailureLogPersistence.test.tsx`. These are check entry points, not a claim that this documentation update ran them.
+
+## 24. Joplin JEX and RAW exchange (2026-11-22)
+
+The shared native tag and attachment regression is runnable with `python -m pytest tests/test_joplin_exchange_tags.py -q`.
+
+Import a `.jex` through the regular source import, then execute an `archive` job. Core selects the internal media type `application/x-joplin-jex`. The source-bound transform carries the note text. The archive worker 0.2.0 loss report stores native notes, notebooks, tags, note-tag relations and resource digests under `params.structure.joplin`. Body ranges are Unicode code-point offsets into the transform. The source members endpoint exposes the original bytes admitted within the standard archive limits.
+
+The backend exchange command uses the launch session's `ARCHEAXIS_CORE_BASE` and `ARCHEAXIS_CORE_TOKEN`. From the repository root:
+
+```text
+python -m scripts.ingest.joplin_exchange save-notes JOB_ID
+python -m scripts.ingest.joplin_exchange import-raw RAW_FOLDER
+python -m scripts.ingest.joplin_exchange export JOB_ID --document DOCUMENT_ID --output edited.jex
+```
+
+`save-notes` returns the document IDs. Repeating it reuses the initial note versions and preserves subsequent edits. `import-raw` reads Joplin item files and resource bytes from the selected directory, packages them for the same bounded archive route, and reports excluded paths. Documents carry the archive revision, original item ID, notebook path, timestamps and tag names.
+
+An ordinary document draft save can edit the Markdown body or change the `tags` list in the leading `joplin-metadata` paragraph. A native tag title can contain spaces, Unicode and punctuation. The document and list APIs expose those titles as tags. Inline hashtags remain part of the note body.
+
+`export` writes a new JEX for one or more `--document` selections. A changed Markdown body updates its two native update timestamps. Tag changes reuse existing native tag IDs where possible and create a shared tag for a new title. Removing a tag from a note removes only the corresponding native note-tag links. An edit confined to relationships preserves the note bytes and timestamps. The result lists changed, added and removed member names. An unchanged selection reproduces the original archive. Other generated metadata edits, rich-text formatting changes and edited HTML-source bodies require other writeback support. Client versions, actual directions and synchronization evidence are tracked in the [compatibility matrix](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json).
+
+## 25. Folder CLI recovery
+
+Run the cross-port interruption case with `python -m pytest tests/test_directory_batch.py -k interruption_preserves -q`.
+
+`python -m scripts.ingest.directory_batch --root FOLDER --core URL` reads the Core workspace identity from `GET /api/v1/ingest-batches?limit=1`. The default JSONL journal belongs to the source folder, workspace ID and restore epoch. The CLI appends each completed file's outcome before moving to the next file. Starting Core on a different port can resume the same journal. Restoring the database gives the new epoch its own journal.
+
+On first use of a workspace journal, the driver checks completed rows from an older URL journal against the source digest and, for enqueued members, the Core job's source and kind. `--manifest PATH` still selects a journal explicitly. An offline `--dry-run` uses the last observed binding for the URL. Older servers that return 404 for the identity route use URL journals. A job conflict counts as already enqueued only when the existing job names the requested source and kind.
+
+## 26. Packaged course rendering
+
+Check the packaged course donors with `python -m pytest tests/test_stage_backend_runtime_routes.py -k prebuilt_course_stage -q`.
+
+When `course.general` is present, the backend stager copies the course contracts, lesson renderer and projection helpers from the selected checkout into `workers/course/donors/`. The locked desktop interpreter supplies Pydantic. For a prebuilt interpreter, `--dep-source` can supply its missing Pydantic distributions from an independent installation for the same Python ABI. Before publishing the manifest the stager loads the contracts and renderer with the packaged interpreter in isolated mode.
+
+`POST /api/v1/courses/{id}/render` accepts the stored `artifact_id`. The lesson’s `frontmatter.knowledge_ids` references course components. The response’s `course.bindings` maps each `component_id` to the Core `knowledge_id`, `knowledge_version`, `source_id` and `source_revision`. The response’s `canonical_bindings_verified` is set after Core checks current bindings. The derived lesson can be saved through the ordinary document API.
+
+## 27. Anki package and edited field exchange
+
+The note type and field writeback regression runs with `python -m pytest tests/test_anki_apkg_readback.py -k edited_field_export -q`.
+
+Folder import and the host conversion selector route `.apkg` and `.colpkg` through `archive.inventory`. The archive result exposes `loss_receipt.params.structure.anki`. It includes note GUIDs, literal field HTML, note types and field names, tags, deck IDs/names, card IDs and imported scheduling values. Media child sources carry the original file names and decoded bytes. The parent’s `/original` response retains the exact native package. For `.colpkg` and the historical filename `collection.apkg`, `native_import_semantics` is `replace_collection`. For other `.apkg` files it is `merge_deck`. AAOS reads a snapshot in both cases. Anki’s own collection replacement is a separate operation.
+
+After executing the archive job, `python -m scripts.ingest.anki_exchange --core URL save-notes JOB` saves source-linked ordinary documents. Each native field has a stable paragraph block. Edits use the regular document draft and version endpoints. `python -m scripts.ingest.anki_exchange --core URL export-fields JOB --document DOC --output edited.txt` writes selected saved fields for Anki text import with existing-note updates enabled. It uses the original note GUID and numeric note type ID so editing the first field, or an Anki display-name collision, preserves identity. The exchange targets a collection that already has these notes, types and media. Card scheduling, deck configuration and media changes are outside the text file. The complete native package remains available for backup.
+
+The normal sidecar input limit applies. The archive decoder reads a collection image up to 64 MiB and offers up to 50 media files within a 64 MiB decoded media budget. A capped extraction is reported in the loss receipt. The structured scheduling values describe the source. `anki.source_review_history` reports whether the source contains a review log, the total for included cards, and up to 5,000 recent entries using Anki’s native `id`, `cid`, `ease`, `ivl`, `lastIvl`, `factor`, `time` and `type` values. These are imported observations. The complete history, deck options, template bodies and styling remain in the original file. [Anki package manual](https://docs.ankiweb.net/manual/exporting) · [Anki text imports](https://docs.ankiweb.net/manual/importing/text-files)
+
+## 28. Zotero public library and bibliography exchange
+
+The web-record metadata projection is checked by `python -m pytest tests/test_adapters_longterm.py -k zotero_web_api -q`. The exchange and independent reader observations are in the compatibility matrix.
+
+The backend CLI reads selected public Web API v3 group items or a collection. It stores the exact API replies and original bibliography files through the Core import API. Each bibliographic record becomes a source-linked, searchable Core document with editable title and abstract paragraphs. The original document version retains the CSL data, Zotero item data when available, and the source identity.
+
+```text
+python -m scripts.ingest.zotero_exchange --core URL import-public --group 415096 --item 44EYA42D
+python -m scripts.ingest.zotero_exchange --core URL import-public --group 415096 --collection BJIVYRQM --page-size 50
+python -m scripts.ingest.zotero_exchange --core URL --pandoc PANDOC import-file references.bib
+python -m scripts.ingest.zotero_exchange --core URL --translator http://127.0.0.1:1969 export --document DOC_ID --format biblatex --output revised.bib
+```
+
+Use the existing Core launch token through `ARCHEAXIS_CORE_TOKEN`. A selected key addresses the record directly and reports `trashed_at_source`. Collection selection follows the published next-page links. The response lists collection ancestry, child metadata, and standalone non-bibliographic entries excluded from the document list. Exact pages and independently addressed child objects keep the same document usable across different page sizes. Attachment metadata includes its parent, native key, version and link mode. Downloaded attachment bytes need their own source receipt. [Zotero Web API v3](https://www.zotero.org/support/dev/web_api/v3/basics)
+
+CSL JSON import and export use the built-in reader and writer. Bib(La)TeX import uses local Pandoc and keeps the entry key in the CSL `id` and `citation-key`. The default reader for `.bib` and `.biblatex` is BibLaTeX. Use `.bibtex` for the BibTeX reader. Select the executable through `--pandoc` or `ARCHEAXIS_PANDOC`. RIS import and RIS, BibTeX and BibLaTeX export use a local Zotero translation-server with its corresponding translators. The default service address is `http://127.0.0.1:1969`. [Pandoc bibliography formats](https://pandoc.org/MANUAL.html#specifying-bibliographic-data) · [Zotero translation-server](https://github.com/zotero/translation-server)
+
+Export accepts repeated `--document` selections, writes a new file, and returns each saved document version plus the file digest. For Bib(La)TeX output, an explicit citation key takes precedence, with the CSL ID as the fallback. A native reader may generate its own key on subsequent export. RIS can omit the citation key, and the receiving program can reduce date precision. CSL exchange can omit native library tags. Collections, child relationships and attachment-file custody stay in the source records. The four formats have separate observations in the [compatibility matrix](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json).
+
+## 29. Obsidian Vault folder exchange
+
+Check Markdown writeback and original encoding with `python -m pytest tests/test_obsidian_vault_exchange.py -q`.
+
+`python -m scripts.ingest.obsidian_vault --core URL import VAULT --receipt vault-import.json` reads one selected folder. The existing Core Vault classifier and folder import APIs preserve relative paths, original bytes and source revisions. UTF-8 Markdown becomes an editable, source-bound document. Canvas, Bases and attachments retain their original bytes. The receipt lists excluded files, notes retained only as sources, link results and the mapping from note paths to document IDs. Core resolves original wikilinks and embeds within its link and size limits. Notes above 256 KiB have an explicit link-index omission. They remain editable when their canonical editor JSON fits 1 MiB. Larger notes within the folder limit retain their original bytes. The source system retains application settings and trash.
+
+`python -m scripts.ingest.obsidian_vault --core URL export --receipt vault-import.json --output NEW_VAULT` writes the latest saved revisions of the selected notes. For older folder batches use `export --batch ID --document "References/Note.md" DOC_ID --output NEW_VAULT`, repeating `--document` for each edited note. Other members retain the original bytes. Set `ARCHEAXIS_CORE_TOKEN` for the running human session. Keep the receipt outside the export folder. Its parent directory must exist, and the export folder must be new.
+
+Markdown source paragraphs, ordinary paragraph edits, headings, the editor’s bold mark and hard line breaks have an explicit Markdown representation. For unsupported rich-text nodes the command reports the issue before publishing the new folder. Unchanged notes retain their original encoding, BOM and line endings. Each export reports the selected document version, source digest and exported digest. Obsidian can run a preserved `.base` view against the returned Vault. The local incremental exchange is described below. Plugin state and evaluation of Bases queries by AAOS require separate qualification. [Obsidian CLI](https://obsidian.md/help/cli)
+
+## 30. Incremental Obsidian Vault sync
+
+Run the interrupted write, rename and block identity regressions with `python -m pytest tests/test_obsidian_vault_sync.py -q`.
+
+Use the same Core URL and human session token as in §29. On the first sync, supply the receipt for the files present at the last exchange. The command compares each file with that baseline, so edits made before connecting are included.
+
+```text
+python -m scripts.ingest.obsidian_vault --core URL sync VAULT --receipt vault-import.json
+python -m scripts.ingest.obsidian_vault --core URL sync VAULT
+python -m scripts.ingest.obsidian_vault --core URL sync VAULT --add-document "Practice/Session.md" DOC_ID
+python -m scripts.ingest.obsidian_vault --core URL sync VAULT --resolve "References/Album.md" vault
+```
+
+An edit to a connected Markdown file saves a new version of the same Core document, with the incoming original bytes, a source relation and the expected predecessor version. A Core edit writes the latest supported Markdown back to the same path. New Vault notes can become documents, and changed attachments, Canvas and Bases files retain their original bytes. A unique same-content move with the same extension retains its binding. A file removed from the folder leaves the exchange selection and remains retrievable in Core. A move combined with a content edit or a duplicate hash may be observed as removal and addition.
+
+When both sides change one note, the result identifies the Vault source revision, Core document version and previous common digest. Other files continue syncing. Use `vault` or `aaos` to select which side to keep on that path. If either side has changed since the conflict was reported, the next result presents the new conflict for selection. Exit 2 identifies remaining conflicts, files to retry, or unsupported document projections. The previous Core version and captured Vault alternative remain available.
+
+The Vault keeps its last shared versions in `.aaos-sync/cursor.json` with the Core workspace ID and restore epoch. Interrupted outbound file writes are recovered at the next sync. To reconnect a different folder, use `export --receipt VAULT/.aaos-sync/cursor.json --output NEW_VAULT --save-receipt exported.json`, then `sync NEW_VAULT --receipt exported.json`. Keep the receipt outside the new folder. The export reports any outstanding conflicts in the original connection and materializes the current Core selection. The local command runs on demand. Background watching, the hosted Obsidian Sync service, and reindexing all edited wikilinks in Core remain outside the measured path.
+
+### Recover a Vault after a Core backup restore
+
+After a formal workspace restore, use a fresh Core session and the saved connection cursor from the same workspace. Recover into a new folder and pair it using the new receipt.
+
+```text
+python -m scripts.ingest.obsidian_vault --core URL export --receipt SAVED_CURSOR.json --after-restore --output RECOVERED_VAULT --save-receipt recovered.json
+python -m scripts.ingest.obsidian_vault --core URL sync RECOVERED_VAULT --receipt recovered.json
+```
+
+The first command reads the restored batch, verifies the last shared Markdown or source bytes for each selected file, and checks any recorded conflict alternatives. It exports the versions currently in the restored Core, including edits made since recovery. A missing pinned revision or a mismatching baseline stops publication of the folder. The receipt records the old and new restore epochs. The original folder and its cursor can be kept as they were.
+
+## 31. CommonMark structure in text extraction
+
+Check the production reader's Markdown structure with `python -m pytest tests/test_text_format_facts.py -k markdown -q`.
+
+For a Markdown source, submit the existing `text.extract` job and execute it using the normal jobs API. The text output and line anchors preserve the source projection. The JSON in `GET /api/v1/jobs/{id}/outputs/loss_report` exposes structure under `params.format`. The default Python installation includes the CommonMark reader. The result names its parser, version and profile.
+
+The outline includes ATX and setext headings, visible labels and one-based heading lines. The report counts block quotes, list items, fenced and indented code blocks, links and images. `code_fence_count` counts delimiter lines. Link and image entries carry their destination, optional title and the first line of their containing block. Images also carry alternative text. Each retained list has a cap indicator and a separate total. The folder exporter can preserve a local image at its relative path. The parser reads references without fetching their targets.
+
+Leading Vault property mappings, wikilinks and embeds have separate fields. A minimal older worker without the parser still returns the text and its line anchors. Its structure report identifies the missing dependency, the line-pattern reader and its partial coverage. The observed examples and candidate are listed in the [compatibility matrix](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json). [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) · [markdown-it-py](https://markdown-it-py.readthedocs.io/en/latest/using.html)
+
+## 32. Evernote ENEX notes and annotations
+
+With the local Core session URL and token supplied through the existing environment, the following commands import a notebook and export a new, annotated copy.
+
+~~~shell
+python -m scripts.ingest.evernote_exchange import notebook.enex --pandoc /path/to/pandoc
+python -m scripts.ingest.evernote_exchange export-annotated --document DOCUMENT_ID --output returned.enex
+~~~
+
+The ENEX adapter stores the original file and its decodable nonempty attachments through the Core imports API. Each note becomes an independently editable document bound to the ENEX SHA-256 and its position in that export. Equal titles in the same file have separate document IDs. The Markdown projection uses a local Pandoc HTML reader. Each ENML media reference is matched against its native MD5 and MIME type, then linked to the stored attachment. The result lists missing media and retains encrypted material in the original. Recognition data remains available in the ENEX. Native internal note links retain their Evernote targets.
+
+The visible tag header contains a JSON list of native names. Spaces, punctuation and numeric names are supported in ENEX tags. The existing document API accepts title and tag changes as well as appended plain paragraphs. Pass one or more document IDs from a single source to export the complete original notebook with those changes. A selection with no changes returns the original bytes. A revision that replaces the imported rich body remains readable in AAOS and is outside annotated ENEX writeback. Select a new output filename.
+
+The XML annotation regressions run with `python -m pytest tests/test_evernote_exchange.py -q`. The native tag projection is checked by `cargo test -p archeaxis-domain --test document_tags enex_tag_names --locked --offline`. Source-bound Core, attachment, external reader and research package observations are in the [compatibility matrix](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json). [Evernote ENEX format](https://evernote.com/blog/how-evernotes-xml-export-format-works) · [Evernote resource identity](https://dev.evernote.com/legacy/doc/articles/data_structure)
+
+## 33. Notion Markdown and CSV exchange
+
+Use the existing Core session URL and launch token with the local exchange command. The import result maps ZIP member paths to editable page and table document IDs. Select the documents whose current content belongs in the new export.
+
+~~~shell
+python -m scripts.ingest.notion_exchange import workspace.zip
+python -m scripts.ingest.notion_exchange export --document PAGE_ID --document TABLE_ID --output returned.zip
+~~~
+
+The adapter preserves the original ZIP and imports nonempty content files through Core. Markdown page links, row properties, parent paths and linked files can reference exact original sources in the workspace graph. The import result lists missing link targets. A page fragment remains in Markdown. Each UUID-named CSV snapshot becomes a text-column collection. Every row occurrence points to its own immutable source block. A full CSV and a view with the same database name, ID, directory and bytes share one collection. Different exported snapshots remain independently editable. CSV omits the native property schema, formula definitions and view rules.
+
+Writeback takes the Markdown body and the text cells of the original ordered rows and columns. Other ZIP members retain their original bytes, including attachments and platform metadata. A selection without content changes returns the original ZIP verbatim. The destination must be a new file. The single-ZIP profile accepts up to 5,000 members and 64 MiB expanded. Oversized table projections and empty files remain in the original. The offline exchange uses no Notion account. [Notion export formats and workspace limits](https://www.notion.com/help/export-your-content)
+
+The reader and writeback regressions run with `python -m pytest tests/test_notion_exchange.py -q`.
+
+Ordinary file import also accepts the ZIP through Core's archive conversion. It exposes content files as child sources with their own jobs. The 50-member extraction allowance counts content before recognized Finder metadata. In the portion inspected, the worker checks the native signature of a .DS_Store or the AppleDouble v2 signature and a matching companion path. Unmatched lookalikes remain eligible as ordinary files. Identified records stay in the original ZIP and are listed in `structure.member_extraction.container_metadata` in the loss report. The offline exchange command above supplies the editable database projection. The ordinary archive regression runs with `python -m pytest tests/test_worker_archive_route.py -k finder_metadata -q`.
+
+## 34. Packaged knowledge exchange
+
+The full backend configuration stages eight exchange clients inside the existing `shared` resource. From a Windows terminal, select the workspace database and use the format actions described in §§24, 27–30, 32, 33, 35 and 37. The exchange launcher also accepts `--backend-root` before the format name to use an existing backend installation with this client. The following command imports an offline Notion export.
+
+~~~bat
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" notion import "D:\Exports\Projects.zip"
+~~~
+
+`start-backend.cmd exchange --help` lists the formats. For the writeback options of a specific client, run a command such as `start-backend.cmd exchange notion export --help`. With the desktop closed, the client opens the selected database through the packaged Core and supplies that session's human credential internally. The Core enforces its single-writer lock. A successful command prints the format result to standard output and the confirmed Core shutdown to standard error. Both the format operation and a graceful shutdown must succeed for a zero exit code. Evernote ENEX-to-Markdown and the Zotero bibliography translations retain the external tools described in their respective sections.
+
+Vaults accept CSL JSON, RIS, BibTeX and BibLaTeX files as attachments. A note can reference the preserved bibliography file by its original name. The packaged entry regression runs with `python -m pytest tests/test_packaged_knowledge_exchange.py -q`.
+
+## 35. Logseq file graph exchange
+
+Open the folder containing the graph's pages and journals. Import reads Markdown and Org files with mldoc 1.5.7, the dependency selected by Logseq Desktop 0.10.15. Supply a local copy of that package's index.js with `--mldoc` or set `ARCHEAXIS_LOGSEQ_MLDOC`. The adapter also recognizes the pinned package installed under the current directory. Use the bundled course Node runtime when available, a local Node on PATH, or select it with `--node`. The parser runs locally. [Logseq Desktop dependency](https://github.com/logseq/logseq/blob/0.10.15/package.json) · [Logseq file graph and block references](https://github.com/logseq/docs/blob/628cdde0b6f1d90c4722e2bfebb2fd00a5186825/pages/Block%20Reference.md)
+
+~~~bat
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" logseq import "D:\Exports\Graph" --mldoc "D:\Tools\node_modules\mldoc\index.js"
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" logseq block --graph GRAPH_ID BLOCK_UUID
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" logseq block --graph GRAPH_ID BLOCK_UUID --text "Updated first line"
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" logseq export --graph GRAPH_ID --output "D:\Exports\Returned graph" --mldoc "D:\Tools\node_modules\mldoc\index.js"
+~~~
+
+The import returns a graph ID stored in Core and editable document IDs. Each outline block retains its level, parent and original syntax. A unique native block ID can be read or edited across the graph. The block command preserves its property drawer and continuation text. Page names, native namespaces, aliases, block references, embeds and local asset links resolve against the selected graph. Document relations pin the target's imported version. Missing or ambiguous targets appear in the import result. Reimport an externally edited graph to create a new snapshot and retain earlier versions.
+
+Source files under pages, journals, assets, whiteboards and draws, plus logseq/config.edn, are retained within the per-file 64 MiB allowance. Whiteboards and configuration are retained as files. A page above Core's editor limits or with unreadable content remains available as an original. Export writes a new folder. Unchanged files retain their source bytes. Changed pages accept plain text edits to the existing blocks and are reparsed to verify native block identities and hierarchy. Incremental sync, changing the outline structure in AAOS, the running Logseq Desktop client, and Logseq DB graphs have separate qualification. The targeted check runs with `python -m pytest tests/test_logseq_exchange.py -q`.
+
+## 36. Local structured model answers
+
+An operator can select the LM Studio SDK for structured answers on the existing local `fast-local` profile. Use the project Node runtime and its installed `@lmstudio/sdk` version from `config/model-profiles/lm-studio.json`. Prepare the worker using the project development launcher.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/runtime/dev.py -- node scripts/runtime/lm_studio_profile.mjs stage-worker fast-local
+```
+
+The command prints the worker script path and a `stage-worker.json` receipt. Pass the script path to the standalone launcher for the current session. The backend profile supplies the interpreter and every other route. Starting the next session without the option uses the packaged worker again.
+
+```powershell
+.\start-backend.cmd --machine-worker "D:\path from stage-worker\workers\machine\worker_machine_answer.py" --data-root "D:\My library"
+```
+
+An updated launcher can reuse an existing backend directory. Pass `--backend-root` with the directory containing its Core, runtime and worker profile. Relative data directories belong to the selected backend. Add `--smoke` to observe the selected worker's live handshake and shut down. The staged machine worker carries its inventory, transport and material-check resources. Its Node executable and SDK installation remain local to this machine. Load the registered model using the existing `load fast-local` operation before inference.
+
+Call `POST /api/v1/machine/answers` with the current knowledge grant, the selected model identifier and the usual `response_format`. A governed asset additionally requires its own current grant. The staged worker uses the SDK for this model's structured requests on the declared local LM Studio lane. It reserves room within the requested output limit for final JSON. The effective reasoning limit is the smaller of the profile's 1,536 tokens and three quarters of `max_tokens`. The published answer and its loss receipt include the observed model, endpoint, `protocol=lmstudio-sdk`, SDK version, effective reasoning budget and stop reason. Core validates the final object and binds its evaluation to the original answer. Standard HTTP structured output is documented by [LM Studio](https://lmstudio.ai/docs/developer/openai-compat/structured-output).
+
+The focused worker and launcher checks are `python -m pytest tests/test_worker_machine_answer.py -k staged -q` and `python -m pytest tests/test_backend_launcher_routes.py -k session_worker -q`.
+
+## 37. Git commit snapshots
+
+Git can put a selected commit and its files in a ZIP. Supply the full commit ID to `git archive`. Import the resulting file as an ordinary AAOS source and run its archive conversion. The completed job can be used to save a searchable revision index and return the original bytes. Git stores the commit ID in the ZIP comment. [Git archive documentation](https://git-scm.com/docs/git-archive).
+
+```powershell
+git archive --format=zip --output=snapshot.zip COMMIT -- README.md docs
+.\start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" git save --job JOB_ID --commit COMMIT
+.\start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" git export --job JOB_ID --member README.md --output "D:\Exports\README.md"
+```
+
+The saved document binds the original ZIP source revision to the declared commit, each separately retained repository-relative path and its Core source digest. The optional `--commit` compares the supplied full object name with the comment before the operation. A caller seeking repository provenance can compare the returned bytes with `git show COMMIT:path` in the source repository. Omit `--member` to export the original ZIP. Existing destination files are preserved. Archive extraction limits still apply to individually accessible files. Editing a Git working tree, writing commits and synchronization have separate qualification.
+
+The focused check runs with `python -m pytest tests/test_git_snapshot_exchange.py -q`.

@@ -26,6 +26,20 @@ RUNBOOK = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-BA
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "37": ("tests/test_git_snapshot_exchange.py", "native Git ZIP commit marker, pinned paths and independently retained file export"),
+    "36": ("tests/test_worker_machine_answer.py", "structured SDK model identity, effective reasoning budget, usage and deadline"),
+    "35": ("tests/test_logseq_exchange.py", "Logseq native outline identity, editable UTF-8 byte ranges and graph-local references"),
+    "34": ("tests/test_packaged_knowledge_exchange.py", "the exchange clients, packaged Windows dispatch and a format subcommand in an isolated interpreter"),
+    "33": ("tests/test_notion_exchange.py", "Notion CSV snapshots, repeated columns and rows, and local page / attachment links"),
+    "32": ("tests/test_evernote_exchange.py", "annotated ENEX preserves existing rich content, entities, literal CDATA and line breaks"),
+    "31": ("tests/test_text_format_facts.py", "CommonMark nesting, links, reference images and code fences"),
+    "30": ("tests/test_obsidian_vault_sync.py", "synchronization after an interrupted write, rename ambiguity and cited block identity"),
+    "29": ("tests/test_obsidian_vault_exchange.py", "Vault Markdown edits and preservation of unchanged source encodings"),
+    "28": ("tests/test_adapters_longterm.py", "Zotero web item metadata including organization and native dates"),
+    "27": ("tests/test_anki_apkg_readback.py", "edited native fields preserved across note type display-name collisions"),
+    "26": ("tests/test_stage_backend_runtime_routes.py", "course donors present and importable in the staged runtime"),
+    "25": ("tests/test_directory_batch.py", "completed file records survive process interruption and a changed Core port"),
+    "24": ("tests/test_joplin_exchange_tags.py", "shared tag edits preserve other native JEX records and the attachment"),
     "23": ("crates/archeaxis-api/tests/operation_failure_log_api.rs", "bounded metadata-only Store reopen, scope/generation guards, explicit corruption repair and human-only access; not native or installed-runtime qualification"),
     "22": ("crates/archeaxis-api/tests/external_context_api.rs", "offline bounded human-only candidate intake, fixed NOT_CONNECTED status and strict rejection; not external-provider qualification"),
     "21": ("crates/archeaxis-api/tests/template_lifecycle.rs", "guarded bundled template lifecycle, old-object preservation and stale/tampered request refusal"),
@@ -70,11 +84,15 @@ COVERAGE: dict[str, tuple[str, str]] = {
 
 # A section can have more than one checker; each is listed so none can be dropped silently.
 ALSO_CHECKS: dict[str, list[str]] = {
+    "36": ["tests/test_backend_launcher_routes.py"],
+    "33": ["tests/test_worker_archive_route.py"],
+    "32": ["crates/archeaxis-domain/tests/document_tags.rs"],
     "23": ["tests/maintenance/test_contract_route_inventory.py"],
     "22": ["crates/archeaxis-domain/tests/external_context_candidates.rs",
            "tests/maintenance/test_contract_route_inventory.py"],
     "21": ["crates/archeaxis-domain/tests/template_lifecycle.rs",
            "crates/archeaxis-archive/tests/template_lifecycle_archive.rs"],
+    "20": ["tests/test_backend_runtime_safety.py"],
     "16": ["crates/archeaxis-api/tests/project_handoff_preview_process.rs",
            "crates/archeaxis-api/tests/project_handoff_process.rs",
            "tests/maintenance/test_contract_route_inventory.py"],
@@ -97,6 +115,25 @@ ALSO_CHECKS: dict[str, list[str]] = {
 # reachable through the maintained contract's exact commands, never a rewritten
 # historical qualification receipt.
 CURRENT_CHECK_COMMANDS = {
+    "tests/test_git_snapshot_exchange.py": "python -m pytest tests/test_git_snapshot_exchange.py -q",
+    "tests/test_worker_machine_answer.py": "python -m pytest tests/test_worker_machine_answer.py -k staged -q",
+    "tests/test_backend_launcher_routes.py": "python -m pytest tests/test_backend_launcher_routes.py -k session_worker -q",
+    "tests/test_packaged_knowledge_exchange.py": "python -m pytest tests/test_packaged_knowledge_exchange.py -q",
+    "tests/test_logseq_exchange.py": "python -m pytest tests/test_logseq_exchange.py -q",
+    "tests/test_worker_archive_route.py": "python -m pytest tests/test_worker_archive_route.py -k finder_metadata -q",
+    "tests/test_backend_runtime_safety.py": "python -m pytest tests/test_backend_runtime_safety.py -k smoke_requires_a_matching_shutdown -q",
+    "tests/test_notion_exchange.py": "python -m pytest tests/test_notion_exchange.py -q",
+    "crates/archeaxis-domain/tests/document_tags.rs":
+        "cargo test -p archeaxis-domain --test document_tags enex_tag_names --locked --offline",
+    "tests/test_evernote_exchange.py": "python -m pytest tests/test_evernote_exchange.py -q",
+    "tests/test_text_format_facts.py": "python -m pytest tests/test_text_format_facts.py -k markdown -q",
+    "tests/test_obsidian_vault_sync.py": "python -m pytest tests/test_obsidian_vault_sync.py -q",
+    "tests/test_obsidian_vault_exchange.py": "python -m pytest tests/test_obsidian_vault_exchange.py -q",
+    "tests/test_adapters_longterm.py": "python -m pytest tests/test_adapters_longterm.py -k zotero_web_api -q",
+    "tests/test_anki_apkg_readback.py": "python -m pytest tests/test_anki_apkg_readback.py -k edited_field_export -q",
+    "tests/test_stage_backend_runtime_routes.py": "python -m pytest tests/test_stage_backend_runtime_routes.py -k prebuilt_course_stage -q",
+    "tests/test_directory_batch.py": "python -m pytest tests/test_directory_batch.py -k interruption_preserves -q",
+    "tests/test_joplin_exchange_tags.py": "python -m pytest tests/test_joplin_exchange_tags.py -q",
     "crates/archeaxis-api/tests/operation_failure_log_api.rs":
         "cargo test -p archeaxis-api --test operation_failure_log_api --offline --locked",
     "crates/archeaxis-api/tests/external_context_api.rs":

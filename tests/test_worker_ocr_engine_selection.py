@@ -31,6 +31,22 @@ def isolated(monkeypatch):
     return worker
 
 
+def test_core_route_honors_launch_selection_and_explicit_argument_wins(isolated, tmp_path, monkeypatch):
+    sample = tmp_path / "sample.png"
+    sample.write_bytes(b"fixture read by the test recognizer")
+    monkeypatch.setattr(isolated, "_rapidocr_words", lambda _: ([], "", "fixture"))
+    monkeypatch.setenv("ARCHEAXIS_OCR_ENGINE", " RapidOCR ")
+    params = isolated.extract(sample, "eng")["loss_receipt"]["params"]
+    assert params["requested_engine"] == params["engine"] == "rapidocr"
+    monkeypatch.setenv("ARCHEAXIS_OCR_ENGINE", "unknown")
+    with pytest.raises(ValueError, match="unknown OCR engine"):
+        isolated.extract(sample, "eng")
+    assert isolated.extract(sample, "eng", engine="rapidocr")["loss_receipt"]["params"]["engine"] == "rapidocr"
+    monkeypatch.setenv("ARCHEAXIS_OCR_ENGINE", "tesseract")
+    with pytest.raises(RuntimeError, match="tesseract"):
+        isolated.extract(sample, "eng")
+
+
 @pytest.mark.parametrize("command", ["missing-tesseract", "missing-bin/tesseract"])
 def test_missing_relative_command_is_not_an_engine(isolated, monkeypatch, tmp_path, command):
     """Real subprocess lookup, with no replacement engine/declaration available."""

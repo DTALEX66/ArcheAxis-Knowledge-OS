@@ -100,6 +100,28 @@ def _receipt_schema_of(path: Path, root: Path = ROOT) -> str | None:
 
 
 _CI_OBSERVATION_SURFACE = "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+_COMPATIBILITY_MATRIX = "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json"
+_HTTP_CONTRACT = "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md"
+# Reviewed upstream revisions and the surfaces that cite them as source material.
+_UPSTREAM_PINS = (
+    ("obsidianmd/jsoncanvas", "456f843cb293df4f4ab1763e22ccb46a80b307c8", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE}),
+    ("kepano/kepano-obsidian", "473697347a0eaac790a6596229c741b3915f3b77", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE}),
+    ("AppFlowy-IO/AppFlowy-Collab", "be5aa89b4aeafd4e7159e92b86784c02caaa85ce", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE}),
+    ("logseq/docs", "628cdde0b6f1d90c4722e2bfebb2fd00a5186825", {_COMPATIBILITY_MATRIX, _CI_OBSERVATION_SURFACE, _HTTP_CONTRACT}),
+    ("zotero/translators", "9d04f4b8b4e44b46782c8572fdb834147df18979", {_COMPATIBILITY_MATRIX}),
+    ("zotero/translation-server", "00032f679fb3a91b682fd54c9926d920caaf6aef", {_COMPATIBILITY_MATRIX}),
+)
+
+
+def _mask_upstream_pins(relative: str, text: str) -> str:
+    for repository, sha, surfaces in _UPSTREAM_PINS:
+        if relative in surfaces:
+            repo = re.escape(repository)
+            reference = rf"(?:https://github\.com/{repo}/(?:tree|blob)/|{repo}@){sha}\b"
+            text = re.sub(rf"(?<![\w./@-]){reference}", " ", text)
+    return text
+
+
 _CI_OBSERVATION_SCHEMA = "aaos-ci-checkout-observation/v1"
 _CI_OBSERVATION_KIND = "github_actions_pr_merge_observation"
 _CI_OBSERVATION_QUALIFICATION = (
@@ -198,6 +220,7 @@ def _surface_shas(root: Path) -> set[str]:
         text = path.read_text(encoding="utf-8", errors="replace")
         relative = path.relative_to(root).as_posix()
         scan_text = _mask_ci_observation_values(relative, text)
+        scan_text = _mask_upstream_pins(relative, scan_text)
         found.update(set(re.findall(r"\b[0-9a-f]{40}\b", scan_text)) - _external_source_shas(relative, scan_text))
     return found
 
@@ -660,6 +683,22 @@ def test_external_source_ids_are_scoped_to_exact_research_bibliographies(tmp_pat
     assert _surface_shas(root) == {_FAKE_FULL_ID, foreign_id}
     assert _external_source_shas("docs/current/other-research.md", url) == set()
     assert _external_source_shas(report.relative_to(root).as_posix(), url.replace("THU-MAIC/OpenMAIC", "DTALEX66/ArcheAxis-Knowledge-OS")) == set()
+
+
+def test_upstream_pins_only_mask_the_scoped_occurrence(tmp_path: Path):
+    root = _fixture_root(tmp_path)
+    sha = "628cdde0b6f1d90c4722e2bfebb2fd00a5186825"
+    reference = f"logseq/docs@{sha}"
+    report = root / _CI_OBSERVATION_SURFACE
+    report.write_text(f"{reference}\nhttps://github.com/logseq/docs/blob/{sha}/pages/a.md")
+    assert sha not in _surface_shas(root)
+    for local_claim in (sha, f"DTALEX66/ArcheAxis-Knowledge-OS@{sha}", f"fork/{reference}"):
+        report.write_text(f"{reference}\n{local_claim}")
+        assert sha in _surface_shas(root)
+    report.write_text(f"logseq/docs@{_FAKE_FULL_ID}")
+    assert _FAKE_FULL_ID in _surface_shas(root)
+    (root / _LOCKED_SURFACES[0]).write_text(reference)
+    assert sha in _surface_shas(root)
 
 
 def test_F_remote_absence_is_a_three_way_classification() -> None:

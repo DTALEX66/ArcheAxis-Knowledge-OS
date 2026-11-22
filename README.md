@@ -47,6 +47,8 @@ AI侧还承担任意领域工作经验转知识、知识治理及实际采用/�
 
 ## 开发入口
 
+从源码安装需要 Python 3.11.5 或更高版本。Windows 桌面安装器自带 Python 运行环境。
+
 先读[共享资源与工具链索引](docs/SHARED_RESOURCE_PATH_INDEX.md)、[运行交付索引](docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md)和[验证规则](docs/VERIFICATION_POLICY.md)，优先使用项目现有环境及lockfile。Python-era FastAPI入口属于兼容/供体路径，不能替代正式Tauri宿主启动与验证。
 
 在已准备依赖的项目根目录构建正式前端：

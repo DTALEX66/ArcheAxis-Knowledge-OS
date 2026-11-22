@@ -276,8 +276,10 @@ ROUTES = {
     "archive.inventory": {
         "version": "1",
         "worker": "services/python-workers/document/worker_archive.py",
-        "media_types": {"application/zip", "application/x-tar"},
+        "media_types": {"application/zip", "application/x-tar", "application/x-joplin-jex",
+                        "application/x-anki-package", "application/x-anki-collection"},
         "call": "path",
+        "media_type_arg": True,
         # R15/F15: the archive worker can offer its members to the Core as sources, so
         # it is told where durable transfer files may be written.
         "artifact_dir": "members",
@@ -395,8 +397,7 @@ ROUTES = {
         "worker": "services/python-workers/web/worker_html.py",
         "media_types": {"text/html", "application/xhtml+xml", "multipart/related"},
         "call": "path",
-        "suffix_by_media": {"text/html": ".html", "application/xhtml+xml": ".xhtml",
-                            "multipart/related": ".mhtml"},
+        "media_type_arg": True,
         "contract_adapter": True,
     },
     # R15/F04: a figure description is model output; the route exists so the description
@@ -693,10 +694,15 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # (rendered PDF pages, extracted container members) go to the artifact root the
         # Core owns and verifies later by digest. Without one, the worker declares
         # nothing and writes nothing.
-        if artifact_root is None:
-            return module.extract(str(filesystem_path(source)))
-        target = safe_path(artifact_root / route["artifact_dir"], missing=True)
-        return module.extract(str(filesystem_path(source)), **{route.get("artifact_kwarg", "artifact_dir"): filesystem_path(target)})
+        kwargs = {"media_type": media_type} if route.get("media_type_arg") else {}
+        if artifact_root is not None:
+            target = safe_path(artifact_root / route["artifact_dir"], missing=True)
+            kwargs[route.get("artifact_kwarg", "artifact_dir")] = filesystem_path(target)
+        return module.extract(str(filesystem_path(source)), **kwargs)
+    if route.get("contract_adapter"):
+        kwargs = {"media_type": media_type} if route.get("media_type_arg") else {}
+        return _as_route_contract(module.extract(str(filesystem_path(source)), **kwargs),
+                                  route.get("capability", "route"))
     if route.get("media_type_arg"):
         media_name = media_type.split(";", 1)[0].strip().lower()
         member = route.get("member_dir_by_media", {}).get(media_name)
@@ -716,8 +722,6 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         target = safe_path(artifact_root / member["dir"], missing=True)
         return module.extract(str(filesystem_path(source)), media_name,
                               **{member["kwarg"]: filesystem_path(target)})
-    if route.get("contract_adapter"):
-        return _as_route_contract(module.extract(str(filesystem_path(source))), route.get("capability", "route"))
     return module.extract(str(filesystem_path(source)))
 
 

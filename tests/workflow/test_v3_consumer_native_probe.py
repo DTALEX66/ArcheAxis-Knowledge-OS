@@ -33,6 +33,25 @@ def probe():
     return module("aaos_v3_consumer_native")
 
 
+def test_canvas_export_uses_host_receipt_relative_to_the_selected_workspace(probe, tmp_path):
+    saved = {"document_id": "doc_demo", "version": 2}
+    directory = "exports/doc_demo/canvas/v2-0123456789abcdef"
+    receipt = {**saved, "format": "canvas", "directory": directory}
+    target = tmp_path / directory / "document.canvas"
+    target.parent.mkdir(parents=True)
+    target.write_text("{}", encoding="utf-8")
+    assert probe.canvas_export_file(receipt, saved, tmp_path) == target
+    for mismatch in ({"document_id": "doc_other"}, {"version": 1}, {"format": "markdown"},
+                     {"directory": str(target.parent)}, {"directory": "../" + directory},
+                     {"directory": directory.replace("v2-", "v1-")},
+                     {"directory": directory.replace("doc_demo", "doc_other")}):
+        with pytest.raises(ValueError, match="selected saved version"):
+            probe.canvas_export_file({**receipt, **mismatch}, saved, tmp_path)
+    target.unlink()
+    with pytest.raises(FileNotFoundError):
+        probe.canvas_export_file(receipt, saved, tmp_path)
+
+
 class EnvironmentReached(Exception):
     pass
 

@@ -61,7 +61,7 @@ def source_changes(dev):
     return changes
 
 
-def start(candidate, work, launcher):
+def start(candidate, work, launcher, *, core_executable=None):
     profile = launcher.load_profile(candidate)
     token = secrets.token_hex(32)
     worker = {"python": str(profile["python"]), "script": str(profile["script"]),
@@ -72,7 +72,7 @@ def start(candidate, work, launcher):
     launch = {"launch_token": token, "machine_token": secrets.token_hex(32),
               "session_id": secrets.token_hex(16), "actor": "human",
               "protocol": launcher.LAUNCH_PROTOCOL, "text_worker": worker}
-    child = subprocess.Popen([str(candidate / "core/archeaxis-api.exe"),
+    child = subprocess.Popen([str(core_executable or candidate / "core/archeaxis-api.exe"),
                               str(work / "workspace.sqlite"), "0"],
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, text=True, encoding="utf-8",

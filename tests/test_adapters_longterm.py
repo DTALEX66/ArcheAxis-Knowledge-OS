@@ -12,7 +12,6 @@ from app.memory.long_term import (
     update,
 )
 
-
 # ── anki / zotero ─────────────────────────────────────────────────────
 
 def test_anki_csv_roundtrip():
@@ -43,6 +42,14 @@ def test_zotero_parse():
     assert units[0]["creators"] == ["A Corporaal", "B Heffernan"]
     assert units[0]["year"] == "2016"
     assert units[0]["doi"] == "10.1145/2883851.2883913"
+
+
+def test_zotero_web_api_keeps_organization_and_parsed_date():
+    record = {"key": "TEST2026", "version": 4, "meta": {"parsedDate": "2024-02-13"},
+              "data": {"itemType": "report", "title": "Research notes", "date": "February",
+                       "creators": [{"creatorType": "author", "name": "Research Working Group"}]}}
+    parsed, = parse_zotero_json([record])
+    assert (parsed["title"], parsed["creators"], parsed["year"]) == ("Research notes", ["Research Working Group"], "2024")
 
 
 # ── long-term memory ──────────────────────────────────────────────────

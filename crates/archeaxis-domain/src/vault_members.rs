@@ -33,6 +33,8 @@ pub enum Role {
     Attachment,
     /// A JSON Canvas document.
     Canvas,
+    /// An Obsidian Bases view stored as a .base file.
+    Base,
     /// Something in the vault that this classifier does not claim to know.
     Unknown,
 }
@@ -44,6 +46,7 @@ impl Role {
             Role::AppConfig => "app_config",
             Role::Attachment => "attachment",
             Role::Canvas => "canvas",
+            Role::Base => "base",
             Role::Unknown => "unknown",
         }
     }
@@ -57,7 +60,7 @@ impl Role {
             // layout as a claim about the world.
             Role::AppConfig => "exclude_application_state",
             Role::Attachment => "import_as_source",
-            Role::Canvas => "import_as_source",
+            Role::Canvas | Role::Base => "import_as_source",
             // Named rather than guessed: a classifier that called an unrecognised file "attachment"
             // would quietly import whatever it did not understand.
             Role::Unknown => "needs_a_human_decision",
@@ -93,6 +96,9 @@ fn classify_one(path: &str) -> (Role, Option<&'static str>) {
         if name.ends_with(".canvas") {
             return (Role::Canvas, None);
         }
+        if name.ends_with(".base") {
+            return (Role::Base, None);
+        }
         if is_attachment(name) {
             return (Role::Attachment, None);
         }
@@ -116,6 +122,8 @@ fn is_attachment(name: &str) -> bool {
         "srt", "vtt", "ass", "ssa",
         // plain text is material too, and the text route serves it
         "txt", "csv", "tsv", "json", "yaml", "yml", "rtf",
+        // Bibliographies carried between the Zotero exchange and a Vault.
+        "csljson", "ris", "bib", "bibtex", "biblatex",
     ];
     match name.rsplit_once('.') {
         Some((_, extension)) => KNOWN.contains(&extension),

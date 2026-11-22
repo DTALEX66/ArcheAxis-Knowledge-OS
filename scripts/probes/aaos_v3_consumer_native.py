@@ -75,6 +75,19 @@ def owned_path(path, root, *, file=True):
     return resolved
 
 
+def canvas_export_file(receipt, saved, data_root):
+    """The host reports a relative publication directory under its active data root."""
+    document_id, version = saved["document_id"], saved["version"]
+    directory = receipt.get("directory")
+    if (not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", document_id)
+            or type(version) is not int or version < 1
+            or receipt.get("document_id") != document_id or receipt.get("version") != version
+            or receipt.get("format") != "canvas" or not isinstance(directory, str)
+            or not re.fullmatch(rf"exports/{re.escape(document_id)}/canvas/v{version}-[0-9a-f]{{16}}", directory)):
+        raise ValueError("Canvas export receipt does not identify the selected saved version")
+    return owned_path(data_root / directory / "document.canvas", data_root)
+
+
 def load_seed(path, expected_sha256, repo, core_path, source):
     """Opt-in handoff only. Do not infer a seed from nearby runs or old receipts."""
     if not re.fullmatch(r"[a-f0-9]{64}", expected_sha256 or ""):
@@ -751,8 +764,7 @@ def canvas(j):
     rows = j.returned("document_export_save", lambda r: r["payload"]["document_id"] == saved["document_id"])
     proof = [r["response"]["body"] for r in rows if r["operation"] == "document_export" and r["payload"]["document_id"] == saved["document_id"]][-1]
     export = [r["response"]["body"] for r in rows if r["operation"] == "document_export_save" and r["payload"]["document_id"] == saved["document_id"]][-1]
-    directory = owned_path(export["directory"], j.work / "data", file=False)
-    exported = owned_path(directory / "document.canvas", j.work / "data")
+    exported = canvas_export_file(export, saved, j.work / "data")
     parsed = json.loads(exported.read_bytes())
     expected = json.loads(json.dumps(raw)); expected["nodes"][0]["text"] = edited
     assert parsed == expected and proof["version"] == saved["version"]

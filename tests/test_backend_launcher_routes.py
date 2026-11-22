@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -82,6 +84,35 @@ def test_an_empty_routes_list_is_accepted_and_means_the_text_route_only(tmp_path
     document["routes"] = []
     build_profile(tmp_path, document)
     assert launcher.load_profile(tmp_path)["routes"] == []
+
+
+def test_session_worker_uses_selected_backend_and_preserves_other_routes(tmp_path, monkeypatch):
+    kit = tmp_path / "packaged runtime"
+    script = "workers/transport/text_ndjson.py"
+    document = base_document()
+    document["routes"] = [{"capability": name, "script": script}
+                          for name in ("machine.answer", "research.public")]
+    profile = build_profile(kit, document)
+    original = profile.read_bytes()
+    selected = tmp_path / "local model.py"
+    selected.touch()
+    child = MagicMock()
+    child.wait.return_value = 0
+    popen = MagicMock(return_value=child)
+    monkeypatch.setattr(launcher.subprocess, "Popen", popen)
+    monkeypatch.setattr(launcher, "wait_for_readiness", lambda *args: "http://127.0.0.1:1234")
+    monkeypatch.setattr(sys, "argv", ["start-backend.py", "--backend-root", str(kit),
+                                      "--machine-worker", str(selected), "--port", "1234"])
+
+    assert launcher.main() == 0
+    command = popen.call_args.args[0]
+    assert command[:2] == [str(kit / launcher.CORE_RELATIVE), str(kit / "data/workspace.sqlite")]
+    assert popen.call_args.kwargs["env"]["ARCHEAXIS_WORKER_PROFILE"] == str(profile)
+    worker = json.loads(child.stdin.write.call_args.args[0])["text_worker"]
+    assert worker["python"] == str(kit / document["python"])
+    assert worker["routes"] == [{"capability": "machine.answer", "script": str(selected)},
+                                {"capability": "research.public", "script": str(kit / script)}]
+    assert profile.read_bytes() == original
 
 
 def test_a_routes_script_that_does_not_exist_is_refused_by_name(tmp_path):

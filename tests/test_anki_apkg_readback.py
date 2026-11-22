@@ -7,6 +7,7 @@ to do that are inventoried on purpose - this file adds no owner.
 
 from __future__ import annotations
 
+import csv
 import json
 import sqlite3
 import zipfile
@@ -101,3 +102,22 @@ def test_the_reader_declares_what_it_does_not_carry() -> None:
     not_carried = ' '.join(unit['not_carried'])
     assert 'deck_options' in not_carried, unit
     assert 'deck_names' in not_carried, unit
+
+
+def test_edited_field_export_matches_the_native_type_after_display_name_collision(tmp_path, monkeypatch):
+    from scripts.ingest import anki_exchange
+
+    note = {"guid": "#native", "note_type": "Basic", "note_type_id": 123, "fields": ["front", "back"]}
+    transform = {"source_id": "source", "raw_sha256": "a" * 64}
+    loss = {"params": {"structure": {"anki": {"notes": [note]}}}}
+    monkeypatch.setattr(anki_exchange.core_client, "archive_job_result", lambda *_: (transform, loss))
+    values = ['改了首字段 <b>HTML</b>', '含有制表符\t和"引号"']
+    editor = {"attrs": {"anki_guid": note["guid"]}, "content": [
+        {"type": "paragraph", "attrs": {"block_id": f"anki-field-{i}"}, "content": [{"type": "text", "text": text}]}
+        for i, text in enumerate(values)]}
+    doc = {"editor_json": editor, "source_id": "source", "source_revision": transform["raw_sha256"], "version": 2}
+    output = tmp_path / "updated.txt"
+    anki_exchange.export_fields(lambda *_: doc, "job", ["doc"], output)
+    with output.open(encoding="utf-8", newline="") as handle:
+        assert list(csv.reader((line for line in handle if not line.startswith("#")), delimiter="\t")) == [
+            ["#native", "123", *values]]

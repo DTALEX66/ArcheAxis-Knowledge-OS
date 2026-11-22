@@ -27,9 +27,11 @@ import json
 import os
 import stat
 import sys
+import tempfile
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 SCHEMA = "archeaxis.directory-batch/v1"
 MANIFEST_SCHEMA = "archeaxis.directory-batch-entry/v1"
@@ -42,9 +44,10 @@ KIND_BY_EXTENSION = {
     "hpp": "text", "go": "text", "java": "text", "cs": "text", "rb": "text", "sh": "text",
     "ps1": "text", "bat": "text", "toml": "text", "yaml": "text", "yml": "text", "ini": "text",
     "cfg": "text", "sql": "text", "md": "text", "markdown": "text", "csv": "text",
-    "tsv": "text", "json": "text", "xml": "text",
+    "tsv": "text", "json": "text", "xml": "text", "csljson": "text",
+    "ris": "text", "bib": "text", "bibtex": "text", "biblatex": "text",
     "pdf": "pdf",
-    "zip": "archive",
+    "zip": "archive", "tar": "archive", "jex": "archive", "apkg": "archive", "colpkg": "archive",
     "png": "image", "jpg": "image", "jpeg": "image", "webp": "image", "bmp": "image",
     "tif": "image", "tiff": "image",
     "wav": "media", "mp4": "media", "m4v": "media", "mov": "media",
@@ -78,13 +81,18 @@ def sha256_of(path: Path) -> str:
     return digest.hexdigest()
 
 
-def iter_files(root: Path, *, limit: int | None = None) -> tuple[list[Path], list[str]]:
-    """The files of a folder, and the paths that were left out, both explicit."""
+def source_folder(root: Path) -> Path:
     checked = _runtime().safe_path(root)
     if any(part.casefold() in {".zcode", ".codex", ".hermes", ".openhuman", ".git"} for part in checked.parts):
         raise ValueError("private state cannot be a source folder")
     if not root.is_dir():
         raise ValueError(f"not a folder: {root}")
+    return checked
+
+
+def iter_files(root: Path, *, limit: int | None = None) -> tuple[list[Path], list[str]]:
+    """The files of a folder, and the paths that were left out, both explicit."""
+    source_folder(root)
     files: list[Path] = []
     skipped: list[str] = []
     pending = [root]
@@ -190,13 +198,66 @@ def _runtime():
 
 
 def default_manifest(root: Path, core_base: str) -> Path:
-    """Persist resume state by full source root and Core endpoint, never basename."""
+    """Derive the journal path from the full source root and a destination identity."""
     repo = Path(__file__).resolve().parents[2]
     runtime = _runtime()
     source = os.path.normcase(str(runtime.safe_path(root)))
     identity = json.dumps([source, core_base.rstrip("/")], ensure_ascii=False)
     key = hashlib.sha256(identity.encode("utf-8")).hexdigest()
     return runtime.state_path(repo, "directory-batch", f"{key}.jsonl")
+
+
+def _confirmed_legacy_records(path: Path, core_call) -> list[dict]:
+    records = []
+    for entry in latest_decidable_by_path(read_manifest(path)).values():
+        if entry.get("status") not in RESUMABLE_STATUSES or not entry.get("source_id"):
+            continue
+        source_id = entry["source_id"]
+        code, source = core_call("GET", "/api/v1/sources/" + quote(source_id, safe=""), None)
+        if code != 200 or not isinstance(source, dict) or source.get("sha256") != entry.get("sha256"):
+            continue
+        if entry["status"] != "imported_no_job":
+            job_id = entry.get("job_id")
+            if not job_id:
+                continue
+            code, job = core_call("GET", "/api/v1/jobs/" + quote(job_id, safe=""), None)
+            if code != 200 or not isinstance(job, dict) or (job.get("input_ref"), job.get("kind")) != (source_id, entry.get("kind")):
+                continue
+        records.append(entry)
+    return records
+
+
+def resume_manifest(root: Path, base: str, core_call) -> Path:
+    endpoint_path = default_manifest(root, base)
+    binding = endpoint_path.with_suffix(".target.json")
+    if core_call is None:  # An offline dry run uses the last observed binding at this URL.
+        if not binding.is_file():
+            return endpoint_path
+        target = binding.read_text(encoding="utf-8")
+    else:
+        code, info = core_call("GET", "/api/v1/ingest-batches?limit=1", None)
+        if code == 404:
+            return endpoint_path  # Older Core builds predate workspace-bound batch recovery.
+        if (code != 200 or not isinstance(info, dict) or info.get("schema") != "archeaxis.ingest-batches/v1"
+                or not all(isinstance(info.get(key), str) and info[key] for key in ("workspace_id", "restore_epoch"))):
+            raise ValueError(f"cannot identify the Core workspace for batch recovery (status {code})")
+        target = json.dumps(["workspace", info["workspace_id"], info["restore_epoch"]], ensure_ascii=False)
+    journal = default_manifest(root, target)
+    if core_call is not None:
+        if not journal.exists() and endpoint_path.is_file():
+            confirmed = _confirmed_legacy_records(endpoint_path, core_call)
+            if confirmed:
+                append_records(journal, confirmed)
+        if not binding.is_file() or binding.read_text(encoding="utf-8") != target:
+            binding.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=binding.parent, mode="w", encoding="utf-8", delete=False) as temp:
+                temp.write(target)
+            temp_path = Path(temp.name)
+            try:
+                temp_path.replace(binding)
+            finally:
+                temp_path.unlink(missing_ok=True)
+    return journal
 
 
 def run_batch(
@@ -217,6 +278,12 @@ def run_batch(
     entries: list[dict] = []
     counts = dict.fromkeys(STATUSES, 0)
 
+    def record(entry: dict) -> None:
+        if not dry_run:
+            append_records(manifest_path, [entry])
+        counts[entry["status"]] += 1
+        entries.append(entry)
+
     for path in files:
         relative = path.relative_to(root).as_posix()
         digest = sha256_of(path)
@@ -231,13 +298,11 @@ def run_batch(
         }
         if not should_run:
             entry.update({"status": "skipped_unchanged", "detail": why})
-            counts["skipped_unchanged"] += 1
-            entries.append(entry)
+            record(entry)
             continue
         if dry_run:
             entry.update({"status": "skipped_unchanged", "detail": f"dry run: would import ({why})"})
-            counts["skipped_unchanged"] += 1
-            entries.append(entry)
+            record(entry)
             continue
 
         status, body = core_call("POST", "/api/v1/imports", {
@@ -246,8 +311,7 @@ def run_batch(
         })
         if status not in (200, 201, 202) or not isinstance(body, dict) or not body.get("source_id"):
             entry.update({"status": "refused", "detail": f"the Core refused the import with status {status}: {body}"})
-            counts["refused"] += 1
-            entries.append(entry)
+            record(entry)
             continue
         entry["source_id"] = body["source_id"]
 
@@ -259,8 +323,7 @@ def run_batch(
                     "enqueued: the driver will not hand a file to a route that would refuse it"
                 ),
             })
-            counts["imported_no_job"] += 1
-            entries.append(entry)
+            record(entry)
             continue
 
         job_id = f"{job_prefix}-{digest[:12]}"
@@ -268,17 +331,16 @@ def run_batch(
         entry["job_id"] = job_id
         if status in (200, 201, 202):
             entry.update({"status": "enqueued", "detail": f"{entry['kind']} job accepted"})
-            counts["enqueued"] += 1
         elif status == 409:
-            entry.update({"status": "already_enqueued", "detail": f"the Core already holds job {job_id} for this content"})
-            counts["already_enqueued"] += 1
+            code, existing = core_call("GET", "/api/v1/jobs/" + quote(job_id, safe=""), None)
+            if (code == 200 and isinstance(existing, dict) and existing.get("input_ref") == entry["source_id"]
+                    and existing.get("kind") == entry["kind"]):
+                entry.update({"status": "already_enqueued", "detail": f"the Core already holds job {job_id} for this content"})
+            else:
+                entry.update({"status": "failed", "detail": f"job {job_id} conflicts with the requested source or kind: {body}"})
         else:
             entry.update({"status": "failed", "detail": f"the Core refused the {entry['kind']} job with status {status}: {body}"})
-            counts["failed"] += 1
-        entries.append(entry)
-
-    if entries and not dry_run:
-        append_records(manifest_path, entries)
+        record(entry)
 
     return {
         "schema": SCHEMA,
@@ -304,7 +366,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--core", default=None, help="Core base URL (default ARCHEAXIS_CORE_BASE)")
     parser.add_argument("--token-env", default="ARCHEAXIS_CORE_TOKEN", help="environment variable holding the launch token")
     parser.add_argument("--manifest", type=Path, default=None,
-                        help="JSONL resume manifest; default is dev.py-managed state keyed by source root and Core URL")
+                        help="JSONL resume manifest; the default follows the source folder, Core workspace and restore epoch")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no-resume", action="store_true", help="ignore earlier attempts")
     parser.add_argument("--dry-run", action="store_true", help="report what would happen, write nothing")
@@ -329,7 +391,14 @@ def main(argv: list[str] | None = None) -> int:
     core = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(core)
     token = os.environ.get(args.token_env) or None
-    manifest = args.manifest or default_manifest(args.root, base)
+    def core_call(method, path, body):
+        return core.call(base, method, path, token, body)
+
+    try:
+        manifest = args.manifest or resume_manifest(args.root, base, None if args.dry_run else core_call)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 5
     legacy = repo / ".project-local" / "runs" / "directory-batch" / f"{args.root.name}.jsonl"
     if args.manifest is None and legacy.is_file():
         print("A legacy basename-only manifest exists; it is preserved. Pass --manifest explicitly "
@@ -337,7 +406,7 @@ def main(argv: list[str] | None = None) -> int:
 
     receipt = run_batch(
         args.root,
-        core_call=lambda method, path, body: core.call(base, method, path, token, body),
+        core_call=core_call,
         manifest_path=manifest,
         resume=not args.no_resume,
         limit=args.limit,

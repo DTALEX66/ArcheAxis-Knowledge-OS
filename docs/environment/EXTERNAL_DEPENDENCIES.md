@@ -28,6 +28,8 @@
 共享权重保留在 `D:\All projects\Model library`，不复制进仓库、不改共享软件配置。
 模型清单可读、模型已加载、推理成功、embedding 和 rerank 成功分别验证。
 
+结构化机器回答另有可选的本地 SDK 工作者。它使用项目已有的 Node 和固定版本的 `@lmstudio/sdk`，调用本机已加载实例。其生成回执记录这两个外部依赖的路径。部署时选择工作者的步骤见[后端合同 §36](../current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
+
 选择依据：项目已有 LM Studio 实际调用与共享 GGUF 模型；其官方 API 支持
 [`/v1/models`、`/v1/chat/completions`、`/v1/embeddings`](https://lmstudio.ai/docs/developer/openai-compat)，
 也支持[使用外部下载的 GGUF](https://lmstudio.ai/docs/app/advanced/import-model)。
@@ -48,6 +50,7 @@ Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibi
 | .NET / Avalonia 构建 | `OS External Configuration/10-toolchains/dotnet/dotnet.exe` | 已存在；本地 Avalonia 构建通过 |
 | Rust + MSVC | `10-toolchains/cargo/bin`、`10-toolchains/msvc` | 已存在；MSVC 环境注入后 Rust workspace 测试通过 |
 | Tesseract OCR | `10-toolchains/scoop/apps/tesseract/current` 及语言包 | 已存在；需在运行会话显式绑定 PATH/TESSDATA_PREFIX |
+| `image.ocr` 提供方 | Core 启动环境 `ARCHEAXIS_OCR_ENGINE` | `auto` 默认采用现有选择与回退。`tesseract` 或 `rapidocr` 固定该引擎，缺失时保留失败。作业损失报告的 `params.requested_engine` 与 `params.engine` 分别保存所选模式与实际引擎。 |
 | FFmpeg | `10-toolchains/scoop/apps/ffmpeg/current/bin` | 已存在；媒体适配器可按共享工具根解析 |
 | antiword（`.doc` 旁路，2026-10-07 就位） | `10-toolchains/antiword/antiword.exe`（284,448 B，sha256 `d30a3748…`）＋ `10-toolchains/antiword/.antiword/`（30 个映射表，306,272 B） | 已按声明成对绑定；**两条必须同时存在**：引擎只到 `$HOME/.antiword` 与 `/usr/share/antiword` 找映射表，绝对路径会被截断，所以 worker 把映射目录的父目录作为 HOME 交给它。本机副本取自 Git for Windows，不随项目分发、不自动安装，Git 更新不会自动同步此副本 |
 | DeepTutor | `10-toolchains/deeptutor/1.5.17` | 已存在；宿主内挂载与启动验收仍属 R10/R13 未闭合项 |
@@ -94,13 +97,13 @@ Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibi
 
 ## 1. 系统级工具（必须安装）
 
-### 1.1 Python 3.11+
+### 1.1 Python 3.11.5 及以上
 
 - **用途**：运行时
 - **版本**：3.11.15（主）/ 3.14.6（辅）
 - **下载**：https://www.python.org/downloads/windows/
 - **管理**：scoop（`scoop install python311`）
-- **验证**：`python --version` → `Python 3.11.x`
+- 运行 `python --version`，确认用于源码安装的解释器为 3.11.5 或更高版本。
 
 ### 1.2 uv（Python 包管理器）
 
@@ -222,6 +225,10 @@ Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibi
 
 ### 2.5 多格式转换引擎
 
+ENEX 导入复用项目 Python 的 defusedxml 和本地 Pandoc。可通过已有的 ARCHEAXIS_PANDOC 环境变量或命令参数指定程序。公开样本的独立回读使用 MIT 许可的 evernote2md 0.23.0，Windows amd64 发行包已按上游清单校验。产品的导入和回写均可离线执行。[ENEX 使用说明](../current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#32-evernote-enex-notes-and-annotations) · [独立读取器发行版](https://github.com/wormi4ok/evernote2md/releases/tag/v0.23.0)
+
+Markdown 结构读取使用 `markdown-it-py` 的 CommonMark 模式。当前项目锁定 4.2.0 及其依赖 `mdurl` 0.1.2。预制后端可从 `--dep-source` 补入这两个纯 Python 包。独立外部回读使用 Pandoc 3.10。字段和精简环境行为见[后端合同 §31](../current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#31-commonmark-structure-in-text-extraction)。
+
 | 包 | 版本约束 | 许可 | 用途 |
 |---|---|---|---|
 | markitdown[pdf,docx,pptx,xlsx,xls] | >=0.1 | MIT | PDF/Office 文本提取 |
@@ -319,6 +326,10 @@ Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibi
 | FlClashCore 代理 | 7890 | 由 FlyintPro 管理（禁止强杀） | 系统代理 |
 
 ---
+
+### 可选的 Zotero 文献交换工具
+
+公开组库读取使用 Zotero Web API v3。BibTeX 和 BibLaTeX 文件导入使用本地 Pandoc，本轮实测 3.10。RIS 导入及三种文本格式的导出使用本机 Zotero translation-server，本轮实测 2.0.5。CSL JSON 文件由现有 Python 标准库读写。命令、格式边界及参数见[后端文献交换合同](../current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#28-zotero-public-library-and-bibliography-exchange)。
 
 ## 6. 工具链路径（scoop 管理）
 

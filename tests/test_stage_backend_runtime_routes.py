@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 from io import StringIO
@@ -212,6 +213,101 @@ def test_version_probe_cannot_add_unmanifested_bytecode(tmp_path, monkeypatch):
     observed = {p.relative_to(out).as_posix() for p in out.rglob("*") if p.is_file()}
     assert observed == set(manifest["files"]) | {"backend-runtime-manifest.json"}
     assert manifest["components"][1]["version"] == "3.13.14"
+
+
+def _check_staged_worker_donors(tmp_path, monkeypatch, script, capability, donors, prefix, extra_args=()):
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "python.exe").write_bytes(b"fixture")
+    synthetic_vc(runtime, monkeypatch)
+    workers = tmp_path / "workers"
+    (workers / "transport").mkdir(parents=True)
+    (workers / "transport/text_ndjson.py").write_bytes(b"# fixture")
+    (workers / script).parent.mkdir()
+    (workers / script).write_bytes((ROOT / "services/python-workers" / script).read_bytes())
+    core = tmp_path / "core.exe"
+    core.write_bytes(b"fixture")
+    output = tmp_path / "backend"
+
+    # Run the staged script with the test interpreter and its installed libraries.
+    real_run = subprocess.run
+    def inspect(command, **kwargs):
+        assert Path(command[0]) == output / "runtime/python.exe"
+        return real_run([sys.executable, *command[1:]], **kwargs)
+
+    monkeypatch.setattr(stager, "packager_identity", lambda: "fixture")
+    monkeypatch.setattr(stager, "stage_capability_manifest", lambda *_: {})
+    monkeypatch.setattr(stager.subprocess, "run", inspect)
+    assert stager.main(["--core", str(core), "--runtime", str(runtime),
+                        "--workers", str(workers), "--shared", str(ROOT / "shared/learning_scheduler.py"),
+                        "--out", str(output), "--version", "fixture", "--source-commit", "fixture",
+                        "--source-tree", "fixture", *extra_args]) == 0
+    inventory = json.loads((output / "backend-runtime-manifest.json").read_text(encoding="utf-8"))["files"]
+    for relative in donors:
+        member = prefix + relative
+        assert inventory[member]["sha256"] == stager.sha256(ROOT / relative)
+        assert (output / member).read_bytes() == (ROOT / relative).read_bytes()
+    if capability:
+        assert any(route["capability"] == capability for route in launcher.load_profile(output)["routes"])
+    return output
+
+
+def test_prebuilt_course_stage_ships_its_own_donors(tmp_path, monkeypatch):
+    _check_staged_worker_donors(tmp_path, monkeypatch, "course/worker_general_course.py", "course.general",
+                                stager.COURSE_DONORS, "workers/course/donors/")
+
+
+def test_prebuilt_archive_stage_ships_its_anki_reader(tmp_path, monkeypatch):
+    _check_staged_worker_donors(tmp_path, monkeypatch, "document/worker_archive.py", "archive.inventory",
+                                stager.ANKI_DONORS, "")
+
+
+def test_prebuilt_text_stage_can_supply_its_commonmark_reader(tmp_path, monkeypatch):
+    import markdown_it
+
+    installed = Path(markdown_it.__file__).resolve().parents[1]
+    source = tmp_path / "dependency-source"
+    # uv may hard-link installed packages to its cache. The donor must own its bytes.
+    for name in ("markdown-it-py", "mdurl"):
+        members = stager.distribution_files(name, installed)
+        assert members
+        for path in members:
+            path = path.resolve()
+            if path.is_relative_to(installed) and path.is_file():
+                target = source / path.relative_to(installed)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+    with monkeypatch.context() as patcher:
+        staged = _check_staged_worker_donors(tmp_path, patcher, "document/worker_text.py", None, (), "",
+                                            ("--dep-source", str(source)))
+    # Use only the staged packages and the test interpreter's standard library.
+    check = subprocess.run([sys.executable, "-E", "-S", "-B", "-c",
+                            "from markdown_it import MarkdownIt; print(MarkdownIt('commonmark').parse('x\\n===')[0].tag)"],
+                           cwd=staged / "runtime/Lib/site-packages", capture_output=True, text=True, check=True)
+    assert check.stdout.strip() == "h1"
+
+
+def test_prebuilt_document_check_uses_locked_reader_dependencies(tmp_path):
+    runtime, source = tmp_path / "runtime", tmp_path / "wheel-input"
+    site = runtime / "Lib/site-packages"
+
+    def distribution(root, name, version):
+        info = root / f"{name}-{version}.dist-info"
+        info.mkdir(parents=True)
+        (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: {version}\n", encoding="utf-8")
+        (info / "RECORD").write_text(f"{name}.py,,\n", encoding="utf-8")
+        (root / f"{name}.py").write_bytes(b"")
+
+    locked = {"beautifulsoup4": "4.15.0", "soupsieve": "4.1.3", "trafilatura": "2.1.0"}
+    distribution(site, "beautifulsoup4", locked["beautifulsoup4"])
+    distribution(source, "trafilatura", locked["trafilatura"])
+    with pytest.raises(ValueError, match="soupsieve==4.1.3.*--dep-source"):
+        stager.document_check_additions(locked, runtime, source, [])
+    distribution(source, "soupsieve", locked["soupsieve"])
+    assert stager.document_check_additions(locked, runtime, source, ["trafilatura"]) == ["soupsieve"]
+    distribution(site, "soupsieve", "2.10")
+    with pytest.raises(ValueError, match="clean runtime.*soupsieve==4.1.3"):
+        stager.document_check_additions(locked, runtime, source, [])
 
 
 @pytest.mark.parametrize("bad", ["missing", "changed", "directory"])

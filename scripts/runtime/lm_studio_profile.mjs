@@ -1,5 +1,5 @@
 /** Explicit local model loading; never edits provider settings or unloads shared instances. */
-import {readFileSync, mkdirSync, writeFileSync, lstatSync, existsSync} from 'node:fs';
+import {readFileSync, readdirSync, mkdirSync, writeFileSync, lstatSync, existsSync, copyFileSync} from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {projectPython, safePath} from './frontend_paths.mjs';
@@ -9,7 +9,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const configPath = path.join(root, 'config/model-profiles/lm-studio.json');
 
 export function receiptPath(operation, projectRoot = root) {
-  if (!['inspect', 'load', 'smoke'].includes(operation)) throw Error('INVALID_ARGUMENT');
+  if (!['inspect', 'load', 'smoke', 'stage-worker'].includes(operation)) throw Error('INVALID_ARGUMENT');
   const code = `import importlib.util, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 spec = importlib.util.spec_from_file_location("lm_profile_dev", root / "scripts/runtime/dev.py")
@@ -73,14 +73,50 @@ function projectLocalPath(relative) {
 
 async function main(args) {
   const operation = args.shift() ?? 'inspect';
-  if (!['inspect', 'load', 'smoke'].includes(operation) || args.length > 1) throw Error('INVALID_ARGUMENT');
+  if (!['inspect', 'load', 'smoke', 'stage-worker'].includes(operation) || args.length > 1) throw Error('INVALID_ARGUMENT');
   const declaration = JSON.parse(readFileSync(configPath, 'utf8'));
   const profileName = args[0] ?? 'deep-mtp';
   const profile = declaration.profiles[profileName];
   if (!profile) throw Error('UNKNOWN_PROFILE');
   const sdkRoot = projectLocalPath('.project-local/tools/lm-studio-sdk/node_modules/@lmstudio/sdk');
   const packageInfo = JSON.parse(readFileSync(path.join(sdkRoot, 'package.json'), 'utf8'));
-  if (packageInfo.version !== declaration.sdk.version) throw Error('SDK_VERSION_MISMATCH');
+  if (packageInfo.name !== declaration.sdk.package || packageInfo.version !== declaration.sdk.version) throw Error('SDK_VERSION_MISMATCH');
+  if (operation === 'stage-worker') {
+    if (!Number.isSafeInteger(profile.structured_reasoning_tokens) || profile.structured_reasoning_tokens < 1)
+      throw Error('NO_STRUCTURED_REASONING_BUDGET');
+    const receipt = receiptPath(operation);
+    const staged = path.dirname(receipt);
+    const machineSource = 'services/python-workers/machine';
+    const directory = path.join(staged, 'workers/machine');
+    // Core also uses this route for the inventory, health and material checks.
+    // Keep their ordinary packaged layout when selecting the SDK for answers.
+    const files = [
+      ['services/python-workers/tool_paths.py', 'workers/tool_paths.py'],
+      ['services/python-workers/transport/text_ndjson.py', 'workers/transport/text_ndjson.py'],
+      ['config/environment/capability-requirements.yaml', 'workers/capability-requirements.yaml'],
+      ['shared/safe_http.py', 'shared/safe_http.py'],
+      ['shared-contracts/adapters/llm/litellm_adapter.py', 'shared/llm_adapter.py'],
+    ];
+    for (const name of readdirSync(path.join(root, machineSource))) {
+      if (name.endsWith('.py') || name === 'lmstudio_structured.mjs') {
+        files.push([path.join(machineSource, name), path.join('workers/machine', name)]);
+      }
+    }
+    for (const [source, relative] of files) {
+      const target = path.join(staged, relative);
+      mkdirSync(path.dirname(target), {recursive:true});
+      copyFileSync(path.join(root, source), target);
+    }
+    const runtime = {schema:'archeaxis.lmstudio-structured-runtime/v1', node:process.execPath, sdk:sdkRoot,
+      sdk_version:packageInfo.version, endpoint:declaration.endpoint, model:profile.identifier,
+      model_key:profile.model_key, reasoning_tokens:profile.structured_reasoning_tokens};
+    writeFileSync(path.join(directory, 'lmstudio-structured-runtime.json'), JSON.stringify(runtime, null, 2));
+    const result = {status:'STAGED', profile:profileName, capability:'machine.answer',
+                    script:path.join(directory, 'worker_machine_answer.py'), external_runtime:runtime};
+    writeFileSync(receipt, JSON.stringify(result, null, 2));
+    console.log(JSON.stringify({status:result.status, script:result.script, receipt}));
+    return;
+  }
   const {LMStudioClient} = await import(pathToFileURL(path.join(sdkRoot, 'dist/index.mjs')).href);
   const quiet = () => {};
   const client = new LMStudioClient({baseUrl: declaration.endpoint, verboseErrorMessages: false,

@@ -3,7 +3,7 @@ name = "archeaxis-workspace"
 version = "0.6.14"
 description = "Local-first personal knowledge, research and Human–AI learning workspace"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11.5"
 license = "MIT"
 authors = [
     { name = "DTALEX66" },
@@ -15,10 +15,13 @@ dependencies = [
     "python-multipart>=0.0.20",
     "uvicorn[standard]>=0.22",
     "pydantic>=2.0",
+    "backports.zstd>=1.8,<2; python_version < '3.14'",
     "numpy>=1.24",
     "requests>=2.28",
     "pyyaml>=6.0",
     "beautifulsoup4>=4.11",
+    "soupsieve>=4.0",
+    "markdown-it-py>=4.2,<5",
     "defusedxml>=0.7.1",
     "sqlite-vec>=0.1.6",
     "loguru>=0.7",
@@ -50,8 +53,11 @@ browser = [
     "pymupdf>=1.24",
 ]
 ci = [
+    "backports.zstd>=1.8,<2; python_version < '3.14'",
     "apscheduler>=3.10",
     "beautifulsoup4>=4.11",
+    "soupsieve>=4.0",
+    "markdown-it-py>=4.2,<5",
     "defusedxml>=0.7.1",
     "fastapi>=0.133,<0.134",
     "httpx>=0.28",

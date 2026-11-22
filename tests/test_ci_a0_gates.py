@@ -519,8 +519,8 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
     manifest = json.loads((ROOT / "app" / "release-manifest.json").read_text(encoding="utf-8"))
     test_job = _job_section(workflow, "test", "lint")
 
-    assert project["project"]["requires-python"] == ">=3.11"
-    assert manifest["product"]["requires_python"] == ">=3.11"
+    assert project["project"]["requires-python"] == ">=3.11.5"
+    assert manifest["product"]["requires_python"] == project["project"]["requires-python"]
     assert project["tool"]["ruff"]["target-version"] == "py311"
     assert {"UP017", "UP042"} <= set(project["tool"]["ruff"]["lint"]["ignore"])
     assert project["tool"]["mypy"]["python_version"] == "3.11"

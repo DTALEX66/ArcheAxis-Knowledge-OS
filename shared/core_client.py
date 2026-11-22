@@ -15,6 +15,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import time
 import urllib.error
 import urllib.parse
@@ -22,6 +23,34 @@ import urllib.request
 
 BASE = "/api/v1"
 TOKEN_HEADER = "x-archeaxis-launch-token"
+
+
+def archive_job_result(call, job_id: str, profile: str):
+    """Return the addressed transform and its digest-checked archive loss report."""
+    job_key = urllib.parse.quote(job_id, safe="")
+    route = f"{BASE}/jobs/{job_key}"
+    job = call("GET", route)
+    if job["state"] != "succeeded":
+        raise ValueError(f"job {job_id} is {job['state']}")
+    source = urllib.parse.quote(job["input_ref"], safe="")
+    transform = call("GET", f"{BASE}/sources/{source}/jobs/{job_key}/transform")
+    receipt = call("GET", route + "/outputs/loss_report")
+    if hashlib.sha256(receipt["content"].encode()).hexdigest() != receipt["metadata"]["sha256"]:
+        raise ValueError("incomplete archive job receipt")
+    loss = json.loads(receipt["content"])
+    if loss["params"].get("container_profile") != profile:
+        raise ValueError(f"select a completed {profile} archive job")
+    return transform, loss
+
+
+def configure_cli_connection(parser, session: tuple[str, str] | None) -> str | None:
+    """A packaged client uses its own Core session. Source CLIs can select an existing Core."""
+    if session is not None:
+        base, token = session
+        parser.set_defaults(core=base)
+        return token
+    parser.add_argument("--core", default=os.environ.get("ARCHEAXIS_CORE_BASE"))
+    return os.environ.get("ARCHEAXIS_CORE_TOKEN")
 
 
 def headers(launch_token: str | None = None) -> dict[str, str]:

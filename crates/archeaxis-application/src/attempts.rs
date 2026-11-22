@@ -24,6 +24,9 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-text", "0.1.0"),
     ("python-worker-ocr", "0.1.0"),
     ("python-worker-archive", "0.1.0"),
+    ("python-worker-archive", "0.2.0"),
+    ("python-worker-archive", "0.3.0"),
+    ("python-worker-archive", "0.3.1"),
     ("python-worker-media", "0.1.0"),
     ("python-worker-office", "0.1.0"),
     ("python-worker-canvas", "0.1.0"),
@@ -146,7 +149,13 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ),
     (
         "archive.inventory",
-        &["application/zip", "application/x-tar"],
+        &[
+            "application/zip",
+            "application/x-tar",
+            "application/x-joplin-jex",
+            "application/x-anki-package",
+            "application/x-anki-collection",
+        ],
     ),
     (
         "media.probe",
@@ -201,7 +210,10 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ),
     ("canvas.structure", &["application/json"]),
     ("subtitles.structure", &["application/x-subrip", "text/vtt"]),
-    ("html.structure", &["text/html", "application/xhtml+xml", "multipart/related"]),
+    (
+        "html.structure",
+        &["text/html", "application/xhtml+xml", "multipart/related"],
+    ),
     (
         "image.caption",
         &[
@@ -253,12 +265,14 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         .next()
         .unwrap_or(name)
         .to_ascii_lowercase();
+    if file == "collection.apkg" {
+        return Some("application/x-anki-collection");
+    }
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
         "txt" | "log" | "text" | "rs" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp" | "hpp"
-        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
-            "text/plain"
-        }
+        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" | "ris"
+        | "bib" | "bibtex" | "biblatex" => "text/plain",
         "md" | "markdown" => "text/markdown",
         // R15/F01: only a source language with a reader here gets its own type. `.py` is read
         // with the interpreter's own `ast`, so a symbol report is possible; the rest stay
@@ -266,7 +280,7 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "py" => "text/x-python",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
-        "json" | "canvas" => "application/json",
+        "json" | "csljson" | "canvas" => "application/json",
         "jsonl" | "ndjson" => "application/x-ndjson",
         "yaml" | "yml" => "application/yaml",
         "toml" => "application/toml",
@@ -283,6 +297,9 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
         "tar" => "application/x-tar",
+        "jex" => "application/x-joplin-jex",
+        "apkg" => "application/x-anki-package",
+        "colpkg" => "application/x-anki-collection",
         // Name the actual container type; each capability separately limits what it reads.
         // The video decoder accepts MKV/WebM; the limited header probe does not.
         //
@@ -613,8 +630,12 @@ fn finish_inner(
             .iter()
             .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
     };
-    if !engine_valid
-        || !same_spans(&structure, &expected)
+    if !engine_valid {
+        return Err(JobError::InvalidReceipt(
+            "unregistered worker engine or version",
+        ));
+    }
+    if !same_spans(&structure, &expected)
         || loss.covered != Some(structure.len() as u64)
         || loss.total != Some(total as u64)
     {

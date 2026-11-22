@@ -63,7 +63,7 @@
 # probe.reaches = 该探针通过所能证明的上限），索引记录实测；两者不符时测试必须红。
 # =============================================================================
 schema_version: "1.0"
-updated: "2026-10-25"
+updated: "2026-11-22"
 source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
 description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单，四处读取方共用的唯一绑定）"
 
@@ -80,7 +80,7 @@ capabilities:
       resource_id: ext.toolchains.python
       type: toolchain
       purpose: "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）"
-      version_range: ">=3.11,<3.15"
+      version_range: ">=3.11.5,<3.15"
       version_identification: "python --version 第一行"
       platform: windows-x64
       license: "PSF-2.0"
@@ -89,11 +89,11 @@ capabilities:
       external_paths: ["10-toolchains/scoop/apps/python/current/python.exe"]
       project_entry: "tool_paths.tool_path(\"python\")"
       writability: shared_read_only
-      healthcheck_command: "python --version"
+      healthcheck_command: "python -I -B -c \"import sys; print('Python', sys.version.split()[0]); sys.exit(not (3, 11, 5) <= sys.version_info[:3] < (3, 15))\""
       probe:
         kind: command
-        args: ["--version"]
-        expect_pattern: "Python 3\\."
+        args: ["-I", "-B", "-c", "import sys; print('Python', sys.version.split()[0]); sys.exit(not (3, 11, 5) <= sys.version_info[:3] < (3, 15))"]
+        expect_pattern: "^Python [0-9]+\\.[0-9]+\\.[0-9]+"
         reaches: VERSION_PROBED
       fallback: "声明缺失即具名失败；不猜 PATH，不自动安装"
       required_by: [core-runtime, ci, tests]
@@ -330,7 +330,7 @@ capabilities:
       resource_id: ext.runtimes.archeaxis-ci-venv
       type: runtime
       purpose: "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）；引擎探针用它**自己的** python 跑，不再借 uv 顶替"
-      version_range: "python>=3.11"
+      version_range: "python>=3.11.5"
       version_identification: "<ci-venv>/Scripts/python.exe --version 第一行"
       platform: windows-x64
       license: "n/a"
@@ -339,11 +339,11 @@ capabilities:
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe"]
       project_entry: "tool_paths.tool_path(\"archeaxis-ci-venv\")"
       writability: shared_writable_by_project
-      healthcheck_command: "<ci-venv>/Scripts/python.exe --version"
+      healthcheck_command: "<ci-venv>/Scripts/python.exe -I -B -c \"import sys; print('Python', sys.version.split()[0]); sys.exit(sys.version_info[:3] < (3, 11, 5))\""
       probe:
         kind: command
-        args: ["--version"]
-        expect_pattern: "Python 3\\.1[0-9]"
+        args: ["-I", "-B", "-c", "import sys; print('Python', sys.version.split()[0]); sys.exit(sys.version_info[:3] < (3, 11, 5))"]
+        expect_pattern: "^Python [0-9]+\\.[0-9]+\\.[0-9]+"
         reaches: VERSION_PROBED
       fallback: "环境不在则引擎条目一并记 unavailable 并具名解释器；不新建第二份库副本"
       required_by: [ci, tests]

@@ -277,6 +277,36 @@ def test_non_smoke_main_waits_and_reaps_child(monkeypatch, tmp_path, capsys):
     assert "launch_token" not in receipt and "machine_token" not in receipt
 
 
+@pytest.mark.parametrize("matches,expected_method", [(False, "forced"), (True, "error")])
+def test_smoke_requires_a_matching_shutdown_and_normal_core_exit(monkeypatch, tmp_path, capsys, matches, expected_method):
+    marker = tmp_path / "release-child"
+    child_code = (
+        "import pathlib,sys,time\nsys.stdin.readline()\n"
+        "print('archeaxis-api ready on http://127.0.0.1:1234', flush=True)\n"
+        f"while not pathlib.Path({str(marker)!r}).exists(): time.sleep(.015)\n"
+        "sys.exit(7)\n"
+    )
+    children = dummy_core(monkeypatch, tmp_path, child_code)
+    def reply(base, method, path, body=None, *, tokens, role, timeout=10):
+        assert role == "human"
+        if path != "/api/v1/system/shutdown":
+            return 200, {}
+        assert method == "POST" and body == {"session_id": tokens["session_id"]}
+        if matches:
+            marker.touch()
+        return 202, {"schema": "archeaxis.session-shutdown/v1", "state": "draining",
+                     "session_id": body["session_id"] if matches else "another-session"}
+
+    monkeypatch.setattr(launcher, "call", reply)
+    monkeypatch.setattr(sys, "argv", ["start-backend.py", "--smoke", "--data-root", str(tmp_path / "data"), "--port", "1234"])
+    assert launcher.main() == 1
+    result = json.loads(capsys.readouterr().out)
+    assert result["ok"] is False and result["shutdown"] == expected_method
+    assert result["shutdown_acknowledged"] is matches and result["exit_code"] == children[0].poll()
+    if matches:
+        assert result["exit_code"] == 7
+
+
 def test_invalid_readiness_reaps_child_without_echoing_output(monkeypatch, tmp_path):
     children = dummy_core(monkeypatch, tmp_path, "import sys,time;secret=sys.stdin.readline();print('127.0.0.1:1234 '+secret);time.sleep(2)")
     with pytest.raises(launcher.LaunchFailure, match="invalid readiness endpoint") as error:
