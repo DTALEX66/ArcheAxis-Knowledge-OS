@@ -17,7 +17,10 @@ to reach the worker, not just the function.
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 WORKER = REPO / "services" / "python-workers" / "document" / "worker_text.py"
@@ -205,6 +208,171 @@ def test_the_transport_hands_the_declared_media_type_to_the_text_worker(tmp_path
 
     # and a route that does not declare the argument is not passed one
     assert "media_type_arg" not in transport.ROUTES["pdf.extract"]
+
+
+SIYUAN_MEDIA = "application/x-siyuan"
+SIYUAN_ROOT = "20261122100000-aaaaaaa"
+SIYUAN_HEADING = "20261122100001-bbbbbbb"
+SIYUAN_BODY = "20261122100002-ccccccc"
+SIYUAN_MISSING = "20261122100003-ddddddd"
+
+
+def _siyuan_doc(children):
+    return {"ID": SIYUAN_ROOT, "Type": "NodeDocument", "Spec": "2",
+            "Properties": {"title": "星环笔记"}, "Children": children}
+
+
+def test_siyuan_text_route_preserves_ids_references_and_attachment_locations(tmp_path):
+    heading = {"Type": "NodeHeading", "ID": SIYUAN_HEADING, "HeadingLevel": 2,
+               "Children": [{"Type": "NodeText", "Data": "研究"}]}
+    body = {"Type": "NodeParagraph", "ID": SIYUAN_BODY, "Children": [
+        {"Type": "NodeTextMark", "TextMarkType": "block-ref", "TextMarkBlockRefID": SIYUAN_HEADING,
+         "TextMarkTextContent": "已引用"},
+        {"Type": "NodeTextMark", "TextMarkType": "block-ref", "TextMarkBlockRefID": SIYUAN_MISSING,
+         "TextMarkTextContent": "缺页"},
+        {"Type": "NodeImage", "Children": [
+            {"Type": "NodeLinkText", "Data": "图"},
+            {"Type": "NodeLinkDest", "Data": "assets/图%20一.png"},
+        ]},
+        {"Type": "NodeTextMark", "TextMarkType": "a", "TextMarkAHref": "assets/%2e%2e/secret.png",
+         "TextMarkTextContent": "链接"},
+        {"Type": "NodeBlockQueryEmbedScript", "Data": "select * from blocks"},
+    ]}
+    source = tmp_path / "sha256-content"
+    source.write_text(json.dumps(_siyuan_doc([heading, body]), ensure_ascii=False), encoding="utf-8")
+    route = transport.ROUTES["text.extract"]
+    assert SIYUAN_MEDIA in route["media_types"]
+    result = transport._run_route(route, source, SIYUAN_MEDIA)
+    assert result["text"] == "星环笔记\n研究\n已引用缺页图链接"
+    loss = result["loss_receipt"]
+    facts = loss["params"]["format"]
+    assert facts["format"] == "siyuan" and facts["document_id"] == SIYUAN_ROOT
+    assert facts["blocks"][1] == {"id": SIYUAN_HEADING, "parent_id": SIYUAN_ROOT,
+                                  "node_type": "NodeHeading", "heading_level": 2, "char_start": 5, "char_end": 7}
+    assert facts["block_references"] == [
+        {"source_block_id": SIYUAN_BODY, "target_block_id": SIYUAN_HEADING, "resolution": "present_in_document"},
+        {"source_block_id": SIYUAN_BODY, "target_block_id": SIYUAN_MISSING, "resolution": "unbound"},
+    ]
+    assert facts["attachment_paths"] == [
+        {"source_block_id": SIYUAN_BODY, "relative_path": "assets/图%20一.png", "resolution": "unbound"},
+        {"source_block_id": SIYUAN_BODY, "relative_path": "assets/%2e%2e/secret.png", "resolution": "invalid_path"},
+    ]
+    assert loss["params"]["structure"]["extractable_members"] == []
+    assert any("without opening or importing" in note for note in loss["losses"])
+    assert len(result["structure"]) == 3
+
+
+def test_siyuan_spec3_linearizes_tabs_with_body_ids(tmp_path):
+    body = {"Type": "NodeParagraph", "ID": SIYUAN_BODY,
+            "Children": [{"Type": "NodeText", "ID": SIYUAN_ROOT, "Data": "正文"}]}
+    item = {"Type": "NodeTabItem", "ID": SIYUAN_HEADING, "TabItemTitle": "条目",
+            "Children": [body]}
+    tabs = {"Type": "NodeTabs", "ID": SIYUAN_MISSING, "Children": [item]}
+    tree = {**_siyuan_doc([tabs]), "Spec": "3"}
+    result, facts = _facts(tmp_path, json.dumps(tree, ensure_ascii=False), SIYUAN_MEDIA, ".sy")
+    assert result["text"] == "星环笔记\n条目\n正文"
+    assert facts["spec"] == "3"
+    assert [block["id"] for block in facts["blocks"]] == [SIYUAN_ROOT, SIYUAN_MISSING, SIYUAN_HEADING, SIYUAN_BODY]
+    assert facts["blocks"][-1]["parent_id"] == SIYUAN_HEADING
+    assert any("linearized" in note for note in result["loss_receipt"]["losses"])
+    with pytest.raises(ValueError, match="tabs require Spec 3"):
+        _facts(tmp_path, json.dumps({**tree, "Spec": "2"}), SIYUAN_MEDIA, ".sy")
+
+
+def test_siyuan_preserves_math_escapes_and_table_cell_boundaries(tmp_path):
+    prose = {"Type": "NodeParagraph", "ID": SIYUAN_BODY, "Children": [
+        {"Type": "NodeText", "Data": "2"},
+        {"Type": "NodeBackslash", "Children": [{"Type": "NodeBackslashContent", "Data": "*"}]},
+        {"Type": "NodeText", "Data": "3；"},
+        {"Type": "NodeTextMark", "TextMarkType": "inline-math",
+         "TextMarkInlineMathContent": r"a^2 + b^2 = c^2"},
+    ]}
+
+    def row(*values):
+        return {"Type": "NodeTableRow", "Children": [
+            {"Type": "NodeTableCell", "Children": [{"Type": "NodeText", "Data": value}]}
+            for value in values
+        ]}
+
+    table = {"Type": "NodeTable", "ID": SIYUAN_HEADING, "Children": [
+        {"Type": "NodeTableHead", "Children": [row("甲", "乙", "丙")]},
+        row("10", "", "20"), row("a\tb", "c\nd", "e\\f"),
+    ]}
+    raw = json.dumps(_siyuan_doc([prose, table]), ensure_ascii=False)
+    result, _ = _facts(tmp_path, raw, SIYUAN_MEDIA, ".sy")
+    assert result["text"] == "星环笔记\n2*3；a^2 + b^2 = c^2\n甲\t乙\t丙\n10\t\t20\n" + "\t".join((r"a\tb", r"c\nd", r"e\\f"))
+
+
+def test_siyuan_records_media_sources_without_loading_or_rendering_markup(tmp_path):
+    audio = {"Type": "NodeAudio", "ID": SIYUAN_BODY,
+             "Data": '<audio src="assets/音频&amp;文字.wav"><source src="assets/alternate.ogg"></audio>'}
+    video = {"Type": "NodeVideo", "ID": SIYUAN_HEADING, "Data":
+             '<source src="assets/outside.mp4"><video src="https://example.invalid/v.mp4">'
+             '<source src="assets/%2e%2e/foo.mp4"><source src="assets/local.mp4" /></video>'}
+    raw = json.dumps(_siyuan_doc([audio, video]), ensure_ascii=False)
+    result, facts = _facts(tmp_path, raw, SIYUAN_MEDIA, ".sy")
+    assert result["text"] == "星环笔记"
+    assert facts["attachment_paths"] == [
+        {"source_block_id": SIYUAN_BODY, "relative_path": "assets/音频&文字.wav", "resolution": "unbound"},
+        {"source_block_id": SIYUAN_BODY, "relative_path": "assets/alternate.ogg", "resolution": "unbound"},
+        {"source_block_id": SIYUAN_HEADING, "relative_path": "assets/%2e%2e/foo.mp4", "resolution": "invalid_path"},
+        {"source_block_id": SIYUAN_HEADING, "relative_path": "assets/local.mp4", "resolution": "unbound"},
+    ]
+    assert result["loss_receipt"]["params"]["structure"]["extractable_members"] == []
+
+
+def test_siyuan_keeps_visible_callout_title_and_names_unprojected_subtree(tmp_path):
+    children = [
+        {"Type": "NodeCallout", "ID": SIYUAN_HEADING, "CalloutTitle": "注意",
+         "Children": [{"Type": "NodeParagraph", "ID": SIYUAN_BODY,
+                       "Children": [{"Type": "NodeText", "Data": "第一步"}]}]},
+        {"Type": "NodeFutureBlock", "ID": SIYUAN_MISSING,
+         "Children": [{"Type": "NodeText", "Data": "Separate unsupported subtree"}]},
+    ]
+    result, facts = _facts(tmp_path, json.dumps(_siyuan_doc(children), ensure_ascii=False), SIYUAN_MEDIA, ".sy")
+    assert result["text"] == "星环笔记\n注意\n第一步"
+    assert facts["omitted_subtrees"] == 1 and facts["omitted_type_examples"] == ["NodeFutureBlock"]
+    assert any("unsupported types" in note for note in result["loss_receipt"]["losses"])
+
+
+def test_siyuan_uses_declared_mark_type_and_preserves_inline_memo(tmp_path):
+    body = {"Type": "NodeParagraph", "ID": SIYUAN_BODY, "Children": [
+        {"Type": "NodeTextMark", "TextMarkType": "inline-memo strong", "TextMarkTextContent": "截止期限",
+         "TextMarkInlineMemoContent": "在17点前提交"},
+        {"Type": "NodeTextMark", "TextMarkType": "text", "TextMarkTextContent": "资料",
+         "TextMarkBlockRefID": SIYUAN_ROOT, "TextMarkAHref": "assets/not-a-link.pdf"},
+        {"Type": "NodeTextMark", "TextMarkTextContent": "旧数据", "TextMarkBlockRefID": SIYUAN_ROOT},
+    ]}
+    result, facts = _facts(tmp_path, json.dumps(_siyuan_doc([body]), ensure_ascii=False), SIYUAN_MEDIA, ".sy")
+    assert "截止期限资料旧数据" in result["text"]
+    assert facts["inline_memos"] == [{"source_block_id": SIYUAN_BODY, "content": "在17点前提交"}]
+    assert facts["block_references"] == [] and facts["attachment_paths"] == []
+    assert facts["ignored_text_mark_field_count"] == 3
+    assert any("corresponding declared" in note for note in result["loss_receipt"]["losses"])
+
+
+@pytest.mark.parametrize("raw", [
+    lambda: b'{"content":"ordinary JSON"}',
+    lambda: json.dumps({**_siyuan_doc([]), "Spec": "1"}).encode(),
+    lambda: json.dumps({**_siyuan_doc([]), "Spec": "4"}).encode(),
+    lambda: json.dumps(_siyuan_doc([{"ID": SIYUAN_ROOT, "Type": "NodeParagraph"}])).encode(),
+    lambda: json.dumps(_siyuan_doc([{"ID": SIYUAN_BODY, "Type": "NodeParagraph",
+                                     "Properties": {"id": SIYUAN_HEADING}}])).encode(),
+    lambda: b'{"ID":"1","ID":"2"}',
+    lambda: json.dumps(_siyuan_doc([]), ensure_ascii=False).encode("utf-16"),
+])
+def test_siyuan_rejects_unsupported_spec_or_invalid_bytes(tmp_path, raw):
+    source = tmp_path / "sample.sy"
+    source.write_bytes(raw())
+    with pytest.raises(ValueError):
+        worker.extract(str(source), SIYUAN_MEDIA)
+
+
+def test_siyuan_tree_declared_as_json_stays_ordinary_json(tmp_path):
+    raw = json.dumps(_siyuan_doc([]), ensure_ascii=False)
+    result, facts = _facts(tmp_path, raw, "application/json", ".json")
+    assert facts["format"] == "json"
+    assert result["text"] == raw
 
 
 CANVAS = """{

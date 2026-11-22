@@ -81,6 +81,14 @@ jobs:
           $env:ARCHEAXIS_TEST_NODE = (Get-Command node.exe -ErrorAction Stop).Source
           $env:ARCHEAXIS_TEST_NODE_SHA256 = (Get-FileHash -LiteralPath $env:ARCHEAXIS_TEST_NODE -Algorithm SHA256).Hash.ToLowerInvariant()
           cargo test --locked -p archeaxis-api --test openmaic_scene_runtime -- --ignored
+      - name: Prepare pinned project-local OCR for Rust worker tests
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          $ocrRoot = Join-Path $env:ARCHEAXIS_RUN_ROOT 'rust-worker-ocr'
+          python -B scripts/ci/prepare_windows_ocr.py --project-root "$env:GITHUB_WORKSPACE" --root "$ocrRoot" --sevenzip "$sevenzip"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: cargo test (workspace)
         shell: bash
         run: cargo test --workspace --locked

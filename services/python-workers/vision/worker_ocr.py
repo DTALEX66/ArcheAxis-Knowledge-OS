@@ -50,14 +50,7 @@ def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, **kwargs)
 
 
-def _declared_path(name: str) -> str | None:
-    """The declared external path for *name*, or None when nothing is declared.
-
-    Delegates to `tool_paths.declared`, which loads the shared module from this worker's
-    own tree. Only a missing declaration becomes None; a manifest that exists but cannot
-    be read raises, because reporting that as "not declared" is how a missing parser turns
-    into "engine not installed".
-    """
+def _tool_registry():
     module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
     if not module_path.is_file():
         return None
@@ -66,7 +59,12 @@ def _declared_path(name: str) -> str | None:
         return None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.declared(name, __file__)
+    return module
+
+
+def _declared_path(name: str) -> str | None:
+    registry = _tool_registry()
+    return registry.declared_path(name) if registry is not None else None
 
 
 def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Path | None:
@@ -338,6 +336,14 @@ RAPIDOCR_LANGUAGES = {"eng", "chi_sim", "eng+chi_sim", "chi_sim+eng"}
 _RAPIDOCR_ENGINE = None
 
 
+class _RapidOCRMissingError(RuntimeError):
+    """Only a missing top-level package permits selecting the external environment."""
+
+
+class _RegisteredOCRUnavailableError(RuntimeError):
+    """An external provider failure suitable for the public worker receipt."""
+
+
 def _rapidocr_version() -> str:
     try:
         from importlib.metadata import version
@@ -352,8 +358,10 @@ def _rapidocr_engine():
     if _RAPIDOCR_ENGINE is None:
         try:
             from rapidocr_onnxruntime import RapidOCR
-        except ImportError as exc:
-            raise RuntimeError("rapidocr-onnxruntime not installed") from exc
+        except ModuleNotFoundError as exc:
+            if exc.name == "rapidocr_onnxruntime":
+                raise _RapidOCRMissingError("rapidocr-onnxruntime not installed") from exc
+            raise
         _RAPIDOCR_ENGINE = RapidOCR()
     return _RAPIDOCR_ENGINE
 
@@ -410,9 +418,84 @@ def _rapidocr_words(image_bytes: bytes) -> tuple[list[dict], str, str]:
     return words, text, _rapidocr_version()
 
 
+_REGISTERED_MODELS = {
+    "ch_PP-OCRv4_det_infer.onnx": "det_model_path",
+    "ch_PP-OCRv4_rec_infer.onnx": "rec_model_path",
+    "ch_ppocr_mobile_v2.0_cls_infer.onnx": "cls_model_path",
+}
+
+
+def _external_rapidocr(image_bytes: bytes | None) -> dict:
+    python = _declared_path("archeaxis-ci-venv")
+    if not python or not Path(python).is_absolute() or not Path(python).is_file():
+        raise RuntimeError("rapidocr-onnxruntime not installed; registered archeaxis-ci-venv unavailable")
+    action = "probe" if image_bytes is None else "recognize"
+    try:
+        result = _run([python, "-I", "-B", str(Path(__file__).resolve()), "--registered-rapidocr", action],
+                      input=image_bytes or b"", capture_output=True, timeout=300)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"registered RapidOCR process failed: {type(exc).__name__}") from exc
+    try:
+        reply = json.loads(result.stdout)
+    except (UnicodeError, ValueError) as exc:
+        raise RuntimeError(f"registered RapidOCR returned invalid JSON (exit {result.returncode})") from exc
+    if not isinstance(reply, dict):
+        raise RuntimeError("registered RapidOCR returned an invalid response")
+    if result.returncode or "error" in reply:
+        raise RuntimeError(reply.get("error", f"registered RapidOCR exited {result.returncode}"))
+    return reply
+
+
+def _registered_rapidocr_stdio(action: str) -> int:
+    """Private local child. Read only stdin and use the declared three weights; never select a fallback."""
+    global _RAPIDOCR_ENGINE
+    stage = "configuration"
+    try:
+        image = sys.stdin.buffer.read(MAX_IMAGE_BYTES + 1) if action == "recognize" else b""
+        if action == "recognize" and not 0 < len(image) <= MAX_IMAGE_BYTES:
+            raise _RegisteredOCRUnavailableError("registered RapidOCR input is empty or exceeds the 64 MiB OCR budget")
+        if not (3, 11, 5) <= sys.version_info[:3] < (3, 13):
+            raise _RegisteredOCRUnavailableError("registered RapidOCR requires Python >=3.11.5 and <3.13")
+        registry = _tool_registry()
+        package = registry.declared_path("rapidocr") if registry is not None else None
+        if not package:
+            raise _RegisteredOCRUnavailableError("registered RapidOCR package unavailable")
+        # Single-path lookups can succeed with only one of the three weights installed.
+        declared = registry._candidates("rapidocr-ppocr-onnx", registry._manifest_path())
+        models = {p.name: str(p) for p in declared if p.is_file() and p.name in _REGISTERED_MODELS}
+        if models.keys() != _REGISTERED_MODELS.keys():
+            raise _RegisteredOCRUnavailableError("registered RapidOCR requires its declared det, rec and cls models")
+        # The interpreter must import the registered package using its own isolated site-packages.
+        spec = importlib.util.find_spec("rapidocr_onnxruntime")
+        if not spec or not spec.origin or Path(spec.origin).resolve().parent != Path(package).resolve():
+            raise _RegisteredOCRUnavailableError("registered RapidOCR package identity mismatch")
+        stage = "initialize"
+        from rapidocr_onnxruntime import RapidOCR
+
+        _RAPIDOCR_ENGINE = RapidOCR(**{key: models[name] for name, key in _REGISTERED_MODELS.items()})
+        reply = {"runtime": "archeaxis-ci-venv", "python_version": sys.version.split()[0],
+                 "version": _rapidocr_version(), "models": sorted(models)}
+        if action == "recognize":
+            stage = "recognize"
+            reply["words"], reply["text"], _ = _rapidocr_words(image)
+    except _RegisteredOCRUnavailableError as exc:
+        print(json.dumps({"error": str(exc)}))
+        return 1
+    except Exception as exc:  # native/library errors may carry private host paths
+        print(json.dumps({"error": f"registered RapidOCR {stage} failed: {type(exc).__name__}"}))
+        return 1
+    print(json.dumps(reply))
+    return 0
+
+
 def _rapidocr_probe(lang: str) -> dict:
     try:
-        _rapidocr_engine()
+        try:
+            _rapidocr_engine()
+        except _RapidOCRMissingError:
+            external = _external_rapidocr(None)
+            return {**external, "available": True, "languages": sorted(RAPIDOCR_LANGUAGES),
+                    "supports_requested_language": lang in RAPIDOCR_LANGUAGES}
         # The package ships its ONNX models beside itself; report the names we can see,
         # but do not turn a missing directory into a capability claim.
         import rapidocr_onnxruntime
@@ -421,6 +504,7 @@ def _rapidocr_probe(lang: str) -> dict:
         models = sorted(path.name for path in (package_dir / "models").glob("*.onnx"))
         return {
             "available": True,
+            "runtime": "worker-python",
             "version": _rapidocr_version(),
             "models": models,
             "languages": sorted(RAPIDOCR_LANGUAGES),
@@ -495,7 +579,7 @@ def probe(lang: str = "eng", tessdata_dir: Path | None = None) -> dict:
     except Exception as exc:  # noqa: BLE001 - capability failures must remain JSON
         return {
             "capability": False,
-            "capability_any": bool(rapidocr.get("available")),
+            "capability_any": bool(rapidocr.get("available") and rapidocr.get("supports_requested_language")),
             "reason": f"{type(exc).__name__}: {exc}",
             "engine": ENGINE,
             "fallback": rapidocr,
@@ -612,7 +696,14 @@ def extract(
             "warnings": warnings,
         }
     else:
-        words, text, rapidocr_version = _rapidocr_words(image_bytes)
+        runtime = "worker-python"
+        python_version = sys.version.split()[0]
+        try:
+            words, text, rapidocr_version = _rapidocr_words(image_bytes)
+        except _RapidOCRMissingError:
+            external = _external_rapidocr(image_bytes)
+            words, text, rapidocr_version = external["words"], external["text"], external["version"]
+            runtime, python_version = external["runtime"], external["python_version"]
         ordered_words = words
         # Preserve the returned line sequence without claiming it is the correct
         # semantic reading order or inferring how many columns the image has.
@@ -630,9 +721,11 @@ def extract(
             "lang": lang,
             "engine": "rapidocr",
             "engine_version": rapidocr_version,
+            "runtime": runtime,
+            "python_version": python_version,
             "model": "PP-OCRv4",
             "model_languages": sorted(RAPIDOCR_LANGUAGES),
-            "input_transport": "bytes",
+            "input_transport": "bytes" if runtime == "worker-python" else "stdin",
             "input_bytes": len(image_bytes),
             "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
             "fallback_reason": fallback_reason,
@@ -769,6 +862,8 @@ def extract(
 
 
 def main() -> int:
+    if len(sys.argv) == 3 and sys.argv[1] == "--registered-rapidocr" and sys.argv[2] in {"probe", "recognize"}:
+        return _registered_rapidocr_stdio(sys.argv[2])
     # R08: the same sidecar stdio job loop the text and PDF routes use, with this
     # route's own identity and capability, so image input reaches the Core through
     # the shared job/attempt/error machinery instead of a private CLI path.

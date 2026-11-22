@@ -4951,3 +4951,67 @@ Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件
 功能源码提交 `f1854cc801f46211f9e8209f7e68ec49e5f01dfa` 的 GitHub CI 结论为成功。Python 3.12 主测试 8,659 项通过，598 项跳过，另有 612 项子测试通过；知识库测试 38 项通过，集成测试 47 项通过。此后 `0b014775` 的提交差异为容量治理和安装态学习记录。[该提交的云端作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45032546848)
 
 上述新 ZIP、安装器及 `AAOS-0.1.00-verification-0b014775.zip` 均已放入 GitHub 草稿。验收附件包含摘要、下载文件校验值、归档工具和已安装版本升降的公开回执；SHA-256 为 `b968d260fa87e4d8d2ee5d0711bb43cc312c349ce9502c5fbd3d6cac50845b80`。原六份附件均保留，三份新附件均已由独立的 GitHub 资产接口回读摘要。[对应 PR](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/315)
+
+<a id="siyuan-native-read"></a>
+
+### 2026-11-22 J1 / J3 / X6 · 思源原生块文档
+
+在 `0b014775` 安装候选所用后端上，思源官方中文指南的 `.sy` 原件可入库并重开取回，转换作业执行时返回 HTTP 409、`AAK-CON-003`。缺口在 Core 的文件类型选择与 `text.extract` 受理表。官方 Markdown API 示例可读回正文及通用行位置。两种输入的实测见 `x6-siyuan-official-guide-20261122/artifacts/siyuan-guided-import.json`。
+
+提交 `e863ae114dee1e6fe8e85bcf24673f2a89bea583` 在原读取入口接入单个明文 Spec 2/3 文档，保留正文、原块 ID 与父子关系、块引用、行内批注和本地附件路径。表格保留行列边界，标签页按源顺序展开。无法读取的子树和未绑定的引用列入损失回执。共享前端转换入口和目录批处理均识别 `.sy`。见[后端合同 §38](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#38-reading-a-siyuan-block-document)及[上游格式规范](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)。
+
+从该提交离线编译的 Core（SHA-256 `96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1`）配同提交 worker 和上次安装包的解释器，处理了固定上游提交中的两份正式样本。《请从这里开始》含 189 个块和 73 个引用，《内容块类型》含 132 个块、12 个引用和 20 条附件路径。两份文档都经正式接口完成转换、保存，两个 Core 会话正常退出。冷重开后原文件名、MIME、原件字节、文档正文及块和引用记录均符合。附件路径只定位。写回思源、同步、更高 Spec 和安装介质实际运行仍待后续验证。
+
+旧驱动先将 Spec 2 原件存为 `imported_no_job`。新版显式续做只验证原 source 并补入队 `batch-1a7a89017c1a`，既有原件 ID 保留，再续做发出 0 次请求。业务回执 `x6-siyuan-core-reopen-20261122/artifacts/siyuan-core-reopen-business.json` 的 SHA-256 为 `e6144b26e216376c711fa77218be1572abb3157a4d90d5e634520a7c8734fc8a`。包含网页核验修复的已发安装器仍使用 `0b014775`。
+
+### 2026-11-23 X6 · 思源文档显式关联附件及跨 AAOS 工作区恢复
+
+固定上游版本中的 Spec 2 文档 `20200915214115-42b8zma.sy`（55,033 字节）和 PNG（1,589 字节）分别作为普通 Source 导入。一次转换得到 96 个块。块 `20210512171633-u3iy2xx` 的原生附件路径仍为 `unbound`。通过正式 Core HTTP 接口模拟用户明确选择该 PNG，在文档 v1 上保存文档级 `related` 关系。冷重开后，固定 v2 的关系、正文及两份原件均可读回；由关系打开的 PNG 实际字节 SHA-256 为 `788c154262194a126b433b1055fbddcf5ada066e0d1f565a54e5550125675075`。
+
+AAOS 便携文档包一次导出两份原件，一次导入先前没有这两个来源的新工作区。依导入回执的两条 Source 映射打开目标文档 v1 的图片，字节与官方 PNG 一致。两条映射的内容派生 ID 均保持原值。三个 Core 会话正常退出。自动路径配对、原生块级打开、桌面点击和写回思源仍待验证。
+
+本次执行工作树为 `f33faeef3785d411a096ea777edde604e580e6f3`。实际 Core 来自前述 `e863ae114dee1e6fe8e85bcf24673f2a89bea583` 构建，正式 transport 与两个文本 worker 的字节摘要均与该次凭据一致，Python 来自已交付的后端。该组合未重新制作安装介质。业务回执 `sy-explicit-image/artifacts/siyuan-explicit-attachment.json`，SHA-256 `985fce08d1eb469e3ee39517388a649b40adfd22bfe2eae719338cbab94a719b`。见[后端合同 §38](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#38-reading-a-siyuan-block-document)。
+
+<a id="windows-ocr-providers"></a>
+
+### 2026-11-22 X1 · 已安装 Windows 的中英扫描件和登记的 RapidOCR
+
+修复版 `0.1.00` 的后端清单 `d3fb02ef` 使用 Python 3.13.14，包内没有 Tesseract 可执行文件、训练数据或 RapidOCR。该包在本机通过了外部 Tesseract 的就绪探测。RapidOCR 1.4.4 要求 Python 低于 3.13，原 worker 只在自身解释器查找该包。登记的外部 Python 3.12.13、引擎及三枚 ONNX 模型均存在，模型字节与发行包的 RECORD 匹配。详见 `x1-shipped-ocr-and-external/artifacts/ocr-release-and-external.json`（SHA-256 `823cbfd484bdc8d7916b365315f2162b8744c4a63038a2c3b9e4b2033cf748eb`）。[上游版本元数据](https://pypi.org/project/rapidocr-onnxruntime/1.4.4/)
+
+全新断网 Windows Sandbox 实装修复版后，单独配置了锁定的 Tesseract 5.5.0.20241111 和 `chi_sim+eng` 语言文件。59 个外部文件均与项目锁的 SHA-256 一致。库中只执行一个 `image.ocr` 作业，从原有的 16,352 字节中英测试图读出两行正文 `OCR PAGE ONE 6371` 和「扫描中文页一」。保存并冷重开后，原图字节、三项作业产物、转换和文档 v1 均可读回，两个 Core 会话正常退出 0。此验证只覆盖已配置的引擎与该样本。见 `tess-supplement-installed-20261122/artifacts/optional-tesseract-installed-public.json`（SHA-256 `abf4fe8e72944c4f653f350cf87649e120b78950f9348dc6d1ed2d897166cdcf`）。[给现有安装配置 OCR](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#39-windows-image-ocr-providers)
+
+后续源码 worker 在当前解释器找不到 RapidOCR 主包时，通过登记的兼容解释器读取本地模型。识别实测使用已交付 Core、随包 Python 3.13.14 和声明文件，仅将 OCR worker 换成 SHA-256 为 `0689ffdf485843708ee5f42653f44d4f6ad79d20784e2e3af7f676288ad59495` 的源码版本。旧合成库的同一原件新增并派发一个 `image.ocr` 作业，由已登记的 Python 3.12.13 与 RapidOCR 1.4.4 从标准输入接收 11,754 字节并读出 `LUMEN LIBRARY 2026`。冷重开后保有新旧三个作业、三份已保存文档和原图。旧作业重派 0 次，原件重新导入 0 次。原库、原件和已发包的 16,909 个成员前后校验一致。两次 Core 均正常退出。首次验证脚本在 Windows 长路径预检阶段结束，修正遍历后完成唯一的新作业。公开回执为 `x1-rcr2/artifacts/registered-rapidocr-core.json`（SHA-256 `53a36022c18708bb7d7cfa7f11c657e70c7464dd0df893fdcba9191b1b97272e`）。该 worker 的 7 项定向回归通过，带该改动的 Windows 安装器尚待构建。
+
+安装器对应的 [PR #315 末次 CI](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45037604358) 对提交 `baf5964b950f0b8eb9d20669897f55db6b15313d` 报告 13 个作业成功、7 个按条件跳过。后续源码提交 `03f1f221` 的 [Windows 诊断](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45038916834) 通过了 DeepTutor、OpenMAIC 的两项合成旅程，在 Rust 工作进程的健康检查断言处失败。云端原日志未打印当时的具体错误文本。本地在 Windows 锁住临时目录的一个文件，重现了清理失败会覆盖工作进程返回的实际错误。修复保留两条原因，能力不匹配和启动静默各有独立断言。后继 Windows 诊断的提交与结果沿[源码 PR #316](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/316)核对。
+
+补用最终 worker（SHA-256 `24df847989803fef0baf7e50bfd344efc70397697e4d3c832ae095920427cfc2`）检验了同一张中英测试图的自动回退。该验证进程只声明登记的 RapidOCR 资源，无法启动 Tesseract。正式 `image.ocr` 作业在 `auto` 模式首次尝试完成，回执记录 Tesseract 缺席，实际运行 RapidOCR 1.4.4。模型读出相同的两行中英文，保有两个行位置及三份产物各自的摘要。见 `x1-auto-mixed-final/artifacts/auto-mixed-core.json`（SHA-256 `1a7f6499e143b4281413c1eb4dac9a2e244c4d451754fd6b5134d7131ffc8619`）。已发安装器可配合的 `AAOS-0.1.00-Windows-Tesseract-Offline-Launcher.zip` 含双击启动器、中文使用说明和安装态回执，5,195 字节，SHA-256 为 `7b465581068f41d86be0bc8927c99bf5023d5ad1776d7b05fedf94562f479bc8`。GitHub 草稿已追加该附件，编号 `779590365`，共十份。引擎和两份字库从说明所列的上游版本另行取得。
+
+修复后的 Rust 握手代码与现有协议库在本机 Windows 运行了四种组合。能力匹配与不匹配分别在目录可清理、文件被占用时返回对应状态和诊断。源码实测见 `vnext-win-health-source-slice-20261122/artifacts/capability-health-narrow-rustc.json`（SHA-256 `2cb09bd2798768f3ceafb549188a3dd133bdceb5332baa0fada23ca372e916ab`）。本机完整 Cargo 重编在容量复核前停止。
+
+<a id="scanned-pdf-independent-restore"></a>
+
+### 2026-11-23 双页扫描 PDF 的页内定位与独立还原
+
+在与修复版安装器清单一致的独立后端上，普通导入一份两页均无文字层的既有合成 PDF，原件 SHA-256 为 `640d12b8163b37c066777f4713a2d731cfc4acc6300270380cb84f8e1014ae1c`。PDF 作业为两页分别建立识别作业。通过单独配置的 Tesseract 和中英字库，第 1 页读出 `OCR PAGE ONE 6371` 与「扫描中文页一」，第 2 页读出 `OCR PAGE TWO 8429` 与「扫描中文页二」。两处引用分别定位到相应页的第一行，并保留原 PDF 来源、版本和衍生页关系。
+
+将两页正文保存为普通文档 v1 后，正式备份返回 HTTP 201，预览确认可兼容还原。Core 维护还原退出 0。在新的还原库上冷启动，原 PDF 逐字节一致，两页衍生图、两个定位锚点、三个作业的九项输出和已保存版本等 19 次回读均符合原值。前两次验证脚本分别将外层 worker 名当作引擎名，以及误判了 Core 添加的块 ID。两份原回执均保留。最后从完成两页识别的工作区副本继续，新增 OCR 调度为 0。实测使用独立后端与合成工作区。见 `x6-scanned-pdf-d3fb-restore-20261123/artifacts/scanned-pdf-restore.json`（SHA-256 `e555dcb9824640d9f4414abb5faf9a9d167f78e4f07ea9318ed3cd2f06ac783d`）。
+
+源码 `f33faeef` 的 Windows 诊断已越过原工作进程健康检查。`oss_template_reuse` 随后取得非空识别结果，但缺少黄金样本要求的 `OCR GOLDEN ANCHOR`，云端日志未打印该次引擎或具体正文。该诊断工作流原先省略了常规 Windows CI 已使用的 Tesseract 准备步骤。现已复用同一锁定引擎、英文训练数据和固定图像校验，再按原断言跑工作区。[原次 Windows 运行](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45041710639)
+
+后续源码 `286fbabf184b103e3b51c3e04b80ee0a7ae2411a` 的 Windows 诊断全部通过。固定引擎准备、完整 Rust workspace、DeepTutor 和 OpenMAIC 的合成练习、Supervisor 启动并关闭 Core 均成功，原 OCR 正文断言通过。该工作流未生成安装器。[Windows 作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45043315698/job/137272340318)
+
+<a id="repaired-backend-source-readback"></a>
+
+### 2026-11-23 在已交付的后端按引用重开资料
+
+本节使用 `0b014775` 安装器同清单的独立后端（清单 `d3fb02ef…`，Core `664a54f1…`），在隔离工作区通过正式 API 操作。
+
+从 11 月 21 日的备份副本读回冻结的三类公开检索结果，重新选中 Crossref 的题录 *Modeling Spaced Repetition with LSTMs*。研究文档 v1 指向题名。在同一文档 v2 新增引用，定位到 364 字节原始响应中的 DOI `10.5220/0011724000003470`。冷重开后，沿 v2 的引用读回了同一段字节并找到了原题名，v1 也完整可读。新增搜索和模型请求均为 0，两次 Core 正常退出。该来源只提供书目信息，论文全文与正文主张仍待核对。回执 `research-doi-original-20261123/artifacts/crossref-original.json`，SHA-256 `3c1392a47d15e40ecd4c510a6b22382dce46434269a1f0df1e6cab753c149421`。
+
+同一后端用原有的 1,178 字节合成 EPUB 保存了一份第 1 章第 2 段的读书笔记，所选原文为 `Chapter body 42`。一次便携导出、一次导入将笔记和整本书带到空工作区。原书、正文和笔记块 ID 全部一致。旧位置保留为历史记录，新工作区对恢复的原件解析一次，生成自己的有效定位。冷重开后仍能找到同一段落。首次探针比较了保存前的请求和 Core 分配块 ID 后的文档，改用正式保存版本核对后通过，原记录保留。覆盖后端操作，外部阅读器与 EPUB 原生写回仍未实测。回执 `epub-pin-complete/artifacts/epub-reading-note.json`，SHA-256 `b03361eaf4579f07e5ea377e24b91d4a94e8551bca9389640fa1821ac09845c0`。
+
+另一份合成工作区保有一条已采用的归档规则及其修订。新建研究对照文档，分别引用该规则 v4、修订后的 v6 和此前独立归档的评测 v1，三处都解析到所选版本和内容摘要。冷重开后的对照文档、关系图、两个规则版本、两份回答及其评测共 8 项一致。本步新增推理请求为 0。旧独立归档答对 2/2 的运行使用 Core `58325dca…`。回执 `x7-d3fb-archive-pins-20261123/artifacts/archive-rule-fixed-comparison.json`，SHA-256 `1bd4b6751f10dd58ad4ce50e28a311987c472d4091d1c092e11f5e64bc58f68c`。
+
+用该后端实际处理第四份合成 ZIP（915 字节，SHA-256 `4eda2caef2e0d08b7e4a395072a196a2a99d55fcb25e915edbb4b6a67ed4870b`），预先固定 6 个成员各自是否另存为来源。随后沿模型与资产授权，给本机已登记的 Qwen `aaos-fast-4b` 提交同一规则 v6 和新材料。随包默认 HTTP 路径在 106 秒后返回 `503 NO_FINAL_ANSWER`。输入 1,480 和输出 2,616 个 token 用满 4,096 上下文，模型只给了推理过程，Core 没有发表答案，本次得分未测。回执 `x7-published-actual-model-20261123/artifacts/published-rule-model-use.json`，SHA-256 `a3ff56e286345b0e7686187b7b63aab8a839e81f4ef52d9edf4e74ee16c0d9b7`。
+
+冷重开后能读到失败任务，答案快照返回 404。按[结构化回答合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)，在同一发布包的启动函数中为新会话显式选择已登记的本地 LM Studio SDK 2.0.0 worker。保留原来的失败请求，以新请求提交相同的知识、题目、归档和评分标准。这次由同一模型实际回答，思考预算为 1,536 个 token，输入 1,480、输出 1,578，正常结束。模型判对 6/6，评测保存为 v1。在第二次冷启动后，原件、子来源、处理损失、已采用规则 v6、评分标准、回答快照、评测和默认路径失败记录共 8 项均可读回。两条路径各有一次模型调用。规则的采用和修订来自既有库，成绩适用于这份合成归档。回执 `x7-published-model-failure-cold-20261123/artifacts/published-rule-model-failure-reopen.json`（SHA-256 `f8b5b724494ec04d328237dd84839b9c4f42cee1ffc9f0f8c3cdba6d55c0c730`）与 `x7-published-structured-recovery-v2-20261123/artifacts/published-rule-sdk-recovery.json`（SHA-256 `b4690c6a94d84139da54a6efa9ea5601b2baf3583973e5b27f8603b0d756a3d7`）。

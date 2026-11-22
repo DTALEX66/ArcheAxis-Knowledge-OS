@@ -1,12 +1,16 @@
 # AAOS 当前状态与执行入口
 
-修复版 Windows 安装器使用 Owner 指定的版本名 `0.1.00`。安装器和独立后端 ZIP 的文件名、SHA-256、包内网页核验、同版本换装和原生窗口回读见[当前候选与下载核对](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。从源码安装仍要求 [Python 3.11.5 及以上](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。
+扫描图片可在当前安装版配置本地 Tesseract，后续源码另支持登记的 RapidOCR。参见[中英图片实测](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#windows-ocr-providers)与[双页扫描 PDF 的引用和备份还原](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#scanned-pdf-independent-restore)。
+
+修复版 Windows 安装器使用 Owner 指定的版本名 `0.1.00`。安装器和独立后端 ZIP 的文件名、SHA-256、包内网页核验、同版本换装和原生窗口回读见[当前候选与下载核对](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-candidate-0b014775)。在同清单后端按引用重新打开资料的结果见[跨版本资料实测](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#repaired-backend-source-readback)。从源码安装仍要求 [Python 3.11.5 及以上](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115)。
 
 本地桌面候选使用 Owner 指定的版本名 `0.1.00`。安装器及独立后端对既有资料的验证见[构建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)，Windows 两版实装、回退时保留资料的步骤及原生窗口验收见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return)。
 
 原 Windows 后端候选的目录、启动实测和旧副本恢复索引见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122)。
 
 旧展开后端的 161 个文件可按[恢复清单与重建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取回。已安装桌面对应的学习后端完成了[纠错与跨版本再练习](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。
+
+后续源码已用思源两份原生中文文档实测读取、保存及冷重开，包括旧目录中已存原件的续做。范围与安装包版本见[思源读取记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-read)。
 
 独立后端可在启动时用 `--machine-worker` 为本次会话选择本地结构化回答，并用 `--backend-root` 复用现有运行目录。启动方法、推理预算和回执字段见[本地结构化回答合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
 

@@ -1244,6 +1244,8 @@ Call `POST /api/v1/machine/answers` with the current knowledge grant, the select
 
 The focused worker and launcher checks are `python -m pytest tests/test_worker_machine_answer.py -k staged -q` and `python -m pytest tests/test_backend_launcher_routes.py -k session_worker -q`.
 
+On the backend shipped with desktop 0.1.00, one structured request to the default HTTP worker filled the local model's 4,096-token context and returned `503 NO_FINAL_ANSWER`. The failed task remained readable after restart. Selecting the prepared SDK worker in a new session and submitting a new request for the same material produced a complete answer. The model matched all six expected outcomes on that synthetic archive. The SDK and its Node runtime were present on the test machine. [Request results and fixed material](AAOS-UI-FIRST-EXECUTION-20261009.md#repaired-backend-source-readback)
+
 ## 37. Git commit snapshots
 
 Git can put a selected commit and its files in a ZIP. Supply the full commit ID to `git archive`. Import the resulting file as an ordinary AAOS source and run its archive conversion. The completed job can be used to save a searchable revision index and return the original bytes. Git stores the commit ID in the ZIP comment. [Git archive documentation](https://git-scm.com/docs/git-archive).
@@ -1257,3 +1259,32 @@ git archive --format=zip --output=snapshot.zip COMMIT -- README.md docs
 The saved document binds the original ZIP source revision to the declared commit, each separately retained repository-relative path and its Core source digest. The optional `--commit` compares the supplied full object name with the comment before the operation. A caller seeking repository provenance can compare the returned bytes with `git show COMMIT:path` in the source repository. Omit `--member` to export the original ZIP. Existing destination files are preserved. Archive extraction limits still apply to individually accessible files. Editing a Git working tree, writing commits and synchronization have separate qualification.
 
 The focused check runs with `python -m pytest tests/test_git_snapshot_exchange.py -q`.
+
+## 38. Reading a SiYuan block document
+
+Import a UTF-8 `.sy` file through the ordinary source or folder entry and choose the reading conversion. The existing `text` job resolves the file as `application/x-siyuan`. Its `text` output contains the readable projection. The `loss_report` output exposes source block IDs, parent IDs, text spans, block references, local attachment paths and inline memos in `params.format`.
+
+The reader handles Spec 2 and Spec 3 documents. It presents tab content in source order and marks references outside the file as unbound. Local asset paths are locators. Unimplemented node types are reported among the omitted subtrees. The source original can be returned unchanged through `GET /api/v1/sources/{id}/original`. Native notebook archives, encrypted documents, other spec versions, visual layouts, sync and writing back to SiYuan have separate requirements. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)
+
+A user may select an attachment as a separate ordinary Source through `POST /api/v1/imports`. On the saved document, append a `related` target with `kind=source`, its Source ID and original SHA-256 to `editor_json.attrs.archeaxis_relations`. Preserve the editor content and save through `PUT /api/v1/documents/{id}/draft` with the expected version. Read the target through `GET /api/v1/sources/{id}/original` and check the returned bytes against the pinned digest. This document-level relation leaves the native block locator unbound.
+
+For one official Spec 2 note and PNG, the v2 relation reopened after a cold restart. The existing AAOS portable Document export and import endpoints transferred both originals to an empty AAOS workspace. The restored v1 relation opened the same PNG through the importer's Source mapping. Both content-derived IDs kept the same values. Automatic attachment binding, desktop clicks and native SiYuan write-back remain unverified.
+
+When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
+
+## 39. Windows image OCR providers
+
+The released 0.1.00 package runs the `image.ocr` job with its bundled Python 3.13.14. To use Tesseract on a Windows computer, install or unpack Tesseract 5.5.0.20241111 and place the English and simplified Chinese traineddata files in one directory. The tested releases and SHA-256 values for the installer and both language files are in the [project OCR lock](../../scripts/ci/windows_ocr.lock.json). [Tesseract Windows release](https://github.com/tesseract-ocr/tesseract/releases/tag/5.5.0) · [tessdata_fast 4.1.0](https://github.com/tesseract-ocr/tessdata_fast/tree/4.1.0)
+
+From the standalone backend directory, the following PowerShell example selects OCR for the current session. Set the two paths to your installation. The desktop executable can also be started from the same shell.
+
+```powershell
+$env:TESSERACT_CMD = 'C:\OCR\tesseract.exe'
+$env:TESSDATA_PREFIX = 'C:\OCR\tessdata'
+$env:ARCHEAXIS_OCR_TESSDATA = $env:TESSDATA_PREFIX
+$env:ARCHEAXIS_OCR_LANG = 'chi_sim+eng'
+$env:ARCHEAXIS_OCR_ENGINE = 'tesseract'
+.\start-backend.cmd
+```
+
+The subsequent source worker also supports the registered local RapidOCR provider. Choose `rapidocr` in `ARCHEAXIS_OCR_ENGINE` to use it directly. With `auto`, Tesseract is tried first. If the worker interpreter lacks the RapidOCR package, the worker invokes the declared compatible Python in isolation and sends the image through standard input. It loads the three existing model files selected in the capability registry. The job's loss receipt includes the actual engine, runtime, Python version and input digest. When the registered runtime or a model is missing, the job reports the unavailable resource. The 0.1.00 download has the earlier worker. [RapidOCR 1.4.4 distribution and Python support](https://pypi.org/project/rapidocr-onnxruntime/1.4.4/)

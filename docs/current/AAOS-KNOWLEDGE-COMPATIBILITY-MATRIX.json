@@ -195,6 +195,48 @@
       "observed_on": "2026-11-22",
       "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
       "execution": "NOT_EXECUTED"
+    },
+    "siyuan_native_document_spec_2_3": {
+      "url": "https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md",
+      "boundary": "Official native file format; this matrix entry covers single-document Spec 2 and Spec 3 read-only projection. The upstream repository contains a GNU Affero General Public License version 3 text at this revision.",
+      "observed_on": "2026-11-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "siyuan_repository_license": {
+      "url": "https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/LICENSE",
+      "boundary": "Repository license file at the pinned revision, GNU Affero General Public License version 3.",
+      "observed_on": "2026-11-22",
+      "evidence_kind": "OFFICIAL_DOCUMENTATION_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "siyuan_guide_spec_2": {
+      "url": "https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/app/guide/20210808180117-czj9bvb/20200812220555-lj3enxa.sy",
+      "boundary": "Spec 2 public guide document. The source file is pinned independently of any SiYuan desktop build.",
+      "observed_on": "2026-11-22",
+      "evidence_kind": "OFFICIAL_SOURCE_FILE_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "siyuan_guide_spec_3": {
+      "url": "https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/app/guide/20210808180117-czj9bvb/20200812220555-lj3enxa/20210808180320-fqgskfj/20200905090211-2vixtlf.sy",
+      "boundary": "Spec 3 public guide document. The source file is pinned independently of any SiYuan desktop build.",
+      "observed_on": "2026-11-22",
+      "evidence_kind": "OFFICIAL_SOURCE_FILE_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "siyuan_guide_spec2_image_note": {
+      "url": "https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/app/guide/20210808180117-czj9bvb/20200812220555-lj3enxa/20210808180321-hbvl5c2/20200915214115-42b8zma.sy",
+      "boundary": "Spec 2 public guide note with one local PNG reference.",
+      "observed_on": "2026-11-23",
+      "evidence_kind": "OFFICIAL_SOURCE_FILE_READ",
+      "execution": "NOT_EXECUTED"
+    },
+    "siyuan_guide_image_original": {
+      "url": "https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/app/guide/20210808180117-czj9bvb/assets/siyuan-128-20210604092205-djd749a.png",
+      "boundary": "Exact public guide PNG selected as a separate ordinary Source.",
+      "observed_on": "2026-11-23",
+      "evidence_kind": "OFFICIAL_SOURCE_FILE_READ",
+      "execution": "NOT_EXECUTED"
     }
   },
   "aaos_observations": [
@@ -558,6 +600,20 @@
       "receipt": ".project-local/runs/be268a2d33/logseq-native-block-study-20261122/artifacts/study.json",
       "sha256": "ef3ae22957a821fa758a656be558e3318090e60a4e69e28f3dd120f710d217a7",
       "qualification": "The live backup restored into a separate workspace. The initial native UUID and later edited version remained available. A text job grounded an excerpt; simulated admission connected it to a research export, course and six explicitly machine-generated unscored practice records. Thirteen reads matched on cold restart."
+    },
+    {
+      "id": "siyuan_native_document_core_reopen",
+      "kind": "SIYUAN_OFFICIAL_NATIVE_DOCUMENT_TO_CORE_COLD_REOPEN",
+      "receipt": ".project-local/runs/be268a2d33/x6-siyuan-core-reopen-20261122/artifacts/siyuan-core-reopen-business.json",
+      "sha256": "e6144b26e216376c711fa77218be1572abb3157a4d90d5e634520a7c8734fc8a",
+      "qualification": "Source-built release Core and source Python workers used the interpreter from the released backend. Two public documents were converted, saved and read back after a cold restart. Reopening the original bytes reproduced both source hashes. Installed desktop coverage and SiYuan write-back remain unverified."
+    },
+    {
+      "id": "siyuan_explicit_document_attachment_restore",
+      "kind": "SIYUAN_EXPLICIT_DOCUMENT_ATTACHMENT_AND_AAOS_PORTABLE_RESTORE",
+      "receipt": ".project-local/runs/be268a2d33/sy-explicit-image/artifacts/siyuan-explicit-attachment.json",
+      "sha256": "985fce08d1eb469e3ee39517388a649b40adfd22bfe2eae719338cbab94a719b",
+      "qualification": "An explicit human-role choice linked the saved document to a separately imported PNG Source. Both originals and the relation survived a cold restart and transfer to an empty AAOS workspace."
     }
   ],
   "promotion_rule": "An AAOS authored/synthetic/local result or official documentation cannot promote an external platform direction or feature to PASS; require exact source/target versions, authorized material, mapping/losses, same-candidate consumer/restart/export evidence. NOT_APPLICABLE or deferral needs a referenced approved decision. UNKNOWN is not zero or supported.",
@@ -1614,19 +1670,19 @@
       "inherited_stage": "K3",
       "inherited_route": "官方导出/数据格式/API 待版本核验",
       "inherited_source_refs": [],
-      "route_qualification": "UNVERIFIED; inherited route_verified is historical documentation, not a live transport/runtime result",
+      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace.",
       "source_version": {
         "application_version": null,
         "application_observation": "UNVERIFIED",
-        "format_or_api_version": null,
-        "version_basis": "NOT_OBSERVED"
+        "format_or_api_version": "SiYuan native .sy document JSON, Spec 2 and Spec 3 (tabs).",
+        "version_basis": "Official specification and selected public guide documents at siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4. The upstream application build was not observed."
       },
       "target_version": {
         "application": "ArcheAxis Knowledge",
         "release_label": "0.6.14",
-        "qualification": "LABEL_ONLY; bind each future acceptance to exact candidate and source patch"
+        "qualification": "The 0.6.14 backend manifest identifies the reused Python interpreter. Core and text workers were built or loaded separately from the pinned source revision. The installation package for this combination was not tested."
       },
-      "feature_inventory_status": "REQUIRED_NOT_STARTED",
+      "feature_inventory_status": "PARTIAL_DOCUMENTED",
       "remaining_discovery_axes": [
         "content",
         "files",
@@ -1655,12 +1711,81 @@
         "离线同步安全",
         "AI知识能力"
       ],
-      "documented_features": [],
+      "documented_features": [
+        {
+          "feature_key": "native_document_readonly",
+          "axis": "content",
+          "official_sources": [
+            "siyuan_native_document_spec_2_3",
+            "siyuan_guide_spec_2",
+            "siyuan_guide_spec_3",
+            "siyuan_guide_spec2_image_note",
+            "siyuan_guide_image_original"
+          ],
+          "requirement": "读取单个 .sy 的正文，保留可识别块的 ID、父子关系与块引用，并记录本地附件相对路径。Spec 3 的标签项按原顺序展开。",
+          "aaos_parity": "PARTIAL",
+          "acceptance_evidence": [
+            {
+              "observation_id": "siyuan_native_document_core_reopen",
+              "source_version": "SiYuan .sy Spec 2 and Spec 3 guide documents from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4",
+              "target_source_commit": "e863ae114dee1e6fe8e85bcf24673f2a89bea583",
+              "target_source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Base runtime supplying Python only. The receipt lists the three source worker hashes and the independently built Core.",
+              "core_override_sha256": "96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1",
+              "consumer": "Source Core resumed a previously imported Spec 2 file without reimporting it and converted a Spec 3 file with tabs. The saved projections contained 189 and 132 blocks respectively. The job facts recorded 73 and 12 block references, and 0 and 20 attachment paths.",
+              "restart": "Both sessions closed gracefully with Core exit 0. A fresh Core process reopened the two saved documents, conversion and relation facts, and original bytes.",
+              "export": "The original-source read endpoint returned both input files with matching hashes. Native .sy export and write-back were not exercised.",
+              "loss_report": "References and asset paths are recorded as conversion facts. External block targets, attachment contents, live SiYuan behavior and tab selection remain unverified."
+            },
+            {
+              "observation_id": "siyuan_explicit_document_attachment_restore",
+              "source_version": "SiYuan Spec 2 public guide note and PNG from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4",
+              "target_source_commit": "e863ae114dee1e6fe8e85bcf24673f2a89bea583",
+              "target_source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Python interpreter only. The run used the previously qualified e863ae11 Core. At checkout f33faeef the transport and two text-worker file hashes matched the e863ae11 receipt.",
+              "core_override_sha256": "96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1",
+              "consumer": "One .sy converted into a 96-block projection. An explicit human-role choice saved a document-level related reference to the separately imported PNG, advancing the ordinary document from v1 to v2.",
+              "restart": "A fresh Core read the same v2 relation, both byte-identical originals and the unchanged unbound native locator.",
+              "export": "One AAOS portable Document package transferred both Source originals to an empty AAOS workspace. The restored v1 relation resolved through the returned Source mapping to the byte-identical PNG. Both mapped IDs retained their content-derived values.",
+              "loss_report": "Automatic asset matching, native block-level opening, desktop interaction and SiYuan write-back remain unverified."
+            }
+          ]
+        }
+      ],
       "direction_results": {
         "import": {
-          "state": "NOT_EXECUTED",
-          "evidence": [],
-          "losses": "UNKNOWN"
+          "state": "PARTIAL",
+          "evidence": [
+            {
+              "observation_id": "siyuan_native_document_core_reopen",
+              "source_version": "SiYuan .sy Spec 2 and Spec 3 guide documents from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4",
+              "target_source_commit": "e863ae114dee1e6fe8e85bcf24673f2a89bea583",
+              "target_source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Base runtime supplying Python only. The receipt lists the three source worker hashes and the independently built Core.",
+              "core_override_sha256": "96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1",
+              "consumer": "Source Core resumed a previously imported Spec 2 file without reimporting it and converted a Spec 3 file with tabs. The saved projections contained 189 and 132 blocks respectively. The job facts recorded 73 and 12 block references, and 0 and 20 attachment paths.",
+              "restart": "Both sessions closed gracefully with Core exit 0. A fresh Core process reopened the two saved documents, conversion and relation facts, and original bytes.",
+              "export": "The original-source read endpoint returned both input files with matching hashes. Native .sy export and write-back were not exercised.",
+              "loss_report": "References and asset paths are recorded as conversion facts. External block targets, attachment contents, live SiYuan behavior and tab selection remain unverified."
+            },
+            {
+              "observation_id": "siyuan_explicit_document_attachment_restore",
+              "source_version": "SiYuan Spec 2 public guide note and PNG from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4",
+              "target_source_commit": "e863ae114dee1e6fe8e85bcf24673f2a89bea583",
+              "target_source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Python interpreter only. The run used the previously qualified e863ae11 Core. At checkout f33faeef the transport and two text-worker file hashes matched the e863ae11 receipt.",
+              "core_override_sha256": "96abe4da616535c526a46eba4a00dd3806d8b2bf30f3a7ae7a796aa261fa6ab1",
+              "consumer": "One .sy converted into a 96-block projection. An explicit human-role choice saved a document-level related reference to the separately imported PNG, advancing the ordinary document from v1 to v2.",
+              "restart": "A fresh Core read the same v2 relation, both byte-identical originals and the unchanged unbound native locator.",
+              "export": "One AAOS portable Document package transferred both Source originals to an empty AAOS workspace. The restored v1 relation resolved through the returned Source mapping to the byte-identical PNG. Both mapped IDs retained their content-derived values.",
+              "loss_report": "Automatic asset matching, native block-level opening, desktop interaction and SiYuan write-back remain unverified."
+            }
+          ],
+          "losses": "Native paths remain unbound. One explicitly selected attachment was verified through an AAOS document-level relation. Automatic matches, native block targets, live SiYuan behavior and tab selection remain unverified."
         },
         "export": {
           "state": "NOT_EXECUTED",
@@ -1683,7 +1808,7 @@
           "losses": "UNKNOWN"
         }
       },
-      "overall_parity": "UNVERIFIED",
+      "overall_parity": "PARTIAL",
       "scope_change": "NONE; no inherited platform or personal feature removed or deferred"
     },
     {

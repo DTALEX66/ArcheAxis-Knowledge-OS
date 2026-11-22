@@ -170,22 +170,44 @@ async fn an_existing_broken_worker_is_not_reported_as_healthy() {
 }
 
 #[tokio::test]
-async fn health_rejects_foreign_capabilities_and_bounds_silent_startup() {
-    let text = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../services/python-workers/transport/text_ndjson.py");
-    let (_dir, executor) = executor_with(&[("image.caption", text)]).await;
+async fn health_rejects_a_valid_hello_for_a_foreign_capability() {
+    let scripts = tempfile::tempdir().unwrap();
+    let foreign = scripts.path().join("foreign.py");
+    let hello = serde_json::json!({
+        "schema":"archeaxis.worker-hello/v1","type":"hello",
+        "protocol":{"major":1,"min_minor":0,"max_minor":0},
+        "worker":{"name":"python-worker-text-ndjson","version":"1"},
+        "capabilities":["text.extract"],
+        "schemas":["archeaxis.text/v1","archeaxis.document-structure/v1","archeaxis.loss-receipt/v1"]
+    });
+    std::fs::write(
+        &foreign,
+        format!(
+            "import sys\nprint({:?}, flush=True)\nsys.stdin.read()\n",
+            hello.to_string()
+        ),
+    )
+    .unwrap();
+    let (_dir, executor) = executor_with(&[("image.caption", foreign)]).await;
     let (_, body) = get(
         &archeaxis_api::runtime::router(executor),
         "/api/v1/capabilities/image.caption",
     )
     .await;
-    assert_eq!(body["capability"]["health"], "handshake_failed");
+    let record = &body["capability"];
+    assert_eq!(record["health"], "handshake_failed", "{body}");
+    assert_eq!(record["health_details"]["task_executed"], false, "{body}");
     assert!(
-        body["capability"]["health_details"]["reason"]
+        record["health_details"]["reason"]
             .as_str()
-            .unwrap()
-            .contains("capability")
+            .is_some_and(|reason| reason
+                .starts_with("worker does not advertise requested capability image.caption")),
+        "{body}"
     );
+}
+
+#[tokio::test]
+async fn health_bounds_a_worker_that_never_sends_a_hello() {
     let scripts = tempfile::tempdir().unwrap();
     let silent = scripts.path().join("silent.py");
     std::fs::write(&silent, "import time\ntime.sleep(60)\n").unwrap();
@@ -196,8 +218,20 @@ async fn health_rejects_foreign_capabilities_and_bounds_silent_startup() {
         "/api/v1/capabilities/image.caption",
     )
     .await;
-    assert_eq!(body["capability"]["health"], "handshake_failed");
-    assert!(started.elapsed() < std::time::Duration::from_secs(6));
+    let record = &body["capability"];
+    assert_eq!(record["health"], "handshake_failed", "{body}");
+    assert_eq!(record["health_details"]["timeout_ms"], 2000, "{body}");
+    assert!(
+        record["health_details"]["reason"]
+            .as_str()
+            .is_some_and(|reason| reason.starts_with("worker hello timed out or closed")),
+        "{body}"
+    );
+    let elapsed = started.elapsed();
+    assert!(
+        elapsed < std::time::Duration::from_secs(6),
+        "{elapsed:?}: {body}"
+    );
 }
 
 #[tokio::test]

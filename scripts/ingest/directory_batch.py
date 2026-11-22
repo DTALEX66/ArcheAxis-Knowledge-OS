@@ -44,7 +44,7 @@ KIND_BY_EXTENSION = {
     "hpp": "text", "go": "text", "java": "text", "cs": "text", "rb": "text", "sh": "text",
     "ps1": "text", "bat": "text", "toml": "text", "yaml": "text", "yml": "text", "ini": "text",
     "cfg": "text", "sql": "text", "md": "text", "markdown": "text", "csv": "text",
-    "tsv": "text", "json": "text", "xml": "text", "csljson": "text",
+    "tsv": "text", "json": "text", "xml": "text", "csljson": "text", "sy": "text",
     "ris": "text", "bib": "text", "bibtex": "text", "biblatex": "text",
     "pdf": "pdf",
     "zip": "archive", "tar": "archive", "jex": "archive", "apkg": "archive", "colpkg": "archive",
@@ -66,10 +66,8 @@ EXCLUDED_DIRS = frozenset(
 )
 
 STATUSES = ("enqueued", "already_enqueued", "imported_no_job", "refused", "failed", "skipped_unchanged")
-# What counts as "nothing more to do with this content". `imported_no_job` belongs here: the
-# reason is the extension, which will not change between runs, so retrying would import the same
-# file again and again and pile up duplicate sources. A refusal or a failure is retried, because
-# either can be transient or fixable.
+# Custody without a job is complete until a later driver adds a route and can
+# verify the retained source. Refusals and failures can be transient.
 RESUMABLE_STATUSES = frozenset({"enqueued", "already_enqueued", "imported_no_job"})
 
 
@@ -166,6 +164,18 @@ def decide(latest: dict | None, digest: str) -> tuple[bool, str]:
     if status in RESUMABLE_STATUSES:
         return False, f"unchanged and the last attempt was {status}"
     return True, f"unchanged but the last attempt was {status or 'unrecorded'}"
+
+
+def retained_source_for_new_kind(latest: dict | None, digest: str, kind: str | None) -> str | None:
+    """Recover a custody-only source when this driver now has a conversion route."""
+    if latest is None or kind is None or latest.get("sha256") != digest:
+        return None
+    status = latest.get("status")
+    first = status == "imported_no_job" and latest.get("kind") is None and not latest.get("job_id")
+    retry = (status in {"failed", "refused"} and latest.get("resumed_after_route_added") is True
+             and latest.get("kind") == kind)
+    source = latest.get("source_id")
+    return source if (first or retry) and isinstance(source, str) and source else None
 
 
 def read_manifest(path: Path) -> list[dict]:
@@ -287,7 +297,8 @@ def run_batch(
     for path in files:
         relative = path.relative_to(root).as_posix()
         digest = sha256_of(path)
-        should_run, why = decide(previous.get(relative), digest) if resume else (True, "resume is off")
+        latest = previous.get(relative)
+        should_run, why = decide(latest, digest) if resume else (True, "resume is off")
         entry = {
             "schema": MANIFEST_SCHEMA,
             "path": relative,
@@ -296,24 +307,37 @@ def run_batch(
             "kind": KIND_BY_EXTENSION.get(path.suffix.lower().lstrip(".")),
             "at": stamp,
         }
-        if not should_run:
+        retained = retained_source_for_new_kind(latest, digest, entry["kind"])
+        if not should_run and retained is None:
             entry.update({"status": "skipped_unchanged", "detail": why})
             record(entry)
             continue
         if dry_run:
-            entry.update({"status": "skipped_unchanged", "detail": f"dry run: would import ({why})"})
+            detail = "would verify and enqueue the previously imported source" if retained else f"would import ({why})"
+            entry.update({"status": "skipped_unchanged", "detail": f"dry run: {detail}"})
             record(entry)
             continue
 
-        status, body = core_call("POST", "/api/v1/imports", {
-            "name": relative,
-            "content_base64": base64.b64encode(path.read_bytes()).decode("ascii"),
-        })
-        if status not in (200, 201, 202) or not isinstance(body, dict) or not body.get("source_id"):
-            entry.update({"status": "refused", "detail": f"the Core refused the import with status {status}: {body}"})
-            record(entry)
-            continue
-        entry["source_id"] = body["source_id"]
+        if retained:
+            entry.update(source_id=retained, resumed_after_route_added=True)
+            status, source = core_call("GET", "/api/v1/sources/" + quote(retained, safe=""), None)
+            if (status != 200 or not isinstance(source, dict) or source.get("source_id") != retained
+                    or source.get("sha256") != digest
+                    or Path(str(source.get("original_name") or "")).suffix.casefold() != path.suffix.casefold()):
+                entry.update(status="refused", detail=f"previously imported source identity, SHA-256 or extension "
+                             f"could not be confirmed (Core status {status}); original source was not reimported")
+                record(entry)
+                continue
+        else:
+            status, body = core_call("POST", "/api/v1/imports", {
+                "name": relative,
+                "content_base64": base64.b64encode(path.read_bytes()).decode("ascii"),
+            })
+            if status not in (200, 201, 202) or not isinstance(body, dict) or not body.get("source_id"):
+                entry.update({"status": "refused", "detail": f"the Core refused the import with status {status}: {body}"})
+                record(entry)
+                continue
+            entry["source_id"] = body["source_id"]
 
         if entry["kind"] is None:
             entry.update({

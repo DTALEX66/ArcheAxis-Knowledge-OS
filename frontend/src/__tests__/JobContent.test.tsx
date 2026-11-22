@@ -253,7 +253,7 @@ describe("Core job content",()=>{
  });
  // A04: source and config extensions with an existing text route must reach the UI instead of being
  // reported as read-only custody.
- it.each([["notes.py"],["main.rs"],["App.tsx"],["server.go"],["notes.log"],["settings.ini"],["query.sql"],["readme.markdown"],["document.odt"],["sheet.ods"],["slides.odp"],["notes.rtf"]])("maps text-route source %s to the reading conversion action",async(name)=>{
+ it.each([["notes.py"],["main.rs"],["App.tsx"],["server.go"],["notes.log"],["settings.ini"],["query.sql"],["readme.markdown"],["document.odt"],["sheet.ods"],["slides.odp"],["notes.rtf"],["思源.SY"]])("maps text-route source %s to the reading conversion action",async(name)=>{
   expect(conversionKindFor(name)).toBe("text");
  });
  it("keeps unregistered extensions without a conversion route",()=>{
