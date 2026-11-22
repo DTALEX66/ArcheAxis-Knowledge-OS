@@ -125,7 +125,9 @@ async fn new_question_claim_blocks_inflight_repeat_without_blocking_saves_and_ke
         .parent()
         .unwrap()
         .to_owned();
-    let python = root.join(".venv/Scripts/python.exe");
+    let python = std::env::var_os("ARCHEAXIS_PYTHON")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| root.join(".venv/Scripts/python.exe"));
     assert!(
         python.is_file(),
         "new runtime regression requires the existing pinned local environment"
