@@ -6,6 +6,7 @@ installed runtime, and they do not relax any existing path guard.
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 
 import pytest
@@ -46,9 +47,9 @@ def test_foreign_or_inexact_reports_are_rejected(report, tmp_path, case):
         "other_drive": "E:" + plain[2:],
         "other_filename": str(expected.with_name("other.sqlite")),
         "other_run": str(tmp_path / "other" / "data" / "workspace.sqlite"),
-        "slash_change": plain.replace("\\", "/"),
+        "slash_change": plain.replace(os.sep, "/" if os.sep == "\\" else "\\"),
         "case_change": plain.swapcase(),
-        "dotdot": plain.replace("\\data\\", "\\data\\..\\data\\"),
+        "dotdot": str(expected.parent / ".." / "data" / expected.name),
         "double_prefix": "\\\\?\\\\\\?\\" + plain,
         "trailing_space": plain + " ",
         "nul": plain + "\x00",
@@ -84,11 +85,11 @@ def test_repo_binding_rejects_a_path_outside_this_project_runs(report):
 
 
 def test_verbatim_report_still_fails_the_existing_dev_guard(report):
-    """The original failure must stay reproducible without changing dev.safe_path."""
+    """Only the report checker can accept the exact verbatim spelling."""
     from scripts.runtime import dev
     ordinary = ROOT / ".project-local" / "runs" / "w" / "data" / "workspace.sqlite"
     verbatim = "\\\\?\\" + str(ordinary)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="protected drive or UNC development root"):
         dev.safe_path(Path(verbatim))
     assert report.checked_workspace_report(verbatim, ordinary, repo=ROOT) is ordinary
 

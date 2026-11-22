@@ -4833,7 +4833,7 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 
 ### 2026-11-22 J1 / J3 / J6 / X7 · Logseq 文件图谱的原生段落、写回与学习使用
 
-- 在七个资料交换入口中接入 Logseq 文件图谱。使用 Logseq Desktop 0.10.15 选择的外部解析器 mldoc 1.5.7。公开样本选自官方文档库提交 `628cdde0b6f1d90c4722e2bfebb2fd00a5186825`，11 个文件逐个对齐 Git blob 和 SHA-256。输入含 8 篇 Markdown、1 篇 Org 日志、1 张 PNG 和图谱配置。来源与解析器身份见 `logseq-file-graph-upstream-20261122/artifacts/provenance.json`。
+- 在七个资料交换入口中接入 Logseq 文件图谱。使用 Logseq Desktop 0.10.15 选择的外部解析器 mldoc 1.5.7。公开样本选自官方文档库提交 `logseq/docs@628cdde0b6f1d90c4722e2bfebb2fd00a5186825`，11 个文件逐个对齐 Git blob 和 SHA-256。输入含 8 篇 Markdown、1 篇 Org 日志、1 张 PNG 和图谱配置。来源与解析器身份见 `logseq-file-graph-upstream-20261122/artifacts/provenance.json`。
 - Windows 实际执行打包器生成的命令，同一工作区读出 9 份可编辑页面／日志、21 个不同的原生块 UUID 和 18 条已解析关系。此公开子集中有 42 次引用缺少目标文件或页面，均逐项列出。给 Markdown 页中的一个 UUID 改写首行后，原跨页嵌入仍指向其 v1，新内容存在 v3。导出的 10 个其他文件逐字节一致，改动页只变了该行。独立 Node 进程直接用官方解析器读回原 UUID 和新内容，再在另一篇页面追加嵌入。导回后同一工作区有 19 条已解析关系，原图、Org 日志三层大纲及外部改动均可冷启动回读。六次 Core 正常关闭。组件目录复用了保留版 release Core、打包解释器和 workers。本轮未运行 Logseq Desktop。见 `logseq-file-graph-journey-20261122/artifacts/journey.json`。
 - 从上述工作区创建正式在线备份，并以同一 Core 恢复到隔离副本。原始块和后来的编辑都能定位。对 Markdown 原件执行文本转换，从该段选取属性写法，建立带原文定位的知识候选。隔离验收用模拟审查接纳，研究文档的导出清单同时固定原生 UUID／文档 v1 和知识项。课程及需求、计划、示例、试作、反馈、修订六条合成记录均绑定同一知识项，明确为机器生成且未计分。冷启动逐项核对 13 份读取结果；本轮没有模型调用或真人学习效果评价。见 `logseq-native-block-study-20261122/artifacts/study.json`。
 - [交换合同 §35](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#35-logseq-file-graph-exchange)记有图谱 ID、按 UUID 编辑和导出用法。[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)将文件图谱列为 PARTIAL，Logseq DB 仍单列为 UNVERIFIED。37 个身份中现有 9 项 PARTIAL、28 项 UNVERIFIED。整包及安装升级仍沿用此前待办，本轮没有退役旧文件。

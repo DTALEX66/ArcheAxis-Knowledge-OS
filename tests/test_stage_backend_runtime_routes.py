@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 from io import StringIO
@@ -252,7 +253,7 @@ def _check_staged_worker_donors(tmp_path, monkeypatch, script, capability, donor
 
 
 def test_prebuilt_course_stage_ships_its_own_donors(tmp_path, monkeypatch):
-    _check_staged_worker_donors(tmp_path, monkeypatch, stager.COURSE_SCRIPT, "course.general",
+    _check_staged_worker_donors(tmp_path, monkeypatch, "course/worker_general_course.py", "course.general",
                                 stager.COURSE_DONORS, "workers/course/donors/")
 
 
@@ -264,7 +265,18 @@ def test_prebuilt_archive_stage_ships_its_anki_reader(tmp_path, monkeypatch):
 def test_prebuilt_text_stage_can_supply_its_commonmark_reader(tmp_path, monkeypatch):
     import markdown_it
 
-    source = Path(markdown_it.__file__).resolve().parents[1]
+    installed = Path(markdown_it.__file__).resolve().parents[1]
+    source = tmp_path / "dependency-source"
+    # uv may hard-link installed packages to its cache. The donor must own its bytes.
+    for name in ("markdown-it-py", "mdurl"):
+        members = stager.distribution_files(name, installed)
+        assert members
+        for path in members:
+            path = path.resolve()
+            if path.is_relative_to(installed) and path.is_file():
+                target = source / path.relative_to(installed)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
     with monkeypatch.context() as patcher:
         staged = _check_staged_worker_donors(tmp_path, patcher, "document/worker_text.py", None, (), "",
                                             ("--dep-source", str(source)))

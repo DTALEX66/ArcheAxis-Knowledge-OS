@@ -456,7 +456,8 @@ def test_actual_plain_launch_confirms_recovery_before_hydrated_guide_preparation
                      load=lambda name, path: adapter, request=Mock(), session='SIMULATED',
                      args=SimpleNamespace(**{key: False for key in ('grouped_common_owner_loop',
                           'installed_draft_conflict_loop', 'character_memory_loop',
-                          'configuration_plan_loop', 'be10_handoff_reader_loop')}), material_mode=False,
+                          'configuration_plan_loop', 'be10_handoff_reader_loop', 'v3_consumer_loop')}),
+                     material_mode=False,
                      confirm_restored_working_state=harness_helper('confirm_restored_working_state'),
                      navigate_compatibility_space=compatibility)
     code = compile(ast.Module(body=launch.body[start:end], type_ignores=[]), '<actual-launch-navigation>', 'exec')

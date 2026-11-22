@@ -334,8 +334,10 @@ def _article_text(html: str) -> tuple[str | None, str]:
     ), version("trafilatura")
 
 
-def extract(path: str) -> dict:
-    is_mhtml = Path(path).suffix.lower() in {".mht", ".mhtml"}
+def extract(path: str, *, media_type: str | None = None) -> dict:
+    # Sidecar inputs carry a digest filename. CLI inputs identify their format by extension.
+    is_mhtml = (media_type == "multipart/related" if media_type is not None
+                else Path(path).suffix.lower() in {".mht", ".mhtml"})
     if is_mhtml:
         with Path(path).open("rb") as source:
             raw = source.read(MHTML_MAX_BYTES + 1)

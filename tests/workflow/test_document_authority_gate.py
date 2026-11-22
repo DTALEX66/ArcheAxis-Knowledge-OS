@@ -385,9 +385,12 @@ def compatibility_fixture(monkeypatch, tmp_path):
 
 
 def test_compatibility_missing_local_runs_never_become_external_parity(monkeypatch, tmp_path, capsys):
-    gate, _, _ = compatibility_fixture(monkeypatch, tmp_path)
+    gate, _, matrix = compatibility_fixture(monkeypatch, tmp_path)
+    expected_missing = len(matrix["aaos_observations"])
+    assert expected_missing > 0
     assert gate.check_knowledge_compatibility() == []
-    assert "unavailable/UNVERIFIED 3; no external parity inferred" in capsys.readouterr().out
+    assert (f"local authored receipts verified 0, unavailable/UNVERIFIED {expected_missing}; "
+            "no external parity inferred") in capsys.readouterr().out
 
 
 def test_compatibility_rejects_silent_scope_loss_and_unproved_success(monkeypatch, tmp_path):

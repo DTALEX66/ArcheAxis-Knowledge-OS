@@ -65,7 +65,6 @@ PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
-COURSE_SCRIPT = "course/worker_general_course.py"
 ANKI_DONORS = ("shared/compat/__init__.py", "shared/compat/anki_package.py",
                "shared/compat/import_session.py")
 COURSE_DONORS = ("app/contracts/courseware_v1.py", "app/contracts/general_learning_v1.py",
@@ -237,15 +236,16 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def detector_route_present(workers: Path) -> bool:
+def present_worker_script(workers: Path, capability: str) -> Path | None:
     """Use the same route candidates as the staged profile, against its input tree."""
-    for relative in ROUTE_SCRIPTS.get("document.detect", ()):
+    for relative in ROUTE_SCRIPTS[capability]:
         parts = PurePosixPath(relative).parts
         if len(parts) < 2 or parts[0] != "workers" or ".." in parts:
-            raise ValueError("invalid detector route declaration")
-        if filesystem_path(workers.joinpath(*parts[1:])).is_file():
-            return True
-    return False
+            raise ValueError(f"invalid route declaration for {capability}")
+        script = Path(*parts[1:])
+        if filesystem_path(workers / script).is_file():
+            return script
+    return None
 
 
 def detector_source_rows() -> dict[str, dict[str, object]]:
@@ -1243,7 +1243,8 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
         if all(distribution_files(name, args.dep_source) is not None for name in missing):
             args.dep.extend(missing)
     args._anki_sources = {}
-    if (args.workers / "document/worker_archive.py").is_file():
+    args._anki_script = present_worker_script(args.workers, "archive.inventory")
+    if args._anki_script is not None:
         if provider_repository is None:
             raise ValueError("archive.inventory needs the repository containing its Anki reader")
         for relative in ANKI_DONORS:
@@ -1270,7 +1271,8 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
                 if args.dep_source is None or distribution_files(name, args.dep_source) is None:
                     raise ValueError(f"knowledge exchange needs {name} in the bundled runtime or --dep-source")
     args._course_sources = {}
-    if (args.workers / COURSE_SCRIPT).is_file():
+    args._course_script = present_worker_script(args.workers, "course.general")
+    if args._course_script is not None:
         if provider_repository is None:
             raise ValueError("course.general needs the repository containing its course contracts")
         for relative in COURSE_DONORS:
@@ -1346,7 +1348,7 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
                 raise ValueError(f"OpenMAIC input identity mismatch: {relative}")
             selected[relative] = {"source": growth.plain(source), "identity": identity}
         args._openmaic_plan = {"files": selected, "node_sha256": node_sha}
-    args._detector_plan = detector_source_rows() if detector_route_present(args.workers) else None
+    args._detector_plan = detector_source_rows() if present_worker_script(args.workers, "document.detect") else None
     if args._detector_plan is not None:
         for relative, identity in args._detector_plan.items():
             donor = DETECTOR_SOURCE / relative
@@ -1486,7 +1488,7 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         verify_openmaic_plan(openmaic_plan)
     if practice_plan is not None and practice_source_rows(practice_plan["repository"]) != practice_plan["files"]:
         raise ValueError("private practice provider changed after planning")
-    if detector_route_present(args.workers) != (detector_plan is not None):
+    if (present_worker_script(args.workers, "document.detect") is not None) != (detector_plan is not None):
         raise ValueError("detector route changed after planning")
     if detector_plan is not None and detector_source_rows() != detector_plan:
         raise ValueError("detector donor changed after planning")
@@ -1656,14 +1658,14 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
 
     if args._anki_sources:
         check = subprocess.run([str(root / "runtime/python.exe"), "-I", "-B",
-                                str(root / "workers/document/worker_archive.py"), "--check-anki-runtime"],
+                                str(root / "workers" / args._anki_script), "--check-anki-runtime"],
                                cwd=root, capture_output=True, text=True, timeout=30)
         if check.returncode != 0 or check.stdout.strip() != "Anki reader ready":
             raise ValueError("Anki archive reader cannot load its collection reader or Zstandard decoder. "
                              "Provide --dep-source for the bundled Python version. " + check.stderr.strip()[-600:])
     if args._course_sources:
         course_check = subprocess.run(
-            [str(root / "runtime/python.exe"), "-I", "-B", str(root / "workers" / COURSE_SCRIPT),
+            [str(root / "runtime/python.exe"), "-I", "-B", str(root / "workers" / args._course_script),
              "--check-runtime"], cwd=root, capture_output=True, text=True, timeout=30,
         )
         if course_check.returncode != 0 or course_check.stdout.strip() != "course.general ready":

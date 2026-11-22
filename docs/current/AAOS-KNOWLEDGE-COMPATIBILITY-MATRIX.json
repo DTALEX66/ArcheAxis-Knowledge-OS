@@ -731,7 +731,7 @@
         "application_version": "1.13.7",
         "application_observation": "Native Windows desktop and installer version returned by the official CLI in two isolated Vault profiles.",
         "format_or_api_version": "Obsidian Vault Markdown, embedded links and Bases YAML as consumed by desktop 1.13.7.",
-        "version_basis": "The four notes and Albums.base are pinned to upstream commit 473697347a0eaac790a6596229c741b3915f3b77. Both native receipts include application file hashes and the version response."
+        "version_basis": "The four notes and Albums.base are pinned to upstream commit kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77. Both native receipts include application file hashes and the version response."
       },
       "target_version": {
         "application": "ArcheAxis Knowledge",
@@ -937,7 +937,7 @@
             },
             {
               "observation_id": "obsidian_incremental_native_reopen",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "The native Obsidian 1.13.7 CLI read five notes and queried backlinks after AAOS rebuilt the folder. The candidate is the producer recorded on resolve/restart.",
@@ -947,7 +947,7 @@
             },
             {
               "observation_id": "obsidian_incremental_research_quiz",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "b8aa7e426a5a73da25c8dbedee450bc5f020f6518daf1fb1d8e4d4d82e658919",
               "consumer": "AAOS research export and versioned practice. The real OpenMAIC Node worker built a scene with the supplied question, options and answer key.",
@@ -1042,7 +1042,7 @@
           "acceptance_evidence": [
             {
               "observation_id": "obsidian_incremental_mixed_edits",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "Release Core, the normal Vault sync command and files edited by the installed Obsidian application.",
@@ -1052,7 +1052,7 @@
             },
             {
               "observation_id": "obsidian_incremental_resolve_restart",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "Release Core version history, immutable original-source readback, on-demand local sync and cursor-based folder export.",
@@ -1062,7 +1062,7 @@
             },
             {
               "observation_id": "obsidian_incremental_move_and_core_choice",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "849b19bccfaad696d6194900f91709b06c278851a621efd5448a710aae48a1ff",
               "candidate_manifest_sha256": "87c5c39fb0dcd626aa1a230479e1cdec922d4e8fa4e0ffd7e1564aafa95edc7b",
               "consumer": "Release Core immutable sources and block identity, on-demand sync and a byte comparison of the already rebuilt folder.",
@@ -1072,7 +1072,7 @@
             },
             {
               "observation_id": "obsidian_incremental_new_folder_connection",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "05897ebb57ae67e610a427937eff6676136c6c37aca32dc4eb879240f04537c1",
               "candidate_manifest_sha256": "e636044bcbbe4cac71c3725acd064ea52aa9406ab95fa312022a91e94e6b0bcc",
               "consumer": "Normal export with a saved version receipt, first pairing of a new directory and subsequent sync without supplying a receipt.",
@@ -1110,7 +1110,7 @@
             },
             {
               "observation_id": "obsidian_incremental_research_quiz",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "b8aa7e426a5a73da25c8dbedee450bc5f020f6518daf1fb1d8e4d4d82e658919",
               "consumer": "AAOS research export and versioned practice. The real OpenMAIC Node worker built a scene with the supplied question, options and answer key.",
@@ -1167,7 +1167,7 @@
             },
             {
               "observation_id": "obsidian_incremental_new_folder_connection",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "05897ebb57ae67e610a427937eff6676136c6c37aca32dc4eb879240f04537c1",
               "candidate_manifest_sha256": "e636044bcbbe4cac71c3725acd064ea52aa9406ab95fa312022a91e94e6b0bcc",
               "consumer": "Normal export with a saved version receipt, first pairing of a new directory and subsequent sync without supplying a receipt.",
@@ -1213,7 +1213,7 @@
             },
             {
               "observation_id": "obsidian_incremental_native_reopen",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "The native Obsidian 1.13.7 CLI read five notes and queried backlinks after AAOS rebuilt the folder. The candidate is the producer recorded on resolve/restart.",
@@ -1239,7 +1239,7 @@
             },
             {
               "observation_id": "obsidian_incremental_resolve_restart",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "Release Core version history, immutable original-source readback, on-demand local sync and cursor-based folder export.",
@@ -1255,7 +1255,7 @@
           "evidence": [
             {
               "observation_id": "obsidian_incremental_mixed_edits",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "Release Core, the normal Vault sync command and files edited by the installed Obsidian application.",
@@ -1265,7 +1265,7 @@
             },
             {
               "observation_id": "obsidian_incremental_resolve_restart",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "Release Core version history, immutable original-source readback, on-demand local sync and cursor-based folder export.",
@@ -1275,7 +1275,7 @@
             },
             {
               "observation_id": "obsidian_incremental_native_reopen",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "adb6639a8f367343b78b888d1e194b6e6370313de508d6056f1427d5d236e619",
               "candidate_manifest_sha256": "cb5198b788a53fffdd4684642b5c7ea77ef8406c7793cdffcdf471c9dfcaee64",
               "consumer": "The native Obsidian 1.13.7 CLI read five notes and queried backlinks after AAOS rebuilt the folder. The candidate is the producer recorded on resolve/restart.",
@@ -1285,7 +1285,7 @@
             },
             {
               "observation_id": "obsidian_incremental_move_and_core_choice",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "849b19bccfaad696d6194900f91709b06c278851a621efd5448a710aae48a1ff",
               "candidate_manifest_sha256": "87c5c39fb0dcd626aa1a230479e1cdec922d4e8fa4e0ffd7e1564aafa95edc7b",
               "consumer": "Release Core immutable sources and block identity, on-demand sync and a byte comparison of the already rebuilt folder.",
@@ -1295,7 +1295,7 @@
             },
             {
               "observation_id": "obsidian_incremental_new_folder_connection",
-              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at 473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
+              "source_version": "Obsidian 1.13.7 on Windows, public kepano Vault at kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77 plus documented local edits and fixtures.",
               "target_source_patch_sha256": "05897ebb57ae67e610a427937eff6676136c6c37aca32dc4eb879240f04537c1",
               "candidate_manifest_sha256": "e636044bcbbe4cac71c3725acd064ea52aa9406ab95fa312022a91e94e6b0bcc",
               "consumer": "Normal export with a saved version receipt, first pairing of a new directory and subsequent sync without supplying a receipt.",
@@ -1333,7 +1333,7 @@
         "application_version": null,
         "application_observation": "Public Notion-format fixture. The exporter application build is unknown; no private workspace was accessed.",
         "format_or_api_version": "Markdown & CSV export with UUID-suffixed members; API specification is a separate route.",
-        "version_basis": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce."
+        "version_basis": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce."
       },
       "target_version": {
         "application": "ArcheAxis Knowledge",
@@ -1380,7 +1380,7 @@
           "aaos_parity": "PARTIAL",
           "acceptance_evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1390,7 +1390,7 @@
               "loss_report": "CSV snapshots expose text cells and omit native formula, relation-property and view definitions. Three absent member references and three external link occurrences were retained in Markdown. No signed-in native Notion client, API, incremental sync, multipart or full workspace restore was qualified."
             },
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1400,7 +1400,7 @@
               "loss_report": "CSV snapshots expose text cells and omit native formula, relation-property and view definitions. Three absent member references and three external link occurrences were retained in Markdown. No signed-in native Notion client, API, incremental sync, multipart or full workspace restore was qualified."
             },
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "96ccdf34041d920025f86e9d3fd46ef462fac8d40464b83eeb3354963e5a2ab8",
               "candidate_manifest_sha256": "6b6875f0d9f4cc3a28a8c759de37a0ef212d00508943050985754bfdbcfe3334",
               "observation_id": "notion_ordinary_zip_content_recovered",
@@ -1431,7 +1431,7 @@
           "aaos_parity": "PARTIAL",
           "acceptance_evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1452,7 +1452,7 @@
           "aaos_parity": "PARTIAL",
           "acceptance_evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1479,7 +1479,7 @@
           "state": "PARTIAL",
           "evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1489,7 +1489,7 @@
               "loss_report": "CSV snapshots expose text cells and omit native formula, relation-property and view definitions. Three absent member references and three external link occurrences were retained in Markdown. No signed-in native Notion client, API, incremental sync, multipart or full workspace restore was qualified."
             },
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1499,7 +1499,7 @@
               "loss_report": "Full and selected views with different bytes are independent snapshots. The added Core filter stayed in the workspace; the re-imported CSV had one local table view. Stable native row-page IDs are absent in the source CSV."
             },
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "96ccdf34041d920025f86e9d3fd46ef462fac8d40464b83eeb3354963e5a2ab8",
               "candidate_manifest_sha256": "6b6875f0d9f4cc3a28a8c759de37a0ef212d00508943050985754bfdbcfe3334",
               "observation_id": "notion_ordinary_zip_content_recovered",
@@ -1525,7 +1525,7 @@
           "state": "PARTIAL",
           "evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1535,7 +1535,7 @@
               "loss_report": "CSV snapshots expose text cells and omit native formula, relation-property and view definitions. Three absent member references and three external link occurrences were retained in Markdown. No signed-in native Notion client, API, incremental sync, multipart or full workspace restore was qualified."
             },
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1561,7 +1561,7 @@
           "state": "PARTIAL",
           "evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1571,7 +1571,7 @@
               "loss_report": "CSV snapshots expose text cells and omit native formula, relation-property and view definitions. Three absent member references and three external link occurrences were retained in Markdown. No signed-in native Notion client, API, incremental sync, multipart or full workspace restore was qualified."
             },
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -1587,7 +1587,7 @@
           "state": "PARTIAL",
           "evidence": [
             {
-              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
+              "source_version": "Notion Markdown & CSV, exporter build unspecified. Public AppFlowy-Collab Projects & Tasks ZIP at AppFlowy-IO/AppFlowy-Collab@be5aa89b4aeafd4e7159e92b86784c02caaa85ce.",
               "target_source_patch_sha256": "015518d909c0f7a5cea0414b071b63bbb91f35e2a71d3febb417b6f9d0658a3a",
               "candidate_manifest_sha256": "85dce177096cb331d42f0c9361049df11e52b0ae3290f08757fe569b15501fd3",
               "observation_id": "notion_zip_csv_page_return",
@@ -2094,7 +2094,7 @@
       "source_version": {
         "application_version": null,
         "application_observation": "Public Zotero service plus official translation-server 2.0.5. Desktop client version unobserved.",
-        "format_or_api_version": "Web API v3, CSL JSON, RIS, BibTeX and BibLaTeX. Translator revision 9d04f4b8b4e44b46782c8572fdb834147df18979.",
+        "format_or_api_version": "Web API v3, CSL JSON, RIS, BibTeX and BibLaTeX. Translator revision zotero/translators@9d04f4b8b4e44b46782c8572fdb834147df18979.",
         "version_basis": "Returned item and collection versions, pinned official server and translator sources, and Pandoc 3.10."
       },
       "target_version": {
@@ -2143,7 +2143,7 @@
           "acceptance_evidence": [
             {
               "observation_id": "zotero_csl_ris_citations_and_native_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "1a071b110e00e3019c249964471d2f0c71b9d0458a1901444af5c9cf11f4899c",
               "candidate_manifest_sha256": "85d857f33a73d19b2024bff1a079f14e90dcd983075087a8037e217951f82a13",
               "consumer": "Local Zotero official translators, Pandoc citeproc, Core source and document APIs",
@@ -2153,7 +2153,7 @@
             },
             {
               "observation_id": "zotero_bib_entry_keys_and_edit",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "6e1c82a5aca7f78c5ee370623e1a759eb2c9f8f6f4531a8d57d3ebd7604b6e80",
               "candidate_manifest_sha256": "e9997a96593587756cebf64b74f9fbfe87e4cd53b7b6f73ad149784b64b7b7a0",
               "consumer": "Core, Pandoc Bib readers, Zotero native format writers and import reader, manuscript citeproc",
@@ -2163,7 +2163,7 @@
             },
             {
               "observation_id": "zotero_bib_external_revision_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "8b245babb22c73a4bb205c66823e278acd23767e09e49c3c84f9820e4dddae2a",
               "candidate_manifest_sha256": "d8e5edd02430a47978e02a01ceb154ee0d32f2f9405ed26ab2146b988d7c747d",
               "consumer": "External Zotero official translator and corrected AAOS Bib readers",
@@ -2251,7 +2251,7 @@
             },
             {
               "observation_id": "zotero_csl_ris_citations_and_native_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "1a071b110e00e3019c249964471d2f0c71b9d0458a1901444af5c9cf11f4899c",
               "candidate_manifest_sha256": "85d857f33a73d19b2024bff1a079f14e90dcd983075087a8037e217951f82a13",
               "consumer": "Local Zotero official translators, Pandoc citeproc, Core source and document APIs",
@@ -2261,7 +2261,7 @@
             },
             {
               "observation_id": "zotero_bib_entry_keys_and_edit",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "6e1c82a5aca7f78c5ee370623e1a759eb2c9f8f6f4531a8d57d3ebd7604b6e80",
               "candidate_manifest_sha256": "e9997a96593587756cebf64b74f9fbfe87e4cd53b7b6f73ad149784b64b7b7a0",
               "consumer": "Core, Pandoc Bib readers, Zotero native format writers and import reader, manuscript citeproc",
@@ -2297,7 +2297,7 @@
           "evidence": [
             {
               "observation_id": "zotero_csl_ris_citations_and_native_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "1a071b110e00e3019c249964471d2f0c71b9d0458a1901444af5c9cf11f4899c",
               "candidate_manifest_sha256": "85d857f33a73d19b2024bff1a079f14e90dcd983075087a8037e217951f82a13",
               "consumer": "Local Zotero official translators, Pandoc citeproc, Core source and document APIs",
@@ -2307,7 +2307,7 @@
             },
             {
               "observation_id": "zotero_bib_entry_keys_and_edit",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "6e1c82a5aca7f78c5ee370623e1a759eb2c9f8f6f4531a8d57d3ebd7604b6e80",
               "candidate_manifest_sha256": "e9997a96593587756cebf64b74f9fbfe87e4cd53b7b6f73ad149784b64b7b7a0",
               "consumer": "Core, Pandoc Bib readers, Zotero native format writers and import reader, manuscript citeproc",
@@ -2333,7 +2333,7 @@
           "evidence": [
             {
               "observation_id": "zotero_csl_ris_citations_and_native_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "1a071b110e00e3019c249964471d2f0c71b9d0458a1901444af5c9cf11f4899c",
               "candidate_manifest_sha256": "85d857f33a73d19b2024bff1a079f14e90dcd983075087a8037e217951f82a13",
               "consumer": "Local Zotero official translators, Pandoc citeproc, Core source and document APIs",
@@ -2343,7 +2343,7 @@
             },
             {
               "observation_id": "zotero_bib_entry_keys_and_edit",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "6e1c82a5aca7f78c5ee370623e1a759eb2c9f8f6f4531a8d57d3ebd7604b6e80",
               "candidate_manifest_sha256": "e9997a96593587756cebf64b74f9fbfe87e4cd53b7b6f73ad149784b64b7b7a0",
               "consumer": "Core, Pandoc Bib readers, Zotero native format writers and import reader, manuscript citeproc",
@@ -2359,7 +2359,7 @@
           "evidence": [
             {
               "observation_id": "zotero_csl_ris_citations_and_native_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "1a071b110e00e3019c249964471d2f0c71b9d0458a1901444af5c9cf11f4899c",
               "candidate_manifest_sha256": "85d857f33a73d19b2024bff1a079f14e90dcd983075087a8037e217951f82a13",
               "consumer": "Local Zotero official translators, Pandoc citeproc, Core source and document APIs",
@@ -2369,7 +2369,7 @@
             },
             {
               "observation_id": "zotero_bib_external_revision_return",
-              "source_version": "Zotero translation-server 2.0.5 @00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
+              "source_version": "Zotero translation-server 2.0.5 zotero/translation-server@00032f679fb3a91b682fd54c9926d920caaf6aef and Pandoc 3.10",
               "target_source_patch_sha256": "8b245babb22c73a4bb205c66823e278acd23767e09e49c3c84f9820e4dddae2a",
               "candidate_manifest_sha256": "d8e5edd02430a47978e02a01ceb154ee0d32f2f9405ed26ab2146b988d7c747d",
               "consumer": "External Zotero official translator and corrected AAOS Bib readers",
@@ -4966,7 +4966,7 @@
           "acceptance_evidence": [
             {
               "observation_id": "official_json_canvas_1_0_exchange",
-              "source_version": "JSON Canvas 1.0 / 456f843cb293df4f4ab1763e22ccb46a80b307c8",
+              "source_version": "JSON Canvas 1.0 / obsidianmd/jsoncanvas@456f843cb293df4f4ab1763e22ccb46a80b307c8",
               "target_source_patch_sha256": "4314bfebd714126e0390c07d25e921939452f9b6b6f0020056b18369d9f056a8",
               "candidate_manifest_sha256": "c92eecb044b99f6f3b5e766034d05fdc82a3bf4583199e0019359e5d3f861cd3",
               "core_override_sha256": "716d87c5c7b50dd92e7cf67d9774cc1f0592b4496ef642d1789580e3b68f2e22",
@@ -4988,7 +4988,7 @@
           "acceptance_evidence": [
             {
               "observation_id": "official_json_canvas_1_0_exchange",
-              "source_version": "JSON Canvas 1.0 / 456f843cb293df4f4ab1763e22ccb46a80b307c8",
+              "source_version": "JSON Canvas 1.0 / obsidianmd/jsoncanvas@456f843cb293df4f4ab1763e22ccb46a80b307c8",
               "target_source_patch_sha256": "4314bfebd714126e0390c07d25e921939452f9b6b6f0020056b18369d9f056a8",
               "candidate_manifest_sha256": "c92eecb044b99f6f3b5e766034d05fdc82a3bf4583199e0019359e5d3f861cd3",
               "core_override_sha256": "716d87c5c7b50dd92e7cf67d9774cc1f0592b4496ef642d1789580e3b68f2e22",
@@ -5006,7 +5006,7 @@
           "evidence": [
             {
               "observation_id": "official_json_canvas_1_0_exchange",
-              "source_version": "JSON Canvas 1.0 / 456f843cb293df4f4ab1763e22ccb46a80b307c8",
+              "source_version": "JSON Canvas 1.0 / obsidianmd/jsoncanvas@456f843cb293df4f4ab1763e22ccb46a80b307c8",
               "target_source_patch_sha256": "4314bfebd714126e0390c07d25e921939452f9b6b6f0020056b18369d9f056a8",
               "candidate_manifest_sha256": "c92eecb044b99f6f3b5e766034d05fdc82a3bf4583199e0019359e5d3f861cd3",
               "core_override_sha256": "716d87c5c7b50dd92e7cf67d9774cc1f0592b4496ef642d1789580e3b68f2e22",
@@ -5023,7 +5023,7 @@
           "evidence": [
             {
               "observation_id": "official_json_canvas_1_0_exchange",
-              "source_version": "JSON Canvas 1.0 / 456f843cb293df4f4ab1763e22ccb46a80b307c8",
+              "source_version": "JSON Canvas 1.0 / obsidianmd/jsoncanvas@456f843cb293df4f4ab1763e22ccb46a80b307c8",
               "target_source_patch_sha256": "4314bfebd714126e0390c07d25e921939452f9b6b6f0020056b18369d9f056a8",
               "candidate_manifest_sha256": "c92eecb044b99f6f3b5e766034d05fdc82a3bf4583199e0019359e5d3f861cd3",
               "core_override_sha256": "716d87c5c7b50dd92e7cf67d9774cc1f0592b4496ef642d1789580e3b68f2e22",

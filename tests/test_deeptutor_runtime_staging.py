@@ -40,12 +40,12 @@ def add_synthetic_provider(case):
         stager.filesystem_path(target.parent).mkdir(parents=True, exist_ok=True)
         stager.filesystem_path(target).write_bytes(raw)
     workers = repository / "services/python-workers"
-    archive = workers / "document/worker_archive.py"
-    stager.filesystem_path(archive.parent).mkdir(parents=True, exist_ok=True)
-    stager.filesystem_path(archive).write_bytes(b"# synthetic non-private worker\n")
+    canvas = workers / "document/worker_canvas.py"
+    stager.filesystem_path(canvas.parent).mkdir(parents=True, exist_ok=True)
+    stager.filesystem_path(canvas).write_bytes(b"# synthetic non-private worker\n")
     routes = workers / "routes.json"
     document = {"schema": "archeaxis.worker-routes/v1",
-                "routes": {"archive.inventory": ["document/worker_archive.py"]}}
+                "routes": {"canvas.structure": ["document/worker_canvas.py"]}}
     stager.filesystem_path(routes).write_text(json.dumps(document) + "\n", encoding="utf-8")
     return donor, routes
 
