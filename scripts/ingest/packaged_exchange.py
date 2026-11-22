@@ -17,6 +17,7 @@ FORMATS = {
     "logseq": "logseq_exchange",
     "notion": "notion_exchange",
     "obsidian": "obsidian_vault",
+    "siyuan": "siyuan_exchange",
     "zotero": "zotero_exchange",
 }
 

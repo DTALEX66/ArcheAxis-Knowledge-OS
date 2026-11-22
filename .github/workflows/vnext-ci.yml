@@ -44,7 +44,7 @@ jobs:
         working-directory: tests/integrations/siyuan_guide_reader
         run: |
           mkdir -p "$RUNNER_TEMP/siyuan-reader"
-          go build -mod=mod -trimpath -ldflags='-s -w' -o "$RUNNER_TEMP/siyuan-reader/guide-reader.exe" .
+          go build -mod=readonly -trimpath -ldflags='-s -w' -o "$RUNNER_TEMP/siyuan-reader/guide-reader.exe" .
           cp go.mod go.sum "$RUNNER_TEMP/siyuan-reader/"
           go version -m "$RUNNER_TEMP/siyuan-reader/guide-reader.exe" > "$RUNNER_TEMP/siyuan-reader/build-info.txt"
       - uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

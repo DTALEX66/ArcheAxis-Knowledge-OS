@@ -27,13 +27,14 @@ func main() {
 }
 
 func run(args []string) error {
-	if len(args) < 1 || len(args) > 3 {
-		return fmt.Errorf("usage: native-reader DOCUMENT.sy [BLOCK_ID [VISIBLE_SENTINEL]]")
+	if len(args) < 2 || len(args) > 4 {
+		return fmt.Errorf("usage: native-reader DOCUMENT.sy NOTEBOOK_ROOT [BLOCK_ID [VISIBLE_SENTINEL]]")
 	}
 	source := args[0]
+	notebook := args[1]
 	blockID := imageParent
-	if len(args) >= 2 {
-		blockID = args[1]
+	if len(args) >= 3 {
+		blockID = args[2]
 	}
 	input, err := os.ReadFile(source)
 	if err != nil {
@@ -93,10 +94,10 @@ func run(args []string) error {
 	if !strings.Contains(rendered, `data-node-id="`+imageParent+`"`) || !strings.Contains(rendered, `data-src="`+imagePath+`"`) {
 		return fmt.Errorf("official BlockDOM did not render expected original block and image path")
 	}
-	if len(args) == 3 && (!strings.Contains(selected.Text(), args[2]) || !strings.Contains(html.UnescapeString(rendered), args[2])) {
+	if len(args) == 4 && (!strings.Contains(selected.Text(), args[3]) || !strings.Contains(html.UnescapeString(rendered), args[3])) {
 		return fmt.Errorf("requested sentinel did not appear in official BlockDOM")
 	}
-	asset, err := os.ReadFile(filepath.Join(filepath.Dir(source), filepath.FromSlash(imagePath)))
+	asset, err := os.ReadFile(filepath.Join(notebook, filepath.FromSlash(imagePath)))
 	if err != nil {
 		return err
 	}
@@ -125,7 +126,7 @@ func run(args []string) error {
 		"png_bytes": len(asset),
 		"png_sha256": assetSHA,
 	}
-	if len(args) == 3 {
+	if len(args) == 4 {
 		receipt["rendered_sentinel_verified"] = true
 	}
 	return json.NewEncoder(os.Stdout).Encode(receipt)

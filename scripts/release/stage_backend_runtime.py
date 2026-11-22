@@ -100,6 +100,7 @@ EXCHANGE_FILES = (
     "scripts/ingest/git_snapshot.py", "scripts/ingest/joplin_exchange.py", "scripts/ingest/logseq_exchange.py",
     "scripts/ingest/logseq_outline.py", "scripts/ingest/logseq_parser.cjs", "scripts/ingest/notion_exchange.py",
     "scripts/ingest/obsidian_vault.py", "scripts/ingest/obsidian_sync.py",
+    "scripts/ingest/siyuan_exchange.py",
     "scripts/ingest/zotero_exchange.py", "scripts/ingest/zotero_public.py",
     "scripts/ingest/directory_batch.py", "scripts/runtime/dev.py", "pyproject.toml",
 )
