@@ -4997,3 +4997,21 @@ AAOS 便携文档包一次导出两份原件，一次导入先前没有这两个
 将两页正文保存为普通文档 v1 后，正式备份返回 HTTP 201，预览确认可兼容还原。Core 维护还原退出 0。在新的还原库上冷启动，原 PDF 逐字节一致，两页衍生图、两个定位锚点、三个作业的九项输出和已保存版本等 19 次回读均符合原值。前两次验证脚本分别将外层 worker 名当作引擎名，以及误判了 Core 添加的块 ID。两份原回执均保留。最后从完成两页识别的工作区副本继续，新增 OCR 调度为 0。实测使用独立后端与合成工作区。见 `x6-scanned-pdf-d3fb-restore-20261123/artifacts/scanned-pdf-restore.json`（SHA-256 `e555dcb9824640d9f4414abb5faf9a9d167f78e4f07ea9318ed3cd2f06ac783d`）。
 
 源码 `f33faeef` 的 Windows 诊断已越过原工作进程健康检查。`oss_template_reuse` 随后取得非空识别结果，但缺少黄金样本要求的 `OCR GOLDEN ANCHOR`，云端日志未打印该次引擎或具体正文。该诊断工作流原先省略了常规 Windows CI 已使用的 Tesseract 准备步骤。现已复用同一锁定引擎、英文训练数据和固定图像校验，再按原断言跑工作区。[原次 Windows 运行](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45041710639)
+
+后续源码 `286fbabf184b103e3b51c3e04b80ee0a7ae2411a` 的 Windows 诊断全部通过。固定引擎准备、完整 Rust workspace、DeepTutor 和 OpenMAIC 的合成练习、Supervisor 启动并关闭 Core 均成功，原 OCR 正文断言通过。该工作流未生成安装器。[Windows 作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45043315698/job/137272340318)
+
+<a id="repaired-backend-source-readback"></a>
+
+### 2026-11-23 在已交付的后端按引用重开资料
+
+本节使用 `0b014775` 安装器同清单的独立后端（清单 `d3fb02ef…`，Core `664a54f1…`），在隔离工作区通过正式 API 操作。
+
+从 11 月 21 日的备份副本读回冻结的三类公开检索结果，重新选中 Crossref 的题录 *Modeling Spaced Repetition with LSTMs*。研究文档 v1 指向题名。在同一文档 v2 新增引用，定位到 364 字节原始响应中的 DOI `10.5220/0011724000003470`。冷重开后，沿 v2 的引用读回了同一段字节并找到了原题名，v1 也完整可读。新增搜索和模型请求均为 0，两次 Core 正常退出。该来源只提供书目信息，论文全文与正文主张仍待核对。回执 `research-doi-original-20261123/artifacts/crossref-original.json`，SHA-256 `3c1392a47d15e40ecd4c510a6b22382dce46434269a1f0df1e6cab753c149421`。
+
+同一后端用原有的 1,178 字节合成 EPUB 保存了一份第 1 章第 2 段的读书笔记，所选原文为 `Chapter body 42`。一次便携导出、一次导入将笔记和整本书带到空工作区。原书、正文和笔记块 ID 全部一致。旧位置保留为历史记录，新工作区对恢复的原件解析一次，生成自己的有效定位。冷重开后仍能找到同一段落。首次探针比较了保存前的请求和 Core 分配块 ID 后的文档，改用正式保存版本核对后通过，原记录保留。覆盖后端操作，外部阅读器与 EPUB 原生写回仍未实测。回执 `epub-pin-complete/artifacts/epub-reading-note.json`，SHA-256 `b03361eaf4579f07e5ea377e24b91d4a94e8551bca9389640fa1821ac09845c0`。
+
+另一份合成工作区保有一条已采用的归档规则及其修订。新建研究对照文档，分别引用该规则 v4、修订后的 v6 和此前独立归档的评测 v1，三处都解析到所选版本和内容摘要。冷重开后的对照文档、关系图、两个规则版本、两份回答及其评测共 8 项一致。本步新增推理请求为 0。旧独立归档答对 2/2 的运行使用 Core `58325dca…`。回执 `x7-d3fb-archive-pins-20261123/artifacts/archive-rule-fixed-comparison.json`，SHA-256 `1bd4b6751f10dd58ad4ce50e28a311987c472d4091d1c092e11f5e64bc58f68c`。
+
+用该后端实际处理第四份合成 ZIP（915 字节，SHA-256 `4eda2caef2e0d08b7e4a395072a196a2a99d55fcb25e915edbb4b6a67ed4870b`），预先固定 6 个成员各自是否另存为来源。随后沿模型与资产授权，给本机已登记的 Qwen `aaos-fast-4b` 提交同一规则 v6 和新材料。随包默认 HTTP 路径在 106 秒后返回 `503 NO_FINAL_ANSWER`。输入 1,480 和输出 2,616 个 token 用满 4,096 上下文，模型只给了推理过程，Core 没有发表答案，本次得分未测。回执 `x7-published-actual-model-20261123/artifacts/published-rule-model-use.json`，SHA-256 `a3ff56e286345b0e7686187b7b63aab8a839e81f4ef52d9edf4e74ee16c0d9b7`。
+
+冷重开后能读到失败任务，答案快照返回 404。按[结构化回答合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)，在同一发布包的启动函数中为新会话显式选择已登记的本地 LM Studio SDK 2.0.0 worker。保留原来的失败请求，以新请求提交相同的知识、题目、归档和评分标准。这次由同一模型实际回答，思考预算为 1,536 个 token，输入 1,480、输出 1,578，正常结束。模型判对 6/6，评测保存为 v1。在第二次冷启动后，原件、子来源、处理损失、已采用规则 v6、评分标准、回答快照、评测和默认路径失败记录共 8 项均可读回。两条路径各有一次模型调用。规则的采用和修订来自既有库，成绩适用于这份合成归档。回执 `x7-published-model-failure-cold-20261123/artifacts/published-rule-model-failure-reopen.json`（SHA-256 `f8b5b724494ec04d328237dd84839b9c4f42cee1ffc9f0f8c3cdba6d55c0c730`）与 `x7-published-structured-recovery-v2-20261123/artifacts/published-rule-sdk-recovery.json`（SHA-256 `b4690c6a94d84139da54a6efa9ea5601b2baf3583973e5b27f8603b0d756a3d7`）。

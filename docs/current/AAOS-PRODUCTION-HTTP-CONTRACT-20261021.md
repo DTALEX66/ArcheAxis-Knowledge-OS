@@ -1244,6 +1244,8 @@ Call `POST /api/v1/machine/answers` with the current knowledge grant, the select
 
 The focused worker and launcher checks are `python -m pytest tests/test_worker_machine_answer.py -k staged -q` and `python -m pytest tests/test_backend_launcher_routes.py -k session_worker -q`.
 
+On the backend shipped with desktop 0.1.00, one structured request to the default HTTP worker filled the local model's 4,096-token context and returned `503 NO_FINAL_ANSWER`. The failed task remained readable after restart. Selecting the prepared SDK worker in a new session and submitting a new request for the same material produced a complete answer. The model matched all six expected outcomes on that synthetic archive. The SDK and its Node runtime were present on the test machine. [Request results and fixed material](AAOS-UI-FIRST-EXECUTION-20261009.md#repaired-backend-source-readback)
+
 ## 37. Git commit snapshots
 
 Git can put a selected commit and its files in a ZIP. Supply the full commit ID to `git archive`. Import the resulting file as an ordinary AAOS source and run its archive conversion. The completed job can be used to save a searchable revision index and return the original bytes. Git stores the commit ID in the ZIP comment. [Git archive documentation](https://git-scm.com/docs/git-archive).
