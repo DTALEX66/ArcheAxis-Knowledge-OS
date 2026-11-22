@@ -4881,3 +4881,14 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - Owner 为本地新桌面候选指定版本名 `0.1.00`。安装包文件名采用原写法，Tauri、Cargo 及前端包使用可比较的 `0.1.0`。嵌入的既有独立后端仍绑定其 `0.6.14` 清单和实际 Core 哈希。Windows 版本顺序为 `0.1.0 < 0.6.14`，业务回退方向和安装器数字升降分别记录。
 - NSIS 已生成 `ArcheAxis Knowledge_0.1.00_x64-setup.exe`，530,452,868 字节，SHA-256 为 `50e7dbeb937581a6c2207cee4bf29057df4987964c8b179dae381be67108580a`。构建回执为 `n100ns/artifacts/installer.json`。候选使用的五文件版本补丁为 `n100-version-inputs/artifacts/version-0.1.00.patch`，SHA-256 为 `9fd8bea3993ef6d0f62ecd4438c7fc05cc4c4272ba4989aa33e42afe1bb8ff6c`。打包后已还原开发树的版本文件。
 - 隔离 Windows 环境中，旧版 `0.6.14` 安装器退出码为 0。安装的旧 Host 哈希与历史预期不同，Core 和后端清单相符，验收停在这一步。新候选尚未在该环境安装，桌面升级和回退仍待验收。隔离环境已关闭，见 `n100g/artifacts/guest-run.json` 与 `n100g/artifacts/output/seed.json`。
+
+<a id="installed-0100-data-return"></a>
+
+### 2026-11-22 J6 · Windows 实装、回退与工作区保全
+
+- 从两份 NSIS 安装器分别解出桌面程序并计算 SHA-256。旧包 `0.6.14` 中的程序为 `58f89e87e91e383505f11175b5bc92041174b6e0487dae25a412447b7f9942e1`，与上次实际安装件相同。候选 `0.1.00` 中的程序为 `ba084b5c8c1098a537031e34196e8890e4ee06c37b4eb3a753aa0d6587bd9b7e`。复核使用同一安装器内的程序作为对照，见 `n100g3/artifacts/plan.json`。
+- 在断网的 Windows Sandbox 内实际安装旧版，保存中文文档 v1 并制作备份。安装 `0.1.00` 后，其 8,857 个后端成员的大小与哈希逐项符合清单，程序目录无额外文件。新版读回 v1、写入 v2；随后装回旧版，按原对象 ID 和内容摘要读回两个版本。五次后端会话均正常关闭。隔离安装、写入和回读的明细见 `n100g3/artifacts/output/` 下的 `seed.json`、`upgrade.json` 和 `rollback.json`。
+- 在这两个候选之间回退时，先关闭窗口，使用当前版本自带的卸载程序卸载程序文件并保留工作区，再运行目标安装器。直接把旧版覆盖在新版上，旧版清单的 8,289 项均正确，但多出 568 个新版文件。按上述步骤换版，两个方向的程序目录均与各自清单相符。最终卸载后，资料库和备份与卸载前逐字节一致。见 `new_repair.json`、`old_repair.json` 和 `terminal.json`（SHA-256 `3045c91df706ea0c0bf383f2eb9c032da8f1aea5e17c8a368c65ba61fe7e3f1b`）。`n100g3/artifacts/guest-run.json` 确认该隔离环境已关闭。
+- 这个回合的已安装原生窗口打开了同一个工作区，Host 正常退出，受管 Core 也已退出。首次窗口观测未取得 Core 退出码，单次窗口关闭记录保留 `INCOMPLETE`。见 `n100g3/artifacts/output/native.json`。
+- 另起干净的断网 Windows 环境，全新安装同一份 `0.1.00`。首次直接从沙盒映射输入目录恢复时，维护命令失败，回执未记录具体错误码，见 `n100g4/artifacts/output/study.json`。随后先把同一份合成学习库和对象复制到客体本地磁盘，已安装 Core 的 `--maintenance-restore` 恢复成功，12 个原件哈希均符合。没有改动原学习库。
+- 在已安装桌面的 Tauri 窗口内，知识、三份固定版本文档、真实模型产生的既有答案、两条教学记录和课程清单共 8 项，与原回执逐项同摘要。通过窗口的正式桥接保存一份中文复习笔记，退出重开后读回同一 ID、版本与内容，并再次读取原答案。新增推理请求为 0。两次窗口及其各自的 Core 进程均退出 0，应用关闭回执的 PID 与实际子进程相符，两次均为 `GRACEFUL`。见 `n100g5/artifacts/output/study.json`（SHA-256 `18ecea42d7d47f8df13db63ea5dd89514cf02002cd50f2874bfbfd6c2af02b75`）。该隔离环境已关闭。此项覆盖安装态恢复、使用和重开，模型新推理、各平台完整兼容及人的独立学习效果沿原定义分别验收。

@@ -1,6 +1,6 @@
 # AAOS 当前状态与执行入口
 
-本地桌面候选使用 Owner 指定的版本名 `0.1.00`。安装器构建、独立后端对既有学习资料的升级回退，以及隔离安装验收的中断位置见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)。
+本地桌面候选使用 Owner 指定的版本名 `0.1.00`。安装器及独立后端对既有资料的验证见[构建记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)，Windows 两版实装、回退时保留资料的步骤及原生窗口验收见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return)。
 
 完整 Windows 后端候选的目录、启动实测和旧副本恢复索引见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122)。
 

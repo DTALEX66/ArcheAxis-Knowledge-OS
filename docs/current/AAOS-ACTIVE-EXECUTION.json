@@ -152,7 +152,8 @@
         "owner_version_label": "0.1.00",
         "desktop_semver": "0.1.0",
         "scope": "Local desktop candidate and isolated cross-version installation only. Owner separately approved the 35 media-library copies in the manifest with SHA-256 6c2273405618405452656f48816fa5519741d47366c62247defcc1682f00e0c0.",
-        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100"
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100",
+        "installed_rollback_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return"
       },
       "git_snapshot_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#37-git-commit-snapshots",
       "session_shutdown_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#20-native-session-shutdown-and-writer-drain",
