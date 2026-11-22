@@ -16,6 +16,7 @@ on:
         options:
           - workspace
           - siyuan-block-attachment
+          - siyuan-guide-reader
           - windows-release-core
           - frontend-dist
 
@@ -24,6 +25,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  siyuan-guide-reader:
+    if: ${{ inputs.suite == 'siyuan-guide-reader' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      GOTOOLCHAIN: go1.26.10
+      CGO_ENABLED: '0'
+      GOOS: windows
+      GOARCH: amd64
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Compile the upstream SiYuan reader for the Windows fixture check
+        working-directory: tests/integrations/siyuan_guide_reader
+        run: |
+          mkdir -p "$RUNNER_TEMP/siyuan-reader"
+          go build -mod=mod -trimpath -ldflags='-s -w' -o "$RUNNER_TEMP/siyuan-reader/guide-reader.exe" .
+          cp go.mod go.sum "$RUNNER_TEMP/siyuan-reader/"
+          go version -m "$RUNNER_TEMP/siyuan-reader/guide-reader.exe" > "$RUNNER_TEMP/siyuan-reader/build-info.txt"
+      - uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: siyuan-guide-reader-${{ github.sha }}
+          path: ${{ runner.temp }}/siyuan-reader/
+          if-no-files-found: error
+          retention-days: 7
+
   cargo-test:
     if: ${{ inputs.suite == 'workspace' }}
     runs-on: windows-latest
