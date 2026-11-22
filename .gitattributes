@@ -69,6 +69,8 @@ assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt -text wh
 
 *.bat text eol=crlf
 *.cmd text eol=crlf
+# This distributed script is identified by its LF bytes in the fast-local manifest.
+scripts/release/fast_local_profile/start-fast-local.cmd text eol=lf
 *.ps1 text eol=crlf
 
 *.7z binary

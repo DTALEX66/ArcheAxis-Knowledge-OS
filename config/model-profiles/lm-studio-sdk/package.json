@@ -1,0 +1,7 @@
+{
+  "name": "archeaxis-lm-studio-sdk",
+  "private": true,
+  "dependencies": {
+    "@lmstudio/sdk": "2.0.0"
+  }
+}

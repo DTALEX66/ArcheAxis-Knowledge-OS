@@ -935,6 +935,43 @@ def test_staged_sdk_deadline_surfaces_as_model_timeout(monkeypatch, tmp_path):
         machine.answer("synthetic", "fixed question", model="local-test", response_format=_output_format())
 
 
+def test_packaged_fast_local_selects_kit_node_for_only_the_registered_structured_model(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    directory = tmp_path / "workers/machine"
+    directory.mkdir(parents=True)
+    backend = tmp_path / "installed"
+    node = backend / "workers/openmaic/node.exe"
+    node.parent.mkdir(parents=True)
+    node.touch()
+    monkeypatch.setattr(machine.sys, "executable", str(backend / "runtime/python.exe"))
+    monkeypatch.setattr(machine, "__file__", str(directory / "worker_machine_answer.py"))
+    monkeypatch.setattr(machine, "PACKAGED_FAST_LOCAL", True, raising=False)
+    monkeypatch.setattr(machine, "local_urlopen", lambda *a, **k: pytest.fail("selected structured call downgraded to HTTP"))
+    endpoint = {"base": machine.OPENAI_BASE, "protocol": "openai", "model": "aaos-fast-4b"}
+    monkeypatch.setattr(machine, "_endpoint", lambda: endpoint)
+    transport = {"protocol": "lmstudio-sdk", "endpoint": "ws://127.0.0.1:1234", "reasoning_tokens": 1536}
+
+    def run(argv, **options):
+        assert argv == [str(node), str(directory / "lmstudio_structured.mjs"), "--packaged-fast-local"]
+        request = json.loads(options["input"])
+        assert request["model"] == "aaos-fast-4b"
+        assert request["max_tokens"] == 2048 and "runtime" not in request
+        return SimpleNamespace(stdout=json.dumps({"model": "aaos-fast-4b", "answer": '{"writer":"author","frozen":false}',
+                                  "reasoning_seen": True, "finish": "stop", "usage": {}, "transport": transport}).encode())
+
+    monkeypatch.setattr(machine.subprocess, "run", run)
+    fmt = _output_format()
+    result = machine.answer("synthetic", "fixed question", model="aaos-fast-4b", response_format=fmt)
+    assert result["format_validation"] == "VALID" and result["structured_transport"] == transport
+    assert machine._structured_sdk(endpoint, "another-model", "unused", 20, 2048, fmt) is None
+    with pytest.raises(ValueError, match="local LM Studio endpoint"):
+        machine._structured_sdk({**endpoint, "base": "http://127.0.0.1:1/v1"}, "aaos-fast-4b", "unused", 20, 2048, fmt)
+    node.unlink()
+    with pytest.raises(machine.ModelCallFailure):
+        machine.answer("synthetic", "fixed question", model="aaos-fast-4b", response_format=fmt)
+
+
 def test_output_format_cli_reads_exact_staged_format_and_preserves_receipt(monkeypatch, tmp_path, capsys):
     source = tmp_path / "context.txt"
     source.write_text("synthetic", encoding="utf-8")
