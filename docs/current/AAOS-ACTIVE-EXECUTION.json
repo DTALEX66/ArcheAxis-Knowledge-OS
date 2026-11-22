@@ -158,6 +158,8 @@
       "scanned_pdf_restore_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#scanned-pdf-independent-restore",
       "repaired_backend_source_readback_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#repaired-backend-source-readback",
       "portable_fast_local_office_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#portable-fast-local-office",
+      "bundled_default_machine_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#bundled-default-machine",
+      "wps_xlsx_return_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#wps-xlsx-file-return",
       "local_installer_selection_20261122": {
         "owner_version_label": "0.1.00",
         "desktop_semver": "0.1.0",

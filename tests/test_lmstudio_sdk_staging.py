@@ -9,10 +9,12 @@ from desktop.scripts import prepare_bundle as producer
 from scripts.release import stage_backend_runtime as stager
 from scripts.release import stage_fast_local_profile as supplement
 from tests.test_backend_in_place import prepared  # noqa: F401 - shared fixture
+from tests.test_deeptutor_runtime_staging import add_synthetic_provider
 from tests.test_openmaic_runtime_staging import synthetic_provider
 
 
-def test_sdk_candidate(request, tmp_path, monkeypatch):
+@pytest.mark.parametrize("private_practice", [False, True])
+def test_sdk_candidate(request, tmp_path, monkeypatch, private_practice):
     case = request.getfixturevalue("prepared")
     _, node, license_file, node_sha, _ = synthetic_provider(case)
     resources = stager.runtime_resources
@@ -35,8 +37,18 @@ def test_sdk_candidate(request, tmp_path, monkeypatch):
     worker.mkdir()
     with (case["repo"] / ".git/info/exclude").open("a", encoding="utf-8") as ignore:
         ignore.write("\n/services/python-workers/machine/\n")
-    for name in ("worker_machine_answer.py", "worker_machine_fast_local.py", "lmstudio_structured.mjs"):
+        ignore.write("/services/python-workers/routes.json\n/services/python-workers/document/\n/services/learning-providers/deeptutor/\n")
+    for name in ("worker_machine_answer.py", "worker_machine_fast_local.py", "worker_machine_bundled.py", "lmstudio_structured.mjs"):
         (worker / name).write_bytes(b"# fixture")
+    source_routes = worker.parent / "routes.json"
+    native = {"schema": "archeaxis.worker-routes/v1", "routes": {}}
+    if private_practice:
+        add_synthetic_provider(case)
+        native = json.loads(source_routes.read_bytes())
+    native["routes"]["machine.answer"] = ["machine/worker_machine_answer.py"]
+    native["routes"]["research.public"] = ["missing/preferred.py", "machine/worker_machine_answer.py"]
+    native["routes"]["absent.capability"] = ["missing/worker.py"]
+    source_routes.write_text(json.dumps(native), encoding="utf-8")
     args = dict(repository=case["repo"], destination=case["output"], core=case["core"],
                 storage_context=case["context"], storage_generated_bytes=256, lmstudio_sdk_dir=donor)
     with pytest.raises(ValueError, match="app-local OpenMAIC Node"):
@@ -46,7 +58,23 @@ def test_sdk_candidate(request, tmp_path, monkeypatch):
     manifest = json.loads((case["output"] / "backend-runtime-manifest.json").read_bytes())
     claim = manifest["lmstudio_sdk"]
     assert claim["status"] == "included" and claim["node"] == "workers/openmaic/node.exe"
-    assert (case["output"] / claim["npm_lock"]).read_bytes() == (config / "package-lock.json").read_bytes()
+    assert json.loads(source_routes.read_bytes()) == native
+    staged = json.loads((case["output"] / "workers/routes.json").read_bytes())["routes"]
+    profile = json.loads((case["output"] / "worker-profile.json").read_bytes())
+    assert staged["machine.answer"] == [resources.BUNDLED_MACHINE]
+    assert claim["default_machine_worker"] == "workers/" + resources.BUNDLED_MACHINE
+    assert staged["research.public"] == ["machine/worker_machine_answer.py"]
+    assert "absent.capability" not in staged
+    assert (stager.PRACTICE_CAPABILITY in staged) == private_practice
+    assert {r["capability"]: r["script"] for r in profile["routes"]} == {
+        name: "workers/" + scripts[0] for name, scripts in staged.items()}
+    old = {**manifest, "lmstudio_sdk": resources.lmstudio_sdk_manifest(True)}
+    resources.verify_lmstudio_sdk_contract(old, {k: v for k, v in manifest["files"].items()
+                                                 if k != claim["default_machine_worker"]})
+    with pytest.raises(ValueError, match="differs from SDK declaration"):
+        resources.verify_worker_contract(case["output"], manifest["files"], old)
+    staged_lock = stager.filesystem_path(case["output"] / claim["npm_lock"])
+    assert staged_lock.read_bytes() == (config / "package-lock.json").read_bytes()
     resources.verify_lmstudio_sdk_contract(manifest, manifest["files"])
     del manifest["files"][claim["sdk_root"] + "/package.json"]
     with pytest.raises(ValueError, match="Incomplete or modified"):

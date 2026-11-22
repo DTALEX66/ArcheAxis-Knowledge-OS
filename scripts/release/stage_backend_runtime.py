@@ -357,18 +357,22 @@ def stage_practice_provider(root: Path, plan: dict) -> None:
         if growth.row(source) != identity or growth.row(target) != identity:
             raise ValueError(f"private practice provider copy changed: {relative}")
 
+    write_planned_routes(root, plan)
+    if practice_source_rows(repository) != plan["files"]:
+        raise ValueError("private practice provider changed during staging")
+
+
+def write_planned_routes(root: Path, plan: dict) -> None:
     routes = growth.safe(root / "workers/routes.json")
     if growth.row(routes) != plan["routes_original"]:
-        raise ValueError("staged worker routes changed before practice registration")
+        raise ValueError("staged worker routes changed before route registration")
     payload = plan["routes_payload"]
     with filesystem_path(routes).open("r+b") as stream:
         if stream.write(payload) != len(payload):
             raise OSError("short staged worker routes write")
         stream.truncate()
     if growth.row(routes) != {"bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}:
-        raise ValueError("staged worker routes differ from practice plan")
-    if practice_source_rows(repository) != plan["files"]:
-        raise ValueError("private practice provider changed during staging")
+        raise ValueError("staged worker routes differ from plan")
 
 
 def verify_openmaic_plan(plan: dict, root: Path | None = None) -> None:
@@ -1389,15 +1393,41 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
             selected[relative] = {"source": growth.plain(source), "identity": identity}
         args._openmaic_plan = {"files": selected, "node_sha256": node_sha}
     args._lmstudio_plan = None
+    args._sdk_routes = None
     if getattr(args, "lmstudio_sdk_dir", None) is not None:
         if args._openmaic_plan is None:
             raise ValueError("LM Studio SDK requires the selected app-local OpenMAIC Node runtime")
-        for name in ("worker_machine_answer.py", "worker_machine_fast_local.py", "lmstudio_structured.mjs"):
+        for name in ("worker_machine_answer.py", "worker_machine_fast_local.py",
+                     "worker_machine_bundled.py", "lmstudio_structured.mjs"):
             if not (args.workers / "machine" / name).is_file():
                 raise ValueError(f"LM Studio SDK requires the machine worker member {name}")
         if (args.workers / "machine/lmstudio-sdk").exists():
             raise ValueError("LM Studio SDK output conflicts with the worker donor")
         args._lmstudio_plan = lmstudio_sdk_plan(args.lmstudio_sdk_dir)
+        route_source = growth.plain(args.workers / "routes.json")
+        original = inputs.get(route_source)
+        if original is None or original["bytes"] > MAX_WORKER_ROUTES_BYTES:
+            raise ValueError("Bundled SDK requires a native worker route map")
+        with filesystem_path(route_source).open("rb") as incoming:
+            raw = incoming.read(original["bytes"] + 1)
+        if len(raw) != original["bytes"] or hashlib.sha256(raw).hexdigest() != original["sha256"]:
+            raise ValueError("Bundled SDK route map changed during planning")
+        if args._practice_plan is not None:
+            raw = args._practice_plan["routes_payload"]
+        worker_root = growth.plain(args.workers)
+        available = {source.relative_to(worker_root).as_posix() for source in inputs
+                     if source.is_relative_to(worker_root)}
+        if args._practice_plan is not None:
+            available.update(f"deeptutor/{name}" for name in args._practice_plan["files"])
+        document, profile_routes = runtime_resources.bundled_machine_routes(json.loads(raw), available)
+        payload = (json.dumps(document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        if len(payload) > MAX_WORKER_ROUTES_BYTES:
+            raise ValueError("Bundled SDK route map exceeds size limit")
+        args._sdk_routes = {"routes_original": original, "routes_payload": payload, "profile_routes": profile_routes,
+                            "routes_source": route_source}
+        if args._practice_plan is not None:
+            args._practice_plan["routes_payload"] = payload
+        total += len(payload)
         for source, identity in args._lmstudio_plan.values():
             inputs[growth.plain(source)] = identity
             total += identity["bytes"]
@@ -1643,6 +1673,8 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     lmstudio_plan = getattr(args, "_lmstudio_plan", None)
     if lmstudio_plan is not None:
         stage_lmstudio_sdk(root, lmstudio_plan)
+        if practice_plan is None:
+            write_planned_routes(root, args._sdk_routes)
     capability_manifest = stage_capability_manifest(root, args.external_root)
     # The transcript model travels with the runtime, which is already a bundle resource: an
     # installed machine needs no shared model library and no first-run download. When no donor
@@ -1737,8 +1769,11 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
         "script": TEXT_WORKER_RELATIVE,
         "staging": "data/worker-staging",
     }
-    declared_routes = present_routes(root)
-    if practice_plan is not None:
+    if lmstudio_plan is not None:
+        declared_routes = args._sdk_routes["profile_routes"]
+    else:
+        declared_routes = present_routes(root)
+    if practice_plan is not None and lmstudio_plan is None:
         declared_routes.append({"capability": PRACTICE_CAPABILITY, "script": PRACTICE_SCRIPT})
         declared_routes.append(
             {"capability": QUESTION_TURN_CAPABILITY, "script": QUESTION_TURN_SCRIPT}
@@ -1809,7 +1844,8 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
 
     manifest = {
         "schema": MANIFEST_SCHEMA,
-        "lmstudio_sdk": runtime_resources.lmstudio_sdk_manifest(lmstudio_plan is not None),
+        "lmstudio_sdk": runtime_resources.lmstudio_sdk_manifest(lmstudio_plan is not None,
+                                                              automatic=lmstudio_plan is not None),
         "version": args.version,
         # Two identities, kept apart on purpose. The staging tool decides which
         # components exist, where they sit and which dependencies are copied, so
@@ -1905,6 +1941,18 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     manifest_path = root / "backend-runtime-manifest.json"
     filesystem_path(manifest_path).write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                                               encoding="utf-8", newline="\n")
+    if lmstudio_plan is not None:
+        recorded = json.loads(filesystem_path(manifest_path).read_bytes())
+        sdk_routes = args._sdk_routes
+        payload = sdk_routes["routes_payload"]
+        planned = {"bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+        if (growth.row(sdk_routes["routes_source"]) != sdk_routes["routes_original"]
+                or recorded["files"].get("workers/routes.json") != planned
+                or growth.row(root / "workers/routes.json") != planned
+                or growth.row(profile_path) != recorded["files"].get("worker-profile.json")
+                or recorded.get("lmstudio_sdk") != manifest["lmstudio_sdk"]):
+            raise ValueError("Bundled SDK final route declaration changed")
+        runtime_resources.verify_worker_contract(root, recorded["files"], recorded)
     if detector_plan is not None:
         recorded = json.loads(filesystem_path(manifest_path).read_text(encoding="utf-8"))
         if (any(recorded.get("files", {}).get(name) != row or growth.row(root / name) != row

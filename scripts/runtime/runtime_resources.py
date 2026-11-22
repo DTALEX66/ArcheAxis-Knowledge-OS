@@ -23,6 +23,7 @@ RESOURCES = {"runtime", "core", "workers", "shared", "worker-profile.json",
              "vcruntime140.dll", "vcruntime140_1.dll"}
 SHA = re.compile(r"[0-9a-f]{64}\Z")
 LMSTUDIO_DIRECTORY = "workers/machine/lmstudio-sdk"
+BUNDLED_MACHINE = "machine/worker_machine_bundled.py"
 # Digest of sorted UTF-8 member names, NUL and binary SHA-256 for the
 # 12 official npm tarballs pinned by config/model-profiles/lm-studio-sdk.
 LMSTUDIO_NPM_TREE = "7b89b325f03a5b322ec738b84a1ebdf112937788b0e3d6581aa31e8b1b2af4a6"
@@ -237,7 +238,7 @@ def verify_members(root: Path, members: dict) -> None:
             raise ValueError(f"Member identity mismatch: {name}")
 
 
-def verify_worker_contract(root: Path, members: dict) -> None:
+def verify_worker_contract(root: Path, members: dict, backend: dict | None = None) -> None:
     profile = json.loads(regular(root / "worker-profile.json").read_text(encoding="utf-8"))
     routes = json.loads(regular(root / "workers/routes.json").read_text(encoding="utf-8"))
     if (profile.get("schema") != "archeaxis.worker-profile/v1"
@@ -272,6 +273,11 @@ def verify_worker_contract(root: Path, members: dict) -> None:
         observed[row["capability"]] = relative_path(row["script"])
     if observed != expected or not required.issubset(members):
         raise ValueError("Native/profile routes differ or worker input absent")
+    if backend is not None:
+        automatic = backend.get("lmstudio_sdk", {}).get("default_machine_worker")
+        bundled = "workers/" + BUNDLED_MACHINE
+        if (expected.get("machine.answer") == bundled) != (automatic == bundled):
+            raise ValueError("Bundled machine route differs from SDK declaration")
 
 
 def npm_tree_digest(rows: dict) -> str:
@@ -281,10 +287,33 @@ def npm_tree_digest(rows: dict) -> str:
     return digest.hexdigest()
 
 
-def lmstudio_sdk_manifest(included: bool) -> dict:
+def bundled_machine_routes(native_document: dict, available_workers: set[str] | None = None) -> tuple[dict, list[dict]]:
+    """Bind the same installed worker in both native and standalone launch contracts."""
+    routes = native_document.get("routes")
+    if (native_document.get("schema") != "archeaxis.worker-routes/v1" or not isinstance(routes, dict)
+            or routes.get("machine.answer") not in (["machine/worker_machine_answer.py"], [BUNDLED_MACHINE])):
+        raise ValueError("Bundled SDK requires a registered machine.answer worker")
+    updated = {}
+    profile = []
+    for capability, scripts in routes.items():
+        if not isinstance(scripts, list) or not scripts:
+            raise ValueError("Invalid bundled worker route")
+        candidates = [BUNDLED_MACHINE] if capability == "machine.answer" else [relative_path(s) for s in scripts]
+        if available_workers is not None:
+            candidates = [s for s in candidates if s in available_workers]
+        if candidates:
+            updated[capability] = candidates
+            profile.append({"capability": capability, "script": "workers/" + candidates[0]})
+    if "machine.answer" not in updated:
+        raise ValueError("Bundled SDK entry is absent from the worker copy plan")
+    return {**native_document, "routes": updated}, sorted(profile, key=lambda row: row["capability"])
+
+
+def lmstudio_sdk_manifest(included: bool, *, automatic: bool = False) -> dict:
     if not included:
         return {"status": "not_included"}
-    return {"status": "included", "version": "2.0.0", "node": "workers/openmaic/node.exe",
+    return {**({"default_machine_worker": "workers/" + BUNDLED_MACHINE} if automatic else {}),
+            "status": "included", "version": "2.0.0", "node": "workers/openmaic/node.exe",
             "sdk_root": f"{LMSTUDIO_DIRECTORY}/node_modules/@lmstudio/sdk",
             "npm_lock": f"{LMSTUDIO_DIRECTORY}/package-lock.json", "npm_tree_sha256": LMSTUDIO_NPM_TREE}
 
@@ -297,13 +326,15 @@ def verify_lmstudio_sdk_contract(backend: dict, members: dict) -> None:
         if "lmstudio_sdk" in backend and claim != lmstudio_sdk_manifest(False):
             raise ValueError("LM Studio SDK claim without SDK files")
         return
-    if claim != lmstudio_sdk_manifest(True):
+    if claim not in (lmstudio_sdk_manifest(True), lmstudio_sdk_manifest(True, automatic=True)):
         raise ValueError("LM Studio SDK manifest does not identify the bundled npm closure")
     for name in ("package-lock.json", "package.json"):
         if sdk.pop(name, None) is None:
             raise ValueError("LM Studio SDK npm provenance missing")
     required = (claim["node"], "workers/machine/worker_machine_answer.py",
                 "workers/machine/worker_machine_fast_local.py", "workers/machine/lmstudio_structured.mjs")
+    if "default_machine_worker" in claim:
+        required += (claim["default_machine_worker"],)
     if (not all(name in members for name in required)
             or backend.get("openmaic_scene_build", {}).get("status") != "INCLUDED"
             or npm_tree_digest(sdk) != LMSTUDIO_NPM_TREE):
@@ -417,7 +448,7 @@ def verify_runtime_resources(root: Path, configured_resources: set[str]) -> dict
     verify_openmaic_contract(backend, members)
     verify_lmstudio_sdk_contract(backend, members)
     verify_members(root, members)
-    verify_worker_contract(root, members)
+    verify_worker_contract(root, members, backend)
     expected = set(members) | {"backend-runtime-manifest.json"}
     observed = set()
     for resource in RESOURCES:

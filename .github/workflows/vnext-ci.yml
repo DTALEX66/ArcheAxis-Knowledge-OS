@@ -1,7 +1,7 @@
 name: vnext-ci
 
 # ArcheAxis vNext continuous integration (DIRECTORY_AUTHORITY:
-# .github/workflows/vnext-ci.yml). Runs the Rust workspace tests on Windows.
+# .github/workflows/vnext-ci.yml). Runs selected Windows diagnostics or builds candidate inputs.
 # The v0.1 closed-loop receipt is produced by the journey test when
 # VNEXT_RECEIPT_OUT is set.
 
@@ -10,20 +10,22 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: Windows diagnostic suite
+        description: Windows diagnostic or candidate build suite
         type: choice
         default: workspace
         options:
           - workspace
           - siyuan-block-attachment
+          - windows-release-core
+          - frontend-dist
 
 concurrency:
-  group: vnext-diagnostic-${{ github.ref }}${{ inputs.suite == 'siyuan-block-attachment' && '-siyuan-block-attachment' || '' }}
+  group: vnext-diagnostic-${{ github.ref }}${{ inputs.suite != 'workspace' && format('-{0}', inputs.suite) || '' }}
   cancel-in-progress: true
 
 jobs:
   cargo-test:
-    if: ${{ inputs.suite != 'siyuan-block-attachment' }}
+    if: ${{ inputs.suite == 'workspace' }}
     runs-on: windows-latest
     env:
       CARGO_TERM_COLOR: always
@@ -158,3 +160,129 @@ jobs:
               -not ($output -cmatch '^test result: ok\. 1 passed; 0 failed; 0 ignored;')) {
             throw "Expected one passing test named $testName."
           }
+
+  windows-release-core:
+    if: ${{ inputs.suite == 'windows-release-core' }}
+    runs-on: windows-2022
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build the locked Windows release Core
+        shell: pwsh
+        run: |
+          cargo build --locked --release -p archeaxis-api --bin archeaxis-api
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Record the exact source and executable digests
+        shell: pwsh
+        run: |
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $commit -cne $env:GITHUB_SHA) { throw 'Core checkout commit mismatch' }
+          $tree = git rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $changes = git status --porcelain --untracked-files=no
+          if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Core build changed tracked files' }
+          $rustc = @(rustc -vV)
+          if ($LASTEXITCODE -ne 0 -or $rustc -cnotcontains 'host: x86_64-pc-windows-msvc') { throw 'Expected the Windows x64 MSVC Rust toolchain' }
+          $binary = Get-Item -LiteralPath (Join-Path $env:CARGO_TARGET_DIR 'release/archeaxis-api.exe')
+          $artifactRoot = Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/windows-release-core'
+          New-Item -ItemType Directory -Path $artifactRoot | Out-Null
+          $artifactBinary = Join-Path $artifactRoot $binary.Name
+          Copy-Item -LiteralPath $binary.FullName -Destination $artifactBinary
+          [ordered]@{
+            schema = 'archeaxis/windows-release-core/v1'
+            commit = $commit
+            tree = $tree
+            run_id = $env:GITHUB_RUN_ID
+            run_attempt = $env:GITHUB_RUN_ATTEMPT
+            target = 'x86_64-pc-windows-msvc'
+            profile = 'release'
+            rustc = $rustc[0]
+            cargo_lock_sha256 = (Get-FileHash -LiteralPath Cargo.lock -Algorithm SHA256).Hash.ToLowerInvariant()
+            executable = [ordered]@{
+              name = $binary.Name
+              bytes = $binary.Length
+              sha256 = (Get-FileHash -LiteralPath $artifactBinary -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+          } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $artifactRoot 'windows-release-core.json') -Encoding utf8
+      - name: Upload the release Core and its identity
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: windows-release-core-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/windows-release-core/archeaxis-api.exe
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/windows-release-core/windows-release-core.json
+          if-no-files-found: error
+          retention-days: 7
+
+  frontend-dist:
+    if: ${{ inputs.suite == 'frontend-dist' }}
+    runs-on: windows-2022
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: '24.21.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Typecheck and compile the canonical frontend
+        shell: pwsh
+        run: |
+          npm ci --prefix frontend --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $node = (Get-Command node.exe -ErrorAction Stop).Source
+          $env:ARCHEAXIS_FRONTEND_BUILD_CONTEXT = $env:ARCHEAXIS_RUN_ROOT
+          python -B scripts/runtime/frontend.py --node $node build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Archive the generated assets and record their identity
+        shell: pwsh
+        run: |
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $commit -cne $env:GITHUB_SHA) { throw 'Frontend checkout commit mismatch' }
+          $tree = git rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $changes = git status --porcelain --untracked-files=no
+          if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Frontend build changed tracked files' }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:ARCHEAXIS_FRONTEND_DIST 'index.html') -PathType Leaf)) { throw 'Frontend dist is missing its entry point' }
+          $archive = Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/frontend-dist.zip'
+          Compress-Archive -LiteralPath $env:ARCHEAXIS_FRONTEND_DIST -DestinationPath $archive -CompressionLevel Optimal
+          [ordered]@{
+            schema = 'archeaxis/frontend-dist/v1'
+            commit = $commit
+            tree = $tree
+            run_id = $env:GITHUB_RUN_ID
+            run_attempt = $env:GITHUB_RUN_ATTEMPT
+            package_lock_sha256 = (Get-FileHash -LiteralPath 'frontend/package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant()
+            archive = [ordered]@{
+              name = 'frontend-dist.zip'
+              entry = 'frontend-dist/index.html'
+              bytes = (Get-Item -LiteralPath $archive).Length
+              sha256 = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+          } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/frontend-dist.json') -Encoding utf8
+      - name: Upload the frontend archive and its identity
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: frontend-dist-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/frontend-dist.zip
+            ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/frontend-dist.json
+          if-no-files-found: error
+          retention-days: 7

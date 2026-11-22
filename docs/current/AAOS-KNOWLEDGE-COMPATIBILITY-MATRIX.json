@@ -621,6 +621,13 @@
       "receipt": ".project-local/runs/be268a2d33/siyuan-block-exact-source/artifacts/windows-block-assets.json",
       "sha256": "3d88bc49799ff53b5016f11cc8ca11c886a3ad9daa7c470f9c5285f509fb601a",
       "qualification": "On Windows, source commit 010ad48fdf401110b8a2a2f54e87cb14a4f16774 used a real text worker and a synthetic Spec 2 note. After reopening the batch, its native block resolved a selected PNG Source and the original bytes. This observation concerns the source Core and batch-root assets."
+    },
+    {
+      "id": "siyuan_official_block_png_release_core",
+      "kind": "SIYUAN_OFFICIAL_NATIVE_BLOCK_TO_ORIGINAL_PNG_AFTER_COLD_REOPEN",
+      "receipt": ".project-local/runs/be268a2d33/syblock962-resume/artifacts/official-siyuan-block.json",
+      "sha256": "86a06fb35ffc7d72b80f96ff586d6dcb4f239bc8529c537c45f7f947c4e3e824",
+      "qualification": "The Windows release Core from 9629ce5d resumed the registered batch for an official SiYuan Spec 2 guide note. Its native block resolved the original PNG after import at the notebook-relative path. A second Core process reopened the same block and returned the same 1,589 bytes."
     }
   ],
   "promotion_rule": "An AAOS authored/synthetic/local result or official documentation cannot promote an external platform direction or feature to PASS; require exact source/target versions, authorized material, mapping/losses, same-candidate consumer/restart/export evidence. NOT_APPLICABLE or deferral needs a referenced approved decision. UNKNOWN is not zero or supported.",
@@ -1677,7 +1684,7 @@
       "inherited_stage": "K3",
       "inherited_route": "官方导出/数据格式/API 待版本核验",
       "inherited_source_refs": [],
-      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace. In the later Windows source observation siyuan_native_block_assets_windows, a native block resolved the selected batch-root PNG and its original bytes after the workspace reopened.",
+      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace. In the later Windows source observation siyuan_native_block_assets_windows, a native block resolved the selected batch-root PNG and its original bytes after the workspace reopened. The 9629ce5d Windows release Core also resolved an official guide block to its PNG using the original notebook paths and returned identical bytes after a cold restart.",
       "source_version": {
         "application_version": null,
         "application_observation": "UNVERIFIED",
@@ -1757,6 +1764,19 @@
               "restart": "A fresh Core read the same v2 relation, both byte-identical originals and the unchanged unbound native locator.",
               "export": "One AAOS portable Document package transferred both Source originals to an empty AAOS workspace. The restored v1 relation resolved through the returned Source mapping to the byte-identical PNG. Both mapped IDs retained their content-derived values.",
               "loss_report": "Automatic asset matching, native block-level opening, desktop interaction and SiYuan write-back remain unverified."
+            },
+            {
+              "observation_id": "siyuan_official_block_png_release_core",
+              "source_version": "SiYuan Spec 2 guide note 20200915214115-42b8zma.sy and its PNG from siyuan-note/siyuan@e6794a0c44976269591c2e1633c29dc44ca379e4",
+              "target_source_commit": "9629ce5d883dbafac1fa184efd4549f33e8f3b1b",
+              "target_source_patch_sha256": "0256c4c589b4e42f886cb778b063d1354603fd398b73ef719ffe7de89040fde3",
+              "candidate_manifest_sha256": "d3fb02efa1b42f0bb128fd2c626363cec6004efb785bf2c09ad0cf35c8f2d6c5",
+              "candidate_manifest_scope": "Interpreter donor only. The run used the CI-built release Core and source text workers verified against 9629ce5d. The patch digest records the local probe checkout.",
+              "core_override_sha256": "8eef9ead80ece402d52584254e3c570fdb1875a51244ef8b0ad616dcb0989d79",
+              "consumer": "Core HTTP reported block 20210512171633-u3iy2xx as unbound before the PNG import. Importing the PNG at its original assets path resolved the block to batch member 1 without manual linking.",
+              "restart": "A second Core process reopened the workspace. The original Source endpoint returned the same 1,589 PNG bytes, SHA-256 788c154262194a126b433b1055fbddcf5ada066e0d1f565a54e5550125675075. Both processes shut down gracefully.",
+              "export": "Only the original PNG was read back from Core HTTP. Package export and restore were outside this observation.",
+              "loss_report": "Coverage is limited to this guide note and its batch-root asset. SiYuan native write-back, SiYuan client behavior and installed AAOS desktop behavior remain unverified."
             }
           ]
         }

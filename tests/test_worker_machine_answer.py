@@ -935,7 +935,8 @@ def test_staged_sdk_deadline_surfaces_as_model_timeout(monkeypatch, tmp_path):
         machine.answer("synthetic", "fixed question", model="local-test", response_format=_output_format())
 
 
-def test_packaged_fast_local_selects_kit_node_for_only_the_registered_structured_model(tmp_path, monkeypatch):
+@pytest.mark.parametrize("profile", [True, "auto"])
+def test_packaged_fast_local_selects_kit_node_for_only_the_registered_structured_model(tmp_path, monkeypatch, profile):
     from types import SimpleNamespace
 
     directory = tmp_path / "workers/machine"
@@ -946,7 +947,7 @@ def test_packaged_fast_local_selects_kit_node_for_only_the_registered_structured
     node.touch()
     monkeypatch.setattr(machine.sys, "executable", str(backend / "runtime/python.exe"))
     monkeypatch.setattr(machine, "__file__", str(directory / "worker_machine_answer.py"))
-    monkeypatch.setattr(machine, "PACKAGED_FAST_LOCAL", True, raising=False)
+    monkeypatch.setattr(machine, "PACKAGED_FAST_LOCAL", profile, raising=False)
     monkeypatch.setattr(machine, "local_urlopen", lambda *a, **k: pytest.fail("selected structured call downgraded to HTTP"))
     endpoint = {"base": machine.OPENAI_BASE, "protocol": "openai", "model": "aaos-fast-4b"}
     monkeypatch.setattr(machine, "_endpoint", lambda: endpoint)
@@ -965,11 +966,41 @@ def test_packaged_fast_local_selects_kit_node_for_only_the_registered_structured
     result = machine.answer("synthetic", "fixed question", model="aaos-fast-4b", response_format=fmt)
     assert result["format_validation"] == "VALID" and result["structured_transport"] == transport
     assert machine._structured_sdk(endpoint, "another-model", "unused", 20, 2048, fmt) is None
-    with pytest.raises(ValueError, match="local LM Studio endpoint"):
-        machine._structured_sdk({**endpoint, "base": "http://127.0.0.1:1/v1"}, "aaos-fast-4b", "unused", 20, 2048, fmt)
+    if profile is True:
+        with pytest.raises(ValueError, match="local LM Studio endpoint"):
+            machine._structured_sdk({**endpoint, "base": "http://127.0.0.1:1/v1"}, "aaos-fast-4b", "unused", 20, 2048, fmt)
     node.unlink()
     with pytest.raises(machine.ModelCallFailure):
         machine.answer("synthetic", "fixed question", model="aaos-fast-4b", response_format=fmt)
+
+
+@pytest.mark.parametrize(("base", "model", "structured"), [
+    ("http://127.0.0.1:4321/v1", "aaos-fast-4b", True),
+    (machine.OPENAI_BASE, "another-model", True),
+    (machine.OPENAI_BASE, "aaos-fast-4b", False),
+])
+def test_packaged_sdk_keeps_generic_local_http_requests(monkeypatch, base, model, structured):
+    import io
+
+    endpoint = {"protocol": "openai", "base": base, "model": model}
+    monkeypatch.setattr(machine, "_endpoint", lambda: endpoint)
+    monkeypatch.setattr(machine, "PACKAGED_FAST_LOCAL", "auto", raising=False)
+    monkeypatch.setattr(machine.subprocess, "run", lambda *a, **k: pytest.fail("unexpected SDK request"))
+    sent = []
+    def respond(request, timeout):
+        sent.append((request.full_url, json.loads(request.data)))
+        answer = '{"writer":"author","frozen":false}' if structured else "author"
+        return io.BytesIO(json.dumps({"model": model, "choices": [{"finish_reason": "stop",
+                          "message": {"content": answer}}]}).encode())
+
+    monkeypatch.setattr(machine, "local_urlopen", respond)
+    fmt = _output_format() if structured else None
+    result = machine.answer("synthetic", "fixed question", model=model, response_format=fmt)
+    assert len(sent) == 1
+    url, payload = sent[0]
+    assert url == f"{base}/chat/completions" and payload["model"] == model
+    assert payload.get("response_format") == (machine.normalize_response_format(fmt) if structured else None)
+    assert result["protocol"] == "openai" and "structured_transport" not in result
 
 
 def test_output_format_cli_reads_exact_staged_format_and_preserves_receipt(monkeypatch, tmp_path, capsys):
