@@ -894,6 +894,47 @@ def test_output_format_unsupported_protocol_does_not_send(monkeypatch):
         machine._call({"protocol": "ollama", "base": "http://127.0.0.1:1"}, "fixture", "synthetic", 1, 2048, _output_format())
 
 
+def test_staged_structured_sdk_keeps_model_identity_and_transport_receipt(monkeypatch, tmp_path):
+    import sys
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(machine, "__file__", str(tmp_path / "worker_machine_answer.py"))
+    (tmp_path / "lmstudio-structured-runtime.json").write_text(json.dumps({
+        "schema": "archeaxis.lmstudio-structured-runtime/v1", "model": "local-test", "node": sys.executable
+    }), encoding="utf-8")
+    endpoint = {"base": machine.OPENAI_BASE, "protocol": "openai", "model": "local-test"}
+    monkeypatch.setattr(machine, "_endpoint", lambda: endpoint)
+    fmt = _output_format()
+    transport = {"protocol": "lmstudio-sdk", "endpoint": "ws://127.0.0.1:1234", "reasoning_tokens": 1536}
+    def run(argv, **options):
+        request = json.loads(options["input"])
+        assert request["schema"] == machine.normalize_response_format(fmt)["json_schema"]["schema"]
+        assert request["model"] == "local-test"
+        assert "synthetic" in request["prompt"] and argv[0] == sys.executable
+        return SimpleNamespace(stdout=json.dumps({"model":"local-test", "answer":'{"writer":"author","frozen":false}',
+            "reasoning_seen":True, "finish":"stop", "usage":{"output_tokens":43}, "transport":transport}).encode())
+    monkeypatch.setattr(machine.subprocess, "run", run)
+    result = machine.answer("synthetic", "fixed question", model="local-test", response_format=fmt)
+    assert result["format_validation"] == "VALID" and result["protocol"] == transport["protocol"]
+    assert result["structured_transport"] == result["loss_receipt"]["params"]["structured_transport"] == transport
+    assert result["observed_model"] == "local-test" and result["usage"] == {"output_tokens":43}
+    assert machine._structured_sdk(endpoint, "a-different-model", "unused", 20, 2048, fmt) is None
+
+
+def test_staged_sdk_deadline_surfaces_as_model_timeout(monkeypatch, tmp_path):
+    import sys
+    monkeypatch.setattr(machine, "__file__", str(tmp_path / "worker_machine_answer.py"))
+    (tmp_path / "lmstudio-structured-runtime.json").write_text(json.dumps({
+        "schema":"archeaxis.lmstudio-structured-runtime/v1","model":"local-test","node":sys.executable
+    }), encoding="utf-8")
+    monkeypatch.setattr(machine, "_endpoint", lambda: {"base":machine.OPENAI_BASE,"protocol":"openai","model":"local-test"})
+    def timed_out(argv, **options):
+        raise machine.subprocess.CalledProcessError(124, argv)
+    monkeypatch.setattr(machine.subprocess, "run", timed_out)
+    with pytest.raises(machine.ModelCallTimeout):
+        machine.answer("synthetic", "fixed question", model="local-test", response_format=_output_format())
+
+
 def test_output_format_cli_reads_exact_staged_format_and_preserves_receipt(monkeypatch, tmp_path, capsys):
     source = tmp_path / "context.txt"
     source.write_text("synthetic", encoding="utf-8")

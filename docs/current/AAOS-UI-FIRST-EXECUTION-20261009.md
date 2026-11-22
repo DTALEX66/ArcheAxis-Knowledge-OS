@@ -4698,3 +4698,186 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - **同候选链（patch `4c700c39…`）**：Core 资格 `v3core-final8-20261115` `LOCAL_PASS`；Host `v3host-final8-20261115` no-bundle `PASS`（typecheck 16.353s、vite 8.601s、tauri 93.444s）；模型链 `v3model-final11-20261115` `LOCAL_PASS`（v1/v2 `CORRECT`，seed `78791e19…`）；native `v3native-final8-20261115` 63.1s FAIL（上述导出路径断点）。
 - **边界**：X1 真实替代 provider、22格式/37平台逐项、云端专业接口、同候选安装与回退、IME/可访问性、性能与 Owner 验收仍未完成；CL-01—07/J1—6/X1—8 整体仍 PARTIAL。本轮无 Green 替换、真实数据覆盖或批量删除。
 - **本轮收尾上传**：改动按显式路径暂存后提交 `feat(v3): 消费者场景实现、块身份保持修复与任务4收口记录`，变基到远端 `d867109c`（`AAOS-ACTIVE-EXECUTION.json` 与本文件各有一处冲突，合并时保留双方内容：远端的 lane 进展措辞与本地的资格记录段落），结果 `da56e2a8` 已推送到 `origin/main`。远端提示必需状态检查 `a0-gates` 被 bypass（仓库规则授权），因此本轮不据此宣称远端门禁通过，CI 结论以远端检查为准。变基合并改变了工作树 patch，上一轮 native 证据对应其当时的候选（patch `4c700c39…`），下一轮 native 需重新记 Core、Host 与模型链资格。
+
+### 2026-11-21 后端优先续做（V3）
+
+- Owner 要求先跑完后端闭环，界面设计留待后续。沿用 CL/J/X 与原验收口径，工作基线为 `fc53d39d`。
+- 已定位 11 月 15 日的 Canvas 断点：正式 Tauri 宿主 `core_bridge::save_export` 明确返回相对活动资料目录的 `exports/{document}/{format}/v{version}-{suffix}`。原生回执保留 `document_id`、版本、格式和相对目录，落盘文件实际存在。验收程序误把相对目录直接送入绝对路径检查。现先核对同文档、同版本及宿主目录格式，再以该次隔离工作区为根读实物，继续检查链接边界和导出内容。
+- 前一轮候选 Core `b09a3f82…` 的独立后端观察：DeepTutor 22 步真实进程评分、重复事件、备份及独立恢复见 `backend-grading-20261121`；HTML 同一原件三次作业（0.1.0 → 0.1.1 → 0.1.0）、无效配置拒绝、四次正常关闭及最终只读核对见 `backend-x2-20261121`。这些运行使用合成资料与独立数据库，X2 完整安装/宿主验收仍待联测。
+- 当前启动器会发送 `openmaic_node_worker_error=absent`，调整前的 Rust Core 拒绝整个启动文档。真实进程对照 `backend-optional-red-20261121` 中，省略字段时普通保存 201，带该字段时启动退出 2。复用仓库已有提交 `2791061a` 中的 Rust 局部修复，让已有启动协议接收可选提供方诊断。X1 同时接通既有 `image.ocr` 的进程级引擎选择，记录所选与实际引擎。
+- J2 两次由同一 Core 的实际搜索请求（公开词 `photosynthesis`）均返回三条 `proxy_tls_failed`。`backend-research-tls-20261121` 用同一 Python、原代理与证书校验复核，三个站点均在 TLS 握手阶段收到 EOF。实际查询回执保留于 `backend-j2-20261121`、`backend-j2-net-20261121`。当前候选检查同时可显式绑定 `--core-build-receipt` 并原地复用既有 workers；封装/安装依然分别验收。
+- 修正后 Core 二进制 SHA-256 `716d87c5c7b50dd92e7cf67d9774cc1f0592b4496ef642d1789580e3b68f2e22`。启动字段省略和显式 absent 两项均保存 201 并正常退出（`backend-optional-green-20261121`）。X1 用同一 PNG 接入 Tesseract 和 RapidOCR 两个实际引擎，保留两份结果并重启读回（`backend-x1-fixed-20261121`）。X2 同一 HTML 三个作业完成升降并保留历史（`backend-x2-fixed-20261121`）。J4 本地 LM Studio 实际发 2 问、保存 2 答，v1/v2 命中各自预设评分标准，备份和重启通过（`backend-j4-fixed-20261121`）。X1 使用工作机已有 OCR 环境；上述运行分别绑定了自己的源码补丁，未据此验收安装包、普适内容质量或学习改善。
+- J2 用既有按进程选择的直连模式查询公开词 `spaced repetition`。Stack Exchange 返回帖子正文，DBpedia 在 Wikipedia 离线后返回百科摘录，Crossref 在 OpenAlex 429 后返回题名与 DOI。三个原响应均已保全。首次探针误把书目结果当作必须含摘要，原回执 `backend-j2-direct-20261121` 保存。使用相同请求 ID 从 Core 读回这批数据，无新增搜索。题名只定位书目，知识候选取自实际百科摘录。隔离库模拟审查、固定引用、草稿与 Markdown/包导出、重启等值及备份还原预检见 `backend-research-resume-20261121`（51 次 API 操作）。下游 `backend-shared-20261121` 另用 Core 正式还原这份备份到独立库。
+- 同一条 J2 知识被资料、研究文档、课程和 AI 资产固定引用。修订前有效，修订后旧文本和三个消费者的固定内容各自保留，旧课程转为 stale；冷重启后四处读回一致。9 个外部实践步骤均实际保存。首次检查误将动态知识状态计入不可变的整条响应，保留 `backend-shared-20261121` 的失败回执。仅补读剩余实践记录，正文、指纹、父记录、自报及未计分状态保持，9 条均正确指向历史知识和后继（`backend-practice-cold-20261121`）。没有运行外部专业工具或评定掌握。
+- 同批真实实践响应暴露出调用方合同不一致。原生成的教学读取器拒绝 9/9 个带 `knowledge_state` 的有效响应（`backend-teaching-contract-red-20261121`）。复用既有修复 `d0c26252` 中教学与工作区草稿两份 schema 的字段定义，再由现有生成器生成对应客户端。
+- 修正后两份实际生成的读取器接受修订前后共 18 份 Core 响应（`backend-teaching-views-20261121`）。兼容旧记录的定向用例首次在应用启动配置中暴露了独立的 PDF 能力合同引用过期。当前 Core 文档 schema 保留原 Markdown 导出定义并新增 Canvas 导出，声明与合规示例的引用更新至当前 SHA，重新生成能力详情。正常启动测试配置后，该定向用例通过（`backend-teaching-contract-legacy-ok-20261121`）；57 个受相同引用影响的能力合同语义用例通过（`backend-pdf-bindings-20261121`）。
+- X6 旧 Office 行使用项目自带的有来源样本。真实 Core 和当前 worker 实跑 XLS（xlrd）、DOC（antiword）及 PPT（Tika/JVM），核原件、预期正文、结构/损失输出、保存、Markdown 导出和冷重启。XLS/DOC 首跑通过；Java 在沙箱中拒绝其临时目录，PPT 首跑失败，详细诊断定位 `java.io.tmpdir is not writable`。只以本机用户权限补跑 PPT 并通过。见 `backend-legacy-formats-20261121`、`backend-ppt-cause-20261121`、`backend-ppt-user-20261121`。范围为文字及派生格式导出，原生版式和回写仍待验证。
+- J3 首次对现行矩阵登记公开上游格式样本的实际交换。固定 `obsidianmd/jsoncanvas@456f843cb293df4f4ab1763e22ccb46a80b307c8` 的 1.0 规范、MIT 许可和样本，逐件验 Git blob。用产品实际画布映射器与 release Core 完成导入、保存、只修改一个文本节点、导出、再导入和冷重启。官方样本的 5 节点（1 分组、3 文件、1 文本）、1 条边、顺序、坐标与文件声明均逐字段对照；原始字节和两个文档版本分别回读。见 `backend-official-canvas-20261121/artifacts/json-canvas/receipt.json`。矩阵 `json_canvas` 格式级导入/导出记 PARTIAL；外部应用打开、链接型节点、附件内容和增量同步另验。
+- CL-06 云端专业接口用原地保留的同一 release Core 二进制，通过正常进程 HTTP 设置隔离工作区的材料用途、预览整份固定版本文档、确认材料与未知成本、分别提交完成和取消请求。实际 production cloud worker/adapter 运行，凭据解析与外部传输使用离线替身；每案分发一次，取消无答案，两个请求冷重启逐项同值，零真实外发。见 `backend-cloud-interface-20261121/artifacts/cloud-interface/receipt.json`。此前实际本地模型回执独立保留，云服务商实连、计费和模型质量仍未执行。
+- J3 使用 `kepano/kepano-obsidian@473697347a0eaac790a6596229c741b3915f3b77` 公开 MIT 样本的四篇笔记。Core 的文件夹入口保存了原件与文档，专辑笔记的三条双链分别绑定分类、流派和艺术家，保留了 `1957`、`7` 两个数字属性及 `music/genres` 标签。五处样本外引用记录为缺少目标，含 `.base` 嵌入。四个 Obsidian 导出包保留原始笔记正文和属性；正常重启后，四组原件、文档、关系和导出合计 16 份响应按内容指纹逐一相同。见 `backend-public-vault-20261121/artifacts/public-vault/receipt.json`。该行按样本的导入、导出与属性记 PARTIAL，外部客户端打开、Bases 渲染与同步仍待验。
+- J3 从这四篇笔记的正式备份还原出独立工作区，只给艺术家笔记加了行内标签。产品的标签筛选器用 `#MUSIC` 找回两篇分别含属性标签和行内标签的笔记，保留 `Music/Jazz` 拼写，数字 `#1957` 未进入标签。用已保存属性显式建立 AAOS 集合，按年份等于 1957 且评分大于 6 得到唯一专辑笔记 v2。四项绑定和筛选定义随集合导出，重启读回相同结果及艺术家笔记 v1 和 v2。首次检查因文档级引用规范化补上 `block_id:null` 而中断（`backend-vault-view-20261121`）；只读回已有对象完成核验（`backend-vault-view-read-20261121/artifacts/vault-view-read.json`）。该筛选作用于显式集合，未执行 Obsidian Bases 或全库属性检索。
+- X5 补验原先因 Java 临时目录权限失败的 `legacy-ppt` 作业。Core 把原库备份还原到独立库；重读首次请求仍得原失败回执。恢复 Tika 的普通本机用户环境后，显式重试仅调度一次，同一个作业的第二次尝试完成，并保留第一次的错误和时间。再次读取成功请求未产生第三次尝试。三份产物、两次尝试与状态冷重启相同；没有重新导入文件或创建作业。见 `backend-ppt-samejob-20261121/artifacts/same-job/receipt.json`。
+- J2→J4→X8 在同一公开研究工作区贯通。原 DBpedia 摘录写的是间隔重复通常使用闪卡；本地测试修订另加“复用前记录所引来源”，按模拟审查准入。沿用已有三路搜索、课程、实践与 AI 资产，接入同一台已登记的 LM Studio/Qwen3.5-4B。当前知识和研究文档在提交前固定，AI 资产由原候选 v1 经修订 v2 采用为 v3。第一次模型响应耗尽 2,900 输出 token，Core 记录 `NO_FINAL_ANSWER`，无答案发布（`backend-public-model-bound-20261121`）。只重试这一问，沿用两项评分、资料、权限、模型及两字段输出，明确要求提取短语，本次输出预算 3,000。模型正常结束，返回 `flashcards` 和 `record the cited source`，两项均符合预设条件（`backend-public-model-result-20261121` 的 HTTP 200 原响应）。这条工作规则属于测试修订；该评分只覆盖本问题。
+- JSON Schema 的 `required` 字段经 Core 规范化排序，首次检查对比输入顺序误报失败。直接用已落库答案完成评分，不再推理。401,408 字节的正常备份（SHA-256 `7063c34d3ef28d51458c74d84d4788394bd2c0a5bb78f0516a13a8690750e94e`）由 Core 还原到新的隔离数据库，读回原公开资料、失败记录、成功答案及评测、原资产 v1 与现行 v3、研究文档、已过时课程和仍固定旧版的实践反馈。完整回执在 `backend-public-model-restore-20261121/artifacts/joined-public-workspace.json`。正式模型回执检查器按 Core 规范化形态和本次实际提交的预算校验，用例沿用该问题的排序和预算差异。
+
+### 2026-11-22 J3 · Joplin 笔记与原生交换文件
+
+- 接通 `.jex` 的文件、目录转换和 Core 归档路由。读取器按原生 ID 解析正文、笔记本层级、标签关系、四种时间字段和附件字节。通过既有文档 API 可将每篇笔记独立保存和编辑。后端入口 `scripts/ingest/joplin_exchange.py` 支持导入 RAW 目录、保存笔记、将所选 Markdown 正文回写到新 JEX。
+- 首个正式作业保留了失败结果。Core 的引擎表只登记了归档读取器 0.1.0，拒收新版的产物。增加 0.2.0 后只重试原作业，第二次成功。后续读回使用已完成的作业。上游 RAW 样本来自 Joplin v3.6.16 源码的两个笔记本、两篇笔记、一个附件说明和原始照片。另一个样本单独添加了合成 Review 标签和关联。标签命中一篇文档，正文修订写回、AAOS 重导和冷重启均读到同一修订，另外七个文件逐字节相同。回执分别为 `backend-joplin-cold-20261121/artifacts/joplin.json`、`backend-joplin-raw-20261122/artifacts/raw.json`、`backend-joplin-edit-20261122/artifacts/roundtrip.json`。
+- 另取 2023-11-18 公开分享的 Joplin Desktop Welcome.jex，491,008 字节，SHA-256 `ee457d678b569246f65968763944099a38a1ac69b2358b403198898b05730a59`。五篇原笔记均声明生产端 `net.cozic.joplin-desktop`，客户端具体版本未知。一次正式作业读出一个笔记本、五篇笔记和三份 PNG，三处附件引用有对应原件。五篇笔记分别存为 AAOS 文档。给其中一篇追加中文批注，再导出新包，由 Windows bsdtar 独立读取 12 个文件。11 个文件逐字节一致，改动的笔记在 28 个原生字段中仅两个更新时间变化，批注与原正文相接。正常关闭再打开后，原件、成员、作业、编辑前后版本一致。桌面取样、启动前组件清单、源码补丁及全部操作见 `backend-joplin-desktop-welcome-20261122/artifacts/welcome.json`。公开原件见 [Joplin 论坛发布者原帖](https://discourse.joplinapp.org/t/how-do-i-get-them-back/33759/7)。
+- 兼容矩阵把 Joplin 导入和所选正文回写记为 PARTIAL。原生客户端重新打开回写文件、修改标签关系、数据库同步及整个平台对等仍待验证。已验证的本地模型、公开研究和其他格式沿用既有回执。
+- 同一 Welcome 工作区继续完成知识、研究和课程衔接。Core 从“导入与导出笔记”原文建立选区与知识候选，隔离验收用模拟审查接纳。研究文档及其导出清单同时固定知识项和原文档 v1 正文块；编辑后的 v2 仍可独立读取。课程和一条未评分的练习要求引用同一知识项，正常关闭重开后逐项核对一致。首次最小启动配置未登记课程读取器，补上已登记的 `course.general` 后沿用原候选、原研究文档和原数据库完成课程步骤，没有新资料导入、转换或模型推理。详见 `backend-joplin-course-20261122/artifacts/learning.json`；学习效果尚未评估。
+
+#### Joplin 官方客户端离线往返
+
+- 在同一隔离库的两篇文档上通过普通草稿保存添加“项目 资料”，给其中一篇另加“单篇复核”。Core 的文档和列表都能读出含空格的标签。JEX 导出产生两个原生标签和三条关系，五篇原笔记中只改过正文的那篇需要改写。两次正常关闭并重开核对见 `backend-joplin-native-tags-20261122/artifacts/native-tags.json`。
+- Joplin Mobile 3.7.0（prod, web，修订 `85f43dde`）初次导入报缺少 `type_`。对照同版本的 `BaseItem.unserialize`，它从末行向前读属性，AAOS 在生成记录末尾多写了一个换行。修复后直接从同一已保存的文档版本重新导出。客户端在独立浏览器资料目录中断网导入成功，按共享标签找到两篇笔记，实际正文视图显示了此前的中文批注。修复后的输入见 `backend-joplin-tag-wire-20261122/artifacts/native-tags.json`。[Joplin 读取实现](https://github.com/laurent22/joplin/blob/85f43dde/packages/lib/models/BaseItem.ts#L617-L642)
+- 在 Joplin 界面改了一篇标题，再用它的“将所有笔记导出为 JEX”回导原 Core 工作区。客户端总共导出十一篇，其中六篇是客户端自带示例。五篇目标笔记按所属笔记本单独核对，解析 Joplin 重新分配的 ID 后，五篇正文、三份 PNG 的 SHA-256 和标签关联均匹配。改名笔记的两个更新时间随客户端编辑变化。随后在 AAOS 移去一篇的共享标签，新包只少一条关系，其余 29 个文件逐字节一致；Core 重启后读回五个旧版本及此次修改。双向交换和标签方向按样本记 PARTIAL。增量同步、安装版 Joplin 读回及 AAOS 安装候选继续单验。客户端版本、浏览器记录、输入输出、差异与两次正常关闭见 `backend-joplin-web-return-20261122/artifacts/client-return.json`。
+
+### 2026-11-22 J1 · 文件夹导入中断后跨端口续做
+
+- 复现了文件夹命令在第二个文件前中断时丢失第一条进度的现象。原逻辑在整个目录遍历结束后才写 JSONL，默认文件名还绑定了本次服务端口。改为逐文件记账，并使用 Core 的工作区标识和恢复代次定位默认清单。旧 URL 清单按 Core 中的原件与作业逐条确认，明确指定的清单仍可使用。作业返回 409 时核查实际引用与类型。定向回归见 `backend-batch-interrupt-red-20261122`、`backend-batch-interrupt-green-20261122` 和 `backend-batch-conflict-binding-20261122`。
+- 隔离资料夹含 Markdown、HTML 和未知扩展名文件。真实命令在第一份资料完成入库和排队后，以注入的退出码 23 终止，随后正常关闭 Core。重开同库获得新端口，原样重启导入命令，HTTP 记录显示只发送剩余两个文件。第一个作业继续完成，HTML 作业产出预期正文，未知格式保全原件。两次 Core 正常退出。首次探针的启动配置重复声明内建文本路由，Core 在任何导入前拒绝；修正探针后完成本次观察。见 `backend-batch-port-resume-20261122/artifacts/batch-interrupt.json`。这次中断针对两个文件之间的导入进程。
+
+### 2026-11-22 J5 / X3 · 打包后端渲染来源课件并重开读回
+
+- 先前的完整载荷在创建课程时返回 503，手工补入课程模块后才可使用。正式打包入口现随 `course.general` 带入当前仓库的五个课程与投影模块，并使用打包自带的解释器加载。预制解释器可从显式 `--dep-source` 补齐所缺的 Pydantic 依赖。定向回归通过一项，实物打包选用已有独立依赖副本，五个发行包均进清单。学习后端包核对 3,190 个成员、181,308,513 字节，含当前 Core、DeepTutor、OpenMAIC，清单 SHA-256 `bef438593c81f8b914cb5255d647003ad387829e8d08a557382da7182622b18b`。见 `back-learning-stage-20261122/artifacts/execution.json` 和 `back-course-package-core-20261122/artifacts/execution.json`。
+- 使用公开 Joplin 样本工作区的独立副本，沿用上次的知识接受记录，随包 Python 与 Core 渲染出 1,245 字节中文来源课件，来源版本、实际知识条目和课程组件逐项匹配。经普通文档 API 保存，正常关闭并重启后，逐字读回课件与原课程清单，两次退出码均为 0。初次观察已获 HTTP 200，但探针错把课件里的组件 ID 当作 Core 知识 ID，随后的检查按 `course.bindings` 核对两者。回执 `back-course-lesson-binding-20261122/artifacts/packaged-lesson.json`，SHA-256 `bba39d76863cc783dfa3453220f7e2b899c583d3e59576643f09fb07572f91ff`。此包未带 ASR 权重和桌面 WebView。人的学习效果及安装态另行验收。
+- 完整候选在正常打包入口作了独立尝试。虚拟环境的硬链接依赖改用先前打包的独立副本。按已有七字段合同将活动指针的历史检查点移到当前描述之外，两份检查点的路径和摘要均保留。完整载荷计划 1,380,715,693 字节，固定基线的可读增长从 2,261,998,041 字节投影至 3,642,713,734 字节，触发已有的 2 GiB 复核线。`back-full-learning-size-20261122/artifacts/portable-storage-receipt.json` 记录 `NOT_STARTED`，没有创建完整载荷或改动 Green。
+- 同一学习后端包随后使用这份已保存课件的文档 ID、版本和内容摘要，由随包 Node/OpenMAIC 生成一题有答案键的 JEX 随堂练习。DeepTutor 用同一课程的学习目标和一条标明为模拟的学员偏好，产出教学反馈候选。两个 worker 均被实际调用。正常关闭、重启后，题目、来源以及反馈文本、目标和两个文档的内容摘要分别一致。DeepTutor 使用离线规则，此处没有模型调用、真人作答或学习成效测量。见 `back-lesson-activities-20261122/artifacts/packaged-activity.json`，SHA-256 `465922d00faa7d3bc07bd72404c0d9a8f50df5db565ecdbfea10c7cdceacb240`。
+- 对旧构建做只读核对。两个旧 WebView2 目录和一个旧 ASR 权重共 517 个独立文件，合计 1,557,640,056 字节，每项均有保留的同哈希副本。逐文件路径和恢复来源见 `back-dup-scope-20261122/artifacts/recoverable-build-copies.json`。按本次计量，若获具体授权并退役这三处，再做整包的预计增长为 2,085,073,678 字节。当前删除数为零，待 Owner 决定这三处旧候选的独立运行保留需求。
+
+### 2026-11-22 J3 · Anki 原生牌组、字段回写与隔离整库恢复
+
+- 官方 Anki 26.09.4 Windows 原生引擎在自造库中创建 2 条中文笔记、3 张卡和一张 PNG。其现代、兼容两份牌组都附带一份“请升级”占位库。旧读取器对两份都读出该提示。修复后按原生版本选择数据库，读取命名字段、GUID、嵌套牌组、卡片编号和源调度，按原名保留解压后的媒体。项目 Python 3.13 新增锁定的 Zstandard 解码依赖。
+- 两份牌组和现代整库包经正式目录命令、Rust Core 作业及真实 worker 导入。正常关闭、冷启动后，原包字节、正反面字段、3 张卡和 PNG 逐项相符。两份牌组取回后由 Anki 原生后端分别导入新库。回执 `anki-core-exchange-20261122/artifacts/anki-core-exchange.json`，SHA-256 `25ea25874c94f7dc910bbff075464a6f505eee44b3f99625006cb709381d9f96`。
+- 从上一份关闭的工作区复制独立试验库，把笔记保存成普通 AAOS 文档，修改首字段和答案并读回第 1、2 版。按类型显示名输出的首次试验失败，Anki 在目标库中已将 `Basic` 改名为 `Basic+`。保留文档版本与失败回执，从已保存状态继续。改为导出原始类型编号和 GUID 后，Anki 更新了原笔记。另一个笔记、3 张卡的原有编号和调度、标签和图片一致。Anki 重新打开后把改动导出为牌组、整库备份及历史命名的 `collection.apkg`，Core 再次读取修改后的字段并正确标明牌组合并或整库替换语义。
+- 在单独的 Anki 测试库写入一条占位笔记，用从 AAOS 取回的现代整库包执行官方恢复。占位笔记被替换，源 2 条笔记、3 个卡片编号和 PNG 得到恢复。候选清单 SHA-256 `c96c6752a55f86fa9dd275c0aa91032e18055e22742d90a13b9d247004e28746`。最终回执 `anki-guid-native-type-20261122/artifacts/anki-edited-exchange.json`，SHA-256 `be3d722ae4141b003a166e18552fd358f9572a17082722dab0da6eb93c0db876`。本轮使用 release Core、源码 worker 和无界面的官方 Anki 引擎。样本三张卡均为新卡，GUI、增量同步、已复习卡调度迁移和当前整包安装态待验。全库 V3 继续按唯一闭环定义和兼容矩阵逐项核对。
+- 另在已恢复的自造 Anki 库中用官方调度器自动为一张新卡答一次 Easy，产生 1 条原生复习记录、间隔 3 天。将同一牌组分别勾选和取消“包含调度”导出。Core 的卡片状态与原生复习行逐字段相符，正常重启后再次读回。把 Core 返回的原包分别导入两个新 Anki 库，带调度的卡有 1 次复习，不带调度的是新卡、0 次复习。已接通来源复习记录投影；自动作答仅用于验证数据迁移。见 `anki-native-review-20261122/artifacts/anki-review-options.json`，SHA-256 `6dd6248d9535be2a25f26286591f098da849e4af57ba4f90bd4a6cc4d9897cab`。
+
+### 2026-11-22 后端优先续做 · Zotero 公开资料、引用和双向文献交换
+
+- J2/J3/X6 使用 Zotero 公开组库 `415096` 的 Web API v3，观察到库版本 1683。修复旧适配器忽略真实 API 的 `data.title`、团体作者及解析日期的问题。release Core 对两篇真实论文保存原文、完成文本转换，并按检索词找回各自来源。首次在测试启动配置里重复声明内置 `text.extract` 被 Core 拒绝，测试改用正式默认路由。随后确认列表过滤掉了 2012 年论文，因为来源的 `deleted=1`。直读具名条目显式报告来源回收站状态。原件 v1627/v1229、集合及 3 条子记录可回查。修改 2025 年论文的本地标题及摘要后，正常重启分别读回 v1 和 v2，另一篇仍为 v1。见 `zotero-versioned-public-20261122/artifacts/capture.json`。
+- 另从原生集合 `BJIVYRQM`（addie_refs）跨两页读回 2 条资料。针对同一篇含两个附件的论文分别请求每页 1 条和 50 条，页原件分别保存，子对象按内容独立寻址。第二次导入复用了同一文档编号，保留本地编辑和原始集合。PDF、HTML 快照和 PubMed 链接有来源身份；本轮没有取得对应 PDF 或快照文件字节。见 `zotero-collection-pages-20261122/artifacts/collection-pages.json`。
+- AAOS 的两个文档版本经 CSL JSON、RIS、BibTeX 和 BibLaTeX 交换，本机官方 Zotero translation-server 2.0.5 读入，Pandoc 3.10 独立解析并排出正文引用和参考文献。对方修改第二篇标题后，AAOS 收回新的文献文件并保留先前文档。CSL JSON 在官方读取器中没有还原这两篇的原生标签。RIS 保留 14、6 个标签，未提供可复用引用键；Pandoc 将第一篇日期读到年。逐字段对照及文件 SHA-256 见 `zotero-formats-20261122/artifacts/bibliography-exchange.json`。
+- 首轮发现官方 Bib 导入端点丢失文件内的自定义引用键，试用 Pandoc 写 BibTeX 时又观察到样本摘要脱落和标题大小写变化。最终以 Pandoc 读取文件内的键，Zotero 本机转换器写出。继承已保存的 v2 文档，仅补验改动的 Bib 路径。两份书目均保留输入键、编辑后的标题、摘要及 14、6 个标签，原稿沿用原键排出 Debat 等（2025）和 Björk 与 Solomon（2012）的引用。外部转换器自行回存时可把 `debatHowGlobalSouth2025` 变成 `debat_how_2025`，AAOS 准确保留对方交回的键。两种外部回写均在冷重启后读回，先前文档仍可追溯。见 `zotero-retained-citekeys-20261122/artifacts/citation-keys.json` 与 `zotero-external-bib-return-20261122/artifacts/external-bib-return.json`。
+- 从这两份已经保存的公开响应各取一段摘要。正式研究文档保存两个可回跳到原文字节的引文，并分别引用书目文档 v2、v1 的摘要段落。研究包内的两份原件按 SHA-256 与来源相符。Core 从原转换作业的选区建立待核实知识候选，正式教学接口将一项学习需求及一份比较练习计划绑定到该版本。两次正常关闭后，出处、研究导出、候选和计划均可读回。计划标为机器辅助、未评分，保留人工判断。见 `zotero-research-study-20261122/artifacts/research-study.json`。
+- [兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)登记六份运行回执，Zotero 的公开 API、四种文件格式及四个导入/回读方向记 PARTIAL。增量同步、Zotero 桌面本地 API、私人库写回、当前 AAOS 整包安装和 Owner 验收仍待验。全项目 V3 仍按[唯一闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)判定。
+
+### 2026-11-22 J3 / X6 · Obsidian 原生编辑与整库往返
+
+- 从上次正常关闭的四篇公开笔记工作区副本开始。AAOS 既有的 `#Music/Jazz` 和本次追加的专辑听记随原目录导出，两篇未改动的笔记逐字节保真。加入同一上游版本的 `Templates/Bases/Albums.base` 与项目自制 PNG 附件。见 `obsidian-vault-seed-20261122/artifacts/seed.json`。公开样本固定在 [kepano/kepano-obsidian 的该版本](https://github.com/kepano/kepano-obsidian/tree/473697347a0eaac790a6596229c741b3915f3b77)。
+- 已安装的 Obsidian 1.13.7 使用项目独立配置打开测试 Vault，通过其正式 CLI 查询专辑属性、标签、反链与 `Albums` 视图，取得《Bass on Top》、艺人、评分 7 和年份 1957。通过原生 `append` 写入一条嵌入 PNG 的批注，实际出链包含该附件。见 `obsidian-vault-native-edit-20261122/artifacts/native.json`。
+- 正式 Core 重新导入四篇笔记、一份 `.base` 和一张 PNG，形成可追溯的原件、文档及附件关系。AAOS 再次编辑专辑笔记，正常重启后从保存的版本导出一份新 Vault。Obsidian 第二次打开后读回双方的编辑、附件路径、反链、标签、属性和专辑视图。余下五个文件与输入逐字节一致。两个桌面实例和三次 Core 会话均正常退出。见 `obsidian-vault-transfer-r2-20261122/artifacts/transfer.json` 与 `obsidian-vault-native-return-20261122/artifacts/native.json`。此前一次观测脚本用相对路径匹配绝对路径，在启动 Core 前退出，原记录保存在 `obsidian-vault-transfer-20261122/artifacts/transfer.json`。
+- 导入、导出、外部→AAOS→外部、AAOS→外部→AAOS 四个方向均记 PARTIAL。此次观察的是手动文件交换。`.base#Genre` 在 Core 尚需片段映射，AAOS 内执行 Bases 公式、增量同步、插件配置和完整富文本语义仍待验。新入口见[后端合同 §29](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#29-obsidian-vault-folder-exchange)，逐项回执见[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)。
+- 顺着正式编辑器的“加粗”操作补齐格式回写。基于刚保存的专辑文档写入 v4，导出中文二级标题、相邻粗体文本和显式换行。Obsidian 1.13.7 阅读视图实际呈现 `h2`、`strong` 和 `br`，已读取标题“录音对照笔记”和加粗的“弱拍与强拍”。首次原生检查停在编辑模式，切到阅读模式后核对通过。另以两项新用例验证带 BOM 的 CRLF 编辑及仅改文档元数据时保留混合换行。见 `obsidian-vault-format-20261122/artifacts/rich-format.json` 和 `obsidian-vault-native-format-view-20261122/artifacts/native.json`。
+- 长笔记曾在正文保存后因 256 KiB 的链接索引上限中断。修正后从该次正常关闭的工作区继续，沿用原文档 v1。含 184,000 个四字节音乐符号的 740,016 字节测试笔记可编辑并逐字节导出，回执单独标出链接未索引。见 `obsidian-vault-unicode-20261122/artifacts/unicode-note.json` 与 `obsidian-vault-unicode-resume-20261122/artifacts/unicode-note.json`。
+
+### 2026-11-22 J3 / X6 · Obsidian 本地增量同步与来源练习
+
+- 从上次的六文件 Vault 接续。Obsidian 1.13.7 通过原生客户端修改专辑和艺人笔记，并新建一篇聆听记录。AAOS 修改目录笔记、同一篇专辑并新建练习计划。一次同步交换了互不冲突的修改、新笔记和测试 PNG，同时分别保存了专辑的两份正文。选择 Obsidian 版本后，专辑沿用原文档 ID 从 v5 到 v6，仍可读 v5。冷重启后 8 个文件全跳过，从 Core 重建的 8 个文件与 Vault 逐字节一致。新启动的 Obsidian 读回五篇新增或修改的笔记及聆听记录反链。见 `obsidian-sync-mixed-20261122/artifacts/observe.json`、`obsidian-sync-resolve-20261122/artifacts/resolve.json` 和 `obsidian-sync-native-readback-20261122/artifacts/native.json`。
+- 两段原始引文贯通研究文档、固定版本资料和导出包。测试提供题干、选项和答案键，OpenMAIC 正式 Node worker 将它们制成引用专辑 v6 的待审练习。同步到 v7 后冷启动，练习仍指向 v6 并显示历史版本，两段引文仍能定位原始字节，研究包内容相同。练习作答数为 0，独立掌握待验。见 `obsidian-sync-research-study-20261122/artifacts/study.json`。
+- 同一份练习计划改名后保留文档 ID。PNG 移出 Vault 后仍可从 Core 取回。另一次冲突选择 AAOS 版本，外部原文也能取回。引用标题前后的正文同时修改后，专辑 v8 仍保留该标题的块 ID。第一次观测在导出成功后写错了最终比对的路径表达式。保留失败回执，随后只读既有导出目录和冷启动工作区，核实剩余 7 个文件逐字节一致。见 `obsidian-sync-lifecycle-20261122/artifacts/lifecycle.json` 与 `obsidian-sync-lifecycle-read-20261122/artifacts/lifecycle-read.json`。
+- 从这 7 个文件导出新目录并保存版本回执。首次连接前修改改名后的练习计划，只给原文档增加一个版本。重启后用目录本身接续，7 个文件均跳过，游标文件修改时间保持。四项新增回归用例覆盖写入中断、期间外部修改、引用块身份和同内容文件改名歧义。见 `obsidian-sync-reconnection-20261122/artifacts/reconnection.json` 与 `obsidian-sync-regression-20261122/artifacts/execution.json`。
+- 增量方向记 PARTIAL，操作为按需运行的本地文件同步。托管云同步、后台监听、任意链接改动在 Core 的自动重建、完整富文本及当前 AAOS 安装态仍待验。命令与逐项证据分别见[后端合同 §30](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#30-incremental-obsidian-vault-sync)和[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)。
+
+### 2026-11-22 J3 / J6 · 正式备份还原后继续编辑和学习
+
+- 同一批笔记的 Core 备份为 438,272 字节，清单含 14 个来源。正式预检通过，Core 维护命令还原到空目录，工作区身份相同，恢复批次已更新。新会话读回 6 篇笔记的原文档版本、两个引文锚点、研究包、已移出的 PNG、外部冲突原件和指向专辑 v6 的既有练习。原有导出入口因旧恢复批次拒绝使用连接记录，目标目录未创建。见 `obsidian-sync-formal-restore-20261122/artifacts/backup-restore.json`。
+- 增加从旧游标显式恢复到新 Vault 的命令。沿用已经正式还原的工作区，在其中把目录笔记改成 v4，然后按旧游标重建 7 个文件。目录笔记含恢复后的修改，其余 6 个字节一致。在新 Vault 修改聆听记录后，原文档从 v1 到 v2；冷启动能取回修改后的原件，练习仍引用原材料。旧 Vault 与游标均保留。这两项观察共 4 次 Core 正常退出。见 `obsidian-sync-recovered-vault-20261122/artifacts/recovered-vault.json` 和[恢复命令](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#recover-a-vault-after-a-core-backup-restore)。
+
+### 2026-11-22 J1 / J3 / X6 · 普通 Markdown 文件夹、语义往返与图片来源
+
+- 选用 John MacFarlane 的 [CommonMark 0.31.2 官方样例](https://spec.commonmark.org/0.31.2/spec.json)中的 9 例，与一张自制 JPEG 组成公开测试资料夹。首次运行保存了原件、文档及作业后，观测程序遗漏执行请求。沿用已保存的工作区与同一作业，正常执行后测得 9 个标题只报 6 个、1 个列表项和 1 个链接各报 2 个、两条围栏报 3 条，未给图片、引用块和代码块总数。见 `commonmark-folder-observe-20261122/artifacts/commonmark-folder.json` 和 `commonmark-folder-baseline-20261122/artifacts/commonmark-folder.json`。
+- `text.extract` 复用已在项目锁中的 markdown-it-py 4.2.0、mdurl 0.1.2。对同一原件运行修复后的转换，9 个标题、1 个列表项、1 个链接、1 张图片、2 个引用块、3 个代码块和 2 条围栏均与官方样例吻合。AAOS 在原文档 v2 追加一段中文，冷启动后导出文件夹。Pandoc 3.10 的 CommonMark 阅读器读到原先 15 个完全相同的结构块及新增的第 16 段，旁边 JPEG 保持原始字节。见 `commonmark-folder-fixed-20261122/artifacts/commonmark-folder.json`。结果覆盖这 9 例；完整规范共有 652 例。
+- 研究文档把图片定义、固定版本文档块和本地 JPEG 绑定在一起。转换结果包含图片路径、标题和替代文本，原文锚点落在第 280 字节。两份原件随研究包导出，冷启动后研究包、锚点和研究文档摘要一致。见 `commonmark-figure-study-20261122/artifacts/figure-study.json`。
+- 预制后端打包的定向用例从独立目录实际加载这两个解析模块。另有 5 项结构及依赖合同检查通过，`uv lock --check --offline` 通过。离线全量重算曾因缓存缺少无关依赖 litellm 元数据失败，已按原锁中的两个版本补根依赖并验证，无其他依赖升级。完整安装候选及通用 Markdown 全方言仍待验。见 `commonmark-staged-reader-20261122`、`commonmark-worker-regression-20261122`、[后端合同 §31](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#31-commonmark-structure-in-text-extraction)和[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)。
+
+### 2026-11-22 J1 / J3 / X6 · Evernote 笔记、原件、批注和研究引用
+
+- 复用本地 Pandoc，把 ENEX 内的 ENML 正文转成可编辑笔记。正式入口保留 ENEX 原字节和附件，按每篇笔记在原文件中的位置确定身份。Joplin v3.6.16 的图文与链接样本加上 Evernote 官方文档的示例，共导入 9 篇。两篇同名笔记各有文档 ID。官方示例节略了内嵌图片，读回正文时显示引用未匹配，保留了例子实际提供的 277 字节。来源和上游读取器校验见 `enex-inputs-20261122/artifacts/inputs.json`。
+- AAOS 给一篇图文笔记追加中文批注。未改动时导出与原 ENEX 逐字节相同，有改动时独立程序 evernote2md 0.23.0 读回新批注、原标签、19,565 字节 PNG 和 1,635 字节 SVG。新的 Core 会话同时读到原 v1 和批注 v2。再次提交原 ENEX 沿用原文档。见 `enex-core-20261122/artifacts/enex-exchange.json`。独立回读使用公开的 Go 读取器，Evernote 签入客户端仍待验。
+- 在 v3 修改标签后，原 Core 的普通属性和 ENEX 均有三个名称，标签筛选仅索引了“图源/核对”。修正原生笔记名称的读取后，release Core（SHA-256 `1e8f8f76ae42461c8b3400062bd819e84e979316d639adcce38930ab568d45f4`）直接打开既有 v3。用产品筛选器分别查询“Field Notes”“图源/核对”“2026”，均命中这一文档；v2 仍是原标签。该次回写保留原始富文本拼写并追加两段批注，两个附件字节一致。先前的 Core 可由 `enex-keep-core-20261122/artifacts/retained.json` 定位。标签旧结果、外部读回和新结果分别在 `enex-tags-research-20261122/artifacts/tags-research.json` 与 `enex-tags-and-package-20261122/artifacts/research-resume.json`。
+- 研究记录固定引用笔记 v3 中的批注块、ENEX 中图片标记的第 384 字节及 PNG、SVG 两份原件。相同的 MD5 也出现在另一段识别元数据中，最终引文选择了完整图片标记。首次目录回读使用了列表接口不接受的 limit 参数；随后研究包已写入，额外的 Vault 命令遇到未挂载 worker 的启动配置。沿用已保存工作区，按普通文件夹入口接回独立读取器生成的 Markdown 和两份附件，三份原件皆逐字节一致。实际文本作业读回中文批注与三个标签。两次正常关闭并冷启动后，研究包、引文和三个文件再次可读。PNG 仅排队，SVG 作为原件保存。见 `enex-folder-cold-20261122/artifacts/return.json`。
+- 来源格式、原作应用身份和实际操作方向分别登记在[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)。[后端合同 §32](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#32-evernote-enex-notes-and-annotations)说明原件、标签、标题与追加批注的边界。任意富文本回写、跨笔记链接在 AAOS 中的解析、Evernote 云同步及当前 AAOS 安装态仍待验。
+
+### 2026-11-22 J3 · Notion 页面、数据表和离线往返
+
+- 用 AppFlowy-Collab 固定提交中的公开 Projects & Tasks 导出，接续上一轮正常关闭的隔离工作区。Core 保存了 34 份内容原件，24 篇 Markdown 成为可编辑页面，8 份 CSV 成为集合。数据表每一行保留独立的固定版本来源块。研究页的 8 个关系均可解析，含上级数据库原件、相关任务和 JPEG。包里缺少三个被引用的文件，另有三次指向外部网址，原文和缺项都保留。[公开样本](https://github.com/AppFlowy-IO/AppFlowy-Collab/blob/be5aa89b4aeafd4e7159e92b86784c02caaa85ce/collab/tests/importer/asset/project%26task.zip)
+- 相同数据库 ID 的完整快照有 13 列，当前视图只有 8 列。首次未改动导出的 ZIP 与原件逐字节相同。通过正式 API 给研究页追加中文记录，修改完整表中一个含逗号、双引号和换行的单元格，建立的筛选视图只命中该项目。导出的 86 个成员中只有所选页面和完整表有变化，其他 84 个成员保留原字节。
+- Pandoc 从导出的 Markdown 和 CSV 读回了两项修改，独立的 .NET CSV 读取器在四行中定位到唯一修改的单元格。再由 .NET 在 ZIP 中追加一段外部笔记，经相同的本地导入命令接回。两次 Core 正常关闭，冷启动读回原页面和表 v1/v2、外部追加的文字、带引号和换行的单元格及原图标识。新导入表只有原文件可表达的表格视图，AAOS 内建立的筛选仍在旧表中。回执位于 `notion-roundtrip-20261122/artifacts/exchange.json`，使用项目锁中的 Markdown 读取器和既有 release Core，未重建 Core。
+- [后端合同 §33](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#33-notion-markdown-and-csv-exchange)列有本地命令与往返范围。[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)中的 Notion 为 PARTIAL，已覆盖离线文件交换的四个方向。Notion 账号/API、增量同步、原生公式和筛选规则、整工作区还原仍待验。
+
+### 2026-11-22 J6 · 后端启动器正常关闭与最后一次保存
+
+- 现有学习后端包内的正式启动器与修改前源码同哈希。实测两个健康接口均返回 200，启动器强制终止了自己的 Core，Core 退出码 1，启动器却报告成功并以 0 退出。原始回执在 `launcher-stop-before-20261122/artifacts/before.json`。
+- 修正启动器，健康检查和终端中断都使用当次启动的会话号和 human 权限请求关闭，等待 Core 完成写入并退出。只有两个接口成功、收到对应会话确认并观察到 Core 自然退出 0 才算健康检查通过。另查了错误会话回执和确认后进程退出 7，两者均报失败。
+- 第一次真实 Ctrl+C 已保存笔记 v2，但在 Windows 无限等待进程退出时没有得到关闭结果，试验超时回收。保全了隔离库与 WAL。随后改用可响应中断的等待方式，沿用先前保存的原库和 WAL。实际打包解释器及保留的 Core 从中读回 v2，保存 v3。仅含三个自有进程的隐藏 Windows 控制台发出真实 Ctrl+C，启动器以 130 结束，Core 确认关闭；独立进程句柄观察到 Core 自然退出 0。冷启动按内容摘要核回 v2、v3 和四行数据表，随后健康检查也正常关闭。见 `launcher-cold-resume-20261122/artifacts/receipt.json`。
+- 此次验证使用新版启动器代码与既有后端包中的真实解释器、工作进程和 Core。完整安装候选、桌面窗口及升级回退仍沿用各自验收项。[会话关闭合同 §20](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#20-native-session-shutdown-and-writer-drain)
+
+### 2026-11-22 J1 / J3 · 普通 ZIP 导入找回先前遗漏的页面和表格
+
+- 将同一份公开 Projects & Tasks ZIP 通过普通文件导入及归档转换送入 Core。旧版的 50 个子来源中有 30 个 Finder 附带文件，34 份实际内容只出现 20 份，遗漏 10 篇 Markdown 和 4 份 CSV。原 ZIP 完整。见 `archive-content-before-20261122/artifacts/archive.json`。
+- 归档组件现在按签名识别 Finder 元数据，AppleDouble 还要求包内有对应成员。已识别的文件留在原 ZIP 并在转换回执中逐项列出。首次接入时，旧 Core 拒收新版组件 0.3.1 的回执。保全旧二进制，登记新版本后按锁离线构建 release Core。在同一失败工作区的副本中沿用原来源和任务号，第 2 次尝试成功。见 `archive-content-after-20261122/artifacts/archive.json` 和 `archive-worker-core-20261122/artifacts/execution.json`。
+- 现在 24 篇 Markdown、8 份 CSV 和 2 张图都成为可单独使用的子来源，34 个路径及 SHA-256 逐一相符。43 个 AppleDouble 和 1 个 Finder 数据库留在原 ZIP。此前遗漏的一篇笔记和一份表格实际执行了文本转换，全文与原文件相同。两次 Core 正常退出，冷启动再次核对全部 34 个来源、两份转换结果和完整原 ZIP。见 `archive-content-retry-20261122/artifacts/archive.json`。本次普通入口提供原件和转换任务；专用入口的可编辑页面及集合沿用前一轮独立回执。[后端合同 §33](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#33-notion-markdown-and-csv-exchange)
+
+### 2026-11-22 J1 / J3 / J6 · 打包客户端在同一个工作区交换六种资料
+
+- 保留的学习后端包无法识别 exchange 命令，退出码为 2。新增的完整后端配置将六种本地资料交换客户端放入 Tauri 已携带的 shared 资源，命令自行启动所选工作区的 Core 并使用当次 human 会话。旧有源码命令仍可连接既有 Core。保留包的 Python 3.13.14 在仓库外加载全部六个客户端，补入的三个纯 Python 依赖均匹配项目锁。见 `packaged-exchange-kit-20261122/artifacts/readiness.json`。
+- 在同一份既有 Anki 工作区副本中，打包客户端导出的卡片字段与原编辑回执同哈希。Zotero 书目导入并回写两条文献，两个引用 ID、标题和 DOI 相同。Evernote 导入了一篇带两个附件的已批注笔记，页面转换使用固定的 Pandoc 3.10。Joplin 导入两个原生 RAW 笔记 ID。Notion 读入含外部改动的 24 篇页面、8 份表格和两张图，未再编辑的导出与收到的 ZIP 完全相同。各客户端都通过同一工作区的 Rust Core 执行业务。
+- 第一次将 Anki 字段、Zotero 书目、Notion ZIP 和中文索引作为 Obsidian Vault 收入时，Core 把 References.csljson 标为待判断，索引中对应链接无法解析。前八条客户端命令分别正常关闭 Core，第八条只接纳了四个文件中的三个，整体断言失败。所有已写入的对象和各命令结果保全于 `packaged-exchange-journey-20261122/artifacts/journey.json`。
+- 在 Vault 分类中补齐 CSL JSON、RIS、BibTeX 和 BibLaTeX 后，release Core 沿用上次保存的工作区。Windows 实际执行打包器生成的 start-backend.cmd，重新导入后四份文件全部入库，三条链接都解析到对应文件。第二条 Windows 命令重开同一工作区，导回的四份文件逐个同哈希，旧索引仍可读。再次冷启动，读回六种来源的九份代表文档及固定来源版本。最终三次 Core 都确认关闭并退出 0。见 `packaged-exchange-windows-return-20261122/artifacts/return.json`。
+- Windows 验证目录包含本次构建的 Core 和新客户端，测试用原生转发器及工作进程配置复用保留包的解释器和 workers。完整安装、原生桌面升级及回退仍待同一安装候选实测。[打包命令合同 §34](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#34-packaged-knowledge-exchange)
+- 完整后端候选所需的 9 个 Python 发行包均已对齐项目锁。实际目标解释器载入了课件依赖和 Markdown/XML 读取器，并用 Windows AMD64 的 zstd 模块完成压缩和解压。见 `packaged-exchange-full-deps-20261122/artifacts/dependencies.json`。正式打包器算得待复制 1,382,299,115 B，相对固定检查点的可读增量将达 4,150,049,480 B，超过 2,147,483,648 B 复核线。复制状态为 `NOT_STARTED`，本轮没有生成完整候选。见 `exchange-full-candidate-20261122/artifacts/portable-storage-receipt.json`。
+- 按这次计量，上次列出的 517 个旧构建副本仍差 444,925,776 B。在同三个旧候选中另核实 17 个可从保留包原样恢复的动态库，合计 447,684,320 B。两份清单合计 534 个文件，条件估算余量 2,758,544 B。只读清单逐项列出恢复来源和哈希，此次删除数为 0。旧候选的 WebView、语音、PDF 和媒体等能力需恢复其对应文件后才能独立使用。原计量为 `PARTIAL`，实际操作前须重测。见 `exchange-candidate-retirement-scope-20261122/artifacts/scope.json`。
+
+### 2026-11-22 J1 / J3 / J6 / X7 · Logseq 文件图谱的原生段落、写回与学习使用
+
+- 在七个资料交换入口中接入 Logseq 文件图谱。使用 Logseq Desktop 0.10.15 选择的外部解析器 mldoc 1.5.7。公开样本选自官方文档库提交 `628cdde0b6f1d90c4722e2bfebb2fd00a5186825`，11 个文件逐个对齐 Git blob 和 SHA-256。输入含 8 篇 Markdown、1 篇 Org 日志、1 张 PNG 和图谱配置。来源与解析器身份见 `logseq-file-graph-upstream-20261122/artifacts/provenance.json`。
+- Windows 实际执行打包器生成的命令，同一工作区读出 9 份可编辑页面／日志、21 个不同的原生块 UUID 和 18 条已解析关系。此公开子集中有 42 次引用缺少目标文件或页面，均逐项列出。给 Markdown 页中的一个 UUID 改写首行后，原跨页嵌入仍指向其 v1，新内容存在 v3。导出的 10 个其他文件逐字节一致，改动页只变了该行。独立 Node 进程直接用官方解析器读回原 UUID 和新内容，再在另一篇页面追加嵌入。导回后同一工作区有 19 条已解析关系，原图、Org 日志三层大纲及外部改动均可冷启动回读。六次 Core 正常关闭。组件目录复用了保留版 release Core、打包解释器和 workers。本轮未运行 Logseq Desktop。见 `logseq-file-graph-journey-20261122/artifacts/journey.json`。
+- 从上述工作区创建正式在线备份，并以同一 Core 恢复到隔离副本。原始块和后来的编辑都能定位。对 Markdown 原件执行文本转换，从该段选取属性写法，建立带原文定位的知识候选。隔离验收用模拟审查接纳，研究文档的导出清单同时固定原生 UUID／文档 v1 和知识项。课程及需求、计划、示例、试作、反馈、修订六条合成记录均绑定同一知识项，明确为机器生成且未计分。冷启动逐项核对 13 份读取结果；本轮没有模型调用或真人学习效果评价。见 `logseq-native-block-study-20261122/artifacts/study.json`。
+- [交换合同 §35](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#35-logseq-file-graph-exchange)记有图谱 ID、按 UUID 编辑和导出用法。[兼容矩阵](AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)将文件图谱列为 PARTIAL，Logseq DB 仍单列为 UNVERIFIED。37 个身份中现有 9 项 PARTIAL、28 项 UNVERIFIED。整包及安装升级仍沿用此前待办，本轮没有退役旧文件。
+
+## 2026-11-22　归档知识的真实模型消费、修订与独立复测
+
+- 前期实际修复曾从同一份公开 ZIP 取回 34 个普通内容文件，旧版本只取回 20 个。本次从这次处置提取两个有来源的操作说明。先用当前归档 worker 和 release Core 处理两份自编 ZIP，确认三项与五项的实际去向，固定源文件、问题和评分表。保留便携目录的旧归档 worker 与当前实现有差异。这里的判定依据为当前 worker 的真实任务输出。见 `archive-transfer-oracle-20261122/artifacts/oracle.json`。
+- 普通 HTTP 路径三次返回 `NO_FINAL_ANSWER`。原题的前两次分别耗用 2,900 和 2,848 个输出词元，第二次包含的额外字段提示未解决问题，已撤回。首次独立归档只用获准知识正文，输入 453 个词元，仍耗尽 2,900 个输出词元。三次均没有可评分的最终答案。另有三次不含业务材料的 HTTP 参数探测，两个响应为 200、一个为 400，未用作模型效果证据。
+- [结构化本地模型合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)增加可选 worker。其部署复用项目的 Node 和官方 SDK 2.0.0，在同一个已加载的 `aaos-fast-4b` 实例上为思考与最终 JSON 分配输出额度。独立本地 SDK 消费者收到当前规则的手动上下文包后，在原归档上判对三项。备份中的旧权限曾被 Core 以 `RESTORED_GRANT_FENCED` 拒绝，随后在隔离副本按同一用途重新发放授权。见 `archive-transfer-local-peer-20261122/artifacts/study.json` 和 `archive-sdk-core-transfer-20261122/artifacts/response.json`。
+- 正式 `POST /api/v1/machine/answers` 对此前无最终答案的独立归档返回五项，四项正确，一项弃答。该项的 AppleDouble 文件头有效，但同名内容文件位于不同目录。整体评分保留为 `unmeasured`，原回答与评分均已固定。经产品备份恢复，两份 ZIP 原件、模型回答、评价和研究导出均可回读。见 `archive-sdk-core-regrant-20261122/artifacts/study.json`。
+- 依据弃答修订通用规则，写明必须按完整相对路径配对，同名文件在其他目录时，该旁车自身仍生成子来源。第三份全新归档中两条旁车具有相同文件头，只有一条有完整路径配对。先运行真实归档任务固定评分依据，模型再作答，两项均正确。随后只追问原先弃答的一项，正式 Core 同时核验知识授权、资产版本、资产授权与实际模型上下文摘要，模型回答 `child`，与原归档任务一致。最终回答快照、逐项评价和研究导出在新恢复副本中一致。见 `archive-sdk-clarified-transfer-20261122/artifacts/study.json` 和 `archive-sdk-focused-asset-20261122/artifacts/study.json`。此处为隔离本地任务的自动评价，通用模型能力增幅、真人掌握、整包安装升级及 Owner 验收仍待各自证明。
+
+<a id="standalone-model-session-20261122"></a>
+
+### 2026-11-22 独立后端启动、模型切换与练习续做
+
+- 旧的结构化 worker 只有回答脚本、SDK 助手及本机配置。用正式 Windows 启动命令选它时，系统与工作区均返回 HTTP 200，能力中心却报告 `handshake_failed`。独立材料预检返回 `MATERIAL_CLOUD_PREFLIGHT_UNAVAILABLE`。部署现在按既有运行布局携带传输、材料检查和公共依赖，启动器支持按次选择 `--machine-worker`，并可用 `--backend-root` 直接复用已有 Core、解释器及能力配置。见[启动合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
+- 同一 release Core 和解释器上，修复后的 Windows 命令得到 `handshake_ready` 并正常退出。材料预检报告 `NOT_ACTIVATED`，网络、凭据和模型调用均为零。原来通过的答案 worker 和 SDK 助手与本次逐字节一致。启动时选择的路径、两种 worker 的观测、退出码及依赖规模记录在 `sdk-session-windows-entry-20261122/artifacts/launch.json`。这是更新的启动组件与既有运行包的实测，完整安装候选仍受前述存储复核线限制。
+- 从上轮真实模型答题后的备份还原一份隔离工作区，用修订后的归档知识建立课程、练习要求及练习计划。关停并切回包内默认 worker 后，原知识、研究文档 v5、规则 v6、原答案及评价、课程 manifest 和两份未评分教学记录共 8 项逐项一致。正式运行的两个会话均正常退出，已有研究 worker 路径及包内配置保持一致。未新增资料导入或推理请求，尚无真人作答。见 `sdk-session-course-reopen-20261122/artifacts/study.json`。第 36 节合同已挂接 worker 与启动器的定向检查。
+
+### 2026-11-22 J3 / X6 · Git 固定提交的文件与版本
+
+- Windows 上的 Git 2.54.0 从本仓库两个实际提交 `4a8ad0bc`、`78eb9dcb` 各导出三份已提交文件。两次各含闭环定义、该文档相对链接指向的原文和一份 Python 源文件。普通 ZIP 导入、归档转换和正式 Windows 交换命令把提交号、原 ZIP、路径及成员来源绑定到可搜索的文档。依据是 Git 的归档注释，调用方可以给出完整提交号核对。
+- 两个版本的六份原件逐字节对上各自 Git blob；冷重启后可从原文中的相对链接定位同一提交的目标。首个 ZIP 原样导出，另一提交的 Python 文件以文本原件导出，均经独立 Git 读取核对。两个索引及其导出清单保留提交号和文件版本。见 `git-commit-snapshot-exchange-20261122/artifacts/exchange.json`。Git 行的文件导入、原件导出按 PARTIAL 登记。仓库历史重建、AAOS 编辑写回 Git 及双向同步仍待验证。[产品命令](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#37-git-commit-snapshots)
+
+<a id="backend-full-after-retirement-20261122"></a>
+
+### 2026-11-22 完整 Windows 后端候选的独立启动与原件回读
+
+- Owner 同意仅清理 `sdk-git-full-package-review-20261122/artifacts/exact-files.json` 中的 536 个文件并重跑整包。清单 SHA-256 为 `49dff152c10345f72fe2c8259c071c1439cfe58af0195df3b6f81c5277569ddb`。三个旧候选中的指定文件均已移除，合计 2,031,450,712 逻辑字节。清理后再次核对全部 266 个不同的保留文件，哈希全部符合。恢复任一旧候选时按 `sdk-git-authorized-retirement-20261122/artifacts/removed.jsonl` 中的来源、原路径和哈希逐项复制。实际清理回执为同目录 `retirement.json`。
+- `backend-full-after-retirement-20261122/artifacts/backend` 是正式打包器生成的 0.6.14 完整后端目录。清单登记 8,857 个文件，共 1,381,660,761 字节，清单自身另计，SHA-256 为 `4471df4c48dc0850120a92d231dfbf4c86821099bef71aecc5aef934e5c8ba38`。固定检查点的可读增量从打包前 759,326,601 字节变为打包后 2,143,044,102 字节，低于原定 2,147,483,648 字节复核线。正式回执 `portable-storage-receipt.json` 记录复制完成，项目前后容量计量因既有不可读目录仍为 `PARTIAL`。打包及独立验证的执行回执均为退出 0，运行期间源码一致。
+- 从新目录逐个核对文件长度和 SHA-256，清单与目录相符。包内解释器可加载全部八种资料交换客户端；21 条 worker 路径解析到同一包内。隔离工作区由包内 Rust Core 从前次已关闭的 Git 样本恢复。直接运行包内 `start-backend.cmd`，系统版本与工作区接口均返回 HTTP 200。随后按仓库内路径取回一份 README，实际字节与独立读取的 Git blob `1324c79ead5e28a6c278db7022eadc61594ee26f` 相同。重开后索引 v1 与提交号仍一致，OpenMAIC 场景构建能力实际握手成功。三次 Core 均确认关闭并退出 0。验证回执 `backend-full-start-and-return-20261122/artifacts/validation.json` 的 SHA-256 为 `1ff823202eb51ad049b0f2988b9cb575f7b13f9da4c4589599a81e5f9c5d3d01`。
+- 当前工作树的锁定、离线 release 增量编译使用 0.23 秒。其 Core 与打包前的正式编译回执 `exchange-vault-bibliography-core-20261122/artifacts/execution.json` 及新包中的 Core 三者均为 22,696,448 字节、SHA-256 `58325dca1bfda602a636b1e0540b229f34cc2921f58d303e4195abd1b5b59d98`。当前编译见 `full-candidate-current-core-20261122/artifacts/execution.json`。将新包直接交给桌面构建使用的资源校验器，8,857 个成员及固定版 WebView2 156.0.4314.42 全部符合。旧桌面构建缓存另有 5 个此前课程模块路径，共 34,878 字节，与其原清单逐项一致并已保留。新包通过 `workers/course/donors` 供应这五个模块。完整核对见 `backend-desktop-input-qualification-20261122/artifacts/input.json`。
+- 此次完成独立后端整包的构建与回读，复用了已有业务样本和模型回执。桌面安装、同候选升级回退、各平台余下兼容范围和 Owner 产品验收仍按[唯一闭环 V3](../truth/CLOSED_LOOP_DEFINITION.md)分别跟踪。
+- 按[目录权威](../DIRECTORY_AUTHORITY_INDEX.md)登记这次已获批、已执行的清理。回执完成于 08:52:36，随后于 08:54:34 至 08:56:16 计量，再开始复制新包。活动指针将这一份清理后、复制前的测量登记为固定基线，保留 11 月 15 日的前一基线。测得 91,245,025,870 可读字节、1,062,998 个文件，仍有 674 项读取错误及 43 个布局外条目。新包在后续批次仍计入增长，刚完成的整包回执继续按其运行时的原基线解释。
+
+<a id="desktop-version-0100"></a>
+
+### 2026-11-22 J6 · 本地桌面版本 0.1.00 与既有资料的升级回退
+
+- 在同一份隔离资料库上，11 月 7 日的 Core 写入中文观测记录 v1 并通过产品做备份。11 月 22 日整包的 Core 读回原文、保存 v2，再换回旧 Core 读回两个版本。用旧 Core 将原备份恢复到另一库，只有备份时的 v1。两次构建的库结构版本均为 15，四次会话正常退出。见 `cross-build-library-20261122/artifacts/journey.json`。
+- 从先前含真实模型回答的隔离学习库恢复出副本。新 Core、旧 Core、再到新 Core，均能按原摘要取回同一知识版本、研究文档 v5、评价、规则 v6、答案快照、课程及两份教学记录。旧 Core 保存的中文说明 v2 也能在新 Core 读回。三次正常退出，模型调用 0 次。见 `cross-build-study-20261122/artifacts/study-rollback.json`。以上为独立后端跨构建实测。
+- 0.6.14 桌面编译成功，Host SHA-256 为 `f20202da02894743601fbd5fd46fa57c6e437632afd94c0bfcf99839697f7698`。共享编译目录保留 5 个旧课程缓存文件，便携目录精确校验退出 2。独立安装器首次在任何复制前触发容量复核，预估超出 122,075,739 字节。分别见 `native-host-current-20261122/artifacts/frontend-build.json` 与 `native-installer-20261122/artifacts/portable-storage-receipt.json`。
+- Owner 随后单独批准 35 个旧媒体库副本，清单 SHA-256 为 `6c2273405618405452656f48816fa5519741d47366c62247defcc1682f00e0c0`。实际移除 130,918,912 逻辑字节，删除后 12 份保留件哈希相符。旧候选使用受影响的媒体编解码功能前，可按 `native-authorized-media-retirement-20261122/artifacts/removed.jsonl` 逐项还原。清理后、编译前的目录计量见 `native-media-post-governance-20261122/artifacts/storage.json`。可读总量较前一基线增加 1,357,537,017 字节，其中包含上一批整包。计量有 674 项错误和 43 个布局外条目，状态为 PARTIAL。11 月 15 日原基线文件及其 SHA-256（`c8d5f9acb4ad1544d5ab2bf630858f4c23636709b0e08fa8a8964f5b2d352163`）仍按对应时点使用。
+- Owner 为本地新桌面候选指定版本名 `0.1.00`。安装包文件名采用原写法，Tauri、Cargo 及前端包使用可比较的 `0.1.0`。嵌入的既有独立后端仍绑定其 `0.6.14` 清单和实际 Core 哈希。Windows 版本顺序为 `0.1.0 < 0.6.14`，业务回退方向和安装器数字升降分别记录。
+- NSIS 已生成 `ArcheAxis Knowledge_0.1.00_x64-setup.exe`，530,452,868 字节，SHA-256 为 `50e7dbeb937581a6c2207cee4bf29057df4987964c8b179dae381be67108580a`。构建回执为 `n100ns/artifacts/installer.json`。候选使用的五文件版本补丁为 `n100-version-inputs/artifacts/version-0.1.00.patch`，SHA-256 为 `9fd8bea3993ef6d0f62ecd4438c7fc05cc4c4272ba4989aa33e42afe1bb8ff6c`。打包后已还原开发树的版本文件。
+- 隔离 Windows 环境中，旧版 `0.6.14` 安装器退出码为 0。安装的旧 Host 哈希与历史预期不同，Core 和后端清单相符，验收停在这一步。新候选尚未在该环境安装，桌面升级和回退仍待验收。隔离环境已关闭，见 `n100g/artifacts/guest-run.json` 与 `n100g/artifacts/output/seed.json`。

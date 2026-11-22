@@ -11,6 +11,7 @@ The samples are built here with zipfile, so nothing private is involved.
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 import zipfile
@@ -31,6 +32,52 @@ def _load(name: str, path: Path):
 
 worker = _load("worker_archive_under_test", WORKER)
 transport = _load("archive_transport_under_test", TRANSPORT)
+
+
+def test_finder_metadata_keeps_original_bytes_and_leaves_slots_for_user_files(tmp_path, monkeypatch):
+    archive = tmp_path / "workspace.zip"
+    apple = bytes.fromhex("0005160700020000") + b"resource fork"
+    files = {
+        "__MACOSX/._page.md": apple,
+        "ui/.DS_Store": bytes.fromhex("0000000142756431") + b"finder view",
+        "page.md": b"# Page",
+        "rows.csv": b"Name\nFirst",
+        "other/.DS_Store": b"user-authored data",
+        "__MACOSX/._rows.csv": b"notes for the table",
+        "._unpaired": apple,
+    }
+    with zipfile.ZipFile(archive, "w") as z:
+        for name, payload in files.items():
+            z.writestr(name, payload)
+    monkeypatch.setattr(worker, "MEMBER_JOB_CAP", 5)
+    result = worker.extract(str(archive), tmp_path / "offered")
+    detail = result["loss_receipt"]["params"]["structure"]
+    assert detail["member_count"] == 7
+    assert [m["name"] for m in detail["extractable_members"]] == list(files)[2:]
+    assert detail["extractable_members"][0]["file"].startswith("0003-")
+    metadata = detail["member_extraction"]["container_metadata"]
+    assert metadata["total"] == 2 and [m["kind"] for m in metadata["members"]] == ["appledouble_v2", "finder_store"]
+    with zipfile.ZipFile(archive) as z:
+        assert all(z.read(m["name"]) == files[m["name"]] for m in metadata["members"])
+
+
+def test_anki_prefers_versioned_collection_and_imports_media_by_native_name(tmp_path: Path):
+    example = REPO / "tests/fixtures/anki-apkg/review.apkg"
+    sample = tmp_path / "collection.apkg"
+    with zipfile.ZipFile(example) as source, zipfile.ZipFile(sample, "w") as package:
+        package.writestr("meta", b"\x08\x02")
+        package.writestr("collection.anki2", b"old-client placeholder")
+        package.writestr("collection.anki21", source.read("collection.anki2"))
+        package.writestr("media", source.read("media"))
+        package.writestr("0", source.read("0"))
+        media_name = json.loads(source.read("media"))["0"]
+        media_bytes = source.read("0")
+    result = worker.extract(str(sample), tmp_path / "members")
+    receipt = result["loss_receipt"]["params"]["structure"]
+    assert receipt["anki"]["native_import_semantics"] == "replace_collection"
+    assert receipt["anki"]["notes"][0]["fields"] == ["front", "back"]
+    member, = receipt["extractable_members"]
+    assert member["name"] == media_name and (tmp_path / "members" / member["file"]).read_bytes() == media_bytes
 
 
 def _sample(path: Path, *, nested: bool = False) -> None:
@@ -123,7 +170,8 @@ def test_an_empty_container_is_refused_rather_than_reported_as_empty_success(tmp
 
 def test_the_transport_route_declares_the_archive_capability_and_media_type():
     route = transport.ROUTES["archive.inventory"]
-    assert route["media_types"] == {"application/zip", "application/x-tar"}
+    assert route["media_types"] == {"application/zip", "application/x-tar", "application/x-joplin-jex",
+                                    "application/x-anki-package", "application/x-anki-collection"}
     assert route["worker"] == "services/python-workers/document/worker_archive.py"
     assert route["call"] == "path"
     # the text route must not accept a zip, so a container cannot fall back to a decode
@@ -174,6 +222,40 @@ def test_tar_declares_actual_bytes_and_digest_for_existing_core_member_chain(tmp
     assert members[0]["sha256"] == hashlib.sha256(payload).hexdigest()
     assert (tmp_path / "members" / members[0]["file"]).read_bytes() == payload
     assert "NOT the members' contents" in result["loss_receipt"]["params"]["projection_note"]
+
+
+def test_jex_projects_notes_and_resolves_native_relations_without_changing_source_bytes(tmp_path):
+    import hashlib
+    import tarfile
+
+    folder, child, note, tag, relation, resource, missing = (str(i) * 32 for i in range(1, 8))
+    body = f"中文 🙂\n\n![diagram](:/{resource}) and [missing](:/{missing})\n\nkey: still in the body"
+    modified = "2024-02-03T04:05:06.000Z"
+    rows = {
+        f"{note}.md": f"Reading\n\n{body}\n\nid: {note}\nparent_id: {child}\nupdated_time: {modified}\ntype_: 1",
+        f"{relation}.md": f"id: {relation}\nnote_id: {note}\ntag_id: {tag}\ntype_: 6",
+        f"{tag}.md": f"Review\n\nid: {tag}\ntype_: 5",
+        f"{child}.md": f"Week 1\n\nid: {child}\nparent_id: {folder}\ntype_: 2",
+        f"{folder}.md": f"Course\n\nid: {folder}\ntype_: 2",
+        f"{resource}.md": f"Source file\n\nid: {resource}\nmime: text/plain\nsize: 4\ntype_: 4",
+        f"resources/{resource}.txt": "data",
+    }
+    sample = tmp_path / "study.jex"
+    _tar_sample(sample, [(name, value.encode(), tarfile.REGTYPE) for name, value in rows.items()])
+    result = worker.extract(str(sample), tmp_path / "members")
+    receipt = result["loss_receipt"]
+    structure = receipt["params"]["structure"]
+    graph = structure["joplin"]
+    item, = graph["notes"]
+    assert item["id"] == note and item["updated_time"] == modified
+    assert item["notebook_path"] == ["Course", "Week 1"]
+    assert item["tag_ids"] == [tag] and graph["tags"][0]["title"] == "Review"
+    assert item["reference_ids"] == [resource, missing]
+    assert result["text"][item["body_start"]:item["body_end"]] == body
+    assert any(missing in loss for loss in receipt["losses"])
+    assert graph["resources"][0]["payload_sha256"] == hashlib.sha256(b"data").hexdigest()
+    for entry in structure["extractable_members"]:
+        assert (tmp_path / "members" / entry["file"]).read_bytes() == rows[entry["name"]].encode()
 
 
 def test_tar_unsafe_entries_fail_before_any_member_is_written(tmp_path):

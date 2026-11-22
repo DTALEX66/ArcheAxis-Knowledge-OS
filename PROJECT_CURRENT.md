@@ -1,9 +1,28 @@
 # AAOS 当前状态与执行入口
 
+本地桌面候选使用 Owner 指定的版本名 `0.1.00`。安装器构建、独立后端对既有学习资料的升级回退，以及隔离安装验收的中断位置见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)。
+
+完整 Windows 后端候选的目录、启动实测和旧副本恢复索引见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122)。
+
+独立后端可在启动时用 `--machine-worker` 为本次会话选择本地结构化回答，并用 `--backend-root` 复用现有运行目录。启动方法、推理预算和回执字段见[本地结构化回答合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
+
 入口角色：navigation-only。项目身份：**ArcheAxis-Knowledge-OS（AAOS／星环知识系统）**。本页是醒目的薄入口；产品定义由[AUTHORITY总纲](AUTHORITY.md)、[产品身份V2.3](docs/truth/PRODUCT_IDENTITY_V2.md)与[唯一闭环V3](docs/truth/CLOSED_LOOP_DEFINITION.md)承载，控制和进度仍各只有一个来源。
 
 ## 当前有效决定与范围
 
+独立后端的健康检查、终端退出与工作区重开见[会话关闭合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#20-native-session-shutdown-and-writer-drain)。
+
+Git 固定提交导出的 ZIP 可以保存为带提交号的资料索引，按仓库内路径取回原件。见[固定提交快照合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#37-git-commit-snapshots)。
+
+打包后端以 `start-backend.cmd exchange` 打开用户选定的工作区，支持 Anki、Evernote、Git 固定提交快照、Joplin、Logseq 文件图谱、Notion、Obsidian 和 Zotero。文件图谱的 Markdown／Org 大纲、按 UUID 编辑和写回见 [Logseq 交换合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#35-logseq-file-graph-exchange)。各入口的参数及退出行为见[打包资料交换入口](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#34-packaged-knowledge-exchange)。
+
+Notion 离线包可从普通 ZIP 入口取出内容文件，也可通过[专用交换命令](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#33-notion-markdown-and-csv-exchange)读入、编辑并导出 Markdown 页面和 CSV 数据表。实测范围见[兼容矩阵](docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)的 Notion 条目。
+
+Evernote 笔记、标签和附件的本地导入与批注回写见[ENEX 后端合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#32-evernote-enex-notes-and-annotations)。
+
+普通 Markdown 的标题、引用及附件见[文本转换合同](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#31-commonmark-structure-in-text-extraction)。Obsidian 已连接资料夹的日常用法见[增量同步与冲突处理](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#30-incremental-obsidian-vault-sync)。工作区从备份还原后的接续见[重建 Vault](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#recover-a-vault-after-a-core-backup-restore)。
+
+- **2026-11-21 执行顺序**：先跑后端闭环，再迭代界面。范围沿用唯一闭环 V3，读取[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `execution_control.owner_backend_first_20261121`。场景实测沿[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)续记；知识软件的导入、回写和外部回读见[兼容矩阵](docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json)。后端合同列有 [Joplin 交换命令](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#24-joplin-jex-and-raw-exchange-2026-11-22)、[文件夹断点续做](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#25-folder-cli-recovery)和[打包后端渲染课件](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#26-packaged-course-rendering)，另见 [Anki 牌组与字段回写](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#27-anki-package-and-edited-field-exchange)及 [Zotero 公开组库与文献交换](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#28-zotero-public-library-and-bibliography-exchange)。Obsidian 笔记与附件的整库往返见[Vault 文件夹交换](docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#29-obsidian-vault-folder-exchange)。
 - **2026-11-12后继执行：** Owner在归档及首批实施后明确“完成我的闭环定义目标”。按唯一闭环V3持续补齐全部必备项，前后端及必要验收均继续；范围与独立授权边界读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.owner_local_audit_execution_20261112`，来源读[本轮归档入口](workspace/intake/20261112-local-audit/README.md)，实际结果只记[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
 - **2026-11-14恢复执行：** Owner明确“执行任务 完成闭环定义目标”，按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.owner_resume_20261114`恢复此前暂停的V3闭环工作，沿用SUP-035与原完成范围，不改产品定义、任务队列或进度账本；同日暂停与更早RUNNING/PAUSED字段只说明各自时点。产品整体仍PARTIAL，监控暂停、权限恢复与产品完成分开，实际结果只记[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
 - **执行控制提示：** 2026-11-01本次接手时官方额度读回触及Owner既定的剩余≤10%停止阈值，随后Owner知情明确要求“继续”；当前状态及既有规则以[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)为准，封存、失败与未完项见[唯一执行记录末段](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。

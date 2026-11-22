@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import csv
 import io
-import json
+import re
 from typing import Any
 
 
@@ -43,7 +43,8 @@ def to_anki_csv(cards: list[dict[str, Any]]) -> str:
 def parse_zotero_json(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Parse a Zotero library export into knowledge-unit dicts."""
     units: list[dict[str, Any]] = []
-    for item in items:
+    for record in items:
+        item = record.get("data", record)
         item_type = str(item.get("itemType", "")).strip()
         title = str(item.get("title", "")).strip()
         if not title:
@@ -52,14 +53,16 @@ def parse_zotero_json(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for creator in item.get("creators", []):
             first = str(creator.get("firstName", "")).strip()
             last = str(creator.get("lastName", "")).strip()
-            name = f"{first} {last}".strip()
+            name = str(creator.get("name") or f"{first} {last}").strip()
             if name:
                 creators.append(name)
+        date = record.get("meta", {}).get("parsedDate") or item.get("date") or ""
+        year = re.search(r"\b[12]\d{3}\b", str(date))
         units.append({
             "title": title,
             "item_type": item_type,
             "creators": creators,
-            "year": str(item.get("date", ""))[:4] if item.get("date") else None,
+            "year": year.group() if year else None,
             "doi": item.get("DOI"),
             "url": item.get("url"),
             "abstract_note": item.get("abstractNote"),

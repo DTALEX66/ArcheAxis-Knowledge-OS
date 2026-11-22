@@ -6,6 +6,7 @@
     "fast-local": {
       "model_key": "qwen3.5-4b",
       "identifier": "aaos-fast-4b",
+      "structured_reasoning_tokens": 1536,
       "ttl_seconds": 1800,
       "basis": "Explicit project FAST loading for the existing local model; verify effective settings and actual Core answer separately",
       "load": {

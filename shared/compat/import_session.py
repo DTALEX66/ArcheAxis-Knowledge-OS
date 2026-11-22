@@ -14,10 +14,12 @@ import os
 import sqlite3
 import zipfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from shared.approved_paths import ApprovedRoots, ApprovedRootsError
-from shared.compat.models import VaultFile
-from shared.paths import native_path, ordinary_path
+from . import anki_package
+
+if TYPE_CHECKING:
+    from shared.compat.models import VaultFile
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS compat_files (
@@ -51,27 +53,43 @@ def read_anki_package(path: str | Path) -> list[dict[str, object]]:
     scheduling it returns is the source's own record, labelled as imported, because this function
     graded nothing. A card nobody has answered carries no interval rather than an interval of zero.
     """
-    path = Path(path)
     try:
         with zipfile.ZipFile(path) as container:
-            if "collection.anki2" not in set(container.namelist()):
-                raise ValueError("package carries no collection.anki2")
-            raw = container.read("collection.anki2")
+            _, _, raw = anki_package.collection_bytes(container)
     except zipfile.BadZipFile as error:
         raise ValueError(f"unreadable package: {error}") from error
+    units = read_anki_collection(raw)["notes"]
+    for unit in units:
+        unit["not_carried"] = ["deck_options: source scheduler configuration",
+                               "deck_names: only the standalone archive projection resolves deck IDs"]
+    return units
+
+
+def read_anki_collection(raw: bytes, *, review_limit: int = 0) -> dict:
+    """Read the foreign database in memory. Only Rust Core persists AAOS objects."""
 
     connection = sqlite3.connect(":memory:")
     try:
+        # SQLite's deserialize API needs rollback-mode header bytes for a
+        # standalone database image. Anki's modern export can retain WAL mode.
+        if raw.startswith(b"SQLite format 3\0") and raw[18:20] == b"\x02\x02":
+            raw = raw[:18] + b"\x01\x01" + raw[20:]
         connection.deserialize(raw)
-        note_types = _anki_note_type_names(connection)
+        # The catalog uses Anki's Unicode collation even on WITHOUT ROWID
+        # tables. The projection keys by numeric IDs, never by name equality.
+        connection.create_collation("unicase", _compare_anki_names)
+        connection.execute("PRAGMA trusted_schema=OFF")
+        connection.execute("PRAGMA query_only=ON")
+        note_types, decks = _anki_catalog(connection)
         cards: dict[object, list[dict[str, object]]] = {}
         for row in connection.execute(
-            "SELECT id, nid, ord, type, queue, due, ivl, factor, reps, lapses FROM cards"
+            "SELECT id, nid, did, ord, type, queue, due, ivl, factor, reps, lapses FROM cards ORDER BY id"
         ):
-            card_id, note_id, ordinal, type_, queue, due, ivl, factor, reps, lapses = row
+            card_id, note_id, deck_id, ordinal, type_, queue, due, ivl, factor, reps, lapses = row
             answered = reps > 0
             cards.setdefault(note_id, []).append({
                 "card_id": card_id,
+                "deck_id": deck_id,
                 "template_ordinal": ordinal,
                 "state": ANKI_CARD_TYPES.get(type_, f"unknown({type_})"),
                 "queue": ANKI_CARD_QUEUES.get(queue, f"unknown({queue})"),
@@ -82,49 +100,77 @@ def read_anki_package(path: str | Path) -> list[dict[str, object]]:
                 "lapses": lapses,
             })
         units: list[dict[str, object]] = []
-        for note_id, mid, flds, tags in connection.execute(
-            "SELECT id, mid, flds, tags FROM notes"
+        for note_id, guid, mid, flds, tags in connection.execute(
+            "SELECT id, guid, mid, flds, tags FROM notes ORDER BY id"
         ):
             units.append({
                 "note_id": note_id,
-                "note_type": note_types.get(mid, f"unknown({mid})"),
+                "guid": guid,
+                "note_type_id": mid,
+                "note_type": note_types.get(mid, {}).get("name", f"unknown({mid})"),
                 "fields": flds.split(ANKI_FIELD_SEPARATOR),
                 "tags": [tag for tag in str(tags).split() if tag],
                 "cards": cards.get(note_id, []),
                 "scheduling_origin": "imported_from_source",
                 "authority_effect": "candidate_or_measurement_only",
-                # What the collection holds that this reader does not carry, declared so an
-                # imported unit cannot be read as the whole of what the source knew.
-                "not_carried": [
-                    "deck_options: the learning steps, intervals and ease the collection scheduled with",
-                    "deck_names: the deck an item belonged to",
-                ],
             })
-        return units
+        graph = {"notes": units, "decks": decks, "note_types": note_types}
+        if review_limit:
+            graph["source_review_history"] = _anki_review_history(connection, review_limit)
+        return graph
     finally:
         connection.close()
 
 
-def _anki_note_type_names(connection: sqlite3.Connection) -> dict[int, str]:
-    """Anki keeps its note types as JSON in col.models, keyed by a stringified id."""
-    try:
-        row = connection.execute("SELECT models FROM col").fetchone()
-        models = json.loads(row[0]) if row else {}
-    except (sqlite3.Error, ValueError, TypeError):
-        return {}
-    names: dict[int, str] = {}
-    for key, model in models.items():
-        try:
-            names[int(key)] = str(model.get("name", key))
-        except (TypeError, ValueError):
-            continue
-    return names
+def _compare_anki_names(left, right):
+    a, b = left.casefold(), right.casefold()
+    return (a > b) - (a < b)
+
+
+def _anki_review_history(connection, limit):
+    """Project native revlog values without creating AAOS reviews or changing their units."""
+    if not connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='revlog'").fetchone():
+        return {"origin": "imported_from_source", "available": False, "total": None, "events": []}
+    source = " FROM revlog r JOIN cards c ON c.id=r.cid"
+    total = connection.execute("SELECT count(*)" + source).fetchone()[0]
+    columns = ("id", "cid", "ease", "ivl", "lastIvl", "factor", "time", "type")
+    rows = connection.execute("SELECT r.id,r.cid,r.ease,r.ivl,r.lastIvl,r.factor,r.time,r.type" +
+                              source + " ORDER BY r.id DESC LIMIT ?", (limit,))
+    return {"origin": "imported_from_source", "available": True, "total": total,
+            "events": [dict(zip(columns, row, strict=True)) for row in rows]}
+
+
+def _anki_catalog(connection):
+    if connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='notetypes'").fetchone():
+        models = {mid: {"name": name, "fields": {}, "templates": {}}
+                  for mid, name in connection.execute("SELECT id, name FROM notetypes")}
+        for table in ("fields", "templates"):
+            # Native deck exports may retain field/template rows of types excluded
+            # from the selected deck. Only resolve metadata for included types.
+            for mid, ordinal, name in connection.execute(
+                f"SELECT t.ntid, t.ord, t.name FROM {table} t JOIN notetypes n ON n.id=t.ntid"
+            ):
+                models[mid][table][ordinal] = name
+        decks = {did: name.replace(ANKI_FIELD_SEPARATOR, "::")
+                 for did, name in connection.execute("SELECT id, name FROM decks")}
+        return models, decks
+    model_json, deck_json = connection.execute("SELECT models, decks FROM col").fetchone()
+    models = {}
+    for mid, model in json.loads(model_json or "{}").items():
+        models[int(mid)] = {"name": model["name"],
+                            "fields": {row["ord"]: row["name"] for row in model.get("flds", [])},
+                            "templates": {row["ord"]: row["name"] for row in model.get("tmpls", [])}}
+    decks = {int(did): deck["name"] for did, deck in json.loads(deck_json or "{}").items()}
+    return models, decks
 
 
 class ImportSession:
     """Scan and import a vault under an approved root into a compat ledger."""
 
     def __init__(self, store: Path, vault_root: Path) -> None:
+        from shared.approved_paths import ApprovedRoots
+        from shared.paths import native_path
+
         self.store = store
         self.vault_root = vault_root.resolve()
         if not Path(native_path(self.vault_root)).is_dir():
@@ -155,6 +201,9 @@ class ImportSession:
 
     def _scan_paths(self) -> list[Path]:
         """Enumerate files under the vault, rejecting symlink escapes."""
+        from shared.approved_paths import ApprovedRootsError
+        from shared.paths import native_path, ordinary_path
+
         results: list[Path] = []
         for root_name, dirs, files in os.walk(native_path(self.vault_root), topdown=True, followlinks=False):
             # The walk is prefixed so deep directories yield at all; containment and the
@@ -178,6 +227,8 @@ class ImportSession:
 
     def import_path(self, path: Path) -> VaultFile:
         """Import a single path, rejecting escapes."""
+        from shared.compat.models import VaultFile
+
         resolved = self.approved.resolve_source(path)
         return VaultFile.from_path(resolved, vault=self.vault_root)
 

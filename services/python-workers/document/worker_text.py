@@ -29,18 +29,20 @@ from __future__ import annotations
 import contextlib
 import csv
 import email
-import io
 import importlib.util
+import io
 import json
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
+from collections import Counter
 from pathlib import Path
 
 ENGINE = "python-worker-text"
 ENGINE_VERSION = "0.1.0"
 
 HEADING_CAP = 200
+MARKDOWN_REFERENCE_CAP = 200
 ROW_CAP = 50_000
 # The reported header is bounded like every other derived list here, and like them it
 # must say so: a partial header presented as the whole one silently misaligns a reader
@@ -426,7 +428,7 @@ def _count_keys(value) -> int:
     return 0
 
 
-def _markdown_facts(text: str) -> dict:
+def _markdown_pattern_facts(text: str) -> dict:
     lines = text.splitlines()
     headings = []
     in_fence = False
@@ -456,6 +458,72 @@ def _markdown_facts(text: str) -> dict:
     if facts["code_fence_count"] % 2:
         facts["note"] = "an odd number of code fences means one is unclosed; headings inside it are not listed"
     return facts
+
+
+def _markdown_label(tokens) -> str:
+    parts = []
+    for token in tokens:
+        if token.type in ("text", "code_inline"):
+            parts.append(token.content)
+        elif token.type in ("softbreak", "hardbreak"):
+            parts.append(" ")
+        elif token.type == "image":
+            parts.append(_markdown_label(token.children or ()))
+    return "".join(parts)
+
+
+def _markdown_facts(text: str) -> dict:
+    try:
+        from markdown_it import MarkdownIt, __version__
+    except ModuleNotFoundError as exc:
+        if exc.name not in {"markdown_it", "mdurl"}:
+            raise
+        return {**_markdown_pattern_facts(text), "parser": "line-patterns",
+                "structure_qualification": "partial", "missing_parser": exc.name}
+
+    frontmatter = FRONTMATTER.match(text)
+    if frontmatter and not re.search(r"^[^\s:#][^:\r\n]*:(?:[ \t]|$)", frontmatter[1], re.MULTILINE):
+        frontmatter = None  # A thematic break followed by a setext heading is ordinary CommonMark.
+    # Mask the Vault metadata while retaining the original line numbers in the body.
+    body = ("\n" * frontmatter.group().count("\n") + text[frontmatter.end():]) if frontmatter else text
+    tokens = MarkdownIt("commonmark").parse(body)
+    counts = Counter(token.type for token in tokens)
+    headings, links, images = [], [], []
+    wiki_links = embeds = fences = unclosed = 0
+    for index, token in enumerate(tokens):
+        if token.type == "heading_open" and len(headings) < HEADING_CAP:
+            headings.append({"level": int(token.tag[1:]), "line": token.map[0] + 1,
+                             "text": _markdown_label(tokens[index + 1].children or ())})
+        elif token.type == "fence":
+            # The token's source span includes delimiters. Its content contains only the interior.
+            interior = token.content.count("\n") + int(bool(token.content and not token.content.endswith("\n")))
+            closed = token.map[1] - token.map[0] == interior + 2
+            fences += 2 if closed else 1
+            unclosed += int(not closed)
+        elif token.type == "inline":
+            for child in token.children or ():
+                counts[child.type] += 1
+                if child.type == "link_open" and len(links) < MARKDOWN_REFERENCE_CAP:
+                    links.append({"block_start_line": token.map[0] + 1, "href": child.attrGet("href"), "title": child.attrGet("title")})
+                elif child.type == "image" and len(images) < MARKDOWN_REFERENCE_CAP:
+                    images.append({"block_start_line": token.map[0] + 1, "src": child.attrGet("src"), "title": child.attrGet("title"),
+                                   "alt": _markdown_label(child.children or ())})
+                elif child.type == "text":
+                    wiki_links += len(WIKI_LINK.findall(child.content))
+                    embeds += len(EMBED.findall(child.content))
+    result = {
+        "format": "markdown", "parsed": True, "parser": "markdown-it-py", "parser_version": __version__,
+        "profile": "commonmark", "frontmatter": bool(frontmatter), "heading_count": counts["heading_open"],
+        "headings": headings, "headings_capped": counts["heading_open"] > len(headings),
+        "wiki_link_count": wiki_links, "embed_count": embeds, "markdown_link_count": counts["link_open"],
+        "links": links, "links_capped": counts["link_open"] > len(links), "image_count": counts["image"],
+        "images": images, "images_capped": counts["image"] > len(images),
+        "blockquote_count": counts["blockquote_open"], "code_block_count": counts["code_block"] + counts["fence"],
+        "code_fence_count": fences, "list_item_count": counts["list_item_open"],
+    }
+    if unclosed:
+        result["note"] = f"{unclosed} unclosed code fence(s); the parser closes them at the container or document end"
+    return result
 
 
 def _column_letters(index: int) -> str:

@@ -506,9 +506,13 @@ def extract(
     path: Path,
     lang: str,
     tessdata_dir: Path | None = None,
-    engine: str = "auto",
+    engine: str | None = None,
 ) -> dict:
-    chosen, fallback_reason = _choose_ocr_engine(engine, lang)
+    # Core's image.ocr route omits this argument. An operator can pin one
+    # installed provider for the lifetime of a Core without changing the job.
+    selection = os.environ.get("ARCHEAXIS_OCR_ENGINE", "auto") if engine is None else engine
+    requested = selection.strip().lower() or "auto"
+    chosen, fallback_reason = _choose_ocr_engine(requested, lang)
     binary = _tesseract() if chosen == "tesseract" else None
     if not path.is_file():
         raise ValueError(f"input image not found: {path}")
@@ -739,6 +743,7 @@ def extract(
             "engine_version": ENGINE_VERSION,
             "params": {
                 **engine_params,
+                "requested_engine": requested,
                 "coverage_unit": "line anchors",
                 # R15/F04: the reading order is a decision with a reason, reported the
                 # same way as every other fact, and the word regions below follow it.

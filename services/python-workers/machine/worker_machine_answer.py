@@ -30,6 +30,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -502,6 +503,43 @@ def read_response_format(path, context_path):
                                                 parse_constant=_invalid_json_constant))
 
 
+def _structured_sdk(endpoint, model, prompt, timeout_s, max_tokens, response_format):
+    """A locally staged SDK worker is selected by its existing machine.answer route."""
+    config = Path(__file__).with_name("lmstudio-structured-runtime.json")
+    if endpoint["base"].rstrip("/") != OPENAI_BASE or not config.is_file():
+        return None
+    runtime = json.loads(config.read_text(encoding="utf-8"))
+    if runtime.get("schema") != "archeaxis.lmstudio-structured-runtime/v1":
+        raise ValueError("invalid LM Studio structured worker configuration")
+    if model != runtime["model"]:
+        return None
+    node = Path(runtime["node"])
+    if not node.is_absolute() or not node.is_file():
+        raise ValueError("configured Node runtime is unavailable")
+    data = {"model": model, "prompt": prompt, "schema": response_format["json_schema"]["schema"],
+            "max_tokens": max_tokens, "timeout_ms": max(1, int(timeout_s * 1000) - 300)}
+    try:
+        command = subprocess.run([str(node), str(config.with_name("lmstudio_structured.mjs"))],
+                                 input=json.dumps(data).encode("utf-8"), stdout=subprocess.PIPE,
+                                 stderr=subprocess.DEVNULL, timeout=timeout_s, check=True,
+                                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except subprocess.TimeoutExpired as error:
+        raise TimeoutError("local structured model deadline exceeded") from error
+    except subprocess.CalledProcessError as error:
+        if error.returncode == 124:
+            raise TimeoutError("local structured model deadline exceeded") from error
+        raise
+    if len(command.stdout) > MAX_MODEL_RESPONSE_BYTES:
+        raise ValueError("local structured model response exceeds limit")
+    payload = json.loads(command.stdout)
+    if payload["model"] != model or not isinstance(payload["answer"], str):
+        raise ValueError("invalid local structured model identity or content")
+    source = "content" if payload["answer"] else "reasoning_content" if payload["reasoning_seen"] else "none"
+    reply = ModelReply((payload["answer"], payload["finish"], payload["model"], source), payload["usage"] or None)
+    reply.transport = payload["transport"]
+    return reply
+
+
 def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
           max_tokens: int, response_format=None) -> tuple[str, str, str | None, str]:
     """One text request, in whichever protocol the endpoint speaks.
@@ -513,6 +551,9 @@ def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
         response_format = normalize_response_format(response_format)
         if endpoint["protocol"] != "openai":
             raise ValueError("structured output is unsupported by this protocol")
+        sdk_reply = _structured_sdk(endpoint, model, prompt, timeout_s, max_tokens, response_format)
+        if sdk_reply is not None:
+            return sdk_reply
     if endpoint["protocol"] == "openai":
         url = f"{endpoint['base']}/chat/completions"
         body = {
@@ -664,6 +705,10 @@ def answer(context: str, question: str, model: str | None = None,
         format_receipt = {"response_format": response_format,
                           "response_format_sha256": response_format_sha256(response_format),
                           "format_validation": "VALID"}
+    transport = getattr(reply, "transport", None)
+    connection = ({"endpoint": transport["endpoint"], "protocol": transport["protocol"],
+                   "structured_transport": transport} if transport else
+                  {"endpoint": endpoint["base"], "protocol": endpoint["protocol"]})
     return {
         **format_receipt,
         "engine": ENGINE,
@@ -673,8 +718,7 @@ def answer(context: str, question: str, model: str | None = None,
         "requested_model": model,
         "observed_model": observed_model,
         "answer_source": answer_source,
-        "endpoint": endpoint["base"],
-        "protocol": endpoint["protocol"],
+        **connection,
         "prompt_version": actual_prompt_version,
         "answer_policy": answer_policy,
         "finish_reason": finish_reason,
@@ -693,8 +737,7 @@ def answer(context: str, question: str, model: str | None = None,
                 "requested_model": model,
                 "observed_model": observed_model,
                 "answer_source": answer_source,
-                "endpoint": endpoint["base"],
-                "protocol": endpoint["protocol"],
+                **connection,
                 "prompt_version": actual_prompt_version,
                 "answer_policy": answer_policy,
                 "max_tokens": max_tokens,
@@ -731,6 +774,7 @@ def extract(path: str, question: str | None = None,
                     answer_policy=answer_policy, prompt_version=prompt_version,
                     **({"response_format": response_format} if response_format is not None else {}))
     return {
+        **({"structured_transport": result["structured_transport"]} if "structured_transport" in result else {}),
         **({k: result[k] for k in ("response_format", "response_format_sha256", "format_validation")}
            if response_format is not None else {}),
         "engine": ENGINE,

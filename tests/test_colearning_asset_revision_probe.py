@@ -90,6 +90,23 @@ def test_revision_full_packet_and_answer_binding_accepts_explicit_fixture():
     assert observed["task_id"] == result["answer_id"]
 
 
+def test_answer_binding_uses_core_required_order_and_the_submitted_budget():
+    packet, _, _, _, sent, result, kg, route = fixture()
+    schema = sent["response_format"]["json_schema"]["schema"]
+    schema["properties"]["unit"] = {"type": "string"}
+    schema["required"] = ["unit", "loan_days"]
+    sent["max_tokens"] = 3000
+    normalized = copy.deepcopy(sent["response_format"])
+    normalized["json_schema"]["schema"]["required"] = ["loan_days", "unit"]
+    digest = probe.sha(normalized)
+    result["request"].update(response_format=normalized, response_format_sha256=digest, max_tokens=3000)
+    result["answer"].update(answer='{"loan_days":7,"unit":"days"}', response_format_sha256=digest, max_tokens=3000)
+
+    observed = probe.checked_answer(result, sent, packet["packet"], probe.MATERIALS["v1"], kg, route)
+    assert observed["task_id"] == result["answer_id"]
+    assert schema["required"] == ["unit", "loan_days"]
+
+
 @pytest.mark.parametrize("tamper", ["missing_reference_states", "wrong_currentness", "changed_asset", "widened_authority"])
 def test_revision_rejects_self_consistently_hashed_wrong_packet(tamper):
     packet, asset, grant, material, *_ = fixture()

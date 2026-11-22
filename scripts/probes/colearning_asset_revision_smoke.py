@@ -176,9 +176,15 @@ def checked_answer(result, sent, packet, knowledge_text, knowledge_grant, route)
     require(result["knowledge_id"] == sent["knowledge_id"] and result["question"] == sent["question"]
             and result["client_request_id"] == sent["client_request_id"], "answer identity differs")
     for key in ("knowledge_id", "question", "model", "context_grant", "asset_context_grant",
-                "max_tokens", "timeout_s", "response_format"):
+                "max_tokens", "timeout_s"):
         require(request[key] == sent[key], "persisted request differs: " + key)
-    require(request["response_format_sha256"] == sha(sent["response_format"]), "output shape hash differs")
+    # Core stores and hashes the required field names in sorted order.
+    expected_format = copy.deepcopy(sent["response_format"])
+    schema = expected_format["json_schema"]["schema"]
+    schema["required"].sort()
+    format_sha = sha(expected_format)
+    require(request["response_format"] == expected_format, "persisted request differs: response_format")
+    require(request["response_format_sha256"] == format_sha, "output shape hash differs")
     answer_packet = copy.deepcopy(packet)
     answer_packet["operation"] = "answer"
     proof = {"schema": "archeaxis.machine-asset-context/v1", "asset": packet["asset"],
@@ -200,8 +206,8 @@ def checked_answer(result, sent, packet, knowledge_text, knowledge_grant, route)
     require(all(answer.get(key) == value for key, value in route.items()), "observed model route differs")
     require(answer.get("requested_model") == answer.get("observed_model") == route["model"]
             and answer.get("finish_reason") == "stop" and answer.get("truncated") is False
-            and answer.get("max_tokens") == BUDGET["max_tokens"]
-            and answer.get("response_format_sha256") == sha(sent["response_format"])
+            and answer.get("max_tokens") == sent["max_tokens"]
+            and answer.get("response_format_sha256") == format_sha
             and answer.get("format_validation") == "VALID"
             and isinstance(answer.get("answer"), str) and bool(answer["answer"].strip()),
             "missing complete real model/structured output identity")

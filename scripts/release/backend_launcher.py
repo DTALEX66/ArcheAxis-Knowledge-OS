@@ -1,12 +1,12 @@
 """Start the staged backend runtime from its own root.
 
-This is the formal entry point of a staged runtime. It resolves every component from
-the runtime root it lives in - never from a checkout, a project virtualenv, an
-editable install or an inherited `PYTHONPATH` - and it never asks the operator to
-resolve an interpreter: the scheduler interpreter comes from `worker-profile.json`,
-which is what the Core reads.
+This is the formal entry point of a staged runtime. By default the directory
+beside this launcher supplies the Core and the profile that declares the worker
+interpreter and scripts. An operator can also select an existing backend root
+and substitute its machine.answer worker for the current session.
 
-    runtime/python.exe start-backend.py --data-root <dir> [--port N] [--smoke]
+    runtime/python.exe start-backend.py [--backend-root <kit>] [--machine-worker <script>]
+                                       [--data-root <dir>] [--port N] [--smoke]
 
 `--smoke` performs the first exchange, reports health, and shuts the Core down.
 
@@ -19,9 +19,10 @@ ordinary Core startup.
 from __future__ import annotations
 
 import argparse
-import hashlib
-import json
 import errno
+import hashlib
+import http.client
+import json
 import os
 import re
 import secrets
@@ -42,6 +43,7 @@ CORE_RELATIVE = Path("core") / "archeaxis-api.exe"
 LAUNCH_PROTOCOL = "archeaxis.desktop-launch/v2"
 READY_MARKER = "127.0.0.1:"
 STARTUP_TIMEOUT_SECONDS = 30.0
+SHUTDOWN_TIMEOUT_SECONDS = 8.0
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
 OPENMAIC_DIRECTORY = "workers/openmaic"
 OPENMAIC_FILES = {
@@ -153,9 +155,8 @@ def _load_routes(document: dict, path: Path) -> list[dict]:
         # Their absence must not prevent the Core or ordinary document saving.
         # Unsafe paths still fail above; other routes keep their existing rule.
         if capability in ("deeptutor.practice.import", "deeptutor.question.turn",
-                          "deeptutor.teaching.feedback"):
-            if not resolved_script.is_file():
-                continue
+                          "deeptutor.teaching.feedback") and not resolved_script.is_file():
+            continue
         require_file(resolved_script, f"worker route script for {capability}")
         resolved.append({"capability": capability, "script": resolved_script})
     return resolved
@@ -451,16 +452,25 @@ def openmaic_node_worker(root: Path) -> tuple[dict | None, str | None]:
         return None, classified(error, "absent", "manifest_unreadable", root)
 
 
-def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
+def start(
+    data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite",
+    backend_root: Path | None = None, machine_worker: Path | None = None,
+) -> tuple[subprocess.Popen, str, dict, dict]:
     """Launch a session, optionally reopening the product host's workspace file."""
     if not workspace_name.strip() or any(character in workspace_name for character in "\\/:") or workspace_name in {".", ".."}:
         raise LaunchFailure("unsafe workspace filename")
-    core = require_file(safe_path(ROOT, str(CORE_RELATIVE)), "Core executable")
-    profile = load_profile(ROOT)
+    root = ROOT if backend_root is None else safe_path(Path.cwd(), str(backend_root))
+    core = require_file(safe_path(root, str(CORE_RELATIVE)), "Core executable")
+    profile = load_profile(root)
+    if machine_worker is not None:
+        route = next((item for item in profile["routes"] if item["capability"] == "machine.answer"), None)
+        if route is None:
+            raise LaunchFailure("machine.answer is not registered in the selected backend")
+        route["script"] = require_file(safe_path(Path.cwd(), str(machine_worker)), "selected machine.answer worker")
     require_file(profile["python"], "scheduler interpreter (from worker profile)")
     require_file(profile["script"], "text worker script (from worker profile)")
 
-    data_root = safe_path(ROOT, str(data_root))
+    data_root = safe_path(root, str(data_root))
     staging = safe_path(data_root, "worker-staging")
     workspace = safe_path(data_root, workspace_name)
     data_root.mkdir(parents=True, exist_ok=True)
@@ -484,7 +494,7 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
             ]} if profile.get("routes") else {}),
         },
     }
-    openmaic, openmaic_reason = openmaic_node_worker(ROOT)
+    openmaic, openmaic_reason = openmaic_node_worker(root)
     if openmaic is not None:
         launch["openmaic_node_worker"] = openmaic
     elif openmaic_reason is not None:
@@ -498,8 +508,12 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
     child = subprocess.Popen(
         [str(core), str(workspace), str(port)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, encoding="utf-8", cwd=str(ROOT),
-        env=build_environment(ROOT),
+        text=True, encoding="utf-8", cwd=str(root),
+        env=build_environment(root),
+        # Terminal interrupts belong to the launcher. Core needs time to finish
+        # acknowledged writes after receiving the session shutdown request.
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
+        start_new_session=os.name != "nt",
     )
     try:
         assert child.stdin is not None
@@ -509,7 +523,8 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
-        tokens = {"human": launch["launch_token"], "machine": launch["machine_token"]}
+        tokens = {"human": launch["launch_token"], "machine": launch["machine_token"],
+                  "session_id": launch["session_id"]}
         return child, base, receipt, tokens
     except BaseException:
         stop(child)
@@ -595,7 +610,7 @@ def credential(tokens: dict | None, role: str) -> dict:
 def call(base: str, method: str, path: str, body: dict | None = None,
          tokens: dict | None = None, *,
          header_tokens: dict | None = None,
-         role: str | None = None) -> tuple[int, object]:
+         role: str | None = None, timeout: float = 10) -> tuple[int, object]:
     """Every route is authenticated per request by the launch layer.
 
     The Core matches `x-archeaxis-launch-token` against the token it accepted on
@@ -616,7 +631,7 @@ def call(base: str, method: str, path: str, body: dict | None = None,
     for name, value in headers.items():
         request.add_header(name, value)
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             payload = response.read().decode("utf-8")
             return response.status, json.loads(payload) if payload else {}
     except urllib.error.HTTPError as error:
@@ -627,16 +642,18 @@ def call(base: str, method: str, path: str, body: dict | None = None,
             return error.code, payload
 
 
-def stop(child: subprocess.Popen) -> int:
+def _reap(child: subprocess.Popen) -> tuple[int, bool]:
+    forced = False
     try:
         if child.poll() is None:
+            forced = True
             child.terminate()
             try:
                 child.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 child.kill()
                 child.wait(timeout=15)
-        return child.returncode or 0
+        return child.returncode or 0, forced
     finally:
         for reader in getattr(child, "_archeaxis_readers", []):
             reader.join(timeout=1)
@@ -646,9 +663,56 @@ def stop(child: subprocess.Popen) -> int:
                     stream.close()
 
 
+def stop(child: subprocess.Popen) -> int:
+    """Emergency cleanup for a failed start or an explicitly aborted probe."""
+    return _reap(child)[0]
+
+
+def close_session(child: subprocess.Popen, base: str, tokens: dict) -> dict:
+    """Return the shutdown acknowledgement and the observed exit of this Core."""
+    acknowledged = False
+    error = None
+    already_exited = child.poll() is not None
+    try:
+        if not already_exited:
+            end = time.monotonic() + SHUTDOWN_TIMEOUT_SECONDS
+            session = tokens["session_id"]
+            status, reply = call(base, "POST", "/api/v1/system/shutdown", {"session_id": session},
+                                 tokens=tokens, role="human", timeout=SHUTDOWN_TIMEOUT_SECONDS)
+            acknowledged = (status == 202 and isinstance(reply, dict)
+                            and reply.get("schema") == "archeaxis.session-shutdown/v1"
+                            and reply.get("session_id") == session and reply.get("state") == "draining")
+            if acknowledged:
+                child.wait(timeout=max(0, end - time.monotonic()))
+            else:
+                error = f"shutdown acknowledgement did not match (HTTP {status})"
+    except subprocess.TimeoutExpired:
+        error = "Core did not exit within the shutdown budget"
+    except (OSError, ValueError, http.client.HTTPException) as exc:
+        error = f"shutdown request failed ({type(exc).__name__})"
+    finally:
+        code, forced = _reap(child)
+    if forced:
+        outcome = "forced"
+    elif already_exited:
+        outcome = "already_exited"
+    elif acknowledged and code == 0 and error is None:
+        outcome = "graceful"
+    else:
+        outcome = "unconfirmed" if not acknowledged else "error"
+    result = {"shutdown": outcome, "shutdown_acknowledged": acknowledged, "exit_code": code}
+    if error:
+        result["shutdown_error"] = error
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-root", type=Path, default=ROOT / "data")
+    parser.add_argument("--backend-root", type=Path,
+                        help="use an existing packaged Core, runtime and worker profile")
+    parser.add_argument("--machine-worker", type=Path,
+                        help="select the staged machine.answer script for this session")
+    parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument("--port", type=int, default=0,
                         help="0 (default) lets the OS choose a free port")
     parser.add_argument("--smoke", action="store_true",
@@ -657,13 +721,16 @@ def main() -> int:
 
     port = args.port or free_port()
     try:
-        child, base, receipt, tokens = start(safe_path(ROOT, str(args.data_root)), port)
+        child, base, receipt, tokens = start(args.data_root, port, backend_root=args.backend_root,
+                                             machine_worker=args.machine_worker)
     except (LaunchFailure, OSError) as error:
         print(json.dumps({"ok": False, "failure": str(error)}, ensure_ascii=False, indent=2))
         return 2
 
     receipt["base_url"] = base
     if args.smoke:
+        interrupted = False
+        selected_worker_ready = args.machine_worker is None
         try:
             status, version = call(base, "GET", "/api/v1/system/version",
                                    tokens=tokens, role="human")
@@ -671,23 +738,43 @@ def main() -> int:
             status, info = call(base, "GET", "/api/v1/workspaces/info",
                                 tokens=tokens, role="human")
             receipt["workspaces_info"] = {"status": status, "body": info}
+            if args.machine_worker is not None:
+                status, body = call(base, "GET", "/api/v1/capabilities/machine.answer",
+                                    tokens=tokens, role="human")
+                record = body.get("capability", {}) if isinstance(body, dict) else {}
+                health = record.get("health")
+                receipt["machine_worker_health"] = {"status": status, "health": health,
+                                                   "worker": record.get("provider", {}).get("worker")}
+                selected_worker_ready = status == 200 and health == "handshake_ready"
+        except KeyboardInterrupt:
+            interrupted = True
+        except (OSError, ValueError, http.client.HTTPException) as exc:
+            receipt["exchange_error"] = type(exc).__name__
         finally:
-            receipt["exit_code"] = stop(child)
+            receipt.update(close_session(child, base, tokens))
         receipt["ok"] = (
-            isinstance(receipt.get("system_version"), dict)
-            and receipt["system_version"]["status"] == 200
-            and isinstance(receipt.get("workspaces_info"), dict)
-            and receipt["workspaces_info"]["status"] == 200
+            not interrupted and selected_worker_ready and receipt["shutdown"] == "graceful"
+            and receipt.get("system_version", {}).get("status") == 200
+            and receipt.get("workspaces_info", {}).get("status") == 200
         )
-        receipt["shutdown"] = "terminated"
         print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        if interrupted:
+            return 130
         return 0 if receipt["ok"] else 1
 
     receipt["ok"] = True
     try:
         print(json.dumps(receipt, ensure_ascii=False, indent=2), flush=True)
-        return child.wait()
+        # On Windows Popen.wait() without a timeout stays in WaitForSingleObject
+        # even after Ctrl+C. Periodically return to Python so it can dispatch SIGINT.
+        while True:
+            try:
+                return child.wait(timeout=0.5 if os.name == "nt" else None)
+            except subprocess.TimeoutExpired:
+                continue
     except KeyboardInterrupt:
+        closed = close_session(child, base, tokens)
+        print(json.dumps({"ok": closed["shutdown"] == "graceful", **closed}), flush=True)
         return 130
     finally:
         stop(child)

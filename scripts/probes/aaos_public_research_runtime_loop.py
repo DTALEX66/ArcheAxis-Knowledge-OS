@@ -1,8 +1,8 @@
 """J2 Core probe using an explicit public query and an isolated candidate workspace.
 
-Run through scripts/runtime/dev.py. No database access, fixtures, knowledge
-admission, provider changes or installed-desktop qualification. Network execution
-requires --public-network; --help and importing this module never launch Core.
+Run through scripts/runtime/dev.py. A new search requires --public-network.
+A recorded search can be continued locally through Core. Any review decision
+in this isolated workspace is simulated and carries no Owner acceptance.
 """
 
 from __future__ import annotations
@@ -32,6 +32,14 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def citation_text(hit):
+    if hit.get("excerpt", "").strip():
+        return "excerpt", hit["excerpt"][:128]
+    require(hit.get("content") == hit.get("representation") == "metadata" and hit.get("title", "").strip(),
+            "selected hit has neither quotable content nor a bibliographic title")
+    return "bibliographic_title", hit["title"][:128]
+
+
 def checked_channels(receipt, expected=FAMILIES):
     require(receipt.get("state") in {"complete", "partial"}, "public search failed")
     channels = receipt.get("channels", [])
@@ -58,7 +66,7 @@ def checked_channels(receipt, expected=FAMILIES):
         require(channel.get("raw_source"), "raw response source missing")
         hit = channel["hits"][0]
         require(hit.get("family") == channel["family"], "hit family mismatch")
-        require(bool(hit.get("excerpt", "").strip()), "selected hit has no quotable content")
+        citation_text(hit)
         selected.append(channel)
     return selected
 
@@ -74,7 +82,43 @@ def checked_original(original, reference):
     return raw
 
 
-def hidden_start(office, candidate, work, launcher):
+def admit_excerpt(call, choices):
+    family = next((name for name in ("research", "encyclopedia", "community") if name in choices), None)
+    if family is None:
+        return {"state": "METADATA_ONLY_NO_CLAIM"}, None
+    source, quote = choices[family]
+    job_id = "j2-admission"
+    call("admission_enqueue", "POST", "/api/v1/jobs",
+         {"job_id": job_id, "kind": "text", "input_ref": source}, expected=202)
+    call("admission_execute", "POST", f"/api/v1/jobs/{job_id}/executions",
+         {"deadline_ms": 120000}, expected=202, headers={"idempotency-key": job_id})
+    for _ in range(120):
+        state = call("admission_status", "GET", f"/api/v1/jobs/{job_id}").get("state")
+        if state in ("succeeded", "failed", "cancelled"):
+            break
+        time.sleep(1)
+    require(state == "succeeded", f"admission transform state {state}")
+    transform = call("admission_transform", "GET", f"/api/v1/sources/{source}/jobs/{job_id}/transform")
+    content = transform["content"]
+    start = content.rfind(quote)
+    require(start >= 0, "selected source excerpt missing from the text transform")
+    utf16_start = len(content[:start].encode("utf-16-le")) // 2
+    created = call("admission_knowledge", "POST", "/api/v1/knowledge-items/from-transform", {
+        "knowledge_type": "FACTUAL_CLAIM", "body": quote, "source_id": source,
+        "job_id": job_id, "transform_id": transform["transform_id"], "selection_start_utf16": utf16_start,
+        "selection_end_utf16": utf16_start + len(quote.encode("utf-16-le")) // 2, "quote": quote,
+    }, expected=(200, 201))
+    knowledge_id = created["knowledge_id"]
+    call("admission_review", "POST", f"/api/v1/knowledge-items/{knowledge_id}/review-decisions",
+         {"action": "accepted", "reviewer": "SIMULATED_RESEARCH_REVIEW"}, expected=(200, 201))
+    knowledge = call("admission_read", "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3")
+    require(knowledge["status"] == "accepted", "simulated review was not persisted")
+    return {"state": "ACCEPTED", "reviewer_kind": "SIMULATED", "family": family, "knowledge_id": knowledge_id,
+            "source_id": source, "job_id": job_id, "transform_id": transform["transform_id"],
+            "quote_sha256": sha(quote.encode("utf-8"))}, knowledge
+
+
+def hidden_start(office, candidate, work, launcher, core_executable=None):
     """Reuse the canonical launch handshake with Windows window suppression."""
     original = office.subprocess
 
@@ -90,7 +134,7 @@ def hidden_start(office, candidate, work, launcher):
 
     office.subprocess = Hidden
     try:
-        return office.start(candidate, work, launcher)
+        return office.start(candidate, work, launcher, core_executable=core_executable)
     finally:
         office.subprocess = original
 
@@ -139,14 +183,17 @@ def stop_owned(child, launcher, records):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidate", type=Path, required=True)
+    parser.add_argument("--core-build-receipt", type=Path,
+                        help="Run the qualified current Core with the candidate's workers in place")
     parser.add_argument("--public-query", required=True, help="Public text sent to all three providers")
-    parser.add_argument("--public-network", action="store_true", help="Explicitly enable public requests")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--public-network", action="store_true", help="Explicitly enable new public requests")
+    mode.add_argument("--resume-search-receipt", type=Path,
+                      help="Continue an interrupted search-only run from its stored Core response without querying again")
     parser.add_argument("--backup", action="store_true", help="Also require Core backup creation")
     parser.add_argument("--families", nargs="+", choices=FAMILIES, default=list(FAMILIES),
                         help="Measured families; a subset records the rest as not measured, never as passed")
     args = parser.parse_args()
-    if not args.public_network:
-        parser.error("execution requires --public-network; no request has been sent")
     if not args.public_query.strip() or len(args.public_query.encode("utf-8")) > 512:
         parser.error("public-query must contain 1-512 UTF-8 bytes")
     families = sorted(set(args.families))
@@ -163,8 +210,28 @@ def main():
     require(run == paths["run"], "run ownership does not match this checkout")
     candidate = dev.safe_path(args.candidate)
     candidate.relative_to(paths["dev"])
-    work = dev.safe_path(paths["artifacts"] / "public-research-workspace")
-    work.mkdir(exist_ok=False)
+    recorded_search = None
+    prior_path = None
+    if args.resume_search_receipt:
+        prior_path = dev.safe_path(args.resume_search_receipt)
+        prior_path.relative_to(run.parent)
+        prior = json.loads(prior_path.read_text(encoding="utf-8"))
+        require(prior_path.name == "public-research-receipt.json" and prior_path.parent.name == "artifacts"
+                and prior_path.parent.parent.parent == run.parent, "Foreign search receipt")
+        require(prior.get("source_consistent") and prior.get("candidate_consistent")
+                and dev.safe_path(Path(prior["candidate"])) == candidate, "Search candidate identity differs")
+        require(prior.get("stopped") and all(p.get("wait_reaped") for p in prior["stopped"]), "Prior Core still active")
+        steps = prior["steps"]
+        require([s.get("label") for s in steps] == ["version", "workspace", "public_search"]
+                and steps[-1].get("status") == 200, "Expected a recorded search before its first selection")
+        recorded_search = steps[-1]["body"]
+        require(recorded_search["query"] == args.public_query and sorted(recorded_search["families"]) == families,
+                "Query or family set differs from the recorded search")
+        work = dev.safe_path(Path(prior["workspace"]))
+        require(work == prior_path.parent / "public-research-workspace" and work.is_dir(), "Search workspace missing")
+    else:
+        work = dev.safe_path(paths["artifacts"] / "public-research-workspace")
+        work.mkdir(exist_ok=False)
     output = paths["artifacts"] / "public-research-receipt.json"
     require(not output.exists(), "receipt already exists; choose a new run ID")
     receipt = {
@@ -219,7 +286,7 @@ def main():
     def candidate_identity():
         profile = launcher.load_profile(candidate)
         files = {candidate / "backend-runtime-manifest.json", candidate / "worker-profile.json",
-                 candidate / "core/archeaxis-api.exe", profile["python"], profile["script"]}
+                 core_executable, profile["python"], profile["script"]}
         files.update(route["script"] for route in profile["routes"])
         files.update((candidate / "workers").rglob("*.py"))
         return [office.identity(dev.safe_path(path)) for path in sorted(files)]
@@ -230,7 +297,14 @@ def main():
         body = call(label, "GET", f"/api/v1/sources/{source_id}/original")
         return body, checked_original(body, reference)
 
+    core_executable = candidate / "core/archeaxis-api.exe"
     try:
+        if args.core_build_receipt:
+            core = dev.read_core_build(args.core_build_receipt, paths, os.environ)
+            core_executable = Path(core["path"])
+            receipt["core_build"] = core
+            receipt["core_build_receipt"] = dev.build_file_identity(args.core_build_receipt)
+            receipt["runtime_scope"] = "QUALIFIED_CORE_WITH_IN_PLACE_WORKERS"
         source_before = source_identity()
         candidate_before = candidate_identity()
         receipt.update({"source": source_before, "candidate_files": candidate_before,
@@ -241,16 +315,23 @@ def main():
             receipt["limitations"].append(
                 "Only the requested families were measured; the remaining public channels are NOT_EXECUTED "
                 "in this run and are not reported as passed")
-        child, base, token, worker = hidden_start(office, candidate, work, launcher)
+        child, base, token, worker = hidden_start(office, candidate, work, launcher, core_executable)
         receipt.update({"pid": child.pid, "launch_worker": worker})
         call("version", "GET", "/api/v1/system/version")
         state = call("workspace", "GET", "/api/v1/workspace/ui-state")
         scope = {key: state[key] for key in ("workspace_id", "restore_epoch")}
-        request_id = "public-loop-" + uuid.uuid4().hex
-        target = {**scope, "request_id": request_id}
-        search = call("public_search", "POST", "/api/v1/research/public/search",
-                      {**target, "query": args.public_query, "families": families, "limit": 1},
-                      timeout=180)
+        if recorded_search is not None:
+            require(all(recorded_search[k] == v for k, v in scope.items()), "Recorded workspace or restore epoch differs")
+            request_id = recorded_search["request_id"]
+            target = {**scope, "request_id": request_id}
+            search = call("resume_stored_search", "POST", "/api/v1/research/public/read", target)
+            require(search == recorded_search, "Stored search differs from acquisition receipt")
+            receipt["resumed_from"] = office.identity(prior_path)
+        else:
+            request_id = "public-loop-" + uuid.uuid4().hex
+            target = {**scope, "request_id": request_id}
+            search = call("public_search", "POST", "/api/v1/research/public/search",
+                          {**target, "query": args.public_query, "families": families, "limit": 1}, timeout=180)
         receipt["evidence_level"] = "REAL_CORE_PUBLIC_NETWORK"
         require(search.get("request_id") == request_id, "search receipt identity mismatch")
         channels = checked_channels(search, families)
@@ -259,6 +340,8 @@ def main():
              "error_code": c.get("error_code")}
             for c in search.get("channels", [])]
         materials, selected, anchors = [], [], []
+        admission_choices = {}
+        receipt["citation_basis"] = {}
         for channel in channels:
             family, hit = channel["family"], channel["hits"][0]
             raw_body, _ = original(channel["raw_source"], family + "_raw_original")
@@ -269,10 +352,13 @@ def main():
                     and selection.get("hit_id") == hit["id"], "selection identity mismatch")
             ref = selection["reference"]
             body, data = original(ref, family + "_selected_original")
-            quote = hit["excerpt"][:128]
+            basis, quote = citation_text(hit)
+            receipt["citation_basis"][family] = basis
             quote_bytes = quote.encode("utf-8")
-            start = data.rfind(quote_bytes)
-            require(start >= 0, "selected excerpt missing from derived original")
+            prefix = ("\n标题：" if basis == "bibliographic_title" else "\n\n内容：\n").encode("utf-8")
+            start = data.index(prefix + quote_bytes) + len(prefix)
+            if basis == "excerpt":
+                admission_choices[family] = (ref["source_id"], quote)
             position = {"type": "text", "start": start, "end": start + len(quote_bytes)}
             anchor = call(family + "_anchor", "POST", f"/api/v1/sources/{ref['source_id']}/anchors",
                           {"revision": ref["sha256"], "checksum": sha(quote_bytes),
@@ -290,7 +376,8 @@ def main():
             require(jump_body == body and jump_data[start:position["end"]] == quote_bytes,
                     "original jump does not reproduce quote bytes")
             materials.append({
-                "id": family, "note": selection["note"], "reference": ref,
+                "id": family, "note": selection["note"] + (" 仅引用题名，未取得正文或摘要。" if basis == "bibliographic_title" else ""),
+                "reference": ref,
                 "citation": {"schema": "archeaxis.research-citation/v1", "anchor_id": anchor_id,
                              "source_sha256": ref["sha256"],
                              "anchor_position_sha256": sha(anchor["position"].encode("utf-8")),
@@ -351,45 +438,10 @@ def main():
         for name, content in files.items():
             (work / name).write_text(content, encoding="utf-8")
         (work / "research-package.json").write_text(json.dumps(package, ensure_ascii=False), encoding="utf-8")
-        # The human-selected research snapshot becomes an accepted, source-bound
-        # knowledge item through the ordinary text-job and review path, so J2 ends
-        # in knowledge rather than only a draft.
-        admission_source = next(
-            material["reference"]["source_id"] for material in materials if material["id"] == "research")
-        job_id = "j2-admission"
-        call("admission_enqueue", "POST", "/api/v1/jobs",
-             {"job_id": job_id, "kind": "text", "input_ref": admission_source}, expected=202)
-        call("admission_execute", "POST", f"/api/v1/jobs/{job_id}/executions",
-             {"deadline_ms": 120000}, expected=202, headers={"idempotency-key": job_id})
-        state = None
-        for _ in range(120):
-            job = call("admission_status", "GET", f"/api/v1/jobs/{job_id}")
-            state = job.get("state") if isinstance(job, dict) else None
-            if state in ("succeeded", "failed", "cancelled"):
-                break
-            time.sleep(1)
-        require(state == "succeeded", f"admission transform state {state}")
-        transform = call("admission_transform", "GET",
-                         f"/api/v1/sources/{admission_source}/jobs/{job_id}/transform")
-        content = transform["content"]
-        created = call("admission_knowledge", "POST", "/api/v1/knowledge-items/from-transform", {
-            "knowledge_type": "FACTUAL_CLAIM", "body": content, "source_id": admission_source,
-            "job_id": job_id, "transform_id": transform["transform_id"],
-            "selection_start_utf16": 0,
-            "selection_end_utf16": len(content.encode("utf-16-le")) // 2, "quote": content,
-        }, expected=(200, 201))
-        knowledge_id = created.get("knowledge_id") or created.get("id")
-        require(isinstance(knowledge_id, str) and knowledge_id, "knowledge identity missing")
-        call("admission_review", "POST", f"/api/v1/knowledge-items/{knowledge_id}/review-decisions",
-             {"action": "accepted", "reviewer": "owner"}, expected=(200, 201))
-        knowledge_before = call("admission_read", "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3")
-        receipt["knowledge_admission"] = {
-            "state": "ACCEPTED", "knowledge_id": knowledge_id, "source_id": admission_source,
-            "job_id": job_id, "transform_id": transform["transform_id"],
-            "quote_sha256": sha(content.encode("utf-8")),
-        }
+        admission, knowledge_before = admit_excerpt(call, admission_choices)
+        receipt["knowledge_admission"] = admission
         stop()
-        child, base, token, _ = hidden_start(office, candidate, work, launcher)
+        child, base, token, _ = hidden_start(office, candidate, work, launcher, core_executable)
         receipt["restart_pid"] = child.pid
         restarted = call("restart_workspace", "GET", "/api/v1/workspace/ui-state")
         require({key: restarted[key] for key in scope} == scope, "restart changed workspace basis")
@@ -406,9 +458,10 @@ def main():
         ):
             require(call("restart_" + name, "GET", path) == before, name + " changed after restart")
         receipt["same_objects_after_restart"] = True
-        require(call("restart_knowledge_admission", "GET",
-                     f"/api/v1/knowledge-items/{knowledge_id}/v3") == knowledge_before,
-                "accepted knowledge changed after restart")
+        if knowledge_before is not None:
+            knowledge_path = f"/api/v1/knowledge-items/{admission['knowledge_id']}/v3"
+            require(call("restart_knowledge_admission", "GET", knowledge_path) == knowledge_before,
+                    "accepted knowledge changed after restart")
         if args.backup:
             backup = call("backup", "POST", "/api/v1/workspace/backups", {}, expected=201, timeout=180)
             receipt["backup"] = backup
@@ -425,7 +478,7 @@ def main():
             f"{len(families)} live public channel(s) of {len(FAMILIES)}", "raw and derived original hashes",
             "fixed source references",
             "derived text anchors and original readback", "research draft save",
-            "human-accepted source-bound knowledge", "restart equal readback",
+            admission["state"], "restart equal readback",
             "document package and Markdown manifest",
             "per-channel statuses recorded; a failed primary channel stays failed and is not renamed as success",
         ]})

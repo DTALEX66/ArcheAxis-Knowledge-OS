@@ -7,6 +7,21 @@ fn markdown(text: &str) -> Value {
 }
 
 #[test]
+fn enex_tag_names_remain_filterable_without_reinterpreting_inline_numbers() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("enex.sqlite").to_str().unwrap()).unwrap();
+    let mut editor = markdown("---\ntags: ['Field Notes', '图源/核对', '2026']\n---\n#1957");
+    editor["attrs"]["evernote"] = json!({"note": 1, "enml_sha256": "a".repeat(64)});
+    let saved = document::create_optional(&mut conn, None, None, "ENEX", editor).unwrap();
+    assert_eq!(
+        saved["tags"],
+        json!([{"name":"Field Notes","key":"field notes"},{"name":"图源/核对","key":"图源/核对"},{"name":"2026","key":"2026"}])
+    );
+    let listed = document::list_page(&mut conn, None).unwrap().0;
+    assert_eq!(listed[0]["tags"], saved["tags"]);
+}
+
+#[test]
 fn saved_tags_properties_and_history_share_the_document_version() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("tags.sqlite");

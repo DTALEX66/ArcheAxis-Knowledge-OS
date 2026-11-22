@@ -17,10 +17,7 @@ to reach the worker, not just the function.
 from __future__ import annotations
 
 import importlib.util
-import json
 from pathlib import Path
-
-import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 WORKER = REPO / "services" / "python-workers" / "document" / "worker_text.py"
@@ -117,6 +114,24 @@ def test_markdown_reports_an_unclosed_fence_instead_of_guessing(tmp_path):
     _, facts = _facts(tmp_path, "# Title\n\n```\ncode\n", "text/markdown", ".md")
     assert facts["code_fence_count"] == 1
     assert "unclosed" in facts["note"]
+
+
+def test_markdown_projects_nested_blocks_and_reference_images(tmp_path):
+    text = ("---\nA heading\n---\n\n> ## A `quoted` heading\n\n"
+            "    - text inside code\n\n![a *drawing*][img]\n\n[img]: train.jpg \"Track list\"\n")
+    _, facts = _facts(tmp_path, text, "text/markdown", ".md")
+    assert facts["profile"] == "commonmark" and not facts["frontmatter"]
+    assert facts["headings"] == [{"line": 2, "level": 2, "text": "A heading"},
+                                {"line": 5, "level": 2, "text": "A quoted heading"}]
+    assert facts["list_item_count"] == 0 and facts["code_block_count"] == facts["blockquote_count"] == 1
+    assert facts["images"] == [{"block_start_line": 9, "src": "train.jpg", "title": "Track list", "alt": "a drawing"}]
+
+
+def test_markdown_container_fence_and_escaped_link(tmp_path):
+    text = "> ~~~~\n> ~~~\n> ~~~~\n\n\\[literal](./x) and [real](./y)\n"
+    _, facts = _facts(tmp_path, text, "text/markdown", ".md")
+    assert facts["code_fence_count"] == 2 and facts["code_block_count"] == 1 and "note" not in facts
+    assert facts["links"] == [{"block_start_line": 5, "href": "./y", "title": None}]
 
 
 def test_csv_facts_count_rows_columns_and_raggedness(tmp_path):

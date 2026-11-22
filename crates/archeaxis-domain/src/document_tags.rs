@@ -31,17 +31,30 @@ fn issue(issues: &mut Vec<&'static str>, code: &'static str) {
 
 fn add_tag(
     name: &str,
+    native_title: bool,
     tags: &mut Vec<Value>,
     seen: &mut HashSet<String>,
     issues: &mut Vec<&'static str>,
 ) {
-    let name = name.strip_prefix('#').unwrap_or(name);
-    if name.is_empty()
-        || name.len() > 512
-        || !name.chars().all(tag_char)
-        || name.chars().all(char::is_numeric)
-        || name.split('/').any(str::is_empty)
-    {
+    let (name, invalid) = if native_title {
+        // Native note tags are single-line names. Spaces, punctuation and numbers are significant.
+        let title = name.trim();
+        (
+            title,
+            title
+                .chars()
+                .any(|c| c.is_control() || matches!(c, '\u{2028}' | '\u{2029}')),
+        )
+    } else {
+        let tag = name.strip_prefix('#').unwrap_or(name);
+        (
+            tag,
+            !tag.chars().all(tag_char)
+                || tag.chars().all(char::is_numeric)
+                || tag.split('/').any(str::is_empty),
+        )
+    };
+    if name.is_empty() || name.len() > 512 || invalid {
         issue(issues, "INVALID_TAG");
         return;
     }
@@ -89,7 +102,7 @@ fn inline_tags(
         if name.chars().all(char::is_numeric) {
             continue;
         }
-        add_tag(name, tags, seen, issues);
+        add_tag(name, false, tags, seen, issues);
     }
 }
 
@@ -151,6 +164,25 @@ fn node_text(node: &Value, output: &mut String, depth: usize, issues: &mut Vec<&
     }
 }
 
+fn native_tag_titles(editor: &Value, properties: &Value) -> bool {
+    let attrs = &editor["attrs"];
+    let evernote = &attrs["evernote"];
+    if evernote["note"].as_u64().is_some_and(|n| n > 0)
+        && evernote["enml_sha256"]
+            .as_str()
+            .is_some_and(|hash| hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit()))
+    {
+        return true;
+    }
+    attrs["joplin_item_id"].as_str().is_some_and(|id| {
+        id.len() == 32
+            && id
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            && properties["joplin_id"].as_str() == Some(id)
+    })
+}
+
 /// JSON-compatible YAML mapping only. Unsupported/invalid metadata never prevents ordinary saving.
 pub(crate) fn project(editor: &Value, source_is_markdown: bool) -> Value {
     let mut tags = Vec::new();
@@ -186,12 +218,19 @@ pub(crate) fn project(editor: &Value, source_is_markdown: bool) -> Value {
                                 .is_ok_and(|bytes| bytes.len() <= MAX_FRONTMATTER) =>
                     {
                         properties = Value::Object(map);
+                        let native_titles = native_tag_titles(editor, &properties);
                         if let Some(value) = properties.get("tags") {
                             match value {
                                 Value::Array(items) => {
                                     for item in items {
                                         if let Some(name) = item.as_str() {
-                                            add_tag(name, &mut tags, &mut seen, &mut issues);
+                                            add_tag(
+                                                name,
+                                                native_titles,
+                                                &mut tags,
+                                                &mut seen,
+                                                &mut issues,
+                                            );
                                         } else {
                                             issue(&mut issues, "NON_TEXT_TAG");
                                         }

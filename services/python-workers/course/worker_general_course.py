@@ -23,11 +23,14 @@ MAX_OUTPUT = 1_000_000
 
 def _donors():
     here = Path(__file__).resolve()
-    root = here.parents[3] if here.parents[1].name == "python-workers" else here.parents[2]
-    # Source checkouts carry donors at repo/app. A packaged worker is beside
-    # the runtime, whose locked project wheel lives in this interpreter's
-    # site-packages. Never search another interpreter or a global tool path.
-    if here.parents[1].name != "python-workers" and not (root / "app/contracts/courseware_v1.py").is_file():
+    if here.parents[1].name == "python-workers":
+        root = here.parents[3]
+    elif (here.parent / "donors").is_dir():
+        root = here.parent / "donors"
+    elif (here.parents[2] / "app/contracts/courseware_v1.py").is_file():
+        root = here.parents[2]
+    else:
+        # Earlier bundles carry these modules in their own installed wheel.
         root = Path(sysconfig.get_path("purelib"))
     for package in ("app", "app.contracts", "app.adapters", "shared"):
         if package not in sys.modules:
@@ -99,6 +102,10 @@ def process(request: dict) -> dict:
 
 
 def main() -> int:
+    if sys.argv[1:] == ["--check-runtime"]:
+        _donors()
+        print("course.general ready")
+        return 0
     if sys.argv[1:] == ["--hello"]:
         print(json.dumps({"schema": "archeaxis.derived-worker-hello/v1",
                           "capability": "course.general", "version": 1}))

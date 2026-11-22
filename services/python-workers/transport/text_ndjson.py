@@ -276,8 +276,10 @@ ROUTES = {
     "archive.inventory": {
         "version": "1",
         "worker": "services/python-workers/document/worker_archive.py",
-        "media_types": {"application/zip", "application/x-tar"},
+        "media_types": {"application/zip", "application/x-tar", "application/x-joplin-jex",
+                        "application/x-anki-package", "application/x-anki-collection"},
         "call": "path",
+        "media_type_arg": True,
         # R15/F15: the archive worker can offer its members to the Core as sources, so
         # it is told where durable transfer files may be written.
         "artifact_dir": "members",
@@ -693,10 +695,11 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # (rendered PDF pages, extracted container members) go to the artifact root the
         # Core owns and verifies later by digest. Without one, the worker declares
         # nothing and writes nothing.
-        if artifact_root is None:
-            return module.extract(str(filesystem_path(source)))
-        target = safe_path(artifact_root / route["artifact_dir"], missing=True)
-        return module.extract(str(filesystem_path(source)), **{route.get("artifact_kwarg", "artifact_dir"): filesystem_path(target)})
+        kwargs = {"media_type": media_type} if route.get("media_type_arg") else {}
+        if artifact_root is not None:
+            target = safe_path(artifact_root / route["artifact_dir"], missing=True)
+            kwargs[route.get("artifact_kwarg", "artifact_dir")] = filesystem_path(target)
+        return module.extract(str(filesystem_path(source)), **kwargs)
     if route.get("media_type_arg"):
         media_name = media_type.split(";", 1)[0].strip().lower()
         member = route.get("member_dir_by_media", {}).get(media_name)

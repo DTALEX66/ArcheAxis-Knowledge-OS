@@ -129,6 +129,37 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
+    "owner_backend_first_20261121": {
+      "instruction": "如果前端随时可以修改更新修复，就优先跑完后端闭环",
+      "verification_priority": "沿用已有回执；只补未覆盖的业务操作、已复现的断点及直接受影响的合同。",
+      "scope": "Apply backend-first ordering to the resumed V3 scope. Use the formal Core, isolated workers, fixed versions and recoverable requests. Keep UI redesign for later; existing native consumers remain part of final product qualification.",
+      "continues": "owner_resume_20261114",
+      "knowledge_exchange_qualification_ref": "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json",
+      "knowledge_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#24-joplin-jex-and-raw-exchange-2026-11-22",
+      "anki_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#27-anki-package-and-edited-field-exchange",
+      "zotero_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#28-zotero-public-library-and-bibliography-exchange",
+      "obsidian_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#29-obsidian-vault-folder-exchange",
+      "obsidian_incremental_sync_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#30-incremental-obsidian-vault-sync",
+      "markdown_structure_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#31-commonmark-structure-in-text-extraction",
+      "evernote_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#32-evernote-enex-notes-and-annotations",
+      "notion_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#33-notion-markdown-and-csv-exchange",
+      "packaged_exchange_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#34-packaged-knowledge-exchange",
+      "logseq_file_graph_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#35-logseq-file-graph-exchange",
+      "local_structured_model_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers",
+      "standalone_model_session_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#standalone-model-session-20261122",
+      "standalone_backend_candidate_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122",
+      "local_installer_selection_20261122": {
+        "owner_version_label": "0.1.00",
+        "desktop_semver": "0.1.0",
+        "scope": "Local desktop candidate and isolated cross-version installation only. Owner separately approved the 35 media-library copies in the manifest with SHA-256 6c2273405618405452656f48816fa5519741d47366c62247defcc1682f00e0c0.",
+        "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100"
+      },
+      "git_snapshot_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#37-git-commit-snapshots",
+      "session_shutdown_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#20-native-session-shutdown-and-writer-drain",
+      "folder_resume_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#25-folder-cli-recovery",
+      "packaged_course_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#26-packaged-course-rendering",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
     "owner_local_audit_execution_20261112": {
       "id": "OWNER-LOCAL-AUDIT-EXECUTION-20261112",
       "instruction": "开始执行，先统一归档到项目里",
@@ -1273,19 +1304,19 @@
       "frontend_design": "OWNER_CONTINUES_CLOUD_GPT_LAYOUT_REFINEMENT; no agent upload or invocation authorized by this statement",
       "cleanup": "Explicit project cleanup authorization; exact reviewed path manifest, ownership, regenerability or retained hash-identical replacement, idleness, protected inputs and postcondition required. No blanket deletion or cross-project cleanup.",
       "storage_authority": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "previous_checkpoint": {
+        "path": ".project-local/runs/be268a2d33/backend-full-after-retirement-20261122/artifacts/portable-storage-pre.json",
+        "bytes": 480305,
+        "sha256": "a3e949b6dd378862b780890ea56ed43a76a36236100a5c63c857b0b5909c7ddc"
+      },
       "operator_storage_checkpoint": {
         "schema": "aaos.operator-storage-checkpoint/v1",
-          "path": ".project-local/runs/be268a2d33/host-20261115/artifacts/storage-post-retirement.json",
-          "bytes": 490053,
-          "sha256": "c8d5f9acb4ad1544d5ab2bf630858f4c23636709b0e08fa8a8964f5b2d352163",
-          "previous_checkpoint": {
-            "path": ".project-local/runs/be268a2d33/v3-integration-20261112/artifacts/storage-after.json",
-            "bytes": 490436,
-            "sha256": "d8c9ddf1081ef25e35f59836d19b062045b2a097bad37daad9f6447c3489f26b"
-          },
+        "path": ".project-local/runs/be268a2d33/native-media-post-governance-20261122/artifacts/storage.json",
+        "bytes": 490055,
+        "sha256": "01790bec9e5c9aab3e774febce4699b6bb4bce49ebcd5373807a9263e7f65ca3",
         "report_schema": "aaos.storage-footprint/v2",
-          "recorded_by": "20261115 second exact governance batch: one reviewed 424330150-byte duplicate NSIS installer was retired with a hash-identical retained replacement, five preserved original proofs and an Owner-approved single-file action; post-governance readback independently reviewed. Fixed checkpoint advances once for actual governance, not per package; this is not a new Owner statement, a budget PASS or a product PASS.",
-          "measurement_scope": "Readable lower bound 90485699269B/1023135 files; PARTIAL, 674 read-error rows and 43 out-of-layout entries preserved. Exact single-file retirement logical bytes 424330150; physical disk release NOT_MEASURED; recovery by copying the retained cnprep3 installer to the original exact filename and rechecking SHA. Prior checkpoint and all original receipts preserved; no bulk deletion, no ACL change, no rolling per-package baseline."
+        "recorded_by": "After the separately approved 35-file media-library retirement finished at 09:53:26 +08:00, the operator recorded its post-governance inventory before building the newly selected desktop version. The previous checkpoint and the failed installer projection remain available.",
+        "measurement_scope": "92602562887 readable bytes, PARTIAL with 674 measurement errors and 43 out-of-layout entries. Relative to the preceding checkpoint the readable total grew by 1357537017 bytes, including the completed standalone backend. The 35 files removed represented 130918912 logical bytes. Twelve distinct retained files were verified after removal."
       },
       "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",

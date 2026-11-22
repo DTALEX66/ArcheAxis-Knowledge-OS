@@ -214,6 +214,67 @@ def test_version_probe_cannot_add_unmanifested_bytecode(tmp_path, monkeypatch):
     assert manifest["components"][1]["version"] == "3.13.14"
 
 
+def _check_staged_worker_donors(tmp_path, monkeypatch, script, capability, donors, prefix, extra_args=()):
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "python.exe").write_bytes(b"fixture")
+    synthetic_vc(runtime, monkeypatch)
+    workers = tmp_path / "workers"
+    (workers / "transport").mkdir(parents=True)
+    (workers / "transport/text_ndjson.py").write_bytes(b"# fixture")
+    (workers / script).parent.mkdir()
+    (workers / script).write_bytes((ROOT / "services/python-workers" / script).read_bytes())
+    core = tmp_path / "core.exe"
+    core.write_bytes(b"fixture")
+    output = tmp_path / "backend"
+
+    # Run the staged script with the test interpreter and its installed libraries.
+    real_run = subprocess.run
+    def inspect(command, **kwargs):
+        assert Path(command[0]) == output / "runtime/python.exe"
+        return real_run([sys.executable, *command[1:]], **kwargs)
+
+    monkeypatch.setattr(stager, "packager_identity", lambda: "fixture")
+    monkeypatch.setattr(stager, "stage_capability_manifest", lambda *_: {})
+    monkeypatch.setattr(stager.subprocess, "run", inspect)
+    assert stager.main(["--core", str(core), "--runtime", str(runtime),
+                        "--workers", str(workers), "--shared", str(ROOT / "shared/learning_scheduler.py"),
+                        "--out", str(output), "--version", "fixture", "--source-commit", "fixture",
+                        "--source-tree", "fixture", *extra_args]) == 0
+    inventory = json.loads((output / "backend-runtime-manifest.json").read_text(encoding="utf-8"))["files"]
+    for relative in donors:
+        member = prefix + relative
+        assert inventory[member]["sha256"] == stager.sha256(ROOT / relative)
+        assert (output / member).read_bytes() == (ROOT / relative).read_bytes()
+    if capability:
+        assert any(route["capability"] == capability for route in launcher.load_profile(output)["routes"])
+    return output
+
+
+def test_prebuilt_course_stage_ships_its_own_donors(tmp_path, monkeypatch):
+    _check_staged_worker_donors(tmp_path, monkeypatch, stager.COURSE_SCRIPT, "course.general",
+                                stager.COURSE_DONORS, "workers/course/donors/")
+
+
+def test_prebuilt_archive_stage_ships_its_anki_reader(tmp_path, monkeypatch):
+    _check_staged_worker_donors(tmp_path, monkeypatch, "document/worker_archive.py", "archive.inventory",
+                                stager.ANKI_DONORS, "")
+
+
+def test_prebuilt_text_stage_can_supply_its_commonmark_reader(tmp_path, monkeypatch):
+    import markdown_it
+
+    source = Path(markdown_it.__file__).resolve().parents[1]
+    with monkeypatch.context() as patcher:
+        staged = _check_staged_worker_donors(tmp_path, patcher, "document/worker_text.py", None, (), "",
+                                            ("--dep-source", str(source)))
+    # Use only the staged packages and the test interpreter's standard library.
+    check = subprocess.run([sys.executable, "-E", "-S", "-B", "-c",
+                            "from markdown_it import MarkdownIt; print(MarkdownIt('commonmark').parse('x\\n===')[0].tag)"],
+                           cwd=staged / "runtime/Lib/site-packages", capture_output=True, text=True, check=True)
+    assert check.stdout.strip() == "h1"
+
+
 @pytest.mark.parametrize("bad", ["missing", "changed", "directory"])
 def test_app_local_donor_refusal_precedes_output(tmp_path, monkeypatch, bad):
     runtime = tmp_path / "runtime"

@@ -64,6 +64,30 @@ PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
+COURSE_SCRIPT = "course/worker_general_course.py"
+ANKI_DONORS = ("shared/compat/__init__.py", "shared/compat/anki_package.py",
+               "shared/compat/import_session.py")
+COURSE_DONORS = ("app/contracts/courseware_v1.py", "app/contracts/general_learning_v1.py",
+                "shared/approved_paths.py", "shared/obsidian_projection.py",
+                "app/adapters/courseware_lesson.py")
+# Pydantic 2 and its locked runtime dependencies. A fresh desktop wheel build
+# installs these with uv. A prebuilt interpreter can obtain missing distributions
+# from the same explicit --dep-source used by the other packaged workers.
+COURSE_DISTRIBUTIONS = ("pydantic", "pydantic-core", "annotated-types",
+                        "typing-extensions", "typing-inspection")
+
+# A directory application loaded by the bundled interpreter. Its namespace and
+# private dependencies stay out of the Core worker interpreter's import path.
+EXCHANGE_FILES = (
+    "shared/__init__.py", "shared/core_client.py", "app/adapters/anki_zotero.py",
+    "scripts/ingest/anki_exchange.py", "scripts/ingest/evernote_exchange.py",
+    "scripts/ingest/git_snapshot.py", "scripts/ingest/joplin_exchange.py", "scripts/ingest/logseq_exchange.py",
+    "scripts/ingest/logseq_outline.py", "scripts/ingest/logseq_parser.cjs", "scripts/ingest/notion_exchange.py",
+    "scripts/ingest/obsidian_vault.py", "scripts/ingest/obsidian_sync.py",
+    "scripts/ingest/zotero_exchange.py", "scripts/ingest/zotero_public.py",
+    "scripts/ingest/directory_batch.py", "scripts/runtime/dev.py", "pyproject.toml",
+)
+EXCHANGE_DISTRIBUTIONS = ("markdown-it-py", "mdurl", "defusedxml")
 
 # The detector's four repository-owned inputs are fixed identities, not a
 # directory search or a request-selected model. Updating them requires review.
@@ -928,6 +952,30 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
     return {"name": name, "members": sorted(copied)}
 
 
+def exchange_sources(repository: Path) -> dict[str, Path]:
+    return {"__main__.py": repository / "scripts/ingest/packaged_exchange.py",
+            **{name: repository / name for name in EXCHANGE_FILES}}
+
+
+def exchange_dependencies(runtime: Path, runtime_additions) -> list[str]:
+    site = runtime / "Lib/site-packages"
+    selected = {canonical_distribution_name(name) for name in runtime_additions}
+    return [name for name in EXCHANGE_DISTRIBUTIONS
+            if name not in selected and distribution_files(name, site) is None]
+
+
+def stage_exchange_client(root: Path, sources: dict[str, Path], dependencies: list[str], dep_source: Path | None):
+    target = root / "shared/exchange"
+    filesystem_path(target).mkdir(parents=True)
+    for name, source in sources.items():
+        member = target / name
+        filesystem_path(member.parent).mkdir(parents=True, exist_ok=True)
+        growth.copy2(source, member)
+    if dependencies and dep_source is None:
+        raise ValueError("knowledge exchange needs a source for missing Python distributions")
+    return [copy_distribution(name, dep_source, target) for name in dependencies]
+
+
 def write_launcher(root: Path) -> Path:
     """The formal entry point: it resolves everything from the runtime root.
 
@@ -955,7 +1003,15 @@ def write_launcher(root: Path) -> Path:
         "  echo {\"ok\": false, \"failure\": \"launcher script is missing: %~dp0start-backend.py\"}\r\n"
         "  exit /b 2\r\n"
         ")\r\n"
+        'if "%~1"=="exchange" goto exchange\r\n'
         '"%~dp0runtime\\python.exe" "%~dp0start-backend.py" %*\r\n'
+        "exit /b %ERRORLEVEL%\r\n"
+        ":exchange\r\n"
+        'if not exist "%~dp0shared\\exchange\\__main__.py" (\r\n'
+        "  echo Knowledge exchange is missing from this backend package. 1>&2\r\n"
+        "  exit /b 2\r\n"
+        ")\r\n"
+        '"%~dp0runtime\\python.exe" -I -B -X utf8 "%~dp0shared\\exchange" %*\r\n'
         "exit /b %ERRORLEVEL%\r\n",
         encoding="utf-8", newline="\r\n")
     return launcher
@@ -1114,6 +1170,56 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
     tree(source, validate=reject_reparse if in_place else None,
          interpreter_binding=args._interpreter_binding if in_place else None)
     tree(args.workers, shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    if (args.workers / "document/worker_text.py").is_file() and args.dep_source is not None and not in_place:
+        # Minimal older interpreters can still project text. Add the CommonMark reader
+        # when the selected dependency source and target together supply its closure.
+        installed = args.runtime / "Lib/site-packages"
+        selected = {canonical_distribution_name(name) for name in args.dep}
+        missing = [name for name in ("markdown-it-py", "mdurl")
+                   if name not in selected and distribution_files(name, installed) is None]
+        if all(distribution_files(name, args.dep_source) is not None for name in missing):
+            args.dep.extend(missing)
+    args._anki_sources = {}
+    if (args.workers / "document/worker_archive.py").is_file():
+        if provider_repository is None:
+            raise ValueError("archive.inventory needs the repository containing its Anki reader")
+        for relative in ANKI_DONORS:
+            donor = provider_repository / relative
+            add(donor)
+            args._anki_sources[relative] = donor
+        if args.dep_source is not None and not in_place:
+            # The target can use a different Python minor than the build host.
+            native_zstd = subprocess.run([str(args.runtime / "python.exe"), "-I", "-B", "-c",
+                                          "from compression import zstd"], capture_output=True, timeout=30)
+            if native_zstd.returncode != 0:
+                name = "backports-zstd"
+                if name not in args.dep and distribution_files(name, args.runtime / "Lib/site-packages") is None:
+                    args.dep.append(name)
+    args._exchange_sources = {}
+    args._exchange_deps = []
+    if args._anki_sources and (args.workers / "document/worker_text.py").is_file():
+        args._exchange_sources = exchange_sources(provider_repository)
+        for donor in args._exchange_sources.values():
+            add(donor)
+        if not in_place:
+            args._exchange_deps = exchange_dependencies(args.runtime, args.dep)
+            for name in args._exchange_deps:
+                if args.dep_source is None or distribution_files(name, args.dep_source) is None:
+                    raise ValueError(f"knowledge exchange needs {name} in the bundled runtime or --dep-source")
+    args._course_sources = {}
+    if (args.workers / COURSE_SCRIPT).is_file():
+        if provider_repository is None:
+            raise ValueError("course.general needs the repository containing its course contracts")
+        for relative in COURSE_DONORS:
+            donor = provider_repository / relative
+            add(donor)
+            args._course_sources[relative] = donor
+        if args.dep_source is not None and not in_place:
+            installed = args.runtime / "Lib/site-packages"
+            selected = {canonical_distribution_name(name) for name in args.dep}
+            for name in COURSE_DISTRIBUTIONS:
+                if name not in selected and distribution_files(name, installed) is None:
+                    args.dep.append(name)
     args._practice_plan = None
     practice_rows = practice_source_rows(provider_repository) if provider_repository is not None else None
     if practice_rows is not None:
@@ -1205,7 +1311,7 @@ def runtime_copy_plan(args, in_place=False, *, repository=None):
         validate_fixed_webview2(args.webview2_runtime.absolute(), args.webview2_manifest.absolute())
         tree(args.webview2_runtime, None)
         add(args.webview2_manifest)
-    for name in args.dep:
+    for name in [*args.dep, *args._exchange_deps]:
         if args.dep_source is None:
             raise ValueError("--dep requires --dep-source")
         reject_reparse(args.dep_source)
@@ -1406,6 +1512,10 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     app_local_webview2 = (stage_fixed_webview2(args.webview2_runtime.absolute(),
                          args.webview2_manifest.absolute(), root) if args.webview2_runtime else None)
     copy_tree(args.workers, root / "workers")
+    for relative, donor in args._course_sources.items():
+        destination = root / "workers/course/donors" / relative
+        filesystem_path(destination.parent).mkdir(parents=True, exist_ok=True)
+        growth.copy2(donor, destination)
     if practice_plan is not None:
         stage_practice_provider(root, practice_plan)
     if openmaic_plan is not None:
@@ -1440,6 +1550,10 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
     # Without it the worker starts and then reports FileNotFoundError, which reads like
     # a broken worker instead of a missing component.
     (root / "shared").mkdir()
+    for relative, donor in args._anki_sources.items():
+        destination = root / relative
+        filesystem_path(destination.parent).mkdir(parents=True, exist_ok=True)
+        growth.copy2(donor, destination)
     growth.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
     # Stateless document-check donors, staged from the same authority source tree.
     source_root = Path(__file__).resolve().parents[2]
@@ -1461,6 +1575,32 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
             raise ValueError("--dep requires --dep-source")
         for name in args.dep:
             dependencies.append(copy_distribution(name, args.dep_source, site_packages))
+
+    exchange_packages = []
+    if args._exchange_sources:
+        exchange_packages = stage_exchange_client(root, args._exchange_sources, args._exchange_deps, args.dep_source)
+        check = subprocess.run([str(root / "runtime/python.exe"), "-I", "-B",
+                                str(root / "shared/exchange"), "--check-runtime"],
+                               cwd=root, capture_output=True, text=True, timeout=30)
+        if check.returncode:
+            raise ValueError("Bundled knowledge exchange cannot load its clients: " + check.stderr.strip()[-600:])
+
+    if args._anki_sources:
+        check = subprocess.run([str(root / "runtime/python.exe"), "-I", "-B",
+                                str(root / "workers/document/worker_archive.py"), "--check-anki-runtime"],
+                               cwd=root, capture_output=True, text=True, timeout=30)
+        if check.returncode != 0 or check.stdout.strip() != "Anki reader ready":
+            raise ValueError("Anki archive reader cannot load its collection reader or Zstandard decoder. "
+                             "Provide --dep-source for the bundled Python version. " + check.stderr.strip()[-600:])
+    if args._course_sources:
+        course_check = subprocess.run(
+            [str(root / "runtime/python.exe"), "-I", "-B", str(root / "workers" / COURSE_SCRIPT),
+             "--check-runtime"], cwd=root, capture_output=True, text=True, timeout=30,
+        )
+        if course_check.returncode != 0 or course_check.stdout.strip() != "course.general ready":
+            raise ValueError("course.general cannot load its bundled course contracts and Pydantic. "
+                             "For a prebuilt interpreter, provide --dep-source for its Python version. "
+                             + course_check.stderr.strip()[-600:])
 
     profile = {
         "schema": PROFILE_SCHEMA,
@@ -1582,6 +1722,11 @@ def _stage(args, *, _runtime_preparer=None, _runtime_environment=None):
              "note": asr_model.get("reason") or "shipped with the runtime; discovered by the transcribe worker"},
         ],
         "dependencies": dependencies,
+        "knowledge_exchange": {
+            "status": "INCLUDED" if args._exchange_sources else "NOT_INCLUDED",
+            "path": "shared/exchange" if args._exchange_sources else None,
+            "private_distributions": [p["name"] for p in exchange_packages],
+        },
         "deeptutor_practice_import": {
             "status": "INCLUDED" if practice_plan is not None else "NOT_INCLUDED",
             "protocol": "private one-shot; Core-controlled only",

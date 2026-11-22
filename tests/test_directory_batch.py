@@ -16,6 +16,9 @@ import os
 import re
 import subprocess
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 MODULE = REPO / "scripts" / "ingest" / "directory_batch.py"
@@ -193,11 +196,17 @@ def test_a_core_refusal_is_recorded_in_the_cores_own_words(tmp_path):
     assert batch.counts_ok(receipt["counts"]) is False, "a batch with a refusal is not a success"
 
 
-def test_a_conflicting_job_is_reported_as_already_enqueued(tmp_path):
+@pytest.mark.parametrize("same_source", [True, False])
+def test_a_conflicting_job_is_checked_before_marking_it_enqueued(tmp_path, same_source):
     core = FakeCore(job_status=409)
-    receipt = batch.run_batch(_folder(tmp_path), core_call=core, manifest_path=tmp_path / "m.jsonl", limit=3)
-    assert receipt["counts"]["already_enqueued"] == 2
-    assert batch.counts_ok(receipt["counts"]) is True
+    def calls(method, path, body):
+        if method == "GET" and path.startswith("/api/v1/jobs/"):
+            wanted = core.calls[-1][2]
+            return 200, {**wanted, "input_ref": wanted["input_ref"] if same_source else "other_source"}
+        return core(method, path, body)
+    receipt = batch.run_batch(_folder(tmp_path), core_call=calls, manifest_path=tmp_path / "m.jsonl", limit=3)
+    assert receipt["counts"]["already_enqueued" if same_source else "failed"] == 2
+    assert batch.counts_ok(receipt["counts"]) is same_source
 
 
 def test_a_second_run_skips_what_did_not_change(tmp_path):
@@ -275,6 +284,60 @@ def test_a_dry_run_writes_nothing_and_calls_nothing(tmp_path):
     assert receipt["counts"]["skipped_unchanged"] == 4
     assert core.calls == []
     assert not manifest.exists()
+
+
+def test_interruption_preserves_each_finished_file_and_port_change(tmp_path):
+    root = tmp_path / "input"
+    root.mkdir()
+    (root / "a.md").write_text("first", encoding="utf8")
+    (root / "b.txt").write_text("second", encoding="utf8")
+    manifest = tmp_path / "progress.jsonl"
+    core = FakeCore()
+
+    def interrupted(method, path, body):
+        if path == "/api/v1/imports" and body["name"] == "b.txt":
+            raise InterruptedError("controller stopped before second import")
+        return core(method, path, body)
+
+    with pytest.raises(InterruptedError):
+        batch.run_batch(root, core_call=interrupted, manifest_path=manifest)
+    assert [item["path"] for item in batch.read_manifest(manifest)] == ["a.md"]
+    result = batch.run_batch(root, core_call=core, manifest_path=manifest)
+    assert result["counts"]["skipped_unchanged"] == result["counts"]["enqueued"] == 1
+    assert [body["name"] for _, path, body in core.calls if path.endswith("/imports")] == ["a.md", "b.txt"]
+
+    def identify(*_):
+        return 200, {"schema": "archeaxis.ingest-batches/v1", "workspace_id": "ws", "restore_epoch": "original"}
+
+    with patch.object(batch, "default_manifest", side_effect=lambda _root, key: tmp_path / (batch.hashlib.sha256(key.encode()).hexdigest() + ".jsonl")):
+        first = batch.resume_manifest(root, "http://127.0.0.1:21001", identify)
+        assert batch.resume_manifest(root, "http://127.0.0.1:31001", identify) == first
+        assert batch.resume_manifest(root, "http://127.0.0.1:31001", None) == first
+        changed = lambda *_: (200, {**identify()[1], "restore_epoch": "restored"})
+        assert batch.resume_manifest(root, "http://127.0.0.1:31001", changed) != first
+
+
+def test_url_journal_adopts_only_completed_work_present_in_core(tmp_path, monkeypatch):
+    monkeypatch.setattr(batch, "default_manifest", lambda root, key: tmp_path / (batch.hashlib.sha256(key.encode()).hexdigest() + ".jsonl"))
+    base = "http://localhost:4000"
+    old = batch.default_manifest(tmp_path, base)
+    batch.append_records(old, [
+        {"path": "kept.md", "source_id": "src1", "sha256": "sum", "kind": "text", "job_id": "job1", "status": "enqueued"},
+        {"path": "gone.md", "source_id": "src2", "sha256": "sum2", "kind": "text", "job_id": "job2", "status": "enqueued"},
+    ])
+
+    def core(method, path, body):
+        assert method == "GET"
+        return {
+            "/api/v1/ingest-batches?limit=1": (200, {"schema": "archeaxis.ingest-batches/v1", "workspace_id": "test", "restore_epoch": "one"}),
+            "/api/v1/sources/src1": (200, {"sha256": "sum"}), "/api/v1/jobs/job1": (200, {"input_ref": "src1", "kind": "text"}),
+            "/api/v1/sources/src2": (404, {}),
+        }[path]
+
+    original = old.read_bytes()
+    journal = batch.resume_manifest(tmp_path, base, core)
+    assert [entry["path"] for entry in batch.read_manifest(journal)] == ["kept.md"]
+    assert old.read_bytes() == original
 
 
 def test_the_manifest_is_one_json_line_per_attempt(tmp_path):
