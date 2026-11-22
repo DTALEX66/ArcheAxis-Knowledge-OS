@@ -1264,6 +1264,10 @@ Import a UTF-8 `.sy` file through the ordinary source or folder entry and choose
 
 The reader handles Spec 2 and Spec 3 documents. It presents tab content in source order and marks references outside the file as unbound. Local asset paths are locators. Unimplemented node types are reported among the omitted subtrees. The source original can be returned unchanged through `GET /api/v1/sources/{id}/original`. Native notebook archives, encrypted documents, other spec versions, visual layouts, sync and writing back to SiYuan have separate requirements. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md)
 
+A user may select an attachment as a separate ordinary Source through `POST /api/v1/imports`. On the saved document, append a `related` target with `kind=source`, its Source ID and original SHA-256 to `editor_json.attrs.archeaxis_relations`. Preserve the editor content and save through `PUT /api/v1/documents/{id}/draft` with the expected version. Read the target through `GET /api/v1/sources/{id}/original` and check the returned bytes against the pinned digest. This document-level relation leaves the native block locator unbound.
+
+For one official Spec 2 note and PNG, the v2 relation reopened after a cold restart. The existing AAOS portable Document export and import endpoints transferred both originals to an empty AAOS workspace. The restored v1 relation opened the same PNG through the importer's Source mapping. Both content-derived IDs kept the same values. Automatic attachment binding, desktop clicks and native SiYuan write-back remain unverified.
+
 When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
 
 ## 39. Windows image OCR providers

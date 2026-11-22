@@ -4964,6 +4964,14 @@ Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件
 
 旧驱动先将 Spec 2 原件存为 `imported_no_job`。新版显式续做只验证原 source 并补入队 `batch-1a7a89017c1a`，既有原件 ID 保留，再续做发出 0 次请求。业务回执 `x6-siyuan-core-reopen-20261122/artifacts/siyuan-core-reopen-business.json` 的 SHA-256 为 `e6144b26e216376c711fa77218be1572abb3157a4d90d5e634520a7c8734fc8a`。包含网页核验修复的已发安装器仍使用 `0b014775`。
 
+### 2026-11-23 X6 · 思源文档显式关联附件及跨 AAOS 工作区恢复
+
+固定上游版本中的 Spec 2 文档 `20200915214115-42b8zma.sy`（55,033 字节）和 PNG（1,589 字节）分别作为普通 Source 导入。一次转换得到 96 个块。块 `20210512171633-u3iy2xx` 的原生附件路径仍为 `unbound`。通过正式 Core HTTP 接口模拟用户明确选择该 PNG，在文档 v1 上保存文档级 `related` 关系。冷重开后，固定 v2 的关系、正文及两份原件均可读回；由关系打开的 PNG 实际字节 SHA-256 为 `788c154262194a126b433b1055fbddcf5ada066e0d1f565a54e5550125675075`。
+
+AAOS 便携文档包一次导出两份原件，一次导入先前没有这两个来源的新工作区。依导入回执的两条 Source 映射打开目标文档 v1 的图片，字节与官方 PNG 一致。两条映射的内容派生 ID 均保持原值。三个 Core 会话正常退出。自动路径配对、原生块级打开、桌面点击和写回思源仍待验证。
+
+本次执行工作树为 `f33faeef3785d411a096ea777edde604e580e6f3`。实际 Core 来自前述 `e863ae114dee1e6fe8e85bcf24673f2a89bea583` 构建，正式 transport 与两个文本 worker 的字节摘要均与该次凭据一致，Python 来自已交付的后端。该组合未重新制作安装介质。业务回执 `sy-explicit-image/artifacts/siyuan-explicit-attachment.json`，SHA-256 `985fce08d1eb469e3ee39517388a649b40adfd22bfe2eae719338cbab94a719b`。见[后端合同 §38](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#38-reading-a-siyuan-block-document)。
+
 <a id="windows-ocr-providers"></a>
 
 ### 2026-11-22 X1 · 已安装 Windows 的中英扫描件和登记的 RapidOCR
@@ -4979,3 +4987,13 @@ Owner 批准清理旧展开后端中同时有两份恢复来源的 161 个文件
 补用最终 worker（SHA-256 `24df847989803fef0baf7e50bfd344efc70397697e4d3c832ae095920427cfc2`）检验了同一张中英测试图的自动回退。该验证进程只声明登记的 RapidOCR 资源，无法启动 Tesseract。正式 `image.ocr` 作业在 `auto` 模式首次尝试完成，回执记录 Tesseract 缺席，实际运行 RapidOCR 1.4.4。模型读出相同的两行中英文，保有两个行位置及三份产物各自的摘要。见 `x1-auto-mixed-final/artifacts/auto-mixed-core.json`（SHA-256 `1a7f6499e143b4281413c1eb4dac9a2e244c4d451754fd6b5134d7131ffc8619`）。已发安装器可配合的 `AAOS-0.1.00-Windows-Tesseract-Offline-Launcher.zip` 含双击启动器、中文使用说明和安装态回执，5,195 字节，SHA-256 为 `7b465581068f41d86be0bc8927c99bf5023d5ad1776d7b05fedf94562f479bc8`。GitHub 草稿已追加该附件，编号 `779590365`，共十份。引擎和两份字库从说明所列的上游版本另行取得。
 
 修复后的 Rust 握手代码与现有协议库在本机 Windows 运行了四种组合。能力匹配与不匹配分别在目录可清理、文件被占用时返回对应状态和诊断。源码实测见 `vnext-win-health-source-slice-20261122/artifacts/capability-health-narrow-rustc.json`（SHA-256 `2cb09bd2798768f3ceafb549188a3dd133bdceb5332baa0fada23ca372e916ab`）。本机完整 Cargo 重编在容量复核前停止。
+
+<a id="scanned-pdf-independent-restore"></a>
+
+### 2026-11-23 双页扫描 PDF 的页内定位与独立还原
+
+在与修复版安装器清单一致的独立后端上，普通导入一份两页均无文字层的既有合成 PDF，原件 SHA-256 为 `640d12b8163b37c066777f4713a2d731cfc4acc6300270380cb84f8e1014ae1c`。PDF 作业为两页分别建立识别作业。通过单独配置的 Tesseract 和中英字库，第 1 页读出 `OCR PAGE ONE 6371` 与「扫描中文页一」，第 2 页读出 `OCR PAGE TWO 8429` 与「扫描中文页二」。两处引用分别定位到相应页的第一行，并保留原 PDF 来源、版本和衍生页关系。
+
+将两页正文保存为普通文档 v1 后，正式备份返回 HTTP 201，预览确认可兼容还原。Core 维护还原退出 0。在新的还原库上冷启动，原 PDF 逐字节一致，两页衍生图、两个定位锚点、三个作业的九项输出和已保存版本等 19 次回读均符合原值。前两次验证脚本分别将外层 worker 名当作引擎名，以及误判了 Core 添加的块 ID。两份原回执均保留。最后从完成两页识别的工作区副本继续，新增 OCR 调度为 0。实测使用独立后端与合成工作区。见 `x6-scanned-pdf-d3fb-restore-20261123/artifacts/scanned-pdf-restore.json`（SHA-256 `e555dcb9824640d9f4414abb5faf9a9d167f78e4f07ea9318ed3cd2f06ac783d`）。
+
+源码 `f33faeef` 的 Windows 诊断已越过原工作进程健康检查。`oss_template_reuse` 随后取得非空识别结果，但缺少黄金样本要求的 `OCR GOLDEN ANCHOR`，云端日志未打印该次引擎或具体正文。该诊断工作流原先省略了常规 Windows CI 已使用的 Tesseract 准备步骤。现已复用同一锁定引擎、英文训练数据和固定图像校验，再按原断言跑工作区。[原次 Windows 运行](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45041710639)
