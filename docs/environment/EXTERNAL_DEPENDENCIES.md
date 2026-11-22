@@ -97,13 +97,13 @@ Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibi
 
 ## 1. 系统级工具（必须安装）
 
-### 1.1 Python 3.11+
+### 1.1 Python 3.11.5 及以上
 
 - **用途**：运行时
 - **版本**：3.11.15（主）/ 3.14.6（辅）
 - **下载**：https://www.python.org/downloads/windows/
 - **管理**：scoop（`scoop install python311`）
-- **验证**：`python --version` → `Python 3.11.x`
+- 运行 `python --version`，确认用于源码安装的解释器为 3.11.5 或更高版本。
 
 ### 1.2 uv（Python 包管理器）
 

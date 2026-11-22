@@ -2021,11 +2021,11 @@
           "source_refs": [
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             },
             {
               "path": "pyproject.toml",
-              "sha256": "457e86369a26aefaaff20328f57f9b8847bdbd4343fdd9cda5680b6787e688c5"
+              "sha256": "b036fbfff30d1d44820cef9832a17e64fe58d1adaf92b8e95b05a2121978fe98"
             }
           ]
         },
@@ -2047,7 +2047,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             }
           ]
         },
@@ -2804,7 +2804,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             }
           ]
         },
@@ -5396,11 +5396,11 @@
           "source_refs": [
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             },
             {
               "path": "pyproject.toml",
-              "sha256": "457e86369a26aefaaff20328f57f9b8847bdbd4343fdd9cda5680b6787e688c5"
+              "sha256": "b036fbfff30d1d44820cef9832a17e64fe58d1adaf92b8e95b05a2121978fe98"
             }
           ]
         },
@@ -5422,7 +5422,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             }
           ]
         },
@@ -7133,11 +7133,11 @@
           "source_refs": [
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             },
             {
               "path": "pyproject.toml",
-              "sha256": "457e86369a26aefaaff20328f57f9b8847bdbd4343fdd9cda5680b6787e688c5"
+              "sha256": "b036fbfff30d1d44820cef9832a17e64fe58d1adaf92b8e95b05a2121978fe98"
             }
           ]
         },
@@ -7159,7 +7159,7 @@
             },
             {
               "path": "uv.lock",
-              "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+              "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
             }
           ]
         },
@@ -7790,7 +7790,7 @@
     },
     {
       "path": "uv.lock",
-      "sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0"
+      "sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
     },
     {
       "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
@@ -8259,6 +8259,23 @@
         "previous_sha256": "370731e01e29db9b97448ed872d131dec0abd288a2f779dcfe9d8f3273e3bfc4",
         "current_sha256": "915de06fb29b30c61a940410cc772638781306e6676b9caa31a6d6722b9093f3"
       }
-    ]
+    ],
+    "python_source_install": {
+      "requires_python": ">=3.11.5",
+      "soupsieve": "4.1.3",
+      "basis": "Only the Soup Sieve distribution changed in the resolved third-party packages. Existing donor version and license entries continue to use the same upstream packages.",
+      "sources": [
+        {
+          "path": "uv.lock",
+          "previous_sha256": "2bea97412483b002dc9aa270641a544ecb4db6c0522df06ffe7af753362e1ea0",
+          "current_sha256": "34299b4fdd9c3082a207eb6f5ca194ddb21c6556970aec3588c25ae6e1377e79"
+        },
+        {
+          "path": "pyproject.toml",
+          "previous_sha256": "457e86369a26aefaaff20328f57f9b8847bdbd4343fdd9cda5680b6787e688c5",
+          "current_sha256": "b036fbfff30d1d44820cef9832a17e64fe58d1adaf92b8e95b05a2121978fe98"
+        }
+      ]
+    }
   }
 }

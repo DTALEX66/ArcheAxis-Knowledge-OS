@@ -148,6 +148,7 @@
       "local_structured_model_api_ref": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers",
       "standalone_model_session_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#standalone-model-session-20261122",
       "standalone_backend_candidate_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#backend-full-after-retirement-20261122",
+      "source_install_python_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#source-python-3115",
       "local_installer_selection_20261122": {
         "owner_version_label": "0.1.00",
         "desktop_semver": "0.1.0",

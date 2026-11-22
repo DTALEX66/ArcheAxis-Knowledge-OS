@@ -4892,3 +4892,13 @@ DeepTutor 1.7.1评分适配器现在拒绝客观选择题跨选项别名、多�
 - 这个回合的已安装原生窗口打开了同一个工作区，Host 正常退出，受管 Core 也已退出。首次窗口观测未取得 Core 退出码，单次窗口关闭记录保留 `INCOMPLETE`。见 `n100g3/artifacts/output/native.json`。
 - 另起干净的断网 Windows 环境，全新安装同一份 `0.1.00`。首次直接从沙盒映射输入目录恢复时，维护命令失败，回执未记录具体错误码，见 `n100g4/artifacts/output/study.json`。随后先把同一份合成学习库和对象复制到客体本地磁盘，已安装 Core 的 `--maintenance-restore` 恢复成功，12 个原件哈希均符合。没有改动原学习库。
 - 在已安装桌面的 Tauri 窗口内，知识、三份固定版本文档、真实模型产生的既有答案、两条教学记录和课程清单共 8 项，与原回执逐项同摘要。通过窗口的正式桥接保存一份中文复习笔记，退出重开后读回同一 ID、版本与内容，并再次读取原答案。新增推理请求为 0。两次窗口及其各自的 Core 进程均退出 0，应用关闭回执的 PID 与实际子进程相符，两次均为 `GRACEFUL`。见 `n100g5/artifacts/output/study.json`（SHA-256 `18ecea42d7d47f8df13db63ea5dd89514cf02002cd50f2874bfbfd6c2af02b75`）。该隔离环境已关闭。此项覆盖安装态恢复、使用和重开，模型新推理、各平台完整兼容及人的独立学习效果沿原定义分别验收。
+
+<a id="source-python-3115"></a>
+
+### 2026-11-22 源码安装的 Python 最低版本
+
+Owner 选择将源码安装最低版本从 Python 3.11.0 提至 3.11.5。这个决定适用于从源码创建的开发环境和 pip 安装。Windows 桌面候选 `0.1.00` 使用随包解释器；该安装包的身份和验证见上节。
+
+提交 `c7ac5ca0` 的 GitHub CI 在锁定的 Soup Sieve 2.10 上报出三条公告。上游提供的修复版本要求 Python 3.11.5 或以上。源码依赖现要求 `soupsieve>=4.0`，锁定到 `4.1.3`，其余第三方包版本逐项相同。见[原 CI 作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45026979375/job/137222496382)和[上游包信息](https://pypi.org/project/soupsieve/4.1.3/)。
+
+在隔离目录装入锁定哈希对应的发行包，与 Beautiful Soup 4.15.0 一起运行。使用固定 HTML 的网页资料核验、检索结果读取以及版本与清单检查共 7 项通过，见 `upl-soup-affected/artifacts/dependency-check.json`。0.1.00 采用的独立后端解释器是 Python 3.13.14；以其隔离模式检查时，网页核验脚本依赖的 `bs4`、`soupsieve`、`trafilatura` 均不可导入。该包的网页核验能力仍有运行时依赖缺口。

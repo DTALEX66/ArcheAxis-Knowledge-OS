@@ -210,7 +210,10 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ),
     ("canvas.structure", &["application/json"]),
     ("subtitles.structure", &["application/x-subrip", "text/vtt"]),
-    ("html.structure", &["text/html", "application/xhtml+xml", "multipart/related"]),
+    (
+        "html.structure",
+        &["text/html", "application/xhtml+xml", "multipart/related"],
+    ),
     (
         "image.caption",
         &[
@@ -268,10 +271,8 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
         "txt" | "log" | "text" | "rs" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp" | "hpp"
-        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql"
-        | "ris" | "bib" | "bibtex" | "biblatex" => {
-            "text/plain"
-        }
+        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" | "ris"
+        | "bib" | "bibtex" | "biblatex" => "text/plain",
         "md" | "markdown" => "text/markdown",
         // R15/F01: only a source language with a reader here gets its own type. `.py` is read
         // with the interpreter's own `ast`, so a symbol report is possible; the rest stay
@@ -630,7 +631,9 @@ fn finish_inner(
             .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
     };
     if !engine_valid {
-        return Err(JobError::InvalidReceipt("unregistered worker engine or version"));
+        return Err(JobError::InvalidReceipt(
+            "unregistered worker engine or version",
+        ));
     }
     if !same_spans(&structure, &expected)
         || loss.covered != Some(structure.len() as u64)
