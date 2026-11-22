@@ -5076,4 +5076,20 @@ WPS 表格 12.1.0.29690 在一份合成 XLSX 副本上打开「第二页」A1，
 
 原生库渲染、完整思源桌面、整库同步及新版 AAOS 安装器分别登记。本轮覆盖单文档副本，附件布局由验收程序恢复。约 102 KiB 的交换客户端含中文使用说明和验收摘要，已追加至既有草稿。附件 ID `780112610`，104,348 字节，重新下载的 SHA-256 为 `2d971ff07c61b647ff1e9b00f398d1633f1fbf787c77521c61ab885c5c6d6489`，草稿共 16 项。[下载 Windows 交换客户端](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-SiYuan-Exchange-794ce48a.zip)
 
-同一 Windows Core 用机器身份将博物馆归档的 `C_known` 错答登记为待人工审核候选 `k_415fdb2c190ce8516cb6084e`。重启后搜索 `AppleDouble` 能找回该候选，原答、归档、冻结标准、评分和笔记五项引证均按哈希读回。已发表的评分保留 5/6，新增模型请求为 0。真人登记纠错及其后的独立复测仍待执行。回执 `museum-review-machine/artifacts/candidate.json`，SHA-256 `88b6d8035c390a202bea33e52221ab99ffe9a3f3f1be6986a56df4a3613e62d2`。
+同一 Windows Core 用机器身份将博物馆归档的 `C_known` 错答登记为待人工审核候选 `k_415fdb2c190ce8516cb6084e`。重启后搜索 `AppleDouble` 能找回该候选，原答、归档、冻结标准、评分和笔记五项引证均按哈希读回。原评分保留 5/6，新增模型请求为 0。真人登记纠错及其后的独立复测仍待执行。回执 `museum-review-machine/artifacts/candidate.json`，SHA-256 `88b6d8035c390a202bea33e52221ab99ffe9a3f3f1be6986a56df4a3613e62d2`。
+
+<a id="research-links-and-retained-course"></a>
+
+### 2026-11-23 · 恢复旧研究、导出比较稿及停用后继续用课件
+
+11 月 4 日的公开研究使用 Stack Exchange、Wikipedia 和 OpenAlex 查询 `open science data sharing`。Windows Release Core `9629ce5d` 在已有备份上导出研究包，又生成可验证的完整工作区备份并恢复到新目录。六份原始响应及选定内容逐字节相同，三个引证在恢复后仍能定位，旧稿及其导出可读。原工作区保持原样。回执 `j2-962-recovery/artifacts/research-restore.json`，SHA-256 `1e0d19bf3d86462c55cad4d47f82dba2eb6f434cf3209cf20180c6bd736583be`。
+
+恢复的第 1 版研究稿只有支持与反证的占位文字。第 2 版记录三份材料的具体差异。百科说明共享政策和保密例外，社区快照保存了教职晋升问题，OpenAlex 保存了一篇会议讨论的摘要。资料能说明共享为他人使用研究数据提供条件，仍不足以判断共享者的晋升概率。普通研究文档保留 AI 整理、待核实的结论，重启后可读回两版及三个固定引证。本轮外部检索和人工接纳均为 0。回执 `j2-962-comparison/artifacts/comparison-receipt.json`，SHA-256 `dc6161eafe21f6c6dfdebb5e6eae800058c1edc4d799c0626feeacf0f84537b9`。
+
+同一 `9629ce5d` Core 通过正式能力设置停用 `course.general` 后，在第二次冷启动中读回并导出已保存的中文课件，取回原始 491,008 字节的 Joplin 文件。重新启用后第三次冷开，课件第 1 版、来源、知识引用及摘要一致。全程未请求渲染、生成或推理。查询能力详情时会进行健康握手。该验证覆盖用户开关以及已有课件的续用，扩展卸载属于独立操作。回执 `course-provider-retained-02/artifacts/retained-lesson.json`，SHA-256 `f61e9a5c7ad25104e6b006aebecb70ec783a8139173a3f6e4a74ce5c91e5a130`。
+
+旧 Markdown 导出的来源区为空，结构化研究包中保留了六项来源身份与三条引用。`2def1ace87d37c3c96124c8e00b42fc5192dc852` 修复了正式导出入口，并在 Windows Release 构建上通过新增回归。用实际产物冷开同一第 2 版研究稿的独立副本，唯一业务请求是一次 Markdown 导出，返回 HTTP 200。CommonMark 解析出了 Stack Exchange 原问题、Wikipedia 固定修订和 OpenAlex 记录的三个链接。三个选定来源有各自的摘要、锚点、引文及字节范围，三个原始响应保留固定身份。原工作区和文档版本一致。输出 6,058 字节，SHA-256 为 `23cb06ebe0dd764f98eadeeced640a0d43b80ab549b38c9ab0b5ed9da6ce6949`。首次验证启动因缺少独立机器会话身份提前退出，修正启动请求后才发出业务请求。回执 `j2-markdown-export-check/artifacts/markdown-export-result.json`，SHA-256 `e4348610e8105f5210c706901b162625dd99a02692ce74b3fcc99a73235fa350`。[Windows 构建和回归](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45059742084)
+
+既有 GitHub 草稿追加了 Windows Core 组件、构建清单、实测导出的中文 Markdown 和公开业务摘要。压缩包 7,447,009 字节，附件 ID `780179571`，重新下载的 SHA-256 为 `d497a44ff58e0cace8a885a76ad0986ca56f8ff82fb520aba48a7c35ee21bf53`。草稿共 17 项。完整后端和桌面安装器的版本沿各自的构建记录核对。[下载 Windows Core 和研究成果](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Windows-Research-Core-and-Results-2def1ace.zip)
+
+后端装配输入已选用同一修复提交。与 `9629ce5d` 的冻结清单相比，17,803 个成员的字节数和摘要相同。本次替换 Core 与交换命令入口，新增思源交换模块。候选现有 17,806 个载荷成员，共 1,500,670,176 字节。前端 Git 子树一致，沿用先前逐文件核对的 36 份构建资源。新清单 SHA-256 为 `da95ab84cc9537249397169a8a2aee07eb6d1c93e0ccc878192ad99b608e4ebc`，位于本地运行 `2def-release-inputs`。NSIS 文件表已做内存核对。差分回执 SHA-256 为 `9c9857465596663d51b6b189209d0d2136afff4278019551b690dc99abfc147c`。独立 ZIP 实物、桌面 Host、安装器和安装态对应操作继续按新增保留预算与正式装配记录验收。

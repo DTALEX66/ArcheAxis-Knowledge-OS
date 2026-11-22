@@ -448,6 +448,10 @@ do not restart historical queries. These declarations are checked by route/numbe
 tests; behavioral qualification remains in `ingest_batches_api.rs`, `public_research_api.rs`
 and the domain/worker/executor tests, not in the route count.
 
+#### Sources in a Markdown research export
+
+`GET /api/v1/documents/{id}/export?format=markdown` includes the saved research materials under **Evidence records**. Each material carries its reference. A cited Source also carries its pinned quote and anchor, with the stored position when the anchor matches that Source and revision. For a selection from a registered public search, the exporter looks up the original result in the saved search receipt and writes its HTTPS link and locator. Raw API snapshots and local sources retain their fixed identities. The lookup works offline. A research document with materials and no single backing Source uses its document ID, version and digest for its identity. [Windows research and course evidence](AAOS-UI-FIRST-EXECUTION-20261009.md#research-links-and-retained-course)
+
 ## 4. Fields that are constants, not data
 
 The UI must not render these as measured values.
