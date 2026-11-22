@@ -614,6 +614,13 @@
       "receipt": ".project-local/runs/be268a2d33/sy-explicit-image/artifacts/siyuan-explicit-attachment.json",
       "sha256": "985fce08d1eb469e3ee39517388a649b40adfd22bfe2eae719338cbab94a719b",
       "qualification": "An explicit human-role choice linked the saved document to a separately imported PNG Source. Both originals and the relation survived a cold restart and transfer to an empty AAOS workspace."
+    },
+    {
+      "id": "siyuan_native_block_assets_windows",
+      "kind": "WINDOWS_SOURCE_CORE_NATIVE_BLOCK_TO_BATCH_PNG",
+      "receipt": ".project-local/runs/be268a2d33/siyuan-block-exact-source/artifacts/windows-block-assets.json",
+      "sha256": "3d88bc49799ff53b5016f11cc8ca11c886a3ad9daa7c470f9c5285f509fb601a",
+      "qualification": "On Windows, source commit 010ad48fdf401110b8a2a2f54e87cb14a4f16774 used a real text worker and a synthetic Spec 2 note. After reopening the batch, its native block resolved a selected PNG Source and the original bytes. This observation concerns the source Core and batch-root assets."
     }
   ],
   "promotion_rule": "An AAOS authored/synthetic/local result or official documentation cannot promote an external platform direction or feature to PASS; require exact source/target versions, authorized material, mapping/losses, same-candidate consumer/restart/export evidence. NOT_APPLICABLE or deferral needs a referenced approved decision. UNKNOWN is not zero or supported.",
@@ -1670,7 +1677,7 @@
       "inherited_stage": "K3",
       "inherited_route": "官方导出/数据格式/API 待版本核验",
       "inherited_source_refs": [],
-      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace.",
+      "route_qualification": "PARTIAL for read-only native document import. One separately imported PNG was explicitly linked at document level and restored in a second AAOS workspace. In the later Windows source observation siyuan_native_block_assets_windows, a native block resolved the selected batch-root PNG and its original bytes after the workspace reopened.",
       "source_version": {
         "application_version": null,
         "application_observation": "UNVERIFIED",

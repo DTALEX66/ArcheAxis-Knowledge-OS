@@ -21,7 +21,7 @@ fn valid_metadata(meta: &Value, kind: &str, schema: &str) -> bool {
         })
 }
 
-fn usable_receipt(meta: &Value, wire: &str) -> Option<Value> {
+pub(super) fn usable_receipt(meta: &Value, wire: &str) -> Option<Value> {
     if wire.len() > 262144
         || !valid_metadata(meta, "loss_report", "archeaxis.loss-receipt/v1")
         || meta["byte_length"].as_u64()? != wire.len() as u64

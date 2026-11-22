@@ -462,3 +462,178 @@ async fn static_unknown_pdf_can_execute_with_live_version_and_qualify_its_file()
     );
     assert_eq!(qualified["operations"]["roundtrip"]["status"], "UNVERIFIED");
 }
+
+#[tokio::test]
+async fn native_siyuan_block_resolves_only_its_imported_batch_asset_after_reopen() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("batch.sqlite");
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").expect("use dev.py"));
+    let executor = archeaxis_application::executor::Executor::open_routes(
+        &db,
+        &dir.path().join("staging"),
+        &python,
+        &repo.join("services/python-workers/transport/text_ndjson.py"),
+        &[(
+            "text.extract",
+            repo.join("services/python-workers/document/worker_text.py"),
+        )],
+    )
+    .await
+    .unwrap();
+    let app = archeaxis_api::runtime::router(executor.clone());
+    let (_, basis) = call(&app, "GET", "/api/v1/workspace/ui-state", Value::Null).await;
+    let root = "20210512171633-aaaaaaa";
+    let owner = "20210512171633-bbbbbbb";
+    let paragraph = json!({"Type":"NodeParagraph","ID":owner,"Children":[
+        {"Type":"NodeImage","Children":[{"Type":"NodeLinkDest","Data":"assets/%E6%98%9F%20%E7%8E%AF.png"}]},
+        {"Type":"NodeLinkDest","Data":"assets/missing.png"},
+        {"Type":"NodeLinkDest","Data":"assets/ambiguous.png"},
+        {"Type":"NodeLinkDest","Data":"assets/星 环.png"},
+        {"Type":"NodeLinkDest","Data":"assets/%2E%2E/private.png"}
+    ]});
+    let raw = json!({"Type":"NodeDocument","Spec":"2","ID":root,"Properties":{"title":"Source"},"Children":[paragraph]}).to_string();
+    let image = base64::engine::general_purpose::STANDARD.decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMQVDIGAACuAGcVHqFfAAAAAElFTkSuQmCC"
+    ).unwrap();
+    let files: [(&str, &[u8]); 4] = [
+        ("book/entry.sy", raw.as_bytes()),
+        ("assets/星 环.png", &image),
+        ("assets/ambiguous.png", &image),
+        ("book/assets/ambiguous.png", &image),
+    ];
+    let members: Vec<_> = files.iter().enumerate().map(|(ordinal,(path,bytes))|
+        json!({"ordinal":ordinal,"relative_path":path,"byte_length":bytes.len(),"disposition":"pending"})
+    ).collect();
+    let batch = "/api/v1/ingest-batches/native";
+    let manifest = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],
+        "batch_id":"native","folder_label":"data","expected_members":files.len(),"members":members});
+    assert_eq!(
+        call(&app, "POST", "/api/v1/ingest-batches", manifest)
+            .await
+            .0,
+        StatusCode::OK
+    );
+    let upload = |i: usize| {
+        json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],
+        "ordinal":i,"expected_sha256":format!("{:x}",Sha256::digest(files[i].1)),
+        "content_base64":base64::engine::general_purpose::STANDARD.encode(files[i].1)})
+    };
+    let (status, note) = call(&app, "POST", &format!("{batch}/imports"), upload(0)).await;
+    assert_eq!(status, StatusCode::ACCEPTED);
+    let enqueue = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],
+        "ordinal":0,"source_id":note["source_id"],"source_revision":note["sha256"],"kind":"text"});
+    let (status, job) = call(&app, "POST", &format!("{batch}/jobs"), enqueue).await;
+    assert_eq!(status, StatusCode::ACCEPTED);
+    let job_url = format!("/api/v1/jobs/{}", job["job_id"].as_str().unwrap());
+    assert_eq!(
+        call(
+            &app,
+            "POST",
+            &format!("{job_url}/executions"),
+            json!({"deadline_ms":60000})
+        )
+        .await
+        .0,
+        StatusCode::ACCEPTED
+    );
+    tokio::time::timeout(Duration::from_secs(60), async {
+        loop {
+            let (_, job) = call(&app, "GET", &job_url, Value::Null).await;
+            assert_ne!(job["state"], "failed", "{job}");
+            if job["state"] == "succeeded" {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(25)).await;
+        }
+    })
+    .await
+    .unwrap();
+    let block_url = format!("{batch}/members/0/siyuan-blocks");
+    let url = format!("{block_url}/{owner}/assets");
+    let (status, before) = call(&app, "GET", &url, Value::Null).await;
+    assert_eq!(status, StatusCode::OK, "{before}");
+    assert_eq!(
+        before["assets"][0]["reason"],
+        "target_not_imported_or_identity_changed"
+    );
+    let (status, asset) = call(&app, "POST", &format!("{batch}/imports"), upload(1)).await;
+    assert_eq!(status, StatusCode::ACCEPTED);
+    drop(app);
+    drop(executor);
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (status, projection) = call(&app, "GET", &url, Value::Null).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        projection["native_source_block"],
+        json!({"source_id":note["source_id"],"sha256":note["sha256"],"block_id":owner})
+    );
+    let assets = projection["assets"].as_array().unwrap();
+    assert_eq!(assets.len(), 5);
+    assert_eq!(
+        assets[0]["target"],
+        json!({"kind":"source","source_id":asset["source_id"],"sha256":asset["sha256"]})
+    );
+    assert_eq!(assets[1]["reason"], "path_not_in_batch");
+    assert_eq!(assets[2]["reason"], "scoped_asset_path_unverified");
+    assert_eq!(assets[3]["target"], assets[0]["target"]);
+    assert_eq!(assets[4]["status"], "unbound");
+    assert_eq!(assets[4]["reason"], "unsupported_path");
+    let (status, original) = call(
+        &app,
+        "GET",
+        assets[0]["original_url"].as_str().unwrap(),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let returned = base64::engine::general_purpose::STANDARD
+        .decode(original["content_base64"].as_str().unwrap())
+        .unwrap();
+    assert_eq!(returned, image);
+    assert_eq!(
+        format!("{:x}", Sha256::digest(&returned)),
+        assets[0]["target"]["sha256"].as_str().unwrap()
+    );
+    let (status, other) = call(
+        &app,
+        "GET",
+        &format!("{block_url}/{root}/assets"),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(other["assets"], json!([]));
+    assert_eq!(
+        call(
+            &app,
+            "GET",
+            &format!("{block_url}/absent/assets"),
+            Value::Null
+        )
+        .await
+        .0,
+        StatusCode::NOT_FOUND
+    );
+    drop(app);
+    let conn = rusqlite::Connection::open(&db).unwrap();
+    let changed = conn
+        .execute(
+            "UPDATE job_attempts SET request_json=json_set(request_json,'$.inputs[0].sha256',?1)
+         WHERE job_id=?2 AND attempt=?3",
+            rusqlite::params![
+                "0".repeat(64),
+                job["job_id"].as_str().unwrap(),
+                projection["conversion"]["attempt"].as_i64().unwrap()
+            ],
+        )
+        .unwrap();
+    assert_eq!(changed, 1);
+    drop(conn);
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        call(&app, "GET", &url, Value::Null).await.0,
+        StatusCode::BAD_REQUEST
+    );
+}

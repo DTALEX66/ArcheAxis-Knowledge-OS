@@ -13,7 +13,7 @@ use serde::Deserialize;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
-fn response(value: Result<serde_json::Value, domain::Error>) -> Response {
+pub(super) fn response(value: Result<serde_json::Value, domain::Error>) -> Response {
     match value {
         Ok(value) => Json(value).into_response(),
         Err(domain::Error::Invalid(message)) => (StatusCode::BAD_REQUEST, message).into_response(),

@@ -5026,3 +5026,12 @@ Windows 草稿附件 `AAOS-0.1.00-Local-Structured-Answers-Windows.zip` 共 1,64
 同一套件对一份新的合成教学资料 ZIP 实际请求模型一次。归档作业先独立判定三件的预期为 `kept / child / child`。冻结评分标准与已采用的规则 v6，随后提问。Qwen `aaos-fast-4b` 通过 SDK 2.0.0 返回 HTTP 200，可读的最终 JSON 使用 1,385 个输入、1,567 个输出 token，思考预算 1,536。实际值依次为 `original-ZIP-only`、`child for a separate source`、`unknown`。该请求的 Schema 为三个必填字符串。按照事先要求的字面值，A、B 记失败，C 弃答、未测，严格命中 0/3；前两项可按原题释义理解。运行任务首次在评分阶段以 1 退出，原答案已持久化。正式评分保存后，重开读回答案、评测、冻结标准、规则 v6、ZIP 原件、成员和损失报告共七项，追加模型请求 0。详见 `fl-business1/artifacts/named-fast-local-archive.json`（SHA-256 `0ffb578ec5548c7f70391420cb3eeb5cbced6f5d733a619033da6d496731ad9c`）与 `fl-business-read1/artifacts/named-fast-local-score-readback.json`（`56316faf38512f082fdc0eb466241f4596c4cdc5b04777b223328cd90e4730e0`）。
 
 同版后端从旧备份继续处理三份已转换的项目合成 Office 资料。分别对照 Word 表格第 3 行、PowerPoint 第 2 张幻灯片及 Excel 第 2 张工作表第 1 行的原始 OOXML，保存三条有定位的摘录和一份研究文档。便携导入到空库后，文档 v1 及三件原件共 49,981 字节可读回。便携导入未执行知识准入或锚注册。随后将带三条知识引用的 v2 备份恢复到第三个空库，读回两版文档、三条知识、三个可解析位置、三份资格和损失记录。三个正式会话均正常退出，旧转换重新派发 0 次。首轮探针误取启动回执为凭据，未进入业务写入；修正后通过。此次覆盖后端数据路径，外部 Office 原生编辑及写回仍待实测。回执 `office-joined-evidence-2/artifacts/office-linked-materials.json`（SHA-256 `4216ad7f2127b593b258deac2873e9fb79b676addbbd392f1d3a1800f1ce9e36`）。22 格式逐动作本地对照为 `format22-rc-audit-20261123/artifacts/format-family-actions.md`（`586719ccf7648f919f7a4d18b094b222103804286271115babc93145d5344224`）。
+
+<a id="siyuan-native-block-assets"></a>
+### 2026-11-23 · 从思源原生块查找同批附件
+
+源码在既有批次上提供按原生块 ID 查找附件的只读入口。调用者从完成的转换中选中块，读回同批已入库目标的 Source ID、修订摘要和原件读取地址。缺失、未导入或歧义的附件保留各自状态。回执中的定位取自原始思源文档。批次选中文件的清单和 SQLite/CAS 由 Core 原有写入流程保存。[后端接口与返回字段](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#38-reading-a-siyuan-block-document)
+
+定向集成用例使用真实文本 worker、新建 SQLite 工作区和合成思源文档。该用例沿正式批次导入和转换路径，关闭后重开数据库，再从所选原块读取 PNG 原件。目前下载的 `0b014775` 安装器仍使用原 Core。
+
+Windows 实际运行的源码提交为 `010ad48fdf401110b8a2a2f54e87cb14a4f16774`。唯一选中的 `native_siyuan_block_resolves_only_its_imported_batch_asset_after_reopen` 通过，日志为 1 passed、0 failed、0 ignored。同一原块能用中文空格文件名及其编码形式找到相同 PNG，原件字节和 SHA 均符合预期。尚未导入、缺失、路径冲突的目标有各自状态。SQLite 重开后仍能读取原图。用例采用合成资料，桌面点击和思源原生写回须分别验收。本地摘要 `siyuan-block-exact-source/artifacts/windows-block-assets.json` 的 SHA-256 为 `3d88bc49799ff53b5016f11cc8ca11c886a3ad9daa7c470f9c5285f509fb601a`。 [Windows 定向作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45050837063/job/137295373632)

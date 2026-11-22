@@ -8,7 +8,7 @@
 
 重建新版独立后端时沿[已执行的 161 项清理与恢复记录](AAOS-UI-FIRST-EXECUTION-20261009.md#backend-web-rebuild)取用容量基线。安装态学习验收已补入[纠错、再练习和重开实测](AAOS-UI-FIRST-EXECUTION-20261009.md#installed-study-review)。
 
-思源单个原生 `.sy` 文件在后续源码的 Core 上完成了[中文正文、原块关系与目录续做](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-read)。下载的 Windows 构建及其源提交仍沿上方当前候选记录核对。
+思源单个原生 `.sy` 文件在后续源码的 Core 上完成了[中文正文、原块关系与目录续做](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-read)。同批资料中按原块查找附件的源码版本和验收见[原块附件记录](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-block-assets)。下载的 Windows 构建及其源提交仍沿上方当前候选记录核对。
 
 2026-11-22 Owner 已选择本地安装候选的版本名。十月清单的第一项版本选择按[后继决定和构建记录](AAOS-UI-FIRST-EXECUTION-20261009.md#desktop-version-0100)接续，安装与资料保全沿[隔离 Windows 实测](AAOS-UI-FIRST-EXECUTION-20261009.md#installed-0100-data-return)继续。
 

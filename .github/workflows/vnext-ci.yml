@@ -8,13 +8,22 @@ name: vnext-ci
 on:
   # The canonical CI owns automatic vNext checks; this is a diagnostic lane.
   workflow_dispatch:
+    inputs:
+      suite:
+        description: Windows diagnostic suite
+        type: choice
+        default: workspace
+        options:
+          - workspace
+          - siyuan-block-attachment
 
 concurrency:
-  group: vnext-diagnostic-${{ github.ref }}
+  group: vnext-diagnostic-${{ github.ref }}${{ inputs.suite == 'siyuan-block-attachment' && '-siyuan-block-attachment' || '' }}
   cancel-in-progress: true
 
 jobs:
   cargo-test:
+    if: ${{ inputs.suite != 'siyuan-block-attachment' }}
     runs-on: windows-latest
     env:
       CARGO_TERM_COLOR: always
@@ -119,3 +128,33 @@ jobs:
           dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
             "$GITHUB_WORKSPACE/.project-local/task-runtime/vnext-ci/smoke.sqlite" \
             && echo "supervisor smoke OK"
+
+  siyuan-block-attachment:
+    if: ${{ inputs.suite == 'siyuan-block-attachment' }}
+    runs-on: windows-latest
+    env:
+      CARGO_TERM_COLOR: never
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python for the SiYuan text worker
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - name: Verify the SiYuan block attachment reopens through Core
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $testName = 'native_siyuan_block_resolves_only_its_imported_batch_asset_after_reopen'
+          $output = cargo test --locked -p archeaxis-api --test file_format_qualification $testName -- --exact 2>&1
+          $cargoExit = $LASTEXITCODE
+          $output | Write-Output
+          if ($cargoExit -ne 0) { exit $cargoExit }
+          $resultLine = '^test ' + [regex]::Escape($testName) + ' \.\.\. ok$'
+          if (-not ($output -cmatch $resultLine) -or
+              -not ($output -cmatch '^test result: ok\. 1 passed; 0 failed; 0 ignored;')) {
+            throw "Expected one passing test named $testName."
+          }
