@@ -433,6 +433,7 @@ def odf(raw, media):
         tag = element.tag
         if tag == _odf("table", "table"):
             sheet = element.get(_odf("table", "name")) or f"sheet-{len(locations) + 1}"
+            row = 0
             column = 0
         elif tag == _odf("table", "table-row"):
             repeat, hit_cap = _odf_repeat(element, "table", "number-rows-repeated")
