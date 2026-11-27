@@ -212,7 +212,7 @@ struct Channel {
     raw_response_base64: Option<String>,
     hits: Vec<Hit>,
 }
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Hit {
     id: String,
@@ -412,7 +412,7 @@ fn utc_time(value: &str) -> bool {
                 .all(|c| c.is_ascii_digit()))
 }
 
-fn hit_identity(hit: &Hit, request: &Request) -> bool {
+fn hit_identity(hit: &Hit, community_site: &str) -> bool {
     match hit.family.as_str() {
         "encyclopedia" if hit.provider == "dbpedia" => {
             let Some(name) = hit.id.strip_prefix("https://dbpedia.org/resource/") else {
@@ -446,7 +446,7 @@ fn hit_identity(hit: &Hit, request: &Request) -> bool {
                         == Some(format!("pageid={page};revid={revision};section=0").as_str()))
         }
         "community" => {
-            let site = request.community_site();
+            let site = community_site;
             let Some(id) = hit
                 .id
                 .strip_prefix(&format!("stackexchange:{site}:question:"))
@@ -536,6 +536,46 @@ fn hit_representation(hit: &Hit) -> bool {
     }
 }
 
+fn valid_hit(hit: &Hit, community_site: &str) -> bool {
+    !(hit.id.is_empty()
+        || !bounded(&hit.id, 256, false)
+        || !hit_identity(hit, community_site)
+        || !bounded(&hit.url, 8192, false)
+        || hit.title.trim().is_empty()
+        || !bounded(&hit.title, 4096, true)
+        || !bounded(&hit.excerpt, 16384, true)
+        || !["metadata", "excerpt", "full_text"].contains(&hit.content.as_str())
+        || !["wikitext", "html_text", "abstract", "metadata"]
+            .contains(&hit.representation.as_str())
+        || !["free", "unknown"].contains(&hit.free_access.as_str())
+        || (hit.truncated && hit.content == "full_text")
+        || !hit_representation(hit)
+        || hit
+            .license
+            .as_ref()
+            .is_some_and(|license| match hit.family.as_str() {
+                "encyclopedia" if hit.provider == "dbpedia" => license != "CC BY-SA 3.0",
+                "encyclopedia" => license != "CC BY-SA 4.0",
+                "community" => {
+                    !["CC BY-SA 2.5", "CC BY-SA 3.0", "CC BY-SA 4.0"].contains(&license.as_str())
+                }
+                "research" => license != "CC0",
+                _ => true,
+            })
+        || hit
+            .locator
+            .as_ref()
+            .is_some_and(|v| !bounded(v, 4096, false))
+        || hit
+            .license
+            .as_ref()
+            .is_some_and(|v| !bounded(v, 1024, false))
+        || hit
+            .upstream_revision
+            .as_ref()
+            .is_some_and(|v| !bounded(v, 1024, false)))
+}
+
 fn validate_channel(channel: &Channel, request: &Request) -> Result<Option<Vec<u8>>, String> {
     let request_prefix =
         provider(&channel.family, &channel.provider).ok_or("public_provider_invalid")?;
@@ -556,46 +596,11 @@ fn validate_channel(channel: &Channel, request: &Request) -> Result<Option<Vec<u
     }
     let mut identities = std::collections::BTreeSet::new();
     for hit in &channel.hits {
-        if hit.id.is_empty()
-            || !bounded(&hit.id, 256, false)
-            || !identities.insert(&hit.id)
+        if !identities.insert(&hit.id)
             || hit.family != channel.family
             || hit.provider != channel.provider
-            || !hit_identity(hit, request)
-            || !bounded(&hit.url, 8192, false)
-            || hit.title.trim().is_empty()
-            || !bounded(&hit.title, 4096, true)
-            || !bounded(&hit.excerpt, 16384, true)
             || hit.retrieved_at != channel.retrieved_at
-            || !["metadata", "excerpt", "full_text"].contains(&hit.content.as_str())
-            || !["wikitext", "html_text", "abstract", "metadata"]
-                .contains(&hit.representation.as_str())
-            || !["free", "unknown"].contains(&hit.free_access.as_str())
-            || (hit.truncated && hit.content == "full_text")
-            || !hit_representation(hit)
-            || hit
-                .license
-                .as_ref()
-                .is_some_and(|license| match hit.family.as_str() {
-                    "encyclopedia" if hit.provider == "dbpedia" => license != "CC BY-SA 3.0",
-                    "encyclopedia" => license != "CC BY-SA 4.0",
-                    "community" => !["CC BY-SA 2.5", "CC BY-SA 3.0", "CC BY-SA 4.0"]
-                        .contains(&license.as_str()),
-                    "research" => license != "CC0",
-                    _ => true,
-                })
-            || hit
-                .locator
-                .as_ref()
-                .is_some_and(|v| !bounded(v, 4096, false))
-            || hit
-                .license
-                .as_ref()
-                .is_some_and(|v| !bounded(v, 1024, false))
-            || hit
-                .upstream_revision
-                .as_ref()
-                .is_some_and(|v| !bounded(v, 1024, false))
+            || !valid_hit(hit, request.community_site())
         {
             return Err(failure("public_hit_invalid"));
         }
@@ -785,6 +790,224 @@ pub fn publish(conn: &mut Connection, request: &Request, value: Value) -> Result
         .map_err(|_| failure("public_query_write_unconfirmed"))?;
     Ok(receipt)
 }
+fn materialized_text(hit: &Hit, raw_id: &str, raw_sha: &str) -> String {
+    format!(
+        "AAOS 派生内容快照（不是上游原始字节；未作专业核验）\n来源：{} / {}\n标题：{}\n地址：{}\n取得时间：{}\n原API来源：{}\n原API内容指纹：{}\n表示：{}\n内容范围：{}\n许可：{}\n截断：{}\n定位说明：{}\n\n内容：\n{}",
+        hit.family,
+        hit.provider,
+        hit.title,
+        hit.url,
+        hit.retrieved_at,
+        raw_id,
+        raw_sha,
+        hit.representation,
+        hit.content,
+        hit.license.as_deref().unwrap_or("未知"),
+        hit.truncated,
+        hit.locator.as_deref().unwrap_or("未提供"),
+        hit.excerpt
+    )
+}
+
+/// One selected search result. Its original raw response and the exact derived
+/// bytes can travel without the workspace's request, search terms or other hits.
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SelectedHit {
+    pub raw_source_id: String,
+    pub raw_sha256: String,
+    hit: Hit,
+}
+
+pub(crate) const MAX_RESPONSE_BYTES: usize = 131072;
+
+/// Mirror the worker's finite HTTP entity and decompressed JSON budgets.
+pub(crate) fn response_json(bytes: &[u8]) -> Option<Value> {
+    use std::io::Read;
+    if bytes.len() > MAX_RESPONSE_BYTES {
+        return None;
+    }
+    let mut expanded = Vec::new();
+    let bytes = if bytes.starts_with(&[0x1f, 0x8b]) {
+        let mut decoder = flate2::bufread::GzDecoder::new(bytes);
+        (&mut decoder)
+            .take(MAX_RESPONSE_BYTES as u64 + 1)
+            .read_to_end(&mut expanded)
+            .ok()?;
+        if expanded.len() > MAX_RESPONSE_BYTES || !decoder.into_inner().is_empty() {
+            return None;
+        }
+        expanded.as_slice()
+    } else {
+        bytes
+    };
+    // The worker's json.detect_encoding also accepts UTF-16/32 with or without a BOM.
+    let text = if bytes.starts_with(&[0, 0, 0xfe, 0xff]) || bytes.starts_with(&[0, 0, 0]) {
+        let bytes = bytes.strip_prefix(&[0, 0, 0xfe, 0xff]).unwrap_or(bytes);
+        utf32_text(bytes, u32::from_be_bytes)?
+    } else if bytes.starts_with(&[0xff, 0xfe, 0, 0]) || bytes.get(1..4) == Some(&[0, 0, 0]) {
+        let bytes = bytes.strip_prefix(&[0xff, 0xfe, 0, 0]).unwrap_or(bytes);
+        utf32_text(bytes, u32::from_le_bytes)?
+    } else if bytes.starts_with(&[0xfe, 0xff]) || bytes.first() == Some(&0) {
+        let bytes = bytes.strip_prefix(&[0xfe, 0xff]).unwrap_or(bytes);
+        utf16_text(bytes, u16::from_be_bytes)?
+    } else if bytes.starts_with(&[0xff, 0xfe]) || bytes.get(1) == Some(&0) {
+        let bytes = bytes.strip_prefix(&[0xff, 0xfe]).unwrap_or(bytes);
+        utf16_text(bytes, u16::from_le_bytes)?
+    } else {
+        return serde_json::from_slice(bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes))
+            .ok();
+    };
+    serde_json::from_str(&text).ok()
+}
+
+fn utf32_text(bytes: &[u8], decode: fn([u8; 4]) -> u32) -> Option<String> {
+    let (units, remainder) = bytes.as_chunks::<4>();
+    if !remainder.is_empty() {
+        return None;
+    }
+    units
+        .iter()
+        .map(|&unit| char::from_u32(decode(unit)))
+        .collect()
+}
+
+fn utf16_text(bytes: &[u8], decode: fn([u8; 2]) -> u16) -> Option<String> {
+    let (units, remainder) = bytes.as_chunks::<2>();
+    if !remainder.is_empty() {
+        return None;
+    }
+    char::decode_utf16(units.iter().copied().map(decode))
+        .collect::<Result<_, _>>()
+        .ok()
+}
+
+impl SelectedHit {
+    pub fn url(&self) -> &str {
+        &self.hit.url
+    }
+
+    pub fn locator(&self) -> Option<&str> {
+        self.hit.locator.as_deref()
+    }
+
+    /// Check the provider's own result keys in the preserved response. Text in
+    /// a note (or a URL somewhere else in the JSON) cannot select a hit.
+    pub(crate) fn response_contains_locator(&self, response: &Value) -> bool {
+        let hit = &self.hit;
+        let path = match hit.provider.as_str() {
+            "wikipedia" => "/query/pages",
+            "dbpedia" => "/docs",
+            "stackexchange" => "/items",
+            "openalex" => "/results",
+            "crossref" => "/message/items",
+            _ => return false,
+        };
+        let Some(rows) = response.pointer(path).and_then(Value::as_array) else {
+            return false;
+        };
+        rows.iter().any(|row| match hit.provider.as_str() {
+            "wikipedia" => {
+                let first = &row["revisions"][0];
+                let (Some(page), Some(rev)) = (row["pageid"].as_u64(), first["revid"].as_u64())
+                else {
+                    return false;
+                };
+                hit.id == format!("wikipedia:en:{page}:{rev}")
+                    && first
+                        .pointer("/slots/main/content")
+                        .is_some_and(Value::is_string)
+            }
+            "dbpedia" => {
+                row["resource"][0].as_str().is_some_and(|url| {
+                    url == hit.url
+                        || url.strip_prefix("http://") == hit.url.strip_prefix("https://")
+                }) && (hit.locator.is_none() || row["comment"][0].is_string())
+            }
+            "stackexchange" => {
+                row["link"] == hit.url
+                    && row["question_id"].as_u64().is_some_and(|id| {
+                        hit.id.rsplit(':').next() == Some(id.to_string().as_str())
+                    })
+                    && (hit.locator.is_none() || row["body"].is_string())
+            }
+            "openalex" => {
+                row["id"] == hit.url
+                    && (hit.locator.is_none() || row["abstract_inverted_index"].is_object())
+            }
+            "crossref" => hit
+                .url
+                .strip_prefix("https://doi.org/")
+                .and_then(form_decode)
+                .as_deref()
+                .is_some_and(|doi| row["DOI"] == doi),
+            _ => false,
+        })
+    }
+
+    pub(crate) fn matches_snapshot(&self, sha256: &str) -> bool {
+        let site = self.hit.id.split(':').nth(1).unwrap_or_default();
+        provider(&self.hit.family, &self.hit.provider).is_some()
+            && (self.hit.family != "community" || matches!(site, "academia" | "stats"))
+            && finite_id(&self.raw_source_id)
+            && self.raw_sha256.len() == 64
+            && utc_time(&self.hit.retrieved_at)
+            && valid_hit(&self.hit, site)
+            && hex::encode(sha2::Sha256::digest(materialized_text(
+                &self.hit,
+                &self.raw_source_id,
+                &self.raw_sha256,
+            ))) == sha256
+    }
+}
+
+/// Require both the original run and the materialized source's registered origin.
+pub(crate) fn registered_hit(
+    conn: &Connection,
+    source_id: &str,
+    sha256: &str,
+) -> rusqlite::Result<Option<SelectedHit>> {
+    let name: Option<String> = conn
+        .query_row(
+            "SELECT original_name FROM sources WHERE source_id=?1 AND sha256=?2",
+            [source_id, sha256],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let request = name
+        .as_deref()
+        .and_then(|name| name.strip_prefix("public-research-"))
+        .and_then(|name| name.strip_suffix(".txt"))
+        .and_then(|name| name.rsplit_once('-'));
+    let Some((request_id, _)) = request else {
+        return Ok(None);
+    };
+    let row: Option<(String, String, String)> = conn
+        .query_row(
+            "SELECT raw.source_id, raw.sha256, hit.value
+         FROM public_research_runs AS run,
+              json_each(run.receipt_json, '$.channels') AS channel,
+              json_each(channel.value, '$.hits') AS hit
+         JOIN sources AS raw ON raw.source_id=(channel.value ->> '$.raw_source.source_id')
+             AND raw.sha256=(channel.value ->> '$.raw_source.sha256')
+         WHERE run.request_id=?1 AND run.state IN ('complete','partial')
+           AND EXISTS (SELECT 1 FROM source_origins AS origin
+               WHERE origin.source_id=?2 AND origin.origin_kind='import'
+                 AND origin.origin_ref='public-research:' || raw.source_id || ':' || raw.sha256
+                     || ':' || (channel.value ->> '$.family') || ':' || (hit.value ->> '$.id'))",
+            [request_id, source_id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        )
+        .optional()?;
+    Ok(row.and_then(|(raw_source_id, raw_sha256, encoded)| {
+        Some(SelectedHit {
+            raw_source_id,
+            raw_sha256,
+            hit: serde_json::from_str(&encoded).ok()?,
+        })
+    }))
+}
+
 /// Explicit local selection creates a labeled derived UTF-8 Source. It never
 /// claims that normalized offsets point into the original API JSON/gzip bytes.
 pub fn materialize(
@@ -832,22 +1055,7 @@ pub fn materialize(
     }
     archeaxis_store_sqlite::raw_objects::read_bounded(conn, raw_sha, 131072)
         .map_err(|_| failure("public_raw_source_bytes_unavailable"))?;
-    let text = format!(
-        "AAOS 派生内容快照（不是上游原始字节；未作专业核验）\n来源：{} / {}\n标题：{}\n地址：{}\n取得时间：{}\n原API来源：{}\n原API内容指纹：{}\n表示：{}\n内容范围：{}\n许可：{}\n截断：{}\n定位说明：{}\n\n内容：\n{}",
-        hit.family,
-        hit.provider,
-        hit.title,
-        hit.url,
-        hit.retrieved_at,
-        raw_id,
-        raw_sha,
-        hit.representation,
-        hit.content,
-        hit.license.as_deref().unwrap_or("未知"),
-        hit.truncated,
-        hit.locator.as_deref().unwrap_or("未提供"),
-        hit.excerpt
-    );
+    let text = materialized_text(&hit, raw_id, raw_sha);
     let name = format!(
         "public-research-{}-{}.txt",
         request_id,
@@ -880,4 +1088,29 @@ pub fn materialize(
         "note":format!("公开资料的派生内容快照：{}；原API来源/指纹及取得时间在快照中保留；未核验、未采用为知识。",hit.title),
         "knowledge_admission":"not_executed"}),
     )
+}
+
+#[cfg(test)]
+mod portable_response_tests {
+    use super::response_json;
+    use flate2::{Compression, write::GzEncoder};
+    use serde_json::json;
+    use std::io::Write;
+
+    #[test]
+    fn compressed_responses_require_one_complete_bounded_entity() {
+        fn gzip(bytes: &[u8]) -> Vec<u8> {
+            let mut output = GzEncoder::new(Vec::new(), Compression::fast());
+            output.write_all(bytes).unwrap();
+            output.finish().unwrap()
+        }
+        let bytes: Vec<u8> = r#"{"items":[]}"#.encode_utf16().flat_map(u16::to_le_bytes).collect();
+        let mut compressed = gzip(&bytes);
+        assert_eq!(response_json(&compressed), Some(json!({"items":[]})));
+        compressed.extend_from_slice(&gzip(&bytes));
+        assert!(response_json(&compressed).is_none());
+        let mut oversized = vec![b' '; 131072];
+        oversized.extend_from_slice(b"{}");
+        assert!(response_json(&gzip(&oversized)).is_none());
+    }
 }
