@@ -1,6 +1,8 @@
 # AAOS 当前状态与执行入口
 
-现有界面按 Owner 11 月 27 日的决定冻结。AionUi、DeepTutor、OpenMAIC 用于后续方案；现行 V3 全部闭环验收继续。[界面冻结与设计依据](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127)
+Windows 候选 `f405d7be` 已生成独立后端 ZIP 和 `0.1.00` 安装器。研究稿迁移、实装旧库读回和后续 ODS 定位修复见[新版构建与定向验收](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#windows-candidate-f405)。
+
+现有界面按 Owner 11 月 27 日的决定冻结。后续布局融合 AionUi、DeepTutor 与 OpenMAIC 的实际画面，独立原型统一使用暗黑底色。[界面冻结与设计依据](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127) · [独立原型交付](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#unified-dark-design-reference)
 
 思源单文档已走通块编辑、原生副本导出、官方解析库读回与返回 AAOS。可下载的 Windows 交换客户端、适用版本及同轮模型错答案例的待审核状态见[思源往返和知识候选实测](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return)。
 

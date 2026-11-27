@@ -137,8 +137,10 @@
       "frontend_tree": "1f1397d3bc51311b7639635957632ae4761165e3",
       "tauri_tree": "187a12264b44a38cc5e7c23930ccae17edbd8c54",
       "design_reference_projects": ["AionUi", "DeepTutor", "OpenMAIC"],
+      "design_palette": "Black, white and neutral gray only. This concept uses a consistent dark ground for navigation, preview, lesson and companion. Derive the layout from the reference applications' actual screens.",
       "design_scope": "Separate concept work. Existing production layout, styling, navigation and interactions are frozen.",
       "closed_loop": "CONTINUE_ALL_REQUIRED_V3_RESULTS",
+      "design_artifact_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#unified-dark-design-reference",
       "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127",
       "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#interface-freeze-and-references"
     },
@@ -175,6 +177,9 @@
       "wps_xlsx_return_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#wps-xlsx-file-return",
       "siyuan_native_copy_and_review_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return",
       "siyuan_notebook_attachments_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-notebook-attachments",
+      "windows_candidate_f405_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#windows-candidate-f405",
+      "ods_sheet_local_source_fix_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#ods-sheet-local-location",
+      "reviewed_machine_correction_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#reviewed-museum-correction",
       "research_markdown_and_retained_course_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#research-links-and-retained-course",
       "local_installer_selection_20261122": {
         "owner_version_label": "0.1.00",
@@ -1341,12 +1346,12 @@
       },
       "operator_storage_checkpoint": {
         "schema": "aaos.operator-storage-checkpoint/v1",
-        "path": ".project-local/runs/be268a2d33/old-backend-dual-post-governance-20261122/artifacts/storage.json",
-        "bytes": 490052,
-        "sha256": "4c592f70a06a60c080775dfb0a4c7806f0634a124733f96c33ca9adb570a7ad2",
+        "path": ".project-local/runs/be268a2d33/windows-retention-20261127/artifacts/storage.json",
+        "bytes": 480303,
+        "sha256": "c04cfa9ad5fe064ed5947862ea4d12aba62f5f7d481b80026d78575f849d6bc8",
         "report_schema": "aaos.storage-footprint/v2",
-        "recorded_by": "Measured at 22:32:25 +08:00 after the Owner-approved retirement of 161 named files from the old expanded backend. The original ZIP and an independent unpacked copy of every affected member were verified after removal. See the backend-web-rebuild execution record.",
-        "measurement_scope": "93236182422 readable bytes across 1099025 files, PARTIAL with 674 measurement errors and 43 out-of-layout entries. Relative to the preceding checkpoint the readable total grew by 633619535 bytes. The retired files represented 1230754120 logical bytes. Physical disk reclamation was not measured."
+        "recorded_by": "Measured after the 2026-11-27 Owner-authorized Windows candidate retention review. Existing candidate, rollback and build inputs were retained. See the Windows candidate retention entry in the execution record.",
+        "measurement_scope": "95742209111 readable bytes across 1139639 files. PARTIAL with 674 measurement errors. Pre-existing growth is recorded in the retention review. The prior checkpoint remains available."
       },
       "preservation": "Master source, original inputs, real/unclassified data and private state protected. Obsolete regenerable build/FAIL payloads may be retired under latest_only_cleanup_20261031; compact original FAIL/manifest receipts preserved; actual lock/ACL/policy refusals retained.",
       "scope": "Retain original task IDs, CL-01..07/J1..6 and capability identities; R2 is requirements/design evidence, not implementation PASS or automatic long-term expansion",

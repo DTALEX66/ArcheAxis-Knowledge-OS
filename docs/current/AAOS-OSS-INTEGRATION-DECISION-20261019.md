@@ -491,4 +491,4 @@ Owner明确：“两个项目先全量吸收进来，全量融入进来”。这
 
 决定 `OWNER-INTERFACE-FREEZE-20261127`（`SUP-036`）。Owner 要求按现行 V3 完成全部闭环，并指定后续界面参考 AionUi、DeepTutor、OpenMAIC。现有界面的布局、视觉、导航和交互以 `67bfd7849f6a7d1458f0cf8390cad19c5f02acb9` 为冻结基线。冻结范围按“现有界面”理解。Core、数据合同、兼容适配、打包和冻结界面的业务验收继续。
 
-后续方案在独立设计稿中验证。AionUi 的资料预览、DeepTutor 的阅读与练习、OpenMAIC 的课堂场景均以各项目的官方实现为参考。AAOS 继续用同一资料对象、来源版本和授权规则连接研究、课堂和 AI 知识审查。设计采用由 Owner 后续选择。实际结果沿[唯一执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md#interface-freeze-and-references)查看。
+后续方案在独立设计稿中验证。Owner 要求参考并融合三个项目的实际界面，基础黑白配色在同一屏各面板统一。当前设计稿选择整体暗黑，导航、资料预览、讲义与伴学采用同一套中性深色底。以 AionUi 的会话与并排预览组织研究工作台，以 DeepTutor 的沉浸阅读与伴读组织阅读练习，以 OpenMAIC 的场景目录、课堂画布和底部控件组织课堂。AAOS 用相同的资料对象、来源版本和授权规则连接研究、课堂和 AI 知识审查。设计采用由 Owner 后续选择。实际结果沿[唯一执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md#interface-freeze-and-references)查看。

@@ -5105,3 +5105,45 @@ WPS 表格 12.1.0.29690 在一份合成 XLSX 副本上打开「第二页」A1，
 <a id="siyuan-notebook-attachments"></a>
 
 Windows 交换客户端通过 `siyuan export-folder` 读取已登记的思源导入批次，将编辑后的官方指南原生笔记和 1,589 字节 PNG 一起导出到新目录。笔记保留两级相对路径，附件落在批次根的 `assets/`。上游 SiYuan dataparser 与 Lute 读回 96 个块、修改后的中文正文及原图片路径，图片与原件 SHA-256 一致。临时工作区正常关闭。范围为单篇笔记及它在同批次中已解析的附件。Windows 现场回执 `sy-folder-export-check-01/artifacts/receipt.json`，SHA-256 `8536c5ed1795be7f73053494df131efafb7f7198b51c966f08a1bf8cbae78a3a`。发布前的差异仅为在写入前检查转换摘要的存在性，这一差异由 `sy-folder-loss-summary-20261127` 的新增个案覆盖。[命令与参数](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#editing-a-siyuan-copy)
+
+### 2026-11-27 Windows 候选留存复核与重新计量
+
+<a id="windows-retention-20261127"></a>
+
+Owner 授权推进全部闭环至项目完成后，复核旧构建、依赖与回滚材料的保留用途。此批复用已核对的运行时、固定版本前端和共享 Host 编译缓存，直接产出一个独立后端 ZIP、一个本地 `0.1.00` 安装器与各自回执。复核批删除文件数为 0。正式前后计量、2 GiB 增长复核线及目录类别预算继续应用。
+
+复核之前的项目可读增长为 2,502,366,255 字节。完成保留登记后，新固定基线测得 95,742,209,111 字节、1,139,639 个文件，计量为 `PARTIAL`（674 项读取错误）。保留范围及两个报告的完整身份见本地 `windows-retention-20261127/artifacts/review.json`（SHA-256 `e99bc878095c5c8ca4db1c8f3c6dd8b21e2a539650c583b6a46959a03b1b5658`）和本次活动指针。11 月 22 日的旧报告及已批准删除各批均可继续按原纪录核对。
+
+### 2026-11-27 Owner 纠错、本地复测与新样本迁移（J4）
+
+<a id="reviewed-museum-correction"></a>
+
+Owner 在对话中确认了无配对正文的 AppleDouble 成员应在本样本中作为独立来源保留。Codex 代录到正式 `/machine/corrections`，生成与原答相连的纠错知识候选 `k_29a2fbc030447a73a4f161f7`，并按该判断审核候选。在复用原 v6 规则资产且允许新纠错条目的授权下，正式 `/machine/retests` 用同一 Qwen 3.5 4B 实例和冻结的六项标准复测。确认纠错的 C 项变为正确，总分由 5/6 降到 4/6，A 项两项原有正确判断变错。两次回答、评分和候选均经冷重开取回。原库摘要一致。回执 `museum-owner-j4-proof-1127/artifacts/j4-owner-retest.json`，SHA-256 `75af510e05e4ba269736db15745fc2fd4aaa2d09c9308be9cebc0b1c42ac0e06`。
+
+新五成员 ZIP 在推理前完成正式归档转换并冻结十项标准。正式接口调用同一模型一次，独立核验模型确实收到 v6 规则和经审核的 C 项纠错。输出中的不确定字段无法按冻结字段名解释，正式状态为 `unmeasured`，迁移验收未通过。原始十个布尔值中七个相符，此数为人工可对照的字面吻合数。原答、新答、评测与输入材料经冷开读回。回执 `museum-transfer-grade-1127/artifacts/j4-transfer-verdict.json`，SHA-256 `3e26d13fc9e797353c33b095890e829352c6f0cf0e7bc8f94e070d8919ab7fde`。当前 Core 的结构化响应合同可用独立布尔字段表达每项不确定，适用于新题，已封存的两份评分保持各自规则。
+
+另一个双成员 ZIP 使用逐项布尔字段表达“能否判断”和“判断值”。正式 R8 一次答对真 `.DS_Store` 与无配对 AppleDouble 的保全方式，并对 ZIP 无法证实的删除原因弃答。3 项判断和 6 个字段符合事前冻结标准。模型实际收到 v6 规则和经审核的 C 个案，回答、评分、来源和授权在冷重开后可读。回执 `station-boolean-transfer-1128/artifacts/j4-station-booleans.json`，SHA-256 `390c00b0c97e90fc6e8c59a2bfd222752923ac224480a4bf5b35c6cf5bbb4704`。3/3 限于这一新题，先前实测保留原评价。
+
+### 2026-11-27 统一暗黑的三项目设计参考
+
+<a id="unified-dark-design-reference"></a>
+
+重做原型采用 AionUi 的会话与并排原件、DeepTutor 的伴学区、OpenMAIC 的课堂场景与播放控件。导航、预览、讲义和伴学统一为中性暗黑。三张 1440×900 图由实际 HTML 渲染，逐像素 RGB 相同。原件标签、资料追问、课堂翻场和独立练习使用示例资料与回复。正式 `frontend` 与 `src-tauri` 对应冻结子树。草稿附件 `801088558` 为 199,211 字节，SHA-256 `e2cafe8bca7ffe41e5adba8a19c3a35157d4a6b5e1f5f98c0041b53e4609d5ed`。[设计包](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Unified-Dark-Workbench-Reference-20261127.zip)
+
+### 2026-11-28 Windows 候选 f405d7be、J2 单篇迁移与实装
+
+<a id="windows-candidate-f405"></a>
+
+提交 `f405d7beee8f3fd2786131da9128c53c2708d9d8` 通过 Windows Release Core 构建和定向回归。旧版单篇包导入空库后有六份原件与三条历史引文，Markdown 原文链接为零。新版正式导出、导入和冷重开后取回三条原文链接、六份原件与三条历史引文。历史定位留在导入记录。旧版对照 SHA-256 `f73ab5af68ed44efa587bcd5cb85fa146c3d9e66a091e6d8a536eac449291536`，新版回执 `j2-portable-live-f405-20261127/artifacts/research-transfer.json` SHA-256 `c1002bfe6e570f33d0cec71c10bf3268e34693c45b383ec2921a4e39422dcae0`。[Windows 构建与回归](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/46022273511)
+
+独立 ZIP 与安装器共用运行时清单 SHA-256 `3952ea545e8e08b07537e1612af192efa9b8820395c4b79691a35882e8700e2f`。ZIP 逐项解压核对 17,806 个成员，文件为 687,507,714 字节，SHA-256 `b385736fdd61a5d9b1a60d28900908d1436238286d685706fd2f480178d373b4` 与草稿附件 `801090644` 一致。[独立后端 ZIP](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Backend-0.6.14-Windows-x64-f405d7be.zip)
+
+桌面 `0.1.00` 安装器对应 Windows ProductVersion `0.1.0`，为 551,458,213 字节，SHA-256 `cdd3db9b4927d55c9786537180a7a520e770db0c61117be73e6869b3f33e6789`。断网 Sandbox 实装后核对全部 17,806 项，安装前后已存工作区的数据库摘要相同。默认窗口打开、关闭均正常，研究稿、材料 v6 与 v7、练习均按固定身份读回。默认 bundled worker 握手就绪，来宾内实际模型请求为 0。来宾关闭。回执 `f405-nsis-install/artifacts/return/terminal.json`，SHA-256 `4c25cac7a42f06476b6b14c0c303ffdd65ef401f4fc1ab7b6964397d16d89ee0`。增长检查各阶段通过，后测比新基线可读增长 1,490,973,787 字节，计量覆盖为 `PARTIAL`。
+
+安装器已追加到 GitHub 草稿，附件 `801135442` 的远端尺寸与 SHA-256 均和本地实物一致。[下载 0.1.00 安装器](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/ArcheAxis.Knowledge_0.1.00_x64-setup-f405d7be.exe)
+
+### 2026-11-28 ODS 多工作表定位（X6）
+
+<a id="ods-sheet-local-location"></a>
+
+`f405d7be` 可转换同一份双表 ODS 并取回原件，第二张表的 A1 错标为 R3C1。基线回执 SHA-256 `caf71546c92caeb99909474dd8d5be4edc96822dc694aebbbb745f8c56d215dc`。后继 `e38957a5` 在每张表开始时重置行号。以修复后同字节 worker 和 Windows Core 验证第二张表的正确 A1、固定引用和原件冷读。单例回归修复前失败、修复后通过。实测修复回执 SHA-256 `798f1546df9bfd0248156e8b1fb85e18d82179a47c497de47ec3ffd5fefacfbb`。当前 ZIP 与安装器对应 `f405d7be`。旧转换和引用留存，下一版重新转换可创建使用正确坐标的作业。
