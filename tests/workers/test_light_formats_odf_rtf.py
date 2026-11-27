@@ -87,6 +87,21 @@ class LightFormatOdfRtfTests(unittest.TestCase):
         self.assertTrue(any("capped at 512" in loss for loss in losses),
                         "a declared 4000-row repeat must be reported at the cap, not inflated")
 
+    def test_ods_row_numbers_restart_for_each_sheet(self):
+        content = (
+            f'<office:document-content {NS}><office:body><office:spreadsheet>'
+            '<table:table table:name="First">'
+            '<table:table-row><table:table-cell><text:p>One</text:p></table:table-cell></table:table-row>'
+            '<table:table-row><table:table-cell><text:p>Two</text:p></table:table-cell></table:table-row>'
+            '</table:table><table:table table:name="Second">'
+            '<table:table-row><table:table-cell><text:p>Three</text:p></table:table-cell></table:table-row>'
+            '</table:table></office:spreadsheet></office:body></office:document-content>'
+        )
+        text, facts, _ = self.light.parse(_package(ODS, content), ODS)
+        cell_paths = [item["path"] for item in facts["locations"] if item["kind"] == "odf_table_cell"]
+        self.assertEqual(cell_paths, ["First/r1c1", "First/r2c1", "Second/r1c1"])
+        self.assertIn("Second!R1C1: Three", text)
+
     def test_odp_pages_are_addressable_and_text_sits_under_its_page(self):
         content = (
             f'<office:document-content {NS}><office:body><office:presentation>'

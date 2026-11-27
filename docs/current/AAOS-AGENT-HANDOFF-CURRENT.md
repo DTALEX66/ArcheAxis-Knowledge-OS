@@ -1,5 +1,9 @@
 # AAOS 当前接续导航：人类＋AI＋双侧连接
 
+思源原生副本的范围、交换客户端下载及博物馆归档错答的人工审核状态见[双向读回和候选回执](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return)。实际命令见[思源文件操作](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#editing-a-siyuan-copy)。
+
+研究稿的原文链接、固定引证及课件生成器停用后的保留范围见[研究与课程业务回执](AAOS-UI-FIRST-EXECUTION-20261009.md#research-links-and-retained-course)。
+
 独立后端使用本地模型时，可沿[配套补充包与 Office 跨库验收](AAOS-UI-FIRST-EXECUTION-20261009.md#portable-fast-local-office)核对下载字节、真实模型评分和已恢复的位置。操作方法见[结构化回答合同 §36](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#36-local-structured-model-answers)。
 
 安装版补装 Tesseract 和后续源码调用登记的 RapidOCR 均已实测。按[OCR 操作合同 §39](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#39-windows-image-ocr-providers)配置，沿[图片识别实测](AAOS-UI-FIRST-EXECUTION-20261009.md#windows-ocr-providers)与[双页扫描 PDF 的还原回读](AAOS-UI-FIRST-EXECUTION-20261009.md#scanned-pdf-independent-restore)核对运行环境。

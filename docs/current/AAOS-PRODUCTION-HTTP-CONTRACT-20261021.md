@@ -448,6 +448,10 @@ do not restart historical queries. These declarations are checked by route/numbe
 tests; behavioral qualification remains in `ingest_batches_api.rs`, `public_research_api.rs`
 and the domain/worker/executor tests, not in the route count.
 
+#### Sources in a Markdown research export
+
+`GET /api/v1/documents/{id}/export?format=markdown` includes the saved research materials under **Evidence records**. Each material carries its reference. A cited Source also carries its pinned quote and anchor, with the stored position when the anchor matches that Source and revision. For a selection from a registered public search, the exporter looks up the original result in the saved search receipt and writes its HTTPS link and locator. Raw API snapshots and local sources retain their fixed identities. The lookup works offline. A research document with materials and no single backing Source uses its document ID, version and digest for its identity. [Windows research and course evidence](AAOS-UI-FIRST-EXECUTION-20261009.md#research-links-and-retained-course)
+
 ## 4. Fields that are constants, not data
 
 The UI must not render these as measured values.
@@ -970,6 +974,8 @@ This source inventory adds one pair (130 → 131), not J3 acceptance. Wikilinks 
 
 Portable Document packages now include and remap declared canonical Source relation references. Unbundled Document/Knowledge relation references are refused before destination writes, even if their IDs coincide with local objects. Existing historical research-citation closure remains unchanged. Ordinary Markdown/Obsidian projection export is not a native-Vault roundtrip; API qualification is not installed-host, UI-consumer or Owner acceptance.
 
+Research document packages may include a `public_research_hit` historical entry for a selected public result. It carries the saved locator, the selected material's digest and the bound raw response with its own digest. The importer checks the exact derived snapshot and the locator in the bundled API response. Export keeps the existing document, declared original sources and historical citations when an older response cannot substantiate a portable locator. Version 1 packages without these entries remain readable. On Markdown export, `upstream_provenance: portable_snapshot` identifies a link retained from the imported package. Historical quotes remain separate from active local anchors and the operation does not execute a new public search.
+
 
 ## 18. Material async admission (2026-10-21, phase 1)
 
@@ -1199,7 +1205,7 @@ Ordinary file import also accepts the ZIP through Core's archive conversion. It 
 
 ## 34. Packaged knowledge exchange
 
-The full backend configuration stages eight exchange clients inside the existing `shared` resource. From a Windows terminal, select the workspace database and use the format actions described in §§24, 27–30, 32, 33, 35 and 37. The exchange launcher also accepts `--backend-root` before the format name to use an existing backend installation with this client. The following command imports an offline Notion export.
+The full backend configuration stages nine exchange clients inside the existing `shared` resource. From a Windows terminal, select the workspace database and use the format actions described in §§24, 27–30, 32, 33, 35, 37 and 38. The exchange launcher also accepts `--backend-root` before the format name to use an existing backend installation with this client. The following command imports an offline Notion export.
 
 ~~~bat
 start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" notion import "D:\Exports\Projects.zip"
@@ -1278,7 +1284,26 @@ The reader handles Spec 2 and Spec 3 documents. It presents tab content in sourc
 
 A user may select an attachment as a separate ordinary Source through `POST /api/v1/imports`. On the saved document, append a `related` target with `kind=source`, its Source ID and original SHA-256 to `editor_json.attrs.archeaxis_relations`. Preserve the editor content and save through `PUT /api/v1/documents/{id}/draft` with the expected version. Read the target through `GET /api/v1/sources/{id}/original` and check the returned bytes against the pinned digest. This document-level relation leaves the native block locator unbound.
 
-For one official Spec 2 note and PNG, the v2 relation reopened after a cold restart. The existing AAOS portable Document export and import endpoints transferred both originals to an empty AAOS workspace. The restored v1 relation opened the same PNG through the importer's Source mapping. Both content-derived IDs kept the same values. Automatic attachment binding, desktop clicks and native SiYuan write-back remain unverified.
+For one official Spec 2 note and PNG, the v2 relation reopened after a cold restart. The existing AAOS portable Document export and import endpoints transferred both originals to an empty AAOS workspace. The restored v1 relation opened the same PNG through the importer's Source mapping. Both content-derived IDs kept the same values. The native block lookup above and the native-file return below have independent receipts.
+
+### Editing a SiYuan copy
+
+The exchange client uses the fixed Source revision and the ordinary AAOS Document versions. Use `save` with an existing successful SiYuan text job to get a Document ID, or select a previously saved Document whose editor blocks carry the native IDs. Use `blocks` to list its editable paragraphs and headings. The following example changes one plain-text block. For the standalone exchange client, run `exchange.cmd` in place of `start-backend.cmd exchange` from the unpacked backend directory.
+
+~~~bat
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan save JOB_ID
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan blocks --document DOCUMENT_ID
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan block --document DOCUMENT_ID BLOCK_ID --text "Revised paragraph"
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan export --document DOCUMENT_ID --output "D:\Returned\20200915214115-42b8zma.sy"
+~~~
+
+Choose an existing destination directory and the original native filename. The destination file must be new. With a supported text change, the export updates the selected text and the timestamps for the selected block, its block ancestors, enclosing heading sections and the document root. An unchanged projection returns the original bytes. This operation covers Spec 2 and 3 paragraphs and headings with a single text node and valid timestamps. Preserve the notebook-relative layout when placing existing attachments beside the returned note. The client exports the note file. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md) · [Download and Windows evidence](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return)
+
+For a note saved from a registered folder batch, export its notebook-relative path and the files under `assets/` resolved by Core. Select the batch containing the same original note revision and its files. The destination must be new and its parent must exist. An unresolved attachment stops the export before publishing the destination. The receipt gives the note path, each copied asset's revision and the conversion's count of omitted subtrees. [Windows readback](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-notebook-attachments)
+
+~~~bat
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan export-folder --document DOCUMENT_ID --batch BATCH_ID --output "D:\Returned\NotebookCopy"
+~~~
 
 When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
 

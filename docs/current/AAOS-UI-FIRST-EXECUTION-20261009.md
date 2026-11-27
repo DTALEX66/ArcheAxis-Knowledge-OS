@@ -5061,3 +5061,101 @@ GitHub 既有草稿保存了这次构建的 Windows Core、前端资源和两份
 ### 2026-11-23 · WPS 修改表格后在后端找回同一行
 
 WPS 表格 12.1.0.29690 在一份合成 XLSX 副本上打开「第二页」A1，把「第二页中文」改为 `WPS native edit - museum inventory 73`，另存并重开读回新值。已交付的 Windows 独立后端分别导入两版，实际转换后，各自在 `sheet-第二页/row-1` 定位到相应的值。关闭并重开 Core 后，两件原件、两个转换、定位和损失报告可读，原件摘要仍为 `6fab69b1…`，另存件为 `b0bf3f14…`。WPS 使用独立进程，操作范围为项目合成工作簿。当前候选与原后端的 Office worker 字节相同。其他 Office 应用与格式须按产品及文件分别实测。回执 `j1-wps-xlsx-native/artifacts/roundtrip-authenticated.json`（SHA-256 `d69f5219c8caf2b4c9599683a5b50c7bcec6bce44a4639bafef9dfd450235d64`）。
+
+<a id="siyuan-native-copy-return"></a>
+
+### 2026-11-23 · 思源笔记往返与模型错答待审核候选
+
+支持思源转换的 `9629ce5d` Windows Release Core 从已完成的公开指南转换保存文档，按原生 ID 编辑段落，再次启动后读回第 2 版。第一次运行发现作业详情没有客户端读取的 `kind` 字段，在原库副本上修正后继续。导出的 Spec 2 文档沿用原文件名，只有该段正文和三个更新时间发生变化。其余原始 JSON 字节均一致。项目工作区中的原件保留。实现和适用范围见[交换操作合同](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#editing-a-siyuan-copy)和[源码 PR #320](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/320)。
+
+| 实际消费者 | 观察与回执 |
+| --- | --- |
+| 思源官方 dataparser 与 Lute，在 Windows 本机运行 | 用思源内核登记的两个上游库读取返回文件的 96 个块，目标块显示「思源资源校订 AAOS-SY-24」。图片块保留原相对路径，验收程序单独放回笔记本根的 1,589 字节 PNG 与上游原图同摘要。解析器报告无需内存修正。回执 `siyuan-upstream-reader-20261123/artifacts/native-return-receipt.json`，SHA-256 `fb80e69cca711c6bd310c93395ec01e04c950efc1b57e68365b1a6f5e4f1ec00`。[读回工具构建](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45057290241/job/137315227990) |
+| AAOS 重新导入返回件 | 新文件 SHA-256 为 `7c8a8eaeb42f0b1a3677ddb501bdfac47dcd3b5a797b96ec11f41a37c7a95b65`。Core 创建新来源，转换首次执行成功。新进程从原生块 ID 读回修改后的正文，同一隔离工作区的旧文档第 1 版仍可读。回执 `sy-return-reimport-live/artifacts/reimport.json`，SHA-256 `7ff6ad9a2f94f3b2f23130c8b5487a8d1e2407f862ab7c62d7710fc63a412c1f`。 |
+| 已上传的 `0b014775` 独立后端与单独下载的交换客户端 | 解压版客户端由已发布后端自带的 Python 启动 Core，从已有文档副本读取第 2 版的中文段落后正常关闭。分发启动器使用和正式入口一致的 `-X utf8`，可将中文结果重定向为 UTF-8 JSON。该旧包验证覆盖已有文档。对新原件的转换与返程使用上行所述新版 Core 和思源 worker。 |
+
+原生库渲染、完整思源桌面、整库同步及新版 AAOS 安装器分别登记。本轮覆盖单文档副本，附件布局由验收程序恢复。约 102 KiB 的交换客户端含中文使用说明和验收摘要，已追加至既有草稿。附件 ID `780112610`，104,348 字节，重新下载的 SHA-256 为 `2d971ff07c61b647ff1e9b00f398d1633f1fbf787c77521c61ab885c5c6d6489`，草稿共 16 项。[下载 Windows 交换客户端](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-SiYuan-Exchange-794ce48a.zip)
+
+同一 Windows Core 用机器身份将博物馆归档的 `C_known` 错答登记为待人工审核候选 `k_415fdb2c190ce8516cb6084e`。重启后搜索 `AppleDouble` 能找回该候选，原答、归档、冻结标准、评分和笔记五项引证均按哈希读回。原评分保留 5/6，新增模型请求为 0。真人登记纠错及其后的独立复测仍待执行。回执 `museum-review-machine/artifacts/candidate.json`，SHA-256 `88b6d8035c390a202bea33e52221ab99ffe9a3f3f1be6986a56df4a3613e62d2`。
+
+<a id="research-links-and-retained-course"></a>
+
+### 2026-11-23 · 恢复旧研究、导出比较稿及停用后继续用课件
+
+11 月 4 日的公开研究使用 Stack Exchange、Wikipedia 和 OpenAlex 查询 `open science data sharing`。Windows Release Core `9629ce5d` 在已有备份上导出研究包，又生成可验证的完整工作区备份并恢复到新目录。六份原始响应及选定内容逐字节相同，三个引证在恢复后仍能定位，旧稿及其导出可读。原工作区保持原样。回执 `j2-962-recovery/artifacts/research-restore.json`，SHA-256 `1e0d19bf3d86462c55cad4d47f82dba2eb6f434cf3209cf20180c6bd736583be`。
+
+恢复的第 1 版研究稿只有支持与反证的占位文字。第 2 版记录三份材料的具体差异。百科说明共享政策和保密例外，社区快照保存了教职晋升问题，OpenAlex 保存了一篇会议讨论的摘要。资料能说明共享为他人使用研究数据提供条件，仍不足以判断共享者的晋升概率。普通研究文档保留 AI 整理、待核实的结论，重启后可读回两版及三个固定引证。本轮外部检索和人工接纳均为 0。回执 `j2-962-comparison/artifacts/comparison-receipt.json`，SHA-256 `dc6161eafe21f6c6dfdebb5e6eae800058c1edc4d799c0626feeacf0f84537b9`。
+
+同一 `9629ce5d` Core 通过正式能力设置停用 `course.general` 后，在第二次冷启动中读回并导出已保存的中文课件，取回原始 491,008 字节的 Joplin 文件。重新启用后第三次冷开，课件第 1 版、来源、知识引用及摘要一致。全程未请求渲染、生成或推理。查询能力详情时会进行健康握手。该验证覆盖用户开关以及已有课件的续用，扩展卸载属于独立操作。回执 `course-provider-retained-02/artifacts/retained-lesson.json`，SHA-256 `f61e9a5c7ad25104e6b006aebecb70ec783a8139173a3f6e4a74ce5c91e5a130`。
+
+旧 Markdown 导出的来源区为空，结构化研究包中保留了六项来源身份与三条引用。`2def1ace87d37c3c96124c8e00b42fc5192dc852` 修复了正式导出入口，并在 Windows Release 构建上通过新增回归。用实际产物冷开同一第 2 版研究稿的独立副本，唯一业务请求是一次 Markdown 导出，返回 HTTP 200。CommonMark 解析出了 Stack Exchange 原问题、Wikipedia 固定修订和 OpenAlex 记录的三个链接。三个选定来源有各自的摘要、锚点、引文及字节范围，三个原始响应保留固定身份。原工作区和文档版本一致。输出 6,058 字节，SHA-256 为 `23cb06ebe0dd764f98eadeeced640a0d43b80ab549b38c9ab0b5ed9da6ce6949`。首次验证启动因缺少独立机器会话身份提前退出，修正启动请求后才发出业务请求。回执 `j2-markdown-export-check/artifacts/markdown-export-result.json`，SHA-256 `e4348610e8105f5210c706901b162625dd99a02692ce74b3fcc99a73235fa350`。[Windows 构建和回归](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/45059742084)
+
+既有 GitHub 草稿追加了 Windows Core 组件、构建清单、实测导出的中文 Markdown 和公开业务摘要。压缩包 7,447,009 字节，附件 ID `780179571`，重新下载的 SHA-256 为 `d497a44ff58e0cace8a885a76ad0986ca56f8ff82fb520aba48a7c35ee21bf53`。草稿共 17 项。完整后端和桌面安装器的版本沿各自的构建记录核对。[下载 Windows Core 和研究成果](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Windows-Research-Core-and-Results-2def1ace.zip)
+
+后端装配输入已选用同一修复提交。与 `9629ce5d` 的冻结清单相比，17,803 个成员的字节数和摘要相同。本次替换 Core 与交换命令入口，新增思源交换模块。候选现有 17,806 个载荷成员，共 1,500,670,176 字节。前端 Git 子树一致，沿用先前逐文件核对的 36 份构建资源。新清单 SHA-256 为 `da95ab84cc9537249397169a8a2aee07eb6d1c93e0ccc878192ad99b608e4ebc`，位于本地运行 `2def-release-inputs`。NSIS 文件表已做内存核对。差分回执 SHA-256 为 `9c9857465596663d51b6b189209d0d2136afff4278019551b690dc99abfc147c`。独立 ZIP 实物、桌面 Host、安装器和安装态对应操作继续按新增保留预算与正式装配记录验收。
+
+### 2026-11-27 现有界面冻结与后续设计参考
+
+<a id="interface-freeze-and-references"></a>
+
+已在活动指针登记冻结基线。对应前端和 Tauri 的 Git 子树分别为 `1f1397d3bc51311b7639635957632ae4761165e3` 与 `187a12264b44a38cc5e7c23930ccae17edbd8c54`。后续方案沿同一个资料对象和固定来源版本进入研究、练习、课堂与 AI 知识审查。[Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127)
+
+### 2026-11-27 思源笔记及附件整体导出（J3）
+
+<a id="siyuan-notebook-attachments"></a>
+
+Windows 交换客户端通过 `siyuan export-folder` 读取已登记的思源导入批次，将编辑后的官方指南原生笔记和 1,589 字节 PNG 一起导出到新目录。笔记保留两级相对路径，附件落在批次根的 `assets/`。上游 SiYuan dataparser 与 Lute 读回 96 个块、修改后的中文正文及原图片路径，图片与原件 SHA-256 一致。临时工作区正常关闭。范围为单篇笔记及它在同批次中已解析的附件。Windows 现场回执 `sy-folder-export-check-01/artifacts/receipt.json`，SHA-256 `8536c5ed1795be7f73053494df131efafb7f7198b51c966f08a1bf8cbae78a3a`。发布前的差异仅为在写入前检查转换摘要的存在性，这一差异由 `sy-folder-loss-summary-20261127` 的新增个案覆盖。[命令与参数](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#editing-a-siyuan-copy)
+
+### 2026-11-27 Windows 候选留存复核与重新计量
+
+<a id="windows-retention-20261127"></a>
+
+Owner 授权推进全部闭环至项目完成后，复核旧构建、依赖与回滚材料的保留用途。此批复用已核对的运行时、固定版本前端和共享 Host 编译缓存，直接产出一个独立后端 ZIP、一个本地 `0.1.00` 安装器与各自回执。复核批删除文件数为 0。正式前后计量、2 GiB 增长复核线及目录类别预算继续应用。
+
+复核之前的项目可读增长为 2,502,366,255 字节。完成保留登记后，新固定基线测得 95,742,209,111 字节、1,139,639 个文件，计量为 `PARTIAL`（674 项读取错误）。保留范围及两个报告的完整身份见本地 `windows-retention-20261127/artifacts/review.json`（SHA-256 `e99bc878095c5c8ca4db1c8f3c6dd8b21e2a539650c583b6a46959a03b1b5658`）和本次活动指针。11 月 22 日的旧报告及已批准删除各批均可继续按原纪录核对。
+
+### 2026-11-27 Owner 纠错、本地复测与新样本迁移（J4）
+
+<a id="reviewed-museum-correction"></a>
+
+Owner 在对话中确认了无配对正文的 AppleDouble 成员应在本样本中作为独立来源保留。Codex 代录到正式 `/machine/corrections`，生成与原答相连的纠错知识候选 `k_29a2fbc030447a73a4f161f7`，并按该判断审核候选。在复用原 v6 规则资产且允许新纠错条目的授权下，正式 `/machine/retests` 用同一 Qwen 3.5 4B 实例和冻结的六项标准复测。确认纠错的 C 项变为正确，总分由 5/6 降到 4/6，A 项两项原有正确判断变错。两次回答、评分和候选均经冷重开取回。原库摘要一致。回执 `museum-owner-j4-proof-1127/artifacts/j4-owner-retest.json`，SHA-256 `75af510e05e4ba269736db15745fc2fd4aaa2d09c9308be9cebc0b1c42ac0e06`。
+
+新五成员 ZIP 在推理前完成正式归档转换并冻结十项标准。正式接口调用同一模型一次，独立核验模型确实收到 v6 规则和经审核的 C 项纠错。输出中的不确定字段无法按冻结字段名解释，正式状态为 `unmeasured`，迁移验收未通过。原始十个布尔值中七个相符，此数为人工可对照的字面吻合数。原答、新答、评测与输入材料经冷开读回。回执 `museum-transfer-grade-1127/artifacts/j4-transfer-verdict.json`，SHA-256 `3e26d13fc9e797353c33b095890e829352c6f0cf0e7bc8f94e070d8919ab7fde`。当前 Core 的结构化响应合同可用独立布尔字段表达每项不确定，适用于新题，已封存的两份评分保持各自规则。
+
+另一个双成员 ZIP 使用逐项布尔字段表达“能否判断”和“判断值”。正式 R8 一次答对真 `.DS_Store` 与无配对 AppleDouble 的保全方式，并对 ZIP 无法证实的删除原因弃答。3 项判断和 6 个字段符合事前冻结标准。模型实际收到 v6 规则和经审核的 C 个案，回答、评分、来源和授权在冷重开后可读。回执 `station-boolean-transfer-1128/artifacts/j4-station-booleans.json`，SHA-256 `390c00b0c97e90fc6e8c59a2bfd222752923ac224480a4bf5b35c6cf5bbb4704`。3/3 限于这一新题，先前实测保留原评价。
+
+### 2026-11-27 统一暗黑的三项目设计参考
+
+<a id="unified-dark-design-reference"></a>
+
+重做原型采用 AionUi 的会话与并排原件、DeepTutor 的伴学区、OpenMAIC 的课堂场景与播放控件。导航、预览、讲义和伴学统一为中性暗黑。三张 1440×900 图由实际 HTML 渲染，逐像素 RGB 相同。原件标签、资料追问、课堂翻场和独立练习使用示例资料与回复。正式 `frontend` 与 `src-tauri` 对应冻结子树。草稿附件 `801088558` 为 199,211 字节，SHA-256 `e2cafe8bca7ffe41e5adba8a19c3a35157d4a6b5e1f5f98c0041b53e4609d5ed`。[设计包](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Unified-Dark-Workbench-Reference-20261127.zip)
+
+### 2026-11-28 Windows 候选 f405d7be、J2 单篇迁移与实装
+
+<a id="windows-candidate-f405"></a>
+
+提交 `f405d7beee8f3fd2786131da9128c53c2708d9d8` 通过 Windows Release Core 构建和定向回归。旧版单篇包导入空库后有六份原件与三条历史引文，Markdown 原文链接为零。新版正式导出、导入和冷重开后取回三条原文链接、六份原件与三条历史引文。历史定位留在导入记录。旧版对照 SHA-256 `f73ab5af68ed44efa587bcd5cb85fa146c3d9e66a091e6d8a536eac449291536`，新版回执 `j2-portable-live-f405-20261127/artifacts/research-transfer.json` SHA-256 `c1002bfe6e570f33d0cec71c10bf3268e34693c45b383ec2921a4e39422dcae0`。[Windows 构建与回归](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/46022273511)
+
+独立 ZIP 与安装器共用运行时清单 SHA-256 `3952ea545e8e08b07537e1612af192efa9b8820395c4b79691a35882e8700e2f`。ZIP 逐项解压核对 17,806 个成员，文件为 687,507,714 字节，SHA-256 `b385736fdd61a5d9b1a60d28900908d1436238286d685706fd2f480178d373b4` 与草稿附件 `801090644` 一致。[独立后端 ZIP](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Backend-0.6.14-Windows-x64-f405d7be.zip)
+
+桌面 `0.1.00` 安装器对应 Windows ProductVersion `0.1.0`，为 551,458,213 字节，SHA-256 `cdd3db9b4927d55c9786537180a7a520e770db0c61117be73e6869b3f33e6789`。断网 Sandbox 实装后核对全部 17,806 项，安装前后已存工作区的数据库摘要相同。默认窗口打开、关闭均正常，研究稿、材料 v6 与 v7、练习均按固定身份读回。默认 bundled worker 握手就绪，来宾内实际模型请求为 0。来宾关闭。回执 `f405-nsis-install/artifacts/return/terminal.json`，SHA-256 `4c25cac7a42f06476b6b14c0c303ffdd65ef401f4fc1ab7b6964397d16d89ee0`。增长检查各阶段通过，后测比新基线可读增长 1,490,973,787 字节，计量覆盖为 `PARTIAL`。
+
+安装器已追加到 GitHub 草稿，附件 `801135442` 的远端尺寸与 SHA-256 均和本地实物一致。[下载 0.1.00 安装器](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/ArcheAxis.Knowledge_0.1.00_x64-setup-f405d7be.exe)
+
+### 2026-11-28 ODS 多工作表定位（X6）
+
+<a id="ods-sheet-local-location"></a>
+
+`f405d7be` 可转换同一份双表 ODS 并取回原件，第二张表的 A1 错标为 R3C1。基线回执 SHA-256 `caf71546c92caeb99909474dd8d5be4edc96822dc694aebbbb745f8c56d215dc`。后继 `e38957a5` 在每张表开始时重置行号。以修复后同字节 worker 和 Windows Core 验证第二张表的正确 A1、固定引用和原件冷读。单例回归修复前失败、修复后通过。实测修复回执 SHA-256 `798f1546df9bfd0248156e8b1fb85e18d82179a47c497de47ec3ffd5fefacfbb`。当前 ZIP 与安装器对应 `f405d7be`。旧转换和引用留存，下一版重新转换可创建使用正确坐标的作业。
+
+### 2026-11-28 Windows 跨版本换装及保留资料回退（X2／J6）
+
+<a id="windows-f405-clean-rollback"></a>
+
+使用两份已核对的实际安装器，在新断网 Windows Sandbox 完成 `0.6.14 → f405 候选（0.1.0）→ 0.6.14`。三次安装均退出 0，Host 和 Core 摘要随换装变化，回退后恢复为旧值。新版在旧程序已创建的文档上保存第 2 版，回退后的旧程序可读第 1、2 版与同一 46 字节中文原件，旧备份摘要一致。直接覆盖回退留下 9,517 个新版文件。跨版回执 `f405-install-return-core/artifacts/cross-install.json`，SHA-256 `caa50b8552a65575b23d49910c20abbea5a145a1b7330995c61afd1c67f9ad68`。另一次旧窗口观察超时，已安装旧 Core 的业务读写通过。
+
+另用断网 Sandbox 验证干净回退。先使用新版自带 NSIS 卸载程序的默认保留用户资料行为，安装目录移除，工作区 SQLite 与备份摘要保持。安装旧版后核到 8,292 个预期程序文件，缺失 0、额外 0。旧 Core 读回由新版保存的两版文档及逐字节一致的原件，进程正常退出，无手工移除目录。清洁回退回执 `f405-clean-return/artifacts/clean-return.json`，SHA-256 `2b82586451086c7696d3b4b353ce49c0b094a8da1c4e68206875cc2b8a2e73e3`。来宾已关闭。
+
+### 2026-11-28 独立 ZIP 正常启动与思源附件导出
+
+同一份下载 ZIP 在断网 Windows Sandbox 实际解压，从自带 `start-backend.cmd` 启动内置 Core 与默认 worker。Ctrl+C 后 Core 正常关闭，退出 0，外层 Windows 批处理返回 255。复用合成工作区，通过 ZIP 自带 `exchange … siyuan export-folder` 导出原生笔记和根目录下的 PNG。实际笔记与上次验证的输出仅在文档根、所属标题段、编辑段落的 `updated` 三处时间不同，其他字节一致。PNG 的 1,589 字节与源件一致。两条原探针因沿用旧导出时间的比较断言退出 1，分别保留。后用实际导出文件重新独立核对且退出 0，未再次启动工作区。独立回执 `f405-zip-native-export/artifacts/zip-native-independent-readback.json`，SHA-256 `49e8b9a547d89257f5c1aad7415809204d682e0f8e07797c0afe7bef522a5606`。

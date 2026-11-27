@@ -1,6 +1,7 @@
 //! Bounded document exchange, not workspace restore or knowledge approval.
 use crate::{
     document::{self, Error},
+    public_research::{self, SelectedHit},
     source::{self, ImportOutcome},
 };
 use rusqlite::{Connection, OptionalExtension};
@@ -161,6 +162,214 @@ fn historical_refs(
     }
     Ok(())
 }
+fn initial_basis(conn: &Connection, id: &str) -> Result<Value, Error> {
+    let initial_basis: Option<String> = conn.query_row(
+        "SELECT revision_basis FROM document_versions WHERE document_id=?1 AND version=1",
+        [id],
+        |row| row.get(0),
+    )?;
+    let basis = initial_basis
+        .map(|raw| serde_json::from_str(&raw).map_err(|_| bad("invalid initial revision basis")))
+        .transpose()?
+        .unwrap_or(Value::Null);
+    Ok(basis)
+}
+
+fn materials(snapshot: &Value) -> &[Value] {
+    snapshot["editor_json"]["attrs"]["archeaxis_research"]["materials"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default()
+}
+
+/// Historical search hits belong to this document's import receipt. Only a
+/// currently cited material with the same immutable bytes can select one.
+pub struct ResearchLink {
+    pub selection: SelectedHit,
+    pub provenance: &'static str,
+}
+
+const PUBLIC_HIT: &str = "public_research_hit";
+
+fn historical_hits(anchors: &[Value]) -> Result<BTreeMap<String, SelectedHit>, Error> {
+    let mut hits = BTreeMap::new();
+    for anchor in anchors.iter().filter(|a| a["kind"] == PUBLIC_HIT) {
+        let sha = anchor["source_sha256"]
+            .as_str()
+            .ok_or(bad("missing selection snapshot hash"))?;
+        let hit: SelectedHit = serde_json::from_value(anchor["selection"].clone())
+            .map_err(|_| bad("invalid historical public research selection"))?;
+        if hits.insert(sha.to_owned(), hit).is_some() || hits.len() > 128 {
+            return Err(bad("duplicate or excessive historical research selections"));
+        }
+    }
+    Ok(hits)
+}
+
+fn research_links(
+    conn: &Connection,
+    materials: &[Value],
+    basis: &Value,
+) -> Result<BTreeMap<String, ResearchLink>, Error> {
+    let mut links = BTreeMap::new();
+    // Older importers preserved arbitrary historical metadata. Only the new
+    // import path sets this marker after checking the raw and derived bytes.
+    let mut historical = if basis["portable_import"]["public_hit_locators_checked"] == true {
+        historical_hits(
+            basis["portable_import"]["historical_anchors"]
+                .as_array()
+                .ok_or(bad("invalid import receipt"))?,
+        )?
+    } else {
+        BTreeMap::new()
+    };
+    for material in materials {
+        let reference = &material["reference"];
+        if reference["kind"] != "source" {
+            continue;
+        }
+        let (Some(id), Some(sha)) = (
+            reference["source_id"].as_str(),
+            reference["sha256"].as_str(),
+        ) else {
+            continue;
+        };
+        if links.contains_key(sha) {
+            continue;
+        }
+        let (selection, provenance) = if let Some(hit) = historical.remove(sha) {
+            (hit, "portable_snapshot")
+        } else if let Some(hit) =
+            public_research::registered_hit(conn, id, sha)?.filter(|hit| hit.matches_snapshot(sha))
+        {
+            (hit, "registered_search")
+        } else {
+            continue;
+        };
+        links.insert(
+            sha.to_owned(),
+            ResearchLink {
+                selection,
+                provenance,
+            },
+        );
+    }
+    Ok(links)
+}
+
+pub struct ResearchEvidence {
+    pub links: BTreeMap<String, ResearchLink>,
+    pub historical_citations: BTreeMap<(String, String), Vec<Value>>,
+}
+
+pub fn document_research_evidence(
+    conn: &Connection,
+    id: &str,
+    materials: &[Value],
+) -> Result<ResearchEvidence, Error> {
+    let basis = initial_basis(conn, id)?;
+    let links = research_links(conn, materials, &basis)?;
+    let mut historical_citations: BTreeMap<_, Vec<_>> = BTreeMap::new();
+    if let Some(anchors) = basis["portable_import"]["historical_anchors"].as_array() {
+        for anchor in anchors.iter().filter(|a| a["kind"] == "research_citation") {
+            if let (Some(material), Some(sha)) = (
+                anchor["material_id"].as_str(),
+                anchor["citation"]["source_sha256"].as_str(),
+            ) {
+                historical_citations
+                    .entry((material.to_owned(), sha.to_owned()))
+                    .or_default()
+                    .push(anchor.clone());
+            }
+        }
+    }
+    Ok(ResearchEvidence {
+        links,
+        historical_citations,
+    })
+}
+
+fn add_raw_dependencies(
+    refs: &mut BTreeMap<String, String>,
+    hits: &BTreeMap<String, SelectedHit>,
+) -> Result<(), Error> {
+    for hit in hits.values() {
+        if refs
+            .insert(hit.raw_source_id.clone(), hit.raw_sha256.clone())
+            .is_some_and(|old| old != hit.raw_sha256)
+        {
+            return Err(bad("conflicting raw research source identity"));
+        }
+    }
+    Ok(())
+}
+
+// Decode each referenced raw response once, dropping it before the next one.
+fn verify_hit_responses(
+    hits: &BTreeMap<String, SelectedHit>,
+    objects: &[Object],
+) -> Result<(), Error> {
+    let mut by_raw = BTreeMap::<&str, Vec<&SelectedHit>>::new();
+    for hit in hits.values() {
+        by_raw.entry(&hit.raw_source_id).or_default().push(hit);
+    }
+    for object in objects {
+        if let Some(selected) = by_raw.remove(object.source_id.as_str()) {
+            let response = public_research::response_json(&object.bytes)
+                .ok_or(bad("invalid public research response bytes"))?;
+            if !selected
+                .iter()
+                .all(|hit| hit.response_contains_locator(&response))
+            {
+                return Err(bad("public research locator missing from bundled response"));
+            }
+        }
+    }
+    if !by_raw.is_empty() {
+        return Err(bad("missing public research response"));
+    }
+    Ok(())
+}
+
+fn read_object(
+    conn: &Connection,
+    basis: &Value,
+    source_id: String,
+    digest: String,
+    budget: usize,
+) -> Result<Object, Error> {
+    // Imported historical IDs remain provenance, not active locators. Resolve
+    // their bytes only through this document's immutable explicit import map.
+    let local_id = match basis["portable_import"]["source_mapping"].get(&source_id) {
+        Some(value) => value
+            .as_str()
+            .ok_or(bad("invalid historical source mapping"))?,
+        None => &source_id,
+    };
+    let (stored, name): (String, String) = conn.query_row(
+        "SELECT sha256,original_name FROM sources WHERE source_id=?1",
+        [local_id],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    )?;
+    if stored != digest {
+        return Err(bad("source identity changed"));
+    }
+    let bytes = archeaxis_store_sqlite::raw_objects::read_bounded(conn, &digest, budget)
+            .map_err(|error| match error {
+                // This CAS helper performs no SQL: InvalidQuery denotes its
+                // bounded size/identity rejection, not a writable query. Keep
+                // IO and actual SQL failures distinct from this package error.
+                rusqlite::Error::InvalidQuery => bad("package original exceeds remaining 8 MiB byte budget or CAS integrity check failed"),
+                other => Error::Sql(other),
+            })?;
+    Ok(Object {
+        source_id,
+        sha256: digest,
+        original_name: name,
+        bytes,
+    })
+}
+
 pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     let snapshot = document::read(conn, id, None)?;
     let mut historical_anchors = if let Some(source) = snapshot["source_id"].as_str() {
@@ -188,24 +397,17 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     // Ordinary saves intentionally have no inherited revision/authorization
     // basis. The immutable import origin is v1 of this same document; inspect
     // only its historical locations, never export arbitrary prior versions.
-    let initial_basis: Option<String> = conn.query_row(
-        "SELECT revision_basis FROM document_versions WHERE document_id=?1 AND version=1",
-        [id],
-        |row| row.get(0),
-    )?;
-    let basis: Value = initial_basis
-        .map(|raw| serde_json::from_str(&raw).map_err(|_| bad("invalid initial revision basis")))
-        .transpose()?
-        .unwrap_or(Value::Null);
+    let basis = initial_basis(conn, id)?;
     if let Some(inherited) = basis["portable_import"]["historical_anchors"].as_array() {
         historical_anchors.extend(inherited.iter().cloned());
     }
     let mut unique = BTreeSet::new();
-    historical_anchors.retain(|value| unique.insert(value.to_string()));
+    historical_anchors
+        .retain(|value| value["kind"] != PUBLIC_HIT && unique.insert(value.to_string()));
+    let mut references = refs(&snapshot)?;
     if historical_anchors.len() > 5000 {
         return Err(bad("anchor budget exceeded"));
     }
-    let mut references = refs(&snapshot)?;
     historical_refs(&mut references, &historical_anchors)?;
     if references.len() > 128 {
         return Err(bad("source count limit exceeded"));
@@ -213,38 +415,72 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     let mut objects = Vec::new();
     let mut total = 0usize;
     for (source_id, digest) in references {
-        // Imported historical IDs remain provenance, not active locators. Resolve
-        // their bytes only through this document's immutable explicit import map.
-        let local_id = match basis["portable_import"]["source_mapping"].get(&source_id) {
-            Some(value) => value
-                .as_str()
-                .ok_or(bad("invalid historical source mapping"))?,
-            None => &source_id,
-        };
-        let (stored, name): (String, String) = conn.query_row(
-            "SELECT sha256,original_name FROM sources WHERE source_id=?1",
-            [local_id],
-            |r| Ok((r.get(0)?, r.get(1)?)),
-        )?;
-        if stored != digest {
-            return Err(bad("source identity changed"));
-        }
-        let bytes = archeaxis_store_sqlite::raw_objects::read_bounded(conn, &digest, MAX_BYTES - total)
-            .map_err(|error| match error {
-                // This CAS helper performs no SQL: InvalidQuery denotes its
-                // bounded size/identity rejection, not a writable query. Keep
-                // IO and actual SQL failures distinct from this package error.
-                rusqlite::Error::InvalidQuery => bad("package original exceeds remaining 8 MiB byte budget or CAS integrity check failed"),
-                other => Error::Sql(other),
-            })?;
-        total += bytes.len();
-        objects.push(Object {
-            source_id,
-            sha256: digest,
-            original_name: name,
-            bytes,
-        });
+        let object = read_object(conn, &basis, source_id, digest, MAX_BYTES - total)?;
+        total += object.bytes.len();
+        objects.push(object);
     }
+
+    // Additional locators are optional. Older workers could produce a snapshot
+    // whose raw result cannot be matched. Keep every ordinary source and quote
+    // and add only the locators (and extra originals) that can actually travel.
+    let links = research_links(conn, materials(&snapshot), &basis)?;
+    let mut by_raw = BTreeMap::<(String, String), Vec<(String, SelectedHit)>>::new();
+    for (sha, link) in links {
+        let hit = link.selection;
+        by_raw
+            .entry((hit.raw_source_id.clone(), hit.raw_sha256.clone()))
+            .or_default()
+            .push((sha, hit));
+    }
+    for ((raw_id, raw_sha), selected) in by_raw {
+        if historical_anchors.len() == 5000 {
+            break;
+        }
+        let extra;
+        let raw = if let Some(raw) = objects.iter().find(|o| o.source_id == raw_id) {
+            if raw.sha256 != raw_sha {
+                continue;
+            }
+            extra = None;
+            raw
+        } else {
+            if objects.len() == 128 {
+                continue;
+            }
+            extra = read_object(
+                conn,
+                &basis,
+                raw_id,
+                raw_sha,
+                (MAX_BYTES - total).min(public_research::MAX_RESPONSE_BYTES),
+            )
+            .ok();
+            let Some(raw) = extra.as_ref() else {
+                continue;
+            };
+            raw
+        };
+        let Some(response) = public_research::response_json(&raw.bytes) else {
+            continue;
+        };
+        let before = historical_anchors.len();
+        for (sha, hit) in selected {
+            if hit.response_contains_locator(&response) {
+                historical_anchors
+                    .push(json!({"kind":PUBLIC_HIT,"source_sha256":sha,"selection":hit}));
+                if historical_anchors.len() == 5000 {
+                    break;
+                }
+            }
+        }
+        if historical_anchors.len() > before
+            && let Some(raw) = extra
+        {
+            total += raw.bytes.len();
+            objects.push(raw);
+        }
+    }
+    objects.sort_by(|a, b| a.source_id.cmp(&b.source_id));
     let package = Package {
         schema: "archeaxis.document-package/v1".into(),
         document: snapshot,
@@ -279,6 +515,21 @@ pub fn import(
         return Err(bad("unsupported or oversized package"));
     }
     let mut expected = refs(&package.document)?;
+    let selected: BTreeSet<_> = materials(&package.document)
+        .iter()
+        .map(|m| &m["reference"])
+        .filter(|r| r["kind"] == "source")
+        .filter_map(|r| r["sha256"].as_str())
+        .collect();
+    let hits = historical_hits(&package.historical_anchors)?;
+    for (sha, hit) in &hits {
+        // Recreate the exact text produced by materialize, including the URL,
+        // locator and raw identity. The package object loop verifies BOTH hashes.
+        if !selected.contains(sha.as_str()) || !hit.matches_snapshot(sha) {
+            return Err(bad("public research selection differs from its material"));
+        }
+    }
+    add_raw_dependencies(&mut expected, &hits)?;
     historical_refs(&mut expected, &package.historical_anchors)?;
     if expected.len() > 128 {
         return Err(bad("source count limit exceeded"));
@@ -301,6 +552,7 @@ pub fn import(
     if seen.len() != expected.len() {
         return Err(bad("package objects incomplete"));
     }
+    verify_hit_responses(&hits, &package.objects)?;
     let original_editor = package.document["editor_json"].clone();
     // Document/Knowledge identities are workspace-local. This package only
     // transfers hash-bound Source objects, so never resolve a foreign ID against
@@ -505,7 +757,10 @@ pub fn import(
         editor,
         Some(&receipt_key),
     )?;
-    let basis = json!({"portable_import":{"package_sha256":digest,"source_mapping":mapping,"historical_anchors":package.historical_anchors,"origin_document":{"document_id":package.document["document_id"],"version":package.document["version"],"source_id":package.document["source_id"],"source_revision":package.document["source_revision"],"content_sha256":package.document["content_sha256"]}}});
+    let mut basis = json!({"portable_import":{"package_sha256":digest,"source_mapping":mapping,"historical_anchors":package.historical_anchors,"origin_document":{"document_id":package.document["document_id"],"version":package.document["version"],"source_id":package.document["source_id"],"source_revision":package.document["source_revision"],"content_sha256":package.document["content_sha256"]}}});
+    if !hits.is_empty() {
+        basis["portable_import"]["public_hit_locators_checked"] = json!(true);
+    }
     tx.execute(
         "UPDATE document_versions SET revision_basis=?1 WHERE document_id=?2 AND version=1",
         rusqlite::params![basis.to_string(), saved["document_id"].as_str()],
