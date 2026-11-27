@@ -5155,3 +5155,7 @@ Owner 在对话中确认了无配对正文的 AppleDouble 成员应在本样本�
 使用两份已核对的实际安装器，在新断网 Windows Sandbox 完成 `0.6.14 → f405 候选（0.1.0）→ 0.6.14`。三次安装均退出 0，Host 和 Core 摘要随换装变化，回退后恢复为旧值。新版在旧程序已创建的文档上保存第 2 版，回退后的旧程序可读第 1、2 版与同一 46 字节中文原件，旧备份摘要一致。直接覆盖回退留下 9,517 个新版文件。跨版回执 `f405-install-return-core/artifacts/cross-install.json`，SHA-256 `caa50b8552a65575b23d49910c20abbea5a145a1b7330995c61afd1c67f9ad68`。另一次旧窗口观察超时，已安装旧 Core 的业务读写通过。
 
 另用断网 Sandbox 验证干净回退。先使用新版自带 NSIS 卸载程序的默认保留用户资料行为，安装目录移除，工作区 SQLite 与备份摘要保持。安装旧版后核到 8,292 个预期程序文件，缺失 0、额外 0。旧 Core 读回由新版保存的两版文档及逐字节一致的原件，进程正常退出，无手工移除目录。清洁回退回执 `f405-clean-return/artifacts/clean-return.json`，SHA-256 `2b82586451086c7696d3b4b353ce49c0b094a8da1c4e68206875cc2b8a2e73e3`。来宾已关闭。
+
+### 2026-11-28 独立 ZIP 正常启动与思源附件导出
+
+同一份下载 ZIP 在断网 Windows Sandbox 实际解压，从自带 `start-backend.cmd` 启动内置 Core 与默认 worker。Ctrl+C 后 Core 正常关闭，退出 0，外层 Windows 批处理返回 255。复用合成工作区，通过 ZIP 自带 `exchange … siyuan export-folder` 导出原生笔记和根目录下的 PNG。实际笔记与上次验证的输出仅在文档根、所属标题段、编辑段落的 `updated` 三处时间不同，其他字节一致。PNG 的 1,589 字节与源件一致。两条原探针因沿用旧导出时间的比较断言退出 1，分别保留。后用实际导出文件重新独立核对且退出 0，未再次启动工作区。独立回执 `f405-zip-native-export/artifacts/zip-native-independent-readback.json`，SHA-256 `49e8b9a547d89257f5c1aad7415809204d682e0f8e07797c0afe7bef522a5606`。
