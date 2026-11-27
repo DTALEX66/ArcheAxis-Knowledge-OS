@@ -974,6 +974,8 @@ This source inventory adds one pair (130 → 131), not J3 acceptance. Wikilinks 
 
 Portable Document packages now include and remap declared canonical Source relation references. Unbundled Document/Knowledge relation references are refused before destination writes, even if their IDs coincide with local objects. Existing historical research-citation closure remains unchanged. Ordinary Markdown/Obsidian projection export is not a native-Vault roundtrip; API qualification is not installed-host, UI-consumer or Owner acceptance.
 
+Research document packages may include a `public_research_hit` historical entry for a selected public result. It carries the saved locator, the selected material's digest and the bound raw response with its own digest. The importer checks the exact derived snapshot and the locator in the bundled API response. Export keeps the existing document, declared original sources and historical citations when an older response cannot substantiate a portable locator. Version 1 packages without these entries remain readable. On Markdown export, `upstream_provenance: portable_snapshot` identifies a link retained from the imported package. Historical quotes remain separate from active local anchors and the operation does not execute a new public search.
+
 
 ## 18. Material async admission (2026-10-21, phase 1)
 

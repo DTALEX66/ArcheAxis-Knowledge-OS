@@ -5147,3 +5147,11 @@ Owner 在对话中确认了无配对正文的 AppleDouble 成员应在本样本�
 <a id="ods-sheet-local-location"></a>
 
 `f405d7be` 可转换同一份双表 ODS 并取回原件，第二张表的 A1 错标为 R3C1。基线回执 SHA-256 `caf71546c92caeb99909474dd8d5be4edc96822dc694aebbbb745f8c56d215dc`。后继 `e38957a5` 在每张表开始时重置行号。以修复后同字节 worker 和 Windows Core 验证第二张表的正确 A1、固定引用和原件冷读。单例回归修复前失败、修复后通过。实测修复回执 SHA-256 `798f1546df9bfd0248156e8b1fb85e18d82179a47c497de47ec3ffd5fefacfbb`。当前 ZIP 与安装器对应 `f405d7be`。旧转换和引用留存，下一版重新转换可创建使用正确坐标的作业。
+
+### 2026-11-28 Windows 跨版本换装及保留资料回退（X2／J6）
+
+<a id="windows-f405-clean-rollback"></a>
+
+使用两份已核对的实际安装器，在新断网 Windows Sandbox 完成 `0.6.14 → f405 候选（0.1.0）→ 0.6.14`。三次安装均退出 0，Host 和 Core 摘要随换装变化，回退后恢复为旧值。新版在旧程序已创建的文档上保存第 2 版，回退后的旧程序可读第 1、2 版与同一 46 字节中文原件，旧备份摘要一致。直接覆盖回退留下 9,517 个新版文件。跨版回执 `f405-install-return-core/artifacts/cross-install.json`，SHA-256 `caa50b8552a65575b23d49910c20abbea5a145a1b7330995c61afd1c67f9ad68`。另一次旧窗口观察超时，已安装旧 Core 的业务读写通过。
+
+另用断网 Sandbox 验证干净回退。先使用新版自带 NSIS 卸载程序的默认保留用户资料行为，安装目录移除，工作区 SQLite 与备份摘要保持。安装旧版后核到 8,292 个预期程序文件，缺失 0、额外 0。旧 Core 读回由新版保存的两版文档及逐字节一致的原件，进程正常退出，无手工移除目录。清洁回退回执 `f405-clean-return/artifacts/clean-return.json`，SHA-256 `2b82586451086c7696d3b4b353ce49c0b094a8da1c4e68206875cc2b8a2e73e3`。来宾已关闭。
