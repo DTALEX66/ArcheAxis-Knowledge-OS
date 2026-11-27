@@ -205,3 +205,9 @@ decisions:
     old_claim: 'The local audit and intake produce analysis and registry updates only; no production consumer implementation is started in that audit phase'
     replacement: 'Owner subsequently requests execution, with unified in-repository archival first. Freeze source, audit deliverables, inherited receipts and pre-implementation changes locally, then implement the first bounded teaching consumer slice using existing React/Tauri, generated contracts and Rust Core writer. Audit T0-T7 remains a mapped implementation reference under existing INT/UF/CL/J/X, not a competing queue; no blanket acceptance of all candidates or visual proposals follows.'
     reason: 'Owner explicitly said 开始执行，先统一归档到项目里 after receiving the comprehensive audit. Source and selection are preserved in workspace/intake/20261112-local-audit/README.md and decision section thirty. Product identity V2.3, loop V3, SUP-034 full capability integration and inherited evidence remain intact; no automatic remote delivery, release, Green replacement, real-data overwrite, dependency upgrade or global model change follows.'
+  - id: SUP-036
+    status: effective
+    supersedes: 'Earlier overlays allowing changes to the existing production interface layout, visual design, navigation or interactions'
+    old_claim: 'Existing production interface design may change through the earlier UI implementation overlays.'
+    replacement: 'Freeze the existing interface. Use AionUi, DeepTutor and OpenMAIC as references in separate future design work. Continue all required V3 journeys on the product and verify the frozen interface as an actual consumer.'
+    reason: 'Owner updated the active goal on 2026-11-27 to finish the entire closed loop, freeze the existing interface and reference the three named projects. See decision section thirty-one and the active execution pointer.'

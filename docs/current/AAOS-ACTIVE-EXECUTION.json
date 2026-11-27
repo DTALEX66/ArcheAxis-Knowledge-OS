@@ -129,6 +129,19 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
+    "owner_interface_freeze_20261127": {
+      "decision_id": "OWNER-INTERFACE-FREEZE-20261127",
+      "supersession": "SUP-036",
+      "interface": "FROZEN",
+      "source_commit": "67bfd7849f6a7d1458f0cf8390cad19c5f02acb9",
+      "frontend_tree": "1f1397d3bc51311b7639635957632ae4761165e3",
+      "tauri_tree": "187a12264b44a38cc5e7c23930ccae17edbd8c54",
+      "design_reference_projects": ["AionUi", "DeepTutor", "OpenMAIC"],
+      "design_scope": "Separate concept work. Existing production layout, styling, navigation and interactions are frozen.",
+      "closed_loop": "CONTINUE_ALL_REQUIRED_V3_RESULTS",
+      "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127",
+      "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#interface-freeze-and-references"
+    },
     "owner_backend_first_20261121": {
       "instruction": "如果前端随时可以修改更新修复，就优先跑完后端闭环",
       "verification_priority": "沿用已有回执；只补未覆盖的业务操作、已复现的断点及直接受影响的合同。",
@@ -161,6 +174,7 @@
       "bundled_default_machine_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#bundled-default-machine",
       "wps_xlsx_return_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#wps-xlsx-file-return",
       "siyuan_native_copy_and_review_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return",
+      "siyuan_notebook_attachments_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-notebook-attachments",
       "research_markdown_and_retained_course_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#research-links-and-retained-course",
       "local_installer_selection_20261122": {
         "owner_version_label": "0.1.00",
@@ -2366,7 +2380,7 @@
     "boundary": "This readback is saved in a follow-up documentation commit. Resolve its final SHA from Git/native ref; no self-referential SHA is invented."
   },
   "owner_scope_current": {
-    "latest_execution_overlay": "execution_control.owner_local_audit_execution_20261112",
+    "latest_execution_overlay": "execution_control.owner_interface_freeze_20261127",
     "date": "2026-10-23",
     "id": "OWNER-HUMAN-AI-DUAL-LOOP-20261023",
     "owner_statements": [

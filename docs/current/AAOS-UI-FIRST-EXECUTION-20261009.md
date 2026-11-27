@@ -5093,3 +5093,15 @@ WPS 表格 12.1.0.29690 在一份合成 XLSX 副本上打开「第二页」A1，
 既有 GitHub 草稿追加了 Windows Core 组件、构建清单、实测导出的中文 Markdown 和公开业务摘要。压缩包 7,447,009 字节，附件 ID `780179571`，重新下载的 SHA-256 为 `d497a44ff58e0cace8a885a76ad0986ca56f8ff82fb520aba48a7c35ee21bf53`。草稿共 17 项。完整后端和桌面安装器的版本沿各自的构建记录核对。[下载 Windows Core 和研究成果](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/download/untagged-fc5af239054d1062fba7/AAOS-Windows-Research-Core-and-Results-2def1ace.zip)
 
 后端装配输入已选用同一修复提交。与 `9629ce5d` 的冻结清单相比，17,803 个成员的字节数和摘要相同。本次替换 Core 与交换命令入口，新增思源交换模块。候选现有 17,806 个载荷成员，共 1,500,670,176 字节。前端 Git 子树一致，沿用先前逐文件核对的 36 份构建资源。新清单 SHA-256 为 `da95ab84cc9537249397169a8a2aee07eb6d1c93e0ccc878192ad99b608e4ebc`，位于本地运行 `2def-release-inputs`。NSIS 文件表已做内存核对。差分回执 SHA-256 为 `9c9857465596663d51b6b189209d0d2136afff4278019551b690dc99abfc147c`。独立 ZIP 实物、桌面 Host、安装器和安装态对应操作继续按新增保留预算与正式装配记录验收。
+
+### 2026-11-27 现有界面冻结与后续设计参考
+
+<a id="interface-freeze-and-references"></a>
+
+已在活动指针登记冻结基线。对应前端和 Tauri 的 Git 子树分别为 `1f1397d3bc51311b7639635957632ae4761165e3` 与 `187a12264b44a38cc5e7c23930ccae17edbd8c54`。后续方案沿同一个资料对象和固定来源版本进入研究、练习、课堂与 AI 知识审查。[Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127)
+
+### 2026-11-27 思源笔记及附件整体导出（J3）
+
+<a id="siyuan-notebook-attachments"></a>
+
+Windows 交换客户端通过 `siyuan export-folder` 读取已登记的思源导入批次，将编辑后的官方指南原生笔记和 1,589 字节 PNG 一起导出到新目录。笔记保留两级相对路径，附件落在批次根的 `assets/`。上游 SiYuan dataparser 与 Lute 读回 96 个块、修改后的中文正文及原图片路径，图片与原件 SHA-256 一致。临时工作区正常关闭。范围为单篇笔记及它在同批次中已解析的附件。Windows 现场回执 `sy-folder-export-check-01/artifacts/receipt.json`，SHA-256 `8536c5ed1795be7f73053494df131efafb7f7198b51c966f08a1bf8cbae78a3a`。发布前的差异仅为在写入前检查转换摘要的存在性，这一差异由 `sy-folder-loss-summary-20261127` 的新增个案覆盖。[命令与参数](AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md#editing-a-siyuan-copy)

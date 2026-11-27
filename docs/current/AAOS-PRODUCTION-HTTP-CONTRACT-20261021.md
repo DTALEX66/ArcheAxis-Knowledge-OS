@@ -1297,6 +1297,12 @@ start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan e
 
 Choose an existing destination directory and the original native filename. The destination file must be new. With a supported text change, the export updates the selected text and the timestamps for the selected block, its block ancestors, enclosing heading sections and the document root. An unchanged projection returns the original bytes. This operation covers Spec 2 and 3 paragraphs and headings with a single text node and valid timestamps. Preserve the notebook-relative layout when placing existing attachments beside the returned note. The client exports the note file. [SiYuan format](https://github.com/siyuan-note/siyuan/blob/e6794a0c44976269591c2e1633c29dc44ca379e4/docs/SY-FORMAT.md) · [Download and Windows evidence](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return)
 
+For a note saved from a registered folder batch, export its notebook-relative path and the files under `assets/` resolved by Core. Select the batch containing the same original note revision and its files. The destination must be new and its parent must exist. An unresolved attachment stops the export before publishing the destination. The receipt gives the note path, each copied asset's revision and the conversion's count of omitted subtrees. [Windows readback](AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-notebook-attachments)
+
+~~~bat
+start-backend.cmd exchange --workspace "D:\My library\workspace.sqlite" siyuan export-folder --document DOCUMENT_ID --batch BATCH_ID --output "D:\Returned\NotebookCopy"
+~~~
+
 When a previously imported file acquires a supported conversion route, an explicit rerun of the folder driver checks its retained source ID, digest and extension. It enqueues the newly available conversion on that source, using the same content-derived job ID on retry. An unchanged member with a completed enqueue continues to skip. The focused checks are in `tests/test_text_format_facts.py` and `tests/test_directory_batch.py`.
 
 ## 39. Windows image OCR providers

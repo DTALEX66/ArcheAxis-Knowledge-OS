@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import ntpath
 import os
 import re
 import sys
 import tempfile
 from datetime import datetime
-from pathlib import Path
-from urllib.parse import quote
+from pathlib import Path, PureWindowsPath
+from urllib.parse import quote, unquote
 
-from scripts.ingest.obsidian_vault import DOCUMENTS, CoreError, digest, original_bytes
+from scripts.ingest.obsidian_vault import DOCUMENTS, CoreError, batch_members, digest, original_bytes
 from shared import core_client
 
 ID = re.compile(r"[0-9]{14}-[a-z0-9]{7}")
@@ -211,6 +212,89 @@ def publish_copy(output, data):
             os.link(temp, output)
 
 
+def member_parts(name):
+    parts = name.split("/")
+    reserved = getattr(ntpath, "isreserved", lambda s: PureWindowsPath(s).is_reserved())
+    if any(not part or part.endswith((".", " ")) or reserved(part)
+           or re.search(r'[\x00-\x1f<>:"|?*\\]', part) for part in parts):
+        raise ValueError(f"unsafe batch member path: {name}")
+    return parts
+
+
+def export_folder(call, args, doc, native_id, data):
+    if os.path.lexists(args.output):
+        raise FileExistsError(f"choose a new output directory: {args.output}")
+    route, workspace, members = batch_members(call, args.batch)
+    notes = [m for m in members if m["source_id"] == doc["source_id"]
+             and m["source_revision"] == doc["source_revision"] and m["relative_path"].endswith(".sy")]
+    if len(notes) != 1:
+        raise ValueError("the batch must contain exactly one matching SiYuan source revision")
+    note = notes[0]
+    note_parts = member_parts(note["relative_path"])
+    if note_parts[-1] != native_id + ".sy":
+        raise ValueError("the batch filename differs from the native document ID")
+    job = note["job_id"]
+    if not job:
+        raise ValueError("the selected batch note requires a completed SiYuan conversion")
+    report = call("GET", "/api/v1/jobs/" + quote(job, safe="") + "/outputs/loss_report")
+    loss_sha = digest(report["content"].encode())
+    facts = json.loads(report["content"])["params"]["format"]
+    if (loss_sha != report["metadata"]["sha256"] or facts["format"] != "siyuan"
+            or facts["parsed"] is not True or facts["document_id"] != native_id):
+        raise ValueError("batch conversion differs from the native note")
+    omitted = facts["omitted_subtrees"]
+    # Read the root even for a note without links so Core verifies the conversion and source binding.
+    by_block = {native_id: []}
+    for link in facts["attachment_paths"]:
+        by_block.setdefault(link["source_block_id"], []).append(link["relative_path"])
+    by_ordinal = {m["ordinal"]: m for m in members}
+    assets = {}
+    for block, paths in by_block.items():
+        projection = call("GET", f"{route}/members/{note['ordinal']}/siyuan-blocks/{quote(block, safe='')}/assets")
+        if (projection["native_source_block"] != {"source_id": doc["source_id"], "sha256": doc["source_revision"], "block_id": block}
+                or projection["conversion"]["loss_sha256"] != loss_sha or projection["conversion"]["job_id"] != job
+                or [a["relative_path"] for a in projection["assets"]] != paths):
+            raise ValueError("batch attachment projection differs from its conversion")
+        for asset in projection["assets"]:
+            path = asset["relative_path"]
+            if asset["status"] != "resolved_reference":
+                raise ValueError(f"unresolved attachment in block {block}: {path} ({asset['reason']})")
+            target = by_ordinal[asset["target_ordinal"]]
+            name = target["relative_path"]
+            if (member_parts(name)[0] != "assets" or unquote(path, errors="strict") != name
+                    or asset["target"] != {"kind": "source", "source_id": target["source_id"], "sha256": target["source_revision"]}
+                    or (name in assets and assets[name] != target)):
+                raise ValueError(f"attachment identity conflict for {path}")
+            assets[name] = target
+
+    with tempfile.TemporaryDirectory(prefix=".aaos-siyuan-", dir=args.output.parent) as temp:
+        folder = Path(temp) / "notebook"
+        target = folder.joinpath(*note_parts)
+        target.parent.mkdir(parents=True)
+        target.write_bytes(data)
+        for name, member in assets.items():
+            raw = original_bytes(call, member["source_id"], member["source_revision"])
+            if len(raw) != member["byte_length"]:
+                raise ValueError(f"attachment length differs from its manifest: {name}")
+            target = folder.joinpath(*member_parts(name))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("xb") as stream:
+                stream.write(raw)
+        if os.name == "nt":
+            folder.rename(args.output)
+        else:
+            # POSIX rename can replace an existing empty directory. Reserve the new name exclusively.
+            args.output.mkdir()
+            try:
+                folder.rename(args.output)
+            except OSError:
+                args.output.rmdir()
+                raise
+    return {"workspace_id": workspace, "batch_id": args.batch, "note_path": note["relative_path"],
+            "assets": [{"path": name, "sha256": m["source_revision"], "bytes": m["byte_length"]}
+                       for name, m in assets.items()], "omitted_subtrees": omitted}
+
+
 def exchange(call, args):
     if args.action == "save":
         return save_conversion(call, args.job_id)
@@ -238,10 +322,13 @@ def exchange(call, args):
             saved = call("PUT", route + "/draft", {"expected_version": doc["version"], "editor_json": doc["editor_json"]})
             result["version"] = saved["version"]
         return {**result, "block_id": args.block_id, "text": node["text"]}
-    if args.output.name != tree["ID"] + ".sy":
+    if args.action == "export" and args.output.name != tree["ID"] + ".sy":
         raise ValueError(f"choose a new directory with the native filename {tree['ID']}.sy")
     edits = {key: val["text"] for key, val in mapped.items() if val["text"] != leaves[key]["Data"]}
     data = render(raw, tree, leaves, edits)
+    if args.action == "export-folder":
+        exported = export_folder(call, args, doc, tree["ID"], data)
+        return {**result, **exported, "output": str(args.output), "sha256": digest(data), "edited_blocks": list(edits)}
     publish_copy(args.output, data)
     return {**result, "output": str(args.output), "sha256": digest(data), "edited_blocks": list(edits),
             "scope": "Native text only. Asset paths stay in the note. Attachment files and AAOS metadata are not exported."}
@@ -255,11 +342,14 @@ def main(argv=None, *, session=None):
     blocks = commands.add_parser("blocks", help="list mapped, editable native blocks")
     block = commands.add_parser("block", help="read a native block or update its plain text")
     export = commands.add_parser("export", help="write a native copy to a new file")
-    for sub in (blocks, block, export):
+    folder = commands.add_parser("export-folder", help="write the note and its recorded assets under a new folder")
+    folder.add_argument("--batch", required=True, help="folder import batch containing this note and its assets")
+    for sub in (blocks, block, export, folder):
         sub.add_argument("--document", required=True)
     block.add_argument("block_id")
     block.add_argument("--text")
     export.add_argument("--output", type=Path, required=True)
+    folder.add_argument("--output", type=Path, required=True)
     args = cli.parse_args(argv)
     if not args.core:
         cli.error("pass --core or set ARCHEAXIS_CORE_BASE")

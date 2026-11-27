@@ -1,5 +1,7 @@
 # AAOS 当前状态与执行入口
 
+现有界面按 Owner 11 月 27 日的决定冻结。AionUi、DeepTutor、OpenMAIC 用于后续方案；现行 V3 全部闭环验收继续。[界面冻结与设计依据](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#interface-freeze-20261127)
+
 思源单文档已走通块编辑、原生副本导出、官方解析库读回与返回 AAOS。可下载的 Windows 交换客户端、适用版本及同轮模型错答案例的待审核状态见[思源往返和知识候选实测](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#siyuan-native-copy-return)。
 
 三类公开研究来源的备份恢复、比较稿 Markdown 导出，以及停用生成器后继续使用原课件，见[研究与课程的跨版本实测](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#research-links-and-retained-course)。

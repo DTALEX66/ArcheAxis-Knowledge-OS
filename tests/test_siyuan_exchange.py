@@ -146,3 +146,64 @@ def test_attachment_only_snapshot_and_missing_historical_timestamp(tmp_path):
     del tree["Properties"]["updated"]
     with pytest.raises(ValueError, match="updated timestamp"):
         sy.timestamp_changes(tree, {BLOCK})
+
+
+@pytest.mark.parametrize("issue", [None, "unbound", "asset_digest", "wrong_batch", "unsafe_name", "receipt_changed", "missing_loss_summary"])
+def test_export_batch_note_and_verified_attachment_or_publish_nothing(tmp_path, issue):
+    raw, first = setup_note()
+    path = "assets/x.png"
+    png = b"attachment fixture"
+    asset_sha = sy.digest(png)
+    note_name = ("../" if issue == "unsafe_name" else "parent/") + ROOT + ".sy"
+    note = {"source_id": "source", "source_revision": first["source_revision"], "job_id": "job",
+            "relative_path": note_name, "ordinal": 0}
+    asset = {"source_id": "attachment", "source_revision": asset_sha,
+             "relative_path": path, "ordinal": 1, "byte_length": len(png)}
+    facts = {"format": "siyuan", "parsed": True, "document_id": ROOT, "omitted_subtrees": 0,
+             "attachment_paths": [{"source_block_id": MEDIA, "relative_path": path}] * 2}
+    if issue == "missing_loss_summary":
+        del facts["omitted_subtrees"]
+    loss = json.dumps({"params": {"format": facts}})
+    loss_sha = sy.digest(loss.encode())
+    original_requests = []
+
+    def call(method, route):
+        assert method == "GET"
+        if route.startswith(sy.DOCUMENTS):
+            doc = deepcopy(first)
+            if not route.endswith("/versions/1"):
+                doc["editor_json"]["content"][0]["content"][0]["text"] = "更新"
+                doc["version"] = 2
+            return doc
+        if route.endswith("/original"):
+            original_requests.append(route)
+            data = raw if "/source/" in route else png
+            return {"content_base64": base64.b64encode(data), "sha256": "changed" if data == png and issue == "asset_digest" else sy.digest(data)}
+        if route.endswith("limit=200"):
+            return {"complete": True, "workspace_id": "ws", "members": [asset] if issue == "wrong_batch" else [note, asset],
+                    "next_ordinal": None}
+        if route.endswith("/loss_report"):
+            return {"content": loss, "metadata": {"sha256": loss_sha}}
+        block = route.split("/")[-2]
+        entry = {"relative_path": path, "status": "resolved_reference", "target_ordinal": 1,
+                 "target": {"kind": "source", "source_id": asset["source_id"], "sha256": asset_sha}}
+        if issue == "unbound":
+            entry.update(status="unbound", reason="scoped_asset_path_unverified")
+        return {"native_source_block": {"source_id": "source", "sha256": note["source_revision"], "block_id": block},
+                "conversion": {"job_id": "job", "loss_sha256": "changed" if issue == "receipt_changed" else loss_sha},
+                "assets": [entry, entry] if block == MEDIA else []}
+
+    args = SimpleNamespace(action="export-folder", document="doc", batch="batch", output=tmp_path / "out")
+    if issue:
+        with pytest.raises(KeyError if issue == "missing_loss_summary" else ValueError):
+            sy.exchange(call, args)
+        assert list(tmp_path.iterdir()) == []
+        return
+    result = sy.exchange(call, args)
+    assert result["version"] == 2 and result["edited_blocks"] == [BLOCK]
+    assert sy.native_blocks((args.output / note_name).read_bytes())[1][BLOCK]["Data"] == "更新"
+    assert (args.output / path).read_bytes() == png
+    assert result["assets"] == [{"path": path, "bytes": len(png), "sha256": asset_sha}]
+    assert len(original_requests) == 2
+    with pytest.raises(FileExistsError):
+        sy.exchange(call, args)
